@@ -131,6 +131,11 @@ tier, and a wide bridge does not widen the narrow gate behind it, so this costs
 the defender nothing. Anything placed elsewhere on the perimeter ends up in the
 water the moment its owner buys tier 5 -- the moat takes the whole ring.
 
+**A plot is three different floor heights.** The lawn is the top of the plot
+slab (+0.5), the driveway is paving on the world ground (-0.28), and the verge
+is bare world ground (-0.5). `Decor.build` takes a height per zone; passing one
+number left everything outside the fence hovering a full stud.
+
 **Decorations are placed automatically and never collide.** Buying one drops it
 into the next free slot for its zone. There is deliberately no placement mode:
 the lawn is the ground an owner defends on, and more prompts there would compete

@@ -219,6 +219,11 @@ end
 -- Fence sits on the world ground outside the plot slab, not on the slab.
 local FENCE_BASE_Y = -Config.PLOT_SIZE.Y / 2
 
+-- How far the driveway paving stands proud of the world ground. Shared with
+-- the decor placement so a car sits ON the paving rather than sunk into it or
+-- hovering over it.
+local DRIVEWAY_LIFT = 0.22
+
 local function alongVec(alongX: boolean, t: number): Vector3
 	return if alongX then Vector3.new(t, 0, 0) else Vector3.new(0, 0, t)
 end
@@ -547,8 +552,16 @@ function PlotService.setDecor(plot: Plot, placed: { [string]: string })
 		plot.decor:Destroy()
 		plot.decor = nil
 	end
-	-- Ornaments stand on the lawn, which is the TOP of the plot slab.
-	plot.decor = Decor.build(placed, plot.cframe, Config.PLOT_SIZE.Y / 2, plot.model)
+	-- Three different floors, one per zone: the lawn is the top of the plot
+	-- slab, the driveway is paving laid on the world ground, and the verge is
+	-- the bare world ground. Passing a single height left everything outside
+	-- the fence floating.
+	local worldGround = -Config.PLOT_SIZE.Y / 2
+	plot.decor = Decor.build(placed, plot.cframe, {
+		lawn = Config.PLOT_SIZE.Y / 2,
+		driveway = worldGround + DRIVEWAY_LIFT,
+		verge = worldGround,
+	}, plot.model)
 end
 
 -- The strip of paving from the gate out to the kerb, surfaced by house tier.
@@ -600,12 +613,12 @@ local function buildDriveway(plot: Plot, tier: any)
 	local centreZ = (m.driveNear + m.driveFar) / 2
 
 	slab("Surface", Vector3.new(Config.DRIVEWAY_WIDTH, thickness, length),
-		Vector3.new(0, groundY + 0.22 - thickness / 2, centreZ), drive.colour, drive.material)
+		Vector3.new(0, groundY + DRIVEWAY_LIFT - thickness / 2, centreZ), drive.colour, drive.material)
 
 	if drive.edge then
 		for _, side in ipairs({ -1, 1 }) do
 			slab("Edge", Vector3.new(0.7, thickness, length),
-				Vector3.new(side * (Config.DRIVEWAY_WIDTH / 2 - 0.35), groundY + 0.26 - thickness / 2, centreZ),
+				Vector3.new(side * (Config.DRIVEWAY_WIDTH / 2 - 0.35), groundY + DRIVEWAY_LIFT + 0.04 - thickness / 2, centreZ),
 				Color3.fromRGB(228, 226, 218), Enum.Material.Concrete)
 		end
 	end
@@ -613,7 +626,7 @@ local function buildDriveway(plot: Plot, tier: any)
 	if drive.lit then
 		for _, side in ipairs({ -1, 1 }) do
 			slab("DriveLight", Vector3.new(0.35, thickness, length - 2),
-				Vector3.new(side * (Config.DRIVEWAY_WIDTH / 2 - 1.2), groundY + 0.3 - thickness / 2, centreZ),
+				Vector3.new(side * (Config.DRIVEWAY_WIDTH / 2 - 1.2), groundY + DRIVEWAY_LIFT + 0.08 - thickness / 2, centreZ),
 				Color3.fromRGB(240, 202, 110), Enum.Material.Neon)
 		end
 	end

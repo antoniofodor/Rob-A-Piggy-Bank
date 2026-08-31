@@ -214,41 +214,52 @@ builders.car = function(item, at)
 
 	local length = if sporty then 13 else 11.5
 	local width = if sporty then 5.6 else 5
-	local ride = if sporty then 1.5 else 1.9
 	local cabinH = if sporty then 1.9 else 2.6
 
-	part("Body", Vector3.new(width, 2.2, length), at * CFrame.new(0, ride + 1.1, 0), body, Enum.Material.SmoothPlastic)
+	-- Everything is measured up from the WHEEL, because the wheel is what
+	-- touches the ground. Driving the layout off a separate "ride height"
+	-- left the whole car hovering: the wheels ended up 0.6 studs clear of the
+	-- tarmac and nothing in the builder noticed.
+	local wheelR = if sporty then 1.15 else 1.3
+	local chassis = wheelR * 2 - 0.6 -- body bottom, slightly below axle height
+	local bodyH = 2.2
+	local bodyY = chassis + bodyH / 2
+	local roofY = chassis + bodyH
+
+	part("Body", Vector3.new(width, bodyH, length), at * CFrame.new(0, bodyY, 0),
+		body, Enum.Material.SmoothPlastic)
 	part("Cabin", Vector3.new(width - 0.7, cabinH, length * 0.45),
-		at * CFrame.new(0, ride + 2.2 + cabinH / 2, -0.4), body, Enum.Material.SmoothPlastic)
+		at * CFrame.new(0, roofY + cabinH / 2, -0.4), body, Enum.Material.SmoothPlastic)
 
 	local glass = part("Glass", Vector3.new(width - 0.4, cabinH - 0.7, length * 0.44),
-		at * CFrame.new(0, ride + 2.3 + cabinH / 2, -0.4),
+		at * CFrame.new(0, roofY + cabinH / 2, -0.4),
 		Color3.fromRGB(52, 68, 84), Enum.Material.Glass)
 	glass.Reflectance = 0.3
 
-	-- Wheels sit proud of the body so the silhouette reads as a car rather
-	-- than a box, which matters at the distance these are seen from.
+	-- No extra rotation. A Roblox cylinder already has its flat faces on X,
+	-- which for a car facing +Z is exactly the axle direction. Rolling it 90
+	-- degrees about Z stood each wheel up as a flat disc lying on its side.
 	for _, sx in ipairs({ -1, 1 }) do
 		for _, sz in ipairs({ 1, -1 }) do
-			local wheel = part("Wheel", Vector3.new(1.1, 2.6, 2.6),
-				at * CFrame.new(sx * (width / 2), ride, sz * (length * 0.3))
-					* CFrame.Angles(0, 0, math.rad(90)),
+			local wheel = part("Wheel", Vector3.new(1.1, wheelR * 2, wheelR * 2),
+				at * CFrame.new(sx * (width / 2 - 0.2), wheelR, sz * (length * 0.3)),
 				Color3.fromRGB(28, 28, 32), Enum.Material.SmoothPlastic)
 			wheel.Shape = Enum.PartType.Cylinder
 		end
 	end
 
 	part("Light", Vector3.new(width - 1.6, 0.6, 0.3),
-		at * CFrame.new(0, ride + 1.3, length / 2), Color3.fromRGB(255, 246, 214), Enum.Material.Neon)
+		at * CFrame.new(0, bodyY, length / 2), Color3.fromRGB(255, 246, 214), Enum.Material.Neon)
 	part("TailLight", Vector3.new(width - 1.6, 0.5, 0.3),
-		at * CFrame.new(0, ride + 1.3, -length / 2), Color3.fromRGB(226, 60, 48), Enum.Material.Neon)
+		at * CFrame.new(0, bodyY, -length / 2), Color3.fromRGB(226, 60, 48), Enum.Material.Neon)
 
 	if sporty then
 		part("Spoiler", Vector3.new(width - 0.6, 0.3, 1.4),
-			at * CFrame.new(0, ride + 3, -length / 2 + 0.9), body, Enum.Material.SmoothPlastic)
+			at * CFrame.new(0, roofY + 1.1, -length / 2 + 0.9), body, Enum.Material.SmoothPlastic)
 		for _, sx in ipairs({ -1, 1 }) do
 			part("SpoilerLeg", Vector3.new(0.3, 1, 0.5),
-				at * CFrame.new(sx * (width / 2 - 1), ride + 2.6, -length / 2 + 0.9), body, Enum.Material.SmoothPlastic)
+				at * CFrame.new(sx * (width / 2 - 1), roofY + 0.6, -length / 2 + 0.9),
+				body, Enum.Material.SmoothPlastic)
 		end
 	end
 end
@@ -258,7 +269,13 @@ end
 -- ============================================================
 
 -- Rebuilds every placed ornament for a plot. `placed` maps slot id -> item key.
-function Decor.build(placed: { [string]: string }, originCF: CFrame, groundY: number, parent: Instance): Model
+--
+-- `groundByZone` matters more than it looks. A plot is three different heights:
+-- the lawn is the top of the plot slab, the driveway is paving laid on the
+-- world ground, and the verge is the bare world ground half a stud lower
+-- still. Using one height for all three left every car and bin hovering.
+function Decor.build(placed: { [string]: string }, originCF: CFrame,
+	groundByZone: { [string]: number }, parent: Instance): Model
 	local model = Instance.new("Model")
 	model.Name = "Decor"
 	folder = model
@@ -269,7 +286,8 @@ function Decor.build(placed: { [string]: string }, originCF: CFrame, groundY: nu
 		if item then
 			local build = builders[item.style]
 			if build then
-				local at = originCF
+				local groundY = groundByZone[slot.zone] or 0
+			local at = originCF
 					* CFrame.new(slot.offset + Vector3.new(0, groundY, 0))
 					* CFrame.Angles(0, math.rad(slot.yaw or 0), 0)
 				build(item, at)
