@@ -1,0 +1,10 @@
+# Rojo build output -- regenerate with `rojo build default.project.json -o RobAPiggyBank.rbxlx`
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+*.rbxlx.lock
+
+# Studio / OS noise
+*.bak
+Thumbs.db
+.DS_Store

@@ -1,0 +1,728 @@
+<!doctype html><html><head><!-- frame-runtime --><base href="/_f/1788110415-92fc/"><script>window.__FRAME_PREAMBLE={"v":1,"capabilities":{"artifact":"artifact.D_F1mx8d.js","assets":"assets.8Gk803W0.js","comments":"comments.GLuHR3zP.js","db":"db.h-3sndFg.js","downloads":"downloads.C3GSvEDP.js","embed":"embed.CxGAyc-v.js","mcp":"mcp.Bvma3qD7.js","network":"network.B5UA9Su4.js","notifications":"notifications.ssU4jy7G.js","permissions":"permissions.BNySkLV5.js","room":"room.BMMoe2BY.js","sample":"sample.BW2Uysoh.js","self":"artifact.D_F1mx8d.js","user":"user.BpKav-Rf.js"},"transforms":"_transforms.DSB5x63f.js","comments":"_comments.BoakUwmM.js","translate":"_translate.5HCW4BJh.js"}</script><script>(function(){"use strict";var te=["light","dark","system"],re=/^[A-Za-z0-9_-]{1,64}$/,$=/^[a-zA-Z_:][a-zA-Z0-9_:.-]{0,127}$/,ne=new Set(["class","hidden","value","checked","style","title","alt","placeholder","lang","dir","role","tabindex","disabled","readonly","contenteditable","open","colspan","rowspan"]);function oe(e){const t=e.toLowerCase();return t.startsWith("data-")||t.startsWith("aria-")||ne.has(t)}var Be="http://www.w3.org/1999/xhtml",se="http://www.w3.org/2000/svg",ae=new Set(["script","style","iframe","noscript","noframes","noembed","xmp","plaintext","template","title","textarea","object","embed"]),ie=new Set(["script","style"]);function ce(e){const t=e.localName.toLowerCase();return e.namespaceURI==="http://www.w3.org/1999/xhtml"?!ae.has(t):e.namespaceURI===se?!ie.has(t):!1}function M(e,t){return e===t||(e===160||e===32)&&(t===160||t===32)}function le(e,t){const r=e.length,n=t.length;let s=0;for(;s<r&&s<n&&M(e.charCodeAt(s),t.charCodeAt(s));)s++;let o=0;for(;o<r-s&&o<n-s&&M(e.charCodeAt(r-1-o),t.charCodeAt(n-1-o));)o++;return{p:s,s:o}}function ue(e,t){const r=e.firstChild;if(e.childNodes.length!==1||r===null||r.nodeType!==Node.TEXT_NODE){e.textContent=t;return}const n=r.data,s=n.length,o=t.length,{p:i,s:c}=le(n,t);i===s&&c===0&&s===o||r.replaceData(i,s-i-c,t.slice(i,o-c));const h=r.data,p=e.ownerDocument.getSelection?.()??null,w=p!==null&&p.rangeCount>0&&(p.anchorNode===r||p.focusNode===r)?{anchor:p.anchorNode,anchorOffset:p.anchorOffset,focus:p.focusNode,focusOffset:p.focusOffset}:null;let m=-1,g=-1;for(let f=0;f<h.length&&f<t.length;f++){const v=h.charCodeAt(f),b=t.charCodeAt(f);v!==b&&M(v,b)&&(m<0&&(m=f),g=f)}const a=m>=0;if(a&&r.replaceData(m,g-m+1,t.slice(m,g+1)),a&&w!==null&&w.anchor!==null&&w.focus!==null)try{p.setBaseAndExtent(w.anchor,w.anchorOffset,w.focus,w.focusOffset)}catch{}}var fe=new Set(["html","head","body","frameset"]);function de(e){return e.namespaceURI==="http://www.w3.org/1999/xhtml"&&fe.has(e.localName)}function pe(e){if(e===null||typeof e!="object")return!1;const t=e;if(typeof t.target!="string"||!re.test(t.target)||t.text!==void 0&&typeof t.text!="string")return!1;if(t.attrsSet!==void 0){if(t.attrsSet===null||typeof t.attrsSet!="object")return!1;for(const[r,n]of Object.entries(t.attrsSet))if(!$.test(r)||typeof n!="string")return!1}if(t.attrsRemoved!==void 0){if(!Array.isArray(t.attrsRemoved))return!1;for(const r of t.attrsRemoved)if(typeof r!="string"||!$.test(r))return!1}return!0}function me(e,t){if(e===null||typeof e!="object")return!1;const{seq:r,elements:n}=e;if(typeof r!="number"||!Number.isSafeInteger(r)||!Array.isArray(n)||n.length===0||n.length>64)return!1;for(let s=0;s<n.length;s++)if(!t(n[s]))return!1;return!0}function he(e){return e===null||typeof e!="object"?!1:me(e.__frame_patch,pe)}function _e(e){if(e===null||typeof e!="object")return!1;const t=e.__frame_init;return t!==null&&typeof t=="object"}function ve(e){return e!==null&&typeof e=="object"&&e.__frame_size_poke===!0}function ye(e){if(e===null||typeof e!="object")return!1;const t=e.__frame_theme;if(t===null||typeof t!="object")return!1;const r=t.theme;return typeof r=="string"&&te.includes(r)}var A=/^[\w.-]+\.js$/;function we(e,t,r){return r?"inert":typeof t=="string"&&A.test(t)?e?[t]:"inert":e?"inert":"framed"}function ge(){return{post(e,t){parent.postMessage(e,t)},on(e){const t=r=>{r.source===parent&&e(r.data,r.origin,r.isTrusted)};return addEventListener("message",t),()=>removeEventListener("message",t)}}}function be(){return{post:()=>{},on:()=>()=>{}}}var j="__frame_scroll",Ee=150,Ae=310,Se=160,Te=3e4;function ke(){let e=0,t=!1,r=!1,n=!1,s=0,o=null;const i=l=>{try{sessionStorage.setItem(j,JSON.stringify({y:l}))}catch{}},c=()=>{if(clearTimeout(e),o===null)return;const l=o;o=null,i(l)},h=()=>{if(t){t=!1;return}r=!0,o=scrollY,clearTimeout(e),e=setTimeout(c,Ee)};try{addEventListener("scroll",h,{passive:!0}),addEventListener("pagehide",c)}catch{}const p=()=>{let l;try{l=sessionStorage.getItem(j)}catch{return null}if(l===null)return null;let _;try{_=JSON.parse(l)}catch{_=null}const d=_?.y;if(!(typeof d=="number"&&Number.isFinite(d)&&d>=0)){try{sessionStorage.removeItem(j)}catch{}return null}return d};let w=!1;const m=l=>{try{const _=scrollY;scrollTo({top:l,left:0,behavior:"instant"}),s=l,n=!0,clearTimeout(e),o=null,i(l);const d=scrollY;d!==_&&(t=!0),d!==l&&!w&&(w=!0,addEventListener("load",()=>{try{if(scrollY===d){const T=p();m(T!==null?T:s)}}catch{}},{once:!0}))}catch{}},g=()=>{try{return!!location.hash}catch{return!0}};let a=!1;const f=()=>{try{if(a||innerWidth>Ae||innerHeight>Se)return;a=!0;const l=Date.now(),_=()=>{try{removeEventListener("resize",_)}catch{}if(Date.now()-l>Te||r||g())return;const d=p();m(d!==null?d:s)};addEventListener("resize",_)}catch{}};let v=!1,b=!1;return{restore(){if(v||(v=!0,g()))return;const l=p();l!==null&&(m(l),f())},promoted(){if(b||(b=!0,g()))return;const l=p();l!==null?(m(l),f()):n&&m(s)}}}function Re(e,t,r,n){let s=null;try{s=window.trustedTypes?.createPolicy("frame-runtime",{createScriptURL:h=>h})??null}catch{}const o=window.Worker,i=o?.prototype,c=Object.freeze({Worker:o,workerOn:i?.addEventListener,workerPost:i?.postMessage,workerTerminate:i?.terminate,fetch:window.fetch.bind(window),preventDefault:Event.prototype.preventDefault,policy:s,origins:t});r(e).then(h=>h?.bootTopLevel?h.bootTopLevel(c,n):n.settle()).catch(()=>n.settle())}var De="modulepreload",Ie=function(e){return"/"+e},Ue={},Le=function(t,r,n){let s=Promise.resolve();function o(i){const c=new Event("vite:preloadError",{cancelable:!0});if(c.payload=i,window.dispatchEvent(c),!c.defaultPrevented)throw i}return s.then(i=>{for(const c of i||[])c.status==="rejected"&&o(c.reason);return t().catch(o)})},Oe=window===top,q=Object.getOwnPropertyDescriptor(window,"claude"),k=we(Oe,window.__FRAME_PREAMBLE?.topLevel,q?.writable===!1),N=typeof k=="object"&&k[0],y=N?be():ge();(function(){const e=Object.defineProperty,t=globalThis,r=["RTCPeerConnection","webkitRTCPeerConnection","RTCDataChannel","RTCIceCandidate","RTCSessionDescription","RTCRtpSender","RTCRtpReceiver"];let n=0;for(let s=0;s<r.length;s++){const o=r[s];try{e(t,o,{value:void 0,writable:!1,configurable:!1})}catch{try{delete t[o]}catch{}try{e(t,o,{value:void 0,writable:!1,configurable:!0})}catch{}}typeof t[o]=="function"&&n++}if(n&&k==="framed")try{y.post({__frame_rtc_lockdown_failed:n},"*")}catch{}})();var Pe=1e4,Y=Object.freeze([...window.__FRAME_PREAMBLE?.origins??["https://claude.ai","https://preview.claude.ai"]]);function X(e){for(const t of Y)if(t.endsWith(":*"))try{const r=new URL(e);if(`${r.protocol}//${r.hostname}:*`===t)return!0}catch{}else if(e===t)return!0;return!1}var R=Object.freeze({...window.__FRAME_PREAMBLE?.capabilities}),B=window.__FRAME_PREAMBLE?.transforms,D=window.__FRAME_PREAMBLE?.comments,I=window.__FRAME_PREAMBLE?.translate;function S(e){return Le(()=>import("/_runtime/"+e),void 0)}function G(e,t){return{contract:e.contract,changes:new Set(e.changes??[]),flags:new Set(e.flags??[]),capabilities:e.capabilities??{},capBudgets:e.capBudgets??{},transforms:new Map,shellOrigin:t,mount:x,hooks:O,pipe:()=>({wrap:(r,n)=>(...s)=>{try{return n(...s)}catch(o){return Promise.reject(o)}}})}}var L=null,E=null;function V(e,t,r){try{Object.defineProperty(e,t,{value:r,writable:!1,configurable:!1,enumerable:!0})}catch{try{Object.defineProperty(e,t,{value:r,writable:!1,configurable:!0,enumerable:!0})}catch{}}}var U=!1,O={editBefore:null,edit:null};function Ce(e,t,r=!1){const n=[];let s;if(r)try{O.editBefore?.(e)}catch{}for(const o of e.elements){const i=document.querySelector(`[data-id="${o.target}"]`);if(!i){s=o.target;break}if([...Object.keys(o.attrsSet??{}),...o.attrsRemoved??[]].some(c=>!oe(c))){s=o.target;break}if(o.text!==void 0&&(!ce(i)||de(i))){s=o.target;break}for(const[c,h]of Object.entries(o.attrsSet??{}))if(!J(i,c)){try{i.setAttribute(c,h)}catch{}Z(i,c,h)}for(const c of o.attrsRemoved??[])J(i,c)||(i.removeAttribute(c),Z(i,c,null));typeof o.text=="string"&&ue(i,o.text),n.push(o.target)}if(r)try{O.edit?.(e.seq,n,s)}catch{}if(s!==void 0){y.post({__frame_patch_miss:{seq:e.seq}},t);return}try{document.dispatchEvent(new CustomEvent("claude:edit",{detail:{seq:e.seq,targets:n}}))}catch{}}function Z(e,t,r){if(!(e instanceof HTMLInputElement))return;const n=t.toLowerCase();n==="checked"?e.checked=r!==null:n==="value"&&e.type!=="file"&&(e.value=r??"")}function J(e,t){const r=t.toLowerCase(),n=e;return r==="data-id"||(r==="value"||r==="checked")&&(n.__artifactSecret===!0||/^(password|hidden|file)$/.test(n.type??"")||/(^|\s)(cc-|one-time-code|current-password|new-password)/i.test(`${e.getAttribute("autocomplete")??""} ${n.autocomplete??""}`))}function Q(e){const t=document.documentElement;e==="light"||e==="dark"?(t.dataset.theme=e,t.style.colorScheme=e,U=!0):U&&(delete t.dataset.theme,t.style.colorScheme="",U=!1)}var P=new Map;function Me(){let e;const t={u:new Promise(r=>{e=r}),r:r=>{t.done=!0,e(r)},done:!1,nulled:!1};return t}function F(){for(const e of P.values())e.done||(e.nulled=!0,e.r(null))}var je=Object.freeze(Object.assign(Object.create(null),{call:Function.prototype.call,apply:Function.prototype.apply,bind:Function.prototype.bind})),x=(e,t)=>{const r=P.get(e);if(!r||r.done){r?.nulled&&E&&y.post({__frame_cap_telemetry:{kind:"cap-load-error",cap:e}},E);return}const n=typeof t=="function"?Object.setPrototypeOf(t,je):Object.assign(Object.create(null),t);typeof n.then=="function"&&delete n.then,r.r(Object.freeze(n))};function ee(){const e=q?.value??{};V(window,"claude",e);for(const t of Object.keys(R)){if(e[t]!==void 0){V(e,t,e[t]);continue}P.set(t,Me())}if(e.use===void 0){const t=r=>{if(typeof r!="string"||!Object.hasOwn(R,r))return Promise.resolve(null);const n=P.get(r);return n?n.u:Promise.resolve(e[r]??null)};try{Object.defineProperty(e,"use",{value:t,writable:!0,configurable:!0,enumerable:!1})}catch{}}}if(k==="framed"){const e=B&&A.test(B)?S(B).catch(()=>{}):Promise.resolve(void 0),t=a=>{if(a.type==="auxclick"&&a.button!==1)return;const f=a.target,v=f&&f.closest?f.closest("a[href],area[href]"):null;if(!v)return;const b=v.getAttribute("href");if(!b)return;let l;try{l=new URL(b,document.baseURI)}catch{return}if((l.protocol==="http:"||l.protocol==="https:")&&l.origin!==location.origin){a.preventDefault();const _=(v.getAttribute("target")??"").toLowerCase(),d=a.type==="auxclick"||a.metaKey||a.ctrlKey||a.shiftKey||a.altKey||!["","_self","_top","_parent"].includes(_);y.post({__frame_nav:!0,url:l.href,newTab:d},"*")}};addEventListener("click",t,!0),addEventListener("auxclick",t,!0);const r={},n=a=>{a.isTrusted&&(r.pointer=!0)},s=a=>{a.isTrusted&&(r.click=!0)};addEventListener("pointermove",n,{capture:!0,passive:!0}),addEventListener("click",s,{capture:!0,passive:!0}),e.then(a=>{a?.wireNav&&(a.wireNav(),removeEventListener("click",t,!0),removeEventListener("auxclick",t,!0),removeEventListener("pointermove",n,!0),removeEventListener("click",s,!0),a.wireEngagement?.(r))});let o=null;try{o=ke()}catch{}ee();let i=null,c=null,h=0;const p=y.on((a,f)=>{X(f)&&_e(a)&&(i=a.__frame_init,E=f,p(),clearTimeout(h),c?.())});y.post({__frame_connect:!0},"*");const w=new Promise(a=>{c=a,h=setTimeout(()=>{p(),a()},Pe)}),m=document.readyState==="loading"?new Promise(a=>document.addEventListener("DOMContentLoaded",()=>a(),{once:!0})):Promise.resolve();m.then(()=>{try{o?.restore()}catch{}});const g={cb:null};y.on((a,f)=>{if(X(f)&&ve(a)){try{o?.promoted()}catch{}g.cb?.()}}),w.then(async()=>{if(!i||!E){F();return}Q(i.theme);const a=E;let f=!1,v=!1;y.on((u,z,C)=>{if(z!==a)return;ye(u)&&Q(u.__frame_theme.theme),he(u)&&Ce(u.__frame_patch,a,C);const H=u?.__fc_mode;H&&typeof H=="object"&&!f&&D&&A.test(D)&&(f=!0,S(D).then(K=>K.install?.(a,H.on===!0)).catch(()=>{}));const W=u?.__ft_cmd;W&&typeof W=="object"&&!v&&I&&A.test(I)&&(v=!0,S(I).then(K=>K.install?.(a,W)).catch(()=>{}))});const b=Object.keys(i.capabilities??{}).filter(u=>Object.hasOwn(R,u)).map(u=>[u,R[u]]).filter(u=>typeof u[1]=="string"&&A.test(u[1])),l=await Promise.allSettled(b.map(([,u])=>S(u))),_=await e,d=E;if(_?.buildBoot||y.post({__frame_cap_telemetry:{kind:"cap-load-error",cap:"_transforms"}},d),_?.buildBoot)try{L=_.buildBoot(i,_.TRANSFORMS??{},{shellOrigin:d,mount:x,hooks:O},u=>y.post({__frame_cap_telemetry:u},d))}catch{y.post({__frame_cap_telemetry:{kind:"cap-load-error",cap:"_transforms"}},d),L=G(i,d)}else L=G(i,d);const T=u=>y.post({__frame_cap_telemetry:{kind:"cap-load-error",cap:u}},d),Ne=L;l.forEach((u,z)=>{const C=b[z][0];if(u.status!=="fulfilled"){T(C);return}try{u.value?.install?.(Ne)}catch{T(C)}}),F(),await m,y.post({__frame_ready:!0},E),e.then(u=>u?.installSizeReporter?.(d,g))})}else N&&(ee(),Re(N,Y,S,{settle:F,mount:x}))})();</script><!-- /frame-runtime --><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>Rob a Piggy Bank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+
+<style>
+:root {
+  --paper:      #F2F4F7;
+  --surface:    #FFFFFF;
+  --sunk:       #E7EBF1;
+  --line:       #D2D9E2;
+  --line-soft:  #E2E7ee;
+  --ink:        #16202E;
+  --ink-soft:   #5A6675;
+  --ink-faint:  #8894A3;
+  --brass:      #9C6C1E;
+  --brass-bg:   #F6EEDD;
+  --coral:      #B8452F;
+  --coral-bg:   #FAEAE6;
+  --mint:       #216F5E;
+  --mint-bg:    #E4F1ED;
+  --shadow:     0 1px 2px rgba(22,32,46,.06), 0 8px 24px -12px rgba(22,32,46,.18);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:     #0F151E;
+    --surface:   #171F2A;
+    --sunk:      #131A24;
+    --line:      #2B3543;
+    --line-soft: #222B37;
+    --ink:       #E7ECF3;
+    --ink-soft:  #97A4B4;
+    --ink-faint: #6C7A8B;
+    --brass:     #E2AC53;
+    --brass-bg:  #2A2113;
+    --coral:     #E88068;
+    --coral-bg:  #2E1B16;
+    --mint:      #5EC1A6;
+    --mint-bg:   #122823;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"] {
+  --paper:     #0F151E;
+  --surface:   #171F2A;
+  --sunk:      #131A24;
+  --line:      #2B3543;
+  --line-soft: #222B37;
+  --ink:       #E7ECF3;
+  --ink-soft:  #97A4B4;
+  --ink-faint: #6C7A8B;
+  --brass:     #E2AC53;
+  --brass-bg:  #2A2113;
+  --coral:     #E88068;
+  --coral-bg:  #2E1B16;
+  --mint:      #5EC1A6;
+  --mint-bg:   #122823;
+  --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 22px 96px;
+}
+@media (min-width: 1040px) {
+  .shell { grid-template-columns: 210px minmax(0,1fr); gap: 52px; padding-right: 40px; }
+}
+
+/* ---------- nav ---------- */
+nav { display: none; }
+@media (min-width: 1040px) {
+  nav {
+    display: block;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    padding-top: 132px;
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+}
+nav ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+nav a {
+  display: block;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11.5px;
+  letter-spacing: .04em;
+  color: var(--ink-faint);
+  text-decoration: none;
+  padding: 5px 10px;
+  border-left: 2px solid var(--line-soft);
+  transition: color .15s, border-color .15s;
+}
+nav a:hover, nav a:focus-visible { color: var(--brass); border-left-color: var(--brass); }
+
+/* ---------- masthead ---------- */
+header { padding: 72px 0 0; }
+.eyebrow {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin: 0 0 20px;
+}
+h1 {
+  font-family: "Bricolage Grotesque", "Trebuchet MS", sans-serif;
+  font-weight: 800;
+  font-size: clamp(40px, 7vw, 68px);
+  line-height: 1.0;
+  letter-spacing: -.025em;
+  margin: 0 0 18px;
+  text-wrap: balance;
+}
+.deck {
+  font-size: clamp(18px, 2.4vw, 21px);
+  color: var(--ink-soft);
+  max-width: 34em;
+  margin: 0 0 40px;
+  text-wrap: pretty;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 68px;
+}
+.fact { background: var(--surface); padding: 15px 17px; }
+.fact dt {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 6px;
+}
+.fact dd {
+  margin: 0;
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+/* ---------- sections ---------- */
+section { margin-bottom: 68px; scroll-margin-top: 24px; }
+h2 {
+  font-family: "Bricolage Grotesque", "Trebuchet MS", sans-serif;
+  font-weight: 800;
+  font-size: clamp(25px, 3.4vw, 33px);
+  letter-spacing: -.02em;
+  line-height: 1.15;
+  margin: 0 0 6px;
+  text-wrap: balance;
+}
+.sub {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 26px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+h3 {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-weight: 600;
+  font-size: 19px;
+  letter-spacing: -.01em;
+  margin: 34px 0 10px;
+}
+p { margin: 0 0 17px; max-width: 66ch; text-wrap: pretty; }
+ul, ol { max-width: 66ch; padding-left: 22px; margin: 0 0 17px; }
+li { margin-bottom: 8px; }
+strong { font-weight: 600; }
+a { color: var(--brass); }
+code {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: .87em;
+  background: var(--sunk);
+  border: 1px solid var(--line-soft);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+.callout {
+  border-left: 3px solid var(--brass);
+  background: var(--brass-bg);
+  padding: 16px 20px;
+  border-radius: 0 3px 3px 0;
+  margin: 26px 0;
+}
+.callout p { margin: 0; max-width: 60ch; }
+.callout .tag {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--brass);
+  display: block;
+  margin-bottom: 7px;
+  font-weight: 600;
+}
+
+/* ---------- loop diagram ---------- */
+.diagram {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 22px 18px 14px;
+  margin: 26px 0;
+  overflow-x: auto;
+  box-shadow: var(--shadow);
+}
+.diagram svg { display: block; margin: 0 auto; min-width: 480px; }
+.dg-node { fill: var(--sunk); stroke: var(--line); stroke-width: 1.5; }
+.dg-label { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 13px; fill: var(--ink); }
+.dg-meta { font-family: "IBM Plex Mono", monospace; font-size: 9.5px; letter-spacing: .07em; fill: var(--ink-faint); }
+.dg-arrow { stroke: var(--ink-faint); stroke-width: 1.5; fill: none; }
+.dg-steal { stroke: var(--coral); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.dg-steal-label { font-family: "IBM Plex Mono", monospace; font-size: 9.5px; letter-spacing: .07em; fill: var(--coral); font-weight: 600; }
+.caption {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  color: var(--ink-faint);
+  text-align: center;
+  margin: 6px 0 0;
+  max-width: none;
+}
+
+/* ---------- split cards ---------- */
+.split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(272px, 1fr));
+  gap: 16px;
+  margin: 26px 0;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 20px 21px;
+  box-shadow: var(--shadow);
+}
+.card h4 {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: .01em;
+  margin: 0 0 3px;
+}
+.card .role {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  margin: 0 0 15px;
+}
+.card ul { margin: 0; padding-left: 18px; font-size: 15.5px; }
+.card li { margin-bottom: 7px; }
+.card.def { border-top: 3px solid var(--mint); }
+.card.def .role { color: var(--mint); }
+.card.off { border-top: 3px solid var(--coral); }
+.card.off .role { color: var(--coral); }
+
+/* ---------- tables ---------- */
+.tw { overflow-x: auto; margin: 24px 0; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 480px; }
+th {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  font-weight: 600;
+  white-space: nowrap;
+}
+td { padding: 12px 16px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+tbody tr:last-child td { border-bottom: none; }
+td.num { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 14px; }
+td.k { font-weight: 600; white-space: nowrap; }
+
+/* ---------- phases ---------- */
+.phase {
+  display: grid;
+  grid-template-columns: 46px minmax(0,1fr);
+  gap: 20px;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.phase:last-of-type { border-bottom: none; }
+.pnum {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brass);
+  border: 1px solid var(--brass);
+  border-radius: 50%;
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  margin-top: 2px;
+}
+.phase h3 { margin: 0 0 4px; font-size: 18px; }
+.phase .est {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 11px;
+}
+.phase p { margin: 0 0 9px; font-size: 16px; }
+.phase ul { margin: 0; font-size: 15.5px; }
+
+/* ---------- decisions ---------- */
+.q {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--ink-faint);
+  border-radius: 0 4px 4px 0;
+  background: var(--surface);
+  padding: 17px 20px;
+  margin-bottom: 12px;
+}
+.q h4 { font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 16px; margin: 0 0 6px; }
+.q p { margin: 0; font-size: 15.5px; color: var(--ink-soft); max-width: 62ch; }
+
+footer {
+  border-top: 1px solid var(--line);
+  padding-top: 22px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+
+<div class="shell">
+
+<nav aria-label="Sections">
+  <ol>
+    <li><a href="#hook">The hook</a></li>
+    <li><a href="#loop">Core loop</a></li>
+    <li><a href="#heist">The heist</a></li>
+    <li><a href="#trees">Two ways to spend</a></li>
+    <li><a href="#fair">Keeping it fair</a></li>
+    <li><a href="#progress">Long game</a></li>
+    <li><a href="#money">Monetization</a></li>
+    <li><a href="#tech">Architecture</a></li>
+    <li><a href="#build">Build order</a></li>
+    <li><a href="#open">Open calls</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<header>
+  <p class="eyebrow">Roblox &middot; Design &amp; build plan &middot; Working title</p>
+  <h1>Rob a Piggy Bank</h1>
+  <p class="deck">Everyone gets a vault that fills with coins whether they're playing or not. Everyone can walk up and take a handful of someone else's. What you spend your coins on decides which kind of player you become.</p>
+
+  <dl class="facts">
+    <div class="fact"><dt>Audience</dt><dd>Under 12</dd></div>
+    <div class="fact"><dt>Genre</dt><dd>Shared-economy PvP</dd></div>
+    <div class="fact"><dt>Session</dt><dd>8&ndash;15 min</dd></div>
+    <div class="fact"><dt>Server</dt><dd>12 plots</dd></div>
+    <div class="fact"><dt>To MVP</dt><dd>~6 weeks</dd></div>
+    <div class="fact"><dt>Cadence</dt><dd>Weekly drop</dd></div>
+  </dl>
+</header>
+
+<section id="hook">
+  <h2>The hook</h2>
+  <p class="sub">Why this and not another tycoon</p>
+
+  <p>The tycoon shelf on Roblox is full. What's thin is a game where <strong>the thing you're hoarding is physically visible and physically takeable</strong>. Your coins aren't a number in the corner of the screen &mdash; they're a pile inside a glass vault on your plot, and the pile gets taller as you get richer. Anyone in the server can see how rich you are from across the map. That's the whole pitch, and a nine-year-old gets it in one look.</p>
+
+  <p>It works for this age group because it turns a solo idle game into a story they tell at school. Nobody recounts the time their crops grew. They absolutely recount the time Jayden snuck onto their plot, and the guard dog got him halfway home.</p>
+
+  <div class="callout">
+    <span class="tag">The design pillar everything hangs off</span>
+    <p>Every coin you spend goes to <strong>defense</strong> or <strong>offense</strong> &mdash; never both. Within a week players self-sort into turtles and bandits, argue about which is better, and have a reason to keep playing that isn't a bigger number. That split is the game.</p>
+  </div>
+</section>
+
+<section id="loop">
+  <h2>Core loop</h2>
+  <p class="sub">Ten seconds to understand, no tutorial</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 620 250" width="620" height="250" role="img" aria-label="Loop diagram: the vault fills with coins, you collect them, you spend on upgrades, which makes the vault fill faster. A separate path shows other players stealing from the vault.">
+      <defs>
+        <marker id="ah" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L7,3.5 L0,7 z" fill="var(--ink-faint)"/>
+        </marker>
+        <marker id="ac" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L7,3.5 L0,7 z" fill="var(--coral)"/>
+        </marker>
+      </defs>
+
+      <rect class="dg-node" x="18"  y="86" width="132" height="56" rx="4"/>
+      <text class="dg-label" x="84"  y="108" text-anchor="middle">Vault fills</text>
+      <text class="dg-meta"  x="84"  y="125" text-anchor="middle">EVEN OFFLINE</text>
+
+      <rect class="dg-node" x="180" y="86" width="132" height="56" rx="4"/>
+      <text class="dg-label" x="246" y="108" text-anchor="middle">You collect</text>
+      <text class="dg-meta"  x="246" y="125" text-anchor="middle">TAP THE VAULT</text>
+
+      <rect class="dg-node" x="342" y="86" width="132" height="56" rx="4"/>
+      <text class="dg-label" x="408" y="108" text-anchor="middle">You upgrade</text>
+      <text class="dg-meta"  x="408" y="125" text-anchor="middle">DEFEND OR ROB</text>
+
+      <path class="dg-arrow" d="M150,114 L174,114" marker-end="url(#ah)"/>
+      <path class="dg-arrow" d="M312,114 L336,114" marker-end="url(#ah)"/>
+      <path class="dg-arrow" d="M474,114 C520,114 540,114 540,80 C540,44 400,44 84,44 L84,80" marker-end="url(#ah)"/>
+      <text class="dg-meta" x="312" y="36" text-anchor="middle">FASTER, BIGGER, SAFER</text>
+
+      <rect class="dg-node" x="180" y="182" width="132" height="50" rx="4" style="fill:var(--coral-bg); stroke:var(--coral);"/>
+      <text class="dg-label" x="246" y="203" text-anchor="middle" style="fill:var(--coral);">Someone robs you</text>
+      <text class="dg-meta"  x="246" y="219" text-anchor="middle" style="fill:var(--coral);">OR YOU ROB THEM</text>
+
+      <path class="dg-steal" d="M84,142 L84,207 L174,207" marker-end="url(#ac)"/>
+      <path class="dg-steal" d="M312,207 L408,207 L408,148" marker-end="url(#ac)"/>
+      <text class="dg-steal-label" x="470" y="180" text-anchor="middle">REVENGE</text>
+    </svg>
+    <p class="caption">Solid path: the idle loop. Dashed path: the reason anyone stays.</p>
+  </div>
+
+  <p>The idle loop alone is a competent, forgettable game. The dashed path is what makes it spread &mdash; getting robbed creates a grievance, and a grievance creates a session. The revenge ping is the single highest-value piece of UI in the whole build.</p>
+
+  <h3>Baseline numbers to tune from</h3>
+  <div class="tw">
+  <table>
+    <thead><tr><th>Value</th><th>Start</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Income rate</td><td class="num">10 / sec</td><td>Scales ~1.35&times; per income upgrade tier</td></tr>
+      <tr><td class="k">Vault capacity</td><td class="num">5,000</td><td>Fills in ~8 min. Full vault stops earning &mdash; this is the return hook</td></tr>
+      <tr><td class="k">Offline accrual</td><td class="num">up to 8 h</td><td>Full rate, then stops. Never decays</td></tr>
+      <tr><td class="k">First upgrade</td><td class="num">400</td><td>Reachable in under a minute. First win must be immediate</td></tr>
+      <tr><td class="k">Rebirth threshold</td><td class="num">1,000,000</td><td>~2&ndash;3 hours of play to first rebirth</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>The 8-hour offline cap is deliberate: it covers a school day, so a kid who plays after school always comes back to a full vault. Longer caps make the game feel pointless to check daily; shorter ones punish having a life.</p>
+</section>
+
+<section id="heist">
+  <h2>The heist</h2>
+  <p class="sub">The thirty seconds the game is actually about</p>
+
+  <p>Plots have no walls you can't cross. Anyone can walk onto anyone's land at any time &mdash; the tension comes from what happens next, not from being locked out.</p>
+
+  <ol>
+    <li><strong>Approach.</strong> Crossing a defended plot is slow and noisy. Fences cost you seconds, alarms light you up in red for everyone to see.</li>
+    <li><strong>The grab.</strong> Hold <code>E</code> on the vault for 3 seconds. You're stuck in place, glowing, and the whole server can see it. Longer as the owner buys better locks.</li>
+    <li><strong>The run.</strong> You get a visible sack worth 5% of their vault. You're 25% slower carrying it, and you have to physically reach your own plot to bank it.</li>
+    <li><strong>The tag.</strong> Anyone &mdash; the owner, a bystander, a guard dog &mdash; can hit you with a pie. You drop the sack, coins fly back to the owner, and you're stunned for 4 seconds.</li>
+  </ol>
+
+  <p>Everything in that sequence is legible from a distance without reading a word. A kid who joins mid-chase understands what's happening instantly, which is what makes it contagious.</p>
+
+  <div class="callout">
+    <span class="tag">Design note</span>
+    <p>The 3-second hold matters more than any other number here. Instant stealing is a drive-by with no drama. Ten seconds and nobody ever succeeds. Three seconds is long enough to get caught and short enough to be worth trying.</p>
+  </div>
+</section>
+
+<section id="trees">
+  <h2>Two ways to spend</h2>
+  <p class="sub">The choice that makes players into characters</p>
+
+  <div class="split">
+    <div class="card def">
+      <h4>Defense</h4>
+      <p class="role">The turtle</p>
+      <ul>
+        <li><strong>Fences</strong> &mdash; five tiers, each slows crossings further</li>
+        <li><strong>Alarm</strong> &mdash; highlights the thief, pings you wherever you are</li>
+        <li><strong>Guard dog</strong> &mdash; auto-chases and tags, 30s cooldown</li>
+        <li><strong>Vault locks</strong> &mdash; grab time 3s &rarr; 5s &rarr; 8s</li>
+        <li><strong>Floodlights</strong> &mdash; kills the smoke bomb's cover</li>
+      </ul>
+    </div>
+    <div class="card off">
+      <h4>Offense</h4>
+      <p class="role">The bandit</p>
+      <ul>
+        <li><strong>Speed boots</strong> &mdash; cancels the carry slowdown</li>
+        <li><strong>Lockpicks</strong> &mdash; five tiers, each cuts grab time</li>
+        <li><strong>Bigger sack</strong> &mdash; 5% &rarr; 12% per grab</li>
+        <li><strong>Smoke bomb</strong> &mdash; 6s invisible to dogs and alarms</li>
+        <li><strong>Bolt cutters</strong> &mdash; walk through fences at full speed</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>Coins spent on one tree are gone from the other. That scarcity is the point &mdash; it forces an identity, and identity is what kids argue about, post about, and come back to defend. A rebirth is the only way to respec, which quietly makes rebirthing feel like a fresh start rather than a reset.</p>
+</section>
+
+<section id="fair">
+  <h2>Keeping it fair</h2>
+  <p class="sub">The rules that stop this becoming a bullying simulator</p>
+
+  <p>A steal mechanic aimed at under-12s fails in one specific way: a strong player parks on a weak player's plot and farms them until they quit. Every rule below exists to make that impossible rather than merely discouraged.</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Rule</th><th>Value</th><th>What it prevents</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Per-grab cap</td><td class="num">5% of vault</td><td>No single raid ever feels devastating</td></tr>
+      <tr><td class="k">Per-victim cooldown</td><td class="num">60 sec</td><td>Rapid-fire farming of one player</td></tr>
+      <tr><td class="k">Grabs per victim</td><td class="num">3 per session</td><td>Camping one plot all game</td></tr>
+      <tr><td class="k">Offline owner cap</td><td class="num">2.5%</td><td>Being away from keyboard as a liability</td></tr>
+      <tr><td class="k">New player shield</td><td class="num">First 15 min</td><td>Getting robbed before you know the controls</td></tr>
+      <tr><td class="k">Banked coins</td><td class="num">Untouchable</td><td>Anything spent on upgrades is permanently safe</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>That last row does the heaviest lifting. Only <em>uncollected</em> coins are ever stealable, so the game teaches a real lesson &mdash; bank often &mdash; instead of punishing you for logging off. A player who gets robbed loses a few minutes of idle income, never progress.</p>
+
+  <div class="callout">
+    <span class="tag">Worth stating plainly</span>
+    <p>Reward coming back; never punish leaving. Timers built around loss (your crops wilt, your streak dies) do retain players, but they retain them through anxiety &mdash; and on a game aimed at nine-year-olds that's both the wrong thing to build and the kind of thing that draws moderation attention. A full vault waiting for you performs about as well and ages a great deal better.</p>
+  </div>
+</section>
+
+<section id="progress">
+  <h2>The long game</h2>
+  <p class="sub">What keeps week three interesting</p>
+
+  <h3>Rebirth</h3>
+  <p>At one million coins you can rebirth: upgrades reset, you gain a permanent <strong>+25% income</strong> multiplier, and your vault changes material &mdash; wood, then iron, then gold, then diamond. The material is visible from across the map, so your rebirth count is public status without a single number on screen. Kids will grind for the diamond vault specifically because everyone can see it.</p>
+
+  <h3>Social pressure, built in</h3>
+  <ul>
+    <li><strong>Server leaderboard</strong> &mdash; richest vault, updated live, visible on a board at spawn</li>
+    <li><strong>Revenge ping</strong> &mdash; &ldquo;Jayden robbed you!&rdquo; with a button that marks their plot. Highest-value UI in the game</li>
+    <li><strong>Friend bonus</strong> &mdash; +10% income per friend in the server, capped at +50%. This is your growth engine; it makes inviting people a mechanical advantage rather than a favor</li>
+    <li><strong>Most wanted</strong> &mdash; the server's top thief gets a hat nobody can buy</li>
+  </ul>
+
+  <h3>Weekly drops</h3>
+  <p>At 10&ndash;20 hours a week you can sustain a real cadence, and you have to &mdash; static games don't hold chart positions. Budget roughly: one new vault skin or cosmetic each week, one new upgrade tier or defense type each month, one themed event each season. Announce every drop in-game on a board at spawn so returning players immediately see there's something new.</p>
+</section>
+
+<section id="money">
+  <h2>Monetization</h2>
+  <p class="sub">Built for the under-13 rules from day one</p>
+
+  <p>Roblox prohibits paid random-chance items for under-13 accounts, and that's your entire audience. Every purchase must be a known quantity &mdash; you pay, you get exactly the named thing. No crates, no spins, no mystery eggs. Designing to this now is much cheaper than retrofitting after a policy strike.</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Item</th><th>Type</th><th>Price</th><th>Rationale</th></tr></thead>
+    <tbody>
+      <tr><td class="k">2&times; Income</td><td>Gamepass</td><td class="num">99 R$</td><td>The reliable earner in every tycoon</td></tr>
+      <tr><td class="k">Auto-Collect</td><td>Gamepass</td><td class="num">199 R$</td><td>Convenience, not power &mdash; still capped by vault size</td></tr>
+      <tr><td class="k">Big Sack</td><td>Gamepass</td><td class="num">149 R$</td><td>+3% per grab. Deliberately small so it isn't pay-to-win</td></tr>
+      <tr><td class="k">Vault skins</td><td>Gamepass</td><td class="num">49&ndash;99 R$</td><td>Pure cosmetic, and highly visible &mdash; the best kind</td></tr>
+      <tr><td class="k">Coin packs</td><td>Product</td><td class="num">Tiered</td><td>Fixed amounts, clearly labelled</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>Keep every paid advantage inside what a free player can reach through play. The moment a bandit can only be stopped by someone who paid, the free players &mdash; who are the overwhelming majority and the entire reason the servers feel alive &mdash; stop showing up.</p>
+</section>
+
+<section id="tech">
+  <h2>Architecture</h2>
+  <p class="sub">What I'll be building on your behalf</p>
+
+  <p>An economy where players take things from each other is the exact scenario exploiters go after. Two non-negotiables carry most of the weight:</p>
+
+  <h3>Server-authoritative everything</h3>
+  <p>The client renders coins; it never counts them. Every grab, collect, purchase and upgrade is validated server-side against the player's real state, with rate limits on every remote. A client that says &ldquo;I collected nine trillion coins&rdquo; gets ignored and flagged. This is not optional in a PvP economy, and it's the thing most solo Roblox games get wrong.</p>
+
+  <h3>Session-locked saves</h3>
+  <p>Profile-style datastore handling with session locking, so the same player joining two servers can't duplicate their vault &mdash; a classic Roblox dupe. Offline income is computed on join from a <code>lastSave</code> timestamp, clamped to 8 hours, never trusted from the client's clock.</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>System</th><th>Approach</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Plot assignment</td><td>Pool of 12, claimed on join, released and wiped on leave</td></tr>
+      <tr><td class="k">Coin pile visual</td><td>Single mesh scaled on a log curve &mdash; not hundreds of parts, which would tank framerate</td></tr>
+      <tr><td class="k">Steal validation</td><td>Server checks distance, cooldown, session count, and shield before granting</td></tr>
+      <tr><td class="k">Data schema</td><td>Versioned from the first commit so live saves can be migrated later</td></tr>
+      <tr><td class="k">Source control</td><td>Rojo, so scripts live in git and I can work on them as real files</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="build">
+  <h2>Build order</h2>
+  <p class="sub">Sequenced so there's something playable early</p>
+
+  <div class="phase">
+    <div class="pnum">1</div>
+    <div>
+      <h3>Foundation</h3>
+      <p class="est">~1 week &middot; nothing fun yet</p>
+      <p>Plot pool and assignment, coin accrual, the visible pile, save and load with session locking, offline accrual on join.</p>
+      <p>Unglamorous and completely load-bearing. Getting the data layer right now avoids a rewrite in month two, when wiping saves means wiping real players.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="pnum">2</div>
+    <div>
+      <h3>Economy and shop</h3>
+      <p class="est">~1 week &middot; first playable</p>
+      <p>Collect interaction, income and capacity upgrade tiers, shop UI, the first-minute pacing.</p>
+      <p>End of this phase it's a working idle game. Play it yourself for an evening &mdash; if the first five minutes are boring, no amount of stealing later will save it.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="pnum">3</div>
+    <div>
+      <h3>The heist</h3>
+      <p class="est">~1&ndash;2 weeks &middot; the real test</p>
+      <p>Grab interaction, carry state, the run home, pie tagging, and every fairness rule from the table above wired in from the start.</p>
+      <p>This is where the game becomes itself. Get real kids on it as soon as it works &mdash; the 3-second hold and 5% cap will both need tuning against actual behavior, not theory.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="pnum">4</div>
+    <div>
+      <h3>Defense and offense trees</h3>
+      <p class="est">~1 week</p>
+      <p>Both upgrade trees, guard dog AI, alarms, smoke bombs, and the visual language that makes a defended plot readable at a glance.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="pnum">5</div>
+    <div>
+      <h3>Retention systems</h3>
+      <p class="est">~1 week</p>
+      <p>Rebirth and vault materials, leaderboards, revenge pings, friend bonus, most-wanted hat.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="pnum">6</div>
+    <div>
+      <h3>Polish and launch</h3>
+      <p class="est">~1 week &middot; do not skip</p>
+      <p>Sound, particles, screen shake on a successful grab, coin pickup juice, gamepasses, analytics, thumbnail and icon.</p>
+      <p>Juice is not decoration on a game like this &mdash; the grab has to <em>feel</em> like a heist. Budget real time here. Your thumbnail also does more for discovery than any feature in phase 4.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="pnum">7</div>
+    <div>
+      <h3>Soft launch and live ops</h3>
+      <p class="est">Ongoing</p>
+      <p>Ship quietly, watch the numbers, tune the economy against real players, then start the weekly drop rhythm. Expect the first version's balance to be wrong &mdash; every one of these games launches wrong and fixes it live.</p>
+    </div>
+  </div>
+</section>
+
+<section id="open">
+  <h2>Open calls</h2>
+  <p class="sub">Decisions I need from you, roughly in the order they'll block me</p>
+
+  <div class="q">
+    <h4>Is the title right?</h4>
+    <p>&ldquo;Rob a Piggy Bank&rdquo; matches the naming convention that currently wins Roblox search &mdash; short, a verb, exactly what you do. The risk is that the &ldquo;Steal a &hellip;&rdquo; pattern is saturated enough to read as derivative. Worth deciding before art gets made.</p>
+  </div>
+
+  <div class="q">
+    <h4>Art direction: blocky or meshy?</h4>
+    <p>Pure part-built is faster, cheaper, runs on school Chromebooks, and looks native to Roblox. Meshes look better in a thumbnail. For this audience and your hours, I'd lean blocky with strong colour and good lighting.</p>
+  </div>
+
+  <div class="q">
+    <h4>Does trading exist?</h4>
+    <p>Trading massively deepens a collecting economy, but it drags in scam risk, moderation load, and a whole second exploit surface. My recommendation is no trading at launch, revisited once the core is stable.</p>
+  </div>
+
+  <div class="q">
+    <h4>How much do you want to build yourself?</h4>
+    <p>I can write essentially all of it, but a game you don't understand is one you can't run live-ops on. Suggest I build the systems and you own layout, art, and balance tuning &mdash; that's also the half that's more fun.</p>
+  </div>
+</section>
+
+<footer>
+  Working document &middot; every number here is a starting point to tune, not a decision
+</footer>
+
+</main>
+</div>
+
+</body></html>
