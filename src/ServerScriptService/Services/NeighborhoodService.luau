@@ -87,41 +87,28 @@ end
 -- Everything below is derived, so the suburb follows the plots if the grid
 -- ever changes shape.
 local function metrics()
-	local perRow = Config.PLOTS_PER_ROW
-	local halfPlot = Config.PLOT_SIZE.X / 2
-	local streetHalf = Config.STREET_SPACING / 2
-	local endX = ((perRow - 1) / 2) * Config.PLOT_SPACING
-
-	-- Road and fence geometry comes from Config, not from a second copy of the
-	-- same arithmetic here. This file used to derive the carriageway from the
-	-- moat itself, which meant widening the street only ever widened the
-	-- tarmac and the driveway never grew.
+	-- Every number here comes from Config.streetMetrics, which is the single
+	-- source. This file used to keep its own copy of the arithmetic and the two
+	-- drifted -- and the plaza and road extents have now moved there too,
+	-- because RideService needs to know where the street is in order to keep
+	-- vehicles on it, and a third copy would drift the same way.
 	local street = Config.streetMetrics()
 
-	local plazaSize = 56
-	local plazaX = -(endX + halfPlot + 26)
-
 	return {
-		perRow = perRow,
-		halfPlot = halfPlot,
-		-- Centre of the outermost plot on each end of the street.
-		endX = endX,
-		rowZ = streetHalf,
+		perRow = Config.PLOTS_PER_ROW,
+		halfPlot = Config.PLOT_SIZE.X / 2,
+		endX = street.endX,
+		rowZ = Config.STREET_SPACING / 2,
 
 		-- Fixed carriageway; everything between it and the fence is verge and
 		-- driveway, which is where the extra street width goes.
 		roadHalfWidth = street.roadHalfWidth,
 		vergeOuter = street.fenceLine,
 
-		plazaX = plazaX,
-		plazaSize = plazaSize,
-
-		-- The road runs from the lip of the cul-de-sac bulb to past the last
-		-- plot. It must not reach INTO the plaza: two slabs at the same lift
-		-- z-fight with each other exactly as a slab does against grass.
-		roadStartX = plazaX + plazaSize / 2,
-		roadEndX = endX + halfPlot + 60,
-
+		plazaX = street.plazaX,
+		plazaSize = street.plazaSize,
+		roadStartX = street.roadStartX,
+		roadEndX = street.roadEndX,
 	}
 end
 

@@ -362,13 +362,25 @@ Sky Castle over a villa is a boast about a building that is not there.
 straight into "speed is the currency": the scrambler doubles `BASE_WALK_SPEED`,
 which is the number the carry penalty, the three dog speeds, every fence snag
 and the 37-stud getaway are all calibrated against. So the whole design is the
-four conditions that disable it -- carrying loot, being robbed, snagged on a
-fence, or standing inside anybody's yard (`PlotService.yardContaining`, which
-measures the FENCE rectangle, not the plot slab). Drop any one and a specific
-system dies: a thief rides away from a three-second getaway, or a defender at
-33.6 catches every thief who ever tried at 12. What is left is the walk between
-plots, which was the one part of this game that was pure holding W. Like a
-house, a ride confers nothing else.
+conditions that disable it -- carrying loot, being robbed, snagged on a fence,
+or not standing on the street. Drop any one and a specific system dies: a thief
+rides away from a three-second getaway, or a defender at 33.6 catches every
+thief who ever tried at 12. What is left is the walk between plots, which was
+the one part of this game that was pure holding W. Like a house, a ride confers
+nothing else.
+
+**"On the street" is narrower than "not in a yard", and the gate tests both.**
+`Config.isOnStreet` is the positive rule and the one players are told: the
+corridor between the two rows of front fences, plus the arrival plaza. It rules
+out the woodland behind the plots and the twelve-stud alleys between
+neighbouring yards -- public ground, but not a street, and not somewhere anyone
+should be crossing at 33 studs a second. `PlotService.yardContaining` (the
+FENCE rectangle, not the plot slab) is then a veto on top. The two cannot
+disagree with the plots where they are, but one of them is balance-critical and
+the other is tidiness, so the yard test runs first and fails safe. Because
+`isOnStreet` needs to know where the street ends, the plaza and road extents
+now live in `Config.streetMetrics()` -- which is memoised, since the ride gate
+asks it ten times a second per player.
 
 **Mounting is automatic, and `HipHeight` is what does it.** No button, no
 prompt -- you leave your gate and you are on it, which also means a thief

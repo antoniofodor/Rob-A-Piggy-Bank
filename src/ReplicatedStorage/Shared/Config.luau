@@ -1241,11 +1241,30 @@ end
 -- NeighborhoodService still lays the road, and the two must agree exactly or
 -- the driveway floats over the kerb. Returns plot-local Z distances measured
 -- from a plot's own centre, with +Z toward the street.
+-- Built once and handed out. `isOnStreet` runs on a tick for every player
+-- with a ride, and a fresh table per call would be a hundred allocations a
+-- second to answer a question about four constants. Treat the result as
+-- read-only: everybody shares this table.
+local streetCache: any = nil
+
 function Config.streetMetrics()
+	if streetCache then
+		return streetCache
+	end
+
 	local streetHalf = Config.STREET_SPACING / 2
 	local fenceOffset = Config.PLOT_SIZE.X / 2 + 1.6
 
-	return {
+	-- Where the street begins and ends along its own length. These used to
+	-- live in NeighborhoodService, which is the file that draws them -- but
+	-- RideService has to know where the street IS in order to keep vehicles on
+	-- it, and a second copy of this arithmetic is exactly how the carriageway
+	-- and the driveway drifted apart the last time. One source.
+	local endX = ((Config.PLOTS_PER_ROW - 1) / 2) * Config.PLOT_SPACING
+	local plazaSize = 56
+	local plazaX = -(endX + Config.PLOT_SIZE.X / 2 + 26)
+
+	streetCache = {
 		-- Street coordinates, measured from the road's centreline.
 		roadHalfWidth = Config.ROAD_HALF_WIDTH,
 		fenceLine = streetHalf - fenceOffset,
@@ -1253,7 +1272,51 @@ function Config.streetMetrics()
 		-- Plot-local Z of the driveway's two ends: the fence, out to the kerb.
 		driveNear = fenceOffset,
 		driveFar = streetHalf - Config.ROAD_HALF_WIDTH,
+
+		-- Centre of the outermost plot on each end of the row.
+		endX = endX,
+
+		-- The cul-de-sac bulb at the closed end, where players arrive and the
+		-- leaderboard stands.
+		plazaX = plazaX,
+		plazaSize = plazaSize,
+
+		-- The carriageway runs from the lip of the bulb to past the last plot.
+		-- It must not reach INTO the plaza: two slabs at the same lift z-fight
+		-- with each other exactly as a slab does against grass.
+		roadStartX = plazaX + plazaSize / 2,
+		roadEndX = endX + Config.PLOT_SIZE.X / 2 + 60,
 	}
+	return streetCache
+end
+
+-- Is this position out on the street?
+--
+-- "The street" is the public corridor BETWEEN the two rows of front fences,
+-- plus the plaza at the closed end. That is deliberately narrower than "not
+-- inside a yard": the woodland behind the plots and the twelve-stud alleys
+-- between neighbouring yards are neither a garden nor a street, and a player
+-- doing 33 studs a second through the trees behind somebody's house is not
+-- what a ride is for.
+--
+-- Measured on the WORLD z axis rather than per plot, because the two rows are
+-- symmetric about the road's centreline -- which is the one fact that makes
+-- this a two-comparison test instead of a loop over twelve plots.
+function Config.isOnStreet(position: Vector3): boolean
+	local m = Config.streetMetrics()
+
+	-- The bulb. Slightly wider than the corridor, and it has to be: it is
+	-- where players spawn in, so a ride that switched off there would look
+	-- broken on arrival.
+	if math.abs(position.X - m.plazaX) <= m.plazaSize / 2
+		and math.abs(position.Z) <= m.plazaSize / 2
+	then
+		return true
+	end
+
+	return math.abs(position.Z) <= m.fenceLine
+		and position.X >= m.roadStartX
+		and position.X <= m.roadEndX
 end
 
 -- The driveway is the one strip of ground outside the fence that must stay

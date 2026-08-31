@@ -63,6 +63,15 @@ local mounted: { [Player]: { model: Model, key: string, baseHip: number } } = {}
 -- tenth of a second.
 local lastReason: { [Player]: string } = {}
 
+-- Who has already been told why their ride comes off at a gate.
+--
+-- Said ONCE per session and then never again. Silence is wrong -- a board
+-- that vanishes with no explanation reads as the expensive thing they just
+-- bought being broken -- but so is a toast every time somebody steps onto
+-- their own lawn, which is a thing they do constantly. Once is the whole
+-- budget.
+local toldAboutGates: { [Player]: boolean } = {}
+
 local function notify(player: Player, message: string, kind: string)
 	Remotes.get("Notify"):FireClient(player, message, kind)
 end
@@ -220,8 +229,29 @@ local function blockReason(player: Player, data: any): (string?, boolean)
 	end
 
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
-	if root and PlotService.yardContaining(root.Position) then
+	if not root then
+		return "no character", true
+	end
+
+	-- TWO TESTS, AND THE REDUNDANCY IS DELIBERATE.
+	--
+	-- `isOnStreet` is the positive rule and the one that matches what a player
+	-- is told: rides are for the street. It is narrower than "not in a yard" --
+	-- it also rules out the woodland behind the plots and the twelve-stud
+	-- alleys between neighbouring yards, which are public ground but are not a
+	-- street, and which nobody should be crossing at 33 studs a second.
+	--
+	-- `yardContaining` is a veto on top of it. The two cannot disagree with the
+	-- layout as it stands -- the corridor stops at the front fences -- but if
+	-- the plots are ever moved, one of these is balance-critical and the other
+	-- is tidiness, and this is the order that fails safe. A ride inside a yard
+	-- breaks the fence, the dog and the steal; a ride in the woods is only
+	-- untidy.
+	if PlotService.yardContaining(root.Position) then
 		return "on a lawn", true
+	end
+	if not Config.isOnStreet(root.Position) then
+		return "off the street", true
 	end
 
 	return nil, true
@@ -246,6 +276,9 @@ local function step()
 					dismount(player)
 					if not silent and lastReason[player] ~= reason then
 						notify(player, reason, "warn")
+					elseif silent and not toldAboutGates[player] then
+						toldAboutGates[player] = true
+						notify(player, "Rides are for the street -- you hop off at the gate.", "warn")
 					end
 				end
 				lastReason[player] = reason
@@ -364,6 +397,7 @@ function RideService.start()
 	Players.PlayerRemoving:Connect(function(player)
 		mounted[player] = nil
 		lastReason[player] = nil
+		toldAboutGates[player] = nil
 	end)
 
 	-- Dying drops the ride, the same way it drops loot. The model goes with
