@@ -698,17 +698,40 @@ end
 
 -- The sign advertises the skin as well as the rebirth count -- a cosmetic
 -- nobody can identify from a distance isn't worth grinding for.
-function PlotService.updateSign(plot: Plot, ownerName: string?, rebirths: number, skinName: string?)
+-- The sign is the only thing on a plot that is READ rather than looked at, and
+-- it faces the road. So it carries whichever boasts the owner has actually
+-- earned, hardest first: rebirths, then the house, then the skin.
+--
+-- The house is on here because it is otherwise the least visible expensive
+-- thing anybody owns. It stands 70 studs back, and past the first few tiers a
+-- passer-by cannot tell a 1.4M manor from a 40M palace at that range. Naming
+-- it turns the whole ladder into something other people can see, which is the
+-- only kind of reward a house is allowed to give.
+--
+-- The Starter Shack is never named: a sign announcing the free tier reads as a
+-- jeer at players who have not bought anything yet.
+function PlotService.updateSign(plot: Plot, ownerName: string?, rebirths: number,
+	skinName: string?, houseName: string?)
 	if not ownerName then
 		plot.signLabel.Text = "EMPTY PLOT"
 		return
 	end
+
+	local boasts: { string } = {}
 	if rebirths > 0 then
-		plot.signLabel.Text = ("%s\n%s  -  %d*"):format(ownerName, skinName or "", rebirths)
-	elseif skinName and skinName ~= Config.getSkin(Config.DEFAULT_SKIN).name then
-		plot.signLabel.Text = ("%s\n%s"):format(ownerName, skinName)
-	else
+		table.insert(boasts, ("%d*"):format(rebirths))
+	end
+	if houseName and houseName ~= Config.HOUSE_TIERS[1].name then
+		table.insert(boasts, houseName)
+	end
+	if skinName and skinName ~= Config.getSkin(Config.DEFAULT_SKIN).name then
+		table.insert(boasts, skinName)
+	end
+
+	if #boasts == 0 then
 		plot.signLabel.Text = ownerName
+	else
+		plot.signLabel.Text = ("%s\n%s"):format(ownerName, table.concat(boasts, "  -  "))
 	end
 end
 

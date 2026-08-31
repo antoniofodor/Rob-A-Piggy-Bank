@@ -136,11 +136,9 @@ commands.house = function(player, level)
 		return nil
 	end
 	data.houseLevel = math.clamp(math.floor(level), 0, Config.MAX_HOUSE_LEVEL)
-	local plot = PlotService.getPlot(player)
-	if plot then
-		PlotService.setHouseLevel(plot, data.houseLevel)
-	end
-	CosmeticsService.push(player)
+	-- Full refresh: the sign names the house, so setting the level by hand has
+	-- to reapply the whole plot or the sign goes stale.
+	refresh(player)
 	return ("Moved into the %s"):format(Config.getHouseTier(data.houseLevel).name)
 end
 

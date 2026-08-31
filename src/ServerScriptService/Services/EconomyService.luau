@@ -89,7 +89,7 @@ local function refreshPlot(player: Player)
 	end
 	PlotService.updatePile(plot, data.vault, Config.getCapacity(data.capacityLevel))
 	PlotService.updateSign(plot, player.DisplayName, data.rebirths,
-		Config.getSkin(data.cosmetics.skin).name)
+		Config.getSkin(data.cosmetics.skin).name, Config.getHouseTier(data.houseLevel or 0).name)
 end
 
 -- Fires the celebration for every milestone the vault has newly crossed.

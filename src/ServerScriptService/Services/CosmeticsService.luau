@@ -132,10 +132,14 @@ function CosmeticsService.buyHouse(player: Player, requested: string)
 	data.coins -= cost
 	data.houseLevel = level + 1
 
-	local plot = PlotService.getPlot(player)
-	if plot then
-		PlotService.setHouseLevel(plot, data.houseLevel)
-	end
+	-- applyToPlot, not setHouseLevel alone.
+	--
+	-- The plot sign carries the house name now, and setHouseLevel only builds
+	-- the building -- so buying a house rebuilt it while the sign kept
+	-- announcing the old one until the player next rejoined. applyToPlot is
+	-- the function whose whole job is making the plot match the data, so
+	-- anything that changes what the plot should look like goes through it.
+	CosmeticsService.applyToPlot(player)
 
 	notify(player, ("Moved into the %s!"):format(Config.getHouseTier(data.houseLevel).name), "good")
 	DataService.save(player)
@@ -387,7 +391,8 @@ function CosmeticsService.applyToPlot(player: Player)
 	PlotService.setHouseLevel(plot, data.houseLevel or 0)
 	PlotService.setDecor(plot, data.decor.placed)
 	PlotService.applyAccessories(plot, gear(data).worn)
-	PlotService.updateSign(plot, player.DisplayName, data.rebirths, Config.getSkin(skinKey).name)
+	PlotService.updateSign(plot, player.DisplayName, data.rebirths,
+		Config.getSkin(skinKey).name, Config.getHouseTier(data.houseLevel or 0).name)
 end
 
 -- ============================================================

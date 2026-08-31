@@ -208,6 +208,28 @@ spent the moment it is thrown, so a stockpile is not standing power the way a
 maxed tree is — and wiping it would only teach players to burn their stock the
 hour before rebirthing, which is a chore, not a decision.
 
+**The top three house tiers sell HEIGHT, because that is the only thing visible
+from the road.** A house stands 70 studs behind its own piggy, so up to the
+Midnight Modern the driveway has been doing the announcing and the building
+itself is a distant shape. The Neon Tower, Marble Palace and Sky Castle go up
+rather than out -- 64, 41 and 59 studs against the manor's 35 -- so they clear
+the grove behind the plots and read from anywhere on the street, and each
+carries emissive detail so they read at night too. Adding a fourth wide house
+would have added nothing nobody could see.
+
+**The plot sign carries the boasts, hardest first.** Rebirths, then the house,
+then the skin. The house is on there because it is otherwise the least visible
+expensive thing anyone owns: past the first few tiers a passer-by cannot tell a
+1.4M manor from a 40M palace at that range. The Starter Shack is deliberately
+never named -- a sign announcing the free tier reads as a jeer at players who
+have not bought anything yet.
+
+**Anything that changes how a plot should LOOK goes through
+`CosmeticsService.applyToPlot`.** It is the one function whose job is making the
+plot match the data. Buying a house used to call `PlotService.setHouseLevel`
+alone, which rebuilt the building while the sign went on announcing the old one
+until the player next rejoined.
+
 **Houses confer nothing.** The house behind a plot is pure prestige, priced above
 the skins so it stays the last thing anyone finishes. The power balance is a closed
 system of speed, time and distance; hanging a stat off a status symbol reopens
@@ -234,6 +256,16 @@ against the grass, the moat against the grass, and the guard dog's eyes against
 its own face. Detail parts want to sit slightly PROUD of the surface they
 decorate, never flush with it. See the `LIFT_` constants in `NeighborhoodService`
 and the eye offset in `GuardDog`.
+
+**A Roblox cylinder's axis is its X axis.** `Size.X` is the LENGTH along that
+axis and `Size.Y`/`Size.Z` are the cross-section, so a vertical column is
+`Vector3.new(height, d, d)` plus a 90-degree turn about Z -- never
+`Vector3.new(d, height, d)`. Written the wrong way round it becomes a disc as
+wide as the height was tall, and the turn that was meant to stand it upright
+lays that disc flat instead. This has bitten three times now: the decor car's
+wheels, the Midnight Modern's pilotis (two black plates hanging in the air
+across the front of the house), and it is why `cylinderUp`/`cylinderForward`
+exist in PiggyBank.
 
 **Luau forward references.** A `local` declared *after* a function that reads it
 silently becomes a nil global. This has caused three bugs so far. Declare shared

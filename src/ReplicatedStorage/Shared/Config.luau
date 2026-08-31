@@ -1093,6 +1093,46 @@ Config.HOUSE_TIERS = {
 		trim = Color3.fromRGB(240, 202, 110),
 		blurb = "Blacked-out glass box. Cantilevered upper floor, rooftop terrace",
 	},
+
+	-- The three tiers above here are the endgame ladder, and they are built
+	-- around one idea: HEIGHT IS THE FLEX.
+	--
+	-- The house stands 70 studs behind its own piggy, which is why the driveway
+	-- has been carrying the announcement so far -- from the road a house is a
+	-- distant shape. Anything under about three storeys is only ever seen by
+	-- somebody already standing on the lawn. These three go up instead of out,
+	-- so they clear the treeline and read from anywhere on the street, and
+	-- they light up at night so they read in the dark too. That is the whole
+	-- reward: everyone can see it without leaving their own plot.
+	--
+	-- They still confer nothing. Prestige only.
+	{
+		name = "Neon Tower", style = "tower", cost = 15000000,
+		drive = { colour = Color3.fromRGB(44, 42, 58), material = Enum.Material.Asphalt, edge = true, lit = true },
+		width = 24, depth = 22, storeys = 6,
+		walls = Color3.fromRGB(30, 32, 44), roof = Color3.fromRGB(22, 23, 32),
+		trim = Color3.fromRGB(96, 232, 246),
+		glow = Color3.fromRGB(96, 232, 246),
+		blurb = "Six floors of glass with lit edges. Visible from the far end of the street",
+	},
+	{
+		name = "Marble Palace", style = "palace", cost = 40000000,
+		drive = { colour = Color3.fromRGB(228, 222, 206), material = Enum.Material.Marble, edge = true, lit = true },
+		width = 46, depth = 30, storeys = 3,
+		walls = Color3.fromRGB(244, 240, 230), roof = Color3.fromRGB(212, 176, 96),
+		trim = Color3.fromRGB(246, 206, 108),
+		glow = Color3.fromRGB(255, 226, 150),
+		blurb = "Gold dome, colonnade, and lantern-lit steps. Unsubtle on purpose",
+	},
+	{
+		name = "Sky Castle", style = "castle", cost = 100000000,
+		drive = { colour = Color3.fromRGB(126, 122, 130), material = Enum.Material.Cobblestone, edge = true, lit = true },
+		width = 40, depth = 34, storeys = 5,
+		walls = Color3.fromRGB(158, 156, 166), roof = Color3.fromRGB(92, 52, 128),
+		trim = Color3.fromRGB(212, 74, 96),
+		glow = Color3.fromRGB(196, 128, 255),
+		blurb = "Four turrets, battlements and a banner. The last thing anyone buys",
+	},
 }
 
 -- Level 0 is the Starter Shack, which everyone owns from the first second.
