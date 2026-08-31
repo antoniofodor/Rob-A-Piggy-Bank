@@ -21,6 +21,7 @@ local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
+local BoneModel = require(ReplicatedStorage.Shared.BoneModel)
 
 local player = Players.LocalPlayer
 
@@ -505,7 +506,10 @@ local function makeScroll(parent: Frame): (ScrollingFrame, (string, number) -> (
 
 	-- AutomaticSize on the wrapper is what lets the grid inside push the
 	-- canvas taller as rows are added, instead of clipping at a fixed height.
-	local function grid(order: number): Frame
+	-- `cell` is optional: the default 130x62 suits a swatch and two lines of
+	-- text, but a tile carrying a rendered 3D icon needs room for the icon
+	-- AND the text beside it.
+	local function grid(order: number, cell: UDim2?): Frame
 		local frame = Instance.new("Frame")
 		frame.Size = UDim2.new(1, -10, 0, 0)
 		frame.AutomaticSize = Enum.AutomaticSize.Y
@@ -514,7 +518,7 @@ local function makeScroll(parent: Frame): (ScrollingFrame, (string, number) -> (
 		frame.Parent = scroll
 
 		local g = Instance.new("UIGridLayout")
-		g.CellSize = UDim2.new(0, 130, 0, 62)
+		g.CellSize = cell or UDim2.new(0, 130, 0, 62)
 		g.CellPadding = UDim2.new(0, 8, 0, 8)
 		g.SortOrder = Enum.SortOrder.LayoutOrder
 		g.Parent = frame
@@ -548,7 +552,7 @@ local vergeGridFrame = decorGrid(6)
 -- "owned" -- it shows what you are holding and stays buyable forever.
 local gearScroll, gearHeader, gearGrid = makeScroll(gearView)
 gearHeader("THROW TO A GUARD DOG", 1)
-local bonesGridFrame = gearGrid(2)
+local bonesGridFrame = gearGrid(2, UDim2.new(0, 164, 0, 66))
 
 do
 	local how = Instance.new("TextLabel")
@@ -740,14 +744,14 @@ end
 
 local latestBones: { [string]: any }? = nil
 local boneTiles: { [string]: { title: TextLabel, sub: TextLabel, count: TextLabel, button: TextButton } } = {}
-local boneSlots: { [string]: { button: TextButton, label: TextLabel } } = {}
+local boneSlots: { [string]: { button: TextButton, label: TextLabel, hotkey: TextLabel } } = {}
 
 -- Quick-throw slots, stacked above the upgrade buttons in the bottom-right.
 -- Reuses that frame's list layout, so it grows upward and never has to know
 -- what else is on the HUD.
 local boneBar = Instance.new("Frame")
 boneBar.Name = "BoneBar"
-boneBar.Size = UDim2.new(1, 0, 0, 44)
+boneBar.Size = UDim2.new(1, 0, 0, 54)
 boneBar.LayoutOrder = 0
 boneBar.BackgroundTransparency = 1
 boneBar.Visible = false
@@ -762,6 +766,54 @@ boneBarLayout.Parent = boneBar
 
 local function throwBone(key: string)
 	Remotes.get("BoneThrow"):FireServer(key)
+end
+
+-- A rendered 3D bone in a ViewportFrame, from the same model that gets thrown.
+--
+-- Not an image asset: a decal would be one more third-party ID to get moderated
+-- away (see SOUNDS), and it could not stay in step with the geometry. A viewport
+-- renders the real item, and a new bone style needs no art at all.
+--
+-- A viewport lights its contents from its own Ambient and LightDirection and
+-- ignores every light in the scene, so the model is asked for WITHOUT its glow
+-- and the framing is done here.
+local spinners: { { model: Model, tilt: CFrame } } = {}
+
+local function makeBoneIcon(parent: GuiObject, key: string, size: UDim2, position: UDim2, spin: boolean): ViewportFrame
+	local vp = Instance.new("ViewportFrame")
+	vp.Size = size
+	vp.Position = position
+	vp.BackgroundTransparency = 1
+	vp.Ambient = Color3.fromRGB(196, 194, 200)
+	vp.LightColor = Color3.fromRGB(255, 250, 238)
+	vp.LightDirection = Vector3.new(-0.35, -1, -0.55)
+	vp.Parent = parent
+
+	local model = BoneModel.build(key, false)
+	model.Parent = vp
+
+	local camera = Instance.new("Camera")
+	camera.Parent = vp
+	vp.CurrentCamera = camera
+
+	-- Framed from the model's own bounding box rather than a hardcoded
+	-- distance, so a future bone with a different footprint fills the tile the
+	-- same way instead of overflowing it or sitting lost in the middle.
+	local box, extent = model:GetBoundingBox()
+	local dist = extent.Magnitude * 0.95
+	camera.CFrame = CFrame.lookAt(
+		box.Position + Vector3.new(dist * 0.42, dist * 0.5, dist * 0.72), box.Position)
+
+	local tilt = CFrame.Angles(math.rad(-12), math.rad(-25), math.rad(8))
+	-- The model pivots on its own visual centre, so this puts that centre at
+	-- the origin -- which is exactly what the camera above is aimed at.
+	model:PivotTo(tilt)
+
+	if spin then
+		table.insert(spinners, { model = model, tilt = tilt })
+	end
+
+	return vp
 end
 
 local function ensureBoneTile(key: string, info: any)
@@ -779,17 +831,11 @@ local function ensureBoneTile(key: string, info: any)
 	button.Parent = bonesGridFrame
 	corner(button, 10)
 
-	local swatch = Instance.new("Frame")
-	swatch.Size = UDim2.new(0, 14, 1, -16)
-	swatch.Position = UDim2.new(0, 8, 0, 8)
-	swatch.BackgroundColor3 = info.colour or Color3.new(1, 1, 1)
-	swatch.BorderSizePixel = 0
-	swatch.Parent = button
-	corner(swatch, 4)
+	makeBoneIcon(button, key, UDim2.new(0, 48, 0, 50), UDim2.new(0, 4, 0, 8), true)
 
 	local title = Instance.new("TextLabel")
-	title.Size = UDim2.new(1, -66, 0, 22)
-	title.Position = UDim2.new(0, 28, 0, 8)
+	title.Size = UDim2.new(1, -62, 0, 22)
+	title.Position = UDim2.new(0, 56, 0, 10)
 	title.BackgroundTransparency = 1
 	title.Font = Enum.Font.FredokaOne
 	title.TextScaled = true
@@ -798,22 +844,26 @@ local function ensureBoneTile(key: string, info: any)
 	title.Text = info.name
 	title.Parent = button
 
-	-- Held count sits in its own corner rather than in the title, so the
-	-- number a player is actually tracking never shrinks as the name grows.
+	-- Held count sits ON the icon, bottom corner, exactly as it does on the
+	-- quick-throw slot -- so the number means the same thing in both places.
+	-- Kept out of the title line because a badge on the right squeezed "Juicy
+	-- Steak" down to something unreadable.
 	local count = Instance.new("TextLabel")
-	count.Size = UDim2.new(0, 32, 0, 22)
-	count.Position = UDim2.new(1, -36, 0, 8)
+	count.Size = UDim2.new(0, 42, 0, 16)
+	count.Position = UDim2.new(0, 4, 0, 42)
 	count.BackgroundTransparency = 1
 	count.Font = Enum.Font.FredokaOne
 	count.TextScaled = true
 	count.TextXAlignment = Enum.TextXAlignment.Right
-	count.TextColor3 = Color3.fromRGB(120, 226, 170)
+	count.TextColor3 = Color3.fromRGB(150, 240, 190)
+	count.TextStrokeTransparency = 0.2
+	count.TextStrokeColor3 = Color3.fromRGB(18, 20, 26)
 	count.Text = ""
 	count.Parent = button
 
 	local sub = Instance.new("TextLabel")
-	sub.Size = UDim2.new(1, -36, 0, 20)
-	sub.Position = UDim2.new(0, 28, 0, 32)
+	sub.Size = UDim2.new(1, -62, 0, 20)
+	sub.Position = UDim2.new(0, 56, 0, 36)
 	sub.BackgroundTransparency = 1
 	sub.Font = Enum.Font.GothamBold
 	sub.TextScaled = true
@@ -838,35 +888,58 @@ local function ensureBoneSlot(key: string, info: any)
 	end
 
 	local button = Instance.new("TextButton")
-	button.Size = UDim2.new(0, 62, 1, 0)
+	button.Size = UDim2.new(0, 58, 1, 0)
 	button.LayoutOrder = info.order or 99
-	button.BackgroundColor3 = info.colour or Color3.new(1, 1, 1)
+	-- Dark tile behind the icon, not the bone's own colour. The colour is in
+	-- the rendered model now; painting the tile the same colour as the thing
+	-- standing on it flattens the one part that has to read at a glance.
+	button.BackgroundColor3 = PANEL
+	button.BackgroundTransparency = 0.15
 	button.BorderSizePixel = 0
 	button.AutoButtonColor = true
 	button.Font = Enum.Font.FredokaOne
-	button.TextScaled = true
-	-- Dark text: every bone colour is a light one, and white on cream is
-	-- unreadable at 62px on a phone.
-	button.TextColor3 = Color3.fromRGB(28, 26, 24)
 	button.Text = ""
 	button.Parent = boneBar
 	corner(button, 10)
 
+	-- Static, unlike the shop tiles. These sit on the HUD for the whole
+	-- session, and something turning in the corner of the screen forever pulls
+	-- the eye away from the plot the player is meant to be watching.
+	makeBoneIcon(button, key, UDim2.new(1, -6, 1, -6), UDim2.new(0, 3, 0, 3), false)
+
 	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(1, -8, 1, -8)
-	label.Position = UDim2.new(0, 4, 0, 4)
+	label.Size = UDim2.new(1, -6, 0, 18)
+	label.Position = UDim2.new(0, 3, 1, -20)
 	label.BackgroundTransparency = 1
 	label.Font = Enum.Font.FredokaOne
 	label.TextScaled = true
-	label.TextColor3 = Color3.fromRGB(28, 26, 24)
+	label.TextXAlignment = Enum.TextXAlignment.Right
+	label.TextColor3 = Color3.fromRGB(255, 252, 244)
+	-- Stroked, because it is drawn over a rendered model whose brightness
+	-- changes with the bone: cream, red and gold all sit behind this number.
+	label.TextStrokeTransparency = 0.2
+	label.TextStrokeColor3 = Color3.fromRGB(18, 20, 26)
 	label.Text = ""
 	label.Parent = button
+
+	local hotkey = Instance.new("TextLabel")
+	hotkey.Size = UDim2.new(0, 22, 0, 14)
+	hotkey.Position = UDim2.new(0, 3, 0, 2)
+	hotkey.BackgroundTransparency = 1
+	hotkey.Font = Enum.Font.GothamBold
+	hotkey.TextScaled = true
+	hotkey.TextXAlignment = Enum.TextXAlignment.Left
+	hotkey.TextColor3 = Color3.fromRGB(180, 226, 255)
+	hotkey.TextStrokeTransparency = 0.3
+	hotkey.TextStrokeColor3 = Color3.fromRGB(18, 20, 26)
+	hotkey.Text = ""
+	hotkey.Parent = button
 
 	button.Activated:Connect(function()
 		throwBone(key)
 	end)
 
-	local entry = { button = button, label = label }
+	local entry = { button = button, label = label, hotkey = hotkey }
 	boneSlots[key] = entry
 	return entry
 end
@@ -906,9 +979,8 @@ local function renderBones()
 
 		local slot = ensureBoneSlot(key, info)
 		slot.button.Visible = info.held > 0
-		slot.label.Text = if key == quick
-			then ("%d\n[G]"):format(info.held)
-			else tostring(info.held)
+		slot.label.Text = tostring(info.held)
+		slot.hotkey.Text = if key == quick then "G" else ""
 		if info.held > 0 then
 			anyHeld = true
 		end
@@ -918,6 +990,23 @@ local function renderBones()
 	-- greyed slots is permanent clutter on a phone screen.
 	boneBar.Visible = anyHeld
 end
+
+-- ONE Heartbeat loop for every shop icon, the same way animated skins are
+-- driven. A connection per ViewportFrame would be three loops doing one
+-- rotation each, and a fourth the moment another bone is added.
+--
+-- Only turns while the shop is actually open. These icons are offscreen for
+-- almost the whole session, and rendering three viewports every frame to
+-- animate something nobody is looking at is pure waste.
+RunService.Heartbeat:Connect(function()
+	if not panel.Visible then
+		return
+	end
+	local yaw = os.clock() * 0.9
+	for _, spinner in ipairs(spinners) do
+		spinner.model:PivotTo(CFrame.Angles(0, yaw, 0) * spinner.tilt)
+	end
+end)
 
 Remotes.get("GearState").OnClientEvent:Connect(function(snapshot)
 	latestBones = snapshot

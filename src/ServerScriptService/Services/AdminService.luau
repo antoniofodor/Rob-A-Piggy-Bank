@@ -256,12 +256,30 @@ commands.reset = function(player)
 	data.cosmetics.skin = Config.DEFAULT_SKIN
 	data.cosmetics.effect = Config.DEFAULT_EFFECT
 
+	-- Decorations, bone stock and the pity counter, which this command used to
+	-- miss.
+	--
+	-- It claimed "brand-new player" while leaving every ornament owned AND
+	-- placed -- and because refresh re-applies the collection to the plot, they
+	-- were immediately rebuilt on a lawn that was supposed to be empty. A dev
+	-- command that lies about what it wiped is worse than one that does less,
+	-- because the state it leaves behind gets mistaken for a bug in the feature
+	-- being tested.
+	data.decor = { owned = {}, placed = {} }
+	data.consumables = {}
+	data.sinceLegendary = 0
+
 	local plot = PlotService.getPlot(player)
 	if plot then
 		PlotService.buildFence(plot, 0)
+		PlotService.setDogLevel(plot, 0)
+		PlotService.setLockLevel(plot, 0)
+		PlotService.setDecor(plot, data.decor.placed)
+		PlotService.setHouseLevel(plot, 0)
 		PlotService.updatePile(plot, 0, Config.getCapacity(1))
 	end
 	refresh(player)
+	BoneService.push(player)
 	DataService.save(player)
 	return "Save wiped back to a brand-new player"
 end

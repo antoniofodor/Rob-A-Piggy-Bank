@@ -32,6 +32,7 @@ local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local DataService = require(script.Parent.DataService)
 local PlotService = require(script.Parent.PlotService)
 local GuardDog = require(script.Parent.GuardDog)
+local BoneModel = require(ReplicatedStorage.Shared.BoneModel)
 
 local BoneService = {}
 
@@ -57,54 +58,8 @@ local function stock(data: any): { [string]: number }
 end
 
 -- ============================================================
--- THE BONE ITSELF
+-- FLIGHT
 -- ============================================================
-
--- Two knuckles on a shaft. Small, but it has to be findable on a lawn from
--- the far side of a fence, so it gets a light rather than more geometry.
-local function buildBone(spec: any): Model
-	local model = Instance.new("Model")
-	model.Name = "ThrownBone"
-
-	local function piece(name: string, size: Vector3, offset: Vector3, ball: boolean): Part
-		local p = Instance.new("Part")
-		p.Name = name
-		p.Size = size
-		p.Anchored = true
-		-- Never collides, never answers a raycast. A bone lies on exactly the
-		-- strip of lawn a chase runs across; the one thing it must not do is
-		-- body-block the dog it just baited.
-		p.CanCollide = false
-		p.CanQuery = false
-		p.CastShadow = false
-		p.Color = spec.colour
-		p.Material = Enum.Material.SmoothPlastic
-		p.TopSurface = Enum.SurfaceType.Smooth
-		p.BottomSurface = Enum.SurfaceType.Smooth
-		if ball then
-			p.Shape = Enum.PartType.Ball
-		end
-		p.CFrame = CFrame.new(offset)
-		p.Parent = model
-		return p
-	end
-
-	local shaft = piece("Shaft", Vector3.new(0.5, 0.5, 2.2), Vector3.new(), false)
-	for _, z in ipairs({ -1.1, 1.1 }) do
-		for _, x in ipairs({ -0.3, 0.3 }) do
-			piece("Knuckle", Vector3.new(0.75, 0.75, 0.75), Vector3.new(x, 0, z), true)
-		end
-	end
-
-	local glow = Instance.new("PointLight")
-	glow.Color = spec.colour
-	glow.Brightness = 1.4
-	glow.Range = 10
-	glow.Parent = shaft
-
-	model.PrimaryPart = shaft
-	return model
-end
 
 -- Lerps the bone along a fixed parabola from hand to ground.
 --
@@ -241,7 +196,14 @@ function BoneService.throw(player: Player, key: string)
 	local dog = plot.dog
 	local nap = Config.getBoneNap(key, dog.level)
 
-	local model = buildBone(spec)
+	-- `true` for the glow: this one lands in the grass and has to be findable
+	-- from the far side of a fence. The shop icon asks for the same model
+	-- without it, since a ViewportFrame ignores lights in the scene.
+	local model = BoneModel.build(key, true)
+	-- BoneModel names its models per style, which is right for the shop
+	-- icons but not for the one lying in the grass: everything in workspace
+	-- that belongs to a throw should be findable under one name.
+	model.Name = "ThrownBone"
 	model.Parent = workspace
 
 	-- Lands just SHORT of the dog rather than on it, so there is always a trot

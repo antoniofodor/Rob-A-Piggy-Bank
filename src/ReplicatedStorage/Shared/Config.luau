@@ -335,17 +335,22 @@ end
 Config.BONES = {
 	bone = {
 		name = "Dog Bone", order = 1, cost = 2500, nap = 9, breaksChase = false,
-		colour = Color3.fromRGB(238, 230, 208),
+		style = "bone", colour = Color3.fromRGB(238, 230, 208),
+		material = Enum.Material.SmoothPlastic,
 		blurb = "Buys a getaway. Not long enough to crack a lock as well",
 	},
 	steak = {
 		name = "Juicy Steak", order = 2, cost = 9000, nap = 18, breaksChase = false,
-		colour = Color3.fromRGB(176, 68, 62),
+		style = "steak", colour = Color3.fromRGB(176, 68, 62),
+		material = Enum.Material.SmoothPlastic,
 		blurb = "Long enough for the whole job on most plots",
 	},
 	golden = {
 		name = "Golden Bone", order = 3, cost = 30000, nap = 30, breaksChase = true,
-		colour = Color3.fromRGB(246, 198, 52),
+		-- Same silhouette as the Dog Bone, in metal. The shape says "bone" and
+		-- the finish says which one, which is how the skins ladder reads too.
+		style = "bone", colour = Color3.fromRGB(246, 198, 52),
+		material = Enum.Material.Metal,
 		blurb = "The only one a dog will break off a chase for",
 	},
 }
