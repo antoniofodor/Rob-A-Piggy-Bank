@@ -887,30 +887,37 @@ Config.ACCESSORY_RARITIES = {
 Config.ACCESSORY_SLOTS = {
 	hat = {
 		order = 1, label = "HATS", empty = "Bare head",
-		-- On the crown. The body is a 6-stud ball centred at y 8.5, so its top
-		-- is 14.5; this sits just into it so no gap opens at the brim.
-		anchors = { Vector3.new(0, 14.2, 0.3) },
+		-- Where a hat's BRIM rests. The body is a 6-stud ball centred at y 8.5,
+		-- so its top is 14.5; this sits a little into it so no gap opens under
+		-- the brim. Every builder in this slot is authored with y=0 there.
+		anchors = { Vector3.new(0, 14.15, 0) },
 	},
 	eyes = {
 		order = 2, label = "GLASSES", empty = "No glasses",
-		-- Clear of the eyeballs, which themselves only just break the surface
-		-- of the sphere. Anything nearer than this is swallowed by the head.
-		anchors = { Vector3.new(0, 10.6, 5.5) },
+		-- Eye height, and far enough forward to clear the eyeballs themselves.
+		-- The eyes are balls at (+/-2.35, 10.6, 4.9) whose front faces reach
+		-- z 5.53, and the head's surface at that height is z 5.62 -- so a lens
+		-- at 5.5 was inside both. Sits 0.28 proud of the head instead.
+		anchors = { Vector3.new(0, 10.6, 5.9) },
 	},
 	back = {
 		order = 3, label = "BACKS", empty = "Nothing on the back",
-		-- Upper back, ABOVE the tail ball at (0, 9.7, -6.4). A cape hanging
-		-- from here covers the tail, which is fine; starting level with it
-		-- put the tail through the cloth.
-		anchors = { Vector3.new(0, 11.0, -5.0) },
+		-- ON the back surface, not inside it. At y 11 the sphere's radius is
+		-- 5.45, so z -5.6 sits a hair proud; -5.0 was 0.41 deep, which is why
+		-- the jetpack came out of the middle of the pig.
+		anchors = { Vector3.new(0, 11.0, -5.6) },
 	},
 	feet = {
 		order = 4, label = "SHOES", empty = "Barefoot",
 		-- One per leg. Legs stand at (+/-3.1, _, +/-3.1) and reach the ground
 		-- at y 0.5, so a shoe centres just above that.
+		-- ON THE LAWN (y 0.5 is the top of the plot slab), because both shoes
+		-- are authored with y=0 as the point that touches the ground. Anchored
+		-- at the middle of the shoe instead, the skates' wheels ended up under
+		-- the grass.
 		anchors = {
-			Vector3.new(-3.1, 1.0, -3.1), Vector3.new(3.1, 1.0, -3.1),
-			Vector3.new(-3.1, 1.0, 3.1), Vector3.new(3.1, 1.0, 3.1),
+			Vector3.new(-3.1, 0.5, -3.1), Vector3.new(3.1, 0.5, -3.1),
+			Vector3.new(-3.1, 0.5, 3.1), Vector3.new(3.1, 0.5, 3.1),
 		},
 	},
 }
@@ -958,16 +965,21 @@ Config.ACCESSORIES = {
 	-- BACKS
 	cape = {
 		name = "Hero Cape", slot = "back", rarity = "rare", order = 8,
+		-- Puts the collar ON the shoulder surface; the flare does the rest.
+		offset = Vector3.new(0, 1.8, 1.1),
 		colour = Color3.fromRGB(196, 46, 62), trim = Color3.fromRGB(246, 198, 52),
 		blurb = "Billows even indoors",
 	},
 	jetpack = {
 		name = "Jetpack", slot = "back", rarity = "epic", order = 9,
+		-- Stands off the back and rides high, clear of the tail ball.
+		offset = Vector3.new(0, 1.0, -0.7),
 		colour = Color3.fromRGB(188, 190, 198), trim = Color3.fromRGB(255, 146, 58),
 		blurb = "Purely decorative. The pig is not going anywhere",
 	},
 	wings = {
 		name = "Angel Wings", slot = "back", rarity = "legendary", order = 10,
+		offset = Vector3.new(0, 0.4, -0.3),
 		colour = Color3.fromRGB(252, 250, 244), trim = Color3.fromRGB(226, 236, 250),
 		blurb = "Suspiciously well earned",
 	},

@@ -104,6 +104,26 @@ has to move to a currency that can only be earned by playing, BEFORE that pack
 ships. Selling a specific accessory outright for Robux is fine; selling the roll
 is not.
 
+**An accessory's pivot is its AUTHORED ORIGIN, never its visual centre.** This is
+the placement contract, and breaking it broke almost every item at once. A hat
+is authored with y=0 at its brim so it can sit ON a head; a shoe with y=0 at the
+sole so it can stand on the lawn. Pivoting on the bounding-box centre instead
+placed the middle of each shape at the anchor -- which dropped the top hat 1.65
+studs and buried its brim two studs inside the skull. The shop icon wants the
+other point and computes it for itself in `makeModelIcon`; a model cannot serve
+both from one pivot, so it serves the one that has to be right in the world.
+
+**The pig's own geometry is the spec accessories are cut against.** Eyeballs at
+x = +/-2.35 and reaching z 5.53; the head's surface at eye height at z 5.62; the
+tail a ball standing 1.37 studs proud of the back at y 9.7; the lawn at y 0.5.
+Those four numbers decide where glasses, capes and shoes can physically go, and
+every clipping bug so far has been one of them ignored -- lenses placed between
+the eyes instead of over them, arms run lengthwise through the eyeballs, a cape
+hung where the tail already is, wheels authored below the grass. A slot anchor
+is the shared attachment point; an item's `offset` in Config is its own nudge
+off it, because one anchor cannot suit a cape that hugs the back and a jetpack
+that stands off it.
+
 **A roll can only return something you do not already own.** The pool is rebuilt
 from the unowned set every time, so duplicates are impossible, every roll is
 progress, and the collection always completes. That makes it a guaranteed ladder
@@ -261,6 +281,28 @@ way passed at every distance including 70 studs against a 42-stud limit, because
 the server never saw the character move. Hold a test character with a per-frame
 `CFrame` write instead, and confirm the position server-side before trusting the
 result.
+
+**Equipping is a TOGGLE, so a script that fires blind flips things off.** Both
+accessories and decorations toggle on a repeated request -- that is deliberate,
+since it is the only way to empty a slot without a second control. It means a
+test script that "equips" a set it already owns takes the set off instead. Drive
+it from the pushed state, not from an assumed starting point. This has now cost
+time twice.
+
+**Clipping is measured, not eyeballed.** Every accessory is checked against the
+body sphere, the eyeballs, the tail and the lawn line before it is looked at:
+whether any part is fully swallowed, whether it enters something it should not,
+and for the cape whether consecutive panels still touch. Three separate bugs got
+past a screenshot and were caught by numbers, and one "fix" that looked right in
+a screenshot had opened gaps between the cape panels. Measure the world-space
+extents -- `Size.Y/2` is wrong for the rotated parts half of these are.
+
+**A `CFrame.Angles` sign flips which way a panel leans.** The cape's cloth is
+laid along its hang line; with the rotation negated the panels tilted ACROSS
+that line instead, swinging each one's lower end forward into the pig. No amount
+of moving the cape backwards fixed it, because the geometry was wrong rather
+than the position -- which is worth remembering before nudging an offset a
+fourth time.
 
 **A HUD overlay near the top of the screen will collide with the shop panel.**
 The rebirth button is pinned at y=96 and the panel's header and first row sit

@@ -112,35 +112,46 @@ end
 -- GLASSES
 -- ============================================================
 
+-- EYE_X is where the pig's eyeballs actually are. Lenses have to line up with
+-- them and arms have to clear them: the first version put both lenses between
+-- the eyes and ran the arms straight through the eyeballs.
+local EYE_X = 2.35
+local ARM_X = 3.3   -- outside the eyeballs, which reach x = 2.98
+
 builders.nerd = function(spec, add)
-	for _, x in ipairs({ -1.15, 1.15 }) do
-		local rim = add("Rim", Vector3.new(0.28, 1.9, 1.9), CFrame.new(x, 0, 0) * FACING, spec.colour)
+	for _, side in ipairs({ -1, 1 }) do
+		local rim = add("Rim", Vector3.new(0.28, 2.3, 2.3),
+			CFrame.new(side * EYE_X, 0, 0) * FACING, spec.colour)
 		rim.Shape = Enum.PartType.Cylinder
-		local lens = add("Lens", Vector3.new(0.16, 1.5, 1.5), CFrame.new(x, 0, -0.12) * FACING, spec.trim)
+		local lens = add("Lens", Vector3.new(0.16, 1.9, 1.9),
+			CFrame.new(side * EYE_X, 0, -0.1) * FACING, spec.trim)
 		lens.Shape = Enum.PartType.Cylinder
 		lens.Transparency = 0.35
 	end
-	add("Bridge", Vector3.new(1.0, 0.22, 0.22), CFrame.new(0, 0, 0), spec.colour)
-	for _, x in ipairs({ -2.0, 2.0 }) do
-		add("Arm", Vector3.new(0.2, 0.2, 1.4), CFrame.new(x, 0, -0.8), spec.colour)
+	add("Bridge", Vector3.new(EYE_X * 2 - 2.1, 0.24, 0.24), CFrame.new(0, 0, 0), spec.colour)
+	for _, side in ipairs({ -1, 1 }) do
+		add("Arm", Vector3.new(0.22, 0.22, 1.3), CFrame.new(side * ARM_X, 0.15, -0.7), spec.colour)
 	end
 end
 
 builders.shades = function(spec, add)
 	-- One visor-like sweep rather than two lenses: sunglasses on a face this
 	-- wide read better as a single dark band.
-	add("Lens", Vector3.new(4.4, 1.25, 0.3), CFrame.new(0, 0, 0), spec.colour)
-	add("Brow", Vector3.new(4.6, 0.34, 0.36), CFrame.new(0, 0.72, -0.02), spec.trim)
-	for _, x in ipairs({ -2.2, 2.2 }) do
-		add("Arm", Vector3.new(0.22, 0.22, 1.5), CFrame.new(x, 0.3, -0.85), spec.trim)
+	add("Lens", Vector3.new(5.4, 1.3, 0.3), CFrame.new(0, 0, 0), spec.colour)
+	add("Brow", Vector3.new(5.6, 0.34, 0.36), CFrame.new(0, 0.75, -0.02), spec.trim)
+	-- Arms outboard of the eyeballs and kept short. At x = 2.2 they ran
+	-- lengthwise straight through both eyes, which is what "poking the frame
+	-- into its eyeballs" was.
+	for _, side in ipairs({ -1, 1 }) do
+		add("Arm", Vector3.new(0.24, 0.24, 1.1), CFrame.new(side * ARM_X, 0.3, -0.6), spec.trim)
 	end
 end
 
 builders.visor = function(spec, add)
-	add("Shell", Vector3.new(4.8, 1.5, 0.42), CFrame.new(0, 0, 0), spec.colour)
-	add("Scan", Vector3.new(4.2, 0.5, 0.3), CFrame.new(0, 0.05, 0.16), spec.trim, Enum.Material.Neon)
-	for _, x in ipairs({ -2.5, 2.5 }) do
-		add("Strap", Vector3.new(0.3, 0.5, 1.8), CFrame.new(x, 0, -1.0), spec.colour)
+	add("Shell", Vector3.new(5.6, 1.5, 0.42), CFrame.new(0, 0, 0), spec.colour)
+	add("Scan", Vector3.new(5.0, 0.5, 0.3), CFrame.new(0, 0.05, 0.16), spec.trim, Enum.Material.Neon)
+	for _, side in ipairs({ -1, 1 }) do
+		add("Strap", Vector3.new(0.3, 0.5, 1.4), CFrame.new(side * ARM_X, 0, -0.8), spec.colour)
 	end
 end
 
@@ -149,21 +160,44 @@ end
 -- ============================================================
 
 builders.cape = function(spec, add)
-	add("Collar", Vector3.new(3.6, 0.7, 0.6), CFrame.new(0, 1.4, 0.1), spec.trim)
-	-- Three panels stepping backwards and outwards, so the cloth reads as
-	-- hanging away from a round body instead of being painted onto it.
-	local panels = {
-		{ size = Vector3.new(4.2, 2.2, 0.4), at = CFrame.new(0, 0.2, -0.35), tilt = math.rad(-8) },
-		{ size = Vector3.new(4.8, 2.2, 0.4), at = CFrame.new(0, -1.8, -0.95), tilt = math.rad(-14) },
-		{ size = Vector3.new(5.2, 2.0, 0.4), at = CFrame.new(0, -3.7, -1.75), tilt = math.rad(-18) },
-	}
-	for _, panel in ipairs(panels) do
-		add("Cloth", panel.size, panel.at * CFrame.Angles(panel.tilt, 0, 0), spec.colour)
+	-- A continuous sheet leaving the shoulders and flaring hard backwards.
+	--
+	-- The flare angle is not a style choice, it is forced. The tail is a ball
+	-- standing 1.37 studs proud of the body at y 9.7, and the cloth has to be
+	-- BEHIND it there or the tail pokes through the cape -- there is no gap to
+	-- thread, because in front of the tail is inside the pig. Clearing it from
+	-- a shoulder attachment needs about 50 degrees, which is why this cape
+	-- billows rather than hangs. Anything gentler clips.
+	--
+	-- Panels lie ALONG the hang line and are longer than the step between
+	-- them, so the cloth stays continuous as it flares. An earlier attempt
+	-- stepped level slabs apart far enough to clear the tail and left three
+	-- separate red boards trailing behind the pig with daylight between them.
+	local FLARE = math.rad(50)
+	local step, panelLen = 2.0, 2.4   -- 0.4 of overlap between panels
+	local down, back = math.cos(FLARE), math.sin(FLARE)
+
+	add("Collar", Vector3.new(3.6, 0.7, 0.6), CFrame.new(0, 0.4, 0.6), spec.trim)
+
+	local widths = { 4.2, 4.8, 5.2 }
+	for i, width in ipairs(widths) do
+		local along = panelLen / 2 + (i - 1) * step
+		-- +FLARE, not -FLARE.
+		--
+		-- The sign decides which way each panel LEANS, and getting it wrong
+		-- tilts the sheet across the hang line instead of along it: every
+		-- panel's lower end swung forward into the pig, which put the middle
+		-- one straight through the tail no matter how far back the cape was
+		-- moved. Rotating the other way makes the panel axis parallel to the
+		-- centre-to-centre direction, so the panels line up end to end.
+		add("Cloth", Vector3.new(width, panelLen, 0.4),
+			CFrame.new(0, -along * down, -along * back) * CFrame.Angles(FLARE, 0, 0),
+			spec.colour)
 	end
 end
 
 builders.jetpack = function(spec, add)
-	for _, x in ipairs({ -1.3, 1.3 }) do
+	for _, x in ipairs({ -1.6, 1.6 }) do
 		local tank = add("Tank", Vector3.new(3.2, 1.5, 1.5), CFrame.new(x, 0.3, -0.4) * FLAT,
 			spec.colour, Enum.Material.Metal)
 		tank.Shape = Enum.PartType.Cylinder
@@ -201,19 +235,25 @@ end
 -- stacked in the middle of the shop tile.
 
 builders.boots = function(spec, add)
-	add("Upper", Vector3.new(1.9, 1.5, 1.9), CFrame.new(0, 0.55, 0), spec.colour)
-	add("Toe", Vector3.new(1.9, 0.9, 1.0), CFrame.new(0, 0.15, 1.2), spec.colour)
-	add("Sole", Vector3.new(2.1, 0.45, 3.1), CFrame.new(0, -0.35, 0.5), spec.trim)
-	add("Lace", Vector3.new(1.5, 0.22, 0.22), CFrame.new(0, 1.0, 0.75), spec.trim)
+	-- y=0 is the SOLE, not the middle of the boot. The feet anchor sits on the
+	-- lawn, so a shoe authored around its own centre buries half of itself.
+	add("Sole", Vector3.new(2.1, 0.45, 3.1), CFrame.new(0, 0.23, 0.5), spec.trim)
+	add("Upper", Vector3.new(1.9, 1.5, 1.9), CFrame.new(0, 1.15, 0), spec.colour)
+	add("Toe", Vector3.new(1.9, 0.9, 1.0), CFrame.new(0, 0.75, 1.2), spec.colour)
+	add("Lace", Vector3.new(1.5, 0.22, 0.22), CFrame.new(0, 1.6, 0.75), spec.trim)
 end
 
 builders.skates = function(spec, add)
-	add("Boot", Vector3.new(1.8, 1.7, 2.4), CFrame.new(0, 0.85, 0.2), spec.colour)
-	add("Plate", Vector3.new(1.9, 0.3, 2.9), CFrame.new(0, -0.05, 0.35), spec.trim)
+	-- y=0 is where the WHEELS touch, so the whole skate is measured up from
+	-- the road. Authored around the boot instead, the wheels sank under the
+	-- lawn and the one detail that says "skate" was the part nobody could see.
+	local wheelR = 0.45
+	add("Boot", Vector3.new(1.8, 1.7, 2.4), CFrame.new(0, 1.85, 0.2), spec.colour)
+	add("Plate", Vector3.new(1.9, 0.3, 2.9), CFrame.new(0, 0.95, 0.35), spec.trim)
 	for _, z in ipairs({ -0.7, 1.4 }) do
 		for _, x in ipairs({ -0.85, 0.85 }) do
-			local wheel = add("Wheel", Vector3.new(0.5, 0.9, 0.9),
-				CFrame.new(x, -0.5, z) * FACING, spec.trim)
+			local wheel = add("Wheel", Vector3.new(0.5, wheelR * 2, wheelR * 2),
+				CFrame.new(x, wheelR, z) * FACING, spec.trim)
 			wheel.Shape = Enum.PartType.Cylinder
 		end
 	end
@@ -254,12 +294,23 @@ function PigGear.build(key: string): Model
 	assert(build, ("Accessory '%s' has no builder"):format(key))
 	build(spec, add)
 
-	-- Pivot on the visual centre with no PrimaryPart, for the same reason
-	-- BoneModel does: several of these have their first part rotated, and a
+	-- The pivot is the AUTHORED ORIGIN, not the visual centre.
+	--
+	-- This is the placement contract, and getting it wrong was the bug behind
+	-- almost every clipping report: pivoting on the bounding-box centre meant
+	-- PivotTo placed the middle of the shape at the anchor rather than the
+	-- point each builder was written around. A top hat is authored with y=0 at
+	-- the brim so it can sit ON the head; centre-pivoting dropped it 1.65
+	-- studs and buried the brim two studs inside the skull.
+	--
+	-- The shop icon wants the other point, and computes it for itself -- see
+	-- makeModelIcon, which re-centres its own copy. A model cannot serve both
+	-- from one pivot, so it serves the one that has to be right in the world.
+	--
+	-- Still no PrimaryPart: several of these have a rotated first part, and a
 	-- PrimaryPart pivot would REPLACE that rotation on the first PivotTo
-	-- rather than add to it -- laying every top hat on its side.
-	local box = model:GetBoundingBox()
-	model.WorldPivot = CFrame.new(box.Position)
+	-- rather than add to it, laying every top hat on its side.
+	model.WorldPivot = CFrame.new()
 
 	return model
 end

@@ -512,10 +512,14 @@ function PiggyBank.applyAccessories(refs: Refs, worn: { [string]: string })
 		-- Moving an accessory between slots in Config would otherwise leave
 		-- saved players wearing a hat on their feet.
 		if spec and spec.slot == slotKey then
+			-- The slot anchor is the shared attachment point; `offset` is each
+			-- item's own nudge off it. One anchor cannot suit a cape that hugs
+			-- the back and a jetpack that stands off it.
+			local offset = spec.offset or Vector3.zero
 			for _, anchor in ipairs(slot.anchors) do
 				local model = PigGear.build(key)
 				model.Parent = folder
-				model:PivotTo(CFrame.new(refs.origin + anchor))
+				model:PivotTo(CFrame.new(refs.origin + anchor + offset))
 			end
 		end
 	end

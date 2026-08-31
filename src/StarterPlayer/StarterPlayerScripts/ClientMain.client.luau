@@ -851,17 +851,26 @@ local function makeModelIcon(parent: GuiObject, model: Model, size: UDim2, posit
 	camera.Parent = vp
 	vp.CurrentCamera = camera
 
-	-- Framed from the model's own bounding box rather than a hardcoded
-	-- distance, so a future bone with a different footprint fills the tile the
-	-- same way instead of overflowing it or sitting lost in the middle.
+	-- Re-centred on its VISUAL centre, and only here.
+	--
+	-- A model's pivot is its authored origin, because that is the point world
+	-- placement has to be right about -- a hat is authored at its brim so it
+	-- can sit on a head. An icon wants the opposite: the middle of the shape,
+	-- so it spins in place and the camera has a fixed thing to aim at. The two
+	-- are different points, so this copy moves itself and leaves the contract
+	-- everyone else depends on alone.
 	local box, extent = model:GetBoundingBox()
+	model:TranslateBy(-box.Position)
+	model.WorldPivot = CFrame.new()
+
+	-- Framed from the model's own bounding box rather than a hardcoded
+	-- distance, so an item with a different footprint fills the tile the same
+	-- way instead of overflowing it or sitting lost in the middle.
 	local dist = extent.Magnitude * 0.95
 	camera.CFrame = CFrame.lookAt(
-		box.Position + Vector3.new(dist * 0.42, dist * 0.5, dist * 0.72), box.Position)
+		Vector3.new(dist * 0.42, dist * 0.5, dist * 0.72), Vector3.zero)
 
 	local tilt = CFrame.Angles(math.rad(-12), math.rad(-25), math.rad(8))
-	-- The model pivots on its own visual centre, so this puts that centre at
-	-- the origin -- which is exactly what the camera above is aimed at.
 	model:PivotTo(tilt)
 
 	if spin then
