@@ -301,6 +301,35 @@ are found by CollectionService tag rather than collected once at startup,
 because a moat is built when someone buys the fifth fence and torn down when
 they rebirth.
 
+**A gadget buys a tag, never the catch.** Gadgets are to maxed Speed Boots
+what bones are to the guard dog: the counter to a top-of-tree purchase that
+had none. `getCarryMultiplier` caps at 1.0, so a thief with boots maxed carries
+at 16 -- the SAME speed as the person chasing them -- and tagging becomes
+impossible unless you are already on top of them. Four things keep the fix from
+becoming the disease, and removing any one breaks it: they only work on
+somebody **carrying loot**, so there is no way to point one at a player who is
+not currently robbing someone; they **cost coins every throw**; **tagging still
+recovers the loot**, so a gadget is setup and never the terminal action; and
+**range falls as power rises**, so the decisive one cannot reach a thief who
+already got clear. The first is not a balance rule, it is a shipping
+requirement -- without it this is a harassment toy handed to under-twelves.
+
+**Nobody rides while loot is in transit, not just the two players involved.**
+Blocking only the victim left any BYSTANDER free to stay on a scrambler at 33.6
+and run down a thief doing 12, and `HeistService.tag` lets anyone tag. That is
+not a chase, it is an execution. Server-wide is also the version that reads as
+a rule rather than a restriction: when the alarm goes, the whole street is on
+foot. A carry lasts seconds, so the cost is small and the drama is free.
+
+**The hotbar carries throwables, never rides.** Bones and gadgets share it
+because they are the same gesture -- hold a stock, pick one, throw it -- and
+two bars for one verb costs twice the phone screen to teach a distinction the
+game does not make. Rides are excluded on purpose: mounting is automatic and a
+ride cannot be used during a chase, so a slot for one would be inert at exactly
+the moment the bar matters. Keys are FIXED per item, never renumbered to fill
+gaps, or the key that threw a 1.5K plunger a moment ago throws a 22K zapper
+once a stock runs out.
+
 **A bone buys a window, never the dog.** Bones are the offence tree's answer to
 the one defence purchase that had none, and the same line governs both: defence
 buys *time*, never immunity — and so does the counter. Four things keep a bone

@@ -42,6 +42,7 @@ local ProgressionService = require(script.Parent.ProgressionService)
 local HeistService = require(script.Parent.HeistService)
 local BoneService = require(script.Parent.BoneService)
 local RideService = require(script.Parent.RideService)
+local GadgetService = require(script.Parent.GadgetService)
 
 local AdminService = {}
 
@@ -263,8 +264,15 @@ commands.bones = function(player, count)
 	for key in pairs(Config.BONES) do
 		data.consumables[key] = n
 	end
+	-- Gadgets share the same stock table, and land in the same hole: testing
+	-- one means throwing it at a robbery already in progress, which is a
+	-- narrow window that burns stock far faster than it can be earned.
+	for key in pairs(Config.GADGETS) do
+		data.consumables[key] = n
+	end
 	BoneService.push(player)
-	return ("%d of every bone"):format(n)
+	GadgetService.push(player)
+	return ("%d of every bone and gadget"):format(n)
 end
 
 commands.shield = function(player)
@@ -324,6 +332,7 @@ commands.reset = function(player)
 	end
 	refresh(player)
 	BoneService.push(player)
+	GadgetService.push(player)
 	DataService.save(player)
 	return "Save wiped back to a brand-new player"
 end

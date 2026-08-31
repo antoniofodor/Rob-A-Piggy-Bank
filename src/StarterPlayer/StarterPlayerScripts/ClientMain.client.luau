@@ -24,6 +24,7 @@ local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local BoneModel = require(ReplicatedStorage.Shared.BoneModel)
 local PigGear = require(ReplicatedStorage.Shared.PigGear)
 local RideModel = require(ReplicatedStorage.Shared.RideModel)
+local GadgetModel = require(ReplicatedStorage.Shared.GadgetModel)
 
 local player = Players.LocalPlayer
 
@@ -318,6 +319,7 @@ local cosmeticsView = makeView("CosmeticsView")
 local houseView = makeView("HouseView")
 local decorView = makeView("DecorView")
 local gearView = makeView("GearView")
+local gadgetView = makeView("GadgetView")
 local rideView = makeView("RideView")
 local collectionView = makeView("CollectionView")
 upgradesView.Visible = true
@@ -359,8 +361,9 @@ makeTab("🐷", "Your Piggy", cosmeticsView, 2)
 makeTab("🏠", "Your House", houseView, 3)
 makeTab("🌳", "Decorations", decorView, 4)
 makeTab("🦴", "Bones", gearView, 5)
-makeTab("🛹", "Rides", rideView, 6)
-makeTab("🎁", "Collection", collectionView, 7)
+makeTab("🧹", "Gadgets", gadgetView, 6)
+makeTab("🛹", "Rides", rideView, 7)
+makeTab("🎁", "Collection", collectionView, 8)
 
 local columns: { [string]: Frame } = {}
 for index, spec in ipairs({
@@ -543,6 +546,34 @@ local effectsGridFrame = piggyGrid(4)
 local _, houseHeader, houseGrid = makeScroll(houseView)
 houseHeader("MOVE UP THE STREET", 1)
 local housesGridFrame = houseGrid(2)
+
+local gadgetScroll, gadgetHeader, gadgetGrid = makeScroll(gadgetView)
+gadgetHeader("THROW AT A ROBBER", 1)
+local gadgetsGridFrame = gadgetGrid(2, UDim2.new(0, 164, 0, 66))
+
+do
+	-- Says what they are FOR, and the one limit that otherwise reads as a bug.
+	--
+	-- "Nobody is running off with anything" is the message a player gets almost
+	-- every time they first try one, because almost always nobody is being
+	-- robbed. Left unexplained that is indistinguishable from a broken item.
+	local how = Instance.new("TextLabel")
+	how.Size = UDim2.new(1, -10, 0, 112)
+	how.LayoutOrder = 3
+	how.BackgroundTransparency = 1
+	how.Font = Enum.Font.Gotham
+	how.TextSize = 13
+	how.TextWrapped = true
+	how.TextXAlignment = Enum.TextXAlignment.Left
+	how.TextYAlignment = Enum.TextYAlignment.Top
+	how.TextColor3 = Color3.fromRGB(130, 142, 158)
+	how.Text = "These only work on somebody who is CARRYING STOLEN COINS right "
+		.. "now -- you cannot throw one at anybody else, ever.\n\nThey slow a "
+		.. "robber down so you can catch up. They never make them drop the "
+		.. "coins: you still have to reach them and tag them. Thieves with maxed "
+		.. "Speed Boots run as fast as you do, and this is how you catch those."
+	how.Parent = gadgetScroll
+end
 
 local rideScroll, rideHeader, rideGrid = makeScroll(rideView)
 rideHeader("GET AROUND", 1)
@@ -831,30 +862,71 @@ end
 -- inside ensureCosmeticButton.
 
 local latestBones: { [string]: any }? = nil
+
+-- The bar only exists while you are holding something. An empty row of greyed
+-- slots is permanent clutter on a phone screen. Two renderers feed it now, so
+-- each records whether IT has anything and the bar takes the union -- a single
+-- `Visible = anyHeld` in either one would hide the other's slots.
+local boneHeld = false
+local gadgetHeld = false
+
 local boneTiles: { [string]: { title: TextLabel, sub: TextLabel, count: TextLabel, button: TextButton } } = {}
 local boneSlots: { [string]: { button: TextButton, label: TextLabel, hotkey: TextLabel } } = {}
 
 -- Quick-throw slots, stacked above the upgrade buttons in the bottom-right.
 -- Reuses that frame's list layout, so it grows upward and never has to know
 -- what else is on the HUD.
-local boneBar = Instance.new("Frame")
-boneBar.Name = "BoneBar"
-boneBar.Size = UDim2.new(1, 0, 0, 54)
-boneBar.LayoutOrder = 0
-boneBar.BackgroundTransparency = 1
-boneBar.Visible = false
-boneBar.Parent = shop
+--
+-- Carries BOTH bones and gadgets. They are the same gesture -- hold a stock,
+-- pick one, throw it at something -- and two separate bars for one verb would
+-- cost twice the screen on a phone to teach a distinction the game does not
+-- actually make.
+--
+-- Rides are deliberately NOT here. Mounting is automatic and, by design, a
+-- ride cannot be used during a chase, so a slot for one would be inert at
+-- exactly the moment this bar matters. Choosing a board is a taste decision
+-- made once, and taste decisions live in the shop.
+local hotBar = Instance.new("Frame")
+hotBar.Name = "HotBar"
+hotBar.Size = UDim2.new(1, 0, 0, 54)
+hotBar.LayoutOrder = 0
+hotBar.BackgroundTransparency = 1
+hotBar.Visible = false
+hotBar.Parent = shop
 
-local boneBarLayout = Instance.new("UIListLayout")
-boneBarLayout.FillDirection = Enum.FillDirection.Horizontal
-boneBarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
-boneBarLayout.Padding = UDim.new(0, 6)
-boneBarLayout.SortOrder = Enum.SortOrder.LayoutOrder
-boneBarLayout.Parent = boneBar
+local hotBarLayout = Instance.new("UIListLayout")
+hotBarLayout.FillDirection = Enum.FillDirection.Horizontal
+hotBarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+hotBarLayout.Padding = UDim.new(0, 6)
+hotBarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+hotBarLayout.Parent = hotBar
+
+local function refreshHotBar()
+	hotBar.Visible = boneHeld or gadgetHeld
+end
 
 local function throwBone(key: string)
 	Remotes.get("BoneThrow"):FireServer(key)
 end
+
+local function throwGadget(key: string)
+	Remotes.get("GadgetThrow"):FireServer(key)
+end
+
+-- One key per item, FIXED, never renumbered.
+--
+-- The obvious alternative -- number the slots you can currently see, 1..n --
+-- reshuffles every time a stock runs out, so the key that threw a plunger a
+-- moment ago now throws a zapper worth twenty-two thousand coins. A slot is
+-- hidden when empty and its number simply goes unused; muscle memory survives.
+local HOTKEYS = {
+	bone = { key = Enum.KeyCode.One, label = "1" },
+	steak = { key = Enum.KeyCode.Two, label = "2" },
+	golden = { key = Enum.KeyCode.Three, label = "3" },
+	plunger = { key = Enum.KeyCode.Four, label = "4" },
+	gum = { key = Enum.KeyCode.Five, label = "5" },
+	zapper = { key = Enum.KeyCode.Six, label = "6" },
+}
 
 -- A rendered 3D bone in a ViewportFrame, from the same model that gets thrown.
 --
@@ -995,7 +1067,7 @@ local function ensureBoneSlot(key: string, info: any)
 	button.AutoButtonColor = true
 	button.Font = Enum.Font.FredokaOne
 	button.Text = ""
-	button.Parent = boneBar
+	button.Parent = hotBar
 	corner(button, 10)
 
 	-- Static, unlike the shop tiles. These sit on the HUD for the whole
@@ -1061,7 +1133,6 @@ local function renderBones()
 		return
 	end
 
-	local quick = cheapestHeldBone()
 	local anyHeld = false
 
 	for key, info in pairs(latestBones) do
@@ -1076,15 +1147,22 @@ local function renderBones()
 		local slot = ensureBoneSlot(key, info)
 		slot.button.Visible = info.held > 0
 		slot.label.Text = tostring(info.held)
-		slot.hotkey.Text = if key == quick then "G" else ""
+		-- Every slot shows its NUMBER, bones included.
+		--
+		-- This used to show "G" on the cheapest bone instead, which left the bar
+		-- reading G,2,3,4,5,6 -- so the one key a player could work out by
+		-- looking was the one that was not advertised anywhere. G still throws
+		-- the cheapest bone, and the Bones tab still says so; it is a shortcut
+		-- on top of the numbering rather than a hole in it.
+		local hot = HOTKEYS[key]
+		slot.hotkey.Text = if hot then hot.label else ""
 		if info.held > 0 then
 			anyHeld = true
 		end
 	end
 
-	-- The bar only exists while you are carrying something. An empty row of
-	-- greyed slots is permanent clutter on a phone screen.
-	boneBar.Visible = anyHeld
+	boneHeld = anyHeld
+	refreshHotBar()
 end
 
 -- ONE Heartbeat loop for every shop icon, the same way animated skins are
@@ -1094,6 +1172,169 @@ end
 -- Only turns while the shop is actually open. These icons are offscreen for
 -- almost the whole session, and rendering three viewports every frame to
 -- animate something nobody is looking at is pure waste.
+-- ============================================================
+-- GADGETS
+-- ============================================================
+
+local latestGadgets: { [string]: any }? = nil
+local gadgetTiles: { [string]: { title: TextLabel, sub: TextLabel, count: TextLabel, button: TextButton } } = {}
+local gadgetSlots: { [string]: { button: TextButton, label: TextLabel, hotkey: TextLabel } } = {}
+
+local function ensureGadgetTile(key: string, info: any)
+	local existing = gadgetTiles[key]
+	if existing then
+		return existing
+	end
+
+	local button = Instance.new("TextButton")
+	button.LayoutOrder = info.order or 99
+	button.BackgroundColor3 = PANEL
+	button.BorderSizePixel = 0
+	button.Font = Enum.Font.FredokaOne
+	button.Text = ""
+	button.Parent = gadgetsGridFrame
+	corner(button, 10)
+
+	makeModelIcon(button, GadgetModel.build(key, false), UDim2.new(0, 48, 0, 50), UDim2.new(0, 4, 0, 8), true)
+
+	local title = Instance.new("TextLabel")
+	title.Size = UDim2.new(1, -62, 0, 20)
+	title.Position = UDim2.new(0, 56, 0, 6)
+	title.BackgroundTransparency = 1
+	title.Font = Enum.Font.FredokaOne
+	title.TextScaled = true
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.TextColor3 = Color3.fromRGB(236, 240, 248)
+	title.Text = info.name
+	title.Parent = button
+
+	local sub = Instance.new("TextLabel")
+	sub.Size = UDim2.new(1, -62, 0, 18)
+	sub.Position = UDim2.new(0, 56, 0, 28)
+	sub.BackgroundTransparency = 1
+	sub.Font = Enum.Font.GothamBold
+	sub.TextSize = 12
+	sub.TextXAlignment = Enum.TextXAlignment.Left
+	sub.TextColor3 = GOLD
+	sub.Text = ""
+	sub.Parent = button
+
+	local count = Instance.new("TextLabel")
+	count.Size = UDim2.new(1, -62, 0, 16)
+	count.Position = UDim2.new(0, 56, 0, 46)
+	count.BackgroundTransparency = 1
+	count.Font = Enum.Font.GothamBold
+	count.TextSize = 12
+	count.TextXAlignment = Enum.TextXAlignment.Left
+	count.TextColor3 = Color3.fromRGB(150, 162, 178)
+	count.Text = ""
+	count.Parent = button
+
+	button.Activated:Connect(function()
+		Remotes.get("GadgetRequest"):FireServer(key)
+	end)
+
+	local entry = { title = title, sub = sub, count = count, button = button }
+	gadgetTiles[key] = entry
+	return entry
+end
+
+local function ensureGadgetSlot(key: string, info: any)
+	local existing = gadgetSlots[key]
+	if existing then
+		return existing
+	end
+
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(0, 58, 1, 0)
+	-- After the bones in the bar, so the two kinds never interleave as stock
+	-- comes and goes. Bones are thrown at dogs and gadgets at people; keeping
+	-- them grouped means the hand knows which half it is reaching for.
+	button.LayoutOrder = 10 + (info.order or 99)
+	button.BackgroundColor3 = PANEL
+	button.BackgroundTransparency = 0.15
+	button.BorderSizePixel = 0
+	button.AutoButtonColor = true
+	button.Font = Enum.Font.FredokaOne
+	button.Text = ""
+	button.Parent = hotBar
+	corner(button, 10)
+
+	-- Static, like the bone slots: something turning in the corner of the
+	-- screen forever pulls the eye off the plot the player should be watching.
+	makeModelIcon(button, GadgetModel.build(key, false), UDim2.new(1, -6, 1, -6), UDim2.new(0, 3, 0, 3), false)
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, -6, 0, 18)
+	label.Position = UDim2.new(0, 3, 1, -20)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.FredokaOne
+	label.TextScaled = true
+	label.TextXAlignment = Enum.TextXAlignment.Right
+	label.TextColor3 = Color3.fromRGB(255, 252, 244)
+	label.TextStrokeTransparency = 0.2
+	label.TextStrokeColor3 = Color3.fromRGB(18, 20, 26)
+	label.Text = ""
+	label.Parent = button
+
+	local hotkey = Instance.new("TextLabel")
+	hotkey.Size = UDim2.new(0, 22, 0, 14)
+	hotkey.Position = UDim2.new(0, 3, 0, 2)
+	hotkey.BackgroundTransparency = 1
+	hotkey.Font = Enum.Font.GothamBold
+	hotkey.TextScaled = true
+	hotkey.TextXAlignment = Enum.TextXAlignment.Left
+	hotkey.TextColor3 = Color3.fromRGB(255, 190, 190)
+	hotkey.TextStrokeTransparency = 0.3
+	hotkey.TextStrokeColor3 = Color3.fromRGB(18, 20, 26)
+	hotkey.Text = ""
+	hotkey.Parent = button
+
+	button.Activated:Connect(function()
+		throwGadget(key)
+	end)
+
+	local entry = { button = button, label = label, hotkey = hotkey }
+	gadgetSlots[key] = entry
+	return entry
+end
+
+local function renderGadgets()
+	if not latestGadgets then
+		return
+	end
+
+	local anyHeld = false
+	for key, info in pairs(latestGadgets) do
+		local tile = ensureGadgetTile(key, info)
+		tile.title.Text = info.name
+		-- What it does, in the two numbers that matter: how much it takes off
+		-- them and for how long. A full stop is called out separately, because
+		-- "stops them" is a different promise from "slows them" and one number
+		-- cannot make both.
+		tile.sub.Text = if info.stops
+			then ("STOPS them  -  %s"):format(format(info.cost))
+			else ("-%d%% for %.1fs  -  %s"):format(info.slowPercent, info.duration, format(info.cost))
+		tile.count.Text = ("range %d   %s"):format(
+			info.range, if info.held > 0 then ("you have %d"):format(info.held) else "")
+		tile.button.BackgroundColor3 = if latestCoins >= info.cost
+			then Color3.fromRGB(58, 84, 62)
+			else PANEL
+
+		local slot = ensureGadgetSlot(key, info)
+		slot.button.Visible = info.held > 0
+		slot.label.Text = tostring(info.held)
+		local hot = HOTKEYS[key]
+		slot.hotkey.Text = if hot then hot.label else ""
+		if info.held > 0 then
+			anyHeld = true
+		end
+	end
+
+	gadgetHeld = anyHeld
+	refreshHotBar()
+end
+
 -- ============================================================
 -- RIDES
 -- ============================================================
@@ -1338,6 +1579,11 @@ Remotes.get("CosmeticState").OnClientEvent:Connect(function(snapshot)
 	renderCollection()
 end)
 
+Remotes.get("GadgetState").OnClientEvent:Connect(function(snapshot)
+	latestGadgets = snapshot
+	renderGadgets()
+end)
+
 Remotes.get("RideState").OnClientEvent:Connect(function(snapshot)
 	latestRides = snapshot
 	renderRides()
@@ -1364,6 +1610,22 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		local key = cheapestHeldBone()
 		if key then
 			throwBone(key)
+		end
+	else
+		-- One fixed key per item, driven from the PUSHED state and never from an
+		-- assumed stock: pressing a number for something you do not hold has to
+		-- do nothing, rather than fire a remote the server will only reject.
+		for key, hot in pairs(HOTKEYS) do
+			if input.KeyCode == hot.key then
+				local bone = latestBones and latestBones[key]
+				local gadget = latestGadgets and latestGadgets[key]
+				if bone and bone.held > 0 then
+					throwBone(key)
+				elseif gadget and gadget.held > 0 then
+					throwGadget(key)
+				end
+				break
+			end
 		end
 	end
 end)
@@ -1501,6 +1763,7 @@ local function renderUpgrades()
 	renderCosmetics()
 	renderBones()
 	renderCollection()
+	renderGadgets()
 	renderRides()
 end
 

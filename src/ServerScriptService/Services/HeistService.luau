@@ -297,10 +297,27 @@ function HeistService.rideBlockReason(player: Player): string?
 		return "Can't ride while you're carrying loot."
 	end
 
-	for thief, carry in pairs(carrying) do
-		if carry.victim == player and thief ~= player then
-			return "Can't ride while you're being robbed -- go tag them."
+	-- NOBODY rides while loot is in transit, not just the two players
+	-- involved.
+	--
+	-- Blocking only the victim left a hole big enough to drive a scrambler
+	-- through: any BYSTANDER could stay mounted at 33.6 and run down a thief
+	-- doing 12, and HeistService.tag lets anyone tag. That is not a chase, it
+	-- is an execution, and it made robbery in a busy server pointless.
+	--
+	-- Server-wide is also the version that reads as a rule rather than as a
+	-- restriction: when the alarm goes, the whole street is on foot. A carry
+	-- lasts only a few seconds, so the cost is small and the drama is free.
+	if HeistService.anyoneCarrying() then
+		if carrying[player] then
+			return "Can't ride while you're carrying loot."
 		end
+		for _, carry in pairs(carrying) do
+			if carry.victim == player then
+				return "Can't ride while you're being robbed -- go tag them."
+			end
+		end
+		return "Someone's being robbed -- everybody's on foot."
 	end
 
 	if isStunned(player) then
@@ -335,7 +352,13 @@ end
 --
 -- Stacking is deliberately "take the worst", not multiply -- clipping three
 -- zone parts on one vault shouldn't triple the penalty.
-function HeistService.applyFencePenalty(player: Player, _plot: any, penalty: any)
+--
+-- Factored out so gadgets can charge the same toll through the same state.
+-- One slow table means the "take the worst, never multiply" rule holds
+-- across BOTH sources for free -- a thief who catches a plunger on the way
+-- over an electric fence gets the harsher of the two, not the product, which
+-- would be a dead stop nobody could have seen coming.
+local function applySlow(player: Player, penalty: any)
 	local existing = snagged[player]
 	local now = os.clock()
 
@@ -354,14 +377,11 @@ function HeistService.applyFencePenalty(player: Player, _plot: any, penalty: any
 	refreshSpeed(player)
 
 	if (penalty.stun or 0) > 0 then
-		notify(player, ("The %s shocked you!"):format(penalty.label), "warn")
-		-- Speed is restored by the slow-expiry pass below; this only needs to
-		-- lift the zero-speed, zero-jump window.
+		-- Speed is restored by the expiry pass below; this only needs to lift
+		-- the zero-speed, zero-jump window.
 		task.delay(penalty.stun + 0.05, function()
 			refreshSpeed(player)
 		end)
-	else
-		notify(player, ("Snagged on the %s!"):format(penalty.label), "warn")
 	end
 
 	task.delay(penalty.duration + 0.05, function()
@@ -371,6 +391,87 @@ function HeistService.applyFencePenalty(player: Player, _plot: any, penalty: any
 			refreshSpeed(player)
 		end
 	end)
+end
+
+function HeistService.applyFencePenalty(player: Player, _plot: any, penalty: any)
+	applySlow(player, penalty)
+
+	if (penalty.stun or 0) > 0 then
+		notify(player, ("The %s shocked you!"):format(penalty.label), "warn")
+	else
+		notify(player, ("Snagged on the %s!"):format(penalty.label), "warn")
+	end
+end
+
+-- ============================================================
+-- GADGETS
+-- ============================================================
+
+-- Is anybody in this server carrying loot right now?
+--
+-- Used by RideService: while a robbery is live, NOBODY rides. See
+-- rideBlockReason for why that has to be server-wide rather than just the two
+-- players involved.
+function HeistService.anyoneCarrying(): boolean
+	for _ in pairs(carrying) do
+		return true
+	end
+	return false
+end
+
+-- The nearest thief carrying loot, within `range` of `from`.
+--
+-- Returns the reason it found nobody, so a refusal can name it: "nobody is
+-- robbing anyone" and "they are too far away" are completely different
+-- situations to a player standing in the street, and one message for both is
+-- how a working feature gets reported as broken.
+--
+-- Carrying is the ONLY thing that makes somebody a valid target. That is what
+-- keeps this from being a griefing tool: there is no way to point a gadget at
+-- a player who is not, at that moment, running off with somebody's coins.
+function HeistService.nearestCarrier(from: Vector3, range: number, thrower: Player): (Player?, string?)
+	local best, bestDist
+	local anyCarrier = false
+
+	for thief in pairs(carrying) do
+		if thief ~= thrower then
+			local root = getRoot(thief)
+			if root then
+				-- Counted at ANY distance, so "there is nobody to throw
+				-- this at" can be told apart from "they got away from you".
+				anyCarrier = true
+				local dist = (root.Position - from).Magnitude
+				if dist <= range and (not bestDist or dist < bestDist) then
+					best, bestDist = thief, dist
+				end
+			end
+		end
+	end
+
+	if best then
+		return best, nil
+	end
+	if anyCarrier then
+		return nil, "Too far -- get closer to them."
+	end
+	return nil, "Nobody is running off with anything right now."
+end
+
+-- Charges a gadget's toll. Same state as a fence snag, different message.
+function HeistService.applyGadget(thief: Player, thrower: Player, spec: any)
+	if not carrying[thief] then
+		return false
+	end
+
+	applySlow(thief, {
+		label = spec.name,
+		slow = spec.slow,
+		duration = spec.duration,
+		stun = spec.stun or 0,
+	})
+
+	notify(thief, spec.hit or ("Hit by a %s!"):format(spec.name), "warn")
+	return true
 end
 
 -- Clears the carry state and returns what was being carried, or nil.

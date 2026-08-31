@@ -37,6 +37,7 @@ local CosmeticsService = require(Services.CosmeticsService)
 local HeistService = require(Services.HeistService)
 local BoneService = require(Services.BoneService)
 local RideService = require(Services.RideService)
+local GadgetService = require(Services.GadgetService)
 local AdminService = require(Services.AdminService)
 
 DataService.start()
@@ -51,7 +52,8 @@ ProgressionService.start()
 CosmeticsService.start()
 HeistService.start()
 BoneService.start()
--- After HeistService: it pushes speed multipliers into it.
+-- Both reach into HeistService, so they start after it.
+GadgetService.start()
 RideService.start()
 -- Last: it reaches into every service above.
 AdminService.start()
@@ -107,6 +109,7 @@ local function onPlayerAdded(player: Player)
 	CosmeticsService.push(player)
 	HeistService.onPlayerAdded(player)
 	BoneService.push(player)
+	GadgetService.push(player)
 	RideService.push(player)
 	AdminService.push(player)
 

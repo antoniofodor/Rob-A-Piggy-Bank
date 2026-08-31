@@ -54,6 +54,16 @@ local DEFINITIONS = {
 	-- authoritative positions, so there is no coordinate here to forge.
 	BoneThrow = "RemoteEvent",
 
+	-- Client buys a gadget; server pushes how many of each they hold.
+	GadgetRequest = "RemoteEvent",
+	GadgetState = "RemoteEvent",
+
+	-- Client asks to throw a gadget. Like BoneThrow it sends the KEY AND
+	-- NOTHING ELSE. The server picks the target from its own list of who is
+	-- carrying loot, so there is no position to forge, no range check to
+	-- defeat, and no way to name a victim who is not currently robbing anyone.
+	GadgetThrow = "RemoteEvent",
+
 	-- Client buys or puts away a ride; server pushes what they own and
 	-- whether they are on one right now. There is no "mount" request: getting
 	-- on is decided by the server from where the player is standing, so there

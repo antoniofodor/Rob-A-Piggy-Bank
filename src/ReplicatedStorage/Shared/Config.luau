@@ -388,6 +388,79 @@ Config.BONES = {
 -- studs from the verge, so the whole point -- pre-baiting the dog before you
 -- ever set foot on the lawn -- has to work from outside the fence. It stays
 -- well under PLOT_SPACING (64) so it cannot casually reach next door's dog.
+-- ============================================================
+-- GADGETS
+-- ============================================================
+--
+-- The defender's answer to maxed Speed Boots, and it exists for exactly the
+-- reason bones do: a top-of-tree purchase had no counter.
+--
+-- getCarryMultiplier caps at 1.0, so a thief with boots maxed carries at 16 --
+-- the SAME speed as the person chasing them. Tagging becomes impossible
+-- unless you are already standing on top of them. That is the hole. These
+-- close it, and nothing more.
+--
+-- A GADGET BUYS A TAG, NEVER THE CATCH. Four properties hold that line, and
+-- removing any one breaks it the way removing one of the bone rules would:
+--
+--   * They only work on somebody CARRYING LOOT. This is the important one.
+--     Without it this is a harassment toy handed to under-twelves, who would
+--     spend all day plungering each other on the pavement.
+--   * They cost coins EVERY throw, so defending an attractive plot is an
+--     ongoing expense rather than a one-off purchase.
+--   * TAGGING still recovers the loot. A gadget is setup: it slows or stops,
+--     and you must still close and tag. That keeps the terminal action the
+--     one that was already there.
+--   * Range is short and FALLS as power rises, so the decisive one cannot
+--     reach a thief who already got clear.
+--
+-- The three differ in KIND rather than just in magnitude -- reach, denial,
+-- finisher -- which is what stops the cheap two being dead weight once the
+-- expensive one is affordable.
+--
+-- The arithmetic each was tuned against, worst case: thief at 16 (boots
+-- maxed), defender at 16, both running in a straight line, TAG_DISTANCE 14.
+--
+--   plunger  from 34 studs -> ends at 24.4   never a catch on its own
+--   gum      from 26 studs -> ends at  8.4   a catch, if you run it perfectly
+--   zapper   from 18 studs -> ends at  0.7   a catch, but only from close in
+Config.GADGETS = {
+	plunger = {
+		name = "Plunger", style = "plunger", order = 1,
+		cost = 1500, range = 34, slow = 0.70, duration = 2.0, stun = 0,
+		colour = Color3.fromRGB(196, 66, 58), trim = Color3.fromRGB(168, 124, 82),
+		blurb = "Sticks to their back. Slows them down, mostly by being humiliating",
+		hit = "A plunger just stuck to your back!",
+	},
+	gum = {
+		name = "Bubblegum Bomb", style = "gum", order = 2,
+		cost = 6000, range = 26, slow = 0.50, duration = 2.2, stun = 0,
+		colour = Color3.fromRGB(240, 130, 190), trim = Color3.fromRGB(255, 196, 224),
+		blurb = "Bursts into a pink puddle nobody runs through quickly",
+		hit = "You're stuck in bubblegum!",
+	},
+	zapper = {
+		name = "Zapper", style = "zapper", order = 3,
+		cost = 22000, range = 18, slow = 0.60, duration = 1.2, stun = 0.6,
+		colour = Color3.fromRGB(52, 58, 72), trim = Color3.fromRGB(120, 226, 255),
+		blurb = "Stops them dead for half a second. You have to be close",
+		hit = "Zapped! You seized up for a moment.",
+	},
+}
+
+-- Same flight time and cooldown as a bone: these are the same gesture, and
+-- two different throw feels in one hand would be worse than one.
+Config.GADGET_THROW_COOLDOWN = 1.5
+Config.GADGET_FLIGHT = 0.45
+
+function Config.gadgetCount(): number
+	local n = 0
+	for _ in pairs(Config.GADGETS) do
+		n += 1
+	end
+	return n
+end
+
 Config.BONE_THROW_RANGE = 42
 
 -- Stops a held button from spraying bones and spawning a dozen models. It is
