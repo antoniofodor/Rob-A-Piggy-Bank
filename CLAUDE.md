@@ -107,10 +107,13 @@ anything without changing the jump maths, which depends only on `tier.top`.
 
 ## Gotchas that have already bitten
 
-**Flat surfaces must never be coplanar.** A part whose top face sits exactly at
-ground height z-fights — the renderer has no way to sort two surfaces at the same
-depth, so it picks per pixel and the grass flickers through. See the `LIFT_`
-constants in `NeighborhoodService`.
+**Surfaces must never be coplanar — at any scale.** Two faces at identical depth
+give the renderer nothing to sort by, so it picks per pixel and per camera angle
+and they flicker through each other. This has now bitten three times: the road
+against the grass, the moat against the grass, and the guard dog's eyes against
+its own face. Detail parts want to sit slightly PROUD of the surface they
+decorate, never flush with it. See the `LIFT_` constants in `NeighborhoodService`
+and the eye offset in `GuardDog`.
 
 **Luau forward references.** A `local` declared *after* a function that reads it
 silently becomes a nil global. This has caused three bugs so far. Declare shared

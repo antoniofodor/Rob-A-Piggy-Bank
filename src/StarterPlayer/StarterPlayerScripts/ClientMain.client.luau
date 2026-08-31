@@ -1072,6 +1072,7 @@ local function buildAdminPanel()
 	button("Open season (shield + cooldowns)", "shield")
 	button("Guard dog -> Titan (Lv3)", "upgrade", "dog", 3)
 	button("No guard dog (Lv0)", "upgrade", "dog", 0)
+	button("Send dog to bed (20s)", "dognap", 20)
 	button("Set 5 rebirths", "rebirths", 5)
 	button("WIPE MY SAVE", "reset").BackgroundColor3 = Color3.fromRGB(96, 40, 40)
 

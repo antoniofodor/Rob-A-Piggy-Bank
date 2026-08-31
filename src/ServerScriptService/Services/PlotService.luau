@@ -163,7 +163,10 @@ local function buildPlot(index: number): Plot
 	-- Built AFTER the pivot on purpose: the dog caches its home as a world
 	-- Vector3 and drives itself with PivotTo, so rotating it underneath that
 	-- cache would leave it walking back to the wrong corner forever.
-	local dog = GuardDog.build((cf * CFrame.new(13, 0, 9)).Position, model)
+	-- Takes a CFrame, not a position: the kennel's +Z is its doorway, and the
+	-- dog rests in front of it, so the whole arrangement has to be turned to
+	-- face into the plot rather than out through the back fence.
+	local dog = GuardDog.build(cf * CFrame.new(14, 0, 4), model)
 
 	return {
 		index = index,

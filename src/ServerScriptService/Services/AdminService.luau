@@ -199,6 +199,18 @@ commands.maxupgrades = function(player)
 	return "All upgrades maxed"
 end
 
+-- Puts the dog on cooldown without needing a robbery, so the kennel/sleep
+-- cycle can be watched on demand rather than only after a real chase.
+commands.dognap = function(player, seconds)
+	local plot = PlotService.getPlot(player)
+	if not plot then
+		return nil
+	end
+	local secs = if type(seconds) == "number" then math.clamp(seconds, 1, 300) else 20
+	plot.dog.busyUntil = os.clock() + secs
+	return ("Dog off duty for %ds -- it should head for the kennel"):format(secs)
+end
+
 commands.shield = function(player)
 	local shields, cooldowns = HeistService.openSeason()
 	return ("Open season: %d shield(s) dropped, %d cooldown/limit pair(s) cleared"):format(
