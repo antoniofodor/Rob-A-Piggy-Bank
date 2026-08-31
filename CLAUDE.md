@@ -42,7 +42,7 @@ src/
       PlotService          Plot pool, fences, ownership
       PiggyBank            The piggy model, coin pile, skins, effects
       House                The upgradeable house behind each plot
-      GuardDog             Patrolling dog that chases thieves
+      GuardDog             Patrolling dog, its kennel, and the off-duty nap
       EconomyService       Accrual loop, milestones, banking
       UpgradeService       The two upgrade trees
       HeistService         Stealing, carrying, tagging, delivering
@@ -134,6 +134,15 @@ and need `Back`.
 at hold *completion*, not on release — measured at 0.584s and 0.584s on a 0.6s
 prompt. Never clear per-hold state in that handler. Doing so made every steal in
 the game silently fail for weeks.
+
+**`CFrame.lookAt` aims LookVector, which is `-Z`.** Models authored facing `+Z`
+(the dog, the mini piggy) need `* CFrame.Angles(0, math.pi, 0)` after it, or they
+travel backwards. The guard dog ran tail-first through every patrol and chase
+from the day it was built until this was caught.
+
+**`Model:PivotTo` moves every descendant.** Anything a model walks *to* must live
+outside that model. The kennel started life inside the dog's own model and fled
+at exactly the dog's speed, so the dog could never reach it.
 
 **Never fail silently.** A rejection the player cannot see is indistinguishable
 from a broken feature, and that is exactly how the bug above survived.

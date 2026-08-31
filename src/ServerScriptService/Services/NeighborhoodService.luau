@@ -2,8 +2,8 @@
 --[[
 	NeighborhoodService
 
-	The suburb the plots sit in: road, sidewalks, driveways, backdrop houses,
-	street furniture and trees.
+	The suburb the plots sit in: road, sidewalks, driveways, street furniture
+	and the woodland that closes off the view behind the plots.
 
 	None of it is interactive. Every part built here is CanCollide false,
 	CanQuery false and CastShadow false -- it exists to make the street read
@@ -34,22 +34,6 @@ local KERB = Color3.fromRGB(198, 196, 188)
 local TRUNK = Color3.fromRGB(96, 68, 48)
 local LEAF = Color3.fromRGB(84, 132, 66)
 local LEAF_2 = Color3.fromRGB(102, 150, 78)
-
--- Deliberately desaturated. The piggies are the saturated thing on this map
--- and the houses must never compete with them for attention.
-local HOUSE_WALLS = {
-	Color3.fromRGB(226, 214, 196),
-	Color3.fromRGB(206, 216, 214),
-	Color3.fromRGB(222, 206, 200),
-	Color3.fromRGB(202, 208, 190),
-	Color3.fromRGB(228, 220, 206),
-}
-local HOUSE_ROOFS = {
-	Color3.fromRGB(126, 92, 82),
-	Color3.fromRGB(104, 96, 106),
-	Color3.fromRGB(118, 106, 88),
-	Color3.fromRGB(96, 104, 100),
-}
 
 -- Flat overlays must sit ABOVE the ground, never flush with it.
 --
@@ -143,9 +127,6 @@ local function metrics()
 		-- z-fight with each other exactly as a slab does against grass.
 		roadStartX = plazaX + plazaSize / 2,
 		roadEndX = endX + halfPlot + 60,
-
-		-- Backdrop sits well clear of the moats.
-		backdropZ = streetHalf + halfPlot + 46,
 	}
 end
 
@@ -195,68 +176,6 @@ local function buildDriveways(m: any)
 	end
 end
 
-local function buildHouse(cf: CFrame, seed: number)
-	local walls = HOUSE_WALLS[(seed % #HOUSE_WALLS) + 1]
-	local roof = HOUSE_ROOFS[(seed % #HOUSE_ROOFS) + 1]
-	local width = 26 + (seed % 3) * 4
-	local depth = 20
-	local height = 15 + (seed % 2) * 3
-
-	scenery("House", Vector3.new(width, height, depth),
-		cf * CFrame.new(0, height / 2, 0), walls, Enum.Material.Brick)
-
-	-- Roof as two wedges meeting at a ridge over the middle of the house.
-	--
-	-- A WedgePart is already full height at its -Z edge and slopes to nothing
-	-- at +Z, so the near half needs no rotation at all and the far half is
-	-- just the same wedge turned around. Rotating on any other axis tips the
-	-- slope on its side, which is what gave the street a skyline of slabs.
-	for _, dir in ipairs({ -1, 1 }) do
-		local wedge = Instance.new("WedgePart")
-		wedge.Name = "Roof"
-		wedge.Size = Vector3.new(width + 2, 7, depth / 2)
-		wedge.CFrame = cf
-			* CFrame.new(0, height + 3.5, dir * depth / 4)
-			* CFrame.Angles(0, if dir > 0 then 0 else math.pi, 0)
-		wedge.Anchored = true
-		wedge.CanCollide = false
-		wedge.CanQuery = false
-		wedge.CastShadow = false
-		wedge.Color = roof
-		wedge.Material = Enum.Material.Slate
-		wedge.Parent = folder
-	end
-
-	scenery("Door", Vector3.new(4, 7, 0.6), cf * CFrame.new(0, 3.5, depth / 2),
-		Color3.fromRGB(112, 78, 60), Enum.Material.WoodPlanks)
-
-	for _, dx in ipairs({ -width / 4, width / 4 }) do
-		scenery("Window", Vector3.new(5, 4.5, 0.5), cf * CFrame.new(dx, height * 0.62, depth / 2),
-			Color3.fromRGB(158, 196, 214), Enum.Material.Glass)
-	end
-
-	scenery("Chimney", Vector3.new(3, 8, 3), cf * CFrame.new(width / 3, height + 5, -depth / 5),
-		roof, Enum.Material.Brick)
-end
-
--- Only the houses BEYOND the ends of the street are built here.
---
--- The house behind each plot now belongs to that plot and is built by
--- PlotService at the tier its owner has bought, so building generic ones on
--- those columns would stack two houses in the same spot. These exist purely so
--- the row does not stop dead level with the last plot.
-local function buildBackdrop(m: any)
-	for _, side in ipairs({ -1, 1 }) do
-		for _, col in ipairs({ -1, m.perRow }) do
-			local x = columnX(m, col)
-			local yaw = if side < 0 then 0 else math.pi
-			buildHouse(
-				CFrame.new(x, GROUND_Y, side * m.backdropZ) * CFrame.Angles(0, yaw, 0),
-				col + (if side < 0 then 0 else 3))
-		end
-	end
-end
-
 local function buildTree(x: number, z: number, seed: number)
 	local height = 9 + (seed % 3) * 2
 	scenery("Trunk", Vector3.new(1.6, height, 1.6),
@@ -295,14 +214,71 @@ local function buildStreetFurniture(m: any)
 				CFrame.new(x, GROUND_Y + 4.6, z), Color3.fromRGB(168, 78, 68), Enum.Material.Metal)
 		end
 	end
+end
 
-	-- Trees fill the strip between the backdrop houses and the plots, which is
-	-- otherwise the emptiest part of the map.
-	local treeZ = (m.rowZ + m.halfPlot + m.backdropZ) / 2
+-- Everything beyond the plots is woodland.
+--
+-- It used to be a row of generic houses standing on the far side of the
+-- street, where no plot is. Now that every plot builds its own house at the
+-- tier its owner bought, a second set out there read as unclaimed plots and
+-- sent players wandering off to look for a piggy that was never going to be
+-- built. Trees close the same sightline without promising anything.
+--
+-- The count is deliberate. This is scenery every client draws behind
+-- everything that matters, so the strip is three thinning rows rather than a
+-- forest -- roughly a hundred parts, in the same range as the houses it
+-- replaced.
+local GROVE_ROWS = {
+	-- depth: studs beyond the back fence line of a row of plots.
+	-- shift:  how far along the street the row slides, in plot spacings, so
+	--         no two rows line up into an avenue.
+	-- reach:  extra columns past each end of the street.
+	-- step:   column stride; the back row is thinned to every other column.
+
+	-- The plot houses stand 70 studs behind their plot centres, and the
+	-- biggest tier is 28 deep, so the band 30 to 60 studs past the fence
+	-- belongs to them. No row may sit in it: a canopy over a Piggy
+	-- Mansion is the one thing here somebody paid five million for.
+	{ depth = 14, shift = -0.5, reach = 0, step = 1 },
+	{ depth = 76, shift = 0.1, reach = 1, step = 1 },
+	{ depth = 102, shift = -0.4, reach = 2, step = 2 },
+}
+
+-- Deterministic scatter, so the grove looks unplanted but every server builds
+-- the identical suburb -- a tree that moves between sessions is a landmark
+-- that lies.
+local function scatter(seed: number, spread: number): number
+	local n = math.sin(seed * 12.9898) * 43758.5453
+	return (n - math.floor(n) - 0.5) * spread
+end
+
+local function buildTrees(m: any)
+	-- The back fence line. Nothing here is ever placed inside it: trees are
+	-- CanCollide false, but a canopy over a plot still hides a piggy.
+	local rear = m.rowZ + m.halfPlot
+	local seed = 0
+
 	for _, side in ipairs({ -1, 1 }) do
-		for col = 0, m.perRow do
-			local x = columnX(m, col) - Config.PLOT_SPACING / 2
-			buildTree(x, side * treeZ, col + (if side < 0 then 1 else 4))
+		for _, row in ipairs(GROVE_ROWS) do
+			local col = -row.reach
+			while col <= m.perRow + row.reach do
+				seed += 1
+				local x = columnX(m, col) + row.shift * Config.PLOT_SPACING
+				buildTree(x + scatter(seed, 16),
+					side * (rear + row.depth + scatter(seed + 97, 8)), seed)
+				col += row.step
+			end
+		end
+	end
+
+	-- A screen past the open end of the road, so the street reads as leading
+	-- somewhere rather than stopping at the edge of the world. The plaza end
+	-- gets none: the leaderboard stands there and must not be occluded.
+	for _, side in ipairs({ -1, 1 }) do
+		for i = 0, 2 do
+			seed += 1
+			buildTree(m.roadEndX + 22 + scatter(seed, 14),
+				side * (18 + i * 34 + scatter(seed + 41, 8)), seed)
 		end
 	end
 end
@@ -332,7 +308,7 @@ function NeighborhoodService.start()
 	local m = metrics()
 	buildRoad(m)
 	buildDriveways(m)
-	buildBackdrop(m)
+	buildTrees(m)
 	buildStreetFurniture(m)
 	buildPlaza(m)
 

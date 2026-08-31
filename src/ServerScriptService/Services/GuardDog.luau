@@ -47,6 +47,13 @@ type Piece = {
 
 export type Dog = {
 	model: Model,
+	-- The kennel is a SEPARATE model, never pivoted.
+	--
+	-- Model:PivotTo moves every descendant, so while the kennel lived inside
+	-- the dog's own model it was dragged along on every patrol step -- the dog
+	-- could never actually reach it, because it fled at exactly the dog's
+	-- speed. Anything the dog walks TO has to sit outside the thing that moves.
+	kennelModel: Model,
 	body: Part,
 	pieces: { Piece },       -- the dog itself
 	kennelPieces: { Piece }, -- its house
@@ -323,7 +330,10 @@ function GuardDog.build(originCF: CFrame, parent: Instance): Dog
 	local model = Instance.new("Model")
 	model.Name = "GuardDog"
 
-	local function makePart(bone: any): Part
+	local kennelModel = Instance.new("Model")
+	kennelModel.Name = "Kennel"
+
+	local function makePart(bone: any, into: Instance): Part
 		local p = Instance.new("Part")
 		p.Name = bone.name
 		p.Size = bone.size
@@ -337,13 +347,13 @@ function GuardDog.build(originCF: CFrame, parent: Instance): Dog
 		if bone.shape then
 			p.Shape = bone.shape
 		end
-		p.Parent = model
+		p.Parent = into
 		return p
 	end
 
 	local kennelPieces: { Piece } = {}
 	for _, bone in ipairs(KENNEL) do
-		local p = makePart(bone)
+		local p = makePart(bone, kennelModel)
 		p.CastShadow = false
 		table.insert(kennelPieces, {
 			part = p, size = bone.size, offset = bone.offset, tone = bone.tone, rot = bone.rot,
@@ -353,7 +363,7 @@ function GuardDog.build(originCF: CFrame, parent: Instance): Dog
 	local pieces: { Piece } = {}
 	local body: Part? = nil
 	for _, bone in ipairs(SKELETON) do
-		local p = makePart(bone)
+		local p = makePart(bone, model)
 		table.insert(pieces, { part = p, size = bone.size, offset = bone.offset, tone = bone.tone })
 		if not body then
 			body = p
@@ -398,7 +408,7 @@ function GuardDog.build(originCF: CFrame, parent: Instance): Dog
 
 	-- Sleep puff over the kennel. Emitted from the roof rather than the dog,
 	-- so it stays put and stays visible even though the dog is tucked inside.
-	local roof = model:FindFirstChild("Roof") :: Part
+	local roof = kennelModel:FindFirstChild("Roof") :: Part
 	local zzz = Instance.new("ParticleEmitter")
 	zzz.Name = "Zzz"
 	zzz.Enabled = false
@@ -421,9 +431,11 @@ function GuardDog.build(originCF: CFrame, parent: Instance): Dog
 
 	model.PrimaryPart = torso
 	model.Parent = parent
+	kennelModel.Parent = parent
 
 	local dog: Dog = {
 		model = model,
+		kennelModel = kennelModel,
 		body = torso,
 		pieces = pieces,
 		kennelPieces = kennelPieces,
