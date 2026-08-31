@@ -1295,7 +1295,14 @@ Config.DECOR_SLOTS = {
 	{ id = "lawnB", zone = "lawn", offset = Vector3.new(17, 0, -16) },
 	{ id = "lawnC", zone = "lawn", offset = Vector3.new(-18, 0, 2) },
 	{ id = "lawnD", zone = "lawn", offset = Vector3.new(-15, 0, 17) },
-	{ id = "lawnE", zone = "lawn", offset = Vector3.new(15, 0, 18) },
+	-- Pulled in from (15, 18) when the plot sign moved to the front-right
+	-- corner of the lawn.
+	--
+	-- Measured against the sign ARM, not the board: the arm is the part that
+	-- reaches furthest back over the grass, and judging this by eye off the
+	-- board put the first attempt 4.9 studs clear when the widest ornament
+	-- needs 6.4. From here it is 6.7, and still 13.9 from lawnG.
+	{ id = "lawnE", zone = "lawn", offset = Vector3.new(12, 0, 12) },
 	{ id = "lawnF", zone = "lawn", offset = Vector3.new(0, 0, -19) },
 	-- One more, added with the silly ornaments, mirroring lawnC.
 	--
@@ -1442,8 +1449,112 @@ function Config.firstFreeDecorSlot(zone: string, placed: { [string]: string }): 
 	return nil
 end
 
--- Bumped for `decor`. DataService.reconcile fills it in on existing saves.
-Config.SCHEMA_VERSION = 9
+-- ============================================================
+-- RIDES
+-- ============================================================
+--
+-- SPEED IS THE CURRENCY, AND A RIDE MUST NOT SPEND IT.
+--
+-- BASE_WALK_SPEED (16) is the number the carry penalty, the dog speeds, the
+-- fence snags and the getaway distance are all calibrated against, and the
+-- rule above says anything that makes a player faster than 16 invalidates
+-- several systems at once. Every one of these multipliers does exactly that,
+-- so a ride is not allowed to be on when any of those systems is running.
+--
+-- RideService gates it. A ride works on PUBLIC GROUND ONLY -- outside every
+-- fence -- and switches off while you are carrying loot, while someone is
+-- carrying yours, and while a fence has you snagged. What is left is the
+-- street, which is the part of this game that was pure walking:
+--
+--   * A thief cannot ride away. The 37-stud getaway is the entire risk half
+--     of the trade, and at 33.6 studs/sec it would be a second and a half.
+--   * A victim cannot ride after them. A defender doing 33.6 against a thief
+--     doing 12 catches every robbery ever attempted, which kills the offence
+--     tree outright.
+--   * Nobody rides on a lawn. The lawn is the ground defence happens on, and
+--     it is where the steal prompt, the dog and the fence all live.
+--
+-- So these numbers never meet the dog (12 / 14.5 / 17, and it never leaves
+-- the yard), never meet the carry penalty, and never shorten a chase. They
+-- buy back the walk between plots, and they are a moving flex, and that is
+-- deliberately all they are -- houses confer nothing, and neither do these.
+--
+-- `style` names the builder in RideModel; `multiplier` is against
+-- BASE_WALK_SPEED. Bought with COINS, like everything else purchasable here:
+-- see the Robux rule above.
+--
+-- `stand` is how high off the ground the rider's FEET go: the deck of a
+-- board, the pedals of the bike, the pegs of the scrambler. RideService adds
+-- it to Humanoid.HipHeight, which is what actually lifts the character, and
+-- seats the model on the real floor underneath. Without it every ride is
+-- authored with its deck at ankle height and the rider stands shin-deep
+-- through their own skateboard. Measure it to the TOP surface the feet land
+-- on, not to the top of the model.
+--
+-- You stand up on all five, including the two with saddles. That is a real
+-- way to ride a BMX and a scooter, it is the only pose that needs no seated
+-- animation, and on a dirt bike it is funnier.
+Config.RIDES = {
+	skateboard = {
+		name = "Skateboard", style = "skateboard", order = 1,
+		cost = 25000, multiplier = 1.35, stand = 0.98,
+		colour = Color3.fromRGB(206, 62, 78), trim = Color3.fromRGB(246, 214, 96),
+		accent = Color3.fromRGB(246, 214, 96),
+		blurb = "Kick, push, and never stop",
+	},
+	bmx = {
+		name = "BMX Bike", style = "bmx", order = 2,
+		cost = 90000, multiplier = 1.5, stand = 0.62,
+		colour = Color3.fromRGB(64, 116, 196), trim = Color3.fromRGB(226, 230, 238),
+		accent = Color3.fromRGB(246, 138, 48),
+		blurb = "Standing on the pedals the whole way",
+	},
+	scooter = {
+		name = "E-Scooter", style = "scooter", order = 3,
+		cost = 300000, multiplier = 1.65, stand = 0.93,
+		colour = Color3.fromRGB(46, 50, 58), trim = Color3.fromRGB(200, 204, 212),
+		accent = Color3.fromRGB(92, 232, 190),
+		blurb = "Silent, and somehow always charged",
+	},
+	hoverboard = {
+		name = "Hoverboard", style = "hoverboard", order = 4,
+		cost = 1200000, multiplier = 1.8, stand = 1.44,
+		colour = Color3.fromRGB(38, 36, 52), trim = Color3.fromRGB(212, 216, 228),
+		accent = Color3.fromRGB(124, 152, 255),
+		blurb = "No wheels. No explanation",
+	},
+	-- An ORIGINAL, not the e-bike everyone means when they ask for one.
+	--
+	-- The one people name is a manufacturer's registered mark, and the lawn
+	-- ornaments already settled this: Roblox moderation strips branded assets
+	-- and the penalty lands on the EXPERIENCE, not the item. What carries it is
+	-- the genre -- stubby frame, knobbly tyres, a slab of battery where an
+	-- engine should be -- and a genre is not property.
+	scrambler = {
+		name = "Volt Scrambler", style = "scrambler", order = 5,
+		cost = 4500000, multiplier = 2.1, stand = 1.60,
+		colour = Color3.fromRGB(28, 30, 36), trim = Color3.fromRGB(238, 240, 244),
+		accent = Color3.fromRGB(180, 246, 62),
+		blurb = "Does not care that it is a bicycle",
+	},
+}
+
+function Config.getRide(key: string?)
+	return if key and key ~= "" then Config.RIDES[key] else nil
+end
+
+-- Top speed a ride can reach, for the balance note above. Kept as a function
+-- so it cannot drift from the table the way a written-down constant would.
+function Config.maxRideSpeed(): number
+	local best = Config.BASE_WALK_SPEED
+	for _, ride in pairs(Config.RIDES) do
+		best = math.max(best, Config.BASE_WALK_SPEED * ride.multiplier)
+	end
+	return best
+end
+
+-- Bumped for `rides`. DataService.reconcile fills it in on existing saves.
+Config.SCHEMA_VERSION = 10
 
 Config.AUTOSAVE_INTERVAL = 60
 

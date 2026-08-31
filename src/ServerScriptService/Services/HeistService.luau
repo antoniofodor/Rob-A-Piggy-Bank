@@ -231,6 +231,16 @@ local function isStunned(player: Player): boolean
 	return snag ~= nil and snag.stunUntil ~= nil and os.clock() < snag.stunUntil
 end
 
+-- Set by RideService, and only while every one of its gates is open. 1 means
+-- on foot.
+--
+-- The dependency runs one way on purpose. This module owns every speed in the
+-- game and must not have to know what a skateboard is; RideService owns the
+-- gates and pushes a number in. Requiring each other would be a cycle, and
+-- the cycle would be the thing that eventually let a ride multiplier survive
+-- into a chase.
+local rideMultiplier: { [Player]: number } = {}
+
 local function currentSpeed(player: Player): number
 	-- A shock stops you dead. It outranks everything else, including boots.
 	if isStunned(player) then
@@ -245,6 +255,7 @@ local function currentSpeed(player: Player): number
 	if snag and os.clock() < snag.until_ then
 		speed *= snag.multiplier
 	end
+	speed *= rideMultiplier[player] or 1
 	return speed
 end
 
@@ -259,6 +270,57 @@ local function refreshSpeed(player: Player)
 end
 
 local function setCarrySpeed(player: Player, _carryingLoot: boolean)
+	refreshSpeed(player)
+end
+
+-- ============================================================
+-- RIDES
+-- ============================================================
+
+-- Why this player may not be on their ride right now, or nil if they may.
+--
+-- Every one of these is a system that BASE_WALK_SPEED is calibrated against,
+-- and a ride multiplier laid over any of them breaks it:
+--
+--   * carrying -- the getaway is 37 studs at 12 studs/sec, which is the
+--     entire risk half of a robbery. At 33.6 it is a second and a half.
+--   * being robbed -- a defender on a scrambler catches every thief in the
+--     game, which kills the offence tree.
+--   * snagged or stunned -- the fence charges a toll in speed, and a ride
+--     must not be a way to pay it off.
+--
+-- Returns a reason rather than a boolean because the player has to be able to
+-- see why their board vanished. A rejection nobody can see is indistinguish-
+-- able from a bug, which is how the silent-steal failure survived for weeks.
+function HeistService.rideBlockReason(player: Player): string?
+	if carrying[player] then
+		return "Can't ride while you're carrying loot."
+	end
+
+	for thief, carry in pairs(carrying) do
+		if carry.victim == player and thief ~= player then
+			return "Can't ride while you're being robbed -- go tag them."
+		end
+	end
+
+	if isStunned(player) then
+		return "Can't ride while you're stunned."
+	end
+	local snag = snagged[player]
+	if snag and os.clock() < snag.until_ then
+		return "Can't ride while you're snagged."
+	end
+
+	return nil
+end
+
+-- Called by RideService and nobody else. 1 means on foot.
+function HeistService.setRideMultiplier(player: Player, multiplier: number)
+	local value = if multiplier > 1 then multiplier else nil
+	if rideMultiplier[player] == value then
+		return
+	end
+	rideMultiplier[player] = value
 	refreshSpeed(player)
 end
 
@@ -646,6 +708,7 @@ function HeistService.start()
 		joinedAt[player] = nil
 		holdStarted[player] = nil
 		snagged[player] = nil
+		rideMultiplier[player] = nil
 		lastGrab[player] = nil
 		grabCount[player] = nil
 		for _, byThief in pairs(lastGrab) do

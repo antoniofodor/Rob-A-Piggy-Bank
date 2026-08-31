@@ -102,6 +102,14 @@ local function defaultData(): PlayerData
 		-- the flex that survives a reset, same bracket as skins and houses.
 		-- `worn` is one key per slot; `owned` is the collection.
 		accessories = { owned = {}, worn = {} },
+		-- What the player gets around on. `equipped` is "" for on foot, and is
+		-- a string rather than nil so reconcile's one-level fill can see it --
+		-- a nil default is indistinguishable from a field that was never added.
+		--
+		-- Survives rebirth, like every other purely cosmetic track. A ride
+		-- confers nothing in a fight; taking it away at a reset would just be a
+		-- reason not to press the button.
+		rides = { owned = {}, equipped = "" },
 		cosmetics = {
 			owned = {},
 			ownedEffects = {},

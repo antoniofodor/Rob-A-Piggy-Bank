@@ -54,6 +54,13 @@ local DEFINITIONS = {
 	-- authoritative positions, so there is no coordinate here to forge.
 	BoneThrow = "RemoteEvent",
 
+	-- Client buys or puts away a ride; server pushes what they own and
+	-- whether they are on one right now. There is no "mount" request: getting
+	-- on is decided by the server from where the player is standing, so there
+	-- is no message here that could ask to be riding somewhere they may not.
+	RideRequest = "RemoteEvent",
+	RideState = "RemoteEvent",
+
 	-- Admin console. Every request is re-authorised server-side against the
 	-- allowlist; the existence of this channel grants nobody anything.
 	AdminRequest = "RemoteEvent",

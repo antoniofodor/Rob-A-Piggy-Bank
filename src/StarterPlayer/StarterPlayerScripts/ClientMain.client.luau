@@ -23,6 +23,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local BoneModel = require(ReplicatedStorage.Shared.BoneModel)
 local PigGear = require(ReplicatedStorage.Shared.PigGear)
+local RideModel = require(ReplicatedStorage.Shared.RideModel)
 
 local player = Players.LocalPlayer
 
@@ -317,6 +318,7 @@ local cosmeticsView = makeView("CosmeticsView")
 local houseView = makeView("HouseView")
 local decorView = makeView("DecorView")
 local gearView = makeView("GearView")
+local rideView = makeView("RideView")
 local collectionView = makeView("CollectionView")
 upgradesView.Visible = true
 
@@ -357,7 +359,8 @@ makeTab("🐷", "Your Piggy", cosmeticsView, 2)
 makeTab("🏠", "Your House", houseView, 3)
 makeTab("🌳", "Decorations", decorView, 4)
 makeTab("🦴", "Bones", gearView, 5)
-makeTab("🎁", "Collection", collectionView, 6)
+makeTab("🛹", "Rides", rideView, 6)
+makeTab("🎁", "Collection", collectionView, 7)
 
 local columns: { [string]: Frame } = {}
 for index, spec in ipairs({
@@ -540,6 +543,33 @@ local effectsGridFrame = piggyGrid(4)
 local _, houseHeader, houseGrid = makeScroll(houseView)
 houseHeader("MOVE UP THE STREET", 1)
 local housesGridFrame = houseGrid(2)
+
+local rideScroll, rideHeader, rideGrid = makeScroll(rideView)
+rideHeader("GET AROUND", 1)
+-- Wide cells: these tiles carry a rendered 3D model AND three lines of text,
+-- where the default 130x62 was drawn for a colour swatch and two.
+local ridesGridFrame = rideGrid(2, UDim2.new(0, 200, 0, 76))
+
+-- The rule, stated once, where somebody will read it before they spend four
+-- and a half million coins on something that turns itself off.
+--
+-- It has to be here rather than only in a refusal toast, because the first
+-- time a board vanishes is the moment a player decides the thing they bought
+-- is broken -- and by then they are mid-robbery and not reading.
+local rideNote = Instance.new("TextLabel")
+rideNote.Size = UDim2.new(1, -10, 0, 62)
+rideNote.LayoutOrder = 3
+rideNote.BackgroundTransparency = 1
+rideNote.Font = Enum.Font.Gotham
+rideNote.TextSize = 12
+rideNote.TextWrapped = true
+rideNote.TextXAlignment = Enum.TextXAlignment.Left
+rideNote.TextYAlignment = Enum.TextYAlignment.Top
+rideNote.TextColor3 = Color3.fromRGB(150, 162, 178)
+rideNote.Text = "Rides are for the street. You hop off at any garden gate, and "
+	.. "you cannot ride while you are carrying loot or while somebody is robbing "
+	.. "you -- a getaway is always run on foot."
+rideNote.Parent = rideScroll
 
 -- Decorations: the shell is here so the tab is real and the shape of the
 -- feature is visible. Slots and items land next.
@@ -1065,6 +1095,104 @@ end
 -- almost the whole session, and rendering three viewports every frame to
 -- animate something nobody is looking at is pure waste.
 -- ============================================================
+-- RIDES
+-- ============================================================
+
+local rideTiles: { [string]: { button: TextButton, title: TextLabel, sub: TextLabel } } = {}
+local latestRides: any = nil
+
+local function ensureRideTile(key: string, info: any)
+	local existing = rideTiles[key]
+	if existing then
+		return existing
+	end
+
+	local button = Instance.new("TextButton")
+	button.LayoutOrder = info.order or 99
+	button.BackgroundColor3 = PANEL
+	button.BorderSizePixel = 0
+	button.Font = Enum.Font.FredokaOne
+	button.Text = ""
+	button.Parent = ridesGridFrame
+	corner(button, 10)
+
+	-- The real model, spinning, for the same reason the bones show one: a
+	-- rendered board is the only honest picture of the board you get, and a
+	-- coloured rectangle would have to be kept in sync with RideModel by hand.
+	makeModelIcon(button, RideModel.build(key), UDim2.new(0, 66, 0, 68), UDim2.new(0, 4, 0, 4), true)
+
+	local title = Instance.new("TextLabel")
+	title.Size = UDim2.new(1, -80, 0, 20)
+	title.Position = UDim2.new(0, 74, 0, 8)
+	title.BackgroundTransparency = 1
+	title.Font = Enum.Font.FredokaOne
+	title.TextScaled = true
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.TextColor3 = Color3.fromRGB(236, 240, 248)
+	title.Text = info.name
+	title.Parent = button
+
+	local blurb = Instance.new("TextLabel")
+	blurb.Size = UDim2.new(1, -80, 0, 16)
+	blurb.Position = UDim2.new(0, 74, 0, 30)
+	blurb.BackgroundTransparency = 1
+	blurb.Font = Enum.Font.Gotham
+	blurb.TextSize = 11
+	blurb.TextXAlignment = Enum.TextXAlignment.Left
+	blurb.TextColor3 = Color3.fromRGB(140, 150, 166)
+	blurb.Text = info.blurb or ""
+	blurb.Parent = button
+
+	local sub = Instance.new("TextLabel")
+	sub.Size = UDim2.new(1, -80, 0, 20)
+	sub.Position = UDim2.new(0, 74, 0, 50)
+	sub.BackgroundTransparency = 1
+	sub.Font = Enum.Font.GothamBold
+	sub.TextSize = 13
+	sub.TextXAlignment = Enum.TextXAlignment.Left
+	sub.TextColor3 = GOLD
+	sub.Text = ""
+	sub.Parent = button
+
+	button.Activated:Connect(function()
+		Remotes.get("RideRequest"):FireServer(key)
+	end)
+
+	local entry = { button = button, title = title, sub = sub }
+	rideTiles[key] = entry
+	return entry
+end
+
+local function renderRides()
+	if not latestRides then
+		return
+	end
+
+	for key, info in pairs(latestRides.rides or {}) do
+		local tile = ensureRideTile(key, info)
+		tile.title.Text = info.name
+
+		if info.equipped then
+			-- Says whether the board is actually under them right now, not just
+			-- that it is selected. Those are different states -- standing on your
+			-- own lawn is the second without the first -- and a tile that claimed
+			-- "RIDING" while the player was plainly walking would read as a bug.
+			tile.sub.Text = if latestRides.riding then "RIDING" else "READY -- HIT THE STREET"
+			tile.sub.TextColor3 = Color3.fromRGB(120, 226, 170)
+			tile.button.BackgroundColor3 = Color3.fromRGB(46, 88, 62)
+		elseif info.owned then
+			tile.sub.Text = ("Tap to ride  ·  +%d%%"):format(info.boost)
+			tile.sub.TextColor3 = Color3.fromRGB(150, 162, 178)
+			tile.button.BackgroundColor3 = PANEL
+		else
+			tile.sub.Text = ("%s  ·  +%d%%"):format(format(info.cost), info.boost)
+			tile.sub.TextColor3 = if latestCoins >= info.cost then GOLD else Color3.fromRGB(150, 120, 120)
+			tile.button.BackgroundColor3 = Color3.fromRGB(30, 34, 44)
+		end
+	end
+end
+
+-- ============================================================
 -- COLLECTION
 -- ============================================================
 
@@ -1208,6 +1336,11 @@ Remotes.get("CosmeticState").OnClientEvent:Connect(function(snapshot)
 	latestCosmetics = snapshot
 	renderCosmetics()
 	renderCollection()
+end)
+
+Remotes.get("RideState").OnClientEvent:Connect(function(snapshot)
+	latestRides = snapshot
+	renderRides()
 end)
 
 shopToggle.Activated:Connect(function()
@@ -1368,6 +1501,7 @@ local function renderUpgrades()
 	renderCosmetics()
 	renderBones()
 	renderCollection()
+	renderRides()
 end
 
 local function render(state: any)

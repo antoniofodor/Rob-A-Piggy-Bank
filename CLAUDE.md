@@ -124,6 +124,28 @@ is the shared attachment point; an item's `offset` in Config is its own nudge
 off it, because one anchor cannot suit a cape that hugs the back and a jetpack
 that stands off it.
 
+**Nothing the game owns may stand in an accessory anchor.** The four anchors
+are the player's, permanently: whatever they roll has to be able to sit there.
+The Vault Lock's padlock was built at (0, 15.2, 0), which IS the hat anchor at
+14.15 plus a stud, so every hat in the game spawned inside it and neither could
+be seen. It was not a tuning problem and no offset would have fixed it. The
+lock is a vault dial on the front flank now -- the only patch of the body that
+is both empty and turned towards someone walking in from the street, since the
+top is the hat, the front is the snout and the eyes, the back is the cape and
+the tail, and the underside is the four legs. Its clearances are measured in
+`DIAL_MAX_R`: grow the plate past 1.95 and its top edge reaches the eyeballs.
+
+**A defence upgrade has to be visible from outside the fence, and legible at
+the piggy.** A ProximityPrompt draws the same filling circle whether the hold
+is three seconds or nine, so without a body on it the whole Vault Lock tree was
+invisible to both sides -- the defender could not see what they had bought and
+the thief could not see what they were up against. The dial ramps two things
+because they land at different distances: the metal (iron, bronze, steel, gold)
+carries from the street, where a thief decides whether to come in at all, and
+the spoke count (2 to 5) only resolves up close, where they are deciding
+whether to commit to the hold. Neither needs counting -- a 2-spoke wheel is a
+bar handle and a 5-spoke one is a bank vault.
+
 **A roll can only return something you do not already own.** The pool is rebuilt
 from the unowned set every time, so duplicates are impossible, every roll is
 progress, and the collection always completes. That makes it a guaranteed ladder
@@ -336,6 +358,31 @@ punishment. Read the pair through `Config.getShownHouseLevel`, never
 separately, and note the sign names the house that is STANDING — announcing a
 Sky Castle over a villa is a boast about a building that is not there.
 
+**A ride is for the street, and is switched OFF everywhere else.** Rides run
+straight into "speed is the currency": the scrambler doubles `BASE_WALK_SPEED`,
+which is the number the carry penalty, the three dog speeds, every fence snag
+and the 37-stud getaway are all calibrated against. So the whole design is the
+four conditions that disable it -- carrying loot, being robbed, snagged on a
+fence, or standing inside anybody's yard (`PlotService.yardContaining`, which
+measures the FENCE rectangle, not the plot slab). Drop any one and a specific
+system dies: a thief rides away from a three-second getaway, or a defender at
+33.6 catches every thief who ever tried at 12. What is left is the walk between
+plots, which was the one part of this game that was pure holding W. Like a
+house, a ride confers nothing else.
+
+**Mounting is automatic, and `HipHeight` is what does it.** No button, no
+prompt -- you leave your gate and you are on it, which also means a thief
+learns the getaway is on foot by watching the board vanish rather than by
+reading a message. Every ride is authored with y=0 AT THE GROUND, so seating
+one at the character's feet buries the rider's shins in their own deck. The
+model goes on the floor and `Humanoid.HipHeight` is raised by the ride's
+`stand` height to lift the rider onto it. Set HipHeight FIRST and compute the
+placement from the new value: the weld locks in whatever offset exists at that
+instant, and the character has not physically risen yet. Restore the
+REMEMBERED base value on dismount, never by subtracting -- a respawn in
+between hands you a fresh humanoid at the rig default, and subtracting from
+that leaves a player permanently a stud taller than everyone else.
+
 **Houses confer nothing.** The house behind a plot is pure prestige, priced above
 the skins so it stays the last thing anyone finishes. The power balance is a closed
 system of speed, time and distance; hanging a stat off a status symbol reopens
@@ -368,12 +415,14 @@ axis and `Size.Y`/`Size.Z` are the cross-section, so a vertical column is
 `Vector3.new(height, d, d)` plus a 90-degree turn about Z -- never
 `Vector3.new(d, height, d)`. Written the wrong way round it becomes a disc as
 wide as the height was tall, and the turn that was meant to stand it upright
-lays that disc flat instead. This has bitten four times now: the decor car's
+lays that disc flat instead. This has bitten five times now: the decor car's
 wheels, the Midnight Modern's pilotis (two black plates hanging in the air
 across the front of the house), the most-wanted hat -- which stood a neon
 rod out of the top of the wearer's skull rather than laying a brim on it,
-and is a floating label now -- and it is why `cylinderUp`/`cylinderForward`
-exist in PiggyBank.
+and is a floating label now -- the piggy's own padlock, whose shackle was
+Vector3.new(1.5, 1.5, 0.55) and so was a rod aimed at the camera instead of
+a U over the body, which is why nobody could tell what it was -- and it is
+why `cylinderUp`/`cylinderForward` exist in PiggyBank.
 
 **Luau forward references.** A `local` declared *after* a function that reads it
 silently becomes a nil global. This has caused three bugs so far. Declare shared
@@ -386,6 +435,23 @@ when it works in game. The physical leaderboard needs a one-time client-side
 
 **Roblox `NormalId`: Front is `-Z`, Back is `+Z`.** Plot signs sit on the `+Z` edge
 and need `Back`.
+
+**Never write `TextWrapped` next to `TextScaled`.** Setting `TextWrapped = false`
+*after* `TextScaled = true` silently turns `TextScaled` back OFF and drops the
+label to the default `TextSize` of 8 — measured on the plot sign, where both
+rows rendered as a faint smudge. `TextScaled` implies wrapping. The way to stop
+text overflowing is to give the row enough height for the lines it will wrap
+into, not to disable wrapping: a wrapped line in a too-short row falls off the
+bottom and gets clipped, which is how a maxed-out player's sign came to read
+"12* · Neon Tower ·" with the skin missing. `TextBounds` against `AbsoluteSize`
+is the check; `TextFits` alone can report true while the last line sits exactly
+on the frame edge.
+
+**The sign's ARM is what reaches over the lawn, not the board.** Clearance
+between the plot sign and the decor slots has to be measured against every sign
+part, because the piece that comes closest to the grass is the cross-arm
+hanging back over it. Eyeballing it off the signboard put the first placement
+4.9 studs clear when the widest ornament needs 6.4.
 
 **Studio forks scripts when you press Play.** Save, wait a beat for Rojo to push,
 *then* Play — otherwise you test stale code and chase a bug you already fixed.
@@ -470,6 +536,12 @@ from a broken feature, and that is exactly how the bug above survived.
 The heist system has never been tested end to end, because it needs two players:
 the chase, lock-vs-lockpick timing, the guard dog catch, friend bonus, revenge
 markers and the most-wanted hat are all unproven.
+
+The vault dial's SPIN is in that bucket too. All four tiers are verified
+live -- the plate grows 3.10 to 3.90, the spokes go 2 to 5, level 0 destroys
+the wheel and hides the plate, and the layers sit at 0.40 / 0.75 / 0.85 studs
+out so no two faces are coplanar. But `rattleLock` only fires on a steal
+hold, so the dial has never actually been seen turning.
 
 Accessories are verified: rolling (twelve rolls, twelve distinct items, zero
 duplicates), the escalating price, auto-wearing into an empty slot, the

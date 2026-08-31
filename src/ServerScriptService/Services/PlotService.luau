@@ -634,6 +634,33 @@ local function buildDriveway(plot: Plot, tier: any)
 	model.Parent = plot.model
 end
 
+-- Is this world position inside anybody's yard?
+--
+-- The yard is the fence rectangle, not the plot slab: `half` in front and to
+-- the sides, YARD_DEPTH behind, all in plot-local space, which is the same
+-- rectangle buildFence runs its barriers around. Measuring from the slab
+-- instead would call the whole back garden public ground -- the exact mistake
+-- that put the grove inside people's fences.
+--
+-- Returns the plot, so a caller can tell "my own lawn" from "someone else's".
+-- Nothing uses that yet; RideService only cares that it is somebody's.
+function PlotService.yardContaining(position: Vector3): Plot?
+	local half = Config.PLOT_SIZE.X / 2 + 1.6
+
+	for _, plot in ipairs(plots) do
+		-- Into plot-local space, where the rectangle is axis-aligned and the
+		-- far row's half-turn has already been taken care of.
+		local local_ = plot.cframe:PointToObjectSpace(position)
+		if math.abs(local_.X) <= half
+			and local_.Z <= half
+			and local_.Z >= -Config.YARD_DEPTH
+		then
+			return plot
+		end
+	end
+	return nil
+end
+
 function PlotService.setHouseLevel(plot: Plot, level: number)
 	if plot.house then
 		plot.house:Destroy()

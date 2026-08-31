@@ -41,6 +41,7 @@ local CosmeticsService = require(script.Parent.CosmeticsService)
 local ProgressionService = require(script.Parent.ProgressionService)
 local HeistService = require(script.Parent.HeistService)
 local BoneService = require(script.Parent.BoneService)
+local RideService = require(script.Parent.RideService)
 
 local AdminService = {}
 
@@ -187,11 +188,18 @@ commands.unlockall = function(player)
 	for key in pairs(Config.ACCESSORIES) do
 		data.accessories.owned[key] = true
 	end
+	if type(data.rides) ~= "table" then
+		data.rides = { owned = {}, equipped = "" }
+	end
+	for key in pairs(Config.RIDES) do
+		data.rides.owned[key] = true
+	end
+	RideService.push(player)
 	-- applyToPlot rather than setHouseLevel: the sign names the house, so
 	-- building it alone leaves the board announcing the old one.
 	CosmeticsService.applyToPlot(player)
 	CosmeticsService.push(player)
-	return "Every skin, effect, house and accessory unlocked"
+	return "Every skin, effect, house, accessory and ride unlocked"
 end
 
 -- Empties the accessory collection without touching anything else.
@@ -298,6 +306,11 @@ commands.reset = function(player)
 	data.consumables = {}
 	data.accessories = { owned = {}, worn = {} }
 	data.sinceLegendary = 0
+	-- Through RideService rather than by clearing the field here, because the
+	-- player may be ON one right now: the model is welded to their character
+	-- and the multiplier is held inside HeistService, and neither of those is
+	-- reachable from a table assignment.
+	RideService.clear(player)
 
 	local plot = PlotService.getPlot(player)
 	if plot then
