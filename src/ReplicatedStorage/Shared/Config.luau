@@ -1262,13 +1262,41 @@ end
 -- gate behind it stays narrow, so this costs the defender nothing.
 Config.DRIVEWAY_WIDTH = 13
 
+-- Every slot faces the ROAD, and none of them carries a yaw.
+--
+-- Plot-local +Z is the street on both rows -- the far row is built with a
+-- half-turn already in its plot CFrame -- and every ornament is authored
+-- facing +Z. So the slot rotation that used to scatter them by 20, 90, 155,
+-- 200 degrees was rotating each one AWAY from the only angle it is ever
+-- viewed from.
+--
+-- That scatter was meant to read as a garden arranged by hand rather than a
+-- showroom, and on a plan view it did. From the pavement it did not: the two
+-- back slots were turned past 90 degrees, so the trophy showed its blank
+-- back, the drip statue faced its own house, and the shark -- whose entire
+-- silhouette is its side profile -- was nose-on again, which is the exact
+-- bug its builder was rewritten to fix. An ornament has one good angle and
+-- the viewer only ever stands in one place, so pointing it anywhere else
+-- spends the ornament to buy a variety nobody is standing where they could
+-- see.
+--
+-- It also fixed a spacing problem rather than causing one. The tight pairs
+-- on this ring are the three front slots, separated along X at 17 studs;
+-- with every item now square to the street their long axes run along X too,
+-- and the two widest -- the gnome at 12.5 across the fists and the shark at
+-- 13.7 nose to tail -- still clear each other. The side pairs are separated
+-- along Z at 15 to 16, against a depth of about 5. Facing everything forward
+-- turned the deepest ornaments side-on to their nearest neighbour.
+--
+-- `Decor.build` still reads `slot.yaw`, so a future slot that genuinely
+-- wants an angle can carry one. Nothing here does.
 Config.DECOR_SLOTS = {
-	{ id = "lawnA", zone = "lawn", offset = Vector3.new(-17, 0, -16), yaw = 20 },
-	{ id = "lawnB", zone = "lawn", offset = Vector3.new(17, 0, -16), yaw = -25 },
-	{ id = "lawnC", zone = "lawn", offset = Vector3.new(-18, 0, 2), yaw = 90 },
-	{ id = "lawnD", zone = "lawn", offset = Vector3.new(-15, 0, 17), yaw = 155 },
-	{ id = "lawnE", zone = "lawn", offset = Vector3.new(15, 0, 18), yaw = 200 },
-	{ id = "lawnF", zone = "lawn", offset = Vector3.new(0, 0, -19), yaw = 0 },
+	{ id = "lawnA", zone = "lawn", offset = Vector3.new(-17, 0, -16) },
+	{ id = "lawnB", zone = "lawn", offset = Vector3.new(17, 0, -16) },
+	{ id = "lawnC", zone = "lawn", offset = Vector3.new(-18, 0, 2) },
+	{ id = "lawnD", zone = "lawn", offset = Vector3.new(-15, 0, 17) },
+	{ id = "lawnE", zone = "lawn", offset = Vector3.new(15, 0, 18) },
+	{ id = "lawnF", zone = "lawn", offset = Vector3.new(0, 0, -19) },
 	-- One more, added with the silly ornaments, mirroring lawnC.
 	--
 	-- Only one, and out on the ring with the rest, because the lawn is 48
@@ -1283,17 +1311,17 @@ Config.DECOR_SLOTS = {
 	-- Twelve lawn items against seven slots is deliberate. The lawn is a shelf
 	-- you curate, not a checklist you complete: choosing what to leave in the
 	-- shed IS the decoration.
-	{ id = "lawnG", zone = "lawn", offset = Vector3.new(19, 0, 0), yaw = -90 },
+	{ id = "lawnG", zone = "lawn", offset = Vector3.new(19, 0, 0) },
 
 	-- On the driveway proper, between the gate and the kerb.
-	{ id = "drive1", zone = "driveway", offset = Vector3.new(0, 0, 35), yaw = 0 },
+	{ id = "drive1", zone = "driveway", offset = Vector3.new(0, 0, 35) },
 
 	-- Outside the fence, flanking the driveway. This is the ONLY ground out
 	-- there that stays dry at every fence tier -- the moat takes the whole
 	-- rest of the perimeter, so anything placed elsewhere would end up in the
 	-- water the moment its owner bought tier 5.
-	{ id = "vergeL", zone = "verge", offset = Vector3.new(-9.5, 0, 31), yaw = 0 },
-	{ id = "vergeR", zone = "verge", offset = Vector3.new(9.5, 0, 31), yaw = 0 },
+	{ id = "vergeL", zone = "verge", offset = Vector3.new(-9.5, 0, 31) },
+	{ id = "vergeR", zone = "verge", offset = Vector3.new(9.5, 0, 31) },
 }
 
 Config.DECOR_ITEMS = {

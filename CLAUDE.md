@@ -150,6 +150,15 @@ at `PLOT_SIZE.X/2 + 1.6` because a thief approaches from the street. Lengthening
 the yard behind the piggy changes nothing about the steal, the getaway or the
 drop-off, which is what makes it cheap.
 
+**Anything positioned relative to the yard must measure from `YARD_DEPTH`, not
+from the plot slab.** They were the same number until the fence was lengthened
+to enclose the house, and everything anchored to the old edge went silently
+wrong rather than erroring. The grove behind the plots was placed at
+`rowZ + halfPlot` (24) instead of `rowZ + YARD_DEPTH` (70), which dropped the
+first row of trees 46 studs inside the fence — full-grown trees standing on
+people's lawns among their houses. When a derived constant stops being derived,
+grep for everything that assumed it.
+
 **A house tier's `width` is its main block, not its footprint.** Wings, gables
 and roof slabs all overhang it -- the Manor measured 65 studs against a 51.2
 fence interior and its wings stuck straight through the side fence. `House.build`
@@ -184,6 +193,17 @@ the lawn is the ground an owner defends on, and more prompts there would compete
 with the collect and steal prompts that matter. Every ornament is CanCollide and
 CanQuery off, so none of it can body-block a defender, a thief, or the dog.
 
+**Slots are scarcer than items, and the ring is full at seven.** Twelve lawn
+items against seven slots is deliberate: the lawn is a shelf you curate, not a
+checklist you complete, and choosing what stays in the shed IS the decoration.
+Seven is also the physical limit — the lawn is 48 studs across with a piggy in
+the middle, the widest ornament measures 12.5 across the gnome's fists, and the
+ring positions are 15 to 19 studs apart, which is exactly what the two widest
+items standing side by side need. An eighth squeezed between two of them puts
+an ornament through its neighbour, and the obvious front-centre spot at
+(0, 19) is the walk from the gate to the piggy. Before adding a slot, measure
+the two widest footprints against the closest pair.
+
 **Meme ornaments are built as ORIGINALS, never as the named thing.** The silly
 half of the lawn shelf — the duck, the swole gnome, the tube man, the loo guy,
 the shark in trainers, the drip statue — exists because a fountain says you are
@@ -215,10 +235,49 @@ that identifies it lives in the side profile. Anything long gets its long axis
 across the viewer — which is also the cheap direction, since a cylinder's own
 axis is X.
 
+**Every decoration slot faces the road, and none of them carries a yaw.**
+Plot-local +Z is the street on both rows — the far row's half-turn is already
+in its plot CFrame — and every builder authors its ornament facing +Z, so an
+unrotated slot points the one good angle at the one place anybody stands. The
+slots used to scatter by 20/90/155/200 degrees to read as a garden arranged by
+hand rather than a showroom, which works on a plan view and nowhere else: the
+two back slots were turned past 90, so the trophy showed its blank back, the
+drip statue faced its own house, and the shark went nose-on again — the exact
+bug its builder was rewritten to fix. Variety nobody is standing where they
+could see is not variety. `Decor.build` still reads `slot.yaw`, so a slot that
+genuinely wants an angle can carry one; nothing does.
+
 **`Fabric` is a dark, noisy texture, not a colour.** A bright orange tube man
 rendered muddy brown at any distance, and a tan duffel bag rendered near black.
 Use it for cloth that is meant to look woven and dark; use `SmoothPlastic` for
 anything whose colour is the point.
+
+**Nothing here can be DUG, so sunkenness is always an illusion.** The world
+ground is one solid Part and a Part cannot cut a hole in another Part. Setting
+the moat's water surface 0.16 below ground level did not make a trench — it
+made the moat vanish, because the grass is still there above it. Every layer of
+the channel sits *proud* of the ground and the depth comes from the kerbs: two
+stone banks standing 0.5 above the grass with the water surface 0.19 below
+their top edge, because the eye takes the highest line as ground level. Then an
+opaque dark bed under half a stud of translucent blue, or the water tints the
+grass beneath it and the moat comes out pond-green. This applies to anything
+else that ever wants to look excavated.
+
+**The moat's kerbs belong to the RING, not to the bands.** The water is cut
+into five bands that overlap at the corners, so a kerb built per band ran
+straight across its neighbour's channel and the moat came out with stone bars
+lying across it like cattle grids. There is an outer edge and an inner edge;
+the kerb is two closed rectangles laid on those, and it does not care how the
+water was divided up.
+
+**The moat is animated on the CLIENT, like the skins.** The server builds the
+channel once and publishes each band's span as an attribute; every machine
+works the surface bob and the travelling ripples out for itself. Driving it
+server-side would replicate a CFrame and a Transparency write per band per
+frame — twenty-five parts for one moat, before anyone buys a second. The parts
+are found by CollectionService tag rather than collected once at startup,
+because a moat is built when someone buys the fifth fence and torn down when
+they rebirth.
 
 **A bone buys a window, never the dog.** Bones are the offence tree's answer to
 the one defence purchase that had none, and the same line governs both: defence
@@ -309,9 +368,11 @@ axis and `Size.Y`/`Size.Z` are the cross-section, so a vertical column is
 `Vector3.new(height, d, d)` plus a 90-degree turn about Z -- never
 `Vector3.new(d, height, d)`. Written the wrong way round it becomes a disc as
 wide as the height was tall, and the turn that was meant to stand it upright
-lays that disc flat instead. This has bitten three times now: the decor car's
+lays that disc flat instead. This has bitten four times now: the decor car's
 wheels, the Midnight Modern's pilotis (two black plates hanging in the air
-across the front of the house), and it is why `cylinderUp`/`cylinderForward`
+across the front of the house), the most-wanted hat -- which stood a neon
+rod out of the top of the wearer's skull rather than laying a brim on it,
+and is a floating label now -- and it is why `cylinderUp`/`cylinderForward`
 exist in PiggyBank.
 
 **Luau forward references.** A `local` declared *after* a function that reads it

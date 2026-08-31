@@ -730,7 +730,12 @@ function Decor.build(placed: { [string]: string }, originCF: CFrame,
 			local build = builders[item.style]
 			if build then
 				local groundY = groundByZone[slot.zone] or 0
-			local at = originCF
+				-- Square to the road unless the slot asks otherwise, and no
+				-- slot currently does. Plot-local +Z is the street on both
+				-- rows and every builder above authors its ornament facing
+				-- +Z, so an unrotated slot points the one good angle at the
+				-- one place anybody stands. See Config.DECOR_SLOTS.
+				local at = originCF
 					* CFrame.new(slot.offset + Vector3.new(0, groundY, 0))
 					* CFrame.Angles(0, math.rad(slot.yaw or 0), 0)
 				build(item, at)
