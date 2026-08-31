@@ -88,6 +88,19 @@ instead — `BASE_JUMP_HEIGHT` is 7.2.
 **Rebirth wipes power but never cosmetics.** Skins, effects and houses are the
 permanent progression track that a reset cannot take away.
 
+**Animated skins are driven on the CLIENT.** The server publishes a `SkinKey`
+attribute and nothing else; each client computes colours itself in one shared
+Heartbeat loop. Animating server-side would replicate a colour write per piggy
+per frame — around 700 property updates a second across twelve plots — to say
+something every machine could derive from a single string.
+
+**Every rebirth grants a skin.** The roll decides how rare, never whether.
+Rebirth already costs a player every upgrade they own; handing back nothing is
+the fastest way to stop people doing it. A legendary is reachable on the first
+rebirth (~2.7%) rising to ~31%, with a pity floor at 12. Drop-pool skins have no
+`cost`, so `isSkinUnlocked` checks `rarity` before the free-if-costless fallback
+— without that, every legendary would unlock for everyone immediately.
+
 **Houses confer nothing.** The house behind a plot is pure prestige, priced above
 the skins so it stays the last thing anyone finishes. The power balance is a closed
 system of speed, time and distance; hanging a stat off a status symbol reopens

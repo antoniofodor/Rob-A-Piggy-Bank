@@ -43,6 +43,58 @@ end
 -- purpose: they survive rebirth, they confer nothing, and they belong to the
 -- same "permanent collection" idea as skins. Reusing this channel also keeps
 -- the whole collection in a single snapshot push.
+-- Rolls one animated skin for a rebirth and grants it.
+--
+-- Returns the key and its rarity, or nil if the player already owns every
+-- animated skin in the game -- at which point the caller pays coins instead,
+-- because a completed collection should not turn rebirth into a dead end.
+--
+-- Duplicates never waste a roll. Landing on a rarity you have completed walks
+-- UPWARD first, so an unlucky roll on a full "rare" shelf turns into an epic
+-- rather than into nothing.
+function CosmeticsService.rollRebirthDrop(player: Player): (string?, string?)
+	local data = DataService.get(player)
+	if not data then
+		return nil, nil
+	end
+
+	local owned = data.cosmetics.owned
+	local rng = Random.new()
+	local rolled = Config.rollRarity(data.rebirths, data.sinceLegendary or 0, rng)
+
+	-- Search order: the rolled rarity, then rarer, then commoner.
+	local order = { rolled }
+	local rolledIndex = table.find(Config.DROP_RARITIES, rolled) or 1
+	for i = rolledIndex + 1, #Config.DROP_RARITIES do
+		table.insert(order, Config.DROP_RARITIES[i])
+	end
+	for i = rolledIndex - 1, 1, -1 do
+		table.insert(order, Config.DROP_RARITIES[i])
+	end
+
+	for _, rarity in ipairs(order) do
+		local candidates = {}
+		for _, key in ipairs(Config.getSkinsOfRarity(rarity)) do
+			if not owned[key] then
+				table.insert(candidates, key)
+			end
+		end
+		if #candidates > 0 then
+			local key = candidates[rng:NextInteger(1, #candidates)]
+			owned[key] = true
+
+			if rarity == "legendary" then
+				data.sinceLegendary = 0
+			else
+				data.sinceLegendary = (data.sinceLegendary or 0) + 1
+			end
+			return key, rarity
+		end
+	end
+
+	return nil, nil
+end
+
 function CosmeticsService.buyHouse(player: Player, requested: string)
 	local data = DataService.get(player)
 	if not data then

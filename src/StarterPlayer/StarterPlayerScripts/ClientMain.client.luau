@@ -17,6 +17,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
@@ -1103,4 +1104,136 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	if input.KeyCode == Enum.KeyCode.F2 then
 		adminGui.Visible = not adminGui.Visible
 	end
+end)
+
+-- ============================================================
+-- ANIMATED SKINS
+-- ============================================================
+--
+-- Runs entirely on the client. The server publishes a SkinKey attribute on
+-- each piggy and nothing else; every machine computes the colours itself.
+--
+-- Doing this server-side would mean a Color write per animated piggy per
+-- frame, replicated to everyone -- roughly 700 property updates a second
+-- across twelve plots, to say something each client could have worked out
+-- from a single string.
+--
+-- One Heartbeat loop drives every piggy on the map rather than one loop each.
+
+local ANIMATED_TRIM = { "Snout", "Tail", "Ear", "Leg" }
+
+local animatedPiggies: {
+	{ model: Instance, body: BasePart, trim: { BasePart }, glow: PointLight?, auraLight: PointLight? }
+} = {}
+
+local function paletteAt(palette: { Color3 }, t: number): Color3
+	-- Wraps, so a palette is a loop rather than a ramp that snaps at the end.
+	local span = #palette
+	local scaled = (t % 1) * span
+	local index = math.floor(scaled)
+	local frac = scaled - index
+	local a = palette[(index % span) + 1]
+	local b = palette[((index + 1) % span) + 1]
+	return a:Lerp(b, frac)
+end
+
+local function skinColourAt(anim: any, clock: number, seed: number): Color3?
+	local kind = anim.kind
+	local speed = anim.speed or 1
+
+	if kind == "rainbow" then
+		return Color3.fromHSV((clock * speed + seed) % 1, 0.72, 1)
+	elseif kind == "cycle" then
+		return paletteAt(anim.palette, clock * speed * 0.25 + seed)
+	elseif kind == "pulse" then
+		local t = (math.sin(clock * speed * math.pi * 2 + seed * 6) + 1) / 2
+		return anim.palette[1]:Lerp(anim.palette[2], t)
+	elseif kind == "flicker" then
+		-- Deliberately not smooth: fire and lightning read as unsteady, so this
+		-- stacks two out-of-phase waves to avoid an obvious pulse rhythm.
+		local a = math.sin(clock * speed + seed * 5)
+		local b = math.sin(clock * speed * 2.7 + seed * 11)
+		local t = math.clamp((a + b) / 2 * 0.5 + 0.5, 0, 1)
+		return anim.palette[1]:Lerp(anim.palette[2], t * t)
+	end
+	return nil
+end
+
+local function collectAnimated(piggy: Instance)
+	local body = piggy:FindFirstChild("Body") :: BasePart?
+	if not body then
+		return
+	end
+	local trim: { BasePart } = {}
+	for _, child in ipairs(piggy:GetChildren()) do
+		if child:IsA("BasePart") and table.find(ANIMATED_TRIM, child.Name) then
+			table.insert(trim, child)
+		end
+	end
+	table.insert(animatedPiggies, {
+		model = piggy,
+		body = body,
+		trim = trim,
+		glow = body:FindFirstChild("Glow") :: PointLight?,
+		auraLight = body:FindFirstChild("AuraLight") :: PointLight?,
+	})
+end
+
+task.spawn(function()
+	local plots = workspace:WaitForChild("Plots", 30)
+	if not plots then
+		return
+	end
+	for _, plot in ipairs(plots:GetChildren()) do
+		local piggy = plot:FindFirstChild("PiggyBank")
+		if piggy then
+			collectAnimated(piggy)
+		end
+	end
+
+	RunService.Heartbeat:Connect(function()
+		local clock = os.clock()
+		for index, entry in ipairs(animatedPiggies) do
+			local key = entry.model:GetAttribute("SkinKey")
+			local skin = if type(key) == "string" then Config.SKINS[key] else nil
+			local anim = skin and skin.anim
+
+			if anim then
+				-- Seeded per plot so twelve animated piggies are not all
+				-- pulsing in lockstep, which reads as one effect rather than
+				-- twelve separate players.
+				local colour = skinColourAt(anim, clock, index * 0.137)
+				if colour then
+					entry.body.Color = colour
+					for _, p in ipairs(entry.trim) do
+						p.Color = colour:Lerp(skin.trim, 0.55)
+					end
+				end
+				if anim.glow and entry.glow then
+					-- Left alone otherwise: EconomyService drives this light to
+					-- show vault fill, and stomping it every frame would erase
+					-- that signal.
+					entry.glow.Color = entry.body.Color
+				end
+			end
+
+			-- Effect light. Storm strikes; Inferno breathes.
+			local light = entry.auraLight
+			if light and light.Enabled then
+				local kind = entry.model:GetAttribute("LightKind")
+				local seed = index * 0.61
+				if kind == "strike" then
+					-- Mostly dark with occasional sharp flashes, so it reads as
+					-- lightning rather than as a lamp someone left on.
+					local wave = math.sin(clock * 1.7 + seed) * math.sin(clock * 0.53 + seed * 3)
+					local flash = math.max(0, wave) ^ 8
+					light.Brightness = 0.6 + flash * 14
+				elseif kind == "flicker" then
+					local a = math.sin(clock * 11 + seed * 5)
+					local b = math.sin(clock * 27 + seed * 13)
+					light.Brightness = 7 + (a + b) * 1.6
+				end
+			end
+		end
+	end)
 end)

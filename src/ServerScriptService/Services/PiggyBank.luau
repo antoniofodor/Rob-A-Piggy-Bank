@@ -242,6 +242,15 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	aura.LightEmission = 0.55
 	aura.Parent = body
 
+	-- Separate from `Glow`, which EconomyService drives to show vault fill.
+	-- Sharing one light would make a full vault and a lit effect fight over
+	-- the same property every frame.
+	local auraLight = Instance.new("PointLight")
+	auraLight.Name = "AuraLight"
+	auraLight.Enabled = false
+	auraLight.Shadows = false
+	auraLight.Parent = body
+
 	-- Fired in bursts on milestones and banking.
 	local burst = Instance.new("ParticleEmitter")
 	burst.Name = "Burst"
@@ -465,6 +474,13 @@ function PiggyBank.applySkin(refs: Refs, skinKey: string)
 		p.Color = tier.trim
 		p.Material = tier.material
 	end
+
+	-- The colours above are the STATIC baseline, which is what a client sees
+	-- before its animator starts and what it falls back to if the skin has no
+	-- animation. The key is published as an attribute so every client can drive
+	-- the animation locally: animating server-side would replicate a colour
+	-- write per piggy per frame for something each machine can compute alone.
+	refs.model:SetAttribute("SkinKey", skinKey)
 end
 
 -- Cosmetic particle aura around the piggy. Reuses one emitter rather than
@@ -476,6 +492,11 @@ function PiggyBank.applyEffect(refs: Refs, effectKey: string)
 
 	if not effect.texture then
 		aura.Enabled = false
+		local off = refs.body:FindFirstChild("AuraLight") :: PointLight?
+		if off then
+			off.Enabled = false
+		end
+		refs.model:SetAttribute("LightKind", nil)
 		return
 	end
 
@@ -499,6 +520,22 @@ function PiggyBank.applyEffect(refs: Refs, effectKey: string)
 	aura.RotSpeed = NumberRange.new(-spin, spin)
 
 	aura.Enabled = true
+
+	-- The top two effects throw light. Base brightness is set here; the
+	-- flicker is a client concern, driven off the LightKind attribute below.
+	local auraLight = refs.body:FindFirstChild("AuraLight") :: PointLight?
+	if auraLight then
+		if effect.light then
+			auraLight.Color = effect.light.colour
+			auraLight.Brightness = effect.light.brightness
+			auraLight.Range = effect.light.range
+			auraLight.Enabled = true
+			refs.model:SetAttribute("LightKind", effect.light.kind)
+		else
+			auraLight.Enabled = false
+			refs.model:SetAttribute("LightKind", nil)
+		end
+	end
 end
 
 -- ============================================================

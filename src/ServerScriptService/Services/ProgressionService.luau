@@ -81,6 +81,23 @@ function ProgressionService.rebirth(player: Player)
 	notify(player, ("REBIRTH %d! Your piggy earns +%d%% forever."):format(
 		data.rebirths, math.floor(data.rebirths * Config.REBIRTH_MULTIPLIER * 100)), "good")
 
+	-- The drop. Every rebirth grants one animated skin; the odds of a rarer
+	-- one climb with the rebirth count, and a legendary is reachable on the
+	-- very first rebirth.
+	local key, rarity = CosmeticsService.rollRebirthDrop(player)
+	if key then
+		local skin = Config.getSkin(key)
+		notify(player, ("%s DROP -- %s!"):format(string.upper(rarity or "?"), skin.name), "good")
+		-- Wear it immediately. The reward for a reset that took everything
+		-- should be visible on the plot before the player looks away.
+		CosmeticsService.equipSkin(player, key)
+	else
+		-- Collection complete. Pay out instead of silently doing nothing.
+		local bonus = Config.REBIRTH_THRESHOLD // 4
+		data.coins += bonus
+		notify(player, ("Collection complete -- %d bonus coins instead."):format(bonus), "good")
+	end
+
 	-- Persist immediately. Losing a rebirth to a crash would be the single
 	-- worst thing that could happen to a player's evening.
 	-- Reapply the collection: rebirth wiped the upgrades, never the skins,

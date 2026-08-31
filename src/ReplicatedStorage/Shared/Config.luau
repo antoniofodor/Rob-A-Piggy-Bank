@@ -447,6 +447,98 @@ Config.SKINS = {
 		body = Color3.fromRGB(150, 226, 236), trim = Color3.fromRGB(104, 190, 208),
 		material = Enum.Material.Glass, transparency = 0.36,
 	},
+
+	-- ANIMATED DROP POOL
+	--
+	-- Not for sale at any price. The only way in is rebirthing, which is what
+	-- makes them worth chasing -- coins can buy every skin above this line.
+	--
+	-- `anim` is read by the CLIENT, never the server. Animating a colour
+	-- server-side would replicate a property write per piggy per frame, which
+	-- is 700+ writes a second across twelve plots for something every client
+	-- can compute for itself from a single attribute.
+	ember = {
+		name = "Ember Glow", order = 30, rarity = "rare",
+		body = Color3.fromRGB(226, 104, 52), trim = Color3.fromRGB(120, 44, 30),
+		material = Enum.Material.Neon, transparency = 0.36,
+		anim = { kind = "pulse", speed = 1.4, palette = {
+			Color3.fromRGB(226, 104, 52), Color3.fromRGB(255, 176, 84),
+		} },
+	},
+	frostbite = {
+		name = "Frostbite", order = 31, rarity = "rare",
+		body = Color3.fromRGB(186, 232, 248), trim = Color3.fromRGB(120, 176, 208),
+		material = Enum.Material.Glass, transparency = 0.34,
+		anim = { kind = "pulse", speed = 0.8, palette = {
+			Color3.fromRGB(186, 232, 248), Color3.fromRGB(246, 252, 255),
+		} },
+	},
+	toxic = {
+		name = "Toxic Ooze", order = 32, rarity = "rare",
+		body = Color3.fromRGB(140, 226, 84), trim = Color3.fromRGB(66, 122, 40),
+		material = Enum.Material.Neon, transparency = 0.38,
+		anim = { kind = "cycle", speed = 0.7, palette = {
+			Color3.fromRGB(140, 226, 84), Color3.fromRGB(96, 190, 70), Color3.fromRGB(196, 240, 110),
+		} },
+	},
+	candyswirl = {
+		name = "Candy Swirl", order = 33, rarity = "rare",
+		body = Color3.fromRGB(255, 150, 200), trim = Color3.fromRGB(255, 236, 244),
+		material = Enum.Material.SmoothPlastic, transparency = 0.24,
+		anim = { kind = "cycle", speed = 1.1, palette = {
+			Color3.fromRGB(255, 150, 200), Color3.fromRGB(255, 244, 250), Color3.fromRGB(150, 210, 255),
+		} },
+	},
+
+	aurora = {
+		name = "Aurora", order = 40, rarity = "epic",
+		body = Color3.fromRGB(96, 226, 190), trim = Color3.fromRGB(60, 110, 150),
+		material = Enum.Material.Neon, transparency = 0.40,
+		anim = { kind = "cycle", speed = 0.55, glow = 1.6, palette = {
+			Color3.fromRGB(96, 226, 190), Color3.fromRGB(84, 160, 238),
+			Color3.fromRGB(178, 118, 236), Color3.fromRGB(96, 226, 190),
+		} },
+	},
+	magma = {
+		name = "Magma Core", order = 41, rarity = "epic",
+		body = Color3.fromRGB(210, 58, 30), trim = Color3.fromRGB(52, 20, 16),
+		material = Enum.Material.Neon, transparency = 0.34,
+		anim = { kind = "flicker", speed = 9, glow = 2.2, palette = {
+			Color3.fromRGB(150, 32, 18), Color3.fromRGB(255, 148, 44),
+		} },
+	},
+	voidsilk = {
+		name = "Void Silk", order = 42, rarity = "epic",
+		body = Color3.fromRGB(46, 30, 72), trim = Color3.fromRGB(22, 14, 36),
+		material = Enum.Material.Glass, transparency = 0.30,
+		anim = { kind = "pulse", speed = 0.5, glow = 1.4, palette = {
+			Color3.fromRGB(46, 30, 72), Color3.fromRGB(140, 78, 220),
+		} },
+	},
+
+	supernova = {
+		name = "Supernova", order = 50, rarity = "legendary",
+		body = Color3.fromRGB(255, 230, 150), trim = Color3.fromRGB(232, 128, 40),
+		material = Enum.Material.Neon, transparency = 0.30,
+		anim = { kind = "cycle", speed = 2.2, glow = 4.0, palette = {
+			Color3.fromRGB(255, 248, 220), Color3.fromRGB(255, 196, 72),
+			Color3.fromRGB(255, 110, 40), Color3.fromRGB(255, 248, 220),
+		} },
+	},
+	stormcaller = {
+		name = "Stormcaller", order = 51, rarity = "legendary",
+		body = Color3.fromRGB(120, 176, 255), trim = Color3.fromRGB(40, 52, 92),
+		material = Enum.Material.Neon, transparency = 0.32,
+		anim = { kind = "flicker", speed = 14, glow = 4.5, palette = {
+			Color3.fromRGB(64, 96, 176), Color3.fromRGB(232, 246, 255),
+		} },
+	},
+	prismatic = {
+		name = "Prismatic", order = 52, rarity = "legendary",
+		body = Color3.fromRGB(255, 120, 120), trim = Color3.fromRGB(255, 255, 255),
+		material = Enum.Material.Neon, transparency = 0.28,
+		anim = { kind = "rainbow", speed = 0.35, glow = 3.5 },
+	},
 }
 
 -- Named for what they actually look like. Roblox ships three particle
@@ -485,17 +577,25 @@ Config.EFFECTS = {
 		rate = 16, speed = NumberRange.new(1, 3), size = 1.1, lifetime = NumberRange.new(1.6, 2.6),
 		drag = 2, accel = Vector3.new(0, -4, 0), spread = 180, rotSpeed = 25,
 	},
+	-- A "Storm Cloud" with no lightning and no light was a polite grey puff for
+	-- 220,000 coins. It now boils, and the light strobes so it reads as a
+	-- storm from the far end of the street rather than as fog up close.
 	storm = {
 		name = "Storm Cloud", order = 5, cost = 220000, texture = SMOKE,
-		color = ColorSequence.new(Color3.fromRGB(150, 158, 178), Color3.fromRGB(78, 84, 104)),
-		rate = 10, speed = NumberRange.new(1, 2), size = 4.5, lifetime = NumberRange.new(1.8, 3.0),
-		drag = 3, accel = Vector3.new(0, 1, 0), spread = 60, rotSpeed = 12,
+		color = ColorSequence.new(Color3.fromRGB(168, 176, 198), Color3.fromRGB(54, 60, 82)),
+		rate = 28, speed = NumberRange.new(1, 3), size = 7.0, lifetime = NumberRange.new(2.2, 3.6),
+		drag = 3, accel = Vector3.new(0, 1, 0), spread = 75, rotSpeed = 12,
+		light = { colour = Color3.fromRGB(170, 205, 255), brightness = 7, range = 26, kind = "strike" },
 	},
+	-- The most expensive thing in the shop should be the loudest. Roughly
+	-- double the fire, half again the size, and a fire-coloured light that
+	-- flickers, so it throws colour onto the lawn around it.
 	inferno = {
 		name = "Inferno", order = 6, cost = 600000, texture = FIRE,
-		color = ColorSequence.new(Color3.fromRGB(255, 226, 140), Color3.fromRGB(226, 46, 30)),
-		rate = 34, speed = NumberRange.new(5, 11), size = 2.6, lifetime = NumberRange.new(0.7, 1.3),
-		drag = 0, accel = Vector3.new(0, 12, 0), spread = 30, rotSpeed = 90,
+		color = ColorSequence.new(Color3.fromRGB(255, 236, 170), Color3.fromRGB(226, 46, 30)),
+		rate = 72, speed = NumberRange.new(7, 15), size = 3.6, lifetime = NumberRange.new(0.7, 1.4),
+		drag = 0, accel = Vector3.new(0, 14, 0), spread = 34, rotSpeed = 90,
+		light = { colour = Color3.fromRGB(255, 150, 60), brightness = 9, range = 30, kind = "flicker" },
 	},
 }
 
@@ -508,6 +608,82 @@ function Config.getEffect(key: string)
 end
 
 -- A skin is available if it's free, already bought, or earned by rebirths.
+-- ============================================================
+-- REBIRTH DROPS
+-- ============================================================
+--
+-- Every rebirth grants exactly one animated skin. The roll decides HOW RARE,
+-- never WHETHER -- rebirth already costs a player every upgrade they own, and
+-- handing back nothing for that is the fastest way to make people stop doing
+-- it. There is no outcome where you get nothing.
+--
+-- Odds climb with rebirth count but a legendary is reachable on the very first
+-- one, at about 3%. That matters: a ladder where the good stuff is gated behind
+-- rebirth 20 tells a new player the chase is not for them yet.
+--
+-- Weights, not probabilities -- they are normalised at roll time, so tuning one
+-- line cannot silently break the total.
+function Config.getDropWeights(rebirths: number): { [string]: number }
+	local r = math.clamp(rebirths, 0, 40)
+	return {
+		rare = math.max(10, 80 - r * 2.0),
+		epic = 18 + r * 1.2,
+		legendary = 2 + r * 0.8,
+	}
+end
+
+-- Rebirths in a row without a legendary before one is guaranteed.
+--
+-- Pure chance has no floor: a player can be unlucky twelve times running and
+-- reasonably conclude the drop is a lie. This caps the worst case at a number
+-- somebody can actually see coming.
+Config.LEGENDARY_PITY = 12
+
+Config.DROP_RARITIES = { "rare", "epic", "legendary" }
+
+Config.RARITY_COLOURS = {
+	rare = Color3.fromRGB(96, 170, 240),
+	epic = Color3.fromRGB(176, 110, 236),
+	legendary = Color3.fromRGB(248, 190, 72),
+}
+
+-- Every skin of a given rarity. Rebuilt per call rather than cached: the pool
+-- is tiny and a stale cache after a Config edit is a worse problem than the
+-- handful of table allocations this costs.
+function Config.getSkinsOfRarity(rarity: string): { string }
+	local out = {}
+	for key, skin in pairs(Config.SKINS) do
+		if skin.rarity == rarity then
+			table.insert(out, key)
+		end
+	end
+	table.sort(out)
+	return out
+end
+
+-- Picks a rarity for one rebirth. `rng` is passed in so the caller owns the
+-- seed and the whole thing stays testable.
+function Config.rollRarity(rebirths: number, sinceLegendary: number, rng: Random): string
+	if sinceLegendary >= Config.LEGENDARY_PITY then
+		return "legendary"
+	end
+
+	local weights = Config.getDropWeights(rebirths)
+	local total = 0
+	for _, rarity in ipairs(Config.DROP_RARITIES) do
+		total += weights[rarity]
+	end
+
+	local roll = rng:NextNumber() * total
+	for _, rarity in ipairs(Config.DROP_RARITIES) do
+		roll -= weights[rarity]
+		if roll <= 0 then
+			return rarity
+		end
+	end
+	return "rare"
+end
+
 function Config.isSkinUnlocked(key: string, owned: { [string]: boolean }, rebirths: number): boolean
 	local skin = Config.SKINS[key]
 	if not skin then
@@ -515,6 +691,12 @@ function Config.isSkinUnlocked(key: string, owned: { [string]: boolean }, rebirt
 	end
 	if skin.unlockRebirths then
 		return rebirths >= skin.unlockRebirths
+	end
+	-- A drop-pool skin has no cost, but "no cost" must not read as "free".
+	-- Without this, every legendary would be unlocked for everyone from the
+	-- first second, because the fallback below treats cost 0 as unlocked.
+	if skin.rarity then
+		return owned[key] == true
 	end
 	return (skin.cost or 0) <= 0 or owned[key] == true
 end
@@ -652,8 +834,8 @@ function Config.isAdminUserId(userId: number): boolean
 	return Config.ADMINS[userId] == true
 end
 
--- Bumped for `houseLevel`. DataService.reconcile fills it in on old saves.
-Config.SCHEMA_VERSION = 4
+-- Bumped for `sinceLegendary`. DataService.reconcile fills it in on old saves.
+Config.SCHEMA_VERSION = 5
 
 Config.AUTOSAVE_INTERVAL = 60
 
