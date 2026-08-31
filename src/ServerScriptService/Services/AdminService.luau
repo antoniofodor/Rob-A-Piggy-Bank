@@ -200,8 +200,9 @@ commands.maxupgrades = function(player)
 end
 
 commands.shield = function(player)
-	local cleared = HeistService.clearShields()
-	return ("Shield cleared for %d player(s) -- everyone is robbable now"):format(cleared)
+	local shields, cooldowns = HeistService.openSeason()
+	return ("Open season: %d shield(s) dropped, %d cooldown/limit pair(s) cleared"):format(
+		shields, cooldowns)
 end
 
 commands.reset = function(player)

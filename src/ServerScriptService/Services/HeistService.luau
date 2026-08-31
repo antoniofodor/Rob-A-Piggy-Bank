@@ -528,19 +528,40 @@ function HeistService.onPlayerAdded(player: Player)
 	end)
 end
 
--- Drops the new-player grace period for everyone currently in the server.
+-- Drops every restriction on robbing, for everyone in the server.
 --
--- Testing aid only, driven by AdminService. Backdating joinedAt rather than
--- clearing it keeps the field's meaning intact for every other reader.
-function HeistService.clearShields(): number
-	local cleared = 0
+-- Testing aid only, driven by AdminService. Three separate things stop a
+-- repeat robbery and they produce three different rejection messages, so
+-- clearing only one of them looks like "the admin button did nothing":
+--
+--   * the new-player shield  (NEW_PLAYER_SHIELD, 15 min live / 15 s Studio)
+--   * the per-victim cooldown (STEAL_COOLDOWN, 60s)
+--   * the per-victim lifetime cap (STEAL_MAX_PER_VICTIM, 3)
+--
+-- Testing the guard dog means robbing the same person over and over, which
+-- runs into the last two immediately. All three go together.
+--
+-- joinedAt is backdated rather than cleared so the field keeps its meaning
+-- for every other reader.
+function HeistService.openSeason(): (number, number)
+	local shields = 0
 	for _, player in ipairs(Players:GetPlayers()) do
 		if joinedAt[player] then
 			joinedAt[player] = os.clock() - SHIELD_SECONDS - 1
-			cleared += 1
+			shields += 1
 		end
 	end
-	return cleared
+
+	local pairsCleared = 0
+	for victim in pairs(lastGrab) do
+		for _ in pairs(lastGrab[victim]) do
+			pairsCleared += 1
+		end
+	end
+	table.clear(lastGrab)
+	table.clear(grabCount)
+
+	return shields, pairsCleared
 end
 
 function HeistService.isCarrying(player: Player): boolean
