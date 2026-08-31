@@ -80,6 +80,15 @@ local function defaultData(): PlayerData
 		upgrades = upgrades,
 		houseLevel = 0,
 		decor = { owned = {}, placed = {} },
+		-- Bone stock, by key. Counts only; missing keys read as zero, so a
+		-- bone added later needs no migration.
+		--
+		-- NOT wiped by rebirth, unlike every other offensive purchase. A bone
+		-- is spent the moment it is thrown, so a stockpile is not standing
+		-- power the way a maxed tree is -- and wiping it would only teach
+		-- players to burn their stock the hour before rebirthing, which is a
+		-- chore, not a decision.
+		consumables = {},
 		sinceLegendary = 0,
 		-- Never reset by rebirth. This is the account's permanent collection.
 		cosmetics = {

@@ -40,6 +40,7 @@ local UpgradeService = require(script.Parent.UpgradeService)
 local CosmeticsService = require(script.Parent.CosmeticsService)
 local ProgressionService = require(script.Parent.ProgressionService)
 local HeistService = require(script.Parent.HeistService)
+local BoneService = require(script.Parent.BoneService)
 
 local AdminService = {}
 
@@ -209,6 +210,25 @@ commands.dognap = function(player, seconds)
 	local secs = if type(seconds) == "number" then math.clamp(seconds, 1, 300) else 20
 	plot.dog.busyUntil = os.clock() + secs
 	return ("Dog off duty for %ds -- it should head for the kennel"):format(secs)
+end
+
+-- Ten of every bone. Testing a bone means throwing it at a dog that is on
+-- duty, and a dog is only on duty for the first few seconds of each cycle --
+-- so a test run burns stock far faster than it can be earned.
+commands.bones = function(player, count)
+	local data = DataService.get(player)
+	if not data then
+		return nil
+	end
+	if type(data.consumables) ~= "table" then
+		data.consumables = {}
+	end
+	local n = if type(count) == "number" then math.clamp(math.floor(count), 0, 99) else 10
+	for key in pairs(Config.BONES) do
+		data.consumables[key] = n
+	end
+	BoneService.push(player)
+	return ("%d of every bone"):format(n)
 end
 
 commands.shield = function(player)

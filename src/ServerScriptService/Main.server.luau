@@ -35,6 +35,7 @@ local UpgradeService = require(Services.UpgradeService)
 local ProgressionService = require(Services.ProgressionService)
 local CosmeticsService = require(Services.CosmeticsService)
 local HeistService = require(Services.HeistService)
+local BoneService = require(Services.BoneService)
 local AdminService = require(Services.AdminService)
 
 DataService.start()
@@ -48,6 +49,7 @@ UpgradeService.start()
 ProgressionService.start()
 CosmeticsService.start()
 HeistService.start()
+BoneService.start()
 -- Last: it reaches into every service above.
 AdminService.start()
 
@@ -101,6 +103,7 @@ local function onPlayerAdded(player: Player)
 	CosmeticsService.applyToPlot(player)
 	CosmeticsService.push(player)
 	HeistService.onPlayerAdded(player)
+	BoneService.push(player)
 	AdminService.push(player)
 
 	player.CharacterAdded:Connect(function(character)

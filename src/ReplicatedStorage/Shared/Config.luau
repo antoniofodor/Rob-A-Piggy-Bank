@@ -246,6 +246,7 @@ Config.DOG_TIERS = {
 		cooldown = 34,
 		maxChase = 12,
 		scale = 0.8,
+		boneResist = 1.0,
 		fur = Color3.fromRGB(198, 154, 98),
 		furDark = Color3.fromRGB(158, 116, 68),
 		collar = Color3.fromRGB(214, 68, 64),
@@ -260,6 +261,7 @@ Config.DOG_TIERS = {
 		cooldown = 29,
 		maxChase = 15,
 		scale = 1.0,
+		boneResist = 0.8,
 		fur = Color3.fromRGB(126, 94, 66),
 		furDark = Color3.fromRGB(72, 52, 38),
 		collar = Color3.fromRGB(66, 140, 220),
@@ -274,6 +276,7 @@ Config.DOG_TIERS = {
 		cooldown = 24,
 		maxChase = 18,
 		scale = 1.3,
+		boneResist = 0.6,
 		fur = Color3.fromRGB(58, 56, 64),
 		furDark = Color3.fromRGB(32, 31, 37),
 		collar = Color3.fromRGB(246, 198, 52),
@@ -296,6 +299,84 @@ function Config.getDogTier(level: number)
 		return nil
 	end
 	return Config.DOG_TIERS[math.clamp(level, 1, #Config.DOG_TIERS)]
+end
+
+-- ============================================================
+-- BONES
+-- ============================================================
+--
+-- The first CONSUMABLE in the game. Every other purchase is a permanent
+-- level; a bone is bought, thrown once, and gone.
+--
+-- It exists because the dog was the only thing in the defence tree with no
+-- answer. Locks are answered by lockpicks, fences by taking the gate instead,
+-- carry speed by boots -- but a Titan on a plot simply beat anyone who walked
+-- in, and "you lose because they bought the expensive one" is the shape of a
+-- wall. The same line that governs fences governs dogs: defence buys TIME,
+-- never immunity.
+--
+-- Four things stop the bone from deleting the dog it counters:
+--
+--   * It costs coins EVERY TIME. Farming a guarded plot becomes an ongoing
+--     expense that scales with how well guarded it is -- which is precisely
+--     what the defender paid for.
+--   * A nap is always shorter than that breed's own cooldown, so a bone buys
+--     a window and never a full rest cycle. Waiting out a real chase is still
+--     the cheaper option if you have the patience.
+--   * Bigger dogs shrug it off (`boneResist` above). A Dog Bone worth nine
+--     seconds against Scruffy is worth 5.4 against Titan.
+--   * Only the top bone interrupts a chase in progress. The other two have to
+--     be thrown BEFORE the dog notices you, which makes them a plan you
+--     commit coins to rather than a panic button you mash when barking starts.
+--
+-- Prices sit deliberately between the two trees' rungs. A Golden Bone costs
+-- more than a first Vault Lock, so stocking up is a real alternative to
+-- levelling something, not pocket change on the way past.
+Config.BONES = {
+	bone = {
+		name = "Dog Bone", order = 1, cost = 2500, nap = 9, breaksChase = false,
+		colour = Color3.fromRGB(238, 230, 208),
+		blurb = "Buys a getaway. Not long enough to crack a lock as well",
+	},
+	steak = {
+		name = "Juicy Steak", order = 2, cost = 9000, nap = 18, breaksChase = false,
+		colour = Color3.fromRGB(176, 68, 62),
+		blurb = "Long enough for the whole job on most plots",
+	},
+	golden = {
+		name = "Golden Bone", order = 3, cost = 30000, nap = 30, breaksChase = true,
+		colour = Color3.fromRGB(246, 198, 52),
+		blurb = "The only one a dog will break off a chase for",
+	},
+}
+
+-- How far from the thrower a dog can be lured.
+--
+-- Sized so a bone reaches the kennel from the KERB: the dog rests about 26
+-- studs from the verge, so the whole point -- pre-baiting the dog before you
+-- ever set foot on the lawn -- has to work from outside the fence. It stays
+-- well under PLOT_SPACING (64) so it cannot casually reach next door's dog.
+Config.BONE_THROW_RANGE = 42
+
+-- Stops a held button from spraying bones and spawning a dozen models. It is
+-- not a balance number; the coin cost is the balance number.
+Config.BONE_THROW_COOLDOWN = 1.5
+
+-- Arc time from hand to ground. The bone is lerped along a fixed parabola
+-- rather than thrown with physics: an unanchored part rolls, falls through
+-- thin geometry, and lands somewhere nobody aimed at. Everything else that
+-- moves in this game is anchored and lerped for the same reason.
+Config.BONE_FLIGHT = 0.55
+
+-- Nap this bone buys against this dog. Never returns a useless number: even
+-- the cheapest bone against Titan is worth more than a standing start.
+function Config.getBoneNap(boneKey: string, dogLevel: number): number
+	local bone = Config.BONES[boneKey]
+	local tier = Config.getDogTier(dogLevel)
+	if not bone or not tier then
+		return 0
+	end
+	return bone.nap * tier.boneResist
 end
 
 -- ============================================================
@@ -994,7 +1075,7 @@ function Config.firstFreeDecorSlot(zone: string, placed: { [string]: string }): 
 end
 
 -- Bumped for `decor`. DataService.reconcile fills it in on existing saves.
-Config.SCHEMA_VERSION = 6
+Config.SCHEMA_VERSION = 7
 
 Config.AUTOSAVE_INTERVAL = 60
 

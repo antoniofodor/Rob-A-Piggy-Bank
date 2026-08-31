@@ -44,6 +44,7 @@ src/
       House                The upgradeable house behind each plot
       Decor                Lawn, driveway and kerbside ornaments
       GuardDog             Patrolling dog, its kennel, and the off-duty nap
+      BoneService          Thrown bones: the counter to the guard dog
       EconomyService       Accrual loop, milestones, banking
       UpgradeService       The two upgrade trees
       HeistService         Stealing, carrying, tagging, delivering
@@ -142,6 +143,30 @@ the lawn is the ground an owner defends on, and more prompts there would compete
 with the collect and steal prompts that matter. Every ornament is CanCollide and
 CanQuery off, so none of it can body-block a defender, a thief, or the dog.
 
+**A bone buys a window, never the dog.** Bones are the offence tree's answer to
+the one defence purchase that had none, and the same line governs both: defence
+buys *time*, never immunity — and so does the counter. Four things keep a bone
+from deleting the thing it counters, and removing any one of them breaks it:
+it costs coins **every time**, so farming a guarded plot is an ongoing expense
+that scales with how well guarded it is; a nap is always **shorter than that
+breed's own cooldown**, so waiting out a real chase stays the cheaper option;
+bigger dogs resist (`boneResist` 1.0 / 0.8 / 0.6); and **only the Golden Bone
+interrupts a chase**, so the other two have to be thrown *before* the dog
+notices you. That last one is what makes a bone a plan rather than a panic
+button.
+
+**A bone throw sends no position.** The client fires `BoneThrow` with a bone key
+and nothing else; the server picks the target from its own dog positions. There
+is no coordinate to forge and no range check to defeat. It also auto-targets the
+nearest eligible dog rather than aiming — most of this audience is on a
+touchscreen, where lobbing an object at a moving dog is a fight with the camera,
+and "get it near the dog" was never the interesting decision.
+
+**Bones survive rebirth.** Every other offensive purchase is wiped. A bone is
+spent the moment it is thrown, so a stockpile is not standing power the way a
+maxed tree is — and wiping it would only teach players to burn their stock the
+hour before rebirthing, which is a chore, not a decision.
+
 **Houses confer nothing.** The house behind a plot is pure prestige, priced above
 the skins so it stays the last thing anyone finishes. The power balance is a closed
 system of speed, time and distance; hanging a stat off a status symbol reopens
@@ -198,6 +223,24 @@ from the day it was built until this was caught.
 outside that model. The kennel started life inside the dog's own model and fled
 at exactly the dog's speed, so the dog could never reach it.
 
+**A long `task.wait` is a state machine that ignores the world.** The guard dog's
+patrol pause was one flat `task.wait` of up to six seconds, so nothing that
+happened during it was noticed until it expired. Bait a dog just after it
+settled into a pause and it stood in the open for the whole nap, then ambled to
+its kennel afterwards — and against a short nap it never got there at all, so
+the one signal that tells a thief the plot is unguarded never appeared. Chases
+and the `dognap` admin command were late for the same reason. It is a polled
+loop now. Any wait longer than a frame that sits next to shared state wants to
+be a poll.
+
+**`Anchored` set on the client does not replicate.** Setting `root.Anchored =
+true` and then a `CFrame` to hold a test character in place leaves the *server*
+seeing the character wherever it physically was. A throw-range test built that
+way passed at every distance including 70 studs against a 42-stud limit, because
+the server never saw the character move. Hold a test character with a per-frame
+`CFrame` write instead, and confirm the position server-side before trusting the
+result.
+
 **Never fail silently.** A rejection the player cannot see is indistinguishable
 from a broken feature, and that is exactly how the bug above survived.
 
@@ -208,6 +251,14 @@ from a broken feature, and that is exactly how the bug above survived.
 The heist system has never been tested end to end, because it needs two players:
 the chase, lock-vs-lockpick timing, the guard dog catch, friend bonus, revenge
 markers and the most-wanted hat are all unproven.
+
+**The Golden Bone's chase-break is in the same bucket.** Every other bone path is
+verified — buy, throw, arc, the trot over, the nap in the kennel, the DISTRACTED
+nameplate, the range gate, all four refusal messages, stock accounting including
+the refund on a lost race, and persistence across a restart. But a bone thrown at
+a dog that is *already chasing someone* needs a real robbery in progress, so
+`breaksChase` has only ever run as the "it has already seen you" refusal, never
+as the interrupt.
 
 Verified as of the last session: persistence survives a restart (including
 schema reconcile), and rebirth's happy path — power wiped, house and skins kept,

@@ -63,6 +63,14 @@ export type Dog = {
 	busyUntil: number,
 	chasing: boolean,
 	sleeping: boolean,
+	-- Walking over to a thrown bone. Distinct from `chasing` because the dog
+	-- is unavailable but not hunting anyone, and distinct from `busyUntil`
+	-- because the nap has not started yet -- it starts when the bone is eaten.
+	lured: boolean,
+	-- The current nap was BOUGHT by a thief rather than earned by a chase.
+	-- Purely so the nameplate can say so: a defender who cannot tell a baited
+	-- dog from a resting one just sees their expensive purchase not working.
+	distracted: boolean,
 	plate: BillboardGui,
 	nameLabel: TextLabel,
 	breedLabel: TextLabel,
@@ -180,20 +188,21 @@ end
 local function settle(dog: Dog, tier: any)
 	local mouth = (dog.originCF * CFrame.new(0, 0, 2.4 * tier.scale)).Position
 	walkTo(dog, mouth, tier.speed * Config.DOG_PATROL_SPEED * 2.2, 6, function()
-		return dog.chasing or dog.level <= 0
+		return dog.chasing or dog.lured or dog.level <= 0
 	end)
-	if dog.chasing or dog.level <= 0 then
+	if dog.chasing or dog.lured or dog.level <= 0 then
 		return
 	end
 
 	dog.sleeping = true
 	dog.model:PivotTo(sleepCFrame(dog, tier.scale))
 	dog.zzz.Enabled = true
-	dog.breedLabel.Text = "OFF DUTY"
+	dog.breedLabel.Text = if dog.distracted then "DISTRACTED" else "OFF DUTY"
 end
 
 local function rouse(dog: Dog, tier: any)
 	dog.sleeping = false
+	dog.distracted = false
 	dog.zzz.Enabled = false
 	dog.breedLabel.Text = string.upper(tier.breed)
 
@@ -213,7 +222,9 @@ local function behaviour(dog: Dog)
 	while dog.model.Parent do
 		local tier = Config.getDogTier(dog.level)
 
-		if not tier or dog.chasing then
+		-- `lured` hands the dog to GuardDog.lure entirely. Two loops steering
+		-- the same model with PivotTo would fight frame by frame.
+		if not tier or dog.chasing or dog.lured then
 			task.wait(0.4)
 		elseif os.clock() < dog.busyUntil then
 			if dog.sleeping then
@@ -226,8 +237,23 @@ local function behaviour(dog: Dog)
 				rouse(dog, tier)
 			end
 
+			-- Polled, not one long task.wait.
+			--
+			-- A flat wait of up to six seconds ignores everything that happens
+			-- during it. A dog baited a moment after settling into a pause
+			-- stood in the open for the whole nap and only then ambled to its
+			-- kennel -- and against a short nap it never arrived at all, so
+			-- the one thing that tells a thief the plot is unguarded never
+			-- happened. Chases and the dognap admin command were both late
+			-- for the same reason.
 			local low, high = Config.DOG_PATROL_PAUSE[1], Config.DOG_PATROL_PAUSE[2]
-			task.wait(low + math.random() * (high - low))
+			local pauseUntil = os.clock() + low + math.random() * (high - low)
+			while os.clock() < pauseUntil do
+				if dog.chasing or dog.lured or dog.level <= 0 or os.clock() < dog.busyUntil then
+					break
+				end
+				task.wait(0.15)
+			end
 
 			tier = Config.getDogTier(dog.level)
 			if tier and not dog.chasing and os.clock() >= dog.busyUntil then
@@ -235,7 +261,7 @@ local function behaviour(dog: Dog)
 				local dist = math.random() * Config.DOG_PATROL_RADIUS
 				local target = dog.home + Vector3.new(math.cos(angle) * dist, 0, math.sin(angle) * dist)
 				walkTo(dog, target, tier.speed * Config.DOG_PATROL_SPEED, 8, function()
-					return dog.chasing or dog.level <= 0 or os.clock() < dog.busyUntil
+					return dog.chasing or dog.lured or dog.level <= 0 or os.clock() < dog.busyUntil
 				end)
 			end
 		end
@@ -445,6 +471,8 @@ function GuardDog.build(originCF: CFrame, parent: Instance): Dog
 		busyUntil = 0,
 		chasing = false,
 		sleeping = false,
+		lured = false,
+		distracted = false,
 		plate = plate,
 		nameLabel = nameLabel,
 		breedLabel = breedLabel,
@@ -461,8 +489,14 @@ end
 -- CHASE
 -- ============================================================
 
+-- `lured` counts as unavailable even though busyUntil is still in the past:
+-- between taking the bait and reaching the bone the dog is walking away from
+-- its post, and a chase started in that gap would teleport it back mid-stride.
 function GuardDog.isReady(dog: Dog): boolean
-	return dog.level > 0 and not dog.chasing and os.clock() >= dog.busyUntil
+	return dog.level > 0
+		and not dog.chasing
+		and not dog.lured
+		and os.clock() >= dog.busyUntil
 end
 
 -- Chases `getTargetRoot()` until it catches them, the target vanishes, or the
@@ -493,7 +527,9 @@ function GuardDog.chase(dog: Dog, getTargetRoot: () -> BasePart?, onCatch: () ->
 		local deadline = os.clock() + tier.maxChase
 		local caught = false
 
-		while os.clock() < deadline do
+		-- `dog.lured` ends the chase early: that is a Golden Bone landing
+		-- mid-run, the one bone a dog will break off for.
+		while os.clock() < deadline and not dog.lured do
 			local dt = RunService.Heartbeat:Wait()
 			local root = getTargetRoot()
 			if not root then
@@ -521,12 +557,95 @@ function GuardDog.chase(dog: Dog, getTargetRoot: () -> BasePart?, onCatch: () ->
 			onCatch()
 		end
 
+		-- Broken off by a bone. The lure owns the dog from here -- it is
+		-- already waiting to walk it to the bait -- so this must not also
+		-- send it home or stamp a chase cooldown over the nap it is about
+		-- to be given.
+		if dog.lured then
+			dog.chasing = false
+			return
+		end
+
 		-- Trot home, then go off duty. `behaviour` sees busyUntil and puts it
 		-- to bed; the walk to the kennel is its job, not this one's.
 		walkTo(dog, dog.home, tier.speed, 8)
 		dog.chasing = false
 		dog.busyUntil = os.clock() + tier.cooldown
 	end)
+end
+
+-- ============================================================
+-- BAIT
+-- ============================================================
+
+-- Takes a thrown bone: the dog drops what it is doing, trots over, eats it,
+-- and is then handed back to `behaviour`, which walks it to the kennel and
+-- keeps it there until the nap runs out.
+--
+-- Returns false plus a reason whenever the dog will not take it. The caller
+-- MUST surface that and must not charge for the bone -- a thief who watches a
+-- purchase vanish with no visible effect cannot tell a rule from a bug, which
+-- is exactly how the steal bug survived as long as it did.
+--
+-- Runs on the caller's thread and blocks until the bone is eaten.
+function GuardDog.lure(dog: Dog, bone: Model, nap: number, breaksChase: boolean): (boolean, string?)
+	local tier = Config.getDogTier(dog.level)
+	if not tier then
+		return false, "there is no dog there"
+	end
+	if dog.lured then
+		return false, "that dog already has a bone"
+	end
+	if dog.chasing and not breaksChase then
+		return false, "it has already spotted you -- only a Golden Bone stops a chase"
+	end
+	if not dog.chasing and os.clock() < dog.busyUntil then
+		return false, "it is already off duty"
+	end
+
+	dog.lured = true
+
+	-- Let a chase we just interrupted unwind before steering. Both loops move
+	-- the same model with PivotTo, and for the frame they overlap they would
+	-- fight each other.
+	local settleBy = os.clock() + 1.5
+	while dog.chasing and os.clock() < settleBy do
+		RunService.Heartbeat:Wait()
+	end
+
+	if dog.sleeping then
+		rouse(dog, tier)
+	end
+
+	local bark = dog.body:FindFirstChild("Bark") :: Sound?
+	if bark then
+		bark:Play()
+	end
+
+	-- Trots rather than sprints. The walk over is the whole tell that a bone
+	-- landed, for the thief and for the owner watching their dog wander off,
+	-- and at full chase speed it is over before either of them sees it.
+	if bone.Parent then
+		walkTo(dog, bone:GetPivot().Position, tier.speed * 0.75, 6, function()
+			return dog.level <= 0 or not bone.Parent
+		end)
+	end
+
+	if bone.Parent then
+		bone:Destroy()
+	end
+	if bark then
+		bark:Play()
+	end
+
+	-- Nap starts at the bite, not at the kennel, so the walk home is time the
+	-- thief gets for free. That is deliberate: the dog is visibly out of
+	-- position for those seconds, so it should count as bought.
+	dog.distracted = true
+	dog.busyUntil = os.clock() + nap
+	dog.lured = false
+
+	return true
 end
 
 return GuardDog

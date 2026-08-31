@@ -45,6 +45,15 @@ local DEFINITIONS = {
 	CosmeticRequest = "RemoteEvent",
 	CosmeticState = "RemoteEvent",
 
+	-- Client buys a bone; server pushes how many of each the player holds.
+	GearRequest = "RemoteEvent",
+	GearState = "RemoteEvent",
+
+	-- Client asks to throw a bone. It sends the BONE KEY AND NOTHING ELSE --
+	-- no position, no target. The server picks the dog from its own
+	-- authoritative positions, so there is no coordinate here to forge.
+	BoneThrow = "RemoteEvent",
+
 	-- Admin console. Every request is re-authorised server-side against the
 	-- allowlist; the existence of this channel grants nobody anything.
 	AdminRequest = "RemoteEvent",

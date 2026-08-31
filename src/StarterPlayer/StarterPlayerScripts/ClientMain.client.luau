@@ -314,6 +314,7 @@ local upgradesView = makeView("UpgradesView")
 local cosmeticsView = makeView("CosmeticsView")
 local houseView = makeView("HouseView")
 local decorView = makeView("DecorView")
+local gearView = makeView("GearView")
 upgradesView.Visible = true
 
 local TAB_ACTIVE = Color3.fromRGB(96, 76, 132)
@@ -352,6 +353,7 @@ makeTab("⚔", "Defend / Rob", upgradesView, 1)
 makeTab("🐷", "Your Piggy", cosmeticsView, 2)
 makeTab("🏠", "Your House", houseView, 3)
 makeTab("🌳", "Decorations", decorView, 4)
+makeTab("🦴", "Bones", gearView, 5)
 
 local columns: { [string]: Frame } = {}
 for index, spec in ipairs({
@@ -542,20 +544,28 @@ local drivewayGridFrame = decorGrid(4)
 decorHeader("BY THE KERB", 5)
 local vergeGridFrame = decorGrid(6)
 
+-- Bones: the only repeat purchase in the game, so a tile never reads as
+-- "owned" -- it shows what you are holding and stays buyable forever.
+local gearScroll, gearHeader, gearGrid = makeScroll(gearView)
+gearHeader("THROW TO A GUARD DOG", 1)
+local bonesGridFrame = gearGrid(2)
+
 do
-	local soon = Instance.new("TextLabel")
-	soon.Size = UDim2.new(1, -10, 0, 90)
-	soon.LayoutOrder = 5
-	soon.BackgroundTransparency = 1
-	soon.Font = Enum.Font.Gotham
-	soon.TextSize = 13
-	soon.TextWrapped = true
-	soon.TextXAlignment = Enum.TextXAlignment.Left
-	soon.TextYAlignment = Enum.TextYAlignment.Top
-	soon.TextColor3 = Color3.fromRGB(130, 142, 158)
-	soon.Text = "Coming soon: walk up to a spot on your lawn and press the "
-		.. "Decorate prompt to place cars, fountains, hoops and more."
-	soon.Parent = decorScroll
+	local how = Instance.new("TextLabel")
+	how.Size = UDim2.new(1, -10, 0, 96)
+	how.LayoutOrder = 3
+	how.BackgroundTransparency = 1
+	how.Font = Enum.Font.Gotham
+	how.TextSize = 13
+	how.TextWrapped = true
+	how.TextXAlignment = Enum.TextXAlignment.Left
+	how.TextYAlignment = Enum.TextYAlignment.Top
+	how.TextColor3 = Color3.fromRGB(130, 142, 158)
+	how.Text = "Get within throwing distance of a dog and press G, or tap a bone "
+		.. "in the corner of the screen. It trots over, eats it, and goes to "
+		.. "its kennel. \n\nBigger dogs are harder to buy off, and only a Golden "
+		.. "Bone will stop one that has already seen you."
+	how.Parent = gearScroll
 end
 
 local cosmeticButtons: { [string]: { button: TextButton, title: TextLabel, sub: TextLabel, swatch: Frame? } } = {}
@@ -719,6 +729,201 @@ local function renderCosmetics()
 	end
 end
 
+-- ============================================================
+-- BONES
+-- ============================================================
+--
+-- Bones are the one thing here that is CONSUMED, so the usual owned/equipped
+-- states do not apply: a tile is buyable forever and shows a running count
+-- instead. Which is why they get their own builder rather than a sixth branch
+-- inside ensureCosmeticButton.
+
+local latestBones: { [string]: any }? = nil
+local boneTiles: { [string]: { title: TextLabel, sub: TextLabel, count: TextLabel, button: TextButton } } = {}
+local boneSlots: { [string]: { button: TextButton, label: TextLabel } } = {}
+
+-- Quick-throw slots, stacked above the upgrade buttons in the bottom-right.
+-- Reuses that frame's list layout, so it grows upward and never has to know
+-- what else is on the HUD.
+local boneBar = Instance.new("Frame")
+boneBar.Name = "BoneBar"
+boneBar.Size = UDim2.new(1, 0, 0, 44)
+boneBar.LayoutOrder = 0
+boneBar.BackgroundTransparency = 1
+boneBar.Visible = false
+boneBar.Parent = shop
+
+local boneBarLayout = Instance.new("UIListLayout")
+boneBarLayout.FillDirection = Enum.FillDirection.Horizontal
+boneBarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+boneBarLayout.Padding = UDim.new(0, 6)
+boneBarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+boneBarLayout.Parent = boneBar
+
+local function throwBone(key: string)
+	Remotes.get("BoneThrow"):FireServer(key)
+end
+
+local function ensureBoneTile(key: string, info: any)
+	local existing = boneTiles[key]
+	if existing then
+		return existing
+	end
+
+	local button = Instance.new("TextButton")
+	button.LayoutOrder = info.order or 99
+	button.BackgroundColor3 = PANEL
+	button.BorderSizePixel = 0
+	button.Font = Enum.Font.FredokaOne
+	button.Text = ""
+	button.Parent = bonesGridFrame
+	corner(button, 10)
+
+	local swatch = Instance.new("Frame")
+	swatch.Size = UDim2.new(0, 14, 1, -16)
+	swatch.Position = UDim2.new(0, 8, 0, 8)
+	swatch.BackgroundColor3 = info.colour or Color3.new(1, 1, 1)
+	swatch.BorderSizePixel = 0
+	swatch.Parent = button
+	corner(swatch, 4)
+
+	local title = Instance.new("TextLabel")
+	title.Size = UDim2.new(1, -66, 0, 22)
+	title.Position = UDim2.new(0, 28, 0, 8)
+	title.BackgroundTransparency = 1
+	title.Font = Enum.Font.FredokaOne
+	title.TextScaled = true
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.TextColor3 = Color3.fromRGB(236, 240, 248)
+	title.Text = info.name
+	title.Parent = button
+
+	-- Held count sits in its own corner rather than in the title, so the
+	-- number a player is actually tracking never shrinks as the name grows.
+	local count = Instance.new("TextLabel")
+	count.Size = UDim2.new(0, 32, 0, 22)
+	count.Position = UDim2.new(1, -36, 0, 8)
+	count.BackgroundTransparency = 1
+	count.Font = Enum.Font.FredokaOne
+	count.TextScaled = true
+	count.TextXAlignment = Enum.TextXAlignment.Right
+	count.TextColor3 = Color3.fromRGB(120, 226, 170)
+	count.Text = ""
+	count.Parent = button
+
+	local sub = Instance.new("TextLabel")
+	sub.Size = UDim2.new(1, -36, 0, 20)
+	sub.Position = UDim2.new(0, 28, 0, 32)
+	sub.BackgroundTransparency = 1
+	sub.Font = Enum.Font.GothamBold
+	sub.TextScaled = true
+	sub.TextXAlignment = Enum.TextXAlignment.Left
+	sub.TextColor3 = GOLD
+	sub.Text = ""
+	sub.Parent = button
+
+	button.Activated:Connect(function()
+		Remotes.get("GearRequest"):FireServer(key)
+	end)
+
+	local entry = { title = title, sub = sub, count = count, button = button }
+	boneTiles[key] = entry
+	return entry
+end
+
+local function ensureBoneSlot(key: string, info: any)
+	local existing = boneSlots[key]
+	if existing then
+		return existing
+	end
+
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(0, 62, 1, 0)
+	button.LayoutOrder = info.order or 99
+	button.BackgroundColor3 = info.colour or Color3.new(1, 1, 1)
+	button.BorderSizePixel = 0
+	button.AutoButtonColor = true
+	button.Font = Enum.Font.FredokaOne
+	button.TextScaled = true
+	-- Dark text: every bone colour is a light one, and white on cream is
+	-- unreadable at 62px on a phone.
+	button.TextColor3 = Color3.fromRGB(28, 26, 24)
+	button.Text = ""
+	button.Parent = boneBar
+	corner(button, 10)
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, -8, 1, -8)
+	label.Position = UDim2.new(0, 4, 0, 4)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.FredokaOne
+	label.TextScaled = true
+	label.TextColor3 = Color3.fromRGB(28, 26, 24)
+	label.Text = ""
+	label.Parent = button
+
+	button.Activated:Connect(function()
+		throwBone(key)
+	end)
+
+	local entry = { button = button, label = label }
+	boneSlots[key] = entry
+	return entry
+end
+
+-- The bone G throws: the cheapest one held.
+--
+-- G deliberately never reaches for the expensive bone. A key that silently
+-- spends a Golden when a Dog Bone would have done is a key players learn not
+-- to press; picking a specific bone is what tapping its slot is for.
+local function cheapestHeldBone(): string?
+	local best: string? = nil
+	local bestCost = math.huge
+	for key, info in pairs(latestBones or {}) do
+		if info.held > 0 and info.cost < bestCost then
+			best, bestCost = key, info.cost
+		end
+	end
+	return best
+end
+
+local function renderBones()
+	if not latestBones then
+		return
+	end
+
+	local quick = cheapestHeldBone()
+	local anyHeld = false
+
+	for key, info in pairs(latestBones) do
+		local tile = ensureBoneTile(key, info)
+		tile.title.Text = info.name
+		tile.count.Text = if info.held > 0 then ("x%d"):format(info.held) else ""
+		tile.sub.Text = ("%ds  %s"):format(info.nap, format(info.cost))
+		tile.button.BackgroundColor3 = if latestCoins >= info.cost
+			then Color3.fromRGB(58, 84, 62)
+			else PANEL
+
+		local slot = ensureBoneSlot(key, info)
+		slot.button.Visible = info.held > 0
+		slot.label.Text = if key == quick
+			then ("%d\n[G]"):format(info.held)
+			else tostring(info.held)
+		if info.held > 0 then
+			anyHeld = true
+		end
+	end
+
+	-- The bar only exists while you are carrying something. An empty row of
+	-- greyed slots is permanent clutter on a phone screen.
+	boneBar.Visible = anyHeld
+end
+
+Remotes.get("GearState").OnClientEvent:Connect(function(snapshot)
+	latestBones = snapshot
+	renderBones()
+end)
+
 Remotes.get("CosmeticState").OnClientEvent:Connect(function(snapshot)
 	latestCosmetics = snapshot
 	renderCosmetics()
@@ -741,6 +946,11 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		panel.Visible = not panel.Visible
 	elseif input.KeyCode == Enum.KeyCode.Escape and panel.Visible then
 		panel.Visible = false
+	elseif input.KeyCode == Enum.KeyCode.G then
+		local key = cheapestHeldBone()
+		if key then
+			throwBone(key)
+		end
 	end
 end)
 
@@ -860,6 +1070,7 @@ local function renderUpgrades()
 	end
 	panelTitle.Text = ("%s coins"):format(format(latestCoins))
 	renderCosmetics()
+	renderBones()
 end
 
 local function render(state: any)
@@ -1164,6 +1375,7 @@ local function buildAdminPanel()
 	button("Guard dog -> Titan (Lv3)", "upgrade", "dog", 3)
 	button("No guard dog (Lv0)", "upgrade", "dog", 0)
 	button("Send dog to bed (20s)", "dognap", 20)
+	button("Give 10 of every bone", "bones", 10)
 	button("Set 5 rebirths", "rebirths", 5)
 	button("WIPE MY SAVE", "reset").BackgroundColor3 = Color3.fromRGB(96, 40, 40)
 
