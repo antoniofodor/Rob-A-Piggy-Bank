@@ -141,8 +141,11 @@ from a broken feature, and that is exactly how the bug above survived.
 
 The heist system has never been tested end to end, because it needs two players:
 the chase, lock-vs-lockpick timing, the guard dog catch, friend bonus, revenge
-markers and the most-wanted hat are all unproven. Rebirth's happy path is likewise
-untested — only its guards are.
+markers and the most-wanted hat are all unproven.
+
+Verified as of the last session: persistence survives a restart (including
+schema reconcile), and rebirth's happy path — power wiped, house and skins kept,
+rebirth-locked skins becoming wearable.
 
 `Config.NEW_PLAYER_SHIELD` is **15 minutes**. Two players who join and immediately
 try to rob each other will see nothing happen and conclude the feature is broken.

@@ -125,8 +125,17 @@ function CosmeticsService.buySkin(player: Player, key: string)
 		return
 	end
 
+	-- Rebirth skins are earned, not bought -- but an EARNED one still has to
+	-- be wearable. This used to reject them unconditionally, which meant
+	-- Bronze, Gold Leaf and Diamond could never be equipped by anyone at any
+	-- rebirth count: the reward existed and was permanently unreachable.
 	if skin.unlockRebirths then
-		notify(player, ("%s is earned at %d rebirths, not bought."):format(skin.name, skin.unlockRebirths), "warn")
+		if Config.isSkinUnlocked(key, data.cosmetics.owned, data.rebirths) then
+			CosmeticsService.equipSkin(player, key)
+		else
+			notify(player, ("%s unlocks at %d rebirths -- you have %d."):format(
+				skin.name, skin.unlockRebirths, data.rebirths), "warn")
+		end
 		return
 	end
 
@@ -179,6 +188,7 @@ function CosmeticsService.equipSkin(player: Player, key: string)
 		return
 	end
 	if not Config.isSkinUnlocked(key, data.cosmetics.owned, data.rebirths) then
+		notify(player, ("%s isn't unlocked yet."):format(Config.getSkin(key).name), "warn")
 		return
 	end
 	data.cosmetics.skin = key
