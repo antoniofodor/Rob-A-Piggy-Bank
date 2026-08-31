@@ -35,6 +35,7 @@ local UpgradeService = require(Services.UpgradeService)
 local ProgressionService = require(Services.ProgressionService)
 local CosmeticsService = require(Services.CosmeticsService)
 local HeistService = require(Services.HeistService)
+local AdminService = require(Services.AdminService)
 
 DataService.start()
 WorldService.start()
@@ -47,6 +48,8 @@ UpgradeService.start()
 ProgressionService.start()
 CosmeticsService.start()
 HeistService.start()
+-- Last: it reaches into every service above.
+AdminService.start()
 
 -- Only the plot's owner can bank from it. The steal prompt on the same piggy
 -- is wired by HeistService, and both re-check ownership server-side -- the
@@ -98,6 +101,7 @@ local function onPlayerAdded(player: Player)
 	CosmeticsService.applyToPlot(player)
 	CosmeticsService.push(player)
 	HeistService.onPlayerAdded(player)
+	AdminService.push(player)
 
 	player.CharacterAdded:Connect(function(character)
 		onCharacterAdded(player, character)

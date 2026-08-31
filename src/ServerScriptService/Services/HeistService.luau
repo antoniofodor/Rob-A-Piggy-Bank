@@ -528,6 +528,21 @@ function HeistService.onPlayerAdded(player: Player)
 	end)
 end
 
+-- Drops the new-player grace period for everyone currently in the server.
+--
+-- Testing aid only, driven by AdminService. Backdating joinedAt rather than
+-- clearing it keeps the field's meaning intact for every other reader.
+function HeistService.clearShields(): number
+	local cleared = 0
+	for _, player in ipairs(Players:GetPlayers()) do
+		if joinedAt[player] then
+			joinedAt[player] = os.clock() - SHIELD_SECONDS - 1
+			cleared += 1
+		end
+	end
+	return cleared
+end
+
 function HeistService.isCarrying(player: Player): boolean
 	return carrying[player] ~= nil
 end

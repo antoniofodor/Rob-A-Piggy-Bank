@@ -631,6 +631,29 @@ end
 
 Config.MAX_HOUSE_LEVEL = #Config.HOUSE_TIERS - 1
 
+-- ============================================================
+-- ADMIN
+-- ============================================================
+--
+-- Roblox UserIds allowed to use the admin panel. A UserId is public
+-- information -- anyone can read it off a profile page -- so there is nothing
+-- secret here and nothing is weakened by this file being public.
+--
+-- The security is NOT this list. It is that AdminService re-checks every
+-- single request against it on the SERVER before doing anything. The client
+-- panel only exists to save the admin some typing; hiding a button protects
+-- nothing, because anyone can fire a RemoteEvent.
+--
+-- The place owner is also admitted automatically, in AdminService, so this
+-- keeps working if the experience is republished under another account.
+Config.ADMINS = {
+	[1403296598] = true,
+}
+
+function Config.isAdminUserId(userId: number): boolean
+	return Config.ADMINS[userId] == true
+end
+
 -- Bumped for `houseLevel`. DataService.reconcile fills it in on old saves.
 Config.SCHEMA_VERSION = 4
 

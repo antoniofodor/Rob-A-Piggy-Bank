@@ -978,3 +978,116 @@ end)
 capacityButton.Activated:Connect(function()
 	Remotes.get("PurchaseRequest"):FireServer("capacity")
 end)
+
+-- ============================================================
+-- ADMIN PANEL
+-- ============================================================
+--
+-- Built only after the SERVER says this player is an admin. That is a
+-- convenience, not a security control: the AdminRequest remote exists for
+-- everyone, and AdminService re-authorises every request against its
+-- allowlist before reading a single argument. Nothing here grants anything --
+-- if this whole block were deleted, or if a non-admin recreated it with an
+-- exploit, the server would behave identically.
+
+local adminGui: Frame? = nil
+
+local function buildAdminPanel()
+	if adminGui then
+		return
+	end
+
+	local panelFrame = Instance.new("Frame")
+	panelFrame.Name = "AdminPanel"
+	panelFrame.Size = UDim2.new(0, 300, 0, 0)
+	panelFrame.AutomaticSize = Enum.AutomaticSize.Y
+	panelFrame.Position = UDim2.new(0, 18, 0.5, 0)
+	panelFrame.AnchorPoint = Vector2.new(0, 0.5)
+	panelFrame.BackgroundColor3 = Color3.fromRGB(24, 20, 32)
+	panelFrame.BackgroundTransparency = 0.05
+	panelFrame.BorderSizePixel = 0
+	panelFrame.Visible = false
+	panelFrame.Parent = gui
+	corner(panelFrame, 12)
+	adminGui = panelFrame
+
+	local pad = Instance.new("UIPadding")
+	pad.PaddingTop = UDim.new(0, 12)
+	pad.PaddingBottom = UDim.new(0, 12)
+	pad.PaddingLeft = UDim.new(0, 12)
+	pad.PaddingRight = UDim.new(0, 12)
+	pad.Parent = panelFrame
+
+	local list = Instance.new("UIListLayout")
+	list.Padding = UDim.new(0, 6)
+	list.SortOrder = Enum.SortOrder.LayoutOrder
+	list.Parent = panelFrame
+
+	local title = Instance.new("TextLabel")
+	title.Size = UDim2.new(1, 0, 0, 24)
+	title.LayoutOrder = 0
+	title.BackgroundTransparency = 1
+	title.Font = Enum.Font.FredokaOne
+	title.TextSize = 18
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.TextColor3 = Color3.fromRGB(226, 172, 83)
+	title.Text = "ADMIN  [F2]"
+	title.Parent = panelFrame
+
+	local order = 1
+	local function button(label: string, command: string, a: any, b: any)
+		order += 1
+		local b2 = Instance.new("TextButton")
+		b2.Size = UDim2.new(1, 0, 0, 30)
+		b2.LayoutOrder = order
+		b2.BackgroundColor3 = Color3.fromRGB(52, 44, 68)
+		b2.BorderSizePixel = 0
+		b2.Font = Enum.Font.GothamBold
+		b2.TextSize = 14
+		b2.TextColor3 = Color3.fromRGB(236, 232, 244)
+		b2.Text = label
+		b2.Parent = panelFrame
+		corner(b2, 8)
+		b2.Activated:Connect(function()
+			Remotes.get("AdminRequest"):FireServer(command, a, b)
+		end)
+		return b2
+	end
+
+	button("+100K coins", "coins", 100000)
+	button("+10M coins", "coins", 10000000)
+	button("Fill vault", "vault", 1000000)
+	button("Max all upgrades", "maxupgrades")
+	button("Unlock all skins / effects / houses", "unlockall")
+	button("Clear new-player shield", "shield")
+	button("Set 5 rebirths", "rebirths", 5)
+	button("WIPE MY SAVE", "reset").BackgroundColor3 = Color3.fromRGB(96, 40, 40)
+
+	local hint = Instance.new("TextLabel")
+	hint.Size = UDim2.new(1, 0, 0, 30)
+	hint.LayoutOrder = 99
+	hint.BackgroundTransparency = 1
+	hint.Font = Enum.Font.Gotham
+	hint.TextSize = 11
+	hint.TextWrapped = true
+	hint.TextXAlignment = Enum.TextXAlignment.Left
+	hint.TextColor3 = Color3.fromRGB(130, 122, 148)
+	hint.Text = "Every action is re-checked and logged server-side."
+	hint.Parent = panelFrame
+end
+
+Remotes.get("AdminState").OnClientEvent:Connect(function(isAdmin)
+	if not isAdmin then
+		return
+	end
+	buildAdminPanel()
+end)
+
+UserInputService.InputBegan:Connect(function(input, processed)
+	if processed or not adminGui then
+		return
+	end
+	if input.KeyCode == Enum.KeyCode.F2 then
+		adminGui.Visible = not adminGui.Visible
+	end
+end)

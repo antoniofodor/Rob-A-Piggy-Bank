@@ -44,6 +44,11 @@ local DEFINITIONS = {
 	-- Client buys or equips a skin/effect; server pushes the collection.
 	CosmeticRequest = "RemoteEvent",
 	CosmeticState = "RemoteEvent",
+
+	-- Admin console. Every request is re-authorised server-side against the
+	-- allowlist; the existence of this channel grants nobody anything.
+	AdminRequest = "RemoteEvent",
+	AdminState = "RemoteEvent",
 }
 
 local Remotes = {}

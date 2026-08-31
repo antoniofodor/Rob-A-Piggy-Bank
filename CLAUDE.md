@@ -49,6 +49,7 @@ src/
       CosmeticsService     Buying and equipping skins/effects
       ProgressionService   Rebirth
       SocialService        Friend bonus, leaderboard, revenge markers
+      AdminService         Owner-only dev console (F2 in game)
   StarterPlayer/StarterPlayerScripts/
     ClientMain.client.luau HUD and shop panel
 ```
@@ -91,6 +92,12 @@ permanent progression track that a reset cannot take away.
 the skins so it stays the last thing anyone finishes. The power balance is a closed
 system of speed, time and distance; hanging a stat off a status symbol reopens
 every one of those decisions.
+
+**Admin access is authorised on the SERVER, never the client.** `AdminService`
+checks its allowlist at the top of the one handler, before reading any argument,
+and logs every accepted command and every denied attempt. The client panel is
+convenience only — the RemoteEvent exists for every player whether or not their
+panel was built, so hiding a button protects nothing.
 
 **Fence collision and decoration are separate.** One invisible slab per side carries
 all collision; everything visible has `CanCollide` off. Styles can look like
