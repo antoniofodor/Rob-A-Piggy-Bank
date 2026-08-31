@@ -155,8 +155,41 @@ function CosmeticsService.buyDecor(player: Player, key: string)
 	end
 
 	local decor = data.decor
+
+	-- Already owned? Then this is a toggle, not a purchase.
+	--
+	-- Removal has to exist -- an ornament bought by accident is otherwise
+	-- permanent -- and toggling is better than a refund: no coins move, so
+	-- there is nothing to farm by buying and selling as prices change, and
+	-- the item comes back for free whenever they want it again.
 	if decor.owned[key] then
-		notify(player, ("You already own the %s."):format(item.name), "warn")
+		local placedAt: string? = nil
+		for slotId, placedKey in pairs(decor.placed) do
+			if placedKey == key then
+				placedAt = slotId
+				break
+			end
+		end
+
+		if placedAt then
+			decor.placed[placedAt] = nil
+			notify(player, ("%s put away."):format(item.name), "good")
+		else
+			local slot = Config.firstFreeDecorSlot(item.zone, decor.placed)
+			if not slot then
+				notify(player, ("No room left on your %s for that."):format(item.zone), "warn")
+				return
+			end
+			decor.placed[slot] = key
+			notify(player, ("%s back out on display."):format(item.name), "good")
+		end
+
+		local plot = PlotService.getPlot(player)
+		if plot then
+			PlotService.setDecor(plot, decor.placed)
+		end
+		DataService.save(player)
+		CosmeticsService.push(player)
 		return
 	end
 
@@ -377,6 +410,14 @@ function CosmeticsService.push(player: Player)
 			zone = item.zone,
 			swatch = item.swatch,
 			owned = data.decor.owned[key] == true,
+			placed = (function()
+				for _, placedKey in pairs(data.decor.placed) do
+					if placedKey == key then
+						return true
+					end
+				end
+				return false
+			end)(),
 		}
 	end
 

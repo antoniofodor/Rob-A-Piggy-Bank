@@ -38,11 +38,11 @@ src/
     Services/
       DataService          Session-locked DataStore persistence
       WorldService         Ground and lighting
-      NeighborhoodService  Road, houses, trees, street furniture (pure scenery)
+      NeighborhoodService  Road, trees, street furniture (pure scenery)
       PlotService          Plot pool, fences, ownership
       PiggyBank            The piggy model, coin pile, skins, effects
       House                The upgradeable house behind each plot
-      Decor                Lawn and driveway ornaments
+      Decor                Lawn, driveway and kerbside ornaments
       GuardDog             Patrolling dog, its kennel, and the off-duty nap
       EconomyService       Accrual loop, milestones, banking
       UpgradeService       The two upgrade trees
@@ -101,6 +101,17 @@ the fastest way to stop people doing it. A legendary is reachable on the first
 rebirth (~2.7%) rising to ~31%, with a pity floor at 12. Drop-pool skins have no
 `cost`, so `isSkinUnlocked` checks `rarity` before the free-if-costless fallback
 — without that, every legendary would unlock for everyone immediately.
+
+**The driveway is the visible half of a house upgrade.** The house stands 70
+studs behind the piggy, so from the road its driveway surface is what actually
+announces the tier -- dirt, gravel, brick, concrete, slate, lit asphalt. It is
+built by `PlotService`, not `NeighborhoodService`, because it is per-owner.
+
+**The moat leaves a causeway the width of the driveway, not the gate.** The
+driveway is the only ground outside the fence that must stay usable at every
+tier, and a wide bridge does not widen the narrow gate behind it, so this costs
+the defender nothing. Anything placed elsewhere on the perimeter ends up in the
+water the moment its owner buys tier 5 -- the moat takes the whole ring.
 
 **Decorations are placed automatically and never collide.** Buying one drops it
 into the next free slot for its zone. There is deliberately no placement mode:

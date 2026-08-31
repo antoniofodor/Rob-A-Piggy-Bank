@@ -484,9 +484,14 @@ function PlotService.buildFence(plot: Plot, level: number)
 		water(Vector3.new(-mid, 0, 0), reach * 2, false)
 		water(Vector3.new(mid, 0, 0), reach * 2, false)
 
-		local moatWing = reach - gate / 2
+		-- The causeway is driveway-width, NOT gate-width. The driveway has to
+		-- stay dry at every tier or the top tier drowns its own entrance, and
+		-- widening a bridge does not widen the gate behind it, so this costs
+		-- the defender nothing.
+		local causeway = math.max(gate, Config.DRIVEWAY_WIDTH + 1)
+		local moatWing = reach - causeway / 2
 		if moatWing > 0 then
-			local offset = gate / 2 + moatWing / 2
+			local offset = causeway / 2 + moatWing / 2
 			water(Vector3.new(-offset, 0, mid), moatWing, true)
 			water(Vector3.new(offset, 0, mid), moatWing, true)
 		end
@@ -514,6 +519,76 @@ function PlotService.setDecor(plot: Plot, placed: { [string]: string })
 	plot.decor = Decor.build(placed, plot.cframe, Config.PLOT_SIZE.Y / 2, plot.model)
 end
 
+-- The strip of paving from the gate out to the kerb, surfaced by house tier.
+--
+-- Lives on the plot rather than in the neighbourhood scenery because it is
+-- per-owner: it is the one part of the house upgrade visible from the road,
+-- since the house itself stands 70 studs behind the piggy.
+local function buildDriveway(plot: Plot, tier: any)
+	local existing = plot.model:FindFirstChild("Driveway")
+	if existing then
+		existing:Destroy()
+	end
+
+	local drive = tier.drive
+	if not drive then
+		return
+	end
+
+	local m = Config.streetMetrics()
+	local length = m.driveFar - m.driveNear
+	if length <= 0 then
+		return
+	end
+
+	local model = Instance.new("Model")
+	model.Name = "Driveway"
+
+	local function slab(name: string, size: Vector3, offset: Vector3, colour: Color3, material: Enum.Material)
+		local p = Instance.new("Part")
+		p.Name = name
+		p.Size = size
+		p.CFrame = plot.cframe * CFrame.new(offset)
+		p.Anchored = true
+		p.CanCollide = false
+		p.CanQuery = false
+		p.CastShadow = false
+		p.Color = colour
+		p.Material = material
+		p.TopSurface = Enum.SurfaceType.Smooth
+		p.BottomSurface = Enum.SurfaceType.Smooth
+		p.Parent = model
+		return p
+	end
+
+	-- Same lift discipline as the road: the top face must clear the grass, or
+	-- two coplanar surfaces z-fight and the lawn flickers through the paving.
+	local groundY = -Config.PLOT_SIZE.Y / 2
+	local thickness = 0.8
+	local centreZ = (m.driveNear + m.driveFar) / 2
+
+	slab("Surface", Vector3.new(Config.DRIVEWAY_WIDTH, thickness, length),
+		Vector3.new(0, groundY + 0.22 - thickness / 2, centreZ), drive.colour, drive.material)
+
+	if drive.edge then
+		for _, side in ipairs({ -1, 1 }) do
+			slab("Edge", Vector3.new(0.7, thickness, length),
+				Vector3.new(side * (Config.DRIVEWAY_WIDTH / 2 - 0.35), groundY + 0.26 - thickness / 2, centreZ),
+				Color3.fromRGB(228, 226, 218), Enum.Material.Concrete)
+		end
+	end
+
+	if drive.lit then
+		for _, side in ipairs({ -1, 1 }) do
+			slab("DriveLight", Vector3.new(0.35, thickness, length - 2),
+				Vector3.new(side * (Config.DRIVEWAY_WIDTH / 2 - 1.2), groundY + 0.3 - thickness / 2, centreZ),
+				Color3.fromRGB(240, 202, 110), Enum.Material.Neon)
+		end
+	end
+
+	model.Parent = plot.model
+end
+
 function PlotService.setHouseLevel(plot: Plot, level: number)
 	if plot.house then
 		plot.house:Destroy()
@@ -521,6 +596,7 @@ function PlotService.setHouseLevel(plot: Plot, level: number)
 	end
 	local groundY = -Config.PLOT_SIZE.Y / 2
 	plot.house = House.build(level, plot.cframe * CFrame.new(0, groundY, -70), plot.model)
+	buildDriveway(plot, Config.getHouseTier(level))
 end
 
 function PlotService.setDogLevel(plot: Plot, level: number)

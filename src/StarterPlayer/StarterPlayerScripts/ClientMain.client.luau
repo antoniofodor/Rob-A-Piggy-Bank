@@ -538,7 +538,9 @@ local decorScroll, decorHeader, decorGrid = makeScroll(decorView)
 decorHeader("FRONT LAWN", 1)
 local lawnGridFrame = decorGrid(2) -- filled by the decor items in phase 2
 decorHeader("DRIVEWAY", 3)
-local drivewayGridFrame = decorGrid(4) -- ditto; the car goes here
+local drivewayGridFrame = decorGrid(4)
+decorHeader("BY THE KERB", 5)
+local vergeGridFrame = decorGrid(6)
 
 do
 	local soon = Instance.new("TextLabel")
@@ -577,6 +579,7 @@ local function ensureCosmeticButton(kind: string, key: string, info: any)
 		elseif kind == "house" then housesGridFrame
 		elseif kind == "decorLawn" then lawnGridFrame
 		elseif kind == "decorDriveway" then drivewayGridFrame
+		elseif kind == "decorVerge" then vergeGridFrame
 		else skinsGridFrame
 	corner(button, 10)
 
@@ -618,7 +621,7 @@ local function ensureCosmeticButton(kind: string, key: string, info: any)
 	button.Activated:Connect(function()
 		-- Lawn and driveway are separate GRIDS but one server-side kind; the
 		-- item's own zone decides where it lands.
-		local wire = if kind == "decorLawn" or kind == "decorDriveway" then "decor" else kind
+		local wire = if kind:sub(1, 5) == "decor" then "decor" else kind
 		Remotes.get("CosmeticRequest"):FireServer(wire, key)
 	end)
 
@@ -637,14 +640,20 @@ local function renderCosmetics()
 	-- Decorations. Bought once and placed automatically, so a tile is simply
 	-- owned or for sale -- there is no equip state to show.
 	for key, info in pairs(latestCosmetics.decor or {}) do
-		local kind = if info.zone == "driveway" then "decorDriveway" else "decorLawn"
+		local kind = if info.zone == "driveway" then "decorDriveway"
+			elseif info.zone == "verge" then "decorVerge"
+			else "decorLawn"
 		local entry = ensureCosmeticButton(kind, key, info)
 		entry.title.Text = info.name
 
-		if info.owned then
-			entry.sub.Text = "ON YOUR LAWN"
+		if info.owned and info.placed then
+			entry.sub.Text = "OUT - tap to store"
 			entry.sub.TextColor3 = Color3.fromRGB(120, 226, 170)
 			entry.button.BackgroundColor3 = Color3.fromRGB(46, 88, 62)
+		elseif info.owned then
+			entry.sub.Text = "Stored - tap to place"
+			entry.sub.TextColor3 = Color3.fromRGB(150, 162, 178)
+			entry.button.BackgroundColor3 = Color3.fromRGB(46, 54, 68)
 		else
 			entry.sub.Text = format(info.cost)
 			entry.sub.TextColor3 = GOLD

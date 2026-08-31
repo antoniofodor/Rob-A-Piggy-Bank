@@ -178,6 +178,36 @@ builders.fountain = function(item, at)
 	spray.Parent = top
 end
 
+builders.bins = function(item, at)
+	for i, spec in ipairs({
+		{ x = -1.6, colour = Color3.fromRGB(72, 128, 88) },
+		{ x = 1.6, colour = Color3.fromRGB(64, 92, 142) },
+	}) do
+		part("Bin", Vector3.new(2.4, 3.4, 2.2), at * CFrame.new(spec.x, 1.7, 0),
+			spec.colour, Enum.Material.SmoothPlastic)
+		part("Lid", Vector3.new(2.6, 0.35, 2.4), at * CFrame.new(spec.x, 3.5, 0),
+			spec.colour, Enum.Material.SmoothPlastic)
+		part("BinWheel", Vector3.new(0.4, 0.5, 0.5), at * CFrame.new(spec.x, 0.25, -0.9),
+			Color3.fromRGB(34, 34, 38), Enum.Material.SmoothPlastic)
+	end
+end
+
+builders.gnome = function(item, at)
+	local RED = Color3.fromRGB(206, 68, 62)
+	local SKIN = Color3.fromRGB(238, 198, 168)
+	part("Plinth", Vector3.new(2, 0.5, 2), at * CFrame.new(0, 0.25, 0),
+		Color3.fromRGB(170, 168, 160), Enum.Material.Slate)
+	part("Robe", Vector3.new(1.5, 1.6, 1.5), at * CFrame.new(0, 1.3, 0), RED, Enum.Material.SmoothPlastic)
+	ball("Head", 1.1, at * CFrame.new(0, 2.5, 0), SKIN, Enum.Material.SmoothPlastic)
+	ball("Beard", 0.9, at * CFrame.new(0, 2.2, 0.45), Color3.fromRGB(242, 242, 238), Enum.Material.SmoothPlastic)
+
+	-- Cone hat, as a stack of shrinking discs. Roblox has no cone primitive
+	-- and nobody looks at a gnome closely enough to notice.
+	for i = 0, 3 do
+		cylinderY("Hat", 0.45, 1.2 - i * 0.28, at * CFrame.new(0, 3.05 + i * 0.4, 0), RED, Enum.Material.SmoothPlastic)
+	end
+end
+
 builders.car = function(item, at)
 	local body = item.body or Color3.fromRGB(160, 160, 170)
 	local sporty = item.sporty == true

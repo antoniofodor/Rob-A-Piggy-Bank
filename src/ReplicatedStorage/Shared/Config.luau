@@ -754,9 +754,13 @@ Config.DATASTORE_NAME = "PiggyBank_Player"
 -- Priced well above the skins so it stays the last thing anyone finishes.
 -- Everything is a linear ladder, not a set to pick from: you own tier N and
 -- buy tier N+1.
+-- Each tier also owns its DRIVEWAY surface. The house itself stands 70 studs
+-- behind the plot, so from the road the driveway is what actually announces
+-- how far along someone is -- dirt, then gravel, then brick, and so on.
 Config.HOUSE_TIERS = {
 	{
 		name = "Starter Shack", style = "shack", cost = 0,
+		drive = { colour = Color3.fromRGB(122, 98, 74), material = Enum.Material.Ground, edge = false },
 		width = 18, depth = 14, storeys = 1,
 		walls = Color3.fromRGB(168, 152, 130), roof = Color3.fromRGB(112, 104, 96),
 		trim = Color3.fromRGB(126, 108, 86),
@@ -764,6 +768,7 @@ Config.HOUSE_TIERS = {
 	},
 	{
 		name = "Cosy Cottage", style = "cottage", cost = 35000,
+		drive = { colour = Color3.fromRGB(158, 154, 146), material = Enum.Material.Pebble, edge = false },
 		width = 26, depth = 20, storeys = 1,
 		walls = Color3.fromRGB(232, 216, 190), roof = Color3.fromRGB(142, 78, 62),
 		trim = Color3.fromRGB(120, 84, 58),
@@ -771,6 +776,7 @@ Config.HOUSE_TIERS = {
 	},
 	{
 		name = "Brick Townhouse", style = "townhouse", cost = 120000,
+		drive = { colour = Color3.fromRGB(158, 96, 78), material = Enum.Material.Brick, edge = true },
 		width = 20, depth = 16, storeys = 3,
 		walls = Color3.fromRGB(148, 92, 76), roof = Color3.fromRGB(74, 70, 78),
 		trim = Color3.fromRGB(238, 234, 226),
@@ -778,6 +784,7 @@ Config.HOUSE_TIERS = {
 	},
 	{
 		name = "Suburban Villa", style = "villa", cost = 400000,
+		drive = { colour = Color3.fromRGB(196, 194, 188), material = Enum.Material.Concrete, edge = true },
 		width = 36, depth = 24, storeys = 2,
 		walls = Color3.fromRGB(236, 228, 210), roof = Color3.fromRGB(96, 104, 100),
 		trim = Color3.fromRGB(198, 188, 168),
@@ -785,6 +792,7 @@ Config.HOUSE_TIERS = {
 	},
 	{
 		name = "Stone Manor", style = "manor", cost = 1400000,
+		drive = { colour = Color3.fromRGB(206, 202, 192), material = Enum.Material.Slate, edge = true },
 		width = 42, depth = 28, storeys = 3,
 		walls = Color3.fromRGB(214, 210, 200), roof = Color3.fromRGB(70, 66, 80),
 		trim = Color3.fromRGB(188, 182, 170),
@@ -792,6 +800,7 @@ Config.HOUSE_TIERS = {
 	},
 	{
 		name = "Midnight Modern", style = "modern", cost = 5000000,
+		drive = { colour = Color3.fromRGB(32, 33, 38), material = Enum.Material.Asphalt, edge = true, lit = true },
 		width = 50, depth = 32, storeys = 2,
 		walls = Color3.fromRGB(26, 27, 32), roof = Color3.fromRGB(18, 19, 23),
 		trim = Color3.fromRGB(240, 202, 110),
@@ -852,6 +861,37 @@ end
 --
 -- Slot offsets are plot-local with +Z toward the street. They avoid the piggy
 -- (centre), the kennel at (14, 4), and the sign post at (0, 22).
+-- Where the road, verge and driveway sit between two facing rows.
+--
+-- Shared because PlotService now builds a per-house driveway and
+-- NeighborhoodService still lays the road, and the two must agree exactly or
+-- the driveway floats over the kerb. Returns plot-local Z distances measured
+-- from a plot's own centre, with +Z toward the street.
+function Config.streetMetrics()
+	local halfPlot = Config.PLOT_SIZE.X / 2
+	local streetHalf = Config.STREET_SPACING / 2
+	local corridor = streetHalf - halfPlot
+
+	local topTier = Config.FENCE_TIERS[#Config.FENCE_TIERS]
+	local moatWidth = if topTier.moat then topTier.moat.width else 0
+	local fenceLine = corridor - 1.6
+	local moatInner = fenceLine - 0.5 - moatWidth
+
+	return {
+		roadHalfWidth = moatInner - 0.9,
+		fenceLine = fenceLine,
+		-- Plot-local Z of the driveway's two ends.
+		driveNear = streetHalf - fenceLine,
+		driveFar = streetHalf - (moatInner - 0.9),
+	}
+end
+
+-- The driveway is the one strip of ground outside the fence that must stay
+-- usable at every tier, so the top-tier moat leaves a causeway across it.
+-- Deliberately independent of the fence gate: a bridge can be wide while the
+-- gate behind it stays narrow, so this costs the defender nothing.
+Config.DRIVEWAY_WIDTH = 13
+
 Config.DECOR_SLOTS = {
 	{ id = "lawnA", zone = "lawn", offset = Vector3.new(-17, 0, -16), yaw = 20 },
 	{ id = "lawnB", zone = "lawn", offset = Vector3.new(17, 0, -16), yaw = -25 },
@@ -862,6 +902,13 @@ Config.DECOR_SLOTS = {
 
 	-- On the driveway proper, between the gate and the kerb.
 	{ id = "drive1", zone = "driveway", offset = Vector3.new(0, 0, 29), yaw = 0 },
+
+	-- Outside the fence, flanking the driveway. This is the ONLY ground out
+	-- there that stays dry at every fence tier -- the moat takes the whole
+	-- rest of the perimeter, so anything placed elsewhere would end up in the
+	-- water the moment its owner bought tier 5.
+	{ id = "vergeL", zone = "verge", offset = Vector3.new(-8.5, 0, 28.5), yaw = 0 },
+	{ id = "vergeR", zone = "verge", offset = Vector3.new(8.5, 0, 28.5), yaw = 0 },
 }
 
 Config.DECOR_ITEMS = {
@@ -891,14 +938,25 @@ Config.DECOR_ITEMS = {
 		blurb = "Three tiers and real running water",
 	},
 
+	bins = {
+		name = "Wheelie Bins", zone = "verge", style = "bins", order = 6,
+		cost = 30000, swatch = Color3.fromRGB(72, 128, 88),
+		blurb = "Out by the kerb, exactly like everyone else's",
+	},
+	gnome = {
+		name = "Garden Gnome", zone = "verge", style = "gnome", order = 7,
+		cost = 180000, swatch = Color3.fromRGB(206, 68, 62),
+		blurb = "Stands guard by the drive. Does nothing",
+	},
+
 	hatchback = {
-		name = "Hatchback", zone = "driveway", style = "car", order = 6,
+		name = "Hatchback", zone = "driveway", style = "car", order = 8,
 		cost = 200000, swatch = Color3.fromRGB(64, 118, 196),
 		body = Color3.fromRGB(64, 118, 196), sporty = false,
 		blurb = "Parked on the drive where everyone can see it",
 	},
 	sportscar = {
-		name = "Sports Car", zone = "driveway", style = "car", order = 7,
+		name = "Sports Car", zone = "driveway", style = "car", order = 9,
 		cost = 1200000, swatch = Color3.fromRGB(206, 54, 48),
 		body = Color3.fromRGB(206, 54, 48), sporty = true,
 		blurb = "Low, wide, and far too much for a cul-de-sac",

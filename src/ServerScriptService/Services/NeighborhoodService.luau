@@ -159,22 +159,11 @@ local function buildRoad(m: any)
 	end
 end
 
-local function buildDriveways(m: any)
-	for _, side in ipairs({ -1, 1 }) do
-		for col = 0, m.perRow - 1 do
-			local x = columnX(m, col)
-			local from = m.vergeOuter  -- fence line
-			local to = m.roadHalfWidth -- kerb
-			local length = from - to
-			if length > 0 then
-				-- Sits above the kerb so it crosses it cleanly, the way a
-				-- real dropped kerb does.
-				pave("Driveway", 9, length, x, side * (to + length / 2), LIFT_DRIVE,
-					KERB, Enum.Material.Concrete)
-			end
-		end
-	end
-end
+-- Driveways are NOT built here any more.
+--
+-- Each plot lays its own, surfaced according to the owner's house tier, so a
+-- generic concrete strip per column would sit on top of it. See
+-- PlotService.setHouseLevel.
 
 local function buildTree(x: number, z: number, seed: number)
 	local height = 9 + (seed % 3) * 2
@@ -307,7 +296,6 @@ function NeighborhoodService.start()
 
 	local m = metrics()
 	buildRoad(m)
-	buildDriveways(m)
 	buildTrees(m)
 	buildStreetFurniture(m)
 	buildPlaza(m)
