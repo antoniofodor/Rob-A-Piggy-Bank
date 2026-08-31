@@ -20,6 +20,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local PiggyBank = require(script.Parent.PiggyBank)
 local GuardDog = require(script.Parent.GuardDog)
 local House = require(script.Parent.House)
+local Decor = require(script.Parent.Decor)
 
 local PlotService = {}
 
@@ -35,6 +36,7 @@ export type Plot = {
 	dog: GuardDog.Dog,
 	fence: Folder,
 	house: Model?,
+	decor: Model?,
 	signLabel: TextLabel,
 	prompt: ProximityPrompt,
 	owner: Player?,
@@ -177,6 +179,7 @@ local function buildPlot(index: number): Plot
 		dog = dog,
 		fence = fence,
 		house = nil,
+		decor = nil,
 		signLabel = label,
 		prompt = piggy.prompt,
 		owner = nil,
@@ -500,6 +503,17 @@ end
 --
 -- Sits well behind the plot: clear of the fence at 25.6 and a top-tier moat at
 -- 31.1, facing the street so the front is what the road sees.
+-- Rebuilds the whole ornament set. Cheap enough to redo wholesale on each
+-- purchase, and wholesale avoids having to diff slots.
+function PlotService.setDecor(plot: Plot, placed: { [string]: string })
+	if plot.decor then
+		plot.decor:Destroy()
+		plot.decor = nil
+	end
+	-- Ornaments stand on the lawn, which is the TOP of the plot slab.
+	plot.decor = Decor.build(placed, plot.cframe, Config.PLOT_SIZE.Y / 2, plot.model)
+end
+
 function PlotService.setHouseLevel(plot: Plot, level: number)
 	if plot.house then
 		plot.house:Destroy()

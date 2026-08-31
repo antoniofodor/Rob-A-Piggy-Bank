@@ -575,15 +575,17 @@ local function ensureCosmeticButton(kind: string, key: string, info: any)
 	button.Text = ""
 	button.Parent = if kind == "effect" then effectsGridFrame
 		elseif kind == "house" then housesGridFrame
+		elseif kind == "decorLawn" then lawnGridFrame
+		elseif kind == "decorDriveway" then drivewayGridFrame
 		else skinsGridFrame
 	corner(button, 10)
 
 	local swatch: Frame? = nil
-	if kind == "skin" or kind == "house" then
+	if kind ~= "effect" then
 		swatch = Instance.new("Frame")
 		swatch.Size = UDim2.new(0, 14, 1, -16)
 		swatch.Position = UDim2.new(0, 8, 0, 8)
-		swatch.BackgroundColor3 = info.body or info.walls or Color3.new(1, 1, 1)
+		swatch.BackgroundColor3 = info.body or info.walls or info.swatch or Color3.new(1, 1, 1)
 		swatch.BorderSizePixel = 0
 		swatch.Parent = button
 		corner(swatch, 4)
@@ -614,7 +616,10 @@ local function ensureCosmeticButton(kind: string, key: string, info: any)
 	sub.Parent = button
 
 	button.Activated:Connect(function()
-		Remotes.get("CosmeticRequest"):FireServer(kind, key)
+		-- Lawn and driveway are separate GRIDS but one server-side kind; the
+		-- item's own zone decides where it lands.
+		local wire = if kind == "decorLawn" or kind == "decorDriveway" then "decor" else kind
+		Remotes.get("CosmeticRequest"):FireServer(wire, key)
 	end)
 
 	local entry = { button = button, title = title, sub = sub, swatch = swatch }
@@ -629,7 +634,27 @@ local function renderCosmetics()
 		return
 	end
 
-	-- Houses first: a linear ladder, so each tile is owned, on sale now, or
+	-- Decorations. Bought once and placed automatically, so a tile is simply
+	-- owned or for sale -- there is no equip state to show.
+	for key, info in pairs(latestCosmetics.decor or {}) do
+		local kind = if info.zone == "driveway" then "decorDriveway" else "decorLawn"
+		local entry = ensureCosmeticButton(kind, key, info)
+		entry.title.Text = info.name
+
+		if info.owned then
+			entry.sub.Text = "ON YOUR LAWN"
+			entry.sub.TextColor3 = Color3.fromRGB(120, 226, 170)
+			entry.button.BackgroundColor3 = Color3.fromRGB(46, 88, 62)
+		else
+			entry.sub.Text = format(info.cost)
+			entry.sub.TextColor3 = GOLD
+			entry.button.BackgroundColor3 = if latestCoins >= info.cost
+				then Color3.fromRGB(58, 84, 62)
+				else PANEL
+		end
+	end
+
+	-- Houses: a linear ladder, so each tile is owned, on sale now, or
 	-- locked behind the ones before it. Only the very next tier is buyable,
 	-- which is what makes it read as a ladder rather than a shelf.
 	for index, info in ipairs(latestCosmetics.houses or {}) do

@@ -835,7 +835,88 @@ function Config.isAdminUserId(userId: number): boolean
 end
 
 -- Bumped for `sinceLegendary`. DataService.reconcile fills it in on old saves.
-Config.SCHEMA_VERSION = 5
+-- ============================================================
+-- LAWN DECORATIONS
+-- ============================================================
+--
+-- Bought, then placed AUTOMATICALLY into the next free slot for their zone.
+--
+-- There is deliberately no placement mode and no prompts on the lawn. A plot
+-- already carries a collect prompt and a steal prompt, and adding six more
+-- would clutter exactly the ground an owner is trying to defend on. Buying it
+-- and having it appear is also one tap instead of four, which matters for the
+-- age group and on touch.
+--
+-- Every decoration is non-colliding scenery, so none of this can body-block a
+-- defender, a thief, or the dog.
+--
+-- Slot offsets are plot-local with +Z toward the street. They avoid the piggy
+-- (centre), the kennel at (14, 4), and the sign post at (0, 22).
+Config.DECOR_SLOTS = {
+	{ id = "lawnA", zone = "lawn", offset = Vector3.new(-17, 0, -16), yaw = 20 },
+	{ id = "lawnB", zone = "lawn", offset = Vector3.new(17, 0, -16), yaw = -25 },
+	{ id = "lawnC", zone = "lawn", offset = Vector3.new(-18, 0, 2), yaw = 90 },
+	{ id = "lawnD", zone = "lawn", offset = Vector3.new(-15, 0, 17), yaw = 155 },
+	{ id = "lawnE", zone = "lawn", offset = Vector3.new(15, 0, 18), yaw = 200 },
+	{ id = "lawnF", zone = "lawn", offset = Vector3.new(0, 0, -19), yaw = 0 },
+
+	-- On the driveway proper, between the gate and the kerb.
+	{ id = "drive1", zone = "driveway", offset = Vector3.new(0, 0, 29), yaw = 0 },
+}
+
+Config.DECOR_ITEMS = {
+	flowerbed = {
+		name = "Flower Bed", zone = "lawn", style = "flowers", order = 1,
+		cost = 15000, swatch = Color3.fromRGB(214, 96, 132),
+		blurb = "A splash of colour by the fence",
+	},
+	picnic = {
+		name = "Picnic Table", zone = "lawn", style = "picnic", order = 2,
+		cost = 45000, swatch = Color3.fromRGB(168, 124, 82),
+		blurb = "Bench, table, parasol. Very neighbourly",
+	},
+	hoop = {
+		name = "Basketball Hoop", zone = "lawn", style = "hoop", order = 3,
+		cost = 110000, swatch = Color3.fromRGB(226, 116, 54),
+		blurb = "Backboard and rim, out by the drive",
+	},
+	topiary = {
+		name = "Topiary Piggy", zone = "lawn", style = "topiary", order = 4,
+		cost = 260000, swatch = Color3.fromRGB(96, 150, 84),
+		blurb = "A hedge trimmed into a pig. Obviously",
+	},
+	fountain = {
+		name = "Stone Fountain", zone = "lawn", style = "fountain", order = 5,
+		cost = 600000, swatch = Color3.fromRGB(198, 198, 190),
+		blurb = "Three tiers and real running water",
+	},
+
+	hatchback = {
+		name = "Hatchback", zone = "driveway", style = "car", order = 6,
+		cost = 200000, swatch = Color3.fromRGB(64, 118, 196),
+		body = Color3.fromRGB(64, 118, 196), sporty = false,
+		blurb = "Parked on the drive where everyone can see it",
+	},
+	sportscar = {
+		name = "Sports Car", zone = "driveway", style = "car", order = 7,
+		cost = 1200000, swatch = Color3.fromRGB(206, 54, 48),
+		body = Color3.fromRGB(206, 54, 48), sporty = true,
+		blurb = "Low, wide, and far too much for a cul-de-sac",
+	},
+}
+
+-- First free slot in the item's zone, or nil when that zone is full.
+function Config.firstFreeDecorSlot(zone: string, placed: { [string]: string }): string?
+	for _, slot in ipairs(Config.DECOR_SLOTS) do
+		if slot.zone == zone and placed[slot.id] == nil then
+			return slot.id
+		end
+	end
+	return nil
+end
+
+-- Bumped for `decor`. DataService.reconcile fills it in on existing saves.
+Config.SCHEMA_VERSION = 6
 
 Config.AUTOSAVE_INTERVAL = 60
 

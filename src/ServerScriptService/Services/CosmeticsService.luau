@@ -142,6 +142,49 @@ function CosmeticsService.buyHouse(player: Player, requested: string)
 	CosmeticsService.push(player)
 end
 
+-- Bought and placed in one step: the next free slot for the item's zone.
+--
+-- No placement mode on purpose. The lawn is the ground an owner defends on,
+-- and six more prompts there would compete with the collect and steal prompts
+-- that actually matter. Buying is one tap instead of four.
+function CosmeticsService.buyDecor(player: Player, key: string)
+	local item = Config.DECOR_ITEMS[key]
+	local data = DataService.get(player)
+	if not item or not data then
+		return
+	end
+
+	local decor = data.decor
+	if decor.owned[key] then
+		notify(player, ("You already own the %s."):format(item.name), "warn")
+		return
+	end
+
+	local slot = Config.firstFreeDecorSlot(item.zone, decor.placed)
+	if not slot then
+		notify(player, ("No room left on your %s for that."):format(item.zone), "warn")
+		return
+	end
+
+	if data.coins < item.cost then
+		notify(player, ("Need %d more coins for the %s."):format(item.cost - data.coins, item.name), "warn")
+		return
+	end
+
+	data.coins -= item.cost
+	decor.owned[key] = true
+	decor.placed[slot] = key
+
+	local plot = PlotService.getPlot(player)
+	if plot then
+		PlotService.setDecor(plot, decor.placed)
+	end
+
+	notify(player, ("%s delivered!"):format(item.name), "good")
+	DataService.save(player)
+	CosmeticsService.push(player)
+end
+
 function CosmeticsService.applyToPlot(player: Player)
 	local data = DataService.get(player)
 	local plot = PlotService.getPlot(player)
@@ -163,6 +206,7 @@ function CosmeticsService.applyToPlot(player: Player)
 	PlotService.applySkin(plot, skinKey)
 	PlotService.applyEffect(plot, cosmetics.effect)
 	PlotService.setHouseLevel(plot, data.houseLevel or 0)
+	PlotService.setDecor(plot, data.decor.placed)
 	PlotService.updateSign(plot, player.DisplayName, data.rebirths, Config.getSkin(skinKey).name)
 end
 
@@ -324,11 +368,24 @@ function CosmeticsService.push(player: Player)
 		}
 	end
 
+	local decorItems = {}
+	for key, item in pairs(Config.DECOR_ITEMS) do
+		decorItems[key] = {
+			name = item.name,
+			order = item.order,
+			cost = item.cost,
+			zone = item.zone,
+			swatch = item.swatch,
+			owned = data.decor.owned[key] == true,
+		}
+	end
+
 	Remotes.get("CosmeticState"):FireClient(player, {
 		skins = skins,
 		effects = effects,
 		houses = houses,
 		houseLevel = level,
+		decor = decorItems,
 	})
 end
 
@@ -343,6 +400,8 @@ function CosmeticsService.start()
 			CosmeticsService.buyEffect(player, key)
 		elseif kind == "house" then
 			CosmeticsService.buyHouse(player, key)
+		elseif kind == "decor" then
+			CosmeticsService.buyDecor(player, key)
 		end
 	end)
 end

@@ -37,6 +37,11 @@ export type PlayerData = {
 	upgrades: { [string]: number },
 	-- Prestige, not power. Never reset by rebirth.
 	houseLevel: number,
+	decor: {
+		owned: { [string]: boolean },
+		-- slot id -> item key. Auto-assigned on purchase.
+		placed: { [string]: string },
+	},
 	-- Rebirths since the last legendary drop, for the pity floor.
 	sinceLegendary: number,
 	cosmetics: {
@@ -74,6 +79,7 @@ local function defaultData(): PlayerData
 		totalLost = 0,
 		upgrades = upgrades,
 		houseLevel = 0,
+		decor = { owned = {}, placed = {} },
 		sinceLegendary = 0,
 		-- Never reset by rebirth. This is the account's permanent collection.
 		cosmetics = {

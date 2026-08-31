@@ -42,6 +42,7 @@ src/
       PlotService          Plot pool, fences, ownership
       PiggyBank            The piggy model, coin pile, skins, effects
       House                The upgradeable house behind each plot
+      Decor                Lawn and driveway ornaments
       GuardDog             Patrolling dog, its kennel, and the off-duty nap
       EconomyService       Accrual loop, milestones, banking
       UpgradeService       The two upgrade trees
@@ -100,6 +101,12 @@ the fastest way to stop people doing it. A legendary is reachable on the first
 rebirth (~2.7%) rising to ~31%, with a pity floor at 12. Drop-pool skins have no
 `cost`, so `isSkinUnlocked` checks `rarity` before the free-if-costless fallback
 — without that, every legendary would unlock for everyone immediately.
+
+**Decorations are placed automatically and never collide.** Buying one drops it
+into the next free slot for its zone. There is deliberately no placement mode:
+the lawn is the ground an owner defends on, and more prompts there would compete
+with the collect and steal prompts that matter. Every ornament is CanCollide and
+CanQuery off, so none of it can body-block a defender, a thief, or the dog.
 
 **Houses confer nothing.** The house behind a plot is pure prestige, priced above
 the skins so it stays the last thing anyone finishes. The power balance is a closed
