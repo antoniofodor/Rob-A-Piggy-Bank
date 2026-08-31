@@ -35,6 +35,7 @@ export type Refs = {
 	tail: Part,
 	ears: { BasePart },
 	legs: { Part },
+	lock: Model,
 	prompt: ProximityPrompt,
 	stealPrompt: ProximityPrompt,
 	sounds: { [string]: Sound },
@@ -360,6 +361,33 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	slot.Color = NEAR_BLACK
 	slot.Material = Enum.Material.SmoothPlastic
 
+	-- Padlock, sitting on the coin slot -------------------------------
+	--
+	-- The lock upgrade already worked -- it triples the crack time -- but a
+	-- ProximityPrompt draws the same filling circle whether it takes three
+	-- seconds or nine, so nothing about it was visible. A defender could not
+	-- see what they had bought and a thief could not see what they were up
+	-- against. This is that mechanic given a body.
+	local lock = Instance.new("Model")
+	lock.Name = "Padlock"
+
+	local lockBody = part("LockBody", lock, Vector3.new(2.2, 2.4, 1.1),
+		CFrame.new(at(0, BODY_Y + BODY_R + 0.7, 0)))
+	lockBody.Material = Enum.Material.Metal
+
+	local shackle = part("Shackle", lock, Vector3.new(1.5, 1.5, 0.55),
+		CFrame.new(at(0, BODY_Y + BODY_R + 2.2, 0)))
+	shackle.Shape = Enum.PartType.Cylinder
+	shackle.CFrame = CFrame.new(shackle.Position) * CFrame.Angles(0, math.rad(90), 0)
+	shackle.Material = Enum.Material.Metal
+
+	local keyhole = part("Keyhole", lock, Vector3.new(0.5, 0.5, 0.2),
+		CFrame.new(at(0, BODY_Y + BODY_R + 0.5, 0.6)))
+	keyhole.Color = NEAR_BLACK
+
+	lock.PrimaryPart = lockBody
+	lock.Parent = model
+
 	-- Interaction -----------------------------------------------------
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "CollectPrompt"
@@ -400,6 +428,7 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 		tail = tail,
 		ears = ears,
 		legs = legs,
+		lock = lock,
 		prompt = prompt,
 		stealPrompt = stealPrompt,
 		sounds = sounds,
@@ -633,6 +662,55 @@ function PiggyBank.buildMini(skinKey: string): Model
 
 	model.PrimaryPart = body
 	return model
+end
+
+-- Padlock appearance per lock level. Level 0 hides it entirely: an unlocked
+-- piggy should look unlocked.
+--
+-- The metal is the tell. A thief reads the colour from outside the fence and
+-- knows roughly how long they are committing to standing there.
+local LOCK_TIERS = {
+	{ colour = Color3.fromRGB(122, 128, 138), scale = 1.00 },  -- iron
+	{ colour = Color3.fromRGB(176, 122, 66), scale = 1.10 },   -- bronze
+	{ colour = Color3.fromRGB(198, 204, 214), scale = 1.20 },  -- steel
+	{ colour = Color3.fromRGB(240, 198, 76), scale = 1.32 },   -- gold
+}
+
+function PiggyBank.setLockLevel(refs: Refs, level: number)
+	local visible = level > 0
+	for _, piece in ipairs(refs.lock:GetChildren()) do
+		if piece:IsA("BasePart") then
+			piece.Transparency = if visible then 0 else 1
+		end
+	end
+	if not visible then
+		return
+	end
+
+	local tier = LOCK_TIERS[math.clamp(level, 1, #LOCK_TIERS)]
+	for _, piece in ipairs(refs.lock:GetChildren()) do
+		if piece:IsA("BasePart") and piece.Name ~= "Keyhole" then
+			piece.Color = tier.colour
+		end
+	end
+	refs.lock:ScaleTo(tier.scale)
+end
+
+-- A shudder and a spark when a thief is working on the lock, so both sides
+-- can see it happening rather than watching a silent progress ring.
+function PiggyBank.rattleLock(refs: Refs)
+	local body = refs.lock.PrimaryPart
+	if not body or body.Transparency >= 1 then
+		return
+	end
+	local origin = body.CFrame
+	task.spawn(function()
+		for _ = 1, 6 do
+			body.CFrame = origin * CFrame.Angles(0, 0, math.rad(math.random(-9, 9)))
+			task.wait(0.06)
+		end
+		body.CFrame = origin
+	end)
 end
 
 -- Takes the plot's CFrame, not its position: a spawn point has to land in

@@ -578,6 +578,9 @@ function HeistService.start()
 
 		prompt.PromptButtonHoldBegan:Connect(function(thief)
 			holdStarted[thief] = { plot = plot, at = os.clock() }
+			-- The owner needs to see their lock being worked on, and the thief
+			-- needs something happening while they stand there.
+			PlotService.rattleLock(plot)
 		end)
 
 		-- There is deliberately NO PromptButtonHoldEnded handler.

@@ -904,7 +904,17 @@ local boundPlots: { { model: Instance, collect: ProximityPrompt, steal: Proximit
 function refreshStealPrompts()
 	for _, entry in ipairs(boundPlots) do
 		local lockLevel = entry.model:GetAttribute("LockLevel") or 0
-		entry.steal.HoldDuration = Config.getStealHold(lockLevel, myLockpicks)
+		local hold = Config.getStealHold(lockLevel, myLockpicks)
+		entry.steal.HoldDuration = hold
+
+		-- Put the number on the prompt. The hold was always the mechanic, but
+		-- a ProximityPrompt animates its ring over whatever duration it is
+		-- given, so three seconds and nine seconds looked identical and the
+		-- whole lock/lockpick axis read as decorative.
+		entry.steal.ActionText = ("Crack Lock  %.1fs"):format(hold)
+		entry.steal.ObjectText = if lockLevel > 0
+			then ("Vault Lock Lv%d"):format(lockLevel)
+			else "Unlocked Piggy"
 	end
 end
 

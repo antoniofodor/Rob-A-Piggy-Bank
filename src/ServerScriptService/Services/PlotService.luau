@@ -521,6 +521,12 @@ end
 function PlotService.setLockLevel(plot: Plot, level: number)
 	plot.model:SetAttribute("LockLevel", level)
 	plot.piggy.stealPrompt.HoldDuration = Config.getStealHold(level, 0)
+	PiggyBank.setLockLevel(plot.piggy, level)
+end
+
+-- Shakes the padlock while a thief is working on it.
+function PlotService.rattleLock(plot: Plot)
+	PiggyBank.rattleLock(plot.piggy)
 end
 
 -- ============================================================
