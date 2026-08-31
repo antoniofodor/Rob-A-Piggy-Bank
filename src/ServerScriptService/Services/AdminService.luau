@@ -136,6 +136,10 @@ commands.house = function(player, level)
 		return nil
 	end
 	data.houseLevel = math.clamp(math.floor(level), 0, Config.MAX_HOUSE_LEVEL)
+	-- Moved in, not just unlocked. A dev command that sets the ladder without
+	-- moving the player into it would build nothing, which reads as the
+	-- command having failed.
+	data.houseShown = data.houseLevel
 	-- Full refresh: the sign names the house, so setting the level by hand has
 	-- to reapply the whole plot or the sign goes stale.
 	refresh(player)
@@ -176,16 +180,16 @@ commands.unlockall = function(player)
 		data.cosmetics.ownedEffects[key] = true
 	end
 	data.houseLevel = Config.MAX_HOUSE_LEVEL
+	data.houseShown = Config.MAX_HOUSE_LEVEL
 	if type(data.accessories) ~= "table" then
 		data.accessories = { owned = {}, worn = {} }
 	end
 	for key in pairs(Config.ACCESSORIES) do
 		data.accessories.owned[key] = true
 	end
-	local plot = PlotService.getPlot(player)
-	if plot then
-		PlotService.setHouseLevel(plot, data.houseLevel)
-	end
+	-- applyToPlot rather than setHouseLevel: the sign names the house, so
+	-- building it alone leaves the board announcing the old one.
+	CosmeticsService.applyToPlot(player)
 	CosmeticsService.push(player)
 	return "Every skin, effect, house and accessory unlocked"
 end
@@ -272,6 +276,7 @@ commands.reset = function(player)
 	data.capacityLevel = 1
 	data.rebirths = 0
 	data.houseLevel = 0
+	data.houseShown = 0
 	for key in pairs(Config.UPGRADES) do
 		data.upgrades[key] = 0
 	end

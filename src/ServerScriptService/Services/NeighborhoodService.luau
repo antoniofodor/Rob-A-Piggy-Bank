@@ -122,9 +122,6 @@ local function metrics()
 		roadStartX = plazaX + plazaSize / 2,
 		roadEndX = endX + halfPlot + 60,
 
-		-- Clear of the yard fence, which now runs YARD_DEPTH back from each
-		-- plot centre to enclose the house.
-		backdropZ = streetHalf + Config.YARD_DEPTH + 46,
 	}
 end
 
@@ -222,10 +219,9 @@ local GROVE_ROWS = {
 	-- reach:  extra columns past each end of the street.
 	-- step:   column stride; the back row is thinned to every other column.
 
-	-- The plot houses stand 70 studs behind their plot centres, and the
-	-- biggest tier is 28 deep, so the band 30 to 60 studs past the fence
-	-- belongs to them. No row may sit in it: a canopy over a Piggy
-	-- Mansion is the one thing here somebody paid five million for.
+	-- Depths are measured from the BACK FENCE, so the houses -- which all
+	-- stand inside it -- are clear by construction. The first row is close
+	-- enough to shut the sightline behind a plot without leaning over it.
 	{ depth = 14, shift = -0.5, reach = 0, step = 1 },
 	{ depth = 76, shift = 0.1, reach = 1, step = 1 },
 	{ depth = 102, shift = -0.4, reach = 2, step = 2 },
@@ -240,9 +236,17 @@ local function scatter(seed: number, spread: number): number
 end
 
 local function buildTrees(m: any)
-	-- The back fence line. Nothing here is ever placed inside it: trees are
-	-- CanCollide false, but a canopy over a plot still hides a piggy.
-	local rear = m.rowZ + m.halfPlot
+	-- The back fence line -- YARD_DEPTH behind the plot centre, not half a
+	-- plot.
+	--
+	-- This used to read `m.rowZ + m.halfPlot`, the back edge of the plot
+	-- SLAB. That was right when a plot was only its slab, and silently wrong
+	-- the moment the fence was lengthened to enclose the house: the first
+	-- grove row landed 46 studs inside the yard, which put trees on people's
+	-- lawns among their houses. Nothing here may sit inside the fence --
+	-- trees are CanCollide false, but a canopy over a plot still hides a
+	-- piggy.
+	local rear = m.rowZ + Config.YARD_DEPTH
 	local seed = 0
 
 	for _, side in ipairs({ -1, 1 }) do

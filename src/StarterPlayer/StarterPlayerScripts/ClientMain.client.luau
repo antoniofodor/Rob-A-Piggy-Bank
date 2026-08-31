@@ -733,9 +733,11 @@ local function renderCosmetics()
 		end
 	end
 
-	-- Houses: a linear ladder, so each tile is owned, on sale now, or
-	-- locked behind the ones before it. Only the very next tier is buyable,
-	-- which is what makes it read as a ladder rather than a shelf.
+	-- Houses are bought as a ladder and worn as a shelf: only the next tier is
+	-- ever for sale, but every one already bought stays available to move back
+	-- into for free. Which is why an owned tile reads as an action ("Tap to
+	-- move in") rather than as a state -- "Moved out" described the situation
+	-- accurately and gave no hint that tapping would undo it.
 	for index, info in ipairs(latestCosmetics.houses or {}) do
 		local entry = ensureCosmeticButton("house", tostring(index), info)
 		entry.title.Text = info.name
@@ -745,8 +747,8 @@ local function renderCosmetics()
 			entry.sub.TextColor3 = Color3.fromRGB(120, 226, 170)
 			entry.button.BackgroundColor3 = Color3.fromRGB(46, 88, 62)
 		elseif info.owned then
-			entry.sub.Text = "Moved out"
-			entry.sub.TextColor3 = Color3.fromRGB(130, 142, 158)
+			entry.sub.Text = "Tap to move in"
+			entry.sub.TextColor3 = Color3.fromRGB(150, 162, 178)
 			entry.button.BackgroundColor3 = Color3.fromRGB(46, 54, 68)
 		elseif info.forSale then
 			entry.sub.Text = format(info.cost)

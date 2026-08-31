@@ -184,6 +184,42 @@ the lawn is the ground an owner defends on, and more prompts there would compete
 with the collect and steal prompts that matter. Every ornament is CanCollide and
 CanQuery off, so none of it can body-block a defender, a thief, or the dog.
 
+**Meme ornaments are built as ORIGINALS, never as the named thing.** The silly
+half of the lawn shelf — the duck, the swole gnome, the tube man, the loo guy,
+the shark in trainers, the drip statue — exists because a fountain says you are
+rich and a shark in trainers says you are rich *and* you thought this was
+funny, and only the second one gets talked about. But the specific ones a nine
+year old asks for by name are property: a fashion house's wordmark, its
+interlocking emblem and its monogram canvas are each separately registered, and
+the cartoon characters are somebody's copyright. Roblox moderation strips
+branded assets and the penalty lands on the **experience**, not the one
+ornament — an unshippable game is a steep price for a lawn decoration. What
+actually carries the joke is the LAYOUT, and a layout is a genre rather than a
+property: a serif wordmark stacked over a roundel, a checked monogram on a tan
+holdall, an enormous bath toy. So the statue wears `PIGGY` over a snout
+roundel and carries a snout-monogrammed bag, and it is funnier for it.
+
+**A print is drawn, not built.** The statue's shirt graphic and its bag
+monogram are SurfaceGuis on invisible panels, because a print is flat and no
+arrangement of studs holds a legible word at three studs across. Two things
+have already bitten: `Face` must be `Back`, since Front is -Z and every one of
+these faces the street on +Z; and the panel has to clear the geometry it sits
+on — the bag is centred on z = 0.3 rather than zero, so a symmetric ±1.05
+buried the front print inside the bag it was printed on.
+
+**An ornament is seen from the pavement, so its silhouette must work
+BROADSIDE.** The shark was authored nose-forward and read as a blue disc with a
+horn: a body seen end-on is a circle, three trainers in a row stack into one
+white block, and the tail sticks up over the top looking like a fin. Everything
+that identifies it lives in the side profile. Anything long gets its long axis
+across the viewer — which is also the cheap direction, since a cylinder's own
+axis is X.
+
+**`Fabric` is a dark, noisy texture, not a colour.** A bright orange tube man
+rendered muddy brown at any distance, and a tan duffel bag rendered near black.
+Use it for cloth that is meant to look woven and dark; use `SmoothPlastic` for
+anything whose colour is the point.
+
 **A bone buys a window, never the dog.** Bones are the offence tree's answer to
 the one defence purchase that had none, and the same line governs both: defence
 buys *time*, never immunity — and so does the counter. Four things keep a bone
@@ -229,6 +265,17 @@ have not bought anything yet.
 plot match the data. Buying a house used to call `PlotService.setHouseLevel`
 alone, which rebuilt the building while the sign went on announcing the old one
 until the player next rejoined.
+
+**A house is bought as a ladder and worn as a shelf.** Two numbers, not one:
+`houseLevel` is the highest tier bought and decides what is for sale next,
+`houseShown` is the one actually standing. Only the next rung is ever for sale,
+but any tier already owned can be moved back into for free, both ways, forever
+— so there is no sell-and-rebuy loop to farm. A house is pure taste, the top
+tiers cost tens of millions, and forcing someone who liked the Beach Villa to
+live in a Neon Tower because they bought one turns a status symbol into a
+punishment. Read the pair through `Config.getShownHouseLevel`, never
+separately, and note the sign names the house that is STANDING — announcing a
+Sky Castle over a villa is a boast about a building that is not there.
 
 **Houses confer nothing.** The house behind a plot is pure prestige, priced above
 the skins so it stays the last thing anyone finishes. The power balance is a closed
@@ -386,6 +433,13 @@ try to rob each other will see nothing happen and conclude the feature is broken
 ---
 
 ## Before launch
+
+**Audio licensing: prefer Pro Sound Effects.** The Creator Store is full of
+free-to-take sound effects that are lifted from Minecraft or Undertale — "free"
+there means costing no Robux, not cleared for use, and a copyright strike
+moderates the asset away and leaves a silent game. The `ProSoundEffects`
+creator is a library Roblox licensed wholesale and is safe; the dog audio all
+comes from it.
 
 The three Creator Store audio IDs in `Config.SOUNDS` are third-party. One asks for
 creator credit, and third-party audio can be moderated away without warning. Swap

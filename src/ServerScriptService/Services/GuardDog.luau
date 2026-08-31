@@ -137,6 +137,15 @@ local KENNEL_WOOD = Color3.fromRGB(132, 96, 64)
 -- MOVEMENT
 -- ============================================================
 
+-- Plays one of the dog's voices. Tolerates a missing sound so a half-built
+-- dog never throws mid-chase.
+local function play(dog: Dog, name: string)
+	local sound = dog.body:FindFirstChild(name) :: Sound?
+	if sound and sound.SoundId ~= "" then
+		sound:Play()
+	end
+end
+
 -- A CFrame at `pos` whose LOCAL +Z points along `heading`.
 --
 -- Not CFrame.lookAt on its own. lookAt aims the CFrame's LookVector, and
@@ -210,10 +219,7 @@ local function rouse(dog: Dog, tier: any)
 	-- dog ends up facing out of its own doorway.
 	dog.model:PivotTo(dog.originCF * CFrame.new(REST_OFFSET * tier.scale + Vector3.new(0, 1.9 * tier.scale, 0)))
 
-	local bark = dog.body:FindFirstChild("Bark") :: Sound?
-	if bark then
-		bark:Play()
-	end
+	play(dog, "Bark")
 end
 
 -- The dog's whole life outside a chase: asleep while on cooldown, wandering
@@ -338,6 +344,24 @@ function GuardDog.applyTier(dog: Dog, level: number)
 		end
 	end
 
+	-- Voice.
+	--
+	-- Bark and snarl are the DOG, so they track the breed. The squeak is the
+	-- TOY, and a squeaky toy sounds the same whichever dog bites it -- so it
+	-- stays fixed. Scaling it by breed had it backwards anyway, handing the
+	-- terrier a lower squeak than the mastiff.
+	local function voice(name: string, id: string, pitch: number, volume: number)
+		local sound = dog.body:FindFirstChild(name) :: Sound?
+		if sound then
+			sound.SoundId = id
+			sound.PlaybackSpeed = pitch
+			sound.Volume = volume
+		end
+	end
+	voice("Bark", tier.bark, tier.pitch, tier.volume)
+	voice("Snarl", Config.SOUNDS.DOG_SNARL, tier.pitch * 0.95, tier.volume)
+	voice("Squeak", Config.SOUNDS.DOG_SQUEAK, 1.0, 0.6)
+
 	dog.plate.Enabled = true
 	dog.nameLabel.Text = tier.name
 	dog.nameLabel.TextColor3 = tier.collar
@@ -398,13 +422,22 @@ function GuardDog.build(originCF: CFrame, parent: Instance): Dog
 
 	local torso = assert(body, "SKELETON must define at least the torso")
 
-	local bark = Instance.new("Sound")
-	bark.Name = "Bark"
-	bark.SoundId = Config.SOUNDS.MILESTONE
-	bark.Volume = 0.5
-	bark.PlaybackSpeed = 1.6
-	bark.RollOffMaxDistance = 90
-	bark.Parent = torso
+	-- Three voices, not one. The dog previously "barked" with the coin-collect
+	-- chime played at 1.6x, which was a placeholder that outlived its welcome.
+	--
+	-- SoundId and pitch are set per breed in applyTier; only the routing and
+	-- falloff live here.
+	for _, spec in ipairs({
+		{ name = "Bark", roll = 110 },
+		{ name = "Snarl", roll = 90 },
+		{ name = "Squeak", roll = 70 },
+	}) do
+		local sound = Instance.new("Sound")
+		sound.Name = spec.name
+		sound.RollOffMaxDistance = spec.roll
+		sound.RollOffMode = Enum.RollOffMode.InverseTapered
+		sound.Parent = torso
+	end
 
 	local head = model:FindFirstChild("Head") :: Part
 
@@ -516,10 +549,9 @@ function GuardDog.chase(dog: Dog, getTargetRoot: () -> BasePart?, onCatch: () ->
 		rouse(dog, tier)
 	end
 
-	local bark = dog.body:FindFirstChild("Bark") :: Sound?
-	if bark then
-		bark:Play()
-	end
+	-- The alarm bark. This is the sound a thief hears the instant they are
+	-- noticed, and the one the owner hears from anywhere on their plot.
+	play(dog, "Bark")
 
 	task.spawn(function()
 		task.wait(Config.DOG_START_DELAY)
@@ -551,9 +583,9 @@ function GuardDog.chase(dog: Dog, getTargetRoot: () -> BasePart?, onCatch: () ->
 		end
 
 		if caught then
-			if bark then
-				bark:Play()
-			end
+			-- A snarl rather than a bark, so being caught sounds different from
+			-- being chased. The chase already had its own noise.
+			play(dog, "Snarl")
 			onCatch()
 		end
 
@@ -617,9 +649,16 @@ function GuardDog.lure(dog: Dog, bone: Model, nap: number, breaksChase: boolean)
 		rouse(dog, tier)
 	end
 
-	local bark = dog.body:FindFirstChild("Bark") :: Sound?
-	if bark then
-		bark:Play()
+	-- Excited, not alarmed: same bark, pitched up, because the dog is pleased
+	-- rather than angry. It is the audible half of the bone working.
+	local barkSound = dog.body:FindFirstChild("Bark") :: Sound?
+	if barkSound then
+		local normal = barkSound.PlaybackSpeed
+		barkSound.PlaybackSpeed = normal * 1.25
+		barkSound:Play()
+		task.delay(1, function()
+			barkSound.PlaybackSpeed = normal
+		end)
 	end
 
 	-- Trots rather than sprints. The walk over is the whole tell that a bone
@@ -634,9 +673,10 @@ function GuardDog.lure(dog: Dog, bone: Model, nap: number, breaksChase: boolean)
 	if bone.Parent then
 		bone:Destroy()
 	end
-	if bark then
-		bark:Play()
-	end
+	-- The squeaky toy. This is the payoff moment of the whole bone mechanic --
+	-- an expensive guard dog reduced to a delighted puppy -- and it wants to be
+	-- funny rather than impressive.
+	play(dog, "Squeak")
 
 	-- Nap starts at the bite, not at the kennel, so the walk home is time the
 	-- thief gets for free. That is deliberate: the dog is visibly out of

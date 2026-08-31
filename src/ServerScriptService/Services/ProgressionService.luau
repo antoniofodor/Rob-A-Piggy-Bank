@@ -70,7 +70,7 @@ function ProgressionService.rebirth(player: Player)
 	local plot = PlotService.getPlot(player)
 	if plot then
 		PlotService.updateSign(plot, player.DisplayName, data.rebirths,
-			Config.getSkin(data.cosmetics.skin).name, Config.getHouseTier(data.houseLevel or 0).name)
+			Config.getSkin(data.cosmetics.skin).name, Config.getHouseTier(Config.getShownHouseLevel(data)).name)
 		PlotService.updatePile(plot, 0, Config.getCapacity(1))
 		PlotService.buildFence(plot, 0)
 		PlotService.setDogLevel(plot, 0)

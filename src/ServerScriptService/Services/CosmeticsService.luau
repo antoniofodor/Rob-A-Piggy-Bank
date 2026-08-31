@@ -95,6 +95,14 @@ function CosmeticsService.rollRebirthDrop(player: Player): (string?, string?)
 	return nil, nil
 end
 
+-- Tapping a house tile either buys the next rung or moves back into one
+-- already owned.
+--
+-- Moving back matters because a house is pure taste. The ladder is priced so
+-- the last tiers take a very long time, and a player who liked the Beach
+-- Villa's look should not be punished for having outgrown it -- nothing about
+-- the game changes with which one is standing. It costs nothing, both ways,
+-- so there is no sell-and-rebuy loop to farm.
 function CosmeticsService.buyHouse(player: Player, requested: string)
 	local data = DataService.get(player)
 	if not data then
@@ -108,8 +116,17 @@ function CosmeticsService.buyHouse(player: Player, requested: string)
 	-- selling the Cottage instead.
 	local wanted = tonumber(requested)
 	if wanted and (wanted - 1) ~= level + 1 then
-		if (wanted - 1) <= level then
-			notify(player, "You already own that one.", "warn")
+		local target = wanted - 1
+		if target <= level then
+			if target == Config.getShownHouseLevel(data) then
+				notify(player, "You already live there.", "warn")
+			else
+				data.houseShown = target
+				CosmeticsService.applyToPlot(player)
+				notify(player, ("Moved back into the %s."):format(Config.getHouseTier(target).name), "good")
+				DataService.save(player)
+				CosmeticsService.push(player)
+			end
 		else
 			notify(player, ("Buy the %s first."):format(Config.getHouseTier(level + 1).name), "warn")
 		end
@@ -131,6 +148,9 @@ function CosmeticsService.buyHouse(player: Player, requested: string)
 
 	data.coins -= cost
 	data.houseLevel = level + 1
+	-- You move into what you just bought. Anything else would make the most
+	-- expensive purchase in the game produce no visible change at all.
+	data.houseShown = data.houseLevel
 
 	-- applyToPlot, not setHouseLevel alone.
 	--
@@ -386,13 +406,18 @@ function CosmeticsService.applyToPlot(player: Player)
 		cosmetics.skin = skinKey
 	end
 
+	-- The house that is STANDING, not the highest one owned -- and the sign
+	-- names the same one. A sign announcing a Sky Castle over a Beach Villa
+	-- would be boasting about a building that is not there.
+	local shown = Config.getShownHouseLevel(data)
+
 	PlotService.applySkin(plot, skinKey)
 	PlotService.applyEffect(plot, cosmetics.effect)
-	PlotService.setHouseLevel(plot, data.houseLevel or 0)
+	PlotService.setHouseLevel(plot, shown)
 	PlotService.setDecor(plot, data.decor.placed)
 	PlotService.applyAccessories(plot, gear(data).worn)
 	PlotService.updateSign(plot, player.DisplayName, data.rebirths,
-		Config.getSkin(skinKey).name, Config.getHouseTier(data.houseLevel or 0).name)
+		Config.getSkin(skinKey).name, Config.getHouseTier(shown).name)
 end
 
 -- ============================================================
@@ -535,10 +560,13 @@ function CosmeticsService.push(player: Player)
 		}
 	end
 
-	-- Houses are a linear ladder rather than a set to choose from, so the
-	-- client gets every tier with its state stamped on it: owned, the one
-	-- currently for sale, or still locked behind the ones before it.
+	-- Houses are bought as a ladder and worn as a shelf: only the next rung is
+	-- for sale, but every rung already bought can be moved back into. So a
+	-- tile carries both states -- `owned` says it can be lived in, `current`
+	-- says it is the one standing right now, and they are no longer the same
+	-- question.
 	local level = data.houseLevel or 0
+	local shown = Config.getShownHouseLevel(data)
 	local houses = {}
 	for i, tier in ipairs(Config.HOUSE_TIERS) do
 		houses[i] = {
@@ -547,7 +575,7 @@ function CosmeticsService.push(player: Player)
 			cost = tier.cost or 0,
 			blurb = tier.blurb,
 			owned = (i - 1) <= level,
-			current = (i - 1) == level,
+			current = (i - 1) == shown,
 			forSale = (i - 1) == level + 1,
 			walls = tier.walls,
 		}
@@ -596,6 +624,7 @@ function CosmeticsService.push(player: Player)
 		effects = effects,
 		houses = houses,
 		houseLevel = level,
+		houseShown = shown,
 		decor = decorItems,
 		accessories = accessories,
 		collection = {

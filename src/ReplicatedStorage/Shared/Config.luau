@@ -92,6 +92,21 @@ Config.SOUNDS = {
 	MILESTONE = "rbxassetid://2415965014",
 	BANK = "rbxassetid://101396758527961",
 	ALARM = "rbxassetid://1470797856",
+
+	-- Dog audio, all from Roblox's licensed Pro Sound Effects library.
+	--
+	-- That library is the reason these are safe. The Creator Store is full of
+	-- free-to-take dog barks that are lifted from Minecraft or Undertale --
+	-- "free" there means costing no Robux, not cleared for use, and a
+	-- copyright strike moderates the asset away and leaves a silent game.
+	-- Every id below is Pro Sound Effects, which Roblox licensed wholesale.
+	--
+	-- The breed barks are coyotes, not dogs: the library has no domestic dog,
+	-- and a coyote bark pitched up reads as a terrier far better than a
+	-- pitched-down one reads as a mastiff. Pitch does the rest, per tier.
+	DOG_SNARL = "rbxassetid://9120790555",  -- Wolf Snarl, 1.98s -- the catch
+	DOG_SQUEAK = "rbxassetid://9125994773", -- Squeeze Toy, 0.51s -- the bone
+	DOG_WHINE = "rbxassetid://9113952398",  -- Coyote whimper, 3.19s
 }
 
 -- ============================================================
@@ -240,6 +255,10 @@ end
 Config.DOG_TIERS = {
 	{
 		name = "Scruffy",
+		-- Voice. Pitch is what separates the breeds: same library, three
+		-- animals. Volume climbs too, so a Titan is audible from further
+		-- down the street than a terrier.
+		bark = "rbxassetid://9113955391", pitch = 1.45, volume = 0.42,
 		breed = "Terrier",
 		speed = 12,
 		catchRadius = 7,
@@ -255,6 +274,10 @@ Config.DOG_TIERS = {
 	},
 	{
 		name = "Rex",
+		-- Voice. Pitch is what separates the breeds: same library, three
+		-- animals. Volume climbs too, so a Titan is audible from further
+		-- down the street than a terrier.
+		bark = "rbxassetid://9113956178", pitch = 1.00, volume = 0.55,
 		breed = "Shepherd",
 		speed = 14.5,
 		catchRadius = 8.2,
@@ -270,6 +293,10 @@ Config.DOG_TIERS = {
 	},
 	{
 		name = "Titan",
+		-- Voice. Pitch is what separates the breeds: same library, three
+		-- animals. Volume climbs too, so a Titan is audible from further
+		-- down the street than a terrier.
+		bark = "rbxassetid://9113955086", pitch = 0.68, volume = 0.75,
 		breed = "Mastiff",
 		speed = 17,
 		catchRadius = 9.5,
@@ -1147,6 +1174,26 @@ end
 
 Config.MAX_HOUSE_LEVEL = #Config.HOUSE_TIERS - 1
 
+-- Which house is STANDING, as opposed to which is the highest one bought.
+--
+-- A house is prestige, and prestige is a matter of taste: someone who liked
+-- the look of the Beach Villa should not be forced to live in a Neon Tower
+-- forever because they bought one. So the ladder and the display are two
+-- different numbers -- `houseLevel` is the rung reached, and decides what is
+-- for sale next; `houseShown` is what is actually built on the plot.
+--
+-- Clamped against the ladder, so a save that somehow carries a shown tier
+-- above the owned one builds the owned one rather than a house nobody paid
+-- for. Missing means "the newest", which is how every pre-schema-9 save reads.
+function Config.getShownHouseLevel(data: any): number
+	local owned = data.houseLevel or 0
+	local shown = data.houseShown
+	if type(shown) ~= "number" then
+		return owned
+	end
+	return math.clamp(math.floor(shown), 0, owned)
+end
+
 -- ============================================================
 -- ADMIN
 -- ============================================================
@@ -1222,6 +1269,21 @@ Config.DECOR_SLOTS = {
 	{ id = "lawnD", zone = "lawn", offset = Vector3.new(-15, 0, 17), yaw = 155 },
 	{ id = "lawnE", zone = "lawn", offset = Vector3.new(15, 0, 18), yaw = 200 },
 	{ id = "lawnF", zone = "lawn", offset = Vector3.new(0, 0, -19), yaw = 0 },
+	-- One more, added with the silly ornaments, mirroring lawnC.
+	--
+	-- Only one, and out on the ring with the rest, because the lawn is 48
+	-- studs across with a piggy bank in the middle of it and the widest
+	-- ornament is a gnome measuring 12.5 across the fists. Six positions on
+	-- that ring are 17 to 19 studs apart, which clears the two widest items
+	-- standing side by side; a seventh squeezed between two of them would put
+	-- an ornament through its neighbour. The obvious eighth spot -- front
+	-- centre, at (0, 19) -- is the walk from the gate to the piggy, and is
+	-- left empty on purpose.
+	--
+	-- Twelve lawn items against seven slots is deliberate. The lawn is a shelf
+	-- you curate, not a checklist you complete: choosing what to leave in the
+	-- shed IS the decoration.
+	{ id = "lawnG", zone = "lawn", offset = Vector3.new(19, 0, 0), yaw = -90 },
 
 	-- On the driveway proper, between the gate and the kerb.
 	{ id = "drive1", zone = "driveway", offset = Vector3.new(0, 0, 35), yaw = 0 },
@@ -1261,6 +1323,62 @@ Config.DECOR_ITEMS = {
 		blurb = "Three tiers and real running water",
 	},
 
+	-- ------------------------------------------------------------
+	-- The silly shelf
+	-- ------------------------------------------------------------
+	--
+	-- The first five lawn items are things a real garden has. These are not,
+	-- and that is the point: a fountain says you are rich, a shark in trainers
+	-- says you are rich AND you thought this was funny. Only the second one
+	-- gets talked about, and being talked about is what a status item is FOR.
+	--
+	-- They are priced above the sensible ornaments for the same reason. The
+	-- joke is the expensive part.
+	--
+	-- Every one of these is an ORIGINAL shape rather than a copy of a specific
+	-- meme character. That is a shipping requirement, not squeamishness: the
+	-- named ones -- brands, cartoon characters, the big brainrot names -- are
+	-- somebody's trademark or copyright, Roblox moderation removes them, and a
+	-- takedown costs the whole experience rather than the one ornament. The
+	-- genre travels fine without the name: an enormous rubber duck is funny on
+	-- its own, and a shark wearing trainers does not need to be anyone's
+	-- shark.
+	bigduck = {
+		name = "Giant Rubber Duck", zone = "lawn", style = "bigduck", order = 10,
+		cost = 80000, swatch = Color3.fromRGB(248, 208, 48),
+		blurb = "Bath toy. Wrong scale. No explanation",
+	},
+	buffgnome = {
+		name = "Swole Gnome", zone = "lawn", style = "buffgnome", order = 11,
+		cost = 220000, swatch = Color3.fromRGB(212, 74, 68),
+		blurb = "The gnome, but he lifts. Arms bigger than the hat",
+	},
+	tubeman = {
+		name = "Wacky Waving Man", zone = "lawn", style = "tubeman", order = 12,
+		cost = 500000, swatch = Color3.fromRGB(248, 118, 42),
+		blurb = "The inflatable one from the car dealership",
+	},
+	looguy = {
+		name = "Loo Guy", zone = "lawn", style = "looguy", order = 13,
+		cost = 900000, swatch = Color3.fromRGB(238, 240, 244),
+		blurb = "A toilet. With a head in it. Grinning at the street",
+	},
+	sharkshoes = {
+		name = "Shark In Trainers", zone = "lawn", style = "sharkshoes", order = 14,
+		cost = 2000000, swatch = Color3.fromRGB(86, 138, 190),
+		blurb = "A shark. Standing on three white trainers",
+	},
+	trophy = {
+		name = "Best Yard Trophy", zone = "lawn", style = "trophy", order = 15,
+		cost = 4000000, swatch = Color3.fromRGB(232, 190, 74),
+		blurb = "Nobody gave you this. You bought it yourself",
+	},
+	dripstatue = {
+		name = "Drip Statue", zone = "lawn", style = "dripstatue", order = 16,
+		cost = 12000000, swatch = Color3.fromRGB(28, 28, 32),
+		blurb = "Big head, bigger chain, designer bag. Solid gold plinth",
+	},
+
 	bins = {
 		name = "Wheelie Bins", zone = "verge", style = "bins", order = 6,
 		cost = 30000, swatch = Color3.fromRGB(72, 128, 88),
@@ -1297,7 +1415,7 @@ function Config.firstFreeDecorSlot(zone: string, placed: { [string]: string }): 
 end
 
 -- Bumped for `decor`. DataService.reconcile fills it in on existing saves.
-Config.SCHEMA_VERSION = 8
+Config.SCHEMA_VERSION = 9
 
 Config.AUTOSAVE_INTERVAL = 60
 

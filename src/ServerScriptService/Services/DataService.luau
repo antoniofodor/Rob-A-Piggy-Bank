@@ -36,7 +36,13 @@ export type PlayerData = {
 	totalLost: number,
 	upgrades: { [string]: number },
 	-- Prestige, not power. Never reset by rebirth.
+	--
+	-- Two numbers: `houseLevel` is the highest tier bought and decides what is
+	-- for sale next; `houseShown` is the one actually standing on the plot,
+	-- because an owner can move back into any tier they own. Read them through
+	-- Config.getShownHouseLevel rather than separately.
 	houseLevel: number,
+	houseShown: number,
 	decor: {
 		owned: { [string]: boolean },
 		-- slot id -> item key. Auto-assigned on purchase.
@@ -79,6 +85,7 @@ local function defaultData(): PlayerData
 		totalLost = 0,
 		upgrades = upgrades,
 		houseLevel = 0,
+		houseShown = 0,
 		decor = { owned = {}, placed = {} },
 		-- Bone stock, by key. Counts only; missing keys read as zero, so a
 		-- bone added later needs no migration.
@@ -118,6 +125,16 @@ local function reconcile(data: any): PlayerData
 	local base = defaultData()
 	if type(data) ~= "table" then
 		return base
+	end
+
+	-- Schema 9 split the house into "highest owned" and "currently shown".
+	--
+	-- This has to run BEFORE the generic fill below, which would otherwise
+	-- give every existing save the default houseShown of 0 and evict a player
+	-- with a Sky Castle into a Starter Shack. A save from before the split was
+	-- always living in its newest house, so that is what it migrates to.
+	if data.houseShown == nil and type(data.houseLevel) == "number" then
+		data.houseShown = data.houseLevel
 	end
 
 	for key, value in pairs(base) do
