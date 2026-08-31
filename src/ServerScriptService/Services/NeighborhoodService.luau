@@ -239,13 +239,16 @@ local function buildHouse(cf: CFrame, seed: number)
 		roof, Enum.Material.Brick)
 end
 
+-- Only the houses BEYOND the ends of the street are built here.
+--
+-- The house behind each plot now belongs to that plot and is built by
+-- PlotService at the tier its owner has bought, so building generic ones on
+-- those columns would stack two houses in the same spot. These exist purely so
+-- the row does not stop dead level with the last plot.
 local function buildBackdrop(m: any)
 	for _, side in ipairs({ -1, 1 }) do
-		-- One house per plot frontage, plus one past each end so the row does
-		-- not stop dead level with the last plot.
-		for col = -1, m.perRow do
+		for _, col in ipairs({ -1, m.perRow }) do
 			local x = columnX(m, col)
-			-- Houses face the street from behind their row.
 			local yaw = if side < 0 then 0 else math.pi
 			buildHouse(
 				CFrame.new(x, GROUND_Y, side * m.backdropZ) * CFrame.Angles(0, yaw, 0),

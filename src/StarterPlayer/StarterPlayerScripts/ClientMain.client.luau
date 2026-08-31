@@ -492,10 +492,12 @@ local function sectionGrid(order: number): Frame
 	return frame
 end
 
-sectionHeader("PIGGY SKINS", 1)
-local skinsGridFrame = sectionGrid(2)
-sectionHeader("EFFECTS", 3)
-local effectsGridFrame = sectionGrid(4)
+sectionHeader("YOUR HOUSE", 1)
+local housesGridFrame = sectionGrid(2)
+sectionHeader("PIGGY SKINS", 3)
+local skinsGridFrame = sectionGrid(4)
+sectionHeader("EFFECTS", 5)
+local effectsGridFrame = sectionGrid(6)
 
 local cosmeticButtons: { [string]: { button: TextButton, title: TextLabel, sub: TextLabel, swatch: Frame? } } = {}
 
@@ -514,21 +516,23 @@ local function ensureCosmeticButton(kind: string, key: string, info: any)
 	button.BorderSizePixel = 0
 	button.Font = Enum.Font.FredokaOne
 	button.Text = ""
-	button.Parent = if kind == "effect" then effectsGridFrame else skinsGridFrame
+	button.Parent = if kind == "effect" then effectsGridFrame
+		elseif kind == "house" then housesGridFrame
+		else skinsGridFrame
 	corner(button, 10)
 
 	local swatch: Frame? = nil
-	if kind == "skin" then
+	if kind == "skin" or kind == "house" then
 		swatch = Instance.new("Frame")
 		swatch.Size = UDim2.new(0, 14, 1, -16)
 		swatch.Position = UDim2.new(0, 8, 0, 8)
-		swatch.BackgroundColor3 = info.body or Color3.new(1, 1, 1)
+		swatch.BackgroundColor3 = info.body or info.walls or Color3.new(1, 1, 1)
 		swatch.BorderSizePixel = 0
 		swatch.Parent = button
 		corner(swatch, 4)
 	end
 
-	local left = if kind == "skin" then 28 else 10
+	local left = if kind == "effect" then 10 else 28
 
 	local title = Instance.new("TextLabel")
 	title.Size = UDim2.new(1, -left - 8, 0, 22)
@@ -566,6 +570,34 @@ local latestCosmetics: { skins: any, effects: any }? = nil
 local function renderCosmetics()
 	if not latestCosmetics then
 		return
+	end
+
+	-- Houses first: a linear ladder, so each tile is owned, on sale now, or
+	-- locked behind the ones before it. Only the very next tier is buyable,
+	-- which is what makes it read as a ladder rather than a shelf.
+	for index, info in ipairs(latestCosmetics.houses or {}) do
+		local entry = ensureCosmeticButton("house", tostring(index), info)
+		entry.title.Text = info.name
+
+		if info.current then
+			entry.sub.Text = "YOU LIVE HERE"
+			entry.sub.TextColor3 = Color3.fromRGB(120, 226, 170)
+			entry.button.BackgroundColor3 = Color3.fromRGB(46, 88, 62)
+		elseif info.owned then
+			entry.sub.Text = "Moved out"
+			entry.sub.TextColor3 = Color3.fromRGB(130, 142, 158)
+			entry.button.BackgroundColor3 = Color3.fromRGB(46, 54, 68)
+		elseif info.forSale then
+			entry.sub.Text = format(info.cost)
+			entry.sub.TextColor3 = GOLD
+			entry.button.BackgroundColor3 = if latestCoins >= info.cost
+				then Color3.fromRGB(58, 84, 62)
+				else PANEL
+		else
+			entry.sub.Text = "Locked"
+			entry.sub.TextColor3 = Color3.fromRGB(110, 120, 134)
+			entry.button.BackgroundColor3 = Color3.fromRGB(38, 43, 54)
+		end
 	end
 
 	for kind, collection in pairs({ skin = latestCosmetics.skins, effect = latestCosmetics.effects }) do

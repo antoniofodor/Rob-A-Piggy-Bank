@@ -35,6 +35,8 @@ export type PlayerData = {
 	totalStolen: number,
 	totalLost: number,
 	upgrades: { [string]: number },
+	-- Prestige, not power. Never reset by rebirth.
+	houseLevel: number,
 	cosmetics: {
 		owned: { [string]: boolean },
 		ownedEffects: { [string]: boolean },
@@ -69,6 +71,7 @@ local function defaultData(): PlayerData
 		totalStolen = 0,
 		totalLost = 0,
 		upgrades = upgrades,
+		houseLevel = 0,
 		-- Never reset by rebirth. This is the account's permanent collection.
 		cosmetics = {
 			owned = {},

@@ -19,6 +19,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
 local PiggyBank = require(script.Parent.PiggyBank)
 local GuardDog = require(script.Parent.GuardDog)
+local House = require(script.Parent.House)
 
 local PlotService = {}
 
@@ -33,6 +34,7 @@ export type Plot = {
 	piggy: PiggyBank.Refs,
 	dog: GuardDog.Dog,
 	fence: Folder,
+	house: Model?,
 	signLabel: TextLabel,
 	prompt: ProximityPrompt,
 	owner: Player?,
@@ -171,6 +173,7 @@ local function buildPlot(index: number): Plot
 		piggy = piggy,
 		dog = dog,
 		fence = fence,
+		house = nil,
 		signLabel = label,
 		prompt = piggy.prompt,
 		owner = nil,
@@ -486,6 +489,21 @@ end
 
 function PlotService.onFencePenalty(callback: (Player, any, any) -> ())
 	table.insert(fencePenaltyHandlers, callback)
+end
+
+-- Rebuilt from scratch on every change, unlike the dog. House tiers differ in
+-- footprint, storey count and which details exist at all, so there is no
+-- shared skeleton to resize -- and this runs once per purchase, not per frame.
+--
+-- Sits well behind the plot: clear of the fence at 25.6 and a top-tier moat at
+-- 31.1, facing the street so the front is what the road sees.
+function PlotService.setHouseLevel(plot: Plot, level: number)
+	if plot.house then
+		plot.house:Destroy()
+		plot.house = nil
+	end
+	local groundY = -Config.PLOT_SIZE.Y / 2
+	plot.house = House.build(level, plot.cframe * CFrame.new(0, groundY, -70), plot.model)
 end
 
 function PlotService.setDogLevel(plot: Plot, level: number)

@@ -39,6 +39,57 @@ end
 -- APPLY
 -- ============================================================
 
+-- Houses go through the cosmetics service rather than the upgrade trees on
+-- purpose: they survive rebirth, they confer nothing, and they belong to the
+-- same "permanent collection" idea as skins. Reusing this channel also keeps
+-- the whole collection in a single snapshot push.
+function CosmeticsService.buyHouse(player: Player, requested: string)
+	local data = DataService.get(player)
+	if not data then
+		return
+	end
+
+	local level = data.houseLevel or 0
+
+	-- The client sends which tile was tapped. Only the next rung is for sale,
+	-- so tapping the Mansion at Starter level must say so rather than quietly
+	-- selling the Cottage instead.
+	local wanted = tonumber(requested)
+	if wanted and (wanted - 1) ~= level + 1 then
+		if (wanted - 1) <= level then
+			notify(player, "You already own that one.", "warn")
+		else
+			notify(player, ("Buy the %s first."):format(Config.getHouseTier(level + 1).name), "warn")
+		end
+		return
+	end
+	if level >= Config.MAX_HOUSE_LEVEL then
+		notify(player, "You already own the best house on the street.", "warn")
+		return
+	end
+
+	local cost = Config.getHouseUpgradeCost(level)
+	if not cost then
+		return
+	end
+	if data.coins < cost then
+		notify(player, ("You need %d coins for that."):format(cost), "warn")
+		return
+	end
+
+	data.coins -= cost
+	data.houseLevel = level + 1
+
+	local plot = PlotService.getPlot(player)
+	if plot then
+		PlotService.setHouseLevel(plot, data.houseLevel)
+	end
+
+	notify(player, ("Moved into the %s!"):format(Config.getHouseTier(data.houseLevel).name), "good")
+	DataService.save(player)
+	CosmeticsService.push(player)
+end
+
 function CosmeticsService.applyToPlot(player: Player)
 	local data = DataService.get(player)
 	local plot = PlotService.getPlot(player)
@@ -59,6 +110,7 @@ function CosmeticsService.applyToPlot(player: Player)
 
 	PlotService.applySkin(plot, skinKey)
 	PlotService.applyEffect(plot, cosmetics.effect)
+	PlotService.setHouseLevel(plot, data.houseLevel or 0)
 	PlotService.updateSign(plot, player.DisplayName, data.rebirths, Config.getSkin(skinKey).name)
 end
 
@@ -192,7 +244,30 @@ function CosmeticsService.push(player: Player)
 		}
 	end
 
-	Remotes.get("CosmeticState"):FireClient(player, { skins = skins, effects = effects })
+	-- Houses are a linear ladder rather than a set to choose from, so the
+	-- client gets every tier with its state stamped on it: owned, the one
+	-- currently for sale, or still locked behind the ones before it.
+	local level = data.houseLevel or 0
+	local houses = {}
+	for i, tier in ipairs(Config.HOUSE_TIERS) do
+		houses[i] = {
+			name = tier.name,
+			order = i,
+			cost = tier.cost or 0,
+			blurb = tier.blurb,
+			owned = (i - 1) <= level,
+			current = (i - 1) == level,
+			forSale = (i - 1) == level + 1,
+			walls = tier.walls,
+		}
+	end
+
+	Remotes.get("CosmeticState"):FireClient(player, {
+		skins = skins,
+		effects = effects,
+		houses = houses,
+		houseLevel = level,
+	})
 end
 
 function CosmeticsService.start()
@@ -204,6 +279,8 @@ function CosmeticsService.start()
 			CosmeticsService.buySkin(player, key)
 		elseif kind == "effect" then
 			CosmeticsService.buyEffect(player, key)
+		elseif kind == "house" then
+			CosmeticsService.buyHouse(player, key)
 		end
 	end)
 end

@@ -555,7 +555,84 @@ Config.DATASTORE_NAME = "PiggyBank_Player"
 -- Bumping this lets us migrate live saves later instead of wiping them.
 -- v2 added the `upgrades` table for the defence and offence trees.
 -- v3 added `cosmetics`, which rebirth deliberately does not reset.
-Config.SCHEMA_VERSION = 3
+-- ============================================================
+-- HOUSES
+-- ============================================================
+--
+-- The house behind your plot is pure prestige. It confers no advantage of any
+-- kind, and that is deliberate: the power balance is already a closed system
+-- of speed, time and distance, and hanging a stat off a status symbol would
+-- reopen every one of those decisions.
+--
+-- Like skins, a house SURVIVES REBIRTH. It is the long tail of the collection
+-- track -- the thing a player who has bought everything else is still working
+-- toward, and the thing visible from across the street that says how long
+-- somebody has been playing.
+--
+-- Priced well above the skins so it stays the last thing anyone finishes.
+-- Everything is a linear ladder, not a set to pick from: you own tier N and
+-- buy tier N+1.
+Config.HOUSE_TIERS = {
+	{
+		name = "Starter Shack", cost = 0,
+		width = 18, depth = 14, storeys = 1, roofPitch = 5,
+		walls = Color3.fromRGB(168, 152, 130), roof = Color3.fromRGB(112, 104, 96),
+		trim = Color3.fromRGB(126, 108, 86),
+		blurb = "Four walls and a leaky roof. Everyone starts here",
+	},
+	{
+		name = "Cottage", cost = 35000,
+		width = 22, depth = 16, storeys = 1, roofPitch = 7,
+		walls = Color3.fromRGB(226, 214, 196), roof = Color3.fromRGB(126, 92, 82),
+		trim = Color3.fromRGB(190, 176, 154), chimney = true,
+		blurb = "Painted, tidy, and the roof keeps the rain out",
+	},
+	{
+		name = "Family Home", cost = 120000,
+		width = 26, depth = 18, storeys = 2, roofPitch = 8,
+		walls = Color3.fromRGB(206, 216, 214), roof = Color3.fromRGB(104, 96, 106),
+		trim = Color3.fromRGB(176, 188, 188), chimney = true, porch = true,
+		blurb = "Two floors and a porch to watch the street from",
+	},
+	{
+		name = "Suburban Villa", cost = 400000,
+		width = 32, depth = 20, storeys = 2, roofPitch = 9,
+		walls = Color3.fromRGB(232, 224, 208), roof = Color3.fromRGB(96, 104, 100),
+		trim = Color3.fromRGB(198, 188, 168), chimney = true, porch = true, garage = true,
+		blurb = "Double garage. You have arrived, mildly",
+	},
+	{
+		name = "Manor", cost = 1400000,
+		width = 38, depth = 24, storeys = 3, roofPitch = 10,
+		walls = Color3.fromRGB(214, 206, 222), roof = Color3.fromRGB(78, 72, 88),
+		trim = Color3.fromRGB(182, 172, 196), chimney = true, porch = true,
+		garage = true, columns = true,
+		blurb = "Three floors and columns nobody asked for",
+	},
+	{
+		name = "Piggy Mansion", cost = 5000000,
+		width = 46, depth = 28, storeys = 3, roofPitch = 12,
+		walls = Color3.fromRGB(248, 240, 226), roof = Color3.fromRGB(146, 108, 60),
+		trim = Color3.fromRGB(240, 198, 96), chimney = true, porch = true,
+		garage = true, columns = true, tower = true, gold = true,
+		blurb = "Gold trim and a tower. The whole street knows",
+	},
+}
+
+-- Level 0 is the Starter Shack, which everyone owns from the first second.
+function Config.getHouseTier(level: number)
+	return Config.HOUSE_TIERS[math.clamp(level + 1, 1, #Config.HOUSE_TIERS)]
+end
+
+function Config.getHouseUpgradeCost(level: number): number?
+	local next_ = Config.HOUSE_TIERS[level + 2]
+	return if next_ then next_.cost else nil
+end
+
+Config.MAX_HOUSE_LEVEL = #Config.HOUSE_TIERS - 1
+
+-- Bumped for `houseLevel`. DataService.reconcile fills it in on old saves.
+Config.SCHEMA_VERSION = 4
 
 Config.AUTOSAVE_INTERVAL = 60
 

@@ -41,6 +41,7 @@ src/
       NeighborhoodService  Road, houses, trees, street furniture (pure scenery)
       PlotService          Plot pool, fences, ownership
       PiggyBank            The piggy model, coin pile, skins, effects
+      House                The upgradeable house behind each plot
       GuardDog             Patrolling dog that chases thieves
       EconomyService       Accrual loop, milestones, banking
       UpgradeService       The two upgrade trees
@@ -83,8 +84,13 @@ un-robbable player kills the offence tree and stalls the economy at the top. Eve
 tier from Barbed Wire up stays at a jumpable 6.0 studs and escalates the hazard
 instead — `BASE_JUMP_HEIGHT` is 7.2.
 
-**Rebirth wipes power but never cosmetics.** Skins and effects are the permanent
-progression track that a reset cannot take away.
+**Rebirth wipes power but never cosmetics.** Skins, effects and houses are the
+permanent progression track that a reset cannot take away.
+
+**Houses confer nothing.** The house behind a plot is pure prestige, priced above
+the skins so it stays the last thing anyone finishes. The power balance is a closed
+system of speed, time and distance; hanging a stat off a status symbol reopens
+every one of those decisions.
 
 **Fence collision and decoration are separate.** One invisible slab per side carries
 all collision; everything visible has `CanCollide` off. Styles can look like
@@ -113,6 +119,14 @@ and need `Back`.
 
 **Studio forks scripts when you press Play.** Save, wait a beat for Rojo to push,
 *then* Play — otherwise you test stale code and chase a bug you already fixed.
+
+**`ProximityPrompt.PromptButtonHoldEnded` fires BEFORE `Triggered`**, and it fires
+at hold *completion*, not on release — measured at 0.584s and 0.584s on a 0.6s
+prompt. Never clear per-hold state in that handler. Doing so made every steal in
+the game silently fail for weeks.
+
+**Never fail silently.** A rejection the player cannot see is indistinguishable
+from a broken feature, and that is exactly how the bug above survived.
 
 ---
 
