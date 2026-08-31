@@ -22,6 +22,7 @@ local RunService = game:GetService("RunService")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local BoneModel = require(ReplicatedStorage.Shared.BoneModel)
+local PigGear = require(ReplicatedStorage.Shared.PigGear)
 
 local player = Players.LocalPlayer
 
@@ -316,6 +317,7 @@ local cosmeticsView = makeView("CosmeticsView")
 local houseView = makeView("HouseView")
 local decorView = makeView("DecorView")
 local gearView = makeView("GearView")
+local collectionView = makeView("CollectionView")
 upgradesView.Visible = true
 
 local TAB_ACTIVE = Color3.fromRGB(96, 76, 132)
@@ -355,6 +357,7 @@ makeTab("🐷", "Your Piggy", cosmeticsView, 2)
 makeTab("🏠", "Your House", houseView, 3)
 makeTab("🌳", "Decorations", decorView, 4)
 makeTab("🦴", "Bones", gearView, 5)
+makeTab("🎁", "Collection", collectionView, 6)
 
 local columns: { [string]: Frame } = {}
 for index, spec in ipairs({
@@ -547,6 +550,59 @@ decorHeader("DRIVEWAY", 3)
 local drivewayGridFrame = decorGrid(4)
 decorHeader("BY THE KERB", 5)
 local vergeGridFrame = decorGrid(6)
+
+-- The collection: every accessory in the game, owned or not.
+--
+-- Locked items are shown, not hidden. A grid of question marks tells a player
+-- there is more without telling them what, and "what" is the entire reason to
+-- roll again. The silhouette is the advert.
+local collectionScroll, collectionHeader, collectionGrid = makeScroll(collectionView)
+
+local rollButton = Instance.new("TextButton")
+rollButton.Size = UDim2.new(1, -10, 0, 62)
+rollButton.LayoutOrder = 0
+rollButton.BackgroundColor3 = Color3.fromRGB(150, 96, 190)
+rollButton.BorderSizePixel = 0
+rollButton.Font = Enum.Font.FredokaOne
+rollButton.TextSize = 26
+rollButton.TextColor3 = Color3.fromRGB(255, 250, 240)
+rollButton.Text = "ROLL"
+rollButton.Parent = collectionScroll
+corner(rollButton, 12)
+
+local rollNote = Instance.new("TextLabel")
+rollNote.Size = UDim2.new(1, -10, 0, 34)
+rollNote.LayoutOrder = 1
+rollNote.BackgroundTransparency = 1
+rollNote.Font = Enum.Font.Gotham
+rollNote.TextSize = 13
+rollNote.TextWrapped = true
+rollNote.TextXAlignment = Enum.TextXAlignment.Left
+rollNote.TextYAlignment = Enum.TextYAlignment.Top
+rollNote.TextColor3 = Color3.fromRGB(130, 142, 158)
+rollNote.Text = ""
+rollNote.Parent = collectionScroll
+
+rollButton.Activated:Connect(function()
+	Remotes.get("CosmeticRequest"):FireServer("roll", "")
+end)
+
+-- Slots in their configured order. ACCESSORY_SLOTS is a dictionary, and pairs
+-- has no defined order, so the sections would otherwise shuffle themselves
+-- between sessions.
+local slotOrder: { string } = {}
+for slotKey in pairs(Config.ACCESSORY_SLOTS) do
+	table.insert(slotOrder, slotKey)
+end
+table.sort(slotOrder, function(a, b)
+	return Config.ACCESSORY_SLOTS[a].order < Config.ACCESSORY_SLOTS[b].order
+end)
+
+local slotGrids: { [string]: Frame } = {}
+for i, slotKey in ipairs(slotOrder) do
+	collectionHeader(Config.ACCESSORY_SLOTS[slotKey].label, 1 + i * 2)
+	slotGrids[slotKey] = collectionGrid(2 + i * 2, UDim2.new(0, 164, 0, 66))
+end
 
 -- Bones: the only repeat purchase in the game, so a tile never reads as
 -- "owned" -- it shows what you are holding and stays buyable forever.
@@ -779,7 +835,7 @@ end
 -- and the framing is done here.
 local spinners: { { model: Model, tilt: CFrame } } = {}
 
-local function makeBoneIcon(parent: GuiObject, key: string, size: UDim2, position: UDim2, spin: boolean): ViewportFrame
+local function makeModelIcon(parent: GuiObject, model: Model, size: UDim2, position: UDim2, spin: boolean): ViewportFrame
 	local vp = Instance.new("ViewportFrame")
 	vp.Size = size
 	vp.Position = position
@@ -789,7 +845,6 @@ local function makeBoneIcon(parent: GuiObject, key: string, size: UDim2, positio
 	vp.LightDirection = Vector3.new(-0.35, -1, -0.55)
 	vp.Parent = parent
 
-	local model = BoneModel.build(key, false)
 	model.Parent = vp
 
 	local camera = Instance.new("Camera")
@@ -831,7 +886,7 @@ local function ensureBoneTile(key: string, info: any)
 	button.Parent = bonesGridFrame
 	corner(button, 10)
 
-	makeBoneIcon(button, key, UDim2.new(0, 48, 0, 50), UDim2.new(0, 4, 0, 8), true)
+	makeModelIcon(button, BoneModel.build(key, false), UDim2.new(0, 48, 0, 50), UDim2.new(0, 4, 0, 8), true)
 
 	local title = Instance.new("TextLabel")
 	title.Size = UDim2.new(1, -62, 0, 22)
@@ -905,7 +960,7 @@ local function ensureBoneSlot(key: string, info: any)
 	-- Static, unlike the shop tiles. These sit on the HUD for the whole
 	-- session, and something turning in the corner of the screen forever pulls
 	-- the eye away from the plot the player is meant to be watching.
-	makeBoneIcon(button, key, UDim2.new(1, -6, 1, -6), UDim2.new(0, 3, 0, 3), false)
+	makeModelIcon(button, BoneModel.build(key, false), UDim2.new(1, -6, 1, -6), UDim2.new(0, 3, 0, 3), false)
 
 	local label = Instance.new("TextLabel")
 	label.Size = UDim2.new(1, -6, 0, 18)
@@ -998,6 +1053,131 @@ end
 -- Only turns while the shop is actually open. These icons are offscreen for
 -- almost the whole session, and rendering three viewports every frame to
 -- animate something nobody is looking at is pure waste.
+-- ============================================================
+-- COLLECTION
+-- ============================================================
+
+local accessoryTiles: { [string]: {
+	button: TextButton, title: TextLabel, sub: TextLabel,
+	paint: { { part: BasePart, colour: Color3, material: Enum.Material } },
+} } = {}
+
+-- Light enough to read against the locked tile's own dark background. The
+-- first value was barely brighter than the tile and the silhouette -- the
+-- whole point of showing a locked item -- vanished into it.
+local LOCKED_GREY = Color3.fromRGB(104, 110, 128)
+
+local function ensureAccessoryTile(key: string, info: any)
+	local existing = accessoryTiles[key]
+	if existing then
+		return existing
+	end
+
+	local button = Instance.new("TextButton")
+	button.LayoutOrder = info.order or 99
+	button.BackgroundColor3 = PANEL
+	button.BorderSizePixel = 0
+	button.Font = Enum.Font.FredokaOne
+	button.Text = ""
+	button.Parent = slotGrids[info.slot] or slotGrids[slotOrder[1]]
+	corner(button, 10)
+
+	local model = PigGear.build(key)
+
+	-- Every part's real colour is recorded BEFORE the tile is ever dimmed.
+	-- Reading it back off the parts later would mean reading whatever grey the
+	-- silhouette last wrote, so an item would stay grey after it was won.
+	local paint = {}
+	for _, d in ipairs(model:GetDescendants()) do
+		if d:IsA("BasePart") then
+			table.insert(paint, { part = d, colour = d.Color, material = d.Material })
+		end
+	end
+
+	makeModelIcon(button, model, UDim2.new(0, 48, 0, 50), UDim2.new(0, 4, 0, 8), true)
+
+	local title = Instance.new("TextLabel")
+	title.Size = UDim2.new(1, -62, 0, 22)
+	title.Position = UDim2.new(0, 56, 0, 10)
+	title.BackgroundTransparency = 1
+	title.Font = Enum.Font.FredokaOne
+	title.TextScaled = true
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.TextColor3 = Color3.fromRGB(236, 240, 248)
+	title.Text = info.name
+	title.Parent = button
+
+	local sub = Instance.new("TextLabel")
+	sub.Size = UDim2.new(1, -62, 0, 20)
+	sub.Position = UDim2.new(0, 56, 0, 36)
+	sub.BackgroundTransparency = 1
+	sub.Font = Enum.Font.GothamBold
+	sub.TextScaled = true
+	sub.TextXAlignment = Enum.TextXAlignment.Left
+	sub.TextColor3 = GOLD
+	sub.Text = ""
+	sub.Parent = button
+
+	button.Activated:Connect(function()
+		Remotes.get("CosmeticRequest"):FireServer("accessory", key)
+	end)
+
+	local entry = { button = button, title = title, sub = sub, paint = paint }
+	accessoryTiles[key] = entry
+	return entry
+end
+
+local function renderCollection()
+	if not latestCosmetics then
+		return
+	end
+
+	for key, info in pairs(latestCosmetics.accessories or {}) do
+		local tile = ensureAccessoryTile(key, info)
+		tile.title.Text = info.name
+
+		-- Locked items render as a grey silhouette: the shape is the advert,
+		-- the colour is the reward.
+		for _, entry in ipairs(tile.paint) do
+			entry.part.Color = if info.owned then entry.colour else LOCKED_GREY
+			entry.part.Material = if info.owned then entry.material else Enum.Material.SmoothPlastic
+		end
+
+		if info.worn then
+			tile.sub.Text = "WEARING"
+			tile.sub.TextColor3 = Color3.fromRGB(120, 226, 170)
+			tile.button.BackgroundColor3 = Color3.fromRGB(46, 88, 62)
+		elseif info.owned then
+			tile.sub.Text = "Tap to wear"
+			tile.sub.TextColor3 = Color3.fromRGB(150, 162, 178)
+			tile.button.BackgroundColor3 = PANEL
+		else
+			-- Rarity, not the word "locked". What a player wants to know about
+			-- something they cannot have yet is how hard it will be to get.
+			tile.sub.Text = info.rarityLabel
+			tile.sub.TextColor3 = info.rarityColour
+			tile.button.BackgroundColor3 = Color3.fromRGB(30, 34, 44)
+		end
+	end
+
+	local c = latestCosmetics.collection
+	if not c then
+		return
+	end
+	if c.cost then
+		rollButton.Text = ("ROLL  %s"):format(format(c.cost))
+		rollButton.BackgroundColor3 = if latestCoins >= c.cost
+			then Color3.fromRGB(150, 96, 190)
+			else Color3.fromRGB(72, 60, 88)
+		rollNote.Text = ("%d of %d collected. A roll always gives something you "):format(c.owned, c.total)
+			.. "do not own yet, so the set always finishes -- and gets pricier as it fills."
+	else
+		rollButton.Text = "COLLECTION COMPLETE"
+		rollButton.BackgroundColor3 = Color3.fromRGB(46, 88, 62)
+		rollNote.Text = ("All %d accessories collected. Nothing left to roll for."):format(c.total)
+	end
+end
+
 RunService.Heartbeat:Connect(function()
 	if not panel.Visible then
 		return
@@ -1016,6 +1196,7 @@ end)
 Remotes.get("CosmeticState").OnClientEvent:Connect(function(snapshot)
 	latestCosmetics = snapshot
 	renderCosmetics()
+	renderCollection()
 end)
 
 shopToggle.Activated:Connect(function()
@@ -1056,6 +1237,21 @@ rebirthButton.TextScaled = true
 rebirthButton.TextColor3 = Color3.fromRGB(255, 250, 240)
 rebirthButton.Text = "REBIRTH!"
 rebirthButton.Visible = false
+
+-- The rebirth button is a HUD overlay pinned near the top of the screen,
+-- which is exactly where the shop panel's own header and first row sit. It
+-- was covering the roll button outright. `rebirthReady` is what it wants to
+-- be; whether the shop is open decides whether it gets to be it.
+local rebirthReady = false
+local function syncRebirthButton()
+	rebirthButton.Visible = rebirthReady and not panel.Visible
+end
+
+-- Watched rather than called from the three places that toggle the panel --
+-- the button, the close X, and the B/Escape keybind, all of which are defined
+-- above this point and could not call it anyway. Watching the property also
+-- covers anything that opens the panel later without knowing about this.
+panel:GetPropertyChangedSignal("Visible"):Connect(syncRebirthButton)
 rebirthButton.Parent = gui
 corner(rebirthButton, 12)
 
@@ -1160,6 +1356,7 @@ local function renderUpgrades()
 	panelTitle.Text = ("%s coins"):format(format(latestCoins))
 	renderCosmetics()
 	renderBones()
+	renderCollection()
 end
 
 local function render(state: any)
@@ -1192,7 +1389,8 @@ local function render(state: any)
 		capacityCost.Text = ("%s  -  Lv %d"):format(format(state.capacityCost), state.capacityLevel)
 	end
 
-	rebirthButton.Visible = state.rebirthReady == true
+	rebirthReady = state.rebirthReady == true
+	syncRebirthButton()
 	if state.rebirthReady then
 		rebirthButton.Text = ("REBIRTH  %d★"):format(state.rebirths + 1)
 	end
@@ -1459,12 +1657,13 @@ local function buildAdminPanel()
 	button("+10M coins", "coins", 10000000)
 	button("Fill vault", "vault", 1000000)
 	button("Max all upgrades", "maxupgrades")
-	button("Unlock all skins / effects / houses", "unlockall")
+	button("Unlock all skins / effects / houses / gear", "unlockall")
 	button("Open season (shield + cooldowns)", "shield")
 	button("Guard dog -> Titan (Lv3)", "upgrade", "dog", 3)
 	button("No guard dog (Lv0)", "upgrade", "dog", 0)
 	button("Send dog to bed (20s)", "dognap", 20)
 	button("Give 10 of every bone", "bones", 10)
+	button("Empty accessory collection", "cleargear")
 	button("Set 5 rebirths", "rebirths", 5)
 	button("WIPE MY SAVE", "reset").BackgroundColor3 = Color3.fromRGB(96, 40, 40)
 

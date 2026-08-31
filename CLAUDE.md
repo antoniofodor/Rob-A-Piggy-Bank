@@ -33,6 +33,8 @@ src/
   ReplicatedStorage/Shared/
     Config.luau            Every tunable number in the game
     Remotes.luau           Every client/server channel, declared in one table
+    BoneModel.luau         Bone geometry, shared by the server and the shop icons
+    PigGear.luau           Accessory geometry, shared the same way
   ServerScriptService/
     Main.server.luau       Entry point: starts services, owns player lifecycle
     Services/
@@ -87,8 +89,27 @@ un-robbable player kills the offence tree and stalls the economy at the top. Eve
 tier from Barbed Wire up stays at a jumpable 6.0 studs and escalates the hazard
 instead — `BASE_JUMP_HEIGHT` is 7.2.
 
-**Rebirth wipes power but never cosmetics.** Skins, effects and houses are the
-permanent progression track that a reset cannot take away.
+**Rebirth wipes power but never cosmetics.** Skins, effects, houses, decorations
+and accessories are the permanent progression track that a reset cannot take
+away. Rebirth already costs every upgrade a player owns; the collection is the
+*reason* to press the button. Take that too and nobody rebirths, which stalls
+the economy at exactly the point rebirth exists to unstall.
+
+**ROLLS COST COINS, SO COINS MUST NEVER BE PURCHASABLE WITH ROBUX.** This is the
+one line that keeps the accessory roll legal. Roblox prohibits paid
+random-chance items for an under-13 audience, and "paid" means reachable with
+real money -- shipping a Robux coin pack would turn the roll into a loot box on
+the spot, with no code changing here. If a coin pack is ever wanted, the roll
+has to move to a currency that can only be earned by playing, BEFORE that pack
+ships. Selling a specific accessory outright for Robux is fine; selling the roll
+is not.
+
+**A roll can only return something you do not already own.** The pool is rebuilt
+from the unowned set every time, so duplicates are impossible, every roll is
+progress, and the collection always completes. That makes it a guaranteed ladder
+wearing the clothes of a gamble -- which is the only honest shape for this
+audience. It also means there is no pity timer to tune and no duplicate-currency
+to invent: those exist to paper over a problem this design does not have.
 
 **Animated skins are driven on the CLIENT.** The server publishes a `SkinKey`
 attribute and nothing else; each client computes colours itself in one shared
@@ -241,6 +262,22 @@ the server never saw the character move. Hold a test character with a per-frame
 `CFrame` write instead, and confirm the position server-side before trusting the
 result.
 
+**A HUD overlay near the top of the screen will collide with the shop panel.**
+The rebirth button is pinned at y=96 and the panel's header and first row sit
+right under it, so it covered the roll button outright. Panel visibility is
+watched with `GetPropertyChangedSignal` rather than poked from the three places
+that toggle the panel -- two of which are defined above the handler and could
+not have called it anyway.
+
+**The MCP `execute_luau` sandbox caches modules per ModuleScript INSTANCE, and
+that cache defeats nested requires too.** Requiring a module after editing it on
+disk returns the copy the sandbox loaded earlier. Cloning the ModuleScript and
+requiring the clone gets a fresh compile of THAT file -- but any `require` inside
+it still resolves to the original instance, and therefore still gets the stale
+version. Editing Config and then previewing through PigGear failed exactly that
+way. When a preview needs current code, run it in a Play session, where the
+scripts were loaded fresh.
+
 **Never fail silently.** A rejection the player cannot see is indistinguishable
 from a broken feature, and that is exactly how the bug above survived.
 
@@ -251,6 +288,11 @@ from a broken feature, and that is exactly how the bug above survived.
 The heist system has never been tested end to end, because it needs two players:
 the chase, lock-vs-lockpick timing, the guard dog catch, friend bonus, revenge
 markers and the most-wanted hat are all unproven.
+
+Accessories are verified: rolling (twelve rolls, twelve distinct items, zero
+duplicates), the escalating price, auto-wearing into an empty slot, the
+wear/remove toggle, the locked silhouettes, and survival across a restart at
+schema 8 including which slot each item was in.
 
 **The Golden Bone's chase-break is in the same bucket.** Every other bone path is
 verified — buy, throw, arc, the trot over, the nap in the kennel, the DISTRACTED

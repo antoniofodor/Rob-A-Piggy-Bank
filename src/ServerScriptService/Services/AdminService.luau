@@ -178,12 +178,38 @@ commands.unlockall = function(player)
 		data.cosmetics.ownedEffects[key] = true
 	end
 	data.houseLevel = Config.MAX_HOUSE_LEVEL
+	if type(data.accessories) ~= "table" then
+		data.accessories = { owned = {}, worn = {} }
+	end
+	for key in pairs(Config.ACCESSORIES) do
+		data.accessories.owned[key] = true
+	end
 	local plot = PlotService.getPlot(player)
 	if plot then
 		PlotService.setHouseLevel(plot, data.houseLevel)
 	end
 	CosmeticsService.push(player)
-	return "Every skin, effect and house unlocked"
+	return "Every skin, effect, house and accessory unlocked"
+end
+
+-- Empties the accessory collection without touching anything else.
+--
+-- `reset` also clears it, but reset takes the rebirths with it -- and the
+-- thing most worth looking at in the collection tab is the LOCKED state,
+-- which is unreachable once a save has rolled everything.
+commands.cleargear = function(player)
+	local data = DataService.get(player)
+	if not data then
+		return nil
+	end
+	data.accessories = { owned = {}, worn = {} }
+	local plot = PlotService.getPlot(player)
+	if plot then
+		PlotService.applyAccessories(plot, data.accessories.worn)
+	end
+	DataService.save(player)
+	CosmeticsService.push(player)
+	return "Accessory collection emptied"
 end
 
 commands.maxupgrades = function(player)
@@ -267,6 +293,7 @@ commands.reset = function(player)
 	-- being tested.
 	data.decor = { owned = {}, placed = {} }
 	data.consumables = {}
+	data.accessories = { owned = {}, worn = {} }
 	data.sinceLegendary = 0
 
 	local plot = PlotService.getPlot(player)
@@ -275,6 +302,7 @@ commands.reset = function(player)
 		PlotService.setDogLevel(plot, 0)
 		PlotService.setLockLevel(plot, 0)
 		PlotService.setDecor(plot, data.decor.placed)
+		PlotService.applyAccessories(plot, data.accessories.worn)
 		PlotService.setHouseLevel(plot, 0)
 		PlotService.updatePile(plot, 0, Config.getCapacity(1))
 	end

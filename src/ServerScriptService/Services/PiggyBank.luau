@@ -18,11 +18,15 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local PigGear = require(ReplicatedStorage.Shared.PigGear)
 
 local PiggyBank = {}
 
 export type Refs = {
 	model: Model,
+	-- The pig's own origin, kept because accessories are attached long after
+	-- build() has returned and every anchor in Config is relative to it.
+	origin: Vector3,
 	body: Part,
 	pile: Folder,
 	coins: { Part },
@@ -424,6 +428,7 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	model.Parent = parent
 
 	local refs: Refs = {
+		origin = origin,
 		model = model,
 		body = body,
 		pile = pile,
@@ -481,6 +486,39 @@ function PiggyBank.applySkin(refs: Refs, skinKey: string)
 	-- the animation locally: animating server-side would replicate a colour
 	-- write per piggy per frame for something each machine can compute alone.
 	refs.model:SetAttribute("SkinKey", skinKey)
+end
+
+-- Puts the worn accessories on the pig.
+--
+-- Torn down and rebuilt on every change rather than diffed. A player changes
+-- hats a handful of times in a session, each item is a dozen anchored parts,
+-- and a diff would have to track which model came from which slot in order to
+-- save work nobody can measure -- while being the kind of bookkeeping that
+-- quietly leaks a hat when two changes land in the same frame.
+function PiggyBank.applyAccessories(refs: Refs, worn: { [string]: string })
+	local existing = refs.model:FindFirstChild("Gear")
+	if existing then
+		existing:Destroy()
+	end
+
+	local folder = Instance.new("Folder")
+	folder.Name = "Gear"
+	folder.Parent = refs.model
+
+	for slotKey, slot in pairs(Config.ACCESSORY_SLOTS) do
+		local key = worn[slotKey]
+		local spec = key and Config.ACCESSORIES[key]
+		-- An item is only worn if it still belongs to the slot claiming it.
+		-- Moving an accessory between slots in Config would otherwise leave
+		-- saved players wearing a hat on their feet.
+		if spec and spec.slot == slotKey then
+			for _, anchor in ipairs(slot.anchors) do
+				local model = PigGear.build(key)
+				model.Parent = folder
+				model:PivotTo(CFrame.new(refs.origin + anchor))
+			end
+		end
+	end
 end
 
 -- Cosmetic particle aura around the piggy. Reuses one emitter rather than

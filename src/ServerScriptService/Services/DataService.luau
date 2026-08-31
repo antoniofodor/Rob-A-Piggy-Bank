@@ -91,6 +91,10 @@ local function defaultData(): PlayerData
 		consumables = {},
 		sinceLegendary = 0,
 		-- Never reset by rebirth. This is the account's permanent collection.
+		-- Rolled, never bought, and never wiped by rebirth -- accessories are
+		-- the flex that survives a reset, same bracket as skins and houses.
+		-- `worn` is one key per slot; `owned` is the collection.
+		accessories = { owned = {}, worn = {} },
 		cosmetics = {
 			owned = {},
 			ownedEffects = {},

@@ -842,6 +842,171 @@ Config.DATASTORE_NAME = "PiggyBank_Player"
 -- v2 added the `upgrades` table for the defence and offence trees.
 -- v3 added `cosmetics`, which rebirth deliberately does not reset.
 -- ============================================================
+-- PIG ACCESSORIES
+-- ============================================================
+--
+-- Hats, glasses, capes and shoes, worn one per slot, all four at once. Skins
+-- recolour the pig; these sit ON it, so a decorated piggy is a combination
+-- rather than a single choice -- which is what makes it worth showing off.
+--
+-- Won by ROLLING, never bought directly, and a roll can only return something
+-- you do not already own. That has three consequences worth stating, because
+-- they are the whole design:
+--
+--   * There are no duplicates, so every roll is progress. A player is never
+--     handed something they already have and told it was a prize.
+--   * The collection therefore COMPLETES. This is a guaranteed ladder wearing
+--     the clothes of a gamble, not a slot machine -- appropriate for an
+--     audience that cannot consent to a real one.
+--   * The price climbs with how many you own (see getRollCost), so the pace
+--     is set by the collection rather than by whoever has the deepest vault.
+--     Somebody sitting on ten million cannot clear the pool in one sitting.
+--
+-- ROLLS COST COINS, AND COINS MUST NEVER BE PURCHASABLE WITH ROBUX.
+--
+-- That is not a preference, it is the line that keeps this legal. Roblox
+-- prohibits paid random-chance items for an under-13 audience, and "paid"
+-- means reachable with real money -- selling coins for Robux would turn this
+-- into a loot box on the spot, without a line of code changing here. If a
+-- Robux coin pack is ever wanted, rolling has to move to a currency that can
+-- only be earned by playing, BEFORE that pack ships. Selling a specific
+-- accessory outright for Robux would be fine; selling the roll is not.
+Config.ACCESSORY_RARITIES = {
+	common    = { label = "Common",    weight = 100, colour = Color3.fromRGB(150, 162, 178) },
+	rare      = { label = "Rare",      weight = 42,  colour = Color3.fromRGB(88, 156, 232) },
+	epic      = { label = "Epic",      weight = 15,  colour = Color3.fromRGB(178, 118, 232) },
+	legendary = { label = "Legendary", weight = 4,   colour = Color3.fromRGB(246, 198, 52) },
+}
+
+-- Where each slot hangs off the pig, in the same local space PiggyBank.build
+-- uses -- so these move with the pig if its proportions ever change.
+--
+-- `anchors` is always a LIST. Three of the slots have exactly one attachment
+-- point and the fourth has four, and a shoe slot that special-cased itself
+-- everywhere it was read would be worse than one empty-looking loop.
+Config.ACCESSORY_SLOTS = {
+	hat = {
+		order = 1, label = "HATS", empty = "Bare head",
+		-- On the crown. The body is a 6-stud ball centred at y 8.5, so its top
+		-- is 14.5; this sits just into it so no gap opens at the brim.
+		anchors = { Vector3.new(0, 14.2, 0.3) },
+	},
+	eyes = {
+		order = 2, label = "GLASSES", empty = "No glasses",
+		-- Clear of the eyeballs, which themselves only just break the surface
+		-- of the sphere. Anything nearer than this is swallowed by the head.
+		anchors = { Vector3.new(0, 10.6, 5.5) },
+	},
+	back = {
+		order = 3, label = "BACKS", empty = "Nothing on the back",
+		-- Upper back, ABOVE the tail ball at (0, 9.7, -6.4). A cape hanging
+		-- from here covers the tail, which is fine; starting level with it
+		-- put the tail through the cloth.
+		anchors = { Vector3.new(0, 11.0, -5.0) },
+	},
+	feet = {
+		order = 4, label = "SHOES", empty = "Barefoot",
+		-- One per leg. Legs stand at (+/-3.1, _, +/-3.1) and reach the ground
+		-- at y 0.5, so a shoe centres just above that.
+		anchors = {
+			Vector3.new(-3.1, 1.0, -3.1), Vector3.new(3.1, 1.0, -3.1),
+			Vector3.new(-3.1, 1.0, 3.1), Vector3.new(3.1, 1.0, 3.1),
+		},
+	},
+}
+
+Config.ACCESSORIES = {
+	-- HATS
+	cap = {
+		name = "Ball Cap", slot = "hat", rarity = "common", order = 1,
+		colour = Color3.fromRGB(198, 72, 68), trim = Color3.fromRGB(240, 238, 230),
+		blurb = "Worn backwards by absolutely everyone",
+	},
+	tophat = {
+		name = "Top Hat", slot = "hat", rarity = "rare", order = 2,
+		colour = Color3.fromRGB(32, 32, 40), trim = Color3.fromRGB(196, 46, 62),
+		blurb = "For a pig with a portfolio",
+	},
+	crown = {
+		name = "Gold Crown", slot = "hat", rarity = "epic", order = 3,
+		colour = Color3.fromRGB(246, 198, 52), trim = Color3.fromRGB(226, 62, 88),
+		blurb = "Rules over one lawn, absolutely",
+	},
+	halo = {
+		name = "Halo", slot = "hat", rarity = "legendary", order = 4,
+		colour = Color3.fromRGB(255, 238, 158), trim = Color3.fromRGB(255, 250, 220),
+		blurb = "Innocent. Definitely never robbed anybody",
+	},
+
+	-- GLASSES
+	nerd = {
+		name = "Round Specs", slot = "eyes", rarity = "common", order = 5,
+		colour = Color3.fromRGB(38, 34, 32), trim = Color3.fromRGB(198, 226, 240),
+		blurb = "Has read the whole rulebook",
+	},
+	shades = {
+		name = "Shades", slot = "eyes", rarity = "common", order = 6,
+		colour = Color3.fromRGB(24, 24, 28), trim = Color3.fromRGB(52, 58, 72),
+		blurb = "Did not see you there. Does not care",
+	},
+	visor = {
+		name = "Cyber Visor", slot = "eyes", rarity = "epic", order = 7,
+		colour = Color3.fromRGB(28, 30, 40), trim = Color3.fromRGB(88, 244, 226),
+		blurb = "Scanning your vault. Probably",
+	},
+
+	-- BACKS
+	cape = {
+		name = "Hero Cape", slot = "back", rarity = "rare", order = 8,
+		colour = Color3.fromRGB(196, 46, 62), trim = Color3.fromRGB(246, 198, 52),
+		blurb = "Billows even indoors",
+	},
+	jetpack = {
+		name = "Jetpack", slot = "back", rarity = "epic", order = 9,
+		colour = Color3.fromRGB(188, 190, 198), trim = Color3.fromRGB(255, 146, 58),
+		blurb = "Purely decorative. The pig is not going anywhere",
+	},
+	wings = {
+		name = "Angel Wings", slot = "back", rarity = "legendary", order = 10,
+		colour = Color3.fromRGB(252, 250, 244), trim = Color3.fromRGB(226, 236, 250),
+		blurb = "Suspiciously well earned",
+	},
+
+	-- SHOES
+	boots = {
+		name = "Work Boots", slot = "feet", rarity = "common", order = 11,
+		colour = Color3.fromRGB(124, 84, 52), trim = Color3.fromRGB(58, 44, 34),
+		blurb = "Four of them. Obviously",
+	},
+	skates = {
+		name = "Roller Skates", slot = "feet", rarity = "rare", order = 12,
+		colour = Color3.fromRGB(240, 240, 246), trim = Color3.fromRGB(226, 62, 120),
+		blurb = "Does not make the pig any faster",
+	},
+}
+
+-- What a roll costs at `owned` accessories already collected.
+--
+-- Climbs steeply on purpose. The first is pocket money so everyone tries it;
+-- the last is a real decision. Collecting the whole set comes to roughly
+-- 900k, which sits it just under one rebirth -- expensive enough to be a
+-- genuine coin sink at the top of the economy, cheap enough to finish.
+Config.ROLL_BASE_COST = 12000
+Config.ROLL_GROWTH = 1.30
+
+function Config.getRollCost(owned: number): number
+	return math.floor(Config.ROLL_BASE_COST * (Config.ROLL_GROWTH ^ math.max(0, owned)))
+end
+
+function Config.accessoryCount(): number
+	local n = 0
+	for _ in pairs(Config.ACCESSORIES) do
+		n += 1
+	end
+	return n
+end
+
+-- ============================================================
 -- HOUSES
 -- ============================================================
 --
@@ -1080,7 +1245,7 @@ function Config.firstFreeDecorSlot(zone: string, placed: { [string]: string }): 
 end
 
 -- Bumped for `decor`. DataService.reconcile fills it in on existing saves.
-Config.SCHEMA_VERSION = 7
+Config.SCHEMA_VERSION = 8
 
 Config.AUTOSAVE_INTERVAL = 60
 

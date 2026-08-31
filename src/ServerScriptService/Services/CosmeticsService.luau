@@ -218,6 +218,152 @@ function CosmeticsService.buyDecor(player: Player, key: string)
 	CosmeticsService.push(player)
 end
 
+-- ============================================================
+-- ACCESSORIES
+-- ============================================================
+
+local function gear(data: any)
+	if type(data.accessories) ~= "table" then
+		data.accessories = { owned = {}, worn = {} }
+	end
+	data.accessories.owned = data.accessories.owned or {}
+	data.accessories.worn = data.accessories.worn or {}
+	return data.accessories
+end
+
+local function ownedCount(owned: { [string]: boolean }): number
+	local n = 0
+	for key in pairs(owned) do
+		if Config.ACCESSORIES[key] then
+			n += 1
+		end
+	end
+	return n
+end
+
+-- One weighted pick from everything the player does NOT already own.
+--
+-- Building the pool fresh each roll is what makes duplicates impossible: an
+-- item leaves the pool the moment it is won, so there is nothing to "protect
+-- against" later and no pity timer to tune. It also means the odds visibly
+-- improve as the collection fills, which is the honest version of what a
+-- crate usually only pretends to do.
+local function rollFrom(owned: { [string]: boolean }): string?
+	local pool: { string } = {}
+	local total = 0
+	for key, spec in pairs(Config.ACCESSORIES) do
+		if not owned[key] then
+			local rarity = Config.ACCESSORY_RARITIES[spec.rarity]
+			if rarity then
+				table.insert(pool, key)
+				total += rarity.weight
+			end
+		end
+	end
+	if total <= 0 then
+		return nil
+	end
+
+	-- Sorted before drawing. `pairs` has no defined order, so an unsorted pool
+	-- would make the same random number pick different items on different
+	-- servers -- harmless here, but it also makes the roll impossible to
+	-- reproduce when someone reports a bad one.
+	table.sort(pool)
+
+	local ticket = math.random() * total
+	for _, key in ipairs(pool) do
+		ticket -= Config.ACCESSORY_RARITIES[Config.ACCESSORIES[key].rarity].weight
+		if ticket <= 0 then
+			return key
+		end
+	end
+	return pool[#pool]
+end
+
+function CosmeticsService.rollAccessory(player: Player)
+	local data = DataService.get(player)
+	if not data then
+		return
+	end
+
+	local acc = gear(data)
+	local have = ownedCount(acc.owned)
+
+	if have >= Config.accessoryCount() then
+		notify(player, "You already own every accessory in the game!", "good")
+		return
+	end
+
+	local cost = Config.getRollCost(have)
+	if data.coins < cost then
+		notify(player, ("Need %d more coins to roll."):format(cost - data.coins), "warn")
+		return
+	end
+
+	local key = rollFrom(acc.owned)
+	if not key then
+		-- Unreachable given the count check above, but a roll that charged and
+		-- returned nothing is the one failure mode here that would look like
+		-- theft, so it refuses rather than trusting the arithmetic.
+		notify(player, "Nothing left to roll.", "warn")
+		return
+	end
+
+	data.coins -= cost
+	acc.owned[key] = true
+
+	local spec = Config.ACCESSORIES[key]
+	local rarity = Config.ACCESSORY_RARITIES[spec.rarity]
+
+	-- Worn immediately if the slot is empty. The reward for a roll should be
+	-- visible on the pig before the player looks away -- but a slot they have
+	-- deliberately dressed is left alone.
+	if not acc.worn[spec.slot] then
+		acc.worn[spec.slot] = key
+	end
+
+	notify(player, ("%s -- %s!"):format(string.upper(rarity.label), spec.name), "good")
+
+	local plot = PlotService.getPlot(player)
+	if plot then
+		PlotService.applyAccessories(plot, acc.worn)
+	end
+	DataService.save(player)
+	CosmeticsService.push(player)
+end
+
+-- Wear it, or take it off if it is already on. Toggling is the only way to
+-- empty a slot: a separate "remove" control would double the number of things
+-- to tap on a grid built for a touchscreen.
+function CosmeticsService.equipAccessory(player: Player, key: string)
+	local data = DataService.get(player)
+	local spec = Config.ACCESSORIES[key]
+	if not data or not spec then
+		return
+	end
+
+	local acc = gear(data)
+	if not acc.owned[key] then
+		notify(player, ("You have not rolled the %s yet."):format(spec.name), "warn")
+		return
+	end
+
+	if acc.worn[spec.slot] == key then
+		acc.worn[spec.slot] = nil
+		notify(player, ("%s off."):format(spec.name), "good")
+	else
+		acc.worn[spec.slot] = key
+		notify(player, ("%s on!"):format(spec.name), "good")
+	end
+
+	local plot = PlotService.getPlot(player)
+	if plot then
+		PlotService.applyAccessories(plot, acc.worn)
+	end
+	DataService.save(player)
+	CosmeticsService.push(player)
+end
+
 function CosmeticsService.applyToPlot(player: Player)
 	local data = DataService.get(player)
 	local plot = PlotService.getPlot(player)
@@ -240,6 +386,7 @@ function CosmeticsService.applyToPlot(player: Player)
 	PlotService.applyEffect(plot, cosmetics.effect)
 	PlotService.setHouseLevel(plot, data.houseLevel or 0)
 	PlotService.setDecor(plot, data.decor.placed)
+	PlotService.applyAccessories(plot, gear(data).worn)
 	PlotService.updateSign(plot, player.DisplayName, data.rebirths, Config.getSkin(skinKey).name)
 end
 
@@ -421,12 +568,39 @@ function CosmeticsService.push(player: Player)
 		}
 	end
 
+	local acc = gear(data)
+	local have = ownedCount(acc.owned)
+	local accessories = {}
+	for key, spec in pairs(Config.ACCESSORIES) do
+		local rarity = Config.ACCESSORY_RARITIES[spec.rarity]
+		accessories[key] = {
+			name = spec.name,
+			order = spec.order,
+			slot = spec.slot,
+			rarity = spec.rarity,
+			rarityLabel = rarity.label,
+			rarityColour = rarity.colour,
+			blurb = spec.blurb,
+			owned = acc.owned[key] == true,
+			worn = acc.worn[spec.slot] == key,
+		}
+	end
+
 	Remotes.get("CosmeticState"):FireClient(player, {
 		skins = skins,
 		effects = effects,
 		houses = houses,
 		houseLevel = level,
 		decor = decorItems,
+		accessories = accessories,
+		collection = {
+			owned = have,
+			total = Config.accessoryCount(),
+			-- nil once the set is complete, which is how the client knows to
+			-- swap the roll button for the finished state rather than showing
+			-- a price for something that can no longer be bought.
+			cost = if have < Config.accessoryCount() then Config.getRollCost(have) else nil,
+		},
 	})
 end
 
@@ -443,6 +617,13 @@ function CosmeticsService.start()
 			CosmeticsService.buyHouse(player, key)
 		elseif kind == "decor" then
 			CosmeticsService.buyDecor(player, key)
+		elseif kind == "accessory" then
+			CosmeticsService.equipAccessory(player, key)
+		elseif kind == "roll" then
+			-- The key is ignored: a roll's outcome is picked by the server from
+			-- the pool it maintains. Letting a client name what it wanted would
+			-- be the entire exploit.
+			CosmeticsService.rollAccessory(player)
 		end
 	end)
 end

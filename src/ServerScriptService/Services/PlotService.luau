@@ -716,6 +716,10 @@ function PlotService.applySkin(plot: Plot, skinKey: string)
 	PiggyBank.applySkin(plot.piggy, skinKey)
 end
 
+function PlotService.applyAccessories(plot: Plot, worn: { [string]: string })
+	PiggyBank.applyAccessories(plot.piggy, worn)
+end
+
 function PlotService.applyEffect(plot: Plot, effectKey: string)
 	PiggyBank.applyEffect(plot.piggy, effectKey)
 end
