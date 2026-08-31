@@ -18,6 +18,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
@@ -55,6 +56,12 @@ local joinedAt: { [Player]: number } = {}
 -- [victim][thief] -> os.clock() of last grab, and count this session.
 local lastGrab: { [Player]: { [Player]: number } } = {}
 local grabCount: { [Player]: { [Player]: number } } = {}
+
+-- Live servers get the full grace period. A Studio playtest would otherwise
+-- spend its first 15 minutes unable to rob anything, which reads as "stealing
+-- is broken" rather than "you are protected" -- and that is a bad way to find
+-- out whether stealing actually works.
+local SHIELD_SECONDS = if RunService:IsStudio() then 15 else Config.NEW_PLAYER_SHIELD
 
 local GOLD = Color3.fromRGB(238, 194, 72)
 
@@ -106,7 +113,7 @@ local function whyCannotSteal(thief: Player, victim: Player): string?
 		return "You're already carrying loot -- take it home first."
 	end
 
-	local shieldRemaining = (joinedAt[victim] or 0) + Config.NEW_PLAYER_SHIELD - os.clock()
+	local shieldRemaining = (joinedAt[victim] or 0) + SHIELD_SECONDS - os.clock()
 	if shieldRemaining > 0 then
 		return ("%s is still protected for %d min."):format(victim.DisplayName, math.ceil(shieldRemaining / 60))
 	end
@@ -537,9 +544,18 @@ function HeistService.start()
 			holdStarted[thief] = { plot = plot, at = os.clock() }
 		end)
 
-		prompt.PromptButtonHoldEnded:Connect(function(thief)
-			holdStarted[thief] = nil
-		end)
+		-- There is deliberately NO PromptButtonHoldEnded handler.
+		--
+		-- Roblox fires HoldEnded BEFORE Triggered when a hold completes, and
+		-- it fires at completion rather than on release -- measured at 0.584s
+		-- and 0.584s on a 0.6s prompt. Clearing the record there meant
+		-- Triggered always read nil and every single steal silently did
+		-- nothing. It survived review because reproducing it needs two
+		-- players.
+		--
+		-- Leaving the record is safe: the next HoldBegan overwrites it, and
+		-- Triggered below validates both which plot it belongs to and how
+		-- long ago it started.
 
 		prompt.Triggered:Connect(function(thief)
 			local victim = plot.owner
@@ -554,10 +570,21 @@ function HeistService.start()
 			local started = holdStarted[thief]
 			holdStarted[thief] = nil
 
+			-- Never fail silently. A rejection the player cannot see is
+			-- indistinguishable from a broken game, which is exactly how the
+			-- bug above went unnoticed.
 			if not started or started.plot ~= plot then
+				notify(thief, "Hold the prompt to crack the lock.", "warn")
 				return
 			end
-			if (os.clock() - started.at) < (required - HOLD_TOLERANCE) then
+
+			local held = os.clock() - started.at
+			if held < (required - HOLD_TOLERANCE) then
+				notify(thief, "The lock held. Try again.", "warn")
+				return
+			end
+			-- A hold begun and abandoned must not authorise a grab later on.
+			if held > required + 30 then
 				notify(thief, "The lock held. Try again.", "warn")
 				return
 			end
