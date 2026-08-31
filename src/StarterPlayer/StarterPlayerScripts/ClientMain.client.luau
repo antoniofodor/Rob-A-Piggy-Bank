@@ -276,55 +276,82 @@ closeButton.Parent = panel
 corner(closeButton, 10)
 
 -- Two views behind one panel: the power trees, and the collection.
-local upgradesView = Instance.new("Frame")
-upgradesView.Name = "UpgradesView"
-upgradesView.Size = UDim2.new(1, 0, 1, -86)
-upgradesView.Position = UDim2.new(0, 0, 0, 86)
-upgradesView.BackgroundTransparency = 1
-upgradesView.Parent = panel
+-- Tabs are a vertical icon rail down the left edge.
+--
+-- The old horizontal text tabs cost a whole band of panel height and only fit
+-- two before wrapping. A rail costs one narrow column, scales to as many tabs
+-- as there are icons, and a glyph is faster to re-find than a word for a
+-- player who is not reading carefully.
+local RAIL_W = 54
 
-local cosmeticsView = Instance.new("Frame")
-cosmeticsView.Name = "CosmeticsView"
-cosmeticsView.Size = UDim2.new(1, -36, 1, -100)
-cosmeticsView.Position = UDim2.new(0, 18, 0, 88)
-cosmeticsView.BackgroundTransparency = 1
-cosmeticsView.Visible = false
-cosmeticsView.Parent = panel
+local rail = Instance.new("Frame")
+rail.Name = "TabRail"
+rail.Size = UDim2.new(0, RAIL_W, 1, -52)
+rail.Position = UDim2.new(0, 10, 0, 44)
+rail.BackgroundTransparency = 1
+rail.Parent = panel
 
-local function makeTab(text: string, order: number): TextButton
-	local tab = Instance.new("TextButton")
-	tab.Size = UDim2.new(0, 116, 0, 32)
-	tab.Position = UDim2.new(0, 18 + (order - 1) * 124, 0, 44)
-	tab.BackgroundColor3 = PANEL
-	tab.BorderSizePixel = 0
-	tab.Font = Enum.Font.FredokaOne
-	-- Fixed TextSize, not TextScaled: scaled text fits each label to its own
-	-- glyph widths, so "UPGRADES" and "MY PIGGY" came out visibly different
-	-- sizes sitting side by side.
-	tab.TextSize = 16
-	tab.TextColor3 = Color3.fromRGB(236, 240, 248)
-	tab.Text = text
-	tab.Parent = panel
-	corner(tab, 8)
-	return tab
+local railLayout = Instance.new("UIListLayout")
+railLayout.Padding = UDim.new(0, 8)
+railLayout.SortOrder = Enum.SortOrder.LayoutOrder
+railLayout.Parent = rail
+
+-- Every view occupies the same area to the right of the rail, so adding a tab
+-- never moves anything already on screen.
+local VIEW_X = RAIL_W + 20
+local function makeView(name: string): Frame
+	local v = Instance.new("Frame")
+	v.Name = name
+	v.Size = UDim2.new(1, -VIEW_X - 16, 1, -56)
+	v.Position = UDim2.new(0, VIEW_X, 0, 46)
+	v.BackgroundTransparency = 1
+	v.Visible = false
+	v.Parent = panel
+	return v
 end
 
-local upgradesTab = makeTab("UPGRADES", 1)
-local cosmeticsTab = makeTab("MY PIGGY", 2)
+local upgradesView = makeView("UpgradesView")
+local cosmeticsView = makeView("CosmeticsView")
+local houseView = makeView("HouseView")
+local decorView = makeView("DecorView")
+upgradesView.Visible = true
 
-local function showView(cosmetics: boolean)
-	upgradesView.Visible = not cosmetics
-	cosmeticsView.Visible = cosmetics
-	upgradesTab.BackgroundColor3 = if cosmetics then PANEL else Color3.fromRGB(84, 70, 110)
-	cosmeticsTab.BackgroundColor3 = if cosmetics then Color3.fromRGB(84, 70, 110) else PANEL
+local TAB_ACTIVE = Color3.fromRGB(96, 76, 132)
+
+local tabs: { { button: TextButton, view: Frame, title: string } } = {}
+
+local function selectTab(index: number)
+	for i, tab in ipairs(tabs) do
+		local on = i == index
+		tab.view.Visible = on
+		tab.button.BackgroundColor3 = if on then TAB_ACTIVE else PANEL
+	end
 end
 
-upgradesTab.Activated:Connect(function()
-	showView(false)
-end)
-cosmeticsTab.Activated:Connect(function()
-	showView(true)
-end)
+local function makeTab(icon: string, title: string, view: Frame, order: number)
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(1, 0, 0, 48)
+	button.LayoutOrder = order
+	button.BackgroundColor3 = PANEL
+	button.BorderSizePixel = 0
+	button.Font = Enum.Font.FredokaOne
+	button.TextSize = 24
+	button.TextColor3 = Color3.fromRGB(236, 240, 248)
+	button.Text = icon
+	button.Parent = rail
+	corner(button, 10)
+
+	local index = #tabs + 1
+	tabs[index] = { button = button, view = view, title = title }
+	button.Activated:Connect(function()
+		selectTab(index)
+	end)
+end
+
+makeTab("⚔", "Defend / Rob", upgradesView, 1)
+makeTab("🐷", "Your Piggy", cosmeticsView, 2)
+makeTab("🏠", "Your House", houseView, 3)
+makeTab("🌳", "Decorations", decorView, 4)
 
 local columns: { [string]: Frame } = {}
 for index, spec in ipairs({
@@ -438,67 +465,96 @@ end
 -- COSMETICS VIEW
 -- ============================================================
 
--- One scroll for the whole collection, split into labelled sections.
+-- Each tab gets its own scroll, built by the same helper.
 --
--- Effects used to live in a fixed-height row pinned to the bottom with a
--- horizontal list layout. Six effects need 688px of row and the panel is
--- 584px wide, so the last one and a half were clipped with no way to reach
--- them -- there was no scrollbar because a Frame does not scroll.
---
--- A single vertical scroll also means adding a third category later costs a
--- header and a grid rather than another fight for fixed space.
-local collection = Instance.new("ScrollingFrame")
-collection.Size = UDim2.new(1, 0, 1, 0)
-collection.BackgroundTransparency = 1
-collection.BorderSizePixel = 0
-collection.ScrollBarThickness = 6
-collection.CanvasSize = UDim2.new()
-collection.AutomaticCanvasSize = Enum.AutomaticSize.Y
-collection.Parent = cosmeticsView
+-- Sections inside a scroll exist because a fixed-height row cannot grow:
+-- effects once lived in a pinned row with a horizontal layout, and six of them
+-- needed 688px against a 584px panel, so the last one and a half were clipped
+-- with no scrollbar to reach them. A scroll with AutomaticCanvasSize grows
+-- instead, and a new category costs a header and a grid.
+local function makeScroll(parent: Frame): (ScrollingFrame, (string, number) -> (), (number) -> Frame)
+	local scroll = Instance.new("ScrollingFrame")
+	scroll.Size = UDim2.new(1, 0, 1, 0)
+	scroll.BackgroundTransparency = 1
+	scroll.BorderSizePixel = 0
+	scroll.ScrollBarThickness = 6
+	scroll.CanvasSize = UDim2.new()
+	scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	scroll.Parent = parent
 
-local collectionLayout = Instance.new("UIListLayout")
-collectionLayout.FillDirection = Enum.FillDirection.Vertical
-collectionLayout.Padding = UDim.new(0, 10)
-collectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
-collectionLayout.Parent = collection
+	local layout = Instance.new("UIListLayout")
+	layout.FillDirection = Enum.FillDirection.Vertical
+	layout.Padding = UDim.new(0, 10)
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Parent = scroll
 
-local function sectionHeader(text: string, order: number)
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(1, -10, 0, 18)
-	label.LayoutOrder = order
-	label.BackgroundTransparency = 1
-	label.Font = Enum.Font.GothamBold
-	label.TextSize = 13
-	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.TextColor3 = Color3.fromRGB(150, 162, 178)
-	label.Text = text
-	label.Parent = collection
+	local function header(text: string, order: number)
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.new(1, -10, 0, 18)
+		label.LayoutOrder = order
+		label.BackgroundTransparency = 1
+		label.Font = Enum.Font.GothamBold
+		label.TextSize = 13
+		label.TextXAlignment = Enum.TextXAlignment.Left
+		label.TextColor3 = Color3.fromRGB(150, 162, 178)
+		label.Text = text
+		label.Parent = scroll
+	end
+
+	-- AutomaticSize on the wrapper is what lets the grid inside push the
+	-- canvas taller as rows are added, instead of clipping at a fixed height.
+	local function grid(order: number): Frame
+		local frame = Instance.new("Frame")
+		frame.Size = UDim2.new(1, -10, 0, 0)
+		frame.AutomaticSize = Enum.AutomaticSize.Y
+		frame.BackgroundTransparency = 1
+		frame.LayoutOrder = order
+		frame.Parent = scroll
+
+		local g = Instance.new("UIGridLayout")
+		g.CellSize = UDim2.new(0, 130, 0, 62)
+		g.CellPadding = UDim2.new(0, 8, 0, 8)
+		g.SortOrder = Enum.SortOrder.LayoutOrder
+		g.Parent = frame
+		return frame
+	end
+
+	return scroll, header, grid
 end
 
--- AutomaticSize on the wrapper is what lets the grid inside push the scroll
--- canvas taller as rows are added, instead of clipping at a fixed height.
-local function sectionGrid(order: number): Frame
-	local frame = Instance.new("Frame")
-	frame.Size = UDim2.new(1, -10, 0, 0)
-	frame.AutomaticSize = Enum.AutomaticSize.Y
-	frame.BackgroundTransparency = 1
-	frame.LayoutOrder = order
-	frame.Parent = collection
+local _, piggyHeader, piggyGrid = makeScroll(cosmeticsView)
+piggyHeader("PIGGY SKINS", 1)
+local skinsGridFrame = piggyGrid(2)
+piggyHeader("EFFECTS", 3)
+local effectsGridFrame = piggyGrid(4)
 
-	local grid = Instance.new("UIGridLayout")
-	grid.CellSize = UDim2.new(0, 130, 0, 62)
-	grid.CellPadding = UDim2.new(0, 8, 0, 8)
-	grid.SortOrder = Enum.SortOrder.LayoutOrder
-	grid.Parent = frame
-	return frame
+local _, houseHeader, houseGrid = makeScroll(houseView)
+houseHeader("MOVE UP THE STREET", 1)
+local housesGridFrame = houseGrid(2)
+
+-- Decorations: the shell is here so the tab is real and the shape of the
+-- feature is visible. Slots and items land next.
+local decorScroll, decorHeader, decorGrid = makeScroll(decorView)
+decorHeader("FRONT LAWN", 1)
+local lawnGridFrame = decorGrid(2) -- filled by the decor items in phase 2
+decorHeader("DRIVEWAY", 3)
+local drivewayGridFrame = decorGrid(4) -- ditto; the car goes here
+
+do
+	local soon = Instance.new("TextLabel")
+	soon.Size = UDim2.new(1, -10, 0, 90)
+	soon.LayoutOrder = 5
+	soon.BackgroundTransparency = 1
+	soon.Font = Enum.Font.Gotham
+	soon.TextSize = 13
+	soon.TextWrapped = true
+	soon.TextXAlignment = Enum.TextXAlignment.Left
+	soon.TextYAlignment = Enum.TextYAlignment.Top
+	soon.TextColor3 = Color3.fromRGB(130, 142, 158)
+	soon.Text = "Coming soon: walk up to a spot on your lawn and press the "
+		.. "Decorate prompt to place cars, fountains, hoops and more."
+	soon.Parent = decorScroll
 end
-
-sectionHeader("YOUR HOUSE", 1)
-local housesGridFrame = sectionGrid(2)
-sectionHeader("PIGGY SKINS", 3)
-local skinsGridFrame = sectionGrid(4)
-sectionHeader("EFFECTS", 5)
-local effectsGridFrame = sectionGrid(6)
 
 local cosmeticButtons: { [string]: { button: TextButton, title: TextLabel, sub: TextLabel, swatch: Frame? } } = {}
 
@@ -1237,3 +1293,5 @@ task.spawn(function()
 		end
 	end)
 end)
+
+selectTab(1)
