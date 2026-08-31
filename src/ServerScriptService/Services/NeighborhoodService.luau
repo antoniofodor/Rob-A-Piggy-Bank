@@ -92,17 +92,11 @@ local function metrics()
 	local streetHalf = Config.STREET_SPACING / 2
 	local endX = ((perRow - 1) / 2) * Config.PLOT_SPACING
 
-	-- The gap between the two rows of lawns.
-	local corridor = streetHalf - halfPlot
-
-	-- The carriageway is NOT that whole gap. Two things stick out into it:
-	-- fences stand 1.6 studs proud of the plot edge, and a top-tier moat
-	-- reaches further in still. Paving the full corridor put tarmac under
-	-- every fence and left the road and the moat fighting for depth.
-	local topTier = Config.FENCE_TIERS[#Config.FENCE_TIERS]
-	local moatWidth = if topTier.moat then topTier.moat.width else 0
-	local fenceLine = corridor - 1.6
-	local moatInner = fenceLine - 0.5 - moatWidth
+	-- Road and fence geometry comes from Config, not from a second copy of the
+	-- same arithmetic here. This file used to derive the carriageway from the
+	-- moat itself, which meant widening the street only ever widened the
+	-- tarmac and the driveway never grew.
+	local street = Config.streetMetrics()
 
 	local plazaSize = 56
 	local plazaX = -(endX + halfPlot + 26)
@@ -114,10 +108,10 @@ local function metrics()
 		endX = endX,
 		rowZ = streetHalf,
 
-		-- Stops short of the moats, leaving a verge between kerb and fence
-		-- for driveways, lamp posts and mailboxes to live on.
-		roadHalfWidth = moatInner - 0.9,
-		vergeOuter = fenceLine,
+		-- Fixed carriageway; everything between it and the fence is verge and
+		-- driveway, which is where the extra street width goes.
+		roadHalfWidth = street.roadHalfWidth,
+		vergeOuter = street.fenceLine,
 
 		plazaX = plazaX,
 		plazaSize = plazaSize,
@@ -127,6 +121,10 @@ local function metrics()
 		-- z-fight with each other exactly as a slab does against grass.
 		roadStartX = plazaX + plazaSize / 2,
 		roadEndX = endX + halfPlot + 60,
+
+		-- Clear of the yard fence, which now runs YARD_DEPTH back from each
+		-- plot centre to enclose the house.
+		backdropZ = streetHalf + Config.YARD_DEPTH + 46,
 	}
 end
 

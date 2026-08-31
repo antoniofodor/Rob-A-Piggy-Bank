@@ -102,6 +102,24 @@ rebirth (~2.7%) rising to ~31%, with a pity floor at 12. Drop-pool skins have no
 `cost`, so `isSkinUnlocked` checks `rarity` before the free-if-costless fallback
 — without that, every legendary would unlock for everyone immediately.
 
+**The yard is a rectangle; only its FRONT line is load-bearing.** The fence runs
+`YARD_DEPTH` back from the plot centre to enclose the house, but the front stays
+at `PLOT_SIZE.X/2 + 1.6` because a thief approaches from the street. Lengthening
+the yard behind the piggy changes nothing about the steal, the getaway or the
+drop-off, which is what makes it cheap.
+
+**A house tier's `width` is its main block, not its footprint.** Wings, gables
+and roof slabs all overhang it -- the Manor measured 65 studs against a 51.2
+fence interior and its wings stuck straight through the side fence. `House.build`
+builds first, then measures its own bounding box and seats itself: back edge a
+fixed distance from the fence, centred sideways. Centring matters because the
+villa's garage hangs off one side only.
+
+**The road is a fixed width, never derived.** `ROAD_HALF_WIDTH` is pinned so
+that widening `STREET_SPACING` lands on the driveway instead of the tarmac.
+`Config.streetMetrics()` is the single source; `NeighborhoodService` used to keep
+its own copy of that arithmetic and the two drifted.
+
 **The driveway is the visible half of a house upgrade.** The house stands 70
 studs behind the piggy, so from the road its driveway surface is what actually
 announces the tier -- dirt, gravel, brick, concrete, slate, lit asphalt. It is

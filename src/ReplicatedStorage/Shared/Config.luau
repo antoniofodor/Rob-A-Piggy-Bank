@@ -722,9 +722,27 @@ Config.PLOT_SIZE = Vector3.new(48, 1, 48)
 Config.PLOT_SPACING = 64
 
 -- Across the street, centre to centre. Wider than PLOT_SPACING so next door
--- stays the easy target and across the road is a choice. Must also clear two
--- facing moats: 2 x 31.1 = 62.2.
-Config.STREET_SPACING = 80
+-- stays the easy target and across the road is a choice.
+--
+-- Widened from 80 so the driveway has room for an actual car. At 80 the drive
+-- was 6.4 studs against an 11.5-stud hatchback, so a parked car poked back
+-- through its own gate and out into the road.
+Config.STREET_SPACING = 104
+
+-- The carriageway is a FIXED width, not whatever is left over.
+--
+-- It used to be derived from the moat, which meant widening the street just
+-- widened the tarmac and the driveway never grew. Pinning the road is what
+-- turns extra street space into driveway.
+Config.ROAD_HALF_WIDTH = 8
+
+-- How far the fence runs BACK from the plot centre to enclose the house.
+--
+-- Only the back moves. The front fence stays at PLOT_SIZE.X/2 + 1.6, which is
+-- the line every heist number is tuned against -- a thief approaches from the
+-- street, so lengthening the yard behind the piggy changes nothing about the
+-- steal, the getaway or the drop-off.
+Config.YARD_DEPTH = 70
 
 Config.PLOTS_PER_ROW = 6
 
@@ -754,6 +772,12 @@ Config.DATASTORE_NAME = "PiggyBank_Player"
 -- Priced well above the skins so it stays the last thing anyone finishes.
 -- Everything is a linear ladder, not a set to pick from: you own tier N and
 -- buy tier N+1.
+-- `width` is the MAIN BLOCK, not the footprint. Wings, gables and roof slabs
+-- all overhang it, so the actual extent can be half as wide again -- the Manor
+-- measured 65 studs against a 51.2 fence interior and its wings stuck straight
+-- through the side fence. House.build now measures what it actually built and
+-- seats it from that; these numbers are trimmed so the measurement fits.
+--
 -- Each tier also owns its DRIVEWAY surface. The house itself stands 70 studs
 -- behind the plot, so from the road the driveway is what actually announces
 -- how far along someone is -- dirt, then gravel, then brick, and so on.
@@ -785,7 +809,7 @@ Config.HOUSE_TIERS = {
 	{
 		name = "Suburban Villa", style = "villa", cost = 400000,
 		drive = { colour = Color3.fromRGB(196, 194, 188), material = Enum.Material.Concrete, edge = true },
-		width = 36, depth = 24, storeys = 2,
+		width = 33, depth = 24, storeys = 2,
 		walls = Color3.fromRGB(236, 228, 210), roof = Color3.fromRGB(96, 104, 100),
 		trim = Color3.fromRGB(198, 188, 168),
 		blurb = "Sprawling, low and wide, with a double garage",
@@ -793,7 +817,7 @@ Config.HOUSE_TIERS = {
 	{
 		name = "Stone Manor", style = "manor", cost = 1400000,
 		drive = { colour = Color3.fromRGB(206, 202, 192), material = Enum.Material.Slate, edge = true },
-		width = 42, depth = 28, storeys = 3,
+		width = 34, depth = 28, storeys = 3,
 		walls = Color3.fromRGB(214, 210, 200), roof = Color3.fromRGB(70, 66, 80),
 		trim = Color3.fromRGB(188, 182, 170),
 		blurb = "Symmetrical wings, stone columns, and far too many windows",
@@ -801,7 +825,7 @@ Config.HOUSE_TIERS = {
 	{
 		name = "Midnight Modern", style = "modern", cost = 5000000,
 		drive = { colour = Color3.fromRGB(32, 33, 38), material = Enum.Material.Asphalt, edge = true, lit = true },
-		width = 50, depth = 32, storeys = 2,
+		width = 44, depth = 32, storeys = 2,
 		walls = Color3.fromRGB(26, 27, 32), roof = Color3.fromRGB(18, 19, 23),
 		trim = Color3.fromRGB(240, 202, 110),
 		blurb = "Blacked-out glass box. Cantilevered upper floor, rooftop terrace",
@@ -868,21 +892,17 @@ end
 -- the driveway floats over the kerb. Returns plot-local Z distances measured
 -- from a plot's own centre, with +Z toward the street.
 function Config.streetMetrics()
-	local halfPlot = Config.PLOT_SIZE.X / 2
 	local streetHalf = Config.STREET_SPACING / 2
-	local corridor = streetHalf - halfPlot
-
-	local topTier = Config.FENCE_TIERS[#Config.FENCE_TIERS]
-	local moatWidth = if topTier.moat then topTier.moat.width else 0
-	local fenceLine = corridor - 1.6
-	local moatInner = fenceLine - 0.5 - moatWidth
+	local fenceOffset = Config.PLOT_SIZE.X / 2 + 1.6
 
 	return {
-		roadHalfWidth = moatInner - 0.9,
-		fenceLine = fenceLine,
-		-- Plot-local Z of the driveway's two ends.
-		driveNear = streetHalf - fenceLine,
-		driveFar = streetHalf - (moatInner - 0.9),
+		-- Street coordinates, measured from the road's centreline.
+		roadHalfWidth = Config.ROAD_HALF_WIDTH,
+		fenceLine = streetHalf - fenceOffset,
+
+		-- Plot-local Z of the driveway's two ends: the fence, out to the kerb.
+		driveNear = fenceOffset,
+		driveFar = streetHalf - Config.ROAD_HALF_WIDTH,
 	}
 end
 
@@ -901,14 +921,14 @@ Config.DECOR_SLOTS = {
 	{ id = "lawnF", zone = "lawn", offset = Vector3.new(0, 0, -19), yaw = 0 },
 
 	-- On the driveway proper, between the gate and the kerb.
-	{ id = "drive1", zone = "driveway", offset = Vector3.new(0, 0, 29), yaw = 0 },
+	{ id = "drive1", zone = "driveway", offset = Vector3.new(0, 0, 35), yaw = 0 },
 
 	-- Outside the fence, flanking the driveway. This is the ONLY ground out
 	-- there that stays dry at every fence tier -- the moat takes the whole
 	-- rest of the perimeter, so anything placed elsewhere would end up in the
 	-- water the moment its owner bought tier 5.
-	{ id = "vergeL", zone = "verge", offset = Vector3.new(-8.5, 0, 28.5), yaw = 0 },
-	{ id = "vergeR", zone = "verge", offset = Vector3.new(8.5, 0, 28.5), yaw = 0 },
+	{ id = "vergeL", zone = "verge", offset = Vector3.new(-9.5, 0, 31), yaw = 0 },
+	{ id = "vergeR", zone = "verge", offset = Vector3.new(9.5, 0, 31), yaw = 0 },
 }
 
 Config.DECOR_ITEMS = {

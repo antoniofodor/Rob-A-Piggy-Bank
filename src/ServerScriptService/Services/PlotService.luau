@@ -105,6 +105,24 @@ local function buildPlot(index: number): Plot
 	base.TopSurface = Enum.SurfaceType.Smooth
 	base.Parent = model
 
+	-- The back of the yard, between the plot slab and the back fence.
+	--
+	-- The fence now encloses far more ground than the 48x48 slab covers, and
+	-- without this the far half of a player's own garden is darker world
+	-- ground -- one fenced yard in two obviously different greens. Butts up
+	-- against the slab rather than overlapping it: two grass surfaces at the
+	-- same height would z-fight along the seam.
+	local yardDepth = Config.YARD_DEPTH - Config.PLOT_SIZE.Z / 2
+	local yard = Instance.new("Part")
+	yard.Name = "Yard"
+	yard.Size = Vector3.new(Config.PLOT_SIZE.X + 3.2, Config.PLOT_SIZE.Y, yardDepth)
+	yard.Position = origin + Vector3.new(0, 0, -(Config.PLOT_SIZE.Z / 2 + yardDepth / 2))
+	yard.Anchored = true
+	yard.Material = Enum.Material.Grass
+	yard.Color = LAWN
+	yard.TopSurface = Enum.SurfaceType.Smooth
+	yard.Parent = model
+
 	local piggy = PiggyBank.build(origin, model)
 
 	-- Sign on a post, at the front edge facing outward.
@@ -432,10 +450,17 @@ function PlotService.buildFence(plot: Plot, level: number)
 		end)
 	end
 
-	-- Three solid sides, then the front split around the gate.
-	side(Vector3.new(0, 0, -half), half * 2, true)
-	side(Vector3.new(-half, 0, 0), half * 2, false)
-	side(Vector3.new(half, 0, 0), half * 2, false)
+	-- The yard is a long rectangle, not a square: the front fence stays exactly
+	-- where every heist number expects it, and the sides run BACK to enclose
+	-- the house. A thief approaches from the street, so nothing behind the
+	-- piggy affects the steal, the getaway or the drop-off.
+	local backZ = Config.YARD_DEPTH
+	local sideLength = half + backZ
+	local sideCentre = (half - backZ) / 2
+
+	side(Vector3.new(0, 0, -backZ), half * 2, true)
+	side(Vector3.new(-half, 0, sideCentre), sideLength, false)
+	side(Vector3.new(half, 0, sideCentre), sideLength, false)
 
 	local wing = half - gate / 2
 	if wing > 0 then
@@ -454,6 +479,13 @@ function PlotService.buildFence(plot: Plot, level: number)
 		local moatPenalty = { label = "Moat", slow = m.slow, duration = m.duration, stun = 0 }
 		local mid = half + 0.5 + m.width / 2
 		local reach = half + 0.5 + m.width
+
+		-- Mirrors the fence rectangle: the back band sits behind the house and
+		-- the side bands run the full length of the yard.
+		local backMid = backZ + 0.5 + m.width / 2
+		local backReach = backZ + 0.5 + m.width
+		local sideMoatLength = reach + backReach
+		local sideMoatCentre = (reach - backReach) / 2
 
 		local function water(centre: Vector3, length: number, alongX: boolean)
 			local w = Instance.new("Part")
@@ -480,9 +512,9 @@ function PlotService.buildFence(plot: Plot, level: number)
 			end)
 		end
 
-		water(Vector3.new(0, 0, -mid), reach * 2, true)
-		water(Vector3.new(-mid, 0, 0), reach * 2, false)
-		water(Vector3.new(mid, 0, 0), reach * 2, false)
+		water(Vector3.new(0, 0, -backMid), reach * 2, true)
+		water(Vector3.new(-mid, 0, sideMoatCentre), sideMoatLength, false)
+		water(Vector3.new(mid, 0, sideMoatCentre), sideMoatLength, false)
 
 		-- The causeway is driveway-width, NOT gate-width. The driveway has to
 		-- stay dry at every tier or the top tier drowns its own entrance, and
@@ -595,7 +627,10 @@ function PlotService.setHouseLevel(plot: Plot, level: number)
 		plot.house = nil
 	end
 	local groundY = -Config.PLOT_SIZE.Y / 2
-	plot.house = House.build(level, plot.cframe * CFrame.new(0, groundY, -70), plot.model)
+	-- Passed the PLOT ORIGIN, not a pre-computed spot: House.build measures
+	-- what it actually built and seats itself against the back fence, because
+	-- the archetypes range from 15 to 47 studs deep.
+	plot.house = House.build(level, plot.cframe * CFrame.new(0, groundY, 0), plot.model)
 	buildDriveway(plot, Config.getHouseTier(level))
 end
 

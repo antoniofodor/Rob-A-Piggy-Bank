@@ -218,7 +218,7 @@ builders.manor = function(tier, at)
 	-- Two lower wings, one each side, so the frontage steps rather than being
 	-- one long slab.
 	for _, side in ipairs({ -1, 1 }) do
-		local ww = w * 0.28
+		local ww = w * 0.16
 		part("Wing", Vector3.new(ww, h - STOREY, d * 0.8),
 			at * CFrame.new(side * (w / 2 + ww / 2 - 1), (h - STOREY) / 2, 0), tier.walls, Enum.Material.Marble)
 		gable(ww + 1.5, d * 0.8 + 1.5, h - STOREY, 5, tier.roof,
@@ -309,6 +309,13 @@ end
 -- BUILD
 -- ============================================================
 
+-- `at` is the PLOT ORIGIN at ground level. The house seats itself from there.
+--
+-- Each archetype has a different real footprint -- the modern box is 47 deep,
+-- the shack 15 -- so a single hardcoded Z would either float the small ones in
+-- the middle of the lawn or push the big ones through the back fence. Building
+-- first and measuring after means every tier lands the same distance from the
+-- fence regardless of how big it turned out.
 function House.build(level: number, at: CFrame, parent: Instance): Model
 	local tier = Config.getHouseTier(level)
 
@@ -318,8 +325,26 @@ function House.build(level: number, at: CFrame, parent: Instance): Model
 
 	local build = builders[tier.style] or builders.shack
 	build(tier, at)
-
 	model.Parent = parent
+
+	local box, size = model:GetBoundingBox()
+	local localCentre = at:PointToObjectSpace(box.Position)
+
+	-- Slide it back so its rear wall clears the fence by the same margin at
+	-- every tier, and centre it sideways.
+	--
+	-- Centring matters because some archetypes are ASYMMETRIC: the villa's
+	-- garage wing hangs off one side only, so a house whose stated width fits
+	-- the yard can still put one corner straight through the side fence while
+	-- leaving eight studs spare on the other.
+	--
+	-- ZVector, not LookVector: LookVector is the NEGATIVE Z axis, so using it
+	-- here would shunt the house out toward the street.
+	local wantBack = -(Config.YARD_DEPTH - 5)
+	local haveBack = localCentre.Z - size.Z / 2
+	model:TranslateBy(at.ZVector * (wantBack - haveBack))
+	model:TranslateBy(at.RightVector * -localCentre.X)
+
 	return model
 end
 

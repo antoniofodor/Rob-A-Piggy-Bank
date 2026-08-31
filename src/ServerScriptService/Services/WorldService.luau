@@ -19,8 +19,10 @@ local WorldService = {}
 -- Sized to the neighbourhood, not to a big round number. The old 900-stud
 -- square left the plots as a small island in an empty field, which read as
 -- unfinished no matter how good the plots themselves looked.
-local GROUND_X = 760
-local GROUND_Z = 420
+local GROUND_X = 780
+-- Deep enough for two yards that now run 70 studs back from their plot
+-- centres, plus the backdrop treeline beyond them.
+local GROUND_Z = 560
 local GRASS = Color3.fromRGB(118, 158, 88)
 local GRASS_DARK = Color3.fromRGB(96, 134, 72)
 
