@@ -19,13 +19,18 @@
 	any argument is even read, and why every rejection is logged with the
 	UserId that attempted it.
 
-	Admission is the Config allowlist OR being the place's own creator. The
-	second exists so this keeps working if the experience is republished under
-	a different account, which has already happened once.
+	Admission on a LIVE server is the Config allowlist OR being the place's own
+	creator. The second exists so this keeps working if the experience is
+	republished under a different account, which has already happened once.
+
+	In STUDIO everybody is admitted, so local multiplayer tests have a working
+	panel on every client. That branch is guarded by RunService:IsStudio() and
+	is therefore dead code in production.
 ]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
@@ -44,6 +49,20 @@ end
 
 -- The whole gate. Called before anything else, every single request.
 function AdminService.isAdmin(player: Player): boolean
+	-- Everyone is an admin in Studio.
+	--
+	-- Studio's local multiplayer test hands its extra clients placeholder
+	-- UserIds that will never match a real allowlist entry, so a two-player
+	-- test would otherwise have no admin on either client -- exactly when the
+	-- panel is most useful, since it is what clears the new-player shield.
+	--
+	-- This cannot widen access in production: RunService:IsStudio() is false
+	-- on every live server, and the allowlist below is the only thing that
+	-- admits anyone there.
+	if RunService:IsStudio() then
+		return true
+	end
+
 	if Config.isAdminUserId(player.UserId) then
 		return true
 	end
