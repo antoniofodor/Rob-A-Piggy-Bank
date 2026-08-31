@@ -43,6 +43,7 @@ local HeistService = require(script.Parent.HeistService)
 local BoneService = require(script.Parent.BoneService)
 local RideService = require(script.Parent.RideService)
 local GadgetService = require(script.Parent.GadgetService)
+local HomeService = require(script.Parent.HomeService)
 
 local AdminService = {}
 
@@ -270,9 +271,13 @@ commands.bones = function(player, count)
 	for key in pairs(Config.GADGETS) do
 		data.consumables[key] = n
 	end
+	for key in pairs(Config.HOME_ITEMS) do
+		data.consumables[key] = n
+	end
 	BoneService.push(player)
 	GadgetService.push(player)
-	return ("%d of every bone and gadget"):format(n)
+	HomeService.push(player)
+	return ("%d of every bone, gadget and home item"):format(n)
 end
 
 commands.shield = function(player)
@@ -333,6 +338,7 @@ commands.reset = function(player)
 	refresh(player)
 	BoneService.push(player)
 	GadgetService.push(player)
+	HomeService.push(player)
 	DataService.save(player)
 	return "Save wiped back to a brand-new player"
 end

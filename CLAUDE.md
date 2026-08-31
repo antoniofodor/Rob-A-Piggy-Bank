@@ -301,6 +301,37 @@ are found by CollectionService tag rather than collected once at startup,
 because a moat is built when someone buys the fifth fence and torn down when
 they rebirth.
 
+**The Guard Duty Treat exists to get people out of the house.** The economy
+needs players robbing each other, and what stopped them was anxiety about their
+own vault: there was no "lock up before you go out" action anywhere, so the only
+way to protect a full piggy was to sit on it, and a player sitting still is the
+worst outcome this design has. The treat does NOT grant immunity -- a Golden
+Bone still gets through, the same line the chase-break draws. A prepared
+defender makes robbing them cost 30,000 instead of 2,500 rather than closing the
+door, which matters because an alert Titan runs at 17 against a thief carrying
+at 16 and "cannot be bribed" would simply mean "cannot be robbed". Guard duty
+also suppresses the dog's cooldown, so it is checked through `onCooldown` in one
+place rather than at the six sites that used to compare against `busyUntil` --
+miss one and the dog naps through the thing its owner just paid to prevent.
+
+**A buff nobody can see is a trap, so guard duty is loud.** Neon collar, ON
+GUARD on the nameplate, and the refusal names the rule. The counter to a buff
+should be information rather than a fight: a thief reads it from the pavement
+and walks to one of the other eleven plots, instead of burning a 30,000-coin
+Golden Bone to find out. Anything that repaints the dog has to restore the tell
+-- `applyTier` repaints every piece from the tier, and `rouse` rewrites the
+nameplate, so both check guard duty first.
+
+**The sprinkler is a joke and must stay one.** No damage, no stun, no slow: it
+nudges trespassers toward the gate and soaks them, and they can walk straight
+back in. Loitering is not a mechanical problem here -- `STEAL_COOLDOWN` and
+`STEAL_MAX_PER_VICTIM` already make camping a plot pointless -- so the
+irritation is social and the answer is too. Anything with teeth would be a
+fourth defence stacking on the fence, the dog and the locks, and it would bite
+during a steal attempt, since a thief cracking a lock is stood still on that
+very lawn. It never touches the owner, and `HomeUse` carries no target
+argument at all: the server acts on the caller's own plot or on nothing.
+
 **A gadget buys a tag, never the catch.** Gadgets are to maxed Speed Boots
 what bones are to the guard dog: the counter to a top-of-tree purchase that
 had none. `getCarryMultiplier` caps at 1.0, so a thief with boots maxed carries

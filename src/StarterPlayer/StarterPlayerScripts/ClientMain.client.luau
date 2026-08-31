@@ -25,6 +25,7 @@ local BoneModel = require(ReplicatedStorage.Shared.BoneModel)
 local PigGear = require(ReplicatedStorage.Shared.PigGear)
 local RideModel = require(ReplicatedStorage.Shared.RideModel)
 local GadgetModel = require(ReplicatedStorage.Shared.GadgetModel)
+local HomeModel = require(ReplicatedStorage.Shared.HomeModel)
 
 local player = Players.LocalPlayer
 
@@ -575,6 +576,9 @@ do
 	how.Parent = gadgetScroll
 end
 
+gadgetHeader("AT HOME", 4)
+local homeGridFrame = gadgetGrid(5, UDim2.new(0, 164, 0, 66))
+
 local rideScroll, rideHeader, rideGrid = makeScroll(rideView)
 rideHeader("GET AROUND", 1)
 -- Wide cells: these tiles carry a rendered 3D model AND three lines of text,
@@ -686,6 +690,27 @@ do
 		.. "in the corner of the screen. It trots over, eats it, and goes to "
 		.. "its kennel. \n\nBigger dogs are harder to buy off, and only a Golden "
 		.. "Bone will stop one that has already seen you."
+	how.Parent = gearScroll
+end
+
+gearHeader("YOUR OWN DOG", 4)
+local treatGridFrame = gearGrid(5, UDim2.new(0, 164, 0, 66))
+
+do
+	local how = Instance.new("TextLabel")
+	how.Size = UDim2.new(1, -10, 0, 74)
+	how.LayoutOrder = 6
+	how.BackgroundTransparency = 1
+	how.Font = Enum.Font.Gotham
+	how.TextSize = 13
+	how.TextWrapped = true
+	how.TextXAlignment = Enum.TextXAlignment.Left
+	how.TextYAlignment = Enum.TextYAlignment.Top
+	how.TextColor3 = Color3.fromRGB(130, 142, 158)
+	how.Text = "Use one before you head out. Your dog stays awake and refuses "
+		.. "cheap bones, and its collar glows so robbers can see it is not worth "
+		.. "trying. A Golden Bone still gets past -- this makes robbing you "
+		.. "expensive, not impossible."
 	how.Parent = gearScroll
 end
 
@@ -869,6 +894,7 @@ local latestBones: { [string]: any }? = nil
 -- `Visible = anyHeld` in either one would hide the other's slots.
 local boneHeld = false
 local gadgetHeld = false
+local homeHeld = false
 
 local boneTiles: { [string]: { title: TextLabel, sub: TextLabel, count: TextLabel, button: TextButton } } = {}
 local boneSlots: { [string]: { button: TextButton, label: TextLabel, hotkey: TextLabel } } = {}
@@ -902,7 +928,7 @@ hotBarLayout.SortOrder = Enum.SortOrder.LayoutOrder
 hotBarLayout.Parent = hotBar
 
 local function refreshHotBar()
-	hotBar.Visible = boneHeld or gadgetHeld
+	hotBar.Visible = boneHeld or gadgetHeld or homeHeld
 end
 
 local function throwBone(key: string)
@@ -926,6 +952,8 @@ local HOTKEYS = {
 	plunger = { key = Enum.KeyCode.Four, label = "4" },
 	gum = { key = Enum.KeyCode.Five, label = "5" },
 	zapper = { key = Enum.KeyCode.Six, label = "6" },
+	treat = { key = Enum.KeyCode.Seven, label = "7" },
+	sprinkler = { key = Enum.KeyCode.Eight, label = "8" },
 }
 
 -- A rendered 3D bone in a ViewportFrame, from the same model that gets thrown.
@@ -1336,6 +1364,184 @@ local function renderGadgets()
 end
 
 -- ============================================================
+-- HOME ITEMS
+-- ============================================================
+
+local latestHome: any = nil
+local homeTiles: { [string]: { title: TextLabel, sub: TextLabel, count: TextLabel, button: TextButton } } = {}
+local homeSlots: { [string]: { button: TextButton, label: TextLabel, hotkey: TextLabel } } = {}
+
+-- The treat sits under the bones and the sprinkler under the gadgets, because
+-- each belongs with the thing it acts on. `parent` is passed in rather than
+-- looked up so one builder serves both.
+local function ensureHomeTile(key: string, info: any, parent: Frame)
+	local existing = homeTiles[key]
+	if existing then
+		return existing
+	end
+
+	local button = Instance.new("TextButton")
+	button.LayoutOrder = info.order or 99
+	button.BackgroundColor3 = PANEL
+	button.BorderSizePixel = 0
+	button.Font = Enum.Font.FredokaOne
+	button.Text = ""
+	button.Parent = parent
+	corner(button, 10)
+
+	makeModelIcon(button, HomeModel.build(key), UDim2.new(0, 48, 0, 50), UDim2.new(0, 4, 0, 8), true)
+
+	local title = Instance.new("TextLabel")
+	title.Size = UDim2.new(1, -62, 0, 20)
+	title.Position = UDim2.new(0, 56, 0, 6)
+	title.BackgroundTransparency = 1
+	title.Font = Enum.Font.FredokaOne
+	title.TextScaled = true
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.TextColor3 = Color3.fromRGB(236, 240, 248)
+	title.Text = info.name
+	title.Parent = button
+
+	local sub = Instance.new("TextLabel")
+	sub.Size = UDim2.new(1, -62, 0, 18)
+	sub.Position = UDim2.new(0, 56, 0, 28)
+	sub.BackgroundTransparency = 1
+	sub.Font = Enum.Font.GothamBold
+	sub.TextSize = 12
+	sub.TextXAlignment = Enum.TextXAlignment.Left
+	sub.TextColor3 = GOLD
+	sub.Text = ""
+	sub.Parent = button
+
+	local count = Instance.new("TextLabel")
+	count.Size = UDim2.new(1, -62, 0, 16)
+	count.Position = UDim2.new(0, 56, 0, 46)
+	count.BackgroundTransparency = 1
+	count.Font = Enum.Font.Gotham
+	count.TextSize = 11
+	count.TextXAlignment = Enum.TextXAlignment.Left
+	count.TextColor3 = Color3.fromRGB(150, 162, 178)
+	count.Text = ""
+	count.Parent = button
+
+	button.Activated:Connect(function()
+		Remotes.get("HomeRequest"):FireServer(key)
+	end)
+
+	local entry = { title = title, sub = sub, count = count, button = button }
+	homeTiles[key] = entry
+	return entry
+end
+
+local function ensureHomeSlot(key: string, info: any)
+	local existing = homeSlots[key]
+	if existing then
+		return existing
+	end
+
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(0, 58, 1, 0)
+	-- Last on the bar, after the bones and the gadgets. These are used at
+	-- home rather than thrown at anybody, so they are the least urgent thing
+	-- on it and belong furthest from the thumb.
+	button.LayoutOrder = 20 + (info.order or 99)
+	button.BackgroundColor3 = PANEL
+	button.BackgroundTransparency = 0.15
+	button.BorderSizePixel = 0
+	button.AutoButtonColor = true
+	button.Font = Enum.Font.FredokaOne
+	button.Text = ""
+	button.Parent = hotBar
+	corner(button, 10)
+
+	makeModelIcon(button, HomeModel.build(key), UDim2.new(1, -6, 1, -6), UDim2.new(0, 3, 0, 3), false)
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, -6, 0, 18)
+	label.Position = UDim2.new(0, 3, 1, -20)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.FredokaOne
+	label.TextScaled = true
+	label.TextXAlignment = Enum.TextXAlignment.Right
+	label.TextColor3 = Color3.fromRGB(255, 252, 244)
+	label.TextStrokeTransparency = 0.2
+	label.TextStrokeColor3 = Color3.fromRGB(18, 20, 26)
+	label.Text = ""
+	label.Parent = button
+
+	local hotkey = Instance.new("TextLabel")
+	hotkey.Size = UDim2.new(0, 22, 0, 14)
+	hotkey.Position = UDim2.new(0, 3, 0, 2)
+	hotkey.BackgroundTransparency = 1
+	hotkey.Font = Enum.Font.GothamBold
+	hotkey.TextScaled = true
+	hotkey.TextXAlignment = Enum.TextXAlignment.Left
+	hotkey.TextColor3 = Color3.fromRGB(190, 255, 200)
+	hotkey.TextStrokeTransparency = 0.3
+	hotkey.TextStrokeColor3 = Color3.fromRGB(18, 20, 26)
+	hotkey.Text = ""
+	hotkey.Parent = button
+
+	button.Activated:Connect(function()
+		Remotes.get("HomeUse"):FireServer(key)
+	end)
+
+	local entry = { button = button, label = label, hotkey = hotkey }
+	homeSlots[key] = entry
+	return entry
+end
+
+local function renderHome()
+	if not latestHome then
+		return
+	end
+
+	local anyHeld = false
+	for key, info in pairs(latestHome.items or {}) do
+		local parent = if key == "treat" then treatGridFrame else homeGridFrame
+		local tile = ensureHomeTile(key, info, parent)
+		tile.title.Text = info.name
+		tile.sub.Text = ("%s  -  %s"):format(
+			if info.duration >= 60 then ("%d min"):format(info.duration / 60)
+			else ("%ds"):format(info.duration),
+			format(info.cost))
+		tile.count.Text = if info.held > 0 then ("you have %d"):format(info.held) else (info.detail or "")
+		tile.button.BackgroundColor3 = if latestCoins >= info.cost
+			then Color3.fromRGB(58, 84, 62)
+			else PANEL
+
+		local slot = ensureHomeSlot(key, info)
+		slot.button.Visible = info.held > 0
+		slot.label.Text = tostring(info.held)
+		local hot = HOTKEYS[key]
+		slot.hotkey.Text = if hot then hot.label else ""
+		if info.held > 0 then
+			anyHeld = true
+		end
+	end
+
+	-- The countdown, on the treat's own slot. Ten thousand coins with nothing
+	-- on screen to show for it reads as a purchase that did not take -- and the
+	-- one thing a defender actually wants to know is how long they have left
+	-- before they should head home.
+	local left = latestHome.guardSeconds or 0
+	local treatSlot = homeSlots.treat
+	if treatSlot then
+		if left > 0 then
+			treatSlot.button.Visible = true
+			treatSlot.label.Text = ("%d:%02d"):format(math.floor(left / 60), left % 60)
+			treatSlot.hotkey.Text = "ON"
+			anyHeld = true
+		else
+			treatSlot.hotkey.Text = if HOTKEYS.treat then HOTKEYS.treat.label else ""
+		end
+	end
+
+	homeHeld = anyHeld
+	refreshHotBar()
+end
+
+-- ============================================================
 -- RIDES
 -- ============================================================
 
@@ -1584,6 +1790,11 @@ Remotes.get("GadgetState").OnClientEvent:Connect(function(snapshot)
 	renderGadgets()
 end)
 
+Remotes.get("HomeState").OnClientEvent:Connect(function(snapshot)
+	latestHome = snapshot
+	renderHome()
+end)
+
 Remotes.get("RideState").OnClientEvent:Connect(function(snapshot)
 	latestRides = snapshot
 	renderRides()
@@ -1619,10 +1830,13 @@ UserInputService.InputBegan:Connect(function(input, processed)
 			if input.KeyCode == hot.key then
 				local bone = latestBones and latestBones[key]
 				local gadget = latestGadgets and latestGadgets[key]
+				local home = latestHome and latestHome.items and latestHome.items[key]
 				if bone and bone.held > 0 then
 					throwBone(key)
 				elseif gadget and gadget.held > 0 then
 					throwGadget(key)
+				elseif home and home.held > 0 then
+					Remotes.get("HomeUse"):FireServer(key)
 				end
 				break
 			end
@@ -1764,6 +1978,7 @@ local function renderUpgrades()
 	renderBones()
 	renderCollection()
 	renderGadgets()
+	renderHome()
 	renderRides()
 end
 

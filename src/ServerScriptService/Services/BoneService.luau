@@ -105,6 +105,7 @@ local function findTarget(from: Vector3, breaksChase: boolean): (any?, string?)
 	local nearestAny = math.huge
 	local sawChasing = false
 	local sawResting = false
+	local sawGuarded = false
 
 	for _, plot in ipairs(PlotService.getAll()) do
 		local dog = plot.dog
@@ -117,7 +118,15 @@ local function findTarget(from: Vector3, breaksChase: boolean): (any?, string?)
 			nearestAny = math.min(nearestAny, dist)
 
 			if dist <= Config.BONE_THROW_RANGE then
-				if dog.lured then
+				-- Guard duty is knowable before the throw, so it is refused here
+				-- rather than on landing. GuardDog.lure checks it again -- the
+				-- state can change during the half second of flight -- but that
+				-- path exists as a backstop, not as the message a player reads.
+				-- A bone spent on a dog that was never going to take it is
+				-- indistinguishable from the item not working.
+				if GuardDog.onGuardDuty(dog) and not breaksChase then
+					sawGuarded = true
+				elseif dog.lured then
 					sawResting = true
 				elseif dog.chasing then
 					if breaksChase then
@@ -143,6 +152,11 @@ local function findTarget(from: Vector3, breaksChase: boolean): (any?, string?)
 	-- that names a rule the player can act on.
 	if sawChasing then
 		return nil, "It has already seen you -- only a Golden Bone stops a chase."
+	end
+	-- Ranked above "off duty" for the same reason chasing is: it names a rule
+	-- the player can act on, and the collar is already glowing to back it up.
+	if sawGuarded then
+		return nil, "That dog is on guard duty -- only a Golden Bone gets past it."
 	end
 	if sawResting then
 		return nil, "That dog is already off duty."
@@ -229,7 +243,7 @@ function BoneService.throw(player: Player, key: string)
 			end
 			stock(data)[key] = (stock(data)[key] or 0) + 1
 			BoneService.push(player)
-			notify(player, ("Too late -- %s Bone returned."):format(why or "it was busy."), "warn")
+			notify(player, ("Bone returned: %s"):format(why or "it was busy."), "warn")
 			return
 		end
 

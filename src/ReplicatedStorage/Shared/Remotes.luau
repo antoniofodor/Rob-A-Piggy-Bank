@@ -54,6 +54,13 @@ local DEFINITIONS = {
 	-- authoritative positions, so there is no coordinate here to forge.
 	BoneThrow = "RemoteEvent",
 
+	-- Client buys, or uses, an item on their OWN plot. HomeUse carries a key
+	-- and NO target: the server acts on the caller's own plot or on nothing,
+	-- so there is no player here that could be named.
+	HomeRequest = "RemoteEvent",
+	HomeUse = "RemoteEvent",
+	HomeState = "RemoteEvent",
+
 	-- Client buys a gadget; server pushes how many of each they hold.
 	GadgetRequest = "RemoteEvent",
 	GadgetState = "RemoteEvent",

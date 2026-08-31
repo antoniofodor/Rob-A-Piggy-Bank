@@ -61,6 +61,11 @@ export type Dog = {
 	home: Vector3,           -- the torso's on-duty rest position
 	level: number,
 	busyUntil: number,
+	-- Guard duty, bought by the OWNER with a treat. Until this passes the dog
+	-- ignores its cooldown entirely and refuses every bone but a Golden one.
+	-- Kept as a deadline rather than a boolean so it needs no timer to expire
+	-- and survives the dog being rebuilt by a tier change.
+	guardUntil: number,
 	chasing: boolean,
 	sleeping: boolean,
 	-- Walking over to a thrown bone. Distinct from `chasing` because the dog
@@ -194,6 +199,21 @@ local function sleepCFrame(dog: Dog, scale: number): CFrame
 	return dog.originCF * CFrame.new(0, (1.9 - 0.55) * scale, 0.4 * scale)
 end
 
+-- On guard duty right now?
+local function onGuardDuty(dog: Dog): boolean
+	return os.clock() < dog.guardUntil
+end
+
+-- Off duty and unavailable.
+--
+-- Everything below used to compare os.clock() against dog.busyUntil directly,
+-- in six places. Guard duty has to suppress the cooldown in ALL of them --
+-- miss one and the dog naps through the thing its owner just paid to prevent
+-- -- so the comparison lives here once instead.
+local function onCooldown(dog: Dog): boolean
+	return os.clock() < dog.busyUntil and not onGuardDuty(dog)
+end
+
 local function settle(dog: Dog, tier: any)
 	local mouth = (dog.originCF * CFrame.new(0, 0, 2.4 * tier.scale)).Position
 	walkTo(dog, mouth, tier.speed * Config.DOG_PATROL_SPEED * 2.2, 6, function()
@@ -213,7 +233,10 @@ local function rouse(dog: Dog, tier: any)
 	dog.sleeping = false
 	dog.distracted = false
 	dog.zzz.Enabled = false
-	dog.breedLabel.Text = string.upper(tier.breed)
+	-- Keeps the guard-duty tell if that is still running. Waking up from an
+	-- interrupted chase must not quietly relabel a dog its owner has paid to
+	-- advertise as unbribeable.
+	dog.breedLabel.Text = if onGuardDuty(dog) then "ON GUARD" else string.upper(tier.breed)
 
 	-- Stand back up at the rest spot. Orientation comes from originCF, so the
 	-- dog ends up facing out of its own doorway.
@@ -232,7 +255,7 @@ local function behaviour(dog: Dog)
 		-- the same model with PivotTo would fight frame by frame.
 		if not tier or dog.chasing or dog.lured then
 			task.wait(0.4)
-		elseif os.clock() < dog.busyUntil then
+		elseif onCooldown(dog) then
 			if dog.sleeping then
 				task.wait(0.4)
 			else
@@ -255,23 +278,86 @@ local function behaviour(dog: Dog)
 			local low, high = Config.DOG_PATROL_PAUSE[1], Config.DOG_PATROL_PAUSE[2]
 			local pauseUntil = os.clock() + low + math.random() * (high - low)
 			while os.clock() < pauseUntil do
-				if dog.chasing or dog.lured or dog.level <= 0 or os.clock() < dog.busyUntil then
+				if dog.chasing or dog.lured or dog.level <= 0 or onCooldown(dog) then
 					break
 				end
 				task.wait(0.15)
 			end
 
 			tier = Config.getDogTier(dog.level)
-			if tier and not dog.chasing and os.clock() >= dog.busyUntil then
+			if tier and not dog.chasing and not onCooldown(dog) then
 				local angle = math.random() * math.pi * 2
 				local dist = math.random() * Config.DOG_PATROL_RADIUS
 				local target = dog.home + Vector3.new(math.cos(angle) * dist, 0, math.sin(angle) * dist)
 				walkTo(dog, target, tier.speed * Config.DOG_PATROL_SPEED, 8, function()
-					return dog.chasing or dog.lured or dog.level <= 0 or os.clock() < dog.busyUntil
+					return dog.chasing or dog.lured or dog.level <= 0 or onCooldown(dog)
 				end)
 			end
 		end
 	end
+end
+
+-- The visible half of guard duty.
+--
+-- A buff a thief cannot see is a trap: they burn a Golden Bone finding out, or
+-- worse, get caught by a dog they had every reason to think was bribeable. So
+-- the collar goes neon and the nameplate says so, and the correct response --
+-- go and rob one of the other eleven plots -- is readable from the pavement.
+local function showGuardDuty(dog: Dog, on: boolean)
+	local tier = Config.getDogTier(dog.level)
+	if not tier then
+		return
+	end
+
+	for _, piece in ipairs(dog.pieces) do
+		if piece.part.Name == "Collar" or piece.part.Name == "Tag" then
+			piece.part.Material = if on then Enum.Material.Neon else Enum.Material.Metal
+		end
+	end
+
+	if on then
+		dog.breedLabel.Text = "ON GUARD"
+	elseif not dog.sleeping then
+		dog.breedLabel.Text = string.upper(tier.breed)
+	end
+end
+
+-- Puts the owner's own dog on guard duty. Extends rather than replaces, so
+-- using a second treat before the first runs out is never a downgrade.
+function GuardDog.setGuardDuty(dog: Dog, seconds: number): boolean
+	local tier = Config.getDogTier(dog.level)
+	if not tier then
+		return false
+	end
+
+	dog.guardUntil = math.max(dog.guardUntil, os.clock()) + seconds
+
+	-- Straight back on its feet. A dog that stayed asleep for the rest of its
+	-- cooldown would look exactly like the treat having done nothing, and the
+	-- cooldown is precisely what was just bought off.
+	if dog.sleeping then
+		rouse(dog, tier)
+	end
+	showGuardDuty(dog, true)
+
+	local endsAt = dog.guardUntil
+	task.delay(seconds + 0.1, function()
+		-- Only clear if nothing extended it while we were waiting.
+		if dog.model.Parent and dog.guardUntil <= endsAt then
+			showGuardDuty(dog, false)
+		end
+	end)
+	return true
+end
+
+function GuardDog.guardSecondsLeft(dog: Dog): number
+	return math.max(0, dog.guardUntil - os.clock())
+end
+
+-- Public because BoneService has to refuse a throw BEFORE the bone leaves the
+-- pocket, and it cannot see the local one.
+function GuardDog.onGuardDuty(dog: Dog): boolean
+	return onGuardDuty(dog)
 end
 
 -- ============================================================
@@ -365,12 +451,21 @@ function GuardDog.applyTier(dog: Dog, level: number)
 	dog.plate.Enabled = true
 	dog.nameLabel.Text = tier.name
 	dog.nameLabel.TextColor3 = tier.collar
-	dog.breedLabel.Text = if dog.sleeping then "OFF DUTY" else string.upper(tier.breed)
+	dog.breedLabel.Text = if onGuardDuty(dog) then "ON GUARD"
+		elseif dog.sleeping then "OFF DUTY"
+		else string.upper(tier.breed)
 
 	-- A tier change mid-nap has to re-seat the dog, or it snaps to the rest
 	-- spot at the new scale while still flagged asleep.
 	if dog.sleeping then
 		dog.model:PivotTo(sleepCFrame(dog, tier.scale))
+	end
+
+	-- This function repaints every piece from the tier, collar included, so a
+	-- dog upgraded mid-guard-duty would come back in plain metal with the buff
+	-- still running -- the exact invisible-buff trap the tell exists to avoid.
+	if onGuardDuty(dog) then
+		showGuardDuty(dog, true)
 	end
 end
 
@@ -502,6 +597,7 @@ function GuardDog.build(originCF: CFrame, parent: Instance): Dog
 		home = (originCF * CFrame.new(REST_OFFSET + Vector3.new(0, 1.9, 0))).Position,
 		level = 0,
 		busyUntil = 0,
+		guardUntil = 0,
 		chasing = false,
 		sleeping = false,
 		lured = false,
@@ -529,7 +625,7 @@ function GuardDog.isReady(dog: Dog): boolean
 	return dog.level > 0
 		and not dog.chasing
 		and not dog.lured
-		and os.clock() >= dog.busyUntil
+		and not onCooldown(dog)
 end
 
 -- Chases `getTargetRoot()` until it catches them, the target vanishes, or the
@@ -631,8 +727,19 @@ function GuardDog.lure(dog: Dog, bone: Model, nap: number, breaksChase: boolean)
 	if dog.chasing and not breaksChase then
 		return false, "it has already spotted you -- only a Golden Bone stops a chase"
 	end
-	if not dog.chasing and os.clock() < dog.busyUntil then
+	if not dog.chasing and onCooldown(dog) then
 		return false, "it is already off duty"
+	end
+
+	-- Guard duty: the cheap bones bounce off, the master key does not.
+	--
+	-- Same line the chase-break draws, and drawn here for the same reason: a
+	-- defender who has paid to be left alone should raise the price of robbing
+	-- them, not close the door. Refused BEFORE the stock is spent, so a thief
+	-- who throws into a guarded plot keeps the bone -- see BoneService, which
+	-- returns it on any refusal.
+	if onGuardDuty(dog) and not breaksChase then
+		return false, "that dog is on guard duty -- only a Golden Bone gets past it"
 	end
 
 	dog.lured = true

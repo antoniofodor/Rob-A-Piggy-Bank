@@ -389,6 +389,84 @@ Config.BONES = {
 -- ever set foot on the lawn -- has to work from outside the fence. It stays
 -- well under PLOT_SPACING (64) so it cannot casually reach next door's dog.
 -- ============================================================
+-- HOME ITEMS
+-- ============================================================
+--
+-- Things you use on your OWN plot. Neither can be aimed at anybody, anywhere,
+-- ever -- they act on your dog and on your lawn, and that is what keeps them
+-- out of the harassment bracket the gadgets had to be designed around.
+--
+-- THE TREAT EXISTS TO GET PEOPLE OUT OF THE HOUSE.
+--
+-- The economy needs players robbing each other, and the thing that stops them
+-- is anxiety about their own vault: there is no "lock up before you go out"
+-- action, so the only way to protect a full piggy is to sit on it. That is a
+-- player choosing to do nothing, which is the worst outcome the design has.
+--
+-- It deliberately does NOT grant immunity. A Golden Bone still gets through,
+-- which is the same line the chase-break already draws -- the cheap bones are
+-- refused, the 30,000-coin master key is not. So a prepared defender makes
+-- robbing them cost twelve times more, rather than making it impossible:
+--
+--     Dog Bone     2,500   bounces off
+--     Juicy Steak  9,000   bounces off
+--     Golden Bone 30,000   still works
+--
+-- That matters because an alert dog is genuinely dangerous. A Titan runs at 17
+-- against a thief carrying at 16 with boots maxed, so "always awake and cannot
+-- be bribed" would be an un-robbable plot, which is the one failure state this
+-- whole game is arranged to avoid.
+--
+-- And it is LOUDLY VISIBLE -- neon collar, ON GUARD on the nameplate. The
+-- counter to a buff should be information, not a fight: a thief reads it from
+-- the pavement and walks to one of the other eleven plots. The defender gets
+-- peace of mind, the robber loses nothing but a few seconds, and nobody burns
+-- a Golden Bone finding out.
+--
+-- THE SPRINKLER IS A JOKE, AND IS MEANT TO STAY ONE.
+--
+-- No damage, no stun, no slow -- it nudges trespassers toward the gate and
+-- soaks them, and they can walk straight back in. That is deliberate on two
+-- counts. Loitering is not actually a mechanical problem here (STEAL_COOLDOWN
+-- and STEAL_MAX_PER_VICTIM already make camping a plot pointless), so the
+-- irritation is social and the answer should be too. And anything with teeth
+-- would be a fourth defence stacking on the fence, the dog and the locks --
+-- and would bite during a steal attempt, since a thief cracking a lock is
+-- stood still on that very lawn.
+Config.HOME_ITEMS = {
+	treat = {
+		name = "Guard Duty Treat", style = "treat", order = 1,
+		cost = 10000, duration = 360,
+		blurb = "Your dog stays awake and refuses bribes for six minutes",
+		detail = "Cheap bones bounce off. A Golden Bone still works.",
+	},
+	sprinkler = {
+		name = "Garden Sprinkler", style = "sprinkler", order = 2,
+		cost = 3000, duration = 20,
+		blurb = "Soaks anybody loitering on your lawn",
+		detail = "Pushes them toward the gate. No damage -- it is just rude.",
+	},
+}
+
+-- How hard the sprinkler shoves, and how often it re-shoves.
+--
+-- Small on purpose. This is a nudge and a laugh, not a launcher: anything
+-- strong enough to actually clear the lawn would be a defence, and would throw
+-- players into the road, which at these plot spacings means into somebody
+-- else's yard.
+Config.SPRINKLER_PUSH = 26
+Config.SPRINKLER_LIFT = 12
+Config.SPRINKLER_TICK = 0.7
+
+function Config.homeItemCount(): number
+	local n = 0
+	for _ in pairs(Config.HOME_ITEMS) do
+		n += 1
+	end
+	return n
+end
+
+-- ============================================================
 -- GADGETS
 -- ============================================================
 --
