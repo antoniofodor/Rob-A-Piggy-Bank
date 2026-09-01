@@ -54,6 +54,12 @@ local DEFINITIONS = {
 	-- authoritative positions, so there is no coordinate here to forge.
 	BoneThrow = "RemoteEvent",
 
+	-- Client asks to dodge. Carries NOTHING -- not even a direction: the
+	-- server rolls you along your own movement by raising WalkSpeed, so there
+	-- is no vector here to forge into a longer one.
+	DodgeRequest = "RemoteEvent",
+	DodgeState = "RemoteEvent",
+
 	-- Client buys, or uses, a thief consumable. StealthUse carries a key and
 	-- NO target: both of these act on the caller and nobody else.
 	StealthRequest = "RemoteEvent",

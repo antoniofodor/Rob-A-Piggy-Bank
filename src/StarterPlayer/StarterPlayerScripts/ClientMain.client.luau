@@ -915,9 +915,20 @@ local latestBones: { [string]: any }? = nil
 -- each records whether IT has anything and the bar takes the union -- a single
 -- `Visible = anyHeld` in either one would hide the other's slots.
 local boneHeld = false
-local gadgetHeld = false
-local homeHeld = false
-local stealthHeld = false
+
+-- One table per feature instead of four locals each.
+--
+-- Luau caps a function at 200 local registers and the main chunk of this file
+-- reached it: gadgets, home items, the thief kit and rides were each keeping a
+-- `latest`, a `tiles`, a `slots` and a `held` at top level, and the dodge
+-- button tipped it over. Grouping costs one register apiece and reads better
+-- besides -- `gadgetUI.tiles` says what it belongs to, where `gadgetUI.tiles`
+-- only spells it. Any new HUD feature should follow this shape; the budget is
+-- not large and two features are spending it at once.
+local gadgetUI = { latest = nil :: any, tiles = {}, slots = {}, held = false }
+local homeUI = { latest = nil :: any, tiles = {}, slots = {}, held = false }
+local stealthUI = { latest = nil :: any, tiles = {}, slots = {}, held = false }
+local rideUI = { latest = nil :: any, tiles = {} }
 
 local boneTiles: { [string]: { title: TextLabel, sub: TextLabel, count: TextLabel, button: TextButton } } = {}
 local boneSlots: { [string]: { button: TextButton, label: TextLabel, hotkey: TextLabel } } = {}
@@ -950,8 +961,52 @@ hotBarLayout.Padding = UDim.new(0, 6)
 hotBarLayout.SortOrder = Enum.SortOrder.LayoutOrder
 hotBarLayout.Parent = hotBar
 
+local dodgeButton = Instance.new("TextButton")
+dodgeButton.Name = "DodgeButton"
+dodgeButton.Size = UDim2.new(0, 92, 0, 44)
+dodgeButton.LayoutOrder = -1
+dodgeButton.AnchorPoint = Vector2.new(1, 0)
+dodgeButton.Position = UDim2.new(1, 0, 0, 0)
+dodgeButton.BackgroundColor3 = Color3.fromRGB(64, 96, 150)
+dodgeButton.BorderSizePixel = 0
+dodgeButton.AutoButtonColor = true
+dodgeButton.Font = Enum.Font.FredokaOne
+dodgeButton.TextSize = 18
+dodgeButton.TextColor3 = Color3.fromRGB(240, 246, 255)
+dodgeButton.Text = "DODGE  Q"
+dodgeButton.Parent = shop
+corner(dodgeButton, 10)
+
+-- The cooldown, drawn as the button draining rather than as a number.
+--
+-- Five seconds shown as "3.2" is a thing to read; shown as a bar two-thirds
+-- empty it is a thing to glance at, which is all anybody can spare mid-chase.
+local dodgeFill = Instance.new("Frame")
+dodgeFill.Name = "Cooldown"
+dodgeFill.Size = UDim2.new(0, 0, 1, 0)
+dodgeFill.BackgroundColor3 = Color3.fromRGB(28, 34, 48)
+dodgeFill.BackgroundTransparency = 0.35
+dodgeFill.BorderSizePixel = 0
+dodgeFill.ZIndex = 0
+dodgeFill.Parent = dodgeButton
+corner(dodgeFill, 10)
+
+-- One table, not four locals: this chunk is near Luau's 200-register ceiling.
+local dodge = {
+	button = dodgeButton,
+	fill = dodgeFill,
+	readyAt = 0,
+	request = function()
+		Remotes.get("DodgeRequest"):FireServer()
+	end,
+}
+
+dodgeButton.Activated:Connect(function()
+	dodge.request()
+end)
+
 local function refreshHotBar()
-	hotBar.Visible = boneHeld or gadgetHeld or homeHeld or stealthHeld
+	hotBar.Visible = boneHeld or gadgetUI.held or homeUI.held or stealthUI.held
 end
 
 local function throwBone(key: string)
@@ -1229,12 +1284,9 @@ end
 -- GADGETS
 -- ============================================================
 
-local latestGadgets: { [string]: any }? = nil
-local gadgetTiles: { [string]: { title: TextLabel, sub: TextLabel, count: TextLabel, button: TextButton } } = {}
-local gadgetSlots: { [string]: { button: TextButton, label: TextLabel, hotkey: TextLabel } } = {}
 
 local function ensureGadgetTile(key: string, info: any)
-	local existing = gadgetTiles[key]
+	local existing = gadgetUI.tiles[key]
 	if existing then
 		return existing
 	end
@@ -1288,12 +1340,12 @@ local function ensureGadgetTile(key: string, info: any)
 	end)
 
 	local entry = { title = title, sub = sub, count = count, button = button }
-	gadgetTiles[key] = entry
+	gadgetUI.tiles[key] = entry
 	return entry
 end
 
 local function ensureGadgetSlot(key: string, info: any)
-	local existing = gadgetSlots[key]
+	local existing = gadgetUI.slots[key]
 	if existing then
 		return existing
 	end
@@ -1348,17 +1400,17 @@ local function ensureGadgetSlot(key: string, info: any)
 	end)
 
 	local entry = { button = button, label = label, hotkey = hotkey }
-	gadgetSlots[key] = entry
+	gadgetUI.slots[key] = entry
 	return entry
 end
 
 local function renderGadgets()
-	if not latestGadgets then
+	if not gadgetUI.latest then
 		return
 	end
 
 	local anyHeld = false
-	for key, info in pairs(latestGadgets) do
+	for key, info in pairs(gadgetUI.latest) do
 		local tile = ensureGadgetTile(key, info)
 		tile.title.Text = info.name
 		-- What it does, in the two numbers that matter: how much it takes off
@@ -1384,7 +1436,7 @@ local function renderGadgets()
 		end
 	end
 
-	gadgetHeld = anyHeld
+	gadgetUI.held = anyHeld
 	refreshHotBar()
 end
 
@@ -1392,15 +1444,12 @@ end
 -- HOME ITEMS
 -- ============================================================
 
-local latestHome: any = nil
-local homeTiles: { [string]: { title: TextLabel, sub: TextLabel, count: TextLabel, button: TextButton } } = {}
-local homeSlots: { [string]: { button: TextButton, label: TextLabel, hotkey: TextLabel } } = {}
 
 -- The treat sits under the bones and the sprinkler under the gadgets, because
 -- each belongs with the thing it acts on. `parent` is passed in rather than
 -- looked up so one builder serves both.
 local function ensureHomeTile(key: string, info: any, parent: Frame)
-	local existing = homeTiles[key]
+	local existing = homeUI.tiles[key]
 	if existing then
 		return existing
 	end
@@ -1454,12 +1503,12 @@ local function ensureHomeTile(key: string, info: any, parent: Frame)
 	end)
 
 	local entry = { title = title, sub = sub, count = count, button = button }
-	homeTiles[key] = entry
+	homeUI.tiles[key] = entry
 	return entry
 end
 
 local function ensureHomeSlot(key: string, info: any)
-	local existing = homeSlots[key]
+	local existing = homeUI.slots[key]
 	if existing then
 		return existing
 	end
@@ -1512,17 +1561,17 @@ local function ensureHomeSlot(key: string, info: any)
 	end)
 
 	local entry = { button = button, label = label, hotkey = hotkey }
-	homeSlots[key] = entry
+	homeUI.slots[key] = entry
 	return entry
 end
 
 local function renderHome()
-	if not latestHome then
+	if not homeUI.latest then
 		return
 	end
 
 	local anyHeld = false
-	for key, info in pairs(latestHome.items or {}) do
+	for key, info in pairs(homeUI.latest.items or {}) do
 		local parent = if key == "treat" then treatGridFrame else homeGridFrame
 		local tile = ensureHomeTile(key, info, parent)
 		tile.title.Text = info.name
@@ -1549,8 +1598,8 @@ local function renderHome()
 	-- on screen to show for it reads as a purchase that did not take -- and the
 	-- one thing a defender actually wants to know is how long they have left
 	-- before they should head home.
-	local left = latestHome.guardSeconds or 0
-	local treatSlot = homeSlots.treat
+	local left = homeUI.latest.guardSeconds or 0
+	local treatSlot = homeUI.slots.treat
 	if treatSlot then
 		if left > 0 then
 			treatSlot.button.Visible = true
@@ -1562,7 +1611,7 @@ local function renderHome()
 		end
 	end
 
-	homeHeld = anyHeld
+	homeUI.held = anyHeld
 	refreshHotBar()
 end
 
@@ -1570,12 +1619,9 @@ end
 -- THIEF KIT
 -- ============================================================
 
-local latestStealth: any = nil
-local stealthTiles: { [string]: { title: TextLabel, sub: TextLabel, count: TextLabel, button: TextButton } } = {}
-local stealthSlots: { [string]: { button: TextButton, label: TextLabel, hotkey: TextLabel } } = {}
 
 local function ensureStealthTile(key: string, info: any)
-	local existing = stealthTiles[key]
+	local existing = stealthUI.tiles[key]
 	if existing then
 		return existing
 	end
@@ -1629,12 +1675,12 @@ local function ensureStealthTile(key: string, info: any)
 	end)
 
 	local entry = { title = title, sub = sub, count = count, button = button }
-	stealthTiles[key] = entry
+	stealthUI.tiles[key] = entry
 	return entry
 end
 
 local function ensureStealthSlot(key: string, info: any)
-	local existing = stealthSlots[key]
+	local existing = stealthUI.slots[key]
 	if existing then
 		return existing
 	end
@@ -1687,17 +1733,17 @@ local function ensureStealthSlot(key: string, info: any)
 	end)
 
 	local entry = { button = button, label = label, hotkey = hotkey }
-	stealthSlots[key] = entry
+	stealthUI.slots[key] = entry
 	return entry
 end
 
 local function renderStealth()
-	if not latestStealth then
+	if not stealthUI.latest then
 		return
 	end
 
 	local anyHeld = false
-	for key, info in pairs(latestStealth.items or {}) do
+	for key, info in pairs(stealthUI.latest.items or {}) do
 		local tile = ensureStealthTile(key, info)
 		tile.title.Text = info.name
 		tile.sub.Text = format(info.cost)
@@ -1719,9 +1765,9 @@ local function renderStealth()
 	-- Both of these are STATES once used, and a state with nothing on screen
 	-- reads as a purchase that did not take. The slot says so instead of the
 	-- player having to guess whether they are still hidden.
-	local d = stealthSlots.disguise
+	local d = stealthUI.slots.disguise
 	if d then
-		if latestStealth.disguised then
+		if stealthUI.latest.disguised then
 			d.button.Visible = true
 			d.hotkey.Text = "HID"
 			d.label.Text = ""
@@ -1731,9 +1777,9 @@ local function renderStealth()
 		end
 	end
 
-	local r = stealthSlots.raincoat
+	local r = stealthUI.slots.raincoat
 	if r then
-		if latestStealth.warded then
+		if stealthUI.latest.warded then
 			r.button.Visible = true
 			r.hotkey.Text = "ON"
 			anyHeld = true
@@ -1742,7 +1788,7 @@ local function renderStealth()
 		end
 	end
 
-	stealthHeld = anyHeld
+	stealthUI.held = anyHeld
 	refreshHotBar()
 end
 
@@ -1750,11 +1796,9 @@ end
 -- RIDES
 -- ============================================================
 
-local rideTiles: { [string]: { button: TextButton, title: TextLabel, sub: TextLabel } } = {}
-local latestRides: any = nil
 
 local function ensureRideTile(key: string, info: any)
-	local existing = rideTiles[key]
+	local existing = rideUI.tiles[key]
 	if existing then
 		return existing
 	end
@@ -1811,16 +1855,16 @@ local function ensureRideTile(key: string, info: any)
 	end)
 
 	local entry = { button = button, title = title, sub = sub }
-	rideTiles[key] = entry
+	rideUI.tiles[key] = entry
 	return entry
 end
 
 local function renderRides()
-	if not latestRides then
+	if not rideUI.latest then
 		return
 	end
 
-	for key, info in pairs(latestRides.rides or {}) do
+	for key, info in pairs(rideUI.latest.rides or {}) do
 		local tile = ensureRideTile(key, info)
 		tile.title.Text = info.name
 
@@ -1829,7 +1873,7 @@ local function renderRides()
 			-- that it is selected. Those are different states -- standing on your
 			-- own lawn is the second without the first -- and a tile that claimed
 			-- "RIDING" while the player was plainly walking would read as a bug.
-			tile.sub.Text = if latestRides.riding then "RIDING" else "READY -- HIT THE STREET"
+			tile.sub.Text = if rideUI.latest.riding then "RIDING" else "READY -- HIT THE STREET"
 			tile.sub.TextColor3 = Color3.fromRGB(120, 226, 170)
 			tile.button.BackgroundColor3 = Color3.fromRGB(46, 88, 62)
 		elseif info.owned then
@@ -1970,6 +2014,17 @@ local function renderCollection()
 end
 
 RunService.Heartbeat:Connect(function()
+	local left = dodge.readyAt - os.clock()
+	if left > 0 then
+		dodge.fill.Size = UDim2.new(left / Config.DODGE.cooldown, 0, 1, 0)
+		dodge.button.Text = "DODGE"
+		dodge.button.BackgroundColor3 = Color3.fromRGB(52, 62, 82)
+	elseif dodge.fill.Size.X.Scale > 0 then
+		dodge.fill.Size = UDim2.new(0, 0, 1, 0)
+		dodge.button.Text = "DODGE  Q"
+		dodge.button.BackgroundColor3 = Color3.fromRGB(64, 96, 150)
+	end
+
 	if not panel.Visible then
 		return
 	end
@@ -1991,22 +2046,26 @@ Remotes.get("CosmeticState").OnClientEvent:Connect(function(snapshot)
 end)
 
 Remotes.get("GadgetState").OnClientEvent:Connect(function(snapshot)
-	latestGadgets = snapshot
+	gadgetUI.latest = snapshot
 	renderGadgets()
 end)
 
 Remotes.get("HomeState").OnClientEvent:Connect(function(snapshot)
-	latestHome = snapshot
+	homeUI.latest = snapshot
 	renderHome()
 end)
 
+Remotes.get("DodgeState").OnClientEvent:Connect(function(secondsLeft)
+	dodge.readyAt = os.clock() + (secondsLeft or 0)
+end)
+
 Remotes.get("StealthState").OnClientEvent:Connect(function(snapshot)
-	latestStealth = snapshot
+	stealthUI.latest = snapshot
 	renderStealth()
 end)
 
 Remotes.get("RideState").OnClientEvent:Connect(function(snapshot)
-	latestRides = snapshot
+	rideUI.latest = snapshot
 	renderRides()
 end)
 
@@ -2027,6 +2086,8 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		panel.Visible = not panel.Visible
 	elseif input.KeyCode == Enum.KeyCode.Escape and panel.Visible then
 		panel.Visible = false
+	elseif input.KeyCode == Enum.KeyCode.Q then
+		dodge.request()
 	elseif input.KeyCode == Enum.KeyCode.G then
 		local key = cheapestHeldBone()
 		if key then
@@ -2039,8 +2100,8 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		for key, hot in pairs(HOTKEYS) do
 			if input.KeyCode == hot.key then
 				local bone = latestBones and latestBones[key]
-				local gadget = latestGadgets and latestGadgets[key]
-				local home = latestHome and latestHome.items and latestHome.items[key]
+				local gadget = gadgetUI.latest and gadgetUI.latest[key]
+				local home = homeUI.latest and homeUI.latest.items and homeUI.latest.items[key]
 				if bone and bone.held > 0 then
 					throwBone(key)
 				elseif gadget and gadget.held > 0 then
@@ -2048,7 +2109,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 				elseif home and home.held > 0 then
 					Remotes.get("HomeUse"):FireServer(key)
 				else
-					local kit = latestStealth and latestStealth.items and latestStealth.items[key]
+					local kit = stealthUI.latest and stealthUI.latest.items and stealthUI.latest.items[key]
 					if kit and kit.held > 0 then
 						Remotes.get("StealthUse"):FireServer(key)
 					end

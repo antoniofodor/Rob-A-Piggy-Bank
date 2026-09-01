@@ -301,6 +301,27 @@ are found by CollectionService tag rather than collected once at startup,
 because a moat is built when someone buys the fifth fence and torn down when
 they rebirth.
 
+**The dodge is a MULTIPLIER on `currentSpeed`, never a teleport.** That single
+choice is what makes it safe. `currentSpeed` is the one function that owns every
+speed in the game, so adding one more factor there means the dodge inherits all
+of them with no new balance code: stunned returns 0 before the dodge is reached
+(a zapper cannot be rolled out of), carrying scales it off 12 rather than 16, a
+snag makes it proportionally slower, and riding refuses it outright. An impulse
+or a CFrame nudge would have been a second, parallel way to move that none of
+those numbers knew about. The DISTANCE is deliberately tiny -- about 4.5 studs,
+a tenth off a 37-stud getaway. **The immunity is the point:** half a second where
+you cannot be tagged, caught or hit, against a `TAG_HOLD` of 0.4s, so a defender
+who eats a dodge starts their hold again. A dodge buys a moment, never an
+escape, and it is free for everyone because it is a control rather than a power.
+
+**ClientMain is near Luau's 200-local-register ceiling.** It hit it, and the
+error names an innocent variable far from the cause ("Out of local registers
+when trying to allocate dayLabel"). Every HUD feature added this session was
+keeping four top-level locals for its state; they are now one table each
+(`gadgetUI.tiles`, `stealthUI.held`). Group any new feature the same way rather
+than adding four more -- and note the budget is being spent by more than one
+person at a time.
+
 **The guard dog does not watch an approach.** `GuardDog.chase` only fires from
 `HeistService.attemptSteal`, AFTER a completed steal, so walking up to somebody's
 piggy and holding their lock for up to twelve seconds carries no dog risk at

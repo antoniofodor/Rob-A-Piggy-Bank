@@ -389,6 +389,63 @@ Config.BONES = {
 -- ever set foot on the lawn -- has to work from outside the fence. It stays
 -- well under PLOT_SPACING (64) so it cannot casually reach next door's dog.
 -- ============================================================
+-- DODGE
+-- ============================================================
+--
+-- The one moment in this game with no decisions in it was the chase. A thief
+-- runs at 12 and a defender runs at 16, and both of them already know how that
+-- ends before it starts -- there is nothing to do but hold W and watch a
+-- subtraction happen. This is the timing decision that was missing.
+--
+-- IT IS A MULTIPLIER ON currentSpeed, NOT A TELEPORT, AND THAT IS THE WHOLE
+-- TRICK.
+--
+-- Everything about a burst of movement is dangerous here, because
+-- BASE_WALK_SPEED is what the carry penalty, the three dog speeds, every fence
+-- snag and the length of a getaway are all measured against. Implementing this
+-- as an impulse or a CFrame nudge would have been a second, parallel way to
+-- move that none of those numbers knew about.
+--
+-- Instead it is one more factor in the function that already owns every speed
+-- in the game, which means it inherits all of them without a line of new
+-- balance code:
+--
+--   stunned    -> currentSpeed returns 0 before this is even reached, so a
+--                 zapper or an electric fence cannot be rolled out of
+--   carrying   -> the dodge scales off 12, not 16
+--   snagged    -> a snagged dodge is a slow dodge, in proportion
+--   riding     -> refused outright; you do not roll off a moving scrambler
+--
+-- The DISTANCE is deliberately small. A carrying thief covers 3 studs in a
+-- quarter second normally and 7.5 while dodging, so one dodge is worth about
+-- four and a half studs -- roughly a tenth off a 37-stud getaway. The point
+-- was never the ground gained.
+--
+-- THE IMMUNITY IS THE POINT. For half a second you cannot be tagged, caught by
+-- a dog, or hit by a gadget. TAG_HOLD is 0.4s, so a defender who eats a dodge
+-- has to start their hold again -- a real cost, paid in the currency of the
+-- chase rather than in coins.
+--
+-- A DODGE BUYS A MOMENT, NEVER AN ESCAPE. The dog keeps chasing, the defender
+-- keeps running, and the five-second cooldown means roughly one dodge per
+-- getaway. It is a decision about WHEN, which is exactly what the chase had
+-- none of.
+--
+-- Free, and everybody has it. A dodge is a control rather than a power: gating
+-- it behind coins would mean new players are playing a different game from
+-- everybody else at the only moment that matters. It is also symmetric -- a
+-- defender gains the same few studs -- so the pursuit maths is unchanged, and
+-- only the immunity favours the person being chased, which is the intent.
+Config.DODGE = {
+	-- Against whatever the dodger's speed already is, not against 16.
+	multiplier = 2.5,
+	duration = 0.25,
+	-- Longer than the roll, so the tail of it is covered too.
+	immunity = 0.5,
+	cooldown = 5,
+}
+
+-- ============================================================
 -- THIEF KIT
 -- ============================================================
 --

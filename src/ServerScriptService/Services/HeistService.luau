@@ -241,6 +241,19 @@ end
 -- into a chase.
 local rideMultiplier: { [Player]: number } = {}
 
+-- Dodge windows. Two of them, because the burst of speed is shorter than the
+-- immunity it buys: the roll ends but you stay untouchable for the tail of it,
+-- which is what makes a dodge feel like it worked rather than like it was
+-- half a frame too early.
+local dodgeUntil: { [Player]: number } = {}
+local dodgeImmuneUntil: { [Player]: number } = {}
+local lastDodge: { [Player]: number } = {}
+
+-- Cannot be tagged, caught or hit right now.
+function HeistService.isDodgeImmune(player: Player): boolean
+	return os.clock() < (dodgeImmuneUntil[player] or 0)
+end
+
 local function currentSpeed(player: Player): number
 	-- A shock stops you dead. It outranks everything else, including boots.
 	if isStunned(player) then
@@ -256,6 +269,13 @@ local function currentSpeed(player: Player): number
 		speed *= snag.multiplier
 	end
 	speed *= rideMultiplier[player] or 1
+	-- Last, so it multiplies whatever is left after the carry penalty and any
+	-- snag rather than replacing them. A dodge is proportional to how fast you
+	-- were already going, which is what keeps it from being a way out of a
+	-- defence somebody paid for.
+	if os.clock() < (dodgeUntil[player] or 0) then
+		speed *= Config.DODGE.multiplier
+	end
 	return speed
 end
 
@@ -329,6 +349,63 @@ function HeistService.rideBlockReason(player: Player): string?
 	end
 
 	return nil
+end
+
+-- ============================================================
+-- DODGE
+-- ============================================================
+
+-- Returns seconds until the next dodge is available, for the HUD.
+function HeistService.dodgeCooldownLeft(player: Player): number
+	local ready = (lastDodge[player] or -math.huge) + Config.DODGE.cooldown
+	return math.max(0, ready - os.clock())
+end
+
+local function pushDodge(player: Player)
+	Remotes.get("DodgeState"):FireClient(player, HeistService.dodgeCooldownLeft(player))
+end
+
+function HeistService.dodge(player: Player)
+	local humanoid = getHumanoid(player)
+	if not humanoid or humanoid.Health <= 0 then
+		return
+	end
+
+	-- Every refusal says so. A control that silently does nothing is
+	-- indistinguishable from a broken one, and this is the one input a player
+	-- will press at the exact moment they most need to know why it failed.
+	if isStunned(player) then
+		notify(player, "You're stunned -- you can't dodge.", "warn")
+		return
+	end
+
+	-- You do not roll off a moving scrambler. Also stops a dodge multiplying a
+	-- ride's 33.6 into something absurd; rides are already off during a heist,
+	-- so nothing about a chase is affected either way.
+	if rideMultiplier[player] then
+		notify(player, "Not while you're riding.", "warn")
+		return
+	end
+
+	local left = HeistService.dodgeCooldownLeft(player)
+	if left > 0 then
+		return
+	end
+
+	local now = os.clock()
+	lastDodge[player] = now
+	dodgeUntil[player] = now + Config.DODGE.duration
+	dodgeImmuneUntil[player] = now + Config.DODGE.immunity
+	refreshSpeed(player)
+	pushDodge(player)
+
+	-- Speed comes back on its own. Everything else that touches WalkSpeed goes
+	-- through refreshSpeed too, so whatever else is true by then -- a snag
+	-- landing mid-roll, the loot being dropped -- is recomputed rather than
+	-- overwritten.
+	task.delay(Config.DODGE.duration + 0.02, function()
+		refreshSpeed(player)
+	end)
 end
 
 -- Called by RideService and nobody else. 1 means on foot.
@@ -496,6 +573,14 @@ function HeistService.applyGadget(thief: Player, thrower: Player, spec: any)
 		return false
 	end
 
+	-- Checked BEFORE the raincoat, so a well-timed dodge does not burn a
+	-- perfectly good coat that was never needed.
+	if HeistService.isDodgeImmune(thief) then
+		notify(thief, ("Dodged the %s!"):format(spec.name), "good")
+		notify(thrower, ("%s dodged it."):format(thief.DisplayName), "warn")
+		return true
+	end
+
 	-- A raincoat stops the slows and nothing else.
 	--
 	-- Same shape as the Guard Duty Treat on the other side of this fight:
@@ -623,6 +708,17 @@ end
 function HeistService.tag(tagger: Player, thief: Player, byDog: boolean?)
 	local carry = carrying[thief]
 	if not carry then
+		return
+	end
+
+	-- Dodged. Costs the tagger their whole TAG_HOLD and they must start again,
+	-- which is the entire point: the immunity is paid for in the currency of
+	-- the chase rather than in coins.
+	if HeistService.isDodgeImmune(thief) then
+		notify(thief, "Dodged!", "good")
+		if not byDog then
+			notify(tagger, ("%s dodged you!"):format(thief.DisplayName), "warn")
+		end
 		return
 	end
 
@@ -785,6 +881,13 @@ function HeistService.start()
 		HeistService.applyFencePenalty(player, plot, penalty)
 	end)
 
+	-- Carries no arguments at all. The cooldown, the window and the immunity
+	-- are all decided here, so the only thing a client can do with this channel
+	-- is ask -- and asking too often is simply refused.
+	Remotes.get("DodgeRequest").OnServerEvent:Connect(function(player)
+		HeistService.dodge(player)
+	end)
+
 	for _, plot in ipairs(PlotService.getAll()) do
 		local prompt = plot.piggy.stealPrompt
 
@@ -860,6 +963,9 @@ function HeistService.start()
 		snagged[player] = nil
 		rideMultiplier[player] = nil
 		warded[player] = nil
+		dodgeUntil[player] = nil
+		dodgeImmuneUntil[player] = nil
+		lastDodge[player] = nil
 		lastGrab[player] = nil
 		grabCount[player] = nil
 		for _, byThief in pairs(lastGrab) do
