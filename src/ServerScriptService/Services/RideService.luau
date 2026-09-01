@@ -52,6 +52,7 @@ local RideModel = require(ReplicatedStorage.Shared.RideModel)
 local DataService = require(script.Parent.DataService)
 local PlotService = require(script.Parent.PlotService)
 local HeistService = require(script.Parent.HeistService)
+local StealthService = require(script.Parent.StealthService)
 
 local RideService = {}
 
@@ -247,6 +248,16 @@ local function blockReason(player: Player, data: any): (string?, boolean)
 	-- is tidiness, and this is the order that fails safe. A ride inside a yard
 	-- breaks the fence, the dog and the steal; a ride in the woods is only
 	-- untidy.
+	-- A wheelie bin is not on a skateboard.
+	--
+	-- Beyond the obvious: StealthService hides the character by walking its
+	-- descendants ONCE, at the moment of concealing. A ride mounted after that
+	-- is not on the list, so it stays fully visible -- a floating motorbike
+	-- parked inside an ornament, which is a worse tell than no disguise at all.
+	if StealthService.isDisguised(player) then
+		return "hidden", true
+	end
+
 	if PlotService.yardContaining(root.Position) then
 		return "on a lawn", true
 	end

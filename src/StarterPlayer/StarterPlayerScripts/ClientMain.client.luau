@@ -26,6 +26,7 @@ local PigGear = require(ReplicatedStorage.Shared.PigGear)
 local RideModel = require(ReplicatedStorage.Shared.RideModel)
 local GadgetModel = require(ReplicatedStorage.Shared.GadgetModel)
 local HomeModel = require(ReplicatedStorage.Shared.HomeModel)
+local ThiefModel = require(ReplicatedStorage.Shared.ThiefModel)
 
 local player = Players.LocalPlayer
 
@@ -579,6 +580,27 @@ end
 gadgetHeader("AT HOME", 4)
 local homeGridFrame = gadgetGrid(5, UDim2.new(0, 164, 0, 66))
 
+gadgetHeader("SNEAKING", 6)
+local stealthGridFrame = gadgetGrid(7, UDim2.new(0, 164, 0, 66))
+
+do
+	local how = Instance.new("TextLabel")
+	how.Size = UDim2.new(1, -10, 0, 92)
+	how.LayoutOrder = 8
+	how.BackgroundTransparency = 1
+	how.Font = Enum.Font.Gotham
+	how.TextSize = 13
+	how.TextWrapped = true
+	how.TextXAlignment = Enum.TextXAlignment.Left
+	how.TextYAlignment = Enum.TextYAlignment.Top
+	how.TextColor3 = Color3.fromRGB(130, 142, 158)
+	how.Text = "These are for ROBBING, not defending. Hide as a wheelie bin while "
+		.. "you wait for somebody's piggy to fill or their guard dog to go off "
+		.. "duty -- but move, or grab the loot, and you are a person again. The "
+		.. "raincoat shrugs off one plunger or bubblegum; a Zapper still gets you."
+	how.Parent = gadgetScroll
+end
+
 local rideScroll, rideHeader, rideGrid = makeScroll(rideView)
 rideHeader("GET AROUND", 1)
 -- Wide cells: these tiles carry a rendered 3D model AND three lines of text,
@@ -895,6 +917,7 @@ local latestBones: { [string]: any }? = nil
 local boneHeld = false
 local gadgetHeld = false
 local homeHeld = false
+local stealthHeld = false
 
 local boneTiles: { [string]: { title: TextLabel, sub: TextLabel, count: TextLabel, button: TextButton } } = {}
 local boneSlots: { [string]: { button: TextButton, label: TextLabel, hotkey: TextLabel } } = {}
@@ -928,7 +951,7 @@ hotBarLayout.SortOrder = Enum.SortOrder.LayoutOrder
 hotBarLayout.Parent = hotBar
 
 local function refreshHotBar()
-	hotBar.Visible = boneHeld or gadgetHeld or homeHeld
+	hotBar.Visible = boneHeld or gadgetHeld or homeHeld or stealthHeld
 end
 
 local function throwBone(key: string)
@@ -954,6 +977,8 @@ local HOTKEYS = {
 	zapper = { key = Enum.KeyCode.Six, label = "6" },
 	treat = { key = Enum.KeyCode.Seven, label = "7" },
 	sprinkler = { key = Enum.KeyCode.Eight, label = "8" },
+	disguise = { key = Enum.KeyCode.Nine, label = "9" },
+	raincoat = { key = Enum.KeyCode.Zero, label = "0" },
 }
 
 -- A rendered 3D bone in a ViewportFrame, from the same model that gets thrown.
@@ -1542,6 +1567,186 @@ local function renderHome()
 end
 
 -- ============================================================
+-- THIEF KIT
+-- ============================================================
+
+local latestStealth: any = nil
+local stealthTiles: { [string]: { title: TextLabel, sub: TextLabel, count: TextLabel, button: TextButton } } = {}
+local stealthSlots: { [string]: { button: TextButton, label: TextLabel, hotkey: TextLabel } } = {}
+
+local function ensureStealthTile(key: string, info: any)
+	local existing = stealthTiles[key]
+	if existing then
+		return existing
+	end
+
+	local button = Instance.new("TextButton")
+	button.LayoutOrder = info.order or 99
+	button.BackgroundColor3 = PANEL
+	button.BorderSizePixel = 0
+	button.Font = Enum.Font.FredokaOne
+	button.Text = ""
+	button.Parent = stealthGridFrame
+	corner(button, 10)
+
+	makeModelIcon(button, ThiefModel.build(key), UDim2.new(0, 48, 0, 50), UDim2.new(0, 4, 0, 8), true)
+
+	local title = Instance.new("TextLabel")
+	title.Size = UDim2.new(1, -62, 0, 20)
+	title.Position = UDim2.new(0, 56, 0, 6)
+	title.BackgroundTransparency = 1
+	title.Font = Enum.Font.FredokaOne
+	title.TextScaled = true
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.TextColor3 = Color3.fromRGB(236, 240, 248)
+	title.Text = info.name
+	title.Parent = button
+
+	local sub = Instance.new("TextLabel")
+	sub.Size = UDim2.new(1, -62, 0, 18)
+	sub.Position = UDim2.new(0, 56, 0, 28)
+	sub.BackgroundTransparency = 1
+	sub.Font = Enum.Font.GothamBold
+	sub.TextSize = 12
+	sub.TextXAlignment = Enum.TextXAlignment.Left
+	sub.TextColor3 = GOLD
+	sub.Text = ""
+	sub.Parent = button
+
+	local count = Instance.new("TextLabel")
+	count.Size = UDim2.new(1, -62, 0, 16)
+	count.Position = UDim2.new(0, 56, 0, 46)
+	count.BackgroundTransparency = 1
+	count.Font = Enum.Font.Gotham
+	count.TextSize = 11
+	count.TextXAlignment = Enum.TextXAlignment.Left
+	count.TextColor3 = Color3.fromRGB(150, 162, 178)
+	count.Text = ""
+	count.Parent = button
+
+	button.Activated:Connect(function()
+		Remotes.get("StealthRequest"):FireServer(key)
+	end)
+
+	local entry = { title = title, sub = sub, count = count, button = button }
+	stealthTiles[key] = entry
+	return entry
+end
+
+local function ensureStealthSlot(key: string, info: any)
+	local existing = stealthSlots[key]
+	if existing then
+		return existing
+	end
+
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(0, 58, 1, 0)
+	-- Last on the bar. The order across the whole thing is bones, gadgets,
+	-- home, thief kit -- grouped by who you use them ON, so the hand knows
+	-- which quarter it is reaching for without reading.
+	button.LayoutOrder = 30 + (info.order or 99)
+	button.BackgroundColor3 = PANEL
+	button.BackgroundTransparency = 0.15
+	button.BorderSizePixel = 0
+	button.AutoButtonColor = true
+	button.Font = Enum.Font.FredokaOne
+	button.Text = ""
+	button.Parent = hotBar
+	corner(button, 10)
+
+	makeModelIcon(button, ThiefModel.build(key), UDim2.new(1, -6, 1, -6), UDim2.new(0, 3, 0, 3), false)
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, -6, 0, 18)
+	label.Position = UDim2.new(0, 3, 1, -20)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.FredokaOne
+	label.TextScaled = true
+	label.TextXAlignment = Enum.TextXAlignment.Right
+	label.TextColor3 = Color3.fromRGB(255, 252, 244)
+	label.TextStrokeTransparency = 0.2
+	label.TextStrokeColor3 = Color3.fromRGB(18, 20, 26)
+	label.Text = ""
+	label.Parent = button
+
+	local hotkey = Instance.new("TextLabel")
+	hotkey.Size = UDim2.new(0, 22, 0, 14)
+	hotkey.Position = UDim2.new(0, 3, 0, 2)
+	hotkey.BackgroundTransparency = 1
+	hotkey.Font = Enum.Font.GothamBold
+	hotkey.TextScaled = true
+	hotkey.TextXAlignment = Enum.TextXAlignment.Left
+	hotkey.TextColor3 = Color3.fromRGB(210, 200, 255)
+	hotkey.TextStrokeTransparency = 0.3
+	hotkey.TextStrokeColor3 = Color3.fromRGB(18, 20, 26)
+	hotkey.Text = ""
+	hotkey.Parent = button
+
+	button.Activated:Connect(function()
+		Remotes.get("StealthUse"):FireServer(key)
+	end)
+
+	local entry = { button = button, label = label, hotkey = hotkey }
+	stealthSlots[key] = entry
+	return entry
+end
+
+local function renderStealth()
+	if not latestStealth then
+		return
+	end
+
+	local anyHeld = false
+	for key, info in pairs(latestStealth.items or {}) do
+		local tile = ensureStealthTile(key, info)
+		tile.title.Text = info.name
+		tile.sub.Text = format(info.cost)
+		tile.count.Text = if info.held > 0 then ("you have %d"):format(info.held) else (info.detail or "")
+		tile.button.BackgroundColor3 = if latestCoins >= info.cost
+			then Color3.fromRGB(58, 84, 62)
+			else PANEL
+
+		local slot = ensureStealthSlot(key, info)
+		slot.button.Visible = info.held > 0
+		slot.label.Text = tostring(info.held)
+		local hot = HOTKEYS[key]
+		slot.hotkey.Text = if hot then hot.label else ""
+		if info.held > 0 then
+			anyHeld = true
+		end
+	end
+
+	-- Both of these are STATES once used, and a state with nothing on screen
+	-- reads as a purchase that did not take. The slot says so instead of the
+	-- player having to guess whether they are still hidden.
+	local d = stealthSlots.disguise
+	if d then
+		if latestStealth.disguised then
+			d.button.Visible = true
+			d.hotkey.Text = "HID"
+			d.label.Text = ""
+			anyHeld = true
+		elseif HOTKEYS.disguise then
+			d.hotkey.Text = HOTKEYS.disguise.label
+		end
+	end
+
+	local r = stealthSlots.raincoat
+	if r then
+		if latestStealth.warded then
+			r.button.Visible = true
+			r.hotkey.Text = "ON"
+			anyHeld = true
+		elseif HOTKEYS.raincoat then
+			r.hotkey.Text = HOTKEYS.raincoat.label
+		end
+	end
+
+	stealthHeld = anyHeld
+	refreshHotBar()
+end
+
+-- ============================================================
 -- RIDES
 -- ============================================================
 
@@ -1795,6 +2000,11 @@ Remotes.get("HomeState").OnClientEvent:Connect(function(snapshot)
 	renderHome()
 end)
 
+Remotes.get("StealthState").OnClientEvent:Connect(function(snapshot)
+	latestStealth = snapshot
+	renderStealth()
+end)
+
 Remotes.get("RideState").OnClientEvent:Connect(function(snapshot)
 	latestRides = snapshot
 	renderRides()
@@ -1837,6 +2047,11 @@ UserInputService.InputBegan:Connect(function(input, processed)
 					throwGadget(key)
 				elseif home and home.held > 0 then
 					Remotes.get("HomeUse"):FireServer(key)
+				else
+					local kit = latestStealth and latestStealth.items and latestStealth.items[key]
+					if kit and kit.held > 0 then
+						Remotes.get("StealthUse"):FireServer(key)
+					end
 				end
 				break
 			end
@@ -1979,6 +2194,7 @@ local function renderUpgrades()
 	renderCollection()
 	renderGadgets()
 	renderHome()
+	renderStealth()
 	renderRides()
 end
 

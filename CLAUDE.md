@@ -301,6 +301,32 @@ are found by CollectionService tag rather than collected once at startup,
 because a moat is built when someone buys the fifth fence and torn down when
 they rebirth.
 
+**The guard dog does not watch an approach.** `GuardDog.chase` only fires from
+`HeistService.attemptSteal`, AFTER a completed steal, so walking up to somebody's
+piggy and holding their lock for up to twelve seconds carries no dog risk at
+all. Every bit of pressure in this game is on the run home. Any "be sneakier"
+feature has to be designed against that fact or it solves a problem that does
+not exist -- which is why the Disguise Kit is sold as a WAITING tool and why
+spring shoes were dropped (fences are already jumpable at 6.0 against a 7.2
+jump, and the toll is the ClimbZone snag, which spans y 5.5 to 10.5 and catches
+you on the way up whatever your apex).
+
+**The disguise hides the wait, never the getaway.** Standing still IS the
+disguise -- drift past `drift` studs and it drops -- so it is self-limiting by
+construction and needs no timer worth tuning. It breaks the instant loot is
+picked up, without exception, because the run home is the risk half of the
+whole trade and must stay visible. It deliberately survives the LOCK HOLD,
+which is the joke. It also blocks rides: `StealthService` hides the character by
+walking its descendants ONCE at conceal time, so a board mounted afterwards is
+not on the list and would be a floating motorbike parked inside an ornament.
+
+**Cheap counters bounce, the expensive one gets through -- on BOTH sides.** The
+Guard Duty Treat refuses the two cheap bones and admits the Golden Bone; the
+Raincoat sheds the plunger and the gum and admits the Zapper. Same shape twice,
+on purpose: each raises the PRICE of beating someone rather than making them
+unbeatable, and each keeps the top item of the other tree meaningful. Neither
+touches speed, which stays capped at 16.
+
 **The Guard Duty Treat exists to get people out of the house.** The economy
 needs players robbing each other, and what stopped them was anxiety about their
 own vault: there was no "lock up before you go out" action anywhere, so the only

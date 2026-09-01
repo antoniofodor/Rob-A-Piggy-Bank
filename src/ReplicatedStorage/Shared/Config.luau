@@ -389,6 +389,79 @@ Config.BONES = {
 -- ever set foot on the lawn -- has to work from outside the fence. It stays
 -- well under PLOT_SPACING (64) so it cannot casually reach next door's dog.
 -- ============================================================
+-- THIEF KIT
+-- ============================================================
+--
+-- The offence tree's answer to the defender's two newest counters.
+--
+-- Gadgets closed the maxed-boots hole and the Guard Duty Treat closed the
+-- cheap-bone hole, and both landed with nothing given back. These are the
+-- other half of that trade.
+--
+-- THE DISGUISE HIDES THE WAIT, NEVER THE GETAWAY.
+--
+-- Worth being honest about what it is for. The guard dog does not watch an
+-- approach at all -- GuardDog.chase only fires from HeistService.attemptSteal,
+-- after a completed steal -- so walking up to a piggy was never dangerous.
+-- All the pressure in this game is on the run home.
+--
+-- So this is a WAITING tool. You stand on somebody's lawn as a wheelie bin
+-- while their vault fills, or while their sixty-second steal cooldown runs
+-- down, or through six minutes of guard duty until the collar stops glowing.
+-- That is a new kind of play rather than a shortcut through an old one, and
+-- it makes the treat and the disguise argue with each other.
+--
+-- It is self-limiting by construction, which is why it needs no timer worth
+-- tuning: standing still IS the disguise. Move and you are a person again.
+-- And it breaks the instant loot is picked up, without exception -- the run
+-- home is the risk half of the whole trade and must stay visible.
+--
+-- THE RAINCOAT MIRRORS THE GUARD DUTY TREAT, DELIBERATELY.
+--
+-- The two cheap gadgets slide off it; the expensive one still lands. That is
+-- the same shape as the treat (cheap bones bounce, the Golden Bone gets
+-- through) and it does the same job: it raises the price of stopping somebody
+-- rather than making them unstoppable. A defender who wants a warded thief
+-- stopped pays 22,000 for the Zapper instead of 1,500 for a Plunger.
+--
+-- Notice what neither of these touches: SPEED. It stays capped at 16 by
+-- getCarryMultiplier, and every one of the dog speeds, fence snags and
+-- getaway distances is still measured against it.
+Config.THIEF_KIT = {
+	disguise = {
+		name = "Disguise Kit", style = "disguise", order = 1,
+		cost = 4000,
+		-- The ornament you turn into. Wheelie bins because they are the most
+		-- person-sized thing on the decor list and the least strange to find
+		-- near a driveway -- a topiary pig is funnier but nobody believes it.
+		prop = "bins",
+		-- How far you may drift before it drops. Generous enough to survive
+		-- the character's idle sway and a nudge from a passer-by, tight enough
+		-- that walking is never mistaken for standing.
+		drift = 4,
+		-- A hard ceiling, only so nothing can last forever. Reaching it is not
+		-- the point; moving is.
+		maxSeconds = 300,
+		blurb = "Stand still and you are a wheelie bin",
+		detail = "Breaks if you move, and the moment you grab loot.",
+	},
+	raincoat = {
+		name = "Raincoat", style = "raincoat", order = 2,
+		cost = 8000,
+		blurb = "The next plunger or bubblegum slides right off",
+		detail = "Stays on until something bounces. A Zapper still gets you.",
+	},
+}
+
+function Config.thiefKitCount(): number
+	local n = 0
+	for _ in pairs(Config.THIEF_KIT) do
+		n += 1
+	end
+	return n
+end
+
+-- ============================================================
 -- HOME ITEMS
 -- ============================================================
 --

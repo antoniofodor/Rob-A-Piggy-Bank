@@ -39,6 +39,7 @@ local BoneService = require(Services.BoneService)
 local RideService = require(Services.RideService)
 local GadgetService = require(Services.GadgetService)
 local HomeService = require(Services.HomeService)
+local StealthService = require(Services.StealthService)
 local AdminService = require(Services.AdminService)
 
 DataService.start()
@@ -56,6 +57,7 @@ BoneService.start()
 -- Both reach into HeistService, so they start after it.
 GadgetService.start()
 HomeService.start()
+StealthService.start()
 RideService.start()
 -- Last: it reaches into every service above.
 AdminService.start()
@@ -113,6 +115,7 @@ local function onPlayerAdded(player: Player)
 	BoneService.push(player)
 	GadgetService.push(player)
 	HomeService.push(player)
+	StealthService.push(player)
 	RideService.push(player)
 	AdminService.push(player)
 

@@ -44,6 +44,7 @@ local BoneService = require(script.Parent.BoneService)
 local RideService = require(script.Parent.RideService)
 local GadgetService = require(script.Parent.GadgetService)
 local HomeService = require(script.Parent.HomeService)
+local StealthService = require(script.Parent.StealthService)
 
 local AdminService = {}
 
@@ -274,10 +275,14 @@ commands.bones = function(player, count)
 	for key in pairs(Config.HOME_ITEMS) do
 		data.consumables[key] = n
 	end
+	for key in pairs(Config.THIEF_KIT) do
+		data.consumables[key] = n
+	end
 	BoneService.push(player)
 	GadgetService.push(player)
 	HomeService.push(player)
-	return ("%d of every bone, gadget and home item"):format(n)
+	StealthService.push(player)
+	return ("%d of everything throwable"):format(n)
 end
 
 commands.shield = function(player)
@@ -339,6 +344,10 @@ commands.reset = function(player)
 	BoneService.push(player)
 	GadgetService.push(player)
 	HomeService.push(player)
+	-- Through the service: a disguise in progress has hidden character parts
+	-- and a ward living inside HeistService, and neither is reachable from a
+	-- table assignment here.
+	StealthService.clear(player)
 	DataService.save(player)
 	return "Save wiped back to a brand-new player"
 end

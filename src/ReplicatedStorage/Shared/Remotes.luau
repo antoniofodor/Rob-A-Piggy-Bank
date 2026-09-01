@@ -54,6 +54,12 @@ local DEFINITIONS = {
 	-- authoritative positions, so there is no coordinate here to forge.
 	BoneThrow = "RemoteEvent",
 
+	-- Client buys, or uses, a thief consumable. StealthUse carries a key and
+	-- NO target: both of these act on the caller and nobody else.
+	StealthRequest = "RemoteEvent",
+	StealthUse = "RemoteEvent",
+	StealthState = "RemoteEvent",
+
 	-- Client buys, or uses, an item on their OWN plot. HomeUse carries a key
 	-- and NO target: the server acts on the caller's own plot or on nothing,
 	-- so there is no player here that could be named.

@@ -711,6 +711,30 @@ end
 -- BUILD
 -- ============================================================
 
+-- One ornament, standing where you put it, outside the slot system entirely.
+--
+-- Exists for the thief's disguise: a player pretending to be a wheelie bin
+-- needs the SAME bin everybody else has bought, or the disguise is a different
+-- object from the thing it is imitating and fools nobody. Reusing the builder
+-- is the whole point -- a second, nearly-identical bin would drift from this
+-- one the first time either was touched.
+function Decor.buildOne(key: string, at: CFrame, parent: Instance): Model?
+	local item = Config.DECOR_ITEMS[key]
+	local build = item and builders[item.style]
+	if not build then
+		return nil
+	end
+
+	local model = Instance.new("Model")
+	model.Name = "Prop_" .. key
+	folder = model
+
+	build(item, at)
+
+	model.Parent = parent
+	return model
+end
+
 -- Rebuilds every placed ornament for a plot. `placed` maps slot id -> item key.
 --
 -- `groundByZone` matters more than it looks. A plot is three different heights:

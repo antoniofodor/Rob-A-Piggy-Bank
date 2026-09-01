@@ -457,10 +457,59 @@ function HeistService.nearestCarrier(from: Vector3, range: number, thrower: Play
 	return nil, "Nobody is running off with anything right now."
 end
 
+-- Is this player carrying loot right now?
+--
+-- Public because the disguise has to break the instant somebody picks loot
+-- up: the run home is the risk half of the entire trade and has to stay
+-- visible, and StealthService cannot see this table.
+function HeistService.isCarrying(player: Player): boolean
+	return carrying[player] ~= nil
+end
+
+-- Raincoats, set by StealthService. A warded thief shrugs off the two cheap
+-- gadgets; the Zapper still lands.
+--
+-- The dependency runs one way, the same as the ride multiplier: this module
+-- owns the effect and StealthService pushes a flag in. Requiring each other
+-- would be a cycle, and the cycle is what would eventually let a ward survive
+-- something it was never meant to stop.
+local warded: { [Player]: boolean } = {}
+local wardUsedHandlers: { (Player, any) -> () } = {}
+
+function HeistService.setWard(player: Player, on: boolean)
+	warded[player] = if on then true else nil
+end
+
+function HeistService.isWarded(player: Player): boolean
+	return warded[player] == true
+end
+
+-- Fired when a ward actually absorbs something, so the HUD and the stock can
+-- be updated by whoever owns them.
+function HeistService.onWardUsed(handler: (Player, any) -> ())
+	table.insert(wardUsedHandlers, handler)
+end
+
 -- Charges a gadget's toll. Same state as a fence snag, different message.
 function HeistService.applyGadget(thief: Player, thrower: Player, spec: any)
 	if not carrying[thief] then
 		return false
+	end
+
+	-- A raincoat stops the slows and nothing else.
+	--
+	-- Same shape as the Guard Duty Treat on the other side of this fight:
+	-- cheap counters bounce, the expensive one gets through. It raises the
+	-- price of stopping somebody from 1,500 to 22,000 rather than making them
+	-- unstoppable, which is the only version that leaves both trees alive.
+	if warded[thief] and (spec.stun or 0) <= 0 then
+		warded[thief] = nil
+		for _, handler in ipairs(wardUsedHandlers) do
+			task.spawn(handler, thief, spec)
+		end
+		notify(thief, ("The %s slid off your raincoat!"):format(spec.name), "good")
+		notify(thrower, ("%s was wearing a raincoat -- it bounced off."):format(thief.DisplayName), "warn")
+		return true
 	end
 
 	applySlow(thief, {
@@ -810,6 +859,7 @@ function HeistService.start()
 		holdStarted[player] = nil
 		snagged[player] = nil
 		rideMultiplier[player] = nil
+		warded[player] = nil
 		lastGrab[player] = nil
 		grabCount[player] = nil
 		for _, byThief in pairs(lastGrab) do
