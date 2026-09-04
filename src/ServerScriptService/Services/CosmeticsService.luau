@@ -21,6 +21,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
+local PlayerGear = require(ReplicatedStorage.Shared.PlayerGear)
 local DataService = require(script.Parent.DataService)
 local PlotService = require(script.Parent.PlotService)
 
@@ -255,10 +256,19 @@ local function gear(data: any)
 	return data.accessories
 end
 
+-- How many ROLLABLE accessories are owned -- set items excluded, because they
+-- are not in the pool a roll draws from. This number does two jobs and both
+-- want the same pool: it indexes the price ladder, and it is compared against
+-- Config.rollableAccessoryCount to decide whether the collection is finished.
+--
+-- Counting set items here charged a player more for a roll because they had
+-- bought an alien hat with medals, which is two currencies leaking into each
+-- other. See the note on Config.rollableAccessoryCount.
 local function ownedCount(owned: { [string]: boolean }): number
 	local n = 0
 	for key in pairs(owned) do
-		if Config.ACCESSORIES[key] then
+		local spec = Config.ACCESSORIES[key]
+		if spec and not spec.set then
 			n += 1
 		end
 	end
@@ -276,8 +286,12 @@ local function rollFrom(owned: { [string]: boolean }): string?
 	local pool: { string } = {}
 	local total = 0
 	for key, spec in pairs(Config.ACCESSORIES) do
-		if not owned[key] then
-			local rarity = Config.ACCESSORY_RARITIES[spec.rarity]
+		-- `spec.set` is the second of the two exclusions. An accessory in a
+		-- set is earned by turning up to events and bought with medals, so it
+		-- must never fall out of the COIN roll -- otherwise the set stops
+		-- meaning attendance and starts meaning patience.
+		if not owned[key] and not spec.set then
+			local rarity = Config.RARITIES[spec.rarity]
 			if rarity then
 				table.insert(pool, key)
 				total += rarity.weight
@@ -296,12 +310,47 @@ local function rollFrom(owned: { [string]: boolean }): string?
 
 	local ticket = math.random() * total
 	for _, key in ipairs(pool) do
-		ticket -= Config.ACCESSORY_RARITIES[Config.ACCESSORIES[key].rarity].weight
+		ticket -= Config.RARITIES[Config.ACCESSORIES[key].rarity].weight
 		if ticket <= 0 then
 			return key
 		end
 	end
 	return pool[#pool]
+end
+
+-- Hands out roll tokens and re-pushes, which is two jobs on purpose: the roll
+-- button colours itself against this balance, so a grant that did not push
+-- would leave a player holding tokens the shop still thought they did not have
+-- until something else happened to refresh it.
+--
+-- `why` IS OPTIONAL AND NIL MEANS SILENT, because an event already fires an
+-- income toast and a medal toast and a drop reel, and a fourth card announcing
+-- two tokens is how a reward turns into noise. EventService folds the token
+-- count into the medal line instead, so one card names both. The daily claim
+-- does the same thing from the other end -- it appends to its own message.
+-- Nothing here is ever granted with NOTHING on screen: the caller owns the
+-- wording, not the choice of whether to say anything.
+--
+-- Lives here rather than in a service of its own because CosmeticsService owns
+-- the only thing tokens are spent on, and because it requires nothing but
+-- DataService and PlotService -- which is what lets DailyService and
+-- EventService both call it with no cycle to work around.
+function CosmeticsService.awardTokens(player: Player, amount: number, why: string?)
+	local data = DataService.get(player)
+	if not data or amount <= 0 then
+		return
+	end
+	data.tokens = math.floor((data.tokens or 0) + amount)
+	if why then
+		notify(player, ("%s +%d %s."):format(why, amount,
+			Config.tokenWord(amount)), "money")
+	end
+	CosmeticsService.push(player)
+end
+
+function CosmeticsService.getTokens(player: Player): number
+	local data = DataService.get(player)
+	return if data then math.floor(data.tokens or 0) else 0
 end
 
 function CosmeticsService.rollAccessory(player: Player)
@@ -313,14 +362,25 @@ function CosmeticsService.rollAccessory(player: Player)
 	local acc = gear(data)
 	local have = ownedCount(acc.owned)
 
-	if have >= Config.accessoryCount() then
-		notify(player, "You already own every accessory in the game!", "good")
+	if have >= Config.rollableAccessoryCount() then
+		notify(player, "You already own every accessory you can roll for!", "good")
 		return
 	end
 
+	-- PAID IN TOKENS, NEVER IN COINS. This is the line that keeps the roll
+	-- legal once coins are sellable -- see the long note above
+	-- Config.ROLL_CURRENCY. Nothing about the pool, the odds or the
+	-- no-duplicates guarantee changed with it; only what it is bought with.
 	local cost = Config.getRollCost(have)
-	if data.coins < cost then
-		notify(player, ("Need %d more coins to roll."):format(cost - data.coins), "warn")
+	local held = math.floor(data.tokens or 0)
+	if held < cost then
+		-- Names the shortfall AND where tokens come from. A currency a player
+		-- has never seen, on a button they cannot press, is indistinguishable
+		-- from a broken feature -- and this one cannot be fixed by going and
+		-- earning more coins, which is what every other refusal in this game
+		-- has trained them to try.
+		notify(player, ("Need %d more %s. Claim your daily reward or join a street event."):format(
+			cost - held, Config.tokenWord(cost - held)), "warn")
 		return
 	end
 
@@ -333,11 +393,11 @@ function CosmeticsService.rollAccessory(player: Player)
 		return
 	end
 
-	data.coins -= cost
+	data.tokens = held - cost
 	acc.owned[key] = true
 
 	local spec = Config.ACCESSORIES[key]
-	local rarity = Config.ACCESSORY_RARITIES[spec.rarity]
+	local rarity = Config.RARITIES[spec.rarity]
 
 	-- Worn immediately if the slot is empty. The reward for a roll should be
 	-- visible on the pig before the player looks away -- but a slot they have
@@ -346,7 +406,7 @@ function CosmeticsService.rollAccessory(player: Player)
 		acc.worn[spec.slot] = key
 	end
 
-	notify(player, ("%s -- %s!"):format(string.upper(rarity.label), spec.name), "good")
+	notify(player, ("%s: %s!"):format(string.upper(rarity.label), spec.name), "good")
 
 	local plot = PlotService.getPlot(player)
 	if plot then
@@ -384,6 +444,112 @@ function CosmeticsService.equipAccessory(player: Player, key: string)
 	if plot then
 		PlotService.applyAccessories(plot, acc.worn)
 	end
+	DataService.save(player)
+	CosmeticsService.push(player)
+end
+
+-- ============================================================
+-- MOST WANTED GEAR
+-- ============================================================
+--
+-- The player's own character rather than their piggy, which is why this sits
+-- beside `applyToPlot` rather than inside it: same job -- make what you see
+-- match the data -- against a different body.
+
+local function gearOf(player: Player)
+	local data = DataService.get(player)
+	if not data then
+		return nil
+	end
+	-- Belt and braces against a save written before schema 13 that somehow
+	-- missed reconcile. A nil here would otherwise throw inside a
+	-- CharacterAdded handler, which takes the whole spawn with it.
+	if not data.gear then
+		data.gear = { unlocked = {}, worn = "", escapes = 0 }
+	end
+	return data.gear
+end
+
+-- Puts whatever they should be wearing onto whatever character they have.
+-- Safe to call on a character that is half-built or already gone.
+function CosmeticsService.applyToCharacter(player: Player)
+	local worn = gearOf(player)
+	local character = player.Character
+	if not worn or not character then
+		return
+	end
+	PlayerGear.attach(character, if worn.worn ~= "" then worn.worn else nil)
+end
+
+-- One most-wanted pursuit survived. Called by PoliceService and by nothing
+-- else, because escaping any OTHER pursuit is a different achievement that
+-- already pays in coins.
+--
+-- Returns the key of anything newly unlocked, so the caller can say so at the
+-- moment it happened rather than leaving the player to find it in a menu.
+function CosmeticsService.recordWantedEscape(player: Player): string?
+	local worn = gearOf(player)
+	if not worn then
+		return nil
+	end
+	worn.escapes += 1
+
+	-- Walked in display order so a run of escapes that crosses two rungs at
+	-- once announces the lower one first. Only ONE is announced per escape:
+	-- two unlock toasts in the same second would bury each other.
+	local earned: string? = nil
+	for _, key in ipairs(Config.GEAR_ORDER) do
+		local spec = Config.GEAR[key]
+		if spec and not worn.unlocked[key] and worn.escapes >= (spec.escapes or 1) then
+			worn.unlocked[key] = true
+			if not earned then
+				earned = key
+			end
+		end
+	end
+
+	if earned then
+		local spec = Config.GEAR[earned]
+		-- Worn immediately. A reward that lands in a menu the player has to go
+		-- and find is a reward they earned and did not receive -- and this one
+		-- arrives at the exact moment they are looking at the screen, having
+		-- just outrun a police officer.
+		worn.worn = earned
+		CosmeticsService.applyToCharacter(player)
+		notify(player, ("UNLOCKED: %s. It's on you now."):format(spec.name), "loot")
+	end
+
+	DataService.save(player)
+	CosmeticsService.push(player)
+	return earned
+end
+
+-- Wear it or take it off. A toggle, like the accessories and the decorations,
+-- because it is the only way to empty the slot without a second control.
+function CosmeticsService.equipGear(player: Player, key: string)
+	local worn = gearOf(player)
+	local spec = Config.GEAR[key]
+	if not worn or not spec then
+		return
+	end
+
+	if not worn.unlocked[key] then
+		-- Names the real requirement rather than refusing blankly, and reads it
+		-- from the one place that knows it, so this line and the shop tile can
+		-- never describe the same rung differently.
+		notify(player, ("%s is locked. %s."):format(spec.name, Config.gearRequirement(key)), "warn")
+		return
+	end
+
+	if worn.worn == key then
+		worn.worn = ""
+		notify(player, ("%s off."):format(spec.name), "good")
+	else
+		worn.worn = key
+		notify(player, ("%s on!"):format(spec.name), "good")
+	end
+
+	CosmeticsService.applyToCharacter(player)
 	DataService.save(player)
 	CosmeticsService.push(player)
 end
@@ -439,7 +605,7 @@ function CosmeticsService.buySkin(player: Player, key: string)
 		if Config.isSkinUnlocked(key, data.cosmetics.owned, data.rebirths) then
 			CosmeticsService.equipSkin(player, key)
 		else
-			notify(player, ("%s unlocks at %d rebirths -- you have %d."):format(
+			notify(player, ("%s unlocks at %d rebirths. You have %d."):format(
 				skin.name, skin.unlockRebirths, data.rebirths), "warn")
 		end
 		return
@@ -546,6 +712,26 @@ function CosmeticsService.push(player: Player)
 			unlocked = Config.isSkinUnlocked(key, data.cosmetics.owned, data.rebirths),
 			equipped = data.cosmetics.skin == key,
 			body = skin.body,
+			trim = skin.trim,
+			-- Explicit for the ten drop-pool skins, from unlockRebirths for the
+			-- three reset-locked ones, and from the price for the rest. See
+			-- Config.rarityOf. Only the KEY crosses the wire; the client resolves
+			-- the label and the colour, which it already has in Config.
+			rarity = Config.rarityOf(skin),
+			-- Only the ten drop-pool skins carry an explicit rarity, and they are
+			-- the ONLY skins that are neither bought nor reset-gated. Without
+			-- this flag the shop tile had nothing left to say about them and fell
+			-- through to the price branch -- where a missing cost reads as zero,
+			-- so the ten rarest skins in the game each advertised themselves as
+			-- free, in gold, on the you-can-afford-this green.
+			-- NOT a drop if it belongs to a set. Set skins carry a rarity like
+			-- everything else so the shop can border the card, but `drop` is
+			-- what makes the tile say REBIRTH DROP -- and a medal item that
+			-- advertised itself as a rebirth reward would send players to
+			-- the wrong feature entirely.
+			drop = skin.rarity ~= nil and skin.set == nil,
+			medals = skin.medals,
+			set = skin.set,
 		}
 	end
 
@@ -555,8 +741,24 @@ function CosmeticsService.push(player: Player)
 			name = effect.name,
 			order = effect.order,
 			cost = effect.cost or 0,
-			unlocked = (effect.cost or 0) <= 0 or data.cosmetics.ownedEffects[key] == true,
+			-- `effect.set` before the free-if-costless fallback, exactly as
+			-- Config.isSkinUnlocked does. A set effect is priced in medals and
+			-- therefore has no `cost`, and (nil or 0) <= 0 is TRUE -- so
+			-- without this the Tractor Beam is unlocked for every player in
+			-- the game from the first second.
+			unlocked = (effect.set == nil and (effect.cost or 0) <= 0)
+				or data.cosmetics.ownedEffects[key] == true,
+			medals = effect.medals,
+			set = effect.set,
 			equipped = data.cosmetics.effect == key,
+			-- The two ends of the particle gradient, so the shop card can be
+			-- painted in the colours the effect actually throws off. An effect is
+			-- the one cosmetic with nothing to show in a still image, and a row
+			-- of identical grey tiles is what it looked like before. "None" has
+			-- no ColorSequence and gets no swatch, which is correct.
+			swatch = effect.color and effect.color.Keypoints[1].Value,
+			swatch2 = effect.color and effect.color.Keypoints[#effect.color.Keypoints].Value,
+			rarity = Config.rarityOf(effect),
 		}
 	end
 
@@ -577,6 +779,7 @@ function CosmeticsService.push(player: Player)
 			owned = (i - 1) <= level,
 			current = (i - 1) == shown,
 			forSale = (i - 1) == level + 1,
+			rarity = Config.rarityOf(tier),
 			walls = tier.walls,
 		}
 	end
@@ -587,8 +790,12 @@ function CosmeticsService.push(player: Player)
 			name = item.name,
 			order = item.order,
 			cost = item.cost,
+			medals = item.medals,
+			set = item.set,
 			zone = item.zone,
 			swatch = item.swatch,
+			blurb = item.blurb,
+			rarity = Config.rarityOf(item),
 			owned = data.decor.owned[key] == true,
 			placed = (function()
 				for _, placedKey in pairs(data.decor.placed) do
@@ -605,7 +812,7 @@ function CosmeticsService.push(player: Player)
 	local have = ownedCount(acc.owned)
 	local accessories = {}
 	for key, spec in pairs(Config.ACCESSORIES) do
-		local rarity = Config.ACCESSORY_RARITIES[spec.rarity]
+		local rarity = Config.RARITIES[spec.rarity]
 		accessories[key] = {
 			name = spec.name,
 			order = spec.order,
@@ -619,6 +826,32 @@ function CosmeticsService.push(player: Player)
 		}
 	end
 
+	-- MOST WANTED GEAR. Locked entries are SENT rather than filtered out, the
+	-- same call the ride stances make: the shop is where something you do not
+	-- own is supposed to be advertised, and a list that quietly omitted the
+	-- locked ones would leave the whole reward track invisible to everybody who
+	-- has not already earned it.
+	local worn = data.gear or { unlocked = {}, worn = "", escapes = 0 }
+	local gearList = {}
+	for _, key in ipairs(Config.GEAR_ORDER) do
+		local spec = Config.GEAR[key]
+		if spec then
+			table.insert(gearList, {
+				key = key,
+				name = spec.name,
+				blurb = spec.blurb,
+				rarity = spec.rarity,
+				unlocked = worn.unlocked[key] == true,
+				equipped = worn.worn == key,
+				requirement = Config.gearRequirement(key),
+				-- How far along they are, so a locked tile is a progress bar
+				-- rather than a closed door.
+				have = worn.escapes,
+				need = spec.escapes or 1,
+			})
+		end
+	end
+
 	Remotes.get("CosmeticState"):FireClient(player, {
 		skins = skins,
 		effects = effects,
@@ -627,18 +860,28 @@ function CosmeticsService.push(player: Player)
 		houseShown = shown,
 		decor = decorItems,
 		accessories = accessories,
+		gear = gearList,
 		collection = {
 			owned = have,
-			total = Config.accessoryCount(),
+			total = Config.rollableAccessoryCount(),
 			-- nil once the set is complete, which is how the client knows to
 			-- swap the roll button for the finished state rather than showing
 			-- a price for something that can no longer be bought.
-			cost = if have < Config.accessoryCount() then Config.getRollCost(have) else nil,
+			cost = if have < Config.rollableAccessoryCount() then Config.getRollCost(have) else nil,
+			-- The balance travels with the price, so the client can colour the
+			-- roll button without knowing what the currency is called or
+			-- needing a second remote to ask for it.
+			tokens = math.floor(data.tokens or 0),
+			currency = Config.ROLL_CURRENCY.plural,
 		},
 	})
 end
 
 function CosmeticsService.start()
+	-- Most Wanted gear is a CSG solid and CSG is server-only, so the shells are
+	-- built here and replicate to every client from ReplicatedStorage.
+	PlayerGear.prewarm()
+
 	Remotes.get("CosmeticRequest").OnServerEvent:Connect(function(player, kind, key)
 		if type(kind) ~= "string" or type(key) ~= "string" then
 			return
@@ -653,6 +896,8 @@ function CosmeticsService.start()
 			CosmeticsService.buyDecor(player, key)
 		elseif kind == "accessory" then
 			CosmeticsService.equipAccessory(player, key)
+		elseif kind == "gear" then
+			CosmeticsService.equipGear(player, key)
 		elseif kind == "roll" then
 			-- The key is ignored: a roll's outcome is picked by the server from
 			-- the pool it maintains. Letting a client name what it wanted would

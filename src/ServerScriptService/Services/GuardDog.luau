@@ -60,12 +60,30 @@ export type Dog = {
 	originCF: CFrame,        -- kennel sits here; +Z points out of the doorway
 	home: Vector3,           -- the torso's on-duty rest position
 	level: number,
+	-- The dog's OWN cooldown, earned by finishing a chase. Guard duty
+	-- suppresses this one: it is exactly what the owner paid to buy off.
 	busyUntil: number,
+	-- A nap BOUGHT by a thief with a bone. Guard duty must never suppress
+	-- this one, and that is the whole reason it is a separate field.
+	--
+	-- Both used to live in busyUntil, and a Golden Bone landing on a
+	-- guarded dog therefore bought nothing: lure let it past the guard-duty
+	-- gate, stamped busyUntil, and onCooldown then threw the stamp away for
+	-- the next six minutes because guard duty was still running. The dog
+	-- kept patrolling on a 30,000-coin bone. Meanwhile BoneService read the
+	-- raw field and refused every later throw with "already off duty" --
+	-- the two readers disagreed about the same number in opposite
+	-- directions, which is what one field carrying two meanings buys you.
+	napUntil: number,
 	-- Guard duty, bought by the OWNER with a treat. Until this passes the dog
 	-- ignores its cooldown entirely and refuses every bone but a Golden one.
 	-- Kept as a deadline rather than a boolean so it needs no timer to expire
 	-- and survives the dog being rebuilt by a tier change.
 	guardUntil: number,
+	-- Earliest a NEW treat may be applied, set to guardUntil plus the
+	-- lockout. Guard duty stacked without it, and ten treats bought an
+	-- hour of a dog that never slept -- see Config.GUARD_DUTY_LOCKOUT.
+	guardLockUntil: number,
 	chasing: boolean,
 	sleeping: boolean,
 	-- Walking over to a thrown bone. Distinct from `chasing` because the dog
@@ -211,7 +229,14 @@ end
 -- miss one and the dog naps through the thing its owner just paid to prevent
 -- -- so the comparison lives here once instead.
 local function onCooldown(dog: Dog): boolean
-	return os.clock() < dog.busyUntil and not onGuardDuty(dog)
+	-- Two clocks, and only one of them answers to guard duty.
+	--
+	-- The dog's own cooldown is what the treat was bought to suppress. A
+	-- bone nap is not: the only bone that can set one has already paid to
+	-- get past the guard-duty gate, so suppressing it here would refund
+	-- the defender a purchase the thief already beat.
+	return os.clock() < dog.napUntil
+		or (os.clock() < dog.busyUntil and not onGuardDuty(dog))
 end
 
 local function settle(dog: Dog, tier: any)
@@ -297,6 +322,17 @@ local function behaviour(dog: Dog)
 	end
 end
 
+-- "4m 10s", or "38s" under a minute. Refusals name a real wait rather
+-- than a bare number of seconds, because the player is deciding whether to
+-- stand there and wait for it.
+local function formatWait(seconds: number): string
+	local left = math.max(0, math.ceil(seconds))
+	if left < 60 then
+		return ("%ds"):format(left)
+	end
+	return ("%dm %02ds"):format(left // 60, left % 60)
+end
+
 -- The visible half of guard duty.
 --
 -- A buff a thief cannot see is a trap: they burn a Golden Bone finding out, or
@@ -322,20 +358,45 @@ local function showGuardDuty(dog: Dog, on: boolean)
 	end
 end
 
--- Puts the owner's own dog on guard duty. Extends rather than replaces, so
--- using a second treat before the first runs out is never a downgrade.
-function GuardDog.setGuardDuty(dog: Dog, seconds: number): boolean
+-- Puts the dog on guard duty, or says why it will not go.
+--
+-- Returns a reason so HomeService can surface it and NOT spend the treat. An
+-- item consumed for nothing is indistinguishable from an item that is broken,
+-- which is the same rule the bone refusals follow.
+--
+-- Two refusals, and they are different: one says the treat would be wasted
+-- because the dog is already guarding, the other says the dog is not allowed
+-- another one yet. Collapsing them into "can't right now" hides which.
+function GuardDog.setGuardDuty(dog: Dog, seconds: number): (boolean, string?)
 	local tier = Config.getDogTier(dog.level)
 	if not tier then
-		return false
+		return false, "there is no dog there"
 	end
 
-	dog.guardUntil = math.max(dog.guardUntil, os.clock()) + seconds
+	-- NOT a top-up. Adding to what was left is exactly the stacking bug: ten
+	-- treats bought an hour of a dog that never napped.
+	if onGuardDuty(dog) then
+		return false, ("%s is already on guard duty. %s left"):format(
+			tier.name, formatWait(dog.guardUntil - os.clock()))
+	end
+
+	if os.clock() < dog.guardLockUntil then
+		return false, ("%s needs a rest between treats. Ready in %s"):format(
+			tier.name, formatWait(dog.guardLockUntil - os.clock()))
+	end
+
+	dog.guardUntil = os.clock() + seconds
+	-- From EXPIRY, not from now. Measured from now, a six-minute duty and a
+	-- four-minute lockout would overlap entirely and guarantee no gap at all.
+	dog.guardLockUntil = dog.guardUntil + Config.GUARD_DUTY_LOCKOUT
 
 	-- Straight back on its feet. A dog that stayed asleep for the rest of its
 	-- cooldown would look exactly like the treat having done nothing, and the
 	-- cooldown is precisely what was just bought off.
-	if dog.sleeping then
+	--
+	-- A bone nap is NOT woken from: the thief paid to get past the gate and
+	-- the treat does not refund that. Guard duty simply resumes when it ends.
+	if dog.sleeping and os.clock() >= dog.napUntil then
 		rouse(dog, tier)
 	end
 	showGuardDuty(dog, true)
@@ -350,6 +411,11 @@ function GuardDog.setGuardDuty(dog: Dog, seconds: number): boolean
 	return true
 end
 
+-- How long until another treat may be used. Zero means it is ready now.
+function GuardDog.guardLockSecondsLeft(dog: Dog): number
+	return math.max(0, dog.guardLockUntil - os.clock())
+end
+
 function GuardDog.guardSecondsLeft(dog: Dog): number
 	return math.max(0, dog.guardUntil - os.clock())
 end
@@ -358,6 +424,17 @@ end
 -- pocket, and it cannot see the local one.
 function GuardDog.onGuardDuty(dog: Dog): boolean
 	return onGuardDuty(dog)
+end
+
+-- Also public, and for the same reason: BoneService has to decide whether
+-- a dog is available BEFORE the throw, and it used to answer that by
+-- comparing os.clock() against dog.busyUntil itself. That is the exact
+-- duplication the note above onCooldown warns about, and it drifted the
+-- moment busyUntil stopped being the only clock -- BoneService called a
+-- guarded dog "already off duty" while behaviour had it out on patrol.
+-- Ask, do not re-derive.
+function GuardDog.isOffDuty(dog: Dog): boolean
+	return onCooldown(dog)
 end
 
 -- ============================================================
@@ -597,7 +674,9 @@ function GuardDog.build(originCF: CFrame, parent: Instance): Dog
 		home = (originCF * CFrame.new(REST_OFFSET + Vector3.new(0, 1.9, 0))).Position,
 		level = 0,
 		busyUntil = 0,
+		napUntil = 0,
 		guardUntil = 0,
+		guardLockUntil = 0,
 		chasing = false,
 		sleeping = false,
 		lured = false,
@@ -725,7 +804,7 @@ function GuardDog.lure(dog: Dog, bone: Model, nap: number, breaksChase: boolean)
 		return false, "that dog already has a bone"
 	end
 	if dog.chasing and not breaksChase then
-		return false, "it has already spotted you -- only a Golden Bone stops a chase"
+		return false, "it has already spotted you. Only a Golden Bone stops a chase"
 	end
 	if not dog.chasing and onCooldown(dog) then
 		return false, "it is already off duty"
@@ -739,7 +818,7 @@ function GuardDog.lure(dog: Dog, bone: Model, nap: number, breaksChase: boolean)
 	-- who throws into a guarded plot keeps the bone -- see BoneService, which
 	-- returns it on any refusal.
 	if onGuardDuty(dog) and not breaksChase then
-		return false, "that dog is on guard duty -- only a Golden Bone gets past it"
+		return false, "that dog is on guard duty. Only a Golden Bone gets past it"
 	end
 
 	dog.lured = true
@@ -789,7 +868,7 @@ function GuardDog.lure(dog: Dog, bone: Model, nap: number, breaksChase: boolean)
 	-- thief gets for free. That is deliberate: the dog is visibly out of
 	-- position for those seconds, so it should count as bought.
 	dog.distracted = true
-	dog.busyUntil = os.clock() + nap
+	dog.napUntil = os.clock() + nap
 	dog.lured = false
 
 	return true

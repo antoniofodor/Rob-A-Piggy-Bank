@@ -31,9 +31,24 @@ local function notify(player: Player, message: string, kind: string)
 	Remotes.get("Notify"):FireClient(player, message, kind)
 end
 
+-- The rebirth gate is a multiple of capacity now, so it runs to eight and nine
+-- figures -- and "You need 137438953 coins" is not a number a nine-year-old can
+-- read, let alone compare against the one on their own HUD. The HUD already
+-- abbreviates; this is the server saying the same thing the same way.
+local function short(n: number): string
+	if n >= 1e9 then
+		return ("%.1fB"):format(n / 1e9)
+	elseif n >= 1e6 then
+		return ("%.1fM"):format(n / 1e6)
+	elseif n >= 1e3 then
+		return ("%.1fK"):format(n / 1e3)
+	end
+	return tostring(math.floor(n))
+end
+
 function ProgressionService.canRebirth(player: Player): boolean
 	local data = DataService.get(player)
-	return data ~= nil and data.coins >= Config.REBIRTH_THRESHOLD
+	return data ~= nil and data.coins >= Config.getRebirthThreshold(data.rebirths)
 end
 
 function ProgressionService.rebirth(player: Player)
@@ -50,8 +65,12 @@ function ProgressionService.rebirth(player: Player)
 		return
 	end
 
-	if data.coins < Config.REBIRTH_THRESHOLD then
-		notify(player, ("You need %d coins to rebirth."):format(Config.REBIRTH_THRESHOLD), "warn")
+	-- The gate scales with the ceiling you can currently reach, so the message
+	-- has to name THIS player's number rather than a constant -- see
+	-- Config.REBIRTH_CAPACITY_MULTIPLE for why it is not a flat million.
+	local threshold = Config.getRebirthThreshold(data.rebirths)
+	if data.coins < threshold then
+		notify(player, ("You need %s coins banked to rebirth."):format(short(threshold)), "warn")
 		return
 	end
 
@@ -87,15 +106,17 @@ function ProgressionService.rebirth(player: Player)
 	local key, rarity = CosmeticsService.rollRebirthDrop(player)
 	if key then
 		local skin = Config.getSkin(key)
-		notify(player, ("%s DROP -- %s!"):format(string.upper(rarity or "?"), skin.name), "good")
+		notify(player, ("%s DROP: %s!"):format(string.upper(rarity or "?"), skin.name), "good")
 		-- Wear it immediately. The reward for a reset that took everything
 		-- should be visible on the plot before the player looks away.
 		CosmeticsService.equipSkin(player, key)
 	else
 		-- Collection complete. Pay out instead of silently doing nothing.
-		local bonus = Config.REBIRTH_THRESHOLD // 4
+		-- A quarter of the gate the player just cleared, so the hand-back grows
+		-- with the reset instead of being a flat 250K nobody notices by rebirth 5.
+		local bonus = threshold // 4
 		data.coins += bonus
-		notify(player, ("Collection complete -- %d bonus coins instead."):format(bonus), "good")
+		notify(player, ("Collection complete! %d bonus coins instead."):format(bonus), "good")
 	end
 
 	-- Persist immediately. Losing a rebirth to a crash would be the single
@@ -118,8 +139,8 @@ function ProgressionService.push(player: Player)
 	end
 	Remotes.get("RebirthState"):FireClient(player, {
 		rebirths = data.rebirths,
-		threshold = Config.REBIRTH_THRESHOLD,
-		ready = data.coins >= Config.REBIRTH_THRESHOLD,
+		threshold = Config.getRebirthThreshold(data.rebirths),
+		ready = data.coins >= Config.getRebirthThreshold(data.rebirths),
 	})
 end
 

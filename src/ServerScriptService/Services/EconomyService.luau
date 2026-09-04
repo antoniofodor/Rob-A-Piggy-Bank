@@ -20,6 +20,7 @@ local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local DataService = require(script.Parent.DataService)
 local PlotService = require(script.Parent.PlotService)
 local SocialService = require(script.Parent.SocialService)
+local DailyService = require(script.Parent.DailyService)
 
 local EconomyService = {}
 
@@ -67,15 +68,26 @@ local function pushState(player: Player)
 		capacityLevel = data.capacityLevel,
 		incomeCost = Config.getIncomeCost(data.incomeLevel),
 		capacityCost = Config.getCapacityCost(data.capacityLevel),
-		maxIncome = Config.MAX_INCOME_LEVEL,
-		maxCapacity = Config.MAX_CAPACITY_LEVEL,
+		-- The reachable ceiling, not the absolute one: it rises two levels per
+		-- rebirth, and the client draws the ladder from these two numbers, so
+		-- pushing the function's answer is what keeps both ends agreeing.
+		maxIncome = Config.maxLevel(data.rebirths),
+		maxCapacity = Config.maxLevel(data.rebirths),
 		rebirths = data.rebirths,
 		-- Carried on the per-tick state rather than its own push, so the
 		-- rebirth button lights up the instant the threshold is crossed.
-		rebirthThreshold = Config.REBIRTH_THRESHOLD,
-		rebirthReady = data.coins >= Config.REBIRTH_THRESHOLD,
+		rebirthThreshold = Config.getRebirthThreshold(data.rebirths),
+		rebirthReady = data.coins >= Config.getRebirthThreshold(data.rebirths),
 	})
 end
+
+-- Exposed so anything that moves `coins` from outside this file can say so.
+--
+-- ChestService needed it and had no way in: `pushState` is a local, so a chest
+-- could charge 500,000 coins and the HUD would go on showing the old balance
+-- until something else happened to push. Measured, and it reads exactly like
+-- the chest being free.
+EconomyService.push = pushState
 
 local function notify(player: Player, message: string, kind: string?)
 	Remotes.get("Notify"):FireClient(player, message, kind or "info")
@@ -110,7 +122,7 @@ local function checkMilestones(player: Player, plot: any, ratio: number)
 		PlotService.playMilestone(plot, highest, #Config.MILESTONES)
 
 		if highest == #Config.MILESTONES then
-			notify(player, "Your piggy is FULL -- go bank it!", "warn")
+			notify(player, "Your piggy is FULL. Go bank it!", "warn")
 		end
 	end
 end
@@ -158,7 +170,7 @@ function EconomyService.collect(player: Player)
 
 	local amount = math.floor(data.vault)
 	if amount <= 0 then
-		notify(player, "Your vault is empty.", "warn")
+		notify(player, "Your piggy bank is empty.", "warn")
 		return
 	end
 
@@ -173,7 +185,7 @@ function EconomyService.collect(player: Player)
 
 	refreshPlot(player)
 	pushState(player)
-	notify(player, ("Banked %s coins"):format(EconomyService.format(amount)), "good")
+	notify(player, ("Banked %s coins"):format(EconomyService.format(amount)), "money")
 end
 
 function EconomyService.purchase(player: Player, track: string)
@@ -188,10 +200,10 @@ function EconomyService.purchase(player: Player, track: string)
 
 	local cost: number, level: number, maxLevel: number
 	if track == "income" then
-		level, maxLevel = data.incomeLevel, Config.MAX_INCOME_LEVEL
+		level, maxLevel = data.incomeLevel, Config.maxLevel(data.rebirths)
 		cost = Config.getIncomeCost(level)
 	elseif track == "capacity" then
-		level, maxLevel = data.capacityLevel, Config.MAX_CAPACITY_LEVEL
+		level, maxLevel = data.capacityLevel, Config.maxLevel(data.rebirths)
 		cost = Config.getCapacityCost(level)
 	else
 		return -- unknown track; ignore rather than error on client input
@@ -213,7 +225,7 @@ function EconomyService.purchase(player: Player, track: string)
 		notify(player, ("Income upgraded to level %d"):format(data.incomeLevel), "good")
 	else
 		data.capacityLevel += 1
-		notify(player, ("Vault size upgraded to level %d"):format(data.capacityLevel), "good")
+		notify(player, ("Piggy bank size upgraded to level %d"):format(data.capacityLevel), "good")
 	end
 
 	refreshPlot(player)
@@ -265,7 +277,7 @@ function EconomyService.onPlayerReady(player: Player)
 	pushState(player)
 
 	if gained > 0 then
-		notify(player, ("Your vault earned %s coins while you were away"):format(EconomyService.format(gained)), "good")
+		notify(player, ("Your piggy bank earned %s coins while you were away"):format(EconomyService.format(gained)), "money")
 	end
 end
 
@@ -301,8 +313,13 @@ function EconomyService.start()
 				if data then
 					local capacity = Config.getCapacity(data.capacityLevel)
 					if data.vault < capacity then
+						-- A daily boost multiplies the live drip only. It deliberately
+						-- does not touch offline accrual: a boost is for playing, and
+						-- one that ticks while you are logged off is just a worse coin
+						-- reward with extra steps.
 						local rate = Config.getIncomeRate(
 							data.incomeLevel, data.rebirths, SocialService.getFriendBonus(player))
+						rate *= DailyService.getMultiplier(player)
 						data.vault = math.min(capacity, data.vault + rate * delta)
 
 						local plot = PlotService.getPlot(player)

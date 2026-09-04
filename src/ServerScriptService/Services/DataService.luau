@@ -31,9 +31,35 @@ export type PlayerData = {
 	incomeLevel: number,
 	capacityLevel: number,
 	rebirths: number,
+	-- Daily claim. `lastDay` is a UTC day index, not a timestamp: the only
+	-- question ever asked of it is which day it was, and storing the day
+	-- directly means no timezone can get between the save and the answer.
+	daily: { lastDay: number, streak: number, lifetime: number },
+	-- Boosts held, by key, and the wall-clock second the active one ends.
+	-- Held rather than applied on claim -- see Config.BOOSTS for why.
+	boosts: { [string]: number },
+	boostUntil: number,
+	boostMult: number,
 	lastSave: number,
 	totalStolen: number,
 	totalLost: number,
+	-- MOST WANTED GEAR: worn by the player's own character, never bought.
+	--
+	-- `escapes` is the lifetime count of most-wanted pursuits survived and is
+	-- what unlocks the tiers; `unlocked` is what they have earned; `worn` is the
+	-- one piece actually on, or "" for none. Three fields rather than two
+	-- because the counter has to survive the unlock -- later tiers are further
+	-- up the same ladder, so throwing the count away at tier 1 would restart
+	-- everyone at zero for tier 2.
+	--
+	-- NEVER RESET BY REBIRTH, like every other cosmetic. Rebirth already costs
+	-- a player every upgrade they own; the collection is the reason to press
+	-- the button.
+	gear: {
+		unlocked: { [string]: boolean },
+		worn: string,
+		escapes: number,
+	},
 	upgrades: { [string]: number },
 	-- Prestige, not power. Never reset by rebirth.
 	--
@@ -42,6 +68,19 @@ export type PlayerData = {
 	-- because an owner can move back into any tier they own. Read them through
 	-- Config.getShownHouseLevel rather than separately.
 	houseLevel: number,
+	medals: number,
+	-- CHEST SHARDS, one counter per rarity tier. A duplicate from any chest
+	-- converts to one of these on the spot, and three of a tier combine into a
+	-- roll at the tier above. Held GLOBALLY rather than per chest, so a
+	-- duplicate out of a collection you have finished is fuel for one you have
+	-- barely started -- see Config.COMBINE.
+	shards: { [string]: number },
+	-- THE ROLL CURRENCY. Earned only -- daily claims and event attendance --
+	-- and never purchasable, which is what keeps the accessory roll out of
+	-- Roblox's paid-random-item rules. See Config.ROLL_CURRENCY.
+	--
+	-- Never wiped by rebirth, like medals and every other cosmetic track.
+	tokens: number,
 	houseShown: number,
 	decor: {
 		owned: { [string]: boolean },
@@ -56,6 +95,10 @@ export type PlayerData = {
 		skin: string,
 		effect: string,
 	},
+	-- Client-side preferences. Nothing in here may ever affect what a player
+	-- can do -- these are read by the HUD and by nothing that decides an
+	-- outcome, which is what keeps them safe to let a client write.
+	settings: { music: boolean, hotbar: { order: { string }, hidden: { string } } },
 }
 
 local store: DataStore? = nil
@@ -86,6 +129,25 @@ local function defaultData(): PlayerData
 		upgrades = upgrades,
 		houseLevel = 0,
 		houseShown = 0,
+		-- EVENT MEDALS. Flat, never scaled by income, and never wiped by
+		-- rebirth -- they buy cosmetics, which are the permanent track.
+		--
+		-- A new field defaulting to zero, so reconcile's one-level fill covers
+		-- an existing save and there is no migration branch to write.
+		medals = 0,
+		-- ROLL TOKENS. What an accessory roll costs, and the one currency in
+		-- this game that no amount of money can reach: they come from the
+		-- daily ladder and from being present when an event resolves.
+		--
+		-- A new field defaulting to zero, so reconcile's one-level fill covers
+		-- every existing save and there is no migration branch to write. A
+		-- player mid-collection when this shipped starts at nought and earns
+		-- from their next daily claim; nothing is refunded, the same rule the
+		-- retired ornaments follow.
+		tokens = 0,
+		-- Chest shards by tier. Missing keys read as zero, so a new tier would
+		-- need no migration -- the same shape `consumables` uses.
+		shards = {},
 		decor = { owned = {}, placed = {} },
 		-- Bone stock, by key. Counts only; missing keys read as zero, so a
 		-- bone added later needs no migration.
@@ -110,12 +172,26 @@ local function defaultData(): PlayerData
 		-- confers nothing in a fight; taking it away at a reset would just be a
 		-- reason not to press the button.
 		rides = { owned = {}, equipped = "" },
+		daily = { lastDay = 0, streak = 0, lifetime = 0 },
+		boosts = {},
+		boostUntil = 0,
+		boostMult = 1,
+		-- Schema 13. reconcile descends one level, so an existing save picks up
+		-- all three of these rather than just the parent table.
+		gear = { unlocked = {}, worn = "", escapes = 0 },
 		cosmetics = {
 			owned = {},
 			ownedEffects = {},
 			skin = Config.DEFAULT_SKIN,
 			effect = Config.DEFAULT_EFFECT,
 		},
+		-- Music defaults ON. A player who wants it off finds the toggle once
+		-- and it is remembered; defaulting to off would mean nobody ever
+		-- hears it and the whole thing may as well not ship.
+		-- The hot bar's arrangement, filled by reconcile's one-level descent
+		-- for every save written before it existed. Two empty arrays is the
+		-- default bar: catalogue order, nothing shelved.
+		settings = { music = true, hotbar = { order = {}, hidden = {} } },
 	}
 end
 
@@ -143,6 +219,44 @@ local function reconcile(data: any): PlayerData
 	-- always living in its newest house, so that is what it migrates to.
 	if data.houseShown == nil and type(data.houseLevel) == "number" then
 		data.houseShown = data.houseLevel
+	end
+
+	-- DECOR IS PRUNED AGAINST THE CATALOGUE, not against a list of names.
+	--
+	-- Retiring the Wheelie Bins and the two parked cars left dead keys in
+	-- every save that owned one, and a `placed` entry pointing at an item or a
+	-- slot that no longer exists -- the driveway slot went with the cars.
+	-- Neither errors: `Decor.buildOne` simply returns nil and the ornament
+	-- quietly never appears, which is the failure mode this project spends the
+	-- most words on.
+	--
+	-- Written against the catalogue rather than as a one-off migration on
+	-- purpose. Anything retired later is handled with no new code and no
+	-- version to remember, and there is no table sitting in Config that
+	-- somebody has to notice is safe to delete. It is also cheap: a handful of
+	-- keys, once, on load.
+	--
+	-- Nothing is refunded. The game is in beta; a retired ornament is simply
+	-- gone.
+	if type(data.decor) == "table" then
+		if type(data.decor.owned) == "table" then
+			for key in pairs(data.decor.owned) do
+				if not Config.DECOR_ITEMS[key] then
+					data.decor.owned[key] = nil
+				end
+			end
+		end
+		if type(data.decor.placed) == "table" then
+			local realSlot = {}
+			for _, slot in ipairs(Config.DECOR_SLOTS) do
+				realSlot[slot.id] = true
+			end
+			for slot, key in pairs(data.decor.placed) do
+				if not realSlot[slot] or not Config.DECOR_ITEMS[key] then
+					data.decor.placed[slot] = nil
+				end
+			end
+		end
 	end
 
 	for key, value in pairs(base) do

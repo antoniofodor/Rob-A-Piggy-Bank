@@ -2,7 +2,7 @@
 --[[
 	HomeService
 
-	The two things you use on your OWN plot, and only there.
+	The three things a defender buys and keeps in the house.
 
 	THE GUARD DUTY TREAT exists to get people out of the house.
 
@@ -30,10 +30,26 @@
 	the fence, the dog and the locks -- and it would bite during a steal
 	attempt, because a thief cracking a lock is stood still on that very lawn.
 
-	NEITHER CAN BE AIMED AT ANYBODY. There is no target argument on the remote
-	at all: the server acts on the caller's own plot or nothing. That is what
-	keeps both of these out of the harassment bracket the gadgets had to be
-	designed around.
+	THE PATROL RADIO is the one thing here that is not about your own plot,
+	and it is the reason this file's title changed. It calls a police patrol
+	onto the street early, for 75,000 coins, and it does not survive being
+	described as a defence: what it actually does is start a sixty-second
+	window in which the officer will come for whoever is top of the wanted
+	board, which is normally the player doing best in the server. That is the
+	point of it -- it is the one lever the rest of the street has against a
+	runaway leader, and the closest thing this game has to a pressure valve.
+
+	IT BUYS THE TIMING AND NEVER THE TARGET. `PoliceService.call` takes no
+	arguments at all. The caller cannot name anybody, cannot exclude
+	themselves, and gets no protection: if they are the most wanted thief then
+	they have just called an officer out for themselves, which the shop card
+	says in as many words. See the note above `Config.POLICE.callLockout` for
+	why the lockout rather than the price is what caps it.
+
+	NONE OF THE THREE CAN BE AIMED AT ANYBODY. There is no target argument on
+	the remote at all: the server acts on the caller's own plot, on the caller,
+	or on nothing. That is what keeps all of these out of the harassment
+	bracket the gadgets had to be designed around.
 ]]
 
 local Players = game:GetService("Players")
@@ -44,8 +60,11 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local HomeModel = require(ReplicatedStorage.Shared.HomeModel)
 local DataService = require(script.Parent.DataService)
+local HeldItemService = require(script.Parent.HeldItemService)
 local PlotService = require(script.Parent.PlotService)
 local GuardDog = require(script.Parent.GuardDog)
+local PoliceService = require(script.Parent.PoliceService)
+local StealthService = require(script.Parent.StealthService)
 
 local HomeService = {}
 
@@ -111,7 +130,10 @@ end
 -- its barriers around. Measuring from the slab would leave the whole back
 -- garden outside the sprinkler's reach.
 local function trespassers(plot: any): { Player }
-	local half = Config.PLOT_SIZE.X / 2 + 1.6
+	-- The fence rectangle is 64 x 48 now, so its width and its front line are
+	-- two different numbers -- see Config.PLOT_HALF_WIDTH.
+	local halfWidth = Config.PLOT_HALF_WIDTH
+	local frontZ = Config.PLOT_FRONT_LINE
 	local found = {}
 
 	for _, player in ipairs(Players:GetPlayers()) do
@@ -121,7 +143,7 @@ local function trespassers(plot: any): { Player }
 			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 			if root and humanoid and humanoid.Health > 0 then
 				local at = plot.cframe:PointToObjectSpace(root.Position)
-				if math.abs(at.X) <= half and at.Z <= half and at.Z >= -Config.YARD_DEPTH then
+				if math.abs(at.X) <= halfWidth and at.Z <= frontZ and at.Z >= -Config.YARD_DEPTH then
 					table.insert(found, player)
 				end
 			end
@@ -243,17 +265,51 @@ function HomeService.useTreat(player: Player, spec: any): boolean
 	-- on guard duty, and an item consumed for nothing is indistinguishable
 	-- from an item that does not work.
 	if plot.dog.level <= 0 then
-		notify(player, "You don't have a guard dog yet -- buy one first.", "warn")
+		notify(player, "You don't have a guard dog yet. Buy one first.", "warn")
 		return false
 	end
 
-	if not GuardDog.setGuardDuty(plot.dog, spec.duration) then
-		notify(player, "Your dog can't take that right now.", "warn")
+	-- The reason comes back from GuardDog rather than being guessed at here:
+	-- "already guarding" and "not allowed another yet" are different
+	-- refusals, and the player needs to know which one they hit.
+	local ok, why = GuardDog.setGuardDuty(plot.dog, spec.duration)
+	if not ok then
+		notify(player, ("%s."):format(why or "Your dog can't take that right now"), "warn")
 		return false
 	end
 
-	notify(player, ("%s is on guard duty for %d minutes -- go and rob somebody."):format(
+	notify(player, ("%s is on guard duty for %d minutes. Go and rob somebody!"):format(
 		Config.getDogTier(plot.dog.level).name, math.floor(spec.duration / 60 + 0.5)), "good")
+	return true
+end
+
+-- ============================================================
+-- THE RADIO
+-- ============================================================
+
+-- Nothing here decides anything. The whole of this function is: ask the
+-- patrol to come out, say what it said, and spend the radio only if it did.
+--
+-- Which is the design, not a thin wrapper around a bigger one. Every question
+-- worth asking -- is a patrol already out, has somebody just called one, is
+-- the street still inside its lockout -- belongs to PoliceService because
+-- PoliceService is the thing that knows, and a copy of any of those tests in
+-- here would be a second reader of a field that drifts. `GuardDog.isOffDuty`
+-- exists for the same reason: BoneService copied that comparison out once and
+-- the two disagreed in opposite directions the moment a second clock appeared.
+function HomeService.useRadio(player: Player, spec: any): boolean
+	local ok, message = PoliceService.call()
+	if not ok then
+		-- Named, and the radio is NOT spent. An item consumed for nothing is
+		-- indistinguishable from an item that is broken, which is the same
+		-- line the bone and guard-duty refusals draw.
+		notify(player, message, "warn")
+		return false
+	end
+
+	-- Only the caller hears this one. The street gets its own announcement
+	-- when the sirens start, and that one deliberately does not name anybody.
+	notify(player, message, "police")
 	return true
 end
 
@@ -276,7 +332,7 @@ function HomeService.buy(player: Player, key: string)
 	data.coins -= spec.cost
 	stock(data)[key] = (stock(data)[key] or 0) + 1
 
-	notify(player, ("%s bought -- you have %d."):format(spec.name, stock(data)[key]), "good")
+	notify(player, ("%s bought. You have %d."):format(spec.name, stock(data)[key]), "good")
 	DataService.save(player)
 	HomeService.push(player)
 end
@@ -285,6 +341,15 @@ function HomeService.use(player: Player, key: string)
 	local spec = Config.HOME_ITEMS[key]
 	local data = DataService.get(player)
 	if not spec or not data then
+		return
+	end
+
+	-- YOU HAVE TO BE HOLDING IT. The prop in the hand is a tell other players
+	-- read off the pavement, so a use that never drew anything would be a lie
+	-- about the street. Named rather than silent: the fix is one keypress and
+	-- a refusal nobody can read is indistinguishable from a broken item.
+	if not HeldItemService.holding(player, key) then
+		notify(player, ("Hold the %s out first."):format(spec.name), "warn")
 		return
 	end
 
@@ -302,6 +367,8 @@ function HomeService.use(player: Player, key: string)
 		used = HomeService.useTreat(player, spec)
 	elseif spec.style == "sprinkler" then
 		used = HomeService.useSprinkler(player, spec)
+	elseif spec.style == "radio" then
+		used = HomeService.useRadio(player, spec)
 	end
 
 	if not used then
@@ -311,6 +378,7 @@ function HomeService.use(player: Player, key: string)
 	stock(data)[key] = held - 1
 	DataService.save(player)
 	HomeService.push(player)
+	HeldItemService.revalidate(player)
 end
 
 function HomeService.push(player: Player)
@@ -341,6 +409,9 @@ function HomeService.push(player: Player)
 		-- guessing whether the thing they just spent ten thousand coins on
 		-- actually took.
 		guardSeconds = if plot then math.floor(GuardDog.guardSecondsLeft(plot.dog)) else 0,
+		-- And how long until another treat may be used, so the shop can say
+		-- "ready in 3m 20s" instead of only refusing once the button is pressed.
+		guardLockSeconds = if plot then math.floor(GuardDog.guardLockSecondsLeft(plot.dog)) else 0,
 	})
 end
 
@@ -355,6 +426,12 @@ function HomeService.start()
 	-- No target argument, by construction. The server acts on the caller's own
 	-- plot or on nothing at all, so there is no player here to name.
 	Remotes.get("HomeUse").OnServerEvent:Connect(function(player, key)
+		-- Nothing but climbing out, while you are in a bin. The client hides
+		-- the control, so this only ever fires for a client that was written
+		-- to ignore it.
+		if StealthService.isHidden(player) then
+			return
+		end
 		if type(key) ~= "string" then
 			return
 		end

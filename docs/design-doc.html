@@ -15,6 +15,7 @@
   --ink-soft:   #5A6675;
   --ink-faint:  #8894A3;
   --brass:      #9C6C1E;
+  --brass-ink:  #8A5E18;
   --brass-bg:   #F6EEDD;
   --coral:      #B8452F;
   --coral-bg:   #FAEAE6;
@@ -33,6 +34,7 @@
     --ink-soft:  #97A4B4;
     --ink-faint: #6C7A8B;
     --brass:     #E2AC53;
+    --brass-ink: #E2AC53;
     --brass-bg:  #2A2113;
     --coral:     #E88068;
     --coral-bg:  #2E1B16;
@@ -51,6 +53,7 @@
   --ink-soft:  #97A4B4;
   --ink-faint: #6C7A8B;
   --brass:     #E2AC53;
+  --brass-ink: #E2AC53;
   --brass-bg:  #2A2113;
   --coral:     #E88068;
   --coral-bg:  #2E1B16;
@@ -305,6 +308,28 @@ tbody tr:last-child td { border-bottom: none; }
 td.num { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 14px; }
 td.k { font-weight: 600; white-space: nowrap; }
 
+/* ---------- status pills ----------
+   The doc is now a record of a built game as well as a plan, so almost every
+   claim in it needs one of three labels: it shipped as written, it shipped
+   changed, or it was cut. The pill carries a word as well as a colour. */
+.st {
+  display: inline-block;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  vertical-align: 2px;
+  white-space: nowrap;
+}
+.st.ship { color: var(--mint);  background: var(--mint-bg);  }
+.st.chg  { color: var(--brass-ink); background: var(--brass-bg); }
+.st.cut  { color: var(--coral); background: var(--coral-bg); }
+td .st { margin-right: 6px; }
+h3 .st, h4 .st { margin-left: 8px; }
+
 /* ---------- phases ---------- */
 .phase {
   display: grid;
@@ -367,12 +392,18 @@ footer {
 
 <nav aria-label="Sections">
   <ol>
+    <li><a href="#stands">Where it stands</a></li>
     <li><a href="#hook">The hook</a></li>
     <li><a href="#loop">Core loop</a></li>
     <li><a href="#heist">The heist</a></li>
     <li><a href="#trees">Two ways to spend</a></li>
+    <li><a href="#counters">The counter layer</a></li>
     <li><a href="#fair">Keeping it fair</a></li>
+    <li><a href="#street">The street</a></li>
+    <li><a href="#police">The police</a></li>
+    <li><a href="#events">Events</a></li>
     <li><a href="#progress">Long game</a></li>
+    <li><a href="#collection">The collection</a></li>
     <li><a href="#money">Monetization</a></li>
     <li><a href="#tech">Architecture</a></li>
     <li><a href="#build">Build order</a></li>
@@ -383,25 +414,41 @@ footer {
 <main>
 
 <header>
-  <p class="eyebrow">Roblox &middot; Design &amp; build plan &middot; Working title</p>
+  <p class="eyebrow">Roblox &middot; Design doc &middot; Built, in beta</p>
   <h1>Rob a Piggy Bank</h1>
-  <p class="deck">Everyone gets a vault that fills with coins whether they're playing or not. Everyone can walk up and take a handful of someone else's. What you spend your coins on decides which kind of player you become.</p>
+  <p class="deck">Everyone gets a piggy bank that fills with coins whether they're playing or not. Everyone can walk up and take a handful of someone else's. What you spend your coins on decides which kind of player you become.</p>
 
   <dl class="facts">
     <div class="fact"><dt>Audience</dt><dd>Under 12</dd></div>
     <div class="fact"><dt>Genre</dt><dd>Shared-economy PvP</dd></div>
     <div class="fact"><dt>Session</dt><dd>8&ndash;15 min</dd></div>
-    <div class="fact"><dt>Server</dt><dd>12 plots</dd></div>
-    <div class="fact"><dt>To MVP</dt><dd>~6 weeks</dd></div>
-    <div class="fact"><dt>Cadence</dt><dd>Weekly drop</dd></div>
+    <div class="fact"><dt>Server</dt><dd>8 plots</dd></div>
+    <div class="fact"><dt>Status</dt><dd>Built, untested live</dd></div>
+    <div class="fact"><dt>Cadence</dt><dd>Events &amp; sets</dd></div>
   </dl>
 </header>
+
+<section id="stands">
+  <h2>Where it stands</h2>
+  <p class="sub">This was a pitch. It is now a record of what got built.</p>
+
+  <p>Everything below the fold started life as a proposal written before a line of code existed. Most of it shipped; a fair amount shipped changed; a few things were cut once they met a real player. Rather than rewrite the document into a description of the finished game &mdash; there is one of those, and it is <code>docs/GAME.md</code> &mdash; every claim now carries a label:</p>
+
+  <p><span class="st ship">shipped</span> as pitched &nbsp; <span class="st chg">changed</span> shipped, but not like this &nbsp; <span class="st cut">cut</span> never built, or built and removed</p>
+
+  <p>The labels are the interesting part. A plan that survived contact intact would say nothing; the places it bent are where the game was actually designed.</p>
+
+  <div class="callout">
+    <span class="tag">The four that moved most</span>
+    <p><strong>Coin packs are gone permanently</strong>, and that single decision opened the whole random-reward design space &mdash; see Monetization. <strong>Rebirth raises the ceiling</strong>, not just the rate, because as pitched it made the game <em>shorter</em> the more you prestiged. <strong>The police</strong> exist because no purchase can defend a plot whose owner is asleep. And the map came <strong>down</strong> from twelve plots to eight, because a twenty-one second walk was buying a three second getaway.</p>
+  </div>
+</section>
 
 <section id="hook">
   <h2>The hook</h2>
   <p class="sub">Why this and not another tycoon</p>
 
-  <p>The tycoon shelf on Roblox is full. What's thin is a game where <strong>the thing you're hoarding is physically visible and physically takeable</strong>. Your coins aren't a number in the corner of the screen &mdash; they're a pile inside a glass vault on your plot, and the pile gets taller as you get richer. Anyone in the server can see how rich you are from across the map. That's the whole pitch, and a nine-year-old gets it in one look.</p>
+  <p>The tycoon shelf on Roblox is full. What's thin is a game where <strong>the thing you're hoarding is physically visible and physically takeable</strong>. Your coins aren't a number in the corner of the screen &mdash; they're a pile inside a glass piggy bank on your own front lawn, and the pile gets taller as you get richer. Anyone in the server can see how rich you are from across the map. That's the whole pitch, and a nine-year-old gets it in one look.</p>
 
   <p>It works for this age group because it turns a solo idle game into a story they tell at school. Nobody recounts the time their crops grew. They absolutely recount the time Jayden snuck onto their plot, and the guard dog got him halfway home.</p>
 
@@ -416,7 +463,7 @@ footer {
   <p class="sub">Ten seconds to understand, no tutorial</p>
 
   <div class="diagram">
-    <svg viewBox="0 0 620 250" width="620" height="250" role="img" aria-label="Loop diagram: the vault fills with coins, you collect them, you spend on upgrades, which makes the vault fill faster. A separate path shows other players stealing from the vault.">
+    <svg viewBox="0 0 620 250" width="620" height="250" role="img" aria-label="Loop diagram: the piggy bank fills with coins, you collect them, you spend on upgrades, which makes the piggy fill faster. A separate path shows other players stealing from the piggy.">
       <defs>
         <marker id="ah" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
           <path d="M0,0 L7,3.5 L0,7 z" fill="var(--ink-faint)"/>
@@ -427,12 +474,12 @@ footer {
       </defs>
 
       <rect class="dg-node" x="18"  y="86" width="132" height="56" rx="4"/>
-      <text class="dg-label" x="84"  y="108" text-anchor="middle">Vault fills</text>
+      <text class="dg-label" x="84"  y="108" text-anchor="middle">Piggy fills</text>
       <text class="dg-meta"  x="84"  y="125" text-anchor="middle">EVEN OFFLINE</text>
 
       <rect class="dg-node" x="180" y="86" width="132" height="56" rx="4"/>
       <text class="dg-label" x="246" y="108" text-anchor="middle">You collect</text>
-      <text class="dg-meta"  x="246" y="125" text-anchor="middle">TAP THE VAULT</text>
+      <text class="dg-meta"  x="246" y="125" text-anchor="middle">TAP THE PIGGY</text>
 
       <rect class="dg-node" x="342" y="86" width="132" height="56" rx="4"/>
       <text class="dg-label" x="408" y="108" text-anchor="middle">You upgrade</text>
@@ -456,21 +503,28 @@ footer {
 
   <p>The idle loop alone is a competent, forgettable game. The dashed path is what makes it spread &mdash; getting robbed creates a grievance, and a grievance creates a session. The revenge ping is the single highest-value piece of UI in the whole build.</p>
 
-  <h3>Baseline numbers to tune from</h3>
+  <h3>Baseline numbers, and what became of them</h3>
   <div class="tw">
   <table>
     <thead><tr><th>Value</th><th>Start</th><th>Notes</th></tr></thead>
     <tbody>
-      <tr><td class="k">Income rate</td><td class="num">10 / sec</td><td>Scales ~1.35&times; per income upgrade tier</td></tr>
-      <tr><td class="k">Vault capacity</td><td class="num">5,000</td><td>Fills in ~8 min. Full vault stops earning &mdash; this is the return hook</td></tr>
-      <tr><td class="k">Offline accrual</td><td class="num">up to 8 h</td><td>Full rate, then stops. Never decays</td></tr>
-      <tr><td class="k">First upgrade</td><td class="num">400</td><td>Reachable in under a minute. First win must be immediate</td></tr>
-      <tr><td class="k">Rebirth threshold</td><td class="num">1,000,000</td><td>~2&ndash;3 hours of play to first rebirth</td></tr>
+      <tr><td class="k">Income rate</td><td class="num">10 / sec</td><td><span class="st ship">shipped</span> 1.35&times; a tier to level 20, then a gentler 1.16 to 40</td></tr>
+      <tr><td class="k">Piggy capacity</td><td class="num">5,000</td><td><span class="st ship">shipped</span> Fills in ~8 min. A full piggy stops earning &mdash; the return hook</td></tr>
+      <tr><td class="k">Offline accrual</td><td class="num">up to 8 h</td><td><span class="st ship">shipped</span> Full rate, then stops. Never decays</td></tr>
+      <tr><td class="k">Ladder ceiling</td><td class="num">20 &rarr; 40</td><td><span class="st chg">changed</span> Not in the pitch. Each rebirth unlocks two levels that could not be bought before at any price</td></tr>
+      <tr><td class="k">Rebirth gate</td><td class="num">2&times; capacity</td><td><span class="st chg">changed</span> Was a flat 1,000,000 &mdash; which is eight seconds of income by rebirth 10</td></tr>
     </tbody>
   </table>
   </div>
 
-  <p>The 8-hour offline cap is deliberate: it covers a school day, so a kid who plays after school always comes back to a full vault. Longer caps make the game feel pointless to check daily; shorter ones punish having a life.</p>
+  <p>The 8-hour offline cap is deliberate: it covers a school day, so a kid who plays after school always comes back to a full piggy. Longer caps make the game feel pointless to check daily; shorter ones punish having a life.</p>
+
+  <p>The word <em>vault</em> is gone from everything a player reads. The thing on the lawn is a piggy bank and the game is named after it; <code>vault</code> survives as the save field and as the name of the <strong>Vault Lock</strong>, which is a bank dial you buy and which is legible from the street precisely because it looks like one.</p>
+
+  <div class="callout">
+    <span class="tag">The correction that mattered most here</span>
+    <p>A flat rebirth gate cannot survive an economy that grows, and a geometric one cannot either &mdash; simulated, a gate of <code>1M &times; 3^rebirths</code> spends sixty days stuck at walls. The gate is a multiple of the capacity you can currently <em>reach</em>, so it rides the same curve the player's own economy rides, and it reads to a nine-year-old as <em>fill your piggy bank twice over</em> on the bar they are already watching.</p>
+  </div>
 </section>
 
 <section id="heist">
@@ -480,17 +534,22 @@ footer {
   <p>Plots have no walls you can't cross. Anyone can walk onto anyone's land at any time &mdash; the tension comes from what happens next, not from being locked out.</p>
 
   <ol>
-    <li><strong>Approach.</strong> Crossing a defended plot is slow and noisy. Fences cost you seconds, alarms light you up in red for everyone to see.</li>
-    <li><strong>The grab.</strong> Hold <code>E</code> on the vault for 3 seconds. You're stuck in place, glowing, and the whole server can see it. Longer as the owner buys better locks.</li>
-    <li><strong>The run.</strong> You get a visible sack worth 5% of their vault. You're 25% slower carrying it, and you have to physically reach your own plot to bank it.</li>
-    <li><strong>The tag.</strong> Anyone &mdash; the owner, a bystander, a guard dog &mdash; can hit you with a pie. You drop the sack, coins fly back to the owner, and you're stunned for 4 seconds.</li>
+    <li><strong>Approach.</strong> Crossing a defended plot is slow and noisy. Fences snag you, and the top tier puts a moat round the whole plot with a causeway the width of the driveway.</li>
+    <li><strong>The grab.</strong> Hold the prompt on the piggy for 3 seconds. You are stuck in place and the whole server can see it. Locks add 1.5 seconds a tier and lockpicks take 0.55 back, clamped to a floor of 1.2 and a ceiling of 12.</li>
+    <li><strong>The run.</strong> You carry a visible piggy worth 5% of theirs, rising to 12.2% with the sack maxed. You are 25% slower, and you have to physically reach your own plot to bank it &mdash; at 11 studs of reach against a 16-stud drop-off on an 80-stud spacing, the shortest getaway anyone can engineer is 53 studs, about 4.4 seconds.</li>
+    <li><strong>The tag.</strong> Anyone &mdash; the owner, a bystander, a guard dog &mdash; holds on you for 0.4 seconds. You drop the loot, the coins go home, and you are stunned for 4.</li>
+    <li><strong>The dodge.</strong> One key, free to everybody, half a second in which you cannot be tagged, caught or hit. Against a 0.4-second tag hold, a defender who eats a dodge starts again.</li>
   </ol>
 
   <p>Everything in that sequence is legible from a distance without reading a word. A kid who joins mid-chase understands what's happening instantly, which is what makes it contagious.</p>
 
+  <p><span class="st cut">cut</span> <strong>The pie.</strong> A thrown pie was the pitched way to tag, and there is no thrown anything in the catch now &mdash; the tag is a hold, and the arresting officer carries no baton, no cuffs and no belt kit. Roblox's maturity questionnaire is answered by what is literally in the model, and for an under-12 audience every one of those props answers it differently.</p>
+
+  <p><span class="st ship">shipped</span> <strong>The dodge was not in the pitch and is the best thing in the sequence.</strong> It is a multiplier on the one function that owns every speed in the game, so it inherits all of them for free: a stun returns zero before the dodge is reached, carrying scales it off 12 rather than 16, a fence snag scales it proportionally, and a ride refuses it outright. It buys about 4.5 studs &mdash; a tenth of a getaway. The immunity is the point, not the distance.</p>
+
   <div class="callout">
     <span class="tag">Design note</span>
-    <p>The 3-second hold matters more than any other number here. Instant stealing is a drive-by with no drama. Ten seconds and nobody ever succeeds. Three seconds is long enough to get caught and short enough to be worth trying.</p>
+    <p>The 3-second hold matters more than any other number here. Instant stealing is a drive-by with no drama. Ten seconds and nobody ever succeeds. Three seconds is long enough to get caught and short enough to be worth trying. It survived unchanged, and the whole lock-versus-lockpick trade is built either side of it.</p>
   </div>
 </section>
 
@@ -503,27 +562,57 @@ footer {
       <h4>Defense</h4>
       <p class="role">The turtle</p>
       <ul>
-        <li><strong>Fences</strong> &mdash; five tiers, each slows crossings further</li>
-        <li><strong>Alarm</strong> &mdash; highlights the thief, pings you wherever you are</li>
-        <li><strong>Guard dog</strong> &mdash; auto-chases and tags, 30s cooldown</li>
-        <li><strong>Vault locks</strong> &mdash; grab time 3s &rarr; 5s &rarr; 8s</li>
-        <li><strong>Floodlights</strong> &mdash; kills the smoke bomb's cover</li>
+        <li><strong>Vault Lock</strong> &mdash; four tiers, +1.5s on the grab each. A bank dial on the piggy's own flank, so a thief reads the tier from the pavement</li>
+        <li><strong>Fence</strong> &mdash; five tiers, ending in a moat. Every tier stays jumpable at 6.0 studs against a 7.2 jump and escalates the hazard instead</li>
+        <li><strong>Guard Dog</strong> &mdash; three breeds, not three copies of one dog. It chases only <em>after</em> a completed steal, which is where all the pressure in this game lives</li>
       </ul>
+      <p class="role" style="margin-top:14px">Cut: alarms, floodlights</p>
     </div>
     <div class="card off">
       <h4>Offense</h4>
       <p class="role">The bandit</p>
       <ul>
-        <li><strong>Speed boots</strong> &mdash; cancels the carry slowdown</li>
-        <li><strong>Lockpicks</strong> &mdash; five tiers, each cuts grab time</li>
-        <li><strong>Bigger sack</strong> &mdash; 5% &rarr; 12% per grab</li>
-        <li><strong>Smoke bomb</strong> &mdash; 6s invisible to dogs and alarms</li>
-        <li><strong>Bolt cutters</strong> &mdash; walk through fences at full speed</li>
+        <li><strong>Lockpicks</strong> &mdash; four tiers, 0.55s off the grab each</li>
+        <li><strong>Bigger Sack</strong> &mdash; 5% &rarr; 12.2% per grab</li>
+        <li><strong>Speed Boots</strong> &mdash; cancels the carry slowdown, and <em>caps there</em>. Nothing in this game may exceed a walk speed of 16</li>
       </ul>
+      <p class="role" style="margin-top:14px">Cut: smoke bombs, bolt cutters</p>
     </div>
   </div>
 
   <p>Coins spent on one tree are gone from the other. That scarcity is the point &mdash; it forces an identity, and identity is what kids argue about, post about, and come back to defend. A rebirth is the only way to respec, which quietly makes rebirthing feel like a fresh start rather than a reset.</p>
+
+  <p><span class="st chg">changed</span> <strong>Both trees are three items rather than five, and the two that went were the same mistake twice.</strong> Floodlights countered a smoke bomb, and bolt cutters countered a fence &mdash; each was a permanent purchase that <em>deleted</em> the thing it answered. Defence in this game buys time and never immunity, and that rule has to cut both ways or the top of one tree makes the top of the other worthless. What replaced them is a layer of consumables that raise the <em>price</em> of beating somebody instead.</p>
+
+  <p><span class="st ship">shipped</span> Speed Boots kept their pitched job and gained a hard ceiling: maxed, a carrying thief runs at exactly 16 &mdash; the same speed as everyone chasing them. That cap is what made the gadgets necessary.</p>
+</section>
+
+<section id="counters">
+  <h2>The counter layer</h2>
+  <p class="sub">What replaced the permanent counters. Not in the pitch at all.</p>
+
+  <p>Eleven consumables, bought with coins, spent one at a time. They exist because the top of each tree had no answer: a maxed dog could not be got past, and a thief with maxed boots could not be caught. Every one of them buys a <em>window</em>, and the shape is deliberately symmetrical across the fight.</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Item</th><th>Side</th><th>What it buys</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Dog Bone, Steak, Golden Bone</td><td>Thief</td><td>A nap on the guard dog. Always shorter than that breed's own cooldown, so waiting one out stays the cheaper play</td></tr>
+      <tr><td class="k">Plunger, Bubblegum, Zapper</td><td>Either</td><td>A slow or a stun. Range <em>falls</em> as power rises, so the decisive one cannot reach a thief who already got clear</td></tr>
+      <tr><td class="k">Guard Duty Treat</td><td>Owner</td><td>Six minutes of a dog that never naps &mdash; and a Golden Bone still gets past it</td></tr>
+      <tr><td class="k">Raincoat</td><td>Thief</td><td>Sheds the plunger and the gum. The Zapper still lands</td></tr>
+      <tr><td class="k">Garden Sprinkler</td><td>Owner</td><td>Nothing. It soaks trespassers and nudges them at the gate, and it is meant to stay a joke</td></tr>
+      <tr><td class="k">Patrol Radio</td><td>Anyone</td><td>Calls a patrol onto the street early. You do not choose who they chase, and it might be you</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout">
+    <span class="tag">The rule that makes the whole layer safe</span>
+    <p><strong>Cheap counters bounce; the expensive one gets through</strong> &mdash; on both sides. The Treat refuses the two cheap bones and admits the Golden Bone; the Raincoat sheds the plunger and the gum and admits the Zapper. Each raises the price of beating somebody rather than making them unbeatable, and each keeps the top item of the other tree meaningful. None of them touches speed.</p>
+  </div>
+
+  <p>They sit on a hot bar of number keys. Pressing a key <strong>draws the item into your hand</strong> and costs nothing; a click out in the world spends it. That is one extra input and it buys two things: a stray thumb can no longer burn a 30,000-coin Golden Bone with nothing on screen having asked, and a thief walking up your driveway holding one is <em>information</em>, read off the lawn the way a glowing collar is. This game prefers information to a fight wherever it can &mdash; the guard-duty tell, the overflowing bin, the published siren &mdash; and the consumables were the one system with nothing to read.</p>
 </section>
 
 <section id="fair">
@@ -536,86 +625,199 @@ footer {
   <table>
     <thead><tr><th>Rule</th><th>Value</th><th>What it prevents</th></tr></thead>
     <tbody>
-      <tr><td class="k">Per-grab cap</td><td class="num">5% of vault</td><td>No single raid ever feels devastating</td></tr>
-      <tr><td class="k">Per-victim cooldown</td><td class="num">60 sec</td><td>Rapid-fire farming of one player</td></tr>
-      <tr><td class="k">Grabs per victim</td><td class="num">3 per session</td><td>Camping one plot all game</td></tr>
-      <tr><td class="k">Offline owner cap</td><td class="num">2.5%</td><td>Being away from keyboard as a liability</td></tr>
-      <tr><td class="k">New player shield</td><td class="num">First 15 min</td><td>Getting robbed before you know the controls</td></tr>
-      <tr><td class="k">Banked coins</td><td class="num">Untouchable</td><td>Anything spent on upgrades is permanently safe</td></tr>
+      <tr><td class="k">Per-grab cap</td><td class="num">5% of piggy</td><td><span class="st ship">shipped</span> No single raid ever feels devastating</td></tr>
+      <tr><td class="k">Per-victim cooldown</td><td class="num">60 sec</td><td><span class="st ship">shipped</span> Rapid-fire farming of one player</td></tr>
+      <tr><td class="k">Grabs per victim</td><td class="num">3 per session</td><td><span class="st ship">shipped</span> Camping one plot all game</td></tr>
+      <tr><td class="k">New player shield</td><td class="num">First 15 min</td><td><span class="st ship">shipped</span> Getting robbed before you know the controls</td></tr>
+      <tr><td class="k">Banked coins</td><td class="num">Untouchable</td><td><span class="st ship">shipped</span> Anything spent on upgrades is permanently safe</td></tr>
+      <tr><td class="k">Bail cap</td><td class="num">3&times; the loot</td><td><span class="st chg">changed</span> Not in the pitch. Being arrested can cost an afternoon of idle income and can never cost a house, a skin or an upgrade</td></tr>
+      <tr><td class="k">Prank cooldown</td><td class="num">1 in 6 sec, per target</td><td><span class="st chg">changed</span> Keyed to the person being <em>hit</em>. A thrower cooldown is no protection &mdash; six players take turns and the child in the middle never moves</td></tr>
+      <tr><td class="k">Offline owner cap</td><td class="num">2.5%</td><td><span class="st cut">cut</span> Replaced by the police &mdash; see below</td></tr>
     </tbody>
   </table>
   </div>
 
-  <p>That last row does the heaviest lifting. Only <em>uncollected</em> coins are ever stealable, so the game teaches a real lesson &mdash; bank often &mdash; instead of punishing you for logging off. A player who gets robbed loses a few minutes of idle income, never progress.</p>
+  <p>The banked-coins row does the heaviest lifting. Only <em>uncollected</em> coins are ever stealable, so the game teaches a real lesson &mdash; bank often &mdash; instead of punishing you for logging off. A player who gets robbed loses a few minutes of idle income, never progress. It is also what let a whole layer of risk be added later without any of it being able to cost somebody their collection.</p>
+
+  <p><span class="st cut">cut</span> <strong>Why the offline cap went.</strong> A discount on robbing a sleeping player treats the symptom. The real hole is that every other risk in this game belongs to the <em>victim</em> &mdash; their dog, their fence, their lock, their tag &mdash; so robbing somebody who is offline, or stood at the far end of the street, is completely free however much they spent on defence. A percentage does not fix that; a risk that belongs to nobody does.</p>
 
   <div class="callout">
     <span class="tag">Worth stating plainly</span>
-    <p>Reward coming back; never punish leaving. Timers built around loss (your crops wilt, your streak dies) do retain players, but they retain them through anxiety &mdash; and on a game aimed at nine-year-olds that's both the wrong thing to build and the kind of thing that draws moderation attention. A full vault waiting for you performs about as well and ages a great deal better.</p>
+    <p>Reward coming back; never punish leaving. Timers built around loss (your crops wilt, your streak dies) do retain players, but they retain them through anxiety &mdash; and on a game aimed at nine-year-olds that's both the wrong thing to build and the kind of thing that draws moderation attention. A full piggy bank waiting for you performs about as well and ages a great deal better.</p>
   </div>
+</section>
+
+<section id="street">
+  <h2>The street</h2>
+  <p class="sub">Cut from twelve plots to eight, and widened in the same pass</p>
+
+  <p><span class="st chg">changed</span> The pitch said twelve plots. Measured before the cut, the far corner of one row to the far corner of the other was 336 studs &mdash; <strong>twenty-one seconds of holding W</strong> &mdash; to buy a getaway that lasted three. Seven seconds of walking for every second of the thing you walked there to do.</p>
+
+  <p><strong>Performance was never the reason, and that is worth saying plainly.</strong> The whole world measures 1,891 parts with 22 animated a frame, which for Roblox is nothing. What eight players actually buys is the lobby: a twelve-cap server sitting at six reads as abandoned and an eight-cap at six reads as busy, and it fills in half the time.</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Decision</th><th>Then</th><th>Now</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Plots</td><td class="num">12</td><td class="num">8</td><td>Four a side. Three was tempting and would have gutted the rides, which are sold against the walk</td></tr>
+      <tr><td class="k">Street width</td><td class="num">104</td><td class="num">144</td><td>Not doubled &mdash; at 208 a cross-street robbery is 17 seconds of carrying and nobody would ever try one</td></tr>
+      <tr><td class="k">Plot spacing</td><td class="num">64</td><td class="num">80</td><td>The getaway grew with it, from 37 studs to 53. Defence got quietly stronger everywhere at once</td></tr>
+      <tr><td class="k">Town square</td><td>A paved plaza in a gap in the row</td><td>Gone</td><td>A missing frontage is not a gap, it is an absence &mdash; and it was the widest thing on the street</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>All of the widening landed on the <strong>verge</strong>, the band of grass between the kerb and the front fences, which runs the whole length of the street rather than taking a house out of the row. Four shops, two notice boards, the lamp posts and the public wheelie bins stand on it. The road itself never moved &mdash; that width is pinned precisely so that widening the street lands on the verge and the driveways instead of the tarmac.</p>
+
+  <p>The shops share one shell and nothing else: a boutique with a pitched gable and a scalloped blind, a glasshouse with an open front, a workshop with a roller bay and a quarter pipe, a strongroom with a castellated parapet and barred glass. Four silhouettes before a word is read, each with a real model in the window and a projecting bracket sign &mdash; because a fascia faces the road and you walk <em>along</em> the road, so the one thing naming each shop was edge-on from every direction anybody arrives from.</p>
+</section>
+
+<section id="police">
+  <h2>The police</h2>
+  <p class="sub">The only risk in this game that belongs to nobody</p>
+
+  <p><span class="st chg">changed</span> This is what the cut offline cap turned into, and it is a better answer than a percentage. A patrol car comes down the street on a schedule, fifteen seconds of siren ahead of it, and commits to exactly one pursuit. The officer runs at 14.5 &mdash; between a carrying thief's 12 and a free player's 16 &mdash; so holding the loot means losing ground and <em>delivering</em> is the answer. The counter is a decision the player already knows how to make.</p>
+
+  <div class="callout">
+    <span class="tag">The shipping requirement, stated exactly</span>
+    <p><strong>Nothing another player does can aim an officer at you.</strong> Not "the police cannot be summoned" &mdash; the Patrol Radio sells the timing for 75,000 coins &mdash; but the call takes <em>no arguments at all</em>: not a player, not a plot, not a position. It starts a minute in which the biggest thief in the server is being hunted, and the biggest thief is sometimes the person who paid. That is also what stops it being a defence purchase, and it makes it the one lever the rest of the street has against a runaway leader.</p>
+  </div>
+
+  <p>Who gets chased is decided by two rules that need no target argument: a robbery completed during the cruise, or else the name on the <strong>Most Wanted</strong> board. The board is a session contest counted on delivery, not a lifetime total &mdash; as a lifetime figure it was unwinnable, so the one status in this game that cannot be bought was also the one nobody could earn. An arrest clears the sheet, so the same child is not hunted all evening, and <em>escaping</em> a wanted pursuit is what unlocks the gear that goes with the title.</p>
+
+  <p>Bail comes out of the piggy bank and never out of banked coins, capped at three times what was taken. Uncapped, a thief who lifted 2,500 while sitting on 200,000 of their own loses all of it &mdash; eighty to one, and the lesson a nine-year-old takes from that is <em>never rob anybody again</em>. The economy needs people robbing each other.</p>
+</section>
+
+<section id="events">
+  <h2>Events</h2>
+  <p class="sub">Because nothing differed between a player's third session and their thirtieth</p>
+
+  <p><span class="st chg">changed</span> The pitch called this a <em>weekly drop</em> and assumed a human shipping content every seven days. Measured against the finished economy, that was the wrong instrument: both upgrade trees max out in a little over two hours, and every source of randomness in the game is a finite list that runs dry. An event cannot be exhausted, because it is not an item &mdash; it has no pool, no catalogue and no completion state.</p>
+
+  <p>The flagship is an <strong>alien raid</strong>: a saucer parks over the street, drones drop tractor beams onto piggy banks and drain them, and anybody can knock a drone down and recover the loot. It matters because it is the only time this street has ever been on the same side. Stealing, dogs, fences, locks, gadgets and Most Wanted are all adversarial, and the friend bonus &mdash; the one cooperative mechanic in the game &mdash; pays you for your friends merely being present. For the length of a raid, a full server means more <em>defenders</em>.</p>
+
+  <p>It adds no verbs. You break a beam by throwing a gadget, exactly as at a thief, and recover the loot by holding a prompt, exactly as you collect or steal. Nothing new to teach, no weapon anywhere in it &mdash; and it gives the gadget tree a second life, since those otherwise only work on somebody actively carrying loot, which is almost never true.</p>
 </section>
 
 <section id="progress">
   <h2>The long game</h2>
   <p class="sub">What keeps week three interesting</p>
 
-  <h3>Rebirth</h3>
-  <p>At one million coins you can rebirth: upgrades reset, you gain a permanent <strong>+25% income</strong> multiplier, and your vault changes material &mdash; wood, then iron, then gold, then diamond. The material is visible from across the map, so your rebirth count is public status without a single number on screen. Kids will grind for the diamond vault specifically because everyone can see it.</p>
+  <h3>Rebirth <span class="st chg">changed</span></h3>
+  <p>Upgrades reset, you keep every cosmetic you own, and you get a skin you did not have. The two numbers both moved, and the second one is the keystone.</p>
+
+  <p><strong>The multiplier came down, from +25% to +12%.</strong> On its own that reads like a nerf and it is the opposite: what replaced the difference is that <strong>a rebirth now raises the ceiling</strong>. The upgrade ladder used to stop at level 20 whatever you did, so prestiging multiplied your income against a catalogue that had not grown &mdash; and the reward for resetting was reaching the end sooner. Measured: 19.8 hours to own everything at rebirth 0, and <strong>7.9 hours at rebirth 6</strong>. The one mechanic built to extend play was the one accelerating the ending.</p>
+
+  <p>Each rebirth now opens two levels that could not be bought before at any price, to a ceiling of 40. The unlocked levels are the large half of prestige and the multiplier is the small half, which is what keeps rebirthing worth doing at rebirth 9. Driven by the real economy functions day by day, the journey to owning the whole catalogue is <strong>8.9 weeks</strong> at two hours a day, with a rebirth falling every four to six days.</p>
+
+  <p><span class="st chg">changed</span> The visible status is a <strong>skin</strong> rather than a piggy bank material, and the plot sign carries the boast: rebirths, then the house, then the skin. Rebirth wipes power and never cosmetics &mdash; it already costs a player every upgrade they own, and the collection is the <em>reason</em> to press the button. Take that too and nobody rebirths, which stalls the economy at exactly the point rebirth exists to unstall.</p>
+
+  <div class="callout">
+    <span class="tag">The page in front of the button</span>
+    <p>A first rebirth opens a page that lists what you keep and what you lose, with real numbers off your own save &mdash; <em>Vault Lock Lv 3, Fence Lv 4, Guard Dog Lv 2</em>, somebody's actual afternoon &mdash; and a way out labelled NOT YET rather than CANCEL, because nothing is being undone. Shown <em>after</em> the press it would be a receipt, which for a nine-year-old who did not understand what they pressed is the worst possible moment to explain it. It asks once; a veteran clearing a dialogue every time learns to tap through it without reading.</p>
+  </div>
 
   <h3>Social pressure, built in</h3>
   <ul>
-    <li><strong>Server leaderboard</strong> &mdash; richest vault, updated live, visible on a board at spawn</li>
-    <li><strong>Revenge ping</strong> &mdash; &ldquo;Jayden robbed you!&rdquo; with a button that marks their plot. Highest-value UI in the game</li>
-    <li><strong>Friend bonus</strong> &mdash; +10% income per friend in the server, capped at +50%. This is your growth engine; it makes inviting people a mechanical advantage rather than a favor</li>
-    <li><strong>Most wanted</strong> &mdash; the server's top thief gets a hat nobody can buy</li>
+    <li><span class="st ship">shipped</span> <strong>Server leaderboard</strong> &mdash; richest piggy, live, on a physical board mid-street. Not a HUD panel: a board you walk past creates a moment of comparison, and a panel is a menu you dismiss. The default Roblox player list is switched off for the same reason</li>
+    <li><span class="st ship">shipped</span> <strong>Revenge ping</strong> &mdash; with a marker on their plot</li>
+    <li><span class="st ship">shipped</span> <strong>Friend bonus</strong> &mdash; +10% income per friend in the server, capped at +50%, exactly as pitched</li>
+    <li><span class="st chg">changed</span> <strong>Most Wanted</strong> &mdash; a portrait poster beside the landscape leaderboard, carrying one face and a bounty, because it is about one person. The gear is earned by <em>escaping</em> a wanted pursuit rather than by topping the board, or the board is a tax on playing well: an officer comes for you every eight minutes and you get a label for it</li>
   </ul>
 
-  <h3>Weekly drops</h3>
-  <p>At 10&ndash;20 hours a week you can sustain a real cadence, and you have to &mdash; static games don't hold chart positions. Budget roughly: one new vault skin or cosmetic each week, one new upgrade tier or defense type each month, one themed event each season. Announce every drop in-game on a board at spawn so returning players immediately see there's something new.</p>
+  <h3>Weekly drops <span class="st chg">changed</span></h3>
+  <p>The cadence is real and the unit changed. A weekly cosmetic assumes somebody ships content every seven days forever; an <strong>event</strong> and a <strong>set</strong> together do the same job and keep working in the weeks nobody ships anything. Live ops is: add an event to the roster, add a set to a chest, and the existing attendance currencies price both with nothing new to build.</p>
+
+  <p>One thing to watch, written down because it has already bitten: an anti-repeat rule that excludes the last pick <em>collapses</em> at small roster sizes. With two events, "never the same twice in a row" leaves exactly one candidate, so the picker strictly alternates and the weights do nothing at all. Damp the repeat instead of forbidding it.</p>
+</section>
+
+<section id="collection">
+  <h2>The collection</h2>
+  <p class="sub">Three currencies, and the arrow only points one way</p>
+
+  <p>None of this was in the pitch, and it is most of what a player past the first fortnight is actually doing. The catalogue is <strong>46 piggy skins, 6 effects, 14 accessories, 19 lawn ornaments, 9 house tiers and 6 rides</strong> &mdash; roughly a hundred things to own &mdash; every one of them authored, none of them generated. Procedural cosmetics were considered and dropped: you cannot look forward to something that has no name, and a pool where some results are duds trains players to stop caring about the roll.</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Currency</th><th>Earned by</th><th>Buys</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Coins</td><td>Playing &mdash; income, and robbing people</td><td>Both upgrade trees, the consumables, and the standing cosmetic catalogue, chests included</td></tr>
+      <tr><td class="k">Tokens</td><td>Attendance only &mdash; the daily ladder and turning up to events</td><td>Event chests. No amount of coins reaches one</td></tr>
+      <tr><td class="k">Medals</td><td>Events</td><td>Set items outright, at a flat price. The guaranteed route beside the gamble</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p><strong>Medals are flat, and that is the one place the seconds-of-your-own-income rule is deliberately broken.</strong> Every other reward in this game is denominated in the player's own rate so it keeps meaning the same thing as they grow. Medals do the opposite on purpose: a set costs the same number of events for a brand-new player as for a maxed one. Coins scale with the player; medals scale with turning up, and a rich player cannot buy their way up this one.</p>
+
+  <p>A <strong>set</strong> is a view over the existing catalogues rather than a new one. The alien set is six items living in five different systems &mdash; a hat, a visor, a lawn ornament, an effect, a skin and a ride &mdash; each bought in its own shop tab with a medal price instead of a coin one. No new ownership storage, no new equip path, and a far better <em>collect the set</em> than six recolours of the same thing.</p>
+
+  <div class="callout">
+    <span class="tag">Nothing is ever locked behind luck</span>
+    <p>Every set item carries a medal price, so a drop only ever saves you time. That is the line that makes a spinner safe for a nine-year-old: bad luck costs them a wait, never the item. Duplicates out of a chest convert to shards in the same reveal, so an open always visibly pays out, and three of a tier combine upward &mdash; three, not two, because two compounds to about eight commons for a legendary and turns the top tier into something a player manufactures rather than something they get.</p>
+  </div>
 </section>
 
 <section id="money">
   <h2>Monetization</h2>
-  <p class="sub">Built for the under-13 rules from day one</p>
+  <p class="sub">One decision holds all of this up, and it can only ever be broken once</p>
 
-  <p>Roblox prohibits paid random-chance items for under-13 accounts, and that's your entire audience. Every purchase must be a known quantity &mdash; you pay, you get exactly the named thing. No crates, no spins, no mystery eggs. Designing to this now is much cheaper than retrofitting after a policy strike.</p>
+  <p>Roblox regulates paid random-chance items, and defines one as anything bought with Robux <em>or with in-game currency purchasable with Robux</em>. For an under-13 audience the restrictions are wide and expanding &mdash; the UK, Australia, Belgium &mdash; which in practice means a large share of players meeting a button that refuses to open.</p>
+
+  <div class="callout">
+    <span class="tag">The rule everything else rests on</span>
+    <p><strong>Coins are not purchasable with Robux at any price, ever.</strong> That single sentence is what keeps the entire shop outside the paid random item rule rather than merely compliant with it &mdash; and the constraint reads like a cost and is mostly a saving. Because no purchase can reach the currency, <em>anything in this game may be sold for coins, including random things.</em> Chests, spins and combines are ordinary in-game rewards for in-game money: no odds disclosure obligation, no policy gate, no regional lockouts, nobody in Belgium meeting a dead button.</p>
+  </div>
+
+  <p><span class="st cut">cut</span> <strong>Coin packs are gone, and this is the single biggest change to the pitch.</strong> The original plan sold them, which forced the opposite compromise: with a pack shipping, every chest in the game would be a regulated loot box <em>retroactively</em>, with not a line of code having moved &mdash; and by then there is a catalogue of them rather than one button. So it is not a preference a later business decision can revisit. Anything that wants to sell currency has to replace this entire section first.</p>
+
+  <p><span class="st chg">changed</span> <strong>The pitch's "no crates, no spins" is therefore reversed, and correctly so.</strong> The reasoning was right for a game selling coins. Once coins are unreachable with money, the honest version of a crate is simply available &mdash; and the odds get printed on the reel anyway, though nothing now requires it. Being outside the regulation is not a reason to stop; it is the reason it costs nothing to comply with the spirit of it.</p>
 
   <div class="tw">
   <table>
     <thead><tr><th>Item</th><th>Type</th><th>Price</th><th>Rationale</th></tr></thead>
     <tbody>
-      <tr><td class="k">2&times; Income</td><td>Gamepass</td><td class="num">99 R$</td><td>The reliable earner in every tycoon</td></tr>
-      <tr><td class="k">Auto-Collect</td><td>Gamepass</td><td class="num">199 R$</td><td>Convenience, not power &mdash; still capped by vault size</td></tr>
-      <tr><td class="k">Big Sack</td><td>Gamepass</td><td class="num">149 R$</td><td>+3% per grab. Deliberately small so it isn't pay-to-win</td></tr>
-      <tr><td class="k">Vault skins</td><td>Gamepass</td><td class="num">49&ndash;99 R$</td><td>Pure cosmetic, and highly visible &mdash; the best kind</td></tr>
-      <tr><td class="k">Coin packs</td><td>Product</td><td class="num">Tiered</td><td>Fixed amounts, clearly labelled</td></tr>
+      <tr><td class="k">Style Pack</td><td>Gamepass</td><td class="num">99 R$</td><td><span class="st ship">shipped</span> Alternate riding poses for every board and bike you own. Confers nothing, cannot be aimed at anybody, and grants the cheapest ride if the buyer owns none &mdash; a pose with nothing to sit on is a purchase that visibly does nothing</td></tr>
+      <tr><td class="k">2&times; Income</td><td>Gamepass</td><td class="num">&mdash;</td><td><span class="st cut">cut</span> Not built. It is the reliable earner in every tycoon and it is also a paid advantage in a PvP economy</td></tr>
+      <tr><td class="k">Auto-Collect</td><td>Gamepass</td><td class="num">&mdash;</td><td><span class="st cut">cut</span> Not built. Collecting is the action a robbery is a race against</td></tr>
+      <tr><td class="k">Big Sack</td><td>Gamepass</td><td class="num">&mdash;</td><td><span class="st cut">cut</span> Not built &mdash; the sack is an offence-tree upgrade bought with coins</td></tr>
+      <tr><td class="k">Coin packs</td><td>Product</td><td class="num">Never</td><td><span class="st cut">cut</span> See above. This is load-bearing structure, not a price point</td></tr>
     </tbody>
   </table>
   </div>
 
-  <p>Keep every paid advantage inside what a free player can reach through play. The moment a bandit can only be stopped by someone who paid, the free players &mdash; who are the overwhelming majority and the entire reason the servers feel alive &mdash; stop showing up.</p>
+  <p>Keep every paid advantage inside what a free player can reach through play. The moment a bandit can only be stopped by someone who paid, the free players &mdash; who are the overwhelming majority and the entire reason the servers feel alive &mdash; stop showing up. As it stands there is no paid advantage at all: the only thing Robux buys is how you stand on a skateboard.</p>
+
+  <p><strong>Monetization is named things, never currency.</strong> Pets, rides, passes, stances &mdash; a purchase that hands over a specific item mints no coins, feeds no chest, and is an ordinary direct purchase, which is the safest possible shape to put in front of an under-12 audience. A Robux purchase may grant an item; it may never grant that item's coin value.</p>
+
+  <p>Two smaller lines that follow from the same place, and are worth stating because both look like easy money: <strong>the event wheel is free and must stay free</strong> &mdash; no paid spins, no re-rolls, no premium wheel &mdash; and <strong>stances are the one cosmetic shaped to be sold, precisely because they cannot be rolled.</strong> Sell one; never put one in a chest.</p>
 </section>
 
 <section id="tech">
   <h2>Architecture</h2>
-  <p class="sub">What I'll be building on your behalf</p>
+  <p class="sub">What got built, and the two rules that carried most of the weight</p>
 
-  <p>An economy where players take things from each other is the exact scenario exploiters go after. Two non-negotiables carry most of the weight:</p>
+  <p>An economy where players take things from each other is the exact scenario exploiters go after. Both non-negotiables shipped as written:</p>
 
-  <h3>Server-authoritative everything</h3>
+  <h3>Server-authoritative everything <span class="st ship">shipped</span></h3>
   <p>The client renders coins; it never counts them. Every grab, collect, purchase and upgrade is validated server-side against the player's real state, with rate limits on every remote. A client that says &ldquo;I collected nine trillion coins&rdquo; gets ignored and flagged. This is not optional in a PvP economy, and it's the thing most solo Roblox games get wrong.</p>
 
-  <h3>Session-locked saves</h3>
-  <p>Profile-style datastore handling with session locking, so the same player joining two servers can't duplicate their vault &mdash; a classic Roblox dupe. Offline income is computed on join from a <code>lastSave</code> timestamp, clamped to 8 hours, never trusted from the client's clock.</p>
+  <h3>Session-locked saves <span class="st ship">shipped</span></h3>
+  <p>Profile-style datastore handling with session locking, so the same player joining two servers can't duplicate their piggy &mdash; a classic Roblox dupe. Offline income is computed on join from a <code>lastSave</code> timestamp, clamped to 8 hours, never trusted from the client's clock. The schema is versioned and is on its sixteenth revision, every one of them applied in place: new fields are added and reconciled on load rather than migrated, so no live save has ever had to be rewritten.</p>
+
+  <p>There is exactly one thing a client is allowed to write into its own save &mdash; settings &mdash; and that is the whole reason the settings service is an allowlist of <em>sanitisers</em> rather than a key-to-type map. A type name cannot bound a table, and a request naming a field of any shape and any size is precisely the "bloat every save until they stop fitting" attack. Nothing in settings may ever affect an outcome: no speed, no income, no odds. That is the bar any future setting has to clear.</p>
 
   <div class="tw">
   <table>
     <thead><tr><th>System</th><th>Approach</th></tr></thead>
     <tbody>
-      <tr><td class="k">Plot assignment</td><td>Pool of 12, claimed on join, released and wiped on leave</td></tr>
-      <tr><td class="k">Coin pile visual</td><td>Single mesh scaled on a log curve &mdash; not hundreds of parts, which would tank framerate</td></tr>
-      <tr><td class="k">Steal validation</td><td>Server checks distance, cooldown, session count, and shield before granting</td></tr>
-      <tr><td class="k">Data schema</td><td>Versioned from the first commit so live saves can be migrated later</td></tr>
-      <tr><td class="k">Source control</td><td>Rojo, so scripts live in git and I can work on them as real files</td></tr>
+      <tr><td class="k">Plot assignment</td><td>Pool of 8, claimed on join, released and wiped on leave. One plot per player is a hard limit &mdash; anybody who cannot be seated is turned away</td></tr>
+      <tr><td class="k">The whole world</td><td>Generated in code at server start. No hand-built geometry anywhere: the ground, the street, the houses, the piggies and the dogs. A fresh empty place plus the repo gives the identical world, which means the place file is disposable and the repo is the project</td></tr>
+      <tr><td class="k">No uploaded assets</td><td>Every model, icon and shop preview is built from parts, and the two animations are assembled at runtime rather than uploaded. Nothing here can be moderated away, and a shop tile shows the <em>real</em> item because it calls the same builder the lawn does</td></tr>
+      <tr><td class="k">Animation budget</td><td>Anything running forever across every plot &mdash; skin cycling, the moat, house light shows &mdash; is computed on each client from a published attribute. Driving those server-side would be tens of thousands of replicated property writes a second to say something derivable from a clock and a string</td></tr>
+      <tr><td class="k">Steal validation</td><td>Server checks distance, cooldown, session count and shield before granting. No client message in this game carries a position &mdash; a bone throw sends a key, a gadget click sends nothing at all</td></tr>
+      <tr><td class="k">One place per decision</td><td>Every tunable number is in one Config file, every remote is declared in one table, and every HUD colour comes from one Theme module. The recurring failure in a codebase this size is a second, nearly-identical copy of something drifting from the first</td></tr>
+      <tr><td class="k">Source control</td><td>Rojo, so scripts live in git and are worked on as real files</td></tr>
     </tbody>
   </table>
   </div>
@@ -623,12 +825,12 @@ footer {
 
 <section id="build">
   <h2>Build order</h2>
-  <p class="sub">Sequenced so there's something playable early</p>
+  <p class="sub">Seven are through, and an eighth arrived that was not on the plan. The last one needs other people.</p>
 
   <div class="phase">
     <div class="pnum">1</div>
     <div>
-      <h3>Foundation</h3>
+      <h3>Foundation <span class="st ship">shipped</span></h3>
       <p class="est">~1 week &middot; nothing fun yet</p>
       <p>Plot pool and assignment, coin accrual, the visible pile, save and load with session locking, offline accrual on join.</p>
       <p>Unglamorous and completely load-bearing. Getting the data layer right now avoids a rewrite in month two, when wiping saves means wiping real players.</p>
@@ -638,7 +840,7 @@ footer {
   <div class="phase">
     <div class="pnum">2</div>
     <div>
-      <h3>Economy and shop</h3>
+      <h3>Economy and shop <span class="st ship">shipped</span></h3>
       <p class="est">~1 week &middot; first playable</p>
       <p>Collect interaction, income and capacity upgrade tiers, shop UI, the first-minute pacing.</p>
       <p>End of this phase it's a working idle game. Play it yourself for an evening &mdash; if the first five minutes are boring, no amount of stealing later will save it.</p>
@@ -648,78 +850,117 @@ footer {
   <div class="phase">
     <div class="pnum">3</div>
     <div>
-      <h3>The heist</h3>
+      <h3>The heist <span class="st ship">shipped</span></h3>
       <p class="est">~1&ndash;2 weeks &middot; the real test</p>
-      <p>Grab interaction, carry state, the run home, pie tagging, and every fairness rule from the table above wired in from the start.</p>
-      <p>This is where the game becomes itself. Get real kids on it as soon as it works &mdash; the 3-second hold and 5% cap will both need tuning against actual behavior, not theory.</p>
+      <p>Grab interaction, carry state, the run home, tagging, and every fairness rule from the table above wired in from the start.</p>
+      <p>This is where the game becomes itself. <strong>The tuning half of this phase has not happened and cannot happen alone</strong> &mdash; the 3-second hold and the 5% cap were reasoned about and never watched. See Open calls.</p>
     </div>
   </div>
 
   <div class="phase">
     <div class="pnum">4</div>
     <div>
-      <h3>Defense and offense trees</h3>
+      <h3>Defense and offense trees <span class="st ship">shipped</span></h3>
       <p class="est">~1 week</p>
-      <p>Both upgrade trees, guard dog AI, alarms, smoke bombs, and the visual language that makes a defended plot readable at a glance.</p>
+      <p>Both upgrade trees, guard dog AI, and the visual language that makes a defended plot readable at a glance &mdash; which turned out to be most of the work. A prompt draws the same filling circle whether the hold is three seconds or nine, so without a body on it the whole lock tree was invisible to both sides: the defender could not see what they had bought and the thief could not see what they were up against.</p>
     </div>
   </div>
 
   <div class="phase">
     <div class="pnum">5</div>
     <div>
-      <h3>Retention systems</h3>
+      <h3>Retention systems <span class="st ship">shipped</span></h3>
       <p class="est">~1 week</p>
-      <p>Rebirth and vault materials, leaderboards, revenge pings, friend bonus, most-wanted hat.</p>
+      <p>Rebirth, leaderboards, revenge pings, friend bonus, most-wanted gear &mdash; plus the daily ladder, which is fixed and published rather than random, because a surprise daily reward would be a random outcome sitting downstream of a purchase.</p>
     </div>
   </div>
 
   <div class="phase">
     <div class="pnum">6</div>
     <div>
-      <h3>Polish and launch</h3>
+      <h3>Polish and launch <span class="st ship">shipped</span></h3>
       <p class="est">~1 week &middot; do not skip</p>
-      <p>Sound, particles, screen shake on a successful grab, coin pickup juice, gamepasses, analytics, thumbnail and icon.</p>
-      <p>Juice is not decoration on a game like this &mdash; the grab has to <em>feel</em> like a heist. Budget real time here. Your thumbnail also does more for discovery than any feature in phase 4.</p>
+      <p>Sound, music, the arrest scene, custom interaction prompts, the notification vocabulary, the whole HUD and shop re-themed off one palette.</p>
+      <p>Juice is not decoration on a game like this &mdash; the grab has to <em>feel</em> like a heist. Still outstanding from this phase: <strong>analytics, a thumbnail and an icon</strong>, and the thumbnail does more for discovery than any feature in phase 4.</p>
     </div>
   </div>
 
   <div class="phase">
     <div class="pnum">7</div>
     <div>
-      <h3>Soft launch and live ops</h3>
-      <p class="est">Ongoing</p>
-      <p>Ship quietly, watch the numbers, tune the economy against real players, then start the weekly drop rhythm. Expect the first version's balance to be wrong &mdash; every one of these games launches wrong and fixes it live.</p>
+      <h3>Everything the plan did not have <span class="st chg">unplanned</span></h3>
+      <p class="est">The largest phase by some distance</p>
+      <p>Six systems, none of them in the original seven, and every one of them answering a hole the finished game exposed:</p>
+      <ul>
+        <li><strong>The police</strong> &mdash; because no purchase can defend a plot whose owner is not there</li>
+        <li><strong>Consumables and the hot bar</strong> &mdash; because the top of each upgrade tree had no counter</li>
+        <li><strong>Rides</strong> &mdash; because the walk between plots was the one part of this game that was pure holding W</li>
+        <li><strong>Houses, lawns and the street furniture</strong> &mdash; because past the first few tiers there was nothing expensive left to look at</li>
+        <li><strong>Events, sets and chests</strong> &mdash; because nothing differed between a player's third session and their thirtieth</li>
+        <li><strong>Wheelie bins and the dodge</strong> &mdash; two ways to buy a moment in a chase, neither of which buys an escape</li>
+      </ul>
+      <p>Worth noting for anyone planning the next one of these: the phase that was not on the plan took longer than the six that were, and almost all of it was legibility rather than mechanics.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="pnum">8</div>
+    <div>
+      <h3>Soft launch and live ops <span class="st chg">next</span></h3>
+      <p class="est">Where the project actually is</p>
+      <p>Ship quietly, watch the numbers, tune the economy against real players, then settle into the event-and-set rhythm. Expect the first version's balance to be wrong &mdash; every one of these games launches wrong and fixes it live.</p>
+      <p>Two things gate it and neither is code: the placeholder audio needs replacing with cleared uploads, and the map has never had more than one person on it.</p>
     </div>
   </div>
 </section>
 
 <section id="open">
   <h2>Open calls</h2>
-  <p class="sub">Decisions I need from you, roughly in the order they'll block me</p>
+  <p class="sub">Four are answered. What replaced them is harder, and none of it is code.</p>
 
   <div class="q">
-    <h4>Is the title right?</h4>
-    <p>&ldquo;Rob a Piggy Bank&rdquo; matches the naming convention that currently wins Roblox search &mdash; short, a verb, exactly what you do. The risk is that the &ldquo;Steal a &hellip;&rdquo; pattern is saturated enough to read as derivative. Worth deciding before art gets made.</p>
+    <h4>Is the title right? <span class="st ship">answered</span></h4>
+    <p>Kept. &ldquo;Rob a Piggy Bank&rdquo; matches the naming convention that wins Roblox search, and the piggy turned out to carry the entire visual identity &mdash; the colour system is literally gold means money and pink means the pig.</p>
   </div>
 
   <div class="q">
-    <h4>Art direction: blocky or meshy?</h4>
-    <p>Pure part-built is faster, cheaper, runs on school Chromebooks, and looks native to Roblox. Meshes look better in a thumbnail. For this audience and your hours, I'd lean blocky with strong colour and good lighting.</p>
+    <h4>Art direction: blocky or meshy? <span class="st ship">answered</span></h4>
+    <p>Blocky, and harder than that: <strong>nothing is uploaded at all.</strong> Every model is built from parts in code, including the two animations. That started as a taste call and turned into a moderation one &mdash; a third-party asset can be taken down without warning and the penalty lands on the experience, not the prop. It is also why the shop can render the real item in every tile.</p>
   </div>
 
   <div class="q">
-    <h4>Does trading exist?</h4>
-    <p>Trading massively deepens a collecting economy, but it drags in scam risk, moderation load, and a whole second exploit surface. My recommendation is no trading at launch, revisited once the core is stable.</p>
+    <h4>Does trading exist? <span class="st ship">answered</span></h4>
+    <p>No, and the collection economy that arrived since strengthens the case rather than weakening it: shards, chests and duplicates are all things a scammer would love, and the whole design already guarantees that bad luck only ever costs time.</p>
+  </div>
+
+  <div class="q">
+    <h4>The map has never had two people on it <span class="st cut">blocking</span></h4>
+    <p>This is the real open item and it blocks a launch. The chase, the lock-versus-lockpick timing, the guard dog catch, the friend bonus, the revenge marker, tagging somebody, digging somebody out of a wheelie bin, hiding while carrying loot &mdash; every one of those needs a second player and none has ever run. They are individually verified from both ends and unproven in the middle. A handful of real kids for an hour would be worth more than another week of building.</p>
+  </div>
+
+  <div class="q">
+    <h4>The chests have no shop front <span class="st chg">half-built</span></h4>
+    <p>Five chests exist and work &mdash; four bought with coins, one with event tokens &mdash; along with duplicates, shards and the three-of-a-tier combine. The server side is complete and wired. There is <em>no player-facing way to open one</em>: the only live path is a dev command, so the largest single block of collectable content in the game is currently unreachable by anybody playing it. This is a UI job, not a design one.</p>
+  </div>
+
+  <div class="q">
+    <h4>Audio needs clearing <span class="st cut">blocking</span></h4>
+    <p>Three sound IDs are third-party Creator Store assets, one of which asks for credit, and the siren slot is deliberately <em>empty</em> rather than filled with a placeholder nobody remembers to swap &mdash; the free sirens on that store are ripped from television, and a strike moderates the asset away and leaves the patrol silent after players have already learned to listen for it. Everything else comes from the licensed library. The ride and music mixes have also never actually been listened to by anyone: every claim about them is measured rather than heard.</p>
+  </div>
+
+  <div class="q">
+    <h4>One setting lives outside the repo</h4>
+    <p>Max player count is read-only from a script. The project file sets it to 8, so a fresh build is correct, but an existing place has to be changed by hand in Game Settings. It was found sitting at 60 against 8 plots &mdash; fifty-two players out of sixty being turned away, which is invisible in a solo test and catastrophic in a live one.</p>
   </div>
 
   <div class="q">
     <h4>How much do you want to build yourself?</h4>
-    <p>I can write essentially all of it, but a game you don't understand is one you can't run live-ops on. Suggest I build the systems and you own layout, art, and balance tuning &mdash; that's also the half that's more fun.</p>
+    <p>Still open, and it matters more now than it did at the pitch. A game you don't understand is one you can't run live-ops on, and this one has grown a lot of load-bearing reasoning. The written record of <em>why</em> each rule exists is deliberately kept alongside the code for exactly that reason.</p>
   </div>
 </section>
 
 <footer>
-  Working document &middot; every number here is a starting point to tune, not a decision
+  Living document &middot; the plan, and what became of it &middot; every number here is measured against the shipped code
 </footer>
 
 </main>

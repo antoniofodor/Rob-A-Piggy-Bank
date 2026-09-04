@@ -2,18 +2,17 @@
 --[[
 	ThiefModel
 
-	Icons for the two thief consumables.
+	Icons for the thief consumables.
 
-	Note what these are pictures OF. The disguise turns you into a wheelie bin,
-	but the bin is built by Decor -- which lives in ServerScriptService and the
-	client cannot reach -- and copying its builder here would be the second
-	version that drifts from the first the moment either is touched. So the
-	tile shows the KIT rather than its effect: a canvas holdall you buy, with
-	the tab text saying what comes out of it.
+	THIS DESCRIBED A RETIRED ITEM until it was caught. The Disguise Kit is
+	gone -- it never worked, and the wheelie-bin fantasy it was selling is
+	delivered by the public bins on the kerb, which nobody buys. The note here
+	explained at length why the kit's tile showed a holdall rather than a bin,
+	which is reasoning about a tile that no longer exists.
 
-	That is honest rather than a workaround. You are buying a kit; the bin is
-	what it does. The raincoat is the same shape of thing, and it is genuinely
-	the object.
+	What is left is the raincoat, and it is genuinely the object it depicts,
+	so the whole problem this note was about does not arise. Kept as a builder
+	because Config.THIEF_KIT is a catalogue that can grow again.
 
 	Built around the ORIGIN and only ever seen in a ViewportFrame, so there is
 	no ground line to respect here -- unlike RideModel, which is placed in the

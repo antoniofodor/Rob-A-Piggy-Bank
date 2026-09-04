@@ -30,8 +30,10 @@ local RunService = game:GetService("RunService")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local DataService = require(script.Parent.DataService)
+local HeldItemService = require(script.Parent.HeldItemService)
 local PlotService = require(script.Parent.PlotService)
 local GuardDog = require(script.Parent.GuardDog)
+local StealthService = require(script.Parent.StealthService)
 local BoneModel = require(ReplicatedStorage.Shared.BoneModel)
 
 local BoneService = {}
@@ -136,7 +138,7 @@ local function findTarget(from: Vector3, breaksChase: boolean): (any?, string?)
 					else
 						sawChasing = true
 					end
-				elseif os.clock() < dog.busyUntil then
+				elseif GuardDog.isOffDuty(dog) then
 					sawResting = true
 				elseif dist < bestDist then
 					best, bestDist = plot, dist
@@ -151,18 +153,18 @@ local function findTarget(from: Vector3, breaksChase: boolean): (any?, string?)
 	-- Chasing beats resting when both are in range: it is the one refusal
 	-- that names a rule the player can act on.
 	if sawChasing then
-		return nil, "It has already seen you -- only a Golden Bone stops a chase."
+		return nil, "It has already seen you. Only a Golden Bone stops a chase."
 	end
 	-- Ranked above "off duty" for the same reason chasing is: it names a rule
 	-- the player can act on, and the collar is already glowing to back it up.
 	if sawGuarded then
-		return nil, "That dog is on guard duty -- only a Golden Bone gets past it."
+		return nil, "That dog is on guard duty. Only a Golden Bone gets past it."
 	end
 	if sawResting then
 		return nil, "That dog is already off duty."
 	end
 	if nearestAny < math.huge then
-		return nil, "Too far -- get closer to the dog."
+		return nil, "Too far. Get closer to the dog."
 	end
 	return nil, "There is no guard dog near you."
 end
@@ -180,6 +182,15 @@ function BoneService.throw(player: Player, key: string)
 
 	local root = getRoot(player)
 	if not root then
+		return
+	end
+
+	-- YOU HAVE TO BE HOLDING IT. The prop in the hand is a tell other players
+	-- read off the pavement, so a use that never drew anything would be a lie
+	-- about the street. Named rather than silent: the fix is one keypress and
+	-- a refusal nobody can read is indistinguishable from a broken item.
+	if not HeldItemService.holding(player, key) then
+		notify(player, ("Hold the %s out first."):format(spec.name), "warn")
 		return
 	end
 
@@ -206,6 +217,7 @@ function BoneService.throw(player: Player, key: string)
 	lastThrow[player] = now
 	stock(data)[key] = held - 1
 	BoneService.push(player)
+	HeldItemService.revalidate(player)
 
 	local dog = plot.dog
 	local nap = Config.getBoneNap(key, dog.level)
@@ -248,7 +260,7 @@ function BoneService.throw(player: Player, key: string)
 		end
 
 		local tier = Config.getDogTier(dog.level)
-		notify(player, ("%s took the %s -- %d seconds."):format(
+		notify(player, ("%s took the %s. Napping for %d seconds."):format(
 			if tier then tier.name else "The dog", spec.name, math.floor(nap + 0.5)), "good")
 
 		local owner = plot.owner
@@ -279,7 +291,11 @@ function BoneService.buy(player: Player, key: string)
 	data.coins -= spec.cost
 	stock(data)[key] = (stock(data)[key] or 0) + 1
 
-	notify(player, ("%s bought. Press G near a guard dog."):format(spec.name), "good")
+	-- The same line GadgetService, HomeService and StealthService all use. It
+	-- used to name a G keybind, which was the only purchase message in the
+	-- game that taught a control -- and it taught one that no longer exists.
+	-- The count is the fact worth having; how to throw it is the bar's job.
+	notify(player, ("%s bought. You have %d."):format(spec.name, stock(data)[key]), "good")
 	DataService.save(player)
 	BoneService.push(player)
 end
@@ -314,6 +330,12 @@ end
 
 function BoneService.start()
 	Remotes.get("BoneThrow").OnServerEvent:Connect(function(player, key)
+		-- Nothing but climbing out, while you are in a bin. The client hides
+		-- the control, so this only ever fires for a client that was written
+		-- to ignore it.
+		if StealthService.isHidden(player) then
+			return
+		end
 		if type(key) ~= "string" then
 			return
 		end

@@ -15,11 +15,22 @@
 	Pure scenery: nothing here collides, is queryable, or casts a shadow. It is
 	a status symbol and must never become an obstacle in a chase or eat a
 	raycast meant for a piggy.
+
+	IN ReplicatedStorage BECAUSE THE SHOP RENDERS IT.
+
+	This file has always been pure geometry over Config, with no server-only
+	API anywhere in it, so it moved here rather than being copied: the shop
+	tiles show the REAL item, built by the same function that puts it on the
+	lawn, and a second nearly-identical copy would drift from this one the
+	first time either was touched. Same reasoning as BoneModel and PigGear,
+	which have been shared this way from the start.
 ]]
 
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local HouseFX = require(ReplicatedStorage.Shared.HouseFX)
 
 local House = {}
 
@@ -93,6 +104,46 @@ end
 -- ============================================================
 -- ARCHETYPES
 -- ============================================================
+
+-- AN ANIMATED EMISSIVE PART, which is what the endgame tiers are actually
+-- built out of now.
+--
+-- The colour is written every frame by `HouseFX` on each CLIENT, from the
+-- attributes stamped here. Nothing about the animation is replicated: the
+-- server builds the geometry, tags it, and never touches it again.
+--
+-- Hue and saturation are DERIVED from the colour handed in rather than passed
+-- separately, so a tier's palette stays one number in Config instead of a
+-- colour here and a hue there that drift apart the first time somebody
+-- retunes the gold.
+-- THE FX PALETTE, WHICH IS NOT THE LANTERN PALETTE. `tier.glow` is tuned for
+-- a soft PointLight and is deliberately pale on the two light-walled tiers;
+-- Neon renders a colour flat out and blooms it, so the same value that reads
+-- as a warm bulb reads as a white hole. Every animated part goes through here.
+local function fxColour(tier): Color3
+	return tier.fxGlow or tier.glow or tier.trim
+end
+
+local function glowPart(name: string, size: Vector3, cf: CFrame, colour: Color3, spec: { [string]: any }): Part
+	local p = part(name, size, cf, colour, Enum.Material.Neon)
+	local h, sv = colour:ToHSV()
+
+	p:SetAttribute("FX", spec.fx)
+	p:SetAttribute("Phase", spec.phase or 0)
+	p:SetAttribute("Rate", spec.rate or 0.3)
+	p:SetAttribute("Hue", spec.hue or h)
+	p:SetAttribute("Sat", spec.sat or sv)
+	if spec.span then p:SetAttribute("Span", spec.span) end
+	if spec.dim then p:SetAttribute("Dim", spec.dim) end
+	if spec.amount then p:SetAttribute("Amount", spec.amount) end
+
+	-- Tagged LAST, so the attributes are all readable by the time the
+	-- animator's added-signal fires. Tag first and a listener can register a
+	-- part before the numbers describing it exist, which reads as an effect
+	-- that works everywhere except the first house built after a join.
+	CollectionService:AddTag(p, HouseFX.TAG)
+	return p
+end
 
 local builders: { [string]: (any, CFrame) -> () } = {}
 
@@ -275,9 +326,24 @@ builders.modern = function(tier, at)
 	end
 
 	-- The strip light under the overhang. One warm line on an otherwise black
-	-- building, which is the whole look.
-	part("Strip", Vector3.new(w - 1, 0.35, 0.5),
-		at * CFrame.new(0, ground + 0.4, d / 2 + 2), tier.trim, Enum.Material.Neon)
+	-- building, which is the whole look -- and now the one that BREATHES,
+	-- because this is the first tier anybody reaches with money to spare and
+	-- it should be the first that visibly does something. Deliberately the
+	-- quietest effect in the file: the modern is the restrained one, and it
+	-- is the contrast that makes the Neon Tower above it read as loud.
+	glowPart("Strip", Vector3.new(w - 1, 0.35, 0.5),
+		at * CFrame.new(0, ground + 0.4, d / 2 + 2), fxColour(tier),
+		{ fx = "pulse", rate = 0.16, dim = 0.45 })
+
+	-- A second line at the parapet, chasing the length of the roof. Two lines
+	-- doing different things is what stops it reading as a strip somebody
+	-- forgot to switch off.
+	for i = 0, 5 do
+		glowPart("Coping", Vector3.new((w + 1) / 6 - 0.4, 0.22, 0.4),
+			at * CFrame.new(-(w + 1) / 2 + (w + 1) / 12 + i * (w + 1) / 6,
+				ground + upper + 2.1, d / 2 + 2.3), fxColour(tier),
+			{ fx = "chase", phase = i / 6, rate = 0.34, span = 0.4, dim = 0.3 })
+	end
 
 	-- Flat roof with a parapet: a rooftop terrace, not an attic.
 	part("RoofSlab", Vector3.new(w + 1, 0.8, d + 1), at * CFrame.new(0, ground + upper, 2),
@@ -334,8 +400,13 @@ local function lantern(tier, size: Vector3, cf: CFrame, withLight: boolean)
 	if withLight then
 		local light = Instance.new("PointLight")
 		light.Color = glow
-		light.Brightness = 2
-		light.Range = 26
+		-- Deliberately weak. This is a night-time accent, and the palace is
+		-- the tier that proves it: white marble walls bounce a warm light
+		-- straight back, so at brightness 2 over a 26-stud range the whole
+		-- front of the building washed out in daylight. A lantern should read
+		-- as a lit lamp, not as a floodlight aimed at the house.
+		light.Brightness = tier.lanternBrightness or 0.9
+		light.Range = tier.lanternRange or 18
 		light.Shadows = false
 		light.Parent = p
 	end
@@ -364,10 +435,25 @@ builders.tower = function(tier, at)
 			local glass = part("Glazing", spec[1], at * CFrame.new(spec[2]), GLASS_TINT, Enum.Material.Glass)
 			glass.Reflectance = 0.4
 		end
-		-- One lit band per floor, on the street side only. A light on all four
-		-- faces of six floors is twenty-four emitters nobody can see the back of.
-		lantern(tier, Vector3.new(w - 3, 0.4, 0.4),
-			at * CFrame.new(0, level * floor + floor - 0.6, d / 2 + 0.3), level == tier.storeys - 1)
+		-- A LIT BAND PER FLOOR, CYCLING, WITH A PHASE PER STOREY -- which
+		-- together make one colour wave travelling up the building. This is
+		-- the loudest thing available at a hundred studs, because it is the
+		-- only effect that changes while nothing moves, and it is the reason
+		-- the tier is called the Neon Tower rather than the Glass One.
+		--
+		-- Front and both sides now. The back is still skipped: nobody stands
+		-- behind these, and eighteen emitters is already the largest single
+		-- run in the game.
+		local phase = level / tier.storeys
+		local y = level * floor + floor - 0.6
+		glowPart("Band", Vector3.new(w - 3, 0.4, 0.4),
+			at * CFrame.new(0, y, d / 2 + 0.3), fxColour(tier),
+			{ fx = "cycle", phase = phase, rate = 0.22 })
+		for _, sx in ipairs({ -1, 1 }) do
+			glowPart("Band", Vector3.new(0.4, 0.4, d - 3),
+				at * CFrame.new(sx * (w / 2 + 0.3), y, 0), fxColour(tier),
+				{ fx = "cycle", phase = phase, rate = 0.22 })
+		end
 	end
 
 	-- Corner columns run the full height and are what actually makes it read
@@ -379,10 +465,35 @@ builders.tower = function(tier, at)
 		end
 	end
 
+	-- A LIGHT RUNNING UP THE TWO FRONT CORNERS, cut into one segment per
+	-- storey. A chase needs segments by construction: a single full-height
+	-- strip can only get brighter and dimmer, and what reads as travel is a
+	-- lit band arriving somewhere it was not a moment ago.
+	--
+	-- Front corners only. The two at the back face the grove.
+	for _, sx in ipairs({ -1, 1 }) do
+		for level = 0, tier.storeys - 1 do
+			glowPart("Riser", Vector3.new(0.45, floor - 0.6, 0.45),
+				at * CFrame.new(sx * (w / 2), level * floor + floor / 2, d / 2 + 0.95), fxColour(tier),
+				{ fx = "chase", phase = level / tier.storeys, rate = 0.5, span = 0.3, dim = 0.12 })
+		end
+	end
+
 	part("Cap", Vector3.new(w + 2.5, 0.9, d + 2.5), at * CFrame.new(0, h + 0.45, 0), tier.roof, Enum.Material.Slate)
-	-- Rooftop mast, lit at the tip: the bit you can see over the trees.
 	part("Mast", Vector3.new(0.7, 9, 0.7), at * CFrame.new(0, h + 5, 0), tier.roof, Enum.Material.Metal)
-	lantern(tier, Vector3.new(1.5, 1.5, 1.5), at * CFrame.new(0, h + 9.6, 0), true)
+
+	-- The bit visible over the trees: a swelling beacon at the tip, and a ring
+	-- turning around the mast under it. The ring is what sells it as a machine
+	-- rather than a lamp -- it is the only thing on the street that MOVES at
+	-- this distance, and movement out-reads colour at the far end of the road.
+	glowPart("Beacon", Vector3.new(2.8, 2.8, 2.8), at * CFrame.new(0, h + 9.6, 0), fxColour(tier),
+		{ fx = "beacon", rate = 0.45, dim = 0.1 })
+	for i = 0, 7 do
+		local a = i / 8 * math.pi * 2
+		glowPart("Halo", Vector3.new(1.6, 1.6, 1.6),
+			at * CFrame.new(0, h + 6.2, 0) * CFrame.Angles(0, a, 0) * CFrame.new(0, 0, 4.4),
+			fxColour(tier), { fx = "orbit", rate = 0.3, amount = 4.4 }).Shape = Enum.PartType.Ball
+	end
 
 	part("Door", Vector3.new(5, 8, 0.6), at * CFrame.new(0, 4, d / 2), Color3.fromRGB(14, 15, 20), Enum.Material.Glass)
 	part("Podium", Vector3.new(w + 6, 0.6, 8), at * CFrame.new(0, 0.3, d / 2 + 3), tier.roof, Enum.Material.Concrete)
@@ -410,22 +521,60 @@ builders.palace = function(tier, at)
 	dome.Shape = Enum.PartType.Ball
 	part("Finial", Vector3.new(1.1, 4, 1.1), at * CFrame.new(0, h + 11.6, 0), tier.trim, Enum.Material.Metal)
 	-- Gold band where the dome meets its drum, so the two read as one object.
-	local collar = part("DomeBand", Vector3.new(1.2, 14.6, 14.6),
-		at * CFrame.new(0, h + 4.5, 0) * CFrame.Angles(0, 0, math.rad(90)), tier.trim, Enum.Material.Metal)
+	-- SHIMMERS rather than cycles: `sweep` walks a little way around the wheel
+	-- and back, so the gold moves without ever stopping being gold. A full
+	-- hue cycle here would turn the one thing that identifies this tier into
+	-- the same rainbow the Neon Tower already owns.
+	local collar = glowPart("DomeBand", Vector3.new(1.2, 14.6, 14.6),
+		at * CFrame.new(0, h + 4.5, 0) * CFrame.Angles(0, 0, math.rad(90)), fxColour(tier),
+		{ fx = "sweep", rate = 0.2, amount = 0.045 })
 	collar.Shape = Enum.PartType.Cylinder
 
-	-- Colonnade across the whole frontage, on a stepped plinth.
+	-- A gold ring turning above the finial. The palace's answer to the tower's
+	-- halo, and the reason it still reads from the road: everything else on
+	-- this building is a static white mass.
+	for i = 0, 9 do
+		local a = i / 10 * math.pi * 2
+		glowPart("Halo", Vector3.new(1.8, 1.8, 1.8),
+			at * CFrame.new(0, h + 15.5, 0) * CFrame.Angles(0, a, 0) * CFrame.new(0, 0, 6),
+			fxColour(tier), { fx = "orbit", rate = 0.22, amount = 6 }).Shape = Enum.PartType.Ball
+	end
+
+	-- Colonnade across the whole frontage, on a stepped plinth, each column
+	-- standing on its own uplight. The lights chase ACROSS the frontage,
+	-- which is the one direction that reads from the street: a palace is
+	-- looked at side-on from the road, so a wave travelling left to right
+	-- crosses the viewer's eye instead of moving away from it.
 	for i = 0, 5 do
 		local x = -w / 2 + 4 + i * ((w - 8) / 5)
 		local column = part("Column", Vector3.new(h - 2, 2.6, 2.6),
 			at * CFrame.new(x, (h - 2) / 2 + 1, d / 2 + 5) * CFrame.Angles(0, 0, math.rad(90)),
 			tier.walls, Enum.Material.Marble)
 		column.Shape = Enum.PartType.Cylinder
+
+		-- SEATED ON THE TOP STEP, not on the ground. The plinth stacks three
+		-- steps to y 2.1 and the columns only emerge above it, so a light at
+		-- the column's own base is a light buried inside solid marble --
+		-- which is exactly where these were, and why the whole frontage came
+		-- out as one white haze with nothing in it anybody could name.
+		local uplight = glowPart("Uplight", Vector3.new(0.7, 3.8, 3.8),
+			at * CFrame.new(x, 2.6, d / 2 + 5) * CFrame.Angles(0, 0, math.rad(90)), fxColour(tier),
+			{ fx = "chase", phase = i / 6, rate = 0.3, span = 0.32, dim = 0.2 })
+		uplight.Shape = Enum.PartType.Cylinder
 	end
 	part("Pediment", Vector3.new(w - 4, 2.4, 11), at * CFrame.new(0, h + 0.4, d / 2 + 4), tier.trim, Enum.Material.Marble)
+	-- The steps, and a lit nosing on each. The chase runs UP them toward the
+	-- door -- phases handed out from the bottom step rather than from `i`,
+	-- which counts down: step 0 is the TOP one here, and a chase authored off
+	-- the loop index would have run down the stairs and out into the garden.
 	for i = 0, 2 do
-		part("Step", Vector3.new(w - 6 + i * 3, 0.7, 12 + i * 2),
-			at * CFrame.new(0, 0.35 + (2 - i) * 0.7, d / 2 + 8), tier.walls, Enum.Material.Marble)
+		local depth = 12 + i * 2
+		local y = 0.35 + (2 - i) * 0.7
+		part("Step", Vector3.new(w - 6 + i * 3, 0.7, depth),
+			at * CFrame.new(0, y, d / 2 + 8), tier.walls, Enum.Material.Marble)
+		glowPart("Nosing", Vector3.new(w - 6 + i * 3 - 1, 0.42, 0.5),
+			at * CFrame.new(0, y + 0.45, d / 2 + 8 + depth / 2 + 0.1), fxColour(tier),
+			{ fx = "chase", phase = (2 - i) / 3, rate = 0.42, span = 0.36, dim = 0.18 })
 	end
 
 	for storey = 1, tier.storeys do
@@ -477,8 +626,28 @@ builders.castle = function(tier, at)
 					tier.roof, Enum.Material.Slate)
 				cap.Shape = Enum.PartType.Cylinder
 			end
-			lantern(tier, Vector3.new(1.1, 1.1, 1.1),
-				at * CFrame.new(sx * w / 2, th + 6.6, sz * d / 2), sz > 0)
+			-- The four finials breathe, and they breathe OUT OF STEP: a
+			-- quarter turn of phase each, so the castle has something moving
+			-- at every moment rather than all four blinking together like a
+			-- fault. Four corners pulsing in lockstep is the one arrangement
+			-- that reads as a single flash, which is also the arrangement the
+			-- flash guidance is about.
+			local finial = glowPart("Finial", Vector3.new(1.6, 1.6, 1.6),
+				at * CFrame.new(sx * w / 2, th + 6.6, sz * d / 2), fxColour(tier),
+				{ fx = "pulse", phase = (sx + 1) * 0.125 + (sz + 1) * 0.25, rate = 0.3, dim = 0.2 })
+			finial.Shape = Enum.PartType.Ball
+			-- Held by reference, never looked back up by name: every part in
+			-- a house lives in one flat folder, so `FindFirstChild("Finial")`
+			-- returns the same first turret on all four passes -- and the
+			-- palace builds a part with that name as well.
+			if sz > 0 then
+				local light = Instance.new("PointLight")
+				light.Color = tier.glow
+				light.Brightness = tier.lanternBrightness or 0.9
+				light.Range = tier.lanternRange or 18
+				light.Shadows = false
+				light.Parent = finial
+			end
 		end
 	end
 
@@ -497,8 +666,54 @@ builders.castle = function(tier, at)
 	-- Hung on the GATEHOUSE, above the gate and below its battlements, rather
 	-- than up the keep behind it -- from the road that read as a stripe
 	-- floating halfway up a wall with nothing holding it.
+	--
+	-- STILL FABRIC, and the light on it is a separate part standing proud.
+	-- Fabric is a dark noisy texture rather than a colour, so animating the
+	-- banner's own colour would have moved a muddy brown through a muddy
+	-- purple. The cloth stays cloth and a neon device is pinned to it.
 	part("Banner", Vector3.new(5.5, h * 0.4, 0.4),
 		at * CFrame.new(0, h * 0.47, d / 2 + 4.9), tier.trim, Enum.Material.Fabric)
+	glowPart("Sigil", Vector3.new(2.6, 2.6, 0.3),
+		at * CFrame.new(0, h * 0.47, d / 2 + 5.2), fxColour(tier),
+		{ fx = "pulse", rate = 0.26, dim = 0.35 })
+
+	-- RUNES ACROSS THE KEEP, above the gatehouse and clear of it, chasing
+	-- from one side to the other. The keep front is a forty-stud blank wall
+	-- and this is the only tier whose walls are plain grey brick, so it is
+	-- the one that most needed something written on it.
+	for i = 0, 4 do
+		glowPart("Rune", Vector3.new(2.2, 2.2, 0.35),
+			at * CFrame.new(-12 + i * 6, h * 0.8 + 5, d / 2 + 0.4), fxColour(tier),
+			{ fx = "chase", phase = i / 5, rate = 0.38, span = 0.3, dim = 0.15 })
+	end
+
+	-- A SKY CASTLE SHOULD HAVE SOMETHING IN THE SKY. Six rocks circling the
+	-- keep above the turrets, each on its own radius, height and rate so the
+	-- ring never resolves into a wheel. This is the tallest thing in the game
+	-- and the only moving scenery above the treeline, which is what a
+	-- hundred-million-coin house is buying: everyone on the street can see it
+	-- without leaving their own plot.
+	for i = 0, 5 do
+		local a = i / 6 * math.pi * 2
+		local radius = 26 + (i % 3) * 5
+		local rock = part("Shard", Vector3.new(4.5 - (i % 3) * 0.8, 3.2, 4.5 - (i % 2) * 1.1),
+			at * CFrame.new(0, h + 12 + (i % 3) * 5, 0)
+				* CFrame.Angles(0, a, 0) * CFrame.new(0, 0, radius)
+				* CFrame.Angles(math.rad(14 * (i % 2 == 0 and 1 or -1)), 0, math.rad(9)),
+			tier.walls, Enum.Material.Slate)
+		rock:SetAttribute("FX", "orbit")
+		rock:SetAttribute("Rate", 0.05 + i * 0.012)
+		rock:SetAttribute("Amount", radius)
+		CollectionService:AddTag(rock, HouseFX.TAG)
+
+		-- A lit underside on each, so they are visible against a bright sky.
+		-- Rock against blue at a hundred studs is a grey dot; rock with a
+		-- magenta edge is a floating island.
+		glowPart("ShardGlow", Vector3.new(3.4 - (i % 3) * 0.6, 0.35, 3.4 - (i % 2) * 0.9),
+			at * CFrame.new(0, h + 12 + (i % 3) * 5 - 1.9, 0)
+				* CFrame.Angles(0, a, 0) * CFrame.new(0, 0, radius),
+			fxColour(tier), { fx = "orbit", rate = 0.05 + i * 0.012, amount = radius })
+	end
 
 	for storey = 2, tier.storeys do
 		windowRow(at, w, d / 2, (storey - 1) * STOREY + STOREY * 0.5, false, GLASS_DARK, 2.6, 4)
@@ -530,8 +745,12 @@ function House.build(level: number, at: CFrame, parent: Instance): Model
 	local box, size = model:GetBoundingBox()
 	local localCentre = at:PointToObjectSpace(box.Position)
 
-	-- Slide it back so its rear wall clears the fence by the same margin at
-	-- every tier, and centre it sideways.
+	-- SEATED BY ITS FRONT WALL, not its back, and centred sideways.
+	--
+	-- The back was pinned here for a long time, which sounds equivalent and is
+	-- not: depth varies by 41 studs across the tiers, so pinning the back threw
+	-- all of that forward onto the lawn and the three deepest houses ended up
+	-- standing on decoration slots. See the note over Config.HOUSE_FRONT_LINE.
 	--
 	-- Centring matters because some archetypes are ASYMMETRIC: the villa's
 	-- garage wing hangs off one side only, so a house whose stated width fits
@@ -540,9 +759,9 @@ function House.build(level: number, at: CFrame, parent: Instance): Model
 	--
 	-- ZVector, not LookVector: LookVector is the NEGATIVE Z axis, so using it
 	-- here would shunt the house out toward the street.
-	local wantBack = -(Config.YARD_DEPTH - 5)
-	local haveBack = localCentre.Z - size.Z / 2
-	model:TranslateBy(at.ZVector * (wantBack - haveBack))
+	local wantFront = -Config.HOUSE_FRONT_LINE
+	local haveFront = localCentre.Z + size.Z / 2
+	model:TranslateBy(at.ZVector * (wantFront - haveFront))
 	model:TranslateBy(at.RightVector * -localCentre.X)
 
 	return model

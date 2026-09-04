@@ -28,6 +28,7 @@ local PiggyBank = require(script.Parent.PiggyBank)
 local UpgradeService = require(script.Parent.UpgradeService)
 local SocialService = require(script.Parent.SocialService)
 local GuardDog = require(script.Parent.GuardDog)
+local EventService = require(script.Parent.EventService)
 
 local HeistService = {}
 
@@ -110,7 +111,7 @@ local function whyCannotSteal(thief: Player, victim: Player): string?
 		return "That's your own piggy."
 	end
 	if carrying[thief] then
-		return "You're already carrying loot -- take it home first."
+		return "You're already carrying loot. Take it home first."
 	end
 
 	local shieldRemaining = (joinedAt[victim] or 0) + SHIELD_SECONDS - os.clock()
@@ -214,6 +215,8 @@ local function attachLoot(thief: Player, victim: Player, amount: number): (Model
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "TagPrompt"
 	prompt.ActionText = "Tag Thief!"
+	prompt.Style = Enum.ProximityPromptStyle.Custom
+	prompt:SetAttribute(Config.PROMPT_KIND_ATTRIBUTE, "tag")
 	prompt.ObjectText = thief.DisplayName
 	prompt.HoldDuration = Config.TAG_HOLD
 	prompt.MaxActivationDistance = Config.TAG_DISTANCE
@@ -249,6 +252,18 @@ local dodgeUntil: { [Player]: number } = {}
 local dodgeImmuneUntil: { [Player]: number } = {}
 local lastDodge: { [Player]: number } = {}
 
+-- A SHORT TAPERING BURST OF SPEED, pushed in from outside.
+--
+-- The wheelie bin hands one out when somebody vaults out of it. It lives here
+-- rather than in StealthService for the reason the ride multiplier does: this
+-- module owns every speed in the game and there must be exactly one place
+-- they are combined. See Config.BINS.exitBurst.
+--
+-- Declared with the dodge state and above currentSpeed, because that is what
+-- reads it. Luau binds a name where a function is WRITTEN, so a `local` below
+-- a reader is silently a nil global -- six bugs and counting.
+local burst: { [Player]: { peak: number, until_: number, span: number } } = {}
+
 -- Cannot be tagged, caught or hit right now.
 function HeistService.isDodgeImmune(player: Player): boolean
 	return os.clock() < (dodgeImmuneUntil[player] or 0)
@@ -275,6 +290,19 @@ local function currentSpeed(player: Player): number
 	-- defence somebody paid for.
 	if os.clock() < (dodgeUntil[player] or 0) then
 		speed *= Config.DODGE.multiplier
+	end
+
+	-- TAPERS to nothing rather than ending on a cliff, which is what keeps it
+	-- slight: the mean excess is half the peak, so the ground a burst actually
+	-- buys is half what a flat multiplier of the same size would. It sits
+	-- alongside the dodge rather than replacing it -- both are proportional to
+	-- whatever speed was already left after the carry penalty and any snag.
+	local b = burst[player]
+	if b then
+		local left = (b.until_ - os.clock()) / b.span
+		if left > 0 then
+			speed *= 1 + (b.peak - 1) * left
+		end
 	end
 	return speed
 end
@@ -334,10 +362,10 @@ function HeistService.rideBlockReason(player: Player): string?
 		end
 		for _, carry in pairs(carrying) do
 			if carry.victim == player then
-				return "Can't ride while you're being robbed -- go tag them."
+				return "Can't ride while you're being robbed. Go tag them."
 			end
 		end
-		return "Someone's being robbed -- everybody's on foot."
+		return "Someone's being robbed. Everybody's on foot."
 	end
 
 	if isStunned(player) then
@@ -375,7 +403,7 @@ function HeistService.dodge(player: Player)
 	-- indistinguishable from a broken one, and this is the one input a player
 	-- will press at the exact moment they most need to know why it failed.
 	if isStunned(player) then
-		notify(player, "You're stunned -- you can't dodge.", "warn")
+		notify(player, "You're stunned. You can't dodge.", "warn")
 		return
 	end
 
@@ -384,6 +412,11 @@ function HeistService.dodge(player: Player)
 	-- so nothing about a chase is affected either way.
 	if rideMultiplier[player] then
 		notify(player, "Not while you're riding.", "warn")
+		return
+	end
+
+	if HeistService.isHidden(player) then
+		notify(player, "Not from inside a bin. Push a direction to climb out.", "warn")
 		return
 	end
 
@@ -397,6 +430,18 @@ function HeistService.dodge(player: Player)
 	dodgeUntil[player] = now + Config.DODGE.duration
 	dodgeImmuneUntil[player] = now + Config.DODGE.immunity
 	refreshSpeed(player)
+	-- Publishes the fact of a dodge and nothing else. Every client plays
+	-- the roll on this character itself, the same shape as animated skins:
+	-- the animation is registered per client as a hash:// id, which cannot
+	-- replicate, and the defender needs to see the roll that just cost them
+	-- their tag hold.
+	--
+	-- A counter rather than a boolean, so two dodges in a row are two
+	-- distinct changes. A flag set true twice fires one signal.
+	local character = player.Character
+	if character then
+		character:SetAttribute("DodgeRoll", (character:GetAttribute("DodgeRoll") or 0) + 1)
+	end
 	pushDodge(player)
 
 	-- Speed comes back on its own. Everything else that touches WalkSpeed goes
@@ -441,14 +486,23 @@ local function applySlow(player: Player, penalty: any)
 
 	local multiplier = penalty.slow
 	local stunUntil = now + (penalty.stun or 0)
+	local until_ = now + penalty.duration
 	if existing and now < existing.until_ then
 		multiplier = math.min(multiplier, existing.multiplier)
 		stunUntil = math.max(stunUntil, existing.stunUntil or 0)
+		-- THE END TIME IS PART OF "TAKE THE WORST", and it was not: until_
+		-- used to be reset unconditionally, so a SHORT penalty landing on a
+		-- long one CUT THE LONG ONE SHORT. Harmless while every source lasted
+		-- roughly the same time, and an exploit the moment a 0.9s joke could
+		-- be thrown at anybody -- a friend lobbing a plunger at a thief
+		-- crawling off an electric fence would have wiped three seconds of
+		-- that snag and handed them their speed back.
+		until_ = math.max(until_, existing.until_)
 	end
 
 	snagged[player] = {
 		multiplier = multiplier,
-		until_ = now + penalty.duration,
+		until_ = until_,
 		stunUntil = stunUntil,
 	}
 	refreshSpeed(player)
@@ -474,7 +528,7 @@ function HeistService.applyFencePenalty(player: Player, _plot: any, penalty: any
 	applySlow(player, penalty)
 
 	if (penalty.stun or 0) > 0 then
-		notify(player, ("The %s shocked you!"):format(penalty.label), "warn")
+		notify(player, ("The %s shocked you!"):format(penalty.label), "bad")
 	else
 		notify(player, ("Snagged on the %s!"):format(penalty.label), "warn")
 	end
@@ -498,14 +552,23 @@ end
 
 -- The nearest thief carrying loot, within `range` of `from`.
 --
--- Returns the reason it found nobody, so a refusal can name it: "nobody is
--- robbing anyone" and "they are too far away" are completely different
--- situations to a player standing in the street, and one message for both is
--- how a working feature gets reported as broken.
+-- Returns the reason it found nobody, so a refusal can name it -- but ONLY
+-- for a carrier who is out of RANGE. "Nobody is robbing anyone" used to be
+-- the other half of this and is now dropped, because it is no longer a reason
+-- to refuse anything: with the aim open, an empty street still leaves every
+-- neighbour standing on it as a valid target. Left in, it surfaced as the
+-- refusal for a throw that had simply found nobody nearby -- measured, a
+-- plunger thrown in an empty solo server came back "Nobody is running off
+-- with anything right now", which is true, irrelevant, and reads as the item
+-- refusing to work.
 --
--- Carrying is the ONLY thing that makes somebody a valid target. That is what
--- keeps this from being a griefing tool: there is no way to point a gadget at
--- a player who is not, at that moment, running off with somebody's coins.
+-- A reason that stops being a reason has to be DELETED, not left to be
+-- outranked. It was still the first one found, so it still won.
+--
+-- Tried FIRST, ahead of the drone and ahead of the prank, so nothing about a
+-- real chase changed when the aim was opened up: a gadget is still the answer
+-- to somebody running off with your coins, and it only looks around for
+-- somebody to prank when there is nobody in range to actually stop.
 function HeistService.nearestCarrier(from: Vector3, range: number, thrower: Player): (Player?, string?)
 	local best, bestDist
 	local anyCarrier = false
@@ -514,8 +577,9 @@ function HeistService.nearestCarrier(from: Vector3, range: number, thrower: Play
 		if thief ~= thrower then
 			local root = getRoot(thief)
 			if root then
-				-- Counted at ANY distance, so "there is nobody to throw
-				-- this at" can be told apart from "they got away from you".
+				-- Counted at ANY distance, so "they got away from you" can
+				-- still be told apart from there being no robbery on -- and
+				-- only the first of those is a refusal any more.
 				anyCarrier = true
 				local dist = (root.Position - from).Magnitude
 				if dist <= range and (not bestDist or dist < bestDist) then
@@ -529,9 +593,88 @@ function HeistService.nearestCarrier(from: Vector3, range: number, thrower: Play
 		return best, nil
 	end
 	if anyCarrier then
-		return nil, "Too far -- get closer to them."
+		return nil, "Too far. Get closer to them."
 	end
-	return nil, "Nobody is running off with anything right now."
+	return nil, nil
+end
+
+-- IN A BIN, pushed in by StealthService for the same reason the ward is: this
+-- module cannot require the one that owns the state without making a cycle.
+--
+-- IT LIVES UP HERE, ABOVE nearestBystander, because that function reads it
+-- to skip somebody who is hiding. Luau binds a name where the function is
+-- WRITTEN rather than where it is called, so a `local` declared below a
+-- reader is silently a nil GLOBAL -- and this file has now lost six bugs to
+-- exactly that, every one of them dying somewhere that named neither the
+-- variable nor the cause.
+--
+-- Somebody inside a wheelie bin may do exactly one thing, which is climb out.
+-- No items, no prompts, no dodge. The client suppresses all of it so nobody
+-- meets these refusals in normal play -- they are here because a remote
+-- exists for every player whether or not their HUD offered them the button,
+-- which is the same reason the admin console is authorised on the server.
+local inBin: { [Player]: boolean } = {}
+
+function HeistService.setHidden(player: Player, on: boolean)
+	inBin[player] = if on then true else nil
+end
+
+function HeistService.isHidden(player: Player): boolean
+	return inBin[player] == true
+end
+
+-- WHEN EACH PLAYER WAS LAST PRANKED. The one number that keeps an open aim
+-- from being a harassment toy, and it is keyed by the person being HIT rather
+-- than by the thrower: a thrower cooldown would be no protection at all,
+-- since six players with plungers would simply take turns and the child in
+-- the middle would never get to move. See Config.GADGET_FUN.
+local prankedAt: { [Player]: number } = {}
+
+function HeistService.canPrank(player: Player): boolean
+	local at = prankedAt[player]
+	return at == nil or os.clock() - at >= Config.GADGET_FUN.targetCooldown
+end
+
+-- The nearest player who is NOT carrying anything, for a gadget with nobody
+-- to stop. Second choice after a carrier, third after a raid drone.
+--
+-- Anybody still cooling down from the last one is SKIPPED rather than
+-- returned, so a throw lands on somebody else instead of being spent on a
+-- refusal -- and `cooling` is remembered separately so the refusal, when
+-- there is nothing else in range, can say which of the two things happened.
+-- "Nobody is close enough" and "you only just hit them" are completely
+-- different situations to a player standing in the street.
+function HeistService.nearestBystander(from: Vector3, range: number, thrower: Player): (Player?, string?)
+	local best: Player? = nil
+	local bestDist: number? = nil
+	local cooling = false
+
+	for _, other in ipairs(Players:GetPlayers()) do
+		-- Somebody in a wheelie bin is invisible and anchored, so a gadget
+		-- sailing across the street to hit one would be the tell that gives
+		-- their hiding place away.
+		if other ~= thrower and not carrying[other] and not inBin[other] then
+			local root = getRoot(other)
+			local dist = if root then (root.Position - from).Magnitude else math.huge
+			if dist <= range then
+				if HeistService.canPrank(other) then
+					if not bestDist or dist < bestDist then
+						best, bestDist = other, dist
+					end
+				else
+					cooling = true
+				end
+			end
+		end
+	end
+
+	if best then
+		return best, nil
+	end
+	if cooling then
+		return nil, "Give them a moment. They have only just been hit."
+	end
+	return nil, nil
 end
 
 -- Is this player carrying loot right now?
@@ -553,6 +696,68 @@ end
 local warded: { [Player]: boolean } = {}
 local wardUsedHandlers: { (Player, any) -> () } = {}
 
+-- Fired after a steal actually succeeds, so PoliceService can decide whether
+-- there is a patrol out to notice it.
+--
+-- Declared up here rather than beside the function that fires it: a `local`
+-- declared AFTER a function that reads it silently becomes a nil global in
+-- Luau, and this project has lost three bugs to exactly that. attemptSteal is
+-- eighty lines below.
+--
+-- A hook rather than a require, for the same reason StealthService pushes its
+-- flags in here instead of being read out: HeistService must not know what a
+-- patrol is. It owns the loot; everyone else subscribes.
+local stealHandlers: { (Player, Player, number) -> () } = {}
+
+function HeistService.onSteal(handler: (Player, Player, number) -> ())
+	table.insert(stealHandlers, handler)
+end
+
+-- Hands a player a tapering speed burst for `seconds`.
+--
+-- Re-applying replaces rather than stacks, and never shortens: two sources
+-- landing together give the better of the two, not the sum. Stacking is how a
+-- multiplier on the one number every other speed here is measured against
+-- turns into a way to outrun the whole game.
+--
+-- The taper has to be re-evaluated every frame, and refreshSpeed is only
+-- called on events -- so a burst runs its own short loop and stops when it
+-- expires. One player, about two seconds, and nothing to clean up if they
+-- leave in the middle of it: the loop checks the table it is driven by.
+function HeistService.giveBurst(player: Player, peak: number, seconds: number)
+	local now = os.clock()
+	local existing = burst[player]
+	local live = existing ~= nil and now < existing.until_
+	if existing and live then
+		-- Against what the running one is worth RIGHT NOW, not its original
+		-- peak: a burst two thirds spent is a small multiplier, and treating
+		-- it as its opening value would let a second one inherit speed the
+		-- first had already given back.
+		peak = math.max(peak, 1 + (existing.peak - 1) * ((existing.until_ - now) / existing.span))
+		seconds = math.max(seconds, existing.until_ - now)
+	end
+
+	burst[player] = { peak = peak, until_ = now + seconds, span = seconds }
+	refreshSpeed(player)
+
+	-- Only one loop, however many times this is called.
+	if live then
+		return
+	end
+	task.spawn(function()
+		while true do
+			local b = burst[player]
+			if not b or os.clock() >= b.until_ then
+				break
+			end
+			refreshSpeed(player)
+			RunService.Heartbeat:Wait()
+		end
+		burst[player] = nil
+		refreshSpeed(player)
+	end)
+end
+
 function HeistService.setWard(player: Player, on: boolean)
 	warded[player] = if on then true else nil
 end
@@ -567,44 +772,101 @@ function HeistService.onWardUsed(handler: (Player, any) -> ())
 	table.insert(wardUsedHandlers, handler)
 end
 
+-- Holds a player still for a moment, through the same state a fence stun uses.
+--
+-- Public because the patrol needs it and writing WalkSpeed directly would not
+-- do: `isStunned` is what refuses a dodge, drops JumpHeight to zero and makes
+-- currentSpeed return 0 before anything else is even considered. A hand-rolled
+-- freeze would be a second kind of "held still" that none of those knew about
+-- -- which would let a caught thief dodge out of being caught.
+function HeistService.detain(player: Player, seconds: number)
+	applySlow(player, { label = "Detained", slow = 1, duration = seconds, stun = seconds })
+end
+
 -- Charges a gadget's toll. Same state as a fence snag, different message.
-function HeistService.applyGadget(thief: Player, thrower: Player, spec: any)
-	if not carrying[thief] then
+--
+-- TWO HITS LIVE IN HERE and the branch between them is the whole design. A
+-- target CARRYING LOOT takes the real thing, exactly as tuned: full duration,
+-- full stun, raincoat in the way. Anybody else takes a PRANK -- a fraction of
+-- the time, a capped stun, one per target per GADGET_FUN.targetCooldown, and
+-- the raincoat never even looks at it.
+--
+-- Deciding it HERE rather than at the throw is what makes it honest across
+-- the half-second of flight: somebody who picks loot up mid-flight catches
+-- the real one, and a thief who delivers before it lands catches the joke
+-- instead of nothing at all. The thrower cannot time their way around either.
+function HeistService.applyGadget(target: Player, thrower: Player, spec: any): boolean
+	-- Gone, dead, or hiding in a bin: the throw is refunded rather than
+	-- landing on nobody.
+	if not getRoot(target) or inBin[target] then
 		return false
 	end
 
 	-- Checked BEFORE the raincoat, so a well-timed dodge does not burn a
 	-- perfectly good coat that was never needed.
-	if HeistService.isDodgeImmune(thief) then
-		notify(thief, ("Dodged the %s!"):format(spec.name), "good")
-		notify(thrower, ("%s dodged it."):format(thief.DisplayName), "warn")
+	if HeistService.isDodgeImmune(target) then
+		notify(target, ("Dodged the %s!"):format(spec.name), "good")
+		notify(thrower, ("%s dodged it."):format(target.DisplayName), "warn")
 		return true
 	end
 
-	-- A raincoat stops the slows and nothing else.
-	--
-	-- Same shape as the Guard Duty Treat on the other side of this fight:
-	-- cheap counters bounce, the expensive one gets through. It raises the
-	-- price of stopping somebody from 1,500 to 22,000 rather than making them
-	-- unstoppable, which is the only version that leaves both trees alive.
-	if warded[thief] and (spec.stun or 0) <= 0 then
-		warded[thief] = nil
-		for _, handler in ipairs(wardUsedHandlers) do
-			task.spawn(handler, thief, spec)
+	if carrying[target] then
+		-- A raincoat stops the slows and nothing else.
+		--
+		-- Same shape as the Guard Duty Treat on the other side of this fight:
+		-- cheap counters bounce, the expensive one gets through. It raises
+		-- the price of stopping somebody from 1,500 to 22,000 rather than
+		-- making them unstoppable, which is the only version that leaves both
+		-- trees alive.
+		--
+		-- INSIDE the carrying branch on purpose. A coat is bought to survive
+		-- a chase, and letting a 1,500-coin joke burn one would turn the
+		-- cheapest item in the game into a way of stripping the defence off
+		-- somebody who was not even robbing anybody yet.
+		if warded[target] and (spec.stun or 0) <= 0 then
+			warded[target] = nil
+			for _, handler in ipairs(wardUsedHandlers) do
+				task.spawn(handler, target, spec)
+			end
+			notify(target, ("The %s slid off your raincoat!"):format(spec.name), "good")
+			notify(thrower, ("%s was wearing a raincoat. It bounced off."):format(target.DisplayName), "warn")
+			return true
 		end
-		notify(thief, ("The %s slid off your raincoat!"):format(spec.name), "good")
-		notify(thrower, ("%s was wearing a raincoat -- it bounced off."):format(thief.DisplayName), "warn")
+
+		applySlow(target, {
+			label = spec.name,
+			slow = spec.slow,
+			duration = spec.duration,
+			stun = spec.stun or 0,
+		})
+
+		notify(target, spec.hit or ("Hit by a %s!"):format(spec.name), "warn")
 		return true
 	end
 
-	applySlow(thief, {
+	-- THE PRANK. Re-tested here and not only at the throw, because half a
+	-- second of flight is long enough for somebody else's to have landed
+	-- first -- and two people freezing one player back to back is the exact
+	-- thing the cooldown exists to stop.
+	if not HeistService.canPrank(target) then
+		return false
+	end
+	prankedAt[target] = os.clock()
+
+	applySlow(target, {
 		label = spec.name,
 		slow = spec.slow,
-		duration = spec.duration,
-		stun = spec.stun or 0,
+		duration = Config.GADGET_FUN.duration,
+		stun = math.min(spec.stun or 0, Config.GADGET_FUN.stunCap),
 	})
 
-	notify(thief, spec.hit or ("Hit by a %s!"):format(spec.name), "warn")
+	-- NAMES THE THROWER, which the serious hit deliberately does not. The
+	-- whole point of a prank is throwing one back, and an unexplained wobble
+	-- with nobody attached to it reads as lag.
+	local line = if spec.prank
+		then (spec.prank):format(thrower.DisplayName)
+		else ("%s got you with a %s!"):format(thrower.DisplayName, spec.name)
+	notify(target, line, "prank")
 	return true
 end
 
@@ -646,7 +908,14 @@ function HeistService.attemptSteal(thief: Player, victim: Player)
 
 	-- Taken from the vault immediately so the same coins can't be grabbed
 	-- twice by two thieves holding the prompt at once.
-	local amount = math.floor(victimData.vault * UpgradeService.getStealFraction(thief))
+	-- Rush Hour doubles what a steal takes and nothing else -- not the hold,
+	-- not the range, not the cooldown, not the getaway. One number, so there
+	-- is one thing to reason about when it is running and nothing to
+	-- recalibrate against BASE_WALK_SPEED. The multiplier is 1 whenever no
+	-- event is live, which is what makes it safe to read unconditionally.
+	local amount = math.floor(victimData.vault
+		* UpgradeService.getStealFraction(thief)
+		* EventService.getStealMultiplier())
 	if amount <= 0 then
 		notify(thief, ("%s's piggy is empty."):format(victim.DisplayName), "warn")
 		return
@@ -690,6 +959,12 @@ function HeistService.attemptSteal(thief: Player, victim: Player)
 		-- No level check here: the dog carries its own tier, set by
 		-- PlotService.setDogLevel, and isReady returns false at tier 0.
 		if GuardDog.isReady(victimPlot.dog) then
+			-- The bark on the dog is a 3D sound that falls off with distance,
+			-- which is right for the street and useless for the one player it
+			-- is about: they are running AWAY from it, so the person who most
+			-- needs to hear it is the one it fades for. This is the same
+			-- snarl, flat and at the front, for them alone.
+			notify(thief, "A guard dog is chasing you!", "chase")
 			GuardDog.chase(victimPlot.dog, function(): BasePart?
 				return if carrying[thief] then getRoot(thief) else nil
 			end, function()
@@ -698,8 +973,17 @@ function HeistService.attemptSteal(thief: Player, victim: Player)
 		end
 	end
 
-	notify(thief, ("Grabbed %s coins! Get to your plot."):format(format(amount)), "good")
-	notify(victim, ("%s is robbing you! Tag them!"):format(thief.DisplayName), "warn")
+	notify(thief, ("Grabbed %s coins! Get to your plot."):format(format(amount)), "loot")
+	-- The single most important message this game ever sends, and it spent its
+	-- whole life as an orange bar that looked exactly like "you cannot afford
+	-- that". It flashes the screen now.
+	notify(victim, ("%s is robbing you! Tag them!"):format(thief.DisplayName), "alarm")
+
+	-- Last, and spawned. A subscriber that errors or yields must not be able
+	-- to take the steal down with it -- the coins have already moved.
+	for _, handler in ipairs(stealHandlers) do
+		task.spawn(handler, thief, victim, amount)
+	end
 end
 
 -- Knocks the loot out of a thief's hands. Callable by anyone in range, or by
@@ -747,8 +1031,8 @@ function HeistService.tag(tagger: Player, thief: Player, byDog: boolean?)
 			PlotService.updatePile(plot, victimData.vault, Config.getCapacity(victimData.capacityLevel))
 		end
 		notify(victim, if byDog
-			then ("Your guard dog caught %s -- %s coins saved!"):format(thief.DisplayName, format(amount))
-			else ("%s tagged %s -- your %s coins are back!"):format(tagger.DisplayName, thief.DisplayName, format(amount)),
+			then ("Your guard dog caught %s. %s coins saved!"):format(thief.DisplayName, format(amount))
+			else ("%s tagged %s. Your %s coins are back!"):format(tagger.DisplayName, thief.DisplayName, format(amount)),
 			"good")
 	end
 
@@ -765,10 +1049,54 @@ function HeistService.tag(tagger: Player, thief: Player, byDog: boolean?)
 	notify(thief, if byDog
 		then "A guard dog got you! You dropped the loot."
 		else ("Tagged by %s! You dropped the loot."):format(tagger.DisplayName),
-		"warn")
+		"bad")
 	if tagger ~= victim and not byDog then
 		notify(tagger, ("Nice tag! You saved %s's coins."):format(victim.DisplayName), "good")
 	end
+end
+
+-- ============================================================
+-- CONFISCATION
+-- ============================================================
+
+-- Takes the loot off a thief on the patrol's behalf and sends it home.
+--
+-- Deliberately NOT HeistService.tag with one more flag. A tag is a player or a
+-- dog defending a plot, and the range re-check, the "nice tag" thanks and the
+-- wording all belong to that. The patrol defends nobody: it is the house's own
+-- risk, it thanks nobody, and the bail it charges afterwards is PoliceService
+-- policy rather than this file's business.
+--
+-- Returns (amount, victim), or (0, nil) if there was nothing to take -- which
+-- includes a thief who already delivered. That is not a failure and the caller
+-- must not treat it as one: outrunning the officer is what buys you out of a
+-- patrol, and reaching your own plot is not the same thing as getting away.
+--
+-- Does NOT check dodge immunity. The dodge has to beat the CATCH, not the
+-- paperwork, or a thief could roll at the moment of arrest and keep the loot
+-- while the officer stood over them. PoliceService checks it before it decides
+-- it has caught anybody.
+function HeistService.confiscate(thief: Player): (number, Player?)
+	local carry = carrying[thief]
+	if not carry then
+		return 0, nil
+	end
+
+	local victim, amount = carry.victim, carry.amount
+	clearCarry(thief)
+
+	-- Home to the victim, exactly as a tag would. The patrol is not a second
+	-- thief and coins do not disappear into it.
+	local victimData = DataService.get(victim)
+	if victimData then
+		victimData.vault += amount
+		local plot = PlotService.getPlot(victim)
+		if plot then
+			PlotService.updatePile(plot, victimData.vault, Config.getCapacity(victimData.capacityLevel))
+		end
+	end
+
+	return amount, victim
 end
 
 -- Thief reached their own plot: the loot becomes theirs, in their vault.
@@ -791,6 +1119,10 @@ local function deliver(thief: Player)
 	-- overfull piggy is self-limiting -- and it nudges the thief to go bank.
 	data.vault += amount
 	data.totalStolen += amount
+	-- The rap sheet, which is a different number from the lifetime one above:
+	-- MOST WANTED is a contest within one session, so it has to be winnable by
+	-- somebody who joined ten minutes ago. See SocialService.recordSteal.
+	SocialService.recordSteal(thief, amount)
 
 	local victimData = DataService.get(victim)
 	if victimData then
@@ -803,8 +1135,8 @@ local function deliver(thief: Player)
 		PlotService.playBank(plot)
 	end
 
-	notify(thief, ("Delivered %s stolen coins!"):format(format(amount)), "good")
-	notify(victim, ("%s got away with %s of your coins."):format(thief.DisplayName, format(amount)), "warn")
+	notify(thief, ("Delivered %s stolen coins!"):format(format(amount)), "money")
+	notify(victim, ("%s got away with %s of your coins."):format(thief.DisplayName, format(amount)), "bad")
 
 	-- Point the victim at the thief's plot. A successful robbery is exactly
 	-- the moment a grievance exists, and a grievance is what creates the
@@ -963,6 +1295,8 @@ function HeistService.start()
 		snagged[player] = nil
 		rideMultiplier[player] = nil
 		warded[player] = nil
+		prankedAt[player] = nil
+		burst[player] = nil
 		dodgeUntil[player] = nil
 		dodgeImmuneUntil[player] = nil
 		lastDodge[player] = nil

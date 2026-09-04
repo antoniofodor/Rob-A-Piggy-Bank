@@ -3,6 +3,14 @@
   "tree": {
     "$className": "DataModel",
 
+    "Players": {
+      "$className": "Players",
+      "$properties": {
+        "MaxPlayers": 8,
+        "PreferredPlayers": 8
+      }
+    },
+
     "ReplicatedStorage": {
       "$className": "ReplicatedStorage",
       "Shared": { "$path": "src/ReplicatedStorage/Shared" }

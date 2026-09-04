@@ -2,14 +2,20 @@
 --[[
 	HomeModel
 
-	The two things you use on your own plot: the dog's guard-duty treat and the
-	garden sprinkler. Shared for the same reason every other model here is --
-	the shop tile, the hotbar slot and the object in the world all come from
-	one builder, so the picture cannot drift from the thing.
+	The things a defender buys and keeps: the dog's guard-duty treat, the
+	garden sprinkler and the patrol radio. Shared for the same reason every
+	other model here is -- the shop tile, the hotbar slot and the object in the
+	world all come from one builder, so the picture cannot drift from the thing.
 
 	Built around the ORIGIN. The sprinkler is authored with y = 0 at the
-	ground, since it stands on a lawn; the treat has no world placement at all
-	and is only ever an icon, so it is simply centred.
+	ground, since it stands on a lawn; the treat and the radio have no world
+	placement at all and are only ever icons, so they are simply centred.
+
+	AUTHORED FOR THE ANGLE THE ICON IS SEEN FROM. `makeModelIcon` puts its
+	camera out along +X and +Z, so every face worth reading has to be on one
+	of those two sides -- the radio's grille and screen face +Z and its
+	antenna and thumb button sit on +X. Detail put on a back face is detail
+	nobody in this game will ever see.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -72,6 +78,63 @@ builders.sprinkler = function(spec, add)
 	end
 	add("Nozzle", Vector3.new(0.3, 0.3, 0.3), CFrame.new(0, 2.95, 0),
 		Color3.fromRGB(120, 200, 240), Enum.Material.Neon)
+end
+
+builders.radio = function(spec, add)
+	local SHELL = Color3.fromRGB(38, 44, 58)
+	local TRIM = Color3.fromRGB(22, 25, 33)
+	local STEEL = Color3.fromRGB(126, 132, 144)
+	local GOLD = Color3.fromRGB(236, 190, 84)
+	local AMBER = Color3.fromRGB(240, 148, 56)
+
+	-- A TALL THIN SILHOUETTE WITH A STICK OUT OF THE TOP is the whole read.
+	-- This is seen at 48 pixels in the hot bar, where the grille and the
+	-- screen are texture rather than shapes -- what says "walkie talkie" at
+	-- that size is the outline, so the antenna is nearly as long as the body
+	-- and offset to one corner rather than centred like a lamp.
+	add("Body", Vector3.new(1.7, 2.8, 0.8), CFrame.new(), SHELL)
+
+	-- A Roblox cylinder's axis is its X axis, so a vertical rod is
+	-- Vector3.new(HEIGHT, d, d) turned upright. Written the other way round it
+	-- becomes a disc as wide as it was meant to be tall, which is the bug this
+	-- project has now shipped five times.
+	local aerial = add("Antenna", Vector3.new(1.9, 0.16, 0.16),
+		CFrame.new(0.62, 2.0, 0) * UPRIGHT, TRIM, Enum.Material.Metal)
+	aerial.Shape = Enum.PartType.Cylinder
+	local tip = add("Tip", Vector3.new(0.26, 0.26, 0.26), CFrame.new(0.62, 3.0, 0), STEEL,
+		Enum.Material.Metal)
+	tip.Shape = Enum.PartType.Ball
+
+	-- Everything below is PROUD of the face it decorates, never flush with it.
+	-- Two coplanar faces give the renderer nothing to sort by and it picks per
+	-- pixel: the road, the moat and the guard dog's eyes have all flickered
+	-- for exactly this reason.
+	for i = 0, 2 do
+		add("Slat", Vector3.new(1.16, 0.14, 0.08), CFrame.new(0, 0.98 - i * 0.24, 0.40), TRIM)
+	end
+
+	add("Screen", Vector3.new(1.16, 0.66, 0.08), CFrame.new(0, -0.02, 0.40), TRIM)
+	add("Readout", Vector3.new(0.94, 0.44, 0.06), CFrame.new(0, -0.02, 0.44),
+		Color3.fromRGB(96, 214, 176), Enum.Material.Neon)
+
+	-- The thumb button, on the side a thumb is actually on.
+	add("Press", Vector3.new(0.1, 0.78, 0.4), CFrame.new(0.88, 0.15, 0), GOLD)
+
+	-- The one lit thing on it, so it reads as switched on rather than as a
+	-- brick. Amber rather than red: this game already spends red on being
+	-- robbed, and the patrol's own alert colour is this one.
+	--
+	-- ON THE FRONT, not on the top, which is where it was first put and where
+	-- the knob stood in front of it. A part the camera cannot see is a part
+	-- that is not there -- and this icon is 48 pixels wide in the hot bar,
+	-- where anything already half hidden is simply gone.
+	local lamp = add("Lamp", Vector3.new(0.3, 0.3, 0.3), CFrame.new(0, 1.24, 0.42), AMBER,
+		Enum.Material.Neon)
+	lamp.Shape = Enum.PartType.Ball
+
+	local knob = add("Knob", Vector3.new(0.3, 0.34, 0.34), CFrame.new(0.05, 1.5, 0) * UPRIGHT,
+		STEEL, Enum.Material.Metal)
+	knob.Shape = Enum.PartType.Cylinder
 end
 
 function HomeModel.build(key: string): Model

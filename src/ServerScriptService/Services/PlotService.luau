@@ -13,14 +13,17 @@
 	where the plots go and who owns which one.
 ]]
 
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local PiggyBank = require(script.Parent.PiggyBank)
 local GuardDog = require(script.Parent.GuardDog)
-local House = require(script.Parent.House)
-local Decor = require(script.Parent.Decor)
+-- Geometry, in Shared because the shop renders these too.
+local House = require(ReplicatedStorage.Shared.House)
+local Decor = require(ReplicatedStorage.Shared.Decor)
 
 local PlotService = {}
 
@@ -37,7 +40,11 @@ export type Plot = {
 	fence: Folder,
 	house: Model?,
 	decor: Model?,
+	-- Two rows, not one. A single TextScaled label holding both the name and
+	-- the boasts shrank the name to fit whatever the boasts happened to be, so
+	-- the most important word on the board was the one that moved.
 	signLabel: TextLabel,
+	signBoast: TextLabel,
 	prompt: ProximityPrompt,
 	owner: Player?,
 }
@@ -54,6 +61,29 @@ local LAWN = Color3.fromRGB(138, 178, 104)
 local TRIM = Color3.fromRGB(196, 178, 148)
 local POST = Color3.fromRGB(122, 88, 58)
 
+-- Where the plot sign stands, in plot-local studs, and which way it is turned.
+--
+-- OUT ON THE VERGE, beyond the fence and beyond the moat, beside the driveway.
+-- A sign is a thing to be read from the street, and inside the fence it spent
+-- the whole late game behind barbed wire and then behind five studs of water.
+--
+-- The z is not a taste decision. Measured on a tier-5 plot, the front moat
+-- runs z 26.1 to 31.1 with its outer bank to 32.1, broken only by the driveway
+-- causeway at x -7.0 to +7.0. So the dry verge starts at 32.1 and the kerb is
+-- at streetMetrics().driveFar, 44. Anything between those two is out of the
+-- water at every tier; anything short of it is swimming the moment its owner
+-- buys the fifth fence.
+--
+-- The x keeps it clear of two things: the causeway itself, which is the walk
+-- from the street to the gate and must stay open, and the vergeL/vergeR decor
+-- slots at (+/-9.5, 31). The board hangs left of its post, so a post at 16.2
+-- puts the board across x 8.9 to 15.1 -- past the driveway edge at 6.5, and
+-- five studs clear of the decor in z.
+--
+-- The yaw turns it a little toward the road it is addressed to.
+local SIGN_SPOT = Vector3.new(12, 0, 36)
+local SIGN_YAW = 12
+
 -- ============================================================
 -- CONSTRUCTION
 -- ============================================================
@@ -69,7 +99,11 @@ local function plotCFrame(index: number): CFrame
 	local row = math.floor((index - 1) / perRow) -- 0 = near side, 1 = far side
 	local col = (index - 1) % perRow
 
-	local x = (col - (perRow - 1) / 2) * Config.PLOT_SPACING
+	-- Asked of Config rather than computed here, so this file and the scenery
+	-- that lines up against it cannot drift. The row briefly had a hole in the
+	-- middle for the town square and a column was NOT its own position; it is
+	-- continuous again, and the one place that knows is Config.
+	local x = Config.plotColumnX(col)
 	local z = (if row == 0 then -0.5 else 0.5) * Config.STREET_SPACING
 	local yaw = if row == 0 then 0 else math.pi
 
@@ -85,10 +119,33 @@ local function buildPlot(index: number): Plot
 
 	-- Stone trim sits slightly proud of the lawn so each plot reads as a
 	-- separate property rather than a patch of the same field.
+	--
+	-- IT RINGS THE WHOLE YARD, HOUSE INCLUDED, not just the front lawn. It
+	-- used to be PLOT_SIZE + 4, a 52-stud square centred on the piggy, which
+	-- stopped dead at the back of the lawn -- so a plot read as a bordered
+	-- garden with an unbordered field of grass stuck on the back of it, and
+	-- the border was exactly the thing saying where one property ended and the
+	-- next began. It now runs from the pavement to two studs behind the back
+	-- fence, which is the same rectangle buildFence encloses.
+	--
+	-- Sized off YARD_DEPTH rather than off the slab. Those were the same
+	-- number until the yard was lengthened to hold the house, and this file
+	-- already has one bug from measuring the wrong one -- the grove that
+	-- planted full-grown trees on people's lawns.
+	local TRIM_EDGE = 2
+	local trimFront = Config.PLOT_SIZE.Z / 2 + TRIM_EDGE
+	local trimBack = Config.YARD_DEPTH + TRIM_EDGE
+
 	local trim = Instance.new("Part")
 	trim.Name = "Trim"
-	trim.Size = Config.PLOT_SIZE + Vector3.new(4, 0.4, 4)
-	trim.Position = origin - Vector3.new(0, 0.4, 0)
+	trim.Size = Vector3.new(
+		Config.PLOT_SIZE.X + TRIM_EDGE * 2,
+		Config.PLOT_SIZE.Y + 0.4,
+		trimFront + trimBack)
+	-- Authored around `origin` like everything else here; the PivotTo at the
+	-- end turns the far row. Safe to resize because the model's PrimaryPart is
+	-- the Base, so the pivot does not move when this part's bounds change.
+	trim.Position = origin + Vector3.new(0, -0.4, (trimFront - trimBack) / 2)
 	trim.Anchored = true
 	trim.Material = Enum.Material.Concrete
 	trim.Color = TRIM
@@ -115,7 +172,14 @@ local function buildPlot(index: number): Plot
 	local yardDepth = Config.YARD_DEPTH - Config.PLOT_SIZE.Z / 2
 	local yard = Instance.new("Part")
 	yard.Name = "Yard"
-	yard.Size = Vector3.new(Config.PLOT_SIZE.X + 3.2, Config.PLOT_SIZE.Y, yardDepth)
+	-- SAME WIDTH AS THE LAWN, so the stone border either side is a constant
+	-- two studs from the pavement to the back fence. At 51.2 -- the full fence
+	-- interior -- the grass grew 1.6 studs wider at the seam behind the piggy
+	-- and the visible trim shrank from 2 studs to 0.4 at the same line, which
+	-- reads as the border running out rather than as a wider garden. The strip
+	-- between this grass and the fence is stone now, exactly as it already is
+	-- along the front lawn.
+	yard.Size = Vector3.new(Config.PLOT_SIZE.X, Config.PLOT_SIZE.Y, yardDepth)
 	yard.Position = origin + Vector3.new(0, 0, -(Config.PLOT_SIZE.Z / 2 + yardDepth / 2))
 	yard.Anchored = true
 	yard.Material = Enum.Material.Grass
@@ -125,44 +189,138 @@ local function buildPlot(index: number): Plot
 
 	local piggy = PiggyBank.build(origin, model)
 
-	-- Sign on a post, at the front edge facing outward.
-	local post = Instance.new("Part")
-	post.Name = "SignPost"
-	post.Size = Vector3.new(0.8, 6, 0.8)
-	post.Position = origin + Vector3.new(0, 3, Config.PLOT_SIZE.Z / 2 - 2)
-	post.Anchored = true
-	post.CanCollide = false
-	post.Material = Enum.Material.Wood
-	post.Color = POST
-	post.Parent = model
+	-- The plot sign: a hanging shingle, off to the right of the gate.
+	--
+	-- It used to be an eleven-stud plank on a stick in the dead centre of the
+	-- front edge, which put the least interesting object on the plot directly
+	-- between the street and the piggy bank -- the one thing everybody is
+	-- actually looking at, and the line everybody walks. Off to one side it
+	-- stops blocking that and starts reading as a house sign rather than a
+	-- billboard.
+	--
+	-- OUT ON THE VERGE, past the moat. See SIGN_SPOT for the measured numbers
+	-- that decide exactly where "past the moat" is -- it is a narrow band, and
+	-- the obvious spots on either side of it are underwater at tier 5.
+	--
+	-- Authored around `origin` and yawed in place, because the far row of
+	-- plots is turned 180 degrees by the PivotTo at the end of this function
+	-- and a sign built from raw positions comes back facing its own back
+	-- fence.
+	local signCF = CFrame.new(origin)
+		* CFrame.new(SIGN_SPOT.X, 0, SIGN_SPOT.Z)
+		* CFrame.Angles(0, math.rad(SIGN_YAW), 0)
+	-- The VERGE, which is a different floor from the lawn.
+	--
+	-- A plot is three heights: the lawn is the top of the plot slab (+0.5),
+	-- the driveway is paving on the world ground (-0.28), and the verge is
+	-- bare world ground (-0.5). The sign used to stand on the lawn and read
+	-- +0.5; moving it outside the fence without moving this number would have
+	-- left the whole thing hovering a full stud, which is exactly how the
+	-- decorations got it wrong the first time.
+	local baseY = -Config.PLOT_SIZE.Y / 2
 
-	local sign = Instance.new("Part")
-	sign.Name = "Sign"
-	sign.Size = Vector3.new(11, 3.6, 0.4)
-	sign.Position = origin + Vector3.new(0, 7.4, Config.PLOT_SIZE.Z / 2 - 2)
-	sign.Anchored = true
-	sign.CanCollide = false
-	sign.Material = Enum.Material.WoodPlanks
-	sign.Color = POST
-	sign.Parent = model
+	local function signPart(name: string, size: Vector3, at: CFrame, colour: Color3,
+		material: Enum.Material): Part
+		local p = Instance.new("Part")
+		p.Name = name
+		p.Size = size
+		p.CFrame = at
+		p.Anchored = true
+		p.CanCollide = false
+		p.CanQuery = false
+		p.Material = material
+		p.Color = colour
+		p.TopSurface = Enum.SurfaceType.Smooth
+		p.BottomSurface = Enum.SurfaceType.Smooth
+		p.Parent = model
+		return p
+	end
+
+	-- The board hangs at local x = 0 and the post stands off to its OUTER
+	-- side, away from the drive.
+	--
+	-- Inner side first, and the 20-degree yaw swung the pole toward the
+	-- street: from the pavement it stood in front of the board it was holding
+	-- up, covering the first third of the name. Out here it sits behind the
+	-- board instead, and the board still turns to face the drive.
+	--
+	-- The anchor positions the BOARD, not the post -- the board is the part
+	-- that has to clear the decor slots and stay inside the fence.
+	signPart("SignPlinth", Vector3.new(2.4, 0.6, 2.4),
+		signCF * CFrame.new(4.2, baseY + 0.3, 0), Color3.fromRGB(196, 190, 176), Enum.Material.Slate)
+	signPart("SignPost", Vector3.new(0.7, 9.0, 0.7),
+		signCF * CFrame.new(4.2, baseY + 5.1, 0), POST, Enum.Material.Wood)
+	signPart("SignCap", Vector3.new(1.1, 0.5, 1.1),
+		signCF * CFrame.new(4.2, baseY + 9.85, 0), POST, Enum.Material.Wood)
+	signPart("SignArm", Vector3.new(7.3, 0.45, 0.45),
+		signCF * CFrame.new(0.55, baseY + 9.35, 0), POST, Enum.Material.Wood)
+	-- The brace that stops the arm reading as a plank stuck through a pole.
+	signPart("SignBrace", Vector3.new(2.4, 0.3, 0.3),
+		signCF * CFrame.new(3.3, baseY + 8.5, 0) * CFrame.Angles(0, 0, math.rad(-40)),
+		POST, Enum.Material.Wood)
+	for _, x in ipairs({ -2.4, 2.4 }) do
+		signPart("SignLink", Vector3.new(0.22, 0.95, 0.22),
+			signCF * CFrame.new(x, baseY + 8.9, 0), Color3.fromRGB(126, 130, 136), Enum.Material.Metal)
+	end
+
+	-- Frame and panel are separate parts so the panel can stand proud of the
+	-- frame. Flush would put two faces at the same depth, which is the
+	-- coplanar flicker this codebase has now hit three times.
+	signPart("Sign", Vector3.new(6.2, 4.2, 0.35),
+		signCF * CFrame.new(0, baseY + 6.35, 0), Color3.fromRGB(96, 64, 42), Enum.Material.WoodPlanks)
+	local panel = signPart("SignPanel", Vector3.new(5.5, 3.5, 0.16),
+		signCF * CFrame.new(0, baseY + 6.35, 0.2), Color3.fromRGB(244, 236, 218),
+		Enum.Material.SmoothPlastic)
 
 	local surface = Instance.new("SurfaceGui")
-	-- Roblox's "Front" face is -Z. The sign sits on the plot's +Z edge and
-	-- needs to face outward, so that's Back.
+	-- Roblox's "Front" face is -Z. The board faces out toward the street on
+	-- +Z, so that's Back.
 	surface.Face = Enum.NormalId.Back
-	surface.CanvasSize = Vector2.new(600, 200)
+	surface.CanvasSize = Vector2.new(550, 350)
 	surface.AlwaysOnTop = false
+	-- Unlit, so the board stays readable at dusk. It is the one thing on the
+	-- plot whose whole job is being read from the pavement.
 	surface.LightInfluence = 0
-	surface.Parent = sign
+	surface.Parent = panel
 
 	local label = Instance.new("TextLabel")
-	label.Size = UDim2.fromScale(1, 1)
+	label.Name = "Owner"
+	label.Size = UDim2.new(1, -30, 0.4, 0)
+	label.Position = UDim2.new(0, 15, 0.05, 0)
 	label.BackgroundTransparency = 1
 	label.Font = Enum.Font.FredokaOne
+	-- NEVER write TextWrapped next to TextScaled. Setting TextWrapped = false
+	-- after TextScaled = true silently turns TextScaled back OFF and drops the
+	-- label to the default TextSize of 8 -- measured, and on a board this size
+	-- it renders as a faint smudge. TextScaled implies wrapping; the way to
+	-- stop text overflowing is to give the row enough height for the lines it
+	-- will wrap into, which is what the boast row below does.
 	label.TextScaled = true
-	label.TextColor3 = Color3.fromRGB(255, 246, 226)
+	label.TextColor3 = Color3.fromRGB(70, 46, 30)
 	label.Text = "EMPTY PLOT"
 	label.Parent = surface
+
+	local rule = Instance.new("Frame")
+	rule.Name = "Rule"
+	rule.Size = UDim2.new(0.62, 0, 0, 4)
+	rule.Position = UDim2.new(0.19, 0, 0.5, 0)
+	rule.BackgroundColor3 = Color3.fromRGB(178, 150, 112)
+	rule.BorderSizePixel = 0
+	rule.Parent = surface
+
+	local boast = Instance.new("TextLabel")
+	boast.Name = "Boasts"
+	-- Tall enough for the two lines a full boast list wraps into. At one row's
+	-- height the second line fell off the bottom of the board and a maxed-out
+	-- player's sign read "12*  ·  Neon Tower  ·" with the skin missing.
+	boast.Size = UDim2.new(1, -14, 0.36, 0)
+	boast.Position = UDim2.new(0, 7, 0.545, 0)
+	boast.BackgroundTransparency = 1
+	boast.Font = Enum.Font.GothamBold
+	boast.TextScaled = true
+	boast.TextColor3 = Color3.fromRGB(150, 104, 44)
+	boast.Text = ""
+	boast.Parent = surface
 
 	local fence = Instance.new("Folder")
 	fence.Name = "Fence"
@@ -186,7 +344,15 @@ local function buildPlot(index: number): Plot
 	-- Takes a CFrame, not a position: the kennel's +Z is its doorway, and the
 	-- dog rests in front of it, so the whole arrangement has to be turned to
 	-- face into the plot rather than out through the back fence.
-	local dog = GuardDog.build(cf * CFrame.new(14, 0, 4), model)
+	-- (14, 4) -> (26, 17), OUT TO THE FRONT-RIGHT CORNER.
+	--
+	-- On a 48-wide lawn that spot was near the edge; on a 64-wide one it is a
+	-- third of the way in, standing between the piggy and the decoration ring
+	-- with the dog napping in the middle of somebody's garden. The corner is
+	-- also what buys the eighth decoration slot: the ring is four rows of three
+	-- and the kennel holds exactly one of the twelve positions, so putting it
+	-- anywhere in the middle would have cost two.
+	local dog = GuardDog.build(cf * CFrame.new(26, 0, 17), model)
 
 	return {
 		index = index,
@@ -199,6 +365,7 @@ local function buildPlot(index: number): Plot
 		house = nil,
 		decor = nil,
 		signLabel = label,
+		signBoast = boast,
 		prompt = piggy.prompt,
 		owner = nil,
 	}
@@ -398,7 +565,11 @@ function PlotService.buildFence(plot: Plot, level: number)
 	local tier = Config.FENCE_TIERS[math.clamp(level, 1, #Config.FENCE_TIERS)]
 	local decorate = FENCE_STYLES[tier.style] or decorRickety
 	local originCF = plot.cframe
-	local half = Config.PLOT_SIZE.X / 2 + 1.6
+	-- THE SIDES AND THE FRONT ARE DIFFERENT NUMBERS. This was one `half` doing
+	-- both jobs, which was right only while the plot was square -- see
+	-- Config.PLOT_HALF_WIDTH.
+	local half = Config.PLOT_HALF_WIDTH
+	local frontZ = Config.PLOT_FRONT_LINE
 	local gate = tier.gate
 
 	local climbPenalty = {
@@ -460,8 +631,11 @@ function PlotService.buildFence(plot: Plot, level: number)
 	-- the house. A thief approaches from the street, so nothing behind the
 	-- piggy affects the steal, the getaway or the drop-off.
 	local backZ = Config.YARD_DEPTH
-	local sideLength = half + backZ
-	local sideCentre = (half - backZ) / 2
+	-- The sides run from the FRONT LINE back to the back fence, so their length
+	-- is a Z span and takes frontZ; their POSITION is an X offset and takes
+	-- half. Mixing those is what a single `half` used to hide.
+	local sideLength = frontZ + backZ
+	local sideCentre = (frontZ - backZ) / 2
 
 	side(Vector3.new(0, 0, -backZ), half * 2, true)
 	side(Vector3.new(-half, 0, sideCentre), sideLength, false)
@@ -470,8 +644,8 @@ function PlotService.buildFence(plot: Plot, level: number)
 	local wing = half - gate / 2
 	if wing > 0 then
 		local offset = gate / 2 + wing / 2
-		side(Vector3.new(-offset, 0, half), wing, true)
-		side(Vector3.new(offset, 0, half), wing, true)
+		side(Vector3.new(-offset, 0, frontZ), wing, true)
+		side(Vector3.new(offset, 0, frontZ), wing, true)
 	end
 
 	-- Moat ------------------------------------------------------------
@@ -479,27 +653,121 @@ function PlotService.buildFence(plot: Plot, level: number)
 	-- Sits in the one-stud step between the world ground and the plot slab, so
 	-- it reads as dug rather than poured on top. The gate mouth is left dry:
 	-- there is always a clean way in for anyone willing to take the long route.
+	--
+	-- WHY THIS IS NOT TERRAIN WATER. Roblox's real water -- the animated,
+	-- refracting, swimmable kind -- only exists on Terrain, and Terrain is
+	-- voxelised at four studs. This moat is five studs wide and about one
+	-- stud deep, so a terrain fill would round it into a blocky four-stud
+	-- gouge; the world ground it would have to cut through is a Part, not
+	-- terrain, so there is nothing to carve; and dropping a player into the
+	-- Swimming humanoid state would walk straight through the carry-speed
+	-- model that every other number here is calibrated against. So it is
+	-- parts, and the water-ness is built rather than inherited.
+	--
+	-- Three things do that, and the first matters most: a channel needs a
+	-- VISIBLE EDGE. Flat blue laid on flat green is a carpet no matter what
+	-- colour it is -- what says "dug" is the bank standing proud on either
+	-- side, casting a line of shadow down onto the surface. Then depth: the
+	-- surface is a thick translucent slab rather than a sheet, so you look
+	-- down THROUGH a volume of blue into a dark bed. Then motion, which is
+	-- client-side for the same reason the animated skins are (see
+	-- ClientMain): the server tags the parts and publishes their span, and
+	-- every machine works the ripples out for itself.
 	if tier.moat then
 		local m = tier.moat
 		local moatPenalty = { label = "Moat", slow = m.slow, duration = m.duration, stun = 0 }
+		-- `mid`/`reach` are the SIDE bands' X offsets and the FRONT band's Z, and
+		-- those are no longer the same distance from the centre. The front pair
+		-- is measured off the front line; the sides off the half width.
 		local mid = half + 0.5 + m.width / 2
 		local reach = half + 0.5 + m.width
+		local frontMid = frontZ + 0.5 + m.width / 2
+		local frontReach = frontZ + 0.5 + m.width
 
 		-- Mirrors the fence rectangle: the back band sits behind the house and
 		-- the side bands run the full length of the yard.
 		local backMid = backZ + 0.5 + m.width / 2
 		local backReach = backZ + 0.5 + m.width
-		local sideMoatLength = reach + backReach
-		local sideMoatCentre = (reach - backReach) / 2
+		local sideMoatLength = frontReach + backReach
+		local sideMoatCentre = (frontReach - backReach) / 2
 
-		local function water(centre: Vector3, length: number, alongX: boolean)
+		-- THE CHANNEL IS RAISED, NOT DUG, and it has to be.
+		--
+		-- The world ground is one solid slab and a Part cannot cut a hole in
+		-- another Part, so a water surface set below ground level is not a
+		-- trench -- it is simply invisible, hidden behind the grass that is
+		-- still there above it. (Measured: at 0.16 under the ground the whole
+		-- moat disappeared.) So every layer here sits PROUD of the ground, and
+		-- the sunkenness is an illusion the banks do all the work for: kerbs
+		-- standing 0.5 above the grass with a water surface 0.19 BELOW their
+		-- top edge reads as a channel, because the eye takes the highest line
+		-- as ground level.
+		--
+		-- Heights are all relative to FENCE_BASE_Y, the world ground:
+		--     bank   -0.10 .. +0.50   (bottom buried, top is the kerb line)
+		--     water  -0.19 .. +0.31   (a volume, seen into from above)
+		--     bed    -0.47 .. +0.03   (opaque and dark, the thing you see)
+		-- Nothing shares a face height with anything else, which is the rule
+		-- the road and the old moat both broke.
+		local BANK_H, BANK_W = 0.6, 1.0
+		local BANK_Y = FENCE_BASE_Y + 0.20
+		local DEEP = 0.5
+		local WATER_Y = FENCE_BASE_Y + 0.06
+		local SURFACE_Y = WATER_Y + DEEP / 2
+		local BED_Y = FENCE_BASE_Y - 0.22
+		local WATER = Color3.fromRGB(38, 104, 164)
+		local BED = Color3.fromRGB(26, 52, 64)
+		local STONE = Color3.fromRGB(112, 116, 118)
+
+		local splashed: { [Player]: number } = {}
+		local bandIndex = 0
+
+		-- One kerb run. Built along the RING rather than per band -- see the
+		-- rim pass below for why.
+		local function bank(centre: Vector3, length: number, alongX: boolean)
+			local b = Instance.new("Part")
+			b.Name = "MoatBank"
+			b.Size = spanSize(alongX, length, BANK_H, BANK_W)
+			b.CFrame = originCF * CFrame.new(centre + Vector3.new(0, BANK_Y, 0))
+			b.Anchored = true
+			b.CanCollide = false
+			b.CanQuery = false
+			-- The one thing here that casts: the kerb's shadow falling across
+			-- the water is most of what sells the depth.
+			b.CastShadow = true
+			b.Color = STONE
+			b.Material = Enum.Material.Slate
+			b.TopSurface = Enum.SurfaceType.Smooth
+			b.BottomSurface = Enum.SurfaceType.Smooth
+			b.Parent = plot.fence
+		end
+
+		local function channel(centre: Vector3, length: number, alongX: boolean)
+			bandIndex += 1
+
+			-- The bed: opaque, dark, and the thing actually seen through the
+			-- water. Without it the translucent surface tints the grass
+			-- underneath and the moat comes out pond-green.
+			local bed = Instance.new("Part")
+			bed.Name = "MoatBed"
+			bed.Size = spanSize(alongX, length, 0.5, m.width)
+			bed.CFrame = originCF * CFrame.new(centre + Vector3.new(0, BED_Y, 0))
+			bed.Anchored = true
+			bed.CanCollide = false
+			bed.CanQuery = false
+			bed.CastShadow = false
+			bed.Color = BED
+			bed.Material = Enum.Material.Slate
+			bed.TopSurface = Enum.SurfaceType.Smooth
+			bed.BottomSurface = Enum.SurfaceType.Smooth
+			bed.Parent = plot.fence
+
 			local w = Instance.new("Part")
-			w.Name = "Moat"
-			w.Size = spanSize(alongX, length, 0.5, m.width)
-			-- Water surface lands 0.05 PROUD of the grass, not level with it.
-			-- Sitting exactly at ground height put two coplanar faces at the
-			-- same depth and the lawn flickered through the moat.
-			w.CFrame = originCF * CFrame.new(centre + Vector3.new(0, FENCE_BASE_Y - 0.2, 0))
+			w.Name = "MoatWater"
+			-- A VOLUME, not a sheet. A flat plane has nothing to see into;
+			-- half a stud of translucent blue over a dark bed does.
+			w.Size = spanSize(alongX, length, DEEP, m.width)
+			w.CFrame = originCF * CFrame.new(centre + Vector3.new(0, WATER_Y, 0))
 			w.Anchored = true
 			w.CanCollide = false
 			w.CanQuery = false
@@ -507,19 +775,79 @@ function PlotService.buildFence(plot: Plot, level: number)
 			-- SmoothPlastic, not Glass. Glass plus reflectance washed out to
 			-- near-white against the grass and stopped reading as water.
 			w.Material = Enum.Material.SmoothPlastic
-			w.Color = Color3.fromRGB(44, 116, 178)
-			w.Transparency = 0.3
-			w.Reflectance = 0.12
+			w.Color = WATER
+			w.Transparency = 0.38
+			w.Reflectance = 0.07
+			-- Everything the client's animation loop needs, and nothing it
+			-- could work out for itself.
+			w:SetAttribute("Phase", bandIndex * 0.83)
 			w.Parent = plot.fence
+			CollectionService:AddTag(w, "MoatWater")
+
+			-- Splash, fired on entry rather than left running. A permanent
+			-- emitter per band would be sixty of them across a full street to
+			-- say something nobody looks at; a burst when someone goes in is
+			-- the moment that actually wants marking.
+			local splash = Instance.new("ParticleEmitter")
+			splash.Name = "Splash"
+			splash.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+			splash.Color = ColorSequence.new(Color3.fromRGB(226, 244, 255), WATER)
+			splash.Size = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 1.1),
+				NumberSequenceKeypoint.new(1, 0),
+			})
+			splash.Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 0.1),
+				NumberSequenceKeypoint.new(1, 1),
+			})
+			splash.Lifetime = NumberRange.new(0.4, 0.8)
+			splash.Speed = NumberRange.new(9, 16)
+			splash.SpreadAngle = Vector2.new(40, 40)
+			splash.Acceleration = Vector3.new(0, -55, 0)
+			splash.LightEmission = 0.6
+			splash.Rate = 0
+			splash.Enabled = false
+			splash.Parent = w
+
+			-- Two ripple crests per band, animated along it by the client.
+			-- Anchored, non-colliding, and invisible until the client moves
+			-- them: a server that never touches them again costs nothing.
+			for i = 1, 2 do
+				local r = Instance.new("Part")
+				r.Name = "MoatRipple"
+				r.Size = spanSize(alongX, 1.8, 0.08, m.width * 0.8)
+				r.CFrame = originCF * CFrame.new(centre + Vector3.new(0, SURFACE_Y + 0.025, 0))
+				r.Anchored = true
+				r.CanCollide = false
+				r.CanQuery = false
+				r.CastShadow = false
+				r.Material = Enum.Material.SmoothPlastic
+				r.Color = Color3.fromRGB(178, 216, 240)
+				r.Transparency = 1
+				r:SetAttribute("Span", length)
+				r:SetAttribute("AlongX", alongX)
+				r:SetAttribute("Phase", (bandIndex * 2 + i) * 0.37)
+				r.Parent = plot.fence
+				CollectionService:AddTag(r, "MoatRipple")
+			end
 
 			w.Touched:Connect(function(hit)
+				local character = hit.Parent
+				local crosser = character and Players:GetPlayerFromCharacter(character)
+				if crosser then
+					local now = os.clock()
+					if now - (splashed[crosser] or 0) > 1.2 then
+						splashed[crosser] = now
+						splash:Emit(22)
+					end
+				end
 				firePenalty(hit, moatPenalty)
 			end)
 		end
 
-		water(Vector3.new(0, 0, -backMid), reach * 2, true)
-		water(Vector3.new(-mid, 0, sideMoatCentre), sideMoatLength, false)
-		water(Vector3.new(mid, 0, sideMoatCentre), sideMoatLength, false)
+		channel(Vector3.new(0, 0, -backMid), reach * 2, true)
+		channel(Vector3.new(-mid, 0, sideMoatCentre), sideMoatLength, false)
+		channel(Vector3.new(mid, 0, sideMoatCentre), sideMoatLength, false)
 
 		-- The causeway is driveway-width, NOT gate-width. The driveway has to
 		-- stay dry at every tier or the top tier drowns its own entrance, and
@@ -529,9 +857,55 @@ function PlotService.buildFence(plot: Plot, level: number)
 		local moatWing = reach - causeway / 2
 		if moatWing > 0 then
 			local offset = causeway / 2 + moatWing / 2
-			water(Vector3.new(-offset, 0, mid), moatWing, true)
-			water(Vector3.new(offset, 0, mid), moatWing, true)
+			channel(Vector3.new(-offset, 0, frontMid), moatWing, true)
+			channel(Vector3.new(offset, 0, frontMid), moatWing, true)
 		end
+
+		-- The rim, laid as TWO CLOSED RECTANGLES rather than a pair of kerbs
+		-- per band.
+		--
+		-- Per band was the obvious way and it was wrong: the bands overlap at
+		-- the four corners, so each one's kerb ran straight across its
+		-- neighbour's water and the moat came out with stone bars lying
+		-- across it like cattle grids. The ring does not care how the water
+		-- was cut up -- there is an outer edge and an inner edge, and the
+		-- kerb belongs on those.
+		-- Three pairs, because the ring is a RECTANGLE and its three edges are
+		-- now three different distances from the plot centre: the sides off the
+		-- half width, the front off the front line, the back off YARD_DEPTH.
+		-- The front pair used to be copied from the side pair, which was right
+		-- only while the plot was square.
+		local outerX, innerX = reach + BANK_W / 2, (half + 0.5) - BANK_W / 2
+		local outerFrontZ, innerFrontZ = frontReach + BANK_W / 2, (frontZ + 0.5) - BANK_W / 2
+		local outerBackZ, innerBackZ = -(backReach + BANK_W / 2), -((backZ + 0.5) - BANK_W / 2)
+
+		-- Parameters named for the EDGE they are, not `frontZ`/`backZ`: those
+		-- are now real values in the enclosing scope and shadowing them here
+		-- would make this function read as though it used them.
+		local function rim(x: number, frontEdge: number, backEdge: number)
+			local span = frontEdge - backEdge
+			local midZ = (frontEdge + backEdge) / 2
+			-- Sides run the full depth; overlong by a kerb width at each end
+			-- so the corners close square instead of showing a notch.
+			for _, s in ipairs({ -1, 1 }) do
+				bank(Vector3.new(s * x, 0, midZ), span + BANK_W, false)
+			end
+			bank(Vector3.new(0, 0, backEdge), x * 2, true)
+
+			-- The front run is the only one with a hole in it, and it is the
+			-- same hole the water leaves: the causeway.
+			local wing = x - causeway / 2
+			if wing > 0 then
+				local offset = causeway / 2 + wing / 2
+				bank(Vector3.new(-offset, 0, frontEdge), wing, true)
+				bank(Vector3.new(offset, 0, frontEdge), wing, true)
+			else
+				bank(Vector3.new(0, 0, frontEdge), x * 2, true)
+			end
+		end
+
+		rim(outerX, outerFrontZ, outerBackZ)
+		rim(innerX, innerFrontZ, innerBackZ)
 	end
 end
 
@@ -547,6 +921,117 @@ end
 -- 31.1, facing the street so the front is what the road sees.
 -- Rebuilds the whole ornament set. Cheap enough to redo wholesale on each
 -- purchase, and wholesale avoids having to diff slots.
+-- DECLARED ABOVE `setDecor`, WHICH IS ITS FIRST CALLER, AND THAT PLACEMENT IS
+-- LOAD-BEARING. A `local` declared after a function that reads it does not
+-- error in Luau -- it compiles as a nil GLOBAL and dies at the call naming
+-- nothing useful. This file has lost six bugs to exactly that, and this block
+-- was written 300 lines lower down before the line numbers gave it away.
+
+-- ============================================================
+-- TRAMPOLINES
+-- ============================================================
+--
+-- The first decoration that does anything, and everything below exists to keep
+-- it from being a power item.
+--
+-- IT MUST NOT CHANGE AN OUTCOME -- not the steal, the chase, the tag or the
+-- getaway. A bounce is a toy. That is asserted twice over: once by making it
+-- vertical only, and once by the veto below, which is what turns "it should
+-- not matter in a chase" from an argument into a fact.
+--
+-- THE MAT IS A TRIGGER, NOT A SURFACE. Every ornament in this game is
+-- CanCollide and CanQuery off, because they sit on the exact ground a defender
+-- defends and a thief runs across. `Touched` fires on overlap without needing
+-- collision, so that rule is untouched: a trampoline can never body-block
+-- anybody and can never be stood behind as cover.
+--
+-- FOUND BY TAG, NEVER BY A LIST COLLECTED AT STARTUP. A plot's decor is torn
+-- down and rebuilt every time an owner buys or puts away an ornament, so there
+-- is no single moment at which trampolines could be enumerated -- the same
+-- reason the moat's bands are tagged.
+local bouncedAt: { [Player]: number } = {}
+local bounceVetoes: { (Player) -> boolean } = {}
+
+-- Registered by Main, for the reason SetService.registerPusher is: asking
+-- "is this player carrying loot" means asking HeistService, and HeistService
+-- already requires this file. A registry keeps the dependency list at one line
+-- and makes the cycle impossible rather than merely absent today.
+function PlotService.registerBounceVeto(fn: (Player) -> boolean)
+	table.insert(bounceVetoes, fn)
+end
+
+local function bounce(hit: BasePart)
+	local character = hit.Parent
+	if not character then
+		return
+	end
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not humanoid or not root or humanoid.Health <= 0 then
+		return
+	end
+	local player = Players:GetPlayerFromCharacter(character)
+	if not player then
+		return
+	end
+
+	-- Anything mid-heist is refused outright. This is the line that keeps a
+	-- decoration out of the balance: a thief carrying somebody's coins cannot
+	-- be launched, so the trampoline cannot lengthen a getaway, break a tag or
+	-- get anyone over anything while it matters.
+	for _, veto in ipairs(bounceVetoes) do
+		if veto(player) then
+			return
+		end
+	end
+
+	local now = os.clock()
+	if bouncedAt[player] and (now - bouncedAt[player]) < Config.TRAMPOLINE_COOLDOWN then
+		return
+	end
+	bouncedAt[player] = now
+
+	-- HANDED TO THE CLIENT, because a character's physics belong to the client
+	-- that owns it and a server-side velocity write on somebody's root is
+	-- simply discarded. Measured on a live rig: a raw write, a write after
+	-- ChangeState(Jumping) and a write after ChangeState(Freefall) all left the
+	-- character at exactly its 5.00-stud drop height. The server still owns the
+	-- DECISION -- which mat, which player, the cooldown and the veto above are
+	-- all decided here and none of it is sent.
+	--
+	-- The wheelie bin's exit hop gets away with a server write because it
+	-- happens in the frame the root is unanchored, which is the one moment the
+	-- server has authority over that assembly.
+	Remotes.get("TrampolineBounce"):FireClient(player)
+end
+
+local function bindTrampoline(mat: Instance)
+	if mat:IsA("BasePart") then
+		mat.Touched:Connect(bounce)
+	end
+end
+
+-- BOUND BY WALKING THE MODEL, NOT BY `GetInstanceAddedSignal`, AND THAT IS NOT
+-- A PREFERENCE -- the signal version silently never fires.
+--
+-- `Decor.build` creates its Model DETACHED, runs every builder into it, and
+-- parents it to the plot at the very end. So the tag is added while the part
+-- is outside the DataModel, and CollectionService's added-signal only fires
+-- for instances inside it. Measured: the mat was tagged, `GetTagged` returned
+-- it, `Touched` fired fifteen times, and the handler had never been connected.
+--
+-- Note the moat does NOT have this problem and looked like a precedent for
+-- doing it the other way: it parents each band to `plot.fence` as it builds,
+-- and that folder is already in the world. Anything tagged inside a detached
+-- model has to be bound after it lands.
+local function bindTrampolinesIn(model: Instance)
+	for _, d in ipairs(model:GetDescendants()) do
+		if CollectionService:HasTag(d, Decor.TRAMPOLINE_TAG) then
+			bindTrampoline(d)
+		end
+	end
+end
+
 function PlotService.setDecor(plot: Plot, placed: { [string]: string })
 	if plot.decor then
 		plot.decor:Destroy()
@@ -562,6 +1047,13 @@ function PlotService.setDecor(plot: Plot, placed: { [string]: string })
 		driveway = worldGround + DRIVEWAY_LIFT,
 		verge = worldGround,
 	}, plot.model)
+
+	-- Anything functional in that model gets hooked up now that it is in the
+	-- world. This runs on every decor change rather than once at startup,
+	-- because a lawn is torn down and rebuilt whenever an owner buys or puts
+	-- away an ornament -- there is no single moment at which they could all be
+	-- collected. See bindTrampolinesIn for why a tag signal cannot do this.
+	bindTrampolinesIn(plot.decor)
 end
 
 -- The strip of paving from the gate out to the kerb, surfaced by house tier.
@@ -645,14 +1137,18 @@ end
 -- Returns the plot, so a caller can tell "my own lawn" from "someone else's".
 -- Nothing uses that yet; RideService only cares that it is somebody's.
 function PlotService.yardContaining(position: Vector3): Plot?
-	local half = Config.PLOT_SIZE.X / 2 + 1.6
+	-- TWO numbers, not one. `half` served as both the X extent and the front Z
+	-- while the plot was square; the rectangle is 64 x 48 now, so a single
+	-- value would test a square that is neither the fence nor the slab.
+	local halfWidth = Config.PLOT_HALF_WIDTH
+	local frontZ = Config.PLOT_FRONT_LINE
 
 	for _, plot in ipairs(plots) do
 		-- Into plot-local space, where the rectangle is axis-aligned and the
 		-- far row's half-turn has already been taken care of.
 		local local_ = plot.cframe:PointToObjectSpace(position)
-		if math.abs(local_.X) <= half
-			and local_.Z <= half
+		if math.abs(local_.X) <= halfWidth
+			and local_.Z <= frontZ
 			and local_.Z >= -Config.YARD_DEPTH
 		then
 			return plot
@@ -741,6 +1237,7 @@ function PlotService.updateSign(plot: Plot, ownerName: string?, rebirths: number
 	skinName: string?, houseName: string?)
 	if not ownerName then
 		plot.signLabel.Text = "EMPTY PLOT"
+		plot.signBoast.Text = "for sale"
 		return
 	end
 
@@ -755,11 +1252,11 @@ function PlotService.updateSign(plot: Plot, ownerName: string?, rebirths: number
 		table.insert(boasts, skinName)
 	end
 
-	if #boasts == 0 then
-		plot.signLabel.Text = ownerName
-	else
-		plot.signLabel.Text = ("%s\n%s"):format(ownerName, table.concat(boasts, "  -  "))
-	end
+	-- The name owns the top row at a fixed size whatever the boasts say; the
+	-- boasts get their own smaller row underneath. Sharing one TextScaled
+	-- label meant buying a house shrank your own name.
+	plot.signLabel.Text = ownerName
+	plot.signBoast.Text = table.concat(boasts, " · ")
 end
 
 function PlotService.applySkin(plot: Plot, skinKey: string)
@@ -810,10 +1307,15 @@ function PlotService.release(player: Player)
 	PlotService.applySkin(plot, Config.DEFAULT_SKIN)
 	PlotService.applyEffect(plot, Config.DEFAULT_EFFECT)
 	PlotService.updatePile(plot, 0, Config.BASE_CAPACITY)
-	-- Wipe the previous owner's defences so the next arrival gets a bare plot.
+	-- Wipe the previous owner's defences so the next arrival gets a bare
+	-- plot -- and put the house back to the Starter Shack with them. It was
+	-- the one thing release never reset, so a player leaving with a Sky
+	-- Castle left the Sky Castle standing on an unclaimed plot until
+	-- somebody else took it over.
 	PlotService.buildFence(plot, 0)
 	PlotService.setDogLevel(plot, 0)
 	PlotService.setLockLevel(plot, 0)
+	PlotService.setHouseLevel(plot, 0)
 end
 
 function PlotService.getPlot(player: Player): Plot?
@@ -837,7 +1339,18 @@ function PlotService.getOwnerOf(model: Model): Player?
 	return nil
 end
 
+
 function PlotService.start()
+	Players.PlayerRemoving:Connect(function(player)
+		bouncedAt[player] = nil
+	end)
+
+	-- The Brace Face turtle's headband is runtime CSG and CSG is
+	-- server-only, so its template is built here, once, before any plot can
+	-- possibly need it -- a saved lawn reconstructing on join is the one
+	-- moment this would otherwise race a purchase.
+	Decor.prewarm()
+
 	local existing = workspace:FindFirstChild("Plots")
 	if existing then
 		existing:Destroy()
@@ -847,8 +1360,17 @@ function PlotService.start()
 	plotsFolder.Name = "Plots"
 	plotsFolder.Parent = workspace
 
+	-- Every plot gets the Starter Shack standing on it before anyone owns
+	-- it. Level 0 is the free tier that every player already has, so an
+	-- unclaimed plot showing one is honest rather than generous -- and a
+	-- bare slab reads as unfinished map rather than as an empty house.
+	--
+	-- It also builds the driveway, which only ever happened inside
+	-- setHouseLevel, so an unowned plot had no drive either.
 	for index = 1, Config.PLOT_COUNT do
-		table.insert(plots, buildPlot(index))
+		local plot = buildPlot(index)
+		table.insert(plots, plot)
+		PlotService.setHouseLevel(plot, 0)
 	end
 
 	Players.PlayerRemoving:Connect(function(player)

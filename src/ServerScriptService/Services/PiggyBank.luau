@@ -18,6 +18,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local PiggyModel = require(ReplicatedStorage.Shared.PiggyModel)
 local PigGear = require(ReplicatedStorage.Shared.PigGear)
 
 local PiggyBank = {}
@@ -71,6 +72,54 @@ local COIN_CENTRE_OFFSET = 1.5
 -- Snout sits low, like a real pig's, so it stops covering the pile.
 local SNOUT_Y = -2.5
 local SNOUT_D = 3.6
+
+-- Where the vault dial sits on the body, and how big it can get.
+--
+-- A quarter turn round from the face, and a stud below the equator. Every
+-- other candidate is already taken or already blocked: the top of the body is
+-- the hat anchor, the front is the snout and the eyes, the back is the cape
+-- and jetpack anchor plus the tail, and the underside is the four legs. This
+-- patch of flank is the only surface on the pig that is both empty and turned
+-- towards someone walking in from the street.
+--
+-- DIAL_MAX_R is the largest tier's plate. It is the number the clearances
+-- were measured against: at 1.95 the plate's top edge reaches y 9.42 against
+-- an eyeball that starts at 9.98, its bottom reaches 5.58 against legs that
+-- top out at 4.65, and its inner edge comes no closer than x 2.81 to a snout
+-- that ends at 1.8. Growing it past 1.95 breaks the first of those.
+-- ON THE BACK, BELOW THE TAIL, and it is a vault DOOR rather than a dial on a
+-- flank. The flank versions -- 45 degrees, then 72 -- both read as something
+-- bolted to the side of an animal. A hatch in the back of a piggy bank is a
+-- thing that already exists in the world, which is why it looks right.
+--
+-- MEASURED AGAINST WHAT IS ALREADY BACK THERE. The tail is a ball spanning
+-- local y 0.35 to 2.05 and the legs top out at local y -4.59, so the window
+-- below the tail and above the legs is about five studs tall. At local y
+-- -1.9 the largest plate spans -3.85 to 0.05: clear of the tail by 0.30 and
+-- of the legs by 0.74.
+--
+-- IT IS BEHIND THE CAPE, AND THAT IS ACCEPTED RATHER THAN MISSED. The back
+-- accessory anchor is right above this and a Hero Cape hangs down to local
+-- y -1.77, so a caped piggy hides roughly the top half of its own vault.
+-- That is the reverse of the padlock bug this file already records: there,
+-- the GAME's part swallowed the PLAYER's hat and ruined something they had
+-- rolled for. Here the player's own cape covers the game's tell, on a piggy
+-- they chose to put a cape on -- their purchase is intact, and what they lose
+-- is advertising their own lock to thieves.
+--
+-- The cost is real and worth stating: a thief walking up from the street sees
+-- the face, not the back, so the metal tier no longer carries from out there.
+-- What it buys is that an UNLOCKED vault is now a visible hole, which is the
+-- signal that actually changes a thief's mind at the gate.
+local DIAL_YAW = math.rad(180)
+local DIAL_Y = 6.6
+local DIAL_MAX_R = 1.95
+-- Thick enough that the rim, which sinks 0.32 into the curve of the body at
+-- full size, still has its back face buried rather than floating clear.
+local DIAL_THICK = 0.9
+-- Segments in the vault's rim. Twelve is enough for a four-stud opening to
+-- read as round; the cost is twelve parts per piggy, and there are twelve.
+local RIM_SEGMENTS = 12
 
 local PINK_DARK = Color3.fromRGB(214, 122, 148)
 local NEAR_BLACK = Color3.fromRGB(38, 30, 34)
@@ -169,6 +218,25 @@ local function buildCoinPile(centre: Vector3, parent: Instance): ({ Part }, Fold
 	end
 
 	return coins, folder
+end
+
+-- The frame the whole vault dial is built in, given a piggy's origin.
+--
+-- Its X axis points straight out of the body, which is what both a Roblox
+-- cylinder and the spin in rattleLock want: the plate, face and hub are
+-- cylinders along that axis, and turning the wheel is a rotation about it.
+-- Y stays as upright as the tilt allows, so the spokes read level.
+--
+-- CFrame.lookAt aims LookVector, which is -Z, so the extra quarter turn about
+-- Y is what swings that onto +X. Without it the dial lies flat against the
+-- flank like a sticker.
+local function dialCFrame(origin: Vector3): CFrame
+	local centre = origin + Vector3.new(0, BODY_Y, 0)
+	local drop = DIAL_Y - BODY_Y
+	local ring = math.sqrt(math.max(BODY_R * BODY_R - drop * drop, 0))
+	local normal = Vector3.new(math.sin(DIAL_YAW) * ring, drop, math.cos(DIAL_YAW) * ring).Unit
+	local seat = centre + normal * BODY_R
+	return CFrame.lookAt(seat, seat + normal) * CFrame.Angles(0, math.rad(90), 0)
 end
 
 -- ============================================================
@@ -374,40 +442,93 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	slot.Color = NEAR_BLACK
 	slot.Material = Enum.Material.SmoothPlastic
 
-	-- Padlock, sitting on the coin slot -------------------------------
+	-- Vault dial ------------------------------------------------------
 	--
 	-- The lock upgrade already worked -- it triples the crack time -- but a
 	-- ProximityPrompt draws the same filling circle whether it takes three
 	-- seconds or nine, so nothing about it was visible. A defender could not
 	-- see what they had bought and a thief could not see what they were up
 	-- against. This is that mechanic given a body.
+	--
+	-- It used to be a padlock on top of the coin slot, and that was wrong
+	-- twice over. It sat at (0, 15.2, 0) -- which is the HAT ANCHOR, so every
+	-- hat in the game spawned inside it -- and its shackle was a cylinder
+	-- written Vector3.new(1.5, 1.5, 0.55), a 1.5-long rod turned to point at
+	-- the camera rather than a U over the body, so the one cue that says
+	-- "padlock" was never actually built. It read as a grey lump.
+	--
+	-- A safe dial says the same thing without needing to be identified, and
+	-- the body has room for it where the head does not.
 	local lock = Instance.new("Model")
-	lock.Name = "Padlock"
+	lock.Name = "VaultLock"
 
-	local lockBody = part("LockBody", lock, Vector3.new(2.2, 2.4, 1.1),
-		CFrame.new(at(0, BODY_Y + BODY_R + 0.7, 0)))
-	lockBody.Material = Enum.Material.Metal
+	-- The plate is the mount, and it never moves: every other piece of the
+	-- dial is positioned from its CFrame, and the spin in rattleLock turns
+	-- about its X axis. Size and colour change with the tier; the CFrame does
+	-- not, which is what lets the wheel be rebuilt without recomputing where
+	-- the dial lives.
+	-- THE HOLE IS ALWAYS THERE; THE LOCK IS WHAT COVERS IT.
+	--
+	-- Nothing in this world can be DUG -- a Part cannot cut a hole in another
+	-- Part -- so the opening is the same illusion the moat uses: a near-black
+	-- disc with a rim standing proud of it, because the eye takes the highest
+	-- line as the surface and reads everything inside it as depth. Set flush
+	-- instead, it is a black sticker.
+	--
+	-- Built once at full size and never resized, so an unlocked piggy and a
+	-- gold-locked one have the same opening and only the door changes.
+	local seat = dialCFrame(origin)
 
-	local shackle = part("Shackle", lock, Vector3.new(1.5, 1.5, 0.55),
-		CFrame.new(at(0, BODY_Y + BODY_R + 2.2, 0)))
-	shackle.Shape = Enum.PartType.Cylinder
-	shackle.CFrame = CFrame.new(shackle.Position) * CFrame.Angles(0, math.rad(90), 0)
-	shackle.Material = Enum.Material.Metal
+	local hole = part("VaultHole", lock, Vector3.new(0.30, DIAL_MAX_R * 2, DIAL_MAX_R * 2),
+		seat * CFrame.new(0.02, 0, 0))
+	hole.Shape = Enum.PartType.Cylinder
+	hole.Color = Color3.fromRGB(18, 14, 16)
+	hole.Material = Enum.Material.SmoothPlastic
 
-	local keyhole = part("Keyhole", lock, Vector3.new(0.5, 0.5, 0.2),
-		CFrame.new(at(0, BODY_Y + BODY_R + 0.5, 0.6)))
-	keyhole.Color = NEAR_BLACK
+	-- THE RIM IS A RING OF SEGMENTS, because one cylinder cannot be an annulus
+	-- and a solid disc in front of the hole simply covers it -- which is what
+	-- the first build did, hiding the whole opening behind a pale lid.
+	--
+	-- It stands PROUD of the dark disc, which is the entire illusion: nothing
+	-- in this world can be dug, so a recess is made by putting a lip AROUND
+	-- the dark rather than sinking the dark, and the eye takes the highest
+	-- line as the surface. Exactly the moat's kerbs, at a twentieth of the
+	-- scale.
+	for i = 0, RIM_SEGMENTS - 1 do
+		local a = (i / RIM_SEGMENTS) * math.pi * 2
+		local r = DIAL_MAX_R + 0.16
+		-- ROTATED TO LIE TANGENT, not radial. A segment sits at
+		-- (sin a, cos a) * r in the seat's YZ plane, so its radius direction
+		-- is that vector and its TANGENT is (cos a, -sin a). Turning by -a
+		-- maps the segment's long axis onto the radius instead, which builds
+		-- a sunburst of spikes rather than a ring -- measured by looking at
+		-- twelve of them sticking straight out of the pig.
+		local seg = part("VaultRim", lock,
+			Vector3.new(0.42, 0.30, (2 * math.pi * r) / RIM_SEGMENTS + 0.10),
+			seat * CFrame.new(0.16, math.sin(a) * r, math.cos(a) * r)
+				* CFrame.Angles(-a - math.pi / 2, 0, 0))
+		seg.Color = PINK_DARK
+		seg.Material = Enum.Material.SmoothPlastic
+	end
 
-	lock.PrimaryPart = lockBody
+	local plate = part("DialPlate", lock, Vector3.new(DIAL_THICK, DIAL_MAX_R * 2, DIAL_MAX_R * 2),
+		seat)
+	plate.Shape = Enum.PartType.Cylinder
+	plate.Material = Enum.Material.Metal
+	plate.Transparency = 1 -- setLockLevel owns whether it shows
+
+	lock.PrimaryPart = plate
 	lock.Parent = model
 
 	-- Interaction -----------------------------------------------------
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "CollectPrompt"
 	prompt.ActionText = "Bank Coins"
+	prompt.Style = Enum.ProximityPromptStyle.Custom
+	prompt:SetAttribute(Config.PROMPT_KIND_ATTRIBUTE, "collect")
 	prompt.ObjectText = "Your Piggy Bank"
 	prompt.HoldDuration = 0
-	prompt.MaxActivationDistance = 16
+	prompt.MaxActivationDistance = Config.COLLECT_RANGE
 	prompt.RequiresLineOfSight = false
 	prompt.Parent = body
 
@@ -417,6 +538,8 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	local stealPrompt = Instance.new("ProximityPrompt")
 	stealPrompt.Name = "StealPrompt"
 	stealPrompt.ActionText = "Steal Coins"
+	stealPrompt.Style = Enum.ProximityPromptStyle.Custom
+	stealPrompt:SetAttribute(Config.PROMPT_KIND_ATTRIBUTE, "steal")
 	stealPrompt.ObjectText = "Piggy Bank"
 	stealPrompt.HoldDuration = Config.STEAL_HOLD
 	stealPrompt.MaxActivationDistance = Config.STEAL_RANGE
@@ -480,11 +603,38 @@ function PiggyBank.applySkin(refs: Refs, skinKey: string)
 		p.Material = tier.material
 	end
 
+	-- MARKINGS, and they are the third channel of a skin rather than a fourth
+	-- system. Built by PiggyModel because the shop tile and the carried loot
+	-- render the same piggy from the same builder -- see the block at the top
+	-- of that file. Torn down and rebuilt on every call, so switching skins
+	-- cannot accumulate stripes.
+	--
+	-- SEATED ON THE BODY PART'S OWN CFRAME, never on `refs.origin`. The far
+	-- row of plots is turned half round by one PivotTo after everything on it
+	-- is built, so the origin captured at build time points the wrong way for
+	-- six of the twelve piggies; the body's frame carries the turn with it and
+	-- a stripe stays across the spine on both rows.
+	PiggyModel.applyPattern(refs.model, tier, {
+		frame = refs.body.CFrame,
+		radius = BODY_R,
+		anchored = true,
+		weldTo = nil,
+		material = tier.material,
+		transparency = tier.transparency,
+	})
+
 	-- The colours above are the STATIC baseline, which is what a client sees
 	-- before its animator starts and what it falls back to if the skin has no
 	-- animation. The key is published as an attribute so every client can drive
 	-- the animation locally: animating server-side would replicate a colour
 	-- write per piggy per frame for something each machine can compute alone.
+	--
+	-- The client animator drives the Body and the four trim names and nothing
+	-- else, so a pattern on an animated skin holds its own colour while the
+	-- body cycles underneath it. That is the intended read -- a marking on a
+	-- glowing pig -- which is why every neon pattern in Config is authored
+	-- either near-black or near-white: a mid-tone trace would vanish for the
+	-- part of the cycle the body happened to pass through it.
 	refs.model:SetAttribute("SkinKey", skinKey)
 end
 
@@ -683,112 +833,152 @@ end
 -- Unanchored, massless and non-colliding, because it gets welded to a
 -- character: mass would change how the thief moves, and collision would
 -- catch on doorways and fences.
+-- Delegated to Shared/PiggyModel, which the shop also renders. See the note
+-- at the top of that file: the carried loot and the shop tile must be the
+-- same piggy, or a skin can look like one thing in the catalogue and another
+-- on somebody's back.
 function PiggyBank.buildMini(skinKey: string): Model
-	local skin = Config.getSkin(skinKey)
-	local model = Instance.new("Model")
-	model.Name = "StolenPiggy"
-
-	local function piece(name: string, size: Vector3, cf: CFrame, color: Color3): Part
-		local p = Instance.new("Part")
-		p.Name = name
-		p.Size = size
-		p.CFrame = cf
-		p.Anchored = false
-		p.CanCollide = false
-		p.CanQuery = false
-		p.Massless = true
-		p.CastShadow = false
-		p.Color = color
-		-- Solid, unlike the plot piggy. That one is translucent so the coin
-		-- pile shows through; this one has no pile and just needs to read.
-		p.Material = skin.material
-		p.TopSurface = Enum.SurfaceType.Smooth
-		p.BottomSurface = Enum.SurfaceType.Smooth
-		p.Parent = model
-		return p
-	end
-
-	local body = piece("Body", Vector3.new(2.2, 2.2, 2.2), CFrame.new(0, 1.15, 0), skin.body)
-	body.Shape = Enum.PartType.Ball
-
-	local snout = piece("Snout", Vector3.new(0.5, 0.85, 0.85),
-		CFrame.new(0, 0.9, 1.05) * CFrame.Angles(0, math.rad(90), 0), skin.trim)
-	snout.Shape = Enum.PartType.Cylinder
-
-	local tail = piece("Tail", Vector3.new(0.45, 0.45, 0.45), CFrame.new(0, 1.4, -1.1), skin.trim)
-	tail.Shape = Enum.PartType.Ball
-
-	for _, side in ipairs({ -1, 1 }) do
-		piece("Ear", Vector3.new(0.26, 0.5, 0.2), CFrame.new(side * 0.45, 2.0, 0.5), skin.trim)
-		piece("Eye", Vector3.new(0.16, 0.16, 0.1), CFrame.new(side * 0.36, 1.45, 1.0), NEAR_BLACK)
-		for _, front in ipairs({ 0.55, -0.55 }) do
-			local leg = piece("Leg", Vector3.new(0.75, 0.34, 0.34),
-				CFrame.new(side * 0.5, 0.375, front) * CFrame.Angles(0, 0, math.rad(90)), skin.trim)
-			leg.Shape = Enum.PartType.Cylinder
-		end
-	end
-
-	-- Welds rather than anchoring: the whole model rides on the thief, so it
-	-- has to move as one piece without being pinned to the world.
-	for _, child in ipairs(model:GetChildren()) do
-		if child:IsA("BasePart") and child ~= body then
-			local weld = Instance.new("WeldConstraint")
-			weld.Part0 = body
-			weld.Part1 = child
-			weld.Parent = child
-		end
-	end
-
-	model.PrimaryPart = body
-	return model
+	return PiggyModel.build(skinKey)
 end
 
--- Padlock appearance per lock level. Level 0 hides it entirely: an unlocked
--- piggy should look unlocked.
+-- Vault dial appearance per lock level. Level 0 hides it entirely: an
+-- unlocked piggy should look unlocked.
 --
--- The metal is the tell. A thief reads the colour from outside the fence and
--- knows roughly how long they are committing to standing there.
+-- Two things ramp, and they are readable at different distances. The metal
+-- carries from outside the fence, where a thief decides whether to come in at
+-- all; the spoke count only resolves up close, where they are already
+-- deciding whether to commit to the hold. A 2-spoke wheel is a bar handle and
+-- a 5-spoke one is a bank vault, so nobody has to actually count them to see
+-- which is the bigger job.
 local LOCK_TIERS = {
-	{ colour = Color3.fromRGB(122, 128, 138), scale = 1.00 },  -- iron
-	{ colour = Color3.fromRGB(176, 122, 66), scale = 1.10 },   -- bronze
-	{ colour = Color3.fromRGB(198, 204, 214), scale = 1.20 },  -- steel
-	{ colour = Color3.fromRGB(240, 198, 76), scale = 1.32 },   -- gold
+	{ metal = Color3.fromRGB(122, 128, 138), radius = 1.55, spokes = 2 }, -- iron
+	{ metal = Color3.fromRGB(176, 122, 66), radius = 1.68, spokes = 3 },  -- bronze
+	{ metal = Color3.fromRGB(198, 204, 214), radius = 1.82, spokes = 4 }, -- steel
+	{ metal = Color3.fromRGB(240, 198, 76), radius = 1.95, spokes = 5 },  -- gold
 }
 
+-- The wheel is everything that turns: the dark face it is set into stays put.
+-- Named so rattleLock can tell the two apart without keeping a list.
+local WHEEL_PARTS = { DialSpoke = true, DialHub = true }
+
+-- Distances out from the plate's seat on the body. Each layer clears the one
+-- under it -- the face stands off the plate, the spokes off the face, the hub
+-- off the spokes -- because two metal discs at the same depth z-fight exactly
+-- the way the road did against the grass.
+local FACE_OUT = 0.65
+local SPOKE_OUT = 0.95
+local HUB_OUT = 1.10
+
+local function buildWheel(lock: Model, seat: CFrame, tier: any)
+	local face = part("DialFace", lock, Vector3.new(0.5, tier.radius * 1.32, tier.radius * 1.32),
+		seat * CFrame.new(FACE_OUT, 0, 0))
+	face.Shape = Enum.PartType.Cylinder
+	face.Color = NEAR_BLACK
+	face.Material = Enum.Material.Metal
+
+	-- Spokes radiate in the plate's own YZ plane, so a rotation about its X
+	-- axis spins them in place. Each is authored pointing along +Y and then
+	-- turned into position, which is why the offset is applied AFTER the
+	-- angle -- swap those and every spoke lands in the same spot.
+	local reach = tier.radius * 0.66
+	for i = 1, tier.spokes do
+		local angle = (i - 1) * (2 * math.pi / tier.spokes)
+		local spoke = part("DialSpoke", lock, Vector3.new(0.4, reach, 0.3),
+			seat * CFrame.Angles(angle, 0, 0) * CFrame.new(SPOKE_OUT, reach / 2 + 0.24, 0))
+		spoke.Color = tier.metal
+		spoke.Material = Enum.Material.Metal
+	end
+
+	local hub = part("DialHub", lock, Vector3.new(0.5, 0.8, 0.8), seat * CFrame.new(HUB_OUT, 0, 0))
+	hub.Shape = Enum.PartType.Cylinder
+	hub.Color = tier.metal
+	hub.Material = Enum.Material.Metal
+end
+
 function PiggyBank.setLockLevel(refs: Refs, level: number)
-	local visible = level > 0
+	local plate = refs.lock.PrimaryPart
+	if not plate then
+		return
+	end
+
+	-- The wheel is rebuilt rather than restyled, because the spoke count is
+	-- part of the tier. The plate survives: it is the one piece whose CFrame
+	-- everything else is measured from.
+	-- The plate, the rim and the hole all survive: the plate is the piece
+	-- every other CFrame is measured from, and the other two are the OPENING,
+	-- which is there at every level including none. Only the wheel is rebuilt,
+	-- because the spoke count is part of the tier.
 	for _, piece in ipairs(refs.lock:GetChildren()) do
-		if piece:IsA("BasePart") then
-			piece.Transparency = if visible then 0 else 1
+		if piece ~= plate and piece.Name ~= "VaultRim" and piece.Name ~= "VaultHole" then
+			piece:Destroy()
 		end
 	end
-	if not visible then
+
+	-- LEVEL 0 IS AN OPEN HOLE, not an absent one. An unlocked piggy used to
+	-- show nothing at all, which reads as "this piggy has no vault" rather
+	-- than "this piggy is not locked" -- and the second is the thing a thief
+	-- at the gate is actually deciding on. Hiding the door leaves the hole.
+	if level <= 0 then
+		plate.Transparency = 1
 		return
 	end
 
 	local tier = LOCK_TIERS[math.clamp(level, 1, #LOCK_TIERS)]
-	for _, piece in ipairs(refs.lock:GetChildren()) do
-		if piece:IsA("BasePart") and piece.Name ~= "Keyhole" then
-			piece.Color = tier.colour
-		end
-	end
-	refs.lock:ScaleTo(tier.scale)
+	plate.Transparency = 0
+	plate.Size = Vector3.new(DIAL_THICK, tier.radius * 2, tier.radius * 2)
+	plate.Color = tier.metal:Lerp(Color3.fromRGB(24, 24, 28), 0.45)
+	buildWheel(refs.lock, plate.CFrame, tier)
 end
 
--- A shudder and a spark when a thief is working on the lock, so both sides
--- can see it happening rather than watching a silent progress ring.
+-- One spin per hold, so both sides can see the lock being worked rather than
+-- watching a silent progress ring.
+--
+-- It does not spin back. A dial that snapped to its start every time would
+-- read as a failed attempt, and leaving it where it lands means a piggy that
+-- has been robbed all evening looks like it.
+local spinning: { [Model]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+
+local SPIN_TIME = 1.1
+local SPIN_TURN = math.pi * 1.5
+
 function PiggyBank.rattleLock(refs: Refs)
-	local body = refs.lock.PrimaryPart
-	if not body or body.Transparency >= 1 then
+	local plate = refs.lock.PrimaryPart
+	if not plate or plate.Transparency >= 1 or spinning[refs.lock] then
 		return
 	end
-	local origin = body.CFrame
-	task.spawn(function()
-		for _ = 1, 6 do
-			body.CFrame = origin * CFrame.Angles(0, 0, math.rad(math.random(-9, 9)))
-			task.wait(0.06)
+
+	-- Offsets are read off the parts themselves rather than remembered, so a
+	-- spin always continues from wherever the last one stopped.
+	local seat = plate.CFrame
+	local wheel = {}
+	for _, piece in ipairs(refs.lock:GetChildren()) do
+		if piece:IsA("BasePart") and WHEEL_PARTS[piece.Name] then
+			table.insert(wheel, { piece = piece, offset = seat:Inverse() * piece.CFrame })
 		end
-		body.CFrame = origin
+	end
+	if #wheel == 0 then
+		return
+	end
+
+	spinning[refs.lock] = true
+	task.spawn(function()
+		local started = os.clock()
+		while true do
+			local t = (os.clock() - started) / SPIN_TIME
+			if t >= 1 then
+				break
+			end
+			-- Eased out: a hand spinning a dial lets go and it coasts.
+			local angle = (1 - (1 - t) ^ 3) * SPIN_TURN
+			for _, w in ipairs(wheel) do
+				w.piece.CFrame = seat * CFrame.Angles(angle, 0, 0) * w.offset
+			end
+			task.wait()
+		end
+		for _, w in ipairs(wheel) do
+			w.piece.CFrame = seat * CFrame.Angles(SPIN_TURN, 0, 0) * w.offset
+		end
+		spinning[refs.lock] = nil
 	end)
 end
 

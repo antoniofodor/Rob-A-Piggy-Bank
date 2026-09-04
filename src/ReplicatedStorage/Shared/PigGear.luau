@@ -108,6 +108,30 @@ builders.halo = function(spec, add)
 	light.Parent = glow
 end
 
+-- ALIEN SET. Two stalks off a band, and the whole thing is authored with
+-- y = 0 AT THE BAND -- the hat anchor is where a brim rests, so a headband
+-- sits exactly there and everything else goes up from it. Authored around the
+-- bounding-box centre instead, the band would sink into the skull.
+builders.antenna = function(spec, add)
+	local band = add("Band", Vector3.new(0.5, 5.0, 5.0), CFrame.new(0, 0.15, 0) * FLAT, spec.colour)
+	band.Shape = Enum.PartType.Cylinder
+
+	for _, side in ipairs({ -1, 1 }) do
+		-- Stalks are cylinders, so the LENGTH is Size.X and the turn is what
+		-- stands them up. Written Vector3.new(d, height, d) this is a disc as
+		-- wide as it was meant to be tall, which this project has shipped six
+		-- times.
+		local stalk = add("Stalk", Vector3.new(2.3, 0.22, 0.22),
+			CFrame.new(side * 1.5, 1.3, 0) * FLAT * CFrame.Angles(0, 0, math.rad(side * 12)),
+			spec.colour, Enum.Material.Metal)
+		stalk.Shape = Enum.PartType.Cylinder
+
+		local bulb = add("Bulb", Vector3.new(0.85, 0.85, 0.85),
+			CFrame.new(side * 1.95, 2.5, 0), spec.trim, Enum.Material.Neon)
+		bulb.Shape = Enum.PartType.Ball
+	end
+end
+
 -- ============================================================
 -- GLASSES
 -- ============================================================
@@ -150,6 +174,32 @@ end
 builders.visor = function(spec, add)
 	add("Shell", Vector3.new(5.6, 1.5, 0.42), CFrame.new(0, 0, 0), spec.colour)
 	add("Scan", Vector3.new(5.0, 0.5, 0.3), CFrame.new(0, 0.05, 0.16), spec.trim, Enum.Material.Neon)
+	for _, side in ipairs({ -1, 1 }) do
+		add("Strap", Vector3.new(0.3, 0.5, 1.4), CFrame.new(side * ARM_X, 0, -0.8), spec.colour)
+	end
+end
+
+-- ALIEN SET. A single wrapped lens with a lit scan bar, sized off the same
+-- numbers `shades` and `visor` already use: the arms sit at ARM_X so they
+-- clear the eyeballs, which are balls at x +/-2.35 reaching z 5.53. At the
+-- obvious x = 2.2 an arm runs lengthwise straight through both of them.
+builders.abductor = function(spec, add)
+	add("Shell", Vector3.new(5.8, 1.8, 0.44), CFrame.new(0, 0, 0), spec.colour)
+	-- Two lit ovals rather than one bar, so it reads as EYES looking at you
+	-- rather than as another visor. The pig has two eyes; so does this.
+	--
+	-- OVER THE EYEBALLS AT x +-2.35, NOT BETWEEN THEM. Authored at +-1.4 they
+	-- measured x[-2.25 -0.55] and x[0.55 2.25] -- two lit ovals sitting in the
+	-- gap between the pig's actual eyes, which is the exact clipping failure
+	-- this project has already recorded ("lenses placed between the eyes
+	-- instead of over them"). Narrowed to 1.1 at the same time so the pair
+	-- still fits inside the 5.8-wide shell rather than poking past its edge.
+	for _, side in ipairs({ -1, 1 }) do
+		local eye = add("Eye", Vector3.new(1.1, 0.8, 0.34),
+			CFrame.new(side * 2.35, 0.05, 0.16), spec.trim, Enum.Material.Neon)
+		eye.Shape = Enum.PartType.Ball
+	end
+	add("Rim", Vector3.new(6.0, 0.3, 0.4), CFrame.new(0, 0.9, -0.02), spec.trim, Enum.Material.Metal)
 	for _, side in ipairs({ -1, 1 }) do
 		add("Strap", Vector3.new(0.3, 0.5, 1.4), CFrame.new(side * ARM_X, 0, -0.8), spec.colour)
 	end

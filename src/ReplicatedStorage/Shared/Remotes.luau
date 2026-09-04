@@ -49,6 +49,20 @@ local DEFINITIONS = {
 	GearRequest = "RemoteEvent",
 	GearState = "RemoteEvent",
 
+	-- Client asks to draw an item, or to put one away with nil. THE KEY AND
+	-- NOTHING ELSE, like every other request on this bar: the server checks
+	-- the stock, decides, welds the prop and publishes what it decided on the
+	-- character. Selecting spends nothing, so there is nothing here to forge
+	-- that is worth forging -- but it is validated anyway, because what a
+	-- player is holding is a TELL other players act on.
+	-- Server says a shop door was used, and which TAB it sells. A door is
+	-- built at server startup, so a client cannot reliably find one itself --
+	-- see the note in ShopFront. Carries a name, never an index: tab order is
+	-- a fact about ClientMain's rail.
+	ShopDoor = "RemoteEvent",
+
+	EquipRequest = "RemoteEvent",
+
 	-- Client asks to throw a bone. It sends the BONE KEY AND NOTHING ELSE --
 	-- no position, no target. The server picks the dog from its own
 	-- authoritative positions, so there is no coordinate here to forge.
@@ -59,6 +73,20 @@ local DEFINITIONS = {
 	-- is no vector here to forge into a longer one.
 	DodgeRequest = "RemoteEvent",
 	DodgeState = "RemoteEvent",
+
+	-- Sent to ONE player: they have just been arrested, and this carries the
+	-- numbers their mugshot card needs. Targeted rather than broadcast
+	-- because a mugshot is yours -- the street already saw the arrest happen.
+	PoliceBust = "RemoteEvent",
+
+	-- Server broadcasts the patrol's phase to EVERY client: the phase name
+	-- and how many seconds are left of it. Broadcast rather than targeted
+	-- because a patrol is a fact about the street, not about a player -- the
+	-- whole point is that everyone can see it coming and decide.
+	--
+	-- No positions. The car is a real model that replicates itself; this
+	-- carries only what the HUD counts down.
+	PoliceState = "RemoteEvent",
 
 	-- Client buys, or uses, a thief consumable. StealthUse carries a key and
 	-- NO target: both of these act on the caller and nobody else.
@@ -90,9 +118,98 @@ local DEFINITIONS = {
 	RideRequest = "RemoteEvent",
 	RideState = "RemoteEvent",
 
+	-- Client holds or releases the trick button: a manual on the board, a
+	-- wheelie on the bike. Carries a boolean and nothing else -- the server
+	-- knows what they are riding and whether that ride has a trick at all.
+	RideTrick = "RemoteEvent",
+
+	-- How the rider sits on a ride they already own. Cosmetic only: it writes
+	-- no speed and no gate, so it is separate from RideRequest -- which is a
+	-- TOGGLE, and would have put the ride away every time somebody changed
+	-- how they sat on it.
+	RideStance = "RemoteEvent",
+
+	-- Client asks to claim today's daily reward. It sends NOTHING -- which
+	-- day it is, and which rung of the ladder that is worth, are both read
+	-- from the server's own clock and the server's own save.
+	DailyRequest = "RemoteEvent",
+	DailyState = "RemoteEvent",
+
+	-- Client activates a boost it already holds, by key. Acts on the caller
+	-- and nobody else, like the other consumable uses.
+	BoostUse = "RemoteEvent",
+
+	-- Client asks to change one of ITS OWN preferences, by key and value; the
+	-- server pushes the whole settings table back. The key is checked against
+	-- an allowlist server-side before anything is written -- a client naming
+	-- a field in its own save is exactly how a save gets arbitrary junk in it.
+	SettingRequest = "RemoteEvent",
+	SettingState = "RemoteEvent",
+
+	-- Server broadcasts the current session event to EVERY client: which one,
+	-- what phase, and how many seconds are left of it. Broadcast rather than
+	-- targeted for exactly the reason PoliceState is -- an event is a fact
+	-- about the street, not about a player, and the whole point is that
+	-- everybody can see it coming and decide what to do.
+	--
+	-- No positions and no targets. The saucer and its drones are real models
+	-- that replicate themselves; this carries only what the HUD counts down.
+	EventState = "RemoteEvent",
+
+	-- Server tells ONE player they have won a set item from an event, and
+	-- carries the pool and the odds it was drawn from so the client can show
+	-- an honest wheel. Targeted, not broadcast: a drop is yours.
+	--
+	-- THE SERVER PICKS THE WINNER AND THE CLIENT ONLY ANIMATES LANDING ON IT.
+	-- The pool is sent so the wheel has slices to draw and percentages to
+	-- print, never so the client can choose -- a client that decided its own
+	-- prize is a client that decided its own prize.
+	EventDrop = "RemoteEvent",
+
+	-- Client asks to buy a set item with MEDALS, by kind and key. The server
+	-- re-reads the price from Config; nothing about the cost is sent.
+	MedalBuy = "RemoteEvent",
+
+	-- Server pushes the medal balance and every set's contents and progress.
+	SetState = "RemoteEvent",
+
 	-- Admin console. Every request is re-authorised server-side against the
 	-- allowlist; the existence of this channel grants nobody anything.
 	AdminRequest = "RemoteEvent",
+
+	-- Client asks to open a chest, by KEY AND NOTHING ELSE. No tier, no item,
+	-- no price: the server re-reads the cost from Config, rolls the tier from
+	-- its own odds and picks the item from its own pool, so there is nothing
+	-- here to forge that is worth forging.
+	ChestOpen = "RemoteEvent",
+
+	-- Client asks to spend shards. Carries the tier to spend and the chest to
+	-- roll in; both are checked server-side against the real lists, because a
+	-- client naming a field is how a save gets arbitrary keys in it.
+	ChestCombine = "RemoteEvent",
+
+	-- Server tells ONE client what a chest gave them, and the odds it actually
+	-- used -- renormalised over the tiers that had stock, so the reel prints
+	-- the numbers the roll was really made with rather than the table's.
+	ChestResult = "RemoteEvent",
+
+	-- Server pushes every stocked chest, what it costs, what the player owns of
+	-- it, and their shard balances.
+	ChestState = "RemoteEvent",
+
+	-- Server tells ONE client to bounce itself off a trampoline. It carries
+	-- NOTHING -- not a height, not a direction: the server has already decided
+	-- that this player, on this mat, is allowed to bounce, and the height is a
+	-- Config constant both sides read.
+	--
+	-- IT HAS TO BE THE CLIENT THAT APPLIES IT, and that is measured rather than
+	-- assumed. A character's physics are owned by its own client, so the
+	-- server writing AssemblyLinearVelocity on somebody's HumanoidRootPart is
+	-- discarded -- tested three ways on a live rig (raw write, and with
+	-- ChangeState to Jumping and to Freefall first) and the character reached
+	-- exactly its drop height, 5.00 studs, on all three. Same split as the
+	-- dodge, where the server decides and the client drives.
+	TrampolineBounce = "RemoteEvent",
 	AdminState = "RemoteEvent",
 }
 
