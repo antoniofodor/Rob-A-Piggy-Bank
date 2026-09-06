@@ -94,7 +94,7 @@ local MENU: { Group } = {
 		rows = {
 			{ label = "+100K coins", cmd = "coins", a = 100000 },
 			{ label = "+10M coins", cmd = "coins", a = 10000000 },
-			{ label = "Fill piggy bank", cmd = "vault", a = 1000000 },
+			{ label = "Fill piggy bank", cmd = "fill" },
 			{ label = "Max all upgrades", cmd = "maxupgrades" },
 			{ label = "Set 5 rebirths", cmd = "rebirths", a = 5 },
 		},
@@ -103,12 +103,11 @@ local MENU: { Group } = {
 		name = "Collection",
 		rows = {
 			{ label = "Unlock skins / effects / houses / gear", cmd = "unlockall" },
-			{ label = "+50 medals", cmd = "medals", a = 50 },
-			{ label = "+25 tokens", cmd = "tokens", a = 25 },
+			{ label = "+50 loot", cmd = "loot", a = 50 },
 			{ label = "Open Piggy Classics x5", cmd = "chest", a = "classics", b = 5 },
 			{ label = "Open Dress-Up Crate x5", cmd = "chest", a = "gear", b = 5 },
 			{ label = "Open Alien Cache x3", cmd = "chest", a = "alien", b = 3 },
-			{ label = "+3 shards of each tier", cmd = "shards", a = 3 },
+			{ label = "+3 spares of each tier", cmd = "spares", a = 3 },
 			{ label = "Dump animations for upload", cmd = "animdump" },
 			{ label = "Combine 3 common -> Classics", cmd = "combine", a = "common", b = "classics" },
 			{ label = "Empty accessory collection", cmd = "cleargear" },

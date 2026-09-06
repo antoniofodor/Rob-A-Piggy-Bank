@@ -70,13 +70,12 @@ function ProgressionService.rebirth(player: Player)
 	-- Config.REBIRTH_CAPACITY_MULTIPLE for why it is not a flat million.
 	local threshold = Config.getRebirthThreshold(data.rebirths)
 	if data.coins < threshold then
-		notify(player, ("You need %s coins banked to rebirth."):format(short(threshold)), "warn")
+		notify(player, ("You need %s coins in your piggy bank to rebirth."):format(short(threshold)), "warn")
 		return
 	end
 
 	data.rebirths += 1
 	data.coins = 0
-	data.vault = 0
 	data.incomeLevel = 1
 	data.capacityLevel = 1
 	for key in pairs(Config.UPGRADES) do

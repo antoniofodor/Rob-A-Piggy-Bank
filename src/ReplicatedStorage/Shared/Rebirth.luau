@@ -124,7 +124,6 @@ local onConfirm: (() -> ())? = nil
 -- not a readout.
 local seen = {
 	coins = 0,
-	vault = 0,
 	incomeLevel = 1,
 	capacityLevel = 1,
 	rebirths = 0,
@@ -762,10 +761,7 @@ local function fill()
 		makeRow(loseList, order, CROSS, LOSE, text)
 	end
 
-	lose(("%s coins"):format(format(seen.coins)))
-	if seen.vault > 0 then
-		lose(("%s waiting in your piggy bank"):format(format(seen.vault)))
-	end
+	lose(("%s coins in your piggy bank"):format(format(seen.coins)))
 	if seen.incomeLevel > 1 then
 		lose(("Earn Faster, Lv %d"):format(seen.incomeLevel))
 	end
@@ -887,7 +883,6 @@ end
 
 function Rebirth.onEconomy(state: any)
 	seen.coins = state.coins or 0
-	seen.vault = state.vault or 0
 	seen.incomeLevel = state.incomeLevel or 1
 	seen.capacityLevel = state.capacityLevel or 1
 	seen.rebirths = state.rebirths or 0

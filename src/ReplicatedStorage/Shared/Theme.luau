@@ -225,6 +225,24 @@ Theme.HUE = {
 	piggy = Color3.fromRGB(255, 71, 139),
 	home = Color3.fromRGB(59, 209, 129),
 	gear = Color3.fromRGB(64, 147, 230),
+	-- CRATES TOOK THE BIGGEST REMAINING GAP ON THE WHEEL, and which gap that
+	-- was is a measurement rather than a preference. Plotted, the nine hues
+	-- above sit at 6, 26, 44, 92, 148, 182, 210, 272 and 338 degrees, so the
+	-- two real openings are indigo near 250 and magenta near 305.
+	--
+	-- INDIGO WAS TRIED FIRST AND IS THE WRONG ANSWER TWICE OVER: it needs its
+	-- saturation dropped to 0.54 before ink type clears 4.5 -- so it cannot be
+	-- a member of this family at all -- and even then it lands 16 to 24
+	-- degrees off `effects`, which is the one neighbour a purple must not be
+	-- confused with.
+	--
+	-- Magenta at 305 keeps the family's own 0.72 saturation, sits 33 degrees
+	-- from BOTH `piggy` and `effects`, and carries ink at 5.63 -- better than
+	-- either of those two neighbours manages (4.96 and 4.65). It shares R and
+	-- G with `piggy` because that is what the family rule does at a similar
+	-- value; the blue channel is 240 against 139, which is the difference
+	-- between a fuchsia and a rose.
+	crates = Color3.fromRGB(255, 71, 240),
 
 	-- ALIASES, and they have to be kept in step by hand: `skins` IS `piggy`
 	-- and `kit` IS `upgrades`, which is the point -- a section and the tab it

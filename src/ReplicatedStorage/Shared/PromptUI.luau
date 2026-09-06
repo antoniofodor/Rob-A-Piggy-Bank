@@ -75,6 +75,8 @@ local live: { [ProximityPrompt]: {
 	fill: Frame,
 	count: TextLabel,
 	holdFrom: number?,
+	watch: RBXScriptConnection?,
+	watchText: { RBXScriptConnection },
 } } = {}
 
 local started = false
@@ -165,19 +167,89 @@ local function build(prompt: ProximityPrompt, inputType: Enum.ProximityPromptInp
 	-- Whatever the site wanted to say underneath: whose piggy, which shop.
 	-- ActionText is used as the SUBTITLE when it says something the verb does
 	-- not, which is how "Crack Lock 3.5s" and a shop's own name still show.
-	local detail = prompt.ObjectText
-	if detail == "" or detail == nil then
-		detail = prompt.ActionText
-	end
 	local sub = Instance.new("TextLabel")
 	sub.Name = "Detail"
 	sub.Size = UDim2.new(1, -78, 0, 18)
 	sub.Position = UDim2.new(0, 66, 0, 34)
 	sub.TextXAlignment = Enum.TextXAlignment.Left
 	sub.TextTruncate = Enum.TextTruncate.AtEnd
-	sub.Text = detail
 	Theme.body(sub, 13)
 	sub.Parent = card
+
+	-- READ EVERY TIME IT CHANGES, NOT ONCE AT BUILD.
+	--
+	-- This card is built on PromptShown and used to never look at the prompt
+	-- again, so anything a service wrote to ObjectText while a player was
+	-- already standing there simply never appeared. Caught by the steal
+	-- prompt, which flips to naming your haul the moment you pick loot up:
+	-- the line was being written correctly and the card went on showing the
+	-- lock. It was latent for every other site too.
+	local function setDetail()
+		local text = prompt.ObjectText
+		if text == "" or text == nil then
+			text = prompt.ActionText
+		end
+		sub.Text = text
+	end
+	setDetail()
+
+	-- WHAT THIS IS WORTH, beside the verb.
+	--
+	-- Gold, because gold means money everywhere else in this game, and
+	-- GOLD_INK rather than GOLD because this prints on PAPER: raw gold on the
+	-- card measures 1.42:1 and is a label you can see is there and cannot
+	-- read. The darkened form measures 4.87:1.
+	--
+	-- NOT A PILL, deliberately. The key chip on the row above is already a
+	-- gold pill, and a second one beside it reads as two of the same control
+	-- rather than as a price. Plain gold type says money without competing.
+	--
+	-- It sits on the DETAIL row rather than the verb row, which is where it
+	-- started: the verb row has "STEAL" at 60px and the key pill at 46px in a
+	-- 176px budget, so a late-game "~999.9M" at 56px left the verb two pixels
+	-- to truncate into. The detail row carries a 94px lock line in the same
+	-- 176, so the amount fits with room measured to spare.
+	local amount = Instance.new("TextLabel")
+	amount.Name = "Amount"
+	-- 64 rather than 84: right-aligned text does not draw outside its own box,
+	-- but an 84-wide one OVERLAPPED the detail beside it by 20px -- invisible
+	-- today and exactly the kind of thing that starts clipping the first time
+	-- either string grows. The widest amount this can hold is "~999.9M" at
+	-- 56px, so 64 fits it and leaves the detail its own ground.
+	amount.Size = UDim2.new(0, 64, 0, 18)
+	amount.Position = UDim2.new(1, -10, 0, 34)
+	amount.AnchorPoint = Vector2.new(1, 0)
+	amount.TextXAlignment = Enum.TextXAlignment.Right
+	amount.Text = ""
+	amount.Visible = false
+	Theme.title(amount, 16, Theme.GOLD_INK)
+	amount.Parent = card
+
+	-- The detail gives up the width the amount takes, and takes it back when
+	-- there is no amount -- which is what lets the steal prompt's carrying
+	-- line use the whole row: measured at 160px of the 172 this box actually
+	-- is. Note 172 and not the 176 a first pass assumed from the card width;
+	-- the offset is -78 on a 250 card starting at x66.
+	local function setAmount(text: string?)
+		local shown = type(text) == "string" and text ~= ""
+		amount.Visible = shown
+		amount.Text = if shown then text :: string else ""
+		sub.Size = if shown then UDim2.new(1, -152, 0, 18) else UDim2.new(1, -78, 0, 18)
+	end
+	setAmount(prompt:GetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE) :: string?)
+
+	-- WATCHED RATHER THAN READ ONCE, because the number moves while the card
+	-- is on screen. A victim's piggy fills every second, and picking loot up
+	-- turns the take into a refusal -- and this card is built on PromptShown
+	-- and never looks at the prompt again, so without this it would freeze on
+	-- whatever was true the moment somebody walked up.
+	local watch = prompt:GetAttributeChangedSignal(Config.PROMPT_AMOUNT_ATTRIBUTE):Connect(function()
+		setAmount(prompt:GetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE) :: string?)
+	end)
+	local watchText = {
+		prompt:GetPropertyChangedSignal("ObjectText"):Connect(setDetail),
+		prompt:GetPropertyChangedSignal("ActionText"):Connect(setDetail),
+	}
 
 	local key = Instance.new("TextLabel")
 	key.Name = "Key"
@@ -216,7 +288,10 @@ local function build(prompt: ProximityPrompt, inputType: Enum.ProximityPromptInp
 	local count = Instance.new("TextLabel")
 	count.Name = "Countdown"
 	count.Size = UDim2.new(0, 54, 0, 18)
-	count.Position = UDim2.new(1, -10, 1, -34)
+	-- Four pixels lower than it was, so it clears the amount above it: the
+	-- amount occupies y34..52 and this now runs y52..70, ending exactly where
+	-- the hold track starts. They shared the right-hand corner before.
+	count.Position = UDim2.new(1, -10, 1, -30)
 	count.AnchorPoint = Vector2.new(1, 0)
 	count.TextXAlignment = Enum.TextXAlignment.Right
 	count.Text = ""
@@ -235,7 +310,8 @@ local function build(prompt: ProximityPrompt, inputType: Enum.ProximityPromptInp
 	TweenService:Create(card, TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
 		{ Size = UDim2.new(1, 0, 1, 0) }):Play()
 
-	live[prompt] = { gui = gui, fill = fill, count = count, holdFrom = nil }
+	live[prompt] = { gui = gui, fill = fill, count = count, holdFrom = nil,
+		watch = watch, watchText = watchText }
 end
 
 local function clear(prompt: ProximityPrompt)
@@ -244,6 +320,12 @@ local function clear(prompt: ProximityPrompt)
 		return
 	end
 	live[prompt] = nil
+	if entry.watch then
+		entry.watch:Disconnect()
+	end
+	for _, c in ipairs(entry.watchText or {}) do
+		c:Disconnect()
+	end
 	entry.gui:Destroy()
 end
 
@@ -301,6 +383,41 @@ function PromptUI.start()
 			end
 		end
 	end)
+
+	-- A PROMPT ON YOUR OWN BODY IS NEVER FOR YOU, and that is an invariant of
+	-- this design rather than a special case for one item.
+	--
+	-- Exactly one prompt in this game lives on a character: the tag prompt,
+	-- which `attachLoot` welds to the THIEF -- on purpose, because it is there
+	-- so that everybody ELSE can reach it. Nothing here is ever meant to be
+	-- acted on by the person wearing it, so the general rule is the honest one
+	-- and a future prompt that wants to break it is a design mistake meeting a
+	-- documented wall rather than a silent bug.
+	--
+	-- `Enabled` written from a client affects only THIS machine's view, which
+	-- is the only per-player prompt Roblox offers. The server refuses a
+	-- self-tag outright regardless; this is the client declining to ask for a
+	-- known no, the same split the number keys and the dodge-while-riding
+	-- suppression already make. Without it the refusal would be silent and
+	-- invisible -- a thief holding a button on their own chest that does
+	-- nothing, which is the one failure this project refuses above all others.
+	local function disown(inst: Instance)
+		if inst:IsA("ProximityPrompt") then
+			inst.Enabled = false
+		end
+	end
+	local function disownCharacter(character: Model)
+		for _, d in ipairs(character:GetDescendants()) do
+			disown(d)
+		end
+		-- The loot is welded on AFTER the character exists -- a slice at a
+		-- time, mid-robbery -- so walking it once is not enough.
+		character.DescendantAdded:Connect(disown)
+	end
+	if Players.LocalPlayer.Character then
+		disownCharacter(Players.LocalPlayer.Character)
+	end
+	Players.LocalPlayer.CharacterAdded:Connect(disownCharacter)
 
 	-- A prompt destroyed while its card is up -- a bin torn down, a thief who
 	-- got away -- would otherwise leave the card on screen for the rest of the

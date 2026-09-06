@@ -392,6 +392,7 @@ footer {
 
 <nav aria-label="Sections">
   <ol>
+    <li><a href="#pivot">The pivot</a></li>
     <li><a href="#stands">Where it stands</a></li>
     <li><a href="#hook">The hook</a></li>
     <li><a href="#loop">Core loop</a></li>
@@ -414,19 +415,61 @@ footer {
 <main>
 
 <header>
-  <p class="eyebrow">Roblox &middot; Design doc &middot; Built, in beta</p>
+  <p class="eyebrow">Roblox &middot; Design doc &middot; Built, in beta &middot; pivoting to robbing</p>
   <h1>Rob a Piggy Bank</h1>
-  <p class="deck">Everyone gets a piggy bank that fills with coins whether they're playing or not. Everyone can walk up and take a handful of someone else's. What you spend your coins on decides which kind of player you become.</p>
+  <p class="deck">Everyone gets a piggy bank that fills with coins whether they're playing or not. Everything in it can be taken, and the best money in the game is somebody else's. What you spend your coins on decides which kind of player you become.</p>
 
   <dl class="facts">
     <div class="fact"><dt>Audience</dt><dd>Under 12</dd></div>
     <div class="fact"><dt>Genre</dt><dd>Shared-economy PvP</dd></div>
     <div class="fact"><dt>Session</dt><dd>8&ndash;15 min</dd></div>
     <div class="fact"><dt>Server</dt><dd>8 plots</dd></div>
-    <div class="fact"><dt>Status</dt><dd>Built, untested live</dd></div>
+    <div class="fact"><dt>Status</dt><dd>Pivot in progress</dd></div>
     <div class="fact"><dt>Cadence</dt><dd>Events &amp; sets</dd></div>
   </dl>
 </header>
+
+<section id="pivot">
+  <h2>The pivot: robbing is the game</h2>
+  <p class="sub">Written September 2026, on top of everything below. Fundamentals first; events, chests and medals wait.</p>
+
+  <p>The game as built was an idle game with a robbery mechanic bolted on the side, and the numbers said so. Every system added since the pitch made the <em>risk</em> half of a robbery bigger &mdash; dogs, fences, locks, the patrol, bail &mdash; and nothing ever touched the <em>reward</em> half. A rational nine-year-old sat on the pig.</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Before the pivot, at level 20</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Victim&rsquo;s piggy, completely full</td><td class="num">3.0M</td></tr>
+      <tr><td class="k">One steal at 5%</td><td class="num">150K</td></tr>
+      <tr><td class="k">Same money from standing still</td><td class="num">50 s</td></tr>
+      <tr><td class="k">Getaway</td><td class="num">53 studs at speed 12, dog at 17, bail 3&times;</td></tr>
+      <tr><td class="k">Join shield</td><td class="num">15 min, on a 15&ndash;25 min session</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>A perfect robbery earned less than a minute of idle income and risked three times that &mdash; and with a fifteen-minute shield per join, about half of any server could not be robbed at all. The typical victim had banked, so the typical grab was a few seconds of their income.</p>
+
+  <div class="callout">
+    <span class="tag">The lever: more to gain, not more to lose</span>
+    <p>What the thief gains and what the victim loses used to be the same number, so every point of incentive was a point of pain. They are decoupled now. <strong>Stolen coins count double</strong> for the thief &mdash; the extra is minted by the game &mdash; and a delivery also drops <strong>loot</strong>, the only currency that buys the accessory collection. Robbing becomes the best earning rate in the game while being robbed stays a few minutes of income, never progress.</p>
+  </div>
+
+  <h3>The seven decisions</h3>
+  <ol>
+    <li><span class="st chg">changed</span> <strong>The pig is the wallet.</strong> There is no bank action and no separate safe balance: one number, all of it in the piggy bank, all of it stealable. Spending draws from the pig, and a full pig stops earning &mdash; so <em>spend it or lose it</em> drives the upgrade treadmill for free. A plot is released when its owner leaves, so nobody is at risk while offline. A rolling <strong>loss cap</strong> (a quarter of the pig per hour, per victim) replaces &ldquo;banked coins are untouchable&rdquo; as the rule that keeps a robbery survivable.</li>
+    <li><span class="st chg">changed</span> <strong>Stolen coins count double</strong>, and a delivery drops loot. The per-grab fraction rises from 5% to 8%.</li>
+    <li><span class="st chg">changed</span> <strong>The join shield is 90 seconds</strong>, with the long shield reserved for a player&rsquo;s first ever session.</li>
+    <li><span class="st chg">changed</span> <strong>One second currency.</strong> Medals, tokens and shards collapse into <strong>loot</strong>, earned only by delivering a robbery (and, later, at events). It buys the accessory roll and the event sets. The daily ladder pays coins and boosts and nothing else.</li>
+    <li><span class="st chg">changed</span> <strong>Revenge pays.</strong> Robbing somebody who robbed you in the last ten minutes pays <strong>triple</strong> and an extra loot. Being robbed is the day-two return hook.</li>
+    <li><span class="st chg">changed</span> <strong>A robbed pig wears a plaster</strong>, not a lost house. Losing permanent progress is the one thing every big Roblox game protects; for this audience it is a crying-then-uninstall event a parent sees. The mark is visible, temporary and costs nothing.</li>
+    <li><span class="st ship">kept</span> <strong>Monetization stays named things.</strong> Coins are never sold. Timed shields are the genre&rsquo;s biggest seller and are deliberately <em>not</em> built: they tax the core verb, and the game ships without them first.</li>
+  </ol>
+
+  <p><span class="st cut">cut</span> <strong>Losing your house for being robbed too much.</strong> Considered and rejected for the reason in step six. What was right about the idea &mdash; that a robbery should leave a visible mark &mdash; survives as the plaster.</p>
+
+  <p><strong>The consequence worth watching:</strong> with the pig as the only wallet, a player&rsquo;s balance is bounded by their capacity unless they rob, so the top of the cosmetic catalogue (the tens-of-millions houses and the 4.5M rides) is now reached by rebirthing for capacity and by robbing, never by idling. That is the intent. The nine-week journey modelled under the old economy has not been re-run against this one yet &mdash; see Open calls.</p>
+</section>
 
 <section id="stands">
   <h2>Where it stands</h2>
@@ -441,6 +484,20 @@ footer {
   <div class="callout">
     <span class="tag">The four that moved most</span>
     <p><strong>Coin packs are gone permanently</strong>, and that single decision opened the whole random-reward design space &mdash; see Monetization. <strong>Rebirth raises the ceiling</strong>, not just the rate, because as pitched it made the game <em>shorter</em> the more you prestiged. <strong>The police</strong> exist because no purchase can defend a plot whose owner is asleep. And the map came <strong>down</strong> from twelve plots to eight, because a twenty-one second walk was buying a three second getaway.</p>
+  </div>
+
+  <div class="callout">
+    <span class="tag">September 2026 &mdash; the loop was measured, and it was not the loop</span>
+    <p>The pitch below says the core loop is robbing. Measured against the shipped Config, it was not: <strong>robbing earned about a fourteenth of what standing still earned</strong>, and it was structurally incapable of earning more. <code>LOSS_CAP</code> lets a victim lose a quarter of their pig an hour across all thieves, which on an eight&#8209;player server caps every robbery in the game at half a pig per player per hour &mdash; against an idle income of seven times that. Two rules, each correct alone, tuned in the same session and never multiplied together.</p>
+    <p>The first thirty seconds were worse. A new player spawned with an empty pig, nothing affordable for forty seconds, a ten&#8209;minute shield meaning nothing could happen to them, and <em>not one word anywhere mentioning robbing</em>. The first robbery available to them cost more in lost income than it paid.</p>
+    <p><strong>What fixed it was the supply side, not the rate.</strong> Every plot nobody lives on now has a resident on it &mdash; a named neighbour with a pig that fills &mdash; and a resident has no loss cap, because there is nobody behind one to protect. Robbing one returns roughly <strong>twelve times</strong> what idling does, with <code>HEIST_PAYOUT</code> and <code>BASE_INCOME</code> untouched. The lesson is worth keeping: the binding constraint was a <em>protection</em>, and protections must not be loosened to make a game pay. Add a source the protection does not apply to.</p>
+    <p>Three smaller things went with it. The first&#8209;session shield stopped being a timer and now <strong>ends when you commit your first robbery</strong> &mdash; one sentence carrying the rule, the theme and the trade. Every robbable pig carries <strong>its own value in gold</strong>, readable from the pavement, so the street is a shopping list rather than eight identical houses. And the whole of the onboarding is <strong>one line</strong>: <em>&ldquo;Your piggy bank is empty. Go and rob a neighbour!&rdquo;</em>, with the nearest pig lit up, retired forever on the first delivery.</p>
+  </div>
+
+  <div class="callout">
+    <span class="tag">Still open &mdash; the robbery itself has no gameplay</span>
+    <p>Every toy in this game fires <em>after</em> the steal completes: the carry penalty, the dog, the police, tagging, bins, the dodge, gadgets, the ladder out. The three to twelve seconds where you are actually robbing somebody has no mechanic attached to it at all &mdash; and it is the one moment in a game built entirely out of <em>speeds</em> where the player stands perfectly still.</p>
+    <p>Two things are designed and sitting in <code>Config</code> unread: a <strong>greed dial</strong> that replaces the fixed hold with a sequence of slices you choose when to stop taking (the first mechanic here that can produce a partial outcome &mdash; <em>&ldquo;I bailed at three because the dog turned round&rdquo;</em>), and a <strong>guard dog that watches the approach</strong> rather than only reacting to a completed theft. <strong>Tiptoe</strong> shipped ahead of the dog on purpose, because it is the counter: a watching dog with no way past it would make a plot un&#8209;robbable, and defence buys time, never immunity.</p>
   </div>
 </section>
 
@@ -463,7 +520,7 @@ footer {
   <p class="sub">Ten seconds to understand, no tutorial</p>
 
   <div class="diagram">
-    <svg viewBox="0 0 620 250" width="620" height="250" role="img" aria-label="Loop diagram: the piggy bank fills with coins, you collect them, you spend on upgrades, which makes the piggy fill faster. A separate path shows other players stealing from the piggy.">
+    <svg viewBox="0 0 620 250" width="620" height="250" role="img" aria-label="Loop diagram: the piggy bank fills with coins, you spend them on upgrades, you rob neighbours and stolen coins count double. A separate path shows other players stealing from the piggy and revenge paying triple.">
       <defs>
         <marker id="ah" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
           <path d="M0,0 L7,3.5 L0,7 z" fill="var(--ink-faint)"/>
@@ -478,12 +535,12 @@ footer {
       <text class="dg-meta"  x="84"  y="125" text-anchor="middle">EVEN OFFLINE</text>
 
       <rect class="dg-node" x="180" y="86" width="132" height="56" rx="4"/>
-      <text class="dg-label" x="246" y="108" text-anchor="middle">You collect</text>
-      <text class="dg-meta"  x="246" y="125" text-anchor="middle">TAP THE PIGGY</text>
+      <text class="dg-label" x="246" y="108" text-anchor="middle">You spend</text>
+      <text class="dg-meta"  x="246" y="125" text-anchor="middle">OR IT STOPS FILLING</text>
 
       <rect class="dg-node" x="342" y="86" width="132" height="56" rx="4"/>
-      <text class="dg-label" x="408" y="108" text-anchor="middle">You upgrade</text>
-      <text class="dg-meta"  x="408" y="125" text-anchor="middle">DEFEND OR ROB</text>
+      <text class="dg-label" x="408" y="108" text-anchor="middle">You rob</text>
+      <text class="dg-meta"  x="408" y="125" text-anchor="middle">STOLEN COUNTS DOUBLE</text>
 
       <path class="dg-arrow" d="M150,114 L174,114" marker-end="url(#ah)"/>
       <path class="dg-arrow" d="M312,114 L336,114" marker-end="url(#ah)"/>
@@ -492,13 +549,13 @@ footer {
 
       <rect class="dg-node" x="180" y="182" width="132" height="50" rx="4" style="fill:var(--coral-bg); stroke:var(--coral);"/>
       <text class="dg-label" x="246" y="203" text-anchor="middle" style="fill:var(--coral);">Someone robs you</text>
-      <text class="dg-meta"  x="246" y="219" text-anchor="middle" style="fill:var(--coral);">OR YOU ROB THEM</text>
+      <text class="dg-meta"  x="246" y="219" text-anchor="middle" style="fill:var(--coral);">REVENGE PAYS TRIPLE</text>
 
       <path class="dg-steal" d="M84,142 L84,207 L174,207" marker-end="url(#ac)"/>
       <path class="dg-steal" d="M312,207 L408,207 L408,148" marker-end="url(#ac)"/>
       <text class="dg-steal-label" x="470" y="180" text-anchor="middle">REVENGE</text>
     </svg>
-    <p class="caption">Solid path: the idle loop. Dashed path: the reason anyone stays.</p>
+    <p class="caption">Solid path: the idle loop. Dashed path: the game. <span class="st chg">changed</span> The collect step is gone &mdash; the pig is the wallet.</p>
   </div>
 
   <p>The idle loop alone is a competent, forgettable game. The dashed path is what makes it spread &mdash; getting robbed creates a grievance, and a grievance creates a session. The revenge ping is the single highest-value piece of UI in the whole build.</p>
@@ -509,17 +566,17 @@ footer {
     <thead><tr><th>Value</th><th>Start</th><th>Notes</th></tr></thead>
     <tbody>
       <tr><td class="k">Income rate</td><td class="num">10 / sec</td><td><span class="st ship">shipped</span> 1.35&times; a tier to level 20, then a gentler 1.16 to 40</td></tr>
-      <tr><td class="k">Piggy capacity</td><td class="num">5,000</td><td><span class="st ship">shipped</span> Fills in ~8 min. A full piggy stops earning &mdash; the return hook</td></tr>
+      <tr><td class="k">Piggy capacity</td><td class="num">5,000</td><td><span class="st chg">changed</span> Fills in ~8 min. A full piggy stops earning, and there is nowhere to bank it: spend, or stop earning</td></tr>
       <tr><td class="k">Offline accrual</td><td class="num">up to 8 h</td><td><span class="st ship">shipped</span> Full rate, then stops. Never decays</td></tr>
       <tr><td class="k">Ladder ceiling</td><td class="num">20 &rarr; 40</td><td><span class="st chg">changed</span> Not in the pitch. Each rebirth unlocks two levels that could not be bought before at any price</td></tr>
-      <tr><td class="k">Rebirth gate</td><td class="num">2&times; capacity</td><td><span class="st chg">changed</span> Was a flat 1,000,000 &mdash; which is eight seconds of income by rebirth 10</td></tr>
+      <tr><td class="k">Rebirth gate</td><td class="num">1&times; capacity</td><td><span class="st chg">changed</span> Was a flat 1,000,000, then twice capacity. With the pig as the only wallet it is <em>fill your piggy bank</em>, and robbing is how you fill it faster</td></tr>
     </tbody>
   </table>
   </div>
 
   <p>The 8-hour offline cap is deliberate: it covers a school day, so a kid who plays after school always comes back to a full piggy. Longer caps make the game feel pointless to check daily; shorter ones punish having a life.</p>
 
-  <p>The word <em>vault</em> is gone from everything a player reads. The thing on the lawn is a piggy bank and the game is named after it; <code>vault</code> survives as the save field and as the name of the <strong>Vault Lock</strong>, which is a bank dial you buy and which is legible from the street precisely because it looks like one.</p>
+  <p>The word <em>vault</em> is gone from everything a player reads, and <span class="st chg">changed</span> the save field went with it in the pivot: there is one balance, <code>coins</code>, and it lives in the pig. <code>Vault</code> survives only as the name of the <strong>Vault Lock</strong>, which is a bank dial you buy and which is legible from the street precisely because it looks like one.</p>
 
   <div class="callout">
     <span class="tag">The correction that mattered most here</span>
@@ -536,7 +593,7 @@ footer {
   <ol>
     <li><strong>Approach.</strong> Crossing a defended plot is slow and noisy. Fences snag you, and the top tier puts a moat round the whole plot with a causeway the width of the driveway.</li>
     <li><strong>The grab.</strong> Hold the prompt on the piggy for 3 seconds. You are stuck in place and the whole server can see it. Locks add 1.5 seconds a tier and lockpicks take 0.55 back, clamped to a floor of 1.2 and a ceiling of 12.</li>
-    <li><strong>The run.</strong> You carry a visible piggy worth 5% of theirs, rising to 12.2% with the sack maxed. You are 25% slower, and you have to physically reach your own plot to bank it &mdash; at 11 studs of reach against a 16-stud drop-off on an 80-stud spacing, the shortest getaway anyone can engineer is 53 studs, about 4.4 seconds.</li>
+    <li><strong>The run.</strong> You carry a visible piggy worth 8% of theirs, rising to about 15% with the sack maxed &mdash; and <span class="st chg">changed</span> it is worth <strong>double</strong> that to you once it is home, triple if they robbed you first. You are 25% slower, and you have to physically reach your own plot to bank it &mdash; at 11 studs of reach against a 16-stud drop-off on an 80-stud spacing, the shortest getaway anyone can engineer is 53 studs, about 4.4 seconds.</li>
     <li><strong>The tag.</strong> Anyone &mdash; the owner, a bystander, a guard dog &mdash; holds on you for 0.4 seconds. You drop the loot, the coins go home, and you are stunned for 4.</li>
     <li><strong>The dodge.</strong> One key, free to everybody, half a second in which you cannot be tagged, caught or hit. Against a 0.4-second tag hold, a defender who eats a dodge starts again.</li>
   </ol>
@@ -625,11 +682,12 @@ footer {
   <table>
     <thead><tr><th>Rule</th><th>Value</th><th>What it prevents</th></tr></thead>
     <tbody>
-      <tr><td class="k">Per-grab cap</td><td class="num">5% of piggy</td><td><span class="st ship">shipped</span> No single raid ever feels devastating</td></tr>
+      <tr><td class="k">Per-grab cap</td><td class="num">8% of piggy</td><td><span class="st chg">changed</span> Was 5%. No single raid ever feels devastating</td></tr>
+      <tr><td class="k">Loss cap</td><td class="num">25% an hour</td><td><span class="st chg">changed</span> New in the pivot. However many thieves, a victim never loses more than a quarter of their pig in an hour</td></tr>
       <tr><td class="k">Per-victim cooldown</td><td class="num">60 sec</td><td><span class="st ship">shipped</span> Rapid-fire farming of one player</td></tr>
-      <tr><td class="k">Grabs per victim</td><td class="num">3 per session</td><td><span class="st ship">shipped</span> Camping one plot all game</td></tr>
-      <tr><td class="k">New player shield</td><td class="num">First 15 min</td><td><span class="st ship">shipped</span> Getting robbed before you know the controls</td></tr>
-      <tr><td class="k">Banked coins</td><td class="num">Untouchable</td><td><span class="st ship">shipped</span> Anything spent on upgrades is permanently safe</td></tr>
+      <tr><td class="k">Grabs per victim</td><td class="num">3 per session</td><td><span class="st cut">cut</span> Retired; the cooldown and the loss cap do the job and both can be read from the pavement</td></tr>
+      <tr><td class="k">New player shield</td><td class="num">10 min, first session only</td><td><span class="st chg">changed</span> Every later join gets 90 seconds. Fifteen minutes per join left half of every server unrobbable</td></tr>
+      <tr><td class="k">Banked coins</td><td class="num">&mdash;</td><td><span class="st cut">cut</span> There is no bank. Anything <em>spent</em> is permanently safe; the loss cap protects what is not</td></tr>
       <tr><td class="k">Bail cap</td><td class="num">3&times; the loot</td><td><span class="st chg">changed</span> Not in the pitch. Being arrested can cost an afternoon of idle income and can never cost a house, a skin or an upgrade</td></tr>
       <tr><td class="k">Prank cooldown</td><td class="num">1 in 6 sec, per target</td><td><span class="st chg">changed</span> Keyed to the person being <em>hit</em>. A thrower cooldown is no protection &mdash; six players take turns and the child in the middle never moves</td></tr>
       <tr><td class="k">Offline owner cap</td><td class="num">2.5%</td><td><span class="st cut">cut</span> Replaced by the police &mdash; see below</td></tr>
@@ -637,7 +695,7 @@ footer {
   </table>
   </div>
 
-  <p>The banked-coins row does the heaviest lifting. Only <em>uncollected</em> coins are ever stealable, so the game teaches a real lesson &mdash; bank often &mdash; instead of punishing you for logging off. A player who gets robbed loses a few minutes of idle income, never progress. It is also what let a whole layer of risk be added later without any of it being able to cost somebody their collection.</p>
+  <p><span class="st chg">changed</span> The banked-coins row used to do the heaviest lifting, and it was also what made robbing worthless: a rational victim banked constantly, so the stealable pile was nearly empty. The loss cap does the same job from the other end. A player who gets robbed still loses a few minutes of income and never progress &mdash; a house, a skin, an upgrade &mdash; because those are bought, and what is bought is gone from the pig.</p>
 
   <p><span class="st cut">cut</span> <strong>Why the offline cap went.</strong> A discount on robbing a sleeping player treats the symptom. The real hole is that every other risk in this game belongs to the <em>victim</em> &mdash; their dog, their fence, their lock, their tag &mdash; so robbing somebody who is offline, or stood at the far end of the street, is completely free however much they spent on defence. A percentage does not fix that; a risk that belongs to nobody does.</p>
 
@@ -733,7 +791,7 @@ footer {
 
 <section id="collection">
   <h2>The collection</h2>
-  <p class="sub">Three currencies, and the arrow only points one way</p>
+  <p class="sub">Two currencies, and the second one comes from robbing</p>
 
   <p>None of this was in the pitch, and it is most of what a player past the first fortnight is actually doing. The catalogue is <strong>46 piggy skins, 6 effects, 14 accessories, 19 lawn ornaments, 9 house tiers and 6 rides</strong> &mdash; roughly a hundred things to own &mdash; every one of them authored, none of them generated. Procedural cosmetics were considered and dropped: you cannot look forward to something that has no name, and a pool where some results are duds trains players to stop caring about the roll.</p>
 
@@ -741,14 +799,13 @@ footer {
   <table>
     <thead><tr><th>Currency</th><th>Earned by</th><th>Buys</th></tr></thead>
     <tbody>
-      <tr><td class="k">Coins</td><td>Playing &mdash; income, and robbing people</td><td>Both upgrade trees, the consumables, and the standing cosmetic catalogue, chests included</td></tr>
-      <tr><td class="k">Tokens</td><td>Attendance only &mdash; the daily ladder and turning up to events</td><td>Event chests. No amount of coins reaches one</td></tr>
-      <tr><td class="k">Medals</td><td>Events</td><td>Set items outright, at a flat price. The guaranteed route beside the gamble</td></tr>
+      <tr><td class="k">Coins</td><td>Playing &mdash; income, and robbing people, where stolen coins count double</td><td>Both upgrade trees, the consumables, and the standing cosmetic catalogue, chests included</td></tr>
+      <tr><td class="k">Loot</td><td><span class="st chg">changed</span> Delivering a robbery, and later turning up to events. Replaces medals and tokens</td><td>The accessory roll and the event sets. No amount of coins reaches either</td></tr>
     </tbody>
   </table>
   </div>
 
-  <p><strong>Medals are flat, and that is the one place the seconds-of-your-own-income rule is deliberately broken.</strong> Every other reward in this game is denominated in the player's own rate so it keeps meaning the same thing as they grow. Medals do the opposite on purpose: a set costs the same number of events for a brand-new player as for a maxed one. Coins scale with the player; medals scale with turning up, and a rich player cannot buy their way up this one.</p>
+  <p><strong>Loot is flat, and that is the one place the seconds-of-your-own-income rule is deliberately broken.</strong> Every other reward in this game is denominated in the player's own rate so it keeps meaning the same thing as they grow. Loot does the opposite on purpose: an accessory costs the same number of robberies for a brand-new player as for a maxed one. Coins scale with the player; loot scales with going out and doing it, and a rich player cannot buy their way up this one.</p>
 
   <p>A <strong>set</strong> is a view over the existing catalogues rather than a new one. The alien set is six items living in five different systems &mdash; a hat, a visor, a lawn ornament, an effect, a skin and a ride &mdash; each bought in its own shop tab with a medal price instead of a coin one. No new ownership storage, no new equip path, and a far better <em>collect the set</em> than six recolours of the same thing.</p>
 
@@ -781,6 +838,7 @@ footer {
       <tr><td class="k">2&times; Income</td><td>Gamepass</td><td class="num">&mdash;</td><td><span class="st cut">cut</span> Not built. It is the reliable earner in every tycoon and it is also a paid advantage in a PvP economy</td></tr>
       <tr><td class="k">Auto-Collect</td><td>Gamepass</td><td class="num">&mdash;</td><td><span class="st cut">cut</span> Not built. Collecting is the action a robbery is a race against</td></tr>
       <tr><td class="k">Big Sack</td><td>Gamepass</td><td class="num">&mdash;</td><td><span class="st cut">cut</span> Not built &mdash; the sack is an offence-tree upgrade bought with coins</td></tr>
+      <tr><td class="k">Timed shield</td><td>Product</td><td class="num">&mdash;</td><td><span class="st cut">deferred</span> The genre's biggest seller. Not built for the pivot: it taxes the one verb the game is about, and the game ships without it first</td></tr>
       <tr><td class="k">Coin packs</td><td>Product</td><td class="num">Never</td><td><span class="st cut">cut</span> See above. This is load-bearing structure, not a price point</td></tr>
     </tbody>
   </table>
@@ -912,6 +970,15 @@ footer {
       <p>Two things gate it and neither is code: the placeholder audio needs replacing with cleared uploads, and the map has never had more than one person on it.</p>
     </div>
   </div>
+
+  <div class="phase">
+    <div class="pnum">9</div>
+    <div>
+      <h3>The robbing pivot <span class="st chg">in progress</span></h3>
+      <p class="est">Fundamentals before live ops</p>
+      <p>See <a href="#pivot">The pivot</a>. The pig becomes the wallet, stolen coins count double, loot replaces medals and tokens, the join shield drops to ninety seconds, revenge pays triple and a robbed pig wears a plaster. Events, chests and the set economy are frozen until this is clear and bug free.</p>
+    </div>
+  </div>
 </section>
 
 <section id="open">
@@ -936,6 +1003,11 @@ footer {
   <div class="q">
     <h4>The map has never had two people on it <span class="st cut">blocking</span></h4>
     <p>This is the real open item and it blocks a launch. The chase, the lock-versus-lockpick timing, the guard dog catch, the friend bonus, the revenge marker, tagging somebody, digging somebody out of a wheelie bin, hiding while carrying loot &mdash; every one of those needs a second player and none has ever run. They are individually verified from both ends and unproven in the middle. A handful of real kids for an hour would be worth more than another week of building.</p>
+  </div>
+
+  <div class="q">
+    <h4>Does the catalogue survive a capped wallet? <span class="st chg">open</span></h4>
+    <p>With the pig as the only balance, income can never carry a player past their capacity &mdash; 3.0M at level 20, 97M at the level-40 ceiling. The tens-of-millions houses and the 4.5M rides are therefore reached by rebirthing and by robbing, never by idling, which is the intent of the pivot. But the nine-week journey was modelled under an unbounded bank and has not been re-run. If the top of the catalogue turns out to be unreachable in practice, the levers are the heist payout multiplier and <code>DROPOFF_RADIUS</code>, not the prices.</p>
   </div>
 
   <div class="q">

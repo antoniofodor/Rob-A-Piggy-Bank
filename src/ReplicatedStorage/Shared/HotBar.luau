@@ -266,11 +266,36 @@ end
 
 -- The item a keypress means right now. The inverse of keyFor, and the only
 -- thing ClientMain's input handler needs to know.
+--
+-- NIL FOR A SLOT YOU HOLD NOTHING IN, WHICH IS NOT THE SAME AS NIL PAST THE
+-- END OF THE ROW, and conflating the two is what this used to do. Pressing 5
+-- with no bubblegum named the item over the bar and asked the server to draw
+-- one, which refused by name -- so the one control this file says does
+-- nothing for an item you do not hold was in fact the loudest way in the game
+-- to find out you had run out. Two messages about an item that is not there,
+-- from a tile that is not on screen.
+--
+-- THE FIX IS HERE AND EXPLICITLY NOT IN `keyOrder`, which is the tempting
+-- place and is wrong. Filtering unheld items out of the ORDER would close the
+-- row up behind an empty slot, and the rule is that only SHELVING does that:
+-- a stock running out is not the player's doing, so that slot keeps its
+-- number and the number goes unused. Renumber on stock and the key that threw
+-- a 1,500-coin plunger a moment ago throws a 22,000-coin zapper. So the
+-- arrangement still contains the item, `keyFor` still hands its key to the
+-- shop card advertising it, and only the PRESS declines.
+--
+-- `held` rather than `button.Visible`: they agree today (`refresh` sets
+-- visibility from exactly this and the shelf), but visibility is a fact about
+-- the screen and this is a question about the player's stock -- and a bar
+-- hidden entirely, which `shouldShow` does while the shop is open, must not
+-- silently change what a key means.
 function HotBar.itemForKey(code: Enum.KeyCode): string?
 	local order = keyOrder()
 	for i, slot in ipairs(KEY_SLOTS) do
 		if slot.key == code then
-			return order[i]
+			local key = order[i]
+			local held = key ~= nil and slots[key] ~= nil and slots[key].held
+			return if held then key else nil
 		end
 	end
 	return nil

@@ -2,8 +2,8 @@
 --[[
 	ClientMain
 
-	The phase-1 HUD: banked coins, a vault fill bar, and the two upgrade
-	buttons.
+	The phase-1 HUD: one piggy bank panel carrying the whole balance, and the
+	two upgrade buttons.
 
 	Everything here is display only. The client never computes a balance --
 	it renders whatever the last StateUpdate said. If this file and the server
@@ -51,6 +51,12 @@ local RaidFX = require(ReplicatedStorage.Shared.RaidFX)
 -- this chunk is at Luau's 200-local ceiling and a function body gets its own
 -- register file.
 local SpinWheel = require(ReplicatedStorage.Shared.SpinWheel)
+-- The crates tab, which is what finally reaches `ChestService` -- four hundred
+-- lines of working server that no player could get to, because there was no
+-- button. A module for the reason every one above it is: this chunk is at
+-- Luau's 200-local ceiling and the tab wants a dozen names of its own, so
+-- inline it would cost the ENTIRE HUD rather than the tab.
+local Crates = require(ReplicatedStorage.Shared.Crates)
 local AdminPanel = require(ReplicatedStorage.Shared.AdminPanel)
 -- The throwables bar: its frame, its layout, its fixed key map, and the drag
 -- that lets a player arrange it. A module for the same reason the three above
@@ -86,7 +92,7 @@ local cosmeticInfo: ((string, string) -> any?)?
 -- nil GLOBAL and dies at the call, naming neither the variable nor the cause.
 -- One table rather than four locals: this chunk is near Luau's 200-register
 -- ceiling and the budget is spent by more than one feature at a time.
-local setUI = { medals = 0, sets = nil :: any, cards = {}, dirty = false }
+local setUI = { loot = 0, sets = nil :: any, cards = {}, dirty = false }
 -- Registers a shop tile's piggy with the skin animator, so an animated skin
 -- animates in the CATALOGUE and not only on the lawn. Declared here because
 -- the animator is defined thousands of lines below the card that calls it,
@@ -121,8 +127,6 @@ local GLYPH = {
 	siren = utf8.char(0x1F6A8),
 	car = utf8.char(0x1F693),
 	loot = utf8.char(0x1F4B0),
-	saucer = utf8.char(0x1F6F8),
-	bolt = utf8.char(0x26A1),
 }
 
 -- THE HUD'S OWN PALETTE WAS THE SECOND ONE, AND IT WAS THE OLD ONE.
@@ -139,25 +143,26 @@ local PANEL = Theme.PAPER
 local GOOD = Theme.GOOD
 local WARN = Theme.WARN
 
-local function format(value: number): string
-	local suffixes = { "", "K", "M", "B", "T" }
-	local n = math.floor(value)
-	local tier = 1
-	while n >= 1000 and tier < #suffixes do
-		n /= 1000
-		tier += 1
-	end
-	if tier == 1 then
-		return tostring(math.floor(n))
-	end
-	return ("%.1f%s"):format(n, suffixes[tier])
-end
+-- The coin ladder lives in Config now. This was a byte-identical second copy
+-- of EconomyService's, and a third was about to be written for the sell
+-- refusal -- so the number a player reads in a toast and the number they read
+-- on the HUD are one function rather than three that agree today. Still one
+-- local, so the register budget is unchanged.
+local format = Config.formatCoins
 
 -- Shared render state, declared above everything that reads it: a local
 -- declared *after* a function that uses it silently becomes a nil global.
 local latestCoins = 0
 local latestUpgrades: { [string]: any } = {}
-local myLockpicks = 0
+-- What the steal prompt needs to say. It used to carry the lockpick level,
+-- the sack level and the live event multiplier as well, because the prompt
+-- computed the take -- and all three went dead the day the crack made a take
+-- a decision rather than a constant. Removed rather than left assigned: this
+-- chunk is at Luau's 200-register ceiling and state nothing reads is a
+-- register that a real feature cannot have.
+--
+-- ONE TABLE rather than separate locals, for the same reason.
+local stealInfo = { carrying = 0 }
 -- Whether the daily board is up. Read by `Rebirth.canShow`, which is wired
 -- further down and would otherwise let the rebirth button sit on top of it:
 -- the same collision the shop panel already had.
@@ -197,50 +202,49 @@ game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, fal
 -- empty, is one too many.
 game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
 
--- Coin counter, top centre.
--- COINS ARE GOLD; THE BADGE IS PAPER.
+-- THE PIGGY BANK PANEL, TOP RIGHT, AND IT IS THE ONLY MONEY READOUT NOW.
 --
--- It was a gold ground with a gold coin chip on it, which is one gold too
--- many: the coin had nothing to stand out against and the numerals had to
--- fight the same hue they were printed on. Paper behind, a drawn gold coin
--- beside the figure, ink numerals. That also leaves gold meaning exactly one
--- thing on this HUD -- money -- which is what makes the piggy panel below
--- being PINK legible as a different idea rather than a different shade.
-local coinPanel = Instance.new("Frame")
-coinPanel.Size = UDim2.new(0, 260, 0, 62)
-coinPanel.Position = UDim2.new(0.5, 0, 0, 16)
-coinPanel.AnchorPoint = Vector2.new(0.5, 0)
-coinPanel.Parent = gui
-Theme.card(coinPanel, 16)
-
-local coinLabel = Instance.new("TextLabel")
-coinLabel.Size = UDim2.new(1, -58, 1, -12)
-coinLabel.Position = UDim2.new(0, 48, 0, 6)
-coinLabel.TextScaled = true
-coinLabel.TextXAlignment = Enum.TextXAlignment.Left
-coinLabel.Text = "0"
-coinLabel.Parent = coinPanel
-Theme.title(coinLabel, 30, Theme.INK)
-
--- A DRAWN coin, not the coin emoji. See Theme.coin: an emoji renders from the
--- colour font at whatever size the box gives it and ignores TextColor3, and
--- at 19px in a 34px chip it was reported, accurately, as unreadable.
-local coinPip = Theme.coin(coinPanel, 34, "Pip")
-coinPip.Position = UDim2.new(0, 10, 0.5, 0)
-coinPip.AnchorPoint = Vector2.new(0, 0.5)
-
--- Piggy bank fill bar, top right. The bar is the important one: a full piggy
--- bank stops earning, so this is what should pull a player back to their plot.
+-- There were two: a coin badge top-centre printing the banked total, and
+-- this bar printing the stealable pile. That was one readout per BALANCE and
+-- it was right while there were two of them. The pivot merged `data.vault`
+-- into `data.coins`, and the two elements immediately printed the SAME
+-- NUMBER in two places -- which is worse than redundant on a HUD aimed at
+-- nine-year-olds, because two figures side by side invite the reading that
+-- they are different things, and a player looking for the difference finds
+-- none.
 --
--- IT SAYS "PIGGY BANK", NOT "VAULT". The thing on the lawn is a piggy bank,
--- the game is called Rob a Piggy Bank, and the arrest screen already charges
--- bail "from your piggy bank" -- "vault" was internal vocabulary that had
--- leaked into the HUD. `data.vault` is still the field name, and that is
--- fine: it is the one place the word belongs.
+-- So the badge is gone and its job moved in here, keeping the shape it had:
+-- an icon, then the figure, read left to right. The snout stands where the
+-- coin pip stood. What this panel adds -- and the badge could never say --
+-- is the half that now matters most: how close to CAPACITY it is, because a
+-- full pig stops earning until you spend some.
 --
--- The Vault LOCK keeps its name. It is a different object -- a lock you buy,
--- built as a bank-vault dial, whose whole readability rests on looking like
--- one -- and it is not what this bar is counting.
+-- The coin badge's own argument survives it: gold means money, so a gold
+-- ground with gold numerals on it was one gold too many. This is a paper
+-- card and the gold is the BAR FILL, which is the only gold object on it.
+--
+-- THE WORD "VAULT" IS GONE FROM THE HUD AND SO, NOW, IS "PIGGY BANK".
+--
+-- The first half was a fix: the thing on the lawn is a piggy bank, the game
+-- is called Rob a Piggy Bank, and the arrest screen already charges bail
+-- "from your piggy bank" -- "vault" was internal vocabulary that had leaked
+-- onto the screen, and the save field went the same way in the pivot. There
+-- is one balance, `data.coins`, and it lives in the pig.
+--
+-- The second half is this merge: absorbing the badge cost the title row, and
+-- the balance is what a title row is worth. Nothing is lost by it -- the
+-- snout is on the card, the shop tab, every prompt and every toast still say
+-- the words, and a nine-year-old learns what this panel is from the pig on
+-- it long before they read a label.
+--
+-- The local is still `vaultPanel` and the bar label still `vaultLabel`. That
+-- is deliberate: renaming them is a diff across this whole file to fix
+-- nothing a player can see, which is exactly the trade the save field was
+-- left alone for until a migration made it free.
+--
+-- The Vault LOCK keeps its name outright. It is a different object -- a lock
+-- you buy, built as a bank-vault dial, whose whole readability rests on
+-- looking like one -- and it is not what this bar is counting.
 --
 -- Sits clear of the Roblox topbar rather than at y=0. IgnoreGuiInset is on,
 -- so y=0 is underneath the topbar buttons rather than below them, and this
@@ -267,38 +271,40 @@ vaultPanel.Parent = gui
 -- comment says so: paper card, drawn gold coin, ink numerals -- "one gold
 -- too many" was the fault it fixed, and this was one pink too many. So this
 -- is its sibling now. Same card, and the pig is an OBJECT on it: a drawn
--- snout beside the title, and a deep rose bar track under it with the gold
+-- snout beside the balance, and a deep rose bar track under it with the gold
 -- filling up inside. Gold in a pink pig, which is what the panel is about.
 --
 -- If a pink panel is ever wanted back, this line is the whole change.
 Theme.card(vaultPanel, 16)
 
--- The snout. Sits where the coin sits on the badge above, so the two
--- readouts in the top corners are read the same way round.
+-- The snout, where the coin pip stood on the badge this panel absorbed. It
+-- is also what the word "Piggy Bank" used to do here: the title row is the
+-- balance now, and a drawn snout says whose money it is in less space than
+-- any label could. The shop, the prompts and every toast still name it.
 Theme.snout(vaultPanel, 34, "Snout").Position = UDim2.new(0, 12, 0, 6)
 
--- The title, in a do-block because it never changes and so needs no name
--- afterwards. This chunk is near Luau's 200-local ceiling and a block's
--- locals are released at its `end`, so this costs the budget nothing where a
--- top-level `local` would spend one to hold a label nobody reads again.
-do
-	local title = Instance.new("TextLabel")
-	-- Stops well short of the rate readout at x=198 rather than running the
-	-- full width of the panel. The old label was 296 wide and left-aligned
-	-- with the numbers in it, so at large balances it ran straight under the
-	-- rate -- "Vault 146.1K / 3.0M+3.0K/s", with no gap at all. TextScaled
-	-- does not save you there: it only shrinks once the text exceeds the BOX,
-	-- and the box was already overlapping.
-	-- Starts clear of the snout at x 12..42 rather than at the panel edge.
-	title.Name = "Title"
-	title.Size = UDim2.new(0, 144, 0, 26)
-	title.Position = UDim2.new(0, 54, 0, 8)
-	title.TextScaled = true
-	Theme.title(title, 20, Theme.INK)
-	title.TextXAlignment = Enum.TextXAlignment.Left
-	title.Text = "Piggy Bank"
-	title.Parent = vaultPanel
-end
+-- THE BALANCE. This is the badge's 30px figure, moved.
+--
+-- Stops well short of the rate readout at x=198 rather than running the full
+-- width of the panel: the old title-plus-numbers label was 296 wide and left
+-- aligned, so at large balances it ran straight under the rate --
+-- "Vault 146.1K / 3.0M+3.0K/s", with no gap at all. TextScaled does not save
+-- you there, it only shrinks once the text exceeds the BOX, and the box was
+-- already overlapping. 54..194 against a rate starting at 198.
+--
+-- Taller than the old title row (30 against 26) because TextScaled fits the
+-- BOX rather than honouring the size argument, so the box height is what
+-- actually decides how big this reads -- and this is the most-looked-at
+-- number in the game.
+local coinLabel = Instance.new("TextLabel")
+coinLabel.Name = "Coins"
+coinLabel.Size = UDim2.new(0, 140, 0, 30)
+coinLabel.Position = UDim2.new(0, 54, 0, 6)
+coinLabel.TextScaled = true
+Theme.title(coinLabel, 30, Theme.INK)
+coinLabel.TextXAlignment = Enum.TextXAlignment.Left
+coinLabel.Text = "0"
+coinLabel.Parent = vaultPanel
 
 local rateLabel = Instance.new("TextLabel")
 rateLabel.Name = "Rate"
@@ -333,14 +339,20 @@ barFill.Parent = barBack
 Theme.corner(barFill, 9)
 Theme.gloss(barFill, Theme.GOLD, Theme.GOLD_DEEP)
 
--- The numbers, ON the bar rather than beside the title.
+-- WHAT THE BAR IS MEASURED AGAINST, ON the bar rather than beside it.
 --
--- "Piggy Bank" is five characters longer than "Vault", and the title row was
--- already too narrow for what was in it. The bar is 296 wide and carrying
--- nothing, the numbers are what the bar is a picture of, and putting them
--- together means neither has to be shrunk to make room for the other.
+-- It used to read "146.1K / 3.0M" -- the balance and the capacity together,
+-- which was right while the balance lived nowhere else on this card. Now
+-- that the badge has moved in above it, printing the balance here as well
+-- would put the same figure twice inside ONE panel, which is the fault this
+-- whole change is fixing in miniature.
 --
--- Above the fill on ZIndex so a full bank does not swallow its own figure.
+-- So it says what the empty part of the bar means: how much room is left,
+-- and -- the moment there is none -- what to do about it. A full pig stops
+-- earning, and that is the single mechanic most likely to read as the game
+-- being broken if nothing on screen says so.
+--
+-- Above the fill on ZIndex so a full bank does not swallow its own label.
 local vaultLabel = Instance.new("TextLabel")
 vaultLabel.Name = "Amount"
 vaultLabel.Size = UDim2.new(1, -20, 1, -4)
@@ -353,11 +365,19 @@ Theme.title(vaultLabel, 18, Theme.INK)
 vaultLabel.TextStrokeColor3 = Color3.fromRGB(255, 236, 226)
 vaultLabel.TextStrokeTransparency = 0.4
 vaultLabel.TextXAlignment = Enum.TextXAlignment.Center
-vaultLabel.Text = "0 / 0"
+vaultLabel.Text = "of 0"
 vaultLabel.ZIndex = 3
 vaultLabel.Parent = barBack
 
--- Upgrade buttons, bottom right.
+-- THE SHOP BUTTON, BOTTOM RIGHT, AND NOTHING ELSE NOW.
+--
+-- EARN FASTER and BIGGER PIGGY BANK used to sit above it here, which put the
+-- two largest coin sinks in the game on the HUD while the six upgrade TREES
+-- they compete with lived behind a shop tab. So the choice this economy is
+-- built on -- every coin into income is a coin not into a fence -- was split
+-- across two screens that were never visible at once, and only one side of it
+-- was ever costed in front of you. They are rows in the Upgrades tab now,
+-- beside the trees, where the comparison is the whole point of the layout.
 --
 -- Height is AutomaticSize rather than a literal: this stack was hard-coded to
 -- 128px while its children added up to 172, so the bottom button ran off the
@@ -375,45 +395,6 @@ local shopLayout = Instance.new("UIListLayout")
 shopLayout.Padding = UDim.new(0, 8)
 shopLayout.SortOrder = Enum.SortOrder.LayoutOrder
 shopLayout.Parent = shop
-
-local function makeUpgradeButton(text: string, order: number): (TextButton, TextLabel)
-	local button = Instance.new("TextButton")
-	button.Size = UDim2.new(1, 0, 0, 58)
-	button.LayoutOrder = order
-	button.BackgroundColor3 = PANEL
-	button.BorderSizePixel = 0
-	button.AutoButtonColor = true
-	button.Font = Enum.Font.FredokaOne
-	button.Text = ""
-	button.Parent = shop
-	corner(button, 12)
-
-	local title = Instance.new("TextLabel")
-	title.Size = UDim2.new(1, -16, 0, 22)
-	title.Position = UDim2.new(0, 8, 0, 7)
-	title.BackgroundTransparency = 1
-	title.Font = Enum.Font.FredokaOne
-	-- NOT ShopStyle.TEXT. This button is on the HUD, which stays dark; only
-	-- the shop went light. Caught by a global replace and put back.
-	title.TextColor3 = Theme.INK
-	title.TextScaled = true
-	title.TextXAlignment = Enum.TextXAlignment.Left
-	title.Text = text
-	title.Parent = button
-
-	local cost = Instance.new("TextLabel")
-	cost.Size = UDim2.new(1, -16, 0, 20)
-	cost.Position = UDim2.new(0, 8, 0, 31)
-	cost.BackgroundTransparency = 1
-	cost.Font = Enum.Font.GothamBold
-	cost.TextColor3 = Theme.GOLD_INK
-	cost.TextScaled = true
-	cost.TextXAlignment = Enum.TextXAlignment.Left
-	cost.Text = "--"
-	cost.Parent = button
-
-	return button, cost
-end
 
 -- ============================================================
 -- ACTION BUTTONS
@@ -587,9 +568,6 @@ do
 	end
 end
 
-local incomeButton, incomeCost = makeUpgradeButton("Earn Faster", 1)
-local capacityButton, capacityCost = makeUpgradeButton("Bigger Piggy Bank", 2)
-
 -- Labelled SHOP, not "Defend / Rob". The old label described the two trees
 -- accurately but never said it was a shop, and this button is now the only
 -- way into skins and effects as well -- players looked for a shop and did
@@ -603,7 +581,9 @@ local capacityButton, capacityCost = makeUpgradeButton("Bigger Piggy Bank", 2)
 -- unrelated action.
 local shopToggle = makeActionButton("ShopToggle", "SHOP", "SHOP", "B",
 	Config.PROMPTS.shop.tone, UDim2.new(1, 0, 0, 50), 21, shop)
-shopToggle.LayoutOrder = 3
+-- The only thing left in this column, so it takes the first slot rather than
+-- the third it held under the two upgrade buttons.
+shopToggle.LayoutOrder = 1
 
 -- ============================================================
 -- DEFENCE / OFFENCE PANEL
@@ -897,6 +877,9 @@ local gearView = makeView("GearView")
 local SHOP = { view = {}, at = {} } :: any
 SHOP.view.items = makeView("ItemsView")
 SHOP.view.worn = makeView("WornView")
+-- Held in SHOP rather than as a local of its own, for the register budget --
+-- the note above this table records the same trick for the two lines above.
+SHOP.view.crates = makeView("CratesView")
 
 -- The hint bubble floats over whichever view is open, so it hangs off the
 -- PANEL rather than off any one of them -- a bubble parented to a view would
@@ -925,7 +908,10 @@ local function selectTab(index: number)
 		-- who can see all five, and this is a game for nine year olds where
 		-- about one boy in twelve is colour-blind -- the same reasoning that
 		-- made Legendary a THICKER border as well as a gold one.
-		tab.button.Size = UDim2.new(0, 102, 0, if on then 44 else 38)
+		-- The tab's OWN width, not the old flat 102: this line re-sizes on
+		-- every selection, so a constant here would undo the measurement
+		-- above the moment anybody pressed anything.
+		tab.button.Size = UDim2.new(0, tab.width, 0, if on then 44 else 38)
 		if on then
 			panelTitle.Text = tab.title
 		end
@@ -936,12 +922,39 @@ end
 -- speed; the word is what a new one needs at all. Stacking them would want a
 -- taller band, and the band's height is precisely what this layout was bought
 -- with.
+-- A TAB IS AS WIDE AS ITS OWN WORD, AND THE EIGHTH ONE IS WHY.
+--
+-- Every tab was a flat 102 wide. That fits seven in the 772-pixel rail and
+-- does not fit eight: measured, the canvas ran to 880 and the Crates tab sat
+-- at x 964 against a rail ending at 962 -- off the edge, reachable only by
+-- scrolling a rail that gives no sign it scrolls. Not the old bug, which was
+-- a rail that did not scroll at all and ATE two tabs silently; this is the
+-- gentler version, where the tab exists and a nine-year-old never finds it.
+--
+-- A flat width was always spending the same 102 on "Worn" as on "Everything",
+-- and measured at the shipped 13px FredokaOne those two labels are 30 and 62
+-- pixels. Sizing each tab to its own label takes all eight to 692 including
+-- padding -- inside the rail with 80 to spare, and room for a ninth.
+--
+-- Measured rather than estimated, because the failure is silent in the other
+-- direction too: a tab one pixel too narrow truncates its own name, and
+-- `TextTruncate` does that without erroring or looking obviously wrong.
+--
+-- THE ARITHMETIC IS INLINE, AND THAT IS THE REGISTER BUDGET RATHER THAN
+-- TASTE. It was a constant and a helper at the top level, which with the
+-- Crates require put this chunk at 201 locals -- and the whole HUD went, with
+-- the error naming `buildNotifications` two thousand lines away. A function
+-- body gets its own register file, so anything that can live inside one
+-- costs this chunk nothing. Eighth time this file has hit that wall.
 local function makeTab(icon: string, title: string, view: Frame, order: number, hue: Color3)
+	-- 7 glyph x + 22 glyph + 2 gap, then a right inset, plus the word itself.
+	local width = 41 + math.ceil(game:GetService("TextService")
+		:GetTextSize(title, 13, Enum.Font.FredokaOne, Vector2.new(9999, 100)).X)
 	local button = Instance.new("TextButton")
 	-- Named after the view it opens. Five buttons all called "TextButton" are
 	-- indistinguishable in the explorer and unaddressable from a test.
 	button.Name = "Tab_" .. view.Name
-	button.Size = UDim2.new(0, 102, 0, 38)
+	button.Size = UDim2.new(0, width, 0, 38)
 	button.LayoutOrder = order
 	button.BackgroundColor3 = ShopStyle.CARD
 	button.BorderSizePixel = 0
@@ -964,7 +977,10 @@ local function makeTab(icon: string, title: string, view: Frame, order: number, 
 
 	local label = Instance.new("TextLabel")
 	label.Name = "Label"
-	label.Size = UDim2.new(1, -36, 1, 0)
+	-- In OFFSET now rather than scale. It is the same box on a fixed-width
+	-- button and the honest one on a measured button, since the width this
+	-- label gets is exactly the width it was measured to need.
+	label.Size = UDim2.new(0, width - 36, 1, 0)
 	label.Position = UDim2.new(0, 31, 0, 0)
 	label.BackgroundTransparency = 1
 	label.Font = Enum.Font.FredokaOne
@@ -980,7 +996,7 @@ local function makeTab(icon: string, title: string, view: Frame, order: number, 
 
 	local index = #tabs + 1
 	tabs[index] = { button = button, view = view, title = title,
-		label = label, hue = hue }
+		label = label, hue = hue, width = width }
 	button.Activated:Connect(function()
 		selectTab(index)
 	end)
@@ -1020,15 +1036,82 @@ makeTab(utf8.char(0x1F9F0), "Items", SHOP.view.items, 6, ShopStyle.HUE.items)
 SHOP.at.items = #tabs
 makeTab(utf8.char(0x1F455), "Worn", SHOP.view.worn, 7, ShopStyle.HUE.worn)
 SHOP.at.worn = #tabs
+-- AN EIGHTH TAB, AND IT IS A VERB RATHER THAN A CATEGORY. The seven above are
+-- places a thing GOES -- on the piggy, on the plot, under you, on you. This
+-- one is a way of GETTING things, which is why it does not fold into any of
+-- them and why it earns its own slot rather than a section inside one.
+--
+-- The rail is a ScrollingFrame precisely so that this could not repeat the
+-- bug it once had: eight tabs at 106 wide is 848 pixels, which fits the band
+-- today, and a UIListLayout does not clip and does not error -- it keeps
+-- drawing past the edge, which is how Rides and Collection were once eaten
+-- whole with nothing on screen to say they existed.
+makeTab(utf8.char(0x1F4E6), "Crates", SHOP.view.crates, 8, ShopStyle.HUE.crates)
+SHOP.at.crates = #tabs
+-- THE INVENTORY IS NOT A TAB IN HERE, AND THAT IS THE POINT OF IT.
+--
+-- It was one for about an hour and it was wrong twice. A shop tab is a
+-- place you go to SPEND; the inventory is where you go to look at what you
+-- already have, and putting it behind the shop button says the opposite of
+-- what the split was for. It also overflowed the rail -- eight tabs measure
+-- 692 in a 772 window and "Inventory" wants about 98 more -- so the one tab
+-- that is not a shop was also the one a nine-year-old had to scroll to find.
+--
+-- It is its own HUD button now, beside SHOP in the bottom-right. See the
+-- BAG PANEL section further down.
 
-local columns: { [string]: Frame } = {}
+-- EARN, DEFEND, ROB -- three verbs, and the first one is the base of the
+-- other two. It gets a full-width band across the top rather than a third
+-- column, for two reasons: a 1/3-width card cannot hold "Bigger Piggy Bank"
+-- at 18px beside a 122-wide price chip without truncating it, and these two
+-- are not a TREE. They are the thing both trees are paid for.
+--
+-- One table rather than three loose upvalues -- this chunk is at Luau's
+-- 200-local ceiling and the note above `SHOP` records the same trick.
+local earn = { band = nil :: any, rows = {} :: any }
+
+local earnHeading = Instance.new("TextLabel")
+earnHeading.Name = "EarnHeading"
+earnHeading.Size = UDim2.new(1, -26, 0, 38)
+earnHeading.Position = UDim2.new(0, 18, 0, 0)
+earnHeading.BackgroundColor3 = GOLD:Lerp(ShopStyle.LIGHT, 0.42)
+earnHeading.BorderSizePixel = 0
+earnHeading.Font = Enum.Font.FredokaOne
+earnHeading.TextSize = 20
+earnHeading.TextColor3 = ShopStyle.INK
+earnHeading.Text = "EARN"
+earnHeading.Parent = upgradesView
+corner(earnHeading, 14)
+ShopStyle.outline(earnHeading, 3)
+ShopStyle.gloss(earnHeading)
+
+earn.band = Instance.new("Frame")
+earn.band.Name = "EarnRow"
+earn.band.Size = UDim2.new(1, -26, 0, 96)
+earn.band.Position = UDim2.new(0, 18, 0, 48)
+earn.band.BackgroundTransparency = 1
+earn.band.Parent = upgradesView
+
+local earnLayout = Instance.new("UIListLayout")
+earnLayout.FillDirection = Enum.FillDirection.Horizontal
+earnLayout.Padding = UDim.new(0, 16)
+earnLayout.SortOrder = Enum.SortOrder.LayoutOrder
+earnLayout.Parent = earn.band
+
+-- WHAT THE BAND COSTS THE TREES IS 158 PIXELS, AND THAT IS WHY THE LISTS
+-- SCROLL NOW. Three rows of 96 plus their gaps is 308, against a column list
+-- of 512 on a desktop and 322 on a phone held sideways -- so the trees fitted
+-- by 14 pixels before this band existed and would have overflowed by 134
+-- after it. A UIListLayout does not clip and does not error; it keeps drawing
+-- past the edge, which is exactly how the tab rail once ate two whole tabs.
+local columns: { [string]: ScrollingFrame } = {}
 for index, spec in ipairs({
 	{ tree = "defense", title = "DEFEND", color = DEFENCE },
 	{ tree = "offense", title = "ROB", color = OFFENCE },
 }) do
 	local column = Instance.new("Frame")
-	column.Size = UDim2.new(0.5, -26, 1, -18)
-	column.Position = UDim2.new(0.5 * (index - 1), if index == 1 then 18 else 8, 0, 0)
+	column.Size = UDim2.new(0.5, -26, 1, -176)
+	column.Position = UDim2.new(0.5 * (index - 1), if index == 1 then 18 else 8, 0, 158)
 	column.BackgroundTransparency = 1
 	column.Parent = upgradesView
 
@@ -1045,11 +1128,15 @@ for index, spec in ipairs({
 	ShopStyle.outline(heading, 3)
 	ShopStyle.gloss(heading)
 
-	local list = Instance.new("Frame")
+	local list = Instance.new("ScrollingFrame")
 	list.Name = "List"
 	list.Size = UDim2.new(1, 0, 1, -48)
 	list.Position = UDim2.new(0, 0, 0, 48)
 	list.BackgroundTransparency = 1
+	list.BorderSizePixel = 0
+	list.ScrollBarThickness = 6
+	list.CanvasSize = UDim2.new()
+	list.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	list.Parent = column
 
 	local layout = Instance.new("UIListLayout")
@@ -1057,20 +1144,30 @@ for index, spec in ipairs({
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.Parent = list
 
+	-- A card carries a 3px Border stroke, which draws OUTSIDE the frame and
+	-- straight into the region a ScrollingFrame clips. Same clearance the
+	-- cosmetics scroll and the tab rail already need.
+	local inset = Instance.new("UIPadding")
+	inset.PaddingLeft = UDim.new(0, 4)
+	inset.PaddingRight = UDim.new(0, 4)
+	inset.PaddingTop = UDim.new(0, 4)
+	inset.Parent = list
+
 	columns[spec.tree] = list
 end
 
 local upgradeRows: { [string]: { button: TextButton, title: TextLabel, cost: TextLabel,
 	blurb: TextLabel, pips: Frame, accent: Color3 } } = {}
 
-local function ensureRow(key: string, info: any)
-	local existing = upgradeRows[key]
-	if existing then
-		return existing
-	end
-
-	local parent = columns[info.tree]
-	local accent = if info.tree == "defense" then DEFENCE else OFFENCE
+-- ONE CARD BUILDER FOR ALL EIGHT ROWS. The six trees and the two EARN rows are
+-- the same object -- a name, a line of explanation, a level readout and a price
+-- you press -- and the only things that differ are where it is parented, what
+-- colour it is edged in, how wide it is and what pressing it fires. A second
+-- near-identical builder for the two new rows is the copy that drifts the first
+-- time either is touched, which this project has already recorded for the mini
+-- piggy, `Decor.buildOne` and `RideSound`.
+local function makeUpgradeCard(parent: Instance, order: number, accent: Color3,
+	size: UDim2, onBuy: () -> ()): any
 
 	-- THE LAST TAB DRAWN IN THE OLD VOCABULARY, and the one that could least
 	-- afford to be. This is the only tab in the shop that changes an OUTCOME
@@ -1084,8 +1181,8 @@ local function ensureRow(key: string, info: any)
 	-- have I got, and how much is left -- without reading at all. That
 	-- matters for an audience whose younger half is not reading the numbers.
 	local button = Instance.new("TextButton")
-	button.Size = UDim2.new(1, 0, 0, 96)
-	button.LayoutOrder = info.order
+	button.Size = size
+	button.LayoutOrder = order
 	button.BackgroundColor3 = ShopStyle.CARD
 	button.BorderSizePixel = 0
 	button.AutoButtonColor = true
@@ -1108,7 +1205,7 @@ local function ensureRow(key: string, info: any)
 	title.TextTruncate = Enum.TextTruncate.AtEnd
 	title.TextXAlignment = Enum.TextXAlignment.Left
 	title.TextColor3 = ShopStyle.TEXT
-	title.Text = info.name
+	title.Text = ""
 	title.Parent = button
 
 	local blurb = Instance.new("TextLabel")
@@ -1121,7 +1218,7 @@ local function ensureRow(key: string, info: any)
 	blurb.TextTruncate = Enum.TextTruncate.AtEnd
 	blurb.TextXAlignment = Enum.TextXAlignment.Left
 	blurb.TextColor3 = ShopStyle.MUTED
-	blurb.Text = info.blurb
+	blurb.Text = ""
 	blurb.Parent = button
 
 	-- The pips are filled in at render, because `max` is a fact about the
@@ -1145,14 +1242,157 @@ local function ensureRow(key: string, info: any)
 	cost.Position = UDim2.new(1, -136, 0.5, -20)
 	cost.Text = ""
 
-	button.Activated:Connect(function()
-		Remotes.get("UpgradeRequest"):FireServer(key)
-	end)
+	button.Activated:Connect(onBuy)
 
-	local row = { button = button, title = title, cost = cost, blurb = blurb,
+	return { button = button, title = title, cost = cost, blurb = blurb,
 		pips = pips, accent = accent }
+end
+
+local function ensureRow(key: string, info: any)
+	local existing = upgradeRows[key]
+	if existing then
+		return existing
+	end
+	local row = makeUpgradeCard(
+		columns[info.tree],
+		info.order,
+		if info.tree == "defense" then DEFENCE else OFFENCE,
+		UDim2.new(1, 0, 0, 96),
+		function()
+			Remotes.get("UpgradeRequest"):FireServer(key)
+		end)
 	upgradeRows[key] = row
 	return row
+end
+
+-- THE TWO EARN ROWS, half of the band each -- so they come out about the width
+-- of a tree card and the price chip lands in the same place on all eight.
+earn.rows.income = makeUpgradeCard(earn.band, 1, GOLD, UDim2.new(0.5, -8, 1, 0),
+	function()
+		Remotes.get("PurchaseRequest"):FireServer("income")
+	end)
+earn.rows.income.title.Text = "Earn Faster"
+earn.rows.income.blurb.Text = "More coins every second, forever."
+
+earn.rows.capacity = makeUpgradeCard(earn.band, 2, GOLD, UDim2.new(0.5, -8, 1, 0),
+	function()
+		Remotes.get("PurchaseRequest"):FireServer("capacity")
+	end)
+earn.rows.capacity.title.Text = "Bigger Piggy Bank"
+earn.rows.capacity.blurb.Text = "Holds more before it stops filling."
+
+-- A LADDER YOU CAN COUNT, OR A BAR YOU READ, AND THE CALLER SAYS WHICH.
+--
+-- Pips are the right picture for a tree: four rungs with three filled answers
+-- "how much have I got, how much is left" with no reading at all, and that is
+-- the whole argument for them. They are the WRONG picture for income and
+-- capacity, because those run to `Config.maxLevel` -- 20, and 40 once enough
+-- rebirths have opened the ceiling. Measured on the card this actually renders
+-- on: 40 pips share 337 pixels, so each one is 4.4 wide and carries a 2px
+-- outline. That is not a ladder, it is noise.
+--
+-- THE KIND IS PASSED IN RATHER THAN DERIVED FROM `max`, and that is the point
+-- rather than laziness. A threshold would flip these two rows from pips to a
+-- bar partway through the game -- at whatever rebirth pushed the ceiling past
+-- it -- so a player would watch a control they already knew change shape for
+-- no reason they could see.
+local function paintLadder(row: any, level: number, max: number, bar: boolean)
+	local pips = row.pips
+	if bar then
+		-- Built once and then only repainted, for the same reason the pips are:
+		-- this runs off the state push, which lands on every coin tick.
+		local track = pips:FindFirstChild("Track")
+		if not track then
+			for _, old in ipairs(pips:GetChildren()) do
+				if old:IsA("Frame") then
+					old:Destroy()
+				end
+			end
+			track = Instance.new("Frame")
+			track.Name = "Track"
+			track.Size = UDim2.new(1, 0, 1, 0)
+			track.BackgroundColor3 = Theme.SAND_DEEP
+			track.BorderSizePixel = 0
+			track.Parent = pips
+			corner(track, 5)
+			ShopStyle.outline(track, 2)
+
+			local fill = Instance.new("Frame")
+			fill.Name = "Fill"
+			fill.Size = UDim2.new(0, 0, 1, 0)
+			fill.BackgroundColor3 = row.accent
+			fill.BorderSizePixel = 0
+			fill.Parent = track
+			corner(fill, 5)
+
+			-- PRINTED ON THE BAR, because at forty rungs the bar alone cannot
+			-- tell 31 from 33 and the level is what a player is deciding on.
+			-- INK reads on both grounds it crosses -- the pale sand track and
+			-- the gold fill -- so it needs no halo behind it.
+			local text = Instance.new("TextLabel")
+			text.Name = "Level"
+			text.Size = UDim2.new(1, 0, 1, 0)
+			text.BackgroundTransparency = 1
+			text.Font = Enum.Font.GothamBold
+			text.TextSize = 11
+			text.TextColor3 = ShopStyle.INK
+			text.ZIndex = 3
+			text.Parent = track
+		end
+		local fraction = if max > 0 then math.clamp(level / max, 0, 1) else 0
+		track.Fill.Size = UDim2.new(fraction, 0, 1, 0)
+		track.Level.Text = ("Lv %d / %d"):format(level, max)
+		return
+	end
+
+	-- THE LADDER. Rebuilt only when the RUNG COUNT changes, which is almost
+	-- never -- repainting is one property per pip, where tearing the row down
+	-- every push would rebuild six of these on every coin tick. Pips share the
+	-- row's width, so a four-rung tree and a five-rung one both fill the same
+	-- bar and the two trees stay comparable at a glance.
+	if #pips:GetChildren() - 1 ~= max then
+		for _, old in ipairs(pips:GetChildren()) do
+			if old:IsA("Frame") then
+				old:Destroy()
+			end
+		end
+		for i = 1, max do
+			local pip = Instance.new("Frame")
+			pip.Name = "Pip" .. i
+			pip.Size = UDim2.new(1 / max, -4, 1, 0)
+			pip.LayoutOrder = i
+			pip.BorderSizePixel = 0
+			pip.Parent = pips
+			corner(pip, 5)
+			ShopStyle.outline(pip, 2)
+		end
+	end
+	for _, pip in ipairs(pips:GetChildren()) do
+		if pip:IsA("Frame") then
+			pip.BackgroundColor3 = if pip.LayoutOrder <= level
+				then row.accent else Theme.SAND_DEEP
+		end
+	end
+end
+
+-- One EARN row against the economy push. The same three questions a tree row
+-- answers, asked of `StateUpdate` rather than `UpgradeState`: income and
+-- capacity have always been pushed there, beside the coins they are priced
+-- against, and moving the control did not move the data.
+local function paintEarn(row: any, level: number, max: number,
+	cost: number, coins: number)
+
+	paintLadder(row, level, max, true)
+	if level >= max then
+		row.cost.Text = "MAXED"
+		row.cost.TextColor3 = ShopStyle.GOOD
+	else
+		row.cost.Text = format(cost)
+		-- Affordability is on the PILL, never the card: the card's outline is
+		-- the only thing saying which of the three sections a row belongs to,
+		-- and tinting the whole card fought it. The trees follow the same rule.
+		row.cost.TextColor3 = if coins >= cost then GOLD else Theme.MUTED_LIGHT
+	end
 end
 
 -- ============================================================
@@ -1399,9 +1639,14 @@ do
 	-- public bins on the kerb, which nobody buys and everybody can use. Copy
 	-- outlives the thing it was written for unless somebody goes looking,
 	-- which is exactly what happened here.
-	how.Text = "For robbing, not defending. The raincoat shrugs off a plunger "
-		.. "or bubblegum, but not a Zapper. To hide, climb into any "
-		.. "wheelie bin on the street."
+	-- THE LADDER'S ONE LINE IS THE REFUSAL, because that is the fact that
+	-- otherwise reads as a broken item: it will not go up against a fence you
+	-- could have jumped, and there is nowhere else a player would learn that.
+	-- Everything else about it is on the card.
+	how.Text = "For robbing, not defending. A ladder stands against any fence "
+		.. "too tall to jump, for 20 seconds, and takes you both ways over. "
+		.. "The raincoat shrugs off a plunger or bubblegum, but not a Zapper. "
+		.. "To hide, climb into any wheelie bin on the street."
 	ShopStyle.hintToggle(sneakHead, how)
 end
 
@@ -1817,14 +2062,14 @@ local function ensureCosmeticButton(kind: string, key: string, info: any)
 		-- item's own zone decides where it lands.
 		local wire = if kind:sub(1, 5) == "decor" then "decor" else kind
 
-		-- A SET ITEM YOU DO NOT OWN GOES DOWN THE MEDAL CHANNEL. Once it is
+		-- A SET ITEM YOU DO NOT OWN GOES DOWN THE LOOT CHANNEL. Once it is
 		-- owned it is an ordinary cosmetic again and equips through the usual
 		-- remote, because wearing a thing has nothing to do with how it was
-		-- paid for -- routing everything through MedalBuy would leave a player
+		-- paid for -- routing everything through LootBuy would leave a player
 		-- unable to put on something they own.
 		local info = cosmeticInfo and cosmeticInfo(kind, key)
-		if info and info.medals and not (info.unlocked or info.owned) then
-			Remotes.get("MedalBuy"):FireServer(wire, key)
+		if info and info.loot and not (info.unlocked or info.owned) then
+			Remotes.get("LootBuy"):FireServer(wire, key)
 			return
 		end
 		Remotes.get("CosmeticRequest"):FireServer(wire, key)
@@ -1916,15 +2161,15 @@ local function renderCosmetics()
 			entry.sub.Text = "Stored - tap to place"
 			entry.sub.TextColor3 = Theme.MUTED_LIGHT
 			entry.button.BackgroundColor3 = ShopStyle.DEAR
-		elseif info.medals then
-			-- Priced in medals. `info.cost` is nil for a set item and `format`
+		elseif info.loot then
+			-- Priced in loot. `info.cost` is nil for a set item and `format`
 			-- floors its argument, so reaching the branch below throws rather
 			-- than rendering a wrong number -- which is the louder half of the
 			-- same rule the skins tab already learned: ask whether the thing
 			-- has a coin price before formatting one.
-			entry.sub.Text = ("%d medals"):format(info.medals)
+			entry.sub.Text = ("%d loot"):format(info.loot)
 			entry.sub.TextColor3 = Theme.GOOD
-			entry.button.BackgroundColor3 = if setUI.medals >= info.medals
+			entry.button.BackgroundColor3 = if setUI.loot >= info.loot
 				then ShopStyle.OWNED
 				else Theme.PAPER_DEEP
 		else
@@ -1983,16 +2228,16 @@ local function renderCosmetics()
 				entry.sub.Text = ("%d rebirths"):format(info.unlockRebirths)
 				entry.sub.TextColor3 = Theme.MUTED_LIGHT
 				entry.button.BackgroundColor3 = ShopStyle.LOCKED
-			elseif info.medals then
-				-- PRICED IN MEDALS, so it must never fall through to the coin
+			elseif info.loot then
+				-- PRICED IN LOOT, so it must never fall through to the coin
 				-- branch below -- a set item has no `cost`, and a missing cost
 				-- arrives as 0 and renders "0" in gold on the you-can-afford
 				-- green. That is the same bug the ten drop-pool skins had, and
 				-- the fix is the same: ask whether the thing has a coin price
 				-- at all before formatting one.
-				entry.sub.Text = ("%d medals"):format(info.medals)
+				entry.sub.Text = ("%d loot"):format(info.loot)
 				entry.sub.TextColor3 = Theme.GOOD
-				entry.button.BackgroundColor3 = if setUI.medals >= info.medals
+				entry.button.BackgroundColor3 = if setUI.loot >= info.loot
 					then ShopStyle.OWNED
 					else Theme.PAPER_DEEP
 			elseif info.drop then
@@ -2645,6 +2890,87 @@ local function buildFrontPage()
 		selectTab(2)
 	end)
 
+	-- THE NINTH CARD, AND THE GRID HAD BEEN HOLDING A CELL FOR IT.
+	--
+	-- The cell is `1/3` by `1/3`, which is nine exactly, and eight were used.
+	-- So this costs no height, no scroll and no arithmetic -- the front page's
+	-- one promise, that it is a whole screen with nothing below the fold,
+	-- keeps itself here as it does everywhere else on this page.
+	--
+	-- It has to be on the map for the same reason Defend / Rob did. That entry
+	-- is written directly above: a front page that is a map of the shop cannot
+	-- leave out a tab, and the fault is invisible -- the tab exists, it works,
+	-- and a nine-year-old simply never learns it is there. Crates are worse in
+	-- that respect than the trees were, because a crate is the only thing in
+	-- this shop nothing else in the game mentions.
+	--
+	-- Same shape as the trees card and for the same reason: no catalogue
+	-- behind it, so nothing to count, preview or price. A crate's own card in
+	-- the tab does all of that, and doing a smaller version of it here is the
+	-- copy that drifts.
+	local crates = Instance.new("TextButton")
+	crates.Name = "Shelf_crates"
+	crates.LayoutOrder = 9
+	crates.BackgroundColor3 = ShopStyle.HUE.crates
+	crates.BorderSizePixel = 0
+	crates.AutoButtonColor = true
+	crates.Text = ""
+	crates.Parent = scroll
+	corner(crates, 18)
+	ShopStyle.outline(crates, 4)
+	ShopStyle.gloss(crates)
+
+	local cratesTitle = Instance.new("TextLabel")
+	cratesTitle.Name = "Title"
+	cratesTitle.Size = UDim2.new(1, -28, 0, 22)
+	cratesTitle.Position = UDim2.new(0, 14, 0, 9)
+	cratesTitle.BackgroundTransparency = 1
+	cratesTitle.Font = Enum.Font.FredokaOne
+	cratesTitle.TextSize = 17
+	cratesTitle.TextXAlignment = Enum.TextXAlignment.Left
+	cratesTitle.TextColor3 = ShopStyle.INK
+	cratesTitle.Text = "CRATES"
+	cratesTitle.Parent = crates
+
+	local cratesGlyph = Instance.new("TextLabel")
+	cratesGlyph.Name = "Glyph"
+	cratesGlyph.Size = UDim2.new(1, 0, 1, -74)
+	cratesGlyph.Position = UDim2.new(0, 0, 0, 34)
+	cratesGlyph.BackgroundTransparency = 1
+	cratesGlyph.Font = Enum.Font.FredokaOne
+	cratesGlyph.TextScaled = true
+	cratesGlyph.Text = utf8.char(0x1F4E6)
+	cratesGlyph.Parent = crates
+
+	-- THE ONE FACT THAT HAS TO ARRIVE BEFORE THE BUTTON DOES. Every other
+	-- shelf sells a thing you can see; this one sells a chance, and the reason
+	-- that is fair for a nine-year-old is that a repeat is not a loss. Static,
+	-- exactly as the trees card's line is -- a count here would be a second,
+	-- smaller version of the progress chip the real card already carries.
+	local cratesState = ShopStyle.chip(crates, ShopStyle.INK, ShopStyle.LIGHT)
+	cratesState.Name = "State"
+	cratesState.Size = UDim2.new(0, 176, 0, 26)
+	cratesState.Position = UDim2.new(0, 14, 1, -34)
+	cratesState.Text = "A repeat pays a spare"
+
+	local cratesChevron = Instance.new("TextLabel")
+	cratesChevron.Name = "Chevron"
+	cratesChevron.Size = UDim2.new(0, 26, 0, 26)
+	cratesChevron.Position = UDim2.new(1, -38, 1, -34)
+	cratesChevron.BackgroundTransparency = 1
+	cratesChevron.Font = Enum.Font.FredokaOne
+	cratesChevron.TextSize = 24
+	cratesChevron.TextColor3 = ShopStyle.INK
+	cratesChevron.Text = utf8.char(0x203A)
+	cratesChevron.Parent = crates
+
+	-- Through `SHOP.at`, never a literal. The trees card can hardcode 2
+	-- because Upgrades has been the second tab since there were four; this one
+	-- is the newest tab in the rail and the first thing a ninth would move.
+	crates.Activated:Connect(function()
+		selectTab(SHOP.at.crates)
+	end)
+
 	frontUI.render = function()
 		for _, shelf in ipairs(shelves) do
 			local items = shelf.items()
@@ -2768,6 +3094,58 @@ end
 
 dodgeButton.Activated:Connect(requestDodge)
 
+-- ---------- the tiptoe slot ----------
+--
+-- Third on the dodge and garage row, and it is the ONLY control on this HUD
+-- most of the audience will ever use to sneak: most of them are on a tablet
+-- and will never press C, so a keyboard-only tiptoe would mean a watching
+-- guard dog is unbeatable on a touchscreen -- "defence buys time, never
+-- immunity" broken by an input gap rather than by a number.
+--
+-- x=174 IS THE GARAGE PICKER'S OWN ORIGIN, AND THE TWO CAN NEVER USEFULLY
+-- COEXIST, which is what makes sharing the space safe rather than a
+-- collision waiting to happen. A tiptoe is something you do on somebody
+-- else's lawn; a ride is switched off everywhere except the street
+-- (`Config.isOnStreet`), so the picker is irrelevant exactly where this
+-- button matters. It is hidden while the picker is open regardless -- belt
+-- and braces, the same call the dodge and trick buttons make about sharing
+-- a slot.
+--
+-- WRAPPED IN A `do` BLOCK SO IT COSTS THIS CHUNK NOTHING. ClientMain is one
+-- Luau chunk against a 200-local ceiling, and it has died twice for four
+-- top-level locals -- taking the ENTIRE HUD with it, naming some innocent
+-- variable two thousand lines away. Three locals live in here; the picker
+-- finds this button by name rather than holding a fourth.
+do
+
+local tiptoeButton = makeActionButton("TiptoeButton", "SNEAK", "SNEAK", "C",
+	Theme.MUTED, UDim2.new(0, 68, 0, 68), 18, gui, true)
+tiptoeButton.AnchorPoint = Vector2.new(0, 1)
+tiptoeButton.Position = UDim2.new(0, 174, 1, -140)
+
+tiptoeButton.Activated:Connect(function()
+	-- Asks; never assumes. The server refuses this while carrying and drops
+	-- it on a grab, so what comes back on TiptoeState is the only truth.
+	Remotes.get("TiptoeRequest"):FireServer(gui:GetAttribute("Tiptoe") ~= true)
+end)
+
+-- THE KEY CHIP CARRIES THE STATE, which is the pattern the hot bar already
+-- uses: the chip shows the key normally and a state word while something is
+-- running. A second widget saying ON would be a light nobody looks at.
+gui:GetAttributeChangedSignal("Tiptoe"):Connect(function()
+	local on = gui:GetAttribute("Tiptoe") == true
+	local chip = tiptoeButton:FindFirstChild("Key") :: TextLabel?
+	if chip then
+		chip.Text = if on then "ON" else "C"
+	end
+	local label = tiptoeButton:FindFirstChild("Label") :: TextLabel?
+	if label then
+		label.Text = if on then "SNEAKING" else "SNEAK"
+	end
+end)
+
+end
+
 -- WHETHER the bar is up is this file's business; HOW it is arranged is the
 -- module's. Nothing to throw from inside a wheelie bin, so the bar goes with
 -- the prompts rather than sitting there live for a player who cannot use it --
@@ -2783,6 +3161,10 @@ HotBar.shouldShow = function(): boolean
 	-- function already exists to suppress.
 	return not boxedNow
 		and not panel.Visible
+		-- The bag panel is the same size in the same place, so it hides the
+		-- bar for the same reason. Read as an attribute because the panel
+		-- itself is built a long way below this function.
+		and not gui:GetAttribute("BagOpen")
 		and (boneHeld or gadgetUI.held or homeUI.held or stealthUI.held)
 end
 
@@ -3991,10 +4373,10 @@ local function renderRides()
 			tile.sub.Text = ("RIDE  ·  +%d%%"):format(info.boost)
 			tile.sub.TextColor3 = Theme.MUTED_LIGHT
 			tile.button.BackgroundColor3 = ShopStyle.CARD
-		elseif info.medals then
-			tile.sub.Text = ("%d medals  ·  +%d%%"):format(info.medals, info.boost)
+		elseif info.loot then
+			tile.sub.Text = ("%d loot  ·  +%d%%"):format(info.loot, info.boost)
 			tile.sub.TextColor3 = Theme.GOOD
-			tile.button.BackgroundColor3 = if setUI.medals >= info.medals
+			tile.button.BackgroundColor3 = if setUI.loot >= info.loot
 				then ShopStyle.OWNED
 				else ShopStyle.DEAR
 		else
@@ -4138,14 +4520,14 @@ local function renderCollection()
 	if not c then
 		return
 	end
-	-- PRICED IN TOKENS, NOT COINS, so the affordability colour is measured
+	-- PRICED IN LOOT, NOT COINS, so the affordability colour is measured
 	-- against the balance the server pushed beside the price rather than
 	-- against `latestCoins`. Reading the coin balance here after the roll
 	-- changed currency would have left the button lit for anybody rich, on a
 	-- purchase their coins can no longer make -- the worst shape this bug has,
 	-- because the button would look ready and the refusal would arrive after
 	-- the tap.
-	local held = c.tokens or 0
+	local held = c.loot or 0
 	local currency = c.currency or Config.ROLL_CURRENCY.plural
 	if c.cost then
 		rollButton.Text = ("ROLL  ·  %d %s"):format(c.cost, string.upper(currency))
@@ -4153,14 +4535,14 @@ local function renderCollection()
 			then Theme.HUE.effects
 			else Theme.MUTED
 		-- THE NOTE NAMES THE SOURCE, because this is the only price in the shop
-		-- that more coins cannot meet. A player short of tokens who is told
+		-- that more coins cannot meet. A player short of loot who is told
 		-- nothing will go and earn coins -- which is what every other price on
 		-- this screen has taught them -- and come back to the same refusal.
 		rollNote.Text = ("You have %d %s.  %d of %d collected.  "):format(
 				held, currency, c.owned, c.total)
-			.. ("%s come from your daily reward and from being on the street when "):format(currency)
-			.. "an event ends. They cannot be bought. A roll always gives something "
-			.. "you do not own yet, so the set always finishes."
+			.. ("%s comes from robbing: every stolen piggy you get home pays one, "):format(currency)
+			.. "and getting even pays two. It cannot be bought. A roll always gives "
+			.. "something you do not own yet, so the set always finishes."
 	else
 		rollButton.Text = "COLLECTION COMPLETE"
 		rollButton.BackgroundColor3 = Theme.GOOD
@@ -4383,7 +4765,7 @@ cosmeticInfo = function(kind: string, key: string): any?
 end
 
 -- ============================================================
--- MEDALS, SETS AND THE DROP REEL
+-- LOOT, SETS AND THE DROP REEL
 -- ============================================================
 --
 -- Wrapped, because this chunk is at Luau's 200-local ceiling: a `do` block
@@ -4392,10 +4774,13 @@ end
 -- HUD, since the chunk never compiles and nothing gets built.
 do
 	Remotes.get("SetState").OnClientEvent:Connect(function(state)
-		setUI.medals = state.medals or 0
+		setUI.loot = state.loot or 0
 		setUI.sets = state.sets
 		setUI.dirty = true
-		-- The cosmetic cards colour their medal prices against this balance,
+		-- The Alien Cache is priced in loot, so its buy state moves with this
+		-- push and with no other. `ChestState` is fired on a chest ACTION.
+		Crates.setBalance(nil, setUI.loot)
+		-- The cosmetic cards colour their loot prices against this balance,
 		-- so they have to be redrawn when it moves.
 		renderCosmetics()
 	end)
@@ -4432,6 +4817,208 @@ do
 	Remotes.get("EventDrop").OnClientEvent:Connect(function(payload)
 		SpinWheel.play(gui, payload, iconFor)
 	end)
+
+	-- THE CRATES TAB IS WIRED IN HERE RATHER THAN BESIDE ITS TAB, because
+	-- `iconFor` is local to this block and a crate card is three real item
+	-- previews. Lifting that helper to the top level to reach it from further
+	-- up would cost a register on a chunk that has none spare, to solve a
+	-- problem that is only about where two lines sit.
+	Crates.init(SHOP.view.crates, {
+		gui = gui,
+		iconFor = iconFor,
+		format = format,
+		-- The click means "open this crate", never "open it for this price":
+		-- the key and nothing else, so there is no cost on the wire to forge
+		-- and the server re-reads every number it charges.
+		open = function(chestKey: string)
+			Remotes.get("ChestOpen"):FireServer(chestKey)
+		end,
+	})
+	Remotes.get("ChestState").OnClientEvent:Connect(Crates.render)
+	Remotes.get("ChestResult").OnClientEvent:Connect(Crates.reveal)
+
+	-- THE INVENTORY IS WIRED IN THE SAME BLOCK AND FOR THE SAME REASON: it
+	-- renders a real model per owned item, so it needs `iconFor`, and this
+	-- chunk has no top-level register to spare for a require.
+	--
+	-- REQUIRED INLINE, holding no local at all. `Inventory` keeps its own
+	-- module state, so nothing up here needs a handle on it -- the three
+	-- pushes below are the entire interface.
+	local Inv = require(ReplicatedStorage.Shared.Inventory)
+
+	-- ---- THE BAG PANEL -------------------------------------------------
+	--
+	-- Its own panel rather than a shop tab, because it is its own VERB. The
+	-- shop is where you spend; this is where you look at what you already
+	-- own, wear it, and turn a spare back into coins. Nothing in here has a
+	-- price on it, which is the invariant the whole split exists to protect.
+	--
+	-- Built to the shop panel's exact geometry and furniture -- same scale,
+	-- same cap, same corner, same red close button. Two full-screen panels
+	-- one tap apart that were nearly-but-not-quite the same shape would read
+	-- as a bug rather than as a pair.
+	local bag = Instance.new("Frame")
+	bag.Name = "BagPanel"
+	bag.Size = UDim2.new(0.92, 0, 0.86, 0)
+	bag.Position = UDim2.fromScale(0.5, 0.5)
+	bag.AnchorPoint = Vector2.new(0.5, 0.5)
+	bag.BackgroundColor3 = ShopStyle.BASE
+	bag.BorderSizePixel = 0
+	bag.Visible = false
+	bag.Parent = gui
+	corner(bag, 22)
+	ShopStyle.outline(bag, 4)
+
+	local bagSize = Instance.new("UISizeConstraint")
+	bagSize.MaxSize = Vector2.new(1040, 660)
+	bagSize.MinSize = Vector2.new(300, 240)
+	bagSize.Parent = bag
+
+	local bagTitle = Instance.new("TextLabel")
+	bagTitle.Name = "Title"
+	bagTitle.Size = UDim2.new(1, -120, 0, 44)
+	bagTitle.Position = UDim2.new(0, 18, 0, 6)
+	bagTitle.BackgroundTransparency = 1
+	bagTitle.Font = Enum.Font.FredokaOne
+	bagTitle.TextSize = 24
+	bagTitle.TextXAlignment = Enum.TextXAlignment.Left
+	bagTitle.TextColor3 = ShopStyle.TEXT
+	bagTitle.Text = "YOUR STUFF"
+	bagTitle.Parent = bag
+
+	-- U+00D7, not a capital X, and red -- the same close button the shop
+	-- carries. This file has already measured which glyphs Roblox actually
+	-- has: the heavy ballot crosses render as tofu and U+2714 ignores
+	-- TextColor3, while the multiplication sign renders and takes its colour.
+	local bagClose = Instance.new("TextButton")
+	bagClose.Name = "CloseBag"
+	bagClose.Size = UDim2.new(0, 44, 0, 44)
+	bagClose.Position = UDim2.new(1, -46, 0, 4)
+	bagClose.BackgroundColor3 = ShopStyle.STOP
+	bagClose.BorderSizePixel = 0
+	bagClose.Font = Enum.Font.FredokaOne
+	bagClose.TextSize = 28
+	bagClose.TextColor3 = ShopStyle.LIGHT
+	bagClose.AutoButtonColor = true
+	bagClose.Text = utf8.char(0x00D7)
+	bagClose.Parent = bag
+	corner(bagClose, 14)
+	ShopStyle.outline(bagClose, 3)
+	ShopStyle.gloss(bagClose)
+	ShopStyle.pop(bagClose, 2)
+
+	local bagBody = Instance.new("Frame")
+	bagBody.Name = "InventoryView"
+	bagBody.Size = UDim2.new(1, -20, 1, -62)
+	bagBody.Position = UDim2.new(0, 10, 0, 54)
+	bagBody.BackgroundTransparency = 1
+	bagBody.Parent = bag
+
+	Inv.init(bagBody, {
+		gui = gui,
+		iconFor = iconFor,
+		format = format,
+		-- The shop's OWN remote, not a second equip path. Two ways to equip
+		-- is two things that can disagree about what you are wearing, which
+		-- is the rule the garage slot already follows for rides.
+		equip = function(wire: string, key: string)
+			if wire == "ride" then
+				Remotes.get("RideRequest"):FireServer(key)
+			else
+				Remotes.get("CosmeticRequest"):FireServer(wire, key)
+			end
+		end,
+		-- Kind, key and a count -- never a value. The server re-reads
+		-- `Config.sellValue` and re-checks the capacity, exactly as
+		-- `ChestOpen` re-reads a cost, so there is no payout on the wire.
+		sell = function(kind: string, key: string, count: number)
+			Remotes.get("SpareSell"):FireServer(kind, key, count)
+		end,
+	})
+
+	-- ---- THE BUTTON ----------------------------------------------------
+	--
+	-- Beside SHOP in the bottom-right, which is the one HUD corner with room:
+	-- it went from 210x172 to 210x50 when EARN moved into the Upgrades tab,
+	-- and the frame is `AutomaticSize.Y` anchored to the corner, so a second
+	-- row grows it UPWARD and the shop button does not move. That matters --
+	-- it is the control players already know the position of.
+	--
+	-- LayoutOrder 0 puts the bag ABOVE the shop rather than below it, so
+	-- SHOP keeps the actual corner.
+	--
+	-- The pink is the piggy's own hue, which it wore as a tab: almost
+	-- everything in here is a pig cosmetic. It is safe against the rule that
+	-- pink and gold go on OBJECTS rather than under them -- that is about
+	-- large GROUNDS, and this is a 50-pixel button whose ink is already
+	-- measured against this exact hue, since every category hue has to carry
+	-- ink type at 4.5 to be a tab at all.
+	local bagToggle = makeActionButton("BagToggle", utf8.char(0x1F392), "STUFF",
+		"I", Theme.HUE.piggy, UDim2.new(1, 0, 0, 50), 21, shop)
+	bagToggle.LayoutOrder = 0
+
+	-- TWO FULL-SCREEN PANELS MAY NEVER BE OPEN AT ONCE. They are the same
+	-- size in the same place, so the loser is invisible underneath and its
+	-- close button is unreachable -- a player would be looking at the shop
+	-- with no way to know the bag was still open behind it.
+	--
+	-- WATCHED RATHER THAN POKED FROM THE PLACES THAT TOGGLE, the same call
+	-- Rebirth and the hot bar already make on this panel: the shop is opened
+	-- from a button, a close X, the B key, and a shop DOOR on the street, and
+	-- three of those are defined above this block and could not call in here.
+	local function setBag(open: boolean)
+		bag.Visible = open
+		-- An ATTRIBUTE rather than a local, because the three functions that
+		-- have to respect this -- the hot bar's `shouldShow`, `heldUI.use`
+		-- and `Rebirth.canShow` -- are all defined further down and this
+		-- chunk has no top-level register to spare for a flag.
+		gui:SetAttribute("BagOpen", open)
+		if open then
+			panel.Visible = false
+		end
+	end
+
+	bagToggle.Activated:Connect(function()
+		setBag(not bag.Visible)
+	end)
+	bagClose.Activated:Connect(function()
+		setBag(false)
+	end)
+	panel:GetPropertyChangedSignal("Visible"):Connect(function()
+		if panel.Visible then
+			setBag(false)
+		end
+	end)
+
+	-- The same two duties the shop panel's own visibility carries: the hot
+	-- bar is a row of throwables a player cannot throw while reading a
+	-- panel, and the rebirth button is pinned where this panel's header sits.
+	bag:GetPropertyChangedSignal("Visible"):Connect(HotBar.refresh)
+	bag:GetPropertyChangedSignal("Visible"):Connect(Rebirth.sync)
+
+	-- I opens it, Escape closes it -- the same shape as B for the shop. The
+	-- button stays the primary route: most of this audience is on a
+	-- touchscreen and will never press a key. Checked against the map in
+	-- CLAUDE.md before taking it: Q dodge/trick, B shop, V garage, R radio,
+	-- Escape close, F2 admin, 1-0 the hot bar. I was free.
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if processed then
+			return
+		end
+		if input.KeyCode == Enum.KeyCode.I then
+			setBag(not bag.Visible)
+		elseif input.KeyCode == Enum.KeyCode.Escape and bag.Visible then
+			setBag(false)
+		end
+	end)
+
+	-- THREE PUSHES, THREE SOURCES, AND A SECOND CONNECTION RATHER THAN A CALL
+	-- BOLTED INTO THE EXISTING HANDLERS. Those handlers are above this block
+	-- and cannot see `Inv`; connecting again is free, keeps this feature in
+	-- one place, and means nothing up there has to know the tab exists.
+	Remotes.get("CosmeticState").OnClientEvent:Connect(Inv.setCosmetics)
+	Remotes.get("RideState").OnClientEvent:Connect(Inv.setRides)
+	Remotes.get("ChestState").OnClientEvent:Connect(Inv.setChest)
 end
 
 Remotes.get("GadgetState").OnClientEvent:Connect(function(snapshot)
@@ -5009,6 +5596,16 @@ local function buildGarage()
 		pickerOpen = open
 		picker.Visible = open
 		slotEdge.Color = if open then OPEN_EDGE else IDLE_EDGE
+		-- The fan starts at exactly this slot's right edge, which is where
+		-- the tiptoe button stands. The two are already mutually exclusive in
+		-- practice -- a sneak is something you do on a lawn and a ride is
+		-- switched off anywhere but the street -- so this is belt and braces
+		-- rather than the real guarantee. Found by NAME rather than held in a
+		-- local: this chunk is at the 200-register ceiling.
+		local sneak = gui:FindFirstChild("TiptoeButton") :: GuiObject?
+		if sneak then
+			sneak.Visible = not open
+		end
 	end
 
 	local pickerTiles: { [string]: { button: TextButton, label: TextLabel } } = {}
@@ -5310,6 +5907,26 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		if not ridingNow then
 			requestDodge()
 		end
+	elseif input.KeyCode == Enum.KeyCode.C then
+		-- TIPTOE. C is the crouch key everywhere else on this platform, and it
+		-- was free: the map is Q dodge/trick, B shop, V garage, R radio, I
+		-- bag, Escape close, F2 admin, and 1-0 the hot bar.
+		--
+		-- A TOGGLE RATHER THAN A HOLD. Most of this audience is on a tablet
+		-- and a hold is a thumb they cannot spare while also steering; a
+		-- toggle is one tap either way and survives a finger slipping.
+		--
+		-- The client only ASKS. Whether a sneak is allowed is the server's --
+		-- it refuses one while you are carrying, and drops it out from under
+		-- you the moment you grab a pig -- so the button's state comes back on
+		-- `TiptoeState` rather than being assumed here.
+		--
+		-- The current state rides an ATTRIBUTE ON THE ScreenGui rather than a
+		-- local, which is the register budget again -- the same call the bag
+		-- panel's `BagOpen` flag makes. This chunk has no top-level register
+		-- spare, an attribute costs none, is readable from anywhere, and
+		-- cannot go stale the way a second copy of the state would.
+		Remotes.get("TiptoeRequest"):FireServer(gui:GetAttribute("Tiptoe") ~= true)
 	elseif input.KeyCode == Enum.KeyCode.V then
 		-- The garage fan-out. V for vehicle, and free: Q is the dodge and the
 		-- trick, B opens the shop, and the number row is the item bar.
@@ -5329,6 +5946,14 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		-- the player can drag tiles and the key follows the slot -- so a map
 		-- iterated here would have to be kept in step with an arrangement it
 		-- does not own.
+		--
+		-- THE "DO NOTHING" HALF IS ENFORCED IN `itemForKey`, NOT HERE, and it
+		-- was missing for a long time: this branch fired for an empty slot, so
+		-- pressing its number named the item over the bar AND asked the server
+		-- to draw one, which refused by name. Two messages about something you
+		-- do not have, from a tile that is not on screen. Nothing below needs
+		-- a stock test now, because a nil key already means "not yours to
+		-- press" rather than only "past the end of the row".
 		local key = HotBar.itemForKey(input.KeyCode)
 		if key then
 			-- Named on press, because a touch player never hovers anything and
@@ -5360,7 +5985,7 @@ end)
 -- there".
 function heldUI.use()
 	local key = heldUI.key
-	if not key or panel.Visible or dailyOpen then
+	if not key or panel.Visible or dailyOpen or gui:GetAttribute("BagOpen") then
 		return
 	end
 	if latestBones and latestBones[key] then
@@ -5515,7 +6140,7 @@ end
 -- was covering the roll button outright. Whether it is affordable is the
 -- module's business; whether anything is covering it is ours.
 Rebirth.canShow = function(): boolean
-	return not panel.Visible and not dailyOpen
+	return not panel.Visible and not dailyOpen and not gui:GetAttribute("BagOpen")
 end
 -- `makeModelIcon` is handed over rather than reimplemented: the unlock band
 -- renders real piggies now, and the framing, tilt and visual-centre rules
@@ -5592,35 +6217,10 @@ local function renderUpgrades()
 		-- changes with the level rather than being fixed at row creation.
 		row.blurb.Text = info.blurb
 
-		-- THE LADDER. Rebuilt only when the RUNG COUNT changes, which is
-		-- almost never -- repainting is one property per pip, where tearing
-		-- the row down every push would rebuild six of these on every coin
-		-- tick. Pips share the row's width, so a four-rung tree and a
-		-- five-rung one both fill the same bar and the trees stay comparable.
-		local pips = row.pips
-		if #pips:GetChildren() - 1 ~= info.max then
-			for _, old in ipairs(pips:GetChildren()) do
-				if old:IsA("Frame") then
-					old:Destroy()
-				end
-			end
-			for i = 1, info.max do
-				local pip = Instance.new("Frame")
-				pip.Name = "Pip" .. i
-				pip.Size = UDim2.new(1 / info.max, -4, 1, 0)
-				pip.LayoutOrder = i
-				pip.BorderSizePixel = 0
-				pip.Parent = pips
-				corner(pip, 5)
-				ShopStyle.outline(pip, 2)
-			end
-		end
-		for i, pip in ipairs(pips:GetChildren()) do
-			if pip:IsA("Frame") then
-				pip.BackgroundColor3 = if pip.LayoutOrder <= info.level
-					then row.accent else Theme.SAND_DEEP
-			end
-		end
+		-- Pips, not a bar: a tree is four or five rungs, which is a thing you
+		-- can count at a glance. See paintLadder for why the two EARN rows ask
+		-- for the other kind.
+		paintLadder(row, info.level, info.max, false)
 
 		if info.level >= info.max then
 			row.cost.Text = "MAXED"
@@ -5650,34 +6250,49 @@ local function renderUpgrades()
 end
 
 local function render(state: any)
+	-- ONE BALANCE, ONE READOUT. The pig is the wallet, so this figure and
+	-- the bar under it are the same number: the bar is a picture of it
+	-- against capacity, and the label on the bar names the capacity rather
+	-- than repeating the figure.
 	coinLabel.Text = format(state.coins)
 	latestCoins = state.coins
 	renderUpgrades()
+	-- Four of the five crates are priced in coins, and coins move on their own
+	-- clock rather than on `ChestState`. Only the buy state repaints -- the
+	-- cards themselves are built once, or this would rebuild fifteen
+	-- ViewportFrames every time a coin landed.
+	Crates.setBalance(state.coins, nil)
 
-	vaultLabel.Text = ("%s / %s"):format(format(state.vault), format(state.capacity))
+	-- FULL IS ITS OWN SENTENCE, because it is the one state of this bar that
+	-- asks the player to DO something. Everywhere else it names the ceiling
+	-- the fill is measured against. A pig can sit ABOVE capacity after a
+	-- robbery, which `full` reports honestly and a ratio cannot.
+	vaultLabel.Text = if state.full
+		then "FULL  ·  spend to earn again"
+		else ("of %s"):format(format(state.capacity))
 	rateLabel.Text = ("+%s/s"):format(format(state.rate))
 
-	local ratio = if state.capacity > 0 then math.clamp(state.vault / state.capacity, 0, 1) else 0
+	local ratio = if state.capacity > 0 then math.clamp(state.coins / state.capacity, 0, 1) else 0
 	TweenService:Create(
 		barFill,
 		TweenInfo.new(0.28, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
 		{ Size = UDim2.fromScale(ratio, 1) }
 	):Play()
 
-	-- Turn the bar red at capacity: income has stopped, go bank it.
-	barFill.BackgroundColor3 = if ratio >= 0.999 then WARN else GOLD
+	-- Turn the bar red at capacity: income has stopped, spend some. `full`
+	-- rather than the ratio because an overfull pig reads as 1.0 either way
+	-- and is just as stopped.
+	barFill.BackgroundColor3 = if state.full or ratio >= 0.999 then WARN else GOLD
 
-	if state.incomeLevel >= state.maxIncome then
-		incomeCost.Text = "MAX"
-	else
-		incomeCost.Text = ("%s  -  Lv %d"):format(format(state.incomeCost), state.incomeLevel)
-	end
-
-	if state.capacityLevel >= state.maxCapacity then
-		capacityCost.Text = "MAX"
-	else
-		capacityCost.Text = ("%s  -  Lv %d"):format(format(state.capacityCost), state.capacityLevel)
-	end
+	-- The two EARN rows in the Upgrades tab. They are painted from HERE and
+	-- not from renderUpgrades, because their levels, ceilings and prices ride
+	-- the economy push rather than the upgrade snapshot -- and the ceiling is
+	-- the reason that matters: `maxIncome` and `maxCapacity` grow with every
+	-- rebirth, so the bar's own length is state rather than a constant.
+	paintEarn(earn.rows.income, state.incomeLevel, state.maxIncome,
+		state.incomeCost, state.coins)
+	paintEarn(earn.rows.capacity, state.capacityLevel, state.maxCapacity,
+		state.capacityCost, state.coins)
 
 	-- Coins, piggy bank, both upgrade levels and the rebirth count all go
 	-- across: the page is built out of what the player actually has, and this
@@ -5690,10 +6305,6 @@ local function render(state: any)
 		friendChip.Text = ("Friends  +%d%%"):format(math.floor(bonus * 100))
 	end
 
-	local canBuyIncome = state.coins >= state.incomeCost and state.incomeLevel < state.maxIncome
-	local canBuyCapacity = state.coins >= state.capacityCost and state.capacityLevel < state.maxCapacity
-	incomeButton.BackgroundColor3 = if canBuyIncome then ShopStyle.BUY else PANEL
-	capacityButton.BackgroundColor3 = if canBuyCapacity then ShopStyle.BUY else PANEL
 end
 
 Remotes.get("StateUpdate").OnClientEvent:Connect(render)
@@ -5701,11 +6312,7 @@ Remotes.get("StateUpdate").OnClientEvent:Connect(render)
 Remotes.get("UpgradeState").OnClientEvent:Connect(function(snapshot)
 	latestUpgrades = snapshot
 	Rebirth.onUpgrades(snapshot)
-	myLockpicks = (snapshot.lockpicks and snapshot.lockpicks.level) or 0
 	renderUpgrades()
-	if refreshStealPrompts then
-		refreshStealPrompts()
-	end
 end)
 
 -- Revenge marker. Built client-side from a server ping so only the victim
@@ -5755,18 +6362,26 @@ Remotes.get("CarryUpdate").OnClientEvent:Connect(function(amount: number)
 	if amount > 0 then
 		carryLabel.Text = ("%s  CARRYING %s %s RUN HOME!"):format(GLYPH.loot, format(amount), GLYPH.dot)
 	end
+	-- The steal prompts change meaning the instant loot is in hand: you cannot
+	-- rob anybody while carrying, so every one of them stops quoting a take
+	-- and starts naming the haul instead.
+	stealInfo.carrying = amount
+	if refreshStealPrompts then
+		refreshStealPrompts()
+	end
 end)
 
 -- ============================================================
 -- PROMPT VISIBILITY
 -- ============================================================
 --
--- Each piggy carries both a "Bank Coins" and a "Steal Coins" prompt. Which
--- one you see depends on whether the plot is yours. Doing this on the client
--- is purely presentational -- the server re-checks ownership on every
--- trigger, so an exploiter re-enabling the wrong prompt gets nothing.
+-- Each piggy carries a "Steal Coins" prompt, enabled for everybody but the
+-- owner. There is no collect prompt since the pivot: the pig is the wallet
+-- and nothing is banked. Doing this on the client is purely presentational --
+-- the server re-checks ownership on every trigger, so an exploiter
+-- re-enabling the prompt on their own piggy gets nothing.
 
-local boundPlots: { { model: Instance, collect: ProximityPrompt, steal: ProximityPrompt } } = {}
+local boundPlots: { { model: Instance, steal: ProximityPrompt } } = {}
 
 -- Re-times our own steal prompts so the bar we watch matches the time we
 -- actually need: the owner's locks against our lockpicks.
@@ -5781,18 +6396,57 @@ local boundPlots: { { model: Instance, collect: ProximityPrompt, steal: Proximit
 -- the client.
 function refreshStealPrompts()
 	for _, entry in ipairs(boundPlots) do
-		local lockLevel = entry.model:GetAttribute("LockLevel") or 0
-		local hold = Config.getStealHold(lockLevel, myLockpicks)
-		entry.steal.HoldDuration = hold
-
-		-- Put the number on the prompt. The hold was always the mechanic, but
-		-- a ProximityPrompt animates its ring over whatever duration it is
-		-- given, so three seconds and nine seconds looked identical and the
-		-- whole lock/lockpick axis read as decorative.
-		entry.steal.ActionText = ("Crack Lock  %.1fs"):format(hold)
+		local lockLevel = entry.model:GetAttribute(Config.PLOT_LOCK_ATTRIBUTE) or 0
+		-- A FLAT HALF SECOND, AND NO LONGER A NUMBER WORTH PRINTING.
+		--
+		-- What used to be here re-timed the ring against the victim's Vault
+		-- Lock and this player's own Lockpicks, and printed the result on the
+		-- prompt -- because the hold WAS the mechanic and a prompt animates
+		-- its ring over whatever duration it is given, so three seconds and
+		-- nine looked identical and the whole axis read as decorative.
+		--
+		-- Both trees still pull on that axis; they pull on the crack's ZONE
+		-- WIDTHS now (Config.getCrackWindow), which is drawn as a target you
+		-- can see rather than as a duration you have to be told. So this hold
+		-- is a doorknob and the lock level goes on the label instead.
+		entry.steal.HoldDuration = Config.CRACK.openHold
+		entry.steal.ActionText = "Crack Lock"
 		entry.steal.ObjectText = if lockLevel > 0
 			then ("Vault Lock Lv%d"):format(lockLevel)
 			else "Unlocked Piggy"
+
+		-- WHAT IS IN IT, WHICH USED TO BE WHAT YOU WOULD TAKE.
+		--
+		-- The old figure was the one flat take, computed here over the same
+		-- Config function the server used, and it was worth printing because
+		-- a take was a CONSTANT. It is a decision now: five slices running
+		-- 2% to 7.7% of the pig, any prefix of which the thief may walk away
+		-- with. There is no single number left that is both true and useful
+		-- -- the first slice under-sells the pig by a factor of ten, and a
+		-- clean-run total is a promise the loss cap may refuse.
+		--
+		-- So the prompt says what the pile in front of them holds and the
+		-- crack panel does the rest, which is where the decision now actually
+		-- happens. That deliberately makes this the same figure the rob badge
+		-- shows from the pavement: two readouts of one true thing at two
+		-- distances, rather than two numbers a player has to reconcile.
+		--
+		-- Presentation only. The server re-derives every slice as it is
+		-- landed and never reads a word of this.
+		if stealInfo.carrying > 0 then
+			-- You cannot rob anybody while carrying -- attemptSteal refuses
+			-- with "take it home first". The prompt used to look completely
+			-- available and then spend a hold finding that out, so it says so
+			-- up front and names the haul it is protecting.
+			entry.steal.ObjectText = ("Holding %s %s run home"):format(format(stealInfo.carrying), GLYPH.dot)
+			entry.steal:SetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE, "")
+		else
+			local vault = math.floor(entry.model:GetAttribute(Config.PLOT_VAULT_ATTRIBUTE) or 0)
+			-- An empty piggy is refused outright, so saying so saves a hold
+			-- that was always going to end in a rejection toast.
+			entry.steal:SetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE,
+				if vault > 0 then ("~%s"):format(format(vault)) else "EMPTY")
+		end
 	end
 end
 
@@ -5806,23 +6460,30 @@ local function bindPlot(plotModel: Instance)
 		return
 	end
 
-	local collectPrompt = body:WaitForChild("CollectPrompt", 10) :: ProximityPrompt
 	local stealPrompt = body:WaitForChild("StealPrompt", 10) :: ProximityPrompt
 
 	local function refresh()
 		local ownerId = plotModel:GetAttribute("OwnerUserId")
 		local isMine = ownerId == player.UserId
 		local isOwned = ownerId ~= nil
+		-- A plot nobody lives on has a RESIDENT on it, and a resident is
+		-- robbable. Without this the prompt stayed off for every unclaimed
+		-- plot and the whole neighbour system was inert -- the test used to
+		-- be `isOwned`, which is a question about PLAYERS rather than about
+		-- whether there is anything in that pig.
+		local hasResident = plotModel:GetAttribute(Config.PLOT_RESIDENT_ATTRIBUTE) ~= nil
 
-		collectPrompt.Enabled = isMine
-		stealPrompt.Enabled = isOwned and not isMine
+		stealPrompt.Enabled = (isOwned and not isMine) or (not isOwned and hasResident)
 	end
 
 	plotModel:GetAttributeChangedSignal("OwnerUserId"):Connect(refresh)
+	plotModel:GetAttributeChangedSignal(Config.PLOT_RESIDENT_ATTRIBUTE):Connect(refresh)
 	refresh()
 
-	table.insert(boundPlots, { model = plotModel, collect = collectPrompt, steal = stealPrompt })
-	plotModel:GetAttributeChangedSignal("LockLevel"):Connect(refreshStealPrompts)
+	table.insert(boundPlots, { model = plotModel, steal = stealPrompt })
+	plotModel:GetAttributeChangedSignal(Config.PLOT_LOCK_ATTRIBUTE):Connect(refreshStealPrompts)
+	-- The pile fills every second, so the quoted take has to follow it.
+	plotModel:GetAttributeChangedSignal(Config.PLOT_VAULT_ATTRIBUTE):Connect(refreshStealPrompts)
 	refreshStealPrompts()
 end
 
@@ -5859,12 +6520,56 @@ task.spawn(function()
 	end)
 end)
 
-incomeButton.Activated:Connect(function()
-	Remotes.get("PurchaseRequest"):FireServer("income")
-end)
+-- CAN I ROB THAT ONE? -- answered from the pavement rather than at the prompt.
+--
+-- REQUIRED AND STARTED IN ONE STATEMENT, holding no local of its own, because
+-- this chunk is at Luau's 200-local ceiling and the three the badge originally
+-- wanted went straight through it. That does not cost the badge, it costs the
+-- ENTIRE HUD: the chunk never compiles, so nothing gets built, and the error
+-- names whatever variable happened to be next in line -- `buildBustScene`,
+-- two thousand lines away and nothing to do with it.
+--
+-- It also wants nothing from here. The badge is a function of plot attributes,
+-- the Player list and one remote, so it finds its own plots and needs no hook
+-- in `bindPlot`.
+require(ReplicatedStorage.Shared.RobBadge).start(player)
 
-capacityButton.Activated:Connect(function()
-	Remotes.get("PurchaseRequest"):FireServer("capacity")
+-- THE CRACK PANEL. Same shape and the same two reasons as the badge above it:
+-- a module required and started in one statement holding no local, because
+-- this chunk is at the 200-register ceiling; and it wants nothing from here,
+-- because everything it draws arrives on one remote from the server that
+-- decided it.
+require(ReplicatedStorage.Shared.Crack).start(gui)
+
+-- THE ONE LINE OF ONBOARDING THIS GAME HAS. Same shape and same reason as
+-- the badge above it: a module, required and started in a single statement
+-- holding no local at all, because this chunk is at the 200-register ceiling
+-- and has twice lost the ENTIRE HUD to four of them.
+--
+-- It needs the ScreenGui because its card is a HUD element rather than
+-- something standing on a lawn; everything else it needs it reads off plot
+-- attributes and one attribute on the player.
+require(ReplicatedStorage.Shared.FirstJob).start(player, gui)
+
+-- THE SESSION ARC, WHICH HAD A MECHANISM AND NO DISPLAY. The rap sheet, Most
+-- Wanted and the pursuit floor already model an arc across a session, and the
+-- only places any of it surfaced were a poster out on the street and toasts
+-- that are gone in six seconds.
+--
+-- It sits directly under the event chip because it is the same KIND of thing:
+-- the top-centre column is alerts, and this corner is standing readouts --
+-- what you have, what the street is about to do, and now what you have done.
+-- Same one-statement, no-local shape as the two modules above it.
+require(ReplicatedStorage.Shared.Wanted).start(gui)
+
+-- THE SERVER OWNS WHETHER YOU ARE SNEAKING, and this is the only thing that
+-- writes the flag. It can refuse a request (carrying) and can drop a live
+-- sneak without being asked (grabbing a pig), so a client that set the flag
+-- optimistically when it pressed C would show ON through an entire getaway.
+-- Written as a bare statement holding no local: see the key handler for why
+-- this lives on the ScreenGui rather than in a variable.
+Remotes.get("TiptoeState").OnClientEvent:Connect(function(on)
+	gui:SetAttribute("Tiptoe", on == true)
 end)
 
 -- ============================================================
@@ -5926,6 +6631,11 @@ end)
 --
 -- One Heartbeat loop drives every piggy on the map rather than one loop each.
 
+-- "Trim" IS THE MESH PIGGY'S WHOLE TRIM ON ONE PART, and it has to be in
+-- this list or an animated skin drives the body and leaves the ears, muzzle,
+-- hooves and tail on their static colour -- forever, on 23 skins, with
+-- nothing in the log. The four primitive names stay beside it because an
+-- empty mesh id is still a supported state.
 local ANIMATED_TRIM = { "Snout", "Tail", "Ear", "Leg" }
 
 local animatedPiggies: {
@@ -6324,49 +7034,10 @@ local function buildDailyRewards()
 		what.ZIndex = 42
 		what.Parent = card
 
-		-- THE TOKEN PIP. Its own label in the free band between the day number
-		-- and the reward word, rather than a second line inside `what`: that
-		-- label is TextScaled inside 34 pixels, so wrapping a second line into
-		-- it would halve the type on every card in the row to say something
-		-- about one of them.
-		--
-		-- On every card, because the rung it describes is FIXED AND PUBLISHED
-		-- like everything else on this board -- day seven's five is the reason
-		-- to come back on day six, and it is no use as a reason if you cannot
-		-- see it until you get there.
-		local rung = Config.DAILY_CYCLE[i]
-		local tok = Instance.new("TextLabel")
-		tok.Size = UDim2.new(1, -8, 0, 16)
-		tok.Position = UDim2.new(0, 4, 0, 34)
-		tok.BackgroundTransparency = 1
-		tok.Font = Enum.Font.GothamBold
-		tok.TextScaled = true
-		tok.TextColor3 = Theme.readable(Config.ROLL_CURRENCY.colour)
-		tok.Text = if rung and rung.tokens and rung.tokens > 0
-			then ("+%d"):format(rung.tokens)
-			else ""
-		tok.ZIndex = 42
-		tok.Parent = card
 
 		dailyCards[i] = { card = card, stroke = stroke, dayLabel = dayLabel, what = what }
 	end
 
-	-- A purple +2 on a card means nothing on its own, and this is the one
-	-- screen where a nine-year-old meets this currency before they meet the
-	-- thing it buys. One line, under the row, naming it and naming what it is
-	-- for -- the same job the roll button's note does at the other end.
-	local dailyTokens = Instance.new("TextLabel")
-	dailyTokens.Size = UDim2.new(1, -32, 0, 18)
-	dailyTokens.Position = UDim2.new(0, 16, 0, 178)
-	dailyTokens.BackgroundTransparency = 1
-	dailyTokens.Font = Enum.Font.GothamMedium
-	dailyTokens.TextScaled = true
-	dailyTokens.TextXAlignment = Enum.TextXAlignment.Left
-	dailyTokens.TextColor3 = Theme.readable(Config.ROLL_CURRENCY.colour)
-	dailyTokens.Text = ("Every day also pays %s: what accessory rolls cost."):format(
-		Config.ROLL_CURRENCY.plural)
-	dailyTokens.ZIndex = 41
-	dailyTokens.Parent = dailyModal
 
 	local dailyClaim = Instance.new("TextButton")
 	dailyClaim.Size = UDim2.new(0, 240, 0, 44)
@@ -6574,6 +7245,64 @@ local function bindTrampolineBounce()
 end
 bindTrampolineBounce()
 
+-- SHOCKED OFF A FENCE.
+--
+-- Same split as the trampoline and for the same measured reason: a server-side
+-- write to this character's AssemblyLinearVelocity is discarded, so the server
+-- decides -- who, whether, and which way -- and the client applies it.
+--
+-- `PLATFORMSTAND IS THE WHOLE TRICK, AND WITHOUT IT THIS DOES NOTHING.` A
+-- plain velocity write here buys 0.20 studs of ground: the shock has just set
+-- WalkSpeed to 0, and the humanoid's own control force spends every frame
+-- damping horizontal motion toward MoveDirection * WalkSpeed. Vertical is the
+-- one axis it does not fight, which is exactly why the trampoline is
+-- vertical-only and works. PlatformStand suspends that steering, and the
+-- identical push then lands: measured 5.66 studs against 0.20.
+--
+-- It also happens to be the right picture. The character goes limp for the
+-- flight, which is what being zapped off a fence looks like, and recovers to
+-- Running on its own -- verified rather than assumed, since a character left
+-- in PlatformStand is a character that can never stand up again.
+local function bindFenceKnockback()
+	Remotes.get("FenceKnockback").OnClientEvent:Connect(function(direction)
+		if typeof(direction) ~= "Vector3" then
+			return
+		end
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		if not root or not humanoid or humanoid.Health <= 0 then
+			return
+		end
+
+		-- Flattened and re-normalised rather than used raw. The server sends a
+		-- horizontal axis today, and a direction with any vertical component
+		-- in it would trade knockback for launch height without either end
+		-- saying so.
+		local flat = Vector3.new(direction.X, 0, direction.Z)
+		if flat.Magnitude < 1e-3 then
+			return
+		end
+		flat = flat.Unit
+
+		local k = Config.FENCE_KNOCKBACK
+		humanoid.PlatformStand = true
+		root.AssemblyLinearVelocity = flat * k.back + Vector3.new(0, k.up, 0)
+
+		-- Cleared by CHARACTER, not by a bare flag: a respawn mid-flight hands
+		-- the player a brand new humanoid, and clearing PlatformStand on the
+		-- old one would leave the new one untouched while this timer went off
+		-- against a corpse. Same shape as the wheelie bin remembering which
+		-- character it swallowed.
+		task.delay(k.limp, function()
+			if player.Character == character and humanoid.Health > 0 then
+				humanoid.PlatformStand = false
+			end
+		end)
+	end)
+end
+bindFenceKnockback()
+
 buildDailyRewards()
 
 -- ============================================================
@@ -6723,11 +7452,16 @@ local function buildPatrol()
 	-- break this HUD -- the rebirth button is what covered the accessory roll
 	-- button the last time something was hung up here:
 	--
-	--     coin counter    16 .. 78
-	--     toast           88 ..
+	--     (free)          16 .. 90
 	--     rebirth         96 .. 148
 	--     carry banner   140 .. 192
 	--     PATROL         200 .. 238
+	--
+	-- The top band opened up when the coin badge merged into the piggy bank
+	-- panel, and the rebirth button was deliberately NOT moved up into it:
+	-- shuffling a control a player already knows the position of, to close a
+	-- gap nothing is drawn in, costs more than the gap does. It is the space
+	-- for whatever wants this column next.
 	--
 	-- The carry banner is the one that settles it. It is on screen exactly
 	-- when this one is -- a thief holding loot during a pursuit -- so the two
@@ -6771,6 +7505,178 @@ local function buildPatrol()
 	label.TextStrokeColor3 = Theme.INK
 	label.TextStrokeTransparency = 0.35
 
+	-- ============================================================
+	-- THE EVENT'S OWN BANNER
+	-- ============================================================
+	--
+	-- A SECOND FRAME AT THE SAME ANCHOR, NOT A RESTYLE OF THE ONE ABOVE, and
+	-- that is the same call the dodge and trick buttons already make: two
+	-- things that can never both be live share a SLOT rather than a widget.
+	-- `EventService.isEventLive` suppresses the patrol for the whole of an
+	-- event, so exactly one of these is ever visible.
+	--
+	-- Sharing the frame and branching inside it was the other option and it is
+	-- worse twice over. The patrol's row is measured and verified -- 340 wide
+	-- because the icon pushed its longest line to 277 of 282 usable pixels --
+	-- and every event feature would have to keep re-clearing that. And an
+	-- event is not a patrol: a patrol is the street's routine and an event is
+	-- its headline, so making them one object flattens the single distinction
+	-- this row exists to draw.
+	--
+	-- 44 tall against the patrol's 38, so it ends at y 244 rather than 238.
+	-- Measured against the shortest thing that has to work -- a phone held
+	-- sideways at 546 -- that is 44.7% down against 43.6%, which is the whole
+	-- cost of the badge and the bar.
+	local eventBanner = Instance.new("Frame")
+	eventBanner.Name = "EventBanner"
+	eventBanner.Size = UDim2.new(0, 340, 0, 44)
+	eventBanner.Position = UDim2.new(0.5, 0, 0, 200)
+	eventBanner.AnchorPoint = Vector2.new(0.5, 0)
+	eventBanner.BackgroundColor3 = Theme.COOL
+	eventBanner.BorderSizePixel = 0
+	eventBanner.Visible = false
+	eventBanner.Parent = gui
+	-- Shaded rather than glossed, for the reason the patrol's is: the ground
+	-- is written every frame, and a baked gradient would be replaced by that
+	-- on the next one. `Theme.shade` MULTIPLIES, so the panel stays moulded
+	-- whatever colour it currently is.
+	Theme.corner(eventBanner, 14)
+	Theme.outline(eventBanner)
+	Theme.shade(eventBanner)
+
+	-- THE BADGE: a dark disc with a tone RING, never a disc of the tone.
+	--
+	-- An emoji carries its own colours and ignores TextColor3 entirely -- the
+	-- notification chips learned that first and the prompt cards followed --
+	-- so a saucer on a cyan disc is a cyan smudge. The ring is where the tone
+	-- goes, and it is the thing that pulses during a warning.
+	local badge = Instance.new("TextLabel")
+	badge.Name = "Badge"
+	badge.Size = UDim2.new(0, 30, 0, 30)
+	badge.Position = UDim2.new(0, 8, 0.5, 0)
+	badge.AnchorPoint = Vector2.new(0, 0.5)
+	badge.TextSize = 17
+	badge.Text = ""
+	badge.Parent = eventBanner
+	Theme.chip(badge, 30, Theme.COOL)
+	local badgeRing = badge:FindFirstChildOfClass("UIStroke")
+
+	local eventLabel = Instance.new("TextLabel")
+	eventLabel.Name = "Line"
+	eventLabel.Size = UDim2.new(1, -58, 0, 26)
+	eventLabel.Position = UDim2.new(0, 46, 0, 3)
+	eventLabel.TextXAlignment = Enum.TextXAlignment.Left
+	eventLabel.TextScaled = true
+	eventLabel.Text = ""
+	eventLabel.Parent = eventBanner
+	-- Ink on a saturated ground, like the patrol's. Both event tones are light
+	-- -- cyan and gold -- so ink is the readable side of both.
+	Theme.title(eventLabel, 20, Theme.INK)
+
+	-- THE COUNTDOWN AS A BAR, WHICH IS THE HALF A NUMBER CANNOT DO.
+	--
+	-- Same argument the upgrade pips make: "42s" is a thing you read and a
+	-- draining bar is a thing you SEE, and this is read by somebody who is
+	-- running. Both are kept -- the bar for the glance, the number for when it
+	-- matters that it is nine seconds rather than ninety.
+	--
+	-- It needs the phase's TOTAL length, which is why EventService sends
+	-- secondsTotal: without it a player joining mid-raid would see the bar
+	-- start full and drain from the wrong place.
+	--
+	-- Inset to the LABEL's own left edge rather than the banner's, so it
+	-- underlines the text and leaves the badge alone.
+	local track = Instance.new("Frame")
+	track.Name = "Track"
+	track.Size = UDim2.new(1, -58, 0, 4)
+	track.Position = UDim2.new(0, 46, 1, -8)
+	-- A GROOVE UNDER THE GROUND, not a second surface on top of it -- the
+	-- same call the upgrade pips make for an unbought rung.
+	track.BackgroundColor3 = Theme.INK
+	track.BackgroundTransparency = 0.75
+	track.BorderSizePixel = 0
+	track.Parent = eventBanner
+	Theme.corner(track, 2)
+
+	local trackFill = Instance.new("Frame")
+	trackFill.Name = "Fill"
+	trackFill.Size = UDim2.new(1, 0, 1, 0)
+	-- INK RATHER THAN PAPER, and that was measured rather than picked. The
+	-- pair that has to read is FILL against TRACK, and a paper fill managed
+	-- only 3.32 (rush) and 3.56 (raid) against this groove -- a bar you can
+	-- see is there and cannot judge. Ink reads 5.53 and 5.16 against the
+	-- groove and 8.74 and 8.16 against the banner itself, which is what makes
+	-- the remaining time legible at a glance rather than on inspection.
+	trackFill.BackgroundColor3 = Theme.INK
+	trackFill.BorderSizePixel = 0
+	trackFill.Parent = track
+	Theme.corner(trackFill, 2)
+
+	-- ============================================================
+	-- THE STANDING COUNTDOWN
+	-- ============================================================
+	--
+	-- ALWAYS ON SCREEN WHILE THE STREET IS QUIET, counting down to the next
+	-- event. Every other alert in this game reports something that has already
+	-- happened or is happening; this is the only thing on the HUD that gives a
+	-- player a reason to still be here in ten minutes.
+	--
+	-- IT NEEDED NO NEW SERVER STATE, which is worth saying because it looks
+	-- like it should. `EventService` already sets the quiet stretch as a PHASE
+	-- with its own deadline -- `setPhase("quiet", "", period - warning)` -- and
+	-- already pushes seconds left and, since the banner wanted it, seconds
+	-- total. The client was receiving the whole countdown and dropping it on
+	-- the floor, because the render branch opened with `if phase ~= "quiet"`.
+	--
+	-- TOP-RIGHT UNDER THE PIGGY BANK PANEL, which is a decision about what
+	-- KIND of thing this is rather than about free space. The top-centre
+	-- column is alerts, and this is not an alert -- it is a standing readout
+	-- of the state of the world, which is exactly what the panel above it is.
+	-- The two belong together. (It is also the only free band left: measured
+	-- live, the panel ends at y 88 and the next occupied pixel in that corner
+	-- is the shop button at y 665.)
+	local nextEventChip = Instance.new("Frame")
+	nextEventChip.Name = "NextEvent"
+	nextEventChip.Size = UDim2.new(0, 176, 0, 34)
+	nextEventChip.Position = UDim2.new(1, -18, 0, 154)
+	nextEventChip.AnchorPoint = Vector2.new(1, 0)
+	nextEventChip.Visible = false
+	nextEventChip.Parent = gui
+	-- PAPER, not a saturated ground. A colour here would read as an alarm, and
+	-- for fourteen of every fifteen minutes this is furniture -- it earns its
+	-- colour in the last minute and not before.
+	Theme.card(nextEventChip, 12)
+
+	local soonBadge = Instance.new("TextLabel")
+	soonBadge.Name = "Badge"
+	soonBadge.Size = UDim2.new(0, 26, 0, 26)
+	soonBadge.Position = UDim2.new(0, 7, 0.5, 0)
+	soonBadge.AnchorPoint = Vector2.new(0, 0.5)
+	soonBadge.TextSize = 15
+	soonBadge.Text = Config.EVENT_SOON_GLYPH
+	soonBadge.Parent = nextEventChip
+	Theme.chip(soonBadge, 26, Theme.MUTED)
+	local soonRing = soonBadge:FindFirstChildOfClass("UIStroke")
+
+	local soonLabel = Instance.new("TextLabel")
+	soonLabel.Name = "Caption"
+	soonLabel.Size = UDim2.new(0, 80, 1, 0)
+	soonLabel.Position = UDim2.new(0, 40, 0, 0)
+	soonLabel.TextXAlignment = Enum.TextXAlignment.Left
+	soonLabel.Text = "NEXT EVENT"
+	soonLabel.Parent = nextEventChip
+	Theme.title(soonLabel, 12, Theme.MUTED)
+
+	local soonTime = Instance.new("TextLabel")
+	soonTime.Name = "Time"
+	soonTime.Size = UDim2.new(0, 46, 1, 0)
+	soonTime.Position = UDim2.new(1, -10, 0, 0)
+	soonTime.AnchorPoint = Vector2.new(1, 0)
+	soonTime.TextXAlignment = Enum.TextXAlignment.Right
+	soonTime.Text = ""
+	soonTime.Parent = nextEventChip
+	Theme.title(soonTime, 17, Theme.INK)
+
 	-- The server sends seconds LEFT, never a deadline: os.clock() is a
 	-- different number on every machine, so a timestamp would count down from
 	-- somewhere random. Same reason the dodge cooldown is pushed as a duration.
@@ -6788,12 +7694,19 @@ local function buildPatrol()
 	--
 	-- The priority below is therefore belt and braces rather than a design:
 	-- if the invariant ever breaks, the bigger news wins and nothing overlaps.
-	local event = { phase = "quiet", name = "", endsAt = 0 }
+	local event = { phase = "quiet", name = "", endsAt = 0, total = 0 }
 
 	Remotes.get("EventState").OnClientEvent:Connect(function(state)
 		event.phase = state.phase
 		event.name = state.event or ""
+		-- Rush Hour doubles a take, and the prompt no longer quotes one: it
+		-- quotes what is in the pig, which no event moves. The doubling shows
+		-- up where the decision is, on the crack panel's slice figures, and
+		-- those are the server's own arithmetic rather than a copy of it.
 		event.endsAt = os.clock() + (state.secondsLeft or 0)
+		-- Guarded against zero: this divides the bar, and a phase pushed
+		-- without a total would put a nan into a UDim2 rather than erroring.
+		event.total = math.max(state.secondsTotal or 0, 0.01)
 		-- Ducked like the patrol, and for the same reason: a raid is published
 		-- ahead precisely so staying out is a choice, and music over the top
 		-- of the warning takes that choice back.
@@ -6817,30 +7730,92 @@ local function buildPatrol()
 	end)
 
 	RunService.Heartbeat:Connect(function()
-		-- The event owns the row whenever it has anything to say.
-		if event.phase ~= "quiet" then
+		-- THE STANDING COUNTDOWN, while nothing is actually happening.
+		--
+		-- Gated on the quiet stretch being a REAL one rather than on the phase
+		-- name alone, and that is not defensive tidiness -- it is two live
+		-- cases. A client that has not received its first push yet has total 0
+		-- and would render "0:00" as though an event were overdue. And the
+		-- scheduler stamps a two-second `setPhase("quiet", "", 2)` on the way
+		-- out of an event before the loop sets the real fifteen minutes, so
+		-- for up to a frame the honest reading of the pushed state is "next
+		-- event in 2s". Testing the SPAN against the warning window rules out
+		-- both with one comparison.
+		local quietSpan = if event.phase == "quiet" then event.total else 0
+		if quietSpan > Config.EVENTS.warning then
 			local left = math.max(0, event.endsAt - os.clock())
-			banner.Visible = true
-			local raid = event.name == "raid"
-			local icon = if raid then GLYPH.saucer else GLYPH.bolt
+			nextEventChip.Visible = true
+			soonTime.Text = ("%d:%02d"):format(left // 60, left % 60)
+			-- THE LAST MINUTE IS WHERE IT STOPS BEING FURNITURE. Gold rather
+			-- than a new hue: this is the game's reward colour, and what is
+			-- arriving is a reward. The ring alone changes -- the card stays
+			-- paper, because a chip that turns into a coloured block is an
+			-- alarm, and the banner twenty seconds later is the alarm.
+			local soon = left <= Config.EVENT_SOON
+			if soonRing then
+				soonRing.Color = if soon then Theme.GOLD_DEEP else Theme.MUTED
+			end
+			soonTime.TextColor3 = if soon then Theme.GOLD_INK else Theme.INK
+			-- "GET READY" and not "STARTING SOON", for two reasons. It
+			-- measured 62px against the caption box's 80 where the other
+			-- ran to 86 and clipped -- and it tells a player what to DO,
+			-- where the timer beside it is already saying when.
+			soonLabel.Text = if soon then "GET READY" else "NEXT EVENT"
+		elseif nextEventChip.Visible then
+			nextEventChip.Visible = false
+		end
+
+		-- The event owns the row whenever it has anything to say. The two are
+		-- mutually exclusive by construction -- an event suppresses the patrol
+		-- for its whole length -- so hiding the other one here is belt and
+		-- braces: if that invariant ever breaks, the bigger news wins and
+		-- nothing overlaps.
+		--
+		-- Drawn only for an event this build has a row for. A new event with
+		-- no `Config.EVENT_UI` entry falls through to the patrol rather than
+		-- rendering as an unnamed grey bar, which is the louder failure and
+		-- the easier one to notice.
+		local ui = if event.phase ~= "quiet" then Config.eventUI(event.name) else nil
+		if ui then
+			local left = math.max(0, event.endsAt - os.clock())
+			banner.Visible = false
+			eventBanner.Visible = true
+			badge.Text = ui.glyph
+			trackFill.Size = UDim2.new(math.clamp(left / event.total, 0, 1), 0, 1, 0)
+
 			if event.phase == "warning" then
-				label.Text = ("%s  %s %s %ds"):format(icon,
-					if raid then "INVASION INCOMING" else "RUSH HOUR INCOMING",
-					GLYPH.dot, math.ceil(left))
-				-- Pulsed, because a warning has to be noticed by somebody who
-				-- is looking at their own feet rather than at the HUD.
-				banner.BackgroundColor3 = if os.clock() % 0.6 < 0.3
-					then Theme.GOOD_INK
-					else Theme.GOOD
-			elseif raid then
-				label.Text = ("%s  DRONES ON THE STREET %s %ds"):format(icon, GLYPH.dot, math.ceil(left))
-				banner.BackgroundColor3 = Theme.GOOD
+				-- The roster is where an event's display name lives, so it is
+				-- read rather than copied into EVENT_UI beside the glyph. It
+				-- is read DEFENSIVELY though: the guard above is on EVENT_UI,
+				-- so a row added to one table and not the other would index a
+				-- nil here and take the whole HUD loop with it.
+				local entry = Config.EVENTS.roster[event.name]
+				eventLabel.Text = ("%s INCOMING %s %ds"):format(
+					(entry and entry.name) or event.name, GLYPH.dot, math.ceil(left))
+				-- PULSED, because a warning has to be noticed by somebody
+				-- looking at their own feet rather than at the HUD. 1.67Hz,
+				-- inside the three-flashes-a-second ceiling HouseFX already
+				-- holds the whole game to.
+				local lit = os.clock() % 0.6 < 0.3
+				eventBanner.BackgroundColor3 = if lit then ui.tone else ui.tone:Lerp(Theme.INK, 0.28)
+				-- The ring pulses WITH the ground rather than instead of it,
+				-- so the badge reads as the thing doing the announcing.
+				if badgeRing then
+					badgeRing.Color = ui.tone
+					badgeRing.Transparency = if lit then 0 else 0.55
+				end
 			else
-				label.Text = ("%s  RUSH HOUR %s STEALS ARE DOUBLE %s %ds"):format(
-					icon, GLYPH.dot, GLYPH.dot, math.ceil(left))
-				banner.BackgroundColor3 = Theme.GOLD_DEEP
+				eventLabel.Text = ("%s %s %ds"):format(ui.live, GLYPH.dot, math.ceil(left))
+				eventBanner.BackgroundColor3 = ui.tone
+				if badgeRing then
+					badgeRing.Color = ui.tone
+					badgeRing.Transparency = 0
+				end
 			end
 			return
+		end
+		if eventBanner.Visible then
+			eventBanner.Visible = false
 		end
 
 		if patrol.phase == "quiet" then
@@ -7291,7 +8266,7 @@ local function buildBustScene()
 		victimRow.Text = ("VICTIM   %s"):format(payload.victim or "--")
 		recoveredRow.Text = if recovered > 0
 			then ("SEIZED   %s coins"):format(exact(recovered))
-			else "SEIZED   nothing -- already banked"
+			else "SEIZED   nothing -- already delivered"
 		bailValue.Text = "0"
 
 		-- Beat one: the photograph. Everything else is revealed under it.
@@ -7422,11 +8397,15 @@ end
 --     the wrong instrument for "a dog is on you" -- the player is running and
 --     looking at the world, not at the HUD.
 --
--- TOP LEFT, and that is not a style choice. The top-centre column is full to
--- the point of collision -- coin 16..78, rebirth 96..148, carry 140..192,
--- patrol 200..238 -- and the old toast sat at 88, which put it straight
--- through the rebirth button. The left edge is empty from the topbar down to
--- the garage slot, which is room for four cards and no neighbours to fight.
+-- TOP LEFT, and that is not a style choice. The top-centre column was full to
+-- the point of collision -- coin badge 16..78, rebirth 96..148, carry
+-- 140..192, patrol 200..238 -- and the old toast sat at 88, which put it
+-- straight through the rebirth button. The left edge is empty from the topbar
+-- down to the garage slot, which is room for four cards and no neighbours to
+-- fight. The badge has since merged into the piggy bank panel and freed the
+-- top of that column, which does NOT invite the toasts back: a card that
+-- appears and disappears under a button somebody is aiming at is the same
+-- collision waiting for whatever fills 16..90 next.
 --
 -- Wrapped in a function because this chunk is near Luau's 200-local ceiling.
 local function buildNotifications()

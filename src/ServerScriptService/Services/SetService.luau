@@ -2,7 +2,7 @@
 --[[
 	SetService
 
-	Medals, and the themed sets they buy.
+	Loot, and the themed sets it buys.
 
 	A SET IS A VIEW OVER THE EXISTING CATALOGUES, NEVER A NEW CATALOGUE.
 	`Config.SETS` lists `{kind, key}` pairs pointing at items that live in
@@ -12,15 +12,20 @@
 	how to build, price, render and wear it, and this file only knows which
 	table to tick and which service to tell.
 
-	WHY MEDALS ARE FLAT. Every other reward in this game is denominated in
+	WHY LOOT IS FLAT. Every other reward in this game is denominated in
 	seconds of the player's own income, precisely so it keeps meaning the same
-	thing as they grow. Medals do the opposite ON PURPOSE: a set costs the
-	same number of events for a brand-new player as for a maxed one, so the
-	ladder measures ATTENDANCE and nothing else. Coins scale with the player;
-	medals scale with turning up, and a rich player cannot buy their way up
-	this one.
+	thing as they grow. Loot does the opposite ON PURPOSE: a set costs the
+	same number of robberies (or events) for a brand-new player as for a maxed
+	one, so the ladder measures DOING IT and nothing else. Coins scale with
+	the player; loot scales with going out, and a rich player cannot buy
+	their way up this one.
 
-	NOTHING IS EVER LOCKED BEHIND LUCK. Every set item carries a medal price,
+	THIS IS THE ONE PLACE LOOT IS GRANTED. `award` is what a delivery, an
+	event and the dev console all call, so a balance can never move without
+	both of its readers -- the set panel here and the roll button in
+	CosmeticsService, reached through a registered pusher -- being told.
+
+	NOTHING IS EVER LOCKED BEHIND LUCK. Every set item carries a loot price,
 	so a drop only ever saves you time. That is the line that makes a wheel
 	safe to show a nine-year-old: bad luck costs them a wait, never the item.
 
@@ -52,6 +57,14 @@ function SetService.registerPusher(kind: string, fn: (Player) -> ())
 	pushers[kind] = fn
 end
 
+-- Anything else that shows the loot balance. Filled by Main with
+-- CosmeticsService.push, which carries the roll button's balance.
+local lootPushers: { (Player) -> () } = {}
+
+function SetService.registerLootPusher(fn: (Player) -> ())
+	table.insert(lootPushers, fn)
+end
+
 -- WHERE EACH KIND KEEPS ITS OWNERSHIP. Five different tables, because five
 -- different services got there first and each one is right about its own
 -- data. One lookup here beats a five-branch `if` at every call site.
@@ -73,6 +86,75 @@ end
 function SetService.owns(data: any, kind: string, key: string): boolean
 	local owned = ownedTable(data, kind)
 	return owned ~= nil and owned[key] == true
+end
+
+-- IS THIS THE COPY THEY ARE ACTUALLY USING?
+--
+-- The one guard on selling a LAST copy. Selling a spare is safe by definition
+-- -- another one stays behind -- but the last copy takes the item away, and
+-- the failure that matters for a nine-year-old is not the exploit, it is the
+-- accident: a stray thumb selling the legendary they spent three weeks getting.
+--
+-- Requiring it to be taken off first is one tap, it is learnable in a second,
+-- and it kills exactly the accidental case without a lock flag to teach. It is
+-- also the honest reading of what a sale is: you cannot hand over the thing
+-- you are stood there wearing.
+--
+-- FIVE KINDS, FIVE PLACES, because five services got there first and each one
+-- is right about its own data -- the same reason `ownedTable` exists. Note the
+-- two that are maps rather than fields: an accessory is worn per SLOT and a
+-- decoration is placed per SLOT, so both want a scan.
+function SetService.inUse(data: any, kind: string, key: string): boolean
+	if kind == "skin" then
+		return data.cosmetics.skin == key
+	elseif kind == "effect" then
+		return data.cosmetics.effect == key
+	elseif kind == "ride" then
+		return data.rides.equipped == key
+	elseif kind == "accessory" then
+		for _, worn in pairs(data.accessories.worn) do
+			if worn == key then
+				return true
+			end
+		end
+		return false
+	elseif kind == "decor" then
+		for _, placed in pairs(data.decor.placed) do
+			if placed == key then
+				return true
+			end
+		end
+		return false
+	end
+	return false
+end
+
+-- The exact inverse of `grant`, and it has to be, or half the game goes on
+-- rendering something the save no longer says is owned.
+--
+-- It refuses anything in use rather than quietly unequipping it: the caller
+-- has already been told to take it off, and a revoke that silently strips the
+-- player's own skin off their pig is the surprise this whole guard exists to
+-- prevent. Pushes and saves on the same two channels `grant` does -- the item's
+-- own service AND the set panel, which are two different questions.
+function SetService.revoke(player: Player, kind: string, key: string): boolean
+	local data = DataService.get(player)
+	if not data then
+		return false
+	end
+	local owned = ownedTable(data, kind)
+	if not owned or not owned[key] or SetService.inUse(data, kind, key) then
+		return false
+	end
+	owned[key] = nil
+
+	local push = pushers[kind]
+	if push then
+		push(player)
+	end
+	SetService.push(player)
+	DataService.save(player)
+	return true
 end
 
 -- Everything in a set the player does NOT have. This is the roll pool and it
@@ -136,23 +218,32 @@ function SetService.grant(player: Player, kind: string, key: string): boolean
 end
 
 -- ============================================================
--- MEDALS
+-- LOOT
 -- ============================================================
 
-function SetService.getMedals(player: Player): number
+function SetService.getLoot(player: Player): number
 	local data = DataService.get(player)
-	return if data then math.floor(data.medals or 0) else 0
+	return if data then math.floor(data.loot or 0) else 0
 end
 
-function SetService.award(player: Player, amount: number, why: string): number
+-- `why` is OPTIONAL and nil means silent: the caller owns the wording, not
+-- the choice of whether to speak. A delivery folds the loot into its own
+-- card rather than firing a second one at a nine-year-old; nothing is ever
+-- granted with nothing on screen.
+function SetService.award(player: Player, amount: number, why: string?): number
 	local data = DataService.get(player)
 	if not data or amount <= 0 then
 		return 0
 	end
-	data.medals = (data.medals or 0) + amount
-	Remotes.get("Notify"):FireClient(player,
-		("%s +%d medals."):format(why, amount), "money")
+	data.loot = math.floor((data.loot or 0) + amount)
+	if why then
+		Remotes.get("Notify"):FireClient(player,
+			("%s +%d %s."):format(why, amount, Config.lootWord(amount)), "money")
+	end
 	SetService.push(player)
+	for _, fn in ipairs(lootPushers) do
+		fn(player)
+	end
 	return amount
 end
 
@@ -177,11 +268,11 @@ function SetService.buy(player: Player, kind: string, key: string)
 	end
 
 	-- Not a set item at all. Refused rather than falling through to a coin
-	-- price: medals must never be an alternative currency for the ordinary
+	-- price: loot must never be an alternative currency for the ordinary
 	-- catalogue, or every coin price in the game has a second, cheaper route.
-	local price = spec.medals
+	local price = spec.loot
 	if type(price) ~= "number" or price <= 0 then
-		refuse("That isn't bought with medals.")
+		refuse("That isn't bought with loot.")
 		return
 	end
 
@@ -190,13 +281,13 @@ function SetService.buy(player: Player, kind: string, key: string)
 		return
 	end
 
-	local have = math.floor(data.medals or 0)
+	local have = math.floor(data.loot or 0)
 	if have < price then
-		refuse(("Need %d more medals for the %s."):format(price - have, spec.name))
+		refuse(("Need %d more loot for the %s. Rob a neighbour."):format(price - have, spec.name))
 		return
 	end
 
-	data.medals = have - price
+	data.loot = have - price
 	SetService.grant(player, kind, key)
 	Remotes.get("Notify"):FireClient(player,
 		("%s unlocked!"):format(spec.name), "good")
@@ -213,7 +304,7 @@ end
 --
 -- Flat odds across the unowned pool rather than rarity-weighted. Rarity here
 -- would mean the ride is the one you almost never get, which turns the end of
--- every set into a wall -- and the medal price is already the ladder that
+-- every set into a wall -- and the loot price is already the ladder that
 -- makes the ride the last thing you own.
 function SetService.rollDrop(player: Player, setKey: string)
 	local data = DataService.get(player)
@@ -228,7 +319,7 @@ function SetService.rollDrop(player: Player, setKey: string)
 	-- same fallback ProgressionService uses when the skin pool is empty: an
 	-- event that quietly awards nothing is indistinguishable from a bug.
 	if #pool == 0 then
-		SetService.award(player, Config.MEDALS.setComplete,
+		SetService.award(player, Config.LOOT.event.setComplete,
 			("%s set complete!"):format(set.name))
 		return
 	end
@@ -271,7 +362,7 @@ function SetService.push(player: Player)
 				kind = entry.kind,
 				key = entry.key,
 				name = spec and spec.name or entry.key,
-				medals = spec and spec.medals or 0,
+				loot = spec and spec.loot or 0,
 				owned = SetService.owns(data, entry.kind, entry.key),
 			})
 		end
@@ -283,13 +374,13 @@ function SetService.push(player: Player)
 	end
 
 	Remotes.get("SetState"):FireClient(player, {
-		medals = math.floor(data.medals or 0),
+		loot = math.floor(data.loot or 0),
 		sets = sets,
 	})
 end
 
 function SetService.start()
-	Remotes.get("MedalBuy").OnServerEvent:Connect(function(player, kind, key)
+	Remotes.get("LootBuy").OnServerEvent:Connect(function(player, kind, key)
 		if type(kind) ~= "string" or type(key) ~= "string" then
 			return
 		end

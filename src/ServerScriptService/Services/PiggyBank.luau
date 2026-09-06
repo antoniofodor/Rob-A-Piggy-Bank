@@ -5,9 +5,29 @@
 	Builds the piggy bank that sits on each plot, out of parts, and owns all
 	of its feedback -- the coin pile, the glow, the particles and the sounds.
 
-	Part-built rather than a mesh on purpose: it costs nothing, runs on a
-	school Chromebook, and I can change the shape in one edit instead of
-	round-tripping through Blender.
+	Part-built BY DEFAULT and mesh-built when the assets exist, which reverses
+	half of what this header used to say. It read: "Part-built rather than a
+	mesh on purpose: it costs nothing, runs on a school Chromebook, and I can
+	change the shape in one edit instead of round-tripping through Blender."
+
+	Two of those three are still true and one was the whole problem. Parts are
+	free and they run anywhere; what they cannot do is BLEND. Two Roblox parts
+	meet at a hard intersection, so a cylinder snout jammed into a sphere reads
+	as assembled however carefully it is placed, and no arrangement fixes it.
+	The mesh is four generated MeshParts that carry those fillets already.
+
+	The round-tripping objection is answered rather than accepted, and by a
+	shorter route than the one first taken. A Blender pipeline was built and
+	abandoned: a committed `bpy` script welded nine primitives with a voxel
+	remesh, exported FBX, and the FBX had to be imported by hand -- which is
+	where its axis convention flipped the snout to the back of the pig, and
+	where a whole session went. Studio's own mesh generator returns the parts
+	already separated, already uploaded and already facing +Z, so the shape
+	changes in one prompt and the ids land in `Config.PIGGY_MESH`.
+
+	And the primitives piggy is not retired, it is the FALLBACK. With no mesh
+	ids in Config this file behaves exactly as it always has, so a fresh empty
+	place plus this repo still gives the identical world.
 
 	The coins are individual discs, not one blob. They're positioned by
 	sphere-cap volume so each new coin lands on the current surface of the
@@ -40,8 +60,13 @@ export type Refs = {
 	tail: Part,
 	ears: { BasePart },
 	legs: { Part },
+	-- The body's resting size, because the milestone squash tweens back to it
+	-- and a MeshPart is not a 12-stud cube.
+	bodySize: Vector3?,
+	-- Body-local correction from the mesh's bounding-box centre back to the
+	-- pig's true body centre, so pattern marks seat where they always did.
+	patternSeat: CFrame?,
 	lock: Model,
-	prompt: ProximityPrompt,
 	stealPrompt: ProximityPrompt,
 	sounds: { [string]: Sound },
 }
@@ -58,16 +83,40 @@ local LEG_D = 1.6 -- cylinder diameter
 -- The plot base is a slab centred on `origin`, so its walkable top -- and the
 -- pig's ground line -- is half a slab above it.
 local GROUND_Y = Config.PLOT_SIZE.Y / 2
-local COIN_R = 4.3 -- radius of the volume coins may occupy
-local COIN_SIZE = 1.6
-local COIN_THICK = 0.28
+-- THE PILE IS SEEN THROUGH THE VAULT HATCH NOW, NOT THROUGH THE PIG, AND
+-- THAT MOVED EVERY ONE OF THESE NUMBERS.
+--
+-- The body used to be translucent for one reason: so the pile showed through
+-- it. Measured against what it actually bought, that was a bad trade -- at
+-- 0.30 the coins read as dark smears rather than as gold, the snout floated
+-- free of the face, and the neon tower on the next street showed through the
+-- pig. The body is opaque now (every skin's `transparency` is 0) and the
+-- hatch bored in the back is the window.
+--
+-- WHICH MEANS THE PILE HAD TO COME DOWN. It sat ABOVE the body centre, on
+-- the old argument that the snout hid the lower third from the front; seen
+-- through a hatch centred at DIAL_Y it hung in the top of the aperture like
+-- coins suspended in mid-air. It fills from the belly now, so the surface
+-- rises past the opening as the pig fills.
+--
+-- AND DENSER BY COIN SIZE RATHER THAN BY COUNT, which is the one thing here
+-- that is not free. `Config.COIN_COUNT` is not a density dial: it is the
+-- DRIP CADENCE, tuned so a coin lands about every fifteen seconds at every
+-- level, and its own comment calls that a heartbeat while `playCoinDrop`
+-- warns that anything louder becomes nagging. Doubling the count to fill the
+-- hatch would have doubled the chime rate as a side effect. Bigger discs in
+-- a smaller volume buy the same picture and touch no cadence at all.
+local COIN_R = 3.85 -- radius of the volume coins may occupy
+local COIN_SIZE = 2.1
+local COIN_THICK = 0.30
 
--- The coin volume sits above the body's centre rather than filling it from
--- the very bottom. Players approach from the front, and the snout hides the
--- lower third of the body from exactly that angle -- so a pile that started
--- at the true bottom was invisible until it was already a third full.
--- Raising it costs nothing visually: nobody can see the space it vacated.
-local COIN_CENTRE_OFFSET = 1.5
+-- Below the body's centre, so the pile's surface crosses the hatch. Measured
+-- on the shipped mesh: the volume spans y 3.65 to 11.35 against an aperture
+-- of roughly 4.6 to 8.6, so the level READS from about 4% full to about 71%
+-- and reads as packed above that. The top of the range is carried by `glow`
+-- instead, which now spills out of the hatch and the coin slit rather than
+-- through the shell.
+local COIN_CENTRE_OFFSET = -1.0
 
 -- Snout sits low, like a real pig's, so it stops covering the pile.
 local SNOUT_Y = -2.5
@@ -196,8 +245,11 @@ local function buildCoinPile(centre: Vector3, parent: Instance): ({ Part }, Fold
 		local y = -COIN_R + height
 
 		-- Radius of the sphere's cross-section at this height, pulled in so
-		-- coins never poke through the shell.
-		local ring = math.sqrt(math.max(0, COIN_R * COIN_R - y * y)) * 0.74
+		-- coins never poke through the shell. Widened 0.74 -> 0.82 with the
+		-- volume itself shrinking: measured, the furthest a disc's own edge
+		-- reaches from the body centre is 4.79 against half-extents of 5.93,
+		-- 6.82 and 6.03, so there is over a stud of wall at the worst point.
+		local ring = math.sqrt(math.max(0, COIN_R * COIN_R - y * y)) * 0.82
 		local theta = i * GOLDEN_ANGLE
 		local dist = ring * math.sqrt(rng:NextNumber(0.05, 1))
 
@@ -243,6 +295,343 @@ end
 -- BUILD
 -- ============================================================
 
+-- ============================================================
+-- THE MESH PIGGY
+-- ============================================================
+--
+-- The piggy is nine primitives welded into one surface by a voxel remesh, so
+-- every junction is a fillet rather than the hard intersection two Roblox
+-- parts are stuck with. It arrives as two MeshParts split by COLOUR REGION --
+-- `Body` (barrel, legs) and `Trim` (ears, muzzle, hooves, tail) -- which is
+-- exactly the pair every skin already defines, so nothing about the skin
+-- system moves.
+--
+-- IT IS A SWAP AFTER THE FACT, NOT A BRANCH INSIDE `build`. Branching would
+-- have meant four separate guards threaded through 350 lines of load-bearing
+-- code, with the eyes and nostrils interleaved between them and every one of
+-- them a chance to leave a wedge ear stuck to a smooth head. Building the
+-- parts pig and then replacing five of its pieces touches no existing line,
+-- and gives the fallback for free: if ANYTHING here fails, what is already
+-- standing is a complete, correct, shipped piggy.
+--
+-- WHICH IS THE `Decor.prewarm` RULE ARRIVING AGAIN. A prettier pig may never
+-- stop a plot building, and `PlotService.start` runs in sequence with every
+-- other service -- so a mesh that fails to load costs a fillet, never the
+-- server.
+--
+-- `MeshPart.MeshId` CANNOT BE WRITTEN FROM A SCRIPT. Measured: it throws
+-- "The current thread cannot write 'MeshId' (lacking capability
+-- NotAccessible)", which is the same family as the `RenderFidelity` incident
+-- this file already records. So the parts are created by
+-- `InsertService:CreateMeshPartAsync`, ONCE, and cloned per piggy -- the same
+-- shape `PlayerGear.prewarm` uses for its CSG templates and for the same
+-- reason: the call yields, and yielding inside a build loop twelve times is
+-- twelve web calls to say one thing.
+-- Where the nostril parts sit once the MESH muzzle is standing. Measured
+-- against the seated mesh rather than chosen: the muzzle reaches z 7.10, so
+-- the shipped nostrils at 6.70 would be four tenths inside it.
+local MESH_NOSTRIL = Vector3.new(0.78, BODY_Y + SNOUT_Y + 1.0, 7.15)
+
+local meshTemplates: { [string]: BasePart }? = nil
+local meshChecked = false
+
+local function ensureMeshTemplates(): { [string]: BasePart }?
+	if meshChecked then
+		return meshTemplates
+	end
+	meshChecked = true
+
+	local spec = Config.piggyMesh()
+	if not spec then
+		return nil
+	end
+
+	-- Cuts the coin slit and the vault hatch out of the body for real.
+	-- Returns the ORIGINAL part
+	-- untouched on any failure, because a piggy with no slit is a cosmetic
+	-- fault and a piggy that did not build is not -- the same trade the pcall
+	-- around `Decor.prewarm` already makes.
+	--
+	-- CSG NEEDS BOTH PARTS PARENTED TO THE DATAMODEL: an unparented pair
+	-- throws "CSG API requires at least one object to be linked to a
+	-- DataModel", which reads as an API that is missing rather than one that
+	-- wants its arguments somewhere. ServerStorage rather than workspace, so
+	-- nothing flickers on the lawn while the cut runs.
+	local function cutOpenings(body: BasePart): BasePart
+		local slot = Config.PIGGY_SLOT
+		if not slot then
+			return body
+		end
+		local stage = Instance.new("Folder")
+		stage.Name = "PiggySlotCut"
+		stage.Parent = game:GetService("ServerStorage")
+
+		local homed = body.Parent
+		body.Parent = stage
+
+		local reach = 3
+		local cutters = {}
+
+		-- The template is framed as though the plot origin were (0,0,0), which
+		-- is how `seat` reads it back, so every cutter is placed in that frame.
+		local slit = Instance.new("Part")
+		slit.Size = Vector3.new(slot.width, reach, slot.length)
+		slit.CFrame = CFrame.new(0, slot.floor + reach / 2, 0)
+		slit.Anchored = true
+		slit.Parent = stage
+		table.insert(cutters, slit)
+
+		-- THE VAULT HATCH, DOWN THE DIAL'S OWN AXIS. `dialCFrame` already
+		-- points its X straight out of the body, which is what a Roblox
+		-- cylinder wants -- so the bore is one cylinder on that axis and the
+		-- recess comes out square to the door that will sit in it.
+		local vault = Config.PIGGY_VAULT
+		if vault then
+			local bore = Instance.new("Part")
+			bore.Shape = Enum.PartType.Cylinder
+			bore.Size = Vector3.new(reach, vault.radius * 2, vault.radius * 2)
+			bore.CFrame = dialCFrame(Vector3.zero)
+				* CFrame.new(vault.floor + reach / 2, 0, 0)
+			bore.Anchored = true
+			bore.Parent = stage
+			table.insert(cutters, bore)
+		end
+
+		-- ONE SUBTRACT FOR BOTH, because it costs 284 ms whether it takes one
+		-- cutter or five.
+		--
+		-- RENDER FIDELITY IS AN ARGUMENT HERE, NOT A PROPERTY WRITE, AND THAT
+		-- IS THE WHOLE DIFFERENCE. This file used to set `cut.RenderFidelity`
+		-- afterwards inside a pcall, because that write is capability-gated
+		-- and throws from a real Script while passing in an MCP sandbox -- so
+		-- live, the pcall swallowed it and the body shipped at `Automatic`,
+		-- which is a decimated LOD and is exactly the faceting anybody
+		-- standing on the lawn could see. `SubtractAsync` takes both
+		-- fidelities as PARAMETERS, so the result is born Precise and nothing
+		-- is gated. Measured live: the body read `Automatic` before and
+		-- `Precise` after, from the server, with no pcall anywhere.
+		--
+		-- Collision stays a box for the reason the trim meshes already give:
+		-- a thief runs at this and a dog patrols round it, and precise
+		-- collision on a 7,000-triangle surface buys nothing at twelve studs
+		-- across while costing every triangle a physics query.
+		local cutOk, cut = pcall(function()
+			return body:SubtractAsync(cutters,
+				Enum.CollisionFidelity.Box,
+				Enum.RenderFidelity.Precise)
+		end)
+		for _, c in ipairs(cutters) do
+			c:Destroy()
+		end
+
+		if not cutOk or not cut then
+			warn(("[PiggyBank] the openings could not be cut, so the piggy "
+				.. "ships without them: %s"):format(tostring(cut)))
+			body.Parent = homed
+			stage:Destroy()
+			return body
+		end
+
+		body:Destroy()
+		cut.Parent = homed
+		stage:Destroy()
+		return cut
+	end
+
+	local ok, result = pcall(function()
+		local insert = game:GetService("InsertService")
+		local made: { [string]: BasePart } = {}
+		for _, entry in ipairs(spec) do
+			-- BOX COLLISION ON PURPOSE. A thief runs at this thing and a dog
+			-- patrols round it, and precise collision on a 7,000-triangle
+			-- surface buys nothing a box does not already give at twelve studs
+			-- across -- while costing every one of those triangles a physics
+			-- query.
+			--
+			-- PRECISE RENDER, though, is the whole point: at Automatic a
+			-- MeshPart sheds triangles with distance, and this pig is read from
+			-- the pavement. Note this file already records `RenderFidelity`
+			-- throwing on a UnionOperation from a real Script while passing in a
+			-- sandbox, so it is inside the pcall rather than beside it.
+			local part = insert:CreateMeshPartAsync(entry.id,
+				Enum.CollisionFidelity.Box, Enum.RenderFidelity.Precise)
+			if entry.part == "Body" then
+				-- Seated in the template's own frame first, because the cut
+				-- is placed against the plot origin and the result keeps
+				-- whatever framing it was given.
+				part.Size = entry.size
+				part.CFrame = CFrame.new(entry.offset)
+				part.Anchored = true
+				part = cutOpenings(part)
+			end
+			made[entry.part] = part
+		end
+		return made
+	end)
+
+	if not ok then
+		-- NEVER FAIL SILENTLY. A pig that quietly stayed as primitives after
+		-- somebody pasted four ids is indistinguishable from ids that did not
+		-- take, and this file's own rule is that a rejection nobody can see
+		-- is the same as a broken feature.
+		warn(("[PiggyBank] piggy mesh could not be loaded, so the primitives "
+			.. "piggy is standing instead: %s"):format(tostring(result)))
+		return nil
+	end
+
+	meshTemplates = result
+	return meshTemplates
+end
+
+-- Replaces the body sphere, snout, ears, legs and tail with the four MeshParts.
+-- Returns false and changes nothing when there are no ids, which is the
+-- default state of the repo.
+--
+-- THE NEW PARTS TAKE THE OLD PARTS' NAMES, which is what keeps this swap from
+-- reaching into `applySkin` or ClientMain at all. `Snout`, `Ear` and `Tail`
+-- are already what the trim list collects and what ANIMATED_TRIM drives, so a
+-- meshed pig is coloured and animated by the code that was there before the
+-- mesh existed. The primitives are therefore destroyed BEFORE the meshes are
+-- seated -- two parts called `Snout` in one model is the `Finial` trap this
+-- project has already hit, where a lookup by name silently returns whichever
+-- one happens to be first.
+local function swapToMesh(refs: Refs): boolean
+	local spec = Config.piggyMesh()
+	local templates = spec and ensureMeshTemplates()
+	if not (spec and templates) then
+		return false
+	end
+
+	local origin = refs.origin
+	local old = refs.body
+
+	-- The primitives the mesh now contains. Found by name off the model rather
+	-- than only through `refs`, because the four legs and two ears are lists
+	-- and a missed one is a cylinder standing inside a smooth leg.
+	--
+	-- THE COIN SLOT IS ON THAT LIST, AND IT IS THE ONE THAT IS NOT OBVIOUS.
+	-- It is a black box seated at `BODY_Y + BODY_R - 0.3`, which on the
+	-- primitives pig is INSIDE a sphere whose top is 14.50: it shows as a dark
+	-- slit where the ends break the curve, which is the whole trick. The mesh
+	-- body's crown is 14.14, and the box reaches 14.425 -- so the same part
+	-- stands a third of a stud PROUD along its entire 4.2-stud length and
+	-- reads as a bar lying on the pig's back rather than a slot cut into it.
+	--
+	-- Reseating it was the other option and is the wrong one: the generated
+	-- body already has a slot sculpted into its upper back (measured, the
+	-- spine dips from 14.11 to 13.73 down the middle), so a part would be a
+	-- second slot beside the real one. Same call the snout and ears make --
+	-- the mesh contains it, so the primitive goes.
+	for _, child in ipairs(refs.model:GetChildren()) do
+		if child:IsA("BasePart")
+			and (child.Name == "Snout" or child.Name == "Ear"
+				or child.Name == "Leg" or child.Name == "Tail"
+				or child.Name == "Slot") then
+			child:Destroy()
+		end
+	end
+
+	local made: { [string]: BasePart } = {}
+	local bodyEntry
+	for _, entry in ipairs(spec) do
+		local template = templates[entry.part]
+		if not template then
+			warn(("[PiggyBank] no mesh template for %q"):format(entry.part))
+			return false
+		end
+		local p = template:Clone()
+		p.Name = entry.part
+		-- SIZE BEFORE CFRAME. Resizing a MeshPart scales it about its own
+		-- centre, so a part seated first and sized second ends up seated for
+		-- the size it used to be.
+		p.Size = entry.size
+		-- The turn is applied AFTER the seat and in the part's own frame, so
+		-- the far row's half-turn -- one PivotTo over the whole plot, long
+		-- after this runs -- still carries the tail round with everything
+		-- else. A rotation folded into the world seat would not.
+		p.CFrame = CFrame.new(origin + entry.offset) * (entry.rot or CFrame.identity)
+		p.Anchored = true
+		p.CastShadow = false
+		p.CanCollide = false
+		p.CanQuery = false
+		p.Parent = refs.model
+		made[entry.part] = p
+		if not entry.trim then
+			bodyEntry = entry
+		end
+	end
+
+	local body = made.Body
+	if not (body and bodyEntry and made.Snout and made.Tail and made.Ear) then
+		warn("[PiggyBank] piggy mesh is missing a named part, so the swap is off")
+		return false
+	end
+
+	-- The old sphere is carrying the steal prompt, both lights and all three
+	-- emitters, and every one of those is held by reference elsewhere in this
+	-- file -- so they are MOVED rather than rebuilt. Rebuilding would hand
+	-- `refs.glow` and `refs.stealPrompt` instances that are no longer in the
+	-- world, which is the "a destroyed instance still answers property reads"
+	-- trap one level up: nothing would error and nothing would work.
+	for _, child in ipairs(old:GetChildren()) do
+		child.Parent = body
+	end
+
+	body.CanCollide = old.CanCollide
+	body.CanQuery = old.CanQuery
+
+	refs.model.PrimaryPart = body
+	old:Destroy()
+
+	refs.body = body :: any
+	refs.snout = made.Snout :: any
+	refs.tail = made.Tail :: any
+	refs.ears = { made.Ear }
+	-- The legs are inside the body mesh, so there is no separate list. They
+	-- are BODY-coloured there, which is what the primitives pig already did.
+	refs.legs = {}
+
+	-- THE NOSTRILS HAVE TO FOLLOW THE MUZZLE, and this is the one knock-on the
+	-- mesh has on a part the mesh does not contain.
+	--
+	-- The shipped snout tip is z 6.6 with the nostril parts at 6.7, so they
+	-- clear it by a tenth of a stud. The mesh's muzzle reaches 7.10, which
+	-- leaves the nostrils four tenths INSIDE it. They would not error; they
+	-- would simply stop existing, and a pig with no nostrils reads as a pig
+	-- with no face.
+	for _, child in ipairs(refs.model:GetChildren()) do
+		if child:IsA("BasePart") and child.Name == "Nostril" then
+			local side = if child.Position.X < origin.X then -1 else 1
+			child.CFrame = CFrame.new(origin
+				+ Vector3.new(side * MESH_NOSTRIL.X, MESH_NOSTRIL.Y, MESH_NOSTRIL.Z))
+		end
+	end
+
+	-- THE RIM AND THE DARK DISC BOTH GO, because the mesh now has a real bore
+	-- and the opening is simply open.
+	--
+	-- The rim is twelve FLAT segments, which can only lie true on a sphere --
+	-- measured around their own ring on this body, the surface swings 0.72
+	-- studs from one side to the other, so a third were buried and the rest
+	-- stood off the pig. No offset fixes a ring on a shape that is not round.
+	--
+	-- The disc was the other half of the same illusion: nothing could be dug,
+	-- so an opening was a dark thing with a lip around it. Both were answers
+	-- to a question that stopped being asked -- the coin slit in the crown has
+	-- nothing in it either, and these are the same object.
+	if Config.PIGGY_VAULT and refs.lock then
+		for _, piece in ipairs(refs.lock:GetChildren()) do
+			if piece.Name == "VaultRim" or piece.Name == "VaultHole" then
+				piece:Destroy()
+			end
+		end
+	end
+
+	refs.bodySize = bodyEntry.size
+	refs.patternSeat = CFrame.new(Vector3.new(0, BODY_Y, 0) - bodyEntry.offset)
+	return true
+end
+
 function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	local model = Instance.new("Model")
 	model.Name = "PiggyBank"
@@ -261,9 +650,13 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 
 	local coins, pile = buildCoinPile(centre + Vector3.new(0, COIN_CENTRE_OFFSET, 0), model)
 
-	-- Lights the pile from inside so it reads through a body that's only
-	-- slightly transparent. Brightness tracks the fill, so a rich piggy
-	-- visibly glows from across the map.
+	-- Lights the pile from inside. With an opaque body this stopped being a
+	-- glow THROUGH the shell and became light spilling OUT of the hatch and
+	-- the coin slit, which is the better signal of the two -- and it is what
+	-- carries the top of the range, where the pile has risen past the top of
+	-- the aperture and the hatch reads as packed whatever else goes in.
+	-- Brightness tracks the fill, and `Shadows` is false, so it still lights
+	-- the pig from across the map.
 	local glow = Instance.new("PointLight")
 	glow.Name = "Glow"
 	glow.Color = COIN_GOLD
@@ -520,20 +913,41 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	lock.PrimaryPart = plate
 	lock.Parent = model
 
-	-- Interaction -----------------------------------------------------
-	local prompt = Instance.new("ProximityPrompt")
-	prompt.Name = "CollectPrompt"
-	prompt.ActionText = "Bank Coins"
-	prompt.Style = Enum.ProximityPromptStyle.Custom
-	prompt:SetAttribute(Config.PROMPT_KIND_ATTRIBUTE, "collect")
-	prompt.ObjectText = "Your Piggy Bank"
-	prompt.HoldDuration = 0
-	prompt.MaxActivationDistance = Config.COLLECT_RANGE
-	prompt.RequiresLineOfSight = false
-	prompt.Parent = body
+	-- THE PLASTER: two crossed strips on the forehead, hidden until somebody
+	-- gets in. A tell for the street and nothing else -- see
+	-- Config.ROBBED_MARK_SECONDS. Placed BY DIRECTION on the body sphere like
+	-- the eyes and the mottling, half sunk, so it sits on the curve rather
+	-- than floating off it: above the eyes (which top out at BODY_Y + 2.7)
+	-- and in front of the ears (which start at z 1.9).
+	do
+		local dir = Vector3.new(0, 0.62, 0.78).Unit
+		-- Seated a shade INSIDE the surface, because a flat strip on a sphere
+		-- only touches it in the middle: measured, at +0.03 every corner of
+		-- the strip stood 0.06 to 0.24 off the skin. At -0.06 the middle is
+		-- sunk and the ends stand about a tenth proud, which is a plaster
+		-- stuck to a curve rather than one hovering over it.
+		local seat = centre + dir * (BODY_R - 0.06)
+		-- lookAt points -Z at the centre, so the strip's thin axis is the
+		-- surface normal and its long axis lies along the surface.
+		local frame = CFrame.lookAt(seat, centre)
+		for i, spin in ipairs({ 45, -45 }) do
+			local strip = part("Plaster", model, Vector3.new(2.4, 0.7, 0.16),
+				frame * CFrame.Angles(0, 0, math.rad(spin)))
+			strip.Color = Color3.fromRGB(226, 196, 156)
+			strip.Material = Enum.Material.SmoothPlastic
+			strip.Transparency = 1
+			-- The second strip sits a hair further out so the two cannot
+			-- z-fight where they cross.
+			if i == 2 then
+				strip.CFrame = strip.CFrame * CFrame.new(0, 0, -0.02)
+			end
+		end
+	end
 
-	-- Both prompts exist on every piggy; the client enables whichever one
-	-- applies to the viewer. The server never trusts that choice -- it
+	-- Interaction -----------------------------------------------------
+	-- There is no collect prompt: the pig is the wallet and nothing is
+	-- banked. The steal prompt exists on every piggy and the client enables it
+	-- for everybody but the owner. The server never trusts that choice -- it
 	-- re-checks ownership on every trigger.
 	local stealPrompt = Instance.new("ProximityPrompt")
 	stealPrompt.Name = "StealPrompt"
@@ -541,7 +955,10 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	stealPrompt.Style = Enum.ProximityPromptStyle.Custom
 	stealPrompt:SetAttribute(Config.PROMPT_KIND_ATTRIBUTE, "steal")
 	stealPrompt.ObjectText = "Piggy Bank"
-	stealPrompt.HoldDuration = Config.STEAL_HOLD
+	-- Half a second: this hold OPENS the lock, it no longer robs it. What
+	-- comes after is Config.CRACK, where the Vault Lock tree now expresses
+	-- itself -- so a long hold here would charge for that upgrade twice.
+	stealPrompt.HoldDuration = Config.CRACK.openHold
 	stealPrompt.MaxActivationDistance = Config.STEAL_RANGE
 	stealPrompt.RequiresLineOfSight = false
 	stealPrompt.Enabled = false
@@ -566,10 +983,13 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 		ears = ears,
 		legs = legs,
 		lock = lock,
-		prompt = prompt,
 		stealPrompt = stealPrompt,
 		sounds = sounds,
 	}
+
+	-- BEFORE applySkin, so the skin colours whatever is actually standing
+	-- there. A no-op unless both mesh ids are filled in.
+	swapToMesh(refs)
 
 	PiggyBank.applySkin(refs, Config.DEFAULT_SKIN)
 	PiggyBank.applyEffect(refs, Config.DEFAULT_EFFECT)
@@ -590,6 +1010,11 @@ function PiggyBank.applySkin(refs: Refs, skinKey: string)
 	refs.body.Material = tier.material
 	refs.body.Transparency = tier.transparency
 
+	-- FOUR PARTS OR SEVEN, AND THE CALLER DOES NOT CARE WHICH. The mesh piggy
+	-- names its trim meshes `Snout`, `Ear` and `Tail` -- the primitives' own
+	-- names -- so this list is built the same way for both and there is no
+	-- branch to keep in step. The mesh piggy's legs live inside the body
+	-- mesh, so `refs.legs` is simply empty there.
 	local trimParts: { BasePart } = { refs.snout, refs.tail }
 	for _, ear in ipairs(refs.ears) do
 		table.insert(trimParts, ear)
@@ -614,8 +1039,15 @@ function PiggyBank.applySkin(refs: Refs, skinKey: string)
 	-- is built, so the origin captured at build time points the wrong way for
 	-- six of the twelve piggies; the body's frame carries the turn with it and
 	-- a stripe stays across the spine on both rows.
+	-- AND CORRECTED FOR THE MESH'S OWN SEAT, which is a real bug rather than
+	-- tidiness. `refs.body.CFrame` is the BODY CENTRE on the primitives piggy
+	-- and the BOUNDING-BOX CENTRE on the mesh one -- measured, y 8.50 against
+	-- y 7.86 -- so every spot and stripe would sit two thirds of a stud low on
+	-- a meshed pig, on twelve skins, with nothing erroring. The correction is
+	-- applied in the BODY'S OWN FRAME rather than in world space, which is
+	-- what keeps the far row's half turn working (see below).
 	PiggyModel.applyPattern(refs.model, tier, {
-		frame = refs.body.CFrame,
+		frame = refs.body.CFrame * (refs.patternSeat or CFrame.identity),
 		radius = BODY_R,
 		anchored = true,
 		weldTo = nil,
@@ -794,7 +1226,12 @@ function PiggyBank.playMilestone(refs: Refs, index: number, total: number)
 
 	-- A small squash-and-stretch on the body. Cheap, and it makes the piggy
 	-- feel like an object reacting rather than a static prop.
-	local base = Vector3.new(BODY_R * 2, BODY_R * 2, BODY_R * 2)
+	-- THE RESTING SIZE, NOT A 12-STUD CUBE. This was hardcoded to the body
+	-- sphere's own diameter, which is right for a ball and wrong for a
+	-- MeshPart measuring 11.87 x 12.78 x 12.79 -- so the first milestone on a
+	-- meshed pig would have SNAPPED it to a cube and then elastic-tweened it
+	-- back to one. Read from the part rather than assumed.
+	local base = refs.bodySize or Vector3.new(BODY_R * 2, BODY_R * 2, BODY_R * 2)
 	local squash = base * (if index >= total then 1.16 else 1.08)
 	refs.body.Size = squash
 	TweenService:Create(
@@ -802,6 +1239,16 @@ function PiggyBank.playMilestone(refs: Refs, index: number, total: number)
 		TweenInfo.new(0.45, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out),
 		{ Size = base }
 	):Play()
+end
+
+-- Shows or hides the plaster. Found by name rather than held in Refs: two
+-- parts, toggled a few times an hour.
+function PiggyBank.setRobbed(refs: Refs, on: boolean)
+	for _, child in ipairs(refs.model:GetChildren()) do
+		if child.Name == "Plaster" and child:IsA("BasePart") then
+			child.Transparency = if on then 0 else 1
+		end
+	end
 end
 
 -- Someone is robbing this piggy. Loud and long-range on purpose: the alarm

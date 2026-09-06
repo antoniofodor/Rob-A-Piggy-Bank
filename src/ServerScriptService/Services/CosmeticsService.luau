@@ -318,39 +318,11 @@ local function rollFrom(owned: { [string]: boolean }): string?
 	return pool[#pool]
 end
 
--- Hands out roll tokens and re-pushes, which is two jobs on purpose: the roll
--- button colours itself against this balance, so a grant that did not push
--- would leave a player holding tokens the shop still thought they did not have
--- until something else happened to refresh it.
---
--- `why` IS OPTIONAL AND NIL MEANS SILENT, because an event already fires an
--- income toast and a medal toast and a drop reel, and a fourth card announcing
--- two tokens is how a reward turns into noise. EventService folds the token
--- count into the medal line instead, so one card names both. The daily claim
--- does the same thing from the other end -- it appends to its own message.
--- Nothing here is ever granted with NOTHING on screen: the caller owns the
--- wording, not the choice of whether to say anything.
---
--- Lives here rather than in a service of its own because CosmeticsService owns
--- the only thing tokens are spent on, and because it requires nothing but
--- DataService and PlotService -- which is what lets DailyService and
--- EventService both call it with no cycle to work around.
-function CosmeticsService.awardTokens(player: Player, amount: number, why: string?)
+-- Loot is granted by SetService.award and nowhere else; this file only
+-- spends it (the roll) and reports it (the push).
+function CosmeticsService.getLoot(player: Player): number
 	local data = DataService.get(player)
-	if not data or amount <= 0 then
-		return
-	end
-	data.tokens = math.floor((data.tokens or 0) + amount)
-	if why then
-		notify(player, ("%s +%d %s."):format(why, amount,
-			Config.tokenWord(amount)), "money")
-	end
-	CosmeticsService.push(player)
-end
-
-function CosmeticsService.getTokens(player: Player): number
-	local data = DataService.get(player)
-	return if data then math.floor(data.tokens or 0) else 0
+	return if data then math.floor(data.loot or 0) else 0
 end
 
 function CosmeticsService.rollAccessory(player: Player)
@@ -367,20 +339,21 @@ function CosmeticsService.rollAccessory(player: Player)
 		return
 	end
 
-	-- PAID IN TOKENS, NEVER IN COINS. This is the line that keeps the roll
-	-- legal once coins are sellable -- see the long note above
-	-- Config.ROLL_CURRENCY. Nothing about the pool, the odds or the
-	-- no-duplicates guarantee changed with it; only what it is bought with.
+	-- PAID IN LOOT, NEVER IN COINS. Loot comes only from robbing, so the
+	-- collection is paced by how often somebody goes out rather than by
+	-- whoever has the deepest pig -- and no amount of money can reach it.
+	-- Nothing about the pool, the odds or the no-duplicates guarantee changed
+	-- with it; only what it is bought with.
 	local cost = Config.getRollCost(have)
-	local held = math.floor(data.tokens or 0)
+	local held = math.floor(data.loot or 0)
 	if held < cost then
-		-- Names the shortfall AND where tokens come from. A currency a player
+		-- Names the shortfall AND where loot comes from. A currency a player
 		-- has never seen, on a button they cannot press, is indistinguishable
 		-- from a broken feature -- and this one cannot be fixed by going and
 		-- earning more coins, which is what every other refusal in this game
 		-- has trained them to try.
-		notify(player, ("Need %d more %s. Claim your daily reward or join a street event."):format(
-			cost - held, Config.tokenWord(cost - held)), "warn")
+		notify(player, ("Need %d more %s. Rob a neighbour and get the coins home."):format(
+			cost - held, Config.lootWord(cost - held)), "warn")
 		return
 	end
 
@@ -393,7 +366,7 @@ function CosmeticsService.rollAccessory(player: Player)
 		return
 	end
 
-	data.tokens = held - cost
+	data.loot = held - cost
 	acc.owned[key] = true
 
 	local spec = Config.ACCESSORIES[key]
@@ -730,7 +703,7 @@ function CosmeticsService.push(player: Player)
 			-- advertised itself as a rebirth reward would send players to
 			-- the wrong feature entirely.
 			drop = skin.rarity ~= nil and skin.set == nil,
-			medals = skin.medals,
+			loot = skin.loot,
 			set = skin.set,
 		}
 	end
@@ -742,13 +715,13 @@ function CosmeticsService.push(player: Player)
 			order = effect.order,
 			cost = effect.cost or 0,
 			-- `effect.set` before the free-if-costless fallback, exactly as
-			-- Config.isSkinUnlocked does. A set effect is priced in medals and
+			-- Config.isSkinUnlocked does. A set effect is priced in loot and
 			-- therefore has no `cost`, and (nil or 0) <= 0 is TRUE -- so
 			-- without this the Tractor Beam is unlocked for every player in
 			-- the game from the first second.
 			unlocked = (effect.set == nil and (effect.cost or 0) <= 0)
 				or data.cosmetics.ownedEffects[key] == true,
-			medals = effect.medals,
+			loot = effect.loot,
 			set = effect.set,
 			equipped = data.cosmetics.effect == key,
 			-- The two ends of the particle gradient, so the shop card can be
@@ -790,7 +763,7 @@ function CosmeticsService.push(player: Player)
 			name = item.name,
 			order = item.order,
 			cost = item.cost,
-			medals = item.medals,
+			loot = item.loot,
 			set = item.set,
 			zone = item.zone,
 			swatch = item.swatch,
@@ -871,7 +844,7 @@ function CosmeticsService.push(player: Player)
 			-- The balance travels with the price, so the client can colour the
 			-- roll button without knowing what the currency is called or
 			-- needing a second remote to ask for it.
-			tokens = math.floor(data.tokens or 0),
+			loot = math.floor(data.loot or 0),
 			currency = Config.ROLL_CURRENCY.plural,
 		},
 	})

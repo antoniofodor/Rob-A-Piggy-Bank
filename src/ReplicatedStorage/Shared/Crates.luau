@@ -1,0 +1,465 @@
+--!strict
+--[[
+	Crates
+
+	The shop tab that finally reaches `ChestService`.
+
+	FOUR HUNDRED AND TWENTY LINES OF SERVER WERE UNREACHABLE. `ChestService`
+	has been complete and wired since it was written -- open, roll, grant,
+	combine, sell, four remotes, five chests -- and `ClientMain` had not one
+	reference to any of it. Nothing was broken; there was simply no button.
+	This is the button.
+
+	A MODULE, AND THE 200-LOCAL CEILING IS NOT A STYLE NOTE. `ClientMain` is
+	one chunk at Luau's register limit, and this feature wants a dozen
+	top-level names of its own. Written inline it would not have cost the
+	crates tab -- it would have cost the ENTIRE HUD, because the chunk never
+	compiles and nothing gets built. A function body gets its own register
+	file, so the whole thing costs that chunk one local. Same reason HotBar,
+	AdminPanel, Rebirth, HouseFX and SpinWheel are modules.
+
+	THE CARD SHOWS WHAT IS INSIDE, WHICH IS THE ONLY THING A PLAYER WANTS TO
+	KNOW. The first instinct is a crate icon per chest, and this project has
+	already learned exactly where that ends: the four shops on the street were
+	"four identical boxes" with a different accent colour, and the shop's own
+	cards were "nineteen identical grey squares" until they rendered the real
+	item. A crate is a container, so its card is the three best things in it,
+	built by the same builders the rest of the shop uses.
+
+	THE ODDS ARE ON THE CARD, DRAWN RATHER THAN WRITTEN. Nothing requires that
+	-- coins are not purchasable, so none of this is a regulated random item
+	and there is no disclosure obligation. It is here for the reason the drop
+	reel already prints its percentages: being outside the regulation is not a
+	reason to stop, it is the reason it costs nothing to comply with the
+	spirit of it. A stacked bar is also the version a nine-year-old can read
+	without reading -- the gold sliver being thin IS the information.
+
+	AND THEY ARE THE SERVER'S OWN NUMBERS. `ChestState` carries the odds
+	`ChestService.liveOdds` actually rolled with, renormalised over the tiers
+	that have stock. Computing them here from `Config.CHESTS[key].odds` would
+	print a player numbers the server did not use, which is the one way a
+	drawn probability can be worse than no probability at all.
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+local ShopStyle = require(ReplicatedStorage.Shared.ShopStyle)
+local SpinWheel = require(ReplicatedStorage.Shared.SpinWheel)
+local Theme = require(ReplicatedStorage.Shared.Theme)
+
+local Crates = {}
+
+local TIERS = { "common", "rare", "epic", "legendary" }
+local DOT = utf8.char(0x00B7)
+
+-- Card geometry. Three across the 1020-wide content area at the panel's cap,
+-- which is what the scale cell below works out to.
+local CARD_H = 246
+local WELL_H = 86
+local BAR_H = 20
+
+-- SHARED STATE ABOVE ITS READERS. A `local` declared after a function that
+-- reads it silently becomes a nil GLOBAL in Luau -- it does not error, it dies
+-- at the call naming nothing useful. This project has hit that seven times.
+local deps: any = nil
+local grid: ScrollingFrame? = nil
+local cards: { [string]: any } = {}
+local latest: any = nil
+local coins, loot = 0, 0
+
+local function tierColour(tier: string): Color3
+	local r = Config.RARITIES[tier]
+	return if r then r.colour else Theme.MUTED
+end
+
+-- Every item a chest can give, best tier first.
+--
+-- BEST FIRST IS THE ADVERTISING AND IT IS ALSO HONEST. A crate is opened for
+-- the thing at the top of it, so leading with three commons describes the
+-- likely outcome and sells nothing; leading with the legendaries says what
+-- the chest is FOR. Nothing here claims they are likely -- the odds bar
+-- directly underneath is drawn to scale and says the opposite.
+local function stockOf(chestKey: string): { { kind: string, key: string, name: string, tier: string } }
+	local pool = Config.chestPool(chestKey)
+	local out = {}
+	for i = #TIERS, 1, -1 do
+		local tier = TIERS[i]
+		for _, entry in ipairs(pool[tier] or {}) do
+			local kind, key = Config.chestEntry(chestKey, entry)
+			local catalogue = Config.catalogueFor(kind)
+			local spec = catalogue and catalogue[key]
+			if spec then
+				table.insert(out, { kind = kind, key = key, name = spec.name or key, tier = tier })
+			end
+		end
+	end
+	return out
+end
+
+local function label(parent: Instance, text: string, size: UDim2, pos: UDim2,
+	font: Enum.Font, textSize: number, colour: Color3): TextLabel
+	local l = Instance.new("TextLabel")
+	l.BackgroundTransparency = 1
+	l.Size = size
+	l.Position = pos
+	l.Font = font
+	l.TextSize = textSize
+	l.TextColor3 = colour
+	l.TextXAlignment = Enum.TextXAlignment.Left
+	l.TextTruncate = Enum.TextTruncate.AtEnd
+	l.Text = text
+	l.Parent = parent
+	return l
+end
+
+-- ONE CARD PER CHEST, BUILT ONCE AND REPAINTED FOREVER.
+--
+-- The coin balance moves constantly while a player is earning, and the buy
+-- state on this card is a function of it -- so a render that tore the card
+-- down and rebuilt it would rebuild three ViewportFrames per chest per coin
+-- tick. Everything below the previews is a property write on an instance that
+-- already exists. Same rule the upgrade ladder follows: rebuild only when the
+-- SHAPE changes, which for a chest is never.
+local function buildCard(chestKey: string, info: any): any
+	local chest = Config.CHESTS[chestKey]
+	local hue = chest.colour or Theme.HUE.crates
+
+	local card = Instance.new("Frame")
+	card.Name = "Crate_" .. chestKey
+	card.BackgroundColor3 = ShopStyle.CARD
+	card.BorderSizePixel = 0
+	card.LayoutOrder = chest.order or 50
+	card.Parent = grid
+	ShopStyle.round(card, 14)
+	-- The chest's OWN colour is the edge, which is what makes five cards read
+	-- as five different things rather than as one card five times. The tab's
+	-- hue belongs to the tab; a card's belongs to what is in it.
+	ShopStyle.outline(card, 3, hue)
+	ShopStyle.gloss(card)
+
+	local name = label(card, chest.name or chestKey, UDim2.new(1, -104, 0, 26),
+		UDim2.new(0, 12, 0, 10), Enum.Font.FredokaOne, 19, ShopStyle.TEXT)
+
+	-- Owned of total, which is the one number that says "keep going".
+	local progress = ShopStyle.chip(card, ShopStyle.deepen(hue, 0.5), Theme.PAPER)
+	progress.Name = "Progress"
+	progress.Size = UDim2.new(0, 78, 0, 24)
+	progress.Position = UDim2.new(1, -90, 0, 11)
+
+	-- ---- what is inside ------------------------------------------------
+	local strip = Instance.new("Frame")
+	strip.Name = "Stock"
+	strip.BackgroundTransparency = 1
+	strip.Size = UDim2.new(1, -24, 0, WELL_H)
+	strip.Position = UDim2.new(0, 12, 0, 42)
+	strip.Parent = card
+
+	local layout = Instance.new("UIListLayout")
+	layout.FillDirection = Enum.FillDirection.Horizontal
+	layout.Padding = UDim.new(0, 8)
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Parent = strip
+
+	local stock = stockOf(chestKey)
+	for i = 1, 3 do
+		local entry = stock[i]
+		local well = Instance.new("Frame")
+		well.Name = "Well" .. i
+		well.LayoutOrder = i
+		-- A third of the strip less the two 8px gaps between three of them.
+		well.Size = UDim2.new(1 / 3, -16 / 3, 1, 0)
+		well.BackgroundColor3 = ShopStyle.SUNK
+		well.BorderSizePixel = 0
+		well.ClipsDescendants = true
+		well.Parent = strip
+		ShopStyle.round(well, 10)
+		-- The RARITY is the well's edge, so the strip reads as a ladder even
+		-- before anybody looks at what is standing in it.
+		ShopStyle.outline(well, 2, if entry then tierColour(entry.tier) else ShopStyle.SUNK)
+		if entry and deps.iconFor then
+			deps.iconFor(entry.kind, entry.key, well)
+		end
+	end
+
+	-- ---- the odds, to scale ---------------------------------------------
+	local bar = Instance.new("Frame")
+	bar.Name = "Odds"
+	bar.BackgroundColor3 = ShopStyle.SUNK
+	bar.BorderSizePixel = 0
+	bar.Size = UDim2.new(1, -24, 0, BAR_H)
+	bar.Position = UDim2.new(0, 12, 0, 42 + WELL_H + 10)
+	bar.ClipsDescendants = true
+	bar.Parent = card
+	ShopStyle.round(bar, 999)
+	ShopStyle.outline(bar, 2)
+
+	local segments: { [string]: TextLabel } = {}
+	for _, tier in ipairs(TIERS) do
+		local seg = Instance.new("TextLabel")
+		seg.Name = "Seg_" .. tier
+		seg.BackgroundColor3 = tierColour(tier)
+		seg.BorderSizePixel = 0
+		seg.Font = Enum.Font.GothamBold
+		seg.TextSize = 11
+		-- Ink on every tier, because all four rarity colours are bright by
+		-- design -- they were chosen to read against a dark card edge.
+		seg.TextColor3 = Theme.INK
+		seg.Text = ""
+		seg.Size = UDim2.new(0, 0, 1, 0)
+		seg.Parent = bar
+		segments[tier] = seg
+	end
+
+	local blurb = label(card, chest.blurb or "", UDim2.new(1, -24, 0, 18),
+		UDim2.new(0, 12, 0, 42 + WELL_H + 10 + BAR_H + 8), Enum.Font.Gotham, 12,
+		ShopStyle.MUTED)
+
+	-- ---- the button ------------------------------------------------------
+	local open = Instance.new("TextButton")
+	open.Name = "Open"
+	open.Size = UDim2.new(1, -24, 0, 38)
+	open.Position = UDim2.new(0, 12, 1, -50)
+	open.BackgroundColor3 = ShopStyle.BUY
+	open.BorderSizePixel = 0
+	open.AutoButtonColor = true
+	open.Font = Enum.Font.FredokaOne
+	open.TextSize = 17
+	open.TextColor3 = ShopStyle.TEXT
+	open.Text = ""
+	open.Parent = card
+	ShopStyle.round(open, 12)
+	ShopStyle.outline(open, 3)
+	ShopStyle.gloss(open)
+
+	-- THE CLIENT DOES NOT DECIDE ANYTHING, which is why this fires whatever
+	-- the button looks like. The server re-reads the cost, re-rolls the tier
+	-- and re-picks the item; a greyed button here is a courtesy, not a check.
+	-- What it must not do is fire when it is plainly refusing, because a
+	-- control that looks dead and still costs coins is worse than either.
+	open.Activated:Connect(function()
+		if cards[chestKey] and cards[chestKey].affordable and deps.open then
+			deps.open(chestKey)
+		end
+	end)
+
+	local _ = info
+	return { card = card, name = name, progress = progress, segments = segments,
+		open = open, blurb = blurb, affordable = false }
+end
+
+-- Repaint one card from the server's own numbers.
+local function paint(chestKey: string, info: any)
+	local ui = cards[chestKey]
+	if not ui then
+		return
+	end
+	local chest = Config.CHESTS[chestKey]
+	local currency = info.currency or "coins"
+
+	ui.progress.Text = ("%d/%d"):format(info.owned or 0, info.total or 0)
+
+	-- THE SEGMENTS ARE LAID OUT BY HAND RATHER THAN BY A UILISTLAYOUT, because
+	-- a tier with no stock has to take NO WIDTH and a layout with padding
+	-- would still leave its gap. Walked in TIERS order so the bar always runs
+	-- common to legendary whatever order `pairs` felt like.
+	local at = 0
+	for _, tier in ipairs(TIERS) do
+		local pct = (info.odds or {})[tier]
+		local seg = ui.segments[tier]
+		if pct and pct > 0 then
+			local w = pct / 100
+			seg.Position = UDim2.new(at, 0, 0, 0)
+			seg.Size = UDim2.new(w, 0, 1, 0)
+			-- The number goes IN the segment, and only where it fits. A 4%
+			-- legendary sliver is about twelve pixels wide on this card, and
+			-- "4%" typeset across it is a smear that makes the bar harder to
+			-- read rather than easier. The sliver being thin is the message.
+			seg.Text = if w >= 0.16 then ("%d%%"):format(math.floor(pct + 0.5)) else ""
+			seg.Visible = true
+			at += w
+		else
+			seg.Visible = false
+		end
+	end
+
+	local held = if currency == "loot" then loot else coins
+	local cost = info.cost or 0
+	ui.affordable = held >= cost
+	local complete = (info.owned or 0) >= (info.total or 0) and (info.total or 0) > 0
+
+	if currency == "loot" then
+		ui.open.Text = ("OPEN %s %d %s"):format(DOT, cost, Config.lootWord(cost))
+	else
+		ui.open.Text = ("OPEN %s %s"):format(DOT, deps.format(cost))
+	end
+	ui.open.BackgroundColor3 = if ui.affordable then ShopStyle.BUY else ShopStyle.DEAR
+	ui.open.TextColor3 = if ui.affordable then ShopStyle.TEXT else ShopStyle.MUTED
+
+	-- A FINISHED CHEST STILL OPENS, and saying so is the point of the line.
+	-- Every roll from here is a duplicate, which is not a dead outcome -- it
+	-- is a spare, and a spare sells or combines. A button that went dead at
+	-- 12/12 would be telling a player their collection had stopped paying,
+	-- which is the exact thing the spare system exists to make untrue.
+	ui.blurb.Text = if complete
+		then "You have them all. Opens now pay spares."
+		else (chest.blurb or "")
+end
+
+-- ---- the reveal ---------------------------------------------------------
+--
+-- The reel is SpinWheel's, not a second one. See the header there: an event
+-- drop and a chest differ underneath and are the same object on screen, and
+-- the three fields that let one serve both are `title`, `subtitle` and `note`.
+function Crates.reveal(payload: any)
+	if not deps or not deps.gui or type(payload) ~= "table" then
+		return
+	end
+	local chestKey = payload.chest
+	local chest = Config.CHESTS[chestKey]
+	if not chest then
+		return
+	end
+
+	local stock = stockOf(chestKey)
+	if #stock == 0 then
+		return
+	end
+
+	local catalogue = Config.catalogueFor(payload.kind)
+	local spec = catalogue and catalogue[payload.key]
+
+	-- The winner is looked up in the pool rather than built separately, so the
+	-- tile under the pointer is the same shape as every tile beside it.
+	local won = nil
+	for _, entry in ipairs(stock) do
+		if entry.kind == payload.kind and entry.key == payload.key then
+			won = entry
+			break
+		end
+	end
+	won = won or { kind = payload.kind, key = payload.key,
+		name = (spec and spec.name) or payload.key }
+
+	-- The odds line, from the odds the SERVER rolled with. A combine sends no
+	-- odds table -- it is not a chest roll -- so it says what it actually was.
+	local subtitle
+	if payload.combined then
+		subtitle = ("Combined %s climbed %d tier%s"):format(
+			DOT, payload.climb or 1, if (payload.climb or 1) == 1 then "" else "s")
+	else
+		local parts = {}
+		for _, tier in ipairs(TIERS) do
+			local pct = (payload.odds or {})[tier]
+			if pct and pct > 0 then
+				table.insert(parts, ("%d%% %s"):format(math.floor(pct + 0.5), tier))
+			end
+		end
+		subtitle = table.concat(parts, "  " .. DOT .. "  ")
+	end
+
+	local note = nil
+	if payload.duplicate then
+		note = ("Spare %s sells for %s"):format(DOT, deps.format(payload.value or 0))
+	end
+
+	SpinWheel.play(deps.gui, {
+		pool = stock,
+		won = won,
+		title = string.upper(chest.name or "CRATE"),
+		subtitle = subtitle,
+		note = note,
+		tone = tierColour(payload.tier or "common"),
+	}, deps.iconFor)
+end
+
+-- ---- state ---------------------------------------------------------------
+
+function Crates.render(state: any?)
+	if state then
+		latest = state
+	end
+	if not latest or not grid then
+		return
+	end
+	for chestKey, info in pairs(latest.chests or {}) do
+		if Config.CHESTS[chestKey] then
+			if not cards[chestKey] then
+				cards[chestKey] = buildCard(chestKey, info)
+			end
+			paint(chestKey, info)
+		end
+	end
+end
+
+-- THE BALANCE ARRIVES SEPARATELY, because it always did.
+--
+-- `ChestState` is pushed when a chest ACTION happens; coins move on their own
+-- clock and loot on a third. So this is the same dirty-driven shape the front
+-- page uses, one layer smaller: whoever already handles those pushes tells us,
+-- and only the buy state repaints.
+function Crates.setBalance(newCoins: number?, newLoot: number?)
+	local changed = false
+	if type(newCoins) == "number" and newCoins ~= coins then
+		coins = newCoins
+		changed = true
+	end
+	if type(newLoot) == "number" and newLoot ~= loot then
+		loot = newLoot
+		changed = true
+	end
+	if changed then
+		Crates.render()
+	end
+end
+
+function Crates.init(view: Frame, injected: any)
+	deps = injected
+
+	-- A HEADER, BECAUSE THIS TAB IS THE ONE THAT NEEDS A SENTENCE. Every other
+	-- tab sells a thing you can see; this one sells a chance, and the two
+	-- facts that make that fair -- the odds are real, and a repeat is not a
+	-- loss -- are exactly what a nine-year-old cannot infer from a grid.
+	label(view, "Open a crate and see what is inside.", UDim2.new(1, -8, 0, 22),
+		UDim2.new(0, 4, 0, 0), Enum.Font.FredokaOne, 17, ShopStyle.TEXT)
+	label(view, "The chances are real, and they are printed on every crate. "
+		.. "Something you already own comes back as a SPARE, never as nothing.",
+		UDim2.new(1, -8, 0, 18), UDim2.new(0, 4, 0, 22), Enum.Font.Gotham, 12,
+		ShopStyle.MUTED)
+
+	local scroll = Instance.new("ScrollingFrame")
+	scroll.Name = "CrateGrid"
+	scroll.Size = UDim2.new(1, 0, 1, -46)
+	scroll.Position = UDim2.new(0, 0, 0, 46)
+	scroll.BackgroundTransparency = 1
+	scroll.BorderSizePixel = 0
+	scroll.ScrollBarThickness = 6
+	scroll.CanvasSize = UDim2.new()
+	scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	scroll.Parent = view
+	grid = scroll
+
+	-- A `Border` stroke draws OUTSIDE its frame, into the region a
+	-- ScrollingFrame clips -- which is what once cut the left edge off the
+	-- first column of every cosmetic card. The cards cannot be moved, because
+	-- the layout owns their position, so the clearance goes on the scroll.
+	local pad = Instance.new("UIPadding")
+	pad.PaddingLeft = UDim.new(0, 4)
+	pad.PaddingRight = UDim.new(0, 4)
+	pad.PaddingTop = UDim.new(0, 4)
+	pad.Parent = scroll
+
+	local cell = Instance.new("UIGridLayout")
+	-- IN SCALE, NOT PIXELS, for the reason the front page's shelf is: three
+	-- cells of (1/3 - 8) plus two 12-pixel gaps come to exactly the parent
+	-- width at EVERY panel size, so this fits a desktop and a phone held
+	-- sideways with no resize handler and nothing to keep in step.
+	cell.CellSize = UDim2.new(1 / 3, -8, 0, CARD_H)
+	cell.CellPadding = UDim2.new(0, 12, 0, 12)
+	cell.SortOrder = Enum.SortOrder.LayoutOrder
+	cell.Parent = scroll
+
+	Crates.render()
+end
+
+return Crates

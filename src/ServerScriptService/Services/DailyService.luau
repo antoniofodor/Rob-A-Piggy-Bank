@@ -104,20 +104,9 @@ function DailyService.claim(player: Player)
 	data.daily.streak = streak
 	data.daily.lifetime += 1
 
-	-- TOKENS RIDE ON TOP OF WHATEVER THE RUNG ALREADY PAID, on every day of
-	-- the ladder. This is the daily half of what makes the accessory roll
-	-- reachable now that it no longer costs coins, and day one pays exactly the
-	-- price of a first roll -- somebody who installs this game today rolls an
-	-- accessory today.
-	--
-	-- Granted BEFORE the branch below so every kind gets them without four
-	-- copies of the same two lines, and appended to whichever message the
-	-- branch composes: ONE card for one claim, rather than a claim that fires
-	-- two toasts at a nine-year-old.
-	local tokens = reward.tokens or 0
-	if tokens > 0 then
-		data.tokens = math.floor((data.tokens or 0) + tokens)
-	end
+	-- NO LOOT HERE, since the pivot: loot is the currency you go out and
+	-- earn, and a ladder that paid it would let a player who never robs
+	-- anybody finish the thief's collection. See Config.LOOT.
 
 	local message
 	if reward.kind == "coins" then
@@ -137,14 +126,6 @@ function DailyService.claim(player: Player)
 		local amount = coinValue(data, reward)
 		data.coins += amount
 		message = ("Day %d: a Golden Bone and %s coins!"):format(streak, tostring(amount))
-	end
-
-	if tokens > 0 then
-		message ..= (" +%d %s."):format(tokens, Config.tokenWord(tokens))
-		-- The roll button colours itself against this balance, so the shop has
-		-- to be told. Pushed rather than left to the next refresh: claiming and
-		-- immediately opening the shop to spend it is the common case.
-		CosmeticsService.push(player)
 	end
 
 	notify(player, message, "good")

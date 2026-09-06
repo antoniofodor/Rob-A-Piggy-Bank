@@ -34,9 +34,9 @@
 	  * PUBLISHED before it lands, so being beamed is a thing you saw coming.
 	  * TRIGGERABLE AND AIMABLE BY NOBODY. There is no remote here a client can
 	    fire and no argument anywhere that names a player.
-	  * IT TAKES THE VAULT, NEVER `coins`. Same line the police draw with bail
-	    and the same line the whole game is built on: banked coins are
-	    permanently safe, from thieves, from the police and from aliens alike.
+	  * IT TAKES FROM THE PIGGY BANK, the only balance there is since the
+	    pivot. The cap below is what keeps it survivable, the same line the
+	    police draw with bail: what is spent is out of the pig and safe.
 	  * CAPPED AT `STEAL_FRACTION`, so a raid can never cost more than one bad
 	    neighbour -- and everyone present is paid a bounty regardless of how it
 	    goes, so attending is net positive in expectation even on a total
@@ -77,6 +77,11 @@ local EventService = {}
 local phase = "quiet"
 local phaseName = ""
 local phaseEnds = 0
+-- How long the CURRENT phase was when it started, so the HUD can draw a bar
+-- rather than only a number. Sent alongside secondsLeft rather than inferred
+-- on the client: a player who joins halfway through a raid would otherwise
+-- see the bar start full and drain from the wrong place.
+local phaseSpan = 0
 
 -- A queue of one, like the patrol's alarm: an event requested early by the
 -- admin console, served on the scheduler's next pass.
@@ -141,6 +146,13 @@ local function pushPhase(to: Player?)
 		phase = phase,
 		event = phaseName,
 		secondsLeft = math.max(0, phaseEnds - os.clock()),
+		secondsTotal = phaseSpan,
+		-- Sent so the steal prompt can print what a grab is actually worth.
+		-- Rush Hour doubles a take, and a prompt quoting the un-doubled figure
+		-- would be showing a number the server does not use -- the same fault
+		-- the chest reel avoids by printing ChestService's own live odds
+		-- rather than recomputing them from Config.
+		stealMultiplier = stealMultiplier,
 	}
 	local remote = Remotes.get("EventState")
 	if to then
@@ -154,6 +166,7 @@ local function setPhase(name: string, event: string, seconds: number)
 	phase = name
 	phaseName = event
 	phaseEnds = os.clock() + seconds
+	phaseSpan = seconds
 	pushPhase()
 end
 
@@ -184,39 +197,42 @@ local function payIncomeSeconds(player: Player, seconds: number, why: string)
 	return amount
 end
 
--- Takes from the VAULT and never from `coins`, and repaints the pile so the
--- drain is visible on the lawn. This is `PoliceService.chargeBail` with a
--- different reason attached; the arithmetic and the rule are identical.
+-- Takes from the piggy bank -- the only balance there is -- and repaints the
+-- pile so the drain is visible on the lawn. This is `PoliceService.chargeBail`
+-- with a different reason attached; the arithmetic and the rule are identical.
 local function takeFromVault(player: Player, amount: number): number
 	local data = DataService.get(player)
 	if not data or amount <= 0 then
 		return 0
 	end
-	local taken = math.min(math.floor(data.vault), math.floor(amount))
+	local taken = math.min(math.floor(data.coins), math.floor(amount))
 	if taken <= 0 then
 		return 0
 	end
-	data.vault -= taken
+	data.coins -= taken
 	local plot = PlotService.getPlot(player)
 	if plot then
-		PlotService.updatePile(plot, data.vault, Config.getCapacity(data.capacityLevel))
+		PlotService.updatePile(plot, data.coins, Config.getCapacity(data.capacityLevel))
 	end
 	return taken
 end
 
+-- Recovered coins go back into the pig, and may overflow it: they were the
+-- victim's before the drone took them, and a full pig does not make them
+-- less so.
 local function giveToVault(player: Player, amount: number): number
 	local data = DataService.get(player)
 	if not data or amount <= 0 then
 		return 0
 	end
 	local capacity = Config.getCapacity(data.capacityLevel)
-	local before = data.vault
-	data.vault = math.min(capacity, data.vault + amount)
+	local before = data.coins
+	data.coins += amount
 	local plot = PlotService.getPlot(player)
 	if plot then
-		PlotService.updatePile(plot, data.vault, capacity)
+		PlotService.updatePile(plot, data.coins, capacity)
 	end
-	return math.floor(data.vault - before)
+	return math.floor(data.coins - before)
 end
 
 -- ============================================================
@@ -254,13 +270,13 @@ local function candidates(): { Player }
 	for _, player in ipairs(Players:GetPlayers()) do
 		local data = DataService.get(player)
 		local plot = PlotService.getPlot(player)
-		if data and plot and data.vault > 0 then
+		if data and plot and data.coins > 0 then
 			table.insert(out, player)
 		end
 	end
 	table.sort(out, function(a, b)
 		local da, db = DataService.get(a), DataService.get(b)
-		return (da and da.vault or 0) > (db and db.vault or 0)
+		return (da and da.coins or 0) > (db and db.coins or 0)
 	end)
 	return out
 end
@@ -470,7 +486,7 @@ local function runRaid()
 				-- A raid can therefore never cost more than one bad neighbour,
 				-- which is the number that makes it survivable rather than a
 				-- reason to stop playing.
-				cap = math.floor(data.vault * Config.STEAL_FRACTION),
+				cap = math.floor(data.coins * Config.STEAL_FRACTION),
 				grounded = nil,
 			})
 			notify(victim, "A drone locked onto your piggy bank! Knock it down.", "alarm")
@@ -556,28 +572,15 @@ local function runRaid()
 		payIncomeSeconds(player, Config.RAID.bountySeconds
 			* (if cleared then 1.5 else 1), "Invasion survived.")
 
-		-- MEDALS: turning up, plus what you personally did, plus a shared
+		-- LOOT: turning up, plus what you personally did, plus a shared
 		-- bonus if the street cleared it. The shared part pays the people who
 		-- did nothing too, on purpose -- a co-operative bonus that only paid
 		-- the doers would make letting a neighbour fail the correct play.
-		local m = Config.MEDALS
+		local m = Config.LOOT.event
 		local earned = m.attend
 			+ (downed[player] or 0) * m.perDrone
 			+ (if cleared then m.cleared else 0)
-
-		-- ROLL TOKENS: the other half of what an event pays, and the event
-		-- half of what makes the accessory roll reachable now that it costs no
-		-- coins. Attendance plus the shared clear bonus, and deliberately NOT
-		-- per drone -- see Config.TOKENS for why.
-		--
-		-- Granted silently and named in the MEDAL line instead, so the two
-		-- currencies arrive on one card. A raid already fires an income toast
-		-- and a drop reel at everybody; a fourth is noise.
-		local t = Config.TOKENS
-		local tokens = t.attend + (if cleared then t.cleared else 0)
-		CosmeticsService.awardTokens(player, tokens, nil)
-		SetService.award(player, earned, ("Invasion survived. +%d %s."):format(
-			tokens, Config.tokenWord(tokens)))
+		SetService.award(player, earned, "Invasion survived.")
 
 		-- Then one spin of the set. Everyone present gets one; it can only
 		-- ever return something they do not already own, and anything luck
@@ -617,12 +620,9 @@ local function runRush()
 	-- so there is nothing to be good at -- paying attendance and nothing else
 	-- is the honest reading of what a player did during it.
 	for _, player in ipairs(Players:GetPlayers()) do
-		-- Attendance in both currencies. Rush Hour has no drones and no clear
-		-- bonus, so there is nothing to be good at and nothing to scale by.
-		local tokens = Config.TOKENS.attend
-		CosmeticsService.awardTokens(player, tokens, nil)
-		SetService.award(player, Config.MEDALS.attend, ("Rush hour over. +%d %s."):format(
-			tokens, Config.tokenWord(tokens)))
+		-- Attendance only. Rush Hour has no drones and no clear bonus, so
+		-- there is nothing to be good at and nothing to scale by.
+		SetService.award(player, Config.LOOT.event.attend, "Rush hour over.")
 	end
 end
 

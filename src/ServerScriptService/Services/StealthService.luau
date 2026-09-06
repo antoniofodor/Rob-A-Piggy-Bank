@@ -66,6 +66,10 @@ local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local DataService = require(script.Parent.DataService)
 local HeldItemService = require(script.Parent.HeldItemService)
 local HeistService = require(script.Parent.HeistService)
+-- PlotService owns the fence, so it owns where a ladder can stand. No cycle:
+-- it requires PiggyBank, GuardDog, House, Decor and ThiefModel, and none of
+-- those reaches back here.
+local PlotService = require(script.Parent.PlotService)
 local Decor = require(ReplicatedStorage.Shared.Decor)
 
 local StealthService = {}
@@ -579,7 +583,23 @@ function StealthService.use(player: Player, key: string)
 	end
 
 	local used = false
-	if spec.style == "raincoat" then
+	if spec.style == "ladder" then
+		-- THE WORDING LIVES HERE AND THE PLACEMENT LIVES THERE. PlotService
+		-- hands back a reason CODE rather than a sentence, the same split
+		-- `CosmeticsService.awardTokens` draws with its optional `why`: the
+		-- fence knows whether a ladder can stand, the item knows how to say
+		-- so, and every one of these refusals names the fix rather than
+		-- failing quietly with a consumable spent.
+		local placed, why = PlotService.placeLadder(player)
+		if placed then
+			notify(player, ("Ladder up. %d seconds, either way over."):format(Config.LADDER.seconds), "good")
+			used = true
+		elseif why == "hoppable" then
+			notify(player, "You can jump that fence. Save it for a taller one.", "warn")
+		else
+			notify(player, "Stand right by a fence to put it up.", "warn")
+		end
+	elseif spec.style == "raincoat" then
 		if StealthService.isHidden(player) then
 			notify(player, "Not from inside a bin.", "warn")
 		elseif HeistService.isWarded(player) then

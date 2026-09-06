@@ -84,6 +84,28 @@ export type Dog = {
 	-- lockout. Guard duty stacked without it, and ten treats bought an
 	-- hour of a dog that never slept -- see Config.GUARD_DUTY_LOCKOUT.
 	guardLockUntil: number,
+	-- IS SOMEBODY IN? Written by the watcher in HeistService, which is the
+	-- only thing that knows where players are; a resident's owner is always
+	-- away, so a resident plot's dog is always the enforcer.
+	--
+	-- A dog with its owner home PATROLS. A dog with the house empty SLEEPS in
+	-- its kennel until something wakes it -- so the dog's own posture is the
+	-- tell for the single most important fact about a target, free, with no
+	-- UI, readable from the pavement. A dog trotting about means expect a
+	-- fight; a dog curled up means the house is empty.
+	ownerHome: boolean,
+	-- Roused by NOISE, and up until this passes. Extended by every further
+	-- disturbance, so a thief who keeps making noise keeps the dog up.
+	alertUntil: number,
+	-- The dog does not POUNCE. This is the moment it will actually get up,
+	-- stamped `wakeDelay` after the first disturbance of an alert and NOT
+	-- pushed back by later ones -- otherwise continuous noise would postpone
+	-- the dog forever, which is the opposite of what noise should do.
+	--
+	-- The beat between being disturbed and being come for is what makes a
+	-- crack a DECISION: you hear the dog stir and choose whether to finish or
+	-- bail. Same shape as DOG_START_DELAY and the same reason.
+	stirAt: number,
 	chasing: boolean,
 	sleeping: boolean,
 	-- Walking over to a thrown bone. Distinct from `chasing` because the dog
@@ -239,6 +261,104 @@ local function onCooldown(dog: Dog): boolean
 		or (os.clock() < dog.busyUntil and not onGuardDuty(dog))
 end
 
+-- SHOULD THIS DOG BE ON ITS FEET?
+--
+-- Three ways, and the order they are written in is the order they matter:
+--
+--   * GUARD DUTY. The treat exists to get people OUT of the house -- this
+--     file's own argument for it is that a player sitting on their own pig is
+--     the worst outcome this design has -- so a paid-for dog has to keep
+--     working after its owner leaves. Anything else would make the item sell
+--     the opposite of what it does.
+--   * THE OWNER IS IN. A guarded house is a busy one; the dog wanders.
+--   * IT HEARD SOMETHING, and has had `wakeDelay` to get up.
+--
+-- Everything else -- an empty house, a quiet lawn, a thief on tiptoe -- is a
+-- dog asleep in its kennel, which is the DEFAULT rather than the exception.
+-- Three reasons to be up, and they are not the same reason -- which is what
+-- the split below exists to keep straight.
+local function shouldBeUp(dog: Dog): boolean
+	local now = os.clock()
+	return onGuardDuty(dog)
+		or dog.ownerHome
+		or (now < dog.alertUntil and now >= dog.stirAt)
+end
+
+-- READINESS: has this dog actually heard somebody, and has the beat passed.
+--
+-- THIS USED TO BE `shouldBeUp`, AND THEY ARE DIFFERENT QUESTIONS. Being up is
+-- about what a dog LOOKS like from the pavement; being alerted is about
+-- whether it is coming for you. Conflated, the `or` short-circuited: a dog
+-- whose owner was home, or one on guard duty, was `shouldBeUp` before any
+-- noise at all, so `isWatching` never reached the third clause -- which IS the
+-- `wakeDelay` grace. The beat between being disturbed and being come for is
+-- what makes a crack a DECISION rather than a coin flip, and it was being
+-- skipped on exactly the two plots with the most reason to be dangerous.
+--
+-- So a dog may be UP for any of three reasons and may only be LET OFF for one:
+-- it heard you, and `wakeDelay` has passed since.
+local function isAlerted(dog: Dog): boolean
+	local now = os.clock()
+	return now < dog.alertUntil and now >= dog.stirAt
+end
+
+-- Told by the watcher whether anybody lives here and is standing on the
+-- premises. Cheap and idempotent: `behaviour` polls the answer rather than
+-- being driven by it, so this is one field write.
+function GuardDog.setOwnerHome(dog: Dog, home: boolean)
+	dog.ownerHome = home
+end
+
+-- NOISE. A footstep above this breed's threshold, or a fumbled slice of a
+-- crack.
+--
+-- The stir is stamped only on a FRESH disturbance -- one that arrives with no
+-- alert already running. Re-stamping it on every further noise would let a
+-- thief who keeps moving hold the dog down indefinitely, which is exactly
+-- backwards: noise should bring the dog sooner, never later. What continued
+-- noise DOES buy is a longer alert, so a busy lawn keeps the dog up.
+function GuardDog.alert(dog: Dog)
+	if dog.level <= 0 then
+		return
+	end
+	local now = os.clock()
+	if now >= dog.alertUntil then
+		dog.stirAt = now + Config.DOG_WATCH.wakeDelay
+	end
+	dog.alertUntil = now + Config.DOG_WATCH.alertSeconds
+end
+
+-- The speed above which this breed hears a footstep, or nil where there is no
+-- dog at all -- which is how every caller checks "is there one".
+--
+-- Exported so the watcher never has to reach into `dog.level` and look a tier
+-- up for itself. Which tier a dog is, and what that tier can hear, is this
+-- file's business; WHO is making the noise is the caller's.
+function GuardDog.noticeSpeed(dog: Dog): number?
+	local tier = Config.getDogTier(dog.level)
+	return if tier then tier.notice else nil
+end
+
+-- Is the dog up and able to come for somebody? Public because the watcher
+-- decides whether to set a chase going and must not re-derive any of this.
+function GuardDog.isWatching(dog: Dog): boolean
+	return dog.level > 0
+		and not dog.chasing
+		and not dog.lured
+		and not onCooldown(dog)
+		and isAlerted(dog)
+end
+
+-- Is anybody in? Written by the watcher every tick and read back by it a few
+-- lines later, which looks like a round trip and is not: the WATCHER knows
+-- where players are and the DOG is what the answer is about, so this is the
+-- one field both halves of that question can agree on. It is also what keeps
+-- the alarm-only branch out of the watcher's own bookkeeping -- `releaseDog`
+-- asks the dog rather than recomputing a yard test its caller already did.
+function GuardDog.isOwnerHome(dog: Dog): boolean
+	return dog.ownerHome
+end
+
 local function settle(dog: Dog, tier: any)
 	local mouth = (dog.originCF * CFrame.new(0, 0, 2.4 * tier.scale)).Position
 	walkTo(dog, mouth, tier.speed * Config.DOG_PATROL_SPEED * 2.2, 6, function()
@@ -270,6 +390,35 @@ local function rouse(dog: Dog, tier: any)
 	play(dog, "Bark")
 end
 
+-- Bark without chasing.
+--
+-- The bark normally lives inside `chase`, which is right for as long as
+-- noticing somebody and going after them are the same event. They stopped
+-- being the same event when an owner being home made the dog an ALARM rather
+-- than an enforcer, so the noise had to come out from under the chase.
+--
+-- SAME SOUND DELIBERATELY. What a thief hears is "a dog has seen me"; whether
+-- it is also coming for them is the next thing they find out, and giving the
+-- alarm-only case its own noise would teach the street to tell the two apart
+-- by ear and stop crossing lawns where somebody is home. The tell for that is
+-- meant to be the dog's POSTURE, read from the pavement before you commit.
+--
+-- IT LIVES BELOW `rouse` FOR THE REASON THIS FILE KEEPS RECORDING: a local
+-- read by a function written earlier is a nil GLOBAL in Luau, which dies at
+-- the call naming nothing useful.
+function GuardDog.bark(dog: Dog)
+	if dog.level <= 0 then
+		return
+	end
+	local tier = Config.getDogTier(dog.level)
+	if tier and dog.sleeping then
+		-- Standing up barks on its own, and doing both is two barks.
+		rouse(dog, tier)
+	else
+		play(dog, "Bark")
+	end
+end
+
 -- The dog's whole life outside a chase: asleep while on cooldown, wandering
 -- while on duty.
 local function behaviour(dog: Dog)
@@ -280,7 +429,12 @@ local function behaviour(dog: Dog)
 		-- the same model with PivotTo would fight frame by frame.
 		if not tier or dog.chasing or dog.lured then
 			task.wait(0.4)
-		elseif onCooldown(dog) then
+		elseif onCooldown(dog) or not shouldBeUp(dog) then
+			-- TWO REASONS TO BE IN THE KENNEL AND ONE PICTURE FOR BOTH, which
+			-- is deliberate. A dog sleeping off a chase and a dog sleeping
+			-- because nobody is home look identical from the pavement, and
+			-- they should: what a thief needs to read is "this plot is
+			-- unguarded right now", not why.
 			if dog.sleeping then
 				task.wait(0.4)
 			else
@@ -677,6 +831,11 @@ function GuardDog.build(originCF: CFrame, parent: Instance): Dog
 		napUntil = 0,
 		guardUntil = 0,
 		guardLockUntil = 0,
+		-- Asleep until told otherwise. A plot is unowned at build time, and
+		-- an unowned plot is exactly the case whose owner is never coming.
+		ownerHome = false,
+		alertUntil = 0,
+		stirAt = 0,
 		chasing = false,
 		sleeping = false,
 		lured = false,

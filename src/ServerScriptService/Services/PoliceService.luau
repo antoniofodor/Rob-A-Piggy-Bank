@@ -129,7 +129,10 @@ local officer: PoliceModel.Officer? = nil
 -- `wanted` marks a pursuit raised by the board rather than by a steal. It
 -- changes two things and nothing else: what bail is charged against, and
 -- whether the rap sheet is cleared afterwards.
-type Alarm = { thief: Player, victim: Player, amount: number, wanted: boolean? }
+-- `victim` may be a RESIDENT rather than a Player since unclaimed plots
+-- became robbable, so it is only ever named and notified through
+-- HeistService's own accessors. Never index it as a Player here.
+type Alarm = { thief: Player, victim: any, amount: number, wanted: boolean? }
 local pending: Alarm? = nil
 local engaged = false
 
@@ -304,15 +307,15 @@ local function chargeBail(thief: Player, stolen: number): number
 		return 0
 	end
 
-	local bail = math.min(math.floor(data.vault), math.floor(stolen * Config.POLICE.bailMultiple))
+	local bail = math.min(math.floor(data.coins), math.floor(stolen * Config.POLICE.bailMultiple))
 	if bail <= 0 then
 		return 0
 	end
 
-	data.vault -= bail
+	data.coins -= bail
 	local plot = PlotService.getPlot(thief)
 	if plot then
-		PlotService.updatePile(plot, data.vault, Config.getCapacity(data.capacityLevel))
+		PlotService.updatePile(plot, data.coins, Config.getCapacity(data.capacityLevel))
 	end
 	return bail
 end
@@ -375,6 +378,12 @@ local function arrest(alarm: Alarm)
 		-- for the rest of the session.
 		SocialService.clearHeat(alarm.thief)
 	end
+	-- BUT ANY ARREST ENDS THE RUN, wanted or not, and that is a different
+	-- question from the record above. A rap sheet is what you have done and an
+	-- ordinary bust does not undo it; a SPREE is momentum, and being put in a
+	-- car plainly ends momentum. It is also the whole reason the run's risk
+	-- half points at the patrol: what a spree buys is worth losing.
+	SocialService.breakSpree(alarm.thief)
 	HeistService.detain(alarm.thief, Config.STUN_SECONDS)
 	releaseHome(alarm.thief)
 
@@ -389,7 +398,13 @@ local function arrest(alarm: Alarm)
 	Remotes.get("PoliceBust"):FireClient(alarm.thief, {
 		bail = bail,
 		recovered = recovered,
-		victim = if victim and victim ~= alarm.thief then victim.DisplayName else nil,
+		-- A victim may be a RESIDENT now rather than a player, so the name
+		-- comes from HeistService's own accessor. Re-deriving it here would
+		-- be a second copy of that branch in a file that has no business
+		-- knowing there are two kinds.
+		victim = if victim and (victim :: any) ~= alarm.thief
+			then HeistService.targetDisplayName(victim)
+			else nil,
 	})
 
 	-- Both halves named, because a punishment the player cannot account for
@@ -403,13 +418,20 @@ local function arrest(alarm: Alarm)
 
 	if recovered > 0 and victim then
 		notify(alarm.thief, ("The police took back %s coins."):format(format(recovered)), "bad")
-		notify(victim, ("The patrol caught %s. Your %s coins are back!"):format(
+		-- Silent when the victim is a resident: nothing is reading it.
+		HeistService.notifyTarget(victim, ("The patrol caught %s. Your %s coins are back!"):format(
 			alarm.thief.DisplayName, format(recovered)), "money")
 	-- Never sent for a self-bust from the admin console, where victim and
 	-- thief are the same player: being told you robbed yourself is noise.
-	elseif victim == nil and alarm.victim ~= alarm.thief and alarm.victim.Parent then
-		notify(alarm.victim, ("The patrol caught %s, but your coins were already gone."):format(
-			alarm.thief.DisplayName), "warn")
+	-- `alarm.victim` may be a RESIDENT, which has no `.Parent` -- that read
+	-- happens to return nil rather than throwing, so this branch was already
+	-- safe by accident. Asking HeistService whether it is a player says so on
+	-- purpose, and `notifyTarget` is silent for anything that is not one.
+	elseif victim == nil and (alarm.victim :: any) ~= alarm.thief
+		and HeistService.isPlayerTarget(alarm.victim) then
+		HeistService.notifyTarget(alarm.victim,
+			("The patrol caught %s, but your coins were already gone."):format(
+				alarm.thief.DisplayName), "warn")
 	end
 end
 
@@ -443,8 +465,13 @@ local function pursue(alarm: Alarm)
 		then ("MOST WANTED! Lose them for %ds or pay the bounty."):format(Config.POLICE.chase)
 		else ("PULL OVER! Lose them for %ds or pay bail."):format(Config.POLICE.chase),
 		"police")
-	if alarm.victim ~= alarm.thief then
-		notify(alarm.victim, ("The patrol spotted %s robbing you!"):format(alarm.thief.DisplayName), "good")
+	-- THIS ONE WAS A REAL BUG WAITING, not a harmless one: `notify` calls
+	-- FireClient, and a resident is a plain table rather than a Player, so
+	-- the first robbery of an empty house during a patrol would have thrown
+	-- here. `notifyTarget` is the accessor that knows the difference.
+	if (alarm.victim :: any) ~= alarm.thief then
+		HeistService.notifyTarget(alarm.victim,
+			("The patrol spotted %s robbing you!"):format(alarm.thief.DisplayName), "good")
 	end
 
 	local doorCF = vehicle.body.CFrame * CFrame.new(0, 0, -8)
@@ -596,7 +623,7 @@ local function runPatrol()
 	setPhase("patrol", Config.POLICE.patrol)
 
 	-- Anybody already holding loot when the siren arrives gets told, because
-	-- the decision this feature is built around -- keep running or bank it --
+	-- the decision this feature is built around -- keep running or deliver --
 	-- is only a decision if you know the clock started.
 	for _, player in ipairs(Players:GetPlayers()) do
 		if HeistService.isCarrying(player) then
@@ -612,7 +639,12 @@ local function runPatrol()
 	-- standing empty-handed on their own lawn with no warning at all would be
 	-- the one part of the feature that was pure bad luck. Forty-five seconds
 	-- of cruise is the head start.
-	local suspect = SocialService.getMostWanted()
+	-- getPursuitTarget, NOT getMostWanted. The board names whoever has stolen
+	-- the most; this line promises a visit, so it has to be asked of the one
+	-- that also clears the income floor. Told to the wrong player it is a
+	-- threat that never arrives, which is the same fault as a patrol arriving
+	-- with no warning, from the other end.
+	local suspect = SocialService.getPursuitTarget()
 	if suspect and not HeistService.isCarrying(suspect) then
 		notify(suspect, "They're out looking for YOU. Stay clear of the street.", "police")
 	end
@@ -637,7 +669,9 @@ local function runPatrol()
 	-- be sent when the two are the same player -- the admin console's self-bust
 	-- has taken that path since the day it was written.
 	if not pending and not aborting then
-		local suspect, record = SocialService.getMostWanted()
+		-- getPursuitTarget again: the floor's whole job is deciding whether this
+		-- records check is worth making, and this is the line it guards.
+		local suspect, record = SocialService.getPursuitTarget()
 		if suspect and suspect.Parent and record > 0 then
 			pending = { thief = suspect, victim = suspect, amount = record, wanted = true }
 		end
@@ -796,7 +830,7 @@ end
 
 function PoliceService.start()
 	-- The only way an officer is ever summoned.
-	HeistService.onSteal(function(thief: Player, victim: Player, amount: number)
+	HeistService.onSteal(function(thief: Player, victim: any, amount: number)
 		if phase ~= "patrol" or engaged or pending then
 			return
 		end

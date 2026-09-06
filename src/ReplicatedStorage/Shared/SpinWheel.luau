@@ -34,6 +34,25 @@
 	ClientMain. Taking a callback keeps this module ignorant of every one of
 	them, and keeps the icons the REAL items rather than a second set of
 	pictures that would drift.
+
+	ONE REEL SERVES THE EVENT DROP AND THE CHEST, and the three fields that
+	made that possible are `title`, `subtitle` and `note`.
+
+	The two are genuinely different underneath -- an event drop rolls a flat
+	pool of things you do not own, so every item is equally likely and
+	duplicates are impossible, while a chest rolls a TIER first and can hand
+	back something you already have. But everything on screen is the same
+	object: a strip of real items decelerating under a fixed pointer. Writing
+	a second one of those is exactly the near-identical copy this project
+	keeps recording as the thing that drifts, and it would have drifted at the
+	first tweak to the easing.
+
+	So the CALLER owns the wording -- the same split `CosmeticsService.award`
+	makes with its optional `why` -- and each field falls back to what the
+	event drop already printed, so that caller is untouched. `note` is the one
+	genuinely new beat: a line under the prize for the thing a chest has to be
+	able to say and an event drop never does, which is "you already had this,
+	here is what it is worth".
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -111,13 +130,20 @@ function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string,
 	stroke.Transparency = 0.3
 	stroke.Parent = card
 
-	label(card, ("%s DROP"):format(string.upper(payload.setName or "SET")),
+	label(card, payload.title or ("%s DROP"):format(string.upper(payload.setName or "SET")),
 		UDim2.new(1, -24, 0, 30), UDim2.new(0, 12, 0, 14),
 		Enum.Font.FredokaOne, 22, tone).ZIndex = 62
 
 	-- The odds, stated plainly. This is the sentence that makes the reel
 	-- honest, so it is on screen before the spin rather than after it.
-	label(card, ("%d items left %s %d%% each"):format(#pool, utf8.char(0x00B7), pct),
+	--
+	-- The event drop's own line is the fallback rather than the only option,
+	-- because it is only TRUE of an event drop: a flat pool of unowned things
+	-- really is "N items left, X% each", and a chest's tiered odds are not
+	-- that shape at all. A caller printing the wrong sentence honestly would
+	-- be worse than printing none.
+	label(card, payload.subtitle
+			or ("%d items left %s %d%% each"):format(#pool, utf8.char(0x00B7), pct),
 		UDim2.new(1, -24, 0, 18), UDim2.new(0, 12, 0, 44),
 		Enum.Font.Gotham, 13, Theme.MUTED).ZIndex = 62
 
@@ -199,10 +225,28 @@ function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string,
 	pointer.ZIndex = 63
 	pointer.Parent = window
 
-	local prize = label(card, "", UDim2.new(1, -24, 0, 40), UDim2.new(0, 12, 1, -56),
+	-- The prize sits higher when a note follows it, so the pair reads as one
+	-- block rather than as a line with something bolted under it. Solved by
+	-- offset rather than by a layout, because there are exactly two cases.
+	local hasNote = type(payload.note) == "string" and payload.note ~= ""
+	local prize = label(card, "", UDim2.new(1, -24, 0, 40),
+		UDim2.new(0, 12, 1, if hasNote then -68 else -56),
 		Enum.Font.FredokaOne, 24, tone)
 	prize.ZIndex = 62
 	prize.TextTransparency = 1
+
+	-- A DUPLICATE IS NEVER A DEAD OUTCOME, and this line is where a chest
+	-- says so. It appears with the prize rather than before it: what it has
+	-- to report is a fact about the item that just landed, and printing it
+	-- while the reel is still moving would be telling the player the answer
+	-- before the spin has given it to them.
+	local note: TextLabel? = nil
+	if hasNote then
+		note = label(card, payload.note, UDim2.new(1, -24, 0, 20),
+			UDim2.new(0, 12, 1, -30), Enum.Font.GothamBold, 14, Theme.MUTED)
+		;(note :: TextLabel).ZIndex = 62
+		;(note :: TextLabel).TextTransparency = 1
+	end
 
 	-- Land so the winning tile's CENTRE sits under the pointer.
 	local target = -(winIndex * STRIDE + 4 + TILE_W / 2) + window.AbsoluteSize.X / 2
@@ -224,6 +268,9 @@ function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string,
 		win.Parent = winTile
 		prize.Text = ("%s!"):format(wonEntry.name or wonEntry.key)
 		TweenService:Create(prize, TweenInfo.new(0.3), { TextTransparency = 0 }):Play()
+		if note then
+			TweenService:Create(note, TweenInfo.new(0.3), { TextTransparency = 0 }):Play()
+		end
 	end
 
 	tween.Completed:Connect(finish)

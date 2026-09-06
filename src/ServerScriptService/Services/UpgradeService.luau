@@ -31,16 +31,16 @@ end
 
 -- Effects, all derived from levels at the moment they're needed.
 
-function UpgradeService.getStealHold(thief: Player, victim: Player): number
-	return Config.getStealHold(
-		UpgradeService.getLevel(victim, "locks"),
-		UpgradeService.getLevel(thief, "lockpicks")
-	)
-end
-
-function UpgradeService.getStealFraction(thief: Player): number
-	return Config.getStealFraction(UpgradeService.getLevel(thief, "sack"))
-end
+-- `getStealHold` and `getStealFraction` stood here and are gone with the flat
+-- steal. Both asked this service to look up ONE level and hand it to ONE
+-- Config function, which was worth a wrapper while the caller was a single
+-- line in `attemptSteal`; the crack reads `locks`, `lockpicks` and `sack`
+-- together and calls Config directly, and a wrapper per level would have been
+-- three indirections hiding one table lookup each.
+--
+-- Note the lock level in particular is NOT read from here any more even for a
+-- player: a crack asks the PLOT, because a resident has no upgrade record and
+-- the whole point of the Target abstraction is that the two are one path.
 
 function UpgradeService.getCarryMultiplier(thief: Player): number
 	return Config.getCarryMultiplier(UpgradeService.getLevel(thief, "boots"))
@@ -121,6 +121,18 @@ function UpgradeService.buildSnapshot(player: Player): { [string]: any }
 			name = def.name,
 			blurb = def.blurb,
 		}
+
+		-- LOCKPICKS IS THE ONE RUNG THAT HANDS OVER A VERB, so its row has to
+		-- say so -- an ability nobody was told about is an ability nobody
+		-- uses, and the whole point of this rung is that it changes which pig
+		-- you walk to. Same shape as the dog's row below, which names the
+		-- breed rather than repeating a description that never changes.
+		if key == Config.CASING.upgrade then
+			snapshot[key].blurb = if Config.canCase(level)
+				then "You can read any lock from the pavement"
+				elseif level + 1 >= def.max then "Next: read any lock from the pavement"
+				else def.blurb
+		end
 
 		-- The dog is the one upgrade where each level is a different thing
 		-- rather than a bigger number, so its row names the breed instead of

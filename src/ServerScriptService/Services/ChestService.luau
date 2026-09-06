@@ -21,8 +21,22 @@
 
 	Coins buy the standing catalogue. Tokens buy EVENT chests, and no amount of
 	coins reaches them -- you were on the street when the saucer came or you
-	were not. Shards, which duplicates produce, spend only on COIN chests, so a
-	rich player cannot grind their way into event loot without attending.
+	were not. Spares, which duplicates produce, can only be COMBINED into coin
+	chests, so a rich player cannot grind their way into event loot without
+	attending.
+
+	A DUPLICATE IS A SPARE COPY, AND A SPARE HAS TWO EXITS.
+
+	It can be COMBINED -- three of any one tier for a roll at the next -- or
+	SOLD for coins. Selling is what makes the per-item shape work at all: a
+	spare that can never be combined is still worth something, so the rule that
+	a duplicate is never a dead outcome survives the move off per-tier shards.
+
+	SELLING IS ALWAYS A LOSS, AND THAT IS LOAD-BEARING RATHER THAN MEAN.
+	Measured across all four coin chests, an open that lands a duplicate sells
+	back for 21% to 35% of what the chest cost -- see Config.SELL, which caps a
+	tier's value against the item's own price precisely so that buying an item
+	in the shop and selling it straight back cannot turn a profit.
 
 	NOTHING IS EVER LOCKED BEHIND LUCK. Every set item still carries its medal
 	price, so the guaranteed route survives alongside this one. Bad luck here
@@ -143,24 +157,71 @@ local function pickTier(odds: { [string]: number }): string?
 	return nil
 end
 
--- A pool entry is "kind:key" for a set chest and a bare key otherwise, because
--- a set spans five catalogues and a bare key does not say which one to grant
--- from. One place that knows the grammar.
-local function splitEntry(chest: any, entry: string): (string, string)
+-- The pool-entry grammar moved to `Config.chestEntry` when the crates UI
+-- became a second reader of it and the admin console a third. Every call site
+-- below already had the chest KEY to hand, which is what that function takes.
+
+-- A spare is stored under the same "kind:key" grammar `Config.chestEntry`
+-- reads, so the two are inverses and one place knows the shape. A bare key
+-- would not say which of the five catalogues it came from -- there are no
+-- collisions across the 92 keys today, and that is exactly the kind of fact
+-- that stops being true without anything erroring.
+local function entryKey(kind: string, key: string): string
+	return kind .. ":" .. key
+end
+
+local function entrySpec(entry: string): (string?, string?, any)
 	local kind, key = entry:match("^(%a+):(.+)$")
-	if kind and key then
-		return kind, key
+	if not kind or not key then
+		return nil, nil, nil
 	end
-	return chest.kind, entry
+	local catalogue = Config.catalogueFor(kind)
+	return kind, key, catalogue and catalogue[key]
+end
+
+-- Every spare the player holds AT A TIER, and how many copies that is.
+--
+-- COMBINING STILL POOLS BY TIER even though spares are per item, and that is
+-- the whole reason a spare is never stranded: three commons of ANY kind make a
+-- rare roll, so a duplicate out of a collection you have finished is still
+-- fuel for one you have barely started. Per-item combining would have needed
+-- three of one thing and put back the dead outcome this design removed.
+local function sparesAt(data: any, tier: string): ({ string }, number)
+	local entries: { string } = {}
+	local total = 0
+	for entry, count in pairs(data.spares) do
+		if type(count) == "number" and count > 0 then
+			local _kind, _key, spec = entrySpec(entry)
+			if spec and Config.rarityOf(spec) == tier then
+				table.insert(entries, entry)
+				total += count
+			end
+		end
+	end
+	table.sort(entries)
+	return entries, total
+end
+
+local function addSpare(data: any, kind: string, key: string)
+	local entry = entryKey(kind, key)
+	data.spares[entry] = (data.spares[entry] or 0) + 1
+end
+
+local function takeSpare(data: any, entry: string)
+	local left = (data.spares[entry] or 0) - 1
+	-- Dropped rather than left at zero. A save is a thing that gets walked, and
+	-- a table full of zeroes is a table that grows forever and reads as stock
+	-- to anything counting keys rather than values.
+	data.spares[entry] = if left > 0 then left else nil
 end
 
 local function spend(data: any, currency: string, cost: number): boolean
-	if currency == "tokens" then
-		local held = math.floor(data.tokens or 0)
+	if currency == "loot" then
+		local held = math.floor(data.loot or 0)
 		if held < cost then
 			return false
 		end
-		data.tokens = held - cost
+		data.loot = held - cost
 		return true
 	end
 	if data.coins < cost then
@@ -171,10 +232,10 @@ local function spend(data: any, currency: string, cost: number): boolean
 end
 
 local function shortfallMessage(chest: any, held: number, cost: number): string
-	if (chest.currency or "coins") == "tokens" then
+	if (chest.currency or "coins") == "loot" then
 		local short = cost - held
-		return ("Need %d more %s. Turn up to a street event to earn them."):format(
-			short, Config.tokenWord(short))
+		return ("Need %d more %s. Rob a neighbour and get the coins home."):format(
+			short, Config.lootWord(short))
 	end
 	return ("Need %d more coins for the %s."):format(cost - held, chest.name)
 end
@@ -228,7 +289,7 @@ function ChestService.open(player: Player, chestKey: string)
 	end
 
 	local currency = chest.currency or "coins"
-	local held = if currency == "tokens" then math.floor(data.tokens or 0) else data.coins
+	local held = if currency == "loot" then math.floor(data.loot or 0) else data.coins
 	if held < chest.cost then
 		notify(player, shortfallMessage(chest, held, chest.cost), "warn")
 		return
@@ -240,7 +301,7 @@ function ChestService.open(player: Player, chestKey: string)
 	end
 	local entries = pool[tier]
 	local entry = entries[math.random(1, #entries)]
-	local kind, key = splitEntry(chest, entry)
+	local kind, key = Config.chestEntry(chestKey, entry)
 
 	-- Charged only once the outcome exists. A chest that took the money and
 	-- then found nothing to hand over would be the one failure mode here that
@@ -251,7 +312,7 @@ function ChestService.open(player: Player, chestKey: string)
 
 	local duplicate = SetService.owns(data, kind, key)
 	if duplicate then
-		data.shards[tier] = (data.shards[tier] or 0) + 1
+		addSpare(data, kind, key)
 	else
 		SetService.grant(player, kind, key)
 	end
@@ -265,6 +326,10 @@ function ChestService.open(player: Player, chestKey: string)
 		kind = kind,
 		key = key,
 		duplicate = duplicate,
+		-- What the spare is worth sold, so the reveal can pay out visibly in
+		-- the same breath rather than leaving a duplicate reading as nothing.
+		-- Zero for a new item, which has no spare to sell.
+		value = if duplicate then Config.sellValue(kind, key) else 0,
 		-- The odds the server ACTUALLY used, so the reel can print real
 		-- percentages. Printing the number is what makes this honest rather
 		-- than merely true, and it costs nothing now that nothing requires it.
@@ -273,13 +338,77 @@ function ChestService.open(player: Player, chestKey: string)
 	return tier, kind, key, duplicate
 end
 
--- Three shards of a tier for one roll at a higher one.
+-- WHICH THREE, WHEN THE PLAYER DOES NOT SAY.
+--
+-- Every spare at a tier combines identically, so the choice cannot affect the
+-- roll -- which means the only thing it CAN affect is what is left behind. The
+-- honest default is therefore to leave the valuable ones: spares are consumed
+-- cheapest first, so a nine-year-old who just presses the button keeps the ones
+-- worth most sold. The client may still name its own three.
+--
+-- The values are computed once into a map rather than inside the comparator.
+-- `table.sort` throws "invalid order function" on a comparator that is not
+-- consistent, and one that recomputes a value per comparison is one edit away
+-- from not being.
+local function autoPick(data: any, entries: { string }): { string }
+	local worth: { [string]: number } = {}
+	for _, entry in ipairs(entries) do
+		local kind, key = entrySpec(entry)
+		worth[entry] = if kind and key then Config.sellValue(kind, key) else 0
+	end
+
+	local order = table.clone(entries)
+	table.sort(order, function(a, b)
+		if worth[a] ~= worth[b] then
+			return worth[a] < worth[b]
+		end
+		return a < b
+	end)
+
+	local take: { string } = {}
+	for _, entry in ipairs(order) do
+		for _ = 1, data.spares[entry] or 0 do
+			if #take >= Config.COMBINE.need then
+				return take
+			end
+			table.insert(take, entry)
+		end
+	end
+	return take
+end
+
+-- A client-named list, rebuilt from known-good parts rather than trusted. Every
+-- entry has to be a real catalogue item AT THIS TIER and a spare this player
+-- actually holds, counted as a multiset so three of the same key needs three of
+-- them. Anything else refuses the whole combine rather than silently dropping
+-- an entry and consuming two.
+local function validatePick(data: any, tier: string, chosen: { string }): { string }?
+	if #chosen ~= Config.COMBINE.need then
+		return nil
+	end
+	local left: { [string]: number } = {}
+	for _, entry in ipairs(chosen) do
+		local kind, key, spec = entrySpec(entry)
+		if not kind or not key or not spec or Config.rarityOf(spec) ~= tier then
+			return nil
+		end
+		local held = left[entry] or data.spares[entry] or 0
+		if held <= 0 then
+			return nil
+		end
+		left[entry] = held - 1
+	end
+	return chosen
+end
+
+-- Three spares of a tier for one roll at a higher one.
 --
 -- THE TARGET CHEST IS THE PLAYER'S CHOICE AND MUST BE A COIN CHEST. Shards are
 -- global, so they would otherwise be a route into event loot for somebody who
 -- never attended an event -- and attendance being the only route is the entire
 -- point of that currency.
-function ChestService.combine(player: Player, tier: string, chestKey: string)
+function ChestService.combine(player: Player, tier: string, chestKey: string,
+	chosen: { string }?)
 	local data = DataService.get(player)
 	local chest = Config.CHESTS[chestKey]
 	if not data or not chest then
@@ -292,9 +421,18 @@ function ChestService.combine(player: Player, tier: string, chestKey: string)
 	end
 
 	local need = Config.COMBINE.need
-	local have = data.shards[tier] or 0
+	local entriesAt, have = sparesAt(data, tier)
 	if have < need then
-		notify(player, ("Need %d more %s shards."):format(need - have, tier), "warn")
+		notify(player, ("Need %d more spare %s to combine."):format(need - have, tier), "warn")
+		return
+	end
+
+	local take = if chosen then validatePick(data, tier, chosen) else autoPick(data, entriesAt)
+	if not take or #take ~= need then
+		-- Never fail silently. A client naming spares it does not hold is
+		-- either a bug in the picker or somebody poking the remote, and both
+		-- want the same visible refusal rather than a quiet return.
+		notify(player, ("Those are not %d spare %s you hold."):format(need, tier), "warn")
 		return
 	end
 
@@ -326,13 +464,18 @@ function ChestService.combine(player: Player, tier: string, chestKey: string)
 		return
 	end
 
-	data.shards[tier] = have - need
+	-- Consumed only now, past every refusal above. A combine that took the
+	-- spares and then found the target tier empty is the same failure shape as
+	-- a chest that charges and hands back nothing.
+	for _, consumed in ipairs(take) do
+		takeSpare(data, consumed)
+	end
 
 	local entry = entries[math.random(1, #entries)]
-	local kind, key = splitEntry(chest, entry)
+	local kind, key = Config.chestEntry(chestKey, entry)
 	local duplicate = SetService.owns(data, kind, key)
 	if duplicate then
-		data.shards[target] = (data.shards[target] or 0) + 1
+		addSpare(data, kind, key)
 	else
 		SetService.grant(player, kind, key)
 	end
@@ -346,10 +489,116 @@ function ChestService.combine(player: Player, tier: string, chestKey: string)
 		kind = kind,
 		key = key,
 		duplicate = duplicate,
+		value = if duplicate then Config.sellValue(kind, key) else 0,
 		combined = true,
 		climb = climb,
+		-- What it cost, so the reveal can show the three going in. The client
+		-- may not have chosen them.
+		consumed = take,
 	})
 	return target, kind, key, duplicate
+end
+
+-- SELLING SPARES, AND SELLING THE LAST COPY, WHICH ARE DIFFERENT ACTS.
+--
+-- A spare sale is safe by construction: another copy stays behind and nothing
+-- the player is looking at changes. The LAST copy takes the item away, and that
+-- is allowed on purpose -- a collection you can only ever add to is a checklist,
+-- and it is the mechanic this audience already knows from every other Roblox
+-- game with crates in it.
+--
+-- THE GUARD IS NOT THE EXPLOIT, IT IS THE ACCIDENT. There is no sell-and-rebuy
+-- loop to close, because Config.SELL caps every tier value against the item's
+-- own price and selling is therefore always a loss. What there is, is a
+-- nine-year-old with a stray thumb and the legendary they spent three weeks
+-- getting. So the copy IN USE cannot be sold: taking it off first is one tap,
+-- learnable in a second, and it kills exactly the accidental case without a
+-- lock flag anybody has to be taught.
+function ChestService.sell(player: Player, kind: string, key: string, count: number)
+	local data = DataService.get(player)
+	if not data then
+		return
+	end
+	if not Config.isSellable(kind, key) then
+		return
+	end
+
+	local wanted = math.floor(count)
+	if wanted < 1 then
+		return
+	end
+	if not SetService.owns(data, kind, key) then
+		return
+	end
+
+	local entry = entryKey(kind, key)
+	local held = data.spares[entry] or 0
+	local inUse = SetService.inUse(data, kind, key)
+	-- Held spares, plus the owned copy itself when it is not being worn. That
+	-- last term is the whole of "you may sell your only one".
+	local sellable = held + (if inUse then 0 else 1)
+
+	if wanted > sellable then
+		if inUse and held == 0 then
+			notify(player, "You are wearing your only one. Take it off first.", "warn")
+		else
+			notify(player, ("You only have %d of those to sell."):format(sellable), "warn")
+		end
+		return
+	end
+
+	local payout = Config.sellValue(kind, key) * wanted
+	if payout <= 0 then
+		return
+	end
+
+	-- A SALE THAT WOULD OVERFLOW THE PIG IS REFUSED, NEVER CLAMPED.
+	--
+	-- The pig is the wallet and it is BOUNDED, so a payout that does not fit has
+	-- two possible endings and only one of them is honest. Clamping quietly
+	-- destroys coins the player has just earned, and from their side that is
+	-- indistinguishable from theft: they pressed sell, the item went, and the
+	-- money did not arrive. It is the silent-failure rule wearing a button.
+	--
+	-- Refusing costs them nothing and names the fix. It is also the "spend it or
+	-- lose it" loop this economy already runs on, arriving from a new direction:
+	-- a full pig stops earning until you spend some, and now it stops selling
+	-- too.
+	--
+	-- WHOLE ORDER, NEVER PARTIAL. Selling four spares and being handed two is
+	-- the same silent clamp one level up.
+	local capacity = Config.getCapacity(data.capacityLevel)
+	local room = capacity - data.coins
+	if room <= 0 then
+		notify(player, "Your piggy bank is full. Spend some coins before you sell.", "warn")
+		return
+	end
+	if payout > room then
+		notify(player, ("That is worth %s and your piggy bank only has room for %s. Spend some coins first."):format(
+			Config.formatCoins(payout), Config.formatCoins(room)), "warn")
+		return
+	end
+
+	local fromSpares = math.min(wanted, held)
+	for _ = 1, fromSpares do
+		takeSpare(data, entry)
+	end
+	if wanted > fromSpares then
+		-- The last copy. `revoke` pushes the item's own service AND the set panel
+		-- and saves, exactly as `grant` does -- so the thing a player would
+		-- actually mind getting wrong is written immediately.
+		SetService.revoke(player, kind, key)
+	end
+	data.coins += payout
+
+	ChestService.push(player)
+	pushBalances(player)
+
+	local catalogue = Config.catalogueFor(kind)
+	local spec = catalogue and catalogue[key]
+	notify(player, ("Sold %d %s for %s."):format(
+		wanted, (spec and spec.name) or key, Config.formatCoins(payout)), "money")
+	return payout
 end
 
 function ChestService.push(player: Player)
@@ -366,7 +615,7 @@ function ChestService.push(player: Player)
 			for tier, entries in pairs(pool) do
 				local _ = tier
 				for _, entry in ipairs(entries) do
-					local kind, itemKey = splitEntry(chest, entry)
+					local kind, itemKey = Config.chestEntry(key, entry)
 					if SetService.owns(data, kind, itemKey) then
 						owned += 1
 					end
@@ -386,9 +635,39 @@ function ChestService.push(player: Player)
 		end
 	end
 
+	-- EVERY SPARE, WITH WHAT IT IS WORTH SOLD AND WHETHER IT CAN BE.
+	--
+	-- The value is derived here rather than on the client for the same reason
+	-- the reel's odds are: two implementations of one number are two things that
+	-- can disagree, and this one is money. `inUse` rides along so a card can say
+	-- "take it off first" BEFORE the player presses a button that will only
+	-- refuse -- the same rule the steal prompt follows.
+	local spares = {}
+	local perTier: { [string]: number } = {}
+	for entry, count in pairs(data.spares) do
+		local kind, key, spec = entrySpec(entry)
+		if kind and key and spec and type(count) == "number" and count > 0 then
+			local tier = Config.rarityOf(spec)
+			perTier[tier] = (perTier[tier] or 0) + count
+			spares[entry] = {
+				kind = kind,
+				key = key,
+				name = spec.name,
+				count = count,
+				tier = tier,
+				value = Config.sellValue(kind, key),
+				inUse = SetService.inUse(data, kind, key),
+			}
+		end
+	end
+
 	Remotes.get("ChestState"):FireClient(player, {
 		chests = chests,
-		shards = data.shards,
+		spares = spares,
+		-- Copies per tier, which is what the combine button is gated on. Summed
+		-- here rather than on the client, because the client would have to know
+		-- the rarity rules to do it and that is a second copy of them.
+		perTier = perTier,
 		need = Config.COMBINE.need,
 		combineOdds = Config.COMBINE.odds,
 	})
@@ -402,7 +681,7 @@ function ChestService.start()
 		ChestService.open(player, chestKey)
 	end)
 
-	Remotes.get("ChestCombine").OnServerEvent:Connect(function(player, tier, chestKey)
+	Remotes.get("ChestCombine").OnServerEvent:Connect(function(player, tier, chestKey, entries)
 		if type(tier) ~= "string" or type(chestKey) ~= "string" then
 			return
 		end
@@ -412,7 +691,37 @@ function ChestService.start()
 		if not table.find(TIERS, tier) then
 			return
 		end
-		ChestService.combine(player, tier, chestKey)
+
+		-- The entry list is OPTIONAL and is rebuilt from known-good parts rather
+		-- than trusted. Read one past `need` and stop: `validatePick` refuses
+		-- anything that is not exactly three, so a client sending ten thousand is
+		-- refused without this walking ten thousand of them.
+		local chosen: { string }? = nil
+		if type(entries) == "table" then
+			local list: { string } = {}
+			for _, entry in ipairs(entries) do
+				if #list > Config.COMBINE.need then
+					break
+				end
+				if type(entry) == "string" then
+					table.insert(list, entry)
+				end
+			end
+			chosen = list
+		end
+		ChestService.combine(player, tier, chestKey, chosen)
+	end)
+
+	Remotes.get("SpareSell").OnServerEvent:Connect(function(player, kind, key, count)
+		if type(kind) ~= "string" or type(key) ~= "string" then
+			return
+		end
+		-- A count that is not a number is ONE, never everything. The dangerous
+		-- default here is the generous one: this is the remote that can empty a
+		-- collection. `count == count` rejects NaN, which floors to itself and
+		-- compares false against every bound above.
+		local wanted = if type(count) == "number" and count == count then math.floor(count) else 1
+		ChestService.sell(player, kind, key, wanted)
 	end)
 
 end

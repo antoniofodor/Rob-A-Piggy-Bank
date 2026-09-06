@@ -2,7 +2,15 @@
 --[[
 	EconomyService
 
-	Coin accrual, offline catch-up, banking, and upgrades.
+	Coin accrual, offline catch-up, and the two economy upgrades.
+
+	THE PIG IS THE WALLET. There is one balance, `data.coins`, and it lives in
+	the piggy bank on the lawn: every coin a player has is in there, every
+	coin in there can be taken, and there is no bank to move it into. Income
+	drips in until the pig is full and stops until something is spent. That
+	is the "spend it or lose it" loop the robbing pivot rests on -- see
+	CLAUDE.md under THE ROBBING PIVOT for why the old vault/coins split was
+	the reason nobody robbed anybody.
 
 	Everything here is server-authoritative on purpose. The client renders
 	coins; it never counts them. In a game where players take currency from
@@ -30,9 +38,18 @@ local MIN_REQUEST_GAP = 0.25
 local lastRequest: { [Player]: { [string]: number } } = {}
 
 -- Highest milestone index each player has crossed on their current fill.
--- Resets when they bank, so the celebration replays every cycle rather than
--- firing once per lifetime.
+-- Resets once the pig drops back under the first threshold, so the
+-- celebration replays every time it fills rather than firing once per
+-- lifetime.
 local milestoneReached: { [Player]: number } = {}
+
+-- The whole-coin balance the tick last drew on the lawn and pushed to the
+-- HUD. Every service that moves coins -- a purchase, a chest, bail, a daily,
+-- a delivery -- used to have to remember to repaint the pile and push the
+-- state itself, and the ones that forgot read as the thing being free. The
+-- tick compares against this and catches up within a second whatever moved
+-- the number.
+local lastShown: { [Player]: number } = {}
 
 -- ============================================================
 -- HELPERS
@@ -58,10 +75,14 @@ local function pushState(player: Player)
 		return
 	end
 
+	local capacity = Config.getCapacity(data.capacityLevel)
 	Remotes.get("StateUpdate"):FireClient(player, {
 		coins = math.floor(data.coins),
-		vault = math.floor(data.vault),
-		capacity = Config.getCapacity(data.capacityLevel),
+		capacity = capacity,
+		-- Income has stopped. The HUD turns the bar red on this rather than
+		-- on the ratio, because a pig can sit ABOVE capacity after a robbery
+		-- and is just as full then.
+		full = data.coins >= capacity,
 		rate = Config.getIncomeRate(data.incomeLevel, data.rebirths, SocialService.getFriendBonus(player)),
 		friendBonus = SocialService.getFriendBonus(player),
 		incomeLevel = data.incomeLevel,
@@ -79,14 +100,11 @@ local function pushState(player: Player)
 		rebirthThreshold = Config.getRebirthThreshold(data.rebirths),
 		rebirthReady = data.coins >= Config.getRebirthThreshold(data.rebirths),
 	})
+	lastShown[player] = math.floor(data.coins)
 end
 
--- Exposed so anything that moves `coins` from outside this file can say so.
---
--- ChestService needed it and had no way in: `pushState` is a local, so a chest
--- could charge 500,000 coins and the HUD would go on showing the old balance
--- until something else happened to push. Measured, and it reads exactly like
--- the chest being free.
+-- Exposed so anything that moves `coins` from outside this file can say so
+-- immediately rather than waiting up to a second for the tick to notice.
 EconomyService.push = pushState
 
 local function notify(player: Player, message: string, kind: string?)
@@ -99,18 +117,27 @@ local function refreshPlot(player: Player)
 	if not data or not plot then
 		return
 	end
-	PlotService.updatePile(plot, data.vault, Config.getCapacity(data.capacityLevel))
+	PlotService.updatePile(plot, data.coins, Config.getCapacity(data.capacityLevel))
 	PlotService.updateSign(plot, player.DisplayName, data.rebirths,
 		Config.getSkin(data.cosmetics.skin).name, Config.getHouseTier(Config.getShownHouseLevel(data)).name)
 end
 
--- Fires the celebration for every milestone the vault has newly crossed.
+-- Fires the celebration for every milestone the pig has newly crossed.
 -- Only the highest is played, so a big offline catch-up that jumps straight
 -- past three thresholds gets one satisfying chime, not three overlapping ones.
 local function checkMilestones(player: Player, plot: any, ratio: number)
 	local reached = milestoneReached[player] or 0
-	local highest = reached
 
+	-- Spending (or being robbed) below the first rung re-arms the ladder, so
+	-- the next fill celebrates again. Without this the milestones fired once
+	-- per session, since nothing else ever reset them now that banking is
+	-- gone.
+	if ratio < Config.MILESTONES[1] then
+		milestoneReached[player] = 0
+		return
+	end
+
+	local highest = reached
 	for index, threshold in ipairs(Config.MILESTONES) do
 		if ratio >= threshold and index > highest then
 			highest = index
@@ -122,7 +149,7 @@ local function checkMilestones(player: Player, plot: any, ratio: number)
 		PlotService.playMilestone(plot, highest, #Config.MILESTONES)
 
 		if highest == #Config.MILESTONES then
-			notify(player, "Your piggy is FULL. Go bank it!", "warn")
+			notify(player, "Your piggy is FULL. It stops earning until you spend some!", "warn")
 		end
 	end
 end
@@ -133,6 +160,9 @@ end
 
 -- Computed from the stored lastSave timestamp, never from anything the
 -- client reports, and clamped so a long absence can't mint a fortune.
+--
+-- Fills up to capacity and never past it: a pig that came home from a
+-- robbery overfull earns nothing offline, exactly as it earns nothing live.
 function EconomyService.applyOfflineIncome(player: Player): number
 	local data = DataService.get(player)
 	if not data then
@@ -147,46 +177,16 @@ function EconomyService.applyOfflineIncome(player: Player): number
 
 	local rate = Config.getIncomeRate(data.incomeLevel, data.rebirths)
 	local capacity = Config.getCapacity(data.capacityLevel)
-	local before = data.vault
+	local before = data.coins
 
-	data.vault = math.min(capacity, data.vault + rate * counted)
+	data.coins = math.max(before, math.min(capacity, before + rate * counted))
 
-	return math.floor(data.vault - before)
+	return math.floor(data.coins - before)
 end
 
 -- ============================================================
 -- ACTIONS
 -- ============================================================
-
-function EconomyService.collect(player: Player)
-	if throttled(player, "collect") then
-		return
-	end
-
-	local data = DataService.get(player)
-	if not data then
-		return
-	end
-
-	local amount = math.floor(data.vault)
-	if amount <= 0 then
-		notify(player, "Your piggy bank is empty.", "warn")
-		return
-	end
-
-	data.vault -= amount
-	data.coins += amount
-	milestoneReached[player] = 0
-
-	local plot = PlotService.getPlot(player)
-	if plot then
-		PlotService.playBank(plot)
-	end
-
-	refreshPlot(player)
-	pushState(player)
-	notify(player, ("Banked %s coins"):format(EconomyService.format(amount)), "money")
-end
 
 function EconomyService.purchase(player: Player, track: string)
 	if throttled(player, "purchase") then
@@ -236,20 +236,13 @@ end
 -- FORMATTING
 -- ============================================================
 
-local SUFFIXES = { "", "K", "M", "B", "T" }
-
-function EconomyService.format(value: number): string
-	local n = math.floor(value)
-	local tier = 1
-	while n >= 1000 and tier < #SUFFIXES do
-		n /= 1000
-		tier += 1
-	end
-	if tier == 1 then
-		return tostring(math.floor(n))
-	end
-	return ("%.1f%s"):format(n, SUFFIXES[tier])
-end
+-- ONE LADDER, IN CONFIG, because there were two of these and a third was
+-- about to be written. ClientMain kept a byte-identical copy and ChestService
+-- needs one on a service that can require neither -- and Config requires
+-- nothing while both ends already read it, which makes it the only home where
+-- another copy is not the cheaper option. Kept as a name here because 40-odd
+-- call sites read it.
+EconomyService.format = Config.formatCoins
 
 -- ============================================================
 -- LIFECYCLE
@@ -258,12 +251,12 @@ end
 function EconomyService.onPlayerReady(player: Player)
 	local gained = EconomyService.applyOfflineIncome(player)
 
-	-- Set the milestone baseline silently. A player rejoining to a full vault
+	-- Set the milestone baseline silently. A player rejoining to a full pig
 	-- should not get a fanfare fired at them before the HUD has even drawn --
 	-- the offline-income toast below already tells them what happened.
 	local data = DataService.get(player)
 	if data then
-		local ratio = data.vault / Config.getCapacity(data.capacityLevel)
+		local ratio = data.coins / Config.getCapacity(data.capacityLevel)
 		local reached = 0
 		for index, threshold in ipairs(Config.MILESTONES) do
 			if ratio >= threshold then
@@ -282,10 +275,6 @@ function EconomyService.onPlayerReady(player: Player)
 end
 
 function EconomyService.start()
-	Remotes.get("CollectRequest").OnServerEvent:Connect(function(player)
-		EconomyService.collect(player)
-	end)
-
 	Remotes.get("PurchaseRequest").OnServerEvent:Connect(function(player, track)
 		if type(track) ~= "string" then
 			return
@@ -296,6 +285,7 @@ function EconomyService.start()
 	Players.PlayerRemoving:Connect(function(player)
 		lastRequest[player] = nil
 		milestoneReached[player] = nil
+		lastShown[player] = nil
 	end)
 
 	-- Accrual loop. Uses elapsed wall time rather than assuming the tick
@@ -312,7 +302,7 @@ function EconomyService.start()
 				local data = DataService.get(player)
 				if data then
 					local capacity = Config.getCapacity(data.capacityLevel)
-					if data.vault < capacity then
+					if data.coins < capacity then
 						-- A daily boost multiplies the live drip only. It deliberately
 						-- does not touch offline accrual: a boost is for playing, and
 						-- one that ticks while you are logged off is just a worse coin
@@ -320,15 +310,20 @@ function EconomyService.start()
 						local rate = Config.getIncomeRate(
 							data.incomeLevel, data.rebirths, SocialService.getFriendBonus(player))
 						rate *= DailyService.getMultiplier(player)
-						data.vault = math.min(capacity, data.vault + rate * delta)
+						data.coins = math.min(capacity, data.coins + rate * delta)
+					end
 
+					-- Repaint and push whenever the whole-coin balance moved, whoever
+					-- moved it. See `lastShown`.
+					local whole = math.floor(data.coins)
+					if whole ~= lastShown[player] then
 						local plot = PlotService.getPlot(player)
 						if plot then
-							local newCoins = PlotService.updatePile(plot, data.vault, capacity)
+							local newCoins = PlotService.updatePile(plot, data.coins, capacity)
 							if newCoins > 0 then
 								PlotService.playCoinDrop(plot)
 							end
-							checkMilestones(player, plot, data.vault / capacity)
+							checkMilestones(player, plot, data.coins / capacity)
 						end
 						pushState(player)
 					end

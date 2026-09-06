@@ -92,10 +92,712 @@ Breaking any of these silently breaks the game rather than erroring.
 said and never computes a balance. If client and server disagree, the server is
 right by construction.
 
-**Only uncollected coins are stealable.** Banked coins are permanently safe. A
-robbery costs the victim a few minutes of idle income and never costs progress.
-This is what keeps the game from being a bullying simulator, and it is why the
-caps in `Config` are hard limits rather than discouragements.
+**THE ROBBING PIVOT (September 2026): THE PIG IS THE WALLET, AND THE THIEF'S
+REWARD IS NOT THE VICTIM'S LOSS.** The rule that stood here for the life of
+the project read *"Only uncollected coins are stealable. Banked coins are
+permanently safe."* It was right about what it protected and it was also the
+single reason nobody robbed anybody. Measured against the live Config at level
+20: a victim's pig completely full is 3.0M, a steal took 5% of it, 150K, which
+is FIFTY SECONDS of the thief's own income -- against a 53-stud getaway at 12
+with a Titan at 17 and bail at three times the haul. And that was the best
+case: a rational victim banked constantly, so the typical stealable pile was a
+few seconds of income. Every system added since the pitch made the RISK half
+of a robbery bigger and nothing ever touched the REWARD half. The economy paid
+a nine-year-old to sit on the pig, and that is a structural fact about the two
+numbers below, not a tuning slip.
+
+**ONE BALANCE, ALL OF IT IN THE PIG, ALL OF IT STEALABLE.** `data.vault` is
+retired into `data.coins` (schema 17) and there is no bank action: income
+drips in until the pig is full, spending draws from it, and a full pig stops
+earning until you spend some -- which is the "spend it or lose it" loop that
+drives every upgrade purchase for free. It is less dangerous than it sounds
+because a plot is RELEASED when its owner leaves, so nobody is ever at risk
+while offline. What replaces "banked is safe" as the survivability rule is
+`Config.LOSS_CAP`: a victim can lose at most a quarter of their pig in a
+rolling hour, WHOEVER is robbing them, tracked per victim and never per
+thief. Anything SPENT is still permanently safe, for the same reason it always
+was -- it is no longer in the pig.
+
+**THE THIEF BANKS A MULTIPLE OF WHAT THE VICTIM LOST, AND THE EXTRA IS
+MINTED.** `Config.HEIST_PAYOUT` is 2: stolen coins count double once they are
+home. This is the actual lever, and it is worth being exact about why. While
+the thief's gain and the victim's loss were the same number, every point of
+incentive was a point of pain, so the reward could never be raised without
+making the game a bullying simulator. Decoupled, robbing becomes the best
+earning rate on the street while being robbed stays a few minutes of income.
+Bail, the rap sheet and `totalStolen` are all still measured against what the
+VICTIM lost, never the doubled figure, or a most-wanted arrest would charge
+somebody for coins that were never in anybody's pig.
+
+**AND THAT CLAIM WAS FALSE THE DAY IT WAS WRITTEN, BECAUSE `LOSS_CAP`
+MULTIPLIES AGAINST IT.** "Robbing is the best earning rate on the street" was
+never measured; measured, it is the WORST. `Config.LOSS_CAP` allows a victim
+to lose a quarter of their pig per rolling hour across ALL thieves, so on an
+eight-player server the entire hourly theft budget is `8 x 0.25 x pig` of
+victim losses, doubled by the payout and split eight ways -- **half a pig
+each, per hour, however well anybody plays.**
+
+    level 0    2,500/hr robbing   vs   36,000/hr idling     (7%)
+    level 20   2.1M/hr robbing    vs   14.5M/hr idling      (14%)
+
+Neither rule is wrong alone. `HEIST_PAYOUT` was raised to make robbing
+worthwhile; `LOSS_CAP` was added the same session to keep a robbery
+survivable. Nobody multiplied them together, and the cap binds long before
+the payout does. **The game was named after an activity that is
+mathematically a rounding error, and standing on your own lawn was the
+optimal way to play it.**
+
+Neither dial fixes it either: parity at level 0 wants `HEIST_PAYOUT` around
+29, or a cap around 360% an hour, and the second makes being robbed
+devastating -- the one thing this design will not do.
+
+**SO THE SUPPLY SIDE MOVED INSTEAD OF THE RATE. RESIDENTS ARE THE FIX.**
+Every plot nobody lives on now has a neighbour on it with a pig that fills,
+and a resident has **no loss cap at all** -- the cap exists so a real child
+cannot be emptied by seven people taking turns, and there is nobody behind a
+resident to protect. Measured against one at level 4: a full crack is 2,631
+coins doubled to 5,262 for a thirteen-second round trip against an income of
+33/s, which is **about twelve times the return of standing still** -- with
+`HEIST_PAYOUT` and `BASE_INCOME` untouched.
+
+That is the shape of the fix worth remembering: the binding constraint was a
+PROTECTION, and protections must not be loosened to make a game pay. Add a
+source the protection does not apply to.
+
+**LOOT IS THE SECOND CURRENCY AND ROBBING IS ITS ONLY SOURCE.** Medals, tokens
+and the daily token pips were three currencies doing one job badly, and a
+nine-year-old cannot hold three. `data.medals` and `data.tokens` are merged
+one-for-one into `data.loot`; `Config.LOOT.delivery` pays one per delivery,
+events pay the old medal shape when they return, and the daily ladder pays
+NO loot at all -- loot is the currency you go out and earn. It buys the
+accessory roll and the set items. The old rule that a roll's currency must be
+unreachable with money still holds: nothing here can be bought.
+
+**REVENGE PAYS TRIPLE, AND THE WINDOW IS THE MARKER.** `Config.REVENGE` is one
+table: robbing somebody who robbed you inside `window` pays `payout` times and
+`loot` extra, and the marker over their plot lasts exactly that long, so the
+picture and the rule cannot disagree. It is a WITHIN-SESSION mechanic and only
+ever was one: the grudge is held in memory, keyed on the Player, and dropped
+when they leave. Nothing about it reaches a later session, and nothing should
+-- a plot is released when its owner logs off, so there is no such thing as
+being robbed while you are away to come back and answer.
+
+**THE SHIELD IS NINETY SECONDS, AND THE LONG ONE IS FOR THE FIRST SESSION
+ONLY.** Fifteen minutes per join, on a game whose sessions run fifteen to
+twenty-five minutes, meant that about half of any server could not be robbed
+at any moment -- which read exactly like robbing being broken. `JOIN_SHIELD`
+covers a rejoin; `NEW_PLAYER_SHIELD` applies when `data.sessions == 1` and
+never again.
+
+**AND THEN THE FIRST-SESSION SHIELD STOPPED BEING A TIMER AT ALL: IT ENDS
+WHEN YOU COMMIT YOUR FIRST ROBBERY.** *Nobody can touch your piggy until you
+take somebody else's* is one sentence carrying the rule, the theme and the
+trade; the player chooses when it ends; and it self-clears with no new save
+field. `HeistService.dropShield` fires on the GRAB rather than the delivery,
+because the grab is the moment you decided to be a thief.
+
+`NEW_PLAYER_SHIELD` is 120 seconds now and is only the CEILING for a player
+who never robs anybody. The argument that took the rejoin shield down from
+fifteen minutes applies harder to session one: at ten minutes against a
+fifteen-to-twenty-five minute session, a new player spent essentially all of
+their first session unable to be robbed. They learned this was an idle game,
+because for them it was one -- and then met the actual game on session two as
+though it were a betrayal of what they had been taught.
+
+**AND THE FIFTEEN-SECOND STUDIO OVERRIDE IS GONE, REMOVED BY ITS OWN REASON
+CEASING TO BE TRUE.** It existed because a solo playtest would otherwise
+"spend its first minutes unable to rob anything" -- correct while the only
+robbable thing on the street was another player. Residents have no shield, so
+a playtest can rob from its first second regardless, and the override was
+left doing one thing only: guaranteeing that the shield behaviour anybody
+ever exercised in Studio was not the shield behaviour that ships. Same family
+as every "works in Studio, refused live" entry in this file, pointed the
+other way.
+
+**AND THE FIRST RUNG THAT HANDS OVER A VERB RATHER THAN A NUMBER IS
+CASING.** Every rung in all seven trees was a multiplier -- faster, more,
+cheaper, slower for them -- so NOTHING BOUGHT AT REBIRTH FIVE LET A PLAYER DO
+ANYTHING THEY COULD NOT DO AT MINUTE TEN. A maxed player performed the
+identical robbery to a new one with bigger figures on it. The crack fixed *a
+robbery has no gameplay* and the spree fixed *a session has no shape*;
+neither touched *the verbs never change*, which is the deepest boredom source
+this design has.
+
+A maxed Lockpicks now reads any lock from the pavement: the rob badge grows a
+four-pip ladder showing the victim's Vault Lock tier. That changes which pig
+you WALK TO rather than how fast the crack resolves, and it is one more thing
+to UNDERSTAND rather than one more thing to press -- the test this file set
+itself when it decided what could be added at this stage.
+
+**IT SELLS BACK EXACTLY WHAT MOVING THE VAULT DIAL COST.** The dial used to
+carry its metal from the street, and the hatch entry above says in as many
+words what that move gave up: *"a thief walks up from the STREET and sees the
+face, so the metal tier no longer carries from out there."* Casing is that
+reading restored, to the one player who has bought the right to have it --
+which is a better home for it than the geometry was, because now it is
+EARNED.
+
+**A VERB IS ADDED AT A RUNG, NEVER SWAPPED FOR ONE, and that is the whole
+answer to "does converting a rung break the save of anybody who already owns
+it".** Nothing Lockpicks already does changed -- every level still widens the
+crack window by `CRACK.pickWindowBonus` -- so a player who maxed it last week
+simply gains this. No migration, no schema bump, nothing to reconcile. **ANY
+FUTURE VERB GOES IN THE SAME WAY**, and the moment one REPLACES a number is
+the moment this becomes a save problem.
+
+**THE THRESHOLD IS DERIVED FROM THE RUNG COUNT, NOT PINNED.** `Config.CASING`
+names the upgrade and `canCase` compares against that upgrade's own `max`, so
+a Lockpicks tree that grows or shrinks moves the verb with it rather than
+stranding it above the ceiling or handing it out early. Same argument as the
+Sneakers rung count being solved out of `TIPTOE.max`.
+
+**AND THE PLAN'S OTHER CANDIDATE FOR THIS RUNG DOES NOT WORK, WHICH IS WORTH
+RECORDING BECAUSE IT SOUNDS LIKE IT SHOULD.** The proposal was *"Lockpicks
+top rung: see the crack sequence one step ahead"*, written before the crack
+shipped in its final shape. `Config.CRACK`'s own comment settles it: **THERE
+IS DELIBERATELY NO CLOCK ON A STEP** -- a step runs until it is tapped, and
+the pressure is meant to come from the dog crossing the lawn rather than from
+reaction time. So the zone is already visible for as long as anybody likes
+once it arms, and seeing its POSITION early buys nothing: the marker sweeps
+the whole dial, so every position is equally hittable. A look-ahead would
+have been a rung that reads as a capability and measurably does nothing.
+
+**THE LADDER IS PIPS AND CARRIES NO NAMES, which avoided a second table.**
+The tiers have colours in `PiggyBank` and names nowhere, so writing "Iron /
+Bronze / Steel / Gold" into the badge would have been a second description of
+one ladder living in a different file from the first -- the near-identical
+copy this file records for the mini piggy, `Decor.buildOne` and `RideSound`.
+Pips need no names, and they are the vocabulary this game already speaks in
+three other places.
+
+**IT IS DRAWN IN `STOP`, NOT GOLD, AND ONLY ON A PIG YOU COULD ACTUALLY
+ROB.** Gold is already the figure directly above it and means money; a lock
+is the one thing on that badge which is bad news for the reader. And a tier
+over a plot that is shielded, on cooldown or empty answers a question nobody
+asked -- the refusal is the answer there, and this file's rule is that a
+reason to stay away always beats a number -- so it rides the same branch the
+value does. Verified: a maxed lock on an emptied pig reads EMPTY with no
+ladder and the badge shrinks back to its 40.
+
+**THE LOCK LEVEL WENT THROUGH A CONFIG CONSTANT ON THE WAY OUT, AND THERE
+WERE FOUR SITES RATHER THAN THE TWO IT LOOKED LIKE.** `"LockLevel"` was a raw
+string in `PlotService` (the writer), in `HeistService.plotLockLevel`, and
+TWICE in `ClientMain` -- the steal prompt's own label and the
+`GetAttributeChangedSignal` that repaints it. Converting only the writer and
+the new reader would have left it HALF converted, which is worse than not
+starting: renaming the constant would then break three call sites that fail
+SILENTLY, because a missing attribute reads nil and falls back to 0. All four
+go through `Config.PLOT_LOCK_ATTRIBUTE` now.
+
+Verified by driving it rather than by reading: the steal prompt's label
+tracks the attribute through the constant -- "Unlocked Piggy" at 0 and "Vault
+Lock Lv1/3/4" above it -- which also proves the changed-signal conversion,
+since a wrong name there would sit permanently on the level-0 wording and
+never error.
+
+**GREP FOR THE STRING, NOT FOR THE READER YOU KNOW ABOUT.** The two extra
+sites were found by grepping the raw literal after the change, not before,
+which is a habit worth keeping: an attribute is an interface with no compiler
+behind it.
+
+Verified live end to end: `canCase` false at 0-3 and true at 4, the shop
+card's blurb flipping to "You can read any lock from the pavement" at max and
+back to "Crack piggies faster" below it, and the ladder filling 0/4, 1/4,
+2/4, 3/4, 4/4 across five plots with the badge growing 40 to 52.
+
+**A ROBBED PIG WEARS A PLASTER, NOT A LOST HOUSE.** Losing permanent progress
+was proposed as the incentive and rejected: it is the one thing every big game
+on the platform protects, and for this audience it is a crying-then-uninstall
+event a parent sees. What was right about it -- a robbery should leave a
+visible mark -- is `PiggyBank.setRobbed`: a plaster on the forehead for
+`ROBBED_MARK_SECONDS`, published on the plot, costing the victim nothing.
+
+**THE REBIRTH GATE IS ONE CAPACITY NOW, NOT TWO.** With the pig as the only
+wallet, income alone can never carry a player past capacity, so "fill it twice
+over" was unreachable without robbing. "Fill your piggy bank" is reachable by
+idling and FASTER by robbing, which is the right way round for the one
+decision this economy most needs players to make.
+
+**WHAT THIS COSTS, STATED PLAINLY.** A balance bounded by capacity means the
+tens-of-millions houses and the 4.5M rides are reached by rebirthing for
+capacity and by robbing, never by idling. That is the intent. If the top of
+the catalogue turns out merely SLOW, the levers are `HEIST_PAYOUT` and
+`DROPOFF_RADIUS`, not the prices.
+
+**AND WHEN THAT WAS FINALLY MEASURED IT WAS NOT SLOW, IT WAS A DEADLOCK.** The
+paragraph above used to end by admitting the 8.9-week model had not been
+re-run against a bounded wallet. Re-run, it does not describe a longer
+journey; it describes a game that stops. Every cost curve in this file is
+written as "cost outruns value, so each level takes longer than the last",
+which is the right shape for a ladder and was right here for the life of the
+project. With an unbounded bank a price above your rate is a WAIT. With the
+pig as the wallet it is a WALL, because the money cannot be HELD at one time
+however long anybody waits.
+
+Measured: capacity cost grew 1.60 against a capacity growing 1.40, so the
+price gained 14% on the pig every level and passed it at LEVEL 17 of 20 --
+level 17 holds 1.09M and level 18 cost 1.11M. Twenty of the forty rungs were
+unbuyable, the income tree followed at 31, the rebirth gate (2.99M, one full
+pig at the CEILING) was unreachable by a player whose pig had stopped at
+1.09M, and the Sky Castle at 100M was above the largest pig this game can
+ever produce (96.9M at level 40). An idler could neither finish the game nor
+leave it, and every one of those failures reads as a buy button that never
+lights rather than as something expensive.
+
+**SO A RUNG IS CLAMPED TO A SHARE OF THE PIG THAT HAS TO PAY FOR IT.**
+`Config.UPGRADE_COST_CEILING` is 0.55 of capacity for income and 0.80 for
+capacity, and the cost functions `math.min` against it. The clamp rather than
+retuned growth constants IS the decision: constants could have been chosen to
+push the crossing past level 40, that would have worked, and it would have
+been a coincidence -- the next price edit or rebirth ceiling puts the wall
+back with nothing to say so. A `math.min` against the pig cannot regress.
+
+**TWO FRACTIONS, NOT ONE, and capacity gets the looser of them for a
+structural reason rather than a taste one.** One shared ceiling would price
+both trees identically at every clamped level and delete the "which rung is
+cheaper right now" decision the base costs exist to create; the pair keeps the
+ratio those base costs already have (400/600 = 0.688). Capacity's clamp is
+separately the NO-DEADLOCK GUARANTEE: the pig can always buy its own next
+size, so a player who has poured everything into income can always grow their
+way out. The income clamp is measured against capacity AT THE INCOME LEVEL,
+which is deliberately conservative -- it means the pig has to be roughly as
+big as the income is high. That coupling is real, and it is intrinsic to a
+bounded wallet rather than something the clamp introduced; all the clamp does
+is stop it being fatal.
+
+**WHAT IT COSTS: THE TOP OF THE LADDER GOT CHEAPER, AND THE BOTTOM DID NOT
+MOVE AT ALL.** The clamp first bites at capacity level 16 and income level 20,
+so every price a player meets in their first hours is the shipped curve
+untouched -- verified, first rebirth still 2.3 hours of play, against the
+2h11m this file already recorded. Above the bite the price is pinned to a
+constant share of capacity, so it grows on the CAPACITY curve instead of the
+cost curve and a late rung is 30-50% cheaper than the number nobody could pay.
+Time per upgrade stops rising and becomes CONSTANT -- a fixed number of
+pig-fills, about 13 minutes of idling each.
+
+**AND THE WHOLE CLIMB IS NOW 17 DAYS AT 2h/DAY OF PURE IDLING, WHICH IS
+FASTER THAN THIS FILE'S OLD TARGET AND IS RECORDED RATHER THAN FIXED.**
+Simulated against the real Config functions with no robbing, no offline, no
+dailies and no friends -- the floor -- rebirth 10 and level 40 land at 1.4
+days of play, with rebirths falling every three to four hours. The old 8.9
+weeks is not the comparison it looks like: it was modelled on an unbounded
+bank AND on an upgrade tree that could not actually be completed, so it
+described a journey nobody could take. If 17 days is too quick the lever is
+`REBIRTH_MULTIPLIER` or the ceiling fractions, and it is now a lever that can
+be pulled without reintroducing a wall.
+
+**A PRICE ABOVE THE LARGEST POSSIBLE PIG IS NOT PACING, IT IS AN IMPOSSIBLE
+PURCHASE, and `Config.auditEconomy` says so at startup.** The two trees hold
+by construction; the CATALOGUES do not and should not -- a house price is a
+design statement rather than a derived number -- so they get an audit instead.
+It walks both ladders, all nine catalogues and every rebirth gate against
+`getCapacity(ABSOLUTE_MAX_LEVEL)`, and `Main` warns per problem. It warns in
+Studio as well as live, unlike the animation warning it sits beside: that one
+is about an asset that only fails once published, this one is about a number,
+and the moment to hear about a number is while you are typing it. The Sky
+Castle came down from 100M to 80M on the strength of it -- 83% of the largest
+pig in the game, still the last thing anybody finishes.
+
+Note this is a DIFFERENT question from the `HEIST_PAYOUT` rule above, which is
+about something being slow. Robbing overflows the cap and was the only route
+past any of these walls -- and a route that needs a populated server is not a
+route a solo player or a quiet hour has.
+
+**AND WHETHER ROBBING IS WORTH DOING IS AUDITED AT STARTUP NOW, WHICH IS THE
+ONE NUMBER IN THIS GAME NOTHING WAS CHECKING.** Every entry above is a
+post-mortem on the same failure: `LOSS_CAP` times `HEIST_PAYOUT`, capacity
+times income, a resident's pig times a capacity ladder -- two curves
+multiplied without anybody checking the product, found months later by
+somebody happening to measure. `Config.auditRobbery` is that measurement run
+on every boot.
+
+**IT CAUGHT A LIVE REGRESSION ON ITS FIRST RUN, which is the argument for it.**
+`RESIDENTS.pigSeconds` was solved for a ratio of 4.92x against the flat 8%
+take. The crack then replaced that take with a five-slice 21.9% one -- a good
+change, made for its own good reasons -- and the ratio nobody re-derived is
+**8.25x**. Nothing errored, nothing looked wrong, and the number the entire
+economy is balanced on had moved by 68% with no line in any log.
+
+**THE BAND IS THREE CHECKS AND THE SHARP ONE IS THE SPREAD.** A floor
+(`min` 3.0) says even perfect robbing must beat standing still, which is
+section 2's original finding stated as an invariant. A ceiling (`max` 10.0)
+says a resident may not be a faucet, which is what `pigSeconds` was
+introduced to stop. But the one that has a provably right answer is
+`spread`: the ratio must be CONSTANT across every level and rebirth, because
+a ratio that MOVES means no single set of prices is right for both ends of
+the game. Measured live at **8.2495x to 8.2495x across all 341 level and
+rebirth pairs -- a spread of 0.0000%**, which is `pigSeconds` cancelling the
+income rate out of the quotient exactly as it was designed to.
+
+Provoked rather than trusted: putting a resident's pig back on the capacity
+curve -- the exact bug `pigSeconds` replaced -- fires all three at once and
+reproduces the historical figure, **12.35x at level 20 against 2.71x at
+rebirth 10, a spread of 355%**.
+
+**IT MEASURES THE RESIDENT CYCLE AND DELIBERATELY NOT THE PLAYER ONE.**
+Robbing a real child is capped by `LOSS_CAP` on purpose and always will be;
+auditing that would warn forever about a DECISION rather than about a
+mistake, which is the cry-wolf failure this file already records for the
+clipping checks. Residents are the uncapped supply and therefore the primary
+income by design, so they are what the invariant is about.
+
+**AND THE ROUND TRIP IS DERIVED, WHICH IS WHAT KEEPS IT HONEST AS THINGS
+MOVE.** `Config.robberyCycleSeconds` builds the 53-stud run out of
+`PLOT_SPACING`, `STEAL_RANGE` and `DROPOFF_RADIUS`, walks it out at
+`BASE_WALK_SPEED` and home under `CARRY_SPEED_MULTIPLIER`, and adds the
+crack's own `openHold` and one `sweepSeconds` per slice -- 21.23 seconds. A
+pinned number would have described the game as it was on the day somebody
+typed it, which is precisely how the 4.92x came to be wrong.
+
+**IT IS AN UPPER BOUND ON OPTIMAL PLAY, NOT AN EXPECTED RATE, and that
+asymmetry is what makes the two ends mean different things.** No dog, no
+missed slice, no tag, no patrol, and never a walk past one resident to reach
+a richer one. So falling under the floor means even PERFECT robbing loses to
+standing still, which is damning; going over the ceiling means only that the
+best case is too good.
+
+**A FOURTH CHECK IS THE ONE NOBODY WOULD HAVE THOUGHT TO WRITE: A THIEF MAY
+NOT LAP THE STREET FASTER THAN `STEAL_COOLDOWN`.** The cooldown is per
+victim, so a thief working seven residents in turn is held up by whichever of
+the lap and the cooldown is slower, and every figure above holds only while
+it is the lap. It is 148.6s against 60s today, so it does not bind -- and it
+tightens whenever the street gets SHORTER or the crack gets QUICKER, which is
+exactly the kind of thing a sensible local retune breaks silently.
+
+**WHAT IS NOT AUDITED, STATED PLAINLY: HOW LONG THE CATALOGUE TAKES.** At
+8.25x the dearest house in the game, the 80M Sky Castle meant to be the last
+thing anybody finishes, is **0.90 hours of optimal robbing** at level 20
+against 7.42 hours of idling. That is the same complaint the `pigSeconds`
+entry raises about the old 12.3x (*"ONE HOUR of this at level 20"*), arriving
+again at a lower ratio, and it is a real question rather than a bug -- the
+lever is `pigSeconds`, and moving it is a pacing decision rather than a
+correctness one. The audit deliberately does not encode a hours-to-finish
+threshold, because that number is a design statement in the way a house price
+is, and this file already argues those get measured rather than clamped.
+
+**A PLOT WITH NOBODY ON IT HAS A NEIGHBOUR ON IT, AND THAT IS THE SUPPLY
+SIDE OF THE WHOLE LOOP.** `attemptSteal` required a `victim: Player` and
+`release` strips an abandoned plot to a bare slab with an empty pig -- so on
+a three-player server five of eight houses were dead frontages: a street that
+reads as abandoned AND nothing to rob. Whether the core action of this game
+was available at all depended on how many other children happened to be
+online.
+
+`ResidentService` seats one on every free plot: a name on the sign, a pig
+seeded to `RESIDENTS.pigSeconds` of its own income, and defences from the
+AVERAGE income level of the humans in the server -- the average rather than
+the maximum, because pinning to the best player hands a beginner a target
+they cannot fail to profit from and hands the best player a row of pigs
+richer than any real person's. It uses `Config.getIncomeRate` and
+`getCapacity` directly, so a resident is a PEER rather than a second economy
+that can drift from the real one.
+
+**IT IS A RESOURCE, NEVER A RIVAL, AND EVERY DIFFERENCE FALLS OUT OF THAT.**
+No loss cap, no grudge, no revenge marker, no notifications, no place on the
+Richest Piggies or Most Wanted boards. What is deliberately IDENTICAL is
+everything a thief can feel: the take, the hold, the carry penalty, the
+getaway, the dog, the tag, the patrol and the rap sheet -- so robbing an
+empty house still puts you on Most Wanted, which is what finally makes the
+police loop work in a one-player server.
+
+**AND IT UNBLOCKED THE TESTING WALL THIS FILE HAS BEEN WRITING ABOUT FOR
+MONTHS.** Roughly ten entries under "Not yet verified" read *needs a second
+player*. Most of them no longer do.
+
+**THE STREET IS A LADDER NOW, NOT A ROW OF IDENTICAL HOUSES.** Every
+resident was seated at exactly `currentLevel()`, so eight pigs of the same
+size stood behind the same fence with the same dog and the same lock. That is
+"every robbery is the same robbery" one level up from the verbs: not only did
+a robbery PLAY the same, there was nothing to choose between the targets.
+Each resident now carries a stable offset BELOW the street level, so the row
+runs from a cheap easy house to a rich defended one -- and casing plus the
+rob badge are what make both halves of that readable from the pavement.
+
+**DOWNWARD ONLY, AND THE AUDIT IS WHAT DECIDED IT.** A resident's pig is
+`pigSeconds` of its OWN income, and a thief robs the richest house they can
+reach -- so a resident one level ABOVE the thief is worth `INCOME_GROWTH`
+more. Measured against `auditRobbery`'s own ceiling before a line was
+written: at parity a maxed spree returns 8.25x against a ceiling of 10, which
+is x1.212 of headroom, and one level up is **x1.35 in band A**. A single
+upward step reads 11.14x at every level below 20 and 15.03x at +2.
+**RESIDENTS RICHER THAN THE THIEF ARE A FAUCET, FULL STOP** -- so the
+peer-level house is the CEILING of the street rather than a rung in the
+middle of it.
+
+That is the same conclusion `currentLevel` reached when it chose the average
+over the maximum, arriving from a completely different direction, and it is
+the second time in two sessions the audit has refused a design at the
+whiteboard rather than after it shipped.
+
+**TWO GUARANTEES, AND BOTH WERE MEASURED INTO EXISTENCE.**
+`RESIDENTS.easyCount` pins two houses to the bottom of the spread, so a
+player with base stats always has somewhere to go rather than meeting a
+randomly hard street -- "defence buys time, never immunity" broken by a dice
+roll instead of by a purchase. And ONE house is pinned to the top, because
+the first build drew the rest purely at random and **a third of streets had
+no peer-level house at all**: the odds of never rolling zero across five
+draws are `(spread/(spread+1))^5`. The best-paying, best-defended plot -- the
+one the whole risk/reward decision is measured against, and the one the audit
+describes -- was simply absent, with nothing on screen able to say so.
+Verified over 3,000 simulated streets: zero under the easy floor, zero
+without a top.
+
+**THE FLOOR IS COUNTED AGAINST WHAT IS STANDING, NOT DEALT FROM A BAG.**
+Residents are seated ONE AT A TIME as plots free up, so there is no moment at
+which "how many are there" has an answer -- which rules out the shuffled-bag
+pattern the music cues use. Counting the houses already out cannot drift out
+of step with the street it is describing.
+
+**THE SPREAD IS SIZED AGAINST THE LADDERS IT HAS TO MOVE.** Defences step
+every 5 to 7 levels (`fencePerLevels` 5, `lockPerLevels` 6, `dogPerLevels`
+7), so the first value -- 4 -- could not reliably move any of them: measured,
+a street at level 20 seated every single house with the same dog tier and all
+the variety was carried by the house and the garden. At 6 the bottom of the
+street is a fence and a lock tier below the top, and the cheapest pig is 17%
+of the dearest, which is a difference a thief can act on.
+
+**AN OFFSET IS ROLLED ONCE AND KEPT.** Re-rolling on the tick would reshuffle
+the whole street every time anybody levelled up, and a house that changes its
+fence, its dog and its building for no reason a player can see is worse than
+a street with no variety at all. Each resident tracks the street FROM ITS OWN
+RUNG, so the row rises together and keeps its shape.
+
+**AND THE GARDEN SCALES OFF THE LEVEL, NOT THE OFFSET, WHICH THE FIRST BUILD
+GOT WRONG IN A WAY WORTH RECORDING.** Deriving the ornament count from the
+raw offset made gardens vary while the street was still at level 0 and every
+house was genuinely identical -- measured live at 0, 12, 14 and 57 ornaments
+standing on four houses with the same bare fence, the same absent dog and the
+same 1,481 coins. **A FULL GARDEN ON A LEVEL-0 PLOT ADVERTISES WEALTH THAT IS
+NOT THERE, WHICH IS WORSE THAN NO VARIETY: IT IS VARIETY THAT LIES.** On the
+same `perLevels` shape as the four ladders beside it, it lands at zero on a
+new street with all of them -- the clean bare plot the thirty-second
+storyboard is written against -- and fills in as the street climbs.
+
+**A RESIDENT'S PIG IS MEASURED IN SECONDS OF ITS OWN INCOME, NEVER IN
+CAPACITY, AND THAT WAS A CATEGORY ERROR RATHER THAN A TUNING MISS.** Capacity
+means *how much you can hold before you have to spend* -- a storage limit
+that exists because a full pig stops earning, which is what drives every
+purchase a player makes. A RESIDENT NEVER SPENDS ANYTHING, so capacity is not
+the wrong number for one, it is a concept that does not apply, and borrowing
+it made a resident's worth ride a curve chosen for a different job.
+
+Measured, capacity grows 1.40 a level against income's 1.35, so a resident's
+pig drifted from 300 seconds of its own income at level 1 to 998 at level 40
+-- and robbing went from 3.7x the return of idling to **12.3x**. The same
+mistake as `LOSS_CAP` x `HEIST_PAYOUT` one level down: two curves multiplied
+without anybody checking the product. `RESIDENTS.pigSeconds` pins it, and the
+ratio is now 4.92x at level 1, 20 and 40 alike.
+
+**A CONSTANT RATIO IS THE POINT, NOT A LOWER ONE.** Prices can be set for
+whatever robbing is worth; what cannot be tuned around is a ratio that MOVES,
+because then no single set of prices is right for both ends of the game.
+
+**AND `HEIST_PAYOUT` STAYS AT 2 ON A RESIDENT, WHICH REVERSES THE OBVIOUS
+ARGUMENT.** The multiplier exists so a thief's gain stops being a victim's
+pain, and a resident has no pain -- so by that reasoning it should not apply.
+The reasoning is sound and the conclusion is dangerous: paying LESS for
+robbing an empty house than for robbing a real child makes robbing the child
+the better play. For this audience the incentive has to point at the NPC.
+
+**AND THE PUBLISHED NUMBER IS THE INTERFACE, WHICH COST A REAL BUG.**
+`updatePile` was called only inside the accrual branch, guarded by
+`coins < capacity` -- and a level rise tops a resident up to EXACTLY full, so
+on the one tick that mattered the guard was false and the plot attribute kept
+what it was seeded with at boot. Measured: residents publishing 2,962 while
+the street was level 9 and their real pigs held 44,130. Everything a thief
+can see reads that attribute -- the coin pile on the lawn, the value on the
+rob badge, the take quoted by the steal prompt -- so the world and the server
+disagreed by fifteen times, silently, with the server being right. **Anything
+that changes a pig has to republish it in the same breath.**
+
+**THE TARGET ABSTRACTION IS NINE ACCESSORS, NOT TWENTY BRANCHES.**
+`HeistService` is written against `Target = Player | Resident`, and
+`typeof(t) == "Instance"` is the entire discriminator -- a Player is an
+Instance and a Resident is a table, so there is no flag to keep in step.
+Every asymmetry lives at the one accessor that owns it. Branching at the call
+sites instead would have put "is this a person" in twenty places, and the
+twenty-first would have been added without it.
+
+**IT ALSO FOUND TWO LIVE BUGS IN `PoliceService` THAT NOTHING ELSE COULD
+HAVE.** `notify(alarm.victim, ...)` calls `FireClient`, which throws on a
+plain table -- so the first robbery of an empty house during a patrol would
+have errored outright; and `alarm.victim.Parent` was safe only by accident,
+because indexing a table returns nil rather than throwing. Both go through
+`HeistService.notifyTarget` and `.isPlayerTarget` now. **A type that widens
+finds every place that quietly assumed the narrow one.**
+
+**A RESIDENT IS TOPPED UP WHEN THE STREET LEVELS UP, AND THAT WAS MEASURED
+RATHER THAN ANTICIPATED.** They are seated at BOOT, when the server is empty
+and the derived level is therefore 0, so they seed against a level-0
+capacity. The first player then arrives, the level jumps to theirs, and
+capacity grows while the coins do not: measured at 2,872 coins sitting in a
+pig that now held 19,208, which is 15% full. A thief crossing the road to
+that finds two per cent of almost nothing. Topped up to the same share of the
+NEW capacity whenever the level RISES -- and never when it falls, because
+following it down would refill a pig a player had just emptied, which is a
+thief watching their own robbery undone and a coin faucet keyed to the door.
+
+**A STEAL WAS A TRANSACTION, AND IT IS A DECISION NOW. `Config.CRACK` IS THE
+GREED DIAL.** One fixed hold took one fixed `STEAL_FRACTION` of a pig, and a
+player performed it identically forty times an hour. That is the whole of why
+robbing felt the same every time, and it is a structural fact about the shape
+of the action rather than a tuning miss: there was nothing in it to decide.
+Worse, THE HOLD IS THE ONE MOMENT IN THIS GAME WHERE THE GAME SWITCHES ITSELF
+OFF -- every tuned number in this design is a SPEED, and the central action of
+the game it is named after was standing still.
+
+A crack is a sequence of slices. Each one landed banks a bigger share than the
+last (2.0, 2.8, 3.9, 5.5 and 7.7 per cent) and narrows the target for the
+next. The thief walks away whenever they like and keeps what they have; a miss
+ends the attempt and they STILL keep what they have. So it is push-your-luck,
+and it is the first thing in this design that can produce a PARTIAL OUTCOME --
+*"I bailed at three because the dog turned round"* -- which is what makes a
+repeated action generate stories instead of receipts.
+
+**THE SLICES GROW, WHICH IS THE ENTIRE REASON TO STAY.** A flat slice makes
+the last step worth exactly what the first was, so there is no temptation and
+no decision, and the mechanic collapses back into a hold with extra taps.
+Growing, the step you are deciding about is always the most valuable one you
+have been offered.
+
+**FIVE STEPS, AND THE ARITHMETIC PICKED IT.** A clean run takes 21.9% against
+a `LOSS_CAP` of 25%: a greedy thief can empty a victim's whole hourly
+allowance in one attempt and no further, which is what stops a plot being
+farmed by inches. At six the run reaches 28.9% and the last slice is silently
+clamped to nothing, which reads as the minigame being broken rather than as a
+cap being reached. It also calibrates against what the game already did --
+the old flat 8% take lands between step two (4.8%) and step three (8.7%), so
+today's robbery is the MIDDLE of the new range rather than its floor.
+
+**A SLICE IS A SHARE OF THE PIG AS IT WAS WHEN THE ATTEMPT OPENED, AND THE
+FIRST BUILD HAD IT OTHERWISE.** Measured on a live resident: a clean
+five-slice run took 8.9K where the arithmetic above says 9.7K, because each
+slice was a fraction of a pig several slices lighter -- so the documented
+21.9% was really 20.2%, and it drifted differently again on a pig that was
+accruing income while the thief worked. Two curves multiplied without anybody
+checking the product, which is the same shape as `LOSS_CAP` x `HEIST_PAYOUT`
+one level up. Pinning to the opening balance also makes the GAUGE honest,
+which matters more than the arithmetic: a slice is then a fixed width on the
+bar, so the next one can be drawn before it is taken. It is still clamped
+against the live balance, because however the share is computed a pig cannot
+pay out coins it no longer holds.
+
+**COINS LEAVE THE PIG PER SLICE, NOT AT THE END.** Banking a promise and
+settling up afterwards lets two thieves cracking one pig both be promised the
+same coins -- the exact double-spend the old code's *"taken from the pig
+immediately"* guard existed to prevent -- and it leaves the pile on the lawn
+frozen through the whole robbery. Taken per slice, the coin pile visibly
+DRAINS while a thief works: the greed bar drawn in the world rather than only
+on their screen. Verified live, 44,129 down to 37,282 across one run.
+
+**THE ALARM FIRES ON A FUMBLE AND NEVER ON A CLEAN ROBBERY, and that choice
+decides whether robbing a present player is possible at all.** A crack has
+five moments it could fire at. On the first slice the owner always wins; on
+completion they can never defend, only chase. On a MISS is the third answer
+and the one that makes skill worth having: land every slice and the victim
+finds out from their balance, the plaster and the delivery line; fumble one
+and you bring the whole street down on yourself. It is also what wakes the
+dog, so the crack and the approach are one decision seen from two ends.
+
+It does not make a clean robbery invisible, which is the objection to check it
+against. The thief still hauls a labelled miniature of the victim's own pig,
+still wears a Highlight visible through walls, and the pile on that lawn just
+shrank. **What a silent crack buys is that nobody was TOLD** -- stealth of the
+alarm, never stealth of the getaway.
+
+**THE SERVER OWNS THE CLOCK AND `CrackTap` CARRIES NO ARGUMENTS.** The sweep
+is deterministic from a `startedAt` stamped in `workspace:GetServerTimeNow`,
+so both ends read one clock; the client renders it and reports a tap making no
+claim at all. Same decision as `BoneThrow` and `placeLadder`: the click means
+"now", never "now, and here is the outcome".
+
+**WHAT THAT BUYS IS FAIRNESS, NOT SECURITY, and it is worth being exact
+because it looks like an anti-cheat.** The best possible outcome of a
+perfectly forged client is landing every slice -- which is also what a good
+player gets, and what the five-step ceiling is already tuned against. There is
+no jackpot here to protect. What server timing actually stops is the opposite
+failure: a client deciding its OWN hits would make a robbery worth whatever
+somebody's ping happened to be. `Config.CRACK.tapGrace` is the other half of
+that, widening the zone by a tenth of a second at BOTH edges, because a tap
+judged on the far end of a 90ms link would otherwise lose the trailing edge of
+every zone somebody cut fine.
+
+**THE LOCK AND THE LOCKPICKS ARE STILL ONE AXIS AND IT IS NO LONGER A
+DURATION.** `Config.STEAL_HOLD` and `getStealHold` are retired outright: the
+Vault Lock narrows the target zone and Lockpicks widen it, which is a thing a
+player can SEE rather than a number they have to be told. That is also what
+finally makes the vault dial legible -- a ProximityPrompt animates its ring
+over whatever duration it is given, so three seconds and nine looked
+identical, and the whole tree read as decorative. Verified live at lock level
+1: zone widths 0.692, 0.561, 0.454, 0.368 and 0.298 of the dial, exactly
+`getCrackWindow`.
+
+**A DIFFICULTY GATE MAY ONLY BE CHARGED FOR ONCE.** The prompt hold survives
+at a flat `Config.CRACK.openHold` of half a second, and it is a doorknob
+rather than a gate -- if it still scaled with the Vault Lock the defender
+would be paid twice for one upgrade. It is still validated server-side,
+because a `ProximityPrompt`'s `HoldDuration` is writable by the client that
+sees it, and an attempt now drops your shield and wakes a dog.
+
+**BIGGER SACK SCALES THE SLICES, AND IT PAYS OUT ON A RESIDENT WHILE BEING
+CAPPED AGAINST A CHILD.** The rung used to scale the one flat take and would
+have gone inert with nothing erroring. Two candidates were rejected: more
+STEPS puts the sixth slice at 10.8% of a pig, so one rung would be worth more
+than the whole base run; a wider WINDOW is the Lockpicks rung, which already
+owns that axis. Scaling every slice, a maxed sack asks for 41.6% of a pig and
+`LOSS_CAP` refuses everything past a quarter -- while a resident has no cap
+and pays in full. **The incentive points at the empty house, which is the
+direction this design needs it to point**, and it fell out of the arithmetic
+rather than being arranged.
+
+**THE ALLOWANCE RUNNING OUT IS SAID, NEVER CLAMPED.** A slice silently worth
+nothing is the minigame reading as broken. It ends the attempt out loud, names
+the victim, and the thief keeps everything they landed -- the same rule the
+sell refusal follows, where a payout that does not fit is refused rather than
+quietly shrunk.
+
+**A CRACK IS A PLACE AS WELL AS A MOMENT.** The panel is opened by a prompt
+and closed by a tap, and neither notices somebody walking away, dying, or
+being carried off by a patrol car. The binding to the lawn is polled, against
+`STEAL_RANGE` with slack, so an attempt survives shuffling on the spot and
+ends the moment somebody actually leaves.
+
+**A DOG CATCHING AN EMPTY-HANDED THIEF IS A NEW ENDING, and without it the
+dog would have run somebody down and then done nothing.** `HeistService.tag`
+returns early with no loot, which was always correct while a chase could only
+start after a completed steal. A crack can now let the dog off at somebody who
+has banked nothing at all, so the catch asks CARRYING at the moment it lands
+rather than at the release -- the thief may have banked three more slices and
+be running for the gate by then. Empty-handed they are SEEN OFF:
+`Config.DOG_WATCH.scareStun` holds them still briefly and the attempt breaks.
+Being robbed has to stay survivable; so does failing to rob, and taking coins
+a nine-year-old never had would be a debt for trying.
+
+**THE PANEL DRAWS THE PIG AND NOT THE ALLOWANCE, which was the first version
+and was wrong.** Drawing `LOSS_CAP`'s remaining allowance as the whole gauge
+makes it mean "how much of what I am permitted", which is a rule a
+nine-year-old has never been told and cannot see. Drawing the PIG makes the
+gauge a picture of the object in front of them, with the cap as a RED LINE
+across it. A resident's line sits at zero and the bar can empty completely --
+the difference between an empty house and a real child, drawn rather than
+explained.
+
+**THE NEXT SLICE IS DRAWN ON THE GAUGE, and that is the greed dial rather than
+a flourish.** Each slice is 1.4x the last and a fixed width on the bar, so the
+segment visibly GROWS every time somebody decides to stay -- verified at
+0.020, 0.028 and 0.039 of the bar across the first three. It is the only place
+"the step you are deciding about is always the biggest one you have been
+offered" is a picture instead of a number.
+
+**A `ProximityPrompt` IS SHOWN ON ENTERING RANGE, AND A TEST HARNESS THAT
+TELEPORTS ONTO ONE IS TESTING A PROMPT THAT WAS NEVER SHOWN.** This file
+already records the rule for flipping `Enabled`; the same thing bites a probe
+that drops a character on top of a piggy and presses. Measured across a
+session: `InputHoldBegin` on a prompt at 7.7 studs, enabled on the client, was
+a complete no-op -- no `PromptShown`, no `PromptButtonHoldBegan` on the
+server, nothing in any log -- while the identical call had worked minutes
+earlier. Position OUT of range, then move in, and confirm `PromptShown`
+actually fired before believing a negative result.
 
 **`STEAL_RANGE + DROPOFF_RADIUS` must stay well under `PLOT_SPACING`.** If that
 sum approaches the spacing, a thief can stand in their own drop-off zone and rob a
@@ -119,10 +821,456 @@ they never exceed base), dog speeds (12 / 14.5 / 17), fence snags (×0.80 → ×
 and the electric stun (0). Anything that makes a player faster than 16 invalidates
 several systems at once.
 
+**AND TIPTOE IS THE FIRST THING TO GO THE OTHER WAY DOWN THAT LADDER, WITH A
+CEILING THAT IS STRUCTURAL RATHER THAN IMPOSED.** Speed Boots had to be
+capped at 1.0 BY HAND to respect `BASE_WALK_SPEED`; a tiptoe cannot violate
+it at any level, because the whole point of the stat is that it is below
+walking pace. It is one more factor inside `currentSpeed`, so it inherits
+every rule above it with no new balance code -- the same call `Config.DODGE`,
+the bin's exit burst and `CLIMB_MULTIPLIER` each already record.
+
+**THE DOG WILL READ SPEED, NOT A STEALTH FLAG, AND THAT IS THE LOAD-BEARING
+HALF.** A boolean the dog has to check is a second piece of state that can
+disagree with how fast somebody is actually moving; a threshold on speed
+cannot. Everything else then falls out for free, including the one that
+matters:
+
+    TIPTOE at max (9.6)  <  a dog's `notice`  <  CARRY_SPEED (12 to 16)
+
+**So you can sneak IN and you can never sneak the money OUT** -- the toll
+lands on the getaway, where every other cost in this game already lands.
+
+**TWO REFUSALS ENFORCE THAT ORDERING RATHER THAN DESCRIBING IT.** Tiptoe is
+refused while CARRYING, because 12 x 0.35 is 4.2 and comfortably under every
+threshold -- a thief would creep home past the dog with the pig in their arms
+and the entire risk half of the trade would evaporate. And refused while
+CLIMBING, because 0.35 x `CLIMB_MULTIPLIER` 0.35 is 0.12, about two studs a
+second, or seven seconds to climb an eight-stud fence. That second one is the
+multiplicative-slow trap this file keeps recording, caught before it shipped
+rather than after.
+
+**AND IT NEEDED A TOUCH CONTROL, NOT JUST A KEY, OR IT WOULD HAVE BROKEN A
+RULE BY OMISSION.** Tiptoe is the only counter to a watching dog, and most of
+this audience never presses a key -- so a keyboard-only sneak would mean a
+guarded plot is unrobbable on a tablet, which is "defence buys time, never
+immunity" broken by an input gap rather than by a number. The SNEAK button
+takes x=174 on the dodge and garage row, which is the garage picker's own fan
+origin: safe because the two can never usefully coexist, since a sneak
+happens on a lawn and a ride is switched off anywhere but the street.
+
+**AND THE TIPTOE RUNG IS LIVE, WHICH CLOSED A HOLE THE WATCHING DOG HAD
+OPENED.** `TIPTOE.perLevel` and `.max` sat on disk describing an upgrade that
+did not exist, and `currentSpeed` passed a hardcoded level 0 -- so every
+player on the street tiptoed at `base` and nothing about a sneak varied
+between them. `Config.UPGRADES.tiptoe` is Sneakers, the fourth rung of the
+offence tree.
+
+**WHAT IT BUYS IS SPEED, NEVER STEALTH, and getting that backwards is the
+easy mistake.** The first write-up of this said the rung was how you sneak
+past a Shepherd; Config's own comment said otherwise and Config was right.
+`base` is 5.6, already under Scruffy's `notice` of 11 AND Rex's 10.2, and
+`max` is 9.6, still nothing to a Titan's 0. So a level buys CROSSING THE SAME
+LAWN IN LESS TIME -- 5.6 to 9.6, a 71% faster approach -- and never a lower
+chance of being heard. WHICH dogs a sneak beats is the DOG's tier to decide,
+which is why `notice` lives over there and the rung cannot touch it.
+
+**THE RUNG COUNT IS DERIVED FROM THE STAT RATHER THAN CHOSEN.** `max` is 4
+because `TIPTOE.base + 4 x perLevel` lands exactly on `TIPTOE.max` -- verified
+live at 0.35 + 4 x 0.0625 = 0.60. Picking a count instead would let a later
+retune of the stat silently strand a rung the player can buy and not feel, or
+leave headroom nothing can reach.
+
+**IT COST NOTHING ANYWHERE ELSE, which is the whole argument for the tables
+being data.** `UpgradeService` walks `Config.UPGRADES` with `pairs`,
+`ensureRow` builds a shop card from `info.tree` and `info.order`, and
+`DataService.reconcile` descends one level into `upgrades` -- its own comment
+already anticipated this exact case, *"adding a seventh upgrade later must
+fill in just that key on every existing save"*. So no schema bump, no UI code,
+no save migration. Verified live: the card renders at LayoutOrder 4, an
+existing save reconciled the key in, and the sneak measured 5.60 / 6.60 / 7.60
+across two purchases with base walk untouched at 16.00.
+
+**AND THE ORDERING THE WHOLE DESIGN RESTS ON STILL HOLDS AT MAX**, which is
+the one thing a rung on this stat could have broken: maxed sneak 9.60 < Rex
+10.2 < carry 12.0. Measured on a resident's lawn, 14 seconds of pacing at 9.21
+studs a second left the dog asleep. Anything that raises `TIPTOE.max` has to
+re-check that line against the LOWEST `notice` in `DOG_TIERS` above zero.
+
+**A FENCE CHARGES ONCE PER CROSSING, AND `Touched` IS NOT AN ENTRY EVENT.**
+This shipped as a freeze: a player who touched an electric fence could not
+move for a long time, and the "Snagged" toast arrived about ten times. Both
+were the same bug and it is the sharpest example in this file of a handler
+that is correct once and catastrophic repeated.
+
+`Touched` re-fires on every re-contact, and it fires PER CHARACTER PART.
+Measured on a live rig standing in an electric fence's ClimbZone: fourteen
+parts reporting on the first contact frame, and 18 fires over four seconds
+while resting. Every one of them called `applySlow`, which re-stamped
+`stunUntil = now + 2.5`. **THE STUN RENEWED ITSELF FASTER THAN IT COULD
+EXPIRE.**
+
+**AND THE STUN IS WHAT KEPT THEM IN THE ZONE, so it fed itself.** The
+ClimbZone sits ON TOP of the barrier, so a climber who gets shocked is
+standing in the volume that shocked them -- and a stun is WalkSpeed 0 AND
+JumpHeight 0, so they can neither walk out of it nor hop off. Measured still
+inside it after four seconds. Nothing about the loop could end from the
+inside.
+
+Note "take the worst" made it worse rather than causing it: `until_` is
+`math.max`ed against the existing snag, which is right and is recorded above
+as a fix -- but with a repeating source it means each fire also pushes the
+END of the slow further out.
+
+**THE COOLDOWN HAS TO OUTLAST THE PENALTY IT GUARDS, or it is not one.** A
+cooldown shorter than `duration` just lets the second charge land as the first
+expires, which is the same freeze at a slower rate. It is
+`penalty.duration + FENCE_PENALTY_GRACE`, derived from the penalty rather than
+pinned, so a tier that gets a longer snag gets a longer immunity with nothing
+to remember. Verified re-arming on schedule: charges at 0.6s, 4.7s and 8.7s
+across five entries, with the two entries inside the window refused.
+
+**KEYED PER PLOT AND PER SOURCE, NEVER PER PLAYER.** Per player alone would
+let a thief cross a second neighbour's fence for free inside the window, and
+the alley between two yards is 16 studs -- crossable in one. Per source keeps
+the moat and the wire above it apart, so wading the water cannot buy a free
+run at the fence behind it.
+
+**A SHOCK THROWS YOU OFF, AND THAT IS THE HALF THAT MAKES THE COOLDOWN
+HONEST.** Debouncing alone leaves the player standing on top of the fence for
+the whole stun, waiting out a timer, which is the same picture as the bug with
+a shorter clock. Only tiers that STUN throw -- `stun > 0` is the test rather
+than a per-tier flag, because a rickety fence is meant to be climbable and
+merely slow.
+
+**IT REJECTS YOU TO THE SIDE YOU CAME FROM, AND MAY NEVER CARRY YOU ACROSS.**
+Always pushing outward is a defence against somebody climbing IN and a free
+getaway for somebody climbing OUT, on the tier that costs the most to buy.
+Rejecting to the near side can be neither: the most it hands anybody is a few
+studs deeper into ground they were already on, against 2.5 seconds of being
+unable to move. The side is read from the ROOT's offset from the fence plane
+in plot-local space -- verified over 80 contact samples, correct sign from
+both sides, and end to end at 4.90 and 5.02 studs each back the way it came.
+
+**`PlatformStand` IS THE WHOLE TRICK, AND WITHOUT IT THE KNOCKBACK DOES
+NOTHING.** A plain velocity write buys **0.20 studs**: the shock has just set
+WalkSpeed to 0, and the humanoid spends every frame damping horizontal motion
+toward `MoveDirection * WalkSpeed`. **VERTICAL IS THE ONE AXIS IT DOES NOT
+FIGHT** -- which is exactly why the trampoline is vertical-only and works, and
+why copying its shape here silently produced a shove that went nowhere.
+Measured across four candidate strengths, all four horizontal, all four dead.
+Under PlatformStand the identical push lands 5.66 studs and the character
+recovers to `Running` on its own. Anything in this game that wants to move a
+character SIDEWAYS against their own humanoid needs it.
+
+It is also the right picture rather than only the working one: the character
+goes limp for the flight, which is what being zapped off a fence looks like.
+The limp window covers the flight and no longer -- the stun goes on holding
+them still afterwards, so extending it buys nothing.
+
+**THE CLIENT APPLIES IT, THE SERVER DECIDES IT** -- the same split as the
+trampoline and for the same measured reason: a server-side write to a player's
+`AssemblyLinearVelocity` is discarded. It carries a DIRECTION where the
+trampoline carries nothing, which is safe for the one reason that matters:
+the server computed it. The client is being told which way it was thrown, not
+asked. The client still flattens and re-normalises what arrives, so a
+direction with a vertical component in it cannot quietly trade knockback for
+launch height.
+
+**A FENCE IS A TILED PANEL MESH NOW, AND IT IS THE FIRST UPGRADE IN THIS
+PROJECT THAT COST FEWER PARTS THAN WHAT IT REPLACED.** `decorPicket` laid a
+picket AND a rotated tip every 2.6 studs, which over a plot's whole perimeter
+is about 276 parts -- so a street where all eight own one is over two thousand,
+as much as the entire rest of the world. One panel every ~7 studs replaces
+that. Measured on a 44-stud run: **38 primitive parts against 6 panels**, and
+on a real plot **57 parts against roughly 276**, of which 47 are panels and
+the other ten are the barriers and climb zones that were always there.
+
+That is the property to preserve. A later tier that wants a mesh PER POST
+throws the whole saving away and puts the fence back to being the most
+expensive object on the street.
+
+**IT IS SAFE ONLY BECAUSE COLLISION AND DECORATION WERE ALREADY SEPARATE.**
+The entry below has said for the life of the project that one invisible slab
+carries all the collision and everything visible is `CanCollide` off, so
+"styles can look like anything without changing the jump maths". This is the
+first change to actually cash that in: `buildFence` builds a `Barrier`, a
+`ClimbZone` and ONE call to a decorator, and the mesh replaces the decorator
+and nothing else. Verified after: barrier top unchanged at 4.30, five barriers
+still carrying their `AlongX`/`Span` attributes for the ladder, zero panels
+breaking the no-collide/no-query rule, `isHoppableFence` and `isClimbedFence`
+unchanged, and `auditFences` clean.
+
+**THE PANEL STANDS TO `decorTop` AND THE BARRIER STILL STANDS TO `top`, AND
+CONFUSING THOSE TWO IS HOW A VISUAL CHANGE BECOMES A BALANCE CHANGE.** They
+are 5.6 and 4.8 on the picket. Measured live: panels reach y 5.10 and the
+barrier 4.30, which is exactly those two numbers above `FENCE_BASE_Y`.
+
+**SCALED UNIFORMLY OFF ITS HEIGHT, THEN STRETCHED ONLY ALONG THE RUN.** The
+panel is sized from `decorTop / authoredHeight`, which fixes how many fit; the
+leftover is taken up by stretching the LENGTH so the run tiles exactly. A
+panel is a flat thing seen side-on, so a stretch along the run is invisible
+where a stretched height would read immediately.
+
+**MOAT ALIASES ELECTRIC IN `Config.fenceMesh` RATHER THAN CARRYING ITS OWN
+ROW**, because it already does in the code: `decorMoat` is one line calling
+`decorElectric` -- the wall is identical and the water is the upgrade, built
+once for the whole ring. Two rows would be the near-identical duplicate that
+drifts the first time either is touched.
+
+**AND THE TIERS GO ONE AT A TIME.** A style with no row falls back to its
+primitive decorator, silently and per style, so `picket` can be meshed while
+the other four are not. Verified both ways in one session: a picket plot built
+47 panels and an electric plot built its primitive `Post`/`Wire`/`Live` parts
+with nothing in the log.
+
+**TESTING IT NEEDED THE ADMIN CONSOLE, BECAUSE A DEV SAVE IS NOT AT THE TIER
+YOU WANT.** Two `UpgradeRequest` purchases moved a save that was already on
+Electric further UP rather than landing on Picket, and the sandbox cannot
+reach a live plot to call `buildFence` directly -- requiring PlotService there
+hands back a fresh module whose `start()` never ran, which this file already
+records for PoliceService. `AdminRequest("upgrade", nil, "fences", 2)` is the
+way in, and it is worth knowing before spending a purchase on the wrong tier.
+
 **A fence must never be uncrossable.** Defence buys *time*, never immunity. An
-un-robbable player kills the offence tree and stalls the economy at the top. Every
-tier from Barbed Wire up stays at a jumpable 6.0 studs and escalates the hazard
-instead — `BASE_JUMP_HEIGHT` is 7.2.
+un-robbable player kills the offence tree and stalls the economy at the top.
+
+**THE RULE IS UNCHANGED AND THE MECHANISM IS NOT: A TIER YOU CANNOT HOP IS A
+TIER YOU BRING A LADDER TO.** This entry used to end *"every tier from Barbed
+Wire up stays at a jumpable 6.0 studs and escalates the hazard instead"* — a
+constraint that was self-imposed, because it assumed the only way over a fence
+is a jump. Height is a tunable again and the top three tiers stopped being the
+same fence with different paint on it.
+
+**AND THE WAY OVER IS CARRIED IN, NOT BUILT IN.** For one session every fence
+segment carried a permanent climbing TRELLIS. Three things were wrong with it
+and only the first was visible: it stood on tiers you can step over, so the
+cheapest fence in the game had a climbing frame bolted to it; it made a fence
+a SLOWER FLOOR rather than a wall, because the way across was always there and
+always free; and it left nothing for an item to sell, since the problem a
+ladder would solve was already solved on every plot forever. A fence is solid
+now and `Config.LADDER` is what crosses it.
+
+**WHICH DOES NOT MAKE A PLOT UNCROSSABLE, and that is the rule this brushes
+against rather than breaks.** The gate is always open at every tier: 24 studs
+wide at Rickety and still 8 at the Moat. So the plot is enterable by anybody,
+with no item, at any tier. What a solid fence actually stops is the SIDE and
+BACK crossing, which is the alley shortcut between two neighbours, and what
+the ladder buys is a route that is not the front door.
+
+**A FENCE IS A STUD TALLER FROM THE STREET THAN FROM THE LAWN, AND ALL THREE
+TOP TIERS SHIPPED IN THE BAND WHERE THAT MATTERS.** The fence stands on the
+world ground and the yard it encloses is the plot slab, one stud up. So the
+same barrier is `top` from the street and `top - LAWN_LIFT` from the lawn, and
+a tier between the two is hoppable in exactly ONE DIRECTION.
+
+Measured live: barrier top at world 5.50, lawn at 0.50, street at -0.50, feet
+apex 5.59. Getting IN was refused by 0.41 studs and getting OUT cleared by
+0.59. **THE TOLL LANDED ON THE APPROACH AND THE GETAWAY WAS FREE**, which is
+backwards from every other cost in this game, and it read as "I can still jump
+the tier 3 fence" rather than as an asymmetry. It would also have shipped the
+ladder inert: nobody buys a way over a wall they can step over.
+
+6.0 -> 7.0 gives the climb the same 0.41 margin from the LAWN that it used to
+have from the street. Verified after: feet reach 6.10 from the lawn and 5.11
+from the street against a barrier at 6.50, blocked both ways.
+
+**THE FIX IS A RULE AND AN AUDIT, NOT A NUMBER.** `Config.isHoppableFence` and
+`isClimbedFence` are the only two places the question is asked, and
+`Config.auditFences` refuses the band outright at startup, in Studio as well as
+live. Same argument as `auditEconomy`: the failure is a number, nothing errors,
+nothing looks wrong, and the moment to hear about a number is while you are
+typing it.
+
+**HEIGHT IS VERY NEARLY SPENT AS A LEVER, which is why the three climbed tiers
+share a number rather than laddering upward.** Measured from a viewer on the
+pavement, over the front fence, to the piggy: at a barrier top of 6.0 about 56%
+of the pig reads, at 7.0 it is 42%, at 8.0 it is 28%. Worth knowing that the
+COIN PILE was already lost at 6.0 -- the sightline clips the pig at y 7.75 and
+the pile sits at its feet -- so what carries how full a piggy is now is the
+steal prompt's own figure and the badge above it. A tier above these escalates
+what the crossing COSTS, never how tall it is.
+
+**AN R15 CHARACTER'S LEGS AND FEET COLLIDE WITH NOTHING, AND EVERY FENCE IN
+THIS GAME HAD BEEN TUNED AGAINST THE FEET.** This is the real fault under the
+one above, and it survived the fix for it.
+
+Measured on a live rig standing on a lawn at y 0.50, the only parts carrying
+`CanCollide` are `HumanoidRootPart`, `LowerTorso` and `UpperTorso`:
+
+      lowest VISUAL point     0.006 above the lawn
+      lowest COLLIDING point  2.139 above the lawn
+
+`HipHeight` (2.225) holds the assembly up there and the legs hang off it as
+decoration. So a fence is never cleared by the feet, which pass straight
+through it. **THE NUMBER A FENCE HAS TO BEAT IS `Config.jumpReach`**, which is
+`COLLISION_FLOAT + BASE_JUMP_HEIGHT`, and it is over two studs higher than
+anybody had been designing against.
+
+At the old 5.5 jump the collision bottom reached 0.5 + 2.139 + 5.5 = **8.14**
+against a barrier top of 6.50, clearing by 1.64. So all five tiers were
+jumpable, which is exactly what was reported, and the dead-band fix above had
+made no difference to it at all.
+
+**A PROBE THAT MEASURES THE WRONG BODY AGREES WITH THE GEOMETRY AND DISAGREES
+WITH THE GAME.** The check that passed this took the lowest VISUAL part, got a
+5.59 apex, compared it against 6.50 and reported the jump blocked, twice, in
+two directions. It was right about the feet and the feet are not what
+collides. Same family as measuring a house by its bounding box and getting its
+FX at altitude, and as the "widest lawn ornament" that was really a height:
+the convenient number and the load-bearing one are different numbers.
+
+**SO THE JUMP CAME DOWN AND THE FENCES WENT UP, and the split was chosen off
+the sightline.** Keeping the 5.5 jump would have needed `top` at 8.8 to beat
+the reach, which leaves about a quarter of the piggy visible from the pavement
+and reads as a prison wall. `BASE_JUMP_HEIGHT` is 4.0 and the climbed tiers
+are 8.0: reach 6.14, so they are refused by 0.86 from the lawn and 1.86 from
+the street, while Picket at 4.8 is still hopped from both sides with 1.34 to
+spare. Roblox's own default is 7.2, and nothing in this game is platforming,
+so the jump is spent almost entirely on fences anyway.
+
+**AND `Config.auditFences` NOW ASKS `jumpReach` RATHER THAN THE JUMP**, which
+is the half that stops this returning. The audit existed and was CLEAN through
+the entire period every tier was jumpable, because it was comparing the same
+wrong number the tiers were tuned against. An audit is only worth what its
+question is worth.
+
+**AND THE JUMP CAME DOWN RATHER THAN THE FENCES GOING UP, which is the cheaper
+lever by a distance.** To put a tier out of hopping range while keeping the old
+7.2, every tier above it has to start at 7.3 — and measured against a viewer on
+the pavement, a fence over about **8 studs** starts hiding the piggy bank
+itself, which is the thing a thief is deciding on. `BASE_JUMP_HEIGHT` is 5.5
+now, which puts the SAME tiers out of range at the heights already built and
+leaves the whole 6-to-8 band free for tiers that do not exist yet. Measured
+live: apex 5.59, so Rickety (3.6) and Picket (4.8) are hopped FROM BOTH SIDES
+and Barbed, Electric and Moat (7.0) are climbed from both.
+
+**`UseJumpPower` WAS TRUE, SO `BASE_JUMP_HEIGHT` HAD NEVER DONE ANYTHING, AND
+IT HID BEHIND A COINCIDENCE.** A Humanoid exposes two jump controls and obeys
+exactly one: with `UseJumpPower` true — the rig default — `JumpPower` governs
+and `JumpHeight` is stored and ignored. `refreshSpeed` has been writing
+`JumpHeight` since the day it was written and not one of those writes changed a
+jump. Measured: JumpHeight 5.50, JumpPower 50, apex **7.27 studs**.
+
+It was invisible because the default happened to match. JumpPower 50 is about a
+7.27-stud apex and the constant said 7.2, so the number every fence tier was
+tuned against was right by accident while the code meant to set it did nothing.
+
+**THE HALF THAT WAS ALREADY BROKEN IS THE STUN.** The line's own comment reads
+*"WalkSpeed 0 alone still lets a stunned thief hop the fence they just got
+shocked by"* — and that is exactly what shipped, because the `JumpHeight = 0`
+underneath it was inert. An electric fence has never stopped anybody jumping.
+`refreshSpeed` sets `UseJumpPower = false` now, so both halves work.
+
+**GRAVITY CANNOT MOVE A JUMP, AND IT IS THE OBVIOUS THING TO REACH FOR.** With
+`UseJumpPower` false, Roblox derives the launch velocity from `JumpHeight` AND
+gravity together, so the apex is pinned to the constant whatever gravity is.
+Measured on a live rig: gravity 196.2 gives an apex of 5.59, gravity 300 gives
+5.61, and gravity 120 gives 5.72. All that changes is how fast you come down.
+
+Worth writing down because it is a plausible fix that does nothing to the
+thing it is aimed at while quietly re-tuning everything else in the game that
+moves through the air: the trampoline's 10.1 studs, the wheelie bin's exit
+hop, the fence knockback's measured 5.66, and every fall. `JumpHeight` is the
+only lever on a jump.
+
+**THE GENERAL SHAPE IS THE `RenderFidelity` ONE, one notch quieter.** That was
+an API that threw; this is an API that ACCEPTS THE WRITE, STORES IT, AND
+IGNORES IT. Nothing errors, nothing warns, and the property reads back exactly
+what you set. Anything with a paired "which of these two do I obey" flag needs
+the flag checked before the value is believed.
+
+**THE MECHANISM IS A TRUSS AND THE PICTURE IS A LADDER, and they have to be
+two different parts.** A `TrussPart` is climbed natively by Roblox, so the
+climb costs no new key, no prompt and no movement code, and it inherits every
+speed rule the game already has through `currentSpeed`. Its cross-section is
+locked to 2x2 studs whatever is asked for: measured, `(40, 6.5, 2)` hands back
+`(40, 2, 2)`, a beam lying on its side, silently. So the truss is INVISIBLE
+inside the ladder's own geometry -- measured rather than assumed, since the
+whole feature rests on it: a truss at Transparency 1 still enters the Climbing
+state and still carried a test character the full 8 studs.
+
+Exactly the split the fence itself already uses, where all the collision is one
+invisible slab and everything visible is decoration with `CanCollide` off.
+
+**THE LADDER HAS A FACE ON EACH SIDE OF THE FENCE, AND THAT IS A MEASUREMENT.**
+A climber's root settles **2.2 to 2.6 studs** from the truss centre, hugging its
+outer face, and no amount of thinning the picture changes where the engine puts
+them. So a single flat panel on the fence plane leaves the climber floating two
+studs off the thing they are visibly climbing. Rails at the truss's own faces,
+one set each side, joined over the top -- which is the honest object anyway,
+since a ladder you put over a fence to get up AND down is two ladders joined at
+the top, and it is the only shape that explains how one placement serves both
+ways over.
+
+**THE PLACEMENT IS THE INFORMATION NOW.** This file prefers a tell to a fight,
+and a permanent lattice said only "a fence can be climbed here, forever". A
+ladder somebody has just stood up says who is coming over, where, and that they
+have about twenty seconds left to do it.
+
+**THE CLICK SENDS NO POSITION, WHICH IS THE LOAD-BEARING HALF OF LETTING IT GO
+ANYWHERE.** "Anywhere along the fence" is the whole appeal of the item and a
+coordinate on the wire is the obvious way to build it -- and then there is one
+to forge and a range check to defeat, which is the exact trade `BoneThrow` and
+`GadgetThrow` already refuse. `PlotService.placeLadder` takes the PLAYER and
+reads their own character position: you choose the spot by STANDING THERE, the
+server projects that onto the nearest fence segment, and the click still means
+"use it" rather than "use it there". Verified: stood at plot-local (-30, -40)
+against a side fence at x -33.6 and the ladder landed at (-33.6, -40).
+
+**A SEGMENT'S OWN ENDS ARE THE CLAMP, so a ladder cannot be wedged into the
+corner where two barriers meet and come out climbable from neither side.**
+Verified in all three corners at a 2.0 margin, each time snapping to the
+NEAREST segment rather than the one being aimed at -- standing 2.0 from the
+back fence and 3.6 from the side correctly chose the back.
+
+**ONE LADDER PER PLAYER, AND PLACING A SECOND RETIRES THE FIRST.** Same shape
+as one bin per pursuit, and it is what stops a rich player laddering a whole
+perimeter. Verified: two placements 30 studs apart left exactly one standing,
+at the second spot.
+
+**IT BUYS THE CLIMB AND NEVER THE HAZARD.** The ClimbZone still sits above the
+barrier, so an electric fence zaps a laddered climber exactly as it zaps
+anybody else. Defence buys time; so does the counter.
+
+**AND THE REASON CODE COMES BACK, NOT THE SENTENCE.** PlotService knows whether
+a ladder can stand; StealthService knows how to say so. Same split
+`CosmeticsService.awardTokens` draws with its optional `why`, and it is what
+keeps every refusal named rather than a consumable spent on silence.
+
+**A CLIMB IS A MULTIPLIER ON `currentSpeed`, never a speed of its own** — the
+same decision the dodge and the bin's exit burst already record. Roblox climbs
+a truss at a fixed fraction of WalkSpeed and tracks it live, measured at
+**0.699** across three speeds (16 -> 11.18, 8 -> 5.59, 4 -> 2.83). So a factor
+added to `currentSpeed` inherits every rule above it with no new balance code:
+a stun returns 0 and freezes a climber where they are, carrying scales the
+climb off 12 rather than 16, and a snag slows the climb it was earned on.
+
+Without a multiplier a free player crosses a 6-stud fence in 0.54 seconds,
+which is not a defence, it is a formality. At `CLIMB_MULTIPLIER` 0.35 it is
+1.53s free and 2.04s carrying — and **the gap between those two is the point**:
+the climb out is always dearer than the climb in, so the toll lands on the
+getaway, where every other cost in this game already lands. Verified end to
+end, `Config.climbSeconds(6.0, 16)` predicting 1.53s against a measured 1.53s.
+
+**THE CLIMBER PASSES THROUGH THE `ClimbZone`, AND THAT IS AS FAR AS THE
+MEASUREMENT GOES.** Measured on a live climb: the zone spans y 5.50 to 10.50 on
+a 6.0 tier and the climber's root reached 7.83, squarely inside it, so the
+volume is entered. That was the half that could have gone wrong when the
+crossing stopped being a jump. What has NOT been seen is the penalty firing,
+because `firePenalty` returns early for the plot's own owner (*"owners cross
+their own defences freely; they paid for them"*) and a solo session has nobody
+else's fence to climb. The Touched path is not owner dependent and is the same
+one a jumper has always taken; only the handler's first line differs. Same wall
+as the rest of the heist system: it needs a second player.
+
+**A SPEED THAT IS ONLY PUSHED ON AN EVENT NEEDS PUSHING WHEN THE CHARACTER
+ARRIVES.** `refreshSpeed` is event-driven, so entering and leaving a climb both
+have to call it or the multiplier lands on whatever unrelated event happens
+next — usually the thief already being over the fence. `Humanoid.StateChanged`
+is the hook, on both edges. And it runs once on spawn as well, which is what
+finally applies the jump: connected only inside `CharacterAdded`, it never
+fired for the character a player already has, which is every player in Play
+Solo and the first into any server. Same trap the wheelie bin recorded.
 
 **Rebirth wipes power but never cosmetics.** Skins, effects, houses, decorations
 and accessories are the permanent progression track that a reset cannot take
@@ -199,11 +1347,12 @@ you finish, and there is no moment in any of it. The thrill in a chest is
 rarity variance, and duplicates are what make a tier mean anything.
 
 **SO THE RULE IT IS REPLACED WITH IS NARROWER AND HARDER: A DUPLICATE IS NEVER
-A DEAD OUTCOME.** It converts to shards the instant it lands, in the same reveal,
-so an open always visibly pays out -- and the shards are what feed the combine.
-What the old rule protected was that a nine-year-old never opens something and
-gets nothing; that is still true. What it no longer protects is that they never
-open something twice, which was never the part that mattered.
+A DEAD OUTCOME.** It lands as a SPARE COPY in the same reveal, carrying what it
+is worth sold, so an open always visibly pays out -- and a spare has two exits,
+the combine or the sale. What the old rule protected was that a nine-year-old
+never opens something and gets nothing; that is still true. What it no longer
+protects is that they never open something twice, which was never the part that
+mattered.
 
 **THREE OF A TIER, NOT TWO, AND THE ARITHMETIC DECIDED IT.** The proposal was
 two commons for a 97% shot at a rare. Two compounds to about EIGHT commons for
@@ -223,19 +1372,450 @@ and will tell somebody about it. That is the whole reason the mechanic is there.
 **TWO CURRENCIES, AND THE ARROW ONLY POINTS ONE WAY.** Coins buy the standing
 catalogue -- `classics` and `gear` today, `animal` and `neon` when their skins
 land. Tokens buy EVENT chests, and no amount of coins reaches one: you were on
-the street when the saucer came or you were not. **Shards spend only on COIN
-chests**, which is the rule that keeps that true in the other direction -- a
-rich player could otherwise grind coin chests and combine their way into the
-alien set without ever attending an event. Duplicates from an event chest do
-still PRODUCE shards, which is a small thank-you for turning up; the arrow just
-does not run back.
+the street when the saucer came or you were not. **Spares combine only into
+COIN chests**, which is the rule that keeps that true in the other direction --
+a rich player could otherwise grind coin chests and combine their way into the
+alien set without ever attending an event. Duplicates from an event chest are
+still real spares, sellable and combinable like any other, which is a small
+thank-you for turning up; the arrow just does not run back.
 
-**SHARDS ARE GLOBAL PER TIER, NOT PER CHEST, and that is what answers the
-question a chest system otherwise cannot.** What does a chest give you once you
-own everything in it? Per-chest shards strand themselves: finish Piggy Classics
-and its duplicates become currency for a shop with nothing left to sell. Held
-globally, a duplicate out of a finished collection is fuel for one barely
-started, so no open is ever wasted and a completed chest keeps paying.
+**A DUPLICATE IS A SPARE COPY OF THE ITEM NOW, NOT A SHARD OF ITS TIER
+(schema 18), and this replaces a rule this file stated as load-bearing.** It
+read: *"shards are global per tier, not per chest, and that is what answers
+the question a chest system otherwise cannot -- what does a chest give you
+once you own everything in it?"* That answer is still the right one and the
+abstraction it was carried in was not. A shard of "epic" is a token with a
+number beside it; a second Bubblegum is a thing a nine-year-old can look at
+and decide about.
+
+**WHAT KEEPS THE OLD ANSWER IS THAT COMBINING STILL POOLS BY TIER.** Three
+spares of ANY commons make one rare roll, so a spare out of a finished
+collection is still fuel for one barely started and no open is ever wasted --
+`Config.COMBINE` did not move. Per-ITEM combining was the version to avoid: it
+needs three of one thing, which strands most duplicates and puts back the dead
+outcome the whole design exists to remove.
+
+**AND WHAT MAKES THE PER-ITEM SHAPE WORTH IT IS SELLING.** A spare that can
+never be combined is still worth coins, so the "never a dead outcome" rule
+survives the move -- and the player gets a decision the shard version could
+not offer: take the coins now, or hold it for a combine. The word SHARD leaves
+the player's vocabulary entirely; there is no second noun to teach, because
+the thing being combined is the skins they can see.
+
+**A TIER LADDER ALONE IS A MONEY PRINTER, AND IT WAS MEASURED RATHER THAN
+GUESSED.** The obvious rule is a value per tier off the drop weights that
+already exist -- 100/42/15/4 inverts to a ready-made 1 : 2.4 : 6.7 : 25 -- and
+it covers the whole catalogue, which matters because seventeen skins and all
+twelve accessories carry no `cost` at all and a fraction-of-price rule could
+never have priced them. But RARITY IS DERIVED FROM PRICE for anything that
+has one, and the bands are wide: Bubblegum is a common at 8,000 coins, so a
+flat common value of 40,000 means buying it in the shop and selling it
+straight back returns FIVE TIMES the money, forever, with no chest anywhere in
+it. The tier says what something is worth in general; the price says what THIS
+one is worth, and where they disagree the price has to win or the shop pays
+players to shop.
+
+So `Config.sellValue` is the tier value capped at `SELL.priceFraction` of the
+item's own cost. Measured live: Bubblegum 8,000 -> sells 2,000, Lava 200,000 ->
+50,000 (the cap biting on a rare worth 95,238), Pearl 1.2M -> 266,666 (the tier
+winning, since the cap would allow 300,000), Hyperdrive 14M -> 1,000,000.
+Across all four coin chests an open that lands a duplicate returns 21% to 35%
+of what the chest cost: always a real loss, never nothing.
+
+**THE DRESS-UP CRATE IS THE ONE TO WATCH at 35%, and the reason is structural
+rather than a tuning slip** -- no accessory carries a coin price, so nothing
+caps, and it is the cheapest chest at 350,000. Price an accessory and it comes
+down on its own.
+
+**A FREE THING MAY NEVER BE SOLD, and `Config.isSellable` is the same
+three-source test `isSkinUnlocked` already makes, from the other end.** "No
+cost" does not mean free -- a drop-pool skin, an accessory and a set item are
+all unpriced because they are not bought with coins at all. What IS free is
+the costless-and-untagged class, the "none" effect everybody owns from their
+first second, and selling one of those for a tier value is a coin faucet with
+no source: the exact `(nil or 0) <= 0` hole that once unlocked the Tractor
+Beam for the whole server. Nothing free is in a chest today, so this guards a
+door nobody can currently reach -- written anyway because the failure is
+silent, and tagging a costless skin into a chest would mint coins with nothing
+in the log to say so.
+
+**YOU MAY SELL YOUR LAST COPY, AND THE GUARD IS THE ACCIDENT RATHER THAN THE
+EXPLOIT.** There is no sell-and-rebuy loop to close, because the cap above
+makes selling always a loss -- so the objection to a last-copy sale was never
+the arithmetic. It is a nine-year-old with a stray thumb and the legendary
+they spent three weeks getting. So the copy IN USE cannot be sold:
+`SetService.inUse` asks the five equip sites, taking it off first is one tap,
+and that kills exactly the accidental case with no lock flag anybody has to be
+taught. `SetService.revoke` is then the exact inverse of `grant` -- it pushes
+the item's own service AND the set panel, which are two different questions,
+and saves on the spot.
+
+**A SALE THAT WOULD OVERFLOW THE PIG IS REFUSED, NEVER CLAMPED, AND NEVER
+PARTIALLY FILLED.** The pig is the wallet and it is BOUNDED, so a payout that
+does not fit has two possible endings and only one is honest. Clamping quietly
+destroys coins the player has just earned, which from their side is
+indistinguishable from theft -- they pressed sell, the item went, and the money
+did not arrive. It is the silent-failure rule wearing a button. Selling four
+spares and being handed two is the same clamp one level up, so the order is
+whole or nothing.
+
+It is also the "spend it or lose it" loop this economy already runs on,
+arriving from a new direction: a full pig stops earning until you spend some,
+and now it stops selling too. Two refusals, because a full pig and a nearly
+full one want different sentences -- measured live: *"Your piggy bank is full.
+Spend some coins before you sell."* and *"That is worth 1.0M and your piggy
+bank only has room for 88.2K. Spend some coins first."* The spare is not
+consumed either time.
+
+**THE SCHEMA CHANGE WAS DONE BEFORE THE UI, AND THAT TIMING IS THE WHOLE
+REASON IT COST NOTHING.** `shards` is per tier and `spares` is per item, and
+nothing maps between them -- a tier counter cannot say which item it came
+from. With no chest UI anywhere, the only shards that had ever existed came
+out of the admin console, so reconcile DROPS the field and nobody loses
+anything. The same change after the tab ships needs a real payout, and a
+payout that runs on every join is a money printer: a far worse bug than the
+one being fixed. Anything else still carrying a placeholder shape wants moving
+on the same argument, while it is still free.
+
+**SPARES ARE KEYED `kind:key`, REUSING THE GRAMMAR `splitEntry` ALREADY
+OWNS.** Measured: 92 keys across the five catalogues and zero collisions
+today. That is exactly the sort of fact that stops being true without anything
+erroring -- the day a `martian` skin meets a `martian` accessory, two spare
+counts merge and the save is wrong with nothing in the log. The same lesson
+`RideSound` learned by keeping a second copy of the ride-key grammar and
+breaking within the hour.
+
+**AN AUTO-PICKED COMBINE CONSUMES THE CHEAPEST SPARES FIRST.** Every spare at
+a tier combines identically, so the choice cannot affect the roll -- which
+means the only thing it CAN affect is what is left behind, and the honest
+default is to leave the valuable ones. The client may still name its own
+three; `validatePick` rebuilds that list from known-good parts as a multiset,
+so three of one key needs three of them and anything else refuses the WHOLE
+combine rather than dropping an entry and quietly consuming two. Note the
+values are computed into a map before the sort rather than inside the
+comparator: `table.sort` throws on an inconsistent order function, and one
+that recomputes per comparison is one edit away from being one.
+
+**ONE COIN FORMATTER, IN CONFIG, because there were two and a third was about
+to be written.** `EconomyService.format` and ClientMain's own `format` were
+byte-identical ladders over the same suffixes, and the sell refusal needed one
+on a service that can require neither. Config requires nothing and both ends
+already read it, so it is the only home where another copy is not the cheaper
+option. Both callers now delegate, and ClientMain still spends exactly one
+local on it.
+
+**A SKIN IS CRATE-ONLY NOW, WHICH DELIBERATELY REVERSES "NOTHING IS EVER
+LOCKED BEHIND LUCK".** That rule is written twice in this file -- once under
+the accessory roll, once under the alien set -- and it reads *"every set item
+carries a medal price, so a drop only ever saves you time... bad luck still
+only ever costs time"*. It was the right rule for a spinner sitting beside a
+shop, and it is being traded away ON PURPOSE for the crate economy: the buy
+button comes off skins entirely, and opening, combining and selling are the
+only routes to one.
+
+It was decided with the cost stated rather than as a side effect, and the
+cost is exactly this: a nine-year-old who wants the Pearl skin can no longer
+save up for it. They can roll for it, or gather three epics and combine.
+That is the trade, and if it turns out to be the wrong one the lever is a
+buy button in the pool browser -- the prices never left `Config`, for the
+two reasons below.
+
+**THE PRICES STAY WHATEVER HAPPENS TO THE BUY BUTTON, and that is not
+sentiment, it is two load-bearing derivations.** `Config.rarityOf` reads a
+skin's `cost` to decide its TIER, and `Config.sellValue` caps a payout at
+`SELL.priceFraction` of that same `cost`. Strip the prices and every skin
+falls to `common`, the crate ladder collapses to one tier, and the sell cap
+comes off -- which is precisely the money printer measured last session,
+where a flat common value of 40,000 paid five times Bubblegum's own shop
+price forever. A price here is a rarity and a ceiling first and a purchase
+third.
+
+**WHAT IT DOES NOT CHANGE IS THE LEGAL POSITION, and that is worth being
+exact about because it looks like it should.** Coins are still not
+purchasable with Robux, so a crate is still an ordinary in-game reward for
+in-game money rather than a regulated paid random item -- no odds
+disclosure, no `PolicyService` gate, no regional lockouts. What it DOES do is
+make that rule carry more weight than it did: break it now and it is not
+merely the chests that become loot boxes, it is the entire skin catalogue
+becoming luck-gated behind purchasable currency. The "can only ever be broken
+once" entry above now guards a bigger surface.
+
+**EFFECTS ARE THE EXCEPTION AND IT IS ARITHMETIC, NOT A HALF-FINISHED
+JOB.** There is no effects chest and one cannot be built yet: measured, the
+five buyable effects are Sparkles 15K, Embers 40K, Frost 90K, Storm 220K and
+Inferno 600K, and against `RARITY_BANDS` (rare at 100K, epic at 1M,
+legendary at 10M) that is THREE COMMONS AND TWO RARES. No epic, no
+legendary, no top end -- and the top end is the entire reason a crate is
+opened. So effects keep their buy button until somebody authors effects at
+1M and 10M, and the note in `Config.CHESTS` saying more effects would not
+fix it is right: it is the PRICE SPREAD that is missing, not the count.
+
+**MEASURED BEFORE ANY OF IT WAS TOUCHED, which is what caught the effects
+problem.** Walking the three catalogues against their `chest` tags: skins 41
+of 46 tagged, and the five that are not were never coin purchases anyway --
+`classic` is free, `bronze`/`goldleaf`/`diamond` are rebirth drops carrying
+`unlockRebirths`, and `martian` is an alien set item priced in loot.
+Accessories 12 of 14, the two missing being the alien pair. Effects **0 of
+7**. Pulling the buy button off skins costs nothing; pulling it off effects
+would have made them unobtainable, and nothing would have errored.
+
+**THE INVENTORY IS THE OTHER HALF OF THE CRATES TAB, AND THE SPLIT IS BY
+VERB.** `Crates` is how you GET a cosmetic; `Shared/Inventory.luau` is what
+you HAVE. They were one surface for the life of the project, which worked
+while a card answered ONE question -- do you own this, and if not what does
+it cost. Schema 18 gave every item a spare count and two exits that are not
+purchases, and a tile carrying a price, an equip toggle, a spare count AND a
+sell button is four verbs on 156 pixels.
+
+**SO THE INVENTORY NEVER SHOWS A PRICE, and that is the property to
+preserve.** The moment it does it is the shop again and the reason for two
+tabs has gone.
+
+**AND IT ONLY EVER SHOWS THINGS YOU OWN.** A locked tile in an inventory is
+a shop card wearing a padlock -- this file already argues that the shop is
+where something you do not own is supposed to be advertised, for ride
+stances and for Most Wanted gear. An empty section names the way to get one
+instead, which matters because on a new save all five are empty at once.
+
+**`ChestState.spares` IS A RECORD PER ITEM, NOT A COUNT, and assuming
+otherwise threw on the first push.** It carries `{kind, key, name, count,
+tier, value, inUse}` -- so the coin value and the in-use test are the
+SERVER'S, computed by the same code that will charge and refuse. Re-deriving
+either on the client is two implementations of one number and one of them is
+money. Note an item with NO spare has no entry at all, which is exactly the
+state a last-copy sale runs in, so nothing may assume a record exists.
+
+**THE SPARE CHIP SHOWS TOTAL COPIES, NOT SPARES.** One spare is `x2`,
+because "I have two of these" is what a nine-year-old reads off it; a chip
+saying `x1` beside an item they hold two of is the kind of off-by-one nobody
+reports -- they just stop trusting the number.
+
+**THE LAST-COPY GUARD IS ABOUT THE COPY IN USE, NEVER ABOUT THE LAST ONE.**
+Verified live on the one case that isolates it: a ride can never have a
+spare, so equipping the BMX flipped its sell control to a greyed WEARING and
+unequipping restored SELL 22.5K. A worn skin WITH spares still sells,
+correctly -- `cow` read `x4 / WEARING / SELL 8.8K`, because what is refused
+is selling the copy off your own back, not owning a worn thing.
+
+**SELLING REACHES RIDES AND DECORATIONS, AND THAT IS AN UNINTENDED REACH
+RATHER THAN A DECISION.** `Config.isSellable` admits anything with a
+`cost > 0`, so a 90,000-coin BMX shows SELL 22.5K -- a 75% loss on a
+purchase that can never produce a spare, because rides are in no crate. The
+cap means there is no exploit, and the wearing guard catches the likeliest
+accident. It is recorded rather than fixed because the rule the player was
+given is "you may sell your last copy", and quietly exempting the expensive
+half of the catalogue would be a different rule. If it should be narrowed,
+the honest test is whether the thing can appear in a chest at all.
+
+**IT IS NOT A SHOP TAB, AND IT WAS ONE FOR ABOUT AN HOUR.** That was wrong
+twice over and the second reason is the one worth keeping. A shop tab is a
+place you go to SPEND; the inventory is where you go to look at what you
+already have. Putting it behind the SHOP button says the opposite of what
+the whole Crates/Inventory split was for -- and the split is the entire
+argument for building it at all.
+
+It was ALSO the ninth tab, which overflowed the rail by about 26 pixels:
+eight tabs measure 692 in a 772 window and "Inventory" wants about 98 more.
+Not the old bug -- the rail scrolls, so nothing was EATEN -- but the gentler
+version this file already calls the nastier one, where the thing exists, works,
+is one scroll away, and a nine-year-old never learns it is there. THE
+GEOMETRY WAS THE SYMPTOM AND THE VERB WAS THE CAUSE: moving it out of the
+shop fixed both at once, and the rail is back to eight at a rightmost edge of
+885 against 961.
+
+**IT IS ITS OWN HUD BUTTON, BESIDE SHOP, AND THAT CORNER WAS THE ONLY ONE
+WITH ROOM.** Bottom-right went from 210x172 to 210x50 when EARN moved into
+the Upgrades tab, and the frame is `AutomaticSize.Y` anchored to the corner
+-- so a second row grows it UPWARD and the shop button does not move, which
+matters because it is the control players already know the position of. The
+bag takes `LayoutOrder` 0 so SHOP keeps the actual corner. Every other corner
+is full: top-centre is a five-band column, top-right is the piggy bank panel,
+top-left is the toast stack, and bottom-left is four rows deep.
+
+**TWO FULL-SCREEN PANELS MAY NEVER BE OPEN AT ONCE, and that is not tidiness
+-- it is a trap with no way out.** They are the same size in the same place,
+so the loser sits invisible underneath with its close button unreachable: a
+player would be looking at the shop with no way to know the bag was still
+open behind it. Enforced BOTH ways and verified both ways with real pointer
+clicks: opening the shop closed the bag, and clicking the bag while the shop
+was open closed the shop.
+
+**THE SHOP SIDE IS WATCHED, NEVER POKED.** The shop opens from a button, a
+close X, the B key, and a shop DOOR on the street, and three of those are
+defined above this block and could not call into it. Same call `Rebirth` and
+the hot bar already make on that panel, and for the same reason.
+
+**A PANEL THIS SIZE INHERITS FOUR DUTIES, and finding them was most of the
+work.** `panel.Visible` is read in four places -- the hot bar's `shouldShow`
+(a row of throwables a player cannot throw while reading a panel),
+`heldUI.use`, `Rebirth.canShow` (the rebirth button is pinned exactly where
+this panel's header sits), and the two property watchers. Anything
+full-screen added later has to answer the same four, and the way to find them
+is to grep for the existing panel rather than to reason about it.
+
+**THE FLAG IS AN ATTRIBUTE ON THE ScreenGui, `BagOpen`, AND THAT IS THE
+REGISTER BUDGET AGAIN.** All three of those functions are defined further
+down the chunk than the panel is built, and `ClientMain` has no top-level
+register spare for a boolean. An attribute costs none, is readable from
+anywhere, and cannot go stale the way a second copy of the state would.
+
+**I OPENS IT, Escape CLOSES IT, and the map was checked before the key was
+taken:** Q dodge/trick, B shop, V garage, R radio, I the bag, Escape close,
+F2 admin, 1-0 the hot bar. The BUTTON is the primary route -- most of this
+audience is on a touchscreen and will never press a key at all.
+
+**AND THE WHOLE TAB COST `ClientMain` ZERO TOP-LEVEL LOCALS.** The require
+sits INSIDE the `do` block that owns `iconFor` and `format`, holding no local
+at all -- the module keeps its own state, so three remote connections are the
+entire interface. Ninth time this chunk's ceiling has shaped a decision, and
+it is now cheaper to design for than to hit.
+
+**A `Config` FIELD CAN FORWARD-REFERENCE JUST LIKE A `local`, AND IT TAKES
+THE WHOLE GAME DOWN INSTEAD OF ONE FEATURE.** `Config.LAWN_LIFT =
+Config.PLOT_SIZE.Y` was written beside the fence-hop reasoning at line 2262;
+`Config.PLOT_SIZE` is not defined until line 3214. So it was `nil.Y`, which
+throws while Config is still LOADING -- and Config is required by every
+service and every client, so the server never started and no HUD was ever
+built. Measured: *"attempt to index nil with 'Y'"* twice, once from `Main`
+and once from `ClientMain`, and nothing else in the log.
+
+This is the ninth forward reference recorded here and the first on a table
+field. The difference that matters: a `local` read as a nil global limps on
+until something calls it, so the failure lands somewhere plausible. A field
+read during module load cannot limp -- it is total, immediate, and names a
+line that looks fine. THE FIX IS TO DERIVE IT WHERE ITS SOURCE EXISTS: the
+assignment moved down beside `PLOT_SIZE` and the REASONING stayed up with
+the fences, because those are two different questions. Every reader was
+already inside a function body, which is why they were fine where they were.
+
+**IT WAS ALSO UNCOMMITTED WORK THAT HAD NEVER BEEN RUN.** `LAWN_LIFT` is not
+in `HEAD`. Nothing in the pipeline could have caught it -- `rojo build`
+packages Luau and never compiles it, and the file is only executed when a
+server actually starts. The check that costs nothing is to press Play once
+after touching `Config`, because a load-time throw in that file is never
+subtle and never local.
+
+**THE CRATES TAB IS THE BUTTON, AND FOUR HUNDRED LINES WERE WAITING BEHIND
+IT.** `ChestService` had been complete and wired since it was written -- open,
+roll, grant, combine, sell, four remotes, five chests -- and `ClientMain` had
+not one reference to any of it. Nothing was broken; there was no button.
+`Shared/Crates.luau` is it, and everything below is what building it cost.
+
+**A CRATE'S CARD IS THE THREE BEST THINGS IN IT, NOT A PICTURE OF A CRATE.**
+The instinct is a box icon per chest in the chest's own colour, and this file
+already records exactly where that ends twice over: the four shops on the
+street were "four identical boxes" with a different accent, and the shop's own
+cards were "nineteen identical grey squares" until they rendered the real
+item. A crate is a CONTAINER, so its card shows the contents, built by the
+same builders the rest of the shop uses.
+
+**BEST TIER FIRST, WHICH IS ADVERTISING AND IS ALSO HONEST.** A crate is
+opened for the thing at the top of it, so leading with three commons describes
+the likely outcome and sells nothing. Nothing about it claims they are likely
+-- the odds bar directly under it is drawn to scale and says the opposite.
+
+**THE ODDS ARE DRAWN, AND NOTHING REQUIRES THEM TO BE THERE.** Coins are not
+purchasable, so no chest here is a regulated random item and there is no
+disclosure obligation at all. It is the same argument the drop reel already
+makes: being outside the regulation is not a reason to stop, it is the reason
+it costs nothing to comply with the spirit of it. A stacked bar is also the
+version a nine-year-old reads without reading -- THE GOLD SLIVER BEING THIN IS
+THE INFORMATION -- and the percentage is printed inside a segment only at 16%
+or wider, because "4%" typeset across a twelve-pixel sliver makes the bar
+harder to read rather than easier.
+
+**AND THEY ARE THE SERVER'S OWN NUMBERS.** `ChestState` carries what
+`liveOdds` actually rolled with, renormalised over the tiers that have stock.
+Computing them here from `Config.CHESTS[key].odds` would print a player
+numbers the server did not use, which is the one way a drawn probability is
+worse than none.
+
+**ONE REEL SERVES THE EVENT DROP AND THE CHEST, and three optional fields are
+the whole of what that took.** The two are genuinely different underneath -- an
+event drop rolls a flat unowned pool where duplicates are impossible, a chest
+rolls a TIER first and can repeat -- and identical on screen: a strip of real
+items decelerating under a fixed pointer. `title`, `subtitle` and `note` each
+fall back to what the event drop already printed, so that caller is untouched.
+The fallback matters rather than being politeness: "N items left, X% each" is
+TRUE of a flat pool and false of tiered odds, so a caller inheriting it would
+print an honest-looking lie. `note` is the genuinely new beat -- the line a
+chest needs and an event drop never does, "you already had this, here is what
+it is worth" -- and it fades in WITH the prize, because printing it earlier
+tells the player the answer before the reel has given it to them.
+
+**THE 200-LOCAL CEILING, EIGHTH TIME, AND IT TOOK THE WHOLE HUD AGAIN.** Four
+new top-level locals -- the `Crates` require, `TextService`, and a constant and
+a helper for the tab width -- put the chunk at 201, and it died allocating
+`buildNotifications` two thousand lines from anything that had changed. Three
+of the four folded INTO `makeTab`, whose body has its own register file, and
+the require stayed where it belongs beside RaidFX and SpinWheel. THE RULE IS
+UNCHANGED AND IS WORTH RESTATING AS A HABIT RATHER THAN A FIX: anything that
+can live inside a function body costs this chunk nothing, so put it there
+first and only promote it when something else genuinely needs it.
+
+**A TAB IS AS WIDE AS ITS OWN WORD NOW, AND THE EIGHTH TAB IS WHY.** Every tab
+was a flat 102. Seven fit the 772-pixel rail and eight do not: measured, the
+canvas ran to 880 with the Crates tab at x 964 against a rail ending at 962.
+This is NOT the old bug -- that was a rail which did not scroll at all and ATE
+two tabs silently. This is the gentler version and arguably the nastier one:
+the tab exists, it works, it is one scroll away, and a nine-year-old never
+learns it is there. A flat width was also spending the same 102 on "Worn" as
+on "Everything", which measure 30 and 62 pixels at the shipped 13px
+FredokaOne. Sized to their own labels all eight come to 692 including padding,
+inside the rail with 80 to spare and room for a ninth. Note `selectTab`
+re-sizes on every selection and had the 102 hardcoded a second time -- a
+constant there would have undone the measurement the moment anybody pressed
+anything.
+
+**THE FRONT PAGE'S GRID WAS ALREADY 3x3 AND HAD BEEN HOLDING A CELL.** The
+cell is `1/3` by `1/3`, so nine, and eight were used. The ninth card therefore
+cost no height, no scroll and no arithmetic. It had to be built for the reason
+the Defend / Rob card did -- a front page that is a map of the shop cannot
+leave out a tab -- and crates are the worse omission of the two, because a
+crate is the only thing in this shop that nothing else in the game mentions.
+It goes through `SHOP.at.crates` rather than a literal index: the trees card
+can hardcode 2 because Upgrades has been second since there were four tabs,
+and this is the newest tab in the rail.
+
+**`Config.chestEntry` EXISTS BECAUSE THE POOL GRAMMAR ACQUIRED A THIRD
+READER.** `ChestService.splitEntry` owned "kind:key for a set chest, a bare key
+otherwise" and was the only thing that needed it. The crates UI needs it to
+turn a pool into a strip of previews and the admin console needs it to seat a
+spare. Config is the right home for the same reason `chestPool` is: it
+requires nothing, both ends read it, and the emitter and the reader of a
+format belong together. It takes the chest KEY rather than the chest table,
+because a chest table does not carry its own key and every caller had one.
+
+**THE CRATES HUE IS A MEASUREMENT.** Plotted, the nine category hues sit at 6,
+26, 44, 92, 148, 182, 210, 272 and 338 degrees, so the two real gaps are
+indigo near 250 and magenta near 305. Indigo is wrong twice: it needs its
+saturation dropped to 0.54 before ink type clears 4.5, so it cannot be a
+member of this family at all, and even then it lands 16 to 24 degrees off
+`effects`. Magenta at 305 keeps the family's 0.72, sits 33 degrees from BOTH
+neighbours, and carries ink at 5.63 -- better than either of them manages.
+
+**AND THE ONE THING I GOT WRONG THIS SESSION I GOT WRONG BY LOOKING.** The
+screenshot appeared to show the third preview well on every card wearing a
+brighter border than the first two, which would have meant the best-tier-first
+sort was broken. Measured instead -- every well's stroke against the tier the
+pool actually sorts to -- all five cards were correct, `classics` reading
+legendary/legendary/legendary. The rendering difference was how much of each
+well its model happened to fill. This file spends a lot of words on cases where
+only a screenshot can be believed (CSG holes) and it is worth the counterweight:
+where a number exists, the number wins.
+
+**A TEST HARNESS THAT SETS UP THE STATE IT IS MEASURING WILL LIE TO YOU.**
+`commands.spares` grants the base copy before adding spares -- deliberately,
+because a spare is an EXTRA copy and handing one out without the base copy
+puts the save in a state the real code cannot produce. The read-back helper in
+the probe called that same command with an amount of zero, so every read
+SILENTLY RE-GRANTED the item that had just been sold, and a last-copy sale
+appeared to succeed twice in a row. It looked exactly like `revoke` not
+working. What caught it was the server log printing *"Spares: +0 across the
+coin chests, 1 items granted"* between the two sales -- the granted count, not
+the spare count. Re-run without the helper, the second sale was refused
+silently, which is correct. Read state through a channel that does not also
+WRITE it.
 
 **MEDALS ARE NOT REPLACED BY ANY OF THIS.** Every set item still carries its
 medal price, so the guaranteed route survives beside the gamble -- which is the
@@ -431,6 +2011,72 @@ and sees the face, so the metal tier no longer carries from out there. What
 it buys instead is that an unlocked vault is now a visible hole, which is the
 signal that actually changes a mind at the gate.
 
+**THE PIGGY IS OPAQUE NOW, AND THE VAULT HATCH IS HOW YOU READ IT. THAT
+REVERSES THE ONE REASON EVERY SKIN CARRIED A `transparency`.** All 46 skins
+sat at 0.22 to 0.42 for a single purpose: the coin pile lives INSIDE the pig
+and had to show through it. Photographed side by side at the same fill, that
+was a bad trade in both directions -- the coins read as dark smears rather
+than as gold, the snout stopped reading as part of the face, and a neon house
+on the far side of the street showed straight through the pig. The signal the
+transparency existed to carry was barely arriving.
+
+**WHAT PAID FOR IT IS THAT THE PIG STOPPED BEING SOLID.** The vault hatch and
+the coin slit are genuine bores now rather than dark discs with a lip round
+them, and **THE GENERATED SHELL TURNS OUT TO BE A TRUE HOLLOW MANIFOLD** --
+which was the thing worth measuring rather than assuming. Roblox culls
+backfaces, so the expectation was that a through-cut in an opaque body would
+read as a WINDOW: you look in the hatch and see the world out the far side. It
+does not. The shell has an inner surface with its normals pointing into the
+cavity, so through the hatch you see the pig's own inner wall, correctly lit,
+with the pile at the bottom of it. **NO LINER WAS NEEDED, AND ONE WOULD NOT
+HAVE WORKED ANYWAY** -- a convex part placed inside a cavity shows its NEAR
+face, so it plugs the hole rather than lining it, and there is no arrangement
+of primitives that lines a concave interior.
+
+**SO THE PILE HAD TO COME DOWN THE PIG.** It sat ABOVE the body's centre, on
+the old and correct argument that the snout hid the lower third from a viewer
+at the front. Seen through a hatch centred at `DIAL_Y` that put it in the TOP
+of the aperture, hanging in mid-air like coins suspended in a jar. It fills
+from the belly now, so the surface rises PAST the opening as the pig fills,
+and the level is the readout.
+
+**DENSER BY COIN SIZE, NEVER BY COIN COUNT, AND THAT IS THE ONE COUPLING HERE
+THAT IS NOT FREE.** Thirty-two discs in an eight-stud volume read as a scatter
+rather than as money, and the obvious fix is more of them. `Config.COIN_COUNT`
+is not a density dial: it is the DRIP CADENCE, tuned so a coin lands about
+every fifteen seconds at every level, with its own comment calling that a
+heartbeat and `playCoinDrop`'s comment warning that anything louder becomes
+nagging. Doubling the count to fill the hatch would have doubled the chime
+rate as an invisible side effect -- two curves multiplied without anybody
+checking the product, the shape this file keeps recording. Bigger discs in a
+smaller volume buy the identical picture and touch no cadence at all.
+
+**WHAT THE HATCH CAN AND CANNOT SAY, MEASURED.** The volume spans y 3.65 to
+11.35 against an aperture of roughly 4.6 to 8.6, so the level reads from about
+4% full to about 71% and reads as PACKED above that. The top of the range is
+carried by `glow` instead, which stopped being a glow THROUGH the shell and
+became light spilling OUT of the hatch and the slit -- the better of the two
+signals, and free.
+
+**WHAT THIS COSTS, STATED PLAINLY: THE FILL IS NO LONGER READABLE FROM THE
+FRONT.** *The coin pile on the lawn has always shown how full a piggy is* is
+written twice in this file, and the drain during a crack is described here as
+"the greed bar drawn in the world rather than only on their screen". That
+picture now needs a thief to walk round the back. It is affordable because the
+two things built since -- the rob badge printing the figure in gold over every
+piggy, and the steal prompt quoting the take -- are both more precise than a
+translucent body ever was, and both read from the pavement. If it turns out to
+matter, the lever is the hatch's own `radius`, not the transparency.
+
+**AND THE NEON SKINS GOT BRIGHTER, WHICH WAS THE RISK WORTH CHECKING.**
+Transparency was quietly dimming twenty-two Neon bodies by up to 0.42, and
+this file's own rule is that a pale Neon on a twelve-stud sphere is a white
+hole rather than a glowing pig. Measured the whole bucket by luminance and
+photographed the worst -- Supernova at 0.900, well clear of the next at 0.774
+-- opaque and under the shipped BloomEffect: it glows, it bleeds onto the
+grass, and the silhouette, legs and ears all still read. No blowout. Anything
+added to that bucket brighter than Supernova is the one to re-shoot.
+
 **A defence upgrade has to be visible from outside the fence, and legible at
 the piggy.** A ProximityPrompt draws the same filling circle whether the hold
 is three seconds or nine, so without a body on it the whole Vault Lock tree was
@@ -602,7 +2248,68 @@ Intermediate keyframes are load-bearing as well: rotation interpolates the short
 way round, so a lone keyframe at -360 is identical to one at 0 and the character
 does nothing at all.
 
-**THE PAGE THAT EXPLAINS A REBIRTH COMES BEFORE IT, NEVER AFTER.** "Here is
+**AND THAT ENTIRE ARGUMENT IS TRUE IN STUDIO AND FALSE ON THE SITE.**
+`RegisterKeyframeSequence` IS STUDIO-ONLY: live, the call is refused, and
+every reader pcalls it and degrades. So the dodge roll and every rider pose
+were dead on the published game while passing every test in here -- the worst
+shape a bug can have, because the environment that proves it works is the one
+environment that is not the game. The sequences still get BUILT in code, which
+keeps the authoring story; each one now also has to be UPLOADED ONCE and its
+id put in `Config.ANIMATIONS`. `animdump` builds them all into
+ReplicatedStorage for publishing.
+
+**THE UPLOAD LIST WAS DERIVED FROM THE CATALOGUE AND HAD TO BE DERIVED FROM
+THE RUNTIME, and the gap between those two shipped a live bug.**
+`Config.animationKeys` walked `Config.RIDES` and emitted a style plus its
+trick -- which is the set the CATALOGUE describes. What `RidePose.apply` is
+handed is the PUBLISHED style, and that carries the stance: `scrambler@onehand`.
+So the moment stances shipped there were EIGHT keys the runtime asks for that
+nothing in the pipeline knew existed, and all three ends failed silently in the
+same direction -- the startup warning could not name them, `animdump` never
+built them, so none was ever uploaded.
+
+Measured: ten base and trick animations uploaded and working, eight stance
+animations with no id at all. Live, every player who picked a STYLE lost their
+pose; every player who did not was fine. That is exactly the report -- "some
+vehicles animate, the e-bike style is not there".
+
+**A KEY LIST BELONGS TO WHOEVER OWNS THE KEY GRAMMAR.** `RidePose` writes the
+`@` (`RidePose.key`), reads it (`splitStance`) and owns the `#` -- so
+`RidePose.animationKeys()` is the list, and `Config.animationKeys(rideKeys)`
+takes it as an argument rather than deriving a second copy. Config requires
+nothing and must go on requiring nothing, which is the whole reason it cannot
+just ask. The parameter is deliberately NOT optional: a bare call is how this
+under-reported for a release, and it warns loudly now instead.
+
+**A MISSING STANCE FALLS BACK TO THE POSE IT IS A VARIANT OF, NEVER TO
+NOTHING.** `specFor` has always degraded an unknown stance to the base pose;
+the ID lookup did not, and that asymmetry is what made this so much worse than
+it needed to be. With no track at all the rider gets the RIG'S REST POSE, which
+on a bike stands them bolt upright a foot behind their own handlebars -- so a
+missing upload did not read as "my style is missing", it read as the ride being
+broken. Falling back, the worst it can do is look like the ordinary pose. Note
+a trick falls back to `<style>#trick` and not to the plain pose, and the
+warning names the key it actually landed on: a message that says otherwise
+sends the next person to the wrong row of `Config.ANIMATIONS`.
+
+Verified by stubbing the provider to throw in a cloned module -- the exact live
+condition -- and reading back what loaded: `scrambler@onehand` and
+`scrambler@onehand#trick` resolved to the uploaded `scrambler` and
+`scrambler#trick` ids, where the old code started zero tracks.
+
+**ALL EIGHT ARE UPLOADED NOW, AND THE PAIRING WAS CHECKED RATHER THAN
+TRUSTED.** Eight near-identically named assets published by hand is exactly
+where two ids get swapped, and a swap does not error -- it is a subtly wrong
+pose on one ride, which is the hardest class of bug in this file to notice.
+Each id was fetched back with `KeyframeSequenceProvider:GetKeyframeSequenceAsync`
+and its poses diffed against the sequence this repo builds for that key, then
+against all eight candidates: every asset's BEST match was its own key, at
+0.02-0.03 degrees of float round-tripping. With registration stubbed to throw,
+all 18 keys now resolve to their own uploaded id and the startup warning prints
+nothing. THAT IS THE TEST FOR ANY FUTURE UPLOAD -- fetch it back and diff it,
+because the name on the asset is the one thing nothing in the engine checks.
+
+****THE PAGE THAT EXPLAINS A REBIRTH COMES BEFORE IT, NEVER AFTER.** "Here is
 what you kept and what you lost" shown once the button has been pressed is a
 RECEIPT: every line on it is already true and there is nothing left to decide,
 which for a nine-year-old who did not understand what they pressed is the
@@ -1176,6 +2883,323 @@ of the file is explicitly non-colliding so a chase can run through it; a hill
 is the edge of the world and should stop you, and the banks are what stop a
 player walking into the void and finding out it is a cupboard.
 
+
+**THE LAWN IS FLAT COLOUR AND THE TREES ARE GENERATED MESHES, AND THE FIRST
+THING THAT DECIDES IS WHICH OF THOSE TWO A THING IS.** The piggy was replaced
+with `generate_mesh` and the obvious next move was to point the same tool at
+everything else. **GRASS IS NOT A MESH PROBLEM.**
+
+The lawn was a generated MATERIAL for one session and is a flat `SmoothPlastic`
+now, for two independent reasons that both landed the same day: twelve
+candidates were generated and not one of them read as CARTOON rather than as a
+good photograph of a lawn, and the generation itself got the account moderated
+(next entry). The reasoning below about surfaces against meshes is unchanged
+and is the part worth keeping. The pig is one
+object twelve studs across; the ground is a single 780x560 Part and the lawns
+are slabs, so there is no geometry out there to replace -- only a surface.
+Studio's `generate_material` is the counterpart to its mesh generator for
+exactly that job, and reaching for the wrong one of the two is how a world
+pass turns into weeks of modelling something that wanted a texture.
+
+**AND `generate_material` GOT THE ACCOUNT MODERATED, WHICH IS THE MOST
+EXPENSIVE THING IN THIS FILE AND HAS TO BE READ BEFORE ANY OF THE REST OF
+IT.** Twelve variants were generated across one session to compare, and the
+account was actioned for SEXUAL CONTENT on an asset named *Generated
+RoughnessMap*.
+
+**EVERY GENERATION IS AN UPLOAD TO YOUR OWN ACCOUNT, AND IT IS FOUR OF THEM
+PER VARIANT.** One `generate_material` call returns FOUR variants, each
+carrying a colour, normal, metalness and roughness map -- so one call is
+SIXTEEN uploaded images, and three calls was forty-eight. They are published
+under your name, they are moderated exactly like anything else you upload, and
+you never see one of them. A roughness map is a greyscale surface-detail
+image with nothing depicted in it at all, and that is what got flagged, so
+this is a classifier false positive on abstract noise rather than anything
+anybody chose.
+
+**THE BLAST RADIUS IS THE ACCOUNT, NOT THE EXPERIENCE, WHICH IS WORSE THAN
+EVERY OTHER MODERATION ENTRY IN THIS FILE.** The meme ornaments, the patrol
+car and the arrest screen are all built as originals because "moderation
+strips branded assets and the penalty lands on the EXPERIENCE". This one
+does not land on the experience. It lands on the person, and it stops them
+opening Studio.
+
+**SO: GENERATE FEW, AND LOOK AT WHAT YOU ARE UPLOADING.** Comparing a dozen
+candidates costs nothing in tokens and forty-eight uploads in risk. Generate
+one or two, and treat every one as a publication under the developer's own
+name -- because that is exactly what it is.
+
+**AND THE FAILURE PRESENTS AS A BROKEN STUDIO LOGIN, WHICH COST AN HOUR OF
+WRONG DIAGNOSIS.** The action landed MID-SESSION. What it looked like from
+inside was `MeshContentProvider ... could not fetch`, `Failed to load sound
+... HTTP 403`, `DataStoreService: AccessForbidden`, `Player:IsInGroup failed
+because HTTP 403` and `GetProductInfo failed because HTTP 403` -- while some
+meshes went on loading perfectly, because those were already in the local
+cache. That reads exactly like an expired session, and the advice given at the
+time was to restart Studio and switch on API services, which was wrong.
+**ANYTHING THAT SUDDENLY 403s ACROSS SEVERAL UNRELATED SERVICES AT ONCE IS AN
+ACCOUNT QUESTION BEFORE IT IS A STUDIO QUESTION.**
+
+**THE GENERATED MESHES ARE A SMALLER SURFACE AND ARE NOT CLEARED BY THIS.**
+A mesh generation uploads a mesh and one texture rather than four maps, and
+the tree, the tuft and the piggy came through this untouched. That is a
+smaller number, not a different rule: they are uploads under the same account
+and they are moderated the same way.
+
+**AND THE REPO NO LONGER POINTS AT ANY OF IT.** `src/MaterialService/` and its
+branch in `default.project.json` are gone, because a repo referencing a
+moderated asset is a liability and the ground had already moved to flat -- see
+below. Nothing was lost: the flat ground is the look that was chosen anyway.
+
+**A MATERIALVARIANT CANNOT BE BUILT AT RUN TIME, AND THAT IS THE THIRD ENTRY
+IN THE `RenderFidelity` FAMILY.** The first build put the four map ids in
+Config and had `WorldService` assemble the variant at startup -- the same
+shape as `Config.PIGGY_MESH` and `Config.ANIMATIONS`, ids in a table with an
+empty id falling back to what shipped. It was verified through the MCP sandbox
+and passed. Live, from a real Script, it throws:
+
+    The current thread cannot write 'BaseMaterial' (lacking capability Plugin)
+
+The sandbox and the command bar both run WITH plugin capability, so the one
+environment that proved it worked is the one environment that is not the game.
+That is exactly `RenderFidelity`, and exactly `RegisterKeyframeSequence`, and
+this is now the third time. **ANYTHING CAPABILITY-GATED HAS TO BE EXERCISED
+FROM A REAL SCRIPT BEFORE IT IS BELIEVED** -- and the cheap way to do that is
+to press Play once and read the server log, which is what caught this.
+
+**SO ROJO OWNS THE MATERIAL, AT `src/MaterialService/PiggyLawn.model.json`.**
+Rojo 7 serialises a `MaterialVariant` from a `.model.json` perfectly -- base
+material, all four maps, studs per tile -- so the asset stays in source
+control and a fresh empty place plus this repo still gives the identical
+world, WITHOUT a runtime write that can never succeed. It also keeps it out of
+`MaterialService.AssistantMaterials`, which is where the generator leaves its
+output: in the PLACE FILE, where Rojo does not reach and nothing reconciles it.
+That is the `GearPreview` trap, and the generator walks into it every time.
+
+Note `default.project.json` IS NOT HOT RELOADED. Adding the MaterialService
+branch needs `rojo serve` restarting; a running serve will go on syncing the
+old tree with nothing to say so.
+
+**THE MAPS LIVE IN THE MODEL FILE AND ONLY THE NAME LIVES IN `Config`.** Two
+copies of four asset ids is the near-identical duplicate this file keeps
+recording. The name is the entire interface, and **A DANGLING NAME IS SAFE**:
+a `MaterialVariant` property naming something MaterialService does not hold
+falls back to the part's own BaseMaterial, so a deleted model file renders the
+stock grass this game shipped with rather than an error. Measured live before
+the variant was seated -- ground reporting `variant="PiggyLawn"` against an
+empty MaterialService, rendering as ordinary grass, nothing in the log.
+
+**IT IS OPT-IN PER PART, NEVER A `MaterialService` OVERRIDE.** Writing
+`MaterialService.Grass` repaints every Grass part in the game in one go, and
+`Material.Grass` is on fourteen things across six files -- the topiary pig on
+somebody's lawn, the shop hedge, a house tier's flower bed. A lawn texture
+tiled every ten studs across a one-stud prop is a smear. The ground, both plot
+grass parts and the hills name the variant; nothing else does.
+
+**A GENERATED MATERIAL MULTIPLIES AGAINST `Part.Color`, WHICH KILLED HALF THE
+CANDIDATES BEFORE THEY WERE LOOKED AT PROPERLY.** The generator returned four;
+two carry a deep saturated colour map, and against the shipped `LAWN` tint
+those came out bottle-green mud. The pig's texture lesson arriving on a
+surface. Anything replacing these maps gets looked at ON the shipped lawn
+colour, never on white.
+
+**TAKING A TEXTURE OFF A SURFACE MAKES IT ABOUT A THIRD BRIGHTER, AND EVERY
+GROUND COLOUR IN THIS GAME HAD TO COME DOWN THE DAY THE LAWN WENT FLAT.** A
+material MULTIPLIES `Part.Color`. That is written above as the reason a
+generated texture could only ever darken the lawn -- and the same sentence run
+backwards is the half nobody thought about: for the whole life of the project
+these colours had been rendering at roughly two thirds of what the source
+said, and NOBODY HAD EVER SEEN THEM AT THEIR LITERAL VALUE. Flat, they were
+seen for the first time, and `GRASS` at (118, 158, 88) came out an acid pastel
+that shouted over the trees, the hills and the piggy. Reported, correctly, as
+the grass being far too bright.
+
+So `GRASS`, `GRASS_DARK` and `LAWN` came down about 30%, which is what the
+texture had been doing for free. **THE PAIR OF DECISIONS IS ONE DECISION**:
+anything that ever puts a texture back on this ground has to put those numbers
+back UP by roughly the same amount or the street goes dark, and the comments
+at both ends say so.
+
+**THE HILLS WERE DELIBERATELY NOT MOVED WITH THEM, WHICH LEAVES THEM
+NUMERICALLY LIGHTER THAN THE GROUND THEY STAND ON** -- the reverse of how they
+started. That was looked at rather than reasoned about: a hill is a
+half-buried SPHERE and a lawn is a flat plane, so the two catch the 14:30 sun
+completely differently, and on screen the hills still read as the deeper,
+further thing. Matching the numbers would have made them read wrong. It is the
+same lesson as the tube man and the transposed bounding boxes from the other
+end -- the convenient number and the one that governs what you see are
+different numbers, and here the convenient one is the RGB triple.
+
+**AND THE TUFT TINTS CAME DOWN WITH IT**, because they are near-white
+multiplies over the tuft's own painted map rather than flat colours: on a
+darker lawn the old pair popped hard enough to read as straw.
+
+**AND THE MATERIAL IS ONLY HALF OF A LAWN. THE OTHER HALF IS GEOMETRY.** A
+painted ground is still a plane, and from standing height a plane reads as a
+plane however well it is painted -- which is the honest limit of the entry
+above and was visible the moment it shipped. What sells a stylised lawn is
+SILHOUETTE: blades breaking the line where the ground meets everything
+standing on it. `Shared/GrassTuft.luau` plants clumps of generated grass on
+the plot lawns and along the verge, and the two halves are one job rather
+than two options -- neither is worth much alone.
+
+**`Shared` FOR THE CACHE, WHICH IS A DIFFERENT REASON FROM THE ONE HOUSE AND
+DECOR ARE THERE FOR.** Those live in Shared because the SHOP renders them.
+Nothing renders grass in a shop and none of this is client-side. It is shared
+because two services plant it -- PlotService on the lawns, NeighborhoodService
+on the verge -- and `CreateMeshPartAsync` yields, so a second copy would mean
+a second web call for one asset and, worse, two places that could disagree
+about how tall a tuft is.
+
+**HEIGHT AND DENSITY ARE TWO DIFFERENT QUESTIONS AND THE FILE KEEPS THEM
+APART.** `minScale`/`maxScale` decide whether the lawn is still a lawn:
+the clump is authored 2.60 studs tall, which against a five-stud rig is
+waist-deep meadow and a different game -- one where a thief wades across a
+yard. At 0.28 to 0.52 a tuft stands 0.73 to 1.35 studs, ankle to mid-shin.
+`perStuds` decides whether it reads as grass or as weeds. Turning the wrong
+one of those two is how a tuning pass ends in a meadow, and the shipped
+numbers are 819 tufts against a world of 2,428 BaseParts.
+
+**A SCATTER TAKES THE PART, NOT A RECTANGLE, AND THAT IS THE FAR ROW
+HANDLED FOR NOTHING.** `buildPlot` authors everything around `origin` and
+turns the whole model with a single `PivotTo` at the end, so tufts planted
+before that turn are carried by it -- and `scatterOn` reads the surface's own
+CFrame rather than being handed plot-local numbers a caller would have to
+remember to flip. Same argument as measuring a building by its parts: the
+part knows its own frame, and the convenient number is the one that is wrong
+on half the street.
+
+**AND THE DRAW HAPPENS BEFORE THE VETO, WHICH IS THE ONLY REASON THE LAYOUT
+IS STABLE.** `scatterRect` pulls its position, scale, yaw and tint from the
+sequence whether or not the spot survives `accept`. Drawing inside the branch
+instead makes every tuft after a rejected one shift, so moving one driveway
+reshuffles the whole street's grass -- a deterministic scatter that is not
+actually deterministic, which is the worst of both.
+
+**THE VERGE BAND IS DERIVED FROM WHAT IS ALREADY STANDING ON IT.** It starts
+outboard of the lamp posts and wheelie bins on the 1.8-stud verge line and
+stops short of `boardZ` and the shops behind it, so it is the one strip out
+there that nothing else occupies -- and the strip a player spends the whole
+walk looking at. Driveways are vetoed because a drive CROSSES that band rather
+than running beside it: it is laid from the kerb to the fence line, so every
+plot column punches a hole through the strip. Measured live at zero tufts
+standing on a driveway slab.
+
+**A LAWN NEEDS NO VETO AT ALL, AND THAT IS DERIVED RATHER THAN ASSUMED.**
+`buildDriveway` works in PLOT-LOCAL z from `driveNear` 25.6 outward, against
+a slab that ends at `PLOT_SIZE.Z / 2` -- so the whole drive is in FRONT of the
+lawn and never on it. The moat is the other candidate and takes the fence
+RING, outboard of the 64-wide grass with the stone trim between them; that
+half is reasoning and not a measurement, and it is listed under "Not yet
+verified" rather than asserted here.
+
+**EVERY TUFT IS CanCollide, CanQuery AND CastShadow FALSE**, which is the rule
+the whole of `NeighborhoodService` and every lawn ornament already follow and
+which matters more here than anywhere because there are eight hundred of them.
+A tuft that collided would body-block a chase on the exact ground a chase
+happens on; one that answered a raycast would eat a query meant for a piggy.
+Verified live at zero of 819 breaking any of the four.
+
+**THE TREE KEEPS ITS BAKED TEXTURE, WHICH DELIBERATELY REVERSES THE PIGGY'S
+RULE.** Everything written about stripping `TextureID` off the piggy is
+correct and none of it applies here, and the obvious move -- copy the pig --
+is wrong. The pig is stripped because FORTY-SIX SKINS multiply a colour onto
+it, so a painted mesh is muddy on forty-five of them and the three animated
+skins drive that muddy multiply every frame. A tree has no skin system: its
+colour is a constant. So the baked shading between the leaf clumps is free
+depth, and it is the only thing making the canopy read as clumps at all.
+Built both ways side by side and photographed before deciding; the stripped
+and flat-tinted version is visibly the worse tree.
+
+**AND `CreateMeshPartAsync` DOES NOT CARRY THE TEXTURE, WHICH SHIPPED THE
+WORSE TREE ANYWAY FOR ONE BUILD.** It takes a MESH id and nothing else, so the
+part comes back untextured however the asset was authored. Nothing errored,
+nothing warned, and the only symptom was that the trees looked flat -- the
+quietest failure shape there is. A generated mesh and its painted map are two
+separate uploads and anything cloning one has to ask for both. Measured after
+the fix: 52 of 52 parts textured.
+
+**`MeshPart.TextureID` IS WRITABLE FROM A SCRIPT; `MeshPart.MeshId` IS NOT.**
+Worth writing down as a pair, because they sit next to each other and this
+file already records `MeshId` throwing *lacking capability NotAccessible*. The
+neighbouring property is fine, so the mesh comes from
+`InsertService:CreateMeshPartAsync` and the map is assigned afterwards.
+
+**`RenderFidelity` IS `Automatic` ON A TREE AND `Precise` ON THE PIGGY, AND
+THAT IS THE POINT RATHER THAN AN INCONSISTENCY.** The pig is `Precise` because
+it is read from the pavement and is the one object a robbery is about, so
+shedding triangles with distance would show. A tree is backdrop and there are
+twenty-six of them, and shedding triangles with distance is exactly what you
+want from twenty-six backdrop objects.
+
+**AND THE PIGGY WAS NOT ACTUALLY `Precise`, FOR THE WHOLE LIFE OF THE MESH
+PIG, BECAUSE THE ONE PART THAT MATTERED IS A CSG RESULT.** The trim meshes
+come from `InsertService:CreateMeshPartAsync`, which takes render fidelity as
+an ARGUMENT -- so `Ear`, `Snout` and `Tail` really were Precise. The BODY is
+the output of `SubtractAsync`, and the code set its fidelity with a PROPERTY
+WRITE afterwards, inside a pcall, because this file's own entry below says
+that write is capability-gated. Live, the pcall swallowed the throw exactly as
+designed and the body shipped at `Automatic`. Measured: body `Automatic`,
+trim `Precise`, on the same model, with nothing in the log.
+
+**THE FIX IS THAT `SubtractAsync` TAKES BOTH FIDELITIES AS PARAMETERS, AND
+THAT IS THE FIRST ESCAPE HATCH THIS FILE HAS FOUND FROM THE CAPABILITY
+FAMILY.** `body:SubtractAsync(cutters, collisionFidelity, renderFidelity)` is
+not a property write, so nothing is gated and the result is born Precise --
+verified from a real Script on a live server, reading back `Precise` where the
+pcall version read `Automatic`. **ANYWHERE A GATED PROPERTY HAS A CONSTRUCTOR
+ARGUMENT THAT SETS THE SAME THING, THE ARGUMENT IS THE ROUTE.** The three
+entries in this file about capability gates -- `RenderFidelity`,
+`RegisterKeyframeSequence`, `MaterialVariant` -- were all written as "this
+cannot be done from a Script". For this one, it can; it just cannot be done as
+an assignment.
+
+**AND IT WAS NOT THE FACETING ANYBODY WAS COMPLAINING ABOUT, WHICH IS WHY THE
+A/B MATTERED.** `Automatic` sheds triangles with DISTANCE, so at conversation
+range the two are pixel-identical -- photographed both ways from the same
+camera to be sure. The visible polygons on the pig are the GENERATED MESH'S
+OWN, proven by standing the uncut body mesh next to the CSG one and finding
+the same shattered specular highlight on both. So the fidelity fix is real and
+is about the view from the pavement; it is not a smoothing pass.
+
+**A LOWER POLY COUNT IS THE WRONG DIRECTION FOR "MAKE IT BUBBLY", and it is
+the intuitive ask.** Faceting IS low poly. What reads as bubbly is a DENSE
+mesh with smooth normals, and the only lever on that is regenerating the body
+-- which costs an upload under the developer's own account (see the moderation
+entry, the most expensive thing in this file) and re-derives the landmark
+contract that twelve accessories, the vault dial, the coin pile and both bores
+are all cut against. The cheap mitigation is material: the artefact is a
+SPECULAR one, so it is loudest on the Metal, Glass and Foil skins and
+disappears entirely on the twenty-two Neon ones, which are unlit and read by
+silhouette alone.
+
+**A CANOPY CLEARANCE IS THE DIAGONAL, NOT THE DEPTH, BECAUSE EVERY TREE
+CARRIES A YAW.** Trees are turned on their own axis for variety -- free, and
+the whole difference between a grove and twenty-six copies of one tree -- so a
+canopy twelve studs wide by ten and a half deep presents its CORNER at
+forty-five degrees, which is eight studs rather than five. Measuring the depth
+alone gives a clearance that is right for the trees facing the street and
+wrong for the ones that are not: the same asymmetry as the tube man that broke
+the side fence on the four left-hand lawn slots and not the four right-hand
+ones, and no screenshot catches either.
+
+**AND THE RULE IS A CLAMP NOW RATHER THAN AN ARITHMETIC COINCIDENCE.**
+*Nothing here may sit inside the fence -- a canopy over a plot still hides a
+piggy* held because the grove depths were chosen against a ten-stud ball. The
+meshed canopy is half as wide again, so `buildTrees` jitters the depth and
+then `math.max`es it against the canopy's own reach. Same argument as
+`Config.auditFences` and `auditEconomy`: the failure is a number, nothing
+errors, nothing looks wrong from a plan view, and a canopy standing over
+somebody's piggy should not be something the next edit to `scales` can bring
+back. Verified live at a worst clearance of **7.54 studs past a fence line
+measured off the real Yard parts** rather than off the constant.
+
+The front grove row moved 14 -> 22 studs behind the fence to pay for the
+bigger canopy, which is tuning rather than the guarantee: at 14 roughly half
+the row would have piled up against the clamp on one line, which reads as a
+hedge. Measured after, the nearest trunk sits at |z| 180.4 against a clamp
+floor of about 175, so the clamp never actually bites and the row keeps its
+full jitter.
 
 **The driveway is the visible half of a house upgrade.** The house stands 70
 studs behind the piggy, so from the road its driveway surface is what actually
@@ -1971,6 +3995,163 @@ proud at the top of a ~15-stud beam where it reads as the source, the beam is
 a fixed length however far away the saucer parks, and the saucer goes back to
 being the scenery it should always have been.
 
+**THE STANDING COUNTDOWN IS THE ONLY THING ON THIS HUD THAT GIVES A PLAYER A
+REASON TO STILL BE HERE IN TEN MINUTES.** Everything else reports what has
+already happened or is happening now -- a toast, a banner, an alarm. This is
+the one element that is about the future, and its whole job is that somebody
+decides to stay.
+
+**IT NEEDED NO NEW SERVER STATE, WHICH IS WORTH SAYING BECAUSE IT LOOKS LIKE
+IT SHOULD.** `EventService` already models the quiet stretch as a PHASE with
+its own deadline -- `setPhase("quiet", "", period - warning)` -- and already
+pushes seconds left, plus seconds total since the banner wanted it. The whole
+countdown was arriving at every client and being dropped on the floor, because
+the render branch opened with `if phase ~= "quiet"`. The feature was a display
+that had never been written, not a mechanism that was missing.
+
+**THE ROLL WAS ALREADY RANDOM TOO.** `pick()` runs at the moment the quiet
+stretch ends, weighted with the last pick damped rather than excluded, so "a
+random event starts after the countdown" is a description of what already
+happens rather than a thing to build.
+
+**TOP-RIGHT UNDER THE PIGGY BANK PANEL, and that is a decision about what KIND
+of thing it is rather than about free space.** The top-centre column is
+alerts; this is not an alert, it is a standing readout of the state of the
+world, which is exactly what the panel above it is. They belong together, and
+the chip is right-aligned to the panel's own edge -- verified aligned to the
+pixel with an 8px gap. It is also the only band left: measured on the live
+HUD, the panel ends at y 88 and the next occupied pixel in that corner is the
+shop button at y 665.
+
+**PAPER, NOT A COLOUR, FOR FOURTEEN OF EVERY FIFTEEN MINUTES.** A saturated
+ground here would read as an alarm, and this thing is furniture almost all of
+the time. It earns colour in the last minute and not before: the badge RING
+goes gold and the caption changes to GET READY, while the card stays paper --
+because a chip that turns into a coloured block IS an alarm, and the banner
+twenty seconds later is the alarm.
+
+**A CHIP THAT SAYS THE SAME THING FOR FOURTEEN MINUTES IS WALLPAPER, AND
+WALLPAPER IS WHAT A PLAYER STOPS SEEING.** `Config.EVENT_SOON` is the window
+where it changes state, and it has to be comfortably longer than
+`EVENTS.warning`: at 20 against a 20-second warning the chip would flip to its
+loud state and vanish in the same frame, which is a flicker rather than a cue.
+A minute is also about how long it takes to bank a full pig and get somewhere
+useful, which is the entire reason for telling anybody.
+
+**AN HOURGLASS, NOT AN EVENT'S OWN GLYPH, BECAUSE WHICH EVENT IS NOT KNOWN
+YET** -- the roster is rolled when the quiet ends. A chip naming it early
+would trade the surprise for a number nobody asked for. Measured before use
+like every other glyph here: 37.0 at TextSize 40 against a tofu box's 20.0.
+
+**IT IS GATED ON THE QUIET BEING A REAL ONE, NOT ON THE PHASE NAME, and that
+is two live bugs rather than defensive tidiness.** A client that has not had
+its first push yet holds total 0 and would render "0:00" as though an event
+were overdue. And the scheduler stamps a two-second `setPhase("quiet", "", 2)`
+on the way out of an event before the loop sets the real fifteen minutes, so
+for up to a frame the honest reading of the pushed state is "next event in
+2s". Testing the SPAN against the warning window rules out both with one
+comparison -- verified live by pushing that exact seam payload and watching
+the chip stay hidden.
+
+**"GET READY" AND NOT "STARTING SOON", and the measurement picked it.** The
+first ran 86px against an 80px caption box and would have clipped. The one
+that fits also happens to be the better copy: it says what to DO, where the
+timer beside it is already saying when.
+
+Verified live: a fresh boot counting 14:29 down to 14:26, the muted ring on an
+ordinary quiet, the gold ring and GET READY inside the last minute, and the
+chip hidden for both the two-second seam and the whole warning phase while the
+banner carried the news instead.
+
+**AN EVENT GETS ITS OWN BANNER, AND SHARING THE PATROL'S WAS FLATTENING THE
+ONE DISTINCTION THAT ROW EXISTS TO DRAW.** They were one frame with a branch
+in it, so the street's headline and its routine traffic stop were the same
+object in the same place with a different word in it. A patrol is the
+heartbeat; an event is the thing a session gets built around.
+
+**IT IS A SECOND FRAME AT THE SAME ANCHOR, NOT A RESTYLE**, which is the call
+the dodge and trick buttons already make: two things that can never both be
+live share a SLOT rather than a widget. The entry above is what guarantees
+that -- the patrol waits out any event -- so exactly one is ever visible, and
+each branch hides the other as belt and braces.
+
+Sharing and branching is worse twice over. The patrol's row is measured and
+verified (340 wide because the icon pushed its longest line to 277 of 282
+usable pixels) and every future event feature would have to keep re-clearing
+it. Split, the patrol's frame was not touched at all -- verified after, both
+its phases still rendering at y 200..238 with the event banner hidden.
+
+**44 TALL AGAINST 38, WHICH IS THE WHOLE COST.** It ends at y 244 rather than
+238: measured against the shortest thing that has to work, a phone held
+sideways at 546, that is 44.7% down against 43.6%. Anything that wants more
+height here is spending the one axis this column has none of.
+
+**THE BADGE IS A DARK DISC WITH A TONE RING**, for the third time in this
+project -- the notify chips learned it, the prompt cards followed, and it is
+the same fact each time: an emoji carries its own colours and ignores
+`TextColor3`, so a saucer on a cyan disc is a cyan smudge. The ring is where
+the tone goes, and the ring is what pulses.
+
+**THE COUNTDOWN IS A BAR AND A NUMBER, because they answer different
+questions.** "42s" is a thing you READ and a draining bar is a thing you SEE,
+and this is read by somebody who is running -- the same argument the upgrade
+pips make against "Lv 3/4". Both are kept: the bar for the glance, the number
+for when it matters that it is nine seconds and not ninety.
+
+**A BAR NEEDS THE PHASE'S TOTAL, SO THE SERVER SENDS ONE.** Inferring it from
+the first `secondsLeft` a client happens to see is wrong for exactly the
+player who most needs it right: somebody joining halfway through a raid would
+watch the bar start full and drain from the wrong place. `phaseSpan` is
+stamped in `setPhase` beside `phaseEnds`, so the two cannot disagree.
+
+**THE FILL IS INK ON A FAINT GROOVE, AND THE FIRST VERSION MEASURED THE WRONG
+PAIR.** A paper fill was chosen against the banner's own tone -- 1.71 (rush)
+and 1.84 (raid), which looks like a catastrophe and is not the question. What
+has to read is FILL against TRACK, and paper managed 3.32 and 3.56 there: a
+bar you can see is there and cannot judge. Ink on a 0.75-transparent groove
+reads 5.53 and 5.16 against the track and 8.74 and 8.16 against the banner.
+It is also the language the theme already speaks -- a groove one step under
+the ground is exactly what an unbought upgrade pip is.
+
+**`Config.EVENT_UI` IS THE VOCABULARY, and the client used to carry it as a
+branch.** Same shape as `Config.NOTIFY` and `Config.PROMPTS`: tone, glyph and
+wording per event, so a third event is a row here rather than four `if raid
+then ... else ...` in ClientMain -- which is the shape that broke the
+anti-repeat rule at a two-event roster and would break again the same way.
+
+**IT ALSO CLOSED A DRIFT NOBODY HAD NOTICED.** `roster[key].name` has always
+said "ALIEN INVASION" and the HUD hardcoded "INVASION INCOMING", so the one
+place a player learns an event's name disagreed with the one place it is
+defined. The banner reads the roster now -- defensively, because the guard is
+on `EVENT_UI` and a row added to one table and not the other would index a nil
+inside the HUD's own Heartbeat and take the whole loop down.
+
+**AN EVENT WITH NO ROW DRAWS NOTHING AND FALLS THROUGH TO THE PATROL**, rather
+than rendering as an unnamed grey bar. That is the louder failure and the far
+easier one to notice, which is the same reason `addTrail` warns on a ride with
+no `accent` instead of picking a colour.
+
+**THE GLYPHS MOVED OUT OF ClientMain'S OWN `GLYPH` TABLE, because two copies
+of one character in two files is the near-identical duplicate this file keeps
+recording.** Both were rendered and measured first, the way the `ICON` table
+demands -- at TextSize 40 in GothamBold a real emoji advances 37.0 and a tofu
+box advances 20.0, and both came back at 37.0. The bolt carries VS16 because
+it is BMP and therefore HAS a monochrome text form: the same fault that made
+the notify warning triangle render 4px narrower than everything beside it, and
+a per-platform font decision rather than a promise.
+
+**THE WARNING PULSES AT 1.67Hz, ground and ring together**, which is inside
+the three-flashes-a-second ceiling `HouseFX` holds the whole game to. Ink on
+both tones measures 8.74 and 8.16 lit, 5.21 and 4.86 at the bottom of the
+pulse, so the label clears the body floor at every point in the cycle rather
+than only at the top of it.
+
+Verified live end to end on both events: the raid warning counting 20 to 0
+with the bar draining 0.95 to 0.00, the flip to DRONES ON THE STREET resetting
+it to 1.00, the same for RUSH HOUR into STEALS ARE DOUBLE, the badge ring
+sweeping 0.00 to 0.55, the label never once shrunk by `TextScaled` (261 of 282
+at its longest), and the patrol banner hidden for every frame of both.
+
 **AN EVENT SUPPRESSES THE PATROL, WHICH IS WHAT LETS THEM SHARE A HUD ROW.**
 The top-centre column is full and measured -- coins 16, rebirth 96, carry
 140..192, street banner 200..238 -- and a fourth row lands 35% of the way down
@@ -2008,6 +4189,184 @@ the one nobody could earn. `SocialService` keeps a per-session RAP SHEET
 instead, counted on DELIVERY rather than on the grab -- loot tagged out of your
 hands or confiscated by the patrol was never stolen, you were caught, which is
 the same line `data.totalStolen` already draws.
+
+**ROBBERIES IN A ROW ARE WORTH MORE AND COST MORE, AND THAT IS THE ONLY
+THING IN THIS GAME THAT VARIES BETWEEN ROBBERIES RATHER THAN WITHIN ONE.**
+The crack made a single robbery a decision and did nothing about the shape of
+a SESSION: forty cracks in an hour were forty independent transactions, and a
+run of five meant exactly what five separate ones meant. `Config.SPREE`
+counts consecutive deliveries, decays when you stop, and is spent by being
+caught.
+
+**IT IS NOT THE RAP SHEET, AND THE TWO ARE TWO TABLES ON PURPOSE.**
+`SocialService.heat` is the rap sheet: every coin taken this session, only
+ever rising, and what the Most Wanted board ranks on. `spree` is momentum. One
+field carrying both is the `busyUntil`/`napUntil` bug this file already
+records at length -- two readers disagreeing about one number in opposite
+directions, and a 30,000-coin item silently buying nothing.
+
+**THE PAYOUT IS PAID FOR BY `pigSeconds`, AND THE AUDIT IS WHAT FORCED
+THAT.** A spree multiplying the payout multiplies the robbing-versus-idling
+ratio directly, because a thief on a run sustains max spree and that is
+exactly what `robberyRates` measures. Measured before writing a line of it:
+the base was 8.25x against a `ROBBERY_ADVANTAGE.max` of 10, so **there were
+21% of headroom and a x2 spree needed 100%.** `RESIDENTS.pigSeconds` came
+down 400 to 200 in the same change.
+
+**SO THE TOP OF THE ECONOMY DID NOT MOVE AND THE BOTTOM DID.** Cold is 4.12x
+and a maxed spree is 8.25x, which is what EVERYBODY earned before -- the
+spree is HOW YOU REACH the old rate rather than a new number above it. What
+got slower is robbing listlessly, which is the behaviour that should be
+slower, and 4.12x lands inside the 3-5x this design has aimed at since the
+loop was first measured. The dearest house went from 0.90 hours flat to 1.80
+cold and 0.90 hot.
+
+**THIS IS THE FIRST TIME THE PRODUCT OF TWO CURVES WAS CAUGHT BEFORE IT
+SHIPPED RATHER THAN MONTHS AFTER.** `LOSS_CAP` x `HEIST_PAYOUT`, capacity x
+income, a resident's pig x a capacity ladder -- every one of those is a
+post-mortem in this file, found by somebody happening to measure. The audit
+built one session earlier refused this one at design time. **THAT IS WHAT AN
+AUDIT IS WORTH, AND IT IS WORTH MORE THAN THE BUG IT FIRST FOUND.**
+
+**AND THE AUDIT NOW MEASURES BOTH ENDS, because a single sweep would miss
+one.** COLD is what the FLOOR is about -- nobody should be punished for
+playing at their own pace -- and HOT is what the CEILING is about, because
+that is the best this game can be played and therefore what decides whether a
+resident is a faucet. Measuring only one lets the other drift silently, which
+is precisely what a spree multiplying an unmeasured payout would have done.
+Verified flat at both ends: 4.1247 to 4.1247 cold and 8.2495 to 8.2495 hot,
+across all 341 level and rebirth pairs.
+
+**THE RISK HALF IS THE PATROL, NOT A NEW HAZARD.** A spree scales
+`wantedFloor` down -- 1.00 to 0.40 across four steps -- so a thief working
+fast draws a records check on a smaller rap sheet than the same thief taking
+their time. That reuses the one system in this game that already hunts
+people, teaches nothing new, and lands the cost on the chip the player is
+already watching: the ring turns red sooner on a run. **VARIETY OF SITUATIONS
+IS FREE AND VARIETY OF MECHANICS IS EXPENSIVE**, which is the rule this
+design set itself when it decided what could go in section 8.
+
+**THE MULTIPLIER IS READ BEFORE THE BUMP, AND THAT ORDER IS WHAT MAKES
+"CONSECUTIVE" MEAN ANYTHING.** The delivery that STARTS a run pays 1.00 and
+the one after it pays more. Bumping first would pay a bonus for the first
+robbery of a session, and there would be no streak in it at all. Verified in
+order: x1.00, x1.25, x1.50, x1.75, x2.00, then capped.
+
+**IT EXPIRES LAZILY AND HAS NO LOOP.** Nothing in the game has to happen at
+the moment a run lapses, so the honest implementation is to check the clock
+when somebody asks -- which also means a player who logs off mid-run leaves
+no timer behind to fire at a Player who has gone. `recordSteal` reads through
+the same accessor, so a run that lapsed during a long walk home is expired
+rather than silently continued.
+
+**ANY ARREST BREAKS IT, WHICH IS A DIFFERENT QUESTION FROM THE RECORD.**
+`clearHeat` wipes the rap sheet and fires only on a MOST-WANTED arrest,
+because an ordinary bust deliberately leaves a record intact -- that is what
+the thief was caught for. A spree is momentum, and being put in a car plainly
+ends momentum, so `breakSpree` fires on both. It is also the whole reason the
+risk half points at the patrol: what a spree buys has to be worth losing.
+
+**THE PIPS ARE THE RUN AND THE RING IS THE STREET, which are two facts and
+therefore two signals.** Four steps with three filled is a thing you SEE, and
+this file already argues exactly that for upgrade rungs -- along with where it
+stops holding, since at forty rungs a pip is 4.4 pixels and becomes noise.
+Four is comfortably the pip end. The chip grew 12 pixels to hold them rather
+than squeezing a fifth thing into a first row whose caption-to-amount gap
+measures 20 pixels; it keeps the same x and width as the event chip above it,
+which is what actually makes that corner read as a column. Verified live: 0
+through 4 pips filling at 34px each, ring muted to gold to red, and the two
+chips sharing x 606 and width 176 with an exact 8px gap.
+
+**WHAT IS NOT VERIFIED IS A REAL DELIVERY.** The state machine, the ladder,
+the decay, the break and the whole audit are measured; `deliver`'s two lines
+that read the multiplier and name the run in the toast have been checked by
+reading rather than by robbing somebody. The order is confirmed -- multiplier
+at 2120, `recordSteal` at 2132, the toast at 2156 -- and the rest of that
+function is untouched.
+
+**AND THE WHOLE ARC WAS INVISIBLE WHILE IT WAS HAPPENING, WHICH IS WHY THE
+RAP SHEET IS A CHIP NOW.** Take more, lead the board, draw a patrol: that is
+a session with a SHAPE, and every part of it was built, tuned and argued
+about here at length. The only places any of it ever surfaced were a poster
+standing somewhere out on the street and a handful of toasts gone in six
+seconds. A player could not answer *how much have I taken this session* at
+all.
+
+**SAME FAULT AS THE STANDING EVENT COUNTDOWN, ONE STEP FURTHER ALONG.** That
+one was a display nobody had written rather than a mechanism nobody had built
+-- `EventService` was already pushing the whole countdown and the render
+branch was dropping it. Here the mechanism, the numbers and the tuning were
+all present and there was no channel and no chip: `SocialService` fired
+exactly two remotes, `Notify` and `RevengeMarker`, and `StateUpdate` carried
+not one social field. **THE CHEAPEST THING IN THIS DESIGN IS ALMOST ALWAYS
+DRAWING SOMETHING THAT ALREADY EXISTS.**
+
+**IT IS THE SECOND CHIP IN THE TOP-RIGHT COLUMN, AND THAT IS A CLAIM ABOUT
+WHAT KIND OF THING IT IS.** The top-centre column is ALERTS -- things that
+just happened. This corner is STANDING READOUTS: the piggy bank panel says
+what you have, the event chip says what the street is about to do, and this
+says what you have done and whether it has consequences yet. Verified flush
+with its neighbour, same x and same width, an exact 8px gap -- the event chip
+ends at absolute y 130 and this starts at 138.
+
+**THREE SIX-LETTER CAPTIONS, AND THE MEASUREMENT PICKED THEM.** The obvious
+wording does not fit: at TextSize 12 in GothamBold "MOST WANTED" measures 88
+and "PATROL COMING" measures 96 against a caption box of 82, so both would
+have been silently shrunk or clipped -- the failure this file already records
+as *"with `TextScaled`, it fits is guaranteed and means nothing"*. STOLEN,
+WANTED and HUNTED measure 44, 52 and 49, so the chip never jitters as it
+changes state.
+
+**AND THE MEASUREMENT CAUGHT A SECOND THING NOBODY WAS LOOKING FOR: THE EVENT
+CHIP'S OWN VALUE BOX IS TOO NARROW FOR COINS.** It is 44 wide, which is
+plenty for the clock it holds ("14:29"), and at TextSize 17 "888.8K" is 55
+and "999.9M" is 54. Copying its geometry across would have quietly shrunk
+every large rap sheet in the game. The wanted chip's value box is 56.
+**GEOMETRY THAT IS VERIFIED FOR ONE PAYLOAD IS NOT VERIFIED FOR ANOTHER.**
+
+**THE RING CARRIES THE ESCALATION AND THE WORD DOES NOT**, which is the event
+chip's own trick: muted while you are one thief among several, GOLD once the
+poster on the street has your name on it, RED once your sheet clears your own
+floor and the next patrol is genuinely coming. Three states, one property, no
+flashing -- this is a standing readout and the toast announcing each
+transition is already the loud half.
+
+**NOTHING STOLEN MEANS NO CHIP, WHICH DELIBERATELY REVERSES THE ROB BADGE'S
+RULE.** That badge had to learn to say YES as well as no, because an absence
+is something a new player cannot read and WHICH PIG is the whole decision.
+This is the opposite case: no decision rides on it, and a chip reading
+"STOLEN 0" forever is wallpaper, which is what a player stops seeing. **ITS
+APPEARING IS THE SIGNAL**, at the exact moment somebody becomes a thief.
+
+**THREE FIELDS, AND NOTHING THE CHIP CANNOT HONESTLY DRAW.** The obvious
+payload also carries the pursuit floor, the leader's name and the leader's
+sheet, and none of the three has a reader: a floor is only ever asked about
+the LEADER, so a bar toward one for anybody else would promise a consequence
+that cannot happen, and a 176x34 chip holding a badge, a caption and a figure
+has nowhere to put a second player's name. A field nobody reads is a field
+nobody notices going wrong.
+
+**PER CLIENT RATHER THAN BROADCAST**, the same call `StealCooldown` makes:
+two of the three fields are about the RECIPIENT, and a floor is seconds of
+the reader's own income, so two thieves standing together genuinely have
+different ones.
+
+**PUSHED ON THE BOARD'S OWN TICK, PLUS IMMEDIATELY ON A DELIVERY.** The tick
+because the FLOOR moves with income and rebirths and nothing about buying an
+upgrade would otherwise tell this service to look again -- eight FireClients
+every `LEADERBOARD_REFRESH` is cheaper than a hook on every income change and
+cannot go stale unnoticed. The delivery because that is the moment the number
+changes, and a readout that waited five seconds would read as broken. It
+fires AFTER `refreshMostWanted`, so the chip and the poster can never
+disagree about who is wanted -- the same ordering the two board refreshes
+already keep between themselves.
+
+Verified end to end against REAL server state rather than crafted payloads:
+the admin `mostwanted` command wrote a genuine sheet through the real
+service, and within one refresh the chip read HUNTED / 1.7K with a red ring,
+then hid again when the sheet was cleared. The push loop was watched with
+nothing else running and fired at 1.56s, 6.58s and 11.59s -- 5.01s apart,
+exactly `LEADERBOARD_REFRESH`.
 
 **THE PATROL COMES FOR THE NAME ON THE BOARD WHEN NOBODY IS MID-ROBBERY.**
 Three things stop that being a tax on playing well, and removing any one breaks
@@ -2104,7 +4463,7 @@ the person who called it.
 **THE NUMBER ROW IS FULL AT TEN, so the eleventh consumable takes a letter.**
 Keys are fixed per item and never renumbered to fill gaps, so there was no
 shuffling to be done: the radio is R. Checked against the rest of the map,
-which is now Q dodge/trick, B shop, V garage, R radio,
+which is now Q dodge/trick, B shop, V garage, R radio, I bag,
 Escape close, F2 admin console, and 1-0 the hot bar. A twelfth consumable
 needs the same check and there are fewer letters left than it looks.
 
@@ -2125,12 +4484,48 @@ coins, pay a hundred and fifty, walk away clean.
 rule the daily ladder follows, for the same reason. A steal takes 5% of a
 victim's piggy bank and capacity climbs without limit, so any fixed figure is a
 serious crime on day one and a rounding error by the weekend. Measured live: a
-maxed player earning 2,994/s has to steal 179,677 to make the board, while a new
+maxed player earning 2,994/s has to clear 179,677 to be worth a car, while a new
 player at 10/s needs 600. The floor exists for one specific failure -- in a quiet
-server, one player who lifted one small pile would otherwise top the board and be
-hunted every eight minutes for the rest of the session -- and it is tested PER
-PLAYER rather than once against the winner, so a rich player's petty theft
-cannot hold the title against a poorer player's serious one.
+server, one player who lifted one small pile would otherwise be hunted every
+eight minutes for the rest of the session.
+
+**AND IT GATES THE PATROL, NEVER THE POSTER, WHICH IT USED TO DO BOTH OF.** As
+a filter on who could LEAD the board it was answering a question it cannot
+answer, and the board sat empty in exactly the servers that had a biggest
+thief. THE TWO NUMBERS ARE MEASURED AGAINST DIFFERENT PEOPLE: the floor scales
+with the THIEF's income and rebirths, while loot scales with the VICTIM's
+vault. So a maxed thief robbing a poorer neighbour never clears their own floor
+however many plots they empty -- the one status in this game that cannot be
+bought was hidden from precisely the player who had earned it hardest.
+
+Measured against the live curves, both players on the same level and the
+victim's vault completely FULL, which is the best case a steal ever has: one
+delivery is **0.4 to 0.8 of the thief's own floor**, so the poster wanted two or
+three perfect robberies before it would name anybody, and 2.6 at rebirth 10 --
+because prestige raises income and therefore the floor, while capacity does not
+follow. Against a victim who banks, which is every victim, it is many more. It
+read as broken because for most of a session it was.
+
+**SO THE BOARD RANKS ON THE SHEET ALONE AND THE FLOOR IS ASKED ABOUT THE
+WINNER.** Whoever has stolen the most is on the poster and wears the hat, full
+stop; the floor then decides whether the patrol spends a records check on them.
+That is the question it was always written for -- it is about the leader rather
+than about who leads. `SocialService.getMostWanted` is the board and
+`getPursuitTarget` is the pursuit: TWO QUESTIONS, TWO FUNCTIONS, the same split
+`PassService` draws between `unlocked` and `owns`, and mixing them up here
+either empties the poster or sends an officer after a child who lifted one
+small pile.
+
+**WHICH MAKES THE ALERT TWO LINES, because the board can now name somebody the
+patrol is not coming for.** Promising a visit that never arrives is the same
+fault as a patrol arriving with no warning, from the other end -- so a
+below-floor leader is told *"Take more and the patrol will come"* and only an
+above-floor one gets *"The next patrol comes for you."* The second is announced
+on the TRANSITION as well as on taking the board, because the common shape is
+reaching the top of the poster well before reaching the floor; without that it
+would never be announced at all. Verified live at a sheet of 1,000 against a
+floor of 16,286: poster named, hat worn, patrol ran a full cruise and deployed
+NOBODY -- then over the floor, same player, officer out in 19 seconds.
 
 **THE WANTED BOARD IS A PORTRAIT POSTER AGAINST THE LEADERBOARD'S LANDSCAPE
 TABLE.** That is the whole reason it reads as a different object from forty
@@ -2365,15 +4760,182 @@ keeping four top-level locals for its state; they are now one table each
 than adding four more -- and note the budget is being spent by more than one
 person at a time.
 
-**The guard dog does not watch an approach.** `GuardDog.chase` only fires from
-`HeistService.attemptSteal`, AFTER a completed steal, so walking up to somebody's
-piggy and holding their lock for up to twelve seconds carries no dog risk at
-all. Every bit of pressure in this game is on the run home. Any "be sneakier"
-feature has to be designed against that fact or it solves a problem that does
-not exist -- which is why the Disguise Kit is sold as a WAITING tool and why
-spring shoes were dropped (fences are already jumpable at 6.0 against a 7.2
-jump, and the toll is the ClimbZone snag, which spans y 5.5 to 10.5 and catches
-you on the way up whatever your apex).
+**THE GUARD DOG WATCHES THE APPROACH NOW, AND THAT REVERSES THE RULE THIS
+ENTRY USED TO STATE.** It read: *"`GuardDog.chase` only fires from
+`HeistService.attemptSteal`, AFTER a completed steal, so walking up to
+somebody's piggy and holding their lock for up to twelve seconds carries no
+dog risk at all. Every bit of pressure in this game is on the run home."* That
+was true, it was the reason the Disguise Kit was sold as a WAITING tool, and
+it is what made TIPTOE ship as a slower walk that nothing in the game could
+notice -- a mechanic paying a bill that had not arrived.
+
+A dog is now ASLEEP BY DEFAULT and woken by NOISE. Two noises, and both are
+noise rather than presence, because standing still on a lawn is never a crime:
+
+  * FOOTSTEPS above the breed's own `notice`. Walking (16) wakes any dog; a
+    tiptoe (5.6, or 9.6 fully upgraded) wakes none but a Titan, whose `notice`
+    of 0 means it hears anything that moves at all and has to be answered with
+    a bone instead. Cheap counters bounce and the expensive one gets through,
+    arriving at the approach.
+  * A FAILED SLICE OF THE CRACK -- not the crack STARTING, which is the
+    difference that makes the whole thing work. If merely working a lock woke
+    the dog then every robbery would be loud, stealth would buy only the
+    approach, and being good at the minigame would be rewarded with nothing.
+
+**THE OWNER'S PRESENCE IS THE OTHER HALF, AND THE DOG'S POSTURE IS THEREFORE
+THE TELL.** Owner IN: the dog patrols, and a thief should expect a fight.
+Owner OUT: it sleeps in its kennel and the lawn is quiet until somebody makes
+a noise -- and then it is the enforcer, because nobody else is. A resident's
+owner is always away, which is what makes every unclaimed plot a dog's own
+plot to defend. *A dog trotting about means somebody is home; a dog curled up
+means the house is empty* -- free, no UI, readable from the pavement, using an
+object that already exists and already moves.
+
+**GUARD DUTY OVERRIDES BOTH, or the treat would sell the opposite of what it
+does.** This file's own argument for the Guard Duty Treat is that it exists to
+get people OUT of the house, because a player sitting on their own pig is the
+worst outcome this design has. A dog that fell asleep the moment its owner
+left would make the item worthless at exactly the moment it was bought for.
+
+**IT READS SPEED MEASURED, NEVER `WalkSpeed` READ, and that distinction is the
+whole feature.** `WalkSpeed` is what a character is ALLOWED to do, so a player
+standing perfectly still reads 16 and would wake every dog on the street for
+doing nothing. The watcher differences positions between ticks and asks how
+far somebody actually went -- flat, because a fall is not a footstep and the
+drop off a fence would otherwise be the loudest thing on the lawn.
+
+**AND SPEED RATHER THAN A STEALTH FLAG, which is the half that keeps it
+honest.** A boolean the dog has to check is a second piece of state that can
+disagree with how fast somebody is moving; a threshold cannot. Everything else
+then falls out for free: a thief snagged on an electric fence is quiet because
+they are slow, and a thief CARRYING is always loud, because carry speed is
+above every tier's threshold by construction. So you can sneak IN and you can
+never sneak the money OUT.
+
+Verified live on one lawn with one dog inside a single session: **22 seconds
+of tiptoeing at 5.88 studs a second left Scruffy asleep in its kennel with no
+chase at all; letting go of the sneak on that same lawn and walking at 15.97
+brought it out in 2.0 seconds.** Against a `notice` of 11.
+
+**IT DOES NOT POUNCE, and `wakeDelay` is what makes a crack a decision.** The
+beat between being disturbed and being come for is what lets a thief hear the
+dog stir and choose whether to finish or bail, rather than discovering the
+outcome of a coin flip. The stir is stamped only on a FRESH disturbance and
+never re-stamped by later ones -- otherwise continuous noise would postpone
+the dog indefinitely, which is precisely backwards. What continued noise DOES
+buy is a longer alert.
+
+**THE WATCHER LIVES IN `HeistService` AND NOT IN `GuardDog`, and that is a
+dependency decision rather than a filing one.** Deciding whether a dog should
+react needs to know where every player is, which plot they are standing in,
+how fast they are moving and who owns the ground. `GuardDog` knows none of
+those, should not learn them, and would need PlotService and Players to do it;
+HeistService already has all four. GuardDog keeps what a dog IS -- asleep or
+up, alerted or quiet, and how good its ears are (`GuardDog.noticeSpeed`).
+
+**TWO REASONS TO BE IN THE KENNEL SHARE ONE PICTURE, deliberately.** A dog
+sleeping off a chase and a dog sleeping because nobody is home look identical
+from the pavement, and they should: what a thief needs to read is *this plot
+is unguarded right now*, not why.
+
+**AND THE OWNER-HOME HALF OF ALL THAT WAS WRITTEN DOWN AND NEVER BUILT.**
+`Config.DOG_WATCH`'s own comment has said, in as many words, since the
+watcher was designed: *"OWNER HOME -- the dog is AWAKE and keeps its owner
+company. It barks at an intruder and marks them, and does not chase: the
+owner is the defence, and two things that can both hard-stop one thief on one
+lawn is how a plot becomes a wall."*
+
+There was no such branch anywhere. `releaseDog` asked `GuardDog.isReady` and
+nothing else, so a present owner got a chasing dog AND a tag of their own --
+the two independent hard-stops that sentence exists to prevent, on the one
+plot that already has somebody standing in it. **SECOND INSTANCE OF "A RULE
+THIS FILE ASSERTS IS NOT A RULE THE CODE KEEPS"**, after the number row that
+claimed three times over to decline an unheld item and did not. Both were
+found by reading the comment beside the code rather than by anything failing,
+which is the only way this class is ever found.
+
+**AND THE SECOND DEFECT WAS THE OPPOSITE OF THE FIRST: OWNER-HOME WAS NOT
+MERELY FAILING TO BE GENTLER, IT WAS THE MOST DANGEROUS LAWN IN THE GAME.**
+`shouldBeUp` is `onGuardDuty(dog) or dog.ownerHome or (heard and stirred)`,
+and `isWatching` was built on it -- so `ownerHome` SHORT-CIRCUITED the third
+clause, which IS the `wakeDelay` grace. A dog whose owner was home, or one on
+guard duty, was "watching" before any noise at all and could be let off on
+the first noisy tick with no beat to hear it stir. The beat is what this file
+calls load-bearing -- *"the beat between being disturbed and being come for is
+what makes a crack a DECISION rather than a coin flip"* -- and it was being
+skipped on exactly the two plots with the most reason to be dangerous.
+
+**THE FIX IS A SPLIT, AND THE TWO HALVES ARE GENUINELY DIFFERENT QUESTIONS.**
+`shouldBeUp` is POSTURE: what a dog looks like from the pavement, and it
+keeps all three reasons, because being paid for, being pleased to see you and
+having heard something all put a dog on its feet. `isAlerted` is READINESS:
+it heard you, and `wakeDelay` has passed. `isWatching` reads the second only,
+so a dog may be UP for any of three reasons and LET OFF for exactly one.
+Verified across fourteen cases including the two that were the bug, and
+including the one that had to NOT regress -- guard duty still suppresses a
+chase cooldown, while a bone nap still cannot be suppressed by it.
+
+**THE MARK IS IN `HeistService` AND NOT IN `GuardDog`, AND THAT LINE IS THE
+FILE'S OWN.** GuardDog owns the states it puts a DOG into and knows nothing
+about players; a Highlight on somebody's character is a fact about a PLAYER.
+So GuardDog gained `bark` -- the noise, pulled out from under `chase`, which
+had owned it for as long as noticing somebody and going after them were the
+same event -- and HeistService gained `markIntruder`.
+
+**A BARK ALONE WOULD HAVE SWAPPED ONE FAILURE FOR ITS OPPOSITE.** An owner
+looking the other way hears a dog and finds nothing, so a plot goes from a
+wall to free. The mark is the same Highlight a carrying thief already wears,
+in the alarm tone, expiring with `alertSeconds` -- and the THIEF can see it
+too, deliberately, because this game prefers a tell to a fight: being marked
+is information to act on rather than a punishment you cannot see. It is
+refreshed rather than stacked, and the expiry checks a stamp, or an early
+bark's timer would strip a mark a later bark had just renewed.
+
+**SAME BARK FOR BOTH, WHICH IS A DECISION RATHER THAN A SAVING.** Giving the
+alarm-only case its own noise would teach the street to tell "somebody is
+home" from "nobody is" BY EAR, from safety, and stop anybody crossing a
+guarded lawn. The tell for that is meant to be the dog's POSTURE, read from
+the pavement before you commit.
+
+**A RESIDENT'S OWNER IS NEVER HOME, so none of this touches the supply
+side** -- every unclaimed plot still has an enforcer on it, which is what
+makes robbing work on a quiet server. That is also why the branch is safe to
+add without re-tuning anything: it is unreachable on the plots the economy
+actually runs on.
+
+**WHAT IS VERIFIED AND WHAT IS NOT.** The predicates are exact, on real
+functions over the real field shape: 14 of 14 cases, including owner-home and
+guard-duty-with-no-noise now correctly refusing. `bark` was driven on a dog
+built by `GuardDog.build` at a real tier -- it never sets `chasing`, it
+rouses a sleeping dog rather than barking from inside a kennel, and it is a
+silent no-op at level 0. What has NOT run is the branch END TO END, because
+the watcher skips the plot's own owner when looking for an intruder
+(`player ~= owner`), so reaching it needs a SECOND PLAYER on a first player's
+lawn. Same wall as the rest of the heist system.
+
+**AND A THING FOUND WHILE TRYING TO TEST IT, RECORDED BECAUSE IT LOOKS LIKE A
+BUG AND MAY BE ONE.** On a freshly rebirthed street every resident dog is
+LEVEL 0 -- measured, all fourteen parts invisible and the nameplate unset --
+because a resident's defences derive from the AVERAGE INCOME LEVEL of the
+humans present, and a player who has just rebirthed is level 0. So the entire
+watching-dog mechanic is inert for exactly as long as it takes them to climb
+back. That is defensible (a beginner should not meet a Mastiff) and it also
+hands a rebirthing veteran a street of undefended pigs, which is the half
+nobody chose.
+
+**THE WATCH LOOP IS PCALLED AS A WHOLE.** It touches every plot and every
+player ten times a second, and a dog is a cosmetic-grade feature next to the
+heist loop running underneath it. Same argument as the pcall around
+`Decor.prewarm`: a lawn ornament may never stop the server starting, and a
+watchdog may never stop the game being played.
+
+**WHAT THIS COSTS, STATED PLAINLY: A LAWN IS NOW DANGEROUS GROUND TO ANYBODY
+WHO IS NOT ITS OWNER.** Crossing a neighbour's yard at walking pace wakes
+their dog and can cost 1.5 seconds of being seen off, whether or not you meant
+to rob anybody. That is intended -- it is what the alley shortcut between two
+yards should cost, it is what makes tiptoe worth buying, and the street is
+sixteen studs away. If it ever reads as too harsh the lever is `notice` rather
+than the watcher: nothing about the mechanism assumes a particular threshold.
 
 **HIDING IS A PLACE NOW, NOT A COSTUME, and that dissolved the problem
 rather than patching it.** Disguising AS a wheelie bin was wrong twice over
@@ -2632,8 +5194,8 @@ nameplate, so both check guard duty first.
 
 **The sprinkler is a joke and must stay one.** No damage, no stun, no slow: it
 nudges trespassers toward the gate and soaks them, and they can walk straight
-back in. Loitering is not a mechanical problem here -- `STEAL_COOLDOWN` and
-`STEAL_MAX_PER_VICTIM` already make camping a plot pointless -- so the
+back in. Loitering is not a mechanical problem here -- `STEAL_COOLDOWN`
+already makes camping a plot pointless -- so the
 irritation is social and the answer is too. Anything with teeth would be a
 fourth defence stacking on the fence, the dog and the locks, and it would bite
 during a steal attempt, since a thief cracking a lock is stood still on that
@@ -2761,6 +5323,42 @@ contains every item whether held, empty or shelved. An empty tile is hidden and
 its number is simply unused, so nothing renumbers when stock changes; only a
 drag reorders. One list drives the layout AND the keys, which is the only
 reason a tile's number can be trusted to match where it sits.
+
+**THE NUMBER ROW CLAIMED TO DO NOTHING FOR AN ITEM YOU DO NOT HOLD AND DID
+TWO THINGS INSTEAD.** This file states that rule twice -- once beside the
+shared-key argument for Q, once as "the client declines to ask rather than
+firing something it knows is wrong" -- and the comment at the call site in
+`ClientMain` stated it a third time. Nothing implemented it. Pressing the
+number of an empty slot NAMED the item over the bar and asked the server to
+draw one, which refused by name: two messages about something you do not
+have, from a tile that is not even on screen, and the loudest way in the game
+to discover you had run out.
+
+**THE FIX IS IN `HotBar.itemForKey` AND EXPLICITLY NOT IN `keyOrder`.**
+Filtering unheld items out of the ORDER is the tempting one-line version and
+it reintroduces the bug this file already records: only SHELVING closes the
+row up, because a stock running out is not the player's doing, so that slot
+keeps its number and the number goes unused. Renumber on stock and the key
+that threw a 1,500-coin plunger a moment ago throws a 22,000-coin zapper. So
+the arrangement still contains the item, `keyFor` still hands its key to the
+shop card advertising it, and only the PRESS declines -- `itemForKey` returns
+nil, which the caller already treats as "not yours to press".
+
+Note it tests `held` rather than `button.Visible`. They agree today, but
+visibility is a fact about the screen and this is a question about stock --
+and `shouldShow` hides the whole bar while the shop is open, which must not
+be allowed to silently change what a key means.
+
+Verified by driving the real module: with a Golden Bone in stock key 3 means
+`golden` and its tile is visible; with the stock at zero the same key means
+nil and the tile is hidden while `keyFor` goes on reporting 3; buying one
+back restores it; and no other key changed what it meant in any of those
+states.
+
+**THE GENERAL SHAPE IS THE LESSON: A RULE THIS FILE ASSERTS IS NOT A RULE THE
+CODE KEEPS.** Three separate places said this behaviour was true, which is
+exactly what stopped anybody checking. Anything stated here as "the client
+does not ask" is worth actually pressing once.
 
 **A KEY LABEL PAINTED BY A RENDER FUNCTION GOES STALE THE MOMENT THE
 ARRANGEMENT MOVES.** The label is dual-purpose -- the key normally, a state
@@ -3068,6 +5666,26 @@ parents are the SCROLLS, so any outside stroke on a first child of one needs
 clearance. When it turns up again, check every scrolling ancestor rather than
 the container that happens to be on screen.
 
+**AND IT TURNED UP A THIRD TIME, ON THE OTHER AXIS.** The inventory's tab
+rail was sized 44 to hold a 40-tall selected tab -- correct for the BUTTON
+and four pixels short of the button plus its border. Measured: the tab sat
+flush on the rail's bottom edge at y 153.5 and its stroke wanted 156.5, so
+three pixels were cut off along the exact line where the item grid begins,
+and it read as the CARDS clipping the TABS rather than as a rail too short
+for its own contents.
+
+Two things worth carrying forward. **SIZE A CLIPPING BOX AGAINST THE TALLEST
+STATE, NOT THE RESTING ONE** -- an unselected tab is 34 and fits, so the bug
+only appears once somebody presses something. And **THE CLIP IS AT THE
+FRAME'S BOUNDS, NOT INSIDE ITS PADDING**, which is what makes padding the
+right instrument here: it moves the content inward while the clip stays put.
+
+The first fix left ONE PIXEL under the bottom stroke and measured as
+passing. That is the same class of number as a label reporting `TextFits`
+true while touching its own frame edge, so it went to three -- verified
+across all five tabs in BOTH heights, ten cases, every one clearing top and
+bottom.
+
 **AND MEASURE BEFORE BELIEVING A DIAGNOSIS.** The front page was padded on the
 theory that its card borders were merging with the panel's own -- plausible,
 documented, and wrong: tinting the panel yellow at runtime and driving one
@@ -3278,6 +5896,62 @@ spoken for.** Tinting a whole row green fought the tree colour on its own
 border -- and that border is the only thing telling DEFEND from ROB now the
 stripe is gone. Two signals, two places: the outline says which tree, the pill
 says whether you can afford it.
+
+**EARN, DEFEND, ROB -- AND THE FIRST OF THOSE WAS ON A DIFFERENT SCREEN.** Earn
+Faster and Bigger Piggy Bank lived on the HUD, bottom right, while the six
+trees they compete with lived behind a shop tab. So the choice this whole
+economy is built on -- every coin into income is a coin not into a fence -- was
+split across two surfaces that were never visible at once, and only one side of
+it was ever priced in front of you. The tab's own comment already claimed the
+opposite: *"Both trees are shown side by side, always... that layout is the
+message."* It was two thirds true.
+
+**THE BAND GOES ACROSS THE TOP, NOT IN A THIRD COLUMN.** Three columns puts a
+1/3-width card against a 122-wide price chip, which leaves 162 pixels for
+"Bigger Piggy Bank" at 18px and truncates it. Full width also says the right
+thing about the relationship: EARN is not a third tree, it is what both trees
+are paid for.
+
+**ONE CARD BUILDER FOR ALL EIGHT ROWS.** A tree row and an EARN row are the
+same object -- name, explanation, level readout, price you press -- differing
+only in parent, edge colour, width and what pressing it fires, so
+`makeUpgradeCard` takes those four and `ensureRow` is a thin wrapper. A second
+near-identical builder is the copy that drifts, which this file already records
+for the mini piggy, `Decor.buildOne` and `RideSound`.
+
+**A FORTY-RUNG LADDER IS NOT A LADDER.** Pips are right for a tree because four
+rungs with three filled is a thing you SEE. Income and capacity run to
+`Config.maxLevel` -- 20, and 40 once rebirths open the ceiling -- and measured
+on the card this actually renders on, 40 pips share 337 pixels: **4.4 pixels
+each carrying a 2px outline**, which is noise rather than a readout. Those two
+rows get a continuous bar with `Lv N / M` printed on it, because at that
+resolution the bar alone cannot tell 31 from 33 and the level is the thing
+being decided on.
+
+**AND THE KIND IS PASSED IN RATHER THAN DERIVED FROM `max`, which is the point
+rather than laziness.** A threshold would flip these two rows from pips to a
+bar partway through the game, at whatever rebirth pushed the ceiling past it --
+so a player would watch a control they already knew change shape for no reason
+they could see. The caller knows which it wants; `max` only knows a number that
+grows.
+
+**THE TREE COLUMNS SCROLL NOW, AND THE BAND IS WHY.** EARN costs them 158
+pixels. Three rows of 96 plus gaps is 318, against a column window of 354 on a
+desktop and 164 on a phone held sideways -- so the trees fitted by 36 pixels
+before the band and would have overflowed by 154 after it. A UIListLayout does
+not clip and does not error, it keeps drawing past the edge, which is exactly
+how the tab rail once ate Rides and Collection whole. Verified both ways:
+desktop `canvas 354 = window 354, scrolls=false`; at a 470-tall panel,
+`window 164, content 318, scrolls=true`.
+
+**THE EARN ROWS PAINT FROM `StateUpdate`, NOT `UpgradeState`, and the ceiling is
+why that matters.** Income and capacity have always been pushed with the coins
+they are priced against; moving the control did not move the data. `maxIncome`
+and `maxCapacity` grow with every rebirth, so the bar's own LENGTH is state
+rather than a constant -- which is the half a naive port would have hardcoded.
+
+**AND THE HUD CORNER WENT FROM 210x172 TO 210x50.** Bottom right is the SHOP
+button and nothing else.
 
 **A SPINNING SHOP ICON IS CHOPPY, AND NO AMOUNT OF TUNING FIXES IT.** Every
 icon turned on one shared Heartbeat -- a per-frame `PivotTo` on a Model inside
@@ -3654,8 +6328,8 @@ presses a key at all, so a live-looking button that does nothing is the
 version of this bug that most players would actually meet.
 
 The map as it stands: Q dodge / trick, B opens the shop, V opens the garage,
-Escape closes the panel, F2 the admin console, and the number row is the
-hotbar. G IS FREE: it threw the cheapest bone held, which was a second route
+I opens the bag, Escape closes the panel, F2 the admin console, and the
+number row is the hotbar. G IS FREE: it threw the cheapest bone held, which was a second route
 to using an item and a special case for exactly one of the four catalogues --
 so bones were the only things on that bar with a shortcut, and BoneService was
 the only purchase message in the game that taught a control. Every item is
@@ -3987,9 +6661,13 @@ rm.Parent = RS.Shared
 local RideModel = require(rm)
 ```
 
-This is what makes `screen_capture` usable on generated geometry, which is
-otherwise unseeable — the capture tool is edit-time only and the models only
-exist at runtime. **DESTROY BOTH CLONES IN THE SAME SCRIPT.** A clone left in
+This is what makes `screen_capture` usable on generated geometry in EDIT,
+where the models do not otherwise exist. Note the claim this entry used to
+carry -- that the capture tool is edit-time only -- is FALSE and was never
+tested: `screen_capture` works perfectly well during Play, with or without an
+explicit camera, and it is the only way to see a world that is built at run
+time. The clone trick is still what you want for previewing a builder without
+starting a server; it is not the only route to a picture. **DESTROY BOTH CLONES IN THE SAME SCRIPT.** A clone left in
 `Shared` gets reconciled by Rojo into a SECOND instance under the real name,
 and a duplicate ModuleScript with stale source sitting next to the live one is
 about as nasty as this project gets — `require` picks one of them and there is
@@ -5300,6 +7978,71 @@ EVERY INSTANCE A PROBE MIGHT ADDRESS" exists to prevent, hit while verifying
 a fix for something else. They are `Snout`, `Title`, `Rate`, `Track`,
 `Track.Fill` and `Track.Amount` now.
 
+**THERE WERE FIVE PALETTES, AND THE FIFTH WAS THE ONE THE SWEEP COULD NOT
+SEE.** The entry below counts four -- ClientMain, ShopStyle, Rebirth and
+AdminPanel -- and every one of them is a CLIENT file. The physical boards are
+built by `SocialService`, on the SERVER, so they were in neither the repaint
+nor the contrast audit that followed it: eighteen hardcoded colours, including
+two near-blacks at hue 264 and 272, which are VIOLETS against a palette whose
+every neutral sits between 21 and 39. Nothing looked broken. They simply were
+not from this game, and the only reason nobody noticed is that they are the
+one interface you read from forty studs away.
+
+**THE SCOPE RULE THAT MISSED THEM IS THE LESSON: "the UI files" IS NOT THE
+SAME SET AS "the files that build UI."** Anything that constructs a GuiObject
+is in the palette's scope wherever it runs. `Theme` requires nothing, so a
+server service may take it -- what a server service may NOT do is reach for
+anything animated or per-viewer, which belongs on the client for the reason
+the moat and the animated skins already record.
+
+**THEY WENT TO PAPER, WHICH IS THE THEME'S OWN ARGUMENT ARRIVING AT THE ONE
+PLACE THAT HAD NEVER HEARD IT.** *Cream reads as a label stuck on the world;
+navy reads as a window cut into it* -- and these are literally labels stuck on
+the world, a printed sheet nailed to a wooden board. The dark backdrop filled
+the panel edge to edge, which reads as a SCREEN set into the timber. The sheet
+is now inset far enough to leave the wood showing all round, which is what
+says it was pinned there.
+
+**THE INSET IS 16px ON ONE AND 20px ON THE OTHER, WHICH IS THE SAME 0.8
+STUDS.** This file already records that the two boards do not share a pixel
+scale -- 20 per stud on the leaderboard against 25 on the poster -- and that
+copying a pixel height across renders it visibly smaller on one of them. A
+border is the same trap in the other axis. Choose it in studs, multiply up.
+
+**GOLD ON ONE, RED ON THE OTHER, AND THAT PAIR IS THE WHOLE DIFFERENCE AT
+FORTY STUDS.** Both headings used to be the same gold, so the only thing
+separating the two boards from down the street was portrait against landscape.
+RICHEST PIGGIES is money and stays gold; MOST WANTED is the board that says
+somebody is coming for you and takes the alarm red, which is also its own
+bounty's colour. Both in the darkened `_INK` forms -- raw gold on paper
+measures 1.42:1, a heading you can see is there and cannot read.
+
+**THE PHOTO WELL STAYS DARK AND ITS FRAME WENT FROM GOLD TO INK.** A well is a
+hole and holds a photograph, so it keeps `SLAB_DEEP` while everything round it
+went light -- the same call the shop's icon wells make. The gold frame round it
+was correct on a dark board and is the wrong half of the contrast on a light
+one; a printed photo has a dark border, and that line is also what stops the
+dark well bleeding into the cream.
+
+**AND THE AUDIT THAT PASSED THEM FIRST TIME WAS READING THE WRONG GROUND.** A
+probe that takes `BackgroundColor3` sees neither the row stripe's TRANSPARENCY
+nor the sheet's gloss GRADIENT, and this file has already been caught by the
+gradient half once. Composited properly -- stripe over sheet, gradient
+evaluated at each label's own vertical position -- the leaderboard's gold
+AMOUNT column, the one number that board exists to show, measured **3.49**
+against 3.98 on the alternate rows: passing, and visibly different every other
+line. The stripe only has to separate rows, so it was lightened until that
+column reads 3.83/4.25. Worst pair across both boards is now 3.83 over 23
+labels.
+
+**WHAT IS NOT VERIFIED IS HOW THEY LOOK.** Every number above is measured and
+none of it was seen. The reason recorded here was that `screen_capture` is
+edit-time only -- WHICH IS NOT TRUE, and was assumed rather than tried. It
+captures the running viewport in Play, and accepts a camera position there
+too, so anything in this file excused as unseeable because it is built at run
+time is in fact one call away from a picture. The boards specifically are
+still unseen; they are simply no longer unseeABLE. Same bucket as the Midnight Modern.
+
 **THERE WERE FOUR PALETTES, AND THE MEASUREMENT IS WHAT SETTLED IT.** The
 complaint was that the theming is inconsistent, which was true and is worth
 stating as a number rather than as an impression: `ClientMain` alone carried
@@ -5474,12 +8217,37 @@ like a dashboard.
 **GOLD MEANS MONEY AND PINK MEANS THE PIG, AND THAT IS THE WHOLE COLOUR
 SYSTEM.** The coin badge was a gold ground with a gold coin on it, which is
 one gold too many -- the coin had nothing to stand out against and the
-numerals fought the hue they were printed on. The badge is paper now, the coin
-is the only gold object on it, and the PIGGY BANK panel is PINK. That last one
-matters more than it sounds: everything on this HUD was cream and gold, which
-is coins, so the one readout about the pig itself had no colour of its own and
-read as another cream card. Gold is what you have banked; pink is what the pig
-is still holding.
+numerals fought the hue they were printed on. It went paper with the coin as
+the only gold object on it, and the PIGGY BANK panel went the same way with a
+drawn snout: pink and gold go on OBJECTS, never under them.
+
+**AND THEN THERE WAS ONE READOUT, BECAUSE THE PIVOT LEFT THE TWO PRINTING THE
+SAME NUMBER.** The sentence that used to close this entry -- *"gold is what
+you have banked; pink is what the pig is still holding"* -- was the whole
+justification for having a badge AND a panel: two balances, two readouts,
+each in its own colour. `data.vault` merged into `data.coins`, and from that
+moment the top-centre badge and the top-right bar were the same figure twice.
+That is worse than redundant for a nine-year-old: two numbers side by side
+assert that they are different things, and a player who goes looking for the
+difference finds none.
+
+So the badge merged INTO the panel and kept its shape -- icon, then figure,
+read left to right, with the snout standing where the coin pip stood. The
+panel's title row is the balance now; the bar's own label stopped repeating
+it and names the CAPACITY instead (`of 3.0M`), or says `FULL` and what to do
+about it, which is the one state of that bar that asks for an action.
+Measured live: 30px figure against the badge's 30, nothing shrinking at
+`999.9M` (84 of 140) or on the full line (208 of 276).
+
+The colour rule survives the merge intact, and is in fact what made it cheap:
+the card is paper, the gold is the BAR FILL, and the pink is the track behind
+it. Gold in a pink pig, one object each.
+
+**THE HUD MAY ONLY EVER SHOW A BALANCE ONCE.** That is the rule this is
+recorded for. There is one balance in this game; a second element printing it
+-- however well drawn -- is a second claim about what a player has, and the
+next one added will be a second claim that can also be STALE, since these are
+painted from separate pushes.
 
 **A CHIP IS A HOLE FOR AN ICON, SO IT HAS TO BE NEAR-BLACK.** `Theme.SLAB` was
 (64, 46, 58), which at hue 327 is a PLUM -- reported, accurately, as "a purple
@@ -5575,6 +8343,76 @@ not how you know.
 chips are.** An emoji carries its own colours and ignores `TextColor3`, so a
 red siren on a red disc is a red smudge.
 
+**A STEAL PROMPT NOW SAYS WHAT IT IS WORTH, and until now the one number
+that decides the whole action was the only thing not on screen.** The card
+named the lock and timed the hold, so a thief knew exactly how long they were
+committing to and nothing about what for -- and two neighbouring piles look
+much the same from the gate. "Is that one worth the run home" is the decision
+this entire game is built around.
+
+**IT IS THE SERVER'S OWN ARITHMETIC, NOT A SECOND MODEL OF IT.** The plot
+publishes its uncollected pile as `Config.PLOT_VAULT_ATTRIBUTE` from inside
+`PlotService.updatePile` -- the one function the accrual tick, a steal, a
+collect and `release` all already go through -- and the client multiplies it
+by `Config.getStealFraction` and the live event multiplier, which is exactly
+what `attemptSteal` does. Verified equal to the server's figure on a seeded
+250,000 pile: 12,500 shown, 12,500 computed.
+
+Presentation only, exactly like the steal HOLD one line above it in
+`refreshStealPrompts`. The server re-derives the real amount on the trigger and
+never reads a word of this.
+
+**IT REVEALS NOTHING THAT WAS NOT ALREADY PUBLIC.** The coin pile on the lawn
+has always shown how full a piggy is -- that is what it is for -- so this makes
+an existing signal precise rather than adding a new one. It is the VAULT and
+never banked coins, which are not stealable and are nobody's business.
+
+**PRINTED WITH A "~" BECAUSE IT IS ALWAYS AN UNDER-ESTIMATE.** The pile fills
+while the hold runs, so the real take is a second or two of accrual larger than
+the quoted one. That is the right way round for a number a nine-year-old is
+deciding on, and the tilde is what stops it reading as a promise.
+
+**"EMPTY" IS A REFUSAL MOVED FORWARD.** `whyCannotSteal` rejects an empty piggy
+outright, so the prompt used to sell a hold of up to twelve seconds that was
+always going to end in a rejection toast. Same for carrying: you cannot rob
+anybody while holding loot, and the card now says `Holding 87.5K . run home`
+instead of looking completely available and finding out afterwards. **A PROMPT
+THAT OFFERS AN ACTION THE SERVER WILL REFUSE IS THE SILENT-FAILURE RULE WEARING
+A BUTTON.**
+
+**THE CARD READ `ObjectText` ONCE AT BUILD, AND THAT WAS A LATENT BUG UNDER
+EVERY PROMPT IN THE GAME.** It is built on `PromptShown` and never looked at
+the prompt again, so anything a service wrote while a player was already
+standing there never appeared. Caught here because the carrying line was being
+written correctly and the card went on showing the lock -- but nothing about it
+was specific to stealing. Both the amount and the detail are watched now.
+
+**THE AMOUNT SITS ON THE DETAIL ROW, NOT THE VERB ROW, AND THE MEASUREMENT
+CHOSE THAT.** The verb row carries "STEAL" at 60px and the key pill at 46px in
+a 176px budget, so a late-game "~999.9M" at 56px left the verb two pixels to
+truncate into. The detail row carries a 94px lock line in the same space. The
+detail gives up width while an amount is shown and takes it back when it is
+not, which is what lets the carrying line use the whole row -- measured at
+160px of 172.
+
+**AND IT IS PLAIN GOLD TYPE RATHER THAN A PILL, because the key chip on the row
+above is already a gold pill** and a second one beside it reads as two controls
+rather than as a price. `Theme.GOLD_INK` and not `Theme.GOLD`: raw gold on the
+paper card measures **1.42:1**, a label you can see is there and cannot read.
+The darkened form measures 4.87.
+
+**THE FIRST BOXES OVERLAPPED BY 20 PIXELS AND NOTHING SHOWED IT.** Right-aligned
+text does not draw outside its own frame, so an 84-wide amount sitting across
+the detail's last 20px was invisible -- and would have started clipping the
+first time either string grew. Caught by printing both boxes' own edges rather
+than by looking at the card. Now 64 wide, D66..164 against A176..240.
+
+**THE MECHANISM IS GENERIC ON PURPOSE.** `Config.PROMPT_AMOUNT_ATTRIBUTE` takes
+an ALREADY-FORMATTED STRING -- the caller owns the wording, the same split
+`CosmeticsService.awardTokens` makes with its optional `why` -- because PromptUI
+is Shared and has no formatter in it. Handing it a number would mean a second
+copy of one. Any prompt about money can carry one; today only the steal does.
+
 **THE HOLD SHOWS HOW LONG IT IS, which is the HUD half of the vault-lock
 problem.** A default prompt draws the same filling circle whether the hold is
 three seconds or nine -- the reason that whole tree was once invisible to the
@@ -5584,11 +8422,149 @@ with a real countdown, so a thief knows they are committing to twelve seconds
 BEFORE they commit. Verified on a 6s hold: bar 0.19 -> 0.80 linear, countdown
 running down to 1.2s.
 
+**AND A BADGE OVER THE PIGGY ANSWERS IT FROM THE PAVEMENT, WHICH IS THE ONE
+PLACE THE PROMPT CANNOT REACH.** Everything above is the prompt learning to
+say things up front, and it runs into a wall: a ProximityPrompt only exists
+once you are ALREADY STANDING ON THE LAWN -- past the fence, past the dog, and
+well past the point the decision was worth making. Every remaining reason a
+piggy was off limits lived in the refusal, so the way to find out somebody had
+been robbed a minute ago was to walk up their drive and hold their lock.
+
+`Shared/RobBadge.luau` hangs a card over each piggy naming the reason, in the
+same ORDER `whyCannotSteal` asks its questions -- shield, then cooldown, then
+empty -- which is the only thing keeping the badge and the refusal from ever
+contradicting each other. Reorder one and reorder both.
+
+**IT USED TO ONLY EVER SAY NO, AND THAT RULE HAS BEEN DELIBERATELY
+REVERSED.** It read: *there is no ROB ME state, because eight piggies all
+advertising themselves is wallpaper rather than information -- the useful
+signal is the exception, so a badge means stay away and no badge means go.*
+
+That is right for somebody who already knows this street and wrong for the
+game, for a reason that survives the objection: **A STEAL TAKES A FRACTION OF
+A PIG, SO WHICH PIG IS THE ENTIRE DECISION.** "No badge" says a plot is
+available and says nothing about whether it is worth crossing the road for --
+which was the one question this whole feature exists to answer from the
+pavement. A new player cannot read an absence at all; they have not been
+taught what a missing badge means.
+
+So a robbable pig carries its own figure in gold and the street reads as a
+shopping list. The refusals are unchanged and still win: a reason to stay
+away always beats a number. It shows what is IN the pig and never what you
+would take -- the take needs the thief's own Bigger Sack level and the live
+event multiplier, and re-deriving those in the badge would be a second
+implementation of a number the steal prompt already computes.
+
+**AND IT HAS TO BE PER VIEWER, WHICH IS WHAT DECIDED THE WHOLE SHAPE.** The
+per-victim cooldown is per THIEF, so two players standing at the same piggy
+genuinely disagree about whether it can be robbed and THERE IS NO SHARED ANSWER
+A SERVER COULD PAINT ON A SIGN. Each client is told its own cooldowns by
+`StealCooldown` -- fired to one thief on a completed grab, which is the only
+thing that starts one -- and derives the rest from attributes it already has.
+Same shape as the animated skins and the moat: the server publishes a fact and
+every machine works out the picture itself.
+
+**THE SHIELD RIDES AN ATTRIBUTE ON THE PLAYER, NOT ON THE PLOT.** It is a fact
+about the player, a Player instance already replicates to everybody, and
+putting it on the plot would have meant answering "which plot" at join -- which
+is a race, because the shield starts when HeistService sees the player and the
+plot is seated separately. It is written in `workspace:GetServerTimeNow`
+seconds and never `os.clock`, because a client reads it and os.clock is a
+process uptime that means nothing across the wire. `openSeason` zeroes the
+published copy as well as the private one, or every badge in the server goes on
+saying NEW HERE through the whole test.
+
+**A MODULE, AND THE 200-LOCAL CEILING IS NOT A STYLE NOTE.** Written inline it
+wanted three top-level locals in `ClientMain`, and that chunk had none left:
+the HUD died with *Out of local registers when trying to allocate
+buildBustScene* -- an innocent variable two thousand lines from the change, and
+the ENTIRE HUD rather than the badge, because the chunk never compiles and
+nothing gets built. Measured, this is the second time in one session. It is
+required and started in ONE STATEMENT holding no local at all, and it needs
+nothing from `bindPlot` -- it finds its own plots, since it is a function of
+plot attributes, the Player list and one remote.
+
+Verified live on a borrowed plot: vault 0 renders EMPTY, vault 5,000 hides the
+badge outright, a pushed cooldown counts 54 -> 48 in WARN_INK and then clears
+itself, `openSeason` takes the published shield to 0, and the badge sits at
++11 from the body -- above the 14.15 hat anchor, so it clears the tallest hat
+in the shop rather than growing out of somebody's top hat.
+
+**`STEAL_MAX_PER_VICTIM` IS RETIRED, AND THE COOLDOWN DOES THAT JOB ALONE.** It
+was a lifetime cap of 3 on how many times one thief could ever rob one victim
+in a session, sitting on top of the 60-second cooldown. Two things were wrong
+with it. **It is the only limit in this game a player could permanently
+EXHAUST** -- in an eight-player server that is 21 robberies and then the whole
+offence tree has nothing left to point at, which is the "every session is
+identical" fault session events exist to fix, arriving from the other
+direction. And **it could not be read from outside**: a cooldown counts down
+and a cap just says no, forever, with the refusal the only place it was ever
+mentioned -- so it was exactly the kind of rule the badge above cannot show.
+
+What it was protecting is anti-camping, and the cooldown always did that part:
+a thief standing on one lawn earns nothing for 60 seconds and the getaway is 53
+studs each way. Note the retirement took the comment in `Config` that justified
+the SPRINKLER by naming both caps, and the one in `openSeason` that listed
+three restrictions -- copy outlives the thing it describes, and the admin
+console's own "cooldown/limit pair(s)" line was the third.
+
 **`PromptButtonHoldEnded` IS NOT "CANCELLED".** It fires at hold COMPLETION as
 well as on release -- this file has it measured at 0.584s on a 0.6s prompt,
 firing before `Triggered` -- so PromptUI only ever uses it to stop the fill.
 Anything that treated it as an abort would be the same bug that made every
 steal in the game silently fail for weeks.
+
+**A PROMPT WELDED TO THE PERSON IT IS ABOUT IS OFFERED TO THAT PERSON, AND
+THE TAG PROMPT SHIPPED THAT WAY FOR THE WHOLE LIFE OF THE PROJECT.**
+`attachLoot` welds the stolen piggy to the THIEF's own root and parents the
+tag prompt to it -- correctly, because the prompt exists so that everybody
+ELSE can reach it, and a thief must be taggable by any bystander. The side
+effect nobody had looked at is that the one player who must never press it
+stands permanently at distance zero, well inside `TAG_DISTANCE`, with
+`RequiresLineOfSight` off. So a carrying thief spent every getaway with
+"Tag Thief!" over their own name, and pressing it worked.
+
+**IT WAS NOT AN EXPLOIT, AND SAYING SO PRECISELY IS WHAT SIZED THE FIX.** A
+self-tag returns the coins to the VICTIM and stuns the thief, so it profits
+nobody and there is no economy hole to close -- the first instinct was to
+write it up as a way to escape a chase, and that is simply wrong: dropping
+the loot and being stunned is worse than being caught. What it actually cost
+is a nine-year-old with a stray thumb losing an entire robbery to a button
+the game should never have drawn, which is the same argument the last-copy
+sell guard already makes. It also produced NONSENSE IN BOTH DIRECTIONS,
+which is how it was noticed: `tagger ~= victim` is true when the tagger is
+the thief, so the same player got "Tagged by yourself! You dropped the loot"
+AND "Nice tag! You saved Grandpa Grunt's coins" in the same second, while the
+victim was told somebody had tagged themselves.
+
+**THE GUARD IS AN IDENTITY TEST AND IT IS THE FIRST LINE OF `tag`, ABOVE THE
+CARRY LOOKUP.** Every other guard in that function is about the chase -- is
+there loot, is the thief dodging, is the tagger close enough. This one is
+about WHO IS ASKING, which is a different question and has to be answered
+before any of them. The dog path passes a Resident TABLE as the tagger, so
+`tagger == thief` is false by construction there and the catch is untouched
+-- verified after the fix, dog catch at t4.5 with the loot gone and the thief
+stunned.
+
+**AND THE CLIENT STOPS OFFERING IT, because a silent server refusal is the
+worse half of this bug rather than the fix for it.** A button on your own
+chest that does nothing when held is exactly the failure this file refuses
+above all others. `PromptUI` disables every ProximityPrompt inside the LOCAL
+player's own character -- a client `Enabled` write affects only that
+machine's view, which is the only per-player prompt Roblox offers -- and the
+server refuses regardless, so this is the client declining to ask for a known
+no, the same split the number keys and the dodge-while-riding suppression
+already make. It walks the character AND connects `DescendantAdded`, because
+the loot arrives mid-robbery a slice at a time, long after the character
+exists.
+
+**THE RULE IS GENERAL ON PURPOSE: A PROMPT ON YOUR OWN BODY IS NEVER FOR
+YOU.** Exactly one prompt in this game lives on a character and it is this
+one. Writing the narrow version -- "skip prompts whose kind is tag" -- would
+put heist knowledge inside a renderer and leave the next self-prompt to be
+found the same way this one was. Verified live: `TagPrompt Enabled=false` on
+the thief's own client while carrying, a forged `tag(plr, plr)` refused with
+the loot kept and WalkSpeed still 12, and the dog's catch unaffected.
 
 **TWO PROMPTS SHARE A PART IN TWO PLACES, AND THE GAME ALREADY GUARANTEES
 THEY ARE EXCLUSIVE.** collect/steal sit on a piggy's Body and hide/dig on a
@@ -5798,8 +8774,15 @@ bike. It fitted inside the original 92 by a single pixel -- the exact margin
 that reports `TextFits` true and still touches the frame edge elsewhere.
 
 **The top-centre HUD column is FULL, and it is measured in offsets, not in
-what a screenshot looks like.** The stack is coin counter 16..78, toast 88,
-rebirth 96..148, carry banner 140..192, patrol banner 200..238. The patrol
+what a screenshot looks like.** The stack was coin counter 16..78, toast 88,
+rebirth 96..148, carry banner 140..192, patrol banner 200..238. The coin
+counter has since merged into the piggy bank panel, and that band was free
+until the first-session objective card took 50..94 of it -- squeezed between
+a topbar covering the first 58 pixels and a rebirth button pinned at 96, with
+no arrangement clearing both. The rebirth button was deliberately left at 96
+rather than moved up into the gap,
+because shuffling a control players already know the position of, to close a
+gap nothing is drawn in, costs more than the gap does. The patrol
 banner went in at 86 and landed straight on the rebirth button -- the same
 collision documented below, second time. The carry banner is the one that
 settles where anything new goes: it is on screen exactly when a chase is
@@ -5863,6 +8846,84 @@ from a broken feature, and that is exactly how the bug above survived.
 ---
 
 ## Not yet verified
+
+**THE ROBBING PIVOT IS VERIFIED AT EVERY END THAT ONE PLAYER CAN REACH, AND
+THE ROBBERY ITSELF IS NOT.** Measured live after the change: the server boots
+clean with no collect prompts and a steal prompt on all eight piggies; a
+schema-16 save with coins 1000, vault 250, medals 7 and tokens 5 reconciles to
+coins 1250 and loot 12, and reconciling it again changes nothing; the dev save
+joined with its old banked total and stealable pile merged into one balance;
+a dev loot grant moved the roll note from 1332 to 1382 through
+`SetService.award` and its registered pusher; a dev coin change with NO push
+behind it was repainted on the lawn and the HUD by the economy tick inside two
+seconds; open season dropped the shield without error; and the plaster's two
+strips sit on the forehead clear of both eyeballs.
+
+What has NOT run is the thing the pivot is about: a real steal against a real
+second player, so the doubled payout, the loss cap clamping a fourth grab, the
+revenge multiplier paying out and the grudge clearing, the loot landing on a
+delivery, and the plaster appearing on a robbed pig have all only been
+reasoned about. Same wall as the rest of the heist system. The first
+two-player session should watch those five things before anything else.
+
+**THE GRASS IS VERIFIED AND THE ESTIMATE HELD.** `perStuds` 45 on the flat
+ground measures **1,463 tufts in a world of 3,112 BaseParts**, against a
+prediction of about 1,450 in 3,050 made from the 80-density measurement of 819
+in 2,428. It reads as grass rather than as weeds. Tufts are the largest single
+class of part in this game by a distance -- 47% of everything in the world --
+so that is the number to watch if the density is ever raised again.
+
+Also confirmed on the same build: 46 mesh canopies, and the piggy back on its
+24 MeshParts rather than the primitives fallback.
+
+**THE CRACK IS VERIFIED ON EVERY PATH ONE PLAYER CAN REACH.** Driven through
+the real prompt and the real remotes rather than a module handle: a half-second
+hold opens the panel on a resident's pig, which renders the neighbour's name,
+SLICE 1 / 5, a full gauge, no cap line (a resident has no allowance to draw)
+and a first slice of 882 against a pig of 44,129, which is 2.00%. Five slices
+landed clean, the zones narrowing 0.692 / 0.561 / 0.454 / 0.368 / 0.298 of the
+dial exactly as `getCrackWindow` predicts at lock level 1, the slice figures
+growing 882 / 1.2K / 1.7K / 2.2K / 3.0K, the next-slice segment on the gauge
+growing 0.020 / 0.028 / 0.039, the label over the carried piggy keeping up, and
+the pile on the lawn draining 44,129 to 37,282. A deliberate MISS after two
+slices kept the 2.1K, printed *"2 of 5 slices. 2.1K coins, worth 4.2K at
+home"*, then *"The lock snapped back!"*, sounded the plot alarm and let the dog
+off -- which caught the carrying thief, tagged them, and returned the coins to
+the pig. Server boots clean and fourteen probes threw nothing.
+
+**AND THE EMPTY-HANDED CATCH HAS NOW RUN, reached through the watcher rather
+than through a fumbled slice.** It was recorded here as unverified for exactly
+as long as the only route to it was a prompt, and Studio's
+`ProximityPromptService` had stopped showing ANY prompt part way through that
+session -- `PromptShown` never fired again for any piggy on any plot, at any
+distance, with `Enabled` true on the client, and it did not come back across
+two restarts of Play. The watching dog opened a second door to the same
+branch: walk onto a resident's lawn empty-handed and stand still. Measured, a
+chase at t3.7 then the catch at 7.2 studs against a `catchRadius` of 7.0,
+`WalkSpeed` 0.00 for `Config.DOG_WATCH.scareStun`, the toast *"Old Man Hamm's
+dog saw you off!"*, and a clean recovery to 16.
+
+**A FEATURE CAN BE THE TEST HARNESS FOR THE ONE BEFORE IT**, which is worth
+recording as a habit: the branch that could not be reached through the front
+door was reachable through the next thing built on top of it, and neither was
+written with that in mind.
+
+Still unrun, for the usual reason: the cap line on the gauge and the alarm
+reaching a victim both need a second player, since a resident has neither. And
+a TITAN hearing a tiptoe -- `notice` 0 against a sneak of 5.6 -- is derived
+rather than measured, because every resident on a fresh street is a Scruffy
+and the only tier-3 dog in reach belongs to the tester, who is its owner.
+
+**A TIER-5 MOAT HAS NEVER BEEN MEASURED AGAINST THE LAWN GRASS.** The tufts
+take no veto on a plot because the driveway is in front of the lawn and the
+moat is outboard of it -- the first half is measured at zero tufts on tarmac
+across every plot, the second is derivation. Forcing a moat needs
+`PlotService.buildFence(plot, 5)` against a REAL plot table, and the MCP
+sandbox cannot supply one: requiring a service there hands back a fresh module
+whose `start()` never ran, which this file already records for PoliceService.
+It wants either a dev command on the admin panel or one player buying the
+fifth fence tier. If grass ever does appear in the water, the fix is an
+`accept` on the two `scatterOn` calls, not a new rule.
 
 **The patrol is verified except for the half that needs two players.** Measured
 live on the server across three full cycles: the car enters, drives the street
@@ -6036,6 +9097,61 @@ ejects a DIFFERENT player has only been reasoned about -- and hiding while
 CARRYING, which is the rule reversal the whole rework turns on and needs a real
 robbery to produce loot.
 
+**THREE JUMP HARNESSES IN A ROW LIED, IN THREE DIFFERENT DIRECTIONS, AND THE
+LESSON IS THAT EMULATING AN INPUT IS NOT THE SAME AS MEASURING A CAPABILITY.**
+Trying to answer "can a player jump this fence" by driving a character:
+
+  * **`Humanoid.Jump = true` LATCHES.** It stays true until the humanoid
+    lands and then fires again, so setting it once and walking away is a HELD
+    key rather than a press. It produced 6.6 to 7.9 studs of "one jump" rise
+    on a 4.0 jump, and crossings that no single jump could make.
+  * **Clearing it a frame later cancels it.** `Jump = true` then `Jump =
+    false` on the next frame read 0.00 to 0.18 studs of rise, which looks
+    exactly like a fence that blocked the jump.
+  * **`ChangeState(Jumping)` grants a free jump IN MID-AIR.** Called on a
+    loop it is a flying test: 13.1 studs of rise on a 4.0 jump, crossing
+    everything.
+
+Every one of those returns a confident number. What works is measuring the
+CAPABILITY on open ground away from any wall: settle until there is a real
+floor and the velocity is near zero, jump once, and read the peak of the
+COLLISION hull. That gives a stable `JumpHeight + 0.1` every time and is what
+the fence arithmetic is built on.
+
+**WHAT IS STILL OPEN IS WHETHER HOLDING JUMP AGAINST A WALL CLIMBS IT.** One
+run suggested a character re-jumping on every contact can stack height against
+a fence. It came from a harness that was also granting free air-jumps, so it
+is not evidence, and no fence height would fix it if it were true. It wants a
+human holding the spacebar against a tier 5 fence, which is the one test
+nothing in this toolchain can perform.
+
+**THE CLIMB IS VERIFIED END TO END NOW, INCLUDING THE HALF THIS SECTION SAID
+COULD NOT BE.** It used to read *"what has not been seen is a player getting
+over the top and down the far side... the mantle is the one part of this that
+wants a human on the keyboard"*. Two attempts had moved the character zero
+studs in six seconds, which was a stuck harness rather than a stuck mechanic.
+Driven properly -- `Humanoid:Move` bound ABOVE the control module at
+`RenderPriority.Character + 1`, which is the trap the dodge dash already
+records and exactly what had stalled it -- the whole crossing reads:
+
+    t 0.0  localX -38.00  Running   ws 16.00   outside, in the alley
+    t 0.8  localX -35.84  Climbing  ws  5.60   on the ladder, 16 x 0.35
+    t 1.6  localX -35.84  Climbing  ws  5.60   y 8.70, above the 6.50 barrier
+    t 2.3  localX -32.32  Running   ws 16.00   over the top, INSIDE the yard
+
+Also verified: placement projected onto the nearest segment and clamped off
+its ends in all three corners, refusals for a hoppable tier and for standing
+nowhere near a fence, one-per-player retiring the previous ladder, the fade
+starting at 17.6s and the ladder gone by 20.1, and a fence rebuilt underneath
+one taking it with it and releasing the registry.
+
+WHAT IS STILL UNVERIFIED IS THE CLIMB WHILE CARRYING, which is the case the
+whole design is tuned around: the climb out has to be dearer than the climb
+in. It needs loot, so it needs a second player. The multiplier itself is not
+in doubt -- it is a factor on `currentSpeed`, which the carry penalty already
+scales -- but the FEEL of a 2.4-second climb with a dog coming has never been
+had by anybody.
+
 The heist system has never been tested end to end, because it needs two players:
 the chase, lock-vs-lockpick timing, the guard dog catch, friend bonus, revenge
 markers and the most-wanted hat are all unproven.
@@ -6067,8 +9183,10 @@ Verified as of the last session: persistence survives a restart (including
 schema reconcile), and rebirth's happy path — power wiped, house and skins kept,
 rebirth-locked skins becoming wearable.
 
-`Config.NEW_PLAYER_SHIELD` is **15 minutes**. Two players who join and immediately
-try to rob each other will see nothing happen and conclude the feature is broken.
+`Config.NEW_PLAYER_SHIELD` was **15 minutes** when that warning was written
+and is **120 seconds** now, ending outright on the player's first robbery.
+Two players who join and immediately try to rob each other are refused for
+at most two minutes, and only until whichever of them steals first.
 
 ---
 

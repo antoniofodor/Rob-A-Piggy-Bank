@@ -13,6 +13,9 @@
 ]]
 
 local Lighting = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Config = require(ReplicatedStorage.Shared.Config)
 
 local WorldService = {}
 
@@ -23,8 +26,19 @@ local GROUND_X = 780
 -- Deep enough for two yards that now run 70 studs back from their plot
 -- centres, plus the backdrop treeline beyond them.
 local GROUND_Z = 560
-local GRASS = Color3.fromRGB(118, 158, 88)
-local GRASS_DARK = Color3.fromRGB(96, 134, 72)
+-- TAKING THE TEXTURE OFF MADE THESE TOO BRIGHT, AND THAT IS ARITHMETIC
+-- RATHER THAN TASTE. A material MULTIPLIES `Part.Color`, so for as long as
+-- the ground carried a generated grass texture these values were being pulled
+-- down by roughly a third before anybody saw them. Flat, they render at their
+-- literal value for the first time -- and (118, 158, 88) rendered flat is an
+-- acid pastel that shouted over the trees, the hills and the piggy.
+--
+-- So they came down about 30%, which is what the texture had been doing for
+-- free. Anything that ever puts a texture back here has to put them BACK UP
+-- by roughly the same amount, or the street goes dark: the pair of decisions
+-- is one decision, and this comment is the only place that says so.
+local GRASS = Color3.fromRGB(82, 114, 60)
+local GRASS_DARK = Color3.fromRGB(70, 98, 52)
 
 local function clearDefaults()
 	for _, child in ipairs(workspace:GetChildren()) do
@@ -49,13 +63,27 @@ local function buildGround()
 	ground.Size = Vector3.new(GROUND_X, 8, GROUND_Z)
 	ground.Position = Vector3.new(0, -4.5, 0)
 	ground.Anchored = true
-	ground.Material = Enum.Material.Grass
+	-- The ground surface, both halves from one place in Config so the whole
+	-- street switches together. A MaterialVariant is never BUILT here and
+	-- could not be: those properties are plugin-gated, so a runtime write
+	-- throws from a real Script while passing in the command bar. Rojo owns
+	-- any variant under `src/MaterialService/`; this only names one, and a
+	-- name MaterialService does not hold falls back to the base material.
+	ground.Material = Config.GRASS_MATERIAL.material
+	ground.MaterialVariant = Config.GRASS_MATERIAL.name
 	ground.Color = GRASS
 	ground.TopSurface = Enum.SurfaceType.Smooth
 	ground.Parent = folder
 
 	-- A ring of slightly darker grass so the play area has an edge instead of
 	-- fading into an infinite green plane.
+	--
+	-- DELIBERATELY NOT THE LAWN VARIANT. It is LeafyGrass rather than Grass,
+	-- so it could not carry one anyway -- a MaterialVariant only applies to
+	-- its own BaseMaterial -- and that is the right answer rather than a
+	-- limitation to work around. This band exists to read as rougher ground
+	-- BEYOND the mown street, and giving it the same painted lawn surface as
+	-- the gardens would delete the edge it is here to draw.
 	local border = Instance.new("Part")
 	border.Name = "Border"
 	border.Size = Vector3.new(GROUND_X + 140, 6, GROUND_Z + 140)

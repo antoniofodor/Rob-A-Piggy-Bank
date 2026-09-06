@@ -762,7 +762,7 @@ function RideService.push(player: Player)
 			name = spec.name,
 			order = spec.order,
 			cost = spec.cost,
-			medals = spec.medals,
+			loot = spec.loot,
 			blurb = spec.blurb,
 			-- Shown as a percentage rather than a multiplier: "+35% on the
 			-- street" is a sentence a nine year old reads once, where "x1.35"

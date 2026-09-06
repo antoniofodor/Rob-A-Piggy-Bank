@@ -788,6 +788,53 @@ function RidePose.buildSequenceFor(key: string): KeyframeSequence?
 	return buildSequence(key, spec, delta, if tricking then spec.trick else nil)
 end
 
+-- EVERY POSE KEY THE RUNTIME CAN ASK FOR, WHICH IS NOT THE SAME SET AS THE
+-- ONE THE RIDE CATALOGUE DESCRIBES -- and that difference shipped a live bug.
+--
+-- `Config.animationKeys` derived its list from `Config.RIDES` alone: a style
+-- and, if the ride has a manual, its trick. But `apply` is handed the
+-- PUBLISHED style, which carries the stance -- "scrambler@onehand" -- so the
+-- moment stances shipped there were eight keys the runtime asks for that
+-- nothing in the pipeline knew existed. The startup warning could not name
+-- them, `animdump` did not build them, and so none of them was ever uploaded.
+-- In Studio that is invisible, because registering a sequence works there;
+-- live, every rider who picked a style lost their pose entirely.
+--
+-- It lives HERE and not in Config because this file owns the key grammar --
+-- `RidePose.key` writes the "@", `splitStance` reads it, `TRICK_SUFFIX` owns
+-- the "#". A second copy of that grammar in Config is exactly the near-
+-- identical duplicate that drifts, which `RideSound` already proved by
+-- keeping one and breaking within the hour.
+function RidePose.animationKeys(): { string }
+	local keys: { string } = {}
+	local function add(key: string)
+		if not table.find(keys, key) then
+			table.insert(keys, key)
+		end
+	end
+
+	for rideKey, ride in pairs(Config.RIDES) do
+		local style = ride.style or rideKey
+		-- The plain pose, then the same pose in every stance the style
+		-- offers. `RidePose.stances` returns the default first with an empty
+		-- key, which `RidePose.key` maps back to the bare style -- so the
+		-- loop covers both without a special case.
+		for _, stance in ipairs(RidePose.stances(style)) do
+			local posed = RidePose.key(style, stance.key)
+			add(posed)
+			-- A stance may change what the TRICK looks like, so a ride with a
+			-- manual needs a trick sequence per stance as well as the base
+			-- one. Rides with no trick get neither.
+			if ride.trick then
+				add(posed .. TRICK_SUFFIX)
+			end
+		end
+	end
+
+	table.sort(keys)
+	return keys
+end
+
 local function getAnimationId(key: string): string?
 	if ids[key] then
 		return ids[key]
@@ -820,6 +867,34 @@ local function getAnimationId(key: string): string?
 			buildSequence(key, spec, delta, if tricking then spec.trick else nil))
 	end)
 	if not ok or type(id) ~= "string" then
+		-- A STANCE FALLS BACK TO THE POSE IT IS A VARIANT OF, NEVER TO NOTHING.
+		--
+		-- `specFor` has always degraded an unknown stance to the base pose;
+		-- this is the same rule applied one layer down, and its absence is
+		-- what made the live bug so much worse than it needed to be. Without
+		-- it a rider whose stance has no uploaded id gets NO track at all --
+		-- not the classic pose, but the rig's rest pose, which on a bike
+		-- stands them bolt upright a foot behind their own handlebars.
+		--
+		-- With it, the worst an un-uploaded stance can do is look like the
+		-- ride's ordinary pose. The style they picked is missing, which is
+		-- true and is what the warning says; the ride is not broken.
+		local bareStyle = (splitStance(style))
+		if bareStyle ~= style then
+			-- Name the key it actually fell back TO, not the style it was
+			-- derived from: a trick lands on "<style>#trick" rather than on
+			-- the plain pose, and a message that says otherwise sends the
+			-- next person looking at the wrong row of Config.ANIMATIONS.
+			local fallbackKey = bareStyle .. (if tricking then TRICK_SUFFIX else "")
+			local fallback = getAnimationId(fallbackKey)
+			if fallback then
+				warn(("[RidePose] no animation for '%s', so it is riding the "):format(key)
+					.. "'" .. fallbackKey .. "' pose instead. Upload the stance and put "
+					.. "its id in Config.ANIMATIONS.")
+				ids[key] = fallback
+				return fallback
+			end
+		end
 		-- Never fail silently. Without this the ride still works and only the
 		-- pose is missing, which is exactly the kind of half-broken that gets
 		-- mistaken for a design decision.

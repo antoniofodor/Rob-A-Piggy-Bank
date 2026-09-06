@@ -28,6 +28,7 @@ local ShopFront = require(ReplicatedStorage.Shared.ShopFront)
 local PiggyModel = require(ReplicatedStorage.Shared.PiggyModel)
 local RideModel = require(ReplicatedStorage.Shared.RideModel)
 local BoneModel = require(ReplicatedStorage.Shared.BoneModel)
+local GrassTuft = require(ReplicatedStorage.Shared.GrassTuft)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 
 local NeighborhoodService = {}
@@ -42,6 +43,26 @@ local KERB = Color3.fromRGB(198, 196, 188)
 local TRUNK = Color3.fromRGB(96, 68, 48)
 local LEAF = Color3.fromRGB(84, 132, 66)
 local LEAF_2 = Color3.fromRGB(102, 150, 78)
+
+-- The two shades of canopy, as a MULTIPLY rather than as a colour.
+--
+-- The ball canopy took LEAF and LEAF_2 outright. A MeshPart multiplies its
+-- Color against the texture it carries, so the meshed tree gets the same two
+-- shades as a near-white tint instead: white is the map as painted, and the
+-- second is a gentle darkening. Handed LEAF itself the canopy loses the baked
+-- shading between its leaf clumps, which is the only thing making it read as
+-- clumps at all. See the note over `Config.TREE_MESH`.
+local CANOPY_TINT = Color3.fromRGB(255, 255, 255)
+local CANOPY_TINT_2 = Color3.fromRGB(214, 234, 198)
+
+-- The painted lawn surface, built by WorldService before this service runs.
+-- Named rather than asked for: a dangling MaterialVariant falls back to the
+-- BaseMaterial, so a name that did not build renders as the stock grass that
+-- shipped before it existed.
+local LAWN_VARIANT = Config.GRASS_MATERIAL.name
+
+-- How much daylight a canopy has to leave between itself and a back fence.
+local CANOPY_CLEARANCE = 1.5
 
 -- Flat overlays must sit ABOVE the ground, never flush with it.
 --
@@ -170,7 +191,95 @@ end
 -- generic concrete strip per column would sit on top of it. See
 -- PlotService.setHouseLevel.
 
-local function buildTree(x: number, z: number, seed: number)
+-- ============================================================
+-- THE GROVE
+-- ============================================================
+--
+-- Twenty-six trees close the view behind the plots, which makes them the
+-- largest thing in anybody's picture of this street after the grass itself.
+-- What shipped was a brown box with a green ball balanced on top of it:
+-- correct from a plan view, and a lollipop from the pavement.
+
+local treeTemplates: { [string]: BasePart }? = nil
+local treeChecked = false
+
+-- Built ONCE and cloned per tree, because `CreateMeshPartAsync` yields and a
+-- web call inside a build loop is twenty-six web calls to say one thing. The
+-- same shape as `PiggyBank.ensureMeshTemplates` and `PlayerGear.prewarm`.
+--
+-- AND THE TEXTURE IS APPLIED HERE, BECAUSE THAT CALL DOES NOT CARRY ONE. It
+-- takes a mesh id and returns an untextured part however the asset was
+-- authored, which is how the first build of this shipped flat canopies with
+-- nothing in the log to say so -- the failure was that the trees looked
+-- worse, which is the quietest kind this file records. Inside a pcall,
+-- because `MeshPart.MeshId` is capability-gated from a real Script and its
+-- neighbour is a reasonable thing to expect the same of.
+--
+-- `RenderFidelity` IS `Automatic` HERE, WHICH IS THE OPPOSITE OF THE PIGGY'S
+-- AND IS THE POINT RATHER THAN AN OVERSIGHT. The pig is `Precise` because it
+-- is read from the pavement and is the one object a robbery is about, so
+-- shedding its triangles with distance would show. A tree is backdrop and
+-- there are a hundred of them, and shedding triangles with distance is
+-- exactly what you want from a hundred backdrop objects.
+local function ensureTreeTemplates(): { [string]: BasePart }?
+	if treeChecked then
+		return treeTemplates
+	end
+	treeChecked = true
+
+	local spec = Config.treeMesh()
+	if not spec then
+		return nil
+	end
+
+	local ok, result = pcall(function()
+		local insert = game:GetService("InsertService")
+		local made: { [string]: BasePart } = {}
+		for _, entry in ipairs(spec.parts) do
+			local part = insert:CreateMeshPartAsync(entry.id,
+				Enum.CollisionFidelity.Box, Enum.RenderFidelity.Automatic)
+			if entry.texture then
+				part.TextureID = entry.texture
+			end
+			made[entry.part] = part
+		end
+		return made
+	end)
+
+	if not ok then
+		-- NEVER FAIL SILENTLY. A grove that quietly stayed as lollipops after
+		-- somebody pasted two ids is indistinguishable from ids that did not
+		-- take.
+		warn(("[NeighborhoodService] the tree mesh could not be loaded, so the "
+			.. "box-and-ball trees are standing instead: %s"):format(tostring(result)))
+		return nil
+	end
+
+	treeTemplates = result
+	return treeTemplates
+end
+
+local function treeScale(spec: any, seed: number): number
+	return spec.scales[(seed % #spec.scales) + 1]
+end
+
+-- The furthest a canopy can reach horizontally from its own trunk, at any yaw.
+--
+-- THE DIAGONAL, NOT THE DEPTH, because every tree is turned on its own axis
+-- for variety: a canopy twelve studs wide by ten and a half deep presents its
+-- CORNER at forty-five degrees, which is eight studs rather than five. Taking
+-- the depth alone gives a clearance that happens to be right for the trees
+-- facing the street and wrong for the ones that are not, which is an
+-- asymmetry no screenshot catches. Exactly the tube man that broke the side
+-- fence on the four left-hand lawn slots and not the four right-hand ones.
+local function canopyReach(spec: any, scale: number): number
+	return math.sqrt(spec.width ^ 2 + spec.canopyDepth ^ 2) / 2 * scale
+end
+
+-- What shipped before the mesh. Kept, and reached whenever `Config.TREE_MESH`
+-- has no ids in it, so a fresh empty place plus this repo still builds the
+-- world this repo has always built.
+local function buildBoxTree(x: number, z: number, seed: number)
 	local height = 9 + (seed % 3) * 2
 	scenery("Trunk", Vector3.new(1.6, height, 1.6),
 		CFrame.new(x, GROUND_Y + height / 2, z), TRUNK, Enum.Material.Wood)
@@ -180,6 +289,48 @@ local function buildTree(x: number, z: number, seed: number)
 		CFrame.new(x, GROUND_Y + height + canopy / 3, z),
 		if seed % 2 == 0 then LEAF else LEAF_2, Enum.Material.Grass)
 	top.Shape = Enum.PartType.Ball
+end
+
+local function buildTree(x: number, z: number, seed: number, scaleOverride: number?)
+	local spec = Config.treeMesh()
+	local templates = spec and ensureTreeTemplates()
+	if not (spec and templates) then
+		buildBoxTree(x, z, seed)
+		return
+	end
+
+	-- The grove picks its scale off the seed, which is what gives it a height
+	-- spread. A street tree is placed against measured clearances instead, so
+	-- it is handed one.
+	local scale = scaleOverride or treeScale(spec, seed)
+	-- A turn per tree, stepped by the golden angle so consecutive seeds never
+	-- land near each other. It costs nothing and it is the whole difference
+	-- between a grove and a hundred copies of one tree.
+	local base = CFrame.new(x, GROUND_Y, z)
+		* CFrame.Angles(0, (seed * 2.39996) % (math.pi * 2), 0)
+
+	for _, entry in ipairs(spec.parts) do
+		local template = templates[entry.part]
+		if template then
+			local part = template:Clone()
+			part.Name = entry.part
+			-- SIZE BEFORE CFRAME. Resizing a MeshPart scales it about its own
+			-- centre, so a part seated first and scaled afterwards moves off
+			-- the spot it was seated on.
+			part.Size = entry.size * scale
+			part.CFrame = base * CFrame.new(entry.offset * scale)
+			part.Anchored = true
+			-- Everything in this file is scenery a chase has to be able to run
+			-- through, and a cloned mesh does not inherit that from `scenery`.
+			part.CanCollide = false
+			part.CanQuery = false
+			part.CastShadow = false
+			if entry.part == "Canopy" then
+				part.Color = if seed % 2 == 0 then CANOPY_TINT else CANOPY_TINT_2
+			end
+			part.Parent = folder
+		end
+	end
 end
 
 local function buildStreetFurniture(m: any)
@@ -289,7 +440,12 @@ local GROVE_ROWS = {
 	-- Depths are measured from the BACK FENCE, so the houses -- which all
 	-- stand inside it -- are clear by construction. The first row is close
 	-- enough to shut the sightline behind a plot without leaning over it.
-	{ depth = 14, shift = -0.5, reach = 0, step = 1 },
+	-- 14 while the canopy was a ten-stud ball. The meshed tree's canopy is
+	-- half as wide again, so the front row moved back by the difference: the
+	-- trees are bigger, so the same amount of green stands in front of the
+	-- same amount of sky, and the row keeps its full inward jitter rather
+	-- than half of it piling up against the clamp below.
+	{ depth = 22, shift = -0.5, reach = 0, step = 1 },
 	{ depth = 76, shift = 0.1, reach = 1, step = 1 },
 	{ depth = 102, shift = -0.4, reach = 2, step = 2 },
 }
@@ -300,6 +456,142 @@ local GROVE_ROWS = {
 local function scatter(seed: number, spread: number): number
 	local n = math.sin(seed * 12.9898) * 43758.5453
 	return (n - math.floor(n) - 0.5) * spread
+end
+
+-- Grass along the kerb.
+--
+-- THE BAND IS DERIVED FROM WHAT IS ALREADY STANDING OUT THERE rather than
+-- chosen. It begins outboard of the lamp posts and the wheelie bins, which
+-- sit on the 1.8-stud verge line at |z| 9.8, and stops short of the boards at
+-- `boardZ` and the four shops set back behind them. So it is exactly the
+-- strip of verge that nothing else occupies -- and it is the strip a player
+-- walking down the pavement spends the whole walk looking at.
+--
+-- DRIVEWAYS ARE VETOED, because a driveway crosses this band rather than
+-- running beside it: `buildDriveway` lays tarmac from the kerb to the fence
+-- line, so every plot column punches a hole straight through the strip.
+-- Grass growing out of somebody's driveway is the class of thing nobody files
+-- a report about and everybody sees.
+local function buildVergeGrass(m: any)
+	local nearZ = m.roadHalfWidth + 3
+	local farZ = m.boardZ - 3
+	if farZ <= nearZ then
+		return
+	end
+	local depth = farZ - nearZ
+
+	-- Half a driveway plus a stud, so a blade never leans over the edging.
+	local halfDrive = Config.DRIVEWAY_WIDTH / 2 + 1
+	local function offDriveway(pos: Vector3): boolean
+		for col = 0, m.perRow - 1 do
+			if math.abs(pos.X - columnX(m, col)) < halfDrive then
+				return false
+			end
+		end
+		return true
+	end
+
+	-- Kept well inboard of the tunnel mouths, which is where the verge stops
+	-- being verge and becomes hillside.
+	local fromX = m.tunnelWestX + 24
+	local toX = m.tunnelEastX - 24
+
+	for i, side in ipairs({ -1, 1 }) do
+		GrassTuft.scatterRect(
+			CFrame.new((fromX + toX) / 2, GROUND_Y, side * (nearZ + depth / 2)),
+			toX - fromX, depth, folder, 4000 + i, offDriveway)
+	end
+end
+
+-- ============================================================
+-- STREET TREES
+-- ============================================================
+--
+-- Trees down the verge as well as behind the plots, so the neighbourhood has
+-- them rather than just the backdrop.
+--
+-- THE SIGHTLINE IS WHAT CONSTRAINS THIS, NOT THE SPACE. A thief decides which
+-- piggy is worth crossing the road for from the PAVEMENT -- that is what the
+-- rob badge, the coin pile and the vault tell are all for, and this file
+-- already measures how much of a pig reads over each fence tier. A tree is
+-- taller than any fence, so one planted opposite a gate blanks exactly the
+-- thing the decision is made on. Measured before planting: 69% of a pig reads
+-- from the kerb, and that number is the one this must not move.
+--
+-- So they go where the lamp posts and the bins already go: the stretch of
+-- verge BETWEEN two driveways, which belongs to no plot. That keeps every
+-- trunk a plot-half away from the line a viewer looks down.
+--
+-- AND THEY ARE SMALLER THAN THE GROVE, WHICH IS A MEASUREMENT RATHER THAN A
+-- STYLE CHOICE. `canopyReach` is the DIAGONAL, so a grove tree at its
+-- shipped scales reaches 9.2 to 11.6 studs. The free band beside a shop is
+-- `(PLOT_SPACING - DRIVEWAY_WIDTH) / 2` less the shop's own half width and
+-- forecourt -- about 20.5 studs -- so a grove tree fits it with under two
+-- studs to spare on both sides, which is not a fit, it is a coincidence
+-- waiting for the next spacing edit. At 0.75 the reach is 5.99 and there are
+-- four studs clear either side.
+local STREET_TREE = {
+	scale = 0.75,
+	-- Verge depth. The lamp posts and bins stand on the 1.8 line at |z| 9.8
+	-- and the boards are at `boardZ`; this sits between them.
+	z = 19,
+	-- Out from a gap centre. The free band runs from the shop's edge to the
+	-- driveway's, and this is its middle rather than a number that looked
+	-- right.
+	offset = 21,
+}
+
+local function buildStreetTrees(m: any)
+	local spec = Config.treeMesh()
+	local reach = if spec then canopyReach(spec, STREET_TREE.scale) else 6
+	local perRow = Config.PLOTS_PER_ROW
+
+	-- Where a canopy may not reach: a driveway crossing the verge, and the
+	-- gap centres, which is where the shops and the boards stand.
+	local halfDrive = Config.DRIVEWAY_WIDTH / 2 + 1
+	local SHOP_HALF = 11 -- 20 wide plus its two-stud forecourt overhang
+	local function clear(x: number): boolean
+		for col = 0, perRow - 1 do
+			if math.abs(x - Config.plotColumnX(col)) < halfDrive + reach then
+				return false
+			end
+		end
+		for col = 0, perRow - 2 do
+			if math.abs(x - gapX(col)) < SHOP_HALF + reach then
+				return false
+			end
+		end
+		return true
+	end
+
+	local xs = {}
+	-- Two per gap, either side of whatever is standing in it.
+	for col = 0, perRow - 2 do
+		table.insert(xs, gapX(col) - STREET_TREE.offset)
+		table.insert(xs, gapX(col) + STREET_TREE.offset)
+	end
+	-- And on past the last plot, where the verge runs to the hillside with
+	-- nothing on it at all. Stopped short of the tunnel mouth by the canopy's
+	-- own reach, or the end trees stand buried in the hill -- the same
+	-- mistake the grove's own rows already record.
+	local outer = Config.plotColumnX(perRow - 1)
+	local limit = m.tunnelEastX - 24 - reach
+	local x = outer + 30
+	while x <= limit do
+		table.insert(xs, x)
+		table.insert(xs, -x)
+		x += 30
+	end
+
+	local seed = 5000
+	for _, tx in ipairs(xs) do
+		seed += 1
+		if clear(tx) then
+			for _, side in ipairs({ -1, 1 }) do
+				buildTree(tx, side * STREET_TREE.z, seed, STREET_TREE.scale)
+			end
+		end
+	end
 end
 
 local function buildTrees(m: any)
@@ -315,6 +607,9 @@ local function buildTrees(m: any)
 	-- piggy.
 	local rear = m.rowZ + Config.YARD_DEPTH
 	local seed = 0
+	-- Read once rather than per tree: it walks and rebuilds a table, and this
+	-- loop runs about a hundred times.
+	local treeSpec = Config.treeMesh()
 
 	for _, side in ipairs({ -1, 1 }) do
 		for _, row in ipairs(GROVE_ROWS) do
@@ -333,8 +628,21 @@ local function buildTrees(m: any)
 					col += row.step
 					continue
 				end
-				buildTree(x,
-					side * (rear + row.depth + scatter(seed + 97, 8)), seed)
+				-- Jittered, then CLAMPED so no canopy can reach inside a
+				-- fence. That is the rule at the top of this function, and it
+				-- used to hold because the depths here were chosen against a
+				-- ten-stud ball; it holds by construction now.
+				--
+				-- Same argument as `Config.auditFences`: the failure is a
+				-- number, nothing errors, nothing looks wrong from a plan
+				-- view, and a canopy standing over somebody's piggy should
+				-- not be something the next edit to `scales` can bring back.
+				local depth = row.depth + scatter(seed + 97, 8)
+				if treeSpec then
+					depth = math.max(depth,
+						canopyReach(treeSpec, treeScale(treeSpec, seed)) + CANOPY_CLEARANCE)
+				end
+				buildTree(x, side * (rear + depth), seed)
 				col += row.step
 			end
 		end
@@ -376,6 +684,14 @@ end
 -- scenery a chase must be able to run through; a hill is the edge of the world
 -- and should stop you, and the banks are what stop a player wandering into the
 -- void and discovering it is a cupboard.
+-- LEFT ALONE WHEN THE LAWN CAME DOWN, AND THAT IS DELIBERATE. The ground and
+-- the lawn were darkened about 30% once the texture came off them, which
+-- leaves these NUMERICALLY LIGHTER than the ground they sit on -- the reverse
+-- of how they started. Looked at rather than reasoned about: a hill is a
+-- half-buried SPHERE and a lawn is a flat plane, so the two catch the 14:30
+-- sun completely differently, and on screen the hills still read as the
+-- deeper, further thing. Matching the numbers would make them read wrong.
+-- Compare on a capture before touching these.
 local HILL_ROCK = Color3.fromRGB(96, 122, 78)
 local HILL_ROCK_2 = Color3.fromRGB(84, 108, 68)
 local TUNNEL_STONE = Color3.fromRGB(128, 126, 122)
@@ -410,6 +726,11 @@ local function mound(x: number, z: number, radius: number, sink: number, seed: n
 		CFrame.new(x, GROUND_Y - radius * sink, z),
 		if seed % 2 == 0 then HILL_ROCK else HILL_ROCK_2, Enum.Material.Grass)
 	p.Shape = Enum.PartType.Ball
+	-- A hill is ground, so it wears what the ground wears. Without this the
+	-- surface stops dead at the foot of the mounds and the ends of the street
+	-- read as a different material from the middle of it.
+	p.Material = Config.GRASS_MATERIAL.material
+	p.MaterialVariant = LAWN_VARIANT
 	return p
 end
 
@@ -428,7 +749,12 @@ local function buildTunnel(m: any, mouthX: number, outward: number)
 	local massX = mouthX + outward * mass / 2
 
 	local function earth(name: string, size: Vector3, cf: CFrame)
-		return solid(name, size, cf, HILL_ROCK, Enum.Material.Grass)
+		local p = solid(name, size, cf, HILL_ROCK, Enum.Material.Grass)
+		-- Same reason as `mound`: this is the hillside the bore is driven
+		-- through, not a lining.
+		p.Material = Config.GRASS_MATERIAL.material
+		p.MaterialVariant = LAWN_VARIANT
+		return p
 	end
 
 	-- A block on each side of the bore and a plug behind the void, all of it
@@ -695,7 +1021,11 @@ function NeighborhoodService.start()
 	local m = metrics()
 	buildRoad(m)
 	buildTrees(m)
+	buildStreetTrees(m)
 	buildStreetFurniture(m)
+	-- After the furniture, so the band above can be read against what is
+	-- actually standing on the verge rather than against what was meant to be.
+	buildVergeGrass(m)
 	buildHills(m)
 	buildShops(m)
 

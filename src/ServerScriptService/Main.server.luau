@@ -25,11 +25,15 @@ local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+-- Only for the animation warning below. RidePose owns the pose key
+-- grammar, so it is the only thing that can say which keys exist.
+local RidePose = require(ReplicatedStorage.Shared.RidePose)
 local Services = script.Parent:WaitForChild("Services")
 local DataService = require(Services.DataService)
 local WorldService = require(Services.WorldService)
 local NeighborhoodService = require(Services.NeighborhoodService)
 local PlotService = require(Services.PlotService)
+local ResidentService = require(Services.ResidentService)
 local SocialService = require(Services.SocialService)
 local EconomyService = require(Services.EconomyService)
 local UpgradeService = require(Services.UpgradeService)
@@ -56,6 +60,12 @@ WorldService.start()
 -- After the ground exists, before the plots: pure scenery, no dependencies.
 NeighborhoodService.start()
 PlotService.start()
+-- Immediately after the plots exist and BEFORE anything can seat a player on
+-- one. `assign` runs the moment a player joins, and in Play Solo that is
+-- essentially at once -- so if this had not registered its claim handler
+-- yet, the first player into any server would move into a house with a
+-- resident still living in it.
+ResidentService.start()
 SocialService.start()
 EconomyService.start()
 UpgradeService.start()
@@ -111,6 +121,10 @@ SetService.registerPusher("effect", CosmeticsService.push)
 SetService.registerPusher("accessory", CosmeticsService.push)
 SetService.registerPusher("decor", CosmeticsService.push)
 SetService.registerPusher("ride", RideService.push)
+-- Loot is spent in two places -- the set panel, which SetService pushes
+-- itself, and the accessory roll, whose balance rides on CosmeticsService's
+-- push -- so an award has to reach both.
+SetService.registerLootPusher(CosmeticsService.push)
 
 -- Chests. Started after SetService, whose `owns`/`grant` it leans on for all
 -- five catalogues rather than writing a second grant path.
@@ -126,7 +140,7 @@ ChestService.registerBalancePusher(CosmeticsService.push)
 -- sees. Same shape and same reason as PassService's unset game-pass warning.
 do
 	local missing = {}
-	for _, key in ipairs(Config.animationKeys()) do
+	for _, key in ipairs(Config.animationKeys(RidePose.animationKeys())) do
 		if not Config.animationId(key) then
 			table.insert(missing, key)
 		end
@@ -136,6 +150,80 @@ do
 			.. "this server: " .. table.concat(missing, ", ")
 			.. ". Run the `animdump` admin command in Studio, publish each, and put "
 			.. "the ids in Config.ANIMATIONS.")
+	end
+end
+
+-- EVERY PRICE HAS TO FIT IN A PIG, AND THIS IS WHERE THAT GETS CHECKED.
+--
+-- The pig is the wallet now, so a price above capacity is not an expensive
+-- thing, it is an IMPOSSIBLE one -- and it fails silently, as a button that
+-- never lights. `Config.auditEconomy` walks both upgrade ladders, every
+-- catalogue and every rebirth gate against the largest pig the game can
+-- produce. See `Config.UPGRADE_COST_CEILING`: the trees hold by construction,
+-- so anything this finds is a catalogue price somebody has just typed.
+--
+-- Loud in STUDIO as well as live, unlike the animation warning above -- that
+-- one is about an asset that only fails when published, this one is about a
+-- number, and the moment to hear about a number is while you are editing it.
+do
+	local problems = Config.auditEconomy()
+	if #problems > 0 then
+		-- ONE WARN PER PROBLEM, AND NO ESCAPE SEQUENCES ANYWHERE IN IT. The
+		-- first draft of this joined them with a newline escape, and the
+		-- escape was rewritten in transit into a REAL newline before it
+		-- reached disk -- which ends the string literal mid-sentence and makes
+		-- Luau refuse the whole chunk. This file is Main, so the cost of that
+		-- is every service in the game rather than one warning. A format
+		-- string with no backslash in it has nothing to get wrong.
+		warn(("[Main] %d PRICES CANNOT BE PAID -- the pig cannot hold them, so "):format(#problems)
+			.. "nobody can ever buy them by earning. See Config.UPGRADE_COST_CEILING.")
+		for _, problem in ipairs(problems) do
+			warn("[Main]   " .. problem)
+		end
+	end
+end
+
+-- AND SO IS WHETHER ROBBING IS WORTH DOING AT ALL, which is the number this
+-- whole game is named after and the last one nothing checked.
+--
+-- The two audits above ask whether a price can be PAID. This one asks whether
+-- the activity that pays for them is worth performing, which is the question
+-- the economy was rebuilt around: before residents, robbing returned 7% of
+-- idle income at level 0, so standing on your own lawn was the optimal way to
+-- play a game about robbing people. Nothing errored then either.
+--
+-- It is the shape the other two already use because the failure is the same
+-- shape: a number somebody retunes for a good local reason, with the damage
+-- landing somewhere else entirely and nothing in the log to connect them. See
+-- Config.ROBBERY_ADVANTAGE.
+do
+	local problems = Config.auditRobbery()
+	if #problems > 0 then
+		warn(("[Main] %d ROBBERY BALANCE PROBLEMS. "):format(#problems)
+			.. "See Config.ROBBERY_ADVANTAGE and RESIDENTS.pigSeconds.")
+		for _, problem in ipairs(problems) do
+			warn("[Main]   " .. problem)
+		end
+	end
+end
+
+-- A FENCE HEIGHT IS A NUMBER TOO, and it fails the same silent way.
+--
+-- The fence stands on the world ground and the yard it encloses is a stud
+-- higher, so a tier can be hoppable from the lawn and not from the street --
+-- which nothing errors on and nothing looks wrong about. All three top tiers
+-- shipped in that band: getting in was refused and getting out was free, so
+-- the toll landed on the approach instead of the getaway, and the ladder that
+-- exists to cross a fence would have been selling a way over a wall anybody
+-- could step over. See Config.auditFences.
+do
+	local problems = Config.auditFences()
+	if #problems > 0 then
+		warn(("[Main] %d FENCE TIERS ARE HOPPABLE IN ONE DIRECTION ONLY. "):format(#problems)
+			.. "See Config.BASE_JUMP_HEIGHT and Config.LAWN_LIFT.")
+		for _, problem in ipairs(problems) do
+			warn("[Main]   " .. problem)
+		end
 	end
 end
 
@@ -151,17 +239,6 @@ ChestService.start()
 PlotService.registerBounceVeto(HeistService.isCarrying)
 -- Last: it reaches into every service above.
 AdminService.start()
-
--- Only the plot's owner can bank from it. The steal prompt on the same piggy
--- is wired by HeistService, and both re-check ownership server-side -- the
--- client only decides which of the two to draw.
-for _, plot in ipairs(PlotService.getAll()) do
-	plot.prompt.Triggered:Connect(function(player)
-		if plot.owner == player then
-			EconomyService.collect(player)
-		end
-	end)
-end
 
 local function onCharacterAdded(player: Player, character: Model)
 	local plot = PlotService.getPlot(player)
@@ -198,9 +275,6 @@ local function onPlayerAdded(player: Player)
 		return
 	end
 
-	-- Only show the prompt to the owner; nobody else has a reason to see it.
-	plot.prompt:SetAttribute("OwnerUserId", player.UserId)
-
 	SocialService.onPlayerAdded(player)
 	EconomyService.onPlayerReady(player)
 	UpgradeService.applyToPlot(player)
@@ -234,11 +308,11 @@ local function onPlayerAdded(player: Player)
 		onCharacterAdded(player, player.Character)
 	end
 
-	print(("[Main] %s joined -> Plot%d (%s coins banked, %s in vault)"):format(
+	print(("[Main] %s joined -> Plot%d (%s coins in the pig, session %d)"):format(
 		player.Name,
 		plot.index,
 		EconomyService.format(data.coins),
-		EconomyService.format(data.vault)
+		data.sessions or 0
 	))
 end
 

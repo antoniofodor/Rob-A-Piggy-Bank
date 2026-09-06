@@ -13,9 +13,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local DEFINITIONS = {
-	-- Client asks to bank their uncollected coins. Server decides how much.
-	CollectRequest = "RemoteEvent",
-
 	-- Client asks to buy an upgrade: ("income" | "capacity").
 	PurchaseRequest = "RemoteEvent",
 
@@ -27,6 +24,15 @@ local DEFINITIONS = {
 
 	-- How much loot the player is currently carrying (0 when empty-handed).
 	CarryUpdate = "RemoteEvent",
+
+	-- Server tells ONE thief that one victim is on cooldown for them, as
+	-- (victimUserId, expiresAtServerTime). Fired on a completed grab and on
+	-- nothing else, because a completed grab is the only thing that starts one.
+	--
+	-- Per client, because this cooldown is per THIEF per victim: two players
+	-- standing at the same piggy can genuinely disagree about whether it can be
+	-- robbed, so there is no shared answer to broadcast.
+	StealCooldown = "RemoteEvent",
 
 	-- Client asks to buy a defence or offence upgrade, by key.
 	UpgradeRequest = "RemoteEvent",
@@ -40,6 +46,17 @@ local DEFINITIONS = {
 
 	-- Sent only to a robbery's victim: which plot to go and hit back.
 	RevengeMarker = "RemoteEvent",
+
+	-- The session arc, pushed per player: their own rap sheet, the floor it
+	-- has to clear before a patrol comes looking, and who is leading the
+	-- board.
+	--
+	-- PER CLIENT RATHER THAN BROADCAST, because two of the four fields are
+	-- about the RECIPIENT and not about the street -- the same reason
+	-- `StealCooldown` is per client. A thief's floor is seconds of their OWN
+	-- income, so two players standing side by side genuinely have different
+	-- ones, and there is no shared answer to broadcast.
+	WantedState = "RemoteEvent",
 
 	-- Client buys or equips a skin/effect; server pushes the collection.
 	CosmeticRequest = "RemoteEvent",
@@ -73,6 +90,46 @@ local DEFINITIONS = {
 	-- is no vector here to forge into a longer one.
 	DodgeRequest = "RemoteEvent",
 	DodgeState = "RemoteEvent",
+
+	-- Client asks to start or stop tiptoeing. Carries ONE BOOLEAN and nothing
+	-- else -- no speed, no multiplier. What a tiptoe is worth is decided by
+	-- `Config.TIPTOE` on the server and applied inside `currentSpeed`, so
+	-- there is no number here to forge into a faster sneak.
+	--
+	-- The server also refuses it outright while carrying loot, which is what
+	-- keeps the ordering that makes the whole mechanic safe: a tiptoe is
+	-- always below a guard dog's `notice` and a carry is always above it, so
+	-- you can sneak IN and you can never sneak the money OUT.
+	TiptoeRequest = "RemoteEvent",
+	-- Server tells one client whether it is actually tiptoeing, because the
+	-- server can refuse or drop it (a grab, a ride, a stun) and a button that
+	-- says ON while the character is walking normally is the client lying
+	-- about state it does not own.
+	TiptoeState = "RemoteEvent",
+
+	-- THE CRACK. Four channels, and the split between them is the whole of
+	-- what keeps a timing minigame server-authoritative.
+	--
+	-- `CrackState` is the server describing the attempt: which pig, what is
+	-- in it, what each remaining slice is worth, where the zone sits on the
+	-- dial and WHEN the sweep began, stamped in `workspace:GetServerTimeNow`
+	-- so both ends read one clock. It is fired again after every landed
+	-- slice, and with nil to close the panel.
+	--
+	-- `CrackTap` CARRIES NOTHING AT ALL, which is the load-bearing half. The
+	-- obvious build has the client say "I hit it" or send the marker position
+	-- it saw, and both are a claim about money that the client got to make.
+	-- An empty tap is the same decision `BoneThrow` and `placeLadder` already
+	-- record: the click means "now", never "now, and here is the outcome".
+	-- The server reads its own clock at the moment the tap arrives, works out
+	-- where the marker really is, and decides.
+	--
+	-- `CrackStop` is the player walking away with what they have banked --
+	-- the push-your-luck half, and the only input in this game whose whole
+	-- purpose is to stop early.
+	CrackState = "RemoteEvent",
+	CrackTap = "RemoteEvent",
+	CrackStop = "RemoteEvent",
 
 	-- Sent to ONE player: they have just been arrested, and this carries the
 	-- numbers their mugshot card needs. Targeted rather than broadcast
@@ -166,11 +223,11 @@ local DEFINITIONS = {
 	-- prize is a client that decided its own prize.
 	EventDrop = "RemoteEvent",
 
-	-- Client asks to buy a set item with MEDALS, by kind and key. The server
+	-- Client asks to buy a set item with LOOT, by kind and key. The server
 	-- re-reads the price from Config; nothing about the cost is sent.
-	MedalBuy = "RemoteEvent",
+	LootBuy = "RemoteEvent",
 
-	-- Server pushes the medal balance and every set's contents and progress.
+	-- Server pushes the loot balance and every set's contents and progress.
 	SetState = "RemoteEvent",
 
 	-- Admin console. Every request is re-authorised server-side against the
@@ -183,10 +240,19 @@ local DEFINITIONS = {
 	-- here to forge that is worth forging.
 	ChestOpen = "RemoteEvent",
 
-	-- Client asks to spend shards. Carries the tier to spend and the chest to
-	-- roll in; both are checked server-side against the real lists, because a
-	-- client naming a field is how a save gets arbitrary keys in it.
+	-- Client asks to spend three spares of a tier. Carries the tier and the
+	-- chest to roll in, and OPTIONALLY the three entries to consume -- both
+	-- lists are checked server-side against the real catalogues and the
+	-- player's own spares, because a client naming a field is how a save gets
+	-- arbitrary keys in it. Omit the entries and the server picks.
 	ChestCombine = "RemoteEvent",
+
+	-- Client asks to sell spare copies. Carries "kind:key" and a count, and
+	-- NEITHER A PRICE NOR A CURRENCY: the server re-derives what the thing is
+	-- worth from Config.sellValue, exactly as ChestOpen re-reads a cost. The
+	-- one thing a client could usefully forge here would be the payout, so it
+	-- is not on the wire.
+	SpareSell = "RemoteEvent",
 
 	-- Server tells ONE client what a chest gave them, and the odds it actually
 	-- used -- renormalised over the tiers that had stock, so the reel prints
@@ -194,7 +260,7 @@ local DEFINITIONS = {
 	ChestResult = "RemoteEvent",
 
 	-- Server pushes every stocked chest, what it costs, what the player owns of
-	-- it, and their shard balances.
+	-- it, and every spare they hold with what each one is worth sold.
 	ChestState = "RemoteEvent",
 
 	-- Server tells ONE client to bounce itself off a trampoline. It carries
@@ -210,6 +276,18 @@ local DEFINITIONS = {
 	-- exactly its drop height, 5.00 studs, on all three. Same split as the
 	-- dodge, where the server decides and the client drives.
 	TrampolineBounce = "RemoteEvent",
+
+	-- Server -> client. Carries the direction to throw somebody who has just
+	-- been shocked off a fence, for the same reason TrampolineBounce carries
+	-- nothing: a server-side write to a player's AssemblyLinearVelocity is
+	-- discarded, because the client owns its own physics.
+	--
+	-- It carries a direction where the trampoline does not, and that is safe
+	-- for the one reason that matters: the SERVER computes it. The client is
+	-- being told which way it was thrown, not asked. See PlotService's
+	-- firePenalty, which rejects a climber to whichever side of the fence
+	-- they were already on so it can never carry anybody across.
+	FenceKnockback = "RemoteEvent",
 	AdminState = "RemoteEvent",
 }
 

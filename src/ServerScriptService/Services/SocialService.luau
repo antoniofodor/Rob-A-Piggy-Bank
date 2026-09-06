@@ -16,6 +16,22 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
+-- THE BOARDS WERE A FIFTH PALETTE, AND THIS IS WHAT ENDS THAT.
+--
+-- `Theme` was written to be the one place a colour is decided, and the sweep
+-- that produced it went through ClientMain, ShopStyle, Rebirth and
+-- AdminPanel -- every UI file in the CLIENT. These two boards are built on
+-- the SERVER, so they were never in that pass and never in the contrast audit
+-- either: eighteen hardcoded colours, including two near-blacks at hue 264
+-- and 272, which are VIOLETS against a palette whose every neutral sits
+-- between hue 21 and 39. Nothing looked broken; they simply were not from
+-- this game.
+--
+-- Theme requires nothing, so a server service may take it. What it must NOT
+-- do is start reaching for the client-only helpers -- these are SurfaceGuis
+-- built once and replicated, so anything animated or per-viewer belongs on
+-- the client, exactly as the moat and the skins do.
+local Theme = require(ReplicatedStorage.Shared.Theme)
 local DataService = require(script.Parent.DataService)
 local PlotService = require(script.Parent.PlotService)
 
@@ -29,6 +45,11 @@ local friendBonus: { [Player]: number } = {}
 local friendCache: { [string]: boolean } = {}
 
 local mostWanted: Player? = nil
+
+-- DOES THE NAME ON THE BOARD ALSO CLEAR THEIR OWN INCOME FLOOR?
+--
+-- Two different questions, and they used to be one. See refreshMostWanted.
+local wantedHunted = false
 
 -- THE RAP SHEET: coins each player has successfully DELIVERED out of somebody
 -- else's piggy bank this session, since their last most-wanted arrest.
@@ -50,6 +71,20 @@ local mostWanted: Player? = nil
 -- see the DataModel's own reference to an Instance, so a weak key here would
 -- be collected out from under a player who is still standing on the street.
 local heat: { [Player]: number } = {}
+
+-- THE SPREE, AND IT IS NOT THE TABLE ABOVE. `heat` is the RAP SHEET: every
+-- coin taken this session, only ever rising, and what the Most Wanted board
+-- ranks on. This counts CONSECUTIVE DELIVERIES, decays when you stop, and is
+-- spent by being caught.
+--
+-- Two tables rather than two meanings in one, which is the `busyUntil` /
+-- `napUntil` lesson: one field carrying two clocks had two readers
+-- disagreeing about it in opposite directions, and the item that depended on
+-- it silently bought nothing for six minutes at a time.
+--
+-- `at` is stamped in `os.clock`, which never leaves this server -- the same
+-- reason `stunUntil` and `busyUntil` do.
+local spree: { [Player]: { steps: number, at: number } } = {}
 
 -- One table rather than six loose upvalues, and nil until the board is built.
 -- ONE ENTRY PER BOARD, because there is a pair at each end of the street now.
@@ -268,6 +303,15 @@ local function billboardLegs(name: string, at: Vector3, width: number, yaw: numb
 		leg.CFrame = CFrame.new(at + across + Vector3.new(0, 7, 0))
 			* CFrame.Angles(0, yaw, 0)
 		leg.Anchored = true
+		-- THE TIMBER STAYS A LITERAL, AND IT WAS CHECKED RATHER THAN MISSED.
+		-- Everything on the FACE of these boards now comes from `Theme`, but
+		-- the legs and the panel are a Part with a wood material on it -- a
+		-- physical object in the world, not a surface carrying an interface.
+		-- Putting a plank colour in the UI palette would be the first entry
+		-- there that no GuiObject ever reads. Both hues were measured against
+		-- the palette's own band anyway (21 to 39, outline to paper) and both
+		-- land inside it at 27 and 25, so the wood and the paper on it are
+		-- already the same family.
 		leg.Material = Enum.Material.Wood
 		leg.Color = Color3.fromRGB(104, 74, 50)
 		leg.Parent = workspace.World
@@ -314,22 +358,39 @@ local function buildBoard()
 	-- Parented at the bottom of this function, once every child exists, so
 	-- the whole board replicates as one piece instead of a dozen increments.
 
-	-- Light enough to read as a painted panel. A near-black backdrop over
-	-- dark wood just looks like the board is blank.
+	-- A PRINTED SHEET ON A WOODEN BOARD, AND THE INSET IS WHAT SAYS SO.
+	--
+	-- It used to fill the face edge to edge in a violet dark, which reads as a
+	-- SCREEN set into the timber rather than as something pinned to it. Paper
+	-- inset far enough to leave the wood showing all round is the picture the
+	-- object already is -- and it is the theme's own argument arriving at the
+	-- one place that had never heard it: cream reads as a label stuck on the
+	-- world, dark reads as a window cut into it. These boards are labels.
+	--
+	-- 16px HERE AND 20px ON THE POSTER, which is the same 0.8 studs of timber
+	-- on both. The two boards do not share a pixel scale -- 20 per stud here
+	-- against 25 there -- so a border copied across as a pixel count would
+	-- come out visibly narrower on one of them. Choose it in studs, multiply
+	-- up. Same rule the type heights already follow.
 	local backdrop = Instance.new("Frame")
-	backdrop.Size = UDim2.fromScale(1, 1)
-	backdrop.BackgroundColor3 = Color3.fromRGB(58, 44, 66)
-	backdrop.BackgroundTransparency = 0.05
-	backdrop.BorderSizePixel = 0
+	backdrop.Name = "Sheet"
+	backdrop.Size = UDim2.new(1, -32, 1, -32)
+	backdrop.Position = UDim2.new(0, 16, 0, 16)
 	backdrop.Parent = surface
+	Theme.card(backdrop, 10)
+	-- 4px is 0.2 studs, against the HUD's 3px at arm's length. The ink line
+	-- has to survive being looked at from the far end of the street.
+	Theme.outline(backdrop, 4)
 
 	local title = Instance.new("TextLabel")
 	title.Size = UDim2.new(1, -40, 0, 62)
 	title.Position = UDim2.new(0, 20, 0, 12)
 	title.BackgroundTransparency = 1
-	title.Font = Enum.Font.FredokaOne
 	title.TextScaled = true
-	title.TextColor3 = Color3.fromRGB(240, 196, 76)
+	-- GOLD_INK, NOT GOLD. Raw gold on paper measures 1.42:1 -- a heading you
+	-- can see is there and cannot read. The darkened form is what every gold
+	-- label on a light ground in this game uses.
+	Theme.title(title, 62, Theme.GOLD_INK)
 	title.Text = "RICHEST PIGGIES"
 	title.Parent = backdrop
 
@@ -359,8 +420,17 @@ local function buildBoard()
 		row.Name = "Row" .. index
 		row.Size = UDim2.new(1, 0, 0, 34)
 		row.LayoutOrder = index
-		row.BackgroundColor3 = Color3.fromRGB(52, 42, 56)
-		row.BackgroundTransparency = if index % 2 == 0 then 0.55 else 0.35
+		-- ZEBRA STRIPING IN THE SAND, which is what a printed table looks
+		-- like. The alternation is the same idea it always was; what changed
+		-- is that the darker band is now a warm tan out of the palette rather
+		-- than a violet-grey that belonged to nothing.
+		row.BackgroundColor3 = Theme.SAND_DEEP
+		-- LIGHT. Measured, a heavier band took the GOLD amount column -- the
+		-- one number this board exists to show -- down to 3.49 against the
+		-- paper's 3.98, so the same column read differently on every other
+		-- row. The stripe only has to separate rows; it does not have to be
+		-- seen on its own.
+		row.BackgroundTransparency = if index % 2 == 0 then 0.78 else 0.5
 		row.BorderSizePixel = 0
 		row.Visible = false
 		row.Parent = list
@@ -370,10 +440,9 @@ local function buildBoard()
 		who.Size = UDim2.new(0.68, 0, 1, 0)
 		who.Position = UDim2.new(0, 10, 0, 0)
 		who.BackgroundTransparency = 1
-		who.Font = Enum.Font.FredokaOne
 		who.TextScaled = true
 		who.TextXAlignment = Enum.TextXAlignment.Left
-		who.TextColor3 = Color3.fromRGB(246, 240, 228)
+		Theme.title(who, 34, Theme.INK)
 		who.Text = ""
 		who.Parent = row
 
@@ -382,10 +451,9 @@ local function buildBoard()
 		amount.Size = UDim2.new(0.3, -10, 1, 0)
 		amount.Position = UDim2.new(0.7, 0, 0, 0)
 		amount.BackgroundTransparency = 1
-		amount.Font = Enum.Font.FredokaOne
 		amount.TextScaled = true
 		amount.TextXAlignment = Enum.TextXAlignment.Right
-		amount.TextColor3 = Color3.fromRGB(240, 196, 76)
+		Theme.title(amount, 34, Theme.GOLD_INK)
 		amount.Text = ""
 		amount.Parent = row
 
@@ -396,9 +464,8 @@ local function buildBoard()
 	empty.Name = "Empty"
 	empty.Size = UDim2.new(1, 0, 0, 40)
 	empty.BackgroundTransparency = 1
-	empty.Font = Enum.Font.Gotham
 	empty.TextScaled = true
-	empty.TextColor3 = Color3.fromRGB(150, 140, 150)
+	Theme.body(empty, 28, Theme.MUTED)
 	empty.Text = "nobody yet"
 	empty.LayoutOrder = 0
 	empty.Parent = list
@@ -490,8 +557,34 @@ local function setHat(player: Player, wanted: boolean)
 	text.Parent = label
 end
 
+-- How many consecutive deliveries this player has going.
+--
+-- EXPIRED LAZILY RATHER THAN ON A TIMER. A spree needs no loop of its own:
+-- nothing in the game has to happen at the moment one lapses, so the honest
+-- implementation is to check the clock when somebody asks. That also means a
+-- player who logs off mid-run leaves no timer behind to fire at a Player that
+-- has gone -- the failure the wheelie bin's `CharacterAdded` hook records from
+-- the other end.
+local function spreeSteps(player: Player): number
+	local run = spree[player]
+	if not run then
+		return 0
+	end
+	if os.clock() - run.at > Config.SPREE.window then
+		spree[player] = nil
+		return 0
+	end
+	return run.steps
+end
+
 -- What this player's rap sheet has to reach before the patrol will come
 -- looking for them unprovoked. Seconds of their OWN income; see Config.POLICE.
+--
+-- SCALED BY THE SPREE, WHICH IS THE RISK HALF OF A RUN. A thief working fast
+-- draws a records check on a smaller sheet than the same thief taking their
+-- time -- so the reward for consecutive robberies is paid for in the one
+-- system that already hunts people, rather than in a new hazard nobody has to
+-- learn. See Config.SPREE.floorDropPerStep.
 local function wantedFloor(player: Player): number
 	local data = DataService.get(player)
 	if not data then
@@ -500,29 +593,84 @@ local function wantedFloor(player: Player): number
 	local rate = Config.getIncomeRate(
 		data.incomeLevel, data.rebirths, SocialService.getFriendBonus(player))
 	return rate * Config.POLICE.wantedFloorSeconds
+		* Config.getSpreeFloorScale(spreeSteps(player))
 end
 
 -- The server's biggest thief wears something nobody can buy. It's the only
 -- status in the game that can't be purchased, which is exactly why it works.
+--
+-- THE BOARD IS RANKED BY THE SHEET ALONE, AND THE FLOOR IS ASKED ABOUT THE
+-- WINNER RATHER THAN USED TO PICK THEM. It used to be a filter inside this
+-- loop -- a player whose sheet did not clear their own income floor was not
+-- eligible to lead -- which quietly made the poster answer a question nobody
+-- asked of it. The board's question is "who has stolen the most here", and the
+-- floor cannot answer that, because the two numbers are measured against
+-- different people: the floor scales with the THIEF's income and rebirths
+-- while the loot scales with the VICTIM's vault. So a maxed thief robbing a
+-- poorer neighbour can never clear their own floor however many plots they
+-- empty, and the one status in this game that cannot be bought was hidden
+-- from precisely the player who had earned it hardest.
+--
+-- Measured against the live curves, both players on the same level and the
+-- victim's vault completely FULL -- the best case a steal ever has -- one
+-- delivery is 0.4 to 0.8 of the thief's own floor. So the board wanted two or
+-- three perfect robberies before it would name anybody, and more after a
+-- rebirth (2.6 deliveries at rebirth 10, because prestige raises income and
+-- therefore the floor, while capacity does not follow). Against a victim who
+-- banks -- which is every victim -- it is many more. The poster read as
+-- broken, and for most of a session it was.
+--
+-- What the floor is genuinely for is stated at Config.POLICE.wantedFloorSeconds
+-- and is untouched: whether the PATROL should spend a records check on this
+-- person, so somebody who lifted one small pile in a quiet server is not
+-- hunted every eight minutes for the rest of it. That is a question about the
+-- leader rather than about who leads, so it is asked once, here, and answered
+-- by `getPursuitTarget` rather than by `getMostWanted`.
 local function refreshMostWanted()
 	local best: Player? = nil
 	local bestAmount = 0
 
 	for _, player in ipairs(Players:GetPlayers()) do
 		local record = heat[player] or 0
-		-- The floor is tested per PLAYER rather than once against the winner,
-		-- so a rich player's petty theft cannot hold the title against a
-		-- poorer player's serious one.
-		if record > bestAmount and record >= wantedFloor(player) then
+		if record > bestAmount then
 			best = player
 			bestAmount = record
 		end
 	end
 
+	-- Asked about the winner ONLY, which also takes this from one DataService
+	-- read per player per tick to one in total.
+	local hunted = best ~= nil and bestAmount >= wantedFloor(best)
+
+	-- Names the consequence, not just the status. Being told you are Most
+	-- Wanted and then chased by an officer nobody warned you about is the
+	-- patrol arriving as bad luck, which is the one thing this feature is not
+	-- allowed to be -- bad luck is not something a nine year old can get
+	-- better at.
+	--
+	-- AND IT IS TWO LINES NOW, because the board can name somebody the patrol
+	-- is not coming for. Promising a visit that will not happen is the same
+	-- fault as arriving without warning, from the other end.
+	local function announce(player: Player, patrol: boolean)
+		Remotes.get("Notify"):FireClient(player,
+			if patrol
+				then "You are MOST WANTED. The next patrol comes for you."
+				else "You are MOST WANTED. Take more and the patrol will come.",
+			"warn")
+	end
+
 	if best == mostWanted then
 		if mostWanted then
 			setHat(mostWanted, true) -- re-apply after a respawn
+			-- The board did not change hands, but the sheet grew past the floor
+			-- while it sat there. Announce the patrol half NOW or it never gets
+			-- announced at all -- and that is the COMMON shape, since a thief
+			-- reaches the top of the board well before they reach the floor.
+			if hunted and not wantedHunted then
+				announce(mostWanted, true)
+			end
 		end
+		wantedHunted = hunted
 		return
 	end
 
@@ -530,16 +678,11 @@ local function refreshMostWanted()
 		setHat(mostWanted, false)
 	end
 	mostWanted = best
+	wantedHunted = hunted
 
 	if best then
 		setHat(best, true)
-		-- Names the consequence, not just the status. Being told you are Most
-		-- Wanted and then chased by an officer nobody warned you about is the
-		-- patrol arriving as bad luck, which is the one thing this feature is
-		-- not allowed to be -- bad luck is not something a nine year old can
-		-- get better at.
-		Remotes.get("Notify"):FireClient(best,
-			"You are MOST WANTED. The next patrol comes for you.", "warn")
+		announce(best, hunted)
 	end
 end
 
@@ -588,21 +731,30 @@ local function buildWantedBoard()
 	surface.CanvasSize = Vector2.new(400, 550)
 	surface.LightInfluence = 0
 
+	-- The same printed sheet as the leaderboard, at this board's own scale:
+	-- 20px of inset at 25 pixels per stud is the 0.8 studs of visible timber
+	-- that 16px buys over there at 20. See the note on that one.
 	local backdrop = Instance.new("Frame")
-	backdrop.Size = UDim2.fromScale(1, 1)
-	backdrop.BackgroundColor3 = Color3.fromRGB(46, 38, 58)
-	backdrop.BackgroundTransparency = 0.05
-	backdrop.BorderSizePixel = 0
+	backdrop.Name = "Sheet"
+	backdrop.Size = UDim2.new(1, -40, 1, -40)
+	backdrop.Position = UDim2.new(0, 20, 0, 20)
 	backdrop.Parent = surface
+	Theme.card(backdrop, 12)
+	Theme.outline(backdrop, 5)
 
 	local title = Instance.new("TextLabel")
 	-- 80px / 25 = 3.2 studs, which is the leaderboard's own heading height.
 	title.Size = UDim2.new(1, -30, 0, 80)
 	title.Position = UDim2.new(0, 15, 0, 10)
 	title.BackgroundTransparency = 1
-	title.Font = Enum.Font.FredokaOne
 	title.TextScaled = true
-	title.TextColor3 = Color3.fromRGB(240, 196, 76)
+	-- RED, WHERE THE LEADERBOARD'S HEADING IS GOLD, AND THAT PAIR IS THE
+	-- WHOLE DIFFERENCE BETWEEN THE TWO BOARDS AT FORTY STUDS. Both used to be
+	-- the same gold, so the only thing separating them from down the street
+	-- was portrait against landscape. Gold means money and this board is not
+	-- about money -- it is the one that says somebody is coming for you.
+	-- It is the same red the alarm toast and the bounty use.
+	Theme.title(title, 80, Theme.STOP_INK)
 	title.Text = "MOST WANTED"
 	title.Parent = backdrop
 
@@ -618,13 +770,21 @@ local function buildWantedBoard()
 	photo.Name = "Photo"
 	photo.Size = UDim2.new(0, 256, 0, 256)
 	photo.Position = UDim2.new(0.5, -128, 0, 0)
-	photo.BackgroundColor3 = Color3.fromRGB(28, 24, 36)
+	-- A WELL IS A HOLE, so it stays dark while everything round it went to
+	-- paper -- the same call the shop's icon wells and the coin chip make.
+	-- What sits in it is a photograph, and a photograph wants something to be
+	-- against.
+	photo.BackgroundColor3 = Theme.SLAB_DEEP
 	photo.BorderSizePixel = 0
 	photo.Parent = card
 
+	-- INK, NOT GOLD. A gold frame was right on a dark board and is the wrong
+	-- half of the contrast on a light one; a printed photo on a poster has a
+	-- dark border round it, and that is also the line that stops a dark well
+	-- from bleeding into the cream behind it.
 	local frame = Instance.new("UIStroke")
 	frame.Thickness = 4
-	frame.Color = Color3.fromRGB(240, 196, 76)
+	frame.Color = Theme.INK
 	frame.Parent = photo
 
 	local name = Instance.new("TextLabel")
@@ -637,9 +797,8 @@ local function buildWantedBoard()
 	name.Size = UDim2.new(1, 0, 0, 60)
 	name.Position = UDim2.new(0, 0, 0, 268)
 	name.BackgroundTransparency = 1
-	name.Font = Enum.Font.FredokaOne
 	name.TextScaled = true
-	name.TextColor3 = Color3.fromRGB(246, 240, 228)
+	Theme.title(name, 60, Theme.INK)
 	name.Text = ""
 	name.Parent = card
 
@@ -648,9 +807,12 @@ local function buildWantedBoard()
 	stolen.Size = UDim2.new(1, 0, 0, 42)
 	stolen.Position = UDim2.new(0, 0, 0, 332)
 	stolen.BackgroundTransparency = 1
-	stolen.Font = Enum.Font.Gotham
 	stolen.TextScaled = true
-	stolen.TextColor3 = Color3.fromRGB(190, 180, 196)
+	-- Secondary type on a light ground is MUTED, which is faded INK. The old
+	-- (190, 180, 196) was faded PAPER, solved against a dark board -- exactly
+	-- the mistake the shop made in nine places when its cards went light: a
+	-- mid-tone reads as faded on black and as washed out on cream.
+	Theme.body(stolen, 42, Theme.MUTED)
 	stolen.Text = ""
 	stolen.Parent = card
 
@@ -665,9 +827,8 @@ local function buildWantedBoard()
 	bounty.Size = UDim2.new(1, 0, 0, 54)
 	bounty.Position = UDim2.new(0, 0, 0, 376)
 	bounty.BackgroundTransparency = 1
-	bounty.Font = Enum.Font.FredokaOne
 	bounty.TextScaled = true
-	bounty.TextColor3 = Color3.fromRGB(226, 86, 80)
+	Theme.title(bounty, 54, Theme.STOP_INK)
 	bounty.Text = ""
 	bounty.Parent = card
 
@@ -678,9 +839,8 @@ local function buildWantedBoard()
 	empty.Size = UDim2.new(1, -30, 0, 150)
 	empty.Position = UDim2.new(0, 15, 0.38, 0)
 	empty.BackgroundTransparency = 1
-	empty.Font = Enum.Font.Gotham
 	empty.TextScaled = true
-	empty.TextColor3 = Color3.fromRGB(150, 140, 150)
+	Theme.body(empty, 30, Theme.MUTED)
 	empty.Text = "no suspects\n\nrob a neighbour\nto get on this board"
 	empty.Parent = backdrop
 
@@ -727,11 +887,102 @@ end
 -- THE RAP SHEET
 -- ============================================================
 
+-- THE SESSION ARC, PUSHED. Everything below already existed and none of it
+-- had ever reached a screen.
+--
+-- The rap sheet, Most Wanted and the pursuit floor model an arc across a
+-- session -- take more, lead the board, draw a patrol -- and the only places
+-- any of it surfaced were a poster somewhere on the street and a handful of
+-- toasts that are gone in six seconds. So the one system in this game that
+-- gives a session a SHAPE was invisible in the moment it was happening, which
+-- is the same fault the standing event countdown was built to fix from the
+-- other end: that too was a display nobody had written rather than a mechanism
+-- nobody had built.
+--
+-- IT IS PER PLAYER BECAUSE HALF THE PAYLOAD IS ABOUT THE RECIPIENT. A floor is
+-- seconds of the reader's OWN income, so two thieves standing together have
+-- different ones and there is no street-wide answer to broadcast.
+local function wantedPayload(player: Player)
+	local leader = SocialService.getMostWanted()
+	-- THREE FIELDS, AND NOTHING THE CHIP CANNOT HONESTLY DRAW.
+	--
+	-- The obvious payload also carries the pursuit FLOOR, the leader's NAME
+	-- and their sheet -- and none of the three has a reader. A floor is only
+	-- ever asked about the leader, so drawing a bar toward one for anybody
+	-- else would promise a consequence that cannot happen; and a 176x34 chip
+	-- that already holds a badge, a caption and a figure has nowhere to put a
+	-- second player's name. Pushing them anyway is how a payload rots: a field
+	-- nobody reads is a field nobody notices going wrong.
+	return {
+		sheet = heat[player] or 0,
+		isLeader = leader == player,
+		hunted = wantedHunted,
+		spree = spreeSteps(player),
+		spreeMax = Config.SPREE.maxSteps,
+	}
+end
+
+-- Pushes one player, or everybody when given nobody.
+function SocialService.pushWanted(player: Player?)
+	if player then
+		if player.Parent then
+			Remotes.get("WantedState"):FireClient(player, wantedPayload(player))
+		end
+		return
+	end
+	for _, other in ipairs(Players:GetPlayers()) do
+		Remotes.get("WantedState"):FireClient(other, wantedPayload(other))
+	end
+end
+
 -- One successful delivery. Called by HeistService and by nothing else: coins
 -- that arrive any other way -- income, banking, a daily, a rebirth -- were not
 -- taken off anybody.
+-- WHAT A DELIVERY IS WORTH RIGHT NOW, asked BEFORE `recordSteal` bumps it.
+--
+-- The order is the whole of what makes "consecutive" mean anything: the
+-- delivery that STARTS a run pays 1.0 and the one after it pays more, which is
+-- what a player would expect from a streak. Bumping first would pay a bonus
+-- for the first robbery of a session and there would be no streak to speak of.
+function SocialService.getSpreeMultiplier(player: Player): number
+	return Config.getSpreePayout(spreeSteps(player))
+end
+
+-- How many deliveries in a row, for anything that wants to show it.
+function SocialService.getSpree(player: Player): number
+	return spreeSteps(player)
+end
+
+-- CAUGHT ENDS THE RUN, and that is the point of a run having an end.
+--
+-- Separate from `clearHeat`, which wipes the rap SHEET and fires only on a
+-- most-wanted arrest -- an ordinary bust deliberately leaves a record intact
+-- because that is what the thief was caught for. A SPREE is momentum rather
+-- than a record, and any arrest breaks momentum, so this is called on both.
+function SocialService.breakSpree(player: Player)
+	if spree[player] then
+		spree[player] = nil
+		SocialService.pushWanted(player)
+	end
+end
+
 function SocialService.recordSteal(thief: Player, amount: number)
 	heat[thief] = (heat[thief] or 0) + amount
+
+	-- ANOTHER ONE IN A ROW. Read the current steps through the accessor rather
+	-- than the raw table, so a run that lapsed while the thief was carrying is
+	-- expired here rather than silently continued -- the walk home is most of
+	-- the window, and a thief who dawdled has broken their own streak.
+	local steps = math.min(spreeSteps(thief) + 1, Config.SPREE.maxSteps)
+	spree[thief] = { steps = steps, at = os.clock() }
+
+	-- The thief's OWN row, immediately, because a delivery is the moment the
+	-- number changes and a readout that waited five seconds for it would read
+	-- as broken. The leader fields can be up to one refresh stale here and
+	-- that is deliberate: recomputing the board per delivery is a DataService
+	-- read per player, which is exactly what `SocialService.refresh` exists to
+	-- keep the dev console from doing on a tick.
+	SocialService.pushWanted(thief)
 end
 
 -- Answered for. Called by PoliceService when a most-wanted pursuit ends in an
@@ -744,6 +995,7 @@ end
 -- fifty coins, pay a hundred and fifty, and walk away clean.
 function SocialService.clearHeat(player: Player)
 	heat[player] = nil
+	SocialService.pushWanted(player)
 end
 
 -- What is on one player's sheet right now. Separate from getMostWanted
@@ -778,11 +1030,31 @@ function SocialService.makeMostWanted(player: Player): number
 	return heat[player]
 end
 
--- The name on the board, and the figure on it. Already floored -- see
--- refreshMostWanted -- so a caller does not repeat that test.
+-- THE NAME ON THE BOARD: the biggest sheet in the server, and nothing else.
+-- Whoever has stolen the most is on the poster, full stop.
+--
+-- NOT THE PURSUIT TARGET -- use `getPursuitTarget` for that. Two questions,
+-- two functions, the same split PassService draws between `unlocked` and
+-- `owns` and for the same reason: mixing them up here either empties the
+-- poster or sends an officer after a child who lifted one small pile.
 function SocialService.getMostWanted(): (Player?, number)
 	local suspect = mostWanted
 	if not suspect then
+		return nil, 0
+	end
+	return suspect, heat[suspect] or 0
+end
+
+-- WHO THE PATROL MAY COME FOR: the name on the board, but only once their
+-- sheet clears their own income floor. Nil the rest of the time, and nil is an
+-- ordinary answer rather than an error -- a quiet server has a poster with a
+-- name on it and nobody worth a records check.
+--
+-- The floor is evaluated on the refresh tick rather than here, so this can
+-- never disagree with the hat the whole street can see.
+function SocialService.getPursuitTarget(): (Player?, number)
+	local suspect = mostWanted
+	if not suspect or not wantedHunted then
 		return nil, 0
 	end
 	return suspect, heat[suspect] or 0
@@ -799,7 +1071,7 @@ function SocialService.markRevenge(victim: Player, thief: Player)
 	if not plot then
 		return
 	end
-	Remotes.get("RevengeMarker"):FireClient(victim, plot.model, thief.DisplayName, Config.REVENGE_MARKER_SECONDS)
+	Remotes.get("RevengeMarker"):FireClient(victim, plot.model, thief.DisplayName, Config.REVENGE.window)
 end
 
 -- ============================================================
@@ -831,6 +1103,7 @@ function SocialService.start()
 		-- The rap sheet dies with the session it belongs to. Left behind, it
 		-- would also hold a Player reference open for the life of the server.
 		heat[player] = nil
+		spree[player] = nil
 		if mostWanted == player then
 			mostWanted = nil
 		end
@@ -849,6 +1122,17 @@ function SocialService.start()
 			-- who is wanted.
 			refreshMostWanted()
 			refreshWantedBoard()
+
+			-- AFTER the refresh, so the chip on a player's screen and the
+			-- poster on the street cannot disagree about who is wanted --
+			-- the same ordering argument the two lines above already make.
+			--
+			-- On the tick rather than on change, because the FLOOR moves with
+			-- income and rebirths and nothing about buying an upgrade would
+			-- otherwise tell this service to look again. Eight FireClients
+			-- every LEADERBOARD_REFRESH is cheaper than a hook on every
+			-- income change, and it cannot go stale in a way nobody notices.
+			SocialService.pushWanted()
 		end
 	end)
 end

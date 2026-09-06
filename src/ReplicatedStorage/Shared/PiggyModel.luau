@@ -157,8 +157,11 @@ end
 --
 -- A SOLID DISC WAS THE OBVIOUS ONE PART AND CANNOT WORK HERE. A cylinder on
 -- the spine axis, sized to break the surface, gives a perfectly even band --
--- and the body is translucent so the coin pile shows through it, which means
--- the rest of that disc reads as a dinner plate sitting inside the pig.
+-- and the rest of that disc is then a dinner plate sitting inside the pig.
+-- That used to be visible, because the body was translucent; it is opaque
+-- now, so the objection is weaker than it was. The band stays segments
+-- anyway: the plate would still be there to be seen through the vault hatch,
+-- and a ring of segments is the right shape regardless of who can see it.
 local function buildStripes(folder: Folder, spec: any, opts: PatternOpts)
 	local R = opts.radius
 	local rng = Random.new(spec.seed or 1)
@@ -238,7 +241,8 @@ end
 -- sunk until it stands only LIFT proud shows almost nothing: on the real
 -- numbers, a 1.8-radius ball on a 6-radius body shows a mark 0.77 across, and
 -- to get a 1.8 blotch out of a ball that nearly flush it has to grow to 4.28
--- -- eight and a half studs of sphere sitting inside a translucent pig. A
+-- -- eight and a half studs of sphere sitting inside the pig, which was
+-- visible while the body was translucent and is still the wrong solid. A
 -- tangent cylinder shows its whole face at the size it actually is.
 --
 -- `bump` is the exception and is a ball on purpose: a fleece is meant to be
@@ -381,8 +385,8 @@ function PiggyModel.build(skinKey: string): Model
 		p.Massless = true
 		p.CastShadow = false
 		p.Color = color
-		-- Solid, unlike the plot piggy. That one is translucent so the coin
-		-- pile shows through; this one has no pile and just needs to read.
+		-- Solid, like the plot piggy now is. This one carries no pile at all,
+		-- so it never had a reason to be anything else.
 		p.Material = skin.material
 		p.TopSurface = Enum.SurfaceType.Smooth
 		p.BottomSurface = Enum.SurfaceType.Smooth
@@ -432,9 +436,9 @@ function PiggyModel.build(skinKey: string): Model
 		anchored = false,
 		weldTo = body,
 		material = skin.material,
-		-- The mini is deliberately solid where the plot piggy is translucent,
-		-- so its marks are too. Reading `skin.transparency` here would fade
-		-- them against a body that never faded.
+		-- Pinned to 0 rather than read from `skin.transparency`. Every skin
+		-- is opaque today, so the two agree -- but the day one is not, a mark
+		-- read from the skin would fade against a mini body that never fades.
 		transparency = 0,
 	})
 

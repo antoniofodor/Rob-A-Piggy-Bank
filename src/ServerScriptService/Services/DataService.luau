@@ -5,7 +5,7 @@
 	Session-locked player persistence.
 
 	The lock is the whole point. Without it, the same player joining two
-	servers at once ends up with two live copies of their vault, and whichever
+	servers at once ends up with two live copies of their piggy bank, and whichever
 	server saves last wins -- which is the classic Roblox duplication exploit.
 	Every load claims a lock; every release clears it; a lock left behind by a
 	crashed server goes stale and gets stolen after LOCK_STALE_SECONDS.
@@ -26,8 +26,14 @@ local DataService = {}
 
 export type PlayerData = {
 	schema: number,
-	coins: number,      -- banked and permanently safe
-	vault: number,      -- uncollected and stealable
+	-- THE PIGGY BANK. One balance, all of it in the pig, all of it stealable.
+	-- `vault` used to be the stealable half and `coins` the banked half;
+	-- schema 17 merged them (see reconcile), because the split was the reason
+	-- nobody robbed anybody -- CLAUDE.md, THE ROBBING PIVOT.
+	coins: number,
+	-- How many times this account has joined a server. The first session gets
+	-- the long new-player shield; every later one gets the short join shield.
+	sessions: number,
 	incomeLevel: number,
 	capacityLevel: number,
 	rebirths: number,
@@ -68,19 +74,25 @@ export type PlayerData = {
 	-- because an owner can move back into any tier they own. Read them through
 	-- Config.getShownHouseLevel rather than separately.
 	houseLevel: number,
-	medals: number,
-	-- CHEST SHARDS, one counter per rarity tier. A duplicate from any chest
-	-- converts to one of these on the spot, and three of a tier combine into a
-	-- roll at the tier above. Held GLOBALLY rather than per chest, so a
-	-- duplicate out of a collection you have finished is fuel for one you have
-	-- barely started -- see Config.COMBINE.
-	shards: { [string]: number },
-	-- THE ROLL CURRENCY. Earned only -- daily claims and event attendance --
-	-- and never purchasable, which is what keeps the accessory roll out of
-	-- Roblox's paid-random-item rules. See Config.ROLL_CURRENCY.
+	-- SPARE COPIES, one count per item, keyed "kind:key" -- the grammar
+	-- `Config.chestEntry` already owns, because a bare key does not say
+	-- which of the five catalogues it came from. There are no collisions across
+	-- the 92 keys today, and that is exactly the sort of fact that stops being
+	-- true quietly.
 	--
-	-- Never wiped by rebirth, like medals and every other cosmetic track.
-	tokens: number,
+	-- A SPARE IS AN EXTRA COPY. Ownership lives in the five owned tables and
+	-- this counts what is held BEYOND the one that grants it, so a non-zero
+	-- entry always implies ownership and selling the last spare leaves the
+	-- player still owning one. Spares are sold for coins or combined by tier --
+	-- see Config.COMBINE and Config.sellValue.
+	spares: { [string]: number },
+	-- LOOT. The second currency and the only one besides coins: earned by
+	-- delivering a robbery (and at events when they return), never
+	-- purchasable, and what the accessory roll and the set items cost. Schema
+	-- 17 merged the old `medals` and `tokens` fields into it one-for-one.
+	--
+	-- Never wiped by rebirth, like every other cosmetic track.
+	loot: number,
 	houseShown: number,
 	decor: {
 		owned: { [string]: boolean },
@@ -119,7 +131,7 @@ local function defaultData(): PlayerData
 	return {
 		schema = Config.SCHEMA_VERSION,
 		coins = 0,
-		vault = 0,
+		sessions = 0,
 		incomeLevel = 1,
 		capacityLevel = 1,
 		rebirths = 0,
@@ -129,25 +141,12 @@ local function defaultData(): PlayerData
 		upgrades = upgrades,
 		houseLevel = 0,
 		houseShown = 0,
-		-- EVENT MEDALS. Flat, never scaled by income, and never wiped by
-		-- rebirth -- they buy cosmetics, which are the permanent track.
-		--
-		-- A new field defaulting to zero, so reconcile's one-level fill covers
-		-- an existing save and there is no migration branch to write.
-		medals = 0,
-		-- ROLL TOKENS. What an accessory roll costs, and the one currency in
-		-- this game that no amount of money can reach: they come from the
-		-- daily ladder and from being present when an event resolves.
-		--
-		-- A new field defaulting to zero, so reconcile's one-level fill covers
-		-- every existing save and there is no migration branch to write. A
-		-- player mid-collection when this shipped starts at nought and earns
-		-- from their next daily claim; nothing is refunded, the same rule the
-		-- retired ornaments follow.
-		tokens = 0,
-		-- Chest shards by tier. Missing keys read as zero, so a new tier would
-		-- need no migration -- the same shape `consumables` uses.
-		shards = {},
+		-- LOOT. Flat, never scaled by income, never wiped by rebirth -- it buys
+		-- cosmetics, which are the permanent track. See the type above.
+		loot = 0,
+		-- Spare copies by "kind:key". Missing keys read as zero, so an item
+		-- added later needs no migration -- the shape `consumables` uses.
+		spares = {},
 		decor = { owned = {}, placed = {} },
 		-- Bone stock, by key. Counts only; missing keys read as zero, so a
 		-- bone added later needs no migration.
@@ -210,6 +209,38 @@ local function reconcile(data: any): PlayerData
 	if type(data) ~= "table" then
 		return base
 	end
+
+	-- Schema 17: THE PIG IS THE WALLET. `vault` (the stealable pile) and
+	-- `coins` (the banked balance) became one field, and `medals` and
+	-- `tokens` became `loot`. Both merges are one-for-one and additive, and
+	-- both run before the generic fill so the old fields are consumed rather
+	-- than left beside a zeroed new one. Idempotent: a save that has already
+	-- been through this has no `vault`, `medals` or `tokens` to add.
+	if type(data.vault) == "number" then
+		data.coins = (tonumber(data.coins) or 0) + data.vault
+		data.vault = nil
+	end
+	if type(data.medals) == "number" or type(data.tokens) == "number" then
+		data.loot = (tonumber(data.loot) or 0)
+			+ (tonumber(data.medals) or 0) + (tonumber(data.tokens) or 0)
+		data.medals = nil
+		data.tokens = nil
+	end
+
+	-- Schema 18: `shards` (a counter per rarity tier) became `spares` (a count
+	-- per item), and the old field is DROPPED rather than converted.
+	--
+	-- There is nothing to convert -- a tier counter cannot say which item it
+	-- came from -- and nothing to lose, because there was no chest UI anywhere
+	-- when this shipped: the only shards that have ever existed came out of the
+	-- admin console. Doing it now is what makes that true, and it is the whole
+	-- reason this landed before the tab rather than after it.
+	--
+	-- Nothing is refunded, exactly as the retired ornaments below are not. A
+	-- version that DID pay out would have to be measured idempotent first, and
+	-- one that pays on every join is a money printer -- a far worse bug than
+	-- the one being fixed.
+	data.shards = nil
 
 	-- Schema 9 split the house into "highest owned" and "currently shown".
 	--
@@ -400,6 +431,10 @@ function DataService.load(player: Player): PlayerData?
 		warn(("[DataService] Could not claim lock for %s"):format(player.Name))
 		return nil
 	end
+
+	-- Counted on load rather than by a caller, so nothing can forget to. The
+	-- shield reads this on the same join.
+	claimed.sessions = (claimed.sessions or 0) + 1
 
 	cache[player] = claimed
 	return claimed

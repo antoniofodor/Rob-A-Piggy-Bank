@@ -24,6 +24,12 @@ local GuardDog = require(script.Parent.GuardDog)
 -- Geometry, in Shared because the shop renders these too.
 local House = require(ReplicatedStorage.Shared.House)
 local Decor = require(ReplicatedStorage.Shared.Decor)
+local GrassTuft = require(ReplicatedStorage.Shared.GrassTuft)
+-- The ladder a player stands against a fence. Shared geometry rather than a
+-- second copy here, for the reason House and Decor live in Shared: the shop
+-- renders the real item, and a near-identical copy drifts the first time
+-- either is touched.
+local ThiefModel = require(ReplicatedStorage.Shared.ThiefModel)
 
 local PlotService = {}
 
@@ -38,6 +44,11 @@ export type Plot = {
 	piggy: PiggyBank.Refs,
 	dog: GuardDog.Dog,
 	fence: Folder,
+	-- Which tier is standing. Kept here rather than re-derived from the
+	-- geometry because the ladder has to ask whether this fence is one you
+	-- could have jumped, and reading a height back off a barrier would be a
+	-- second answer to a question `Config.FENCE_TIERS` already answers.
+	fenceLevel: number,
 	house: Model?,
 	decor: Model?,
 	-- Two rows, not one. A single TextScaled label holding both the name and
@@ -45,7 +56,6 @@ export type Plot = {
 	-- the most important word on the board was the one that moved.
 	signLabel: TextLabel,
 	signBoast: TextLabel,
-	prompt: ProximityPrompt,
 	owner: Player?,
 }
 
@@ -57,7 +67,42 @@ local plotsFolder: Folder
 -- the fence and detects the crossing; it doesn't decide what that costs.
 local fencePenaltyHandlers: { (Player, any, any) -> () } = {}
 
-local LAWN = Color3.fromRGB(138, 178, 104)
+-- Filled in by ResidentService, which seats a neighbour on every plot nobody
+-- is living on. A REGISTRY RATHER THAN A REQUIRE, and for the reason
+-- `registerBounceVeto` and `SetService.registerPusher` already record:
+-- ResidentService requires PlotService, so asking the other way round is a
+-- cycle. This keeps PlotService's dependency list where it is and makes the
+-- cycle impossible rather than merely absent today.
+local claimHandlers: { (Plot, Player) -> () } = {}
+local releaseHandlers: { (Plot) -> () } = {}
+
+-- When each player may next be charged by a given fence, keyed
+-- "<plot index>/<penalty label>".
+--
+-- A FENCE CHARGES ONCE PER CROSSING, AND WITHOUT THIS IT CHARGED PER FRAME.
+-- `Touched` is not an entry event: it re-fires on every re-contact, and a
+-- character resting against a part re-contacts it constantly. Measured on a
+-- live rig standing in an electric fence's ClimbZone: 18 fires in 4 seconds.
+--
+-- That produced both halves of the bug at once. Eighteen notifications, and
+-- eighteen calls to applySlow -- each of which re-stamped a 2.5-second stun,
+-- so the stun never expired and the player was frozen for as long as they
+-- were touching the fence. A stun is WalkSpeed 0 and JumpHeight 0, so they
+-- could not walk out of the zone or jump off it: it renewed itself forever.
+--
+-- KEYED PER PLOT AND PER SOURCE, not per player. Per player alone would let a
+-- thief cross a second neighbour's fence for free inside the window, and the
+-- alley between two yards is 16 studs -- comfortably crossable in one. Per
+-- source keeps the moat and the wire above it separate, so wading the water
+-- cannot buy a free run at the fence behind it.
+local fenceCooldown: { [Player]: { [string]: number } } = {}
+
+-- Down about 30% when the ground lost its texture -- a material multiplies
+-- Part.Color, so this had never been seen at its literal value until the
+-- lawn went flat. See the note over GRASS in WorldService; the two move
+-- together and this stays the lighter of the pair, because a mown lawn
+-- should read as tended against the rougher world ground around it.
+local LAWN = Color3.fromRGB(94, 128, 68)
 local TRIM = Color3.fromRGB(196, 178, 148)
 local POST = Color3.fromRGB(122, 88, 58)
 
@@ -157,7 +202,12 @@ local function buildPlot(index: number): Plot
 	base.Size = Config.PLOT_SIZE
 	base.Position = origin
 	base.Anchored = true
-	base.Material = Enum.Material.Grass
+	-- The ground surface, from the one pair in Config that the whole street
+	-- reads. A MaterialVariant naming something MaterialService does not hold
+	-- falls back to the base material, so the worst either line can do is
+	-- render the plain ground.
+	base.Material = Config.GRASS_MATERIAL.material
+	base.MaterialVariant = Config.GRASS_MATERIAL.name
 	base.Color = LAWN
 	base.TopSurface = Enum.SurfaceType.Smooth
 	base.Parent = model
@@ -182,10 +232,45 @@ local function buildPlot(index: number): Plot
 	yard.Size = Vector3.new(Config.PLOT_SIZE.X, Config.PLOT_SIZE.Y, yardDepth)
 	yard.Position = origin + Vector3.new(0, 0, -(Config.PLOT_SIZE.Z / 2 + yardDepth / 2))
 	yard.Anchored = true
-	yard.Material = Enum.Material.Grass
+	-- Same surface as the front lawn, for the same reason it is the same
+	-- COLOUR as the front lawn: one fenced yard in two different greens is
+	-- exactly the seam this part was added to close.
+	yard.Material = Config.GRASS_MATERIAL.material
+	yard.MaterialVariant = Config.GRASS_MATERIAL.name
 	yard.Color = LAWN
 	yard.TopSurface = Enum.SurfaceType.Smooth
 	yard.Parent = model
+
+	-- The grass standing up out of both of them.
+	--
+	-- BUILT BEFORE THE `PivotTo` AT THE END OF THIS FUNCTION, which is what
+	-- makes the far row correct for nothing: every tuft is authored in the
+	-- same pre-rotation frame as the lawn it stands on, and the single turn
+	-- at the end carries them along with everything else. Scattered ON the
+	-- two parts rather than over a rectangle for the same reason -- a part
+	-- carries its own frame, so this cannot get the rotation wrong.
+	--
+	-- NO VETO IS PASSED. The two things a lawn could have grass growing out
+	-- of are the driveway and a tier-5 moat, and neither reaches this grass.
+	--
+	-- The DRIVEWAY is derived AND measured: `buildDriveway` runs from
+	-- `driveNear` to `driveFar` in PLOT-LOCAL z, so it starts at 25.6 against
+	-- a slab that ends at PLOT_SIZE.Z / 2, which puts the whole drive in
+	-- front of the lawn rather than on it. Counted live across every plot at
+	-- zero tufts standing on a driveway slab.
+	--
+	-- The MOAT is derivation only and is recorded as such under "Not yet
+	-- verified": it takes the fence RING, which is outboard of this 64-wide
+	-- grass with the stone trim in between, and nobody in a solo session owns
+	-- a tier-5 fence for it to be measured against.
+	--
+	-- Its own folder so the count is one line to read and the whole lot is
+	-- one line to remove.
+	local grass = Instance.new("Folder")
+	grass.Name = "Grass"
+	grass.Parent = model
+	GrassTuft.scatterOn(base, grass, index * 2)
+	GrassTuft.scatterOn(yard, grass, index * 2 + 1)
 
 	local piggy = PiggyBank.build(origin, model)
 
@@ -362,11 +447,11 @@ local function buildPlot(index: number): Plot
 		piggy = piggy,
 		dog = dog,
 		fence = fence,
+		fenceLevel = 0,
 		house = nil,
 		decor = nil,
 		signLabel = label,
 		signBoast = boast,
-		prompt = piggy.prompt,
 		owner = nil,
 	}
 end
@@ -548,6 +633,92 @@ local function decorMoat(parent: Instance, originCF: CFrame, centre: Vector3, le
 	decorElectric(parent, originCF, centre, length, alongX, tier)
 end
 
+-- The meshed fence: one panel, cloned along the run.
+--
+-- Built ONCE per style and cloned, because `CreateMeshPartAsync` yields and a
+-- fence is dozens of panels. Same shape as the trees and the grass tufts.
+local fencePanels: { [string]: BasePart } = {}
+local fencePanelChecked: { [string]: boolean } = {}
+
+local function fencePanel(style: string): BasePart?
+	if fencePanelChecked[style] then
+		return fencePanels[style]
+	end
+	fencePanelChecked[style] = true
+
+	local spec = Config.fenceMesh(style)
+	if not spec then
+		return nil
+	end
+
+	local ok, result = pcall(function()
+		local part = game:GetService("InsertService"):CreateMeshPartAsync(spec.id,
+			Enum.CollisionFidelity.Box, Enum.RenderFidelity.Automatic)
+		-- `CreateMeshPartAsync` carries the mesh and NOT the map, which is how
+		-- the trees shipped flat for a build with nothing in the log.
+		if spec.texture then
+			part.TextureID = spec.texture
+		end
+		return part
+	end)
+
+	if not ok then
+		warn(("[PlotService] the %s fence panel could not be loaded, so the "
+			.. "primitive fence is standing instead: %s"):format(style, tostring(result)))
+		return nil
+	end
+
+	fencePanels[style] = result
+	return result
+end
+
+-- Tiles the panel along one run. Returns false when there is no mesh for this
+-- style, so the caller can fall through to the primitive decorator.
+local function decorMeshPanel(parent: Instance, originCF: CFrame, centre: Vector3,
+	length: number, alongX: boolean, tier: any): boolean
+
+	local spec = Config.fenceMesh(tier.style)
+	local template = spec and fencePanel(tier.style)
+	if not (spec and template) then
+		return false
+	end
+
+	-- UNIFORM off the authored height so the panel lands on `decorTop`; the
+	-- run length then falls out of that and decides how many fit. Only the
+	-- LENGTH is stretched afterwards, to tile the run exactly -- invisible on
+	-- a flat panel seen side-on, where a stretched HEIGHT would not be.
+	local scale = tier.decorTop / spec.size.Y
+	local count = math.max(1, math.round(length / (spec.size.X * scale)))
+	local actual = length / count
+
+	for i = 0, count - 1 do
+		local t = -length / 2 + actual * (i + 0.5)
+		local panel = template:Clone()
+		panel.Name = "Panel"
+		-- SIZE BEFORE CFRAME: resizing a MeshPart scales it about its own
+		-- centre, so a part seated first and scaled after moves off its spot.
+		-- The mesh is authored with its run along X, so the part is turned a
+		-- quarter when the fence runs along Z rather than swapping the size.
+		panel.Size = Vector3.new(actual, tier.decorTop, spec.size.Z * scale)
+		panel.CFrame = originCF
+			* CFrame.new(centre + alongVec(alongX, t)
+				+ Vector3.new(0, FENCE_BASE_Y + tier.decorTop / 2, 0))
+			* (if alongX then CFrame.new() else CFrame.Angles(0, math.rad(90), 0))
+		panel.Anchored = true
+		-- The Barrier beside this is the only thing that collides, and the
+		-- ClimbZone above it is the only thing queried. A decoration that did
+		-- either would change what a fence COSTS to cross.
+		panel.CanCollide = false
+		panel.CanQuery = false
+		panel.CastShadow = false
+		if spec.tint then
+			panel.Color = spec.tint
+		end
+		panel.Parent = parent
+	end
+	return true
+end
+
 local FENCE_STYLES: { [string]: (Instance, CFrame, Vector3, number, boolean, any) -> () } = {
 	rickety = decorRickety,
 	picket = decorPicket,
@@ -558,12 +729,21 @@ local FENCE_STYLES: { [string]: (Instance, CFrame, Vector3, number, boolean, any
 
 function PlotService.buildFence(plot: Plot, level: number)
 	plot.fence:ClearAllChildren()
+	plot.fenceLevel = math.max(level, 0)
 	if level <= 0 then
 		return
 	end
 
 	local tier = Config.FENCE_TIERS[math.clamp(level, 1, #Config.FENCE_TIERS)]
-	local decorate = FENCE_STYLES[tier.style] or decorRickety
+	-- The mesh panel first, per style, falling through to the primitive
+	-- decorator whenever `Config.FENCE_MESH` has no row for it. That is what
+	-- lets the five tiers be meshed one at a time.
+	local primitive = FENCE_STYLES[tier.style] or decorRickety
+	local decorate = function(parent, cf, centre, length, alongX, t)
+		if not decorMeshPanel(parent, cf, centre, length, alongX, t) then
+			primitive(parent, cf, centre, length, alongX, t)
+		end
+	end
 	local originCF = plot.cframe
 	-- THE SIDES AND THE FRONT ARE DIFFERENT NUMBERS. This was one `half` doing
 	-- both jobs, which was right only while the plot was square -- see
@@ -579,7 +759,7 @@ function PlotService.buildFence(plot: Plot, level: number)
 		stun = tier.stun or 0,
 	}
 
-	local function firePenalty(hit: BasePart, penalty: any)
+	local function firePenalty(hit: BasePart, penalty: any, reject: Vector3?)
 		local character = hit.Parent
 		if not character or not character:FindFirstChildOfClass("Humanoid") then
 			return
@@ -589,8 +769,38 @@ function PlotService.buildFence(plot: Plot, level: number)
 		if not crosser or crosser == plot.owner then
 			return
 		end
+
+		-- ONE CHARGE PER CROSSING. See fenceCooldown -- without this the
+		-- notification repeats about five times a second and, on a tier that
+		-- stuns, the stun re-stamps itself faster than it can expire.
+		local key = ("%d/%s"):format(plot.index, tostring(penalty.label))
+		local now = os.clock()
+		local perPlayer = fenceCooldown[crosser]
+		if not perPlayer then
+			perPlayer = {}
+			fenceCooldown[crosser] = perPlayer
+		end
+		if now < (perPlayer[key] or 0) then
+			return
+		end
+		perPlayer[key] = now + penalty.duration + Config.FENCE_PENALTY_GRACE
+
 		for _, callback in ipairs(fencePenaltyHandlers) do
 			task.spawn(callback, crosser, plot, penalty)
+		end
+
+		-- THROWN OFF THE FENCE, because the stun that comes with a shock would
+		-- otherwise leave them standing in the volume that caused it -- unable
+		-- to walk out, unable to jump off, waiting out the cooldown on top of
+		-- the fence they were shocked by. Only tiers that stun throw; a
+		-- rickety fence is meant to be climbable and merely slow.
+		--
+		-- HANDED TO THE CLIENT, exactly as the trampoline is: a server-side
+		-- write to a player's AssemblyLinearVelocity is discarded, because the
+		-- client owns its own physics. The server still owns every decision --
+		-- who, whether, and which way.
+		if reject and (penalty.stun or 0) > 0 then
+			Remotes.get("FenceKnockback"):FireClient(crosser, reject)
 		end
 	end
 
@@ -605,9 +815,32 @@ function PlotService.buildFence(plot: Plot, level: number)
 		barrier.CanCollide = true
 		barrier.CanQuery = false
 		barrier.Transparency = 1
+		-- WHICH WAY THIS SEGMENT RUNS AND HOW LONG IT IS, published on the
+		-- part rather than kept in a table beside it. `placeLadder` has to
+		-- project a player's position onto a segment, and a square barrier
+		-- cannot be asked which of its axes is the fence: at the moat's
+		-- bands this file already writes `Span`/`AlongX` for exactly this.
+		barrier:SetAttribute("AlongX", alongX)
+		barrier:SetAttribute("Span", length)
 		barrier.Parent = plot.fence
 
 		decorate(plot.fence, originCF, centre, length, alongX, tier)
+
+		-- THERE IS NO BUILT-IN WAY OVER, AND THERE USED TO BE.
+		--
+		-- Every segment carried a permanent climbing trellis. Three things
+		-- were wrong with it and only the first was visible: it stood on
+		-- tiers you can step over, so the cheapest fence in the game had a
+		-- ladder bolted to it; it made a fence a slower floor rather than a
+		-- wall, since the way across was always there and always free; and it
+		-- left nothing for an item to sell, because the problem it would
+		-- solve was already solved on every plot forever.
+		--
+		-- A fence is solid now and `Config.LADDER` is what crosses it. That
+		-- does not make a plot uncrossable -- the gate below is always open,
+		-- at every tier -- so what the fence actually stops is the side and
+		-- back crossing, which is the alley shortcut, and the ladder buys a
+		-- route that is not the front door.
 
 		-- Snag volume, sitting above the barrier so it only catches players
 		-- coming over the top, never anyone walking in through the gate.
@@ -621,8 +854,36 @@ function PlotService.buildFence(plot: Plot, level: number)
 		zone.Transparency = 1
 		zone.Parent = plot.fence
 
+		-- WHICH WAY IS "OFF THE FENCE" is decided per hit, from the side the
+		-- climber is already on -- never a fixed outward push.
+		--
+		-- A fence must reject you to where you were, and never carry you
+		-- across itself. Always pushing outward would bounce a thief climbing
+		-- IN back to the street, which is a defence, but it would also throw a
+		-- thief climbing OUT into the street, which is a free getaway on the
+		-- one tier that costs the most to buy. Rejecting to the near side can
+		-- do neither: the most it ever gives anybody is a few studs deeper
+		-- into the ground they were already standing on, paid for with two and
+		-- a half seconds of being unable to move.
+		--
+		-- The normal is the axis the fence does NOT run along: a run along X
+		-- is crossed in Z, and the other way round.
+		local normal = if alongX then Vector3.zAxis else Vector3.xAxis
+		local planeAt = if alongX then centre.Z else centre.X
+
 		zone.Touched:Connect(function(hit)
-			firePenalty(hit, climbPenalty)
+			local root = hit.Parent and hit.Parent:FindFirstChild("HumanoidRootPart") :: BasePart?
+			local reject: Vector3? = nil
+			if root then
+				local localPos = originCF:PointToObjectSpace(root.Position)
+				local offset = (if alongX then localPos.Z else localPos.X) - planeAt
+				-- Dead on the plane is vanishingly unlikely and has no near
+				-- side to pick, so treat it as outward rather than as zero --
+				-- a knockback of nothing would leave them in the zone.
+				local sign = if offset < 0 then -1 else 1
+				reject = originCF:VectorToWorldSpace(normal * sign)
+			end
+			firePenalty(hit, climbPenalty, reject)
 		end)
 	end
 
@@ -1136,6 +1397,172 @@ end
 --
 -- Returns the plot, so a caller can tell "my own lawn" from "someone else's".
 -- Nothing uses that yet; RideService only cares that it is somebody's.
+-- ============================================================
+-- LADDERS
+-- ============================================================
+--
+-- A player-placed climbing point, standing for `Config.LADDER.seconds`.
+--
+-- THE CALLER SENDS NO POSITION, AND THAT IS THE LOAD-BEARING HALF OF LETTING
+-- IT GO ANYWHERE. "Anywhere along the fence" is the whole appeal and a
+-- coordinate on the wire is the obvious way to build it -- and then there is
+-- one to forge and a range check to defeat, which is the exact trade
+-- `BoneThrow` and `GadgetThrow` already refuse. So this takes the PLAYER and
+-- reads their own character position: you choose the spot by standing there,
+-- the server projects that onto the nearest segment, and the click means "use
+-- it" rather than "use it there".
+--
+-- Returns the ladder, or nil AND A REASON CODE. The code is a machine word
+-- rather than a sentence, because the wording belongs to the item's own
+-- service -- the same split `CosmeticsService.awardTokens` draws with its
+-- optional `why`.
+
+type PlacedLadder = {
+	model: Model,
+	player: Player,
+	expiresAt: number,
+}
+
+local ladders: { PlacedLadder } = {}
+local ladderOf: { [Player]: Model } = {}
+
+local function retireLadder(model: Model?)
+	if not model then
+		return
+	end
+	for i = #ladders, 1, -1 do
+		if ladders[i].model == model then
+			ladderOf[ladders[i].player] = nil
+			table.remove(ladders, i)
+		end
+	end
+	model:Destroy()
+end
+
+function PlotService.clearLadder(player: Player)
+	retireLadder(ladderOf[player])
+end
+
+-- The segment of `plot`'s fence nearest `position`, the point on it, and how
+-- far away it is. All of it in PLOT-LOCAL space, where the rectangle is
+-- axis-aligned and the far row's half-turn has already been dealt with -- the
+-- same frame `yardContaining` works in and for the same reason.
+local function nearestSegment(plot: Plot, position: Vector3): (Vector3?, number, boolean)
+	local margin = Config.LADDER.margin
+	local here = plot.cframe:PointToObjectSpace(position)
+	local best, bestDist, bestAlongX = nil, math.huge, true
+
+	for _, part in ipairs(plot.fence:GetChildren()) do
+		if part:IsA("BasePart") and part.Name == "Barrier" then
+			local alongX = part:GetAttribute("AlongX")
+			local span = part:GetAttribute("Span")
+			if type(alongX) == "boolean" and type(span) == "number" then
+				local centre = plot.cframe:PointToObjectSpace(part.Position)
+				-- Clamped to the segment's own ends, less a margin, so a
+				-- ladder cannot be wedged into the corner where two barriers
+				-- meet and come out climbable from neither side.
+				local reach = math.max(span / 2 - margin, 0)
+				local point
+				if alongX then
+					point = Vector3.new(
+						math.clamp(here.X, centre.X - reach, centre.X + reach), 0, centre.Z)
+				else
+					point = Vector3.new(
+						centre.X, 0, math.clamp(here.Z, centre.Z - reach, centre.Z + reach))
+				end
+				-- Horizontal only. The player is standing on the lawn or on
+				-- the street, a stud apart, and that difference is not a
+				-- reason to prefer one segment over another.
+				local d = (Vector3.new(here.X, 0, here.Z) - point).Magnitude
+				if d < bestDist then
+					best, bestDist, bestAlongX = point, d, alongX
+				end
+			end
+		end
+	end
+	return best, bestDist, bestAlongX
+end
+
+function PlotService.placeLadder(player: Player): (Model?, string?)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not root then
+		return nil, "nocharacter"
+	end
+
+	local bestPlot, bestPoint, bestDist, bestAlongX = nil, nil, math.huge, true
+	for _, plot in ipairs(plots) do
+		if plot.fenceLevel > 0 then
+			local point, d, alongX = nearestSegment(plot, root.Position)
+			if point and d < bestDist then
+				bestPlot, bestPoint, bestDist, bestAlongX = plot, point, d, alongX
+			end
+		end
+	end
+
+	if not bestPlot or not bestPoint or bestDist > Config.LADDER.reach then
+		return nil, "nofence"
+	end
+
+	local tier = Config.FENCE_TIERS[math.clamp(bestPlot.fenceLevel, 1, #Config.FENCE_TIERS)]
+	-- ASKED OF THE TIER, NEVER OF THE HEIGHT. `isClimbedFence` is the same
+	-- test the jump split is drawn with, so a ladder can never be refused on
+	-- a fence somebody genuinely cannot hop, or allowed on one they can.
+	if not Config.isClimbedFence(tier) then
+		return nil, "hoppable"
+	end
+
+	retireLadder(ladderOf[player])
+
+	local height = tier.top + Config.LADDER.overhang
+	local model = ThiefModel.buildLadder(height)
+
+	-- SQUARE TO THE FENCE, off the axis the chosen segment was BUILT on.
+	-- A ladder is authored flat in its own X and Y, so a segment running
+	-- along X needs no turn and one running along Z needs a quarter. The axis
+	-- is carried back from `nearestSegment` rather than inferred from the
+	-- point: a back fence and a side fence can share a coordinate, and
+	-- guessing gets one of them a ladder lying across the fence.
+	local yaw = if bestAlongX then CFrame.new() else CFrame.Angles(0, math.rad(90), 0)
+
+	local seat = bestPlot.cframe
+		* CFrame.new(Vector3.new(bestPoint.X, FENCE_BASE_Y + height / 2, bestPoint.Z))
+		* yaw
+	model:PivotTo(seat)
+
+	-- WHAT ACTUALLY CLIMBS. The ladder is decoration, exactly like the fence
+	-- it stands against: an invisible TrussPart inside it does the work, and
+	-- it is climbed natively at a fixed fraction of WalkSpeed, so the climb
+	-- inherits every speed rule through `HeistService.currentSpeed` with no
+	-- movement code of its own.
+	--
+	-- It STRADDLES the barrier, so one ladder serves both ways over. A truss
+	-- is locked to a 2x2 cross-section whatever is asked for, which is why
+	-- the visible ladder is separate geometry rather than the truss itself.
+	local truss = Instance.new("TrussPart")
+	truss.Name = "Rungs"
+	truss.Size = Vector3.new(2, height, 2)
+	truss.CFrame = seat
+	truss.Anchored = true
+	truss.CanCollide = true
+	truss.CanQuery = false
+	truss.Transparency = 1
+	truss.Parent = model
+
+	-- Parented to the plot's own fence folder, so a rebuild or a release
+	-- takes the ladder with it. The sweep below notices by asking whether the
+	-- model still has a parent rather than by being told.
+	model.Parent = bestPlot.fence
+
+	table.insert(ladders, {
+		model = model,
+		player = player,
+		expiresAt = os.clock() + Config.LADDER.seconds,
+	})
+	ladderOf[player] = model
+	return model, nil
+end
+
 function PlotService.yardContaining(position: Vector3): Plot?
 	-- TWO numbers, not one. `half` served as both the X extent and the front Z
 	-- while the plot was square; the rectangle is 64 x 48 now, so a single
@@ -1174,17 +1601,21 @@ function PlotService.setDogLevel(plot: Plot, level: number)
 	GuardDog.applyTier(plot.dog, level)
 end
 
--- Publishes the owner's lock level as an attribute rather than only baking it
--- into HoldDuration.
+-- Publishes the owner's lock level as an attribute, which is now the ONLY
+-- place it is published.
 --
--- The client re-times its own prompt for its lockpicks, so if it had to infer
--- the lock level from HoldDuration it would be reading a number it also
--- writes -- and any server change after the first read would get clobbered by
--- the client's stale copy. Replicating the level itself means both sides
--- derive the duration from the same input and neither can drift.
+-- It used to be baked into the steal prompt's HoldDuration as well, and the
+-- attribute existed because the client re-times its own prompt for its
+-- lockpicks: inferring the level from a duration it also writes meant reading
+-- a number it owned, and a server change after that read would be clobbered
+-- by the stale copy.
+--
+-- The duration is a flat Config.CRACK.openHold now and carries no level at
+-- all -- the Vault Lock tree buys narrower zones in the crack instead -- so
+-- the attribute is not merely the tidier source, it is the only one. Anything
+-- that wants to know how good a lock is asks the plot.
 function PlotService.setLockLevel(plot: Plot, level: number)
-	plot.model:SetAttribute("LockLevel", level)
-	plot.piggy.stealPrompt.HoldDuration = Config.getStealHold(level, 0)
+	plot.model:SetAttribute(Config.PLOT_LOCK_ATTRIBUTE, level)
 	PiggyBank.setLockLevel(plot.piggy, level)
 end
 
@@ -1200,7 +1631,28 @@ end
 -- Returns how many coins newly appeared, so callers can decide whether that
 -- deserves a sound.
 function PlotService.updatePile(plot: Plot, vault: number, capacity: number): number
+	-- Published here rather than at the call sites because this is the one
+	-- function every path already goes through -- the accrual tick, a steal, a
+	-- delivery, and `release` zeroing an abandoned plot. See
+	-- Config.PLOT_VAULT_ATTRIBUTE for why a thief is allowed to read it.
+	plot.model:SetAttribute(Config.PLOT_VAULT_ATTRIBUTE, math.floor(vault))
 	return PiggyBank.setFill(plot.piggy, vault, capacity)
+end
+
+-- The plaster. Stamped on the plot as Config.PLOT_ROBBED_ATTRIBUTE in server
+-- time so a client can read it, and cleared by whichever stamp is latest --
+-- a second robbery inside the window extends the mark rather than letting
+-- the first timer pull it off early.
+function PlotService.setRobbed(plot: Plot, seconds: number)
+	local until_ = workspace:GetServerTimeNow() + seconds
+	plot.model:SetAttribute(Config.PLOT_ROBBED_ATTRIBUTE, until_)
+	PiggyBank.setRobbed(plot.piggy, true)
+	task.delay(seconds, function()
+		if plot.model:GetAttribute(Config.PLOT_ROBBED_ATTRIBUTE) == until_ then
+			plot.model:SetAttribute(Config.PLOT_ROBBED_ATTRIBUTE, nil)
+			PiggyBank.setRobbed(plot.piggy, false)
+		end
+	end)
 end
 
 function PlotService.playCoinDrop(plot: Plot)
@@ -1275,6 +1727,19 @@ end
 -- ASSIGNMENT
 -- ============================================================
 
+-- Called when a plot passes to a real player, BEFORE the handover, so a
+-- resident can be taken off a plot that is still nobody's.
+function PlotService.onClaim(fn: (Plot, Player) -> ())
+	table.insert(claimHandlers, fn)
+end
+
+-- Called when a plot goes back to nobody, AFTER `release` has stripped it,
+-- so whatever seats a neighbour on it is seating onto a clean plot rather
+-- than racing the reset.
+function PlotService.onRelease(fn: (Plot) -> ())
+	table.insert(releaseHandlers, fn)
+end
+
 function PlotService.assign(player: Player): Plot?
 	if byPlayer[player] then
 		return byPlayer[player]
@@ -1282,6 +1747,15 @@ function PlotService.assign(player: Player): Plot?
 
 	for _, plot in ipairs(plots) do
 		if plot.owner == nil then
+			-- Before the handover: the plot is still nobody's here, which is
+			-- the state a resident is allowed to be removed in.
+			for _, fn in ipairs(claimHandlers) do
+				local ok, err = pcall(fn, plot, player)
+				if not ok then
+					warn("[PlotService] claim handler failed: " .. tostring(err))
+				end
+			end
+
 			plot.owner = player
 			byPlayer[player] = plot
 			plot.model:SetAttribute("OwnerUserId", player.UserId)
@@ -1307,6 +1781,8 @@ function PlotService.release(player: Player)
 	PlotService.applySkin(plot, Config.DEFAULT_SKIN)
 	PlotService.applyEffect(plot, Config.DEFAULT_EFFECT)
 	PlotService.updatePile(plot, 0, Config.BASE_CAPACITY)
+	plot.model:SetAttribute(Config.PLOT_ROBBED_ATTRIBUTE, nil)
+	PiggyBank.setRobbed(plot.piggy, false)
 	-- Wipe the previous owner's defences so the next arrival gets a bare
 	-- plot -- and put the house back to the Starter Shack with them. It was
 	-- the one thing release never reset, so a player leaving with a Sky
@@ -1316,6 +1792,16 @@ function PlotService.release(player: Player)
 	PlotService.setDogLevel(plot, 0)
 	PlotService.setLockLevel(plot, 0)
 	PlotService.setHouseLevel(plot, 0)
+
+	-- Last, so a resident seats onto a plot that has already been stripped.
+	-- Anything that ran before this reset would have its fence, dog and house
+	-- torn straight back down by the four lines above.
+	for _, fn in ipairs(releaseHandlers) do
+		local ok, err = pcall(fn, plot)
+		if not ok then
+			warn("[PlotService] release handler failed: " .. tostring(err))
+		end
+	end
 end
 
 function PlotService.getPlot(player: Player): Plot?
@@ -1343,6 +1829,38 @@ end
 function PlotService.start()
 	Players.PlayerRemoving:Connect(function(player)
 		bouncedAt[player] = nil
+		fenceCooldown[player] = nil
+		PlotService.clearLadder(player)
+	end)
+
+	-- ONE SWEEP RATHER THAN A TIMER PER LADDER. A `task.delay` per placement
+	-- is a state machine that ignores the world -- the same note the guard
+	-- dog's patrol pause carries -- and it would go on holding a reference to
+	-- a model the fence rebuild had already destroyed. This asks the world
+	-- instead, and a destroyed ladder drops out because its Parent is gone.
+	--
+	-- THE LAST SECONDS FADE. A ladder that vanishes under a climber is fair;
+	-- one that does it with no warning is a yank, and the whole design turns
+	-- on a thief racing a timer they can see.
+	task.spawn(function()
+		while true do
+			task.wait(0.2)
+			local now = os.clock()
+			for i = #ladders, 1, -1 do
+				local entry = ladders[i]
+				local left = entry.expiresAt - now
+				if entry.model.Parent == nil or left <= 0 then
+					retireLadder(entry.model)
+				elseif left < Config.LADDER.fade then
+					local t = 1 - left / Config.LADDER.fade
+					for _, part in ipairs(entry.model:GetChildren()) do
+						if part:IsA("BasePart") and part.Name ~= "Rungs" then
+							part.Transparency = t * 0.85
+						end
+					end
+				end
+			end
+		end
 	end)
 
 	-- The Brace Face turtle's headband is runtime CSG and CSG is

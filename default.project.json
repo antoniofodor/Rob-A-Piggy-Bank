@@ -2,7 +2,6 @@
   "name": "Rob a Piggy Bank",
   "tree": {
     "$className": "DataModel",
-
     "Players": {
       "$className": "Players",
       "$properties": {
@@ -10,17 +9,16 @@
         "PreferredPlayers": 8
       }
     },
-
     "ReplicatedStorage": {
       "$className": "ReplicatedStorage",
-      "Shared": { "$path": "src/ReplicatedStorage/Shared" }
+      "Shared": {
+        "$path": "src/ReplicatedStorage/Shared"
+      }
     },
-
     "ServerScriptService": {
       "$className": "ServerScriptService",
       "$path": "src/ServerScriptService"
     },
-
     "StarterPlayer": {
       "$className": "StarterPlayer",
       "StarterPlayerScripts": {

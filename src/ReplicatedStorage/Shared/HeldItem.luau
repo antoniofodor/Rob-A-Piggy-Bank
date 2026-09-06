@@ -132,6 +132,11 @@ local GRIP: { [string]: Grip } = {
 	plunger = { cf = BASE * turn(-32, 0, 0) },
 	zapper = { cf = BASE * turn(-26, 0, 0) },
 
+	-- Over the shoulder, which is the one way anybody has ever carried a
+	-- ladder. Authored standing on Y like those two, so it takes the same
+	-- tip-back and for the same reason: upright in the fist reads as a staff.
+	ladder = { cf = BASE * turn(-38, 0, 0) },
+
 	-- STAYS UPRIGHT. It is a walkie-talkie; laying it along the fingers with
 	-- everything else is the one arrangement nobody ever holds one in.
 	radio = { cf = CFrame.new(0, -0.30, -0.10) * turn(-12, 0, 0) },

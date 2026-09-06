@@ -127,17 +127,19 @@ commands.coins = function(player, amount)
 	return ("Coins now %d"):format(math.floor(data.coins))
 end
 
-commands.vault = function(player, amount)
+-- Fills the pig to capacity, which is the state most worth testing: a full
+-- pig has stopped earning and is the best target on the street.
+commands.fill = function(player)
 	local data = DataService.get(player)
-	if not data or type(amount) ~= "number" then
+	if not data then
 		return nil
 	end
-	data.vault = math.clamp(math.floor(amount), 0, 1e12)
+	data.coins = math.max(data.coins, Config.getCapacity(data.capacityLevel))
 	local plot = PlotService.getPlot(player)
 	if plot then
-		PlotService.updatePile(plot, data.vault, Config.getCapacity(data.capacityLevel))
+		PlotService.updatePile(plot, data.coins, Config.getCapacity(data.capacityLevel))
 	end
-	return ("Vault set to %d"):format(math.floor(data.vault))
+	return ("Piggy bank at %d"):format(math.floor(data.coins))
 end
 
 commands.upgrade = function(player, key, level)
@@ -398,7 +400,7 @@ commands.animdump = function(player)
 		table.insert(failed, "dodgeRoll (no buildSequence export)")
 	end
 	if RidePose.buildSequenceFor then
-		for _, key in ipairs(Config.animationKeys()) do
+		for _, key in ipairs(Config.animationKeys(RidePose.animationKeys())) do
 			if key ~= "dodgeRoll" then
 				put(key, RidePose.buildSequenceFor(key))
 			end
@@ -444,40 +446,58 @@ commands.combine = function(player, tier, key)
 	return ("%s -> %s %s%s"):format(t, target, itemKey, dup and " (dupe)" or "")
 end
 
-commands.shards = function(player, amount)
+-- SPARES, AND THE ITEM UNDERNEATH EACH ONE.
+--
+-- A spare is an EXTRA copy, so handing one out without the base copy would put
+-- the save in a state the real code cannot produce: two of something the player
+-- does not own. The grant runs first for exactly that reason, and it is what
+-- makes this command a usable test of selling as well as of combining -- there
+-- is a last copy to sell precisely because there is an item to own.
+--
+-- One item per tier per COIN chest, so all four tiers are stocked and the two
+-- currencies stay apart: the alien cache is skipped, because event loot is not
+-- something a dev grant should be able to manufacture by accident.
+commands.spares = function(player, amount)
 	local data = DataService.get(player)
 	local n = tonumber(amount) or 3
 	if not data then
 		return nil
 	end
-	for _, t in ipairs({ "common", "rare", "epic", "legendary" }) do
-		data.shards[t] = (data.shards[t] or 0) + n
+
+	local granted, added = 0, 0
+	for chestKey, chest in pairs(Config.CHESTS) do
+		if (chest.currency or "coins") == "coins" then
+			local _, pool = ChestService.liveOdds(chestKey)
+			for _, tier in ipairs({ "common", "rare", "epic", "legendary" }) do
+				local entries = pool[tier]
+				if entries and #entries > 0 then
+					local kind, key = Config.chestEntry(chestKey, entries[1])
+					if SetService.grant(player, kind, key) then
+						granted += 1
+					end
+					local id = kind .. ":" .. key
+					data.spares[id] = (data.spares[id] or 0) + n
+					added += n
+				end
+			end
+		end
 	end
+
 	ChestService.push(player)
-	return ("Shards: +%d of each tier"):format(n)
+	return ("Spares: +%d across the coin chests, %d items granted"):format(added, granted)
 end
 
--- Grants roll tokens. Same shape and same reason as `medals` below: earning
--- these legitimately means claiming a daily or sitting through a whole event,
--- and the roll button reads the balance, so a dev grant has to push too --
--- which CosmeticsService.awardTokens already does.
-commands.tokens = function(player, amount)
-	local n = tonumber(amount) or 0
-	if n <= 0 then
-		return "Amount must be positive."
-	end
-	CosmeticsService.awardTokens(player, n, "Dev grant:")
-	return ("Tokens: %d"):format(CosmeticsService.getTokens(player))
-end
-
-commands.medals = function(player, amount)
+-- Grants loot. Earning it legitimately means delivering a robbery, and the
+-- roll button and the set panel both read the balance, so a dev grant has to
+-- push -- which SetService.award already does.
+commands.loot = function(player, amount)
 	local n = if type(amount) == "number" then math.floor(amount) else 0
 	if n ~= 0 then
-		SetService.award(player, n, "Admin.")
+		SetService.award(player, n, "Dev grant.")
 	else
 		SetService.push(player)
 	end
-	return ("Medals: %d"):format(SetService.getMedals(player))
+	return ("Loot: %d"):format(SetService.getLoot(player))
 end
 
 commands.event = function(player, name)
@@ -497,9 +517,10 @@ end
 -- player, a real robbery and a run home first. Same argument as `police` and
 -- `bust` above.
 --
--- Note the board only picks somebody up on its refresh tick, and only once
--- their sheet clears their own income floor, so a small number here can
--- legitimately do nothing. It says which.
+-- Note the board only picks somebody up on its refresh tick, so it says the
+-- sheet back rather than the winner. Any amount at all now puts you on the
+-- poster if it is the biggest in the server -- the income floor no longer
+-- gates that, only whether the PATROL comes for you.
 commands.wanted = function(player, amount)
 	local n = if type(amount) == "number" then math.floor(amount) else 100000
 	SocialService.recordSteal(player, n)
@@ -558,7 +579,8 @@ end
 
 commands.shield = function(player)
 	local shields, cooldowns = HeistService.openSeason()
-	return ("Open season: %d shield(s) dropped, %d cooldown/limit pair(s) cleared"):format(
+	-- "limit" was the retired per-victim cap; only the cooldown is left.
+	return ("Open season: %d shield(s) dropped, %d cooldown pair(s) cleared"):format(
 		shields, cooldowns)
 end
 
@@ -568,7 +590,6 @@ commands.reset = function(player)
 		return nil
 	end
 	data.coins = 0
-	data.vault = 0
 	data.incomeLevel = 1
 	data.capacityLevel = 1
 	data.rebirths = 0
