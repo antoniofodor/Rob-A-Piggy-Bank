@@ -40,7 +40,7 @@ export type PlayerData = {
 	-- Daily claim. `lastDay` is a UTC day index, not a timestamp: the only
 	-- question ever asked of it is which day it was, and storing the day
 	-- directly means no timezone can get between the save and the answer.
-	daily: { lastDay: number, streak: number, lifetime: number },
+	daily: { lastDay: number, streak: number, lifetime: number, crate: string },
 	-- Boosts held, by key, and the wall-clock second the active one ends.
 	-- Held rather than applied on claim -- see Config.BOOSTS for why.
 	boosts: { [string]: number },
@@ -49,6 +49,16 @@ export type PlayerData = {
 	lastSave: number,
 	totalStolen: number,
 	totalLost: number,
+	-- THE WEEKLY LADDER. `index` is a UTC week index, never a timestamp, for
+	-- the reason `daily.lastDay` is a day index: the only question asked of it
+	-- is which week, so no clock can get between the save and the answer.
+	-- `stolen` is coins taken from VICTIMS this week -- the same figure the rap
+	-- sheet counts, never the doubled payout, so it measures what was actually
+	-- taken rather than what was minted on the way home.
+	--
+	-- Rolled over lazily, when it is next read or written. Nothing has to
+	-- happen at midnight on Sunday, so nothing schedules anything.
+	week: { index: number, stolen: number },
 	-- MOST WANTED GEAR: worn by the player's own character, never bought.
 	--
 	-- `escapes` is the lifetime count of most-wanted pursuits survived and is
@@ -65,6 +75,41 @@ export type PlayerData = {
 		unlocked: { [string]: boolean },
 		worn: string,
 		escapes: number,
+	},
+	-- THE TROPHY SHELF. Schema 23.
+	--
+	-- What a yard is allowed to boast about, and it is deliberately a
+	-- record of THINGS DONE rather than of things held. Coins held are
+	-- already printed over every pig in gold by the rob badge, so a yard
+	-- advertising them harder would only paint a bigger target.
+	--
+	-- `victims` is the collection: one key per PIGGY SKIN successfully
+	-- robbed and delivered, which is what the Victim Shelf stands a little
+	-- pig of. A SET rather than a count, because the shelf shows WHICH
+	-- ones -- and because a number could never tell you whether the next
+	-- robbery adds to it.
+	--
+	-- `caught` and `bestSpree` are the two figures this game was not
+	-- keeping anywhere. Everything else a trophy reads already existed:
+	-- `totalStolen` since the heist system shipped and `gear.escapes`
+	-- since the most-wanted gear did, both written on every event and
+	-- displayed on no screen in the game.
+	--
+	-- `plinths` and `plinth` are the bought half -- the owned set and the
+	-- one standing -- which is the same owned/worn pair the kennels, the
+	-- coats and the skins all keep, so the shop card and the equip toggle
+	-- needed nothing new.
+	--
+	-- NEVER RESET BY REBIRTH. A trophy is a record of what an account has
+	-- done and rebirth already costs every upgrade somebody owns; wiping
+	-- the shelf as well would make the one decision this economy most
+	-- needs players to take also the one that erases their history.
+	trophies: {
+		victims: { [string]: boolean },
+		caught: number,
+		bestSpree: number,
+		plinths: { [string]: boolean },
+		plinth: string,
 	},
 	upgrades: { [string]: number },
 	-- Prestige, not power. Never reset by rebirth.
@@ -99,6 +144,67 @@ export type PlayerData = {
 		-- slot id -> item key. Auto-assigned on purchase.
 		placed: { [string]: string },
 	},
+	-- THE GARDEN. Schema 24.
+	--
+	-- A SECOND DECORATION TRACK THAT SPENDS NO SLOT, which is the whole
+	-- reason it is not folded into `decor` above. That table is a NINE-SLOT
+	-- SHELF and its scarcity is a design decision `docs/MASTER-PLAN.md` states
+	-- twice; a border, a path and a window box hang on the fence, the gate
+	-- walk and the house instead, so they are equipped rather than placed.
+	--
+	-- Three owned tables and three equipped strings, the shape `dogs` already
+	-- uses for a coat and a kennel -- and for the same reason: one of each at
+	-- a time, so there is nothing for a `placed` map to hold. "" is none and
+	-- is always legal.
+	garden: {
+		borders: { [string]: boolean },
+		paths: { [string]: boolean },
+		boxes: { [string]: boolean },
+		border: string,
+		path: string,
+		window: string,
+	},
+	-- THE DOG'S WARDROBE. Schema 20.
+	--
+	-- `owned` is the collection and `equipped` is the one being worn, "" for
+	-- the breed's own colours -- the same owned/worn split `accessories` and
+	-- `cosmetics` already use, so the equip toggle and the shop card need
+	-- nothing new.
+	--
+	-- A COAT IS PURE TASTE AND IS NEVER WIPED BY REBIRTH, which is the bracket
+	-- every cosmetic in this game sits in. What it must never touch is the
+	-- Guard Dog UPGRADE level: that is power, it lives in `upgrades`, and
+	-- rebirth takes it. A thief reads the dog to price the risk, so a coat
+	-- that could imply a tier would be a defence upgrade sold for money --
+	-- see the header on `Config.DOG_COATS` for the measurement that says the
+	-- tier read survives on shape alone.
+	dogs: {
+		owned: { [string]: boolean },
+		equipped: string,
+		-- The name the owner gave it, ALREADY FILTERED, or "" for the breed's
+		-- own label. What is stored is what came back from
+		-- `TextService:FilterStringAsync`, never what the client typed -- so a
+		-- save can never be a delivery mechanism for unfiltered text, and a
+		-- name written before a filter rule changed is re-filtered on its next
+		-- rename rather than being trusted forever.
+		name: string,
+		-- `os.time()` of the last rename, for the rate limit on the filter
+		-- call. Absolute rather than a countdown so it survives a rejoin.
+		namedAt: number,
+		-- Which kennel skins are owned, and which one is standing. A SECOND
+		-- pair rather than a shared one: a coat and a kennel are bought
+		-- separately, worn together, and neither may reach the other's
+		-- colours -- see `Config.DOG_KENNELS`. Both are new keys INSIDE an
+		-- existing table, which `reconcile` fills in one level down, so they
+		-- cost no schema bump.
+		kennels: { [string]: boolean },
+		kennel: string,
+		-- The toys: bought, and out. TWO tables, the same pair `data.decor`
+		-- already keeps, and for the same reason -- one table would make
+		-- "put it away" mean "sell it", and nothing in this game refunds
+		-- anything.
+		toys: { owned: { [string]: boolean }, out: { [string]: boolean } },
+	},
 	-- Rebirths since the last legendary drop, for the pity floor.
 	sinceLegendary: number,
 	cosmetics: {
@@ -107,6 +213,13 @@ export type PlayerData = {
 		skin: string,
 		effect: string,
 	},
+	-- Schema 21. THE THIRD KIND OF COSMETIC, and it is deliberately its own
+	-- top-level table rather than two more fields inside `cosmetics`: that
+	-- one is what the PIGGY wears, and a catch effect is not worn by
+	-- anything -- it fires on the person you just nabbed. Filing it under
+	-- the piggy's wardrobe would be the first time a name in this save
+	-- stopped describing what is in it.
+	catch: { owned: { [string]: boolean }, equipped: string },
 	-- Client-side preferences. Nothing in here may ever affect what a player
 	-- can do -- these are read by the HUD and by nothing that decides an
 	-- outcome, which is what keeps them safe to let a client write.
@@ -138,6 +251,19 @@ local function defaultData(): PlayerData
 		lastSave = os.time(),
 		totalStolen = 0,
 		totalLost = 0,
+		-- Schema 19. reconcile descends one level, so an existing save picks
+		-- up both fields rather than only the parent table -- and a brand new
+		-- field defaulting to zero needs no migration branch, which is the
+		-- same free ride `loot` and `spares` took.
+		week = { index = 0, stolen = 0 },
+		-- Schema 23, and the same free ride `week`, `dogs` and `catch` each
+		-- took: a brand new top-level table that the generic pass in
+		-- `reconcile` fills in on every existing save, with no migration
+		-- branch and nothing that can run twice. Every field defaults to
+		-- empty or zero, so a save written before trophies existed joins
+		-- with an empty shelf rather than with a payout.
+		trophies = { victims = {}, caught = 0, bestSpree = 0,
+			plinths = {}, plinth = "" },
 		upgrades = upgrades,
 		houseLevel = 0,
 		houseShown = 0,
@@ -148,6 +274,29 @@ local function defaultData(): PlayerData
 		-- added later needs no migration -- the shape `consumables` uses.
 		spares = {},
 		decor = { owned = {}, placed = {} },
+		-- Schema 24. A new top-level table, so the generic fill picks it up on
+		-- every existing save with no migration branch -- the same free ride
+		-- `week`, `loot`, `spares` and `dogs` each took. Nothing is owned and
+		-- nothing is equipped, which is a bare lawn: exactly what every save
+		-- already had.
+		garden = {
+			borders = {}, paths = {}, boxes = {},
+			border = "", path = "", window = "",
+		},
+		-- Schema 20. A new top-level table, so the generic fill below picks it
+		-- up on every existing save with no migration branch -- the same free
+		-- ride `week`, `loot` and `spares` took. Doing it BEFORE any UI exists
+		-- is what keeps it free: the same change after a tab ships needs a
+		-- real payout, and a payout that runs on every join is a money printer.
+		-- `name` and `namedAt` are NEW KEYS INSIDE AN EXISTING TABLE, which is
+		-- the free case: the generic pass in `reconcile` descends one level,
+		-- so a save written at schema 20 picks them up without a version bump.
+		-- That is the same ride a seventh entry in `upgrades` takes, and the
+		-- reason this file's comment there says adding one "must fill in just
+		-- that key on every existing save".
+		dogs = { owned = {}, equipped = "", name = "", namedAt = 0,
+			kennels = {}, kennel = "",
+			toys = { owned = {}, out = {} } },
 		-- Bone stock, by key. Counts only; missing keys read as zero, so a
 		-- bone added later needs no migration.
 		--
@@ -171,7 +320,13 @@ local function defaultData(): PlayerData
 		-- confers nothing in a fight; taking it away at a reset would just be a
 		-- reason not to press the button.
 		rides = { owned = {}, equipped = "" },
-		daily = { lastDay = 0, streak = 0, lifetime = 0 },
+		-- Schema 22: `crate` is the day-seven chest this save is still OWED.
+		-- It is a KEY into `Config.CHESTS` and an empty string means nothing
+		-- is waiting, so a save that has one survives a disconnect between the
+		-- claim and the walk to the doorstep -- which is the whole reason the
+		-- reward moved out of the claim in the first place. reconcile descends
+		-- one level, so an existing save picks up just this key.
+		daily = { lastDay = 0, streak = 0, lifetime = 0, crate = "" },
 		boosts = {},
 		boostUntil = 0,
 		boostMult = 1,
@@ -184,6 +339,13 @@ local function defaultData(): PlayerData
 			skin = Config.DEFAULT_SKIN,
 			effect = Config.DEFAULT_EFFECT,
 		},
+		-- Schema 21, and the same free ride `week` and `dogs` took: a brand
+		-- new top-level table filled in by the generic pass in `reconcile`,
+		-- so an existing save picks it up on its next join with no migration
+		-- branch and nothing that can run twice. Landed in the same change
+		-- as the catalogue and BEFORE any UI reads it, which is the window
+		-- the `shards`-to-`spares` entry says is the only free one.
+		catch = { owned = {}, equipped = Config.DEFAULT_CATCH },
 		-- Music defaults ON. A player who wants it off finds the toggle once
 		-- and it is remembered; defaulting to off would mean nobody ever
 		-- hears it and the whole thing may as well not ship.
@@ -287,6 +449,207 @@ local function reconcile(data: any): PlayerData
 					data.decor.placed[slot] = nil
 				end
 			end
+		end
+	end
+
+	-- DOG COATS ARE PRUNED AGAINST THE CATALOGUE, for the reason decor is.
+	--
+	-- Retiring a coat leaves a dead key in every save that owned one, and an
+	-- `equipped` pointing at something `Config.DOG_COATS` no longer holds.
+	-- Neither errors -- `GuardDog.applyTier` resolves an unknown key to nil
+	-- and falls back to the breed's own colours, which is the right graceful
+	-- degradation and is also exactly the silent-failure shape this project
+	-- keeps recording: the player sees a plain dog and nothing says why.
+	--
+	-- Written against the catalogue rather than as a one-off, so a coat
+	-- retired later needs no new code and no schema version to remember.
+	-- Nothing is refunded, the same call the retired ornaments make.
+	if type(data.dogs) == "table" then
+		if type(data.dogs.owned) == "table" then
+			for key in pairs(data.dogs.owned) do
+				if not Config.DOG_COATS[key] then
+					data.dogs.owned[key] = nil
+				end
+			end
+		end
+		-- "" is the breed look and is always legal; anything else has to be a
+		-- coat that still exists AND is still owned, or it falls back.
+		local worn = data.dogs.equipped
+		if type(worn) ~= "string" or (worn ~= "" and not Config.DOG_COATS[worn]) then
+			data.dogs.equipped = ""
+		end
+
+		-- The same two guards for the kennel, against its own catalogue.
+		-- Written out rather than folded into a loop over the pair: the two
+		-- tables have different names in the save and a helper taking four
+		-- arguments to save eight lines is the kind of indirection that makes
+		-- the next retirement harder to reason about, not easier.
+		if type(data.dogs.kennels) == "table" then
+			for key in pairs(data.dogs.kennels) do
+				if not Config.DOG_KENNELS[key] then
+					data.dogs.kennels[key] = nil
+				end
+			end
+		end
+		local den = data.dogs.kennel
+		if type(den) ~= "string" or (den ~= "" and not Config.DOG_KENNELS[den]) then
+			data.dogs.kennel = ""
+		end
+
+		-- And the toys, against their own catalogue. BOTH tables, because a
+		-- retired toy left in `out` would be asked for by `GuardDog.setToys`
+		-- on every join and quietly do nothing -- the silent failure this
+		-- prune exists to prevent, one table along from where anybody would
+		-- look for it.
+		if type(data.dogs.toys) == "table" then
+			for _, field in ipairs({ "owned", "out" }) do
+				local held = data.dogs.toys[field]
+				if type(held) == "table" then
+					for key in pairs(held) do
+						if not Config.DOG_TOYS[key] then
+							held[key] = nil
+						end
+					end
+				end
+			end
+		end
+	end
+
+	-- THE WARDROBE IS PRUNED AGAINST ITS OWN CATALOGUES, AND THE WORN FIELD
+	-- IS THE ONE THAT ACTUALLY MATTERED.
+	--
+	-- Retiring a skin leaves three kinds of dead key behind and only one of
+	-- them is visible. `cosmetics.owned` and the `skin:` half of `spares` go
+	-- unread, because every surface that draws a wardrobe walks the CATALOGUE
+	-- rather than the save -- so an orphan there is dead weight, and a
+	-- stranded spare is a few coins the player can no longer sell.
+	--
+	-- `cosmetics.skin` is different, and it fails in the shape this file
+	-- refuses everywhere else. `Config.getSkin` falls back to the default on
+	-- an unknown key -- correct, and it is why nothing throws -- so a player
+	-- who was wearing a retired skin comes back as Classic Pink while their
+	-- save still says otherwise. The pig and the save disagree, the bag shows
+	-- nothing equipped, and there is no error anywhere to explain it.
+	--
+	-- Written against the catalogues rather than as a one-off migration, the
+	-- same call the coats, the ornaments and the garden all make: five skins
+	-- were retired when the collections became OG and Animal, and the next
+	-- retirement needs no new code and no schema version to remember.
+	if type(data.cosmetics) == "table" then
+		for _, pair in ipairs({
+			{ owned = "owned", worn = "skin", catalogue = Config.SKINS,
+				fallback = Config.DEFAULT_SKIN },
+			{ owned = "ownedEffects", worn = "effect", catalogue = Config.EFFECTS,
+				fallback = Config.DEFAULT_EFFECT },
+		}) do
+			local held = data.cosmetics[pair.owned]
+			if type(held) == "table" then
+				for key in pairs(held) do
+					if not pair.catalogue[key] then
+						held[key] = nil
+					end
+				end
+			end
+			-- Unlike the garden's "", there is no legal empty here: a piggy is
+			-- always wearing SOMETHING, so an unknown key falls back to the
+			-- default rather than to nothing.
+			local worn = data.cosmetics[pair.worn]
+			if type(worn) ~= "string" or not pair.catalogue[worn] then
+				data.cosmetics[pair.worn] = pair.fallback
+			end
+		end
+	end
+
+	-- AND THE SPARES THOSE SKINS LEFT BEHIND. Keyed `kind:key`, so the grammar
+	-- has to be split before a catalogue can be asked. A spare of a retired
+	-- item is unsellable and uncombinable, so it is weight in the save and
+	-- nothing else -- and `Config.catalogueFor` answers for all five kinds,
+	-- so this covers a retired ride or ornament as well as a skin.
+	if type(data.spares) == "table" then
+		for entry in pairs(data.spares) do
+			local kind, key = tostring(entry):match("^(%w+):(.+)$")
+			local catalogue = kind and Config.catalogueFor(kind)
+			if not catalogue or not key or not catalogue[key] then
+				data.spares[entry] = nil
+			end
+		end
+	end
+
+	-- THE GARDEN IS PRUNED AGAINST ITS THREE CATALOGUES, for the reason the
+	-- coats and the ornaments above it are.
+	--
+	-- Retiring a border leaves a dead key in every save that owned one and an
+	-- equipped value naming something `Config.BORDER_PLANTS` no longer holds.
+	-- Neither errors: `refreshBorder` resolves an unknown key to nil and
+	-- builds nothing at all, which is the correct graceful degradation and is
+	-- also exactly the silent failure this function exists to stop -- the
+	-- player sees a bare fence and nothing anywhere says why.
+	--
+	-- Written as a loop over the three PAIRS rather than nine lines, which is
+	-- the opposite call the dog coats made one block up. The difference is
+	-- real: those three tables have unrelated names in the save (`owned`,
+	-- `kennels`, `toys.out`) and unrelated shapes, where these are three
+	-- copies of one shape that were designed together. A helper reaching
+	-- across genuinely different tables is indirection; a loop over identical
+	-- ones is what stops the fourth garden catalogue being pruned in two
+	-- places and equipped in one.
+	if type(data.garden) == "table" then
+		for _, pair in ipairs({
+			{ owned = "borders", worn = "border", catalogue = Config.BORDER_PLANTS },
+			{ owned = "paths", worn = "path", catalogue = Config.GARDEN_PATHS },
+			{ owned = "boxes", worn = "window", catalogue = Config.WINDOW_BOXES },
+		}) do
+			local held = data.garden[pair.owned]
+			if type(held) == "table" then
+				for key in pairs(held) do
+					if not pair.catalogue[key] then
+						held[key] = nil
+					end
+				end
+			end
+			-- "" is a bare lawn and is always legal; anything else has to be a
+			-- row that still exists, or it falls back.
+			local worn = data.garden[pair.worn]
+			if type(worn) ~= "string" or (worn ~= "" and not pair.catalogue[worn]) then
+				data.garden[pair.worn] = ""
+			end
+		end
+	end
+
+	-- THE TROPHY SHELF IS PRUNED AGAINST THREE CATALOGUES, and the first
+	-- of them is the one that would actually throw.
+	--
+	-- `victims` holds SKIN KEYS, and the Victim Shelf stands a real
+	-- `PiggyModel.build` of each one. Every other prune in this function
+	-- guards a silent failure -- an ornament that never appears, a coat
+	-- that falls back to the breed colours -- and this one guards a build
+	-- error on a lawn, inside `Decor.build`, which takes the whole
+	-- rebuild with it. Retiring a skin is a thing this catalogue has
+	-- already done nine times.
+	--
+	-- Written against the catalogues rather than as a one-off migration,
+	-- for the reason the decor and the coats above are: anything retired
+	-- later is handled with no new code and no version to remember.
+	if type(data.trophies) == "table" then
+		if type(data.trophies.victims) == "table" then
+			for key in pairs(data.trophies.victims) do
+				if not Config.SKINS[key] then
+					data.trophies.victims[key] = nil
+				end
+			end
+		end
+		if type(data.trophies.plinths) == "table" then
+			for key in pairs(data.trophies.plinths) do
+				if not Config.TROPHY_PLINTHS[key] then
+					data.trophies.plinths[key] = nil
+				end
+			end
+		end
+		-- "" is the plain concrete and is always legal; anything else has
+		-- to be a plinth that still exists.
+		local stand = data.trophies.plinth
+		if type(stand) ~= "string" or (stand ~= "" and not Config.TROPHY_PLINTHS[stand]) then
+			data.trophies.plinth = ""
 		end
 	end
 

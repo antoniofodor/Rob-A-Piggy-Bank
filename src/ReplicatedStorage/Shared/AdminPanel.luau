@@ -78,6 +78,11 @@ local MENU: { Group } = {
 			{ label = "Toggle MOST WANTED", cmd = "mostwanted" },
 			{ label = "Arrest (bail on 2K)", cmd = "bust", a = 2000 },
 			{ label = "Patrol status", cmd = "policestate" },
+			-- Under Police because that is what it defers to, and because this
+			-- is the group somebody is already in when they want to see the two
+			-- of them share a road.
+			{ label = "Send a delivery van", cmd = "van" },
+			{ label = "Remove the van", cmd = "vanoff" },
 		},
 	},
 	{
@@ -97,26 +102,46 @@ local MENU: { Group } = {
 			{ label = "Fill piggy bank", cmd = "fill" },
 			{ label = "Max all upgrades", cmd = "maxupgrades" },
 			{ label = "Set 5 rebirths", cmd = "rebirths", a = 5 },
+			-- Beside the rebirth row rather than under Collection, because
+			-- what this is for is looking at a REBIRTH. The real trigger needs
+			-- a gate of 6.0M at rank 1 and 193.8M at rank 10; these fire the
+			-- same two attributes at both ends of that ladder.
+			{ label = "Fireworks: first rebirth", cmd = "fireworks", a = 1 },
+			{ label = "Fireworks: tenth rebirth", cmd = "fireworks", a = 10 },
 		},
 	},
 	{
 		name = "Collection",
 		rows = {
-			{ label = "Unlock skins / effects / houses / gear", cmd = "unlockall" },
+			{ label = "Unlock skins / effects / houses / gear / catches", cmd = "unlockall" },
 			{ label = "+50 loot", cmd = "loot", a = 50 },
-			{ label = "Open Piggy Classics x5", cmd = "chest", a = "classics", b = 5 },
-			{ label = "Open Dress-Up Crate x5", cmd = "chest", a = "gear", b = 5 },
+			{ label = "Raise the mailbox flag (unclaimed daily)", cmd = "post" },
+			{ label = "Claim daily day 7 (free crate)", cmd = "daily", a = 7 },
+			{ label = "Claim daily day 6 (golden bone)", cmd = "daily", a = 6 },
+			{ label = "Open Piggy Originals x5", cmd = "chest", a = "og", b = 5 },
 			{ label = "Open Alien Cache x3", cmd = "chest", a = "alien", b = 3 },
 			{ label = "+3 spares of each tier", cmd = "spares", a = 3 },
 			{ label = "Dump animations for upload", cmd = "animdump" },
-			{ label = "Combine 3 common -> Classics", cmd = "combine", a = "common", b = "classics" },
-			{ label = "Empty accessory collection", cmd = "cleargear" },
+			{ label = "Combine 5 common -> Originals", cmd = "combine", a = "common", b = "og" },
+			-- THE TROPHY SHELF. Four rows because the two pictures worth
+			-- looking at are the FIRST grade of each ladder and a full one,
+			-- and because an empty case is what every new player sees and had
+			-- to be reachable twice.
+			{ label = "Trophies: earn all four", cmd = "trophies", a = 1 },
+			{ label = "Trophies: fill every ladder", cmd = "trophies", a = 4 },
+			{ label = "Trophies: clear the shelf", cmd = "trophies", a = 0 },
+			{ label = "Stand them on gilded plinths", cmd = "plinth", a = "gilded" },
 		},
 	},
 	{
 		name = "Heist",
 		rows = {
 			{ label = "Open season (shield + cooldowns)", cmd = "shield" },
+			-- Under Heist rather than Collection, because what it is for is
+			-- looking at the NAB. The real trigger needs a second player
+			-- carrying somebody else's coins; this fires the same two
+			-- attributes on your own body so the burst can be seen alone.
+			{ label = "Fire my catch effect on me", cmd = "catchfx" },
 		},
 	},
 	{

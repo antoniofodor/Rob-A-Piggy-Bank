@@ -48,15 +48,34 @@ local HomeService = require(Services.HomeService)
 local StealthService = require(Services.StealthService)
 local HeldItemService = require(Services.HeldItemService)
 local PoliceService = require(Services.PoliceService)
+local TrafficService = require(Services.TrafficService)
 local EventService = require(Services.EventService)
 local SetService = require(Services.SetService)
 local ChestService = require(Services.ChestService)
 local DailyService = require(Services.DailyService)
 local PassService = require(Services.PassService)
+local TrophyService = require(Services.TrophyService)
 local AdminService = require(Services.AdminService)
 
 DataService.start()
 WorldService.start()
+
+-- THE PREVIEW PIG'S MESH, BEFORE ANY SERVICE CAN BUILD ONE.
+--
+-- `CreateMeshPartAsync` yields, so `PiggyModel` warms a template once and
+-- clones it -- and anything that asks before the warm-up finishes gets the
+-- old primitives pig instead. That is the right fallback and the wrong thing
+-- to leave to luck: it sat in `PlotService.start` for one build, one line
+-- BELOW `NeighborhoodService.start`, and the boutique's window display was
+-- measured standing there as eleven primitives while every other piggy in
+-- the game was the mesh. Nothing errored; the shop window just quietly had
+-- the wrong animal in it.
+--
+-- So it goes above every service that can build a mini: the shop displays
+-- (Neighborhood), the victim shelf and the carried loot (Plot, Piggy),
+-- and the residents.
+require(game:GetService("ReplicatedStorage").Shared.PiggyModel).prewarm()
+
 -- After the ground exists, before the plots: pure scenery, no dependencies.
 NeighborhoodService.start()
 PlotService.start()
@@ -80,6 +99,10 @@ HomeService.start()
 StealthService.start()
 -- Subscribes to HeistService's steal hook, so it starts after it.
 PoliceService.start()
+-- After PoliceService, which it asks whether a patrol is out before it
+-- puts a van on the road. Scenery, and the last thing that should be able
+-- to hold up anything above it.
+TrafficService.start()
 EventService.start()
 DailyService.start()
 -- Before RideService, which subscribes to its Granted event.
@@ -121,10 +144,38 @@ SetService.registerPusher("effect", CosmeticsService.push)
 SetService.registerPusher("accessory", CosmeticsService.push)
 SetService.registerPusher("decor", CosmeticsService.push)
 SetService.registerPusher("ride", RideService.push)
+-- The sixth kind. Registered the same day the catalogue landed rather
+-- than the session after it: a kind with no pusher still GRANTS
+-- correctly, so the failure is an item a player owns and cannot see
+-- until something else happens to push -- which reads as the grant not
+-- working and is the quietest possible way to be wrong.
+SetService.registerPusher("catch", CosmeticsService.push)
 -- Loot is spent in two places -- the set panel, which SetService pushes
 -- itself, and the accessory roll, whose balance rides on CosmeticsService's
 -- push -- so an award has to reach both.
 SetService.registerLootPusher(CosmeticsService.push)
+
+-- THE TROPHY SHELF REACHES THE SHOP THE SAME WAY, AND FOR THE SAME REASON.
+--
+-- A trophy landing has to repaint the Decorations grid -- a card goes from
+-- a locked progress bar to an owned tile -- and `CosmeticsService` requires
+-- TrophyService for the progress it puts on that bar. Requiring it back
+-- would be a cycle, so the push is registered from here, which requires
+-- everything and can therefore wire the two without one.
+TrophyService.registerPusher(CosmeticsService.push)
+
+-- A SHOP VAULT CAN HAND OVER A CONSUMABLE, AND THE COUNT HAS TO REACH THE
+-- HOT BAR IN THE SAME BREATH.
+--
+-- `data.consumables` is one flat table shared by four services and each
+-- pushes its own slice of it, so a drop that wrote the count and told
+-- nobody would land a Golden Bone in a save and leave the bar showing none
+-- until the next purchase -- which is the shape the daily ladder's own bone
+-- reward already has. HeistService cannot ask either service directly:
+-- GadgetService requires IT. Registered from here, which requires
+-- everything and can therefore wire the two without a cycle.
+HeistService.registerStockPusher(BoneService.push)
+HeistService.registerStockPusher(GadgetService.push)
 
 -- Chests. Started after SetService, whose `owns`/`grant` it leans on for all
 -- five catalogues rather than writing a second grant path.
@@ -207,6 +258,34 @@ do
 	end
 end
 
+-- AND THE SERVER CAP IS A NUMBER THAT DOES NOT LIVE IN THIS REPO, which is
+-- the one class the audits above cannot reach.
+--
+-- `Players.MaxPlayers` is READ ONLY from a script, so `default.project.json`
+-- sets it and an already-published place keeps whatever it was configured
+-- with -- the same trap as the `GearPreview` folder, state that lives in the
+-- place rather than in `src/`, where nothing reconciles it. It used to matter
+-- only because Main kicks anybody it cannot seat, which is the loud failure
+-- and is what a cap ABOVE the plot count buys. It matters quietly too: a
+-- resident is seated on every UNCLAIMED plot, so the number of robbable
+-- houses is `PLOT_COUNT` less however many people are online. The four shop
+-- shops are what stop that reaching zero -- see Config.SHOPS -- so a
+-- misconfigured cap now costs turned-away players rather than the economy,
+-- which is exactly the direction that failure should point.
+do
+	local live = Players.MaxPlayers
+	if live ~= Config.MAX_PLAYERS then
+		warn(("[Main] this place is configured for %d players and Config expects %d. "):format(
+			live, Config.MAX_PLAYERS)
+			.. (live > Config.PLOT_COUNT
+				and ("There are only %d plots, so %d players would be turned away at the door. "):format(
+					Config.PLOT_COUNT, live - Config.PLOT_COUNT)
+				or ("A full server would hold %d resident houses plus %d shop vaults, against the %d permanent pigs the economy is audited at. "):format(
+					math.max(0, Config.PLOT_COUNT - live), Config.SHOP_COUNT, Config.RESIDENT_FLOOR))
+			.. "Fix it in File -> Game Settings -> World -> Max Player Count.")
+	end
+end
+
 -- A FENCE HEIGHT IS A NUMBER TOO, and it fails the same silent way.
 --
 -- The fence stands on the world ground and the yard it encloses is a stud
@@ -227,6 +306,52 @@ do
 	end
 end
 
+-- CAN A STOLEN SKIN BE WON BACK? Taking a cosmetic off a real player is the
+-- one place this game spends its "never lose permanent progress" rule, and
+-- the whole thing rests on the loss being TIME rather than the item. That is
+-- true only while every stealable skin is still in a crate somebody can open
+-- -- a `chest` tag is a string with no compiler behind it, and a skin
+-- pointing at a retired crate is one a child loses for good. See
+-- Config.auditSkinSteal.
+do
+	local problems = Config.auditSkinSteal()
+	if #problems > 0 then
+		warn(("[Main] %d STOLEN SKINS COULD NOT BE WON BACK. "):format(#problems)
+			.. "See Config.SKIN_STEAL and Config.isStealableSkin.")
+		for _, problem in ipairs(problems) do
+			warn("[Main]   " .. problem)
+		end
+	end
+end
+
+-- CAN ANYBODY WALK ABOUT IN A SHOP? A fitting is sized against the thing it
+-- IS, and a room is what several of them add up to -- which is how a display
+-- case correct on its own came to leave 1.45 studs between itself and the
+-- counter, on the one patch of floor a customer stands on. Nothing errors,
+-- nothing looks wrong in any number the builder prints, and the only symptom
+-- is a figure that cannot get where it is going. Warned in Studio too, for
+-- the reason `auditEconomy` is: this is about a number.
+do
+	local problems = Config.auditShopRoom()
+	for _, problem in ipairs(problems) do
+		warn("[Main] shop room: " .. problem)
+	end
+end
+
+-- IS AN AIMED THROW STILL FLAT UP CLOSE AND A LOB FAR OUT? See
+-- `Config.auditThrow`: the feel of the whole gadget tree is one relationship
+-- between `THROW.speed`, `THROW.gravity` and each gadget's own range, and
+-- getting it wrong produces a mechanic that reads as a broken item rather
+-- than as anything that errors. Warned in Studio as well as live, for the
+-- reason `auditEconomy` is: this is about a NUMBER, and the moment to hear
+-- about a number is while you are typing it.
+do
+	local problems = Config.auditThrow()
+	for _, problem in ipairs(problems) do
+		warn("[Main] throw balance: " .. problem)
+	end
+end
+
 ChestService.start()
 
 -- A trampoline refuses anybody mid-heist, and this is where that is wired.
@@ -237,6 +362,24 @@ ChestService.start()
 -- lists at one line -- and it is what makes "a decoration never changes an
 -- outcome" true by construction rather than by argument.
 PlotService.registerBounceVeto(HeistService.isCarrying)
+
+-- A NEIGHBOUR GOING OUT ROBBING NEEDS THE HEIST'S OWN ACCOUNTING, and cannot
+-- ask for it: HeistService already requires ResidentService, so the arrow only
+-- runs one way. Registered here for the same reason the bounce veto and the
+-- set pushers are, which keeps both dependency lists at one line and makes the
+-- cycle impossible rather than merely absent today.
+--
+-- What this actually buys is that `Config.LOSS_CAP` has exactly ONE
+-- implementation. A resident thief and a player thief take coins through the
+-- same allowance, so the protection standing between a real child and being
+-- emptied cannot drift apart into two versions -- and one of those versions
+-- would be the one nobody is testing.
+ResidentService.registerTake(HeistService.residentTake)
+ResidentService.registerGiveBack(HeistService.residentGiveBack)
+-- The shopkeeper's catch, through the same accounting a guard dog's catch
+-- uses. Registered rather than required, because `HeistService` already
+-- requires `ResidentService` and asking back would be a cycle.
+ResidentService.registerCatch(HeistService.shopkeeperCatch)
 -- Last: it reaches into every service above.
 AdminService.start()
 

@@ -336,8 +336,7 @@ local function groundDrone(entry: Beam, by: Player)
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "RecoverPrompt"
 	prompt.ActionText = "Recover"
-	prompt.Style = Enum.ProximityPromptStyle.Custom
-	prompt:SetAttribute(Config.PROMPT_KIND_ATTRIBUTE, "recover")
+	Config.setPromptKind(prompt, "recover")
 	prompt.ObjectText = ("%s coins"):format(format(entry.held))
 	prompt.HoldDuration = Config.RAID.promptHold
 	prompt.MaxActivationDistance = 14
@@ -604,8 +603,28 @@ end
 -- should cost a week to build.
 
 local function runRush()
-	setPhase("running", "rush", Config.EVENTS.roster.rush.seconds)
+	-- THE MULTIPLIER IS SET BEFORE THE PUSH, AND IT USED TO BE SET AFTER -- SO
+	-- NOBODY WAS EVER TOLD.
+	--
+	-- `pushPhase` stamps `stealMultiplier` into the payload and its own
+	-- comment says what that is for: "sent so the steal prompt can print what
+	-- a grab is actually worth". Written in this order, `setPhase` pushed
+	-- while the multiplier was still 1; the reset at the end of the rush
+	-- happened before the "quiet" push; and NO PUSH IN THE WHOLE CYCLE EVER
+	-- CARRIED A 2. The field was on the wire, correctly named, always 1.
+	--
+	-- It was invisible for two reasons that reinforced each other. The one
+	-- client that DID see a 2 was somebody JOINING mid-rush, because
+	-- `EventService.start` defers a `pushPhase` per player -- so the value was
+	-- reachable, just never on the transition that matters. And nothing read
+	-- it: a payload field with no reader cannot be wrong out loud.
+	--
+	-- Same shape as `updatePile` publishing everywhere except the one tick
+	-- that mattered: ANYTHING THAT CHANGES A NUMBER HAS TO PUBLISH IT IN THE
+	-- SAME BREATH, which here means setting it on the line ABOVE the push
+	-- rather than the line below.
 	stealMultiplier = Config.RUSH.stealMultiplier
+	setPhase("running", "rush", Config.EVENTS.roster.rush.seconds)
 	announce(("RUSH HOUR! Steals are worth %dx for %d seconds."):format(
 		Config.RUSH.stealMultiplier, Config.EVENTS.roster.rush.seconds), "police")
 

@@ -94,6 +94,12 @@ function ProgressionService.rebirth(player: Player)
 		PlotService.setDogLevel(plot, 0)
 		PlotService.setLockLevel(plot, 0)
 		PlotService.playBank(plot)
+		-- AND THE STREET FINDS OUT. Everything above this line puts the plot
+		-- back to level 0, which is the whole cost of a rebirth rendered as
+		-- a bare slab -- and until now that was the only thing anybody else
+		-- could see. Fired AFTER the teardown so the show goes up over the
+		-- plot in the state the player has just paid for.
+		PlotService.fireFireworks(plot, data.rebirths)
 	end
 
 	notify(player, ("REBIRTH %d! Your piggy earns +%d%% forever."):format(

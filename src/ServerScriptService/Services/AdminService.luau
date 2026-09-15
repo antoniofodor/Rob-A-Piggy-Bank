@@ -39,10 +39,12 @@ local PlotService = require(script.Parent.PlotService)
 local GuardDog = require(script.Parent.GuardDog)
 local UpgradeService = require(script.Parent.UpgradeService)
 local CosmeticsService = require(script.Parent.CosmeticsService)
+local TrophyService = require(script.Parent.TrophyService)
 local ProgressionService = require(script.Parent.ProgressionService)
 local HeistService = require(script.Parent.HeistService)
 local BoneService = require(script.Parent.BoneService)
 local PoliceService = require(script.Parent.PoliceService)
+local TrafficService = require(script.Parent.TrafficService)
 local EventService = require(script.Parent.EventService)
 local SetService = require(script.Parent.SetService)
 local ChestService = require(script.Parent.ChestService)
@@ -51,6 +53,7 @@ local RideService = require(script.Parent.RideService)
 local GadgetService = require(script.Parent.GadgetService)
 local HomeService = require(script.Parent.HomeService)
 local StealthService = require(script.Parent.StealthService)
+local DailyService = require(script.Parent.DailyService)
 
 local AdminService = {}
 
@@ -179,6 +182,28 @@ commands.rebirths = function(player, count)
 	return ("Rebirths set to %d"):format(data.rebirths)
 end
 
+-- FIRES THE REBIRTH SHOW WITHOUT PAYING THE REBIRTH GATE.
+--
+-- The gate is a multiple of a capacity that is itself climbing -- 6.0M at
+-- rebirth 1 and 193.8M at rebirth 10 -- so the only way to see the show at
+-- the top of its ladder is to play for a fortnight or to fake the balance
+-- ten times over. The show is the one part of a rebirth that has to be
+-- LOOKED AT rather than read back, and this is what makes that affordable.
+--
+-- It goes through `PlotService.fireFireworks`, which is the shipped path
+-- and the only writer, so what is exercised is the real thing rather than
+-- a second one that could pass while it fails.
+commands.fireworks = function(player, rank)
+	local plot = PlotService.getPlot(player)
+	if not plot then
+		return "no plot"
+	end
+	local rebirths = if type(rank) == "number" then math.floor(rank) else 1
+	PlotService.fireFireworks(plot, rebirths)
+	return ("Fireworks at rebirth %d -- %d shells"):format(
+		rebirths, Config.fireworkShells(rebirths))
+end
+
 commands.skin = function(player, key)
 	local data = DataService.get(player)
 	if not data or type(key) ~= "string" or not Config.SKINS[key] then
@@ -216,12 +241,48 @@ commands.unlockall = function(player)
 	for key in pairs(Config.RIDES) do
 		data.rides.owned[key] = true
 	end
+	-- THE DOG'S THREE CATALOGUES, which this command claimed to cover and did
+	-- not. It has said "every ... unlocked" since it was written, and coats,
+	-- kennels and toys each landed after it -- so a dev opening the shop to
+	-- look at a card found it locked and had no reason to suspect the TOOL
+	-- rather than the feature. The same silent-omission shape this project
+	-- keeps recording, on the thing used to look for it.
+	if type(data.dogs) ~= "table" then
+		data.dogs = { owned = {}, equipped = "", name = "", namedAt = 0,
+			kennels = {}, kennel = "", toys = { owned = {}, out = {} } }
+	end
+	if type(data.dogs.toys) ~= "table" then
+		data.dogs.toys = { owned = {}, out = {} }
+	end
+	for key in pairs(Config.DOG_COATS) do
+		data.dogs.owned[key] = true
+	end
+	for key in pairs(Config.DOG_KENNELS) do
+		data.dogs.kennels[key] = true
+	end
+	-- OWNED, NOT OUT. Putting all three toys on the lawn would be this command
+	-- making a placement decision on somebody's behalf; the point of it is to
+	-- unlock what is buyable, and what is standing where is the next thing a
+	-- dev wants to try for themselves.
+	for key in pairs(Config.DOG_TOYS) do
+		data.dogs.toys.owned[key] = true
+	end
+	-- The catch effects, added in the same change as the catalogue rather
+	-- than the session after it -- which is the entry directly above this
+	-- one being obeyed for once instead of recorded again.
+	if type(data.catch) ~= "table" then
+		data.catch = { owned = {}, equipped = Config.DEFAULT_CATCH }
+	end
+	for key in pairs(Config.CATCH_EFFECTS) do
+		data.catch.owned[key] = true
+	end
+
 	RideService.push(player)
 	-- applyToPlot rather than setHouseLevel: the sign names the house, so
 	-- building it alone leaves the board announcing the old one.
 	CosmeticsService.applyToPlot(player)
 	CosmeticsService.push(player)
-	return "Every skin, effect, house, accessory and ride unlocked"
+	return "Every skin, effect, house, ride, coat, kennel, toy and catch effect unlocked"
 end
 
 -- Empties the accessory collection without touching anything else.
@@ -229,21 +290,37 @@ end
 -- `reset` also clears it, but reset takes the rebirths with it -- and the
 -- thing most worth looking at in the collection tab is the LOCKED state,
 -- which is unreachable once a save has rolled everything.
-commands.cleargear = function(player)
-	local data = DataService.get(player)
-	if not data then
+-- FIRES YOUR OWN CATCH EFFECT ON YOURSELF, and it exists because the real
+-- trigger cannot be reached alone.
+--
+-- A catch effect goes off when a nab EMPTIES a thief, which needs a second
+-- player carrying somebody else's coins -- the same wall the whole heist
+-- system is behind, and this project has ten entries under "Not yet
+-- verified" that read `needs a second player`. This is the cheap way past
+-- it for the half that is purely a picture.
+--
+-- IT WRITES THE SAME TWO ATTRIBUTES `HeistService` WRITES, in the same
+-- order, so what is exercised is the real publish and the real client
+-- renderer rather than a second path that could pass while the shipped one
+-- fails. What it does NOT exercise is who WINS a multi-nabber tug, which
+-- is server arithmetic and still wants two people.
+--
+-- A server command is not a dev tool until it is on the panel, so it is on
+-- the panel.
+commands.catchfx = function(player)
+	local key = CosmeticsService.catchEffectOf(player)
+	if key == Config.DEFAULT_CATCH then
+		return "No catch effect equipped -- buy one on the Worn tab first"
+	end
+	local character = player.Character
+	if not character then
 		return nil
 	end
-	data.accessories = { owned = {}, worn = {} }
-	local plot = PlotService.getPlot(player)
-	if plot then
-		PlotService.applyAccessories(plot, data.accessories.worn)
-	end
-	DataService.save(player)
-	CosmeticsService.push(player)
-	return "Accessory collection emptied"
+	character:SetAttribute(Config.CATCH_ATTRIBUTE, key)
+	character:SetAttribute(Config.CATCH_COUNT_ATTRIBUTE,
+		(character:GetAttribute(Config.CATCH_COUNT_ATTRIBUTE) or 0) + 1)
+	return ("Fired %s on you"):format(Config.CATCH_EFFECTS[key].name)
 end
-
 commands.maxupgrades = function(player)
 	local data = DataService.get(player)
 	if not data then
@@ -293,6 +370,20 @@ commands.dogstate = function(player)
 	end
 	local dog = plot.dog
 	local now = os.clock()
+	-- The dog's three wardrobes on the same line as its state, because the
+	-- question this command gets asked is "why does the dog look like that"
+	-- as often as "why is it asleep", and the answer to the first one used to
+	-- be nowhere at all.
+	local function dogToysOut(d: any): string
+		local out = {}
+		for key in pairs(Config.DOG_TOYS) do
+			if d.toysOut and d.toysOut[key] then
+				table.insert(out, key)
+			end
+		end
+		table.sort(out)
+		return if #out > 0 then table.concat(out, ",") else "none"
+	end
 	return ("lvl %d | nap %+.1fs | busy %+.1fs | guard %+.1fs | chasing=%s lured=%s sleeping=%s distracted=%s | offDuty=%s ready=%s | plate=%q"):format(
 		dog.level,
 		dog.napUntil - now, dog.busyUntil - now, dog.guardUntil - now,
@@ -300,6 +391,8 @@ commands.dogstate = function(player)
 		tostring(dog.distracted),
 		tostring(GuardDog.isOffDuty(dog)), tostring(GuardDog.isReady(dog)),
 		dog.breedLabel.Text)
+		.. (" | coat=%q kennel=%q name=%q | toys out: %s"):format(
+			dog.coat, dog.kennel, dog.name, dogToysOut(dog))
 end
 
 -- Calls a patrol immediately instead of waiting out the eight-minute cycle.
@@ -321,6 +414,24 @@ end
 -- Puts you on the plaza board, or takes you off it. Toggling OFF is the more
 -- useful half: a rap sheet is only cleared by a most-wanted arrest, so without
 -- this the only way to stop being hunted is to be caught.
+-- PUTS A DELIVERY VAN ON THE ROAD NOW.
+--
+-- The gap between runs is 70 to 150 seconds, so without this the only way
+-- to look at one is to stand on the pavement and wait -- and a van is a
+-- thing that has to be LOOKED AT rather than read back, since every claim
+-- about it is about how the street reads.
+--
+-- It goes through `TrafficService.send`, which is the shipped path and
+-- refuses for the shipped reason: a van waits out a patrol, and this says
+-- so rather than quietly doing nothing.
+commands.van = function(player)
+	return TrafficService.send()
+end
+
+commands.vanoff = function(player)
+	return TrafficService.clear()
+end
+
 commands.mostwanted = function(player)
 	local suspect = SocialService.getMostWanted()
 	if suspect == player then
@@ -374,6 +485,8 @@ end
 commands.animdump = function(player)
 	local RidePose = require(game:GetService("ReplicatedStorage").Shared.RidePose)
 	local DodgeRoll = require(game:GetService("ReplicatedStorage").Shared.DodgeRoll)
+	local SneakWalk = require(game:GetService("ReplicatedStorage").Shared.SneakWalk)
+	local CarryPose = require(game:GetService("ReplicatedStorage").Shared.CarryPose)
 
 	local existing = ReplicatedStorage:FindFirstChild("AnimationDump")
 	if existing then
@@ -394,14 +507,51 @@ commands.animdump = function(player)
 		end
 	end
 
-	if DodgeRoll.buildSequence then
-		put("dodgeRoll", DodgeRoll.buildSequence())
-	else
-		table.insert(failed, "dodgeRoll (no buildSequence export)")
+	-- THE PLAYER'S OWN ANIMATIONS EACH HAVE THEIR OWN BUILDER, AND THIS USED
+	-- TO ASSUME THERE WAS EXACTLY ONE OF THEM.
+	--
+	-- The ride loop reads `Config.animationKeys`, which is every key the
+	-- RUNTIME asks for -- and it fed all of them to `RidePose.buildSequenceFor`
+	-- except `dodgeRoll`, on the assumption that everything else is a ride.
+	-- The moment a SECOND player-owned animation existed, that assumption put
+	-- `sneak` through a builder which knows nothing about the key, got nil
+	-- back, and reported it MISSING -- so the one command whose entire job is
+	-- producing sequences to upload could not produce the animation that has
+	-- to be uploaded before it works live at all.
+	--
+	-- Exactly the stance bug recorded elsewhere in this project, one layer
+	-- along: a key the runtime asks for that the pipeline cannot build, failing
+	-- silently at the end nobody looks at. The list is a TABLE rather than a
+	-- hardcoded exception now, so a third player-owned animation is one row
+	-- here and the ride loop skips it for free.
+	local own: { [string]: (() -> Instance?)? } = {
+		dodgeRoll = DodgeRoll.buildSequence,
+		sneak = SneakWalk.buildSequence,
+		carry = CarryPose.buildSequence,
+	}
+	-- WALKED RATHER THAN LISTED A SECOND TIME, which is what the paragraph
+	-- above actually promises. There used to be a hardcoded `{"dodgeRoll",
+	-- "sneak"}` here as well as the table, so "one row" was really two -- and
+	-- the row that gets forgotten is the loop rather than the builder, because
+	-- forgetting the builder throws and forgetting the loop just quietly does
+	-- not dump the animation. Sorted so the output does not reshuffle between
+	-- runs; `pairs` has no order to rely on.
+	local ownNames: { string } = {}
+	for name in pairs(own) do
+		table.insert(ownNames, name)
+	end
+	table.sort(ownNames)
+	for _, name in ipairs(ownNames) do
+		local build = own[name]
+		if build then
+			put(name, build())
+		else
+			table.insert(failed, name .. " (no buildSequence export)")
+		end
 	end
 	if RidePose.buildSequenceFor then
 		for _, key in ipairs(Config.animationKeys(RidePose.animationKeys())) do
-			if key ~= "dodgeRoll" then
+			if own[key] == nil then
 				put(key, RidePose.buildSequenceFor(key))
 			end
 		end
@@ -415,7 +565,7 @@ commands.animdump = function(player)
 end
 
 commands.chest = function(player, key, times)
-	local chestKey = tostring(key or "classics")
+	local chestKey = tostring(key or "og")
 	if not Config.CHESTS[chestKey] then
 		local names = {}
 		for k in pairs(Config.CHESTS) do
@@ -437,8 +587,48 @@ commands.chest = function(player, key, times)
 	return table.concat(lines, ", ")
 end
 
+-- FORCE A DAILY CLAIM AT A GIVEN RUNG.
+--
+-- The ladder is seven days long and the interesting rung is the last one, so
+-- without this the only way to exercise day seven is to play for a week. It
+-- winds `lastDay` back a day and sets the streak to `day - 1`, then claims
+-- through the REAL path -- so the rung, the payout, the streak arithmetic and
+-- the save all run exactly as they would on a Sunday.
+commands.daily = function(player, day)
+	local data = DataService.get(player)
+	if not data then
+		return "no data"
+	end
+	local want = math.clamp(tonumber(day) or 7, 1, #Config.DAILY_CYCLE)
+	data.daily.streak = want - 1
+	data.daily.lastDay = Config.dayIndex() - 1
+	DailyService.claim(player)
+	local reward = Config.dailyReward(want)
+	return ("claimed day %d (%s)"):format(want, reward.short or reward.kind)
+end
+
+-- WINDS THE DAILY BACK AND LEAVES IT UNCLAIMED, so the mailbox flag goes
+-- UP and stays up.
+--
+-- `commands.daily` above winds the clock back and then CLAIMS in the same
+-- breath, which is exactly right for testing a reward and useless for
+-- testing the thing that says a reward is waiting: the flag is down again
+-- before anybody can look at it. This stops one step short.
+--
+-- It pushes through `DailyService.push`, which is the one writer that
+-- raises the flag AND fills the board -- so what is exercised is the
+-- shipped path rather than a second one that could pass while it fails.
+commands.post = function(player)
+	local data = DataService.get(player)
+	if not data then
+		return "no data"
+	end
+	data.daily.lastDay = Config.dayIndex() - 1
+	DailyService.push(player)
+	return "Daily wound back and left unclaimed -- the flag should be up"
+end
 commands.combine = function(player, tier, key)
-	local t, chestKey = tostring(tier or "common"), tostring(key or "classics")
+	local t, chestKey = tostring(tier or "common"), tostring(key or "og")
 	local target, _, itemKey, dup = ChestService.combine(player, t, chestKey)
 	if not target then
 		return "refused"
@@ -457,6 +647,130 @@ end
 -- One item per tier per COIN chest, so all four tiers are stocked and the two
 -- currencies stay apart: the alien cache is skipped, because event loot is not
 -- something a dev grant should be able to manufacture by accident.
+-- THE TROPHY SHELF, WOUND FORWARD.
+--
+-- A trophy is a record of things done over an ACCOUNT'S lifetime -- five
+-- distinct skins robbed, a hundred thousand coins stolen, three thieves
+-- stopped on your own lawn -- so the only honest way to see one without
+-- this is to play for an evening with a second player on the street.
+-- That is exactly the shape of thing that ships unverified, which is the
+-- argument `daily`, `bust` and `dognap` each already make.
+--
+-- IT WRITES THE COUNTERS AND THEN GOES THROUGH THE REAL PATH.
+-- `TrophyService.check` is what a delivery, a nab and an escape all call,
+-- so the threshold test, the auto-slot, the toast, the lawn rebuild and
+-- the shop push are the shipped code rather than a second copy of it.
+-- The one thing faked is how the numbers got that big.
+--
+-- `n` is how far past each threshold to wind: 1 lands every trophy at its
+-- first grade and 4 fills the ladders, which are the two pictures worth
+-- looking at.
+commands.trophies = function(player, amount)
+	local data = DataService.get(player)
+	if not data then
+		return nil
+	end
+	local n = math.clamp(math.floor(tonumber(amount) or 1), 0, 12)
+
+	if type(data.trophies) ~= "table" then
+		data.trophies = { victims = {}, caught = 0, bestSpree = 0,
+			plinths = {}, plinth = "" }
+	end
+	local t = data.trophies
+
+	if n == 0 then
+		-- THE WAY BACK, and it has to exist: every other row on this panel
+		-- is undone by pressing another one, and a shelf that could only
+		-- ever fill would make the empty case -- which is what every new
+		-- player sees -- the one state nobody could look at twice.
+		t.victims = {}
+		t.caught = 0
+		data.totalStolen = 0
+		if data.gear then
+			data.gear.escapes = 0
+		end
+		for key in pairs(Config.TROPHIES) do
+			data.decor.owned[key] = nil
+			for slot, placed in pairs(data.decor.placed) do
+				if placed == key then
+					data.decor.placed[slot] = nil
+				end
+			end
+		end
+		local plot = PlotService.getPlot(player)
+		if plot then
+			PlotService.setDecor(plot, data.decor.placed)
+		end
+		TrophyService.refresh(player)
+		DataService.save(player)
+		CosmeticsService.push(player)
+		return "Trophy shelf cleared: no skins, no haul, no catches, no escapes."
+	end
+
+	-- ROBBED SKINS ARE DEALT FROM THE REAL CATALOGUE, sorted, so the same
+	-- press gives the same shelf twice -- and so the rarest-first sort the
+	-- case does can be READ rather than taken on trust.
+	local want = Config.TROPHIES.victimshelf.need * n
+	local keys: { string } = {}
+	for key, spec in pairs(Config.SKINS) do
+		if not Config.isEarnedElsewhere(spec) then
+			table.insert(keys, key)
+		end
+	end
+	table.sort(keys)
+	for i = 1, math.min(want, #keys) do
+		t.victims[keys[i]] = true
+	end
+
+	t.caught = Config.TROPHIES.medalboard.need * n
+	data.totalStolen = math.max(data.totalStolen,
+		Config.TROPHIES.haulvault.need * math.pow(2, n - 1))
+	if data.gear then
+		data.gear.escapes = Config.TROPHIES.sirenpost.need * n
+	end
+
+	TrophyService.check(player)
+	TrophyService.refresh(player)
+	DataService.save(player)
+	CosmeticsService.push(player)
+
+	local seen = 0
+	for _ in pairs(t.victims) do
+		seen += 1
+	end
+	return ("Trophies: %d skins robbed, %s stolen, %d caught, %d escapes."):format(
+		seen, Config.formatCoins(data.totalStolen), t.caught,
+		(data.gear and data.gear.escapes) or 0)
+end
+
+-- Stands every trophy on a plinth without paying for it. Separate from
+-- the row above because the two halves of this shelf are deliberately
+-- bought and earned, and a dev trigger that did both at once would make
+-- the one picture worth checking -- a full case on bare concrete --
+-- unreachable.
+commands.plinth = function(player, key)
+	local data = DataService.get(player)
+	if not data then
+		return nil
+	end
+	local want = if type(key) == "string" then key else ""
+	if want ~= "" and not Config.TROPHY_PLINTHS[want] then
+		return ("No such plinth: %s"):format(want)
+	end
+	if type(data.trophies) ~= "table" then
+		return nil
+	end
+	if want ~= "" then
+		data.trophies.plinths[want] = true
+	end
+	data.trophies.plinth = want
+	TrophyService.refresh(player)
+	DataService.save(player)
+	CosmeticsService.push(player)
+	return ("Trophies now stand on %s."):format(
+		Config.trophyPlinth(want).name)
+end
+
 commands.spares = function(player, amount)
 	local data = DataService.get(player)
 	local n = tonumber(amount) or 3
