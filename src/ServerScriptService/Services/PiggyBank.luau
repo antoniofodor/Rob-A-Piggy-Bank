@@ -40,6 +40,11 @@ local TweenService = game:GetService("TweenService")
 local Config = require(ReplicatedStorage.Shared.Config)
 local PiggyModel = require(ReplicatedStorage.Shared.PiggyModel)
 local PigGear = require(ReplicatedStorage.Shared.PigGear)
+-- The strongroom on a shop's back wall. Geometry only: everything that
+-- makes it BEHAVE like a piggy bank -- the fill, the dial, the alarm, the
+-- plaster -- is this file's own functions running on its parts. See
+-- `PiggyBank.buildVault`.
+local VaultModel = require(ReplicatedStorage.Shared.VaultModel)
 
 local PiggyBank = {}
 
@@ -56,9 +61,19 @@ export type Refs = {
 	drip: ParticleEmitter,
 	burst: ParticleEmitter,
 	aura: ParticleEmitter,
-	snout: Part,
-	tail: Part,
+	skinAura: ParticleEmitter,
+	-- OPTIONAL, BECAUSE A SHOP VAULT HAS NO FACE. `buildVault` returns
+	-- this same shape so that not one reader of `plot.piggy` had to learn
+	-- there were two kinds of thing standing on a plot -- see the entry
+	-- there. What a vault genuinely has is a body, a coin readout, a lock,
+	-- a light, sounds and a prompt; what it has none of is a snout.
+	snout: Part?,
+	tail: Part?,
 	ears: { BasePart },
+	-- OPTIONAL, BECAUSE ONLY THE MODELLED PIG HAS ONE. The primitives piggy
+	-- carries its second tone on four separate parts and the mesh carries it on
+	-- a single `Trim` MeshPart; `applySkin` paints whichever it is handed.
+	trim: Part?,
 	legs: { Part },
 	-- The body's resting size, because the milestone squash tweens back to it
 	-- and a MeshPart is not a 12-stud cube.
@@ -68,7 +83,19 @@ export type Refs = {
 	patternSeat: CFrame?,
 	lock: Model,
 	stealPrompt: ProximityPrompt,
+	-- THE OTHER WAY IN, AND THE FIRST PROMPT IN THIS GAME THAT IS NOT
+	-- EXCLUSIVE WITH ITS NEIGHBOUR. It sits on the same Body as the steal
+	-- prompt and is live at the same time for the same player, because the
+	-- whole feature is a choice and a choice you cannot see is not one. See
+	-- `Config.PROMPT_SLOT_ATTRIBUTE` for what that cost the card renderer.
+	smashPrompt: ProximityPrompt,
 	sounds: { [string]: Sound },
+	-- WHICH OF THE TWO THIS IS, and the only branch the difference costs
+	-- anywhere. Three functions in this file dress a piggy -- the skin, the
+	-- accessories and the effect -- and all three are meaningless on a
+	-- strongroom: a shop wears nothing, and `applySkin` would paint the
+	-- carcass pink. Every other function here works on both without asking.
+	vault: boolean?,
 }
 
 -- All measurements are relative to the top face of the plot base (y = +0.5).
@@ -166,9 +193,40 @@ local DIAL_MAX_R = 1.95
 -- Thick enough that the rim, which sinks 0.32 into the curve of the body at
 -- full size, still has its back face buried rather than floating clear.
 local DIAL_THICK = 0.9
--- Segments in the vault's rim. Twelve is enough for a four-stud opening to
--- read as round; the cost is twelve parts per piggy, and there are twelve.
+-- Segments in the vault's rim. Twelve is enough for the opening to read as
+-- round; the cost is twelve parts per piggy, and there are twelve.
 local RIM_SEGMENTS = 12
+
+-- THE LADDER LIVES UP HERE BECAUSE THE OPENING IS DERIVED FROM IT, and a
+-- `local` declared below a function that reads it is a nil GLOBAL to that
+-- function -- the forward-reference trap this project has now hit seven
+-- times. `buildLock` sits four hundred lines above where this table used to
+-- be, so the derivation below would silently have been `nil.radius`.
+local LOCK_TIERS = {
+	{ metal = Color3.fromRGB(122, 128, 138), radius = 1.55, spokes = 2 }, -- iron
+	{ metal = Color3.fromRGB(176, 122, 66), radius = 1.68, spokes = 3 },  -- bronze
+	{ metal = Color3.fromRGB(198, 204, 214), radius = 1.82, spokes = 4 }, -- steel
+	{ metal = Color3.fromRGB(240, 198, 76), radius = 1.95, spokes = 5 },  -- gold
+}
+
+-- THE HOLE IS SIZED OFF THE SMALLEST DOOR, NOT THE LARGEST, AND THAT IS A
+-- BUG FIX RATHER THAN A TIDY-UP.
+--
+-- It used to be `DIAL_MAX_R`, on the reasoning that an opening clearing the
+-- GOLD plate by a fraction reads as "a door sitting IN a hole rather than a
+-- disc covering one". That reasoning was measured against exactly one of the
+-- four tiers and it silently made the other three a door too small for its
+-- own doorway: at iron's 1.55 against an opening of 1.95 there is FOUR
+-- TENTHS OF A STUD of bare black showing all the way round the lid --
+-- reported, correctly, as the locks not covering the hole.
+--
+-- Derived off `LOCK_TIERS[1]` so it cannot come back. Every tier now
+-- overlaps the opening by at least `VAULT_COVER`, and because the plates
+-- still ladder 1.55 to 1.95 the FLANGE grows with the tier: iron is a bare
+-- lid sitting in its frame and gold is a heavy door with a wide rim, which
+-- is one more thing the metal is saying from the street.
+local VAULT_COVER = 0.12
+local VAULT_R = LOCK_TIERS[1].radius - VAULT_COVER
 
 local PINK_DARK = Color3.fromRGB(214, 122, 148)
 local NEAR_BLACK = Color3.fromRGB(38, 30, 34)
@@ -327,10 +385,98 @@ end
 -- shape `PlayerGear.prewarm` uses for its CSG templates and for the same
 -- reason: the call yields, and yielding inside a build loop twelve times is
 -- twelve web calls to say one thing.
--- Where the nostril parts sit once the MESH muzzle is standing. Measured
--- against the seated mesh rather than chosen: the muzzle reaches z 7.10, so
--- the shipped nostrils at 6.70 would be four tenths inside it.
-local MESH_NOSTRIL = Vector3.new(0.78, BODY_Y + SNOUT_Y + 1.0, 7.15)
+-- THE GENERATED BODY HAS A HOLE IN THE TOP OF ITS BACK, AND IT IS A
+-- THE SEGMENTATION SCAR IS GONE, AND IT WENT BY REGENERATING RATHER THAN BY
+-- BEING PATCHED. This is the fix for it, and the several hundred lines it
+-- replaces are worth summarising because the diagnosis was right and every
+-- remedy built on it was wrong.
+--
+-- `segmentation: "explicit"` hands back the body, ears, snout and tail as
+-- separate MeshParts, so the body is left with a socket wherever a piece came
+-- off. The ears and the snout were seated back over theirs. THE TAIL WAS
+-- NOT: it was authored at y 9.70 and its socket was at 11.45, so it had been
+-- deliberately reseated a stud and three quarters below the hole it came out
+-- of, and the hole stayed open. Everything after that -- a ball cap sunk on
+-- the socket normal, a marker ladder to find how far out the real skin
+-- stands, an ellipsoid matching both principal radii, and finally an
+-- EditableMesh repair that closed the topology and still rendered as a
+-- dimple -- was an attempt to fill a hole that only existed because the part
+-- that plugs it had been moved.
+--
+-- THE NEW BODY SEATS EVERY PART AT THE OFFSET IT WAS GENERATED AT, so each
+-- one covers its own socket and there is nothing left to cap. Photographed
+-- from directly behind at two studs and at twelve: the rump is unbroken.
+--
+-- WHAT THE WHOLE EPISODE IS ACTUALLY ABOUT is that a cap is a smooth Part
+-- sitting in a faceted mesh, so it shades differently whatever shape it is
+-- given -- proved by matching both measured radii to 0.02 studs and
+-- photographing the result INDISTINGUISHABLE from a plain sphere. There was
+-- no seating that could have worked. When a fill is visible for a reason no
+-- geometry can reach, the thing to fix is the hole.
+
+-- The dial is solved on a 6.00 sphere at BODY_Y and the mesh's back is a long
+-- way outside it: at DIAL_Y 6.6 the sphere gives z -5.691 and the measured
+-- skin is at z -8.015, so every piece of the vault sits 2.324 studs inside
+-- the pig until it is pushed out by the difference.
+--
+-- THIS NUMBER MOVED BY A FACTOR OF THIRTEEN WITH THE NEW BODY (it was 0.174)
+-- and nothing would have said so: the plate would simply have been buried,
+-- which is what the whole dial already looked like the last time this was
+-- measured against a model of the pig rather than the pig.
+-- Re-derived for the modelled body by intersecting `dialCFrame`'s own axis
+-- with the real shell: the ball puts the seat 6.00 from its centre and the
+-- skin is 6.823 out along that line. It is a much smaller push than the last
+-- body needed (1.076) for a good reason rather than by luck -- this pig is
+-- built at a scale that makes the 6.00 sphere nearly true of it, so the dial
+-- has far less to travel.
+--
+-- IT IS ALSO WHERE THE HATCH WAS CUT, which is what stops the plate and its
+-- hole ever disagreeing: `build_pig.py` solves both from this same axis.
+local MESH_DIAL_OUT = 0.823
+
+-- THE FACE IS BUILT ON THE BALL AND HAS TO BE MOVED ONTO THE MESH, because
+-- the generated body is four studs longer than the sphere the eyes and the
+-- nostrils were solved against. Left alone the eyes sit three studs inside
+-- the head -- invisible, on the one part of the pig anybody looks at.
+--
+-- MEASURED AGAINST THE SKIN, NOT THE BOX. A probe copy of the body at
+-- PreciseConvexDecomposition collision was raycast from outside; the shipped
+-- body is Box fidelity on purpose, so the real one answers every ray with its
+-- bounding box. At x 2.35 the face runs z 6.99 at y 2.6 down to 6.57 at y 3.2
+-- in body-local terms, which is where these numbers come from.
+--
+-- THE EYES SIT HALF IN AND HALF OUT, which is the rule this project already
+-- records for the drip statue: a ball whose centre is outside the skull is a
+-- googly eye glued on. Measured, the centre is 0.14 inside the skin and the
+-- 1.25-stud ball shows about half a stud of disc.
+-- THE NUMBERS MOVED TO `Config.PIGGY_MESH_FACE`, AND THE REASONING WENT
+-- WITH THEM. Everything above still applies; what changed is that this is
+-- no longer the only pig that needs them.
+--
+-- `PiggyModel` builds a MINI of this same mesh for the previews -- the
+-- victim shelf on a lawn, the inventory's collection log, the crate reel --
+-- and it has to seat the same eyes on the same face. Two copies of a face
+-- seat is the near-identical duplicate this project keeps recording, and it
+-- is the worst possible one to let drift: the two pigs would disagree about
+-- where a pig's eyes are, on the same asset, with nothing erroring.
+--
+-- Config is the right home for the same reason `chestEntry` and `chestPool`
+-- are there: it requires nothing, and both ends already read it.
+local MESH_FACE = Config.PIGGY_MESH_FACE
+
+-- THE VAULT HATCH IS CUT INTO THE ASSET NOW, SO NOTHING IS SUBTRACTED AT
+-- RUN TIME AND `boreVault` IS GONE WITH IT.
+--
+-- It bored the hatch out of the generated body with `SubtractAsync` on the
+-- template, and everything that entry recorded is still true: the subtract
+-- works on a MeshPart, hands one back, and the old "any subtract breaks
+-- this mesh" finding was a fact about one asset rather than about the API.
+--
+-- What retired it is that the body stopped being generated. The modelled
+-- piggy bank is cut in Blender -- the hatch and the coin slot are bored
+-- through the shell before it is ever uploaded -- so cutting again here
+-- would be a second hole solved against a body that no longer exists.
+-- `Config.PIGGY_VAULT` and `Config.PIGGY_SHAVE` went unread with it.
 
 local meshTemplates: { [string]: BasePart }? = nil
 local meshChecked = false
@@ -346,97 +492,32 @@ local function ensureMeshTemplates(): { [string]: BasePart }?
 		return nil
 	end
 
-	-- Cuts the coin slit and the vault hatch out of the body for real.
-	-- Returns the ORIGINAL part
-	-- untouched on any failure, because a piggy with no slit is a cosmetic
-	-- fault and a piggy that did not build is not -- the same trade the pcall
-	-- around `Decor.prewarm` already makes.
+	-- THE OPENINGS ARE CUT IN BLENDER, AND NOTHING IS SUBTRACTED HERE.
 	--
-	-- CSG NEEDS BOTH PARTS PARENTED TO THE DATAMODEL: an unparented pair
-	-- throws "CSG API requires at least one object to be linked to a
-	-- DataModel", which reads as an API that is missing rather than one that
-	-- wants its arguments somewhere. ServerStorage rather than workspace, so
-	-- nothing flickers on the lawn while the cut runs.
-	local function cutOpenings(body: BasePart): BasePart
-		local slot = Config.PIGGY_SLOT
-		if not slot then
-			return body
-		end
-		local stage = Instance.new("Folder")
-		stage.Name = "PiggySlotCut"
-		stage.Parent = game:GetService("ServerStorage")
-
-		local homed = body.Parent
-		body.Parent = stage
-
-		local reach = 3
-		local cutters = {}
-
-		-- The template is framed as though the plot origin were (0,0,0), which
-		-- is how `seat` reads it back, so every cutter is placed in that frame.
-		local slit = Instance.new("Part")
-		slit.Size = Vector3.new(slot.width, reach, slot.length)
-		slit.CFrame = CFrame.new(0, slot.floor + reach / 2, 0)
-		slit.Anchored = true
-		slit.Parent = stage
-		table.insert(cutters, slit)
-
-		-- THE VAULT HATCH, DOWN THE DIAL'S OWN AXIS. `dialCFrame` already
-		-- points its X straight out of the body, which is what a Roblox
-		-- cylinder wants -- so the bore is one cylinder on that axis and the
-		-- recess comes out square to the door that will sit in it.
-		local vault = Config.PIGGY_VAULT
-		if vault then
-			local bore = Instance.new("Part")
-			bore.Shape = Enum.PartType.Cylinder
-			bore.Size = Vector3.new(reach, vault.radius * 2, vault.radius * 2)
-			bore.CFrame = dialCFrame(Vector3.zero)
-				* CFrame.new(vault.floor + reach / 2, 0, 0)
-			bore.Anchored = true
-			bore.Parent = stage
-			table.insert(cutters, bore)
-		end
-
-		-- ONE SUBTRACT FOR BOTH, because it costs 284 ms whether it takes one
-		-- cutter or five.
-		--
-		-- RENDER FIDELITY IS AN ARGUMENT HERE, NOT A PROPERTY WRITE, AND THAT
-		-- IS THE WHOLE DIFFERENCE. This file used to set `cut.RenderFidelity`
-		-- afterwards inside a pcall, because that write is capability-gated
-		-- and throws from a real Script while passing in an MCP sandbox -- so
-		-- live, the pcall swallowed it and the body shipped at `Automatic`,
-		-- which is a decimated LOD and is exactly the faceting anybody
-		-- standing on the lawn could see. `SubtractAsync` takes both
-		-- fidelities as PARAMETERS, so the result is born Precise and nothing
-		-- is gated. Measured live: the body read `Automatic` before and
-		-- `Precise` after, from the server, with no pcall anywhere.
-		--
-		-- Collision stays a box for the reason the trim meshes already give:
-		-- a thief runs at this and a dog patrols round it, and precise
-		-- collision on a 7,000-triangle surface buys nothing at twelve studs
-		-- across while costing every triangle a physics query.
-		local cutOk, cut = pcall(function()
-			return body:SubtractAsync(cutters,
-				Enum.CollisionFidelity.Box,
-				Enum.RenderFidelity.Precise)
-		end)
-		for _, c in ipairs(cutters) do
-			c:Destroy()
-		end
-
-		if not cutOk or not cut then
-			warn(("[PiggyBank] the openings could not be cut, so the piggy "
-				.. "ships without them: %s"):format(tostring(cut)))
-			body.Parent = homed
-			stage:Destroy()
-			return body
-		end
-
-		body:Destroy()
-		cut.Parent = homed
-		stage:Destroy()
-		return cut
-	end
+	-- This is the third position this file has held on that and the first one
+	-- that costs nothing, so it is worth keeping the other two.
+	--
+	-- It bored the hatch at RUN TIME with `SubtractAsync`, and on the
+	-- generated body that broke the mesh outright: from a camera behind the
+	-- pig at twenty studs the body was not drawn at all -- ears, tail, coin
+	-- pile and the world visible straight through it. Every innocent suspect
+	-- was cleared first (transparency, render fidelity, double-sided,
+	-- occlusion, every size field agreeing), and what settled it was the UNCUT
+	-- mesh rendering perfectly from the same camera. A through-bore, a blind
+	-- recess and a 0.55 by 3.00 slit each failed alone, so it was never the
+	-- size of the opening. The openings went back to being DRAWN -- a
+	-- near-black disc and a bar sunk in the spine -- which cost the hatch
+	-- being a real window onto the pile.
+	--
+	-- THAT WAS A FACT ABOUT ONE ASSET RATHER THAN ABOUT THE API, which the
+	-- next body proved by taking a subtract cleanly. And this one settles it
+	-- for good by not needing one: `blender/pig/build_pig.py` gives the body a
+	-- real 0.30-stud wall and bores both openings through it BEFORE it is ever
+	-- uploaded. So there is no run-time CSG to break, no cutter solved against
+	-- a body that may move, and the hatch is a genuine hole with the hollow
+	-- and the coin pile behind it. `Config.PIGGY_VAULT` and
+	-- `Config.PIGGY_SHAVE` are unread and have been since the bore was cut in
+	-- the model instead.
 
 	local ok, result = pcall(function()
 		local insert = game:GetService("InsertService")
@@ -456,13 +537,30 @@ local function ensureMeshTemplates(): { [string]: BasePart }?
 			local part = insert:CreateMeshPartAsync(entry.id,
 				Enum.CollisionFidelity.Box, Enum.RenderFidelity.Precise)
 			if entry.part == "Body" then
-				-- Seated in the template's own frame first, because the cut
-				-- is placed against the plot origin and the result keeps
-				-- whatever framing it was given.
+				-- Seated in the template's own frame, which is what the
+				-- clone is measured against when it is stood on a plot.
 				part.Size = entry.size
 				part.CFrame = CFrame.new(entry.offset)
 				part.Anchored = true
-				part = cutOpenings(part)
+				-- THERE IS DELIBERATELY NO `DoubleSided` HERE, AND IT WAS
+				-- REMOVED BY LOOKING RATHER THAN BY ARGUING.
+				--
+				-- The last body was a SINGLE SKIN with no thickness, so without
+				-- backfaces you looked in the vault hatch and straight out the far
+				-- side of the animal, and this line was load-bearing. The modelled
+				-- body is a real shell with a 0.30-stud wall, so every surface an
+				-- opening reveals already faces the camera.
+				--
+				-- Checked the only way this can be checked: backfaces turned off on
+				-- a live piggy with the hatch OPEN at lock level 0, photographed
+				-- from behind. The bore shows the pig's own inner wall with the
+				-- coin pile standing in it, and no window through to the street.
+				-- It buys drawing this body's 6,368 triangles once instead of
+				-- twice, on the object every plot on the map carries.
+				--
+				-- IF A LATER BODY IS EVER EXPORTED WITHOUT SOLIDIFY, this comes
+				-- back -- `blender/pig/build_pig.py` gives the shell its wall, and
+				-- a zero-thickness one needs backfaces again.
 			end
 			made[entry.part] = part
 		end
@@ -509,19 +607,19 @@ local function swapToMesh(refs: Refs): boolean
 	-- than only through `refs`, because the four legs and two ears are lists
 	-- and a missed one is a cylinder standing inside a smooth leg.
 	--
-	-- THE COIN SLOT IS ON THAT LIST, AND IT IS THE ONE THAT IS NOT OBVIOUS.
-	-- It is a black box seated at `BODY_Y + BODY_R - 0.3`, which on the
-	-- primitives pig is INSIDE a sphere whose top is 14.50: it shows as a dark
-	-- slit where the ends break the curve, which is the whole trick. The mesh
-	-- body's crown is 14.14, and the box reaches 14.425 -- so the same part
-	-- stands a third of a stud PROUD along its entire 4.2-stud length and
-	-- reads as a bar lying on the pig's back rather than a slot cut into it.
+	-- THE COIN SLOT IS BACK ON THAT LIST, BECAUSE THE GENERATOR CUT ONE.
 	--
-	-- Reseating it was the other option and is the wrong one: the generated
-	-- body already has a slot sculpted into its upper back (measured, the
-	-- spine dips from 14.11 to 13.73 down the middle), so a part would be a
-	-- second slot beside the real one. Same call the snout and ears make --
-	-- the mesh contains it, so the primitive goes.
+	-- This has been both ways round twice now, so the rule rather than the
+	-- history: the primitive goes when the MESH CONTAINS THE THING IT DRAWS,
+	-- and stays when it does not. The old body had a shallow groove sculpted
+	-- down its spine and no opening, so a dark bar lowered into that groove
+	-- was the only slot there was. This one was asked for "a narrow
+	-- rectangular coin slot cut into the top of the back" and came back with
+	-- a real one -- photographed from above, a genuine slit with the hollow
+	-- interior dark inside it. A drawn bar laid on top of that is a second
+	-- slot beside the real one.
+	--
+	-- Same call the snout and the ears have always made.
 	for _, child in ipairs(refs.model:GetChildren()) do
 		if child:IsA("BasePart")
 			and (child.Name == "Snout" or child.Name == "Ear"
@@ -561,9 +659,22 @@ local function swapToMesh(refs: Refs): boolean
 		end
 	end
 
+	-- ONLY THE BODY IS REQUIRED, AND THAT IS THE MODELLED PIG ARRIVING.
+	--
+	-- This asked for `Snout`, `Tail` AND `Ear` as well, which was right for as
+	-- long as every mesh piggy was four generated parts. The modelled body is
+	-- ONE MeshPart, so the guard refused a spec that was perfectly good --
+	-- after the loop above had already parented the body, which is the worst
+	-- shape it could fail in: the mesh was standing in the pig and every
+	-- landmark that follows was skipped, so the eyes, the nostrils and the
+	-- dial all stayed where the BALL pig had put them, on a body that is two
+	-- studs shorter. Nothing errored and the log said the swap was off while
+	-- a mesh was plainly standing there.
+	--
+	-- The trim parts are optional now and `refs` says so below.
 	local body = made.Body
-	if not (body and bodyEntry and made.Snout and made.Tail and made.Ear) then
-		warn("[PiggyBank] piggy mesh is missing a named part, so the swap is off")
+	if not (body and bodyEntry) then
+		warn("[PiggyBank] piggy mesh has no Body part, so the swap is off")
 		return false
 	end
 
@@ -584,45 +695,93 @@ local function swapToMesh(refs: Refs): boolean
 	old:Destroy()
 
 	refs.body = body :: any
+	-- NIL WHEN THE BODY IS ONE PART, which `applySkin` reads to decide what
+	-- the skin's second tone is painted onto. A modelled pig has no separate
+	-- ear or snout mesh, so there is nothing to paint and the trim tone goes
+	-- unused rather than being written into a destroyed primitive.
 	refs.snout = made.Snout :: any
 	refs.tail = made.Tail :: any
-	refs.ears = { made.Ear }
-	-- The legs are inside the body mesh, so there is no separate list. They
-	-- are BODY-coloured there, which is what the primitives pig already did.
-	refs.legs = {}
+	-- `Ear` IS THE PRIMITIVES' NAME AND `Ears` IS THE SPLIT MESH'S, and both
+	-- are read rather than one being renamed. The primitives pig builds a part
+	-- per ear; the split trim is one mesh holding both, because they are
+	-- always the same colour and two uploads to say that would be one too
+	-- many. A rename would have been the tidier diff and would have broken the
+	-- pig this game currently ships.
+	refs.ears = if made.Ear then { made.Ear }
+		elseif made.Ears then { made.Ears }
+		else {}
+	-- THE WHOLE SECOND TONE ON ONE PART. The modelled pig is a `Body` and a
+	-- `Trim`, so the ears, snout, legs and tail a skin paints are one MeshPart
+	-- rather than four -- and `applySkin` needs a handle on it or the trim
+	-- colour is computed and thrown away, which is the state the last body
+	-- shipped in.
+	refs.trim = made.Trim :: any
+	-- ON THE SPLIT TRIM THE LEGS ARE THEIR OWN MESH, and on the joined one
+	-- they are inside `Trim` -- so this is a lookup rather than an empty
+	-- literal now. Empty when neither exists, which is the primitives pig,
+	-- where the legs are BODY-coloured.
+	refs.legs = if made.Legs then { made.Legs } else {}
 
-	-- THE NOSTRILS HAVE TO FOLLOW THE MUZZLE, and this is the one knock-on the
-	-- mesh has on a part the mesh does not contain.
+	-- THE RIM AND THE DARK DISC BOTH GO AGAIN, AND THIS TIME THE HOLE IS
+	-- REAL, WHICH IS THE DIFFERENCE THAT MAKES IT THE RIGHT CALL.
 	--
-	-- The shipped snout tip is z 6.6 with the nostril parts at 6.7, so they
-	-- clear it by a tenth of a stud. The mesh's muzzle reaches 7.10, which
-	-- leaves the nostrils four tenths INSIDE it. They would not error; they
-	-- would simply stop existing, and a pig with no nostrils reads as a pig
-	-- with no face.
-	for _, child in ipairs(refs.model:GetChildren()) do
-		if child:IsA("BasePart") and child.Name == "Nostril" then
-			local side = if child.Position.X < origin.X then -1 else 1
-			child.CFrame = CFrame.new(origin
-				+ Vector3.new(side * MESH_NOSTRIL.X, MESH_NOSTRIL.Y, MESH_NOSTRIL.Z))
-		end
-	end
-
-	-- THE RIM AND THE DARK DISC BOTH GO, because the mesh now has a real bore
-	-- and the opening is simply open.
+	-- Last time they were destroyed it was a bug, and that entry is worth
+	-- keeping in mind right here: `buildLock`'s own comment says "a recess is
+	-- made by standing something PROUD around the dark, never by sinking the
+	-- dark -- the eye takes the highest line as the surface. Set flush
+	-- instead, IT IS A BLACK STICKER." Kill the rim and the disc IS flush by
+	-- definition, so what was left was a black marking painted on the pig's
+	-- backside -- reported as exactly that.
 	--
-	-- The rim is twelve FLAT segments, which can only lie true on a sphere --
-	-- measured around their own ring on this body, the surface swings 0.72
-	-- studs from one side to the other, so a third were buried and the rest
-	-- stood off the pig. No offset fixes a ring on a shape that is not round.
+	-- WHAT CHANGED IS THAT THERE IS NOW SOMETHING TO STAND AROUND. The hatch
+	-- is bored out of the body itself, so the pig's own surface is the lip and
+	-- what is dark inside it is the actual hollow with the coin pile at the
+	-- bottom of it. A drawn disc would be a black sticker laid over a real
+	-- opening, and twelve flat rim segments would be a fake lip around a true
+	-- one.
 	--
-	-- The disc was the other half of the same illusion: nothing could be dug,
-	-- so an opening was a dark thing with a lip around it. Both were answers
-	-- to a question that stopped being asked -- the coin slit in the crown has
-	-- nothing in it either, and these are the same object.
-	if Config.PIGGY_VAULT and refs.lock then
+	-- Everything that REMAINS on the dial -- the plate, the wheel, the spokes
+	-- -- is pushed out onto the skin, or it sits two and a third studs inside
+	-- the pig.
+	if refs.lock then
 		for _, piece in ipairs(refs.lock:GetChildren()) do
 			if piece.Name == "VaultRim" or piece.Name == "VaultHole" then
 				piece:Destroy()
+			elseif piece:IsA("BasePart") then
+				piece.CFrame = piece.CFrame * CFrame.new(MESH_DIAL_OUT, 0, 0)
+			end
+		end
+	end
+
+	-- The face, moved off the ball and onto the mesh. Found by NAME off the
+	-- model rather than through `refs`, because the eyes, the nostrils and the
+	-- plaster are all pairs and a missed one is a dark spot floating inside a
+	-- pig -- the `Finial` trap this project has already hit twice.
+	local faceCentre = origin + MESH_FACE.bodyCentre
+	local seen = { Eye = 0, Nostril = 0, Plaster = 0 }
+	for _, child in ipairs(refs.model:GetChildren()) do
+		if child:IsA("BasePart") and seen[child.Name] ~= nil then
+			seen[child.Name] += 1
+			-- The sign of the ORIGINAL x is what says which side a pair member
+			-- is on, so a mirrored seat cannot get the two the wrong way round.
+			local side = if (child.Position - origin).X < 0 then -1 else 1
+			if child.Name == "Eye" then
+				local e = MESH_FACE.eye
+				child.CFrame = CFrame.new(origin + Vector3.new(side * e.x, e.y, e.z))
+			elseif child.Name == "Nostril" then
+				local n = MESH_FACE.nostril
+				child.CFrame = CFrame.new(origin + Vector3.new(side * n.x, n.y, n.z))
+			else
+				-- Both strips share one seat and keep their own crossed spin,
+				-- which is carried in the rotation they were built with. The
+				-- second is nudged out a hair so the two cannot z-fight where
+				-- they cross, exactly as `build` does.
+				local frame = CFrame.lookAt(origin + MESH_FACE.plaster, faceCentre)
+				local spin = if seen.Plaster == 1 then 45 else -45
+				child.CFrame = frame * CFrame.Angles(0, 0, math.rad(spin))
+				if seen.Plaster == 2 then
+					child.CFrame = child.CFrame * CFrame.new(0, 0, -0.02)
+				end
 			end
 		end
 	end
@@ -630,6 +789,100 @@ local function swapToMesh(refs: Refs): boolean
 	refs.bodySize = bodyEntry.size
 	refs.patternSeat = CFrame.new(Vector3.new(0, BODY_Y, 0) - bodyEntry.offset)
 	return true
+end
+
+-- ============================================================
+-- SHARED BY BOTH BUILDERS
+-- ============================================================
+--
+-- A piggy bank and a shop vault are two objects and one INTERFACE, so the
+-- pieces that carry the interface rather than the shape are built once here.
+-- A second near-identical copy is the thing that drifts the first time
+-- either is touched -- the lesson `RideSound` learned by keeping its own copy
+-- of the ride-key grammar and breaking within the hour.
+
+-- Parented to the body so they are positional. Neighbours hearing your piggy
+-- chime is deliberate: it tells a thief where the money is, which turns
+-- feedback into information.
+local function addSounds(body: BasePart): { [string]: Sound }
+	local sounds: { [string]: Sound } = {}
+	local function addSound(key: string, id: string, volume: number, distance: number)
+		local sound = Instance.new("Sound")
+		sound.Name = key
+		sound.SoundId = id
+		sound.Volume = volume
+		sound.RollOffMaxDistance = distance
+		sound.RollOffMode = Enum.RollOffMode.InverseTapered
+		sound.Parent = body
+		sounds[key] = sound
+	end
+	addSound("drop", Config.SOUNDS.COIN_DROP, 0.35, 45)
+	addSound("milestone", Config.SOUNDS.MILESTONE, 0.5, 80)
+	addSound("bank", Config.SOUNDS.BANK, 0.6, 70)
+	addSound("alarm", Config.SOUNDS.ALARM, 0.7, 140)
+	return sounds
+end
+
+-- Fired in bursts on milestones, banking and the alarm.
+-- The smash prompt, built once for both kinds of bank.
+--
+-- IT IS A FUNCTION RATHER THAN TWO BLOCKS FOR THE REASON THE VAULT ITSELF IS
+-- `PiggyBank.buildVault`: a piggy and a strongroom are one thing in fourteen
+-- places, and a second copy of six properties is a second copy that drifts
+-- the first time either is touched.
+--
+-- ON ITS OWN KEY, AND THAT IS THE LOAD-BEARING PROPERTY. Every prompt in this
+-- game is `E` and `OnePerButton`, so two prompts on one key do not both work
+-- -- this project has that measured, from the shop door reaching 9.9 studs
+-- into its own room and silently winning against the vault behind it. `G` is
+-- the free key: the map is Q dodge/trick, B shop, V garage, R radio, I bag,
+-- Escape close, F2 admin, 1-0 the hot bar, and F is the crack's own tap. E
+-- opens the lock, F works it, G breaks it -- three adjacent keys for the
+-- three things you can do to a pig, which is an accident and a welcome one.
+local function buildSmashPrompt(body: BasePart, objectText: string): ProximityPrompt
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "SmashPrompt"
+	prompt.ActionText = "Smash It"
+	Config.setPromptKind(prompt, "smash")
+	prompt.ObjectText = objectText
+	prompt:SetAttribute(Config.PROMPT_SLOT_ATTRIBUTE, 1)
+	prompt.KeyboardKeyCode = Enum.KeyCode.G
+	-- LONGER THAN THE STEAL PROMPT'S OPEN HOLD, deliberately. That one opens a
+	-- lock and can be walked away from having taken nothing; this one IS the
+	-- robbery, and it drops your shield, wakes the dog and names you to the
+	-- owner on a single press. See `Config.SMASH.hold`.
+	prompt.HoldDuration = Config.SMASH.hold
+	prompt.MaxActivationDistance = Config.STEAL_RANGE
+	prompt.RequiresLineOfSight = false
+	-- The client enables it exactly where it enables the steal prompt, and the
+	-- server re-checks ownership on every trigger regardless.
+	prompt.Enabled = false
+	prompt.Parent = body
+	return prompt
+end
+
+local function buildBurst(body: BasePart): ParticleEmitter
+	local burst = Instance.new("ParticleEmitter")
+	burst.Name = "Burst"
+	burst.Texture = SPARKLE
+	burst.Color = ColorSequence.new(COIN_GOLD_2, COIN_GOLD)
+	burst.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1.6),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	burst.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.1),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	burst.Lifetime = NumberRange.new(0.6, 1.2)
+	burst.Rate = 0
+	burst.Speed = NumberRange.new(9, 18)
+	burst.SpreadAngle = Vector2.new(180, 180)
+	burst.Acceleration = Vector3.new(0, -22, 0)
+	burst.LightEmission = 0.8
+	burst.Enabled = false
+	burst.Parent = body
+	return burst
 end
 
 function PiggyBank.build(origin: Vector3, parent: Instance): Refs
@@ -707,6 +960,36 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	aura.LightEmission = 0.55
 	aura.Parent = body
 
+	-- THE SKIN'S OWN AURA, WHICH IS A SECOND EMITTER RATHER THAN A SECOND USE
+	-- OF THE FIRST. A legendary skin carries particles of its own and they
+	-- STACK with whatever the player equipped, so the two cannot share an
+	-- emitter -- one object has one Texture, one Color and one Rate.
+	--
+	-- Built here beside its sibling and always present, for the reason the
+	-- tier-0 dog is built and hidden rather than skipped: a nil in `Refs` is a
+	-- crash rather than a missing feature, and this one is read by
+	-- `applySkin` and `applyEffect` both.
+	--
+	-- INWARD RATHER THAN OUTWARD, which is the one property that differs and
+	-- is doing real work. With only three built-in particle textures, emission
+	-- SHAPE is what keeps two effects on one animal from reading as one noisy
+	-- one -- the note above says exactly that about the drip and the aura. An
+	-- equipped effect blooms outward off the surface; a skin's own aura falls
+	-- inward toward it, so a legendary reads as something coming OFF the
+	-- animal rather than as a second copy of the same cloud.
+	local skinAura = Instance.new("ParticleEmitter")
+	skinAura.Name = "SkinAura"
+	skinAura.Enabled = false
+	skinAura.Shape = Enum.ParticleEmitterShape.Sphere
+	skinAura.ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface
+	skinAura.ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward
+	skinAura.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.25),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	skinAura.LightEmission = 0.55
+	skinAura.Parent = body
+
 	-- Separate from `Glow`, which EconomyService drives to show vault fill.
 	-- Sharing one light would make a full vault and a lit effect fight over
 	-- the same property every frame.
@@ -717,46 +1000,13 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	auraLight.Parent = body
 
 	-- Fired in bursts on milestones and banking.
-	local burst = Instance.new("ParticleEmitter")
-	burst.Name = "Burst"
-	burst.Texture = SPARKLE
-	burst.Color = ColorSequence.new(COIN_GOLD_2, COIN_GOLD)
-	burst.Size = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 1.6),
-		NumberSequenceKeypoint.new(1, 0),
-	})
-	burst.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 0.1),
-		NumberSequenceKeypoint.new(1, 1),
-	})
-	burst.Lifetime = NumberRange.new(0.6, 1.2)
-	burst.Rate = 0
-	burst.Speed = NumberRange.new(9, 18)
-	burst.SpreadAngle = Vector2.new(180, 180)
-	burst.Acceleration = Vector3.new(0, -22, 0)
-	burst.LightEmission = 0.8
-	burst.Enabled = false
-	burst.Parent = body
+	local burst = buildBurst(body)
 
 	-- Sounds ----------------------------------------------------------
 	-- Parented to the body so they're positional. Neighbours hearing your
 	-- piggy chime is deliberate: in phase 3 it tells a thief where the
 	-- money is, which turns feedback into information.
-	local sounds: { [string]: Sound } = {}
-	local function addSound(key: string, id: string, volume: number, distance: number)
-		local sound = Instance.new("Sound")
-		sound.Name = key
-		sound.SoundId = id
-		sound.Volume = volume
-		sound.RollOffMaxDistance = distance
-		sound.RollOffMode = Enum.RollOffMode.InverseTapered
-		sound.Parent = body
-		sounds[key] = sound
-	end
-	addSound("drop", Config.SOUNDS.COIN_DROP, 0.35, 45)
-	addSound("milestone", Config.SOUNDS.MILESTONE, 0.5, 80)
-	addSound("bank", Config.SOUNDS.BANK, 0.6, 70)
-	addSound("alarm", Config.SOUNDS.ALARM, 0.7, 140)
+	local sounds = addSounds(body)
 
 	-- Snout -----------------------------------------------------------
 	local snout = part("Snout", model, Vector3.new(2, SNOUT_D, SNOUT_D), cylinderForward(at(0, BODY_Y + SNOUT_Y, BODY_R - 0.4)))
@@ -831,6 +1081,10 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	tail.Color = PINK_DARK
 
 	-- Coin slot -------------------------------------------------------
+	-- Buried in the dome and showing only where its ends break the curve,
+	-- which is the one thing that works on a sphere. THE MESH PIGGY DESTROYS
+	-- IT: that body has a real slit cut through its crown by the generator,
+	-- and a drawn bar on top of one is a second slot beside the real one.
 	local slot = part("Slot", model, Vector3.new(0.7, 0.45, 4.2), CFrame.new(at(0, BODY_Y + BODY_R - 0.3, 0)))
 	slot.Color = NEAR_BLACK
 	slot.Material = Enum.Material.SmoothPlastic
@@ -872,7 +1126,7 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	-- gold-locked one have the same opening and only the door changes.
 	local seat = dialCFrame(origin)
 
-	local hole = part("VaultHole", lock, Vector3.new(0.30, DIAL_MAX_R * 2, DIAL_MAX_R * 2),
+	local hole = part("VaultHole", lock, Vector3.new(0.30, VAULT_R * 2, VAULT_R * 2),
 		seat * CFrame.new(0.02, 0, 0))
 	hole.Shape = Enum.PartType.Cylinder
 	hole.Color = Color3.fromRGB(18, 14, 16)
@@ -889,7 +1143,7 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	-- scale.
 	for i = 0, RIM_SEGMENTS - 1 do
 		local a = (i / RIM_SEGMENTS) * math.pi * 2
-		local r = DIAL_MAX_R + 0.16
+		local r = VAULT_R + 0.16
 		-- ROTATED TO LIE TANGENT, not radial. A segment sits at
 		-- (sin a, cos a) * r in the seat's YZ plane, so its radius direction
 		-- is that vector and its TANGENT is (cos a, -sin a). Turning by -a
@@ -952,8 +1206,7 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	local stealPrompt = Instance.new("ProximityPrompt")
 	stealPrompt.Name = "StealPrompt"
 	stealPrompt.ActionText = "Steal Coins"
-	stealPrompt.Style = Enum.ProximityPromptStyle.Custom
-	stealPrompt:SetAttribute(Config.PROMPT_KIND_ATTRIBUTE, "steal")
+	Config.setPromptKind(stealPrompt, "steal")
 	stealPrompt.ObjectText = "Piggy Bank"
 	-- Half a second: this hold OPENS the lock, it no longer robs it. What
 	-- comes after is Config.CRACK, where the Vault Lock tree now expresses
@@ -963,6 +1216,8 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	stealPrompt.RequiresLineOfSight = false
 	stealPrompt.Enabled = false
 	stealPrompt.Parent = body
+
+	local smashPrompt = buildSmashPrompt(body, "Piggy Bank")
 
 	model.PrimaryPart = body
 	model.Parent = parent
@@ -978,12 +1233,14 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 		drip = drip,
 		burst = burst,
 		aura = aura,
+		skinAura = skinAura,
 		snout = snout,
 		tail = tail,
 		ears = ears,
 		legs = legs,
 		lock = lock,
 		stealPrompt = stealPrompt,
+		smashPrompt = smashPrompt,
 		sounds = sounds,
 	}
 
@@ -997,25 +1254,465 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 end
 
 -- ============================================================
+-- THE SHOP VAULT
+-- ============================================================
+
+-- The strongroom on a shop's back wall, returned as the SAME `Refs` a piggy
+-- bank is.
+--
+-- THAT IS THE WHOLE TRICK AND IT IS WORTH BEING EXACT ABOUT WHAT IT BOUGHT.
+-- `plot.piggy` is read in fourteen places across three services -- the fill,
+-- the dial, the rattle, the plaster, the coin drop, the milestone, the
+-- alarm, the raid drone's anchor, the crack panel's camera and the steal
+-- prompt -- and not one of them changed. `VaultModel` builds a carcass, a
+-- mouth, a stack of `Config.COIN_COUNT` bars and a door with a dial seat on
+-- it; this function wraps those in the fields those fourteen readers want,
+-- and every behaviour above runs unmodified on different parts.
+--
+-- The alternative was a second module with the same ten function names and a
+-- `bankOf(plot)` dispatch at every call site, which is nine accessors with a
+-- piggy-shaped hole under each one -- the exact trade the shops refused
+-- when they became plots rather than a third kind of `HeistService.Target`.
+-- WHEN A NEW THING HAS TO BEHAVE LIKE AN EXISTING THING IN FOURTEEN PLACES,
+-- MAKE IT ONE.
+--
+-- WHAT IT COSTS IS ONE FLAG, `Refs.vault`, read by exactly three functions:
+-- the skin, the accessories and the effect. A vault wears nothing, and those
+-- are the only three things a piggy does that a strongroom cannot.
+--
+-- Takes a CFrame rather than a position, because a vault is TURNED -- it
+-- stands on the back wall of a unit that faces the road, and the far row of
+-- shops carries a half turn. `PiggyBank.build` can take a bare Vector3 only
+-- because a pig is authored symmetrically about its own centre.
+function PiggyBank.buildVault(cf: CFrame, parent: Instance): Refs
+	local v = VaultModel.build(cf, parent)
+	local body = v.body
+
+	-- LIT FROM INSIDE THE MOUTH, WHICH IS THE ONE PLACE THE PIG'S OWN LAMP
+	-- COULD NOT BE. That light sits inside a solid body with `Shadows` off,
+	-- so it washes the shell it is meant to be seen through -- the measured
+	-- reason it came down to a fifth of what it was. Here the opening is a
+	-- real one and the light spills OUT of it, which is what the piggy's
+	-- glow was doing for the one release its hatch was a genuine bore.
+	local glow = Instance.new("PointLight")
+	glow.Name = "Glow"
+	glow.Color = COIN_GOLD
+	glow.Brightness = 0
+	glow.Range = 9
+	glow.Shadows = false
+	glow.Parent = v.mouth
+
+	-- The takings going in. Same cadence as the pig's, because it is the same
+	-- drip: `setFill` drives its rate off the fill ratio and nothing here
+	-- knows which object it is standing on.
+	local drip = Instance.new("ParticleEmitter")
+	drip.Name = "Drip"
+	drip.Texture = SPARKLE
+	drip.Color = ColorSequence.new(COIN_GOLD_2, COIN_GOLD)
+	drip.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.7),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	drip.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.2),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	drip.Lifetime = NumberRange.new(0.5, 0.9)
+	drip.Rate = 3
+	drip.Speed = NumberRange.new(1.5, 3)
+	drip.SpreadAngle = Vector2.new(18, 18)
+	drip.Acceleration = Vector3.new(0, -6, 0)
+	drip.LightEmission = 0.6
+	drip.Parent = body
+
+	local burst = buildBurst(body)
+	local sounds = addSounds(body)
+
+	-- BUILT AND NEVER ENABLED, and that is honest rather than lazy. `aura` is
+	-- the cosmetic effect emitter and `applyEffect` returns early on a vault,
+	-- so nothing will ever switch this on -- it exists because the field is
+	-- what makes one `Refs` serve both, and one disabled emitter per shop is
+	-- a cheaper price than a nil that four callers would have to guard.
+	local aura = Instance.new("ParticleEmitter")
+	aura.Name = "Aura"
+	aura.Enabled = false
+	aura.Parent = body
+
+	-- THE DIAL, ON THE DOOR, BUILT BY THE PIGGY'S OWN LADDER.
+	--
+	-- `setLockLevel` rebuilds a wheel around whatever `lock.PrimaryPart` is,
+	-- reading the metal and the spoke count out of `LOCK_TIERS` -- so a shop
+	-- vault and a piggy bank say their tier in exactly the same vocabulary,
+	-- and a maxed Lockpicks reading a lock from the pavement means the same
+	-- thing at both. Two ladders wearing one set of colours is the failure
+	-- this file records for the rarity bands; one ladder read twice is not.
+	local lock = Instance.new("Model")
+	lock.Name = "Lock"
+	local plate = part("DialPlate", lock,
+		Vector3.new(DIAL_THICK, DIAL_MAX_R * 2, DIAL_MAX_R * 2), v.dialSeat)
+	plate.Shape = Enum.PartType.Cylinder
+	plate.Material = Enum.Material.Metal
+	plate.Transparency = 1 -- setLockLevel owns whether it shows
+	lock.PrimaryPart = plate
+	lock.Parent = v.model
+
+	local stealPrompt = Instance.new("ProximityPrompt")
+	stealPrompt.Name = "StealPrompt"
+	stealPrompt.ActionText = "Steal Coins"
+	Config.setPromptKind(stealPrompt, "steal")
+	-- NAMED FOR WHAT IT IS. The prompt card prints this over the verb, and a
+	-- strongroom in the back of a shop reading "Piggy Bank" would be the one
+	-- place in the game still insisting the noun had not changed.
+	stealPrompt.ObjectText = "Shop Vault"
+	stealPrompt.HoldDuration = Config.CRACK.openHold
+	stealPrompt.MaxActivationDistance = Config.STEAL_RANGE
+	stealPrompt.RequiresLineOfSight = false
+	stealPrompt.Enabled = false
+	stealPrompt.Parent = body
+
+	-- A SHOP GETS THE PAIR TOO, AND IT IS THE CHEAPEST SMASH ON THE STREET --
+	-- no dog to wake, nobody home to tell, so the alarm costs a thief almost
+	-- nothing here. That is the shops being what this project already says they
+	-- are: the fast, cheap, loud target against the house's slow, rich, quiet
+	-- one, with the choice now available INSIDE one job as well as between two.
+	local smashPrompt = buildSmashPrompt(body, "Shop Vault")
+
+	return {
+		origin = cf.Position,
+		model = v.model,
+		body = body,
+		pile = v.pile,
+		coins = v.bars,
+		shown = 0,
+		glow = glow,
+		drip = drip,
+		burst = burst,
+		aura = aura,
+		ears = {},
+		legs = {},
+		-- The milestone squash tweens back to this. Read from the part rather
+		-- than assumed, for the reason the meshed pig already records: a
+		-- hardcoded diameter snaps a carcass into a cube on its first
+		-- milestone and then elastic-tweens it back to one.
+		bodySize = body.Size,
+		lock = lock,
+		stealPrompt = stealPrompt,
+		smashPrompt = smashPrompt,
+		sounds = sounds,
+		vault = true,
+	}
+end
+
+-- ============================================================
 -- APPEARANCE
 -- ============================================================
+
+-- What a surface pack is called once it is hanging on a part, so it can be
+-- found again and taken off when the next skin does not want one.
+local SURFACE_NAME = "SkinSurface"
+
+-- Dress one part in a skin's surface pack, or strip whatever it is wearing.
+--
+-- REUSED RATHER THAN REBUILT, unlike the pattern decals below it. Those are
+-- torn down every call because a stripe that accumulated would be a visible
+-- bug; a SurfaceAppearance carries four texture ids, and destroying and
+-- recreating it makes the engine drop and refetch all four every time
+-- somebody tries a skin on in the shop.
+--
+-- MESHPARTS ONLY, which is not defensiveness. A SurfaceAppearance does
+-- nothing on an ordinary Part, so on the primitives fallback pig -- the one
+-- that stands up when a mesh id is missing -- attaching one would create
+-- instances that silently do nothing on every piggy on the street. The pig
+-- renders as a plain skin there instead, which is what the fallback is for.
+-- `isTrim` PICKS A DIFFERENT TEMPLATE, AND IT IS NOT A REFINEMENT. The ears,
+-- snout, tail and legs share the body's cylindrical unwrap, so handing them a
+-- PATTERN map runs tiger bars across a snout and leopard rosettes down a leg.
+-- An animal pack names a `trimTemplate` carrying the coat and no markings;
+-- anything without one hands both the same template, which is what the metal
+-- bands want and why this is opt-in rather than a branch on skin kind.
+local function applySurface(part: BasePart, tier, isTrim: boolean?)
+	local pack = Config.skinSurface(tier)
+	local worn = part:FindFirstChild(SURFACE_NAME)
+
+	if not pack or not part:IsA("MeshPart") then
+		if worn then
+			worn:Destroy()
+		end
+		return
+	end
+
+	-- CLONED, NEVER BUILT, AND THAT IS A REFUSAL RATHER THAN A PREFERENCE.
+	-- `SurfaceAppearance.ColorMap` is plugin-gated: assembling one here threw
+	-- `The current thread cannot write 'ColorMap' (lacking capability Plugin)`
+	-- from a real server and took the whole of `applySkin` with it, so every
+	-- skin change in the game failed. A clone copies the maps without writing
+	-- them, which is the same escape `MaterialVariant` had to take.
+	local template = ReplicatedStorage:FindFirstChild("Shared")
+	template = template and template:FindFirstChild("SurfacePacks")
+	template = template and template:FindFirstChild(
+		(isTrim and pack.trimTemplate) or pack.template)
+	if not template then
+		-- A MISSING TEMPLATE IS A PLAIN PIG, NEVER AN ERROR. The skin still
+		-- has its colours and its `material`, so what a player sees is an
+		-- ordinary skin rather than a broken one -- the same way an empty mesh
+		-- id leaves the piggy on primitives instead of standing up half a
+		-- model.
+		if worn then
+			worn:Destroy()
+		end
+		return
+	end
+
+	-- REPLACED RATHER THAN PATCHED, because the properties that would need
+	-- patching are the gated ones. Reusing the instance was the original
+	-- design -- to stop the engine refetching four textures on every skin
+	-- change -- and it is not available: there is no way to change a worn
+	-- pack's maps without writing them.
+	if worn then
+		worn:Destroy()
+	end
+	local sa = template:Clone()
+	sa.Name = SURFACE_NAME
+	sa.Parent = part
+end
+
+-- ============================================================
+-- RAISED FUR
+-- ============================================================
+
+local FUR_NAME = "FurTufts"
+
+-- WHICH SET A WORN TUFT CAME FROM, WRITTEN ON THE PART ITSELF.
+--
+-- A skin is changed INTO rather than applied to a fresh pig, so going from
+-- the tiger to the zebra has to SWAP the mesh and not merely recolour it --
+-- and there is nothing on a MeshPart that says which set it was cloned from.
+-- Comparing `MeshId` would work and is the wrong instrument: it reads an
+-- asset id back out of the engine to answer a question about this game's own
+-- catalogue, so an unfilled set (id "") has no id to compare and a re-upload
+-- of the same mane would read as a different set. An attribute is the fact
+-- itself. Same call `SkinKey` already makes on the body.
+local FUR_SET_ATTRIBUTE = "FurSet"
+
+-- ONE TEMPLATE PER SET, CACHED SEPARATELY. `CreateMeshPartAsync` yields and
+-- there are ten pigs on a street, so this is the same cache the body and trim
+-- already keep -- it just has to be keyed now, or the first set loaded would
+-- be handed to every animal for the rest of the server's life.
+local furTemplates: { [string]: BasePart } = {}
+local furChecked: { [string]: boolean } = {}
+
+local function ensureFurTemplate(setName: string): BasePart?
+	if furChecked[setName] then
+		return furTemplates[setName]
+	end
+	-- STAMPED BEFORE THE LOAD, NOT AFTER, so a set whose mesh fails to load is
+	-- attempted once rather than on every skin change for the rest of the
+	-- session -- which on a failing asset is a web call per pig per swap.
+	furChecked[setName] = true
+	local spec = Config.furMesh(setName)
+	if not spec then
+		return nil
+	end
+	local ok, part = pcall(function()
+		-- BOX COLLISION AND NO QUERY, because this is decoration standing on
+		-- the one object a thief runs at and a dog patrols around. Precise
+		-- collision on 6,080 triangles of wool would cost every one of them a
+		-- physics query to buy nothing.
+		local p = game:GetService("InsertService"):CreateMeshPartAsync(
+			spec.id, Enum.CollisionFidelity.Box, Enum.RenderFidelity.Precise)
+		-- THE MESH KEEPS ITS OWN SIZE, AND CONFIG'S IS A CHECK RATHER THAN AN
+		-- INSTRUCTION. Writing `Size` here scales the mesh to whatever number
+		-- happens to be in Config -- so a value measured off an older build
+		-- silently SHRINKS the tufts toward their own centre and buries them
+		-- in the body, which is precisely what shipped. A wrong number should
+		-- be loud; this one was invisible.
+		if (p.MeshSize - spec.size).Magnitude > 0.05 then
+			warn(string.format(
+				"[PiggyBank] Config.FUR_SETS.%s.size is stale: mesh is %.4f,"
+				.. " %.4f, %.4f but Config says %.4f, %.4f, %.4f -- re-run"
+				.. " make_fur_tufts.py with FUR_SET=%s and paste the block it"
+				.. " prints.",
+				setName, p.MeshSize.X, p.MeshSize.Y, p.MeshSize.Z,
+				spec.size.X, spec.size.Y, spec.size.Z, setName))
+		end
+		p.Name = FUR_NAME
+		p:SetAttribute(FUR_SET_ATTRIBUTE, setName)
+		p.Anchored = true
+		p.CanCollide = false
+		p.CanQuery = false
+		p.CanTouch = false
+		p.CastShadow = false
+		return p
+	end)
+	if not ok then
+		-- NEVER FAIL SILENTLY, and never take the skin down with it. A pig
+		-- with no ruff is a cosmetic fault; `applySkin` throwing is every
+		-- skin change in the game failing, which is what the surface pack
+		-- already cost once.
+		warn(string.format("[PiggyBank] fur mesh for set %q failed to load: %s",
+			setName, tostring(part)))
+		return nil
+	end
+	furTemplates[setName] = part
+	return part
+end
+
+-- Give this piggy its ruff, or take it off.
+--
+-- STRIPPED ON EVERY SKIN THAT DOES NOT WANT ONE, not only added to those that
+-- do. A skin is changed INTO, so a conditional that only ever attaches would
+-- leave a Solid Gold pig wearing the tiger's wool -- the same trap
+-- `reflectance` already fell into on this function.
+local function applyFur(refs: Refs, tier)
+	local body = refs.body
+	local model = body.Parent
+	local worn = model and model:FindFirstChild(FUR_NAME)
+
+	-- THE MESH IS THE FLAG. A skin asks for fur by carrying a `fur` colour,
+	-- which is also the colour the lobes are painted -- one field rather than
+	-- a boolean and a colour that could disagree.
+	local wants = tier and tier.fur ~= nil and body:IsA("MeshPart")
+	if not wants then
+		if worn then
+			worn:Destroy()
+		end
+		return
+	end
+
+	-- THE SET IS A PROPERTY OF THE SKIN AND FALLS BACK TO THE DEFAULT, so the
+	-- four skins that predate sets carry no `furSet` and get the mane exactly
+	-- as they always did.
+	local setName = tier.furSet or Config.DEFAULT_FUR_SET
+
+	-- A WORN TUFT FROM A DIFFERENT SET IS DESTROYED RATHER THAN REUSED, and
+	-- this is the whole reason the attribute exists. Reusing it would recolour
+	-- the tiger's ruff, seat it at the crest's offset and call it a zebra --
+	-- geometry from one animal at another's coordinates, with nothing erroring.
+	if worn and worn:GetAttribute(FUR_SET_ATTRIBUTE) ~= setName then
+		worn:Destroy()
+		worn = nil
+	end
+
+	local template = ensureFurTemplate(setName)
+	if not template then
+		if worn then
+			worn:Destroy()
+		end
+		return
+	end
+
+	local part = worn
+	if not part then
+		part = template:Clone()
+		part.Parent = model
+	end
+	part.Color = tier.fur
+	part.Material = tier.material
+	part.Transparency = tier.transparency
+
+	-- THE RUFF WEARS THE BODY'S PACK, NOT THE TRIM'S, and that is the whole
+	-- reason it can exist on a patterned animal at all. The lobe mesh is
+	-- unwrapped on the SAME cylinder as the body, so handing it the body's
+	-- ColorMap makes the spots and stripes carry straight over the fur --
+	-- where a flat colour was a patch lying on top of the pattern whatever
+	-- shade it was given. `false` rather than `true`: the trim template is the
+	-- coat WITHOUT markings, which is right for a snout and wrong here.
+	applySurface(part, tier, false)
+
+	-- SEATED OFF THE BODY'S OWN CFRAME, never off the plot's. Both meshes come
+	-- out of one Blender scene, so the fur's offset and the body's are in the
+	-- same frame -- and the far row of plots carries a half turn, which is the
+	-- error this file already records three times for anything measured in
+	-- world axes.
+	local spec = Config.furMesh(setName)
+	part.CFrame = body.CFrame * CFrame.new(spec.offset)
+end
 
 -- The equipped skin owns the piggy's whole appearance. Rebirth-earned looks
 -- are just skins with an unlockRebirths instead of a price, so there's one
 -- system here rather than a tier system fighting a cosmetic one.
 function PiggyBank.applySkin(refs: Refs, skinKey: string)
+	-- A SHOP VAULT WEARS NOTHING, and this is the only place the two kinds
+	-- of thing standing on a plot are told apart. A skin is colour and
+	-- material on a piggy's body; run on a strongroom it would paint the
+	-- carcass pink and hand it a snout it does not have.
+	if refs.vault then
+		return
+	end
+
 	local tier = Config.getSkin(skinKey)
+
+	-- THE SKIN'S OWN AURA, DRIVEN FROM HERE RATHER THAN FROM `applyEffect`,
+	-- because it is a fact about the SKIN and this is the one function that
+	-- knows which skin is on. Put in `applyEffect` instead it would have to be
+	-- re-derived from a key that function is not given, and the two would
+	-- disagree the first time a skin changed without an effect changing.
+	--
+	-- IT RIDES `refs.vault` BY SITTING INSIDE THIS FUNCTION, which is the
+	-- contract rather than a coincidence: a strongroom returns above, so it
+	-- can never be reached with one. Relying instead on a vault having no skin
+	-- to read an aura from would be leaning on a nil.
+	--
+	-- NO LIGHT IS TOUCHED HERE AT ALL -- see `Config.skinAura`. `AuraLight`
+	-- belongs to the equipped effect and `Glow` belongs to the vault fill; a
+	-- third source inside a twelve-stud sphere is the white-blob entry in
+	-- CLAUDE.md with two more lamps on top.
+	local sa = refs.skinAura
+	if sa then
+		local spec = Config.skinAura(tier)
+		if spec and spec.texture then
+			sa.Texture = spec.texture
+			sa.Color = spec.color
+			sa.Rate = spec.rate
+			sa.Speed = spec.speed
+			sa.Lifetime = spec.lifetime
+			sa.Drag = spec.drag
+			sa.Acceleration = spec.accel
+			sa.SpreadAngle = Vector2.new(spec.spread, spec.spread)
+			sa.Size = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, spec.size),
+				NumberSequenceKeypoint.new(1, 0),
+			})
+			local spin = spec.rotSpeed or 0
+			sa.Rotation = NumberRange.new(0, 360)
+			sa.RotSpeed = NumberRange.new(-spin, spin)
+			sa.Enabled = true
+		else
+			sa.Enabled = false
+		end
+	end
 
 	refs.body.Color = tier.body
 	refs.body.Material = tier.material
 	refs.body.Transparency = tier.transparency
+	-- REFLECTANCE IS WRITTEN ON EVERY SKIN, NOT ONLY ON THE ONES THAT WANT IT,
+	-- and the `or 0` is the whole reason. A skin is CHANGED into rather than
+	-- applied to a fresh pig, so a field left alone keeps whatever the last
+	-- skin set -- switch off Solid Gold and an ordinary plastic pig would go
+	-- on wearing its 0.45 for the rest of the session, with nothing in any log.
+	-- Same shape as `Transparency` directly above, which is written on all 46
+	-- for the same reason.
+	refs.body.Reflectance = tier.reflectance or 0
 
 	-- FOUR PARTS OR SEVEN, AND THE CALLER DOES NOT CARE WHICH. The mesh piggy
 	-- names its trim meshes `Snout`, `Ear` and `Tail` -- the primitives' own
 	-- names -- so this list is built the same way for both and there is no
 	-- branch to keep in step. The mesh piggy's legs live inside the body
 	-- mesh, so `refs.legs` is simply empty there.
-	local trimParts: { BasePart } = { refs.snout, refs.tail }
+	-- BUILT ONE AT A TIME BECAUSE TWO OF THEM CAN BE NIL. Written as a
+	-- literal `{ refs.snout, refs.tail }` a nil snout makes the array start
+	-- at a hole, and `ipairs` stops at the first one -- so a pig with a tail
+	-- and no snout would silently paint neither.
+	local trimParts: { BasePart } = {}
+	if refs.trim then
+		table.insert(trimParts, refs.trim)
+	end
+	if refs.snout then
+		table.insert(trimParts, refs.snout)
+	end
+	if refs.tail then
+		table.insert(trimParts, refs.tail)
+	end
 	for _, ear in ipairs(refs.ears) do
 		table.insert(trimParts, ear)
 	end
@@ -1023,10 +1720,112 @@ function PiggyBank.applySkin(refs: Refs, skinKey: string)
 		table.insert(trimParts, leg)
 	end
 
+	-- A PART MAY OVERRIDE THE TRIM TONE BY NAME, WHICH IS WHAT THE SPLIT TRIM
+	-- WAS FOR.
+	--
+	-- `tier.trim` is the second tone and covers every trim part on 45 of the
+	-- 46 skins. The bumblebee is the one that cannot be said that way: the
+	-- reference has a YELLOW SNOUT beside BLACK EARS, and a MeshPart owns one
+	-- `Color`, so no number of texture maps expresses it while the snout and
+	-- the ears are the same part. `tier.parts` is a name-keyed override and a
+	-- missing name falls through to `tier.trim` -- so a skin says only what
+	-- differs, and the other 45 carry no new field at all.
+	--
+	-- KEYED ON `p.Name`, WHICH IS `entry.part` FROM THE SPEC. `swapToMesh`
+	-- names every part after its Config row, so the override table and
+	-- `Config.PIGGY_MESH` cannot disagree about what a part is called without
+	-- the override simply not applying -- visible, rather than painting the
+	-- wrong piece.
+	local overrides = tier.parts
 	for _, p in ipairs(trimParts) do
-		p.Color = tier.trim
+		p.Color = (overrides and overrides[p.Name]) or tier.trim
 		p.Material = tier.material
+		p.Reflectance = tier.reflectance or 0
 	end
+
+	-- THE FACE PARTS TAKE THE SAME OVERRIDE, AND THEY WERE THE ONE THING ON
+	-- THIS PIG A SKIN COULD NOT REACH AT ALL.
+	--
+	-- `Eye` and `Nostril` are code-built parts painted `NEAR_BLACK` once at
+	-- build and never touched again, so every one of the 46 skins wore the
+	-- same eyes and the same nostrils whatever else it changed. That is right
+	-- as a DEFAULT -- a dark eye reads on all 46 -- and wrong as a ceiling:
+	-- the reference bumblebee wants black nostrils against a yellow snout,
+	-- and a pale skin may want the opposite.
+	--
+	-- WRITTEN ON EVERY SKIN RATHER THAN ONLY WHERE AN OVERRIDE EXISTS, which
+	-- is the rule `reflectance` and `transparency` on the body already follow
+	-- for the same reason: a skin is CHANGED INTO, so a field left alone
+	-- keeps whatever the last skin set. Without the `or NEAR_BLACK` fallback,
+	-- switching off a skin that recoloured its eyes would leave the next pig
+	-- wearing them for the rest of the session with nothing in any log.
+	--
+	-- FOUND BY WALKING THE MODEL, not through `refs`, because the eyes and
+	-- the nostrils are PAIRS and neither is held by reference -- the same
+	-- reason the mesh swap re-seats them the same way. A `Finial` miss here
+	-- would be one recoloured nostril and one that was not.
+	--
+	-- AND THE EYES CAN GLOW, WHICH IS THE ONE THING A LEGENDARY GETS THAT NO
+	-- AMOUNT OF PAINT COULD BUY. `Eye` is a code-built part, so it is in no
+	-- texture and no surface pack can reach it -- a skin could recolour it and
+	-- never make it a light source. One `Material` write does.
+	--
+	-- IT IS SAFE ON A PART THIS SIZE, and that is worth stating because this
+	-- file spends four entries warning about Neon. Every one of them is about a
+	-- TWELVE-STUD SPHERE rendering flat out under the BloomEffect and coming
+	-- back as a white hole with a pink rim. An eyeball is 0.16 studs across.
+	-- There is no light involved either, so nothing compounds with `Glow`, with
+	-- `AuraLight` or with a skin's own aura.
+	--
+	-- NOSTRILS ARE DELIBERATELY EXCLUDED. A glowing eye is a creature with
+	-- something behind it; a glowing nostril is a different animal entirely,
+	-- and the two are one `or` apart, which is exactly how it would arrive by
+	-- accident.
+	--
+	-- **WRITTEN ON EVERY SKIN, NEVER ONLY ON THE GLOWING ONES**, for the reason
+	-- the colour above already gives: a skin is CHANGED INTO, so a field left
+	-- alone keeps whatever the last skin set. Without the `else` a player who
+	-- takes off a glowing legendary keeps the glowing eyes on every skin after
+	-- it for the rest of the session, with nothing in any log -- which is the
+	-- `busyUntil` family and the guard dog's repainted duty vest arriving on a
+	-- third object.
+	--
+	-- Nothing repaints these afterwards: the only other write to an eye's
+	-- `Material` is at BUILD, and `applyFur` writes the ruff rather than the
+	-- face. Checked by grepping the property rather than by reasoning about the
+	-- call order, which is the habit this file asks for.
+	--
+	-- A shop vault never reaches here: `applySkin` returns above on
+	-- `refs.vault`, so nobody should go looking for glowing eyes on a
+	-- strongroom.
+	local glowEyes = tier.glowEyes == true
+	for _, child in ipairs(refs.model:GetChildren()) do
+		if child:IsA("BasePart")
+			and (child.Name == "Eye" or child.Name == "Nostril") then
+			child.Color = (overrides and overrides[child.Name]) or NEAR_BLACK
+			if child.Name == "Eye" then
+				child.Material = if glowEyes
+					then Enum.Material.Neon
+					else Enum.Material.SmoothPlastic
+			end
+		end
+	end
+
+	-- THE SURFACE PACK GOES ON AFTER THE COLOUR, on the body and on every trim
+	-- part, because the two tones have to be the same MATERIAL even when they
+	-- are different colours -- a gold body with a plain plastic snout is worse
+	-- than no pack at all. `applySurface` also removes one, so switching from
+	-- a packed skin to an ordinary one undresses the pig rather than leaving
+	-- it in metal wearing the wrong colour.
+	applySurface(refs.body, tier)
+	for _, p in ipairs(trimParts) do
+		applySurface(p, tier, true)
+	end
+
+	-- AFTER THE SURFACE, because the ruff is painted from the same tier and
+	-- reads the body's own CFrame -- which the mesh swap has already settled
+	-- by the time a skin is applied.
+	applyFur(refs, tier)
 
 	-- MARKINGS, and they are the third channel of a skin rather than a fourth
 	-- system. Built by PiggyModel because the shop tile and the carried loot
@@ -1078,6 +1877,14 @@ end
 -- save work nobody can measure -- while being the kind of bookkeeping that
 -- quietly leaks a hat when two changes land in the same frame.
 function PiggyBank.applyAccessories(refs: Refs, worn: { [string]: string })
+	-- A SHOP VAULT WEARS NOTHING, and this is the only place the two kinds
+	-- of thing standing on a plot are told apart. A skin is colour and
+	-- material on a piggy's body; run on a strongroom it would paint the
+	-- carcass pink and hand it a snout it does not have.
+	if refs.vault then
+		return
+	end
+
 	local existing = refs.model:FindFirstChild("Gear")
 	if existing then
 		existing:Destroy()
@@ -1098,7 +1905,13 @@ function PiggyBank.applyAccessories(refs: Refs, worn: { [string]: string })
 			-- item's own nudge off it. One anchor cannot suit a cape that hugs
 			-- the back and a jetpack that stands off it.
 			local offset = spec.offset or Vector3.zero
-			for _, anchor in ipairs(slot.anchors) do
+			-- WHICH PIG IS STANDING HERE DECIDES WHICH ANCHORS ARE RIGHT.
+			-- `refs.bodySize` is set by `swapToMesh` and by nothing else, so
+			-- it is the honest test for "the generated body actually stood
+			-- up" -- better than asking Config whether ids exist, which is
+			-- true even when the load failed and the primitives are out.
+			local anchors = (refs.bodySize and slot.meshAnchors) or slot.anchors
+			for _, anchor in ipairs(anchors) do
 				local model = PigGear.build(key)
 				model.Parent = folder
 				model:PivotTo(CFrame.new(refs.origin + anchor + offset))
@@ -1111,6 +1924,14 @@ end
 -- creating and destroying instances every time someone changes their mind
 -- in the shop.
 function PiggyBank.applyEffect(refs: Refs, effectKey: string)
+	-- A SHOP VAULT WEARS NOTHING, and this is the only place the two kinds
+	-- of thing standing on a plot are told apart. A skin is colour and
+	-- material on a piggy's body; run on a strongroom it would paint the
+	-- carcass pink and hand it a snout it does not have.
+	if refs.vault then
+		return
+	end
+
 	local effect = Config.getEffect(effectKey)
 	local aura = refs.aura
 
@@ -1192,8 +2013,41 @@ function PiggyBank.setFill(refs: Refs, vault: number, capacity: number): number
 	end
 	refs.shown = target
 
-	refs.glow.Brightness = 0.4 + ratio * 2.6
-	refs.glow.Range = 7 + ratio * 11
+	-- THE COIN LAMP IS A FIFTH OF WHAT IT WAS, BECAUSE IT WAS ERASING THE PIG
+	-- IT SITS INSIDE.
+	--
+	-- This was the second half of "the pig disappears at certain angles". The
+	-- first half was the subtract; with that fixed the body draws, and at the
+	-- top of the old range it drew as a featureless white blob -- no eyes, no
+	-- snout, no legs, no hatch. Photographed at the same camera with the one
+	-- property toggled: lamp on, the pig is white; lamp off, it is pink with
+	-- clean shading and a crisp black hatch. Nothing else changed.
+	--
+	-- IT IS A LIGHT INSIDE A SOLID, WHICH IS THE WHOLE PROBLEM. `Shadows` is
+	-- false, so the shell does not block it and the pig is lit from within at
+	-- point-blank range -- measured, the old 3.00 at range 18 also washed out
+	-- a separate object 24 studs away. Turning `Shadows` on is not the escape
+	-- it looks like: it was the right answer while the hatch and the slit were
+	-- real bores for the light to spill out of, and there are no bores any
+	-- more.
+	--
+	-- SOLVED AT THE SHELL RATHER THAN PICKED. A PointLight falls off roughly
+	-- as `1 - d/range`, and the body's surface is about 6 studs from its own
+	-- centre, so what the pig's own skin takes is `brightness * (1 - 6/range)`
+	-- -- 2.00 on the old numbers, against a `BloomEffect` threshold of 1.1 on
+	-- a body whose colour already measures 0.73 luminance in a 2.4 sun. At
+	-- 0.55 over a range of 14 it is 0.31, which reads as warmth in the pink
+	-- rather than as an exposure fault. Verified by photograph at the camera
+	-- that showed the blowout.
+	--
+	-- What this costs is the long-range tell: a full piggy no longer lights
+	-- the lawn around it from across the street. That signal is carried by the
+	-- rob badge's own figure now, which is more precise than a glow ever was
+	-- and reads from the pavement. If it is ever wanted back, the lever is the
+	-- RANGE and not the brightness -- range reaches further without adding
+	-- anything to what the shell itself receives.
+	refs.glow.Brightness = 0.10 + ratio * 0.45
+	refs.glow.Range = 9 + ratio * 5
 	refs.drip.Rate = if ratio >= 1 then 0 else 2 + ratio * 5
 
 	return math.max(0, target - previous)
@@ -1297,13 +2151,6 @@ end
 -- deciding whether to commit to the hold. A 2-spoke wheel is a bar handle and
 -- a 5-spoke one is a bank vault, so nobody has to actually count them to see
 -- which is the bigger job.
-local LOCK_TIERS = {
-	{ metal = Color3.fromRGB(122, 128, 138), radius = 1.55, spokes = 2 }, -- iron
-	{ metal = Color3.fromRGB(176, 122, 66), radius = 1.68, spokes = 3 },  -- bronze
-	{ metal = Color3.fromRGB(198, 204, 214), radius = 1.82, spokes = 4 }, -- steel
-	{ metal = Color3.fromRGB(240, 198, 76), radius = 1.95, spokes = 5 },  -- gold
-}
-
 -- The wheel is everything that turns: the dark face it is set into stays put.
 -- Named so rattleLock can tell the two apart without keeping a list.
 local WHEEL_PARTS = { DialSpoke = true, DialHub = true }

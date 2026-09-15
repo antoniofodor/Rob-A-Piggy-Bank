@@ -24,6 +24,7 @@ local GuardDog = require(script.Parent.GuardDog)
 -- Geometry, in Shared because the shop renders these too.
 local House = require(ReplicatedStorage.Shared.House)
 local Decor = require(ReplicatedStorage.Shared.Decor)
+local SoundKit = require(ReplicatedStorage.Shared.SoundKit)
 local GrassTuft = require(ReplicatedStorage.Shared.GrassTuft)
 -- The ladder a player stands against a fence. Shared geometry rather than a
 -- second copy here, for the reason House and Decor live in Shared: the shop
@@ -51,12 +52,103 @@ export type Plot = {
 	fenceLevel: number,
 	house: Model?,
 	decor: Model?,
+	-- THE GARDEN: a border along the fence, a path up to the pig, and boxes
+	-- under the windows. Three models rather than one, because they are
+	-- rebuilt on three different events -- the border follows the FENCE, the
+	-- boxes follow the HOUSE, and the path follows neither.
+	border: Model?,
+	gardenPath: Model?,
+	windowBoxes: Model?,
+	-- WHAT IS EQUIPPED, HELD ON THE PLOT FOR THE REASON `trophies` IS.
+	--
+	-- `buildFence` and `setHouseLevel` both destroy geometry the garden hangs
+	-- on, so both have to put it back -- and neither is called from a place
+	-- that knows what the owner has equipped. Passing it to them would be two
+	-- more positional arguments on two functions with several callers each,
+	-- which is the trap `setDecor` already refused. Sticky here, every
+	-- existing caller repaints correctly for free.
+	garden: any?,
+	-- The skin the pig is wearing, so the TOPIARY can be clipped in it.
+	--
+	-- Written by `applySkin` and by nothing else, so it cannot disagree with
+	-- what the animal is actually painted -- the same single-writer rule that
+	-- keeps `decorPlaced` honest.
+	skinKey: string?,
 	-- Two rows, not one. A single TextScaled label holding both the name and
 	-- the boasts shrank the name to fit whatever the boasts happened to be, so
 	-- the most important word on the board was the one that moved.
 	signLabel: TextLabel,
 	signBoast: TextLabel,
+	-- THE PAID MARK, HELD ON THE PLOT RATHER THAN PASSED IN.
+	--
+	-- `updateSign` has four callers across four services, so a fifth
+	-- positional argument would be four chances to leave it out -- and a
+	-- missing argument reads as nil, which means NOT VIP, silently, on a
+	-- sign nobody would think to check. That is exactly the shape of the
+	-- `"LockLevel"` bug: an interface with no compiler behind it.
+	--
+	-- Sticky on the plot instead, so every existing caller repaints it
+	-- correctly for free and only `setSignPass` and `release` can change it.
+	signWord: string?,
+	signColour: Color3?,
+	-- The mailbox flag, and the prompt that opens what is in it. Held by
+	-- REFERENCE from the build rather than looked up by name, because a plot
+	-- is one flat model and `FindFirstChild` on a repeated name returns the
+	-- first one -- the castle's four finials and the wheelie bin's pair of
+	-- lids are the same trap.
+	-- OPTIONAL, BECAUSE A SHOP HAS NO DAILY. `buildShopPlot` is a second
+	-- builder returning the same shape, and a shop plot nobody can move into
+	-- has nobody to hand a reward to -- so it gets no mailbox and every
+	-- reader here guards. Widening a type finds every place that quietly
+	-- assumed the narrow one, which is the lesson `Target = Player |
+	-- Resident` already paid for.
+	mailFlag: BasePart?,
+	mailPrompt: ProximityPrompt?,
+	-- THE DOORSTEP CRATE. Held the same way and for the same reason: a plot
+	-- is one flat model, so a part looked back up by name is whichever the
+	-- builder happened to make first.
+	--
+	-- `crateParts` is everything that has to appear and disappear together
+	-- and `crateTint` is the subset painted in the CHEST'S own colour, so a
+	-- Piggy Classics on the step is pink and a Dress-Up Crate is purple
+	-- before anybody reads a word. Two lists rather than one walk of the
+	-- folder, because the wood must never take the chest's colour.
+	crateParts: { BasePart }?,
+	crateTint: { BasePart }?,
+	cratePrompt: ProximityPrompt?,
+	-- THE TROPHY SHELF'S NUMBERS, HELD ON THE PLOT RATHER THAN PASSED IN.
+	--
+	-- Four of the lawn ornaments are TROPHIES, and what they are shaped
+	-- like is a function of what their owner has done -- a pig per skin
+	-- robbed, a bar per doubling of the haul. `setDecor` has five callers
+	-- across four services, so a fifth positional argument would be five
+	-- chances to leave it out, and a missing one reads as nil: an EMPTY
+	-- case, silently, on a lawn nobody would think to check.
+	--
+	-- Sticky here instead, so every existing caller repaints correctly for
+	-- free and only `setTrophyState` and `release` can change it. That is
+	-- exactly the decision `signWord` records one field up, made a second
+	-- time and for the same reason -- and it is the shape of the
+	-- `"LockLevel"` bug avoided rather than repeated.
+	trophies: any?,
+	-- What is standing on the lawn right now, slot id -> item key.
+	--
+	-- Kept here rather than re-derived, for the reason `fenceLevel` is:
+	-- `setTrophyState` has to rebuild the ornaments to change a trophy's
+	-- shape, and reading the arrangement back off the geometry would be a
+	-- second answer to a question `data.decor.placed` already answers
+	-- exactly. Written by `setDecor` and by nothing else, so it cannot
+	-- disagree with what is actually built.
+	decorPlaced: { [string]: string }?,
 	owner: Player?,
+	-- The shop tab this plot is the inside of, or nil for an ordinary house.
+	--
+	-- It is what makes a plot UNCLAIMABLE -- `assign` skips anything carrying
+	-- one -- and that is the whole of the supply floor: a plot no player can
+	-- move into is a plot `ResidentService` is never asked to evict, so its
+	-- resident stands there at every server population. See
+	-- `Config.SHOPS` and `buildShopPlot`.
+	shop: string?,
 }
 
 local plots: { Plot } = {}
@@ -66,6 +158,29 @@ local plotsFolder: Folder
 -- Registered by HeistService, which owns walkspeed state. PlotService builds
 -- the fence and detects the crossing; it doesn't decide what that costs.
 local fencePenaltyHandlers: { (Player, any, any) -> () } = {}
+
+-- THE MAILBOX'S HANDLERS, DECLARED HERE RATHER THAN BESIDE THE FUNCTIONS
+-- THAT REGISTER THEM -- AND THAT IS THE ELEVENTH TIME THIS FILE HAS PAID
+-- FOR THAT LESSON.
+--
+-- `buildPlot` connects the prompt and walks this table, and it sits about
+-- eighteen hundred lines ABOVE where the registry naturally belongs. A
+-- `local` declared below a function that reads it is a nil GLOBAL to that
+-- function -- Luau says nothing at compile time -- so the first press of a
+-- mailbox would have thrown inside `ipairs(nil)`, naming a line that looks
+-- fine. `KENNEL_X` did exactly this and took ten plots and every service
+-- after them down with it.
+--
+-- Hoisting a constant to sit beside a RELATED one is not the same as
+-- hoisting it above its READER, which is the half that keeps being missed.
+local mailHandlers: { (Player, any) -> () } = {}
+
+-- The doorstep crate's, hoisted for exactly the same reason and beside it
+-- rather than beside the function that reads it: `buildPlot` connects the
+-- prompt and walks this list, and a `local` declared below `buildPlot` is a
+-- nil GLOBAL to it. Twelve instances of that in this project and one of
+-- them took the whole server down.
+local crateHandlers: { (Player, any) -> () } = {}
 
 -- Filled in by ResidentService, which seats a neighbour on every plot nobody
 -- is living on. A REGISTRY RATHER THAN A REQUIRE, and for the reason
@@ -127,8 +242,125 @@ local POST = Color3.fromRGB(122, 88, 58)
 --
 -- The yaw turns it a little toward the road it is addressed to.
 local SIGN_SPOT = Vector3.new(12, 0, 36)
+
+-- HOISTED ABOVE THE MAILBOX BLOCK BELOW, WHICH READS IT AT LOAD TIME.
+--
+-- `MAIL_YAW` is `-SIGN_YAW`, and a `local` declared below the line that reads
+-- it is a nil GLOBAL there -- so this was `-nil` and threw while the module
+-- was still loading, which takes PlotService, then Main, then every service
+-- after it. Twelfth instance in this project, and the FIRST one caught by
+-- pressing Play rather than by somebody reporting a dead game: a load-time
+-- read cannot limp on the way a nil function call does, so it is total,
+-- immediate, and names a line that looks perfectly fine.
 local SIGN_YAW = 12
 
+-- THE MAILBOX, MIRRORING THE SIGN ACROSS THE DRIVE.
+--
+-- Every constraint the sign is solved against applies here unchanged, so
+-- the honest placement is the sign's own, negated. Restating them, because
+-- the next person to move one of these will be reading whichever entry
+-- they happen to open:
+--
+--   THE MOAT. On a tier-5 plot the front moat runs z 26.1 to 31.1 with its
+--   outer bank to 32.1, broken only by the driveway causeway at x -7 to
+--   +7. So anything on the verge either stands on the causeway or stands
+--   past 32.1, and z 36 is past it at every tier. A mailbox that looked
+--   right on a bare plot and stood in five studs of water the moment its
+--   owner bought the fifth fence is exactly how the decoration slots got
+--   this wrong the first time.
+--
+--   THE CAUSEWAY. x -7 to +7 is the walk from the street to the gate and
+--   has to stay clear.
+--
+--   THE DECOR SLOTS. `vergeL` and `vergeR` sit at (-22, 31) and (22, 31),
+--   so -12 is ten studs clear of the nearer one in x and five in z.
+--
+-- AND IT READS AS A PAIR, WHICH IS THE HALF THAT IS NOT ARITHMETIC. A sign
+-- on one side of a drive and a mailbox on the other is what a street
+-- actually looks like, and it costs nothing to get: the only free band was
+-- always going to be this one.
+local MAIL_SPOT = Vector3.new(-12, 0, 36)
+-- Turned the same few degrees toward the road the sign is, mirrored. A box
+-- square to the plot presents its side to everybody walking past.
+--
+-- DEGREES, like `SIGN_YAW`, and converted at every use. Storing one of
+-- these pair in radians and the other in degrees is a 57x error that looks
+-- like a placement mistake.
+local MAIL_YAW = -SIGN_YAW
+
+-- Where the mailbox stands, IN PLOT-LOCAL SPACE.
+--
+-- `buildPlot` authors everything at the plot's world POSITION with no
+-- rotation and then turns the whole model with one `PivotTo` at the end, so
+-- an offset written here is plot-local by construction and the far row's
+-- half turn is carried for free. Anything that has to move a piece of this
+-- LATER -- and the flag does, every time the daily state changes -- has to
+-- compose against `plot.cframe` rather than remember a world CFrame taken
+-- before that pivot ran.
+local MAIL_BASE = CFrame.new(MAIL_SPOT.X, 0, MAIL_SPOT.Z)
+	* CFrame.Angles(0, math.rad(MAIL_YAW), 0)
+
+-- THE FLAG'S HINGE, AT ITS FOOT.
+--
+-- Turning a part about its own centre swings half of it into whatever it is
+-- bolted to, which is what the guard dog's ears record. So the pivot is the
+-- flag's BASE and the half-length is added back after the turn: 0 is
+-- straight up, and a quarter turn lays it flat along the box with the foot
+-- never moving.
+--
+-- DERIVED FROM `Decor` RATHER THAN RESTATED, WHICH IS THE OTHER HALF OF THE
+-- BUG BELOW. The hinge offset and the flag's half-length are facts about the
+-- mailbox's geometry and that geometry now lives in one place; a second copy
+-- here is a second thing to keep in step with a box this file no longer
+-- builds.
+local MAIL_HINGE = MAIL_BASE
+	* CFrame.new(0, -Config.PLOT_SIZE.Y / 2, 0)
+	* Decor.MAILBOX_FLAG_HINGE
+local MAIL_FLAG_HALF = Decor.MAILBOX_FLAG_HALF
+
+-- WHERE THE DOORSTEP IS, AND IT IS DERIVED FROM THE HOUSE RATHER THAN
+-- TYPED.
+--
+-- Every tier is seated by its FRONT wall on `Config.HOUSE_FRONT_LINE` --
+-- that is what stops a Sky Castle standing on three decoration slots -- so
+-- the front door is at plot-local z of minus that number on all nine, and
+-- a crate placed off it follows a house that is ever re-seated. A pinned
+-- number would describe the catalogue on the day somebody typed it, which
+-- is exactly how the grove came to plant full-grown trees on people's
+-- lawns.
+--
+-- x 0 IS THE ONE CLEAR COLUMN. The deepest lawn slots are lawnA..lawnD at
+-- z -20, and their x offsets are -25, -8.5, 8.5 and 25 -- there is no slot
+-- on the centre line, because that is the walk from the gate to the piggy.
+-- So the front-centre approach to the door is the only strip of lawn where
+-- nothing else can ever stand.
+--
+-- AND THE BAND IS 3.5 STUDS DEEP, WHICH IS THE WHOLE CLEARANCE BUDGET.
+-- `HOUSE_FRONT_LINE`'s own note derives it: the deepest ornament that can
+-- stand in the z -20 row reaches back to -24.5, and the wall is at -28. A
+-- lid, which oversails by 0.17 a side, is what reaches both ends.
+--
+-- MEASURED ON THE BUILT PLOT rather than solved on paper, because the two
+-- ends of a 3.5-stud band are not both slack: at 1.7 the lid stood 0.03
+-- off the house wall and 0.13 off the ornament band, which is inside the
+-- noise on the tight side. At 1.55 it SINKS 0.12 into the wall -- this
+-- project's coplanar convention, where anything standing on something
+-- sinks about a tenth of a stud into it -- and the whole 0.28 of clearance
+-- goes to the side that has ornaments on it.
+--
+-- ANYTHING THAT DEEPENS AN ORNAMENT HAS TO RE-DERIVE BOTH NUMBERS, not
+-- just the one `HOUSE_FRONT_LINE`'s own note names.
+local CRATE_SPOT = Vector3.new(0, 0, -Config.HOUSE_FRONT_LINE + 1.55)
+local CRATE_W = 3.0
+local CRATE_H = 2.6
+
+-- Up means there is something to collect. One writer, called from the build
+-- and from `setMail`, so the two can never disagree about what down is.
+local function seatMailFlag(plot: any, up: boolean)
+	plot.mailFlag.CFrame = plot.cframe * MAIL_HINGE
+		* CFrame.Angles(0, 0, if up then 0 else math.rad(-82))
+		* CFrame.new(0, MAIL_FLAG_HALF, 0)
+end
 -- ============================================================
 -- CONSTRUCTION
 -- ============================================================
@@ -154,6 +386,30 @@ local function plotCFrame(index: number): CFrame
 
 	return CFrame.new(x, 0, z) * CFrame.Angles(0, yaw, 0)
 end
+
+-- WHERE THE KENNEL STANDS, in plot-local studs with +Z toward the street.
+--
+-- On `Config.DECOR_SLOTS`' own grid: the column at x 25 and the row at z 16,
+-- which is the front-right corner and the mirror of the `lawnI` slot. The
+-- yaw turns the doorway across the lawn rather than at the front fence --
+-- see the GuardDog.build call in `buildPlot` for what that was costing.
+--
+-- **DECLARED HERE RATHER THAN DOWN WITH THE FENCES, AND THAT IS THE TENTH
+-- FORWARD REFERENCE THIS PROJECT HAS HIT.** These three shipped 282 lines
+-- BELOW `buildPlot`, which reads them -- so to that function they were nil
+-- GLOBALS, and Luau says nothing about it. The failure was not subtle and it
+-- was not local either: `CFrame.Angles(0, nil, 0)` threw "Argument 2 missing
+-- or nil" inside `buildPlot`, which took `PlotService.start` and then the
+-- whole of `Main` with it. Ten plots, every service after them, and no
+-- "Ready" in the log at all.
+--
+-- Same shape as `glowPart`, `makeModelIcon` and `Config.LAWN_LIFT` before it:
+-- the message names a line that looks fine and nothing points at the
+-- declaration. When something reads nil and the error names nothing useful,
+-- check declaration order first.
+local KENNEL_X = 25
+local KENNEL_Z = 16
+local KENNEL_YAW = math.rad(-90)
 
 local function buildPlot(index: number): Plot
 	local cf = plotCFrame(index)
@@ -407,6 +663,143 @@ local function buildPlot(index: number): Plot
 	boast.Text = ""
 	boast.Parent = surface
 
+	-- ------------------------------------------------------- THE MAILBOX
+	--
+	-- WHAT IT IS FOR: the daily reward used to be reachable exactly once a
+	-- session. The board opens itself 1.5 seconds after joining and there
+	-- was no other route to it, so a player who closed it without claiming
+	-- had lost the day -- with nothing on screen to say the reward was
+	-- still sitting there. This is the way back, and the FLAG is the way
+	-- you know to walk over.
+	--
+	-- Built with `signPart`, which means non-colliding and non-querying like
+	-- everything else out here: the verge is ground a thief runs across and
+	-- a dog patrols beside, and nothing decorative may body-block either.
+	-- THE PLACEMENT IS `MAIL_BASE` ITSELF, AND WRITING IT OUT A SECOND TIME
+	-- HERE IS WHAT PUT THE FLAG 44 DEGREES OFF THE BOX IT IS BOLTED TO.
+	--
+	-- This used to compose its own `CFrame.Angles(0, MAIL_YAW, 0)` -- MAIL_YAW
+	-- RAW, which is DEGREES, fed to a function that takes RADIANS. -12
+	-- radians is 32.45 degrees once it has wrapped, so the post, the body,
+	-- the lid and the door all stood at 32.45 while the flag -- seated
+	-- through `MAIL_HINGE`, which does say `math.rad` -- stood at -12.
+	-- Measured on the built street: `MailBody` yaw 32.45, `MailFlag` yaw
+	-- -12.00, on every plot, since the day it was written.
+	--
+	-- The comment above `MAIL_YAW` predicted this exactly -- *"storing one of
+	-- these pair in radians and the other in degrees is a 57x error that
+	-- looks like a placement mistake"* -- which is the point: a warning
+	-- beside a constant does not stop a SECOND expression of the same
+	-- placement being written three hundred lines away. The cure is not a
+	-- better comment, it is having one expression. `MAIL_BASE` is that
+	-- expression and this reads it.
+	local mailCF = CFrame.new(origin) * MAIL_BASE
+
+	-- THE GEOMETRY IS `Decor.buildMailbox` NOW, because the street grew a
+	-- second mailbox and two hand-built ones is the copy that drifts. The
+	-- kerbside one is scenery with no prompt behind it; this is the one the
+	-- daily reward comes out of, and they have to be the same object or the
+	-- flag stops being a tell and starts being decoration somebody has to
+	-- learn to tell apart.
+	--
+	-- Parented flat into the plot model exactly as `signPart` did, and held
+	-- by REFERENCE -- a plot is one flat model, so a part looked back up by
+	-- name is whichever the builder happened to make first.
+	local mail = Decor.buildMailbox(mailCF * CFrame.new(0, baseY, 0), model)
+	local mailBody = mail.body
+	local flag = mail.flag
+
+	-- The prompt sits on the BODY rather than on the flag: the flag moves,
+	-- and a prompt measures its range to the part's centre, so a reach that
+	-- changed when the flag went down would be a range bug nobody would
+	-- think to look for.
+	local mailPrompt = Instance.new("ProximityPrompt")
+	mailPrompt.Name = "MailPrompt"
+	mailPrompt.ActionText = "Check the Post"
+	mailPrompt.ObjectText = "Daily Reward"
+	mailPrompt.HoldDuration = 0
+	mailPrompt.MaxActivationDistance = 10
+	mailPrompt.RequiresLineOfSight = false
+	-- Off until there is something in it. See `setMail`.
+	mailPrompt.Enabled = false
+	Config.setPromptKind(mailPrompt, "post")
+	mailPrompt.Parent = mailBody
+
+	-- --------------------------------------------------- THE DOORSTEP CRATE
+	--
+	-- WHAT IT IS FOR: day seven of the daily ladder is the only rung that
+	-- pays something PLAYING cannot -- a free crate, which lands on the
+	-- permanent cosmetic track -- and it was opened inside the claim, so the
+	-- reveal fired while the player was still looking at the daily board.
+	-- The one reward on that ladder worth coming back for had no moment of
+	-- its own. It is a delivery now: it stands on the step, it can be seen
+	-- from the pavement, and opening it is a walk and a press.
+	--
+	-- Built hidden and never destroyed and rebuilt, the same call the tier-0
+	-- dog makes: a crate arrives and goes about once a week, and a model
+	-- that is only ever repainted cannot be half-built when somebody looks.
+	local crateCF = CFrame.new(origin)
+		* CFrame.new(CRATE_SPOT.X, 0, CRATE_SPOT.Z)
+	local crateFloor = baseY + Config.PLOT_SIZE.Y
+
+	local crateParts: { BasePart } = {}
+	local crateTint: { BasePart } = {}
+	local function cratePart(name: string, size: Vector3, at: CFrame,
+		colour: Color3, tinted: boolean): BasePart
+		local part = signPart(name, size, at, colour, Enum.Material.SmoothPlastic)
+		table.insert(crateParts, part)
+		if tinted then
+			table.insert(crateTint, part)
+		end
+		return part
+	end
+
+	-- SUNK 0.1 INTO THE LAWN, which is this project's coplanar convention
+	-- rather than a nudge: a box whose bottom face lands exactly on the
+	-- grass shares that plane over its whole footprint, and two surfaces at
+	-- one depth is the strobing seam the house rebuild fixed at a hundred
+	-- sites.
+	local body = cratePart("CrateBody",
+		Vector3.new(CRATE_W, CRATE_H, CRATE_W),
+		crateCF * CFrame.new(0, crateFloor + CRATE_H / 2 - 0.1, 0),
+		Color3.fromRGB(176, 134, 88), false)
+
+	-- The strapping, in the chest's own colour and sunk into the body for
+	-- the same reason the mailbox door is. Two bands rather than one so the
+	-- box reads as CRATED rather than as painted.
+	for i, y in ipairs({ 0.72, 1.86 }) do
+		cratePart(("CrateBand%d"):format(i),
+			Vector3.new(CRATE_W + 0.08, 0.34, CRATE_W + 0.08),
+			crateCF * CFrame.new(0, crateFloor + y - 0.1, 0),
+			Color3.fromRGB(236, 138, 178), true)
+	end
+
+	-- The lid, oversailing the body a little so it reads as a lid rather
+	-- than as the top of the box.
+	cratePart("CrateLid",
+		Vector3.new(CRATE_W + 0.34, 0.42, CRATE_W + 0.34),
+		crateCF * CFrame.new(0, crateFloor + CRATE_H - 0.28, 0),
+		Color3.fromRGB(236, 138, 178), true)
+
+	-- The label on the face turned toward the street, so it reads on the
+	-- approach rather than only once somebody has walked round the box.
+	cratePart("CrateLabel",
+		Vector3.new(1.5, 1.0, 0.12),
+		crateCF * CFrame.new(0, crateFloor + 1.3 - 0.1, CRATE_W / 2 - 0.05),
+		Color3.fromRGB(244, 238, 224), false)
+
+	local cratePrompt = Instance.new("ProximityPrompt")
+	cratePrompt.Name = "CratePrompt"
+	cratePrompt.ActionText = "Open the Crate"
+	cratePrompt.ObjectText = "Doorstep Delivery"
+	cratePrompt.HoldDuration = 0
+	cratePrompt.MaxActivationDistance = 10
+	cratePrompt.RequiresLineOfSight = false
+	-- Off until there is one on the step. See `setCrate`.
+	cratePrompt.Enabled = false
+	Config.setPromptKind(cratePrompt, "crate")
+	cratePrompt.Parent = body
+
 	local fence = Instance.new("Folder")
 	fence.Name = "Fence"
 	fence.Parent = model
@@ -434,10 +827,323 @@ local function buildPlot(index: number): Plot
 	-- On a 48-wide lawn that spot was near the edge; on a 64-wide one it is a
 	-- third of the way in, standing between the piggy and the decoration ring
 	-- with the dog napping in the middle of somebody's garden. The corner is
-	-- also what buys the eighth decoration slot: the ring is four rows of three
-	-- and the kennel holds exactly one of the twelve positions, so putting it
+	-- also what buys the ninth decoration slot: the grid is four rows of four
+	-- and the kennel holds exactly one of the sixteen positions, so putting it
 	-- anywhere in the middle would have cost two.
-	local dog = GuardDog.build(cf * CFrame.new(26, 0, 17), model)
+	--
+	-- AND THE DOORWAY FACED THE FRONT FENCE, WHICH IS WHY THE DOG KEPT
+	-- WALKING THROUGH IT. The comment above says the arrangement is turned to
+	-- face into the plot; nothing turned it. Kennel-local +Z is the doorway,
+	-- the call carried no rotation, so the doorway pointed at plot +Z -- the
+	-- street -- and `REST_OFFSET` put the dog 5.5 studs FURTHER that way,
+	-- 7.15 at a Mastiff's scale. Measured: the rest spot landed at plot z
+	-- 24.15 against a front fence at `PLOT_FRONT_LINE` 25.6, so a dog 9.9
+	-- studs long stood bodily through its owner's fence WITHOUT MOVING, and
+	-- `DOG_PATROL_RADIUS` of 8 then took it to z 32, six studs out on the
+	-- pavement.
+	--
+	-- A quarter turn points the doorway at plot -X, across the lawn toward
+	-- the piggy, and the rest spot goes with it: (17.85, 16) at Mastiff
+	-- scale, 15.75 studs off the side fence and 9.6 off the front. It reads
+	-- better as well as measuring better -- the dog now lies BROADSIDE to the
+	-- street, which is the one angle a dog's silhouette works from and the
+	-- rule every lawn ornament here already follows.
+	--
+	-- 25 rather than 26 puts the kennel on the decor grid's own column, and
+	-- 16 rather than 17 on its own row, so it mirrors `lawnI` at (-25, 16)
+	-- exactly. Measured at that spot, with the turn: 3.23 studs off the front
+	-- fence, 3.85 off the side, and 1.84 clear of the deepest ornament that
+	-- can stand in `lawnH` behind it.
+	--
+	-- The plot's own CFrame goes in as well, and it is not decoration: it is
+	-- the frame `GuardDog` clamps a patrol against, so no radius can put a
+	-- dog through a fence again. See `clampToYard`.
+	local dog = GuardDog.build(
+		cf * CFrame.new(KENNEL_X, 0, KENNEL_Z) * CFrame.Angles(0, KENNEL_YAW, 0),
+		model, cf)
+
+	local plot: Plot = {
+		index = index,
+		model = model,
+		base = base,
+		cframe = cf,
+		piggy = piggy,
+		dog = dog,
+		fence = fence,
+		fenceLevel = 0,
+		house = nil,
+		decor = nil,
+		signLabel = label,
+		signBoast = boast,
+		mailFlag = flag,
+		mailPrompt = mailPrompt,
+		crateParts = crateParts,
+		crateTint = crateTint,
+		cratePrompt = cratePrompt,
+		owner = nil,
+	}
+	-- SEATED AFTER THE TABLE EXISTS, not during the build, because
+	-- `seatMailFlag` composes against `plot.cframe` -- which is the whole
+	-- reason the flag can be moved again later without remembering a world
+	-- CFrame taken before `PivotTo` ran.
+	seatMailFlag(plot, false)
+	-- Hidden until there is something in it, for the reason the tier-0 dog
+	-- is hidden rather than absent: every reader here guards on the fields
+	-- being present, and a nil is a crash rather than a missing feature.
+	PlotService.setCrate(plot, nil)
+
+	-- The press. Connected here, where `plot` exists, rather than in `start`
+	-- -- there is nothing to look the plot back up by, and holding the
+	-- reference is the same call the sign labels and the dog's nameplate
+	-- make about names that repeat across one flat model.
+	--
+	-- THE SERVER RE-CHECKS THE OWNER. The client refuses somebody else's
+	-- mailbox through `PROMPT_OWNER_ATTRIBUTE`, which is a courtesy to the
+	-- reader; this is the part that is load-bearing, because `Enabled`
+	-- written on a client is a fact about that client's screen and nothing
+	-- else.
+	mailPrompt.Triggered:Connect(function(who: Player)
+		if who ~= plot.owner then
+			return
+		end
+		for _, fn in ipairs(mailHandlers) do
+			task.spawn(fn, who, plot)
+		end
+	end)
+
+	-- The crate, on the same terms: the client refuses somebody else's
+	-- through `PROMPT_OWNER_ATTRIBUTE` and THIS is the check that is
+	-- load-bearing, because `Enabled` written on a client is a fact about
+	-- that client's screen and nothing else.
+	cratePrompt.Triggered:Connect(function(who: Player)
+		if who ~= plot.owner then
+			return
+		end
+		for _, fn in ipairs(crateHandlers) do
+			task.spawn(fn, who, plot)
+		end
+	end)
+
+	return plot
+end
+
+-- A SHOP'S INSIDE, BUILT AS A PLOT NOBODY CAN MOVE INTO.
+--
+-- See `Config.SHOPS` for why this exists at all: resident houses are seated
+-- on UNCLAIMED plots, so the supply of robbable pigs runs out exactly as the
+-- server fills up, and `LOSS_CAP` means player-versus-player robbing can
+-- never take over from it at any population. Four shops are the floor that
+-- removes the whole failure.
+--
+-- IT IS A PLOT RATHER THAN A NEW KIND OF THING, AND THAT IS THE ENTIRE
+-- IMPLEMENTATION. Everything a robbery touches is keyed off a plot -- the
+-- steal prompt, the rob badge, the published pile, the lock attribute, the
+-- per-victim cooldown id, casing, the crack, the coin drain and the rap
+-- sheet -- so a duck-compatible plot gets all of it for nothing and
+-- `ResidentService` seats a shopkeeper on it with no new branch. The
+-- alternative was a third Target kind in HeistService, which is nine
+-- accessors with a plot-shaped hole under every one of them.
+--
+-- AND IT STAYED A PLOT WHEN THE PIG BECAME A VAULT, which is the whole of
+-- what moving inside cost. What used to stand here was a paving apron with a
+-- twelve-stud piggy bank on it; what stands here now is a floor, a
+-- strongroom on the back wall and a board over it. Nothing about the plot
+-- record changed, and `PiggyBank.buildVault` returns the same `Refs` the pig
+-- did -- so the fill, the dial, the plaster, the alarm and the milestone are
+-- the piggy's own functions running on different parts.
+--
+-- WHAT IT LEAVES OUT IS THE POINT AS MUCH AS WHAT IT KEEPS. No lawn, no
+-- yard, no house, no garden, no fence and no dog: the vault stands on the
+-- BACK wall, which faces the houses, so it is about 23 studs of carry from
+-- the nearest drop-off against 53 between two houses. That makes a shop the
+-- FAST, CHEAP, LOUD target -- nothing to get past, a smaller pig, an alarm
+-- that brings the patrol rather than a defender -- and leaves a house the
+-- slow, rich, quiet one. The fence folder and the tier-0 dog are still
+-- built, empty and invisible, because `plot.fence` and `plot.dog` are read
+-- in seven places across four services and a nil there is a crash rather
+-- than a missing feature.
+local function buildShopPlot(index: number, spec: any): Plot
+	-- THE PLOT AND THE BUILDING SHARE ONE FRAME, TO THE STUD. `NeighborhoodService`
+	-- stands the shell at exactly this position and yaw, so everything below
+	-- is authored in the same coordinates `ShopFront` builds its walls in.
+	-- Two frames would be two chances to put a strongroom through a wall, and
+	-- the wall does not collide, so nothing in the engine would say so.
+	local cf = Config.shopUnitCFrame(spec)
+	local u = Config.SHOP_UNIT
+
+	-- THE ONE CONVERSION, WRITTEN DOWN ONCE. `ShopFront` measures its bands
+	-- from the PAVEMENT and a plot's frame sits half a slab higher, because
+	-- a plot origin is the middle of its own base. So `at` takes a shop-local
+	-- height and every number below can be read straight off the elevation in
+	-- that file rather than translated in somebody's head.
+	local PAVE = -Config.PLOT_SIZE.Y / 2
+	local function at(x: number, y: number, z: number): CFrame
+		return cf * CFrame.new(x, PAVE + y, z)
+	end
+
+	local model = Instance.new("Model")
+	model.Name = "Shop_" .. spec.tab
+
+	-- THE FLOOR, WHICH IS AN ORDINARY PLOT BASE AND HAS TO BE ONE.
+	--
+	-- It is the plot's `base`: what `ResidentService` derives its ground
+	-- height from, what the shopkeeper stands on and what the vault is
+	-- authored around -- the same job a 64-stud slab does on a lawn, at the
+	-- size a shop unit can actually hold. It is also the only thing in this
+	-- building that COLLIDES, which is what makes walking in a step up onto a
+	-- floor rather than a walk through a wall onto grass.
+	--
+	-- `floorY` is a plot slab thick above the pavement BY DERIVATION rather
+	-- than by choice: the slab is centred on the plot origin, so its walkable
+	-- top is half a slab up and the pavement is half a slab down.
+	--
+	-- WIDER THAN THE ROOM AND SUNK A TOUCH, and both of those are the coplanar
+	-- convention rather than taste. It reaches to the wall faces so it tucks
+	-- UNDER the plinth ring instead of stopping short of it -- a hairline gap
+	-- between a floor and its own base course is a crack you can see the
+	-- world through -- and it is 0.15 thicker than a plot slab so its bottom
+	-- face does not land in the same plane as the forecourt's, which covers
+	-- the same ground a tenth of a stud away.
+	--
+	-- What the extra thickness costs, stated because it is a real reader:
+	-- `ResidentService.groundY` is `base.Position.Y - base.Size.Y / 2`, so a
+	-- shopkeeper who goes out robbing walks the VERGE leg of its route 0.15
+	-- studs low. The leg that matters -- `lawnY`, where they stand -- is
+	-- derived from the TOP and is exact.
+	local FLOOR_SINK = 0.15
+	local base = Instance.new("Part")
+	base.Name = "Base"
+	base.Size = Vector3.new(u.width - 1, Config.PLOT_SIZE.Y + FLOOR_SINK, u.depth - 1)
+	base.CFrame = at(0, u.floorY - (Config.PLOT_SIZE.Y + FLOOR_SINK) / 2, 0)
+	base.Anchored = true
+	base.Material = Enum.Material.WoodPlanks
+	base.Color = Color3.fromRGB(150, 122, 92)
+	base.TopSurface = Enum.SurfaceType.Smooth
+	base.Parent = model
+
+	-- THE VAULT, ON THE BACK WALL, AND IT IS THIS PLOT'S PIGGY BANK IN EVERY
+	-- SENSE THE REST OF THE CODEBASE CARES ABOUT. `PiggyBank.buildVault`
+	-- returns the same `Refs` a piggy does, so the fill, the dial, the
+	-- rattle, the plaster, the alarm, the milestone, the steal prompt and the
+	-- raid drone's anchor all work here with no branch anywhere. See the
+	-- entry over that function for what the alternative would have cost.
+	local piggy = PiggyBank.buildVault(at(u.vaultX, u.floorY, u.vaultZ), model)
+
+	-- THE BOARD OVER THE VAULT, and it is what carries the two sign labels
+	-- every plot is required to have.
+	--
+	-- On the back wall INSIDE, where the old plaque stood on the apron
+	-- outside. There is no room for a second name on the frontage -- the
+	-- banner over the roof and the bracket sign already name this unit twice
+	-- from the street -- and the thing that wants naming now is the strongroom
+	-- rather than the building.
+	local function boardPart(name: string, size: Vector3, cframe: CFrame,
+		colour: Color3, material: Enum.Material): Part
+		local p = Instance.new("Part")
+		p.Name = name
+		p.Size = size
+		p.CFrame = cframe
+		p.Anchored = true
+		p.CanCollide = false
+		p.CanQuery = false
+		p.CastShadow = false
+		p.Material = material
+		p.Color = colour
+		p.TopSurface = Enum.SurfaceType.Smooth
+		p.BottomSurface = Enum.SurfaceType.Smooth
+		p.Parent = model
+		return p
+	end
+
+	local boardY = 9.6
+	local boardZ = -u.roomDepth / 2
+	boardPart("Board", Vector3.new(6.4, 2.2, 0.5),
+		at(u.vaultX, boardY, boardZ - 0.05), Color3.fromRGB(96, 64, 42), Enum.Material.WoodPlanks)
+	local panel = boardPart("BoardPanel", Vector3.new(5.7, 1.6, 0.2),
+		at(u.vaultX, boardY, boardZ + 0.28), Color3.fromRGB(244, 236, 218),
+		Enum.Material.SmoothPlastic)
+
+	local surface = Instance.new("SurfaceGui")
+	-- Roblox's "Front" face is -Z and this panel faces into the room on +Z,
+	-- so Back. Same trap the plot sign records.
+	surface.Face = Enum.NormalId.Back
+	surface.CanvasSize = Vector2.new(500, 150)
+	surface.AlwaysOnTop = false
+	surface.LightInfluence = 0
+	surface.Parent = panel
+
+	-- NAMED `signLabel` AND `signBoast` BECAUSE THAT IS WHAT A PLOT CARRIES.
+	-- `PlotService.updateSign` writes both without knowing which kind of plot
+	-- it is holding, so a shop naming these anything else would need a branch
+	-- there and in `ResidentService`.
+	local label = Instance.new("TextLabel")
+	label.Name = "Owner"
+	label.Size = UDim2.new(1, -24, 0.56, 0)
+	label.Position = UDim2.new(0, 12, 0.06, 0)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.FredokaOne
+	-- Never write TextWrapped beside TextScaled; see the plot sign.
+	label.TextScaled = true
+	label.TextColor3 = Color3.fromRGB(70, 46, 30)
+	label.Text = spec.name
+	label.Parent = surface
+
+	local boast = Instance.new("TextLabel")
+	boast.Name = "Boasts"
+	boast.Size = UDim2.new(1, -24, 0.32, 0)
+	boast.Position = UDim2.new(0, 12, 0.62, 0)
+	boast.BackgroundTransparency = 1
+	boast.Font = Enum.Font.GothamBold
+	boast.TextScaled = true
+	boast.TextColor3 = Color3.fromRGB(150, 104, 44)
+	boast.Text = "VAULT"
+	boast.Parent = surface
+
+	local fence = Instance.new("Folder")
+	fence.Name = "Fence"
+	fence.Parent = model
+
+	model.PrimaryPart = base
+	model.Parent = plotsFolder
+
+	-- NO `PivotTo`, AND THAT IS DELIBERATE. A lawn plot is authored around an
+	-- unrotated origin and turned once at the end; this one is authored
+	-- through `at`, which already carries the unit's own rotation, so a pivot
+	-- here would turn everything a second time. The plaque on the old apron
+	-- shipped that way for a build and it was very nearly invisible -- the
+	-- yaw is 0 or pi, so a double turn is 0 or 2pi and the board came out
+	-- correct on both rows while its POSITION had been mirrored.
+
+	-- The tier-0 dog. It never appears and never patrols; it exists because
+	-- `plot.dog` is read in seven places across four services and a nil there
+	-- is a crash rather than a missing feature. Tucked behind the counter,
+	-- where the hidden model has nothing to be in the way of.
+	local dog = GuardDog.build(at(-u.roomWidth / 2 + 2, u.floorY, -4), model)
+
+	-- AND THE WHOLE THING IS HIDDEN, KENNEL INCLUDED, WHICH THE DOG'S OWN
+	-- TIER 0 DOES NOT DO FOR YOU. A level-0 dog hides its fourteen body parts
+	-- and clears its nameplate -- that is what "this plot has no dog yet"
+	-- looks like on a LAWN, where an empty kennel is the correct picture and
+	-- is what the upgrade is sold against. Inside a shop it is a dog kennel
+	-- standing behind the counter, which is a thing nobody built and nobody
+	-- can explain.
+	--
+	-- Safe to do once: the only thing that repaints a dog is `applyTier`
+	-- behind `setDogLevel`, and `ResidentService.applyLevel` never calls it
+	-- for a shop. BOTH MODELS, because the kennel is a separate one --
+	-- deliberately, so a patrolling dog does not drag its own house behind
+	-- it -- and hiding only `dog.model` leaves the kennel standing.
+	for _, m in ipairs({ dog.model, dog.kennelModel }) do
+		for _, d in ipairs(m:GetDescendants()) do
+			if d:IsA("BasePart") then
+				d.Transparency = 1
+				d.CanCollide = false
+				d.CanQuery = false
+			elseif d:IsA("BillboardGui") or d:IsA("SurfaceGui") then
+				d.Enabled = false
+			end
+		end
+	end
 
 	return {
 		index = index,
@@ -453,6 +1159,12 @@ local function buildPlot(index: number): Plot
 		signLabel = label,
 		signBoast = boast,
 		owner = nil,
+		-- THE FLAG THAT MAKES IT UNCLAIMABLE, and the only thing separating a
+		-- shop from an ordinary plot anywhere else in the codebase.
+		-- `PlotService.assign` skips it, so no player ever moves in and
+		-- `ResidentService` is never asked to evict -- which is precisely the
+		-- property the supply floor is made of.
+		shop = spec.tab,
 	}
 end
 -- ============================================================
@@ -716,6 +1428,22 @@ local function decorMeshPanel(parent: Instance, originCF: CFrame, centre: Vector
 		end
 		panel.Parent = parent
 	end
+
+	-- Wires strung the whole length of the run, under the panel's own.
+	--
+	-- OUTSIDE THE PANEL LOOP ON PURPOSE. One part per wire per SIDE rather
+	-- than per panel is what keeps this from undoing the saving the panels
+	-- bought: on the electric tier that is ten parts instead of sixty-eight.
+	-- It is also what the primitive `decorElectric` already did.
+	if spec.wires then
+		for _, height in ipairs(spec.wires.heights) do
+			local wire = decorPart(parent, "Wire",
+				spanSize(alongX, length, spec.wires.thickness, spec.wires.thickness),
+				originCF * CFrame.new(centre + Vector3.new(0, FENCE_BASE_Y + height, 0)))
+			wire.Material = Enum.Material.SmoothPlastic
+			wire.Color = spec.wires.colour
+		end
+	end
 	return true
 end
 
@@ -784,6 +1512,23 @@ function PlotService.buildFence(plot: Plot, level: number)
 			return
 		end
 		perPlayer[key] = now + penalty.duration + Config.FENCE_PENALTY_GRACE
+
+		-- THE SHOCK IS AUDIBLE, AND ONLY THE TIERS THAT ACTUALLY SHOCK MAKE
+		-- THE NOISE. `penalty.stun > 0` is the same test that decides whether
+		-- a crossing throws you off the fence, reused rather than re-derived:
+		-- a rickety fence is meant to be climbable and merely slow, so it
+		-- stays silent, and a sound on it would advertise a hazard that is
+		-- not there.
+		--
+		-- IT SITS UNDER THE COOLDOWN, which is what makes it safe. `Touched`
+		-- fires per character part -- measured at fourteen parts on the first
+		-- contact frame and 18 fires over four seconds while resting -- so a
+		-- sound placed above that stamp would be eighteen overlapping zaps
+		-- rather than one. Every line from here down runs once per crossing.
+		if (penalty.stun or 0) > 0 then
+			SoundKit.on(hit, Config.SOUNDS.FENCE_ZAP,
+				{ name = "FenceZap", volume = 0.55, distance = 90 })
+		end
 
 		for _, callback in ipairs(fencePenaltyHandlers) do
 			task.spawn(callback, crosser, plot, penalty)
@@ -908,6 +1653,42 @@ function PlotService.buildFence(plot: Plot, level: number)
 		side(Vector3.new(-offset, 0, frontZ), wing, true)
 		side(Vector3.new(offset, 0, frontZ), wing, true)
 	end
+
+	-- THE GATE POST THAT CARRIES THE JAM PROMPT.
+	--
+	-- Built with the fence rather than with the plot, so it is rebuilt on every
+	-- tier change and cannot be left standing at a gate that has moved: the
+	-- opening is 24 studs at Rickety and 8 at the Moat, so its own position
+	-- depends on the tier.
+	--
+	-- Invisible and non-colliding like everything else out here. It is an
+	-- anchor for a prompt, not an object: a post a thief could run into at the
+	-- one moment they are sprinting for the street would be the worst possible
+	-- place in this game to put a collision.
+	local jamPost = Instance.new("Part")
+	jamPost.Name = "GatePost"
+	jamPost.Size = Vector3.new(1, 1, 1)
+	jamPost.CFrame = plot.cframe * CFrame.new(0, FENCE_BASE_Y + 3, frontZ)
+	jamPost.Anchored = true
+	jamPost.CanCollide = false
+	jamPost.CanQuery = false
+	jamPost.CastShadow = false
+	jamPost.Transparency = 1
+	jamPost.Parent = plot.fence
+
+	local jamPrompt = Instance.new("ProximityPrompt")
+	jamPrompt.Name = "JamPrompt"
+	jamPrompt.ActionText = "Jam the Gate!"
+	jamPrompt.ObjectText = ("%s coins"):format(Config.formatCoins(Config.GATE_JAM.cost))
+	jamPrompt.HoldDuration = 0.35
+	jamPrompt.MaxActivationDistance = 12
+	jamPrompt.RequiresLineOfSight = false
+	Config.setPromptKind(jamPrompt, "jam")
+	jamPrompt.Parent = jamPost
+
+	jamPrompt.Triggered:Connect(function(player)
+		PlotService.fireGateJam(player, plot)
+	end)
 
 	-- Moat ------------------------------------------------------------
 	--
@@ -1168,6 +1949,150 @@ function PlotService.buildFence(plot: Plot, level: number)
 		rim(outerX, outerFrontZ, outerBackZ)
 		rim(innerX, innerFrontZ, innerBackZ)
 	end
+
+	-- THE BORDER FOLLOWS THE FENCE, WHICH IS WHY IT IS NOT BUILT WITH THE
+	-- ORNAMENTS. Both the height clamp and the gate opening come off the tier,
+	-- so a fence upgrade that did not put the border back would leave last
+	-- tier's planting standing across this tier's gate -- and an upgrade that
+	-- rebuilt it too early would clamp against the tier being replaced.
+	--
+	-- Last line rather than first: `refreshBorder` reads `plot.fenceLevel`,
+	-- which this call sets at the top, and it must run after the
+	-- `ClearAllChildren` that opens the function rather than before it.
+	PlotService.refreshBorder(plot)
+end
+
+-- ============================================================
+-- THE GATE JAM
+-- ============================================================
+--
+-- A thief drops this behind them on the way OUT. See `Config.GATE_JAM` for
+-- why it is a snag rather than a wall, and why it is the inversion of the
+-- owner-locked gate this design refused.
+--
+-- JAMMED ON THE WAY OUT, NEVER ON THE WAY IN. Jamming it on the approach
+-- would lock the thief IN with the dog, which is funny once and then just
+-- a mechanic nobody presses.
+local jammed: { [number]: number } = {}
+
+-- Is this plot's gate jammed right now? Asked by the prompt so it cannot be
+-- double-paid, and by the volume so it stops snagging when it lapses.
+function PlotService.isGateJammed(plot: any): boolean
+	return os.clock() < (jammed[plot.index] or 0)
+end
+
+-- Stands a jam across the gate mouth for `Config.GATE_JAM.seconds`.
+--
+-- The gate is the GAP the front barrier leaves: two wings either side of a
+-- `tier.gate`-wide opening centred on the plot's own x, at `PLOT_FRONT_LINE`.
+-- So the jam is exactly that opening, and it is built from the plot's own
+-- numbers rather than a remembered size -- a gate is 24 studs at Rickety and
+-- 8 at the Moat, and a jam sized for one would leave a walkable gap at the
+-- other.
+function PlotService.jamGate(plot: any): boolean
+	if PlotService.isGateJammed(plot) then
+		return false
+	end
+	-- Indexed the same way `buildFence` does rather than through an accessor
+	-- that does not exist: a level of 0 is a plot with no fence at all, and
+	-- `FENCE_TIERS` is 1-based.
+	local level = plot.fenceLevel or 0
+	local tier = if level > 0
+		then Config.FENCE_TIERS[math.clamp(level, 1, #Config.FENCE_TIERS)]
+		else nil
+	if not tier then
+		-- NOTHING TO JAM ON A PLOT WITH NO FENCE. A bare plot has no gate,
+		-- because it has no barrier for a gate to be a gap in -- so this is a
+		-- refusal rather than an invisible no-op.
+		return false
+	end
+
+	jammed[plot.index] = os.clock() + Config.GATE_JAM.seconds
+
+	local width = tier.gate
+	local height = tier.top
+	local bar = Instance.new("Part")
+	bar.Name = "GateJam"
+	bar.Size = Vector3.new(width, height, 1)
+	bar.CFrame = plot.cframe * CFrame.new(0, FENCE_BASE_Y + height / 2, Config.PLOT_FRONT_LINE)
+	bar.Anchored = true
+	-- NON-COLLIDING, WHICH IS THE WHOLE OWNER EXEMPTION. See Config: a solid
+	-- part cannot tell one player from another, so the gate stays passable
+	-- and passing it is what costs.
+	bar.CanCollide = false
+	bar.CanQuery = false
+	bar.CastShadow = false
+	bar.Color = Color3.fromRGB(214, 176, 72)
+	bar.Material = Enum.Material.SmoothPlastic
+	bar.Transparency = 0.35
+	bar.Parent = plot.fence or plot.model
+
+	local penalty = {
+		label = "Jammed gate",
+		slow = Config.GATE_JAM.slow,
+		duration = Config.GATE_JAM.duration,
+		stun = 0,
+	}
+
+	-- ONE CHARGE PER CROSSING, and this is the fence penalty's own lesson
+	-- rather than a new one. `Touched` re-fires per character part -- measured
+	-- at fourteen on the first contact frame -- so without a stamp the slow
+	-- re-applies faster than it can expire, which is the freeze that once
+	-- shipped on the electric fence.
+	local charged: { [Player]: number } = {}
+	bar.Touched:Connect(function(hit)
+		local character = hit.Parent
+		if not character or not character:FindFirstChildOfClass("Humanoid") then
+			return
+		end
+		local crosser = Players:GetPlayerFromCharacter(character)
+		-- THE OWNER IS NEVER AFFECTED, and the precedent is exact:
+		-- `firePenalty` returns early for the plot's own owner because owners
+		-- cross their own defences freely, they paid for them. Here it is
+		-- stronger than a courtesy -- a jam that could shut a child out of
+		-- their own garden is the griefing case, and this kills it outright
+		-- rather than making it merely unrewarding.
+		if not crosser or crosser == plot.owner then
+			return
+		end
+		if not PlotService.isGateJammed(plot) then
+			return
+		end
+		local now = os.clock()
+		if now < (charged[crosser] or 0) then
+			return
+		end
+		charged[crosser] = now + penalty.duration + Config.FENCE_PENALTY_GRACE
+		for _, callback in ipairs(fencePenaltyHandlers) do
+			task.spawn(callback, crosser, plot, penalty)
+		end
+	end)
+
+	task.delay(Config.GATE_JAM.seconds, function()
+		if bar.Parent then
+			bar:Destroy()
+		end
+	end)
+	return true
+end
+-- WHO DECIDES WHETHER A JAM IS ALLOWED, and it is not this file.
+--
+-- Whether somebody is carrying loot, and whether they can pay, are
+-- HeistService's and DataService's questions -- and HeistService already
+-- requires PlotService, so asking directly would be a cycle. Same registry
+-- shape as `registerBounceVeto` and `SetService.registerPusher`, and for the
+-- same reason: it keeps the dependency list at one line and makes the cycle
+-- impossible rather than merely absent today.
+local jamHandlers: { (Player, any) -> () } = {}
+
+function PlotService.onGateJam(callback: (Player, any) -> ())
+	table.insert(jamHandlers, callback)
+end
+
+function PlotService.fireGateJam(player: Player, plot: any)
+	for _, callback in ipairs(jamHandlers) do
+		task.spawn(callback, player, plot)
+	end
 end
 
 function PlotService.onFencePenalty(callback: (Player, any, any) -> ())
@@ -1293,7 +2218,126 @@ local function bindTrampolinesIn(model: Instance)
 	end
 end
 
+-- ============================================================
+-- THE GARDEN
+-- ============================================================
+--
+-- HOW FAR INSIDE THE FENCE A BORDER STANDS, and it is the tightest clearance
+-- on the lawn rather than a number chosen for looks.
+--
+-- The side fences run at `PLOT_HALF_WIDTH` and the outer ornament slots sit
+-- at x +-25, so the free ground between them is what a border has to fit in.
+-- The widest ornament in the game is the Shark In Trainers at 13.70 -- itself
+-- a figure this project had to re-measure once, having spent months believing
+-- the tube man's HEIGHT was a width -- so an ornament in a side slot reaches
+-- to 31.85 and the fence line is 33.60. That is 1.75 studs, and everything
+-- about the border's depth is solved inside it.
+--
+-- MEASURED ON A LIVE PLOT WITH THE WIDEST ORNAMENT IN EVERY SIDE SLOT AT
+-- ONCE, which is the same check the slot grid itself was verified with.
+local BORDER_INSET = 1.0
+-- How far back the side runs go. The back ornament row is at z -20, so this
+-- clears it and stops where the lawn does -- there is no point planting the
+-- sixty studs of yard behind the house, which no camera in this game ever
+-- sees and which would triple the part count to do it.
+local BORDER_BACK = -22
+
+-- Where the walk starts and stops. It runs UP THE CENTRE LINE, because that
+-- is where the gate is at every tier -- the opening narrows from 24 studs to
+-- 8 as the fence is upgraded, and x 0 is inside all five.
+local PATH_FROM = Config.PLOT_FRONT_LINE - 2
+-- Short of the animal rather than under it: the pig is twelve studs across,
+-- so a slab any nearer is roofed by the thing it leads to.
+local PATH_TO = 7.5
+
+-- The stretches of fence worth planting, in plot-local studs.
+--
+-- FRONT WINGS AND THE SIDES, NEVER THE BACK. A border is looked at from the
+-- pavement, and the back fence is ninety studs away behind a house -- so
+-- planting it is parts nobody will ever see. This is the same call
+-- `buildStreetTrees` makes about which side of a trunk gets detail.
+local function borderRuns(plot: Plot): { { a: Vector3, b: Vector3 } }
+	local tier = Config.FENCE_TIERS[math.clamp(plot.fenceLevel, 1, #Config.FENCE_TIERS)]
+	local half = Config.PLOT_HALF_WIDTH - BORDER_INSET
+	local frontZ = Config.PLOT_FRONT_LINE - BORDER_INSET
+	-- Clear of the gate opening by a stud, so a border never grows across the
+	-- one way in. The gate is 24 studs at Rickety and 8 at the Moat, so this
+	-- has to come off the tier rather than off a constant.
+	local gateEdge = tier.gate / 2 + 1
+
+	local runs = {}
+	if half > gateEdge then
+		table.insert(runs, { a = Vector3.new(-half, 0, frontZ), b = Vector3.new(-gateEdge, 0, frontZ) })
+		table.insert(runs, { a = Vector3.new(gateEdge, 0, frontZ), b = Vector3.new(half, 0, frontZ) })
+	end
+	table.insert(runs, { a = Vector3.new(-half, 0, frontZ), b = Vector3.new(-half, 0, BORDER_BACK) })
+	table.insert(runs, { a = Vector3.new(half, 0, frontZ), b = Vector3.new(half, 0, BORDER_BACK) })
+	return runs
+end
+
+-- Rebuilt whenever the FENCE changes, because the clamp and the gate both
+-- come off the tier. Called from `buildFence` as well as from `setGarden`.
+function PlotService.refreshBorder(plot: Plot)
+	if plot.border then
+		plot.border:Destroy()
+		plot.border = nil
+	end
+	local key = plot.garden and plot.garden.border
+	local spec = if type(key) == "string" then Config.BORDER_PLANTS[key] else nil
+	-- A border needs a fence to stand along. At level 0 there is no fence and
+	-- no `decorTop` to clamp against, and a row of plants floating on the line
+	-- where a fence WOULD be is a cosmetic implying a tier -- the one rule
+	-- every phase of the yard plan re-reads.
+	if not spec or plot.fenceLevel <= 0 then
+		return
+	end
+	plot.border = Decor.buildBorder(spec, Config.borderHeight(spec, plot.fenceLevel),
+		borderRuns(plot), plot.cframe, Config.PLOT_SIZE.Y / 2, plot.model)
+end
+
+-- Rebuilt whenever the HOUSE changes, because `setHouseLevel` destroys the
+-- model the boxes are hung on and a box left behind would be a planter
+-- floating where a window used to be.
+function PlotService.refreshWindowBoxes(plot: Plot)
+	if plot.windowBoxes then
+		plot.windowBoxes:Destroy()
+		plot.windowBoxes = nil
+	end
+	local key = plot.garden and plot.garden.window
+	local spec = if type(key) == "string" then Config.WINDOW_BOXES[key] else nil
+	if not spec or not plot.house then
+		return
+	end
+	plot.windowBoxes = Decor.buildWindowBoxes(spec, plot.house, plot.model)
+end
+
+-- WHAT THE OWNER HAS EQUIPPED, AND THE ONE PLACE ALL THREE ARE PUT UP.
+--
+-- Sticky on the plot, so the two functions that destroy garden geometry for
+-- their own reasons can put it back without being told what it was.
+function PlotService.setGarden(plot: Plot, garden: any?)
+	plot.garden = garden
+
+	if plot.gardenPath then
+		plot.gardenPath:Destroy()
+		plot.gardenPath = nil
+	end
+	local pathKey = garden and garden.path
+	local pathSpec = if type(pathKey) == "string" then Config.GARDEN_PATHS[pathKey] else nil
+	if pathSpec then
+		-- No fence test here, unlike the border. A path is laid on the ground
+		-- and hides nothing, so it is legal on a bare plot -- and it is the one
+		-- garden item a brand new player can put down and see.
+		plot.gardenPath = Decor.buildPath(pathSpec, PATH_FROM, PATH_TO,
+			plot.cframe, Config.PLOT_SIZE.Y / 2, plot.model)
+	end
+
+	PlotService.refreshBorder(plot)
+	PlotService.refreshWindowBoxes(plot)
+end
+
 function PlotService.setDecor(plot: Plot, placed: { [string]: string })
+	plot.decorPlaced = placed
 	if plot.decor then
 		plot.decor:Destroy()
 		plot.decor = nil
@@ -1303,11 +2347,17 @@ function PlotService.setDecor(plot: Plot, placed: { [string]: string })
 	-- the bare world ground. Passing a single height left everything outside
 	-- the fence floating.
 	local worldGround = -Config.PLOT_SIZE.Y / 2
+	-- `plot.trophies` is the four trophy builders' own state and is nil on
+	-- every plot that has never had an owner -- a resident's lawn, a shop
+	-- shop, an empty plot. `Decor.build` treats a nil as a showroom, which
+	-- is the right answer for a shop card and would be the wrong one on a
+	-- lawn; nothing without an owner can have a trophy placed on it, so
+	-- the case never arises. See Config.DECOR_ITEMS.
 	plot.decor = Decor.build(placed, plot.cframe, {
 		lawn = Config.PLOT_SIZE.Y / 2,
 		driveway = worldGround + DRIVEWAY_LIFT,
 		verge = worldGround,
-	}, plot.model)
+	}, plot.model, plot.trophies, plot.skinKey)
 
 	-- Anything functional in that model gets hooked up now that it is in the
 	-- world. This runs on every decor change rather than once at startup,
@@ -1315,6 +2365,23 @@ function PlotService.setDecor(plot: Plot, placed: { [string]: string })
 	-- away an ornament -- there is no single moment at which they could all be
 	-- collected. See bindTrampolinesIn for why a tag signal cannot do this.
 	bindTrampolinesIn(plot.decor)
+end
+
+-- What the four trophy ornaments are shaped like, and a rebuild to show
+-- it. Called by TrophyService whenever one of the numbers underneath
+-- moves -- a skin robbed, a thief stopped, a patrol outrun.
+--
+-- IT REBUILDS THE WHOLE LAWN, which is what `setDecor` already does on
+-- every purchase and put-away. A trophy changes shape a handful of times
+-- an hour at most, and diffing one ornament out of a model would be
+-- bookkeeping to save work nobody can measure -- the same call
+-- `applyAccessories` makes about the pig's hats.
+function PlotService.setTrophyState(plot: Plot, state: any?)
+	plot.trophies = state
+	local placed = plot.decorPlaced
+	if placed then
+		PlotService.setDecor(plot, placed)
+	end
 end
 
 -- The strip of paving from the gate out to the kerb, surfaced by house tier.
@@ -1571,6 +2638,26 @@ function PlotService.yardContaining(position: Vector3): Plot?
 	local frontZ = Config.PLOT_FRONT_LINE
 
 	for _, plot in ipairs(plots) do
+		-- A SHOP HAS NO YARD, AND SKIPPING IT IS A FIX RATHER THAN A
+		-- TIDY-UP. This rectangle is 64 by 122 studs, sized to a plot's fence
+		-- -- so a shop plot, whose frame is the middle of an 18 by 14 room on
+		-- the verge, would have claimed a yard reaching across the pavement,
+		-- over the kerb and out into the carriageway, and the first plot in
+		-- this list to match wins.
+		--
+		-- What that would have cost: this is the ride gate's veto and the
+		-- fence penalty's owner test, so rides would have switched
+		-- themselves off across a third of the street and the dog watcher
+		-- would have had players standing in a yard that is not there.
+		--
+		-- Skipping is also the honest answer rather than merely the cheap
+		-- one: a yard is the ground inside a fence, a shop has no fence, and
+		-- the verge it stands on is street -- which `Config.isOnStreet`
+		-- already says, and this must not contradict.
+		if plot.shop then
+			continue
+		end
+
 		-- Into plot-local space, where the rectangle is axis-aligned and the
 		-- far row's half-turn has already been taken care of.
 		local local_ = plot.cframe:PointToObjectSpace(position)
@@ -1589,16 +2676,61 @@ function PlotService.setHouseLevel(plot: Plot, level: number)
 		plot.house:Destroy()
 		plot.house = nil
 	end
+	-- The boxes hang off `Sill` parts inside the model being destroyed on the
+	-- line above, so they have to come down with it and go back up against the
+	-- new one. Done here rather than left to the next `applyToPlot`, because a
+	-- house tier can be bought without anything else about the plot changing.
 	local groundY = -Config.PLOT_SIZE.Y / 2
 	-- Passed the PLOT ORIGIN, not a pre-computed spot: House.build measures
 	-- what it actually built and seats itself against the back fence, because
 	-- the archetypes range from 15 to 47 studs deep.
 	plot.house = House.build(level, plot.cframe * CFrame.new(0, groundY, 0), plot.model)
 	buildDriveway(plot, Config.getHouseTier(level))
+	PlotService.refreshWindowBoxes(plot)
 end
 
 function PlotService.setDogLevel(plot: Plot, level: number)
 	GuardDog.applyTier(plot.dog, level)
+end
+
+-- The coat the dog is wearing, or "" for the breed's own colours.
+--
+-- A thin pass-through for the same reason `setDogLevel` is one: `CosmeticsService`
+-- owns what a plot should look like and `GuardDog` owns what a dog IS, and the
+-- plot is the only thing that knows which dog belongs to which player. Reaching
+-- through `plot.dog` from CosmeticsService would put that knowledge in a second
+-- place.
+--
+-- A COAT IS PURE APPEARANCE AND MUST NEVER REACH THE TIER. `GuardDog.setCoat`
+-- repaints through `applyTier` and touches `fur`, `furDark` and `collar` only --
+-- never `scale` or `shape`, which are what a thief reads to price the risk. See
+-- the header on `Config.DOG_COATS`.
+function PlotService.setDogCoat(plot: Plot, key: string?)
+	GuardDog.setCoat(plot.dog, key)
+end
+
+-- The kennel's skin. Walls and trim only -- the roof follows the coat, so a
+-- kennel and a coat are two channels of one object and neither can overwrite
+-- the other. See `Config.DOG_KENNELS`.
+function PlotService.setDogKennel(plot: Plot, key: string?)
+	GuardDog.setKennel(plot.dog, key)
+end
+
+-- Which toys are standing on the lawn. The whole set every time rather than
+-- one key, because that is the shape the save has -- see `GuardDog.setToys`.
+function PlotService.setDogToys(plot: Plot, out: { [string]: boolean }?)
+	GuardDog.setToys(plot.dog, out)
+end
+
+-- The dog's name, on the nameplate and painted on its kennel.
+--
+-- ALREADY FILTERED before it gets this far -- `CosmeticsService.nameDog` owns
+-- the `TextService` call and is the only thing that should ever reach either
+-- this or `GuardDog.setName`. Nothing in this file inspects the string, which
+-- is correct: a second place that "handles" moderation is how one of them ends
+-- up being the one everybody trusts and nobody runs.
+function PlotService.setDogName(plot: Plot, name: string?)
+	GuardDog.setName(plot.dog, name)
 end
 
 -- Publishes the owner's lock level as an attribute, which is now the ONLY
@@ -1617,6 +2749,27 @@ end
 function PlotService.setLockLevel(plot: Plot, level: number)
 	plot.model:SetAttribute(Config.PLOT_LOCK_ATTRIBUTE, level)
 	PiggyBank.setLockLevel(plot.piggy, level)
+end
+
+-- SOMEBODY ON THIS PLOT JUST REBIRTHED, and the street gets told.
+--
+-- Two attributes and nothing else: the server's whole share of this
+-- feature is bumping a number, and every client builds the show for
+-- itself. Same division of labour as the animated skins, the moat and
+-- `HouseFX`, and for the same measured reason -- driving a hundred parts
+-- of tween from here would replicate a property write per part per frame
+-- to say what one number says.
+--
+-- THE RANK IS WRITTEN FIRST AND THE COUNTER SECOND, because the counter
+-- is what `Fireworks` watches. Written the other way round, a client
+-- would wake on the counter and read a rank belonging to the PREVIOUS
+-- rebirth -- one shell short, every time, with nothing erroring and
+-- nothing to notice.
+function PlotService.fireFireworks(plot: Plot, rebirths: number)
+	plot.model:SetAttribute(Config.PLOT_FIREWORK_RANK_ATTRIBUTE, rebirths)
+	local count = plot.model:GetAttribute(Config.PLOT_FIREWORK_ATTRIBUTE)
+	plot.model:SetAttribute(Config.PLOT_FIREWORK_ATTRIBUTE,
+		(if type(count) == "number" then count else 0) + 1)
 end
 
 -- Shakes the padlock while a thief is working on it.
@@ -1685,15 +2838,162 @@ end
 --
 -- The Starter Shack is never named: a sign announcing the free tier reads as a
 -- jeer at players who have not bought anything yet.
+-- WHAT AN UNMARKED SIGN'S NAME ROW IS PAINTED IN.
+--
+-- The same value `buildSign` sets on the label, kept here because
+-- `updateSign` now has to be able to put it BACK -- a plot that loses its
+-- mark on release must not keep the last owner's colour. Two copies of one
+-- number, and the alternative is reading the label's colour at build time
+-- into a field on the plot, which is a third place for it to live.
+local SIGN_NAME_COLOUR = Color3.fromRGB(70, 46, 30)
+
+-- Puts a pass's mark on this plot's sign, or takes it off with nil.
+--
+-- IT REPAINTS NOTHING ITSELF. The sign is rewritten by `updateSign` on
+-- every income tick, every purchase and every rebirth, so a function that
+-- also painted would be a second writer racing the first -- and the loser
+-- would be whichever ran last, which is not a property anybody could
+-- reason about. It stores, and the one writer reads.
+-- ============================================================
+-- THE MAILBOX
+-- ============================================================
+--
+-- WHOEVER OWNS THE DAILY OWNS THIS, AND IT IS NOT PLOTSERVICE.
+--
+-- Same split as the fence penalty: PlotService builds the box, raises the
+-- flag and detects the press; it does not decide what is in the post. The
+-- handler is registered by `DailyService`, which already knows whether
+-- there is anything to claim and owns every rule about streaks.
+function PlotService.onMailCheck(fn: (Player, Plot) -> ())
+	table.insert(mailHandlers, fn)
+end
+
+-- Flag up and prompt live, or neither.
+--
+-- ONE CALL FOR BOTH, because they are one fact seen from two distances:
+-- the flag is what you read from the pavement and the prompt is what you
+-- press when you get there. Two setters would be two states that could
+-- disagree -- a flag up over a box that will not open is the silent
+-- failure this project refuses above all others, wearing a picture.
+function PlotService.setMail(plot: Plot, waiting: boolean)
+	if not plot.mailFlag or not plot.mailPrompt then
+		-- A shop. See the note on the type.
+		return
+	end
+	-- HELD IN A LOCAL RATHER THAN INDEXED IN PLACE. `f(a, b)` followed by a
+	-- line opening with `(` is parsed as a CALL ON THE RESULT, and a leading
+	-- `;` to break it up is itself a parse error after a comment line in
+	-- Luau -- which this project has already lost a whole HUD to.
+	local prompt = plot.mailPrompt :: ProximityPrompt
+	seatMailFlag(plot, waiting)
+	prompt.Enabled = waiting
+end
+
+-- WHO THE MAILBOX IS FOR, published so the prompt can refuse itself on
+-- everybody else's screen. See `Config.PROMPT_OWNER_ATTRIBUTE`.
+function PlotService.setMailOwner(plot: Plot, player: Player?)
+	if not plot.mailPrompt then
+		return
+	end
+	local prompt = plot.mailPrompt :: ProximityPrompt
+	prompt:SetAttribute(Config.PROMPT_OWNER_ATTRIBUTE,
+		if player then player.UserId else nil)
+end
+-- ============================================================
+-- THE DOORSTEP CRATE
+-- ============================================================
+--
+-- Same split as the mailbox above, and for the same reason: PlotService
+-- stands the box up, paints it and detects the press; it does not decide
+-- what is in it or when one is owed. `DailyService` registers the handler,
+-- because it owns the streak and the save field the crate is held in.
+function PlotService.onCrateOpen(fn: (Player, Plot) -> ())
+	table.insert(crateHandlers, fn)
+end
+
+-- A crate on the step, or none. ONE CALL FOR THE WHOLE THING -- the
+-- geometry, the colour and the prompt -- for the reason `setMail` is one
+-- call: a box you can see and cannot open is the silent failure wearing a
+-- picture, and two setters are two states that can disagree.
+--
+-- IT TAKES A CHEST KEY RATHER THAN A BOOLEAN, so the box is painted in the
+-- chest's OWN colour and a Piggy Classics on the step reads pink where a
+-- Dress-Up Crate reads purple. That is the same argument the shop's own
+-- cards make about rendering the real item: a coloured box says which
+-- crate before a word is read, and it costs one lookup.
+function PlotService.setCrate(plot: Plot, chestKey: string?)
+	if not plot.crateParts or not plot.crateTint or not plot.cratePrompt then
+		-- A shop. See the note on the type: a plot nobody can move into has
+		-- nobody to deliver to.
+		return
+	end
+	local parts = plot.crateParts :: { BasePart }
+	local tint = plot.crateTint :: { BasePart }
+	local prompt = plot.cratePrompt :: ProximityPrompt
+
+	local chest = if chestKey then Config.CHESTS[chestKey] else nil
+	-- A KEY NAMING NOTHING IS TREATED AS NOTHING rather than as a crate in a
+	-- default colour. A retired chest would otherwise stand a box on
+	-- somebody's step that opens into a refusal -- the same call
+	-- `Decor.buildOne` makes for a retired ornament, and the reason the
+	-- decoration prune asks the catalogue rather than a list of names.
+	local showing = chest ~= nil
+
+	for _, part in ipairs(parts) do
+		part.Transparency = if showing then 0 else 1
+	end
+	if chest and chest.colour then
+		for _, part in ipairs(tint) do
+			part.Color = chest.colour
+		end
+	end
+	prompt.Enabled = showing
+	prompt.ObjectText = if chest then chest.name else "Doorstep Delivery"
+end
+
+-- WHO THE CRATE IS FOR, published so the prompt refuses itself on every
+-- other screen. See `Config.PROMPT_OWNER_ATTRIBUTE`, and note the box
+-- itself stays VISIBLE to the street -- a crate on a doorstep is somebody
+-- announcing a seven-day streak, which is worth being able to see.
+function PlotService.setCrateOwner(plot: Plot, player: Player?)
+	if not plot.cratePrompt then
+		return
+	end
+	local prompt = plot.cratePrompt :: ProximityPrompt
+	prompt:SetAttribute(Config.PROMPT_OWNER_ATTRIBUTE,
+		if player then player.UserId else nil)
+end
+
+function PlotService.setSignPass(plot: Plot, word: string?, colour: Color3?)
+	plot.signWord = word
+	plot.signColour = colour
+end
 function PlotService.updateSign(plot: Plot, ownerName: string?, rebirths: number,
 	skinName: string?, houseName: string?)
 	if not ownerName then
 		plot.signLabel.Text = "EMPTY PLOT"
+		plot.signLabel.TextColor3 = SIGN_NAME_COLOUR
 		plot.signBoast.Text = "for sale"
 		return
 	end
 
 	local boasts: { string } = {}
+	-- FIRST IN THE ROW, AND THAT BREAKS THE ORDERING ON PURPOSE.
+	--
+	-- The boasts are hardest-first: rebirths, then the house, then the skin.
+	-- A purchase has no place on a ladder of things you earned -- putting it
+	-- at the end would rank it below a skin, and putting it in the middle
+	-- would claim it sits between two achievements. It is a different CLASS
+	-- of thing, so it goes in front of the ladder rather than on a rung of
+	-- it.
+	--
+	-- IT IS ALSO THE SHORTEST THING THAT CAN GO THERE, which is not a
+	-- coincidence. This row has clipped before -- a maxed player's sign once
+	-- read "12* . Neon Tower ." with the skin missing off the end -- so a
+	-- fourth boast is only affordable at three characters.
+	if plot.signWord and plot.signWord ~= "" then
+		table.insert(boasts, plot.signWord)
+	end
 	if rebirths > 0 then
 		table.insert(boasts, ("%d*"):format(rebirths))
 	end
@@ -1708,11 +3008,22 @@ function PlotService.updateSign(plot: Plot, ownerName: string?, rebirths: number
 	-- boasts get their own smaller row underneath. Sharing one TextScaled
 	-- label meant buying a house shrank your own name.
 	plot.signLabel.Text = ownerName
+	-- THE SECOND CHANNEL, and it is on the NAME rather than on the word.
+	-- Colour alone separates things only for players who can see the
+	-- difference, which is the rule the rarity borders already follow -- so
+	-- the word carries it at any distance and the gold is what makes it
+	-- read from the pavement, where three characters will not.
+	plot.signLabel.TextColor3 = plot.signColour or SIGN_NAME_COLOUR
 	plot.signBoast.Text = table.concat(boasts, " · ")
 end
 
 function PlotService.applySkin(plot: Plot, skinKey: string)
 	PiggyBank.applySkin(plot.piggy, skinKey)
+	-- Remembered for the topiary, which is clipped in whatever the pig is
+	-- wearing. `applyToPlot` calls this BEFORE `setDecor`, so the ornament
+	-- rebuild that follows already has the new value -- and that ordering is
+	-- the same one the trophies depend on, one line further down.
+	plot.skinKey = skinKey
 end
 
 function PlotService.applyAccessories(plot: Plot, worn: { [string]: string })
@@ -1746,7 +3057,12 @@ function PlotService.assign(player: Player): Plot?
 	end
 
 	for _, plot in ipairs(plots) do
-		if plot.owner == nil then
+		-- A SHOP PLOT IS NEVER HANDED TO ANYBODY, and this one line is what
+		-- the entire economic floor rests on. See `Config.SHOPS`: the
+		-- supply of robbable pigs used to be `PLOT_COUNT - players online`,
+		-- because a resident is evicted the moment somebody moves in. A plot
+		-- nobody can move into cannot run out.
+		if plot.owner == nil and not plot.shop then
 			-- Before the handover: the plot is still nobody's here, which is
 			-- the state a resident is allowed to be removed in.
 			for _, fn in ipairs(claimHandlers) do
@@ -1759,6 +3075,16 @@ function PlotService.assign(player: Player): Plot?
 			plot.owner = player
 			byPlayer[player] = plot
 			plot.model:SetAttribute("OwnerUserId", player.UserId)
+			-- WHOSE MAILBOX THIS IS, so every OTHER client turns the prompt off
+			-- for itself. The flag stays down until DailyService says there is
+			-- something in it -- naming the owner is not the same question as
+			-- whether the post has arrived, and one call doing both would raise a
+			-- flag over an empty box on every join.
+			PlotService.setMailOwner(plot, player)
+			-- And the crate's, on the same terms and for the same reason. Whose
+			-- it is and whether there is one are two questions; `DailyService`
+			-- answers the second on its first push.
+			PlotService.setCrateOwner(plot, player)
 			PlotService.updateSign(plot, player.DisplayName, 0)
 			return plot
 		end
@@ -1777,6 +3103,40 @@ function PlotService.release(player: Player)
 	plot.owner = nil
 	byPlayer[player] = nil
 	plot.model:SetAttribute("OwnerUserId", nil)
+	-- BEFORE `updateSign`, or the plot keeps the last owner's mark. Same
+	-- class as the house `release` once forgot: a plot that nobody owns
+	-- advertising the last person who did, with nothing erroring.
+	PlotService.setSignPass(plot, nil, nil)
+	-- THE FLAG COMES DOWN WITH THE OWNER, and this answers the question the
+	-- roadmap asks of this feature: does a raised flag give away that
+	-- somebody is offline? It cannot, because a plot is RELEASED the moment
+	-- its owner leaves -- there is nobody to give away. What this line stops
+	-- is the other half: a flag left standing over an unclaimed plot,
+	-- advertising a reward for a player who is gone. That is exactly the bug
+	-- `release` once had with houses, where somebody leaving with a Sky
+	-- Castle left the Sky Castle standing.
+	PlotService.setMail(plot, false)
+	PlotService.setMailOwner(plot, nil)
+	-- And the crate goes with it, for the reason the flag does: an unclaimed
+	-- plot standing a delivery for a player who has gone is the last owner
+	-- still being advertised. The Sky Castle bug, a third time.
+	PlotService.setCrate(plot, nil)
+	PlotService.setCrateOwner(plot, nil)
+	-- And the rebirth counter, for the reason the flag comes down: an
+	-- attribute left standing is the last owner still being advertised.
+	-- Cleared to nil rather than to 0 -- `Fireworks` refuses a non-number
+	-- outright, so a release can never be the thing that fires a show.
+	plot.model:SetAttribute(Config.PLOT_FIREWORK_ATTRIBUTE, nil)
+	plot.model:SetAttribute(Config.PLOT_FIREWORK_RANK_ATTRIBUTE, nil)
+	-- AND THE TROPHY SHELF, for the reason the flag and the crate come
+	-- down: a case full of somebody else's robberies standing on an
+	-- unclaimed plot is the last owner still being advertised. The Sky
+	-- Castle bug, a fourth time -- and this one would be the worst of the
+	-- four, because a trophy is a record of what a specific person did.
+	--
+	-- Cleared BEFORE the ornaments are, so nothing rebuilds a shelf out of
+	-- the old numbers on the way past.
+	PlotService.setTrophyState(plot, nil)
 	PlotService.updateSign(plot, nil, 0)
 	PlotService.applySkin(plot, Config.DEFAULT_SKIN)
 	PlotService.applyEffect(plot, Config.DEFAULT_EFFECT)
@@ -1889,6 +3249,24 @@ function PlotService.start()
 		local plot = buildPlot(index)
 		table.insert(plots, plot)
 		PlotService.setHouseLevel(plot, 0)
+	end
+
+	-- THE SHOP PLOTS, NUMBERED ABOVE THE HOUSES SO THE TWO SPACES CANNOT
+	-- COLLIDE. A plot's index is not decoration: `ResidentService` keys its
+	-- residents on it and `HeistService.targetId` sends its NEGATIVE over the
+	-- StealCooldown remote, so two plots sharing one would silently merge a
+	-- resident and give two victims one cooldown badge.
+	--
+	-- They join `plots` rather than living in a list of their own, which is
+	-- what makes every sweep over the street find them for free -- the
+	-- resident tick, the bone search, the watching dog and the plot lookups
+	-- all iterate `getAll()` and none of them needs to know.
+	--
+	-- No `setHouseLevel`: a shop has no house and no driveway, and seating a
+	-- Starter Shack here would stand a building inside the unit this plot
+	-- is the inside OF.
+	for i, spec in ipairs(Config.SHOPS) do
+		table.insert(plots, buildShopPlot(Config.PLOT_COUNT + i, spec))
 	end
 
 	Players.PlayerRemoving:Connect(function(player)
