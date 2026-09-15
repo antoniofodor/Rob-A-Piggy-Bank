@@ -79,6 +79,13 @@ local function ownedTable(data: any, kind: string): { [string]: boolean }?
 		return data.decor.owned
 	elseif kind == "ride" then
 		return data.rides.owned
+	elseif kind == "catch" then
+		-- The sixth kind, and it cost exactly these two lines plus the two
+		-- in `inUse` -- which is the argument for `Config.catalogueFor`
+		-- existing at all. Guarded, because a save written before schema 21
+		-- reaches this before `reconcile` has filled the table in on some
+		-- paths, and a nil index here would take a grant down.
+		return data.catch and data.catch.owned
 	end
 	return nil
 end
@@ -111,6 +118,8 @@ function SetService.inUse(data: any, kind: string, key: string): boolean
 		return data.cosmetics.effect == key
 	elseif kind == "ride" then
 		return data.rides.equipped == key
+	elseif kind == "catch" then
+		return (data.catch and data.catch.equipped) == key
 	elseif kind == "accessory" then
 		for _, worn in pairs(data.accessories.worn) do
 			if worn == key then

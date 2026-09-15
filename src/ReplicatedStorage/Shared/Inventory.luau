@@ -71,16 +71,24 @@ local WELL_H = 86
 -- each catalogue is SOLD on, so a player who knows where they bought a thing
 -- recognises where it went.
 local SECTIONS = {
+	-- SKINS ARE A COLLECTION LOG RATHER THAN A LIST, which is the one section
+	-- here that shows things you do NOT own.
+	--
+	-- THAT REVERSES THIS PANEL'S OWN RULE, deliberately, and the rule's own
+	-- reasoning is what expired. It read: "a locked tile in an inventory is a
+	-- shop card wearing a padlock -- the shop is where something you do not
+	-- own is supposed to be advertised". True while skins were bought. They
+	-- are CRATE-ONLY now, so the shop has no price to show and no buy button
+	-- to press for one: there is nowhere else a player can see what they are
+	-- missing. A log with no gaps in it is a list.
+	--
+	-- The gaps are also the whole point of the format. What makes a set worth
+	-- finishing is seeing the holes in it, and a missing card here names the
+	-- crate that fills it and opens the shop at it.
 	{ kind = "skin", from = "skins", tab = "Skins", icon = utf8.char(0x1F437),
 		hue = "piggy", owned = "unlocked", worn = "equipped", wire = "skin",
-		empty = "Open a crate, or buy one in the shop." },
-	{ kind = "effect", from = "effects", tab = "Effects", icon = utf8.char(0x2728),
-		hue = "effects", owned = "unlocked", worn = "equipped", wire = "effect",
-		empty = "Effects are sold in the shop." },
-	{ kind = "accessory", from = "accessories", tab = "Accessories",
-		icon = utf8.char(0x1F452),
-		hue = "worn", owned = "owned", worn = "worn", wire = "accessory",
-		empty = "Roll one, or open a Dress-Up Crate." },
+		collection = true,
+		empty = "Open a crate. Skins come from nowhere else." },
 	{ kind = "decor", from = "decor", tab = "Lawn", icon = utf8.char(0x1F3E0),
 		hue = "home", owned = "owned", worn = "placed", wire = "decor",
 		empty = "Lawn ornaments are bought in the shop." },
@@ -108,6 +116,22 @@ local active: string = SECTIONS[1].kind
 local chosen = false
 local rows: { [string]: any } = {}
 local cards: { [string]: any } = {}
+-- THE SHORT-SCREEN REFIT, and it is here because the SHOP had one and this
+-- panel did not. `refitCards` in ClientMain has shrunk the shop's cards on a
+-- short viewport since the cards were built; the bag was the same size of
+-- card in the same size of panel with nothing watching. Measured on a phone
+-- held sideways -- the shortest thing that has to work, 546 tall -- the bag
+-- showed 1.4 rows of card against a desktop's 2.3, and the collection log's
+-- group headings cost another 28 apiece on top.
+--
+-- Same mechanism as the shop's on purpose: ONE design at two sizes rather
+-- than a second set of offsets. A `UIScale` on the card takes the whole thing
+-- with it -- well, title, buttons, padding and type -- and the grid cell
+-- shrinks by the same factor so more columns fit as well as more rows.
+local panelView: Frame? = nil
+local cardScale = 1
+local cardScales: { UIScale } = {}
+local cardGrids: { UIGridLayout } = {}
 local cosmetics: any = nil
 local rideList: any = nil
 -- KEYED `kind:key`, AND THE VALUE IS A RECORD RATHER THAN A COUNT.
@@ -209,6 +233,14 @@ local function buildCard(section: any, key: string, info: any): any
 	button.Text = ""
 	ShopStyle.round(button, 14)
 
+	-- Registered before anything is painted, so a card built while the panel
+	-- is already small is born at the right size rather than full size until
+	-- the next resize.
+	local fit = Instance.new("UIScale")
+	fit.Scale = cardScale
+	fit.Parent = button
+	table.insert(cardScales, fit)
+
 	-- A GUIOBJECT TAKES ONE UISTROKE, and rarity wins it -- the same call the
 	-- shop card makes. It is the one edge carrying information, and on a tab
 	-- where everything is owned it is the ONLY thing separating a common from
@@ -227,6 +259,24 @@ local function buildCard(section: any, key: string, info: any): any
 	if deps.iconFor then
 		deps.iconFor(section.kind, key, well)
 	end
+
+	-- WHAT A MISSING SKIN LOOKS LIKE, and it is a DIM rather than a
+	-- silhouette. The shop greys its locked previews by walking the model and
+	-- repainting every part, which needs a paint list per item and knows what
+	-- a skin is made of; a sheet laid over the well costs one frame and works
+	-- for any model the icon builder returns. It also keeps the skin
+	-- RECOGNISABLE, which is what a collection log wants -- you are meant to
+	-- see the thing you are missing, not a question mark.
+	local shade = Instance.new("Frame")
+	shade.Name = "Shade"
+	shade.Size = UDim2.new(1, 0, 1, 0)
+	shade.BackgroundColor3 = ShopStyle.SUNK
+	shade.BackgroundTransparency = 0.45
+	shade.BorderSizePixel = 0
+	shade.ZIndex = 5
+	shade.Visible = false
+	shade.Parent = well
+	ShopStyle.round(shade, 10)
 
 	-- THE SPARE COUNT SITS ON THE PICTURE, not under it. It is the one fact
 	-- this tab exists to show that the shop never had, and a player scanning
@@ -275,6 +325,23 @@ local function buildCard(section: any, key: string, info: any): any
 	-- second control. Nothing here changes that -- this is the shop's own
 	-- remote, so the two surfaces cannot disagree about what you are wearing.
 	wear.Activated:Connect(function()
+		-- THE CARD'S OWN STATE, READ AT PRESS TIME. A locked card reuses this
+		-- control as its crate button rather than growing a fourth widget on
+		-- a 156-pixel tile, so what the press MEANS depends on what the card
+		-- is showing right now -- and `paintCard` is the only thing that
+		-- knows. Reading a captured boolean instead would be a second copy of
+		-- the state, stale from the first repaint.
+		local self = cards[entryKey(section.kind, key)]
+		if self and self.crate then
+			if deps.openCrate then
+				deps.openCrate(self.crate)
+			end
+			return
+		end
+		if self and self.locked then
+			-- No crate hands this one over. The label already names what does.
+			return
+		end
 		if deps.equip then
 			deps.equip(section.wire, key)
 		end
@@ -291,7 +358,11 @@ local function buildCard(section: any, key: string, info: any): any
 	end)
 
 	local card = { button = button, title = title, spare = spare,
-		wear = wear, sell = sell }
+		wear = wear, sell = sell, shade = shade,
+		-- Set by `paintCard` every repaint. `locked` is "you do not own it";
+		-- `crate` is the chest key that would fix that, or nil where no crate
+		-- can -- the rebirth drops, the pass skins and the set skin.
+		locked = false, crate = nil :: string? }
 	cards[entryKey(section.kind, key)] = card
 	return card
 end
@@ -305,6 +376,51 @@ local function paintCard(section: any, key: string, info: any)
 	end
 
 	card.title.Text = info.name or key
+
+	-- ---- the gap in the log ------------------------------------------------
+	--
+	-- A skin the player has not got. The card keeps its picture and loses its
+	-- two verbs: there is nothing to wear and nothing to sell, and what
+	-- replaces them is the one thing worth knowing -- where it comes from.
+	local owned = info[section.owned] == true
+	if section.collection and not owned then
+		local where, crate = Config.skinSource(key)
+		card.locked = true
+		card.crate = crate
+		card.shade.Visible = true
+		card.spare.Visible = false
+		card.button.BackgroundColor3 = ShopStyle.LOCKED
+		card.title.TextColor3 = ShopStyle.MUTED
+		card.sell.Visible = false
+
+		card.wear.Visible = true
+		if crate then
+			-- "OPEN CRATE" rather than the crate's own name, which the group
+			-- heading directly above already carries -- measured, "OPEN PIGGY
+			-- CLASSICS" is about 140px at 13px FredokaOne in a 140px button,
+			-- which is the silent-shrink trap this project keeps paying for.
+			card.wear.Text = "OPEN CRATE"
+			card.wear.BackgroundColor3 = ShopStyle.BUY
+			card.wear.TextColor3 = ShopStyle.INK
+			card.wear.AutoButtonColor = true
+		else
+			-- Nothing to open. Naming the source is the whole content of the
+			-- card in this state, and a dead button that says REBIRTH 3 is a
+			-- better answer than a live one that goes somewhere useless.
+			card.wear.Text = string.upper(where)
+			card.wear.BackgroundColor3 = ShopStyle.DEAR
+			card.wear.TextColor3 = ShopStyle.MUTED
+			card.wear.AutoButtonColor = false
+		end
+		return
+	end
+
+	card.locked = false
+	card.crate = nil
+	card.shade.Visible = false
+	card.button.BackgroundColor3 = ShopStyle.CARD
+	card.title.TextColor3 = ShopStyle.TEXT
+	card.wear.Visible = true
 
 	local record = spares[entryKey(section.kind, key)]
 	local held = (record and record.count) or 0
@@ -474,14 +590,143 @@ local function ensureRow(section: any, order: number): any
 	grid.Parent = holder
 
 	local layout = Instance.new("UIGridLayout")
-	layout.CellSize = UDim2.new(0, CARD_W, 0, CARD_H)
+	layout.CellSize = UDim2.new(0, math.floor(CARD_W * cardScale), 0, math.floor(CARD_H * cardScale))
 	layout.CellPadding = UDim2.new(0, 10, 0, 10)
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.Parent = grid
+	table.insert(cardGrids, layout)
 
-	row = { holder = holder, grid = grid, blank = blank }
+	-- A COLLECTION STACKS GROUPS DOWN THE HOLDER, so it needs a layout the
+	-- flat sections do not. `blank` and the flat `grid` become invisible
+	-- children of it, which a UIListLayout skips -- so the two arrangements
+	-- coexist without a branch anywhere else in this file.
+	if section.collection then
+		grid.Visible = false
+		local stack = Instance.new("UIListLayout")
+		stack.FillDirection = Enum.FillDirection.Vertical
+		stack.Padding = UDim.new(0, 14)
+		stack.SortOrder = Enum.SortOrder.LayoutOrder
+		stack.Parent = holder
+	end
+
+	row = { holder = holder, grid = grid, blank = blank, groups = {} }
 	rows[section.kind] = row
 	return row
+end
+
+-- ---- one group inside a collection ----------------------------------------
+--
+-- A heading, a progress count and a grid. The heading is the CRATE'S name,
+-- because `Config.skinCollections` derives it from the crate that fills the
+-- group -- so a player reading "Animal Kingdom" here is reading the name of
+-- the thing to go and buy, rather than a category invented for this menu.
+local function ensureGroup(section: any, row: any, group: any, order: number): any
+	local existing = row.groups[group.key]
+	if existing then
+		return existing
+	end
+
+	local holder = Instance.new("Frame")
+	holder.Name = "Group_" .. group.key
+	holder.Size = UDim2.new(1, 0, 0, 0)
+	holder.AutomaticSize = Enum.AutomaticSize.Y
+	holder.BackgroundTransparency = 1
+	holder.LayoutOrder = order
+	holder.Parent = row.holder
+
+	-- STACKED BY A LAYOUT RATHER THAN BY OFFSETS, and the first attempt was
+	-- the reason. `AutomaticSize` measures a child's SIZE and ignores its
+	-- Position, so a grid pushed down 24 pixels to clear the heading left the
+	-- holder 24 short and every group overlapped the next. Padding the holder
+	-- looks like the fix and is not: padding shifts EVERY child, so the
+	-- heading came down with the grid and landed on top of it -- photographed,
+	-- the count read "/ 17" beside the first row of cards with no heading
+	-- anywhere. A vertical list cannot have either fault.
+	local stack = Instance.new("UIListLayout")
+	stack.FillDirection = Enum.FillDirection.Vertical
+	stack.Padding = UDim.new(0, 6)
+	stack.SortOrder = Enum.SortOrder.LayoutOrder
+	stack.Parent = holder
+
+	-- The heading is a ROW rather than two labels, because a UIListLayout
+	-- lays out its children and two siblings would stack vertically.
+	local headRow = Instance.new("Frame")
+	headRow.Name = "HeadRow"
+	headRow.Size = UDim2.new(1, 0, 0, 22)
+	headRow.BackgroundTransparency = 1
+	headRow.LayoutOrder = 1
+	headRow.Parent = holder
+
+	local head = label(headRow, group.name, UDim2.new(1, -110, 1, 0),
+		UDim2.new(0, 4, 0, 0), Enum.Font.FredokaOne, 15, ShopStyle.TEXT)
+	head.Name = "Head"
+	head.TextTruncate = Enum.TextTruncate.AtEnd
+
+	-- RIGHT-ALIGNED AND FIXED WIDTH, so the heading beside it never reflows
+	-- as the count changes. "17 / 17" is the widest this gets.
+	local count = label(headRow, "", UDim2.new(0, 100, 1, 0),
+		UDim2.new(1, -104, 0, 0), Enum.Font.FredokaOne, 13, ShopStyle.MUTED)
+	count.Name = "Count"
+	count.TextXAlignment = Enum.TextXAlignment.Right
+
+	local grid = Instance.new("Frame")
+	grid.Name = "Grid"
+	grid.Size = UDim2.new(1, 0, 0, 0)
+	grid.AutomaticSize = Enum.AutomaticSize.Y
+	grid.BackgroundTransparency = 1
+	grid.LayoutOrder = 2
+	grid.Parent = holder
+
+	local layout = Instance.new("UIGridLayout")
+	layout.CellSize = UDim2.new(0, math.floor(CARD_W * cardScale), 0, math.floor(CARD_H * cardScale))
+	layout.CellPadding = UDim2.new(0, 10, 0, 10)
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Parent = grid
+	table.insert(cardGrids, layout)
+
+	local made = { holder = holder, head = head, count = count, grid = grid }
+	row.groups[group.key] = made
+	return made
+end
+
+-- ---- the short-screen refit ------------------------------------------------
+
+--[[
+	One design at two sizes, driven by the panel's own height.
+
+	THE THRESHOLD IS THE SHOP'S, DELIBERATELY. `refitCards` in ClientMain
+	shrinks as soon as two full rows will not fit, and a player moving between
+	the shop and the bag on one device should not meet two different card
+	sizes -- so the rule is copied rather than re-derived, and 0.78 is the same
+	floor for the same reason: it takes the 13px name to 10, which is the
+	smallest a nine-year-old should be asked to read.
+
+	The group headings are NOT scaled. They are the one thing on this panel
+	that has to stay legible at a glance on a phone, they are already the
+	smallest type here that carries a word rather than a number, and at four
+	of them they cost 112 pixels against a card grid measured in thousands.
+]]
+local function refit()
+	local v = panelView
+	if not v then
+		return
+	end
+	-- The rail and the two header lines come off the top before any card can
+	-- be laid out, which is what makes this the panel's height rather than
+	-- the viewport's.
+	local room = v.AbsoluteSize.Y - 102
+	local want = if room < 2 * (CARD_H + 10) then 0.78 else 1
+	if want == cardScale then
+		return
+	end
+	cardScale = want
+	local cell = UDim2.new(0, math.floor(CARD_W * want), 0, math.floor(CARD_H * want))
+	for _, g in ipairs(cardGrids) do
+		g.CellSize = cell
+	end
+	for _, f in ipairs(cardScales) do
+		f.Scale = want
+	end
 end
 
 -- ---- render ----------------------------------------------------------------
@@ -498,6 +743,54 @@ function Inventory.render()
 		local row = ensureRow(section, index)
 		local source = sourceFor(section)
 		local shown = 0
+
+		-- ---- a collection log ----------------------------------------------
+		--
+		-- Walks `Config.skinCollections()` rather than the payload, which is
+		-- what makes this a LOG: the groups and their contents are the
+		-- catalogue's, so a skin nobody owns still has a card and still leaves
+		-- a hole to fill. Every other tab walks what the player HAS.
+		--
+		-- THE TAB'S COUNT STAYS OWNED-ONLY. It sits beside four other tabs
+		-- that all count what you have, and a Skins tab reading 49 while the
+		-- player owns three would be the one number on the rail meaning
+		-- something different from its neighbours. The per-group "3 / 17" is
+		-- where the total belongs, because there it has the denominator
+		-- beside it.
+		if section.collection then
+			local haveAll = 0
+			for gi, group in ipairs(Config.skinCollections()) do
+				local g = ensureGroup(section, row, group, gi)
+				local have = 0
+				for _, key in ipairs(group.skins) do
+					local info = source and source[key]
+					if type(info) == "table" then
+						local card = cards[entryKey(section.kind, key)]
+						if not card then
+							card = buildCard(section, key, info)
+						end
+						card.button.Parent = g.grid
+						card.button.Visible = true
+						card.button.LayoutOrder = info.order or 0
+						paintCard(section, key, info)
+						if info[section.owned] == true then
+							have += 1
+							local rec = spares[entryKey(section.kind, key)]
+							spareTotal += (rec and rec.count) or 0
+						end
+					end
+				end
+				g.count.Text = ("%d / %d"):format(have, #group.skins)
+				haveAll += have
+			end
+			tabs[section.kind].count.Text = tostring(haveAll)
+			-- Never empty: a log always has its gaps to show, so the "go and
+			-- get one" line that the other tabs fall back to has nothing to
+			-- say here and would sit above a full grid.
+			row.blank.Visible = false
+			total += haveAll
+			continue
+		end
 
 		-- BUILT ONCE, PAINTED EVERY PUSH. This runs off `CosmeticState`,
 		-- `RideState` and `ChestState`, so a rebuild per push would tear down
@@ -557,6 +850,12 @@ function Inventory.render()
 		end
 	end
 
+	-- AFTER the cards exist, because a card built during this render was born
+	-- at whatever `cardScale` already said and a grid created in the same pass
+	-- needs the cell size applying. `refit` returns immediately when the scale
+	-- has not moved, so this costs one comparison on every push but the first.
+	refit()
+
 	if deps.onSummary then
 		deps.onSummary(total, spareTotal)
 	end
@@ -569,6 +868,33 @@ end
 -- front page already shipped and had to fix: the catalogues land at join in no
 -- fixed order, so a tab drawn from one of them shows blank sections for
 -- everything that had not arrived yet.
+
+--[[
+	Throw away every card so the next render builds them again.
+
+	WHY THIS EXISTS: a card's 3D icon is built ONCE, on the render that first
+	shows it, and only PAINTED afterwards -- a ViewportFrame is the most
+	expensive thing on this screen and rebuilding forty of them per push is
+	not affordable. That is right until the MODEL ITSELF changes underneath
+	the cache, which is exactly what happens when the preview pig's mesh
+	finishes loading a moment after the HUD came up: every card built in that
+	window would keep the primitives pig for the life of the session, and
+	nothing would look broken enough for anybody to report it.
+
+	Only the client's prewarm calls this, once.
+]]
+function Inventory.rebuildIcons()
+	for key, card in pairs(cards) do
+		card.button:Destroy()
+		cards[key] = nil
+	end
+	-- The scales go with the buttons they were parented to, so the list has
+	-- to go too -- otherwise every rebuild leaves a row of destroyed
+	-- instances behind that `refit` walks forever. The grids are NOT cleared:
+	-- rows and groups survive a rebuild, and it is only their cards that go.
+	table.clear(cardScales)
+	Inventory.render()
+end
 
 function Inventory.setCosmetics(snapshot: any)
 	cosmetics = snapshot
@@ -587,6 +913,11 @@ end
 
 function Inventory.init(view: Frame, injected: any)
 	deps = injected
+	-- Held for `refit`, which runs long after this returns. Assigned to the
+	-- module local rather than captured, so there is one answer to "which
+	-- panel" rather than one per closure.
+	panelView = view
+	view:GetPropertyChangedSignal("AbsoluteSize"):Connect(refit)
 
 	label(view, "Everything you own.", UDim2.new(1, -8, 0, 22),
 		UDim2.new(0, 4, 0, 0), Enum.Font.FredokaOne, 17, ShopStyle.TEXT)

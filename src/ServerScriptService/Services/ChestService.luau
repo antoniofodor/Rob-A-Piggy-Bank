@@ -58,7 +58,11 @@ local ChestService = {}
 -- writing a second grant path here is exactly the near-identical copy this
 -- project keeps recording as the thing that drifts.
 
-local TIERS = { "common", "rare", "epic", "legendary" }
+-- CHEAPEST FIRST, AND IT IS `Config`'S LIST RATHER THAN A SECOND COPY OF IT.
+-- This was a local for as long as nothing else needed the sequence; a chest
+-- carrying a rarity `floor` needs the same one to compare against, and two
+-- copies of a ladder is the drift `RideSound` already paid for.
+local TIERS = Config.RARITY_ORDER
 
 -- WHO TO TELL WHEN A BALANCE MOVES, filled in by Main.
 --
@@ -272,7 +276,19 @@ end
 -- OUTCOME. It becomes a shard in the same breath, in the same reveal, so an
 -- open always visibly pays out. What the old rule protected -- that a
 -- nine-year-old never opens something and gets nothing -- is still true.
-function ChestService.open(player: Player, chestKey: string)
+-- THE ONE ROLL, WITH `charge` DECIDING WHETHER ANYBODY PAYS FOR IT.
+--
+-- A free open and a bought one differ by exactly one `if`: the tier roll, the
+-- pick, the duplicate test, the grant, the two pushes and the reveal are all
+-- the same, and a second copy of that is the near-identical duplicate this
+-- project keeps recording as the thing that drifts.
+--
+-- IT IS A LOCAL AND THE FREE PATH IS NOT ON THE SERVICE'S REMOTE HANDLER,
+-- which is the half that matters. `ChestOpen` forwards a chest key and
+-- nothing else, so a client cannot reach `charge = false` however many extra
+-- arguments it fires -- the same shape as every other "the click sends no
+-- position" decision here.
+local function roll(player: Player, chestKey: string, charge: boolean)
 	local data = DataService.get(player)
 	local chest = Config.CHESTS[chestKey]
 	if not data or not chest then
@@ -289,10 +305,12 @@ function ChestService.open(player: Player, chestKey: string)
 	end
 
 	local currency = chest.currency or "coins"
-	local held = if currency == "loot" then math.floor(data.loot or 0) else data.coins
-	if held < chest.cost then
-		notify(player, shortfallMessage(chest, held, chest.cost), "warn")
-		return
+	if charge then
+		local held = if currency == "loot" then math.floor(data.loot or 0) else data.coins
+		if held < chest.cost then
+			notify(player, shortfallMessage(chest, held, chest.cost), "warn")
+			return
+		end
 	end
 
 	local tier = pickTier(odds)
@@ -306,7 +324,7 @@ function ChestService.open(player: Player, chestKey: string)
 	-- Charged only once the outcome exists. A chest that took the money and
 	-- then found nothing to hand over would be the one failure mode here that
 	-- looks like theft.
-	if not spend(data, currency, chest.cost) then
+	if charge and not spend(data, currency, chest.cost) then
 		return
 	end
 
@@ -336,6 +354,24 @@ function ChestService.open(player: Player, chestKey: string)
 		odds = odds,
 	})
 	return tier, kind, key, duplicate
+end
+
+function ChestService.open(player: Player, chestKey: string)
+	return roll(player, chestKey, true)
+end
+
+-- A CHEST OPENED WITHOUT PAYING FOR ONE. The daily ladder's day seven, and
+-- nothing else today.
+--
+-- It is a real open rather than a coin payout, which is the entire point of
+-- it: every other rung on that ladder pays something a player would have got
+-- anyway by playing -- coins denominated in their own income, a boost, a
+-- couple of bones -- so the ladder gave nobody a reason to come back that
+-- playing did not already give them. A crate open is the one reward in this
+-- game that cannot be reached any other way in that moment, and it lands on
+-- the permanent cosmetic track rather than in the pig.
+function ChestService.grantFree(player: Player, chestKey: string)
+	return roll(player, chestKey, false)
 end
 
 -- WHICH THREE, WHEN THE PLAYER DOES NOT SAY.

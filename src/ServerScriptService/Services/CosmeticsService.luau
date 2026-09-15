@@ -18,12 +18,26 @@
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+-- For the dog's name, which is the only player-authored TEXT this game shows
+-- to anybody. See `CosmeticsService.nameDog`.
+local TextService = game:GetService("TextService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local PlayerGear = require(ReplicatedStorage.Shared.PlayerGear)
 local DataService = require(script.Parent.DataService)
 local PlotService = require(script.Parent.PlotService)
+-- BOTH SAFE RATHER THAN CYCLES: SetService requires DataService and
+-- nothing else, and PassService requires Config, Players and
+-- MarketplaceService. Neither reaches back here.
+local SetService = require(script.Parent.SetService)
+local PassService = require(script.Parent.PassService)
+-- THE TROPHY SHELF. One direction only: this file needs the progress
+-- figures for a locked card and the plinth ladder for a priced one, and
+-- TrophyService requires DataService and PlotService alone -- so it
+-- reaches its own push back through a registry `Main` fills in rather
+-- than by requiring this file. Same shape as SetService, same reason.
+local TrophyService = require(script.Parent.TrophyService)
 
 local CosmeticsService = {}
 
@@ -181,6 +195,23 @@ function CosmeticsService.buyDecor(player: Player, key: string)
 
 	local decor = data.decor
 
+	-- A TROPHY IS NOT FOR SALE, AND THE REFUSAL NAMES WHAT WOULD EARN IT.
+	--
+	-- It has to come before the toggle below AND before the price check.
+	-- Before the toggle, because an unearned trophy is not owned and would
+	-- fall past it; before the price, because a trophy carries no `cost`
+	-- at all and `data.coins < nil` throws -- which is the same shape as
+	-- the ten drop-pool skins that once rendered "0" in the price row, one
+	-- step louder.
+	--
+	-- A rejection nobody can see is indistinguishable from a broken
+	-- feature, so it says the sentence rather than going quiet.
+	if item.trophy and not decor.owned[key] then
+		notify(player, ("%s is earned, not bought. %s."):format(
+			item.name, Config.trophyRequirement(item.trophy)), "warn")
+		return
+	end
+
 	-- Already owned? Then this is a toggle, not a purchase.
 	--
 	-- Removal has to exist -- an ornament bought by accident is otherwise
@@ -256,137 +287,25 @@ local function gear(data: any)
 	return data.accessories
 end
 
--- How many ROLLABLE accessories are owned -- set items excluded, because they
--- are not in the pool a roll draws from. This number does two jobs and both
--- want the same pool: it indexes the price ladder, and it is compared against
--- Config.rollableAccessoryCount to decide whether the collection is finished.
+-- THE ACCESSORY ROLL IS RETIRED WITH THE CATALOGUE IT DREW FROM.
 --
--- Counting set items here charged a player more for a roll because they had
--- bought an alien hat with medals, which is two currencies leaking into each
--- other. See the note on Config.rollableAccessoryCount.
-local function ownedCount(owned: { [string]: boolean }): number
-	local n = 0
-	for key in pairs(owned) do
-		local spec = Config.ACCESSORIES[key]
-		if spec and not spec.set then
-			n += 1
-		end
-	end
-	return n
-end
-
--- One weighted pick from everything the player does NOT already own.
+-- `ownedCount`, `rollFrom` and `rollAccessory` went as one: with
+-- `Config.ACCESSORIES` empty the pool is empty, so the roll could only ever
+-- refuse -- and it refused by reporting the collection FINISHED, which is a
+-- button that spends loot wearing a completed state, for a collection that
+-- does not exist. `Config.getRollCost` and its two constants went with it.
 --
--- Building the pool fresh each roll is what makes duplicates impossible: an
--- item leaves the pool the moment it is won, so there is nothing to "protect
--- against" later and no pity timer to tune. It also means the odds visibly
--- improve as the collection fills, which is the honest version of what a
--- crate usually only pretends to do.
-local function rollFrom(owned: { [string]: boolean }): string?
-	local pool: { string } = {}
-	local total = 0
-	for key, spec in pairs(Config.ACCESSORIES) do
-		-- `spec.set` is the second of the two exclusions. An accessory in a
-		-- set is earned by turning up to events and bought with medals, so it
-		-- must never fall out of the COIN roll -- otherwise the set stops
-		-- meaning attendance and starts meaning patience.
-		if not owned[key] and not spec.set then
-			local rarity = Config.RARITIES[spec.rarity]
-			if rarity then
-				table.insert(pool, key)
-				total += rarity.weight
-			end
-		end
-	end
-	if total <= 0 then
-		return nil
-	end
-
-	-- Sorted before drawing. `pairs` has no defined order, so an unsorted pool
-	-- would make the same random number pick different items on different
-	-- servers -- harmless here, but it also makes the roll impossible to
-	-- reproduce when someone reports a bad one.
-	table.sort(pool)
-
-	local ticket = math.random() * total
-	for _, key in ipairs(pool) do
-		ticket -= Config.RARITIES[Config.ACCESSORIES[key].rarity].weight
-		if ticket <= 0 then
-			return key
-		end
-	end
-	return pool[#pool]
-end
+-- `Config.ROLL_CURRENCY` DID NOT, and the distinction is worth keeping: that
+-- names the loot currency itself, which the event chests still price in and
+-- `ChestService` still reads. The roll was one SPENDER of loot rather than
+-- its definition.
 
 -- Loot is granted by SetService.award and nowhere else; this file only
--- spends it (the roll) and reports it (the push).
+-- REPORTS it, in the push. It used to spend it too, on the accessory roll,
+-- which is retired -- so nothing in this file takes loot off anybody now.
 function CosmeticsService.getLoot(player: Player): number
 	local data = DataService.get(player)
 	return if data then math.floor(data.loot or 0) else 0
-end
-
-function CosmeticsService.rollAccessory(player: Player)
-	local data = DataService.get(player)
-	if not data then
-		return
-	end
-
-	local acc = gear(data)
-	local have = ownedCount(acc.owned)
-
-	if have >= Config.rollableAccessoryCount() then
-		notify(player, "You already own every accessory you can roll for!", "good")
-		return
-	end
-
-	-- PAID IN LOOT, NEVER IN COINS. Loot comes only from robbing, so the
-	-- collection is paced by how often somebody goes out rather than by
-	-- whoever has the deepest pig -- and no amount of money can reach it.
-	-- Nothing about the pool, the odds or the no-duplicates guarantee changed
-	-- with it; only what it is bought with.
-	local cost = Config.getRollCost(have)
-	local held = math.floor(data.loot or 0)
-	if held < cost then
-		-- Names the shortfall AND where loot comes from. A currency a player
-		-- has never seen, on a button they cannot press, is indistinguishable
-		-- from a broken feature -- and this one cannot be fixed by going and
-		-- earning more coins, which is what every other refusal in this game
-		-- has trained them to try.
-		notify(player, ("Need %d more %s. Rob a neighbour and get the coins home."):format(
-			cost - held, Config.lootWord(cost - held)), "warn")
-		return
-	end
-
-	local key = rollFrom(acc.owned)
-	if not key then
-		-- Unreachable given the count check above, but a roll that charged and
-		-- returned nothing is the one failure mode here that would look like
-		-- theft, so it refuses rather than trusting the arithmetic.
-		notify(player, "Nothing left to roll.", "warn")
-		return
-	end
-
-	data.loot = held - cost
-	acc.owned[key] = true
-
-	local spec = Config.ACCESSORIES[key]
-	local rarity = Config.RARITIES[spec.rarity]
-
-	-- Worn immediately if the slot is empty. The reward for a roll should be
-	-- visible on the pig before the player looks away -- but a slot they have
-	-- deliberately dressed is left alone.
-	if not acc.worn[spec.slot] then
-		acc.worn[spec.slot] = key
-	end
-
-	notify(player, ("%s: %s!"):format(string.upper(rarity.label), spec.name), "good")
-
-	local plot = PlotService.getPlot(player)
-	if plot then
-		PlotService.applyAccessories(plot, acc.worn)
-	end
-	DataService.save(player)
-	CosmeticsService.push(player)
 end
 
 -- Wear it, or take it off if it is already on. Toggling is the only way to
@@ -492,6 +411,13 @@ function CosmeticsService.recordWantedEscape(player: Player): string?
 		notify(player, ("UNLOCKED: %s. It's on you now."):format(spec.name), "loot")
 	end
 
+	-- THE SIREN POST READS THIS SAME NUMBER, so an escape has to be given
+	-- the chance to light a lamp. A second counter would be a second
+	-- opinion about how many patrols somebody has outrun; there is one,
+	-- and it is `worn.escapes` directly above.
+	TrophyService.check(player)
+	TrophyService.refresh(player)
+
 	DataService.save(player)
 	CosmeticsService.push(player)
 	return earned
@@ -553,8 +479,81 @@ function CosmeticsService.applyToPlot(player: Player)
 	PlotService.applySkin(plot, skinKey)
 	PlotService.applyEffect(plot, cosmetics.effect)
 	PlotService.setHouseLevel(plot, shown)
+	-- BEFORE `setDecor`, AND THAT ORDERING IS THE WHOLE COST OF IT.
+	--
+	-- Four of the lawn ornaments are trophies whose SHAPE is a function of
+	-- what their owner has done, so the plot has to be holding this
+	-- session's numbers before anything builds one. Run after `setDecor`
+	-- it would be correct and would rebuild the whole lawn a second time;
+	-- run before, the state lands on a plot whose ornaments have not been
+	-- built yet and the line below is the only rebuild.
+	TrophyService.refresh(player)
 	PlotService.setDecor(plot, data.decor.placed)
+	-- AFTER the house and the fence, both of which this function has already
+	-- put up: a window box hangs off sills that `setHouseLevel` has just
+	-- created, and a border is clamped to a fence tier. Run earlier it would
+	-- build against the previous plot and be silently one upgrade behind.
+	PlotService.setGarden(plot, data.garden)
 	PlotService.applyAccessories(plot, gear(data).worn)
+
+	-- The dog's coat, on the same pass as everything else the plot wears.
+	--
+	-- A coat that has been retired from the catalogue falls back to the
+	-- breed's own colours rather than rendering untinted -- `GuardDog` treats
+	-- an unknown key as "no coat" -- and `DataService.reconcile` prunes the
+	-- save on load, so this is the second of two guards rather than the only
+	-- one. Same shape as the skin fallback above.
+	local coat = (data.dogs and data.dogs.equipped) or ""
+	if coat ~= "" and not Config.DOG_COATS[coat] then
+		coat = ""
+		if data.dogs then
+			data.dogs.equipped = ""
+		end
+	end
+	PlotService.setDogCoat(plot, coat)
+
+	-- And the kennel it lives in, on the same pass and with the same
+	-- retired-key fallback. Two fields rather than one because the two are
+	-- bought separately: a kennel repaints the walls and the trim, the coat
+	-- still owns the roof, and neither can overwrite the other.
+	local den = (data.dogs and data.dogs.kennel) or ""
+	if den ~= "" and not Config.DOG_KENNELS[den] then
+		den = ""
+		if data.dogs then
+			data.dogs.kennel = ""
+		end
+	end
+	PlotService.setDogKennel(plot, den)
+
+	-- And whatever toys are out. `GuardDog` takes the set whole and works out
+	-- what is actually visible, so a plot with no dog on it hides them without
+	-- anything here having to ask what tier it is.
+	PlotService.setDogToys(plot, (data.dogs and data.dogs.toys and data.dogs.toys.out) or {})
+	-- Already filtered when it was stored: what lives in the save is what
+	-- `TextService` handed back, never what the client typed. See `nameDog`.
+	PlotService.setDogName(plot, (data.dogs and data.dogs.name) or "")
+
+	-- THE PAID MARK ON THE SIGN, set before the sign is written.
+	--
+	-- `unlocked` rather than `owns`, which is the opposite call from the
+	-- one `grantPassItems` makes and is right for the opposite reason: this
+	-- writes nothing into the save, so an unset pass id showing the mark to
+	-- everybody during development is a thing a developer can SEE and
+	-- correct, where writing items into every save would be permanent.
+	--
+	-- FIRST MATCH WINS AND THE ORDER IS `pairs`, which is fine only while
+	-- exactly one pass carries a `signWord` -- and today only VIP does. A
+	-- second one needs a rule about which outranks which rather than a
+	-- hash deciding it, and this is where that rule would go.
+	local word: string?, colour: Color3? = nil, nil
+	for passKey, pass in pairs(Config.PASSES or {}) do
+		if pass.signWord and PassService.unlocked(player, passKey) then
+			word, colour = pass.signWord, pass.signColour
+			break
+		end
+	end
+	PlotService.setSignPass(plot, word, colour)
+
 	PlotService.updateSign(plot, player.DisplayName, data.rebirths,
 		Config.getSkin(skinKey).name, Config.getHouseTier(shown).name)
 end
@@ -590,16 +589,41 @@ function CosmeticsService.buySkin(player: Player, key: string)
 		return
 	end
 
-	if data.coins < skin.cost then
-		notify(player, ("Need %d more coins for %s."):format(skin.cost - data.coins, skin.name), "warn")
-		return
-	end
-
-	data.coins -= skin.cost
-	cosmetics.owned[key] = true
-	notify(player, ("Unlocked %s!"):format(skin.name), "good")
-
-	CosmeticsService.equipSkin(player, key)
+	-- SKINS ARE CRATE-ONLY, AND THIS IS THE LINE THAT MAKES IT TRUE.
+	--
+	-- The direction was recorded a while ago and the shop was never changed,
+	-- so for several sessions the game contradicted its own documentation:
+	-- the Inventory panel's empty-skins message told players skins come from
+	-- crates while this function happily sold them for coins. A decision half
+	-- applied is worse than either answer, because neither half can be relied
+	-- on.
+	--
+	-- IT DELIBERATELY REVERSES "NOTHING IS EVER LOCKED BEHIND LUCK", which is
+	-- written twice elsewhere and was the right rule for a spinner sitting
+	-- beside a shop. What it is traded for is the crate economy having a top
+	-- end at all: a chest whose best prize can also be bought outright is a
+	-- slower way to buy something, and the moment a player works that out the
+	-- crate stops being worth opening.
+	--
+	-- WHAT KEEPS IT FAIR IS THAT BAD LUCK STILL ONLY COSTS TIME. A duplicate
+	-- is a spare, three spares of a tier combine upward, and the combine's
+	-- own arithmetic makes gathering a legendary cost about the same as
+	-- rolling for one. There is no outcome here that is unreachable, only
+	-- outcomes that are slower.
+	--
+	-- THE PRICE STAYS IN `Config` AND IS NOT A PRICE ANY MORE. `rarityOf`
+	-- reads a skin's `cost` to decide its TIER and `sellValue` caps a spare's
+	-- payout at a fraction of it, so deleting the numbers would collapse the
+	-- crate ladder to one tier AND take the sell cap off -- which is the
+	-- measured money printer where a flat common value paid five times
+	-- Bubblegum's own shop price forever. A skin's cost is a rarity and a
+	-- ceiling first and a purchase not at all.
+	--
+	-- REFUSED OUT LOUD RATHER THAN SILENTLY, because the client no longer
+	-- draws a buy button and so nothing should ever reach this -- which means
+	-- anything that DOES reach it is a stale client or a poked remote, and
+	-- both want the same visible answer rather than a quiet return.
+	notify(player, ("%s comes from crates now, not coins."):format(skin.name), "warn")
 end
 
 function CosmeticsService.buyEffect(player: Player, key: string)
@@ -627,6 +651,75 @@ function CosmeticsService.buyEffect(player: Player, key: string)
 	CosmeticsService.equipEffect(player, key)
 end
 
+-- BUY-OR-EQUIP, THE ONE CONTROL A SKIN AND A DOG COAT ALREADY USE. The
+-- card never has to decide which verb it is showing, and a second tap on
+-- something owned is simply an equip.
+--
+-- IT DOES NOT TOGGLE, WHICH IS THE ONE PLACE IT DIFFERS FROM THE COAT.
+-- A coat has no default row, so the toggle is the only route back to the
+-- breed's own colours; `none` is a real member of this catalogue and is
+-- how you turn a catch effect off, so a toggle here would only be a way
+-- to un-equip by accident.
+function CosmeticsService.buyCatch(player: Player, key: string)
+	local spec = Config.CATCH_EFFECTS[key]
+	local data = DataService.get(player)
+	if not spec or not data or type(data.catch) ~= "table" then
+		return
+	end
+
+	if data.catch.owned[key] or (spec.cost or 0) <= 0 then
+		CosmeticsService.equipCatch(player, key)
+		return
+	end
+
+	if data.coins < spec.cost then
+		notify(player, ("Need %s more coins for %s.")
+			:format(Config.formatCoins(spec.cost - data.coins), spec.name), "warn")
+		return
+	end
+
+	data.coins -= spec.cost
+	data.catch.owned[key] = true
+	notify(player, ("Unlocked %s! It fires on the next thief you nab.")
+		:format(spec.name), "good")
+
+	CosmeticsService.equipCatch(player, key)
+end
+
+function CosmeticsService.equipCatch(player: Player, key: string)
+	local data = DataService.get(player)
+	local spec = Config.CATCH_EFFECTS[key]
+	if not data or not spec or type(data.catch) ~= "table" then
+		return
+	end
+	-- The free-if-costless fallback, exactly as `equipEffect` writes it and
+	-- for the same reason: `none` costs nothing and everybody has it, so it
+	-- must be equippable without ever having been bought. Nothing in this
+	-- catalogue is priced in loot today, but the test is written the way the
+	-- effects one is so that a set entry landing here later cannot be
+	-- unlocked for the whole server by `(nil or 0) <= 0`.
+	if (not Config.isEarnedElsewhere(spec) and (spec.cost or 0) <= 0) or data.catch.owned[key] then
+		data.catch.equipped = key
+		CosmeticsService.push(player)
+	end
+end
+
+-- WHAT FIRES ON THE THIEF, asked by HeistService at the moment a nab lands.
+-- Never `data.catch.equipped` read directly at the call site: an equipped
+-- key can name something a player no longer owns (a revoke, a retired row,
+-- a save from before this catalogue existed), and a burst nobody paid for
+-- is the same silent wrongness as a shop card advertising a retired item.
+function CosmeticsService.catchEffectOf(player: Player): string
+	local data = DataService.get(player)
+	local key = data and type(data.catch) == "table" and data.catch.equipped
+	if type(key) ~= "string" or not Config.CATCH_EFFECTS[key] then
+		return Config.DEFAULT_CATCH
+	end
+	if key ~= Config.DEFAULT_CATCH and not data.catch.owned[key] then
+		return Config.DEFAULT_CATCH
+	end
+	return key
+end
 function CosmeticsService.equipSkin(player: Player, key: string)
 	local data = DataService.get(player)
 	if not data then
@@ -653,6 +746,382 @@ function CosmeticsService.equipEffect(player: Player, key: string)
 	data.cosmetics.effect = key
 	CosmeticsService.applyToPlot(player)
 	CosmeticsService.push(player)
+end
+
+-- WEAR A COAT, OR TAKE IT OFF BY ASKING FOR IT TWICE.
+--
+-- A TOGGLE, the same call accessories, decorations and rides already make --
+-- and here it is the ONLY route back to the breed's own colours, because
+-- `Config.DOG_COATS` deliberately has no "default" row to keep in step with
+-- `DOG_TIERS`. Without the toggle, a player who bought one coat could never
+-- see their own Mastiff again.
+--
+-- That also means a test script which "equips" something already worn takes
+-- it OFF instead -- a trap this project has now recorded twice. Drive it from
+-- the pushed state, never from an assumed starting point.
+function CosmeticsService.equipDogCoat(player: Player, key: string)
+	local data = DataService.get(player)
+	local coat = Config.DOG_COATS[key]
+	if not data or not coat or type(data.dogs) ~= "table" then
+		return
+	end
+
+	if not data.dogs.owned[key] then
+		notify(player, ("%s isn't unlocked yet."):format(coat.name), "warn")
+		return
+	end
+
+	data.dogs.equipped = if data.dogs.equipped == key then "" else key
+	CosmeticsService.applyToPlot(player)
+	CosmeticsService.push(player)
+end
+
+-- Buy a coat, or equip one already owned.
+--
+-- Same shape as `buySkin`: owning it makes this an equip rather than a second
+-- purchase, so one control does both and the card never has to decide which
+-- verb it is. The refusal names the SHORTFALL rather than the price, because
+-- "need 4.2M more" is a thing a player can act on and "costs 12M" is not.
+--
+-- A COAT IS PURE TASTE AND CONFERS NOTHING, which is the line every cosmetic
+-- in this game holds and the reason this may be bought with coins at all. It
+-- changes `fur`, `furDark` and `collar`; the Guard Dog UPGRADE still decides
+-- the tier, still lives in `upgrades`, and is still what rebirth takes.
+function CosmeticsService.buyDogCoat(player: Player, key: string)
+	local coat = Config.DOG_COATS[key]
+	local data = DataService.get(player)
+	if not coat or not data or type(data.dogs) ~= "table" then
+		return
+	end
+
+	if data.dogs.owned[key] then
+		CosmeticsService.equipDogCoat(player, key)
+		return
+	end
+
+	local cost = coat.cost or 0
+	if data.coins < cost then
+		notify(player, ("Need %s more coins for %s."):format(
+			Config.formatCoins(cost - data.coins), coat.name), "warn")
+		return
+	end
+
+	data.coins -= cost
+	data.dogs.owned[key] = true
+	notify(player, ("Unlocked %s!"):format(coat.name), "good")
+
+	CosmeticsService.equipDogCoat(player, key)
+end
+
+-- WEAR A KENNEL, OR PUT THE PLAIN WOODEN ONE BACK BY ASKING TWICE.
+--
+-- The coat functions' twin, and deliberately a SEPARATE pair rather than one
+-- parameterised by catalogue. Two catalogues that happen to have the same
+-- shape today are not one catalogue: a kennel already differs in what it
+-- paints (`wood`/`trim` against `fur`/`furDark`/`collar`), and the first time
+-- either grows a field the shared version becomes a branch inside a helper
+-- rather than two honest functions.
+function CosmeticsService.equipDogKennel(player: Player, key: string)
+	local data = DataService.get(player)
+	local den = Config.DOG_KENNELS[key]
+	if not data or not den or type(data.dogs) ~= "table" then
+		return
+	end
+
+	if not (data.dogs.kennels and data.dogs.kennels[key]) then
+		notify(player, ("%s isn't unlocked yet."):format(den.name), "warn")
+		return
+	end
+
+	data.dogs.kennel = if data.dogs.kennel == key then "" else key
+	CosmeticsService.applyToPlot(player)
+	CosmeticsService.push(player)
+end
+
+-- Buy a kennel, or stand one already owned. Same buy-or-equip shape as a skin
+-- and a coat: one control, and the card never has to decide which verb it is.
+--
+-- A KENNEL CONFERS NOTHING, which is the line that lets it be bought with
+-- coins at all. It changes two colours on a model that has never had any
+-- behaviour attached to it -- the dog's tier still decides speed, hearing and
+-- catch radius, and the roof still carries the coat, so no amount of money
+-- spent here changes what a thief reads off the lawn.
+-- THE GARDEN'S THREE CATALOGUES, DESCRIBED ONCE.
+--
+-- A border, a path and a window box are the same transaction three times --
+-- buy it if you do not own it, wear it if you do, take it off if you are
+-- already wearing it -- over three tables that differ only in their names.
+-- Three near-identical `buyGardenBorder`/`buyGardenPath`/`buyGardenBox`
+-- functions is the copy this project keeps recording as the thing that
+-- drifts: `RideSound` kept a second copy of the ride-key grammar and broke
+-- within the hour, and the mini piggy, `Decor.buildOne` and the coin
+-- formatter are three more.
+--
+-- The place this is NOT done is the dog's three, one function up, and the
+-- difference is worth stating so the next person does not "tidy" them
+-- together: a coat, a kennel and a toy have unrelated shapes in the save
+-- (`owned`/`equipped`, `kennels`/`kennel`, `toys.owned`/`toys.out`) and a toy
+-- is a SET rather than a single choice. These three were designed as one
+-- shape on the same afternoon.
+local GARDEN_KINDS: { [string]: any } = {
+	border = { catalogue = Config.BORDER_PLANTS, owned = "borders", worn = "border" },
+	path = { catalogue = Config.GARDEN_PATHS, owned = "paths", worn = "path" },
+	window = { catalogue = Config.WINDOW_BOXES, owned = "boxes", worn = "window" },
+}
+
+-- BUY IT, WEAR IT, OR PUT IT AWAY -- one control, so the card never has to
+-- decide which verb it is showing. The same call the dog coats make.
+--
+-- THE PUT-AWAY IS THE HALF THAT NEEDS SAYING. Equipping the row you are
+-- already wearing takes it off, because there is no second control for
+-- "none" and a garden you cannot un-plant is a purchase that can only ever
+-- be added to. That is the toggle `accessories` and `decor` already use, and
+-- this file's parent records it as deliberate rather than incidental.
+function CosmeticsService.buyGarden(player: Player, kind: string, key: string)
+	local slot = GARDEN_KINDS[kind]
+	local data = DataService.get(player)
+	if not slot or not data then
+		return
+	end
+	local spec = slot.catalogue[key]
+	if not spec or type(data.garden) ~= "table" then
+		return
+	end
+
+	local held = data.garden[slot.owned]
+	if type(held) ~= "table" then
+		return
+	end
+
+	if not held[key] then
+		local cost = spec.cost or 0
+		if data.coins < cost then
+			notify(player, ("Need %s more coins for %s."):format(
+				Config.formatCoins(cost - data.coins), spec.name), "warn")
+			return
+		end
+		data.coins -= cost
+		held[key] = true
+		notify(player, ("Unlocked %s!"):format(spec.name), "good")
+	end
+
+	data.garden[slot.worn] = if data.garden[slot.worn] == key then "" else key
+
+	-- The whole repaint rather than `setGarden` alone, which is the call every
+	-- other cosmetic purchase in this file makes. A garden change is rare and
+	-- a full `applyToPlot` cannot be out of step with itself; reaching for the
+	-- one function that happens to be enough today is how a second path comes
+	-- to disagree with the first. The coin balance follows on the economy
+	-- tick, as it does for every other purchase here.
+	CosmeticsService.applyToPlot(player)
+	CosmeticsService.push(player)
+end
+
+function CosmeticsService.buyDogKennel(player: Player, key: string)
+	local den = Config.DOG_KENNELS[key]
+	local data = DataService.get(player)
+	if not den or not data or type(data.dogs) ~= "table" then
+		return
+	end
+
+	if type(data.dogs.kennels) ~= "table" then
+		data.dogs.kennels = {}
+	end
+
+	if data.dogs.kennels[key] then
+		CosmeticsService.equipDogKennel(player, key)
+		return
+	end
+
+	local cost = den.cost or 0
+	if data.coins < cost then
+		notify(player, ("Need %s more coins for %s."):format(
+			Config.formatCoins(cost - data.coins), den.name), "warn")
+		return
+	end
+
+	data.coins -= cost
+	data.dogs.kennels[key] = true
+	notify(player, ("Unlocked %s!"):format(den.name), "good")
+
+	CosmeticsService.equipDogKennel(player, key)
+end
+
+-- PUT A TOY OUT, OR TAKE IT IN.
+--
+-- The third of the dog's three catalogues and the only one that is not a
+-- WARDROBE: a coat and a kennel are worn by things, a toy is a place on the
+-- lawn. Which is why it keeps two tables where those keep one string -- you
+-- may have all three out at once, so there is nothing for a single `equipped`
+-- to hold.
+--
+-- A TOY CHANGES WHERE THE DOG WALKS AND NOTHING ELSE, which is what lets it
+-- be sold for coins beside the coats. It cannot make the dog faster, louder,
+-- quicker to notice or harder to bribe -- see `Config.DOG_TOYS` for the two
+-- things that enforce that rather than promising it.
+function CosmeticsService.toggleDogToy(player: Player, key: string)
+	local data = DataService.get(player)
+	local toy = Config.DOG_TOYS[key]
+	if not data or not toy or type(data.dogs) ~= "table" then
+		return
+	end
+
+	local toys = data.dogs.toys
+	if type(toys) ~= "table" or type(toys.owned) ~= "table" or type(toys.out) ~= "table" then
+		return
+	end
+
+	if not toys.owned[key] then
+		notify(player, ("%s isn't unlocked yet."):format(toy.name), "warn")
+		return
+	end
+
+	toys.out[key] = if toys.out[key] then nil else true
+	CosmeticsService.applyToPlot(player)
+	CosmeticsService.push(player)
+end
+
+-- Buy a toy, or put one already owned in or out. Same buy-or-toggle shape as
+-- everything else on this tab.
+function CosmeticsService.buyDogToy(player: Player, key: string)
+	local toy = Config.DOG_TOYS[key]
+	local data = DataService.get(player)
+	if not toy or not data or type(data.dogs) ~= "table" then
+		return
+	end
+
+	if type(data.dogs.toys) ~= "table" then
+		data.dogs.toys = { owned = {}, out = {} }
+	end
+	local toys = data.dogs.toys
+	if type(toys.owned) ~= "table" then toys.owned = {} end
+	if type(toys.out) ~= "table" then toys.out = {} end
+
+	if toys.owned[key] then
+		CosmeticsService.toggleDogToy(player, key)
+		return
+	end
+
+	local cost = toy.cost or 0
+	if data.coins < cost then
+		notify(player, ("Need %s more coins for %s."):format(
+			Config.formatCoins(cost - data.coins), toy.name), "warn")
+		return
+	end
+
+	data.coins -= cost
+	toys.owned[key] = true
+	notify(player, ("Unlocked %s!"):format(toy.name), "good")
+
+	-- Straight out onto the lawn. A toy bought and left in a cupboard is a
+	-- purchase with nothing on screen to show for it, which is the failure
+	-- this project refuses above all others -- and the toggle is right there
+	-- if somebody wants a bare lawn afterwards.
+	toys.out[key] = true
+	CosmeticsService.applyToPlot(player)
+	CosmeticsService.push(player)
+end
+
+-- NAME THE DOG. The only place in this game that shows one player's typed
+-- text to another player, and therefore the only place that filters.
+--
+-- **THE FILTER IS NOT OPTIONAL AND IT LIVES HERE ALONE.** A name a child types
+-- and other players read is user-generated content, which on this platform
+-- means `TextService:FilterStringAsync` on the SERVER, followed by
+-- `GetNonChatStringForBroadcastAsync` -- broadcast rather than the per-viewer
+-- variant, because the kennel board is read by whoever walks past it rather
+-- than by one recipient. `GuardDog` and `PlotService` both take the string
+-- without inspecting it, deliberately: two places that "handle" moderation is
+-- how one of them ends up trusted and skipped.
+--
+-- **IT FAILS CLOSED.** The call yields and can throw, so it is pcalled -- and
+-- a failure REFUSES rather than storing the raw text. A moderation call that
+-- errors open is worse than one that never ran, because it looks like it
+-- worked.
+--
+-- The refusals all name what happened and none of them spends anything, which
+-- is the same rule the bone and treat refusals follow: something consumed for
+-- nothing is indistinguishable from something broken.
+function CosmeticsService.nameDog(player: Player, raw: string)
+	local data = DataService.get(player)
+	if not data or type(data.dogs) ~= "table" then
+		return
+	end
+
+	local name = raw:match("^%s*(.-)%s*$") or ""
+
+	-- CLEARING IS ALWAYS FREE AND SKIPS BOTH GATES. An empty name is not text
+	-- to moderate and not a call to rate-limit, and a child who typed
+	-- something they regret must never be held on a cooldown while it stands
+	-- over their kennel.
+	if name == "" then
+		data.dogs.name = ""
+		CosmeticsService.applyToPlot(player)
+		CosmeticsService.push(player)
+		notify(player, "Your dog goes by its breed again.", "good")
+		return
+	end
+
+	-- Bounded THIS side of somebody else's API: a 10,000-character name is a
+	-- refusal we can make ourselves, and `utf8.len` returns nil on malformed
+	-- input rather than throwing, which is the check that keeps a bad byte
+	-- sequence out of the filter call entirely.
+	local runes = utf8.len(name)
+	if not runes then
+		notify(player, "That name has letters the game cannot show.", "warn")
+		return
+	end
+	if runes > Config.DOG_NAME.maxLength then
+		notify(player, ("Dog names are up to %d letters."):format(Config.DOG_NAME.maxLength), "warn")
+		return
+	end
+
+	-- The rate limit. The first name is instant (`namedAt` is 0 on a fresh
+	-- save); every one after it waits. See `Config.DOG_NAME` for why this is
+	-- about the filter call rather than about charging for anything.
+	--
+	-- **IT GATES ON `namedAt`, NOT ON WHETHER A NAME IS CURRENTLY SET, AND
+	-- THAT DISTINCTION IS A HOLE I SHIPPED FOR ABOUT TEN MINUTES.** Testing
+	-- clear-then-rename went straight through: clearing is free and left
+	-- `data.dogs.name` empty, so the old condition (`name ~= "" and ...`) was
+	-- false and the cooldown never applied. Two taps bypassed the limit
+	-- entirely, which on a rate limit protecting somebody else's moderation
+	-- API is the whole of it. Clearing still costs nothing and still does not
+	-- stamp `namedAt` -- it is the FILTER CALL being bounded, and clearing
+	-- makes none.
+	local now = os.time()
+	local last = data.dogs.namedAt or 0
+	local left = Config.DOG_NAME.cooldown - (now - last)
+	if last > 0 and left > 0 then
+		notify(player, ("You can rename your dog in %ds."):format(math.ceil(left)), "warn")
+		return
+	end
+
+	local ok, result = pcall(function()
+		return TextService:FilterStringAsync(name, player.UserId)
+	end)
+	local shown
+	if ok and result then
+		local ok2, broadcast = pcall(function()
+			return result:GetNonChatStringForBroadcastAsync()
+		end)
+		if ok2 then
+			shown = broadcast
+		end
+	end
+	if type(shown) ~= "string" or shown == "" then
+		notify(player, "Could not check that name just now. Try again in a moment.", "warn")
+		return
+	end
+
+	data.dogs.name = shown
+	data.dogs.namedAt = now
+	CosmeticsService.applyToPlot(player)
+	CosmeticsService.push(player)
+	-- The FILTERED string is echoed back, never the raw one. A player who
+	-- typed something blocked sees what everybody else will see, which is the
+	-- honest answer and also the one that teaches them it was filtered.
+	notify(player, ("Your dog is called %s now."):format(shown), "good")
 end
 
 -- Called after a rebirth: the newly reached tier may have unlocked a skin,
@@ -702,9 +1171,16 @@ function CosmeticsService.push(player: Player)
 			-- what makes the tile say REBIRTH DROP -- and a medal item that
 			-- advertised itself as a rebirth reward would send players to
 			-- the wrong feature entirely.
-			drop = skin.rarity ~= nil and skin.set == nil,
+			drop = skin.rarity ~= nil and not Config.isEarnedElsewhere(skin),
 			loot = skin.loot,
 			set = skin.set,
+			-- WHICH PASS SELLS IT, and it travels as a NAME rather than as a
+			-- key: the card prints it, and a client that had to look the name
+			-- up would need `Config.PASSES` reachable from a render loop for
+			-- one string. nil for everything else, which is what the render
+			-- branch tests.
+			passName = skin.pass and Config.PASSES[skin.pass]
+				and Config.PASSES[skin.pass].name,
 		}
 	end
 
@@ -714,15 +1190,18 @@ function CosmeticsService.push(player: Player)
 			name = effect.name,
 			order = effect.order,
 			cost = effect.cost or 0,
-			-- `effect.set` before the free-if-costless fallback, exactly as
-			-- Config.isSkinUnlocked does. A set effect is priced in loot and
-			-- therefore has no `cost`, and (nil or 0) <= 0 is TRUE -- so
-			-- without this the Tractor Beam is unlocked for every player in
-			-- the game from the first second.
-			unlocked = (effect.set == nil and (effect.cost or 0) <= 0)
+			-- Earned-elsewhere before the free-if-costless fallback, exactly
+			-- as Config.isSkinUnlocked does. A set effect is priced in loot
+			-- and a pass effect in Robux, so neither has a `cost`, and
+			-- (nil or 0) <= 0 is TRUE -- so without this the Tractor Beam is
+			-- unlocked for every player in the game from the first second,
+			-- which is a bug this catalogue has actually shipped.
+			unlocked = (not Config.isEarnedElsewhere(effect) and (effect.cost or 0) <= 0)
 				or data.cosmetics.ownedEffects[key] == true,
 			loot = effect.loot,
 			set = effect.set,
+			passName = effect.pass and Config.PASSES[effect.pass]
+				and Config.PASSES[effect.pass].name,
 			equipped = data.cosmetics.effect == key,
 			-- The two ends of the particle gradient, so the shop card can be
 			-- painted in the colours the effect actually throws off. An effect is
@@ -757,6 +1236,12 @@ function CosmeticsService.push(player: Player)
 		}
 	end
 
+	-- Computed ONCE for the whole catalogue rather than per card. Two of
+	-- the four figures live outside `data.trophies` -- `totalStolen` at the
+	-- top level and `escapes` inside `data.gear` -- so this is also the one
+	-- place the shop asks how much anybody has stolen.
+	local trophyCounts = TrophyService.counts(data)
+
 	local decorItems = {}
 	for key, item in pairs(Config.DECOR_ITEMS) do
 		decorItems[key] = {
@@ -765,10 +1250,31 @@ function CosmeticsService.push(player: Player)
 			cost = item.cost,
 			loot = item.loot,
 			set = item.set,
+			passName = item.pass and Config.PASSES[item.pass]
+				and Config.PASSES[item.pass].name,
 			zone = item.zone,
 			swatch = item.swatch,
 			blurb = item.blurb,
 			rarity = Config.rarityOf(item),
+			-- THE TROPHY'S PROGRESS, so a locked card is a bar rather than a
+			-- closed door -- the same call the Most Wanted gear already makes
+			-- with its own `have`/`need` pair. Nil on the other eighteen,
+			-- which is what the card renderer branches on.
+			trophy = (function(): any?
+				if not item.trophy then
+					return nil
+				end
+				local spec = Config.TROPHIES[item.trophy]
+				if not spec then
+					return nil
+				end
+				return {
+					have = trophyCounts[spec.count] or 0,
+					need = spec.need,
+					coins = spec.coins,
+					requirement = spec.requirement,
+				}
+			end)(),
 			owned = data.decor.owned[key] == true,
 			placed = (function()
 				for _, placedKey in pairs(data.decor.placed) do
@@ -782,7 +1288,6 @@ function CosmeticsService.push(player: Player)
 	end
 
 	local acc = gear(data)
-	local have = ownedCount(acc.owned)
 	local accessories = {}
 	for key, spec in pairs(Config.ACCESSORIES) do
 		local rarity = Config.RARITIES[spec.rarity]
@@ -825,35 +1330,302 @@ function CosmeticsService.push(player: Player)
 		end
 	end
 
+	-- THE DOG'S WARDROBE. Two colours cross the wire rather than three,
+	-- because a card is a swatch and a swatch shows a body and a trim -- the
+	-- same pair a piggy skin sends. `furDark` is muzzle-and-brow shading and
+	-- reads as noise at card size.
+	local dogsOwned = (data.dogs and data.dogs.owned) or {}
+	local dogsWorn = (data.dogs and data.dogs.equipped) or ""
+	local dogCoats: { [string]: any } = {}
+	for key, coat in pairs(Config.DOG_COATS) do
+		dogCoats[key] = {
+			name = coat.name,
+			order = coat.order,
+			cost = coat.cost or 0,
+			owned = dogsOwned[key] == true,
+			equipped = dogsWorn == key,
+			body = coat.fur,
+			trim = coat.collar,
+			-- Derived from the price, exactly as a skin's is. Every coat is
+			-- bought with coins today, so there is no explicit rarity to send
+			-- -- and the first one that ISN'T priced needs one in Config or it
+			-- silently borders itself common.
+			rarity = Config.rarityOf(coat),
+		}
+	end
+
+	-- AND THE KENNEL, whose swatch shows the two colours it actually paints.
+	-- `body` is the walls and `trim` is the woodwork, which is the same pair
+	-- name a skin and a coat send -- so the card builder needs nothing new.
+	-- The ROOF is deliberately not on here: it follows the coat, and putting
+	-- it on a kennel card would advertise a colour this purchase cannot set.
+	local densOwned = (data.dogs and data.dogs.kennels) or {}
+	local denStanding = (data.dogs and data.dogs.kennel) or ""
+	local dogKennels: { [string]: any } = {}
+	for key, den in pairs(Config.DOG_KENNELS) do
+		dogKennels[key] = {
+			name = den.name,
+			order = den.order,
+			cost = den.cost or 0,
+			owned = densOwned[key] == true,
+			equipped = denStanding == key,
+			body = den.wood,
+			trim = den.trim,
+			rarity = Config.rarityOf(den),
+		}
+	end
+
+	-- THE TROPHY FRAMES. The bought half of the shelf, and the only half:
+	-- what stands ON a plinth is earned, and nothing in this payload can
+	-- buy it.
+	--
+	-- Two colours cross the wire rather than four, for the reason a kennel
+	-- sends two: a card is a swatch, and a swatch shows a body and a trim.
+	-- The plaque and the uplight are what the top two rungs BUY, and both
+	-- are things you read on a lawn rather than on a 156-pixel tile.
+	local standsOwned = (data.trophies and data.trophies.plinths) or {}
+	local standing = (data.trophies and data.trophies.plinth) or ""
+	local trophyPlinths: { [string]: any } = {}
+	for key, spec in pairs(Config.TROPHY_PLINTHS) do
+		trophyPlinths[key] = {
+			name = spec.name,
+			order = spec.order,
+			cost = spec.cost or 0,
+			owned = standsOwned[key] == true,
+			equipped = standing == key,
+			body = spec.base,
+			trim = spec.trim,
+			rarity = Config.rarityOf(spec),
+		}
+	end
+
+	-- THE TOYS. `out` rather than `equipped`, because all three can be out at
+	-- once and there is no single thing being worn -- so the card's three
+	-- states are locked, owned-and-in, and owned-and-out.
+	local toysSave = (data.dogs and data.dogs.toys) or {}
+	local toysOwned = toysSave.owned or {}
+	local toysOut = toysSave.out or {}
+	local dogToys: { [string]: any } = {}
+	for key, toy in pairs(Config.DOG_TOYS) do
+		dogToys[key] = {
+			name = toy.name,
+			order = toy.order,
+			cost = toy.cost or 0,
+			owned = toysOwned[key] == true,
+			out = toysOut[key] == true,
+			body = toy.body,
+			trim = toy.trim,
+			rarity = Config.rarityOf(toy),
+		}
+	end
+
+	-- The catch-effect catalogue, built in the same shape as `effects`
+	-- above so the client renders both through one card and one particle
+	-- simulation. `swatch`/`swatch2` are the two ends of the burst's own
+	-- gradient, which is the only honest still image a particle has.
+	local catchOwned = (data.catch and data.catch.owned) or {}
+	local catchEquipped = (data.catch and data.catch.equipped) or Config.DEFAULT_CATCH
+	local catches: { [string]: any } = {}
+	for key, spec in pairs(Config.CATCH_EFFECTS) do
+		catches[key] = {
+			name = spec.name,
+			order = spec.order,
+			cost = spec.cost or 0,
+			unlocked = (not Config.isEarnedElsewhere(spec) and (spec.cost or 0) <= 0)
+				or catchOwned[key] == true,
+			set = spec.set,
+			passName = spec.pass and Config.PASSES[spec.pass]
+				and Config.PASSES[spec.pass].name,
+			equipped = catchEquipped == key,
+			swatch = spec.color and spec.color.Keypoints[1].Value,
+			swatch2 = spec.color and spec.color.Keypoints[#spec.color.Keypoints].Value,
+			rarity = Config.rarityOf(spec),
+		}
+	end
+
+	-- THE ROBUX OFFERS.
+	--
+	-- Sent whether or not they are owned and whether or not they exist yet,
+	-- because the shop is where something you do not own is supposed to be
+	-- advertised -- filtering an unowned pass out of the payload would leave
+	-- the offer with nothing on screen to explain what it buys, which is the
+	-- same call the locked ride stances already make.
+	--
+	-- `id` IS NIL WHILE THE PASS DOES NOT EXIST, which is what the card
+	-- reads to draw COMING SOON rather than a price. Prompting a purchase
+	-- for id 0 throws, so the nil is doing real work rather than being tidy.
+	local passes: { any } = {}
+	for key, pass in pairs(Config.PASSES or {}) do
+		table.insert(passes, {
+			key = key,
+			name = pass.name,
+			blurb = pass.blurb,
+			robux = pass.robux,
+			id = PassService.idOf(key),
+			-- `owns` rather than `unlocked`. A card saying OWNED to every
+			-- player because the id is unset would hide the one state a
+			-- developer most needs to see, and the COMING SOON branch already
+			-- says what is true.
+			owned = PassService.owns(player, key),
+			soldWith = pass.soldWith,
+			-- What it hands over, named. Derived from the catalogues rather
+			-- than written out here, so a card can never advertise an item the
+			-- grant does not give -- they read the same table.
+			items = (function()
+				local names: { string } = {}
+				for _, entry in ipairs(Config.passItems(key)) do
+					local spec = Config.getSetItem(entry.kind, entry.key)
+					if spec and spec.name then
+						table.insert(names, spec.name)
+					end
+				end
+				return names
+			end)(),
+		})
+	end
+	table.sort(passes, function(a, b)
+		-- Cheapest first. An offers shelf that leads with the dearest thing
+		-- is a shelf a nine-year-old bounces off.
+		return (a.robux or 0) < (b.robux or 0)
+	end)
+
+	-- THE GARDEN, THREE LISTS OFF ONE DESCRIPTION. Sorted here rather than on
+	-- the client for the reason every other catalogue in this payload is: the
+	-- order is a property of the shelf, and two ends sorting independently is
+	-- two answers to one question.
+	local garden: { [string]: any } = {}
+	for kind, slot in pairs(GARDEN_KINDS) do
+		local held = (data.garden and data.garden[slot.owned]) or {}
+		local worn = (data.garden and data.garden[slot.worn]) or ""
+		local list = {}
+		for key, spec in pairs(slot.catalogue) do
+			table.insert(list, {
+				key = key,
+				name = spec.name,
+				order = spec.order,
+				cost = spec.cost or 0,
+				swatch = spec.swatch,
+				blurb = spec.blurb,
+				owned = held[key] == true,
+				equipped = worn == key,
+				-- Derived from the price like every other priced catalogue, so a
+				-- row added at a new cost borders itself. See Config.rarityOf.
+				rarity = Config.rarityOf(spec),
+			})
+		end
+		table.sort(list, function(a, b)
+			return (a.order or 0) < (b.order or 0)
+		end)
+		garden[kind] = list
+	end
+
 	Remotes.get("CosmeticState"):FireClient(player, {
 		skins = skins,
+		garden = garden,
+		passes = passes,
 		effects = effects,
+		catches = catches,
+		dogCoats = dogCoats,
+		dogKennels = dogKennels,
+		dogToys = dogToys,
+		trophyPlinths = trophyPlinths,
+		-- The dog's name as it is actually shown -- the FILTERED string, so
+		-- the shop's text box reads back what the street sees rather than what
+		-- was typed. "" means it goes by its breed.
+		dogName = (data.dogs and data.dogs.name) or "",
+		dogNameMax = Config.DOG_NAME.maxLength,
 		houses = houses,
 		houseLevel = level,
 		houseShown = shown,
 		decor = decorItems,
 		accessories = accessories,
 		gear = gearList,
-		collection = {
-			owned = have,
-			total = Config.rollableAccessoryCount(),
-			-- nil once the set is complete, which is how the client knows to
-			-- swap the roll button for the finished state rather than showing
-			-- a price for something that can no longer be bought.
-			cost = if have < Config.rollableAccessoryCount() then Config.getRollCost(have) else nil,
-			-- The balance travels with the price, so the client can colour the
-			-- roll button without knowing what the currency is called or
-			-- needing a second remote to ask for it.
-			loot = math.floor(data.loot or 0),
-			currency = Config.ROLL_CURRENCY.plural,
-		},
+		-- `collection` is gone with the accessory roll. `accessories` stays
+		-- and is simply empty: it is built by walking the catalogue, so it
+		-- costs nothing today and repopulates on its own if the catalogue
+		-- ever does.
 	})
 end
 
+-- ============================================================
+-- PASS-EXCLUSIVE ITEMS
+-- ============================================================
+--
+-- GRANTED INTO THE SAVE RATHER THAN GATED AT RENDER TIME, and that is a
+-- decision rather than the lazy option.
+--
+-- Gating means every card, every equip and every push asks PassService
+-- whether this player may have this thing -- which is a question with a
+-- WEB CALL behind it, cached per session, that can fail. Granting asks it
+-- once, at the two moments the answer can change, and from then on a pass
+-- item is an ordinary owned cosmetic that every existing path already
+-- knows how to render, wear and save.
+--
+-- WHAT THAT COSTS, STATED PLAINLY: a refund does not take the items back.
+-- That is the right way round for this audience and it is also what
+-- `PassService`'s own header argues for -- an entitlement that survives a
+-- lost save survives a lost session too, and a cosmetic clawed back off a
+-- nine-year-old's piggy is a worse failure than one they kept.
+--
+-- THROUGH `SetService.grant`, NEVER A SECOND GRANT PATH. That function
+-- already resolves all six catalogues through `Config.catalogueFor` and
+-- pushes whichever service renders the thing -- so a pass granting a skin,
+-- an aura and a catch effect costs nothing beyond the loop, and it cannot
+-- drift from how a chest or an event grants the same item.
+local function grantPassItems(player: Player, passKey: string)
+	if not PassService.owns(player, passKey) then
+		-- `owns` rather than `unlocked`. An unset pass id makes `unlocked`
+		-- true for EVERYBODY, deliberately, so that content nobody can buy
+		-- yet is not also content nobody can reach -- but writing those items
+		-- into every save during development would be permanent, and would
+		-- hand the whole server a paid exclusive the day the id was filled
+		-- in. Locked content is SHOWN through `unlocked`; it is only ever
+		-- WRITTEN through `owns`. Same split the entry-ride grant makes.
+		return
+	end
+	local pass = Config.PASSES[passKey]
+	local items = Config.passItems(passKey)
+	local names: { string } = {}
+	for _, entry in ipairs(items) do
+		-- `grant` returns false when they already had it, so this is
+		-- idempotent by construction and the announcement names only what
+		-- actually arrived -- which matters because this runs at every join.
+		if SetService.grant(player, entry.kind, entry.key) then
+			local spec = Config.getSetItem(entry.kind, entry.key)
+			if spec and spec.name then
+				table.insert(names, spec.name)
+			end
+		end
+	end
+	if #names > 0 and pass then
+		-- ONE CARD NAMING ALL OF THEM, not one per item. Three toasts for one
+		-- purchase is where a reward turns into noise -- the same call
+		-- EventService makes when it folds a loot count into the medal line.
+		notify(player, ("%s unlocked: %s."):format(pass.name, table.concat(names, ", ")), "good")
+	end
+end
+
+-- THERE IS NO `onPlayerReady` HERE, AND WRITING ONE WOULD HAVE BEEN A
+-- FUNCTION THAT LOOKED LIKE IT DID THE WORK AND DID NOTHING.
+--
+-- `PassService.onPlayerReady` SPAWNS the ownership checks -- they are web
+-- calls that yield, and Main's own comment says so in as many words: the
+-- answer lands a moment later and pushes by itself. So at join time the
+-- cache is cold, `owns` is false for everybody, and a grant called from
+-- the join sequence would return early every single time.
+--
+-- `Granted` fires exactly when the answer arrives, which is the join case,
+-- AND the instant a purchase completes, which is the other one. Those are
+-- the only two moments a pass answer can change, so the event is the whole
+-- hook -- the same call RideService's entry-ride grant makes.
 function CosmeticsService.start()
 	-- Most Wanted gear is a CSG solid and CSG is server-only, so the shells are
 	-- built here and replicate to every client from ReplicatedStorage.
 	PlayerGear.prewarm()
+
+	PassService.Granted:Connect(function(player: Player, passKey: string)
+		grantPassItems(player, passKey)
+	end)
 
 	Remotes.get("CosmeticRequest").OnServerEvent:Connect(function(player, kind, key)
 		if type(kind) ~= "string" or type(key) ~= "string" then
@@ -863,6 +1635,8 @@ function CosmeticsService.start()
 			CosmeticsService.buySkin(player, key)
 		elseif kind == "effect" then
 			CosmeticsService.buyEffect(player, key)
+		elseif kind == "catch" then
+			CosmeticsService.buyCatch(player, key)
 		elseif kind == "house" then
 			CosmeticsService.buyHouse(player, key)
 		elseif kind == "decor" then
@@ -871,11 +1645,35 @@ function CosmeticsService.start()
 			CosmeticsService.equipAccessory(player, key)
 		elseif kind == "gear" then
 			CosmeticsService.equipGear(player, key)
-		elseif kind == "roll" then
-			-- The key is ignored: a roll's outcome is picked by the server from
-			-- the pool it maintains. Letting a client name what it wanted would
-			-- be the entire exploit.
-			CosmeticsService.rollAccessory(player)
+		elseif kind == "border" or kind == "path" or kind == "window" then
+			-- The three garden catalogues, routed through one function with the
+			-- kind carried rather than three branches into three near-identical
+			-- ones. `buyGarden` refuses an unknown kind on its own, so the list
+			-- here is the only place the set is written down.
+			CosmeticsService.buyGarden(player, kind, key)
+		elseif kind == "dogcoat" then
+			-- Buy-or-equip, like a skin: one control, and the card never has
+			-- to decide which verb it is showing.
+			CosmeticsService.buyDogCoat(player, key)
+		elseif kind == "dogkennel" then
+			CosmeticsService.buyDogKennel(player, key)
+		elseif kind == "dogtoy" then
+			CosmeticsService.buyDogToy(player, key)
+		elseif kind == "plinth" then
+			-- Buy-or-equip, routed to the service that owns the shelf rather
+			-- than duplicated here. This file only knows which remote a card
+			-- pressed; what a plinth costs and what it repaints is
+			-- TrophyService's business.
+			TrophyService.buyPlinth(player, key)
+		elseif kind == "dogname" then
+			-- THE ONE KIND WHERE `key` IS NOT A CATALOGUE KEY. It carries the
+			-- name the player typed, which makes this the only free text a
+			-- client sends this game -- filtered, bounded and rate-limited
+			-- server-side in `nameDog` before it is stored or shown to
+			-- anybody. The `type(key) ~= "string"` guard at the top of this
+			-- handler is doing real work for this branch rather than being
+			-- defensive habit.
+			CosmeticsService.nameDog(player, key)
 		end
 	end)
 end

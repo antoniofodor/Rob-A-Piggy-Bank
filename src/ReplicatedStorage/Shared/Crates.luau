@@ -50,12 +50,24 @@ local Theme = require(ReplicatedStorage.Shared.Theme)
 
 local Crates = {}
 
-local TIERS = { "common", "rare", "epic", "legendary" }
+-- THE LADDER, FROM CONFIG RATHER THAN A SECOND COPY OF IT. This was a
+-- literal `{ "common", "rare", "epic", "legendary" }` here, which is exactly
+-- what `Config.RARITY_ORDER` was extracted to stop -- and it went stale the
+-- moment skins dropped to three tiers, because a chip is built per entry and
+-- every crate grew an EPIC row that could never fill.
+local TIERS = Config.RARITY_ORDER
 local DOT = utf8.char(0x00B7)
 
 -- Card geometry. Three across the 1020-wide content area at the panel's cap,
 -- which is what the scale cell below works out to.
-local CARD_H = 246
+-- 246 UNTIL THE COMBINE ROW, AND THE OLD NUMBER IS WHY IT HAD TO GROW.
+-- The card was packed: name at 10, the stock strip at 42, the odds bar
+-- under it, the blurb under that, and OPEN pinned 50 from the bottom --
+-- which left exactly TWELVE pixels of free band between the blurb and the
+-- button. A 34-pixel row does not fit in 12, so the card grew rather than
+-- the row being squeezed into a space that would have clipped it.
+local CARD_H = 280
+local COMBINE_H = 26
 local WELL_H = 86
 local BAR_H = 20
 
@@ -215,6 +227,103 @@ local function buildCard(chestKey: string, info: any): any
 		UDim2.new(0, 12, 0, 42 + WELL_H + 10 + BAR_H + 8), Enum.Font.Gotham, 12,
 		ShopStyle.MUTED)
 
+	-- ---- combining spares ------------------------------------------------
+	--
+	-- THREE CHIPS RATHER THAN ONE BUTTON, and the reason is that the tier is
+	-- a real choice rather than a default worth hiding. A single COMBINE
+	-- button would have to pick a tier for the player -- the lowest they can
+	-- afford, presumably -- and that quietly removes the only decision in
+	-- the mechanic: three commons buy a rare roll, three epics buy a
+	-- legendary outright, and which of those you spend is the whole
+	-- question.
+	--
+	-- THEY ALSO SHOW PROGRESS TOWARD THE NEXT ONE, which a button cannot.
+	-- `2/3` is a reason to open another crate; a greyed button is a reason
+	-- to stop looking. Same argument the upgrade pips already make against
+	-- printing "Lv 3/4".
+	--
+	-- LEGENDARY IS ABSENT RATHER THAN GREYED. It is the top tier, so
+	-- `ChestService.combine` refuses it outright -- "Legendary is the top
+	-- tier. Nothing to combine up to." A fourth chip that can never light
+	-- would be a control that does nothing when pressed, which this file
+	-- treats as worse than an absent one.
+	local combineRow = Instance.new("Frame")
+	combineRow.Name = "Combine"
+	combineRow.BackgroundTransparency = 1
+	combineRow.Size = UDim2.new(1, -24, 0, COMBINE_H)
+	combineRow.Position = UDim2.new(0, 12, 0, 42 + WELL_H + 10 + BAR_H + 8 + 20)
+	combineRow.Parent = card
+
+	local combineLayout = Instance.new("UIListLayout")
+	combineLayout.FillDirection = Enum.FillDirection.Horizontal
+	combineLayout.Padding = UDim.new(0, 6)
+	combineLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	combineLayout.Parent = combineRow
+
+	-- WHICH TIERS THIS CRATE CAN CLIMB OUT OF, ASKED OF ITS OWN POOL.
+	--
+	-- The rule below has not changed -- a chip that can never light is worse
+	-- than an absent one -- only what it is measured against. It used to test
+	-- `tier ~= "legendary"`, which is the top of the GLOBAL ladder and was the
+	-- right test while every chest carried all four tiers.
+	--
+	-- A skin is one of three tiers now, so a skin crate has no epic in it at
+	-- all and an epic chip on one is a control that does nothing when pressed.
+	-- The alien cache is the other way round: it has no COMMON, so a common
+	-- chip there is equally dead. Asking the chest's own stock answers both,
+	-- and answers the next chest without anybody remembering to come back.
+	local pool = Config.chestPool(chestKey)
+	local climbable = {}
+	for _, tier in ipairs(TIERS) do
+		if pool[tier] and #pool[tier] > 0 then
+			table.insert(climbable, tier)
+		end
+	end
+	-- The highest stocked tier is what everything else combines UP TO, so it
+	-- is never something you combine FROM.
+	if #climbable > 0 then
+		table.remove(climbable)
+	end
+
+	local combines: { [string]: TextButton } = {}
+	for i, tier in ipairs(climbable) do
+		local chip = Instance.new("TextButton")
+		chip.Name = "Combine_" .. tier
+		chip.LayoutOrder = i
+		-- The chips SHARE the row, however many there are. It was a hardcoded
+		-- third back when every crate showed three; a skin crate shows two now
+		-- and a fixed third would leave a ragged gap rather than filling it.
+		local share = 1 / math.max(#climbable, 1)
+		chip.Size = UDim2.new(share, -6 * (#climbable - 1) * share, 1, 0)
+		chip.BackgroundColor3 = ShopStyle.SUNK
+		chip.BorderSizePixel = 0
+		chip.AutoButtonColor = false
+		chip.Font = Enum.Font.GothamBold
+		chip.TextSize = 11
+		chip.TextColor3 = ShopStyle.MUTED
+		chip.Text = ""
+		chip.Parent = combineRow
+		ShopStyle.round(chip, 8)
+		ShopStyle.outline(chip, 2, tierColour(tier))
+
+		-- THE CLIENT DECLINES TO ASK FOR A KNOWN NO, which is the same
+		-- split the OPEN button above makes and the number row makes for an
+		-- item you do not hold. The server re-counts the spares, re-picks
+		-- them and refuses out loud if they are not there; this only stops
+		-- a chip that is visibly not ready from firing anyway.
+		chip.Activated:Connect(function()
+			local ui = cards[chestKey]
+			if ui and ui.ready[tier] and deps.combine then
+				-- NO ENTRY LIST. `ChestCombine` takes an optional pick and
+				-- `autoPick` consumes the CHEAPEST spares first when none is
+				-- named -- which is the honest default, because every spare at
+				-- a tier combines identically, so the only thing the choice
+				-- can affect is what is left behind.
+				deps.combine(tier, chestKey)
+			end
+		end)
+		combines[tier] = chip
+	end
 	-- ---- the button ------------------------------------------------------
 	local open = Instance.new("TextButton")
 	open.Name = "Open"
@@ -245,7 +354,8 @@ local function buildCard(chestKey: string, info: any): any
 
 	local _ = info
 	return { card = card, name = name, progress = progress, segments = segments,
-		open = open, blurb = blurb, affordable = false }
+		open = open, blurb = blurb, affordable = false,
+		combines = combines, combineRow = combineRow, ready = {} }
 end
 
 -- Repaint one card from the server's own numbers.
@@ -304,6 +414,51 @@ local function paint(chestKey: string, info: any)
 	ui.blurb.Text = if complete
 		then "You have them all. Opens now pay spares."
 		else (chest.blurb or "")
+
+	-- ---- the combine chips ----------------------------------------------
+	--
+	-- THE COUNTS ARE THE SERVER'S AND ARE GLOBAL PER TIER, WHICH IS WHY THE
+	-- SAME THREE NUMBERS APPEAR ON EVERY CARD. That reads like a bug and is
+	-- the mechanic: `perTier` is how many spares you hold at each rarity
+	-- across the WHOLE collection, and the card is where the roll LANDS. So
+	-- the chips are your fuel and the card is the target, and the same fuel
+	-- can be spent into any of them.
+	--
+	-- SUMMED ON THE SERVER RATHER THAN HERE, deliberately. Counting spares
+	-- per tier needs the rarity rules, and re-deriving those on the client
+	-- would be a second copy of `Config.rarityOf` that can disagree with the
+	-- one that will actually be charged.
+	local perTier = (latest and latest.perTier) or {}
+	local need = (latest and latest.need) or Config.COMBINE.need
+
+	-- A LOOT CHEST CANNOT BE COMBINED INTO, and the row says so rather than
+	-- disappearing. `ChestService.combine` refuses a non-coin chest outright
+	-- -- spares combine only into COIN chests, which is what stops a rich
+	-- player grinding coin crates into the alien set without ever attending
+	-- an event -- so a live-looking row on the alien card would be three
+	-- buttons that always refuse.
+	local coinChest = currency == "coins"
+	ui.combineRow.Visible = coinChest
+
+	for tier, chip in pairs(ui.combines) do
+		local have = perTier[tier] or 0
+		local ready = coinChest and have >= need
+		ui.ready[tier] = ready
+
+		-- SHORTENED TO FIT RATHER THAN SCALED. A third of a card this wide is
+		-- about 96 pixels, and "LEGENDARY 3/3" does not go in it -- but
+		-- legendary is not here, and the three that are fit as four letters
+		-- plus a count. `TextScaled` would have made it "fit" by shrinking,
+		-- which this project already records as a guarantee that means
+		-- nothing.
+		chip.Text = ("%s %d/%d"):format(tier:sub(1, 4):upper(), math.min(have, need), need)
+
+		-- READY IS THE TIER'S OWN COLOUR AND NOT-READY IS THE WELL, which is
+		-- the same two-state language the preview wells above already speak:
+		-- a rarity colour means there is something there.
+		chip.BackgroundColor3 = if ready then tierColour(tier) else ShopStyle.SUNK
+		chip.TextColor3 = if ready then Theme.INK else ShopStyle.MUTED
+	end
 end
 
 -- ---- the reveal ---------------------------------------------------------
@@ -363,12 +518,25 @@ function Crates.reveal(payload: any)
 		note = ("Spare %s sells for %s"):format(DOT, deps.format(payload.value or 0))
 	end
 
+	-- THE TIER GOES THROUGH RATHER THAN ONLY ITS COLOUR, and that is what
+	-- buys the whole celebration. `SpinWheel` scales its rays, its confetti,
+	-- its flash, its sting's pitch and how long it holds off the tier, and
+	-- prints the tier's own name on a chip -- so a legendary and a common are
+	-- visibly different events rather than the same animation in a different
+	-- accent. Sent as the KEY: the colour is one thing derived from a tier and
+	-- there are now six.
+	--
+	-- It is the SERVER'S tier and deliberately not the winner's own catalogue
+	-- rarity, which is the same number today and is not the same question. A
+	-- combine climbs tiers, so what a player should be congratulated on is
+	-- what the roll landed on.
 	SpinWheel.play(deps.gui, {
 		pool = stock,
 		won = won,
 		title = string.upper(chest.name or "CRATE"),
 		subtitle = subtitle,
 		note = note,
+		tier = payload.tier,
 		tone = tierColour(payload.tier or "common"),
 	}, deps.iconFor)
 end
