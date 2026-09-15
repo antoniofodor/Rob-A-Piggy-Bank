@@ -43,6 +43,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local SoundKit = require(ReplicatedStorage.Shared.SoundKit)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local Theme = require(ReplicatedStorage.Shared.Theme)
 
@@ -328,7 +329,16 @@ local function render()
 	local remaining = math.max(0, pig - state.banked)
 
 	u.root.Visible = true
-	u.title.Text = string.upper(("%s's piggy"):format(state.victim))
+	-- A NAME THAT ALREADY ENDS IN S TAKES A BARE APOSTROPHE, which is the
+	-- ordinary English rule and was not being followed. It went unnoticed
+	-- while every victim was a player or a family -- "THE SNUFFLES'S PIGGY"
+	-- is clumsy and readable -- and the shops made it loud, because a shop's
+	-- money is named after the shop: "PIGGY OUTFITTERS'S PIGGY". Fixed here
+	-- rather than in the names, since the names are correct and it is the
+	-- possessive that was wrong.
+	local name = state.victim
+	local tail = if name:sub(-1):lower() == "s" then "'" else "'s"
+	u.title.Text = string.upper(("%s%s piggy"):format(name, tail))
 	u.step.Text = ("SLICE %d / %d"):format(state.step, state.maxSteps)
 	u.fill.Size = UDim2.fromScale(math.clamp(remaining / pig, 0, 1), 1)
 	u.held.Text = ("You hold %s"):format(Config.formatCoins(state.banked))
@@ -371,7 +381,90 @@ end
 function Crack.start(gui: Instance)
 	build(gui)
 
-	Remotes.get("CrackState").OnClientEvent:Connect(function(payload)
+	-- WHAT THE LAST PUSH SAID, so a slice landing can be told from any
+	-- other reason this payload arrives. `CrackState` is pushed on the
+	-- open, on every tap, on a walk-away and on a miss -- so "a slice
+	-- landed" is not an event the server sends, it is a STEP THAT WENT UP,
+	-- and the only way to see it is to remember the last one.
+	local lastStep = 0
+
+	Remotes.get("CrackState").OnClientEvent:Connect(function(payload, why)
+		-- THE LADDER. A note per slice, rising, and the reasoning for the
+		-- intervals is in `Config.CRACK_NOTES` -- the short version is that
+		-- these are equal-tempered pentatonic steps rather than the even
+		-- FREQUENCY steps this used to use, which is the difference between
+		-- a tune and a slide.
+		--
+		-- 2D THROUGH `SoundKit.ui`, WHICH IS LOAD-BEARING RATHER THAN
+		-- CONVENIENT. It plays into SoundService, so it is audible to the
+		-- thief and to nobody else. A 3D note on the pig would be a tell that
+		-- a CLEAN crack currently does not give -- `Config.CRACK`'s whole
+		-- alarm design is that a fumble is loud and a clean run is silent,
+		-- and stealth of the alarm is the thing a good thief is buying. A
+		-- rising musical run audible from the pavement would sell that for a
+		-- sound effect.
+		--
+		-- `landed`, NOT `step`, AND THE NAME IS THE WHOLE BUG.
+		--
+		-- This was `local step`, twelve lines above a
+		-- `RenderStepped:Connect(step)` that means the module-level FUNCTION
+		-- of that name. Lua resolves the nearest one, so the connect was
+		-- handed the slice NUMBER: "Attempt to connect failed: Passed value
+		-- is not a function", once per push, on the one loop that moves the
+		-- marker.
+		--
+		-- SO THE DIAL NEVER SWEPT. The panel opened, the gauge drew, the zone
+		-- was in the right place and the marker sat at 0 forever -- every
+		-- crack in the game, since the day the crack shipped. A tap could
+		-- only ever land if the zone happened to touch the left edge, which
+		-- `CRACK_MIN_OFFSET` exists specifically to prevent.
+		--
+		-- It is not the `RenderStepped` trap this project already records --
+		-- that one is about a viewport not drawing and would have been
+		-- environmental. This fires in every session on every machine, and
+		-- the error names a LINE rather than the shadowing, which is why it
+		-- read as a Studio quirk for as long as it did.
+		local landed = (payload and payload.step) or 0
+		if landed > lastStep then
+			SoundKit.ui(Config.SOUNDS.CLICK, {
+				name = "CrackSlice",
+				volume = Config.CRACK_NOTES.volume,
+				pitch = Config.crackNotePitch(landed),
+			})
+		end
+
+		-- THE TOP OF THE RUN NEVER PLAYED, AND THAT IS A BUG RATHER THAN A
+		-- CHOICE. `crackTap` lands the final slice and goes straight to
+		-- `endCrack("done")`, which RETURNS before the `pushCrack` at the
+		-- bottom of that function -- so the client is never told about the
+		-- last step, only that the panel closed. The ladder therefore sounded
+		-- four notes on a five-slice crack and the biggest, most valuable,
+		-- most-decided-upon slice in the game was the silent one.
+		--
+		-- Played here off the close rather than fixed on the server, because
+		-- the server is RIGHT: there is no state left to push once the
+		-- attempt is over, and inventing one so a sound could hang off it
+		-- would be a payload that exists for the client's benefit only.
+		if not payload and why == "done" then
+			SoundKit.ui(Config.SOUNDS.CLICK, {
+				name = "CrackDone",
+				volume = Config.CRACK_NOTES.volume,
+				pitch = Config.crackNotePitch(Config.CRACK.maxSteps),
+			})
+		elseif not payload and why == "miss" then
+			-- A FALL, and only on a MISS. Walking away is silent because
+			-- nothing went wrong and the player chose it; being nabbed,
+			-- chased, scared off or walking out of range are all endings the
+			-- WORLD already makes a noise for.
+			SoundKit.ui(Config.SOUNDS.CLICK, {
+				name = "CrackMiss",
+				volume = Config.CRACK_NOTES.missVolume,
+				pitch = Config.semitonePitch(Config.CRACK_NOTES.miss),
+			})
+		end
+
+		lastStep = landed
+
 		state = payload
 		render()
 		if state and not heartbeat then

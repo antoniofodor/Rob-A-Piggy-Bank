@@ -51,6 +51,30 @@
 
 	----------------------------------------------------------------------
 
+	TWO CARDS ON ONE PART, AND UNTIL NOW THERE WAS NEVER MORE THAN ONE.
+
+	This file was built on a guarantee the game kept for it: prompts share a
+	part in two places -- collect/steal on a piggy, hide/dig on a bin -- and in
+	both the game makes them EXCLUSIVE, so every card could take the same
+	`StudsOffset` and no offsetting logic was needed anywhere.
+
+	The smash spends that guarantee on purpose. Steal and smash are the two
+	ways into one pig and a choice you cannot see is not a choice, so both are
+	live at once for the same player, on the same Body.
+
+	`Config.PROMPT_SLOT_ATTRIBUTE` is what pays for it, and it is a SLOT rather
+	than an offset for a measured reason. This card is sized in OFFSET pixels,
+	so it is a fixed size on screen at every distance, while `StudsOffset` is a
+	world displacement that projects to fewer pixels the further off you stand:
+	the shipped 1.6 studs is about 152px at 5 studs and about 69px at
+	`STEAL_RANGE`, against a card 82px tall. A stud offset would therefore
+	separate the cards when you are on top of the pig and overlap them at
+	exactly the range a thief decides from. Growing the BILLBOARD by the slot
+	and pinning the card to its bottom edge is a constant pixel gap at every
+	range, and slot 0 lands on the identical pixel the card has always used.
+
+	----------------------------------------------------------------------
+
 	NOTHING HERE IS ON A REPLICATION RACE, which is worth saying because two
 	other features on this street were. `PromptShown` fires when a player walks
 	up to a prompt, which is always long after everything has replicated -- so
@@ -95,6 +119,11 @@ local function keyText(prompt: ProximityPrompt, inputType: Enum.ProximityPromptI
 	return if prompt.HoldDuration > 0 then ("HOLD " .. name) else name
 end
 
+-- The card, and the gap between two of them, in pixels. CARD_GAP is the card
+-- plus a gutter, so slot 1 clears slot 0 with daylight rather than by a pixel.
+local CARD_H = 82
+local CARD_GAP = 94
+
 local function build(prompt: ProximityPrompt, inputType: Enum.ProximityPromptInputType)
 	local adornee = prompt.Parent
 	if not adornee or not adornee:IsA("BasePart") then
@@ -110,7 +139,15 @@ local function build(prompt: ProximityPrompt, inputType: Enum.ProximityPromptInp
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "PromptUI"
 	gui.Adornee = adornee
-	gui.Size = UDim2.new(0, 250, 0, 82)
+	-- SLOT 0 IS BYTE-IDENTICAL TO WHAT THIS ALWAYS DREW, which is the property
+	-- that makes this safe to add to ten existing prompts at once. The billboard
+	-- is centred on the adornee, so growing it by `2 * slot * CARD_GAP` extends
+	-- it `slot * CARD_GAP` DOWNWARD past the anchor; the card is pinned to that
+	-- bottom edge, so it sits exactly that many pixels lower. At slot 0 the
+	-- growth is zero and a bottom-pinned card in an 82-tall box is the same
+	-- rectangle as a card filling it.
+	local slot = tonumber(prompt:GetAttribute(Config.PROMPT_SLOT_ATTRIBUTE)) or 0
+	gui.Size = UDim2.new(0, 250, 0, CARD_H + 2 * slot * CARD_GAP)
 	-- NOT offset by the prompt own UIOffset. That is a Vector2 in SCREEN
 	-- PIXELS meant for the default prompt UI, and adding it to a Vector3 of
 	-- studs THROWS -- which it did, loudly, on the first frame anybody walked
@@ -131,7 +168,9 @@ local function build(prompt: ProximityPrompt, inputType: Enum.ProximityPromptInp
 	-- rather than a 2px accent stroke.
 	local card = Instance.new("Frame")
 	card.Name = "Card"
-	card.Size = UDim2.new(1, 0, 1, 0)
+	card.Size = UDim2.new(1, 0, 0, CARD_H)
+	card.AnchorPoint = Vector2.new(0.5, 1)
+	card.Position = UDim2.new(0.5, 0, 1, 0)
 	card.Parent = gui
 	Theme.card(card, 16)
 
@@ -306,9 +345,22 @@ local function build(prompt: ProximityPrompt, inputType: Enum.ProximityPromptInp
 	-- A small pop on arrival. One tween, not a loop: this appears whenever
 	-- anybody walks near anything, so it has to be cheap and it must never
 	-- become something moving in the corner of the eye.
-	card.Size = UDim2.new(0.86, 0, 0.86, 0)
+	--
+	-- IN THE CARD'S OWN UNITS, WHICH IS NOT WHERE THIS STARTED. It popped to a
+	-- SCALE height -- `UDim2.new(1, 0, 1, 0)` -- which was right for as long as
+	-- a card filled its billboard, and silently undid the slot the moment one
+	-- did not: the card grew back to the full 270px box and landed on top of
+	-- its neighbour. Measured on a live client, `card.Size` read `{1,0},{1,0}`
+	-- while the source three hundred lines up plainly said `{1,0},{0,82}`, and
+	-- the AnchorPoint and Position beside it were the new ones -- which is what
+	-- said the fault was a LATER WRITE rather than a stale module.
+	--
+	-- The general shape is one this project already records from the other end:
+	-- when a property is set in two places, the second one wins and the first
+	-- one reads like the bug. Grep the property, not the line you changed.
+	card.Size = UDim2.new(0.86, 0, 0, CARD_H * 0.86)
 	TweenService:Create(card, TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-		{ Size = UDim2.new(1, 0, 1, 0) }):Play()
+		{ Size = UDim2.new(1, 0, 0, CARD_H) }):Play()
 
 	live[prompt] = { gui = gui, fill = fill, count = count, holdFrom = nil,
 		watch = watch, watchText = watchText }
@@ -418,6 +470,86 @@ function PromptUI.start()
 		disownCharacter(Players.LocalPlayer.Character)
 	end
 	Players.LocalPlayer.CharacterAdded:Connect(disownCharacter)
+
+	-- AND THE INVERSE: A PROMPT THAT NAMES AN OWNER IS FOR NOBODY ELSE.
+	--
+	-- Same instrument as the rule above and the opposite direction. A
+	-- mailbox belongs to one plot and one player, so on every other screen
+	-- it is a control that looks available and does nothing -- which is the
+	-- failure this file refuses above all others, and the reason the number
+	-- row declines to ask for an item you do not hold.
+	--
+	-- `Enabled` written here affects only THIS machine's view, which is the
+	-- only per-player prompt Roblox offers. The server re-checks the owner on
+	-- the trigger regardless: this is the client declining a known no, never
+	-- the guard.
+	--
+	-- WATCHED RATHER THAN READ ONCE, because a plot changes hands. It is set
+	-- on assign and cleared on release, and a prompt that read it at build
+	-- time would be answering for whoever lived there when the server
+	-- started.
+	-- IT MAY ONLY EVER TURN A PROMPT OFF, NEVER ON, and the first version got
+	-- that wrong in a way worth recording.
+	--
+	-- Written as `Enabled = (owner == me)` it reads as the same rule and is a
+	-- SECOND WRITER: the server turns a mailbox off when there is nothing in
+	-- it, and this switched it straight back on for the owner. Measured -- the
+	-- flag lying flat over a box whose prompt was live, which is precisely the
+	-- disagreement `setMail` exists to make impossible, reintroduced one layer
+	-- further out.
+	--
+	-- A client-side rule here is a REFUSAL and nothing else. Whether a prompt
+	-- should be available at all is the server's answer; this only ever
+	-- subtracts from it, which is the same shape as the number row declining
+	-- an item you do not hold.
+	local function ownerRule(prompt: ProximityPrompt)
+		local owner = prompt:GetAttribute(Config.PROMPT_OWNER_ATTRIBUTE)
+		if owner ~= nil and owner ~= Players.LocalPlayer.UserId then
+			prompt.Enabled = false
+		end
+	end
+	local function watchOwner(inst: Instance)
+		if not inst:IsA("ProximityPrompt") then
+			return
+		end
+		local prompt = inst :: ProximityPrompt
+		-- EVERY PROMPT, RATHER THAN ONLY THE ONES THAT CARRY AN OWNER TODAY.
+		--
+		-- This used to skip anything with no owner attribute, with `MailPrompt`
+		-- named by hand as the exception -- because an unowned plot's mailbox
+		-- has no owner until somebody moves in, and a prompt skipped at build
+		-- time would never be watching when one arrived. That worked and it
+		-- coupled a renderer to one prompt's NAME, so the doorstep crate would
+		-- have been a second hardcoded name and the third would have been
+		-- forgotten -- silently, since a missed prompt merely fails to refuse.
+		--
+		-- Watching all of them costs one changed-signal per prompt in the
+		-- world, and `ownerRule` only ever REFUSES, so a prompt that never
+		-- gains an owner is untouched by construction.
+		ownerRule(prompt)
+		prompt:GetAttributeChangedSignal(Config.PROMPT_OWNER_ATTRIBUTE)
+			:Connect(function()
+				ownerRule(prompt)
+			end)
+		-- The SERVER also writes Enabled, when the flag goes up and down. Its
+		-- write replicates and would otherwise switch somebody else's mailbox
+		-- back on over the top of this rule.
+		prompt:GetPropertyChangedSignal("Enabled"):Connect(function()
+			if prompt.Enabled then
+				ownerRule(prompt)
+			end
+		end)
+	end
+	-- A PLOT IS BUILT AT SERVER STARTUP, SO ITS PROMPTS ARRIVE ALREADY
+	-- ATTRIBUTED -- and `GetAttributeChangedSignal` reports a CHANGE on this
+	-- peer, which never happens for a value the server set before parenting.
+	-- The shop doors lost every one of their prompts to exactly this, and the
+	-- fix there is the fix here: sweep what is already present, then listen
+	-- for arrivals.
+	for _, inst in ipairs(workspace:GetDescendants()) do
+		watchOwner(inst)
+	end
+	workspace.DescendantAdded:Connect(watchOwner)
 
 	-- A prompt destroyed while its card is up -- a bin torn down, a thief who
 	-- got away -- would otherwise leave the card on screen for the rest of the

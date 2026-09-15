@@ -26,12 +26,15 @@
 -- as a shopping list. The refusals are unchanged and still win: a reason to
 -- stay away always beats a number.
 --
--- What it shows is what is IN the pig, never what you would take. The take
--- needs the thief's own Bigger Sack level and the live event multiplier, and
--- re-deriving those here would be a second implementation of a number the
--- steal prompt already computes -- and the two would disagree the first time
--- either moved. What is in the pig is also the honest thing to COMPARE across
--- eight plots, which is the job.
+-- What it shows is what a robbery here is WORTH, which is what is in the pig
+-- times whatever the street's event multiplier currently is. That is a
+-- correction to what this paragraph used to claim -- *"what is IN the pig,
+-- never what you would take"* -- and the half that survives is the reason
+-- rather than the rule: it is not a TAKE, because a take needs the thief's own
+-- Bigger Sack level and would be a second implementation of a figure the crack
+-- panel already computes. A Rush Hour is the one thing that moves this, it
+-- moves every pig on the street by the same factor, and it is pushed rather
+-- than re-derived. See the value line in `paint` for what that costs.
 --
 -- CLIENT-SIDE AND PER VIEWER, WHICH IS THE ONLY CORRECT SHAPE HERE RATHER THAN
 -- A SHORTCUT. The per-victim cooldown is per THIEF, so two players standing at
@@ -88,7 +91,24 @@ local cooldown: { [number]: number } = {}
 -- about the VIEWER rather than about a plot, which is why it lives here
 -- beside the per-thief cooldowns rather than on an attribute in the world.
 local myPicks = 0
-local cards: { [Instance]: { gui: BillboardGui, label: TextLabel, locks: Frame } } = {}
+
+-- WHAT A ROBBERY IS WORTH RIGHT NOW, WHICH IS NOT ALWAYS ONE PIG'S WORTH.
+--
+-- Rush Hour doubles every take on the street -- `sliceWorth` and `smash` both
+-- multiply by `EventService.getStealMultiplier` -- and until now the only
+-- place that showed up was the crack panel's slice figures, which nobody can
+-- see until they are already standing on the lawn holding somebody's lock.
+-- That is the exact fault this file exists to fix, arriving on the one state
+-- of the street where the answer changes for every pig at once.
+--
+-- THE SERVER'S OWN NUMBER, off `EventState`, and deliberately not
+-- `Config.RUSH.stealMultiplier` read from here. A constant would be a second
+-- description of what a rush is worth, and it would go on saying 2 through
+-- the fourteen minutes of every quarter hour when nothing is running at all.
+local stealMultiplier = 1
+
+type Badge = { gui: BillboardGui, label: TextLabel, locks: Frame, big: boolean }
+local cards: { [Instance]: Badge } = {}
 local me: Player? = nil
 
 -- CASING DRAWS THE LOCK AS A LADDER, NOT AS A NUMBER.
@@ -103,13 +123,33 @@ local me: Player? = nil
 -- second table describing one ladder, sitting in a different file from the
 -- first. That is the near-identical copy that drifts, which this project has
 -- recorded for the mini piggy, `Decor.buildOne` and `RideSound`.
+local CARD_W = 150
 local CARD_H = 40
 local LOCK_ROW = 12
 
-local function build(body: BasePart): { gui: BillboardGui, label: TextLabel, locks: Frame }
+-- A BIGGER CARD DURING A RUSH, BECAUSE THE FONT CANNOT GROW ON ITS OWN.
+--
+-- The label is `TextScaled`, so its size is whatever fits the box rather than
+-- a number anybody sets -- measured, it renders at 31.68 of a 32-tall box, so
+-- it is already filling the height it has. The only lever on how big that
+-- figure reads is therefore the BOX, which is why the card grows rather than
+-- a TextSize being written: with `TextScaled` on, writing one changes nothing
+-- at all and reads back exactly what you set, which is the `UseJumpPower`
+-- family of bug this project has already paid for once.
+--
+-- WIDTH GROWS WITH HEIGHT, and it has to. A doubled figure gains a digit --
+-- 96.9M is the largest pig this game can produce and doubles to 193.8M -- and
+-- at the taller height six characters want about 152px, which a 138px label
+-- would answer by shrinking the type back down. Growing only the height would
+-- have been a bigger box containing the same size number, which is the whole
+-- thing this is for.
+local RUSH_W = 200
+local RUSH_H = 58
+
+local function build(body: BasePart): Badge
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "RobState"
-	gui.Size = UDim2.fromOffset(150, CARD_H)
+	gui.Size = UDim2.fromOffset(CARD_W, CARD_H)
 	gui.StudsOffset = Vector3.new(0, LIFT, 0)
 	gui.MaxDistance = REACH
 	-- Not AlwaysOnTop: this is scenery-scale information, and a label that
@@ -163,14 +203,17 @@ local function build(body: BasePart): { gui: BillboardGui, label: TextLabel, loc
 		Theme.corner(pip, 2)
 	end
 
-	return { gui = gui, label = label, locks = locks }
+	return { gui = gui, label = label, locks = locks, big = false }
 end
 
 local function attach(plotModel: Instance)
 	if cards[plotModel] then
 		return
 	end
-	local piggy = plotModel:WaitForChild("PiggyBank", 20)
+	-- Either kind of money -- see `Config.waitForPlotBank`. A shop vault gets
+	-- a badge for the same reason a piggy does: what is in it is the whole
+	-- decision, and a shop's is readable from the pavement over the roof.
+	local piggy = Config.waitForPlotBank(plotModel, 20)
 	local body = piggy and piggy:WaitForChild("Body", 20)
 	if not body or not body:IsA("BasePart") then
 		return
@@ -241,7 +284,41 @@ local function paint()
 				-- already computes -- and the two would disagree the first
 				-- time either moved. What is in the pig is also the honest
 				-- thing to COMPARE across eight plots, which is the job.
-				text = Config.formatCoins(vault)
+				-- THE FIGURE IS MULTIPLIED BY THE RUSH, AND THE CARD GROWS
+				-- WITH IT. So this badge is a WORTH rather than a pile, and
+				-- that is worth being exact about, because it is the one
+				-- number on the street that changes meaning during an event.
+				--
+				-- A pig does not HOLD double during a Rush Hour: what doubles
+				-- is the share a thief takes out of it, and `sliceWorth` and
+				-- `smash` both multiply by `EventService.getStealMultiplier`
+				-- to do it. So the honest reading of "23.3M" over a pig
+				-- holding 11.7M is *what robbing this is worth right now*,
+				-- which is the question the badge was built to answer from the
+				-- pavement -- and the doubling has to be VISIBLE rather than
+				-- merely true, because the whole point of the event is that
+				-- this is the twenty seconds to go and do it.
+				--
+				-- IT WAS A "x2" TAG BESIDE THE TRUE PILE FOR ONE SESSION, and
+				-- the figure is what changed instead. A tag is a thing you
+				-- READ and then multiply; a bigger number is a thing you SEE,
+				-- and half this audience is not reading the numbers -- the same
+				-- argument that made the upgrade rungs pips rather than "Lv
+				-- 3/4" and the crack's next slice a segment on a bar rather
+				-- than a figure. Every pig on the street grows at once, so
+				-- what the street reads as is a rush rather than as eight
+				-- separate pieces of arithmetic.
+				--
+				-- WHAT IT COSTS, STATED PLAINLY: THE STEAL PROMPT STILL QUOTES
+				-- THE PILE. Its own comment calls the two "two readouts of one
+				-- true thing at two distances", and during a rush they differ
+				-- by the multiplier -- the badge says 23.3M from the pavement
+				-- and the card at the lock says ~11.7M. That is deliberate and
+				-- it is the pair to revisit first if it ever reads wrong: the
+				-- prompt cannot follow without the crack panel's gauge
+				-- following too, because that gauge is drawn against the real
+				-- pig and a slice is a fixed width on it.
+				text = Config.formatCoins(vault * stealMultiplier)
 				tone = Theme.GOLD_INK
 			end
 		end
@@ -259,7 +336,26 @@ local function paint()
 		-- the same branch the value does.
 		local showLocks = Config.canCase(myPicks) and tone == Theme.GOLD_INK
 		badge.locks.Visible = showLocks
-		badge.gui.Size = UDim2.fromOffset(150, if showLocks then CARD_H + LOCK_ROW else CARD_H)
+
+		-- THE BIG CARD IS THE ROBBABLE STATE ONLY, which is the same branch
+		-- the value and the lock ladder already ride. A refusal is not worth
+		-- more of the screen for being refused during a rush -- "ROBBED 12s"
+		-- in bigger type says the wrong thing louder -- and this file's rule
+		-- is that a reason to stay away always beats a number.
+		local big = stealMultiplier > 1 and tone == Theme.GOLD_INK
+		local w = if big then RUSH_W else CARD_W
+		local h = if big then RUSH_H else CARD_H
+		-- The two inner offsets are written only on a CHANGE. `paint` runs
+		-- four times a second over every plot in reach, and a rush changes
+		-- this twice in three minutes -- so this is a comparison per badge per
+		-- tick instead of two property writes, and it is what keeps the label
+		-- from being re-laid-out sixty times for every time it moves.
+		if badge.big ~= big then
+			badge.big = big
+			badge.label.Size = UDim2.new(1, -12, 0, h - 8)
+			badge.locks.Position = UDim2.new(0, 10, 0, h - 4)
+		end
+		badge.gui.Size = UDim2.fromOffset(w, if showLocks then h + LOCK_ROW else h)
 		if showLocks then
 			local level = plotModel:GetAttribute(Config.PLOT_LOCK_ATTRIBUTE) or 0
 			for _, pip in ipairs(badge.locks:GetChildren()) do
@@ -292,6 +388,16 @@ function RobBadge.start(localPlayer: Player)
 
 	Remotes.get("StealCooldown").OnClientEvent:Connect(function(victimUserId, until_)
 		cooldown[victimUserId] = until_
+	end)
+
+	-- No repaint call: `paint` runs every TICK anyway, so the tag arrives
+	-- within a quarter second of the push and there is no second path that
+	-- could leave a stale one on screen. It defaults to 1 rather than nil, so
+	-- a client that has not had its first push yet reads as "no rush" instead
+	-- of erroring inside a loop that runs over every plot -- the same call the
+	-- event chip makes when it refuses to divide a bar by a total of 0.
+	Remotes.get("EventState").OnClientEvent:Connect(function(state)
+		stealMultiplier = (state and state.stealMultiplier) or 1
 	end)
 
 	task.spawn(function()
