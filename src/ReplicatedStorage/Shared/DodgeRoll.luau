@@ -64,7 +64,7 @@ local DodgeRoll = {}
 -- Longer than the 0.25s speed burst and the 0.5s of immunity on purpose.
 -- A roll is a push off, a travel, and a landing, and only the first two
 -- cover ground -- so the tail of the animation is the recovery, during
--- which you are moving normally and can be tagged again. That is the
+-- which you are moving normally and can be nabbed again. That is the
 -- honest reading of it: the part of the roll that is still going when the
 -- immunity ends is exactly the part that was never immune.
 DodgeRoll.DURATION = 0.6

@@ -245,11 +245,21 @@ POSES.hoverdisc = POSES.hoverboard
 --
 -- Overriding field by field sidesteps it completely. A stance that names only
 -- the left arm CANNOT move the feet, because the leg fields it does not
--- mention are still the measured ones. So the cheap stances -- and the only
--- ones in here -- are the ones that LET GO of something: a hand off the bar,
--- both hands off, arms folded, an arm in the air. A free limb has no contact
--- to miss. Anything that keeps a contact and changes how it is held is a
--- re-measure and has to be treated as one rather than nudged.
+-- mention are still the measured ones. So the CHEAP stances are the ones that
+-- LET GO of something: a hand off the bar, both hands off, a leg off the peg.
+-- A free limb has no contact to miss. Anything that keeps a contact and
+-- changes how it is held is a re-measure and has to be treated as one rather
+-- than nudged.
+--
+-- AND ONE OF THEM IS NOT CHEAP, WHICH IS WORTH SAYING HERE RATHER THAN ONLY
+-- AT THE ENTRY. The hoverboard's Upside Down stance takes the feet off the
+-- pads and puts the HANDS on the deck, so it CREATES a contact against
+-- geometry that was built for a different limb and cannot move. That is the
+-- expensive case above, and the way it was paid for is the way this note
+-- says it has to be: solved by forward kinematics off the rig's own
+-- attachments, then corrected against the live mounted rider. It is also the
+-- only stance that needed a new pose FIELD (`hipLift`), because no
+-- combination of joint angles puts an inverted body's head above the deck.
 --
 -- The `trick` block passes through from the base pose untouched, which is
 -- right for the limbs still holding on and harmless for the ones that let go:
@@ -351,22 +361,92 @@ local STANCES: { [string]: { [string]: any } } = {
 		},
 	},
 
-	-- ARMS FOLDED.
+	-- UPSIDE DOWN: A HANDSTAND ON THE DECK.
 	--
-	-- The hoverboard has nothing to hold, so this is the one stance here with
-	-- no contact to respect at all -- and the biggest silhouette change
-	-- available anywhere in the file, since the base pose's whole idea is arms
-	-- out at +-2.26 reading as balance.
+	-- This replaces an ARMS FOLDED stance, and the reason for the swap is the
+	-- reason folded arms were the wrong ambition: the hoverboard is the one
+	-- ride with no contact to respect, so it is the one place in this file
+	-- where a stance can change the whole SILHOUETTE rather than one limb --
+	-- and folded arms spend that on a detail nobody reads from the pavement.
+	-- A rider standing on their hands is legible from across the street.
 	--
-	-- Deliberately not symmetric: two arms folded at identical angles put the
-	-- forearms through each other. The right sits higher and crosses further,
-	-- which is what a folded pair actually does.
+	-- IT IS THE ONLY STANCE THAT CREATES A CONTACT RATHER THAN LETTING ONE
+	-- GO, which is exactly what the header above says is expensive, so it is
+	-- worth saying how it was paid for. The other five all free a limb -- a
+	-- hand off the bar, both hands off, a leg off the peg -- because a free
+	-- limb has nothing to miss. This one takes the FEET off the pads (free)
+	-- and puts the HANDS on the deck (not free): the deck was built at the
+	-- measured foot positions and cannot move, so the hands had to be solved
+	-- to reach it.
+	--
+	-- SOLVED BY FORWARD KINEMATICS OFF THE RIG'S OWN ATTACHMENTS, then
+	-- corrected against the live rider. Every joint on this rig is an
+	-- `AnimationConstraint` whose two attachments carry identity rotation, so
+	-- a child sits at `parent * A0 * pose * A1:Inverse()` and the whole chain
+	-- is closed-form. Validated before it was trusted: against the live
+	-- mounted rider it reproduces the classic pose's feet to 0.005 studs and
+	-- its head to 0.020, and the rig's rest pose to 0.007 on every limb.
+	--
+	-- THE FLIP IS A ROLL AND DELIBERATELY NOT A PITCH. 180 degrees about X
+	-- maps -Z to +Z, so the rider would be upside down AND facing backwards
+	-- down the street. About Z it is x -> -x, y -> -y with the facing
+	-- untouched, so they stay pointed the way the board is going. Left and
+	-- right swap sides, which costs nothing on a pose this symmetric.
+	--
+	-- WHAT EACH NUMBER IS FOR, since none of them is a taste call:
+	--   hipRoll 180  the flip, about the root joint at root-space y -1.252
+	--   hipLift 1.67 solved, not chosen: it is what puts the palms on the
+	--                deck. Measured, the palm lands 0.09 studs INTO the
+	--                surface, which is the same convention every detail
+	--                standing on something in this game uses.
+	--   armPitch 168 arms raised along the body, which inverted is straight
+	--                down at the deck
+	--   armRoll +-12 solved with the lift: it is what sets the hands' spread
+	--   elbow 2      effectively straight arms. A handstand on bent arms
+	--                reads as a collapse, and the solver wanted straight.
+	--   torso 0      the base pose's -4 lean is for a rider standing up
+	--   head -20     tips the face away from the deck. It also buys clearance
+	--                the pose has little of: the crown sits 0.30 studs off
+	--                the deck, which is what a real handstand looks like.
+	--   legs         straight up, a 6-degree V so the two do not read as one
+	--                limb, and pointed toes for the line.
+	--
+	-- THE HANDS LAND AT +-1.15, WHICH IS A CLEARANCE RATHER THAN A STYLE
+	-- CHOICE, and it was widened from a first solve at +-0.89 by LOOKING at
+	-- it. The pads span |x| 0.60 to 1.56 and the bridge between them sits
+	-- 0.12 lower, so hands closer together than 0.60 would be planted on air
+	-- -- but the binding constraint is higher up. At +-0.89 both arms pass
+	-- within 0.3 studs of the head, and photographed on a real avatar the
+	-- HAIR covered both hands: a handstand with no visible hands.
+	--
+	-- HAIR IS THE PLAYER'S CHOICE AND CANNOT BE DESIGNED AROUND -- the
+	-- scrambler's retired arm-in-the-air stance is this file's own record of
+	-- that, where no setting was both high and clear of a skull whose hair is
+	-- a different width on every player. What CAN be done is not aiming a
+	-- limb through that space, so the plant moved outboard until the arms run
+	-- outside the head rather than beside it. It costs 0.06 studs of head
+	-- clearance, which the pose had to spare and the hands did not.
+	--
+	-- AND THE ARMS OF THIS RIG PHYSICALLY SAG AWAY FROM WHAT IS AUTHORED,
+	-- which is worth knowing before anybody re-tunes this. Measured on the
+	-- live rider against the classic pose's own uploaded asset -- fetched back
+	-- and confirmed to contain exactly `armPitch 10, armRoll -+40, elbow -10`
+	-- -- the shoulder READS BACK at (14.3, -3.6, -4.1) and the hand sits at
+	-- +-1.84 where the arithmetic says +-2.26. The legs and the torso arrive
+	-- exactly. An `AnimationConstraint` is a constraint rather than a rigid
+	-- joint, so a limb held out ACROSS gravity settles below its target and
+	-- one hanging along gravity does not -- which is why the classic pose's
+	-- abducted arms lose 20 degrees and its legs lose nothing. An inverted
+	-- handstand points both arms straight down the gravity vector, where the
+	-- torque is near zero, so this pose holds where the classic one does not.
 	hoverboard = {
-		crossed = {
-			name = "Arms Crossed", order = 1,
-			torso = -2,
-			left = { armPitch = 24, armRoll = 30, elbow = -98 },
-			right = { armPitch = 31, armRoll = -34, elbow = -104 },
+		upsidedown = {
+			name = "Upside Down", order = 1,
+			hipRoll = 180, hipLift = 1.67, torso = 0, head = -20,
+			left = { armPitch = 168, armRoll = 12, elbow = 2,
+				hipFlex = 0, knee = 0, legRoll = -6, ankle = -20 },
+			right = { armPitch = 168, armRoll = -12, elbow = 2,
+				hipFlex = 0, knee = 0, legRoll = 6, ankle = -20 },
 		},
 	},
 
@@ -707,7 +787,30 @@ local function addKeyframe(seq: KeyframeSequence, spec: any, at: number, drift: 
 
 	-- The trick delta pre-multiplies the base pose, so the whole body rotates
 	-- about the ride's pivot and every limb keeps the contact it already had.
-	local hips = CFrame.new(0, 0, spec.hipBack or 0)
+	-- `hipLift` MOVES THE BODY AND NEVER THE ROOT, WHICH IS WHY IT IS LEGAL.
+	--
+	-- The rule directly above -- identity on the root, always -- is about ROOT
+	-- MOTION: a pose that translated the root would be a second, parallel way
+	-- to move a character, which `Config.DODGE` exists to rule out and which
+	-- every speed in this game is calibrated against. A translation on the
+	-- LOWERTORSO pose is a different thing entirely, and the dodge roll
+	-- already records the distinction in as many words: lifting the LowerTorso
+	-- "is the body leaving the ground, not the character". The humanoid, its
+	-- collision capsule, its WalkSpeed and the ride welded to its root all
+	-- stay exactly where they were.
+	--
+	-- It exists for the hoverboard's inverted stance and nothing else. A body
+	-- flipped 180 degrees about the root joint puts its head a stud and a half
+	-- BELOW the deck -- measured, crown at -4.44 in root space against a deck
+	-- top of -3.05 -- so an upside-down pose is not reachable by joint angles
+	-- alone at any values. The lift is what turns the flip into a handstand.
+	--
+	-- Translated in the ROOT's own frame rather than the flipped body's, which
+	-- is what `CFrame.new(...) * angles(...)` gives: applied to a child point
+	-- p the result is R*p + t, so `t` is unrotated. That is the half that
+	-- makes the number readable -- 1.71 means 1.71 studs up the street, not
+	-- 1.71 studs along whatever axis the body happens to be pointing.
+	local hips = CFrame.new(0, spec.hipLift or 0, spec.hipBack or 0)
 		* angles(spec.hipPitch, spec.hipYaw, spec.hipRoll)
 	local lower = pose("LowerTorso", if delta then delta * hips else hips, root)
 
