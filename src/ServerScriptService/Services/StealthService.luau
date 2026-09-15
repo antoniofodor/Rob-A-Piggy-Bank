@@ -422,8 +422,7 @@ local function wireBin(model: Model)
 	local enter = Instance.new("ProximityPrompt")
 	enter.Name = "Enter"
 	enter.ActionText = "HIDE"
-	enter.Style = Enum.ProximityPromptStyle.Custom
-	enter:SetAttribute(Config.PROMPT_KIND_ATTRIBUTE, "hide")
+	Config.setPromptKind(enter, "hide")
 	enter.ObjectText = "Wheelie Bin"
 	enter.HoldDuration = Config.BINS.enterHold
 	enter.MaxActivationDistance = Config.BINS.range
@@ -433,8 +432,7 @@ local function wireBin(model: Model)
 	local open = Instance.new("ProximityPrompt")
 	open.Name = "Open"
 	open.ActionText = "OPEN"
-	open.Style = Enum.ProximityPromptStyle.Custom
-	open:SetAttribute(Config.PROMPT_KIND_ATTRIBUTE, "dig")
+	Config.setPromptKind(open, "dig")
 	open.ObjectText = "Wheelie Bin"
 	open.HoldDuration = Config.BINS.openHold
 	open.MaxActivationDistance = Config.BINS.range
