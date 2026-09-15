@@ -281,7 +281,7 @@ function SetService.buy(player: Player, kind: string, key: string)
 	-- catalogue, or every coin price in the game has a second, cheaper route.
 	local price = spec.loot
 	if type(price) ~= "number" or price <= 0 then
-		refuse("That isn't bought with loot.")
+		refuse("That isn't bought with acorns.")
 		return
 	end
 
@@ -292,7 +292,7 @@ function SetService.buy(player: Player, kind: string, key: string)
 
 	local have = math.floor(data.loot or 0)
 	if have < price then
-		refuse(("Need %d more loot for the %s. Rob a neighbour."):format(price - have, spec.name))
+		refuse(("Need %d more %s for the %s."):format(price - have, Config.lootWord(price - have), spec.name))
 		return
 	end
 

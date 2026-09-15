@@ -114,7 +114,7 @@ local MENU: { Group } = {
 		name = "Collection",
 		rows = {
 			{ label = "Unlock skins / effects / houses / gear / catches", cmd = "unlockall" },
-			{ label = "+50 loot", cmd = "loot", a = 50 },
+			{ label = "+50 acorns", cmd = "loot", a = 50 },
 			{ label = "Raise the mailbox flag (unclaimed daily)", cmd = "post" },
 			{ label = "Claim daily day 7 (free crate)", cmd = "daily", a = 7 },
 			{ label = "Claim daily day 6 (golden bone)", cmd = "daily", a = 6 },

@@ -136,6 +136,10 @@ Theme.PAPER_DEEP = Color3.fromRGB(237, 220, 194)
 Theme.GOLD = Color3.fromRGB(255, 203, 61)
 Theme.GOLD_DEEP = Color3.fromRGB(227, 138, 30)
 
+-- Acorns: nut brown with a leaf-green cap; gold remains the coin colour.
+Theme.ACORN = Color3.fromRGB(164, 96, 49)
+Theme.ACORN_CAP = Color3.fromRGB(111, 170, 69)
+
 -- The pig. The snout on the piggy bank panel, and the piggy tab. Lighter
 -- than the rest of the accents on purpose: it is used as a SURFACE that
 -- carries dark text, where every other accent is a small mark.
@@ -389,6 +393,68 @@ end
 -- the palette, and cost no more instances than the chip they replace.
 --
 -- Returns the outer frame so the caller positions one thing.
+function Theme.acorn(parent: Instance, size: number, name: string?): Frame
+	local root = Instance.new("Frame")
+	root.Name = name or "Acorn"
+	root.Size = UDim2.fromOffset(size, size)
+	root.BackgroundTransparency = 1
+	root.Parent = parent
+	local function part(name: string, x: number, y: number, w: number, h: number,
+		colour: Color3, radius: number, z: number, outlined: boolean?): Frame
+		local p = Instance.new("Frame")
+		p.Name = name
+		p.Position = UDim2.fromScale(x, y)
+		p.Size = UDim2.fromScale(w, h)
+		p.BackgroundColor3 = colour
+		p.BorderSizePixel = 0
+		p.ZIndex = z
+		Theme.corner(p, size * radius)
+		if outlined then Theme.outline(p, math.max(1, size * 0.04), Theme.INK) end
+		p.Parent = root
+		return p
+	end
+	part("Tip", 0.42, 0.77, 0.16, 0.16, Theme.ACORN, 0.06, 1, true)
+	local nut = part("Nut", 0.19, 0.30, 0.62, 0.56, Theme.ACORN, 0.26, 2, true)
+	Theme.shade(nut, 0.73)
+	local shine = part("NutShine", 0.28, 0.48, 0.10, 0.23, Theme.PAPER, 0.05, 3)
+	shine.Rotation = -13
+	shine.BackgroundTransparency = 0.52
+	local stem = part("Stem", 0.48, 0.05, 0.13, 0.24, Theme.ACORN, 0.05, 3, true)
+	stem.Rotation = 20
+	local cap = part("Cap", 0.12, 0.24, 0.76, 0.30, Theme.ACORN_CAP, 0.14, 4, true)
+	Theme.shade(cap, 0.78)
+	part("CapRim", 0.18, 0.44, 0.64, 0.06, Theme.ACORN_CAP, 0.03, 5)
+	for i = 0, 2 do
+		local stitch = part("CapDetail" .. i, 0.27 + i * 0.18, 0.32,
+			0.06, 0.07, Theme.PAPER, 0.02, 5)
+		stitch.Rotation = 30
+		stitch.BackgroundTransparency = 0.5
+	end
+	return root
+end
+
+-- Decorate an existing price label without changing its bounds. Its other
+-- states (owned/equipped/locked) automatically remove the glyph and padding.
+function Theme.acornPrice(label: TextLabel | TextButton, text: string)
+	if not label:FindFirstChild("AcornPriceIcon") then
+		local icon = Theme.acorn(label, 20, "AcornPriceIcon")
+		icon.AnchorPoint = Vector2.new(0, 0.5)
+		icon.Position = UDim2.new(0, -24, 0.5, 0)
+		local pad = Instance.new("UIPadding")
+		pad.Name = "AcornPricePadding"
+		pad.Parent = label
+		local originalAlignment = label.TextXAlignment
+		local function refresh()
+			local active = string.find(string.lower(label.Text), "acorn", 1, true) ~= nil
+			icon.Visible = active
+			pad.PaddingLeft = UDim.new(0, if active then 24 else 0)
+			label.TextXAlignment = if active then Enum.TextXAlignment.Left else originalAlignment
+		end
+		label:GetPropertyChangedSignal("Text"):Connect(refresh)
+	end
+	label.Text = text
+end
+
 function Theme.coin(parent: Instance, size: number, name: string?): Frame
 	local outer = Instance.new("Frame")
 	outer.Name = name or "Coin"

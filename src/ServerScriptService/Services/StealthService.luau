@@ -527,7 +527,7 @@ local function step()
 		elseif HeistService.isCarrying(player) then
 			-- Non-negotiable for the ornament disguise. The run home stays
 			-- visible.
-			reveal(player, "You grabbed the loot. Disguise blown!")
+			reveal(player, "You grabbed the haul. Disguise blown!")
 		elseif os.clock() > state.until_ then
 			reveal(player, "Your disguise wore off.")
 		end

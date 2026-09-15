@@ -645,7 +645,7 @@ local function runPatrol()
 	-- is only a decision if you know the clock started.
 	for _, player in ipairs(Players:GetPlayers()) do
 		if HeistService.isCarrying(player) then
-			notify(player, "Sirens on the street. Bank that loot!", "police")
+			notify(player, "Sirens on the street. Bank that haul!", "police")
 		end
 	end
 

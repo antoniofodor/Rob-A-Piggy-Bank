@@ -726,9 +726,6 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 		cardCoins.Text = ("+%s"):format(Config.formatCoins(payload.banked or 0))
 
 		local bits = {}
-		if (payload.loot or 0) > 0 then
-			table.insert(bits, ("+%d %s"):format(payload.loot, Config.lootWord(payload.loot)))
-		end
 		if (payload.run or 0) > 1 then
 			table.insert(bits, ("%dx IN A ROW"):format(payload.run))
 		end

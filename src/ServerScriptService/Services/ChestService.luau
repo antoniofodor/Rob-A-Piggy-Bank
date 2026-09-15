@@ -238,7 +238,7 @@ end
 local function shortfallMessage(chest: any, held: number, cost: number): string
 	if (chest.currency or "coins") == "loot" then
 		local short = cost - held
-		return ("Need %d more %s. Rob a neighbour and get the coins home."):format(
+		return ("Need %d more %s."):format(
 			short, Config.lootWord(short))
 	end
 	return ("Need %d more coins for the %s."):format(cost - held, chest.name)

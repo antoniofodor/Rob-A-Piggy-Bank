@@ -301,6 +301,31 @@ local function buildButton(gui: ScreenGui)
 	starChip.Parent = button
 	corner(starChip, 6)
 
+	-- Keep the rebirth action below the Roblox controls on small screens.
+	-- Update its sibling halo from the same geometry so it cannot drift.
+	local function fit()
+		local view = gui.AbsoluteSize
+		local m = require(script.Parent.HUDLayout).metrics(view)
+		button.AnchorPoint = Vector2.new(0.5, 0)
+		button.Size = UDim2.fromOffset(if m.compact then 146 else 232, if m.compact then 44 else 54)
+		button.Position = if m.compact
+			then UDim2.new(0.5, -56, 0, if m.portrait then 150 else 12)
+			else UDim2.new(0.5, 0, 0, 96)
+		label.TextSize = if m.compact then 14 else 22
+		label.Position = UDim2.fromOffset(if m.compact then 27 else 44, 0)
+		label.Size = UDim2.new(1, if m.compact then -62 else -96, 1, 0)
+		glyph.Size = UDim2.new(0, if m.compact then 22 else 30, 1, 0)
+		glyph.Position = UDim2.fromOffset(if m.compact then 7 else 10, 0)
+		glyph.TextSize = if m.compact then 19 else 24
+		starChip.Size = UDim2.fromOffset(if m.compact then 30 else 44, 24)
+		starChip.Position = UDim2.new(1, if m.compact then -6 else -10, 0.5, 0)
+		halo.AnchorPoint = button.AnchorPoint
+		halo.Position = button.Position - UDim2.fromOffset(0, 7)
+		halo.Size = button.Size + UDim2.fromOffset(14, 14)
+	end
+	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+	fit()
+
 	button.Activated:Connect(function()
 		if FIRST_TIME_ONLY and seen.rebirths > 0 then
 			if onConfirm then

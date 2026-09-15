@@ -811,7 +811,7 @@ commands.loot = function(player, amount)
 	else
 		SetService.push(player)
 	end
-	return ("Loot: %d"):format(SetService.getLoot(player))
+	return ("Acorns: %d"):format(SetService.getLoot(player))
 end
 
 commands.event = function(player, name)

@@ -49,18 +49,23 @@
 	in here loses them anything.
 ]]
 
-local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Theme = require(ReplicatedStorage.Shared.Theme)
+local DragRules = require(ReplicatedStorage.Shared.HotBarDrag)
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-
-local Remotes = require(ReplicatedStorage.Shared.Remotes)
 
 local HotBar = {}
 
 local SLOT = 58
-local GAP = 6
+local GAP = 8
+local SHELF_MARGIN = 16
+local page = 1
+local pageSize = 10
+local previousPage: TextButton
+local nextPage: TextButton
+local pageLabel: TextLabel
+local keyLabels: { TextLabel } = {}
 -- How far the pointer travels before a press becomes a drag rather than a
 -- throw. Too tight and a tap from a moving finger throws nothing; too loose
 -- and a deliberate drag feels stuck. Ten pixels is about a fingertip's own
@@ -109,6 +114,7 @@ HotBar.ITEMS = {
 	"plunger", "gum", "zapper",
 	"treat", "sprinkler", "radio",
 	"raincoat",
+	"ladder",
 }
 
 -- Set by ClientMain. The bar knows how to lay itself out and nothing about
@@ -142,6 +148,7 @@ type Slot = {
 	-- exactly the moment the player is looking at the tile, and one that was
 	-- always there only has to change its transparency.
 	edge: UIStroke,
+	marker: Frame,
 	key: string,
 	base: number,
 	held: boolean,
@@ -153,6 +160,7 @@ type Slot = {
 
 local slots: { [string]: Slot } = {}
 local frame: Frame
+local slotRow: Frame
 local scale: UIScale
 local binZone: Frame
 local restoreTile: TextButton
@@ -182,6 +190,7 @@ local shelved: { [string]: boolean } = {}
 
 local drag = {
 	key = nil :: string?,
+	input = nil :: InputObject?,
 	ghost = nil :: TextButton?,
 	origin = Vector2.zero,
 	live = false,
@@ -189,7 +198,8 @@ local drag = {
 -- A drag ends with the same InputEnded a tap does, and Activated fires after
 -- it. Without this flag every rearrangement would also throw the thing being
 -- rearranged.
-local justDragged = false
+local suppressUntil = 0
+local dropMarker: Frame
 
 -- ============================================================
 -- ARRANGEMENT
@@ -307,7 +317,7 @@ local function save()
 		table.insert(hidden, key)
 	end
 	table.sort(hidden)
-	Remotes.get("SettingRequest"):FireServer("hotbar", {
+	require(ReplicatedStorage.Shared.Remotes).get("SettingRequest"):FireServer("hotbar", {
 		order = arrangement,
 		hidden = hidden,
 	})
@@ -317,7 +327,33 @@ end
 -- LAYOUT
 -- ============================================================
 
+-- Keep real touch targets and page the overflow instead of shrinking ten
+-- items into the joystick and jump areas. This also handles window resizing.
+function HotBar.layoutFor(view: Vector2, touch: boolean, count: number)
+	local compact = view.X < 1100 or view.Y < 620 or touch
+	local portrait = view.Y > view.X
+	local slot = if compact then 52 else SLOT
+	local room = math.max(164, view.X - (if compact and not portrait then 240 else 40))
+	local allWidth = count * slot + math.max(0, count - 1) * GAP
+	local limit = if compact then 5 else math.max(1, count)
+	local paged = count > limit or allWidth > room
+	local capacity = if paged then math.clamp(math.floor((room - 96) / (slot + GAP)), 1, limit) else math.max(1, count)
+	return { slot = slot, capacity = capacity, bottom = if portrait then 270 else 22, room = room }
+end
+
+local function visibleItems(): { TextButton }
+	local items = {}
+	-- Include newly registered catalogue items even before they have a saved
+	-- arrangement entry (for example, the ladder).
+	for key, slot in pairs(slots) do
+		if slot.held and not shelved[key] then table.insert(items, slot.button) end
+	end
+	table.sort(items, function(a, b) return a.LayoutOrder < b.LayoutOrder end)
+	return items
+end
+
 function HotBar.refresh()
+	if not frame then return end
 	applyOrder()
 
 	local shelvedHeld = 0
@@ -332,22 +368,48 @@ function HotBar.refresh()
 	local show = if HotBar.shouldShow then HotBar.shouldShow() else true
 	frame.Visible = show
 	if not show then
+		pageLabel.Visible = false
+		hintLabel.Visible = false
 		return
 	end
 
-	-- The scale is computed from the slot COUNT and never from AbsoluteSize:
-	-- scaling changes AbsoluteSize, so reading it back to decide the scale is
-	-- a feedback loop that oscillates instead of settling.
-	local shown = 0
-	for _, child in ipairs(frame:GetChildren()) do
-		if child:IsA("GuiButton") and child.Visible then
-			shown += 1
+	local items = visibleItems()
+	if shelvedHeld > 0 then table.insert(items, restoreTile) end
+	local gui = frame.Parent :: ScreenGui
+	local fit = HotBar.layoutFor(gui.AbsoluteSize, UserInputService.TouchEnabled, #items)
+	pageSize = fit.capacity
+	local pages = math.max(1, math.ceil(#items / pageSize))
+	page = math.clamp(page, 1, pages)
+	local rowCount = if pages > 1 then pageSize else #items
+	local rowWidth = rowCount * fit.slot + math.max(0, rowCount - 1) * GAP
+	frame.Size = UDim2.fromOffset(rowWidth + (if pages > 1 then 104 else 0), 60)
+	slotRow.Size = UDim2.fromOffset(rowWidth, 60)
+	slotRow.Position = UDim2.fromOffset(if pages > 1 then 52 else 0, 0)
+	for index, item in ipairs(items) do
+		item.Size = UDim2.fromOffset(fit.slot, 60)
+		item.Visible = math.ceil(index / pageSize) == page
+	end
+	previousPage.Visible = pages > 1
+	nextPage.Visible = pages > 1
+	previousPage:SetAttribute("Available", page > 1)
+	nextPage:SetAttribute("Available", page < pages)
+	for _, control in { previousPage, nextPage } do
+		local enabled = control:GetAttribute("Available") == true
+		control.Active = enabled
+		for _, d in control:GetChildren() do
+			if d:IsA("Frame") then d.BackgroundTransparency = if enabled then 0 else 0.65 end
 		end
 	end
-
-	local natural = shown * SLOT + math.max(0, shown - 1) * GAP
-	local room = workspace.CurrentCamera.ViewportSize.X - 40
-	scale.Scale = if natural > room and natural > 0 then room / natural else 1
+	frame.Position = UDim2.new(0.5, 0, 1, -fit.bottom)
+	scale.Scale = 1
+	hintLabel.Position = UDim2.new(0.5, 0, 1, -fit.bottom - 65)
+	binZone.Position = UDim2.new(0.5, 0, 1, -fit.bottom - 60 - SHELF_MARGIN)
+	pageLabel.Position = UDim2.new(0.5, 0, 1, -fit.bottom + 17)
+	pageLabel.Text = string.format("%d / %d", page, pages)
+	pageLabel.Visible = show and pages > 1
+	for _, label in keyLabels do
+		label.Visible = not UserInputService.TouchEnabled or label.Text == "ON"
+	end
 end
 
 -- WHICH TILE IS IN YOUR HAND.
@@ -363,12 +425,19 @@ end
 -- that is twice as thick as its neighbours reads at a glance, which is the
 -- same argument the Legendary card border already makes.
 function HotBar.setEquipped(key: string?)
+	local changed = key ~= equippedKey
 	equippedKey = key
 	for slotKey, slot in pairs(slots) do
 		local on = slotKey == key
-		slot.edge.Transparency = if on then 0 else 1
-		slot.edge.Thickness = if on then 3 else 1.5
-		slot.button.BackgroundTransparency = if on then 0 else 0.15
+		slot.edge.Transparency = 1
+		slot.marker.Visible = on
+		slot.button.BackgroundTransparency = 1
+	end
+	-- Number keys can select an item on another page. Bring it into view.
+	if changed and key and slots[key] then
+		local index = table.find(visibleItems(), slots[key].button)
+		if index then page = math.ceil(index / pageSize) end
+		HotBar.refresh()
 	end
 end
 
@@ -390,99 +459,59 @@ end
 -- THE DRAG
 -- ============================================================
 
--- Gui space, which is NOT input space: this ScreenGui has IgnoreGuiInset on,
--- so its y=0 is the physical top of the screen while an input's y=0 is below
--- the Roblox topbar. Everything here is compared against AbsolutePosition, so
--- the inset has to be added back or every vertical test is off by its height.
+-- InputObject.Position and AbsolutePosition share CoreUISafeInsets space.
+-- Convert only when placing a child under the ScreenGui, whose origin can
+-- be above the topbar (or shifted by a device cutout).
 local function pointer(input: InputObject): Vector2
-	local inset = GuiService:GetGuiInset()
-	return Vector2.new(input.Position.X + inset.X, input.Position.Y + inset.Y)
+	return Vector2.new(input.Position.X, input.Position.Y)
 end
 
--- Which slot the pointer is to the left of, or nil for past the right-hand
--- end. X only -- the bar is horizontal, and X is also the one axis the inset
--- cannot touch.
 local function dropBefore(x: number): string?
 	local visible = {}
 	for _, slot in pairs(slots) do
 		if slot.button.Visible then
-			table.insert(visible, slot)
+			table.insert(visible, {key = slot.key,
+				x = slot.button.AbsolutePosition.X + slot.button.AbsoluteSize.X / 2})
 		end
 	end
-	table.sort(visible, function(a, b)
-		return a.button.LayoutOrder < b.button.LayoutOrder
-	end)
-
-	for _, slot in ipairs(visible) do
-		local b = slot.button
-		if x < b.AbsolutePosition.X + b.AbsoluteSize.X / 2 then
-			return slot.key
-		end
-	end
-	return nil
+	return DragRules.before(arrangement, drag.key or "", visible, x)
 end
 
--- SHELVING IS "ABOVE THE BAR", NOT "INSIDE A BOX".
---
--- This tested the pointer against the bin rectangle exactly: 210 by 48 pixels
--- sitting at y H-134 to H-86, while the bar's own top edge is at H-74. That
--- leaves a TWELVE PIXEL DEAD BAND between the two and open dead space above,
--- so a player pulling a tile off the bar had to stop the cursor inside a thin
--- horizontal stripe -- and dragging further, which is the natural way to mean
--- "get this off my bar", took them straight back out of it.
---
--- The gesture is pulling a tile OFF the bar, so the test is the bar's own top
--- edge and nothing else. Everything above it counts, all the way up and the
--- full width of the screen, which is a target nobody can miss. The drawn zone
--- is now only an affordance saying what will happen; it is not the hit area.
---
--- The margin is what keeps a sideways REORDER from being read as a shelve.
--- Reordering happens LIVE during the drag and freezes while over the bin, so
--- this threshold decides two things at once: where the ghost turns red, and
--- what a release means. Sixteen pixels is about a quarter of a tile -- past
--- any drift in a sideways drag, well short of a deliberate upward pull.
---
--- The drawn zone's bottom edge is placed at exactly this line, so what the
--- player sees is where the behaviour actually changes.
-local SHELF_MARGIN = 16
-
+-- Only this explicit target shelves an item. Releasing over the world
+-- cancels instead of silently hiding an item during a sideways reorder.
 local function overBin(p: Vector2): boolean
-	if not frame then
-		return false
-	end
-	return p.Y < frame.AbsolutePosition.Y - SHELF_MARGIN
+	return binZone.Visible and DragRules.contains(p, binZone.AbsolutePosition, binZone.AbsoluteSize)
 end
 
-local function endDrag(input: InputObject)
+local function overRow(p: Vector2): boolean
+	return DragRules.contains(p, slotRow.AbsolutePosition - Vector2.new(12, 12),
+		slotRow.AbsoluteSize + Vector2.new(24, 24))
+end
+
+local function endDrag(input: InputObject?)
 	if drag.ghost then
 		drag.ghost:Destroy()
 		drag.ghost = nil
 	end
-	binZone.Visible = false
-
 	local key = drag.key
-	if key and slots[key] then
-		-- Restored through setEquipped rather than to a literal 0.15: the tile
-		-- being dragged may be the one in the player's hand, and putting the
-		-- flat value back would quietly un-highlight it.
-		slots[key].button.BackgroundTransparency = if key == equippedKey then 0 else 0.15
-		if drag.live then
-			if overBin(pointer(input)) then
+	if key and slots[key] and drag.live then
+		if input and input.UserInputState ~= Enum.UserInputState.Cancel then
+			local p = pointer(input)
+			if overBin(p) then
 				shelved[key] = true
+				save()
+			elseif overRow(p) then
+				local before = dropBefore(p.X)
+				if before ~= key then arrange(key, before); save() end
 			end
-			save()
 		end
+		-- Activated can arrive after InputEnded's deferred callbacks.
+		suppressUntil = os.clock() + 0.25
 	end
-
-	if drag.live then
-		justDragged = true
-		task.defer(function()
-			justDragged = false
-		end)
-	end
-	drag.key, drag.live = nil, false
+	binZone.Visible = false
+	dropMarker.Visible = false
+	drag.key, drag.input, drag.live = nil, nil, false
 	HotBar.refresh()
-	-- The drop may have moved keys, so the tiles have to be repainted.
 	announceArranged()
 end
 
@@ -503,8 +532,9 @@ local function beginDrag(key: string)
 	ghost.Visible = true
 	ghost.Active = false
 	ghost.AutoButtonColor = false
-	ghost.BackgroundTransparency = 0
-	ghost.Size = UDim2.new(0, SLOT, 0, SLOT)
+	ghost.BackgroundTransparency = 1
+	ghost.Size = UDim2.fromOffset(slot.button.AbsoluteSize.X, slot.button.AbsoluteSize.Y)
+	ghost.AnchorPoint = Vector2.new(0.5, 0.5)
 	ghost.ZIndex = 20
 	for _, d in ipairs(ghost:GetDescendants()) do
 		if d:IsA("GuiObject") then
@@ -514,7 +544,7 @@ local function beginDrag(key: string)
 	ghost.Parent = frame.Parent
 	drag.ghost = ghost
 
-	slot.button.BackgroundTransparency = 0.72
+	slot.button.BackgroundTransparency = 1
 	binZone.Visible = true
 end
 
@@ -533,21 +563,29 @@ local function trackDrag(input: InputObject)
 	end
 
 	local ghost = drag.ghost
+	local gui = frame.Parent :: ScreenGui
 	if ghost then
-		ghost.Position = UDim2.new(0, p.X - SLOT / 2, 0, p.Y - SLOT / 2)
-		ghost.BackgroundColor3 = if overBin(p)
-			then Theme.STOP
-			else Theme.COOL
+		local localPoint = p - gui.AbsolutePosition
+		ghost.Position = UDim2.fromOffset(localPoint.X, localPoint.Y)
 	end
-
-	-- The bin is a removal, not a position, so the tile stops shuffling while
-	-- the finger is over it. Otherwise it slides to whichever end of the bar
-	-- the bin happens to sit above, and reads as though the drop had already
-	-- landed somewhere else.
-	if not overBin(p) then
-		arrange(key, dropBefore(p.X))
-		applyOrder()
+	local storing = overBin(p)
+	binZone.BackgroundColor3 = if storing then Theme.PIG_DEEP else Theme.PAPER
+	dropMarker.Visible = not storing and overRow(p)
+	if dropMarker.Visible then
+		local closest, distance = nil, math.huge
+		for _, slot in pairs(slots) do
+			if slot.button.Visible then
+				local delta = math.abs(p.X - slot.button.AbsolutePosition.X - slot.button.AbsoluteSize.X / 2)
+				if delta < distance then closest, distance = slot.button, delta end
+			end
+		end
+		if closest then
+			local at = closest.AbsolutePosition - gui.AbsolutePosition
+			dropMarker.Position = UDim2.fromOffset(at.X, at.Y)
+			dropMarker.Size = UDim2.fromOffset(closest.AbsoluteSize.X, closest.AbsoluteSize.Y)
+		end
 	end
+	-- Keep the row still while aiming. Commit the reorder once on release.
 end
 
 -- ============================================================
@@ -562,20 +600,34 @@ function HotBar.init(gui: ScreenGui): Frame
 	-- as wide as the slots that are actually visible, so a centred bar stays
 	-- centred as items come and go -- UIListLayout skips hidden children, and
 	-- most of these slots are hidden most of the time.
-	frame.Size = UDim2.new(0, 0, 0, 54)
-	frame.AutomaticSize = Enum.AutomaticSize.X
+	frame.Size = UDim2.new(0, 0, 0, 60)
+	frame.AutomaticSize = Enum.AutomaticSize.None
 	frame.Position = UDim2.new(0.5, 0, 1, -20)
 	frame.AnchorPoint = Vector2.new(0.5, 1)
 	frame.BackgroundTransparency = 1
 	frame.Visible = false
 	frame.Parent = gui
+	slotRow = Instance.new("Frame")
+	slotRow.Name = "Items"
+	slotRow.BackgroundTransparency = 1
+	slotRow.Size = UDim2.fromScale(1, 1)
+	slotRow.Parent = frame
+
+	dropMarker = Instance.new("Frame")
+	dropMarker.Name = "HotBarDropTarget"
+	dropMarker.BackgroundTransparency = 1
+	dropMarker.Visible = false
+	dropMarker.ZIndex = 18
+	dropMarker.Parent = gui
+	Theme.corner(dropMarker, 12)
+	Theme.outline(dropMarker, 3, Theme.GOLD)
 
 	local layout = Instance.new("UIListLayout")
 	layout.FillDirection = Enum.FillDirection.Horizontal
 	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	layout.Padding = UDim.new(0, GAP)
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
-	layout.Parent = frame
+	layout.Parent = slotRow
 
 	-- THE NAME, ABOVE THE BAR AND CENTRED ON THE SCREEN RATHER THAN ON THE BAR.
 	--
@@ -615,6 +667,54 @@ function HotBar.init(gui: ScreenGui): Frame
 	scale = Instance.new("UIScale")
 	scale.Parent = frame
 
+	local function arrow(name: string, direction: number, order: number): TextButton
+		local control = Instance.new("TextButton")
+		control.Name = name
+		control.Size = UDim2.fromOffset(44, 60)
+		control.LayoutOrder = order
+		control.BackgroundTransparency = 1
+		control.Text = ""
+		control.AutoButtonColor = false
+		control.Visible = false
+		control.Parent = frame
+		for _, tilt in { -1, 1 } do
+			local line = Instance.new("Frame")
+			line.Size = UDim2.fromOffset(17, 7)
+			line.AnchorPoint = Vector2.new(0.5, 0.5)
+			line.Position = UDim2.fromOffset(22, 29 + tilt * 5)
+			line.Rotation = direction * tilt * -40
+			line.BackgroundColor3 = Theme.GOLD
+			line.BorderSizePixel = 0
+			line.Parent = control
+			local corner = Instance.new("UICorner")
+			corner.CornerRadius = UDim.new(1, 0)
+			corner.Parent = line
+			Theme.outline(line, 2)
+		end
+		control.Activated:Connect(function()
+			if control:GetAttribute("Available") ~= true or drag.live then return end
+			page += direction
+			HotBar.hint(nil)
+			HotBar.refresh()
+		end)
+		return control
+	end
+	previousPage = arrow("PreviousPage", -1, -1)
+	nextPage = arrow("NextPage", 1, 10000)
+	nextPage.Position = UDim2.new(1, -44, 0, 0)
+	pageLabel = Instance.new("TextLabel")
+	pageLabel.Name = "HotBarPage"
+	pageLabel.Size = UDim2.fromOffset(80, 16)
+	pageLabel.AnchorPoint = Vector2.new(0.5, 1)
+	pageLabel.BackgroundTransparency = 1
+	pageLabel.Font = Theme.FONT
+	pageLabel.TextSize = 12
+	pageLabel.TextColor3 = Theme.PAPER
+	pageLabel.TextStrokeColor3 = Theme.INK
+	pageLabel.TextStrokeTransparency = 0
+	pageLabel.Visible = false
+	pageLabel.Parent = gui
+
 	-- ---------- the bin ----------
 	--
 	-- On screen only during a drag, and centred directly above the bar rather
@@ -634,12 +734,12 @@ function HotBar.init(gui: ScreenGui): Frame
 	-- the right way round: a player who aims at the target always hits, and a
 	-- player who overshoots still hits.
 	binZone.Position = UDim2.new(0.5, 0, 1, -90)   -- bar top (74) + SHELF_MARGIN
-	binZone.Size = UDim2.new(0.6, 0, 0, 92)
+	binZone.Size = UDim2.fromOffset(164, 46)
 	-- DEEPER THAN `STOP_INK`, which is solved for TEXT on paper and lands
 	-- this the other way round -- paper on it measured 4.51 against a
 	-- floor of 4.5. At (168, 50, 36) it is 6.27.
-	binZone.BackgroundColor3 = Color3.fromRGB(168, 50, 36)
-	binZone.BackgroundTransparency = 0.12
+	binZone.BackgroundColor3 = Theme.PAPER
+	binZone.BackgroundTransparency = 0
 	binZone.BorderSizePixel = 0
 	binZone.Visible = false
 	binZone.ZIndex = 18
@@ -650,9 +750,9 @@ function HotBar.init(gui: ScreenGui): Frame
 	binCorner.Parent = binZone
 
 	local binEdge = Instance.new("UIStroke")
-	binEdge.Color = Theme.STOP
+	binEdge.Color = Theme.INK
 	binEdge.Thickness = 2
-	binEdge.Transparency = 0.25
+	binEdge.Transparency = 0
 	binEdge.Parent = binZone
 
 	local binText = Instance.new("TextLabel")
@@ -661,8 +761,8 @@ function HotBar.init(gui: ScreenGui): Frame
 	binText.BackgroundTransparency = 1
 	binText.Font = Enum.Font.GothamBold
 	binText.TextSize = 14
-	binText.TextColor3 = Theme.PAPER
-	binText.Text = utf8.char(0x1F5D1) .. "  OFF THE BAR"
+	binText.TextColor3 = Theme.INK
+	binText.Text = "STORE IN BAG"
 	binText.ZIndex = 19
 	binText.Parent = binZone
 
@@ -673,7 +773,7 @@ function HotBar.init(gui: ScreenGui): Frame
 	binSub.BackgroundTransparency = 1
 	binSub.Font = Enum.Font.Gotham
 	binSub.TextSize = 11
-	binSub.TextColor3 = Theme.PAPER
+	binSub.TextColor3 = Theme.MUTED
 	binSub.Text = "you keep the item"
 	binSub.ZIndex = 19
 	binSub.Parent = binZone
@@ -689,15 +789,18 @@ function HotBar.init(gui: ScreenGui): Frame
 	restoreTile.Size = UDim2.new(0, SLOT, 1, 0)
 	restoreTile.LayoutOrder = 9999
 	restoreTile.BackgroundColor3 = Theme.PAPER
-	restoreTile.BackgroundTransparency = 0.15
+	restoreTile.BackgroundTransparency = 1
 	restoreTile.BorderSizePixel = 0
-	restoreTile.AutoButtonColor = true
+	restoreTile.AutoButtonColor = false
 	restoreTile.Font = Enum.Font.FredokaOne
-	restoreTile.TextSize = 22
-	restoreTile.TextColor3 = Theme.MUTED
-	restoreTile.Text = utf8.char(0x1F5D1)
+	restoreTile.TextSize = 40
+	restoreTile.TextColor3 = Theme.GOLD
+	restoreTile.TextStrokeColor3 = Theme.INK
+	restoreTile.TextStrokeTransparency = 0
+	restoreTile.Text = utf8.char(0x21B6)
+	restoreTile:SetAttribute("AccessibleLabel", "Restore hidden items")
 	restoreTile.Visible = false
-	restoreTile.Parent = frame
+	restoreTile.Parent = slotRow
 
 	local restoreCorner = Instance.new("UICorner")
 	restoreCorner.CornerRadius = UDim.new(0, 10)
@@ -705,7 +808,7 @@ function HotBar.init(gui: ScreenGui): Frame
 
 	local restoreEdge = Instance.new("UIStroke")
 	restoreEdge.Color = Theme.MUTED
-	restoreEdge.Thickness = 1.5
+	restoreEdge.Thickness = 0
 	restoreEdge.Parent = restoreTile
 
 	restoreCount = Instance.new("TextLabel")
@@ -717,6 +820,14 @@ function HotBar.init(gui: ScreenGui): Frame
 	restoreCount.TextColor3 = Theme.INK
 	restoreCount.Text = ""
 	restoreCount.Parent = restoreTile
+	restoreCount.Size = UDim2.fromOffset(24, 18)
+	restoreCount.AnchorPoint = Vector2.new(1, 1)
+	restoreCount.Position = UDim2.new(1, -1, 1, -1)
+	restoreCount.BackgroundColor3 = Theme.PAPER
+	restoreCount.BackgroundTransparency = 0
+	local restoreBadgeCorner = restoreCorner:Clone()
+	restoreBadgeCorner.Parent = restoreCount
+	Theme.outline(restoreCount, 2)
 
 	restoreTile.Activated:Connect(function()
 		shelved = {}
@@ -733,8 +844,7 @@ function HotBar.init(gui: ScreenGui): Frame
 		if drag.key == nil then
 			return
 		end
-		if input.UserInputType == Enum.UserInputType.MouseMovement
-			or input.UserInputType == Enum.UserInputType.Touch then
+		if DragRules.owns(drag.input, input, false) then
 			trackDrag(input)
 		end
 	end)
@@ -743,12 +853,18 @@ function HotBar.init(gui: ScreenGui): Frame
 		if drag.key == nil then
 			return
 		end
-		if input.UserInputType == Enum.UserInputType.MouseButton1
-			or input.UserInputType == Enum.UserInputType.Touch then
+		if DragRules.owns(drag.input, input, true) then
 			endDrag(input)
 		end
 	end)
 
+	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+		if drag.key then endDrag(nil) else HotBar.refresh() end
+	end)
+	UserInputService.WindowFocusReleased:Connect(function()
+		if drag.key then endDrag(nil) end
+	end)
+	UserInputService:GetPropertyChangedSignal("TouchEnabled"):Connect(HotBar.refresh)
 	return frame
 end
 
@@ -769,15 +885,30 @@ function HotBar.hint(key: string?, sticky: boolean?)
 end
 
 function HotBar.register(button: TextButton, key: string, base: number, name: string?)
+	button.BackgroundTransparency = 1
+	button.AutoButtonColor = false
 	local edge = Instance.new("UIStroke")
 	edge.Name = "EquipRing"
 	edge.Color = Theme.GOLD
 	edge.Thickness = 1.5
 	edge.Transparency = 1
 	edge.Parent = button
+	local marker = Instance.new("Frame")
+	marker.Name = "Equipped"
+	marker.Size = UDim2.new(0.65, 0, 0, 5)
+	marker.Position = UDim2.new(0.5, 0, 1, 2)
+	marker.AnchorPoint = Vector2.new(0.5, 0)
+	marker.BackgroundColor3 = Theme.GOLD
+	marker.BorderSizePixel = 0
+	marker.Visible = false
+	marker.Parent = button
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(1, 0)
+	round.Parent = marker
+	Theme.outline(marker, 2)
 
 	slots[key] = {
-		button = button, edge = edge, key = key, base = base, held = false,
+		button = button, edge = edge, marker = marker, key = key, base = base, held = false,
 		name = name or key,
 	}
 	-- Named, because a probe, a test or the next person has no other way to
@@ -785,14 +916,17 @@ function HotBar.register(button: TextButton, key: string, base: number, name: st
 	-- a player rearranges, so which tile is which is a question that gets
 	-- asked. They were all called "TextButton" until this went in.
 	button.Name = "Slot_" .. key
-	button.Parent = frame
+	button.Parent = slotRow
 
 	button.InputBegan:Connect(function(input)
 		if input.UserInputType ~= Enum.UserInputType.MouseButton1
 			and input.UserInputType ~= Enum.UserInputType.Touch then
 			return
 		end
+		if drag.key then return end
+		suppressUntil = 0
 		drag.key = key
+		drag.input = input
 		drag.live = false
 		drag.origin = pointer(input)
 	end)
@@ -807,7 +941,7 @@ function HotBar.register(button: TextButton, key: string, base: number, name: st
 	-- separate concerns -- and this way the hint arrives for a TAP as well as
 	-- a keypress without four tile builders each remembering to ask for it.
 	button.Activated:Connect(function()
-		HotBar.hint(key, true)
+		if not HotBar.suppress() then HotBar.hint(key, true) end
 	end)
 
 	button.MouseEnter:Connect(function()
@@ -820,11 +954,60 @@ function HotBar.register(button: TextButton, key: string, base: number, name: st
 	end)
 end
 
+-- The four item catalogues supply the real, static 3D model and live text.
+-- Give them one consistent HUD treatment once those children exist.
+function HotBar.styleSlot(button: TextButton, count: TextLabel, key: TextLabel)
+	local icon = button:FindFirstChildOfClass("ViewportFrame")
+	if icon then
+		icon.Size = UDim2.new(1, -2, 1, -8)
+		icon.Position = UDim2.fromOffset(1, -2)
+		icon.BackgroundTransparency = 1
+	end
+	count.Name = "Quantity"
+	count.Size = UDim2.fromOffset(30, 19)
+	count.Position = UDim2.new(1, -1, 1, -1)
+	count.AnchorPoint = Vector2.new(1, 1)
+	count.BackgroundColor3 = Theme.PAPER
+	count.BackgroundTransparency = 0
+	count.TextColor3 = Theme.INK
+	count.TextStrokeTransparency = 1
+	count.TextXAlignment = Enum.TextXAlignment.Center
+	count.TextSize = 13
+	count.TextScaled = true
+	count.ZIndex = 4
+	local cap = Instance.new("UITextSizeConstraint")
+	cap.MaxTextSize = 13
+	cap.Parent = count
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(0, 8)
+	round.Parent = count
+	Theme.outline(count, 2)
+	key.Name = "Key"
+	key.Size = UDim2.fromOffset(22, 17)
+	key.Position = UDim2.fromOffset(1, 0)
+	key.BackgroundColor3 = Theme.INK
+	key.BackgroundTransparency = 0
+	key.TextColor3 = Theme.PAPER
+	key.TextStrokeTransparency = 1
+	key.TextXAlignment = Enum.TextXAlignment.Center
+	key.TextScaled = false
+	key.TextSize = 11
+	key.ZIndex = 4
+	local keyRound = round:Clone()
+	keyRound.Parent = key
+	table.insert(keyLabels, key)
+	local function showKey()
+		key.Visible = not UserInputService.TouchEnabled or key.Text == "ON"
+	end
+	key:GetPropertyChangedSignal("Text"):Connect(showKey)
+	showKey()
+end
+
 -- Called at the top of every slot's Activated handler. A press that turned
 -- into a drag has already done its job; letting it also throw would mean a
 -- player could never rearrange a bone without spending one.
 function HotBar.suppress(): boolean
-	return justDragged or drag.live
+	return os.clock() < suppressUntil or drag.live
 end
 
 -- The saved arrangement, echoed back by SettingsService. Tolerates nil at

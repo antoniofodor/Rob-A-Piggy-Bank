@@ -36,7 +36,7 @@ local UpgradeService = require(script.Parent.UpgradeService)
 local SocialService = require(script.Parent.SocialService)
 local GuardDog = require(script.Parent.GuardDog)
 local EventService = require(script.Parent.EventService)
--- For the loot a delivery pays. SetService requires DataService and nothing
+-- For ownership and carried item grants. SetService requires DataService and nothing
 -- else, so this cannot be a cycle.
 local SetService = require(script.Parent.SetService)
 -- FOR THE CATCH EFFECT AND NOTHING ELSE. Safe rather than a cycle:
@@ -535,7 +535,7 @@ local function whyCannotSteal(thief: Player, victim: Target): string?
 		return "That's your own piggy."
 	end
 	if carrying[thief] then
-		return "You're already carrying loot. Take it home first."
+		return "You're already carrying stolen goods. Take it home first."
 	end
 
 	local name = targetName(victim)
@@ -917,7 +917,7 @@ end
 -- able from a bug, which is how the silent-steal failure survived for weeks.
 function HeistService.rideBlockReason(player: Player): string?
 	if carrying[player] then
-		return "Can't ride while you're carrying loot."
+		return "Can't ride while you're carrying stolen goods."
 	end
 
 	-- NOBODY rides while loot is in transit, not just the two players
@@ -933,7 +933,7 @@ function HeistService.rideBlockReason(player: Player): string?
 	-- lasts only a few seconds, so the cost is small and the drama is free.
 	if HeistService.anyoneCarrying() then
 		if carrying[player] then
-			return "Can't ride while you're carrying loot."
+			return "Can't ride while you're carrying stolen goods."
 		end
 		for _, carry in pairs(carrying) do
 			if carry.victim == player then
@@ -3307,7 +3307,7 @@ function HeistService.nab(nabber: Player, thief: Player, byDog: boolean?, catche
 						end
 					end)
 				end
-				notify(thief, "They got it all back! You dropped the loot.", "bad")
+				notify(thief, "They got it all back! You dropped the haul.", "bad")
 				notifyTarget(tug.victim,
 					("%s was nabbed. Your coins are back!"):format(thief.DisplayName), "good")
 			end
@@ -3361,8 +3361,8 @@ function HeistService.nab(nabber: Player, thief: Player, byDog: boolean?, catche
 	end
 
 	notify(thief, if byDog
-		then ("%s got you! You dropped the loot."):format(catcher or "A guard dog")
-		else ("Nabbed by %s! You dropped the loot."):format(nabber.DisplayName),
+		then ("%s got you! You dropped the haul."):format(catcher or "A guard dog")
+		else ("Nabbed by %s! You dropped the haul."):format(nabber.DisplayName),
 		"bad")
 
 	-- ONE FOR THE MEDAL BOARD, AND IT IS THE VICTIM WHO GETS IT.
@@ -3531,10 +3531,8 @@ local function deliver(thief: Player)
 	-- own steal prompts and rob badges are bound to.
 	local bank = if plot and plot.piggy then plot.piggy.body else nil
 
-	-- LOOT, granted silently and named in the delivery line, so one card
-	-- carries both currencies -- the same rule the events follow.
-	local loot = Config.LOOT.delivery + (if revenge then Config.REVENGE.loot else 0)
-	SetService.award(thief, loot, nil)
+	-- Piggy deliveries settle coins and carried items only. Acorns belong
+	-- to the tree/shake path, including during revenge and a robbery spree.
 
 	-- AND THE HAUL LANDS HERE, which is the moment it becomes theirs.
 	--
@@ -3589,7 +3587,6 @@ local function deliver(thief: Player)
 	Remotes.get("HeistDelivered"):FireClient(thief, {
 		amount = amount,
 		banked = banked,
-		loot = loot,
 		run = runNow,
 		revenge = revenge,
 		items = delivered,
@@ -3598,10 +3595,10 @@ local function deliver(thief: Player)
 	})
 
 	notify(thief, if revenge
-		then ("REVENGE! %s stolen coins, worth %s to you. +%d %s.%s"):format(
-			format(amount), format(banked), loot, Config.lootWord(loot), runNote)
-		else ("Delivered %s stolen coins, worth %s to you. +%d %s.%s"):format(
-			format(amount), format(banked), loot, Config.lootWord(loot), runNote),
+		then ("REVENGE! %s stolen coins, worth %s to you.%s"):format(
+			format(amount), format(banked), runNote)
+		else ("Delivered %s stolen coins, worth %s to you.%s"):format(
+			format(amount), format(banked), runNote),
 		"money")
 	notifyTarget(victim, ("%s got away with %s of your coins. Get them back for triple!"):format(
 		thief.DisplayName, format(amount)), "bad")

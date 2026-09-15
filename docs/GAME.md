@@ -53,8 +53,8 @@ collect cosmetics.**
 > camp — a perfect steal at level 20 earned less than a minute of idle income
 > and risked three times that. The pivot makes robbing the game: the pig is the
 > only wallet, the thief's reward is decoupled from the victim's loss, a second
-> currency (**loot**) comes only from robbing, revenge pays extra, and the join
-> shield is short. Events, chests and sets are frozen until this is clear and
+> currency (**Acorns**) is moving to tree shakes under the master plan,
+> revenge pays extra coins, and the join shield is short. Events, chests and sets are frozen until this is clear and
 > bug free. The reasoning is in `CLAUDE.md` under *The robbing pivot*; the
 > pitch-level version is `docs/design-doc.html#pivot`.
 
@@ -142,11 +142,11 @@ any price, ever.
 | | Field | Earned by | Buys | Purchasable with Robux? |
 |---|---|---|---|---|
 | **Coins** | `data.coins` — the piggy bank, all of it stealable | idle accrual (stops at capacity), delivering a robbery (**counts double**, triple on revenge), dailies, events, **selling a chest-duplicate spare** (`Config.SELL`, below) | upgrades, effects, houses, decorations, rides, consumables, **trophy plinths** (§9), and **chests** (below) — skins are crate-only now, bought with coins only indirectly, §9 | **never, at any price** |
-| **Loot** | `data.loot` | **delivering a robbery** (`Config.LOOT`), and attending events when they return | set items and the `alien` event chest, both live in the shop's **Crates** tab; the accessory roll (`Config.ROLL_CURRENCY`) this row used to name is retired along with `ACCESSORIES` (§9) | **never, at any price** |
+| **Acorns** | `data.loot` (unchanged save field) | legacy event rewards remain; tree shakes are planned in Phase 2. Piggy deliveries pay none | set items and the `alien` event chest, both live in the shop's **Crates** tab; the accessory roll (`Config.ROLL_CURRENCY`) this row used to name is retired along with `ACCESSORIES` (§9) | **never, at any price** |
 
 **Medals and tokens are retired into loot.** `data.medals` and `data.tokens`
 were merged into `data.loot` one-for-one at schema 17. The daily ladder pays
-coins and boosts and no loot: loot is the currency you go out and earn.
+coins and boosts and no Acorns.
 Chest duplicates are a separate, chest-internal currency — see **spares**,
 below.
 
@@ -336,26 +336,24 @@ merged `data.medals` and `data.tokens` into `data.loot` one-for-one at schema
 rather than for loot). `Config.MEDALS` and
 `Config.TOKENS` are gone; every catalogue item that used to price in either
 now prices `loot = N`, and `Config.ROLL_CURRENCY` — still the one table a
-rename would touch — is named **Loot**.
+rename would touch — now names **Acorns**.
 
-**Loot's job as an earn-only currency didn't disappear, it just has a new
-first source.** Coins can never be bought with Robux at all, so loot no longer
-needs to exist to keep the roll uncatchable by money — but it still is one:
-robbing (`Config.LOOT.delivery` per delivery, §5) is now the primary source,
-and events pay the old medal shape when they resolve (`Config.LOOT.event`:
-`attend` for everybody present, `perDrone` for drones you personally knocked
-down, `cleared` shared by the whole street, `setComplete` as a fallback payout
-once a player already owns the whole set). **The daily ladder pays none** —
-loot is the currency you go out and earn, not one you collect for logging in.
+**Acorns are being introduced in master-plan steps 1.1–1.2.** Piggy
+cracks and smashes deliver coins and carried items, never Acorns, including
+revenge and sprees. `Config.LOOT.delivery` and `Config.REVENGE.loot` are
+retired. Legacy event payouts remain pending the Phase 1.9 faucet audit;
+the tree and shake earning path belongs to Phase 2 and is not built yet.
+`Config.acornMultiplier(thiefRebirths, victimRebirths, revenge)` is ready
+for that path: nil victim means a resident (x1); a real player starts at x5,
+adds one per rebirth above the thief, then doubles for revenge.
 
-**One grant path:** `SetService.award(player, amount, why)` — the *only* place
-loot is credited. `why` is optional and nil means silent, which is how a
-delivery or an event folds loot into its own toast instead of firing a second
-one. It pushes both the set panel and every registered **loot pusher**
-(`SetService.registerLootPusher`, filled by `Main` with
-`CosmeticsService.push`, which carries the roll button's balance) — so a
-balance can never move without both of its readers being told.
-`Config.lootWord(n)` is the singular/plural helper.
+**Balance and presentation:** `SetService.award` credits the existing
+`data.loot` field and pushes `SetState`. `PiggyPanel:setAcorns` renders that
+balance in a compact chip beside the event timer. `Theme.acorn` draws the
+approved brown nut, green cap and cocoa outline without images or animation;
+shop prices and the Acorn-priced crate use the same glyph.
+`Config.lootWord(n)` supplies singular/plural wording. Existing balances
+are preserved; no save migration is needed for this rename.
 
 **Where the numbers live:** `Config.ROLL_CURRENCY`, `Config.LOOT`,
 `Config.ROLL_BASE_COST` / `ROLL_GROWTH`, `Config.CHESTS` / `Config.COMBINE`,
@@ -884,10 +882,10 @@ above), taken out of their pig the instant it lands rather than promised for
 later (two thieves working the same pig can't both be promised the same
 coins). The thief banks that running total times `Config.HEIST_PAYOUT` on
 delivery — the extra is minted by the game, which is what lets robbing be the
-best earning rate on the street without a robbery being devastating. Every
-delivery also pays `Config.LOOT.delivery` loot (§3). Robbing somebody who
+best earning rate on the street without a robbery being devastating.
+Deliveries pay **zero Acorns**, including revenge. Robbing somebody who
 robbed *you* inside `Config.REVENGE.window` pays `Config.REVENGE.payout` times
-instead and an extra `Config.REVENGE.loot`; the marker over their plot lasts
+the coins instead; the marker over their plot lasts
 the same window. `Config.STEAL_FRACTION` survives only as the calibration
 baseline the crack's slices are measured against — the old flat take lands
 between the second and third slice of a clean run — and as the sack-scaling
@@ -1132,6 +1130,15 @@ raises the *price* of beating someone rather than making them unbeatable.
 
 ### The bar itself
 
+- **Floating item icons, with readable stock badges.** The HUD uses static
+  models without tile backgrounds, cream quantity pills, desktop key chips,
+  and a gold underline for the server-confirmed held item. Mobile hides number
+  chips while retaining active-state labels such as `ON`.
+- **The bar fits between the mobile controls.** `HotBar.layoutFor` reserves
+  120 pixels on each side of landscape touch screens. Up to five 52×60 slots
+  appear per page, fewer on narrow screens, with fixed-position 44-pixel page
+  buttons. Desktop shows the full row when it fits. Paging preserves item
+  bindings and stock; selecting an item by key reveals its page.
 - **An item is HELD before it is used.** Selecting is free (a number key or a
   tap asks the server to *draw* something); only a deliberate click out in the
   world spends it. This exists for two reasons: a stray thumb should not spend a
@@ -2238,16 +2245,27 @@ in `settings` may ever affect an outcome** — no speed, no income, no odds.
 
 ## 14. Client surfaces
 
-- **The HUD.** There is exactly **one money readout**: the piggy bank panel,
-  top right. It carries a drawn snout, the balance, the income rate and a fill
-  bar whose label names the capacity (`of 3.0M`) — or says `FULL` and what to
-  do about it, since a full pig stops earning. The separate top-centre coin
-  badge was merged into it when the pivot left the two printing the same
-  number. Top-centre is now rebirth, the carry banner and the patrol banner,
-  with 16..90 free where the badge stood. Bottom-right holds **SHOP** and,
-  stacked above it, a **bag toggle** (🎒 STUFF, `I`) that opens the standalone
-  inventory panel below — the corner grew from a single button when Inventory
-  turned out to belong beside the shop rather than inside it. The income and
+- **The HUD.** The **coin readout** is `Shared/PiggyPanel`,
+  mounted by `ClientMain` at the top right. The cream card has a drawn pink
+  pig medallion, balance/capacity, green income pill and a rounded gold bar.
+  `StateUpdate` drives the numbers; the bar tweens to the clamped
+  `coins / capacity` ratio, including backwards when spending. An empty pig
+  shows no fill, overflow keeps the real balance with a 100% bar, and the
+  footer reads time to full or **FULL · Spend to earn again**. The 420×128
+  card becomes a two-line 252×64 card on short/narrow viewports, keeping the
+  balance, capacity, income and fill percentage while hiding the title and
+  status footer. This uses about 45% less area than the previous mobile card.
+  Event and wanted chips sit beneath it at 75% size. Rebirth is a compact
+  146×44 button between the Roblox controls and the vault card.
+  The left side holds three static, transparent icons in a column, drawn by
+  `Shared/MenuIcons.luau`: Options, Stuff and Shop. `Shared/HUDLayout.luau`
+  keeps this column above the joystick, with 44–48 pixel icons on phones.
+  Dodge, Ride and Sneak sit above Jump on the right in 52-pixel circular
+  buttons. `Shared/ActionButtons.luau` draws static sneaker, wind and board
+  illustrations; short captions and cooldown/state feedback remain. A riding
+  trick shares Dodge's position. The ride picker opens toward the centre.
+  Shop (`B`) and Stuff (`I`) retain
+  their keyboard shortcuts; Stuff opens the standalone inventory below. The income and
   capacity purchases that used to sit above both are rows in the shop's
   Upgrades tab now. Bottom-left is four rows deep and the fifth control went
   *sideways* rather than up. `IgnoreGuiInset` is on, so y=0 is *under* the

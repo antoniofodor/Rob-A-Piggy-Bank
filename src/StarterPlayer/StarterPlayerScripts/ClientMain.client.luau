@@ -205,317 +205,8 @@ game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, fal
 -- empty, is one too many.
 game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
 
--- THE PIGGY BANK PANEL, TOP RIGHT, AND IT IS THE ONLY MONEY READOUT NOW.
---
--- There were two: a coin badge top-centre printing the banked total, and
--- this bar printing the stealable pile. That was one readout per BALANCE and
--- it was right while there were two of them. The pivot merged `data.vault`
--- into `data.coins`, and the two elements immediately printed the SAME
--- NUMBER in two places -- which is worse than redundant on a HUD aimed at
--- nine-year-olds, because two figures side by side invite the reading that
--- they are different things, and a player looking for the difference finds
--- none.
---
--- So the badge is gone and its job moved in here, keeping the shape it had:
--- an icon, then the figure, read left to right. The snout stands where the
--- coin pip stood. What this panel adds -- and the badge could never say --
--- is the half that now matters most: how close to CAPACITY it is, because a
--- full pig stops earning until you spend some.
---
--- The coin badge's own argument survives it: gold means money, so a gold
--- ground with gold numerals on it was one gold too many. This is a paper
--- card and the gold is the BAR FILL, which is the only gold object on it.
---
--- THE WORD "VAULT" IS GONE FROM THE HUD AND SO, NOW, IS "PIGGY BANK".
---
--- The first half was a fix: the thing on the lawn is a piggy bank, the game
--- is called Rob a Piggy Bank, and the arrest screen already charges bail
--- "from your piggy bank" -- "vault" was internal vocabulary that had leaked
--- onto the screen, and the save field went the same way in the pivot. There
--- is one balance, `data.coins`, and it lives in the pig.
---
--- The second half is this merge: absorbing the badge cost the title row, and
--- the balance is what a title row is worth. Nothing is lost by it -- the
--- snout is on the card, the shop tab, every prompt and every toast still say
--- the words, and a nine-year-old learns what this panel is from the pig on
--- it long before they read a label.
---
--- The local is still `vaultPanel` and the bar label still `vaultLabel`. That
--- is deliberate: renaming them is a diff across this whole file to fix
--- nothing a player can see, which is exactly the trade the save field was
--- left alone for until a migration made it free.
---
--- The Vault LOCK keeps its name outright. It is a different object -- a lock
--- you buy, built as a bank-vault dial, whose whole readability rests on
--- looking like one -- and it is not what this bar is counting.
---
--- Sits clear of the Roblox topbar rather than at y=0. IgnoreGuiInset is on,
--- so y=0 is underneath the topbar buttons rather than below them, and this
--- corner is the one place that actually matters -- measured at a 58px inset,
--- the panel overlapped it by 6 at y=52.
-local vaultPanel = Instance.new("Frame")
-vaultPanel.Name = "PiggyPanel"
-vaultPanel.Size = UDim2.new(0, 340, 0, 92)
-vaultPanel.Position = UDim2.new(1, -18, 0, 72)
-vaultPanel.AnchorPoint = Vector2.new(1, 0)
-vaultPanel.Parent = gui
-Theme.card(vaultPanel, 18)
-
--- ============================================================
--- THE PIG IS THE GAUGE
--- ============================================================
---
--- THIS WAS A HORIZONTAL BAR AND IT IS A PIGGY BANK FILLING UP.
---
--- The bar worked and every number on it was solved. What it never did is say
--- what it was a picture OF. `THE PIG IS THE WALLET` is the rule this whole
--- economy was rewritten around -- one balance, all of it in the pig, all of
--- it stealable -- and the readout for it was a rounded rectangle that could
--- have been measuring anything. So the gauge is the object now: a piggy bank
--- standing in the card, filling with gold from the belly up.
---
--- IT ALSO MIRRORS THE WORLD, WHICH IS THE HALF THAT MAKES IT WORTH THE
--- PARTS. The real pig on the lawn fills from the belly so the coin level
--- rises past the vault hatch, and this file's parent spends several
--- paragraphs on getting that right. A thief reads the pile on the lawn; the
--- owner reads the same picture on their HUD. One idea, drawn twice, rather
--- than a bar over here and a pile over there.
---
--- THE NUMBERS STAY ON PAPER AND THE PICTURE STAYS IN THE PIG, and that split
--- is not tidiness -- it is the one thing that keeps this safe. The previous
--- version of this panel was a solid block of pink with the bar drawn on it,
--- and the measured cost was that the empty half of the bar sat at **1.41**
--- against its own fill: the one readout in this game that is a PICTURE OF A
--- NUMBER could not show the number. Every label here prints ink or a
--- darkened accent on `Theme.PAPER`, where the worst pairing is 4.5 and the
--- balance is 14.98, and NOTHING is printed on the pig at all. So the gauge
--- can be as saturated as it likes and no contrast can regress.
---
--- The pig OVERHANGS the card top and bottom, which is what stops the whole
--- thing reading as a pill: the silhouette that leaves this corner is ears
--- and legs, not a rectangle. It overhangs on the LEFT end deliberately --
--- `IgnoreGuiInset` is on and the Roblox topbar buttons live in the top
--- RIGHT, so ten pixels of upward overhang is free here and would not be at
--- the other end of the card.
-
--- Declared out here because `render` writes both every economy tick; the
--- rest of the animal is scoped to the block below, which keeps this chunk's
--- top-level register count exactly where it was -- see the 200-local ceiling,
--- which has taken the entire HUD down twice.
-local barBack = Instance.new("Frame")
-local barFill = Instance.new("Frame")
-
-do
-	-- SEEN FROM THE SIDE, AND THE FIRST BUILD WAS FRONT-ON AND WRONG.
-	--
-	-- Front-on put the face in the MIDDLE OF THE VESSEL, so the coin level
-	-- cut straight across it: at half full the eyes sat on pink and the
-	-- snout sat in gold, which reads as a pig sinking rather than as a bank
-	-- filling. Only looking at it showed that -- every number was correct.
-	--
-	-- Side-on separates the two jobs. The HEAD is a fact about what this is
-	-- and never changes; the BARREL is the gauge and is free to go from empty
-	-- to full without ever covering the face. It is also the reading this
-	-- project already settled for anything on a lawn: an ornament is seen
-	-- from the pavement so its silhouette has to work BROADSIDE, which is why
-	-- the shark was rebuilt nose-across and why every decor slot faces the
-	-- road.
-	local pig = Instance.new("Frame")
-	pig.Name = "Pig"
-	pig.Size = UDim2.fromOffset(100, 104)
-	pig.Position = UDim2.new(0, 12, 0, -8)
-	pig.BackgroundTransparency = 1
-	pig.Parent = vaultPanel
-
-	-- Legs and tail behind everything, so they read as attached. Under
-	-- `ZIndexBehavior.Sibling` a child always draws above its parent whatever
-	-- its ZIndex, so these are SIBLINGS at a lower ZIndex rather than
-	-- children -- the trap the rebirth halo had to be moved out of its own
-	-- button to solve.
-	for _, x in ipairs({ 36, 64 }) do
-		local l = Instance.new("Frame")
-		l.Name = "Leg"
-		l.Size = UDim2.fromOffset(17, 18)
-		l.Position = UDim2.new(0, x, 0, 78)
-		l.BackgroundColor3 = Theme.PIG_DEEP
-		l.BorderSizePixel = 0
-		l.ZIndex = 1
-		l.Parent = pig
-		Theme.corner(l, 6)
-		Theme.outline(l, Theme.OUTLINE_THIN)
-	end
-	local tail = Instance.new("Frame")
-	tail.Name = "Tail"
-	tail.Size = UDim2.fromOffset(14, 14)
-	tail.Position = UDim2.new(0, 88, 0, 38)
-	tail.BackgroundColor3 = Theme.PIG
-	tail.BorderSizePixel = 0
-	tail.ZIndex = 1
-	tail.Parent = pig
-	Theme.corner(tail, 7)
-	Theme.outline(tail, Theme.OUTLINE_THIN)
-
-	-- THE BARREL: the gauge, and the only part of this animal that moves.
-	--
-	-- Still called `Track` because `render` and every probe that has
-	-- addressed this panel know it by that name.
-	--
-	-- `ClipsDescendants` is what makes the fill a shaped fill: a rounded
-	-- parent that clips holds its child to the ROUNDED outline, so the gold
-	-- sits in a bowl rather than in a box. Roblox UI has no mask, no conic
-	-- gradient and no vector support -- this file's parent records a reel
-	-- replacing a pie for exactly that reason -- so a clipping rounded parent
-	-- is the entire toolkit for this.
-	barBack.Name = "Track"
-	barBack.Size = UDim2.fromOffset(68, 64)
-	barBack.Position = UDim2.new(0, 28, 0, 22)
-	barBack.BackgroundColor3 = Theme.PIG_DEEP
-	barBack.BorderSizePixel = 0
-	barBack.ClipsDescendants = true
-	barBack.ZIndex = 2
-	barBack.Parent = pig
-	Theme.corner(barBack, 24)
-	Theme.outline(barBack, Theme.OUTLINE_THIN)
-
-	-- Bottom-anchored and scaled on Y, because a piggy bank fills upward.
-	barFill.Name = "Fill"
-	barFill.AnchorPoint = Vector2.new(0, 1)
-	barFill.Position = UDim2.fromScale(0, 1)
-	barFill.Size = UDim2.fromScale(1, 0)
-	barFill.BackgroundColor3 = Theme.GOLD
-	barFill.BorderSizePixel = 0
-	barFill.Parent = barBack
-	-- `shade` AND NOT `gloss`, WHICH FIXES A LATENT BUG RATHER THAN COPYING
-	-- THE OLD BAR.
-	--
-	-- A UIGradient MULTIPLIES the background rather than replacing it, and
-	-- `Theme.shade`'s own header says so. The old fill was `gloss`ed with a
-	-- baked GOLD-to-GOLD_DEEP ramp while `render` writes
-	-- `BackgroundColor3 = WARN` the moment the pig is full -- so what drew was
-	-- WARN times gold, about (230, 108, 15): a muddy brown nobody chose, on
-	-- the one state of this readout that is asking the player to act. A
-	-- white-to-grey ramp is a pure shading pass and leaves the hue to
-	-- whatever `render` decided this tick.
-	--
-	-- 0.86 rather than the default 0.76: this is a small surface and a deep
-	-- ramp on 64 pixels reads as dirt rather than as depth.
-	Theme.shade(barFill, 0.86)
-
-	-- The coin slot, on the pig's back, and the coin going into it. `Theme.coin`
-	-- is the drawn gold disc the coin badge used before it merged into this
-	-- panel -- gold face, deeper rim so it reads as struck, one off-centre
-	-- highlight -- and it is DRAWN rather than an emoji for the reason
-	-- recorded beside it: an emoji renders from the colour font, ignores
-	-- `TextColor3`, and is a smudge at this size.
-	local slot = Instance.new("Frame")
-	slot.Name = "Slot"
-	slot.Size = UDim2.fromOffset(30, 7)
-	slot.Position = UDim2.new(0, 47, 0, 26)
-	slot.BackgroundColor3 = Theme.SLAB_DEEP
-	slot.BorderSizePixel = 0
-	slot.ZIndex = 4
-	slot.Parent = pig
-	Theme.corner(slot, 4)
-	Theme.outline(slot, Theme.OUTLINE_THIN)
-
-	local coin = Theme.coin(pig, 26, "Coin")
-	coin.Position = UDim2.new(0, 49, 0, 4)
-	coin.Rotation = -18
-	coin.ZIndex = 5
-
-	-- THE HEAD, in front of the barrel, and it is a fact rather than a
-	-- readout: nothing about it changes with the balance, which is the whole
-	-- reason the face survived moving side-on.
-	local head = Instance.new("Frame")
-	head.Name = "Head"
-	head.Size = UDim2.fromOffset(50, 50)
-	head.Position = UDim2.new(0, 0, 0, 30)
-	head.BackgroundColor3 = Theme.PIG
-	head.BorderSizePixel = 0
-	head.ZIndex = 3
-	head.Parent = pig
-	Theme.corner(head, 20)
-	Theme.outline(head, Theme.OUTLINE_THIN)
-	Theme.gloss(head, Theme.PIG, Theme.PIG_DEEP)
-
-	-- An ear on top, tucked behind the head so it reads as attached.
-	local ear = Instance.new("Frame")
-	ear.Name = "Ear"
-	ear.Size = UDim2.fromOffset(22, 20)
-	ear.Position = UDim2.new(0, 26, 0, 22)
-	ear.BackgroundColor3 = Theme.PIG
-	ear.BorderSizePixel = 0
-	ear.ZIndex = 2
-	ear.Parent = pig
-	Theme.corner(ear, 9)
-	Theme.outline(ear, Theme.OUTLINE_THIN)
-
-	-- The snout out the FRONT, which is the one detail that makes this a pig
-	-- rather than a pink box with a coin on it. Half on the head and half
-	-- past it, the ratio that stops a shape stuck on a face reading as a
-	-- shape stuck on a face.
-	Theme.snout(pig, 26, "Snout").Position = UDim2.new(0, -4, 0, 46)
-	local eye = Instance.new("Frame")
-	eye.Name = "Eye"
-	eye.Size = UDim2.fromOffset(9, 9)
-	eye.Position = UDim2.new(0, 26, 0, 44)
-	eye.BackgroundColor3 = Theme.INK
-	eye.BorderSizePixel = 0
-	eye.ZIndex = 4
-	eye.Parent = pig
-	Theme.corner(eye, 5)
-end
-
--- THE BALANCE, and it is the most-looked-at number in the game.
---
--- Ink on paper, 30px, left aligned, starting clear of the pig. TextScaled
--- fits the BOX rather than honouring the size argument, so the box height is
--- what actually decides how big this reads.
-local coinLabel = Instance.new("TextLabel")
-coinLabel.Name = "Coins"
-coinLabel.Size = UDim2.new(0, 206, 0, 34)
-coinLabel.Position = UDim2.new(0, 122, 0, 8)
-coinLabel.TextScaled = true
-Theme.title(coinLabel, 30, Theme.INK)
-coinLabel.TextXAlignment = Enum.TextXAlignment.Left
-coinLabel.Text = "0"
-coinLabel.Parent = vaultPanel
-
--- The rate, in the darkened GOOD green rather than gold: gold on this card
--- is the COIN and the FILL, and a third gold thing would be one gold too
--- many -- the fault the coin badge itself was built to fix.
-local rateLabel = Instance.new("TextLabel")
-rateLabel.Name = "Rate"
-rateLabel.Size = UDim2.new(0, 206, 0, 22)
-rateLabel.Position = UDim2.new(0, 122, 0, 44)
-rateLabel.TextScaled = true
-Theme.title(rateLabel, 20, Theme.GOOD_INK)
-rateLabel.TextXAlignment = Enum.TextXAlignment.Left
-rateLabel.Text = "+0/s"
-rateLabel.Parent = vaultPanel
-
--- WHAT THE PIG IS MEASURED AGAINST, AND WHAT TO DO WHEN IT IS FULL.
---
--- Off the gauge entirely now. It used to be printed ON the bar, which meant
--- it sat on gold for part of its life and on deep pink for the rest and
--- needed a pale halo to survive either -- and a halo is what you reach for
--- when a label is on the wrong ground. On paper it needs nothing.
---
--- NOT `TextScaled`. With scaling on, "it fits" is guaranteed and means
--- nothing, and the failure is silent shrinkage; with `TextTruncate` the
--- failure is silent clipping, which this file's parent records costing a
--- whole verification pass on the smash card. Fixed size, and measured
--- against `AbsoluteSize` rather than trusted.
-local vaultLabel = Instance.new("TextLabel")
-vaultLabel.Name = "Amount"
-vaultLabel.Size = UDim2.new(0, 206, 0, 20)
-vaultLabel.Position = UDim2.new(0, 122, 0, 66)
-vaultLabel.TextScaled = false
-Theme.title(vaultLabel, 15, Theme.MUTED)
-vaultLabel.TextXAlignment = Enum.TextXAlignment.Left
-vaultLabel.TextTruncate = Enum.TextTruncate.AtEnd
-vaultLabel.Text = "of 0"
-vaultLabel.Parent = vaultPanel
+-- The balance, capacity gauge and responsive readout column share one module.
+local bankHUD = require(ReplicatedStorage.Shared.PiggyPanel).new(gui)
 
 -- THE SHOP BUTTON, BOTTOM RIGHT, AND NOTHING ELSE NOW.
 --
@@ -539,26 +230,16 @@ shop.AnchorPoint = Vector2.new(1, 1)
 shop.BackgroundTransparency = 1
 shop.Parent = gui
 
--- A ROW RATHER THAN A COLUMN, AND THE HEIGHT IS WHY.
---
--- These became icon-over-label tiles, which need about 64 pixels each. As a
--- COLUMN, three of them plus padding is 208 -- and this frame is anchored
--- bottom-right with `AutomaticSize.Y`, so it grows UPWARD: on the shortest
--- thing that has to work, a phone held sideways at 546, that is 42% of the
--- screen climbing out of the corner. The bottom-left is already measured at
--- four rows deep with a note that anything above 250 is into the middle of
--- the screen, and this corner would have beaten it.
---
--- As a ROW the same three cost 64 once. 210 wide holds three 66-pixel tiles
--- with two 6-pixel gaps exactly, so the strip fits the width this corner
--- already had and nothing else on the HUD moves.
+-- A static column below the piggy HUD keeps the bottom clear for inventory.
+-- HUDLayout fits its size and top edge to the safe screen area.
 local shopLayout = Instance.new("UIListLayout")
-shopLayout.FillDirection = Enum.FillDirection.Horizontal
+shopLayout.FillDirection = Enum.FillDirection.Vertical
 shopLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
-shopLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+shopLayout.VerticalAlignment = Enum.VerticalAlignment.Top
 shopLayout.Padding = UDim.new(0, 6)
 shopLayout.SortOrder = Enum.SortOrder.LayoutOrder
 shopLayout.Parent = shop
+require(ReplicatedStorage.Shared.HUDLayout).bindMenu(shop, gui)
 
 -- ============================================================
 -- ACTION BUTTONS
@@ -652,6 +333,16 @@ do
 	makeActionButton = function(name: string, icon: string, label: string,
 		key: string, tint: Color3, size: UDim2, textSize: number, parent: Instance,
 		stacked: boolean?): TextButton
+
+		-- The three menu controls are static silhouettes with transparent hit
+		-- areas. Return before the card, labels, key badges and Motion hooks.
+		if name == "ShopToggle" or name == "BagToggle" or name == "SettingsToggle" then
+			return require(ReplicatedStorage.Shared.MenuIcons).makeButton(name, icon, label, size, parent)
+		end
+
+		if name == "DodgeButton" or name == "TiptoeButton" or name == "TrickButton" then
+			return require(ReplicatedStorage.Shared.ActionButtons).make(name, icon, label, key, parent)
+		end
 
 		local button = Instance.new("TextButton")
 		button.Name = name
@@ -2095,7 +1786,7 @@ do
 	-- ONE SHORT PARAGRAPH CARRYING THE ONE FACT THAT WOULD OTHERWISE READ
 	-- AS A BUG: it goes off on THEM, not on you, so a player who buys one
 	-- and then nabs somebody is not left wondering why nothing happened.
-	how.Text = "Goes off on the thief when you pull the loot back out of "
+	how.Text = "Goes off on the thief when you pull the stolen goods back out of "
 		.. "their hands. You watch it happen to them, not to you. It changes "
 		.. "nothing about the catch."
 	ShopStyle.hintToggle(sections.catch.at, how)
@@ -2403,7 +2094,7 @@ rideNote.TextXAlignment = Enum.TextXAlignment.Left
 rideNote.TextYAlignment = Enum.TextYAlignment.Top
 rideNote.TextColor3 = Theme.MUTED
 rideNote.Text = "Street only. You hop off at any garden gate, and never while "
-	.. "carrying loot: a getaway is always on foot."
+	.. "carrying stolen goods: a getaway is always on foot."
 ShopStyle.hintToggle(sections.rides.at, rideNote)
 
 -- Decorations, under the house they stand in front of rather than in a tab
@@ -3003,7 +2694,7 @@ local function renderCosmetics()
 			-- than rendering a wrong number -- which is the louder half of the
 			-- same rule the skins tab already learned: ask whether the thing
 			-- has a coin price before formatting one.
-			entry.sub.Text = ("%d loot"):format(info.loot)
+			Theme.acornPrice(entry.sub, ("%d %s"):format(info.loot, Config.lootWord(info.loot)))
 			entry.sub.TextColor3 = Theme.GOOD
 			entry.button.BackgroundColor3 = if setUI.loot >= info.loot
 				then ShopStyle.OWNED
@@ -3237,7 +2928,7 @@ local function renderCosmetics()
 			-- missing cost arrives as 0 and renders "0" in gold on the
 			-- you-can-afford green -- the drop-pool skins' own bug, which is
 			-- silent every time.
-			entry.sub.Text = ("%d loot"):format(info.loot)
+			Theme.acornPrice(entry.sub, ("%d %s"):format(info.loot, Config.lootWord(info.loot)))
 			entry.sub.TextColor3 = Theme.GOOD
 			entry.button.BackgroundColor3 = if setUI.loot >= info.loot
 				then ShopStyle.OWNED
@@ -4028,6 +3719,7 @@ local dodgeButton = makeActionButton("DodgeButton", "DODGE", "DODGE", "Q",
 	Theme.COOL, UDim2.new(0, 68, 0, 68), 18, gui, true)
 dodgeButton.AnchorPoint = Vector2.new(0, 1)
 dodgeButton.Position = UDim2.new(0, 22, 1, -140)
+require(ReplicatedStorage.Shared.HUDLayout).bindAction(dodgeButton, gui, 1)
 
 -- The cooldown, drawn as the button draining rather than as a number.
 --
@@ -4043,7 +3735,7 @@ dodgeFill.BorderSizePixel = 0
 -- Behind the icon and the label, which are ZIndex 3.
 dodgeFill.ZIndex = 2
 dodgeFill.Parent = dodgeButton
-corner(dodgeFill, 12)
+corner(dodgeFill, 34)
 
 local dodgeReadyAt = 0
 
@@ -4081,6 +3773,7 @@ local tiptoeButton = makeActionButton("TiptoeButton", "SNEAK", "SNEAK", "C",
 	Theme.MUTED, UDim2.new(0, 68, 0, 68), 18, gui, true)
 tiptoeButton.AnchorPoint = Vector2.new(0, 1)
 tiptoeButton.Position = UDim2.new(0, 174, 1, -140)
+require(ReplicatedStorage.Shared.HUDLayout).bindAction(tiptoeButton, gui, 3)
 
 tiptoeButton.Activated:Connect(function()
 	-- Asks; never assumes. The server refuses this while carrying and drops
@@ -4614,6 +4307,7 @@ local function ensureBoneSlot(key: string, info: any)
 		heldUI.equip(key)
 	end)
 
+	HotBar.styleSlot(button, label, hotkey)
 	local entry = { button = button, label = label, hotkey = hotkey }
 	boneSlots[key] = entry
 	return entry
@@ -4806,6 +4500,7 @@ local function ensureGadgetSlot(key: string, info: any)
 		heldUI.equip(key)
 	end)
 
+	HotBar.styleSlot(button, label, hotkey)
 	local entry = { button = button, label = label, hotkey = hotkey }
 	gadgetUI.slots[key] = entry
 	return entry
@@ -4987,6 +4682,7 @@ local function ensureHomeSlot(key: string, info: any)
 		heldUI.equip(key)
 	end)
 
+	HotBar.styleSlot(button, label, hotkey)
 	local entry = { button = button, label = label, hotkey = hotkey }
 	homeUI.slots[key] = entry
 	return entry
@@ -5196,6 +4892,7 @@ local function ensureStealthSlot(key: string, info: any)
 		heldUI.equip(key)
 	end)
 
+	HotBar.styleSlot(button, label, hotkey)
 	local entry = { button = button, label = label, hotkey = hotkey }
 	stealthUI.slots[key] = entry
 	return entry
@@ -5370,7 +5067,7 @@ local function renderRides()
 			tile.sub.TextColor3 = Theme.MUTED_LIGHT
 			tile.button.BackgroundColor3 = ShopStyle.CARD
 		elseif info.loot then
-			tile.sub.Text = ("%d loot  ·  +%d%%"):format(info.loot, info.boost)
+			Theme.acornPrice(tile.sub, ("%d %s  ·  +%d%%"):format(info.loot, Config.lootWord(info.loot), info.boost))
 			tile.sub.TextColor3 = Theme.GOOD
 			tile.button.BackgroundColor3 = if setUI.loot >= info.loot
 				then ShopStyle.OWNED
@@ -5595,6 +5292,7 @@ end)
 do
 	Remotes.get("SetState").OnClientEvent:Connect(function(state)
 		setUI.loot = state.loot or 0
+		bankHUD:setAcorns(setUI.loot)
 		setUI.sets = state.sets
 		setUI.dirty = true
 		-- The Alien Cache is priced in loot, so its buy state moves with this
@@ -6269,6 +5967,7 @@ local trickButton = makeActionButton("TrickButton", "TRICK", "MANUAL", "Q",
 	Theme.COOL, UDim2.new(0, 68, 0, 68), 18, gui, true)
 trickButton.AnchorPoint = Vector2.new(0, 1)
 trickButton.Position = UDim2.new(0, 22, 1, -140)
+require(ReplicatedStorage.Shared.HUDLayout).bindAction(trickButton, gui, 1)
 trickButton.Visible = false
 
 local trickHeld = false
@@ -6378,7 +6077,8 @@ local function buildGarage()
 	slot.Text = ""
 	slot.Visible = false
 	slot.Parent = gui
-	corner(slot, 12)
+	corner(slot, 34)
+	require(ReplicatedStorage.Shared.HUDLayout).bindAction(slot, gui, 2)
 
 	local slotEdge = Instance.new("UIStroke")
 	slotEdge.Color = IDLE_EDGE
@@ -6397,6 +6097,8 @@ local function buildGarage()
 	emptyMark.TextColor3 = Theme.MUTED
 	emptyMark.Text = "\240\159\155\185"
 	emptyMark.Parent = slot
+	emptyMark.Text = ""
+	require(ReplicatedStorage.Shared.ActionButtons).icon(emptyMark, "RIDE")
 
 	local slotKey = Instance.new("TextLabel")
 	slotKey.Size = UDim2.new(0, 16, 0, 15)
@@ -6408,6 +6110,7 @@ local function buildGarage()
 	slotKey.TextColor3 = Theme.MUTED
 	slotKey.Text = "V"
 	slotKey.Parent = slot
+	slotKey.Visible = not UserInputService.TouchEnabled
 
 	local slotState = Instance.new("TextLabel")
 	slotState.Size = UDim2.new(1, -8, 0, 13)
@@ -6484,6 +6187,7 @@ local function buildGarage()
 	stancePill.Visible = false
 	stancePill.Parent = gui
 	corner(stancePill, 10)
+	require(ReplicatedStorage.Shared.HUDLayout).bindRideExtras(picker, stancePill, gui)
 
 	local stanceEdge = Instance.new("UIStroke")
 	stanceEdge.Color = Theme.MUTED
@@ -6629,7 +6333,7 @@ local function buildGarage()
 				else Theme.PAPER
 		else
 			emptyMark.Visible = true
-			slotState.Text = "EMPTY"
+			slotState.Text = "RIDE"
 			slotState.TextColor3 = Theme.MUTED
 			slot.BackgroundColor3 = Theme.PAPER
 		end
@@ -7174,7 +6878,7 @@ local function render(state: any)
 	-- the bar under it are the same number: the bar is a picture of it
 	-- against capacity, and the label on the bar names the capacity rather
 	-- than repeating the figure.
-	coinLabel.Text = format(state.coins)
+	bankHUD:render(state)
 	latestCoins = state.coins
 	renderUpgrades()
 	-- Four of the five crates are priced in coins, and coins move on their own
@@ -7182,65 +6886,6 @@ local function render(state: any)
 	-- cards themselves are built once, or this would rebuild fifteen
 	-- ViewportFrames every time a coin landed.
 	Crates.setBalance(state.coins, nil)
-
-	-- FULL IS ITS OWN SENTENCE, because it is the one state of this bar that
-	-- asks the player to DO something. Everywhere else it names the ceiling
-	-- the fill is measured against. A pig can sit ABOVE capacity after a
-	-- robbery, which `full` reports honestly and a ratio cannot.
-	--
-	-- AND HOW LONG UNTIL IT IS FULL, WHICH IS THE PRESSURE THIS GAME ALREADY
-	-- BUILT AND NEVER SAID OUT LOUD. A pig fills in 8 minutes at level 0 and
-	-- 28 at level 40 -- roughly one session at every level -- and a full pig
-	-- STOPS EARNING. That is the clock the whole "spend it or lose it" loop
-	-- runs on, and until now the only way to know it existed was to hit it.
-	--
-	-- Derived here rather than pushed: `coins`, `capacity` and `rate` are all
-	-- already in this payload, so a fourth field would be a second way to say
-	-- something the first three already say, and one of them could go stale.
-	--
-	-- Shown only from halfway up. Below that it is a number nobody can act on
-	-- -- "full in 14m" on an empty pig is noise -- and the label is better
-	-- spent naming the ceiling. It also keeps the string short exactly when
-	-- the balance is longest.
-	-- Moved ABOVE the label because the label reads it. The bar still uses this
-	-- same one, so the picture and the sentence cannot disagree about how full
-	-- the pig is.
-	local ratio = if state.capacity > 0 then math.clamp(state.coins / state.capacity, 0, 1) else 0
-	local headroom = state.capacity - state.coins
-	local fillsIn = if state.rate > 0 and headroom > 0 then headroom / state.rate else 0
-
-	-- Minutes up to an hour, then hours. Written INSIDE this function rather
-	-- than as a top-level helper: the chunk is at Luau's 200-register ceiling
-	-- and has lost the whole HUD to a handful of new locals twice, and a local
-	-- in a function body costs the chunk nothing.
-	local function shortTime(seconds: number): string
-		if seconds < 90 then
-			return ("%ds"):format(math.max(1, math.floor(seconds)))
-		elseif seconds < 3600 then
-			return ("%dm"):format(math.floor(seconds / 60 + 0.5))
-		end
-		return ("%.1fh"):format(seconds / 3600)
-	end
-
-	vaultLabel.Text = if state.full
-		then "FULL  ·  spend to earn again"
-		elseif fillsIn > 0 and ratio >= 0.5
-		then ("of %s  ·  full in %s"):format(format(state.capacity), shortTime(fillsIn))
-		else ("of %s"):format(format(state.capacity))
-	rateLabel.Text = ("+%s/s"):format(format(state.rate))
-
-	-- SCALED ON Y, because the gauge is a vessel rather than a bar. The fill
-	-- is bottom-anchored, so this is a coin level rising.
-	TweenService:Create(
-		barFill,
-		TweenInfo.new(0.28, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-		{ Size = UDim2.fromScale(1, ratio) }
-	):Play()
-
-	-- Turn the bar red at capacity: income has stopped, spend some. `full`
-	-- rather than the ratio because an overfull pig reads as 1.0 either way
-	-- and is just as stopped.
-	barFill.BackgroundColor3 = if state.full or ratio >= 0.999 then WARN else GOLD
 
 	-- The two EARN rows in the Upgrades tab. They are painted from HERE and
 	-- not from renderUpgrades, because their levels, ceilings and prices ride
@@ -8182,20 +7827,7 @@ local function buildDailyRewards()
 	-- grows with however many throwables are held, so on a narrow screen a
 	-- pill sitting on the same line would eventually be underneath it.
 
-	local boostPill = Instance.new("TextButton")
-	boostPill.Name = "BoostPill"
-	boostPill.AnchorPoint = Vector2.new(0, 1)
-	boostPill.Position = UDim2.new(0, 22, 1, -86)
-	boostPill.Size = UDim2.new(0, 168, 0, 44)
-	boostPill.BackgroundColor3 = Theme.HUE.effects
-	boostPill.BorderSizePixel = 0
-	boostPill.Font = Enum.Font.FredokaOne
-	boostPill.TextScaled = true
-	boostPill.TextColor3 = Theme.INK
-	boostPill.Text = ""
-	boostPill.Visible = false
-	boostPill.Parent = gui
-	corner(boostPill, 12)
+	local boostPill = require(ReplicatedStorage.Shared.HUDWidgets).boost(gui)
 
 	local heldBoosts: { [string]: number } = {}
 	local boostEndsAt = 0
@@ -8214,25 +7846,12 @@ local function buildDailyRewards()
 	end
 
 	local function renderBoostPill()
-		local left = math.max(0, math.floor(boostEndsAt - os.clock()))
-		if left > 0 then
-			boostPill.Visible = true
-			boostPill.BackgroundColor3 = Theme.HUE.effects
-			boostPill.Text = ("2x  %d:%02d"):format(left // 60, left % 60)
-			return
-		end
-
+		local left = math.max(0, math.ceil(boostEndsAt - os.clock()))
 		local total = 0
 		for _, key in ipairs(BOOST_ORDER) do
 			total += heldBoosts[key] or 0
 		end
-		if total <= 0 then
-			boostPill.Visible = false
-			return
-		end
-		boostPill.Visible = true
-		boostPill.BackgroundColor3 = Theme.COOL
-		boostPill.Text = if total > 1 then ("USE 2x  (%d)"):format(total) else "USE 2x BOOST"
+		require(ReplicatedStorage.Shared.HUDWidgets).renderBoost(boostPill, total, left)
 	end
 
 	boostPill.Activated:Connect(function()
@@ -8874,51 +8493,7 @@ local function buildPatrol()
 	-- The two belong together. (It is also the only free band left: measured
 	-- live, the panel ends at y 88 and the next occupied pixel in that corner
 	-- is the shop button at y 665.)
-	local nextEventChip = Instance.new("Frame")
-	nextEventChip.Name = "NextEvent"
-	nextEventChip.Size = UDim2.new(0, 176, 0, 34)
-	-- 182 RATHER THAN 154, because the panel above grew. The card now ends at
-	-- offset 164 and the pig's legs overhang to 174, so this is the same 8px
-	-- gap this column has always kept -- measured off the PIG rather than off
-	-- the card, which is the part a naive move would get wrong.
-	nextEventChip.Position = UDim2.new(1, -18, 0, 182)
-	nextEventChip.AnchorPoint = Vector2.new(1, 0)
-	nextEventChip.Visible = false
-	nextEventChip.Parent = gui
-	-- PAPER, not a saturated ground. A colour here would read as an alarm, and
-	-- for fourteen of every fifteen minutes this is furniture -- it earns its
-	-- colour in the last minute and not before.
-	Theme.card(nextEventChip, 12)
-
-	local soonBadge = Instance.new("TextLabel")
-	soonBadge.Name = "Badge"
-	soonBadge.Size = UDim2.new(0, 26, 0, 26)
-	soonBadge.Position = UDim2.new(0, 7, 0.5, 0)
-	soonBadge.AnchorPoint = Vector2.new(0, 0.5)
-	soonBadge.TextSize = 15
-	soonBadge.Text = Config.EVENT_SOON_GLYPH
-	soonBadge.Parent = nextEventChip
-	Theme.chip(soonBadge, 26, Theme.MUTED)
-	local soonRing = soonBadge:FindFirstChildOfClass("UIStroke")
-
-	local soonLabel = Instance.new("TextLabel")
-	soonLabel.Name = "Caption"
-	soonLabel.Size = UDim2.new(0, 80, 1, 0)
-	soonLabel.Position = UDim2.new(0, 40, 0, 0)
-	soonLabel.TextXAlignment = Enum.TextXAlignment.Left
-	soonLabel.Text = "NEXT EVENT"
-	soonLabel.Parent = nextEventChip
-	Theme.title(soonLabel, 12, Theme.MUTED)
-
-	local soonTime = Instance.new("TextLabel")
-	soonTime.Name = "Time"
-	soonTime.Size = UDim2.new(0, 46, 1, 0)
-	soonTime.Position = UDim2.new(1, -10, 0, 0)
-	soonTime.AnchorPoint = Vector2.new(1, 0)
-	soonTime.TextXAlignment = Enum.TextXAlignment.Right
-	soonTime.Text = ""
-	soonTime.Parent = nextEventChip
-	Theme.title(soonTime, 17, Theme.INK)
+	local nextEventChip = require(ReplicatedStorage.Shared.HUDWidgets).event(gui)
 
 	-- The server sends seconds LEFT, never a deadline: os.clock() is a
 	-- different number on every machine, so a timestamp would count down from
@@ -9011,22 +8586,8 @@ local function buildPatrol()
 		if quietSpan > Config.EVENTS.warning then
 			local left = math.max(0, event.endsAt - os.clock())
 			nextEventChip.Visible = true
-			soonTime.Text = ("%d:%02d"):format(left // 60, left % 60)
-			-- THE LAST MINUTE IS WHERE IT STOPS BEING FURNITURE. Gold rather
-			-- than a new hue: this is the game's reward colour, and what is
-			-- arriving is a reward. The ring alone changes -- the card stays
-			-- paper, because a chip that turns into a coloured block is an
-			-- alarm, and the banner twenty seconds later is the alarm.
-			local soon = left <= Config.EVENT_SOON
-			if soonRing then
-				soonRing.Color = if soon then Theme.GOLD_DEEP else Theme.MUTED
-			end
-			soonTime.TextColor3 = if soon then Theme.GOLD_INK else Theme.INK
-			-- "GET READY" and not "STARTING SOON", for two reasons. It
-			-- measured 62px against the caption box's 80 where the other
-			-- ran to 86 and clipped -- and it tells a player what to DO,
-			-- where the timer beside it is already saying when.
-			soonLabel.Text = if soon then "GET READY" else "NEXT EVENT"
+			require(ReplicatedStorage.Shared.HUDWidgets).renderEvent(
+				nextEventChip, left, event.total, left <= Config.EVENT_SOON)
 		elseif nextEventChip.Visible then
 			nextEventChip.Visible = false
 		end

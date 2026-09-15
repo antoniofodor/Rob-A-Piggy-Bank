@@ -551,7 +551,6 @@ Config.LOSS_CAP = {
 Config.REVENGE = {
 	window = 10 * 60,
 	payout = 3,
-	loot = 1,
 }
 
 -- A ROBBED PIG WEARS A PLASTER for this long. A tell and nothing else: it says
@@ -952,7 +951,7 @@ Config.UPGRADES = {
 	boots = {
 		tree = "offense", order = 3, name = "Speed Boots", max = 4,
 		baseCost = 3400, growth = 2.3,
-		blurb = "Run faster while carrying loot",
+		blurb = "Run faster while carrying stolen goods",
 	},
 	-- SNEAKERS ARE BOUGHT LAST, AND THE PRICE SAYS WHY. A tiptoe at `base`
 	-- (5.6) is already under Scruffy's `notice` of 11 and Rex's 10.2, and a
@@ -3392,7 +3391,7 @@ Config.NOTIFY = {
 	-- Loot in your hands. Gold like money, but it is the START of the risky
 	-- half of the trade rather than the safe end of it, so it holds longer.
 	loot = {
-		title = "LOOT", glyph = ICON.MONEYBAG, tone = Color3.fromRGB(255, 203, 61),
+		title = "HAUL", glyph = ICON.MONEYBAG, tone = Color3.fromRGB(255, 203, 61),
 		sound = "COIN_DROP", volume = 0.5, hold = 4.0,
 	},
 
@@ -3845,13 +3844,9 @@ Config.RUSH = {
 -- doing one job badly, and a nine-year-old cannot hold three. Both old fields
 -- were merged one-for-one into `loot` at schema 17.
 --
--- ROBBING IS ITS FIRST SOURCE, and the daily ladder pays none: loot is the
--- currency you go out and earn. Events pay the old medal shape when they
--- return -- everything under `event` is what Config.MEDALS used to be.
+-- Legacy event rewards remain here until the Phase 1.9 faucet audit.
+-- Piggy deliveries no longer award this currency; trees arrive in Phase 2.
 Config.LOOT = {
-	-- Per delivery of a robbery. One, so the price ladder on the roll reads as
-	-- "how many robberies", which is the honest unit for it.
-	delivery = 1,
 	event = {
 		-- Everybody present when an event resolves. Never zero: an event that
 		-- pays nothing to somebody who could not reach a drone is an event that
@@ -10354,42 +10349,30 @@ Config.ACCESSORIES = {} :: { [string]: any }
 -- THE ROLL CURRENCY
 -- ============================================================
 --
--- THE NAME IS A PLACEHOLDER AND IS DELIBERATELY ONE LINE TO CHANGE. What this
--- is finally called has not been decided; what it IS has been. Everything
--- player-facing reads `Config.ROLL_CURRENCY`, so renaming it is this table and
--- nothing else.
---
--- THE SAVE FIELD IS `data.tokens` AND IS HARDCODED ON PURPOSE, exactly as
--- `data.vault` stays `vault` while the HUD says PIGGY BANK. Routing every read
--- through a Config string would buy a rename that nobody needs and cost the
--- type checker, every grep, and the ability to see at a glance who spends it.
--- Renaming the FIELD is a schema migration and should have to look like one.
---
--- EARNED ONLY, AND THE TWO SOURCES ARE THE POINT. Both are attendance: a
--- daily claim, and being on the street when an event resolves. Neither can be
--- hurried with coins, so no amount of money moves the collection along -- which
--- is what takes the roll out of the paid-random-item rule entirely rather than
--- merely inside it. Anything added as a third source has to clear the same
--- bar. See Config.TOKENS for the amounts.
+-- Acorns are the earned secondary currency. The persisted field stays
+-- `data.loot`, preserving existing balances without a save migration.
+-- The HUD and prices draw Theme.acorn; this table supplies their wording.
 Config.ROLL_CURRENCY = {
-	name = "Loot",
-	plural = "Loot",
-	-- Purple, matching the roll button it is spent on, so the number and the
-	-- thing it buys read as one system rather than as two.
-	colour = Color3.fromRGB(186, 140, 236),
+	name = "Acorn",
+	plural = "Acorns",
+	-- Matches Theme.ACORN without introducing a UI dependency into Config.
+	colour = Color3.fromRGB(164, 96, 49),
 }
 
--- Where tokens come from. Both entries are ATTENDANCE and neither scales with
--- how rich or how skilled the player is.
---
--- Event tokens deliberately do NOT pay per drone, which is the one place this
--- table differs in shape from Config.MEDALS. Medals already reward the work of
--- knocking drones down; if tokens did too, a raid that happened to spawn ten
--- would pay out several rolls at once and the pacing would come from how many
--- drones a random event chose rather than from how often somebody turns up.
--- "+1 tokens" is the sort of thing an adult skims past and a nine-year-old
--- reads. One helper rather than a ternary at each of the four sites that
--- format an amount, because the fourth is always the one that gets missed.
+-- Phase 1 foundation for the tree's shake payout. Piggy deliveries never
+-- call this. A nil victim rebirth count means a resident; zero is a player.
+Config.ACORNS = {
+	payout = { resident = 1, player = 5, perRebirthAbove = 1, revenge = 2 },
+}
+
+function Config.acornMultiplier(thief: number, victim: number?, revenge: boolean): number
+	local payout = Config.ACORNS.payout
+	if victim == nil then return payout.resident end
+	local multiplier = payout.player + math.max(0, victim - thief) * payout.perRebirthAbove
+	return multiplier * (if revenge then payout.revenge else 1)
+end
+
+-- Keep singular/plural wording consistent across prices and receipts.
 function Config.lootWord(n: number): string
 	return string.lower(if n == 1 then Config.ROLL_CURRENCY.name
 		else Config.ROLL_CURRENCY.plural)
@@ -10399,7 +10382,7 @@ end
 -- `ROLL_GROWTH`, `getRollCost`, `accessoryCount` and `rollableAccessoryCount`
 -- all existed to price and pace the accessory collection, and there is no
 -- collection to pace. `Config.ROLL_CURRENCY` and `Config.lootWord` above are
--- deliberately NOT part of this: they name the loot currency, which the
+-- deliberately NOT part of this: they name the Acorn currency, which the
 -- event chests still price in.
 
 

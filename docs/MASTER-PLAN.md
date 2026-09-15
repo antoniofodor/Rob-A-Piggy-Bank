@@ -1470,6 +1470,11 @@ basket.
 
 ## Phase 0 -- Gates (hours, not days, and two of them cost something today)
 
+**Execution update — 2026-09-15:** Phase 0 is deferred by the designer's
+instruction. Its checks remain open; they are not treated as passed. Phase 1
+may proceed while these gates are scheduled for later. The asset design gates
+in section 18.2 still apply.
+
 These are carried unchanged from the retired roadmap because nothing below
 can be tuned without them.
 
@@ -1503,6 +1508,18 @@ Creator Dashboard and paste the ids in. Five minutes, and it is the whole of
 monetisation until Phase 4.
 
 ## Phase 1 -- Acorns (a weekend, and it changes the shape of the game)
+
+**Execution update — 2026-09-15:** Steps **1.1–1.2 implemented** in the
+Rojo workspace and verified in Studio. Designer approved the nut-brown,
+green-cap, cocoa-outline cartoon icon. `Theme.acorn` now draws the HUD and
+price glyph; the compact balance chip sits beside the event timer. Existing
+`data.loot` balances are preserved. Piggy deliveries grant no Acorns and
+their receipts name none. `Config.acornMultiplier` is ready for Phase 2,
+with no production caller yet (nil victim rebirth count means a resident).
+Checks: Rojo build, phone HUD/crate preview, no client errors, seven multiplier
+cases and twelve isolated delivery cases in `tests/studio/acorns.luau`.
+Steps **1.3–1.10 remain open**. Trees/shakes are not implemented yet; legacy
+event faucets await 1.9. This is an incremental local change, not a release.
 
 1.1 **The name. [DESIGN -- Art 8]** `Config.ROLL_CURRENCY` is the one table
 player-facing wording reads; set it to Acorns with the acorn glyph and its own

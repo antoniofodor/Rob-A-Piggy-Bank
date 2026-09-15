@@ -399,7 +399,7 @@ local function paint(chestKey: string, info: any)
 	local complete = (info.owned or 0) >= (info.total or 0) and (info.total or 0) > 0
 
 	if currency == "loot" then
-		ui.open.Text = ("OPEN %s %d %s"):format(DOT, cost, Config.lootWord(cost))
+		Theme.acornPrice(ui.open, ("OPEN %s %d %s"):format(DOT, cost, Config.lootWord(cost)))
 	else
 		ui.open.Text = ("OPEN %s %s"):format(DOT, deps.format(cost))
 	end
