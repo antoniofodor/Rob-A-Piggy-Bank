@@ -333,6 +333,13 @@ local function buildTree(x: number, z: number, seed: number, scaleOverride: numb
 	end
 end
 
+-- How far a mailbox reaches ACROSS the drive it stands beside. The body is
+-- 1.9 wide and 2.7 long and the whole thing is turned twelve degrees, so its
+-- X extent is 1.9*cos12 + 2.7*sin12 = 2.42 studs, and 1.3 covers the half of
+-- that with a little in hand. Anything that widens the box has to move this
+-- with it or the mailbox walks back onto the tarmac.
+local MAILBOX_HALF = 1.3
+
 local function buildStreetFurniture(m: any)
 	for _, side in ipairs({ -1, 1 }) do
 		-- On the verge, just off the kerb. This used to be measured from the
@@ -348,8 +355,21 @@ local function buildStreetFurniture(m: any)
 			local x = gapX(col)
 			scenery("LampPost", Vector3.new(0.6, 14, 0.6),
 				CFrame.new(x, GROUND_Y + 7, z), Color3.fromRGB(72, 74, 80), Enum.Material.Metal)
+			-- A NEON LAMP HEAD WANTS A DEEP COLOUR, WHICH IS THE FOURTH TIME
+			-- THIS PROJECT HAS LEARNED THAT SENTENCE. It was (255, 240, 190)
+			-- -- a near-white cream chosen as "warm lamplight" -- and Neon
+			-- renders a colour flat out, so what stood on the verge was not a
+			-- bulb, it was a white hole with a bloom halo around it.
+			-- Photographed down the street, the two nearest lamps were the
+			-- brightest objects in frame, brighter than the sky.
+			--
+			-- The Martian skin, the palace's first lit colonnade and the
+			-- townhouse's window rank are the other three, and the fix is the
+			-- same every time: a colour a long way from white, so that
+			-- rendering it at full brightness still leaves a HUE behind.
+			-- Saturation is what survives the bloom, not value.
 			local head = scenery("LampHead", Vector3.new(2.2, 0.8, 1.4),
-				CFrame.new(x, GROUND_Y + 14, z), Color3.fromRGB(255, 240, 190), Enum.Material.Neon)
+				CFrame.new(x, GROUND_Y + 14, z), Color3.fromRGB(255, 176, 48), Enum.Material.Neon)
 			head.CFrame = CFrame.new(head.Position)
 		end
 
@@ -407,13 +427,40 @@ local function buildStreetFurniture(m: any)
 			end
 		end
 
-		-- A mailbox beside each driveway.
+		-- A mailbox on the GRASS beside each driveway.
+		--
+		-- IT STOOD IN THE DRIVE, AND ONLY MEASURING SAID SO. The offset was a
+		-- flat `+ 7` against a `Config.DRIVEWAY_WIDTH` of 17, so the box
+		-- spanned x 6.2 to 7.8 on a drive whose edge is at 8.5 -- measured on
+		-- the built street, all ten of them standing bodily on their own
+		-- owner's tarmac. Nothing errored and nothing looked broken enough to
+		-- check, because a mailbox beside a drive and a mailbox in one differ
+		-- by a stud and a half.
+		--
+		-- IT IS DERIVED FROM THE DRIVEWAY NOW rather than typed, which is the
+		-- half that stops it coming back: a wider drive carries the mailbox
+		-- out with it instead of swallowing it. `MAILBOX_HALF` is the box's
+		-- own reach ACROSS the drive at the yaw it is built with -- 1.9 wide
+		-- and 2.7 long turned twelve degrees is 2.42 across, so 1.3 covers it
+		-- -- and the extra stud is grass anybody can see between the tarmac
+		-- and the post.
+		--
+		-- AND IT IS THE REAL MAILBOX RATHER THAN A RED BOX ON A STICK. What
+		-- stood here was two parts in `Material.Metal`, which SHADES a colour
+		-- by the environment rather than rendering it -- the trophies already
+		-- paid for that one, where the same gold came out olive two studs from
+		-- itself. `Decor.buildMailbox` is the same five parts every plot's own
+		-- mailbox is built from, in flat `SmoothPlastic`, so the street has
+		-- one kind of mailbox on it instead of two.
 		for col = 0, m.perRow - 1 do
-			local x = columnX(m, col) + 7
-			scenery("MailboxPost", Vector3.new(0.4, 4, 0.4),
-				CFrame.new(x, GROUND_Y + 2, z), TRUNK, Enum.Material.Wood)
-			scenery("Mailbox", Vector3.new(1.6, 1.4, 2.6),
-				CFrame.new(x, GROUND_Y + 4.6, z), Color3.fromRGB(168, 78, 68), Enum.Material.Metal)
+			local x = columnX(m, col) + Config.DRIVEWAY_WIDTH / 2 + MAILBOX_HALF + 1
+			-- Facing the road, and the far row is turned through 180 degrees
+			-- exactly as the wheelie bins are -- the correction the old
+			-- disguise never made. The extra twelve degrees is the plot's own
+			-- mailbox yaw: a box square to the street presents its side to
+			-- everybody walking past it.
+			local yaw = (if side < 0 then 0 else math.pi) + math.rad(-12)
+			Decor.buildMailbox(CFrame.new(x, GROUND_Y, z) * CFrame.Angles(0, yaw, 0), folder)
 		end
 	end
 end
@@ -549,7 +596,7 @@ local function buildStreetTrees(m: any)
 	-- Where a canopy may not reach: a driveway crossing the verge, and the
 	-- gap centres, which is where the shops and the boards stand.
 	local halfDrive = Config.DRIVEWAY_WIDTH / 2 + 1
-	local SHOP_HALF = 11 -- 20 wide plus its two-stud forecourt overhang
+	local SHOP_HALF = 11 -- 18 wide plus its two-stud forecourt overhang
 	local function clear(x: number): boolean
 		for col = 0, perRow - 1 do
 			if math.abs(x - Config.plotColumnX(col)) < halfDrive + reach then
@@ -561,6 +608,18 @@ local function buildStreetTrees(m: any)
 				return false
 			end
 		end
+		-- THE TREES CAME BACK. A veto stood here for one release: four of
+		-- these gaps carried a robbable piggy bank on the verge, 16 studs off
+		-- the gap centre, in the only stretch wide enough to hold one -- so
+		-- one of each gap's pair of trees gave up its place to a pig.
+		--
+		-- The pig is inside the shop now, so there is nothing on that band to
+		-- clear and both trees stand again. Worth recording as a deletion
+		-- rather than quietly dropping it: the veto took a SIDE argument,
+		-- which it needed only because a till sat on the same side of its own
+		-- SHOP rather than on the same side of the map. `clear` is symmetric
+		-- again, and the next thing that stands on a verge will have to bring
+		-- that argument back with it.
 		return true
 	end
 
@@ -583,11 +642,17 @@ local function buildStreetTrees(m: any)
 		x += 30
 	end
 
+	-- THE SIDE LOOP USED TO BE HERE BECAUSE `clear` NEEDED TO KNOW WHICH ROW
+	-- IT WAS ANSWERING FOR, and it no longer does. A till sat on the same
+	-- side of its own SHOP rather than on the same side of the map, so the
+	-- tree it displaced was a different one on each row; the vault is inside
+	-- the building now and both trees stand in every gap. What is left is a
+	-- plain loop over the two rows, and `clear` is symmetric again.
 	local seed = 5000
-	for _, tx in ipairs(xs) do
-		seed += 1
-		if clear(tx) then
-			for _, side in ipairs({ -1, 1 }) do
+	for _, side in ipairs({ -1, 1 }) do
+		for _, tx in ipairs(xs) do
+			seed += 1
+			if clear(tx) then
 				buildTree(tx, side * STREET_TREE.z, seed, STREET_TREE.scale)
 			end
 		end
@@ -947,31 +1012,40 @@ end
 --
 -- The garden centre has no `display` on purpose: its style has an open front
 -- rather than a window, because its stock IS the frontage.
+-- WHAT EACH UNIT LOOKS LIKE, KEYED BY THE TAB ITS DOOR OPENS -- and WHERE
+-- it stands is `Config.SHOPS`, which is a change rather than a tidy-up.
+--
+-- This table used to carry a `gap`, a `side` and a `name` of its own while
+-- `Config` carried the same three for the till on each forecourt. Two copies
+-- of one arrangement, and for as long as the pig stood outside they could
+-- disagree by a stud without anybody noticing. They cannot now: the vault is
+-- a PLOT built inside this shell, so a table one gap out of step would put a
+-- robbable strongroom in an empty patch of verge and leave the unit next
+-- door with nothing in it.
+--
+-- Style, colour and window display are appearance and stay here. Placement
+-- is arithmetic the economy is priced against and lives in Config.
 local SHOPS = {
-	{
-		gap = 0, side = 1, tab = "piggy", style = "boutique",
-		name = "PIGGY OUTFITTERS", accent = Color3.fromRGB(226, 118, 156),
+	piggy = {
+		style = "boutique", accent = Color3.fromRGB(226, 118, 156),
 		-- The mini piggy, the same 11-part model the carried loot uses.
 		display = function()
 			return PiggyModel.build(Config.DEFAULT_SKIN)
 		end,
 	},
-	{
-		gap = 2, side = 1, tab = "home", style = "garden",
-		name = "HOME & GARDEN", accent = Color3.fromRGB(104, 172, 116),
+	home = {
+		style = "garden", accent = Color3.fromRGB(104, 172, 116),
 	},
-	{
-		gap = 0, side = -1, tab = "gear", style = "wheels",
-		name = "WHEELS & KIT", accent = Color3.fromRGB(232, 162, 72),
+	gear = {
+		style = "wheels", accent = Color3.fromRGB(232, 162, 72),
 		-- A real BMX off RideModel. 23 parts, and it is the machine a player
 		-- can actually buy on the tab this door opens.
 		display = function()
 			return RideModel.build("bmx")
 		end,
 	},
-	{
-		gap = 2, side = -1, tab = "defend", style = "security",
-		name = "LOCK & KEY", accent = Color3.fromRGB(96, 146, 216),
+	defend = {
+		style = "security", accent = Color3.fromRGB(96, 146, 216),
 		-- A Golden Bone under glass: the most expensive consumable in the
 		-- game, and the one thing on this tab that reads at a glance.
 		display = function()
@@ -980,17 +1054,35 @@ local SHOPS = {
 	},
 }
 
-local function buildShops(m: any)
-	for _, shop in ipairs(SHOPS) do
-		-- Authored facing +Z, so the far verge turns a half circle to look
-		-- back at the road and the near one takes none. Same convention the
-		-- plots, the ornaments and the bins all follow.
-		local yaw = if shop.side > 0 then math.pi else 0
+local function buildShops(_m: any)
+	for _, placement in ipairs(Config.SHOPS) do
+		-- `any`, because the four rows are not one shape -- the garden centre
+		-- has an open front and therefore no `display` -- and a fallback row
+		-- assigned into an inferred type is a strict-mode fight over a table
+		-- that is Config data either way.
+		local shop: any = SHOPS[placement.tab]
+		if not shop then
+			-- A shop with no look is a misconfiguration and losing the unit
+			-- is worse than losing its style: it is a robbable plot, and
+			-- `PlotService` will have built one inside a building that is not
+			-- there. Loud, and it does not skip.
+			warn("[NeighborhoodService] no style for shop tab " .. tostring(placement.tab))
+			shop = { style = "boutique", accent = Color3.fromRGB(200, 200, 200) }
+		end
+		-- THE UNIT'S FRAME COMES FROM `Config`, WHICH IS THE SAME CALL
+		-- `PlotService` MAKES. Two builders, one placement: the walls and the
+		-- vault inside them cannot end up in different gaps, and neither can
+		-- drift when the street is next widened.
+		--
+		-- It sits at the PAVEMENT, half a slab below the plot frame that
+		-- shares it -- `ShopFront` measures its own bands from the ground it
+		-- stands on.
+		local placeAt = Config.shopUnitCFrame(placement)
 		local _, door = ShopFront.build(
-			CFrame.new(gapX(shop.gap), GROUND_Y, shop.side * m.shopZ) * CFrame.Angles(0, yaw, 0),
+			placeAt * CFrame.new(0, GROUND_Y, 0),
 			GROUND_Y,
 			{
-				name = shop.name, tab = shop.tab, accent = shop.accent,
+				name = placement.name, tab = placement.tab, accent = shop.accent,
 				style = shop.style, display = shop.display,
 			},
 			folder)
@@ -1002,7 +1094,7 @@ local function buildShops(m: any)
 		local prompt = door:FindFirstChildOfClass("ProximityPrompt")
 		if prompt then
 			prompt.Triggered:Connect(function(player)
-				Remotes.get("ShopDoor"):FireClient(player, shop.tab)
+				Remotes.get("ShopDoor"):FireClient(player, placement.tab)
 			end)
 		end
 	end

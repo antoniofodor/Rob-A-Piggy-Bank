@@ -41,6 +41,17 @@ local CollectionService = game:GetService("CollectionService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local AlienModel = require(ReplicatedStorage.Shared.AlienModel)
+-- THE VICTIM SHELF STANDS REAL PIGGIES, BUILT BY THE FUNCTION THAT
+-- BUILDS THE ONE A THIEF CARRIES HOME.
+--
+-- Same argument as everything else in this file being shared: the shop
+-- shows the REAL item. A second, smaller pig authored for a shelf would
+-- drift from the carried one the first time either was touched, and the
+-- whole point of the trophy is that it is recognisably somebody's
+-- property -- the same object, at the same size, in their own skin.
+--
+-- No cycle: PiggyModel requires Config and nothing else.
+local PiggyModel = require(ReplicatedStorage.Shared.PiggyModel)
 
 local Decor = {}
 
@@ -52,6 +63,19 @@ Decor.TRAMPOLINE_TAG = "TrampolineMat"
 local TRAMPOLINE_TAG = Decor.TRAMPOLINE_TAG
 
 local folder: Model
+
+-- WHOSE SKIN THE TOPIARY IS CLIPPED IN.
+--
+-- Held as an upvalue beside `trophyState` rather than passed to each builder,
+-- for the reason that one is: `builders` is a table of `(item, at)` functions
+-- and widening that signature would touch all forty of them to serve one.
+--
+-- It is the KEY and not the colours, so this module reads `Config.SKINS`
+-- itself. A caller passing two Color3s would be a second description of what
+-- a skin is, and the day a skin grows a field -- which is exactly what
+-- happened to the metal ones this week -- the copy is the one that does not
+-- get it.
+local skinKey: string = ""
 
 local function part(name: string, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material): Part
 	local p = Instance.new("Part")
@@ -213,21 +237,73 @@ builders.hoop = function(item, at)
 		Color3.fromRGB(238, 238, 238), Enum.Material.Fabric).Transparency = 0.45
 end
 
+-- THE TOPIARY IS CLIPPED IN ITS OWNER'S SKIN, AND IT TAKES THE COLOUR
+-- WITHOUT THE MATERIAL.
+--
+-- `docs/MASTER-PLAN.md` asks for this as a near-free tie between two systems
+-- that do not otherwise know about each other: a skin is bought, worn on a
+-- pig behind a fence, and seen by almost nobody. A hedge cut into the same
+-- shape is a second advertisement for it, on the one object on the lawn that
+-- is already a pig.
+--
+-- WHAT IT MUST NOT TAKE IS THE MATERIAL, AND THAT IS THE WHOLE OF THE
+-- DIFFERENCE BETWEEN A TOPIARY AND A STATUE. `Enum.Material.Grass` is what
+-- says PLANT here; the colour is what says whose plant it is. Take both and
+-- a Solid Gold topiary is a gold pig standing on a lawn -- which is a
+-- perfectly good ornament and is not the one that was bought, and which would
+-- quietly make this the only lawn object that renders a cosmetic at full
+-- fidelity. Take the colour only and it stays a hedge with a colour, which is
+-- what a clipped ornamental actually is.
+--
+-- IT ALSO DOES NOT TAKE `reflectance`, AND THAT IS THE SAME DECISION RATHER
+-- THAN AN OVERSIGHT. The three metal skins carry one so the pig can be shiny;
+-- a shiny hedge is a contradiction, and the flatness is the tell that this is
+-- a plant rather than a second pig. Anything added to a skin that describes
+-- its SURFACE belongs on the animal and not on the shrubbery -- which is the
+-- test to apply to the next field, rather than wiring each one up as it
+-- lands.
+--
+-- AN ANIMATED SKIN IS SAMPLED, NEVER DRIVEN. The client animator paints the
+-- twenty-three cycling skins per frame and this deliberately does not join
+-- it: a topiary that pulsed would be a second light show on a lawn that
+-- already has the pig doing it, and the two out of phase would read as a
+-- fault rather than as a set. It takes the palette's first colour, which is
+-- where every one of those cycles starts.
 builders.topiary = function(item, at)
+	local skin = Config.SKINS[skinKey]
 	local LEAF = Color3.fromRGB(84, 138, 72)
+	local TRIM = LEAF
+	if skin then
+		-- A cycling skin has no single body colour, so take the first stop of
+		-- its own palette rather than whatever `body` happens to hold -- on
+		-- several of them that field is a base the animation never shows.
+		local body = skin.body
+		if skin.anim and type(skin.anim.palette) == "table" and skin.anim.palette[1] then
+			body = skin.anim.palette[1]
+		end
+		-- Pulled toward the leaf rather than used raw. A hedge lit by the
+		-- 14:30 sun is a MUTED version of whatever it is made of, and the pale
+		-- skins otherwise produce a white bush that reads as dead rather than
+		-- as clipped. It is a lerp and not a clamp so the darker skins keep
+		-- their depth.
+		LEAF = body:Lerp(Color3.fromRGB(84, 138, 72), 0.34)
+		TRIM = (skin.trim or body):Lerp(Color3.fromRGB(68, 116, 58), 0.34)
+	end
 	part("Pot", Vector3.new(3.4, 1.6, 3.4), at * CFrame.new(0, 0.8, 0),
 		Color3.fromRGB(158, 108, 82), Enum.Material.Slate)
 
 	-- A pig, in hedge form: body, snout, ears, four stubby legs.
 	ball("Body", 4.4, at * CFrame.new(0, 4.2, 0), LEAF, Enum.Material.Grass)
-	ball("Snout", 1.5, at * CFrame.new(0, 3.9, 2.1), LEAF, Enum.Material.Grass)
+	-- The trim tone on the same parts the real pig wears it on, so a two-tone
+	-- skin reads as two-tone here too rather than flattening to one green.
+	ball("Snout", 1.5, at * CFrame.new(0, 3.9, 2.1), TRIM, Enum.Material.Grass)
 	for _, side in ipairs({ -1, 1 }) do
-		part("Ear", Vector3.new(0.9, 1.1, 0.5), at * CFrame.new(side * 1.1, 6, 1.2), LEAF, Enum.Material.Grass)
+		part("Ear", Vector3.new(0.9, 1.1, 0.5), at * CFrame.new(side * 1.1, 6, 1.2), TRIM, Enum.Material.Grass)
 		for _, front in ipairs({ 1.2, -1.2 }) do
-			part("Leg", Vector3.new(0.8, 1.6, 0.8), at * CFrame.new(side * 1.2, 2.2, front), LEAF, Enum.Material.Grass)
+			part("Leg", Vector3.new(0.8, 1.6, 0.8), at * CFrame.new(side * 1.2, 2.2, front), TRIM, Enum.Material.Grass)
 		end
 	end
-	ball("Tail", 0.7, at * CFrame.new(0, 4.6, -2.3), LEAF, Enum.Material.Grass)
+	ball("Tail", 0.7, at * CFrame.new(0, 4.6, -2.3), TRIM, Enum.Material.Grass)
 end
 
 builders.fountain = function(item, at)
@@ -1479,32 +1555,66 @@ builders.dripstatue = function(item, at)
 		ball("Ear", 1.00, at * CFrame.new(sx * 2.09332, 14.76000, -0.22000), SKIN, SMOOTH)
 	end
 
-	-- A POINTED NOSE IS A TAPER, AND ONE BALL CANNOT TAPER. It was a single
-	-- 0.66 sphere, which is round by definition however it is placed -- the
-	-- reference has a nose that narrows to a soft point and turns down.
+	-- A POINTED NOSE IS A TAPER, AND NO PRIMITIVE IN THIS ENGINE TAPERS.
 	--
-	-- Four balls shrinking 0.44 -> 0.17 along an axis pointing out and 27
-	-- degrees DOWN do taper. The step between them is 0.12 against radii
-	-- summing to about 0.4, so consecutive balls overlap several times over
-	-- and the chain reads as one cone rather than as beads -- the same
-	-- spacing-versus-radius test the turtle's band failed when its beads were
-	-- too far apart. It ends 0.289 proud, near enough the 0.30 the round one
-	-- had, so the profile changed and the prominence did not.
+	-- It was one 0.66 sphere, which is a bump; then it was FOUR balls
+	-- shrinking 0.44 -> 0.17 along an axis pointing out and 27 degrees DOWN,
+	-- which does taper and which reads -- close up and on every resident on
+	-- the street -- as a stack of RINGS. That is not a spacing problem and it
+	-- cannot be tuned away, which is the useful half of this entry.
 	--
-	-- THE BASE IS SIZED BY THE EYES, not by taste. They sit close in on a
-	-- head this size, and a wider base clips the eyeball: at 0.44 it clears
-	-- the white by 0.038, and 0.50 does not clear it at all.
+	-- WHY: consecutive spheres in that chain meet at a 33-degree NORMAL
+	-- BREAK. Each ball is separately smooth-shaded, so where one emerges from
+	-- the last there is a hard lighting seam -- and the eye reads a shading
+	-- discontinuity far more strongly than the 2% groove in the geometry that
+	-- causes it.
+	--
+	-- AND MORE BEADS MAKES IT WORSE, WHICH IS THE OPPOSITE OF WHAT THE
+	-- ARITHMETIC PREDICTS. Eleven balls on the identical cone halves every
+	-- individual break and renders as CORDUROY: a repeating fine crease reads
+	-- as a texture, where three coarse ones read as three rings. Photographed
+	-- side by side against four and against this, because the calculation
+	-- said "smoother" and the picture said otherwise.
+	--
+	-- A PROLATE SPHEROID IS THE ONE SHAPE THAT IS BOTH TAPERED AND SEAMLESS,
+	-- and `SpecialMesh` is how you get one without CSG: `MeshType.Sphere`
+	-- takes a NON-UNIFORM `Scale`, where a Ball part silently ignores one --
+	-- this file already records that three balls sized (6,6,6), (12,6,6) and
+	-- (6,12,6) render pixel-identical. One part, no union, no server-only
+	-- template to prewarm and clone, and no seam anywhere on it because there
+	-- is only one surface.
+	--
+	-- SEATED TO REPRODUCE THE OLD PLACEMENT EXACTLY: centred on the chain's
+	-- own start point with a half-length of 0.45 along the same axis, which
+	-- puts the tip 0.293 proud of the skull against the chain's 0.289. The
+	-- profile changed and the prominence did not, twice now.
+	--
+	-- THE WIDTH IS STILL SIZED BY THE EYES, and measuring it correctly
+	-- reversed the answer. Sampling the WHOLE eyeball says this nose intrudes
+	-- 0.012 into the white -- against the old chain's +0.038 of clearance --
+	-- which reads as a regression and is not one. An eyeball is set INTO the
+	-- skull, only 23% of its sphere is outside it, and every intruding sample
+	-- is in the buried 77%. Against the VISIBLE surface the nose clears by
+	-- +0.266, seven times what the four balls managed.
+	--
+	-- Same correction this file already records for the turtle's ear, where
+	-- testing the convenient point put it 0.067 inside a hair ball it is
+	-- nowhere near: TEST THE SURFACE THAT CAN BE SEEN, not the surface that
+	-- is easy to enumerate.
 	local NOSE_AXIS = Vector3.new(0, -0.45097, 0.89244)
 	local noseAt = Vector3.new(0, 14.80, 2.11660)
-	for _, seg in ipairs({
-		{ dia = 0.44, step = 0.00 },
-		{ dia = 0.35, step = 0.12 },
-		{ dia = 0.26, step = 0.12 },
-		{ dia = 0.17, step = 0.12 },
-	}) do
-		noseAt += NOSE_AXIS * seg.step
-		ball("Nose", seg.dia, at * CFrame.new(noseAt), Color3.fromRGB(226, 178, 142), SMOOTH)
-	end
+	local NOSE_WIDE, NOSE_LONG = 0.42, 0.90
+	local nose = part("Nose", Vector3.new(NOSE_WIDE, NOSE_WIDE, NOSE_WIDE),
+		at * CFrame.lookAt(noseAt, noseAt + NOSE_AXIS),
+		Color3.fromRGB(226, 178, 142), SMOOTH)
+	local noseMesh = Instance.new("SpecialMesh")
+	noseMesh.MeshType = Enum.MeshType.Sphere
+	-- `Scale` MULTIPLIES the part's Size, so the long axis is a ratio rather
+	-- than a length. Stretched on Z because `CFrame.lookAt` builds its frame
+	-- around Z; which way round it points does not matter, since the shape is
+	-- symmetric about its own middle.
+	noseMesh.Scale = Vector3.new(1, 1, NOSE_LONG / NOSE_WIDE)
+	noseMesh.Parent = nose
 	-- A SMIRK, WHICH IS A LINE THAT DOES NOT END WHERE IT STARTED.
 	--
 	-- One straight box is a mouth with no opinion in it, and asymmetry is the
@@ -1985,6 +2095,492 @@ end
 -- Called once by the server at startup. Without it the first Brace Face ever
 -- bought builds its CSG band inside whichever request needed it first -- a
 -- purchase, or a join reconstructing a saved lawn -- and CSG yields.
+-- ============================================================
+-- TROPHIES
+-- ============================================================
+--
+-- WHAT THE FOUR BUILDERS BELOW READ, AND IT IS DECLARED UP HERE FOR THE
+-- TWELFTH TIME THIS PROJECT HAS PAID FOR THAT LESSON.
+--
+-- `Decor.build` writes it and sits five hundred lines BELOW the builders
+-- that read it. A `local` declared under a function that reads it is a
+-- nil GLOBAL to that function and Luau says nothing at compile time -- so
+-- left there, every trophy on every lawn would have rendered as an EMPTY
+-- case with no error anywhere, because `trophyState and trophyState.x`
+-- on a nil global is a perfectly legal nil. That is the silent failure
+-- this file refuses above all others, and it is a worse shape than the
+-- crashes the other eleven produced: nothing to notice.
+--
+-- Held as an upvalue beside `folder` rather than threaded through every
+-- builder's signature, for exactly the reason `folder` is: eighteen
+-- ornaments take no state at all, and widening all of their signatures to
+-- carry an argument four of them read would be eighteen chances to leave
+-- it out on the next one somebody writes.
+local trophyState: any = nil
+
+-- What a trophy is a picture of when nobody has said -- see `showroom`
+-- further down, which is what fills it for a shop card.
+--
+-- MONEY BUYS THE FRAME; ROBBERY BUYS THE PICTURE. Every one of these is
+-- a bought PLINTH with an earned object standing on it, and the split is
+-- literal rather than a metaphor: `trophyPlinth` below is the only part
+-- of a trophy a coin can reach, and everything above it is a function of
+-- something the player did.
+--
+-- THEY GROW. A badge that appears once and never changes again is spent
+-- the moment it lands; a case that gains a pig, a safe that gains a bar
+-- and a post that gains a lamp are worth walking past for the rest of an
+-- account's life. That is the coin pile's own argument, on the one
+-- surface in this game that is about the past rather than the present.
+
+-- Colours the four share, so a shelf reads as a set rather than as four
+-- ornaments that happen to have arrived together.
+local TROPHY_DARK = Color3.fromRGB(58, 52, 48)
+local TROPHY_WOOD = Color3.fromRGB(126, 88, 58)
+local TROPHY_WOOD_DARK = Color3.fromRGB(96, 66, 44)
+local TROPHY_STEEL = Color3.fromRGB(96, 100, 108)
+-- GOLD IS FLAT, NEVER `Material.Metal`, AND THAT WAS DECIDED BY LOOKING.
+--
+-- Metal shades a colour by the environment rather than rendering it, so
+-- the same (226, 186, 86) that reads as bright gold on a plinth came out
+-- OLIVE on a stack of bars two studs away from it -- photographed side by
+-- side, and the two are supposed to be the same metal. Everything else in
+-- this game's buildings is flat-shaded for the same reason the houses were
+-- rebuilt off `Brick` and `Slate`.
+--
+-- The STEEL keeps Metal, because a safe reading as a slightly different
+-- grey is what a safe is, and there is nothing for it to disagree with.
+local TROPHY_GOLD = Color3.fromRGB(226, 186, 86)
+
+-- THE PLINTH, AND IT RETURNS THE HEIGHT IT REACHES.
+--
+-- Every caller stands its trophy on the number that comes back rather
+-- than on a constant, which is what stops a taller plinth burying the
+-- thing it is holding up -- the `TORSO_Y` lesson from the guard dog,
+-- where one literal in three places was fine until a breed's legs moved.
+--
+-- THE CAP STANDS PROUD OF THE BASE AND IS NARROWER THAN IT, which is the
+-- moat's kerb rule at a twentieth of the scale: nothing here can be dug,
+-- so a moulding is made by standing something proud rather than by
+-- sinking anything, and the eye takes the highest line as the surface.
+-- Narrower also keeps its four side faces INBOARD of the base's, so no
+-- two of them can ever share a plane.
+local function trophyPlinth(at: CFrame, width: number, depth: number,
+	label: string): number
+	local plinth = Config.trophyPlinth(trophyState and trophyState.plinth)
+
+	local baseH, capH = 0.9, 0.26
+	part("PlinthBase", Vector3.new(width, baseH, depth),
+		at * CFrame.new(0, baseH / 2, 0), plinth.base, plinth.material)
+	part("PlinthCap", Vector3.new(width - 0.7, capH, depth - 0.7),
+		at * CFrame.new(0, baseH + capH / 2, 0), plinth.trim, plinth.material)
+
+	-- THE ENGRAVING IS A RUNG RATHER THAN A FREEBIE, so a plain concrete
+	-- plinth carries no plaque at all -- which is what makes the step up
+	-- to marble a step from an object to a READOUT.
+	--
+	-- `Face` is Back, because Roblox's Front is -Z and plot-local +Z is the
+	-- street on both rows. This is the same one-word mistake the plot
+	-- signs already have a note about.
+	if plinth.plaque then
+		local plate = part("Plaque", Vector3.new(width * 0.62, 0.5, 0.12),
+			at * CFrame.new(0, baseH * 0.62, depth / 2 + 0.05),
+			plinth.trim, plinth.material)
+		local surface = Instance.new("SurfaceGui")
+		surface.Face = Enum.NormalId.Back
+		surface.CanvasSize = Vector2.new(360, 72)
+		-- Read from a couple of studs away by somebody standing on the
+		-- lawn, never from the pavement -- a row of these legible across
+		-- the street would be a wall of text over the world, which is the
+		-- measurement the shop's own name plaques already settled at 260.
+		surface.MaxDistance = 70
+		surface.Parent = plate
+
+		local text = Instance.new("TextLabel")
+		text.Size = UDim2.new(1, -16, 1, -12)
+		text.Position = UDim2.new(0, 8, 0, 6)
+		text.BackgroundTransparency = 1
+		text.Font = Enum.Font.FredokaOne
+		-- Never write TextWrapped beside TextScaled; see the plot sign.
+		text.TextScaled = true
+		text.TextColor3 = Color3.fromRGB(46, 34, 22)
+		text.Text = label
+		text.Parent = surface
+	end
+
+	-- THE UPLIGHT, AND IT IS NEON RATHER THAN A LIGHT.
+	--
+	-- `WorldService` sets ClockTime to 14.5 exactly once and nothing in
+	-- this game ever moves it, so a PointLight on a lawn at half past two
+	-- is a purchase nobody can see. Neon renders flat out whatever the sun
+	-- is doing and the BloomEffect already in the world takes it from
+	-- there -- which is why every celebration in this project is emissive
+	-- geometry.
+	-- ON THE BASE'S FRONT FACE, LOW, AND NOT ON TOP OF THE CAP -- which is
+	-- where the first version put them and is the one place on this object
+	-- there is no room. Every trophy stands ON the cap, so a lamp up there
+	-- shares a bottom plane with whatever is standing on it: the shelf's
+	-- own boards reach z 1.4 on a plinth whose cap reaches 1.35, so there
+	-- is no clear ground at all. Low on the front is also what an uplight
+	-- is, and it clears the plaque above it by a quarter of a stud.
+	if plinth.glow then
+		for _, side in ipairs({ -1, 1 }) do
+			part("PlinthLamp", Vector3.new(0.6, 0.18, 0.18),
+				at * CFrame.new(side * (width / 2 - 0.6), 0.15, depth / 2 + 0.04),
+				plinth.glow, Enum.Material.Neon)
+		end
+	end
+
+	return baseH + capH
+end
+
+-- ------------------------------------------------------------
+-- THE VICTIM SHELF
+-- ------------------------------------------------------------
+--
+-- One little pig per SKIN robbed, in that skin, built by the same
+-- function that builds the one a thief runs home with.
+--
+-- IT IS THE ONLY THING IN THIS GAME THAT SHOWS SOMEBODY ELSE'S COSMETIC.
+-- A skin is seen by its owner and by whoever happens to walk past their
+-- plot, and by nothing else -- so forty-six authored piggies have exactly
+-- one surface each. This gives every one of them a second: a reason for a
+-- thief to care which pig they crack, and a reason for a defender to be
+-- wearing something worth taking a copy of.
+--
+-- NINE SLOTS, RAREST FIRST, AND BOTH HALVES ARE MEASURED RATHER THAN
+-- CHOSEN. A mini piggy is eleven parts before its pattern, so a case of
+-- twenty-four would be most of a house tier standing on a lawn slot; nine
+-- is about a hundred and thirty and sits between the villa and the manor.
+-- And rarest first is what makes a full case still worth looking at once
+-- the collection has outgrown it: a shelf that showed the first nine
+-- robbed would freeze on somebody's first evening and never change again.
+local SHELF_COLS, SHELF_ROWS = 3, 3
+local SHELF_PITCH_X, SHELF_PITCH_Y = 3.0, 2.75
+
+-- Rank a skin the way the shop borders it, so the case and the card can
+-- never disagree about which of two pigs is the better trophy.
+local RARITY_RANK = { common = 1, rare = 2, epic = 3, legendary = 4 }
+
+local function shelfPicks(): { string }
+	local held = (trophyState and trophyState.victims) or {}
+	local keys: { string } = {}
+	for _, key in ipairs(held) do
+		if Config.SKINS[key] then
+			table.insert(keys, key)
+		end
+	end
+
+	-- Values computed into a map BEFORE the sort rather than inside the
+	-- comparator. `table.sort` throws on an inconsistent order function and
+	-- one that recomputes per comparison is one edit away from being one --
+	-- the same note the auto-picked combine carries.
+	local rank: { [string]: number } = {}
+	for _, key in ipairs(keys) do
+		rank[key] = RARITY_RANK[Config.rarityOf(Config.SKINS[key])] or 1
+	end
+	table.sort(keys, function(a, b)
+		if rank[a] ~= rank[b] then
+			return rank[a] > rank[b]
+		end
+		return a < b
+	end)
+
+	while #keys > SHELF_COLS * SHELF_ROWS do
+		table.remove(keys)
+	end
+	return keys
+end
+
+builders.victimshelf = function(_item, at)
+	local width = SHELF_COLS * SHELF_PITCH_X + 1.4
+	local depth = 3.4
+	local picks = shelfPicks()
+	local total = (trophyState and trophyState.skinTotal) or 0
+	local held = #((trophyState and trophyState.victims) or {})
+	local top = trophyPlinth(at, width, depth,
+		("%d OF %d SKINS"):format(held, total))
+
+	local inner = SHELF_COLS * SHELF_PITCH_X
+	local caseH = SHELF_ROWS * SHELF_PITCH_Y + 0.5
+
+	-- The back panel and the two uprights. Everything is authored from the
+	-- plinth top up, so a taller plinth carries the whole case with it.
+	-- THE BACK PANEL IS SHORTER THAN THE UPRIGHTS, AND THE UPRIGHTS SINK
+	-- INTO THE PLINTH. Both are the coplanar rule rather than taste: two
+	-- parts that share a top AND a bottom plane with real overlap between
+	-- them z-fight along both, and a case built the obvious way -- back and
+	-- posts running the full height -- does exactly that. Standing anything
+	-- 0.1 INTO what holds it up is this project's convention for the same
+	-- reason.
+	part("ShelfBack", Vector3.new(inner + 0.6, caseH - 0.4, 0.3),
+		at * CFrame.new(0, top + caseH / 2, -depth / 2 + 0.35),
+		TROPHY_WOOD_DARK, Enum.Material.SmoothPlastic)
+	for _, side in ipairs({ -1, 1 }) do
+		part("ShelfPost", Vector3.new(0.42, caseH + 0.1, depth - 0.6),
+			at * CFrame.new(side * (inner / 2 + 0.4),
+				top + (caseH + 0.1) / 2 - 0.1, 0.1),
+			TROPHY_WOOD, Enum.Material.SmoothPlastic)
+	end
+
+	-- The boards, and the pigs standing on them. A shelf's TOP face is
+	-- where a pig's feet go, so the seat is derived from the board rather
+	-- than from the loop index -- move the pitch and the pigs follow.
+	for row = 0, SHELF_ROWS - 1 do
+		local boardY = top + row * SHELF_PITCH_Y
+		part("ShelfBoard", Vector3.new(inner + 0.5, 0.22, depth - 0.9),
+			at * CFrame.new(0, boardY + 0.11, 0.1),
+			TROPHY_WOOD, Enum.Material.SmoothPlastic)
+
+		for col = 0, SHELF_COLS - 1 do
+			-- Filled from the TOP shelf down, so the best of the collection
+			-- is at eye height and a half-full case fills downward rather
+			-- than leaving a gap where the good ones will go.
+			local index = (SHELF_ROWS - 1 - row) * SHELF_COLS + col + 1
+			local key = picks[index]
+			if key then
+				local seat = at * CFrame.new(
+					(col - (SHELF_COLS - 1) / 2) * SHELF_PITCH_X,
+					boardY + 0.22, 0.1)
+				local mini = PiggyModel.build(key)
+				-- A BUILDER'S ANCHORING IS A FACT ABOUT WHERE IT WAS DESIGNED
+				-- TO GO, and this one was designed to be welded to a running
+				-- thief: unanchored and Massless, because an anchored part
+				-- welded to a humanoid pins the humanoid. Stood on a shelf
+				-- with nothing to weld to it would simply FALL -- which is
+				-- exactly what three of the four shop displays did on their
+				-- first build. So this anchors whatever it is handed, the same
+				-- call `ShopFront` makes.
+				for _, d in ipairs(mini:GetDescendants()) do
+					if d:IsA("BasePart") then
+						d.Anchored = true
+					end
+				end
+				mini.Name = "Trophy_" .. key
+				-- The animator reads this off a piggy exactly as it does off a
+				-- real one on a plot, so a Rainbow on somebody's shelf cycles
+				-- and none of that maths is written twice.
+				mini:SetAttribute("SkinKey", key)
+				-- PivotTo aims the PRIMARY PART, which on a mini is the body
+				-- ball at local y 1.15 -- so seating one by the shelf's own
+				-- surface without that offset buries it a stud into the wood.
+				-- Third instance of this exact mismatch in the project.
+				mini:PivotTo(seat * CFrame.new(0, 1.15, 0))
+				mini.Parent = folder
+			end
+		end
+	end
+
+	-- The canopy, standing proud of the case on every side so the whole
+	-- thing reads as a cabinet rather than as three boards on posts.
+	part("ShelfRoof", Vector3.new(width - 0.6, 0.34, depth - 0.3),
+		at * CFrame.new(0, top + caseH + 0.17, 0.05),
+		TROPHY_WOOD_DARK, Enum.Material.SmoothPlastic)
+end
+
+-- ------------------------------------------------------------
+-- THE HAUL
+-- ------------------------------------------------------------
+--
+-- An open safe that fills with bars as `data.totalStolen` climbs.
+--
+-- IT DOUBLES RATHER THAN COUNTING -- see `Config.TROPHIES.haulvault` --
+-- because this is the one figure on a shelf that has to mean the same
+-- thing to a level-1 thief and a level-40 one. Ten bars is 100K doubled
+-- nine times.
+builders.haulvault = function(_item, at)
+	local width, depth = 7.0, 4.6
+	local stolen = (trophyState and trophyState.stolen) or 0
+	local bars = Config.trophyGrade("haulvault", stolen)
+	local top = trophyPlinth(at, width, depth,
+		("%s STOLEN"):format(Config.formatCoins(stolen)))
+
+	local bodyW, bodyH, bodyD = 4.4, 4.2, 3.0
+	local bodyY = top + bodyH / 2
+	part("SafeBody", Vector3.new(bodyW, bodyH, bodyD),
+		at * CFrame.new(-0.5, bodyY, -0.2), TROPHY_STEEL, Enum.Material.Metal)
+
+	-- THE OPENING IS DARK AND THE FRAME AROUND IT STANDS PROUD, which is
+	-- the only way to make a hole in this engine: nothing can be dug, so a
+	-- recess is made by raising its edges and letting the eye take the
+	-- highest line as the surface. Set flush instead and it is a black
+	-- sticker on the front of a box, which is precisely what the piggy's
+	-- own vault hatch became for a whole release.
+	local openW, openH = bodyW - 1.0, bodyH - 1.0
+	part("SafeVoid", Vector3.new(openW, openH, 0.2),
+		at * CFrame.new(-0.5, bodyY, -0.2 + bodyD / 2 - 0.02),
+		Color3.fromRGB(22, 22, 24), Enum.Material.SmoothPlastic)
+	-- FOUR PIECES THAT BUTT RATHER THAN OVERLAP, which is the only
+	-- arrangement of a rectangular frame that has no coplanar pair in it.
+	-- The rails run the full outer width and the stiles fill only the gap
+	-- between them, so every meeting is a lo-against-hi joint with zero
+	-- overlap on the axis they share -- a butt joint, which is never a
+	-- fight. Sized the obvious way instead, all four pieces sit at one
+	-- depth and overlap at the corners, and the whole frame flickers.
+	for _, edge in ipairs({
+		{ Vector3.new(openW + 0.7, 0.35, 0.34), Vector3.new(0, openH / 2 + 0.175, 0) },
+		{ Vector3.new(openW + 0.7, 0.35, 0.34), Vector3.new(0, -openH / 2 - 0.175, 0) },
+		{ Vector3.new(0.35, openH, 0.34), Vector3.new(openW / 2 + 0.175, 0, 0) },
+		{ Vector3.new(0.35, openH, 0.34), Vector3.new(-openW / 2 - 0.175, 0, 0) },
+	}) do
+		part("SafeFrame", edge[1],
+			at * CFrame.new(Vector3.new(-0.5, bodyY, -0.2 + bodyD / 2 + 0.08) + edge[2]),
+			TROPHY_DARK, Enum.Material.Metal)
+	end
+
+	-- The door, swung open on the right so the opening faces the street
+	-- rather than the viewer's edge. A safe drawn shut says nothing about
+	-- what is in it, which is the entire content of this trophy.
+	local hinge = at * CFrame.new(-0.5 + openW / 2 + 0.4, bodyY, -0.2 + bodyD / 2)
+	local door = hinge * CFrame.Angles(0, math.rad(-55), 0)
+	part("SafeDoor", Vector3.new(openW + 0.5, openH + 0.5, 0.34),
+		door * CFrame.new((openW + 0.5) / 2, 0, 0.2),
+		TROPHY_STEEL, Enum.Material.Metal)
+	cylinderZ("SafeDial", 0.3, 1.0,
+		door * CFrame.new((openW + 0.5) / 2, 0, 0.45),
+		TROPHY_GOLD, Enum.Material.SmoothPlastic)
+
+	-- THE BARS, three to a course, stacked from the floor of the safe up.
+	-- The tenth spills out onto the plinth, which is the one thing on this
+	-- object that reads from further away than the plaque does.
+	-- STACKED IN FRONT OF THE DARK PANEL RATHER THAN BEHIND IT, and that is
+	-- forced rather than chosen: the safe body is a SOLID box, so a bar
+	-- placed "inside" it is simply buried. Nothing in this engine can be
+	-- hollowed out, which is the same fact the moat's kerbs and the piggy's
+	-- own vault hatch are both built around. Standing them proud of the
+	-- opening reads as an overfull safe, which is the better picture anyway.
+	local barW, barH, barD = 1.15, 0.42, 0.7
+	local barZ = -0.2 + bodyD / 2 + 0.3
+	for i = 1, bars do
+		local row = math.floor((i - 1) / 3)
+		local col = (i - 1) % 3
+		if row < 3 then
+			part("GoldBar", Vector3.new(barW, barH, barD),
+				at * CFrame.new(-0.5 + (col - 1) * (barW + 0.06),
+					top + 0.35 + barH / 2 + row * (barH + 0.04), barZ),
+				TROPHY_GOLD, Enum.Material.SmoothPlastic)
+		else
+			-- The overflow, on the open plinth BESIDE the safe rather than in
+			-- front of it -- the one patch of this base nothing else stands on.
+			-- Turned, so it reads as dropped rather than as placed.
+			part("GoldBar", Vector3.new(barW, barH, barD),
+				at * CFrame.new(2.5, top + barH / 2 - 0.08, 0.7 - col * 0.6)
+					* CFrame.Angles(0, math.rad(18 + col * 26), 0),
+				TROPHY_GOLD, Enum.Material.SmoothPlastic)
+		end
+	end
+end
+
+-- ------------------------------------------------------------
+-- THE MEDAL BOARD
+-- ------------------------------------------------------------
+--
+-- One rosette for every thief stopped on this lawn, and it is the half of
+-- the shelf that answers a player who put their coins into fences, dogs
+-- and locks. Without it a yard says "I rob" and offers that player
+-- nothing at all.
+--
+-- NAMES MUST AGE OUT, which is why this counts and does not LIST. A
+-- permanent public board of the children who failed on your lawn is the
+-- wrong object for this audience -- the same argument that made the
+-- robbery plaster expire rather than persist. A rosette says somebody was
+-- stopped; it does not say who, and it cannot be read back later to find
+-- out.
+builders.medalboard = function(_item, at)
+	local width, depth = 7.4, 2.6
+	local caught = (trophyState and trophyState.caught) or 0
+	local rosettes = Config.trophyGrade("medalboard", caught)
+	local top = trophyPlinth(at, width, depth, ("%d CAUGHT"):format(caught))
+
+	local boardW, boardH = 6.4, 3.9
+	local boardY = top + 1.5 + boardH / 2
+	-- The posts overlap the board's own edge rather than standing clear of
+	-- it: a board floating a tenth of a stud off the things holding it up
+	-- is the same fault as a fence panel that does not reach its post.
+	for _, side in ipairs({ -1, 1 }) do
+		part("BoardPost", Vector3.new(0.42, 1.5 + boardH + 0.5, 0.42),
+			at * CFrame.new(side * (boardW / 2 + 0.1),
+				top + (1.5 + boardH + 0.5) / 2, -0.1),
+			TROPHY_WOOD_DARK, Enum.Material.SmoothPlastic)
+	end
+	part("MedalBoard", Vector3.new(boardW, boardH, 0.36),
+		at * CFrame.new(0, boardY, -0.1), TROPHY_WOOD, Enum.Material.SmoothPlastic)
+	-- Sitting ON the board rather than floating above it: a butt joint,
+	-- which is a meeting rather than a fight.
+	part("BoardRail", Vector3.new(boardW + 1.2, 0.34, 0.6),
+		at * CFrame.new(0, top + 1.5 + boardH + 0.17, -0.1),
+		TROPHY_WOOD_DARK, Enum.Material.SmoothPlastic)
+
+	-- A rosette is a disc with two tails, and the tails are what stop three
+	-- rows of discs reading as a control panel.
+	for i = 1, rosettes do
+		local row = math.floor((i - 1) / 3)
+		local col = (i - 1) % 3
+		local spot = at * CFrame.new((col - 1) * 2.0,
+			boardY + 1.05 - row * 1.15, -0.1 + 0.18 + 0.09)
+		cylinderZ("Rosette", 0.18, 0.92, spot,
+			Color3.fromRGB(196, 72, 88), Enum.Material.SmoothPlastic)
+		cylinderZ("RosetteHub", 0.24, 0.4, spot * CFrame.new(0, 0, 0.05),
+			TROPHY_GOLD, Enum.Material.SmoothPlastic)
+		for _, tail in ipairs({ -1, 1 }) do
+			part("RosetteTail", Vector3.new(0.26, 0.72, 0.1),
+				spot * CFrame.new(tail * 0.2, -0.62, -0.02)
+					* CFrame.Angles(0, 0, math.rad(tail * 12)),
+				Color3.fromRGB(168, 56, 72), Enum.Material.SmoothPlastic)
+		end
+	end
+end
+
+-- ------------------------------------------------------------
+-- THE SIREN POST
+-- ------------------------------------------------------------
+--
+-- One lamp for every most-wanted patrol outrun. It reads `gear.escapes`,
+-- which is ALREADY the unlock ladder for the Most Wanted gear -- so this
+-- is a second READOUT of one number rather than a second counter, and the
+-- two can never disagree about how many patrols somebody has survived.
+--
+-- BLUE NEON, which is the police's own colour everywhere else in this
+-- game, and deep rather than pale: Neon renders a colour flat out and the
+-- BloomEffect takes it from there, so a pale tint is a white hole and a
+-- saturated one is a lamp. Fourth time this project has learned that.
+builders.sirenpost = function(_item, at)
+	local width = 3.2
+	local escapes = (trophyState and trophyState.escapes) or 0
+	local lamps = Config.trophyGrade("sirenpost", escapes)
+	local top = trophyPlinth(at, width, width,
+		("%d ESCAPED"):format(escapes))
+
+	local postH = 6.4
+	cylinderY("SirenPost", postH, 0.78,
+		at * CFrame.new(0, top + postH / 2, 0), TROPHY_DARK, Enum.Material.Metal)
+
+	-- The lamps climb the post, alternating sides so a full one reads as a
+	-- ladder rather than as a stripe. The bracket is what stops each lamp
+	-- looking glued to the pole.
+	for i = 1, lamps do
+		local side = if i % 2 == 1 then 1 else -1
+		local y = top + 1.5 + (i - 1) * 1.0
+		-- A BOX RATHER THAN A CYLINDER, because `cylinderZ` already carries a
+		-- quarter turn and a second one to point it sideways is two rotations
+		-- doing the work of none. A Roblox cylinder's axis is its X in the
+		-- first place, and this bracket is 0.6 studs long -- nobody is reading
+		-- its cross-section.
+		part("SirenArm", Vector3.new(0.8, 0.24, 0.24),
+			at * CFrame.new(side * 0.6, y, 0),
+			TROPHY_DARK, Enum.Material.Metal)
+		cylinderY("SirenLamp", 0.8, 0.9,
+			at * CFrame.new(side * 0.95, y, 0),
+			Color3.fromRGB(48, 92, 226), Enum.Material.Neon)
+		part("SirenCap", Vector3.new(1.0, 0.18, 1.0),
+			at * CFrame.new(side * 0.95, y + 0.45, 0),
+			TROPHY_STEEL, Enum.Material.Metal)
+	end
+
+	ball("SirenFinial", 0.86, at * CFrame.new(0, top + postH + 0.2, 0),
+		TROPHY_STEEL, Enum.Material.Metal)
+end
+
 function Decor.prewarm()
 	if not RunService:IsServer() then
 		return
@@ -2032,6 +2628,134 @@ function Decor.buildStreetBin(at: CFrame, parent: Instance): Model?
 	build({}, at)
 	model.Parent = parent
 	return model
+end
+
+-- THE MAILBOX, AND IT IS ONE OBJECT WITH TWO CALLERS.
+--
+-- `PlotService` stands one on every plot's verge -- the interactive one,
+-- carrying the daily-reward prompt and the flag that says there is something
+-- in it -- and `NeighborhoodService` stands one at the kerb beside each
+-- driveway as street furniture. Those were TWO DIFFERENT OBJECTS: a
+-- five-part white box out on the plot and a red box on a stick at the road.
+-- So a street carried ten of each, both called a mailbox, and neither looked
+-- like the other.
+--
+-- IN `Shared` FOR THE REASON `buildStreetBin` IS, and it is worth stating
+-- because it is not the usual one. House, Decor and PiggyModel live here
+-- because the SHOP renders them; nothing renders a mailbox in a shop and
+-- nobody buys one. This is shared GEOMETRY rather than a shared ITEM: two
+-- services simply have to agree about what a mailbox looks like, and a
+-- second hand-built lookalike is the copy that stops matching the first time
+-- either is touched -- the argument `Decor.buildStreetBin` already makes
+-- about the disguise's wheelie bin.
+--
+-- `base` IS THE GROUND AT THE MAILBOX'S FOOT, ALREADY YAWED. Every offset
+-- below is measured up from there, so a caller on a plot's verge and a
+-- caller on the world ground pass their own floor and share everything else.
+-- A builder that took a world position instead would have to know which of
+-- this game's three floor heights it was standing on, which is exactly the
+-- mistake that once left every ornament outside a fence hovering a stud.
+--
+-- PARTS ARE PARENTED FLAT rather than into a Model of their own, because a
+-- plot is one flat model and the caller holds what it needs BY REFERENCE.
+-- Looking a piece back up by name is the castle's four `Finial`s and the
+-- wheelie bin's pair of `Lid`s, twice over: there are two mailboxes within
+-- thirty studs of each other now.
+Decor.MAILBOX_SHELL = Color3.fromRGB(196, 190, 176)
+Decor.MAILBOX_DOOR = Color3.fromRGB(148, 142, 130)
+Decor.MAILBOX_POST = Color3.fromRGB(122, 88, 58)
+Decor.MAILBOX_FLAG = Color3.fromRGB(206, 62, 58)
+
+-- THE FLAG'S HINGE, AT ITS FOOT, IN THE MAILBOX'S OWN SPACE.
+--
+-- Turning a part about its own centre swings half of it into whatever it is
+-- bolted to -- the guard dog's ears record this exactly -- so the pivot is
+-- the flag's BASE and the half-length is added back after the turn. 0 is
+-- straight up and a quarter turn lays it flat along the box with the foot
+-- never moving. Exported because `PlotService` raises and lowers it every
+-- time the daily state changes, and two descriptions of one hinge is how the
+-- flag and the box it is bolted to came to disagree in the first place.
+Decor.MAILBOX_FLAG_HINGE = CFrame.new(-1.05, 4.6, 0)
+Decor.MAILBOX_FLAG_HALF = 0.75
+
+function Decor.buildMailbox(base: CFrame, parent: Instance): { [string]: BasePart }
+	local function piece(name: string, size: Vector3, cf: CFrame, colour: Color3,
+		material: Enum.Material): Part
+		local p = Instance.new("Part")
+		p.Name = name
+		p.Size = size
+		p.CFrame = cf
+		p.Anchored = true
+		-- The verge is ground a thief runs across and a dog patrols beside,
+		-- so nothing decorative out here may body-block either, and nothing
+		-- may eat a raycast meant for a piggy.
+		p.CanCollide = false
+		p.CanQuery = false
+		-- SHADOW OFF, WHICH IS A CHANGE TO THE PLOT'S OWN MAILBOX AND IS
+		-- STATED RATHER THAN SLIPPED IN. Everything else standing on this
+		-- verge -- the lamp posts, the bins, the trees, the shops -- already
+		-- carries it, and the plot's five mailbox parts were the odd ones out
+		-- only because `signPart` never set the property at all.
+		p.CastShadow = false
+		p.Color = colour
+		p.Material = material
+		p.TopSurface = Enum.SurfaceType.Smooth
+		p.BottomSurface = Enum.SurfaceType.Smooth
+		p.Parent = parent
+		return p
+	end
+
+	local post = piece("MailPost", Vector3.new(0.45, 4.2, 0.45),
+		base * CFrame.new(0, 2.1, 0), Decor.MAILBOX_POST, Enum.Material.Wood)
+	local body = piece("MailBody", Vector3.new(1.9, 1.5, 2.7),
+		base * CFrame.new(0, 4.95, 0), Decor.MAILBOX_SHELL, Enum.Material.SmoothPlastic)
+
+	-- THE ROUNDED TOP IS A CYLINDER LYING ALONG THE BOX'S LENGTH, half sunk
+	-- into it -- and a Roblox cylinder's AXIS IS ITS X, with Size.X the
+	-- length and Y/Z the cross-section. Written the other way round it comes
+	-- out a disc as wide as the height was tall, which is a mistake this
+	-- project has now made five times.
+	--
+	-- AND IT IS SET INSIDE THE BOX'S OWN CROSS-SECTION, WHICH IT WAS NOT.
+	-- At 2.7 long it was EXACTLY the body's depth, so its two flat end caps
+	-- sat in the body's own end planes -- same depth, same facing, real
+	-- overlap, which is the coplanar flicker this project has now fixed at a
+	-- hundred sites across the houses. At 1.9 across it was exactly the
+	-- body's width too, so the curved side was TANGENT to the body's side
+	-- plane along a line landing on the body's top edge, which is the
+	-- near-tangent speckle the piggy's eye outline records. Neither was
+	-- introduced by sharing this builder; both were on ten mailboxes and are
+	-- now on twenty, which is why they are worth the four hundredths.
+	--
+	-- 2.58 by 1.82 puts the caps 0.06 inside the ends and the tangent 0.04
+	-- inside the sides, and the centre lifts to 5.78 so the widest line
+	-- clears the body's top plane rather than sitting in it. The lid still
+	-- stands 0.99 proud, which is the whole silhouette.
+	local lid = piece("MailLid", Vector3.new(2.58, 1.82, 1.82),
+		base * CFrame.new(0, 5.78, 0) * CFrame.Angles(0, math.rad(90), 0),
+		Decor.MAILBOX_SHELL, Enum.Material.SmoothPlastic)
+	lid.Shape = Enum.PartType.Cylinder
+
+	-- The door, on the face turned toward the road. SUNK 0.09 INTO THE BODY
+	-- rather than laid flush on it: a detail sized to land exactly on the
+	-- face it stands on shares that face's plane over the whole overlap,
+	-- which is the strobing seam this project fixed at a hundred sites across
+	-- the houses. Anything standing on something sinks about a tenth of a
+	-- stud into it.
+	local door = piece("MailDoor", Vector3.new(1.55, 1.2, 0.12),
+		base * CFrame.new(0, 5.0, 1.32), Decor.MAILBOX_DOOR, Enum.Material.SmoothPlastic)
+
+	-- Built AT REST, lying along the box. A caller with something to say
+	-- raises it; a caller with nothing to say -- the street furniture at the
+	-- kerb, which has no daily reward behind it -- leaves it exactly here,
+	-- which is the honest picture of an empty postbox.
+	local flag = piece("MailFlag", Vector3.new(0.14, 1.5, 0.75),
+		base * Decor.MAILBOX_FLAG_HINGE
+			* CFrame.Angles(0, 0, math.rad(-82))
+			* CFrame.new(0, Decor.MAILBOX_FLAG_HALF, 0),
+		Decor.MAILBOX_FLAG, Enum.Material.SmoothPlastic)
+
+	return { post = post, body = body, lid = lid, door = door, flag = flag }
 end
 
 -- One catalogue ornament, standing where you put it, outside the slot system
@@ -2086,7 +2810,373 @@ builders.crashedDrone = function(item, at)
 	smoke.Parent = scorch
 end
 
-function Decor.buildOne(key: string, at: CFrame, parent: Instance): Model?
+-- WHAT A TROPHY IS A PICTURE OF, WHEN NOBODY HAS SAID.
+--
+-- A shop card renders the real item through the same builders a lawn
+-- does, and a trophy's builder needs numbers no card has: how many skins
+-- have been robbed, how much has been stolen, which plinth is standing.
+-- So a missing state is a SHOWROOM rather than an empty case.
+--
+-- IT IS DELIBERATELY MODEST. The card is advertising something nobody
+-- has earned yet, and a full shelf on it would be a promise the game
+-- has not made -- the same reason the crate cards draw their odds to
+-- scale rather than leading with the legendary. Three pigs and a third
+-- of each ladder says what the object IS without claiming it is yours.
+--
+-- The skins are the catalogue's own first three by key, so the card is
+-- the same card on every machine and in every session. A random three
+-- would make the shop tile flicker between renders for no reason a
+-- player could name.
+local function showroom(): any
+	-- Off the SAME pool a neighbour's pig draws from, which means anything
+	-- earned elsewhere is out. A pass skin standing on a shop card advertising
+	-- a trophy would imply that robbing somebody could get you one, which is
+	-- exactly what a paid exclusive must never look like.
+	local keys = {}
+	for key, spec in pairs(Config.SKINS) do
+		if not Config.isEarnedElsewhere(spec) then
+			table.insert(keys, key)
+		end
+	end
+	table.sort(keys)
+	return {
+		victims = { keys[1], keys[2], keys[3] },
+		skinTotal = #keys,
+		stolen = 400000,
+		caught = 3,
+		escapes = 2,
+		plinth = "",
+	}
+end
+
+
+-- ============================================================
+-- THE GARDEN
+-- ============================================================
+--
+-- Three plot-wide cosmetics that consume no ornament slot -- see
+-- `Config.BORDER_PLANTS` for why that is the whole point of them. Each takes
+-- geometry the plot already has and dresses it: the fence line, the gate
+-- walk, and the windows of whatever house is standing.
+--
+-- They build into their OWN models rather than into the decor model, because
+-- they are rebuilt on different events. An ornament changes when somebody
+-- buys one; a border changes when the FENCE does, and a window box when the
+-- HOUSE does. Sharing a model would mean rebuilding forty ornaments to
+-- repaint a planter, and -- worse -- would put the border's lifetime in the
+-- hands of `setDecor`, which is called on a plot whose fence may not have
+-- been built yet.
+
+-- AN ELLIPSOID, WHICH IS THE ONE SHAPE A `Ball` PART WILL NOT GIVE YOU.
+--
+-- Three balls sized (6,6,6), (12,6,6) and (6,12,6) render pixel-identical --
+-- this project measured that once and reached for a `UnionOperation` to get
+-- round it. A `SpecialMesh` with `MeshType.Sphere` takes a non-uniform
+-- `Scale` and is the far cheaper escape for a shape that is only a stretched
+-- sphere: one part, no CSG, no server-only template to prewarm and clone past
+-- the client, and no seam anywhere on it because there is only one surface.
+--
+-- WHY A BORDER NEEDS ONE: the band a plant has to live in is 1.75 studs deep
+-- (see `BORDER_BAND` below) and a rose bush is a four-stud ball. Round, it
+-- either grows through the fence or stands in the ornament beside it; flattened
+-- across the run it is the same bush from the one angle anybody looks at it.
+local function blob(name: string, size: Vector3, cf: CFrame, colour: Color3, material: Enum.Material): Part
+	local p = part(name, Vector3.new(1, 1, 1), cf, colour, material)
+	local mesh = Instance.new("SpecialMesh")
+	mesh.MeshType = Enum.MeshType.Sphere
+	mesh.Scale = size
+	mesh.Parent = p
+	return p
+end
+
+-- HOW DEEP A BORDER PLANT MAY BE, ACROSS ITS OWN RUN.
+--
+-- This is the one number in the garden that is a CLEARANCE rather than a
+-- taste, and it is derived from the two things already standing where a
+-- border goes. The side fences run at `PLOT_HALF_WIDTH` 33.60 and the outer
+-- ornament slots sit at x +-25; the widest ornament in the game is the Shark
+-- In Trainers at 13.70, so an ornament in a side slot reaches 31.85. That
+-- leaves 1.75 studs, and a plant deeper than it either grows through the
+-- fence or stands inside whatever the owner put on their shelf.
+--
+-- THE BORDER CANNOT SIMPLY MOVE INWARD TO GET MORE ROOM, which is the
+-- tempting fix and is the one that quietly breaks the height guarantee.
+-- `Config.borderHeight` clamps a plant to the fence's own `decorTop` and the
+-- proof is that a plant ON THE FENCE LINE occludes exactly what a fence of
+-- that height occludes. Move it toward the pig and that stops being true --
+-- a nearer occluder of the same height hides MORE of the animal, because the
+-- sightline over its top lands higher up the pig. So the plant is what gives
+-- way, not its position.
+-- 1.4 rather than the 1.75 the band allows, because the clearance has to
+-- survive the ROUNDING as well as the arithmetic: at 1.6 a Box Hedge's inner
+-- face measured 31.80 against an ornament reaching 31.85, which is a fail by
+-- five hundredths and is exactly the kind of margin this project has recorded
+-- shipping twice -- a label reporting `TextFits` true while touching its own
+-- frame, and a tab clearing its rail by one pixel.
+local BORDER_BAND = 1.4
+
+-- HOW FAR A PLANT REACHES ALONG ITS OWN RUN, measured from its centre.
+--
+-- A RUN ENDS ON THE FENCE CORNER, SO THE END PLANT OVERHANGS IT BY EXACTLY
+-- THIS. Measured on the first build: a Box Hedge reached |x| 34.21 against a
+-- fence line at 33.60 and z 26.21 against a front line at 25.60 -- the same
+-- 0.61 at both, which is a hedge box's own half-length, growing out through
+-- the fence it was bought to stand beside.
+--
+-- Derived per style rather than solved once, because the styles do not agree
+-- about what their footprint IS: a hedge's is a function of the SPACING (its
+-- box is sized to overlap its neighbour), a rose bush's is a function of the
+-- clamped HEIGHT (it is a ball), and a lavender spike's is neither. A single
+-- constant would be right for one of them and would fail silently on the
+-- other two -- the shape of the `Bigger Sack` rungs and the vault opening,
+-- both solved at one end of a range and left wrong at the other.
+local function footprint(spec: any, up: number): number
+	local style = spec.style
+	if style == "hedge" then
+		return spec.spacing * 0.67
+	elseif style == "spikes" then
+		return 0.5
+	elseif style == "tall" then
+		-- The leaf, not the stalk: it is 2.0 long and is what actually sticks
+		-- out sideways.
+		return 1.0
+	end
+	-- "bush": a ball of `up * 0.95`.
+	return up * 0.475
+end
+
+-- ONE PLANT. `up` is the clamped height from `Config.borderHeight`, so
+-- nothing in here has to know about a fence at all.
+local function plant(spec: any, at: CFrame, up: number)
+	local style = spec.style
+	if style == "hedge" then
+		-- A hedge is a RUN rather than a row of bushes, so its box is sized to
+		-- overlap its neighbour by a third of the spacing. Butted exactly, the
+		-- seams read as a line of separate blocks -- and worse, two boxes
+		-- meeting at one plane is the coplanar flicker this project has now
+		-- recorded on the road, the moat, the dog's eyes and every rebuilt
+		-- house.
+		part("Hedge", Vector3.new(spec.spacing * 1.34, up, BORDER_BAND),
+			at * CFrame.new(0, up / 2, 0), spec.leaf, Enum.Material.Grass)
+		return
+	end
+
+	if style == "spikes" then
+		-- A STEM AND ONE HEAD, AND THE HEAD IS A STRETCHED SPHERE RATHER THAN A
+		-- CONE.
+		--
+		-- `cone` is five parts -- four shrinking discs and a tip ball -- which
+		-- is the right trade for a gnome's hat, of which there is one on a
+		-- lawn, and the wrong one for something that repeats forty-eight times
+		-- around a fence. Measured: a lavender border came to 288 parts against
+		-- a Box Hedge's 60, for a shape nobody is standing close enough to
+		-- count the facets of. As a `blob` it is one part and 96 for the run.
+		--
+		-- IT ALSO OVERSHOT ITS OWN CLAMP, which is the half that mattered.
+		-- `cone` takes its CFrame as the BASE and adds a tip ball on top, so a
+		-- head standing at `up * 0.55` with a body of `up * 0.5` reached
+		-- `up * 1.05` plus the tip -- measured at 2.83 against a cap of 2.60,
+		-- which is a border poking over the fence that is supposed to bound it.
+		-- A blob is centred, so its top is arithmetic rather than a stack.
+		part("Stem", Vector3.new(0.7, up * 0.5, 0.7),
+			at * CFrame.new(0, up * 0.25, 0), spec.leaf, Enum.Material.Grass)
+		local headH = up * 0.52
+		blob("Bloom", Vector3.new(1.0, headH, math.min(1.0, BORDER_BAND)),
+			at * CFrame.new(0, up - headH / 2, 0), spec.bloom, Enum.Material.Grass)
+		return
+	end
+
+	if style == "tall" then
+		-- A sunflower is a STALK and a FACE, and the face is what has to clear
+		-- the leaves or it reads as a ball dropped in a bush.
+		cylinderY("Stalk", up * 0.82, 0.42, at * CFrame.new(0, up * 0.41, 0),
+			spec.leaf, Enum.Material.Grass)
+		part("Leaf", Vector3.new(2.0, 0.28, 0.9),
+			at * CFrame.new(0, up * 0.5, 0) * CFrame.Angles(0, 0, math.rad(18)),
+			spec.leaf, Enum.Material.Grass)
+		-- The face is the widest thing on a sunflower and was therefore the
+		-- part deciding the whole border's clearance: round, it measured an
+		-- inner face of exactly 31.85 against an ornament reaching 31.85, which
+		-- is a pass by nothing at all. Flattened to the band like the bush, it
+		-- clears by 0.05 and is the same flower from the pavement.
+		-- SEATED SO ITS TOP LANDS ON `up`, not at a fraction of it.
+		--
+		-- The face is a FIXED 1.5 across and the clamp is not, so a proportional
+		-- placement overshoots at the short end: at `up * 0.88` it measured 4.45
+		-- against a cap of 4.20 on a rickety fence and cleared it comfortably on
+		-- a moat. A flower is the same size on every fence and it is where it
+		-- SITS that has to give -- the same call the window box makes when it
+		-- takes its width from the sill rather than from a constant.
+		local faceD = 1.5
+		blob("Face", Vector3.new(faceD, faceD, math.min(faceD, BORDER_BAND)),
+			at * CFrame.new(0, up - faceD / 2, 0), spec.bloom, Enum.Material.SmoothPlastic)
+		return
+	end
+
+	-- "bush": a mound with two heads on it, FLATTENED ACROSS THE RUN.
+	--
+	-- Full width and height and only its depth given up, so from the pavement
+	-- -- which is the one angle a border is ever read from -- it is the same
+	-- bush a round one would have been. A `Ball` cannot do this at any size,
+	-- which is what `blob` is for.
+	local d = up * 0.95
+	blob("Bush", Vector3.new(d, d, math.min(d, BORDER_BAND)),
+		at * CFrame.new(0, up * 0.42, 0), spec.leaf, Enum.Material.Grass)
+	ball("Bloom", 0.8, at * CFrame.new(-0.5, up * 0.78, 0.2), spec.bloom, Enum.Material.SmoothPlastic)
+	ball("Bloom", 0.7, at * CFrame.new(0.55, up * 0.66, -0.2), spec.bloom, Enum.Material.SmoothPlastic)
+end
+
+-- PLANTS ALONG THE FENCE LINE.
+--
+-- `runs` are plot-local segments `{a, b}` and they are the caller's business
+-- rather than this file's, because WHICH stretches of fence are worth
+-- planting is a fact about where a viewer stands -- see `PlotService`.
+function Decor.buildBorder(spec: any, up: number, runs: { { a: Vector3, b: Vector3 } },
+	originCF: CFrame, groundY: number, parent: Instance): Model
+	local model = Instance.new("Model")
+	model.Name = "Border"
+	folder = model
+
+	for _, run in ipairs(runs) do
+		local delta = run.b - run.a
+		local full = delta.Magnitude
+		-- PULLED IN AT BOTH ENDS BY THE PLANT'S OWN REACH, so a border stops AT
+		-- the fence corner rather than growing through it. What it costs is a
+		-- small gap where two runs meet, which reads as a corner rather than as
+		-- a mistake -- and is the honest picture anyway, since a real border is
+		-- planted inside a boundary rather than welded to it.
+		local reach = footprint(spec, up)
+		local length = full - reach * 2
+		if length > 0.01 then
+			local dir = delta.Unit
+			run = { a = run.a + dir * reach, b = run.b - dir * reach }
+			-- Fitted to the run rather than stepped from one end, so a border
+			-- starts and ends ON the fence it belongs to instead of stopping
+			-- short by whatever the remainder happened to be. The same reason
+			-- the fence panels are stretched to tile their own span exactly.
+			local count = math.max(1, math.floor(length / spec.spacing))
+			local step = length / count
+			-- TURNED TO FACE ALONG ITS OWN RUN, AND EVERY PLANT IS AUTHORED IN
+			-- THAT FRAME RATHER THAN IN THE PLOT'S.
+			--
+			-- The first build did not do this and the hedge was the thing that
+			-- showed it: its box is `spacing * 1.34` long so that consecutive
+			-- boxes overlap into a run, and with no rotation that length is
+			-- always on X -- correct on the two FRONT wings, which run along X,
+			-- and lying broadside across the fence on the two SIDES, which do
+			-- not. Measured before the fix: the border reached |x| 34.21 against
+			-- a fence line at 33.60, so a hedge bought for a lawn was standing
+			-- through its own fence and out over the alley.
+			--
+			-- Solved here rather than in each style, so a plant added later is
+			-- authored once, along +X, and is correct on every run by
+			-- construction. A rotation about Y by `t` maps local +X to
+			-- (cos t, 0, -sin t), so aligning that with `dir` is atan2(-Z, X).
+			local yaw = math.atan2(-dir.Z, dir.X)
+			for i = 0, count do
+				local at = run.a + dir * (step * i)
+				plant(spec, originCF
+					* CFrame.new(at + Vector3.new(0, groundY, 0))
+					* CFrame.Angles(0, yaw, 0), up)
+			end
+		end
+	end
+
+	model.Parent = parent
+	return model
+end
+
+-- THE WALK FROM THE GATE TO THE PIG.
+--
+-- Laid along plot-local +Z on the centre line, because that is where the gate
+-- is and where the piggy is. It stops short of both: a slab under the gate
+-- post would read as pavement rather than as a garden path, and one under the
+-- pig would be hidden by the animal standing on it.
+function Decor.buildPath(spec: any, fromZ: number, toZ: number,
+	originCF: CFrame, groundY: number, parent: Instance): Model
+	local model = Instance.new("Model")
+	model.Name = "GardenPath"
+	folder = model
+
+	local pitch = spec.slab + spec.gap
+	local span = fromZ - toZ
+	if span > pitch then
+		local count = math.max(1, math.floor(span / pitch))
+		local step = span / count
+		for i = 0, count do
+			local z = fromZ - step * i
+			part("Slab", Vector3.new(spec.width, 0.2, spec.slab),
+				originCF * CFrame.new(0, groundY + Config.GARDEN_PATH_LIFT, z),
+				spec.colour, spec.material)
+		end
+	end
+
+	model.Parent = parent
+	return model
+end
+
+-- WINDOW BOXES, HUNG ON A HOUSE THAT IS ALREADY BUILT.
+--
+-- A POST-PASS RATHER THAN AN ARGUMENT THREADED THROUGH NINE TIER BUILDERS --
+-- see `Config.WINDOW_BOXES` for that trade in full. It finds its own windows
+-- by walking for the name `LowPoly.framedWindow` gives every ledge in the
+-- game, which means a tier added later gets boxes for free and a tier that
+-- stops using the toolkit correctly gets none rather than getting them in the
+-- wrong place.
+--
+-- GROUND FLOOR ONLY, and the floor is DERIVED from the sills that are
+-- actually there rather than from a height anybody typed: the lowest sill on
+-- the building sets the rank, and everything within a storey of it belongs to
+-- it. A pinned Y would be wrong on nine tiers of different heights, and would
+-- be wrong again the first time one of them moved.
+function Decor.buildWindowBoxes(spec: any, house: Instance, parent: Instance): Model
+	local model = Instance.new("Model")
+	model.Name = "WindowBoxes"
+	folder = model
+
+	local sills = {}
+	local lowest = math.huge
+	for _, d in ipairs(house:GetDescendants()) do
+		if d:IsA("BasePart") and d.Name == "Sill" then
+			table.insert(sills, d)
+			if d.Position.Y < lowest then
+				lowest = d.Position.Y
+			end
+		end
+	end
+
+	-- A STOREY, not a tolerance. Window ranks on these tiers are a floor
+	-- apart, so anything within one of the lowest sill is on the ground floor
+	-- and anything above it is not -- which survives a tier whose ground floor
+	-- is taller than another's.
+	local STOREY = 7
+	for _, sill in ipairs(sills) do
+		if sill.Position.Y <= lowest + STOREY then
+			-- Sized off the sill it hangs from rather than off a constant: a
+			-- sill is `w + 1.8` wide and w varies by tier, so a fixed box is
+			-- narrower than the window on one building and wider on the next.
+			local w = sill.Size.X * 0.86
+			local at = sill.CFrame * CFrame.new(0, -0.52, 0.22)
+			part("Box", Vector3.new(w, 0.72, 1.05), at, spec.box, Enum.Material.SmoothPlastic)
+			-- The planting stands PROUD of its box, because the box is the
+			-- thing with the hard edge and the eye takes the highest line as
+			-- the surface -- the moat's kerb rule at a fortieth of the scale.
+			part("Foliage", Vector3.new(w * 0.9, 0.5, 0.9), at * CFrame.new(0, 0.5, 0),
+				spec.leaf, Enum.Material.Grass)
+			local heads = math.max(2, math.floor(w / 1.6))
+			for i = 1, heads do
+				local t = (i - 0.5) / heads - 0.5
+				ball("Bloom", 0.52, at * CFrame.new(t * w * 0.82, 0.78, 0),
+					spec.bloom, Enum.Material.SmoothPlastic)
+			end
+		end
+	end
+
+	model.Parent = parent
+	return model
+end
+
+function Decor.buildOne(key: string, at: CFrame, parent: Instance, state: any?): Model?
 	local item = Config.DECOR_ITEMS[key]
 	local build = item and builders[item.style]
 	if not build then
@@ -2096,6 +3186,10 @@ function Decor.buildOne(key: string, at: CFrame, parent: Instance): Model?
 	local model = Instance.new("Model")
 	model.Name = "Prop_" .. key
 	folder = model
+	trophyState = state or showroom()
+	-- A shop card has no owner, so the topiary on one is clipped in the skin
+	-- every save starts with rather than in nobody's.
+	skinKey = Config.DEFAULT_SKIN
 
 	build(item, at)
 
@@ -2109,11 +3203,23 @@ end
 -- the lawn is the top of the plot slab, the driveway is paving laid on the
 -- world ground, and the verge is the bare world ground half a stud lower
 -- still. Using one height for all three left every car and bin hovering.
+-- `state` is what the four TROPHIES read and the eighteen ornaments
+-- ignore -- see `showroom` above for what a nil one means and why a card
+-- may pass none.
 function Decor.build(placed: { [string]: string }, originCF: CFrame,
-	groundByZone: { [string]: number }, parent: Instance): Model
+	groundByZone: { [string]: number }, parent: Instance, state: any?, skin: string?): Model
 	local model = Instance.new("Model")
 	model.Name = "Decor"
 	folder = model
+	trophyState = state or showroom()
+	-- A SIXTH ARGUMENT HERE AND DELIBERATELY NOT A SIXTH ONE ON `setDecor`.
+	-- That function has five callers across four services and this file's
+	-- parent records the decision not to grow its signature: a missed
+	-- positional argument reads as nil, which is a silent EMPTY on a lawn
+	-- nobody would think to check. `Decor.build` has exactly one caller, so
+	-- the same argument does not apply to it -- the plot holds the skin and
+	-- `setDecor` passes it on.
+	skinKey = skin or Config.DEFAULT_SKIN
 
 	for _, slot in ipairs(Config.DECOR_SLOTS) do
 		local key = placed[slot.id]
