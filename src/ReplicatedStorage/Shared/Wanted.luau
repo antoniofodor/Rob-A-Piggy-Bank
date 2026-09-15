@@ -45,7 +45,10 @@ local Wanted = {}
 -- that happen to be near each other.
 local WIDTH = 176
 local ROW = 34
-local TOP = 196
+-- 224 rather than 196: the piggy panel above grew to a 92-tall card with a
+-- pig overhanging it to offset 174, and the event chip moved to 182. This
+-- keeps the 8px gap the whole top-right column is spaced on.
+local TOP = 224
 
 -- THE RUN GETS ITS OWN ROW, BECAUSE THE ONE ABOVE IT IS FULL.
 --

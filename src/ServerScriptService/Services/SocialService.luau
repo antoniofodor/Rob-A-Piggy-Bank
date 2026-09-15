@@ -62,7 +62,7 @@ local wantedHunted = false
 -- with the server, which is the only shape that lets a child who joined ten
 -- minutes ago be in it.
 --
--- Counted on DELIVERY rather than on the grab, because loot tagged out of your
+-- Counted on DELIVERY rather than on the grab, because loot nabbed out of your
 -- hands or confiscated by the patrol was never stolen -- you were caught. Same
 -- line `data.totalStolen` already draws, one statement above the call.
 --
@@ -250,12 +250,94 @@ end
 -- while the only wide ground was at the ends.
 --
 -- The square moving to the middle removes the problem instead of working
--- around it. Every plot is now within 128 studs of one pair, which is inside
--- the cull radius by construction -- and one pair cannot disagree with itself
--- about who is winning, which was the other thing two pairs had to be careful
--- about.
+-- around it. One pair cannot disagree with itself about who is winning, which
+-- was the other thing two pairs had to be careful about.
+--
+-- AND "THE MIDDLE" WAS A DRIVEWAY, WHICH IS WHAT THIS FUNCTION IS NOW FOR.
+--
+-- It returned a flat `0`, and that was free ground for exactly as long as
+-- `Config.PLOTS_PER_ROW` was EVEN: at four a side the columns sit at +-120 and
+-- +-40 and nothing stands on the centreline at all. It went to FIVE, which
+-- `Config.plotColumnX` handles by construction -- five columns simply put one
+-- at x 0 -- and that put the middle plot's DRIVEWAY precisely where both
+-- boards were standing.
+--
+-- Measured on the built street before they moved: the wanted poster spanned
+-- x -8.0..8.0 against a driveway of x -8.5..8.5, so it stood ENTIRELY on the
+-- tarmac, and seventeen of the leaderboard's thirty studs were over it with
+-- its legs a stud either side. Nothing errored, nothing warned, and a board on
+-- a drive reads as a board beside a drive from most of the angles anybody
+-- looks from.
+--
+-- IT IS THE SAME CLASS AS THE KERBSIDE MAILBOX FOUND THE SAME AFTERNOON, and
+-- worth stating as a class rather than as two bugs: a placement solved
+-- correctly against a constant, left standing when the constant moved. The
+-- five-a-side entry in `CLAUDE.md` even records the even-count constraint
+-- being DROPPED -- "a stale constraint had been doubling the price of a fix
+-- nobody had priced" -- and nothing went looking for what else had been
+-- relying on it. **DELETING A CONSTRAINT MEANS GREPPING FOR WHAT ASSUMED IT.**
+--
+-- SO IT IS DERIVED FROM THE ROW. Everything on this verge stands in a GAP
+-- between two driveways -- the lamp posts, the wheelie bins and all four shops
+-- do -- and `Config.SHOPS` takes gaps 0 and 2, so the boards take the nearest
+-- FREE gap to the middle of the row. A column added, or a shop moved to
+-- another gap, carries them with it rather than quietly standing them on
+-- somebody's tarmac again.
+--
+-- AND THE TREE VETO ALREADY RESERVED THAT BAND, which is what makes a gap
+-- centre the honest answer rather than merely a clear one.
+-- `buildStreetTrees` holds every canopy `SHOP_HALF + reach` -- about 17 studs
+-- -- clear of every gap centre, and its own comment says why in as many
+-- words: *"the gap centres, which is where the shops and the boards stand"*.
+-- The leaderboard is 30 wide, so it reaches 15 from the centre, and the two
+-- studs left over belong to that veto rather than to luck.
+--
+-- WHAT IT COSTS IS THE CULL DISTANCE THE NOTE ABOVE IS ABOUT, and that is
+-- recorded rather than waved at. Off-centre by one gap, the far end of the
+-- row is further from the nearer board than it was: measured after the move,
+-- the worst plot-to-board distance went 168 studs to 205. Both boards carry
+-- `MaxDistance = 0`, and the absence this whole entry was written about was
+-- measured at roughly 380 studs, so there is still better than a factor of
+-- one and a half in hand -- but this is now the number to re-derive before
+-- anybody lengthens the street, rather than a comfortable one.
 local function boardX(): number
-	return 0
+	-- WHICH GAPS ARE ALREADY BUILT ON. `Config.SHOPS` is the one place that
+	-- says, and reading it rather than restating it means a shop moved to
+	-- another gap moves the boards instead of landing on top of them.
+	local taken: { [number]: boolean } = {}
+	for _, placement in ipairs(Config.SHOPS) do
+		taken[placement.gap] = true
+	end
+
+	-- The midpoint of two frontages, which is `NeighborhoodService`'s own
+	-- `gapX` written out. One line, and it is duplicated deliberately rather
+	-- than lifted into `Config`: that file is the single source three
+	-- workstreams want at once, and a third reader is the point at which this
+	-- earns a `Config.gapX` and this comment goes away.
+	local best: number? = nil
+	for gap = 0, Config.PLOTS_PER_ROW - 2 do
+		if not taken[gap] then
+			local x = (Config.plotColumnX(gap) + Config.plotColumnX(gap + 1)) / 2
+			if best == nil or math.abs(x) < math.abs(best) then
+				best = x
+			end
+		end
+	end
+
+	-- EVERY GAP HOLDING A SHOP IS A REAL CONFIGURATION -- four shops on a
+	-- three-gap row -- and it must not silently put a board back on a
+	-- driveway. The centre of the row is the one answer that is certainly
+	-- wrong, so this says so out loud and stands them past the last column,
+	-- where the verge runs to the hillside with nothing on it. A board nobody
+	-- walks past is a smaller failure than a board in a drive, and a warning
+	-- is what stops it being a silent one.
+	if best == nil then
+		warn("[SocialService] every gap on the row holds a shop, so the boards have no gap"
+			.. " to stand in and are past the end of the row instead."
+			.. " Free a gap in Config.SHOPS.")
+		return Config.plotColumnX(Config.PLOTS_PER_ROW - 1) + Config.PLOT_SPACING / 2
+	end
+	return best
 end
 
 -- FACING ACROSS THE STREET, at each other over the square.
@@ -319,6 +401,130 @@ local function billboardLegs(name: string, at: Vector3, width: number, yaw: numb
 end
 
 -- THE LEADERBOARD, on the +Z shoulder of the square.
+-- ============================================================
+-- THE WEEKLY LADDER
+-- ============================================================
+--
+-- THE ONE RANKING IN THIS GAME THAT OUTLIVES THE SERVER. Everything else here
+-- reads `Players:GetPlayers()`, so it is true for as long as the eight people
+-- currently standing on the street stay on it. See `Config.WEEKLY_HEIST` for
+-- why rank is the only thing this design is allowed to let decay.
+
+local DataStoreService = game:GetService("DataStoreService")
+
+-- Cached page of the sorted store, plus when it was fetched. A board that
+-- asked the datastore on its own five-second tick would burn the sorted-read
+-- budget for a number that moves once a robbery.
+local weeklyTop: { { name: string, amount: number } } = {}
+local weeklyFetchedAt = -math.huge
+local weeklyFetching = false
+-- Declared here rather than beside the loop that reads it: a `local` written
+-- below its reader is a nil global to it, which this project has recorded
+-- nine times and once took the whole server down.
+local lastWeeklyPublish = -math.huge
+
+-- Names are cached because a sorted page hands back USER IDS and nothing else,
+-- and `GetNameFromUserIdAsync` is a web call per row. Keyed by id and never
+-- cleared: a name is not going to change under us within a server's life, and
+-- eight of them is not a leak worth managing.
+local weeklyNames: { [number]: string } = {}
+
+local function weeklyStore(): OrderedDataStore
+	-- THE WEEK IS PART OF THE KEY, WHICH IS WHAT MAKES THE RESET FREE. There
+	-- is nothing to clear at midnight on Sunday and no job to schedule: the
+	-- new week simply reads an empty page, and last week's stays intact behind
+	-- it in case it is ever worth showing.
+	return DataStoreService:GetOrderedDataStore(
+		("%s.%d"):format(Config.WEEKLY_HEIST.store, Config.weekIndex()))
+end
+
+-- Rolls a save onto the current week if it is carrying an older one. Lazy,
+-- because nothing in the game has to happen at the moment a week turns over --
+-- the same argument the spree's expiry makes for having no loop.
+local function currentWeekStolen(data): number
+	local week = Config.weekIndex()
+	if data.week.index ~= week then
+		data.week.index = week
+		data.week.stolen = 0
+	end
+	return data.week.stolen
+end
+
+-- Writes one player's weekly total. Guarded, because a DataStore call is a
+-- yield that can throw, and a leaderboard may never take the server with it --
+-- the same rule `Decor.prewarm` and the dog watcher already follow.
+local function publishWeekly(player: Player)
+	local data = DataService.get(player)
+	if not data then
+		return
+	end
+	local amount = currentWeekStolen(data)
+	if amount <= 0 then
+		-- Nothing to publish, and writing a zero would put every player who
+		-- has never robbed anybody onto the page ahead of nobody at all.
+		return
+	end
+	local store = weeklyStore()
+	local ok, err = pcall(function()
+		store:SetAsync(tostring(player.UserId), math.floor(amount))
+	end)
+    if not ok then
+		warn(("[SocialService] could not publish %s's weekly total: %s"):format(
+			player.Name, tostring(err)))
+	end
+end
+
+local function fetchWeekly()
+	if weeklyFetching or os.clock() - weeklyFetchedAt < Config.WEEKLY_HEIST.refresh then
+		return
+	end
+	weeklyFetching = true
+	task.spawn(function()
+		local ok, err = pcall(function()
+			local pages = weeklyStore():GetSortedAsync(false, Config.WEEKLY_HEIST.rows)
+			local page = pages:GetCurrentPage()
+			local fresh = {}
+			for _, entry in ipairs(page) do
+				local id = tonumber(entry.key)
+				local name = id and weeklyNames[id]
+				if id and not name then
+					-- Tolerated failing: an unresolvable id is a row with a
+					-- number on it, which is far better than no board.
+					local nameOk, resolved = pcall(function()
+						return Players:GetNameFromUserIdAsync(id)
+					end)
+					name = if nameOk then resolved else ("player %d"):format(id)
+					weeklyNames[id] = name
+				end
+				table.insert(fresh, { name = name or "?", amount = entry.value })
+			end
+			weeklyTop = fresh
+		end)
+		if not ok then
+			warn("[SocialService] weekly board fetch failed: " .. tostring(err))
+		end
+		weeklyFetchedAt = os.clock()
+		weeklyFetching = false
+	end)
+end
+
+-- Coins taken from a victim, added to this week's total. Called on DELIVERY
+-- and never on the grab, the same line `data.totalStolen` and the rap sheet
+-- already draw: loot nabbed out of your hands or confiscated by a patrol was
+-- never stolen, you were caught.
+function SocialService.recordWeekly(player: Player, amount: number)
+	local data = DataService.get(player)
+	if not data then
+		return
+	end
+	currentWeekStolen(data)
+	data.week.stolen += amount
+end
+
+function SocialService.getWeeklyTop(): { { name: string, amount: number } }
+	return weeklyTop
+end
+
 local function buildBoard()
 	-- FLANKING THE TUNNEL, NOT STANDING IN IT.
 	--
@@ -391,7 +597,23 @@ local function buildBoard()
 	-- can see is there and cannot read. The darkened form is what every gold
 	-- label on a light ground in this game uses.
 	Theme.title(title, 62, Theme.GOLD_INK)
-	title.Text = "RICHEST PIGGIES"
+	-- TOP THIEVES, NOT RICHEST PIGGIES, AND THE OLD BOARD WAS CELEBRATING THE
+	-- WRONG BEHAVIOUR. It ranked live `data.coins` -- so the biggest name on
+	-- the street was whoever had sat on their own lawn the longest, in a game
+	-- whose whole economy was rewritten to make that the WORST way to play. A
+	-- board is an instruction about what is worth doing, and that one was
+	-- pointing at idling.
+	--
+	-- It also could not survive its own server. Every ranking in this project
+	-- read `Players:GetPlayers()`, so nothing anybody did on Tuesday existed
+	-- on Wednesday. See `Config.WEEKLY_HEIST`.
+	--
+	-- THE PAIR STILL SPLITS THE SAME WAY, which is what keeps the two boards
+	-- from disagreeing: the portrait poster is ONE PERSON and RIGHT NOW (who
+	-- the patrol is coming for, this session), and this landscape list is the
+	-- LADDER (who is winning, this week). Two questions, two boards, exactly
+	-- as before -- only the list's question got better.
+	title.Text = "TOP THIEVES  THIS WEEK"
 	title.Parent = backdrop
 
 	local rows: { { row: Frame, who: TextLabel, amount: TextLabel } } = {}
@@ -466,7 +688,10 @@ local function buildBoard()
 	empty.BackgroundTransparency = 1
 	empty.TextScaled = true
 	Theme.body(empty, 28, Theme.MUTED)
-	empty.Text = "nobody yet"
+	-- Names the mechanic rather than reporting a blank, the same call the
+	-- wanted poster makes -- and this board is empty at the start of every
+	-- week, not just at the start of every server.
+	empty.Text = "nobody yet this week"
 	empty.LayoutOrder = 0
 	empty.Parent = list
 
@@ -479,28 +704,25 @@ local function refreshBoard()
 		return
 	end
 
-	local ranked = {}
-	for _, player in ipairs(Players:GetPlayers()) do
-		local data = DataService.get(player)
-		if data then
-			table.insert(ranked, { player = player, coins = data.coins })
-		end
-	end
-	table.sort(ranked, function(a, b)
-		return a.coins > b.coins
-	end)
+	-- Asks for a fresh page if the cached one is stale, and paints whatever it
+	-- currently holds either way. The fetch yields on a web call, so waiting
+	-- for it here would stall the refresh loop that also drives the poster and
+	-- the wanted chip -- and a board one tick behind is not a thing anybody
+	-- standing forty studs away can perceive.
+	fetchWeekly()
+	local ranked = weeklyTop
 
 	-- EVERY board, not the last one built. Ranking once and painting many is
-	-- also why the sort is out here: two boards must never disagree about who
-	-- is winning, and they cannot if they are reading one list.
+	-- also why the list is fetched out here: two boards must never disagree
+	-- about who is winning, and they cannot if they are reading one list.
 	for _, ui in ipairs(boards) do
 		ui.empty.Visible = #ranked == 0
 		for index, entry in ipairs(ui.rows) do
 			local ranking = ranked[index]
 			entry.row.Visible = ranking ~= nil
 			if ranking then
-				entry.who.Text = ("%d.  %s"):format(index, ranking.player.DisplayName)
-				entry.amount.Text = format(ranking.coins)
+				entry.who.Text = ("%d.  %s"):format(index, ranking.name)
+				entry.amount.Text = format(ranking.amount)
 			end
 		end
 	end
@@ -742,10 +964,46 @@ local function buildWantedBoard()
 	Theme.card(backdrop, 12)
 	Theme.outline(backdrop, 5)
 
+	-- THE WHOLE CARD IS SOLVED AGAINST THE SHEET RATHER THAN STACKED DOWN IT,
+	-- because stacking is what walked it off the bottom.
+	--
+	-- Reported as the sign cutting off the words, and measured on the live
+	-- board it is exactly that: the paper runs to canvas y 530 and the bounty
+	-- line ran 492 to 546 -- sixteen pixels of it printed on the bare timber
+	-- below the sheet, with the canvas itself ending four pixels later. The
+	-- card was over-full as well: 430 pixels of content in a frame declared
+	-- 400 tall, so the last row was 30 past its own parent before it ever
+	-- reached the paper.
+	--
+	-- Nothing clipped it, which is why it survived: `Theme.card` sets no
+	-- `ClipsDescendants`, so the row simply drew outside everything it
+	-- belonged to and only the board's own edge stopped it.
+	--
+	-- So the four blocks are laid out from one budget. Sheet 510 tall, less
+	-- the title band and a 12px foot, is 408 for the card; the three text
+	-- rows and their gaps take 172 of it and the photograph takes what is
+	-- left. Change any row height and change PHOTO to match, or this walks
+	-- off the paper again.
+	local TITLE_H = 76
+	local CARD_TOP = 90
+	local CARD_H = 408          -- 510 - CARD_TOP - 12 of foot
+	local BAR_H = 34
+	-- THE PHOTOGRAPH PAYS FOR THE BAR, which is what the note above demands:
+	-- every row here comes out of one budget, so a new row is 40 pixels off
+	-- the picture rather than 40 pixels further down the paper. 236 -> 196.
+	local PHOTO = 196           -- CARD_H - (10 + 58 + 4 + 40 + 6 + BAR_H + 6 + 54)
+	local WHO_Y = PHOTO + 10
+	local STOLEN_Y = WHO_Y + 58 + 4
+	local FLOOR_Y = STOLEN_Y + 40 + 6
+	local BOUNTY_Y = FLOOR_Y + BAR_H + 6
+
 	local title = Instance.new("TextLabel")
-	-- 80px / 25 = 3.2 studs, which is the leaderboard's own heading height.
-	title.Size = UDim2.new(1, -30, 0, 80)
-	title.Position = UDim2.new(0, 15, 0, 10)
+	-- 76px / 25 = 3.04 studs, near enough the leaderboard's own heading
+	-- height, and the width is what binds this string anyway -- measured,
+	-- "MOST WANTED" renders 330 wide by 51 tall in a box 330 across, so the
+	-- four pixels of height come off nothing.
+	title.Size = UDim2.new(1, -30, 0, TITLE_H)
+	title.Position = UDim2.new(0, 15, 0, 8)
 	title.BackgroundTransparency = 1
 	title.TextScaled = true
 	-- RED, WHERE THE LEADERBOARD'S HEADING IS GOLD, AND THAT PAIR IS THE
@@ -754,22 +1012,22 @@ local function buildWantedBoard()
 	-- was portrait against landscape. Gold means money and this board is not
 	-- about money -- it is the one that says somebody is coming for you.
 	-- It is the same red the alarm toast and the bounty use.
-	Theme.title(title, 80, Theme.STOP_INK)
+	Theme.title(title, TITLE_H, Theme.STOP_INK)
 	title.Text = "MOST WANTED"
 	title.Parent = backdrop
 
 	local card = Instance.new("Frame")
 	card.Name = "Suspect"
-	card.Size = UDim2.new(1, -30, 1, -110)
-	card.Position = UDim2.new(0, 15, 0, 96)
+	card.Size = UDim2.new(1, -30, 0, CARD_H)
+	card.Position = UDim2.new(0, 15, 0, CARD_TOP)
 	card.BackgroundTransparency = 1
 	card.Visible = false
 	card.Parent = backdrop
 
 	local photo = Instance.new("ImageLabel")
 	photo.Name = "Photo"
-	photo.Size = UDim2.new(0, 256, 0, 256)
-	photo.Position = UDim2.new(0.5, -128, 0, 0)
+	photo.Size = UDim2.new(0, PHOTO, 0, PHOTO)
+	photo.Position = UDim2.new(0.5, -PHOTO / 2, 0, 0)
 	-- A WELL IS A HOLE, so it stays dark while everything round it went to
 	-- paper -- the same call the shop's icon wells and the coin chip make.
 	-- What sits in it is a photograph, and a photograph wants something to be
@@ -794,38 +1052,116 @@ local function buildWantedBoard()
 	-- The service itself holds a direct reference and never noticed; anything
 	-- inspecting the board from outside would have to know to use FindFirstChild.
 	name.Name = "Who"
-	name.Size = UDim2.new(1, 0, 0, 60)
-	name.Position = UDim2.new(0, 0, 0, 268)
+	-- INSET TEN A SIDE, and that is a real fix rather than tidiness. Measured
+	-- with a real suspect on the board, "EATYOURBEANSBOYS" rendered 320 wide
+	-- in a 330-wide box -- fitting, and touching both edges, which is the
+	-- state this project already records as reporting `TextFits` true while
+	-- sitting exactly on the frame edge. `TextScaled` keeps it legible; the
+	-- margin is what stops the glyphs meeting the paper's edge.
+	name.Size = UDim2.new(1, -20, 0, 58)
+	name.Position = UDim2.new(0, 10, 0, WHO_Y)
 	name.BackgroundTransparency = 1
 	name.TextScaled = true
-	Theme.title(name, 60, Theme.INK)
+	Theme.title(name, 58, Theme.INK)
 	name.Text = ""
 	name.Parent = card
 
 	local stolen = Instance.new("TextLabel")
 	stolen.Name = "Stolen"
-	stolen.Size = UDim2.new(1, 0, 0, 42)
-	stolen.Position = UDim2.new(0, 0, 0, 332)
+	stolen.Size = UDim2.new(1, -20, 0, 40)
+	stolen.Position = UDim2.new(0, 10, 0, STOLEN_Y)
 	stolen.BackgroundTransparency = 1
 	stolen.TextScaled = true
 	-- Secondary type on a light ground is MUTED, which is faded INK. The old
 	-- (190, 180, 196) was faded PAPER, solved against a dark board -- exactly
 	-- the mistake the shop made in nine places when its cards went light: a
 	-- mid-tone reads as faded on black and as washed out on cream.
-	Theme.body(stolen, 42, Theme.MUTED)
+	Theme.body(stolen, 40, Theme.MUTED)
 	stolen.Text = ""
 	stolen.Parent = card
 
+	-- ---- THE MIDDLE OF THE LADDER -------------------------------------
+	--
+	-- THE RAP SHEET IS AN ARC AND ONLY ITS TWO ENDS WERE EVER DRAWN.
+	--
+	-- Take more, lead the board, cross your own floor, draw a patrol. A
+	-- player could see the first (a figure on the HUD chip) and the last (the
+	-- chip's ring going red), and nothing in between -- so the escalation
+	-- read as a number and then, abruptly, a consequence. Nothing anywhere
+	-- answered *how close am I*.
+	--
+	-- IT GOES ON THE POSTER RATHER THAN IN THE CHIP, AND THAT RESOLVES THE
+	-- OBJECTION THAT KEPT IT OUT OF THE PAYLOAD. `wantedPayload`'s own
+	-- comment refuses to send a floor because "a floor is only ever asked
+	-- about the leader, so drawing a bar toward one for anybody else would
+	-- promise a consequence that cannot happen" -- which is exactly right
+	-- for a per-player chip and stops being a problem on a board about ONE
+	-- PERSON. `getPursuitTarget` returns nobody unless they are the most
+	-- wanted, so the leader's floor is the only floor that decides anything,
+	-- and it is a public fact about the street rather than private state.
+	--
+	-- IT IS ALSO THE HONEST SURFACE FOR IT. A 176x34 chip already carries a
+	-- badge, a caption, a figure and four spree pips and has nowhere to put
+	-- a second player's name; this board exists to say who is wanted and has
+	-- room. And it makes the ladder readable FROM THE STREET, which is where
+	-- this project puts a tell whenever it can.
+	--
+	-- WHAT IT BUYS EVERYONE ELSE IS THE HALF NOBODY ASKED FOR. A thief who
+	-- is not leading can now compare: their own figure is on their chip and
+	-- the leader's is on the paper. And any bystander can see a patrol
+	-- building before it happens, which is the same published-in-advance
+	-- rule the fifteen seconds of siren already follow -- bad luck is not
+	-- something a nine-year-old can get better at.
+	local floorTrack = Instance.new("Frame")
+	floorTrack.Name = "Floor"
+	floorTrack.Size = UDim2.new(1, -20, 0, BAR_H)
+	floorTrack.Position = UDim2.new(0, 10, 0, FLOOR_Y)
+	-- A GROOVE ONE STEP UNDER THE PAPER, which is the language the upgrade
+	-- pips and the event countdown's own track already speak. A well is a
+	-- hole for an object; a groove is a track for a fill.
+	floorTrack.BackgroundColor3 = Theme.SAND_DEEP
+	floorTrack.BorderSizePixel = 0
+	floorTrack.ClipsDescendants = true
+	floorTrack.Parent = card
+	Theme.corner(floorTrack, BAR_H // 2)
+	Theme.outline(floorTrack, 3)
+
+	local floorFill = Instance.new("Frame")
+	floorFill.Name = "Fill"
+	floorFill.Size = UDim2.new(0, 0, 1, 0)
+	floorFill.BackgroundColor3 = Theme.WARN
+	floorFill.BorderSizePixel = 0
+	floorFill.Parent = floorTrack
+	Theme.corner(floorFill, BAR_H // 2)
+
+	-- THE WORDS SIT OVER THE FILL RATHER THAN BESIDE IT, because the bar is
+	-- already the full width of the card and a caption next to it would have
+	-- to come out of the bar. Ink on both states: `WARN` and `STOP` are both
+	-- bright by design -- every category hue in this game has to carry ink at
+	-- 4.5 to be a tab at all -- and the track behind the unfilled part is
+	-- sand, which carries ink too. So one text colour reads on all three
+	-- grounds and none of it needs a stroke.
+	local floorLabel = Instance.new("TextLabel")
+	floorLabel.Name = "Says"
+	floorLabel.Size = UDim2.new(1, -16, 1, -8)
+	floorLabel.Position = UDim2.new(0, 8, 0, 4)
+	floorLabel.BackgroundTransparency = 1
+	floorLabel.TextScaled = true
+	Theme.body(floorLabel, BAR_H - 8, Theme.INK)
+	floorLabel.Text = ""
+	floorLabel.ZIndex = 2
+	floorLabel.Parent = floorTrack
 	-- What a catch would actually cost them, spelled out. The patrol is
 	-- published on principle -- the siren runs fifteen seconds ahead of the car
 	-- and the HUD counts both clocks -- and a bounty nobody could read would be
 	-- the one part of it that still arrived as a surprise.
 	local bounty = Instance.new("TextLabel")
 	bounty.Name = "Bounty"
-	-- Runs to the foot of the card. The first pass left 48 pixels of dead
-	-- board under the bounty, which on a poster reads as a printing error.
-	bounty.Size = UDim2.new(1, 0, 0, 54)
-	bounty.Position = UDim2.new(0, 0, 0, 376)
+	-- Runs to the foot of the card, and now actually does: this used to end
+	-- 30 pixels past it. It keeps the full 54 because it is the loud line --
+	-- the photograph gave up the height instead.
+	bounty.Size = UDim2.new(1, -20, 0, 54)
+	bounty.Position = UDim2.new(0, 10, 0, BOUNTY_Y)
 	bounty.BackgroundTransparency = 1
 	bounty.TextScaled = true
 	Theme.title(bounty, 54, Theme.STOP_INK)
@@ -849,6 +1185,7 @@ local function buildWantedBoard()
 	table.insert(wantedBoards, {
 		card = card, photo = photo, name = name,
 		stolen = stolen, bounty = bounty, empty = empty,
+		floorFill = floorFill, floorLabel = floorLabel,
 	})
 end
 
@@ -859,6 +1196,10 @@ local function refreshWantedBoard()
 	-- disagree about who is wanted, and they cannot if they are reading one
 	-- answer rather than each working it out.
 	local photo, name, stolen, bounty = "", "", "", ""
+	-- The ladder's middle rung, computed once with everything else and painted
+	-- onto every poster: two boards must never disagree about how close the
+	-- patrol is any more than they may disagree about who is wanted.
+	local progress, says, hot = 0, "", false
 	if suspect then
 		-- rbxthumb, never GetUserThumbnailAsync: the content URL resolves
 		-- itself and never yields, so a board refresh cannot be held up by a
@@ -869,6 +1210,29 @@ local function refreshWantedBoard()
 		stolen = ("STOLEN  %s"):format(format(record))
 		bounty = ("BOUNTY  %s"):format(
 			format(math.floor(record * Config.POLICE.bailMultiple)))
+
+		-- THE SAME FUNCTION THE PATROL ASKS, not a second copy of the
+		-- arithmetic. `wantedFloor` already folds in the thief's income, their
+		-- rebirths, their friend bonus AND their spree -- a run shortens the
+		-- floor by 15% a step -- so a bar drawn from anything else would
+		-- disagree with the officer who actually turns up.
+		local floor = wantedFloor(suspect)
+		if floor > 0 and floor < math.huge then
+			progress = math.clamp(record / floor, 0, 1)
+			hot = record >= floor
+			-- WHAT IS LEFT, RATHER THAN A PERCENTAGE. "68%" is a number about the
+			-- bar; "12.4K TO GO" is a number about the game, in the one unit this
+			-- whole board is denominated in. The bar carries the proportion
+			-- already, which is what it is for.
+			says = if hot
+				then "PATROL COMING"
+				else ("%s TO A PATROL"):format(format(math.max(0, math.floor(floor - record))))
+		else
+			-- No data yet, or a floor of infinity because the save has not loaded.
+			-- The bar says nothing rather than reading empty, because an empty bar
+			-- is a claim that they are a long way from being hunted.
+			says = ""
+		end
 	end
 
 	for _, ui in ipairs(wantedBoards) do
@@ -879,6 +1243,15 @@ local function refreshWantedBoard()
 			ui.name.Text = name
 			ui.stolen.Text = stolen
 			ui.bounty.Text = bounty
+
+			-- AMBER CLIMBING, RED ARRIVED, which is the SAME two-state escalation
+			-- the HUD chip's ring already draws -- gold once the poster has your
+			-- name on it, red once the sheet clears the floor. One ladder, two
+			-- surfaces, and a player who learns it on the chip reads it on the
+			-- board without being taught twice.
+			ui.floorFill.Size = UDim2.new(progress, 0, 1, 0)
+			ui.floorFill.BackgroundColor3 = if hot then Theme.STOP else Theme.WARN
+			ui.floorLabel.Text = says
 		end
 	end
 end
@@ -1099,6 +1472,11 @@ function SocialService.start()
 	buildWantedBoard()
 
 	Players.PlayerRemoving:Connect(function(player)
+		-- BEFORE the state below is dropped, and before DataService gets to
+		-- release the save: a player's last robbery of the session is the one
+		-- most worth having on the board, and it is the one a publish that
+		-- only ran on a tick would miss.
+		publishWeekly(player)
 		friendBonus[player] = nil
 		-- The rap sheet dies with the session it belongs to. Left behind, it
 		-- would also hold a Player reference open for the life of the server.
@@ -1117,6 +1495,17 @@ function SocialService.start()
 				refreshLeaderstats(player)
 			end
 			refreshBoard()
+
+			-- PUBLISHED ON ITS OWN SLOWER CLOCK, not on this five-second one.
+			-- A write per player every five seconds is 72 a minute at six
+			-- players against a budget of 60 + 10 each, so it would be over it
+			-- on its own -- and the number only moves when somebody delivers.
+			if os.clock() - lastWeeklyPublish >= Config.WEEKLY_HEIST.refresh then
+				lastWeeklyPublish = os.clock()
+				for _, player in ipairs(Players:GetPlayers()) do
+					task.spawn(publishWeekly, player)
+				end
+			end
 			-- In this order: the poster reads whatever refreshMostWanted just
 			-- decided, so it and the floating label can never disagree about
 			-- who is wanted.

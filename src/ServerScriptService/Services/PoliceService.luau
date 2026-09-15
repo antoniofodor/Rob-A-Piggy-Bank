@@ -99,10 +99,14 @@ local CosmeticsService = require(script.Parent.CosmeticsService)
 
 local PoliceService = {}
 
--- The road surface, which is where the car's wheels belong. NeighborhoodService
--- lays the tarmac 0.06 proud of the world ground so the two never z-fight, and
--- a car parked at ground level would sink that much into it.
-local ROAD_Y = -Config.PLOT_SIZE.Y / 2 + 0.06
+-- The road surface, which is where the car's wheels belong.
+--
+-- MOVED INTO CONFIG WHEN A SECOND VEHICLE ARRIVED. It was derived here,
+-- which was right while exactly one thing drove on this road; the delivery
+-- van would have been a second copy of the same arithmetic, and the two
+-- agreeing today is not the same as their staying in step the next time
+-- somebody re-lays the tarmac. See `Config.ROAD_SURFACE_Y`.
+local ROAD_Y = Config.ROAD_SURFACE_Y
 
 -- ============================================================
 -- STATE
@@ -125,7 +129,7 @@ local officer: PoliceModel.Officer? = nil
 -- second robbery during a chase must not be remembered and served afterwards.
 -- `amount` is captured at the steal because bail is charged on what was TAKEN,
 -- and by the time anybody is caught the loot may already be banked or may
--- already have been tagged out of their hands.
+-- already have been nabbed out of their hands.
 -- `wanted` marks a pursuit raised by the board rather than by a steal. It
 -- changes two things and nothing else: what bail is charged against, and
 -- whether the rap sheet is cleared afterwards.
@@ -296,7 +300,7 @@ end
 -- Charges bail and says so.
 --
 -- Deliberately charged even when the loot is already gone -- delivered to the
--- thief's own plot, or tagged out of their hands by the victim on the way.
+-- thief's own plot, or nabbed out of their hands by the victim on the way.
 -- Bail answers for the ROBBERY, and "I got the coins home before they caught
 -- me" is the good outcome rather than an acquittal. The cap is what keeps that
 -- fair: three times what was taken, and never more than was sitting in the
@@ -513,7 +517,7 @@ local function pursue(alarm: Alarm)
 			targetRoot.Position.X - at.X, 0, targetRoot.Position.Z - at.Z)
 
 		if flatDelta.Magnitude <= Config.POLICE.catchRadius then
-			-- A dodge beats the catch. TAG_HOLD is 0.4s and the immunity is
+			-- A dodge beats the catch. NAB.hold is 0.4s and the immunity is
 			-- 0.5s, so a well-timed roll costs the officer their moment and
 			-- they have to close again -- exactly what it costs a player who
 			-- eats one mid-tag. The chase is not cancelled, only this frame.
@@ -616,6 +620,20 @@ local function runPatrol()
 		CFrame.new(Vector3.new(m.tunnelEastX + 12, ROAD_Y, Config.POLICE.lane))
 			* CFrame.Angles(0, math.pi, 0),
 		Workspace)
+	-- THE ID IS ASSIGNED HERE RATHER THAN IN `PoliceModel`, and the split is
+	-- a dependency one. `PoliceModel` is pure geometry and requires nothing --
+	-- not Config, not a service -- which is what lets the shop render a
+	-- patrol car and what keeps it buildable from anywhere. Teaching it to
+	-- read `Config.SOUNDS` to fill one property would spend that for a
+	-- string, so the model builds the Sound and the service decides what
+	-- comes out of it.
+	--
+	-- THE EMPTY-ID GUARD SURVIVES INTACT, WHICH IS THE POINT. `SIREN` was
+	-- deliberately "" for the life of the project so the patrol would ship
+	-- silent rather than ship a placeholder; it has a real Pro Sound Effects
+	-- id now, and blanking that one line still produces exactly the old
+	-- behaviour rather than an error.
+	car.siren.SoundId = Config.SOUNDS.SIREN
 	if car.siren.SoundId ~= "" then
 		car.siren:Play()
 	end
