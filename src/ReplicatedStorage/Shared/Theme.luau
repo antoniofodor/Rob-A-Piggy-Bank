@@ -475,6 +475,249 @@ function Theme.snout(parent: Instance, size: number, name: string?): Frame
 	return outer
 end
 
+-- ============================================================
+-- DRAWN HUD ICONS
+-- ============================================================
+--
+-- THREE MORE SIBLINGS OF `Theme.coin`, AND THEY REPLACE EMOJI ON THE THREE
+-- BUTTONS A PLAYER PRESSES MOST.
+--
+-- The corner buttons wore emoji: a trolley for the shop and a rucksack for
+-- the bag. Both are the failure this file already records twice -- an emoji
+-- renders from the colour font, IGNORES `TextColor3`, and is a smudge below
+-- chip size. The coin badge and the piggy panel each hit it and each ended
+-- up drawing the thing instead, and these are that decision arriving at the
+-- last place it had not.
+--
+-- IT IS ALSO WHY THERE IS NO IMAGE HERE. Nothing in this game is uploaded --
+-- every model, both animations and the whole UI are built in code -- because
+-- a third-party asset can be moderated away without warning and the penalty
+-- lands on the EXPERIENCE rather than on the prop. An icon set is exactly
+-- the kind of thing somebody reaches for an upload to solve.
+--
+-- EVERY ONE IS BUILT FROM FRAMES WITH A CORNER AND A STROKE, and the two
+-- tricks worth knowing are both here: a HANDLE is a ring (a frame with a
+-- transparent background, a 50% corner and a stroke) with its lower half
+-- hidden behind the body, and a TOOTH is a small rotated rectangle -- a
+-- GuiObject takes a `Rotation`, which is the only rotation available in
+-- Roblox UI and is enough for a gear.
+
+-- A SHOPPING BASKET WITH A COIN IN IT.
+--
+-- The coin is the point rather than decoration: a basket alone is a shop
+-- and a basket with money in it is THIS shop, where the one currency is
+-- coins and the one question is whether you can afford something. It is
+-- `Theme.coin` at a small size rather than a second gold disc, so the icon
+-- and the balance readout above it are literally the same object.
+function Theme.basket(parent: Instance, size: number, name: string?): Frame
+	local outer = Instance.new("Frame")
+	outer.Name = name or "Basket"
+	outer.Size = UDim2.new(0, size, 0, size)
+	outer.BackgroundTransparency = 1
+	outer.Parent = parent
+
+	-- THE HANDLE IS A RING WITH ITS BOTTOM HALF COVERED. A stroked frame with
+	-- a 50% corner draws an outlined circle; sitting it so the basket body
+	-- overlaps its lower half leaves exactly the arc a handle is. There is no
+	-- arc primitive in Roblox UI and this is the cheapest thing that reads as
+	-- one.
+	local handle = Instance.new("Frame")
+	handle.Name = "Handle"
+	handle.Size = UDim2.new(0, math.floor(size * 0.46), 0, math.floor(size * 0.44))
+	handle.Position = UDim2.new(0.5, 0, 0.30, 0)
+	handle.AnchorPoint = Vector2.new(0.5, 0.5)
+	handle.BackgroundTransparency = 1
+	handle.BorderSizePixel = 0
+	handle.ZIndex = 2
+	handle.Parent = outer
+	Theme.corner(handle, math.floor(size * 0.23))
+	Theme.outline(handle, Theme.OUTLINE_THIN)
+
+	-- A coin sitting IN the basket, and it has to be drawn OVER the body.
+	--
+	-- IT WAS UNDER IT FOR ONE BUILD AND THE ICON RENDERED AS A PLAIN WHITE
+	-- PILL. The comment here said the coin was drawn first "so the body's own
+	-- edge crosses it, which is what puts it inside" -- which is how paint
+	-- works and not how ZIndex does: a body at 4 over a coin at 3 does not
+	-- CROSS the coin, it covers it completely. The whole point of the icon --
+	-- that this is the shop where the money goes -- was invisible, and every
+	-- property read said it was built correctly.
+	--
+	-- SITTING PROUD OF THE RIM IS WHAT MAKES IT READ AS INSIDE. The coin is
+	-- above the body in Z and straddles the body's top edge in Y, so the lower
+	-- half is against the basket and the upper half breaks its outline. Same
+	-- trick as the moat's kerbs: the eye takes the highest line as the surface.
+	local coin = Theme.coin(outer, math.max(math.floor(size * 0.42), 9), "Coin")
+	coin.Position = UDim2.new(0.5, 0, 0.50, 0)
+	coin.AnchorPoint = Vector2.new(0.5, 0.5)
+	coin.ZIndex = 6
+
+	-- The body. Slightly wider than tall and rounded only a little, so it
+	-- reads as a basket rather than as a bowl.
+	local body = Instance.new("Frame")
+	body.Name = "Body"
+	body.Size = UDim2.new(0, math.floor(size * 0.86), 0, math.floor(size * 0.44))
+	body.Position = UDim2.new(0.5, 0, 0.74, 0)
+	body.AnchorPoint = Vector2.new(0.5, 0.5)
+	body.BackgroundColor3 = Theme.PAPER
+	body.BorderSizePixel = 0
+	body.ZIndex = 4
+	body.Parent = outer
+	Theme.corner(body, math.max(math.floor(size * 0.10), 3))
+	Theme.outline(body, Theme.OUTLINE_THIN)
+	Theme.shade(body, 0.86)
+
+	-- Two slats. A blank rectangle is a box; two vertical lines in it are a
+	-- basket, and that is the entire difference at 30 pixels.
+	for i, at in ipairs({ 0.34, 0.66 }) do
+		local slat = Instance.new("Frame")
+		slat.Name = "Slat" .. i
+		slat.Size = UDim2.new(0, math.max(math.floor(size * 0.05), 2), 0.62, 0)
+		slat.Position = UDim2.new(at, 0, 0.5, 0)
+		slat.AnchorPoint = Vector2.new(0.5, 0.5)
+		slat.BackgroundColor3 = Theme.INK
+		slat.BackgroundTransparency = 0.55
+		slat.BorderSizePixel = 0
+		slat.ZIndex = 5
+		slat.Parent = body
+	end
+
+	return outer
+end
+
+-- A SATCHEL, for the bag. Same handle trick, no coin: what is in the bag is
+-- the player's collection rather than money, and a second gold disc on the
+-- button next door would make the two read as the same control.
+function Theme.satchel(parent: Instance, size: number, name: string?): Frame
+	local outer = Instance.new("Frame")
+	outer.Name = name or "Satchel"
+	outer.Size = UDim2.new(0, size, 0, size)
+	outer.BackgroundTransparency = 1
+	outer.Parent = parent
+
+	local handle = Instance.new("Frame")
+	handle.Name = "Handle"
+	handle.Size = UDim2.new(0, math.floor(size * 0.42), 0, math.floor(size * 0.40))
+	handle.Position = UDim2.new(0.5, 0, 0.30, 0)
+	handle.AnchorPoint = Vector2.new(0.5, 0.5)
+	handle.BackgroundTransparency = 1
+	handle.BorderSizePixel = 0
+	handle.ZIndex = 2
+	handle.Parent = outer
+	Theme.corner(handle, math.floor(size * 0.21))
+	Theme.outline(handle, Theme.OUTLINE_THIN)
+
+	local body = Instance.new("Frame")
+	body.Name = "Body"
+	body.Size = UDim2.new(0, math.floor(size * 0.80), 0, math.floor(size * 0.52))
+	body.Position = UDim2.new(0.5, 0, 0.70, 0)
+	body.AnchorPoint = Vector2.new(0.5, 0.5)
+	body.BackgroundColor3 = Theme.PAPER
+	body.BorderSizePixel = 0
+	body.ZIndex = 4
+	body.Parent = outer
+	Theme.corner(body, math.max(math.floor(size * 0.14), 3))
+	Theme.outline(body, Theme.OUTLINE_THIN)
+	Theme.shade(body, 0.86)
+
+	-- The flap, across the top third, with a clasp on it. Those two together
+	-- are what stop this reading as the basket beside it.
+	local flap = Instance.new("Frame")
+	flap.Name = "Flap"
+	flap.Size = UDim2.new(1, 0, 0.44, 0)
+	flap.BackgroundColor3 = Theme.INK
+	flap.BackgroundTransparency = 0.62
+	flap.BorderSizePixel = 0
+	flap.ZIndex = 5
+	flap.Parent = body
+	Theme.corner(flap, math.max(math.floor(size * 0.12), 3))
+
+	local clasp = Instance.new("Frame")
+	clasp.Name = "Clasp"
+	clasp.Size = UDim2.new(0, math.max(math.floor(size * 0.14), 3),
+		0, math.max(math.floor(size * 0.10), 3))
+	clasp.Position = UDim2.new(0.5, 0, 0.46, 0)
+	clasp.AnchorPoint = Vector2.new(0.5, 0.5)
+	clasp.BackgroundColor3 = Theme.GOLD
+	clasp.BorderSizePixel = 0
+	clasp.ZIndex = 6
+	clasp.Parent = body
+	Theme.corner(clasp, 2)
+
+	return outer
+end
+
+-- A GEAR, for settings.
+--
+-- EIGHT TEETH AS ROTATED RECTANGLES, which is the one shape Roblox UI can
+-- make that a gear needs: a GuiObject takes a `Rotation` in degrees, so a
+-- small rect turned by `i * 45` and pushed out along that same angle lands
+-- on the rim square to it. Below eight it reads as a flower and above it the
+-- teeth merge into a disc at the 30 pixels this is drawn at.
+--
+-- The hole is not decoration either: a filled disc with teeth is a sun, and
+-- the hole is most of what makes it machinery.
+function Theme.gear(parent: Instance, size: number, name: string?): Frame
+	local outer = Instance.new("Frame")
+	outer.Name = name or "Gear"
+	outer.Size = UDim2.new(0, size, 0, size)
+	outer.BackgroundTransparency = 1
+	outer.Parent = parent
+
+	local toothLong = math.max(math.floor(size * 0.26), 5)
+	local toothWide = math.max(math.floor(size * 0.16), 4)
+	local radius = size * 0.31
+
+	for i = 0, 7 do
+		local angle = math.rad(i * 45)
+		local tooth = Instance.new("Frame")
+		tooth.Name = "Tooth" .. i
+		tooth.Size = UDim2.new(0, toothWide, 0, toothLong)
+		-- Pushed out along its own angle, so the rect stands square to the rim
+		-- rather than being a rotated square that happens to be near it.
+		tooth.Position = UDim2.new(
+			0.5, math.floor(math.sin(angle) * radius),
+			0.5, math.floor(-math.cos(angle) * radius))
+		tooth.AnchorPoint = Vector2.new(0.5, 0.5)
+		tooth.Rotation = i * 45
+		tooth.BackgroundColor3 = Theme.PAPER
+		tooth.BorderSizePixel = 0
+		tooth.ZIndex = 2
+		tooth.Parent = outer
+		Theme.corner(tooth, 2)
+		Theme.outline(tooth, Theme.OUTLINE_THIN)
+	end
+
+	-- The body sits OVER the teeth, so the eight inner ends are hidden and
+	-- what is left of each is the part standing proud of the rim. Without
+	-- this the icon is eight loose tiles in a ring.
+	local body = Instance.new("Frame")
+	body.Name = "Body"
+	body.Size = UDim2.new(0, math.floor(size * 0.62), 0, math.floor(size * 0.62))
+	body.Position = UDim2.new(0.5, 0, 0.5, 0)
+	body.AnchorPoint = Vector2.new(0.5, 0.5)
+	body.BackgroundColor3 = Theme.PAPER
+	body.BorderSizePixel = 0
+	body.ZIndex = 3
+	body.Parent = outer
+	Theme.corner(body, math.floor(size * 0.31))
+	Theme.outline(body, Theme.OUTLINE_THIN)
+	Theme.shade(body, 0.86)
+
+	local hole = Instance.new("Frame")
+	hole.Name = "Hole"
+	hole.Size = UDim2.new(0, math.max(math.floor(size * 0.22), 4),
+		0, math.max(math.floor(size * 0.22), 4))
+	hole.Position = UDim2.new(0.5, 0, 0.5, 0)
+	hole.AnchorPoint = Vector2.new(0.5, 0.5)
+	hole.BackgroundColor3 = Theme.INK
+	hole.BorderSizePixel = 0
+	hole.ZIndex = 4
+	hole.Parent = body
+	Theme.corner(hole, math.max(math.floor(size * 0.11), 2))
+
+	return outer
+end
 -- A round chip for an icon. Dark ground with a tone ring, which is the rule
 -- the notification chips already established: an emoji carries its own
 -- colours and ignores TextColor3, so a tone-coloured disc loses both the

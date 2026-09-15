@@ -303,7 +303,98 @@ Config.SOUNDS = {
 	-- moderates the asset away and leaves this silent anyway -- after
 	-- players have already learned to listen for it. Pro Sound Effects
 	-- has sirens; use one of those.
-	SIREN = "",
+	-- THE SIREN, WHICH WAS DELIBERATELY EMPTY AND IS NOT ANY MORE. The
+	-- entry that stood here said the patrol ships silent rather than
+	-- shipping "a placeholder nobody remembers to swap", and that a siren is
+	-- exactly the sound the Creator Store is worst for because the free ones
+	-- are ripped from television. Both halves were right and the second one
+	-- was measured this session rather than assumed: a search for "siren
+	-- police" returns fifteen results, of which ONE is Pro Sound Effects and
+	-- the rest include "All credits go to the original owners of this audio.
+	-- Not made by me."
+	--
+	-- WHAT THE OLD ENTRY NAMED AS THE FIX IS WHAT FILLED IT: "Pro Sound
+	-- Effects has sirens." This is that siren. It is a cleared asset from the
+	-- library Roblox licensed wholesale rather than a placeholder, so the
+	-- failure the empty string was protecting against -- a strike moderating
+	-- the asset away after players have learned to listen for it -- is the
+	-- same risk every other id in this table already carries and no worse.
+	--
+	-- IT IS STILL TOLERATED EMPTY, which is the half that must not be lost.
+	-- `PoliceService` assigns this to the car's Sound and then checks the id
+	-- is non-empty before playing, so blanking this line ships a silent
+	-- patrol exactly as before rather than an error.
+	SIREN = "rbxassetid://9117810961", -- Police Siren Slow Vehicle Away 2, 11.22s
+
+	-- ---------------------------------------------------------------
+	-- THE PLACEHOLDER PASS, September 2026.
+	-- ---------------------------------------------------------------
+	--
+	-- Nine actions had no sound at all: throwing a gadget, landing one on
+	-- somebody, the patrol siren, an event starting, the last seconds of the
+	-- countdown, a nab, a slice of the crack, a fence snag, and the crate
+	-- reel. Every id below is Pro Sound Effects, every one was built as a
+	-- Sound and read back before it was written down, and the length beside
+	-- each is measured rather than copied from its store page.
+	--
+	-- THEY ARE EXPLICITLY PLACEHOLDERS AND THAT IS A DECISION RATHER THAN AN
+	-- APOLOGY. Nothing here has been LISTENED to -- nothing in this
+	-- toolchain can hear -- so what is verified is that each id resolves and
+	-- plays, never that it sounds right. The one time measurement caught a
+	-- bad audio choice in this project it caught it only because a BMX went
+	-- completely silent; a recording that is merely WRONG passes every check
+	-- available here. Swapping any of them is one line and needs no other
+	-- change.
+	--
+	-- AND THE CATEGORY THAT HAS NO GOOD ANSWER IS UI CUES, which is worth
+	-- writing down because the next person will search for one. Pro Sound
+	-- Effects is a FIELD RECORDING library: it has no beeps, chimes or
+	-- interface blips in it, and the Creator Store's supply of those is
+	-- overwhelmingly ripped -- a search for a clock tick returns four
+	-- results labelled "From Limbus Company". So the cues below are all
+	-- PHYSICAL EVENTS standing in for interface sounds: a real switch for a
+	-- tick, a real electrical arc for a shock, a real table impact for a
+	-- catch. That is why they are defensible as placeholders and it is also
+	-- their main weakness.
+
+	-- Throwing and landing. The whoosh is a swish and the hit is a wet
+	-- spurt -- comedic rather than violent, which is the register
+	-- `Config.NOTIFY.prank` already sets for the one thing done TO you that
+	-- costs you nothing.
+	GADGET_THROW = "rbxassetid://9120742716", -- Whoosh Thick Quick 2, 0.54s
+	GADGET_HIT = "rbxassetid://9120628915",   -- Web Shoot Juicy Spurt 4, 0.81s
+
+	-- The nab: a short blunt impact, no snarl and no crunch. A nab is a
+	-- hand on a bag rather than a hit, and this is the one cue in the set
+	-- played on a CHILD being caught by another child -- so it is the one
+	-- where the register matters most.
+	NAB = "rbxassetid://9119912427", -- Table Impact Drop Leg 1, 0.65s
+
+	-- The fence. A real electrical arc, and it fires only on tiers that
+	-- actually shock -- the same `stun > 0` test that decides whether a
+	-- crossing throws you off, so a rickety fence stays silent because a
+	-- rickety fence does nothing.
+	FENCE_ZAP = "rbxassetid://9116279560", -- Lightning Burst 56, 0.79s
+
+	-- An event starting. A single-note klaxon rather than the 3.3s version,
+	-- because this lands UNDER the banner's own twenty-second warning and a
+	-- long alarm would still be going when the reader has finished reading.
+	EVENT_ALARM = "rbxassetid://9118805665", -- Sci Fi Klaxon 2, single note, 1.74s
+
+	-- ONE CLICK, THREE JOBS, and the sharing is deliberate rather than
+	-- thrift. A crack slice landing, a countdown second passing and a crate
+	-- reel tile going by are all THE SAME OBJECT -- a mechanical detent --
+	-- which is the one condition under which this project's shared-recording
+	-- trick has ever worked: the BMX and the scrambler share a tyre because
+	-- they genuinely have the same part, and the bike and the skateboard did
+	-- NOT share a roll because they do not. Pitch and volume separate the
+	-- three at the call sites.
+	--
+	-- 0.41s IS WHY THIS ONE AND NOT THE OTHER CANDIDATE. A 1.68s car-switch
+	-- recording measured alongside it contains a toggle ON and a toggle OFF,
+	-- so at one tick a second the tail of each click would land under the
+	-- head of the next.
+	CLICK = "rbxassetid://9116363186", -- Mack Truck light switch, 0.41s
 }
 
 -- ============================================================
@@ -409,8 +500,39 @@ Config.HEIST_PAYOUT = 2
 -- balance plus what has already been taken), so a pig cannot be emptied by
 -- inches. The refusal names it, because a cap the thief cannot see reads as
 -- stealing being broken.
+--
+-- 45% AND NOT 25%, AND THE NUMBER IS SOLVED OUT OF `Bigger Sack` RATHER THAN
+-- CHOSEN. At 25% this cap was quietly gutting an entire upgrade rung. A clean
+-- five-slice run scales with the sack, so measured against the live curves it
+-- runs 21.9 / 26.8 / 31.7 / 36.7 / 41.6 per cent across the five levels -- and
+-- every rung above the first was PARTLY REFUNDED TO THE VICTIM, with a maxed
+-- sack losing 40% of what it asked for. A player could buy four levels of
+-- "Take more coins per grab" and watch three of them do nothing to a real
+-- person. Same family as the Tiptoe rung that sat on disk describing an
+-- upgrade that did not exist: a thing bought with coins that is silently not
+-- paid, with nothing in any log to say so.
+--
+-- 45% clears the top of that ladder by 3.4 points, so every rung now pays in
+-- full against a player exactly as it already did against a resident. THE
+-- CEILING IS THEREFORE THE SACK'S RUNG COUNT, which is the same derivation
+-- `TIPTOE.max` and `Config.CASING` already use -- if the sack ever grows a
+-- fifth level this has to be re-solved rather than left to bind again.
+--
+-- WHAT IT STILL BUYS IS THE THING IT WAS WRITTEN FOR, and that is why it went
+-- up rather than away. `STEAL_COOLDOWN` is per THIEF per victim, so seven
+-- players can rob one child seven times in a minute: measured, uncapped that
+-- leaves them 2.3% of their pig at a maxed sack and 17.7% at a bare one. The
+-- cap holds it to 45% however many people take turns.
+--
+-- AND IT BOUNDS THE AUTOMATED PATH, WHICH IS THE SHARPER OF THE TWO now that
+-- residents rob players. `HeistService.residentTake` goes through the same
+-- `lossAllowance`, so without this a row of neighbours strips a pig 20% at a
+-- time on a loop, with nobody choosing to do it -- a child logs off rich and
+-- comes back poor having been robbed by robots. Since the pivot merged
+-- `vault` into `coins` there is no safe pool behind this any more: it is the
+-- only bound left on what a real person can lose.
 Config.LOSS_CAP = {
-	fraction = 0.25,
+	fraction = 0.45,
 	window = 60 * 60,
 }
 
@@ -462,6 +584,11 @@ Config.STEAL_RANGE = 11
 
 -- Per-victim limits. Both are per thief, so a popular target isn't drained
 -- by one determined attacker.
+--
+-- THIS IS THE PLAYER FIGURE. A resident carries its own, shorter one -- see
+-- `RESIDENTS.stealCooldown` for why a protection a child needs is not a
+-- protection an empty house needs, and `Config.stealCooldownFor` for the one
+-- place that chooses between them.
 Config.STEAL_COOLDOWN = 60
 
 -- `STEAL_MAX_PER_VICTIM` WAS HERE AND IS RETIRED. It was 3: a lifetime cap on
@@ -511,28 +638,271 @@ Config.JOIN_SHIELD = 90
 Config.CARRY_SPEED_MULTIPLIER = 0.75
 Config.BASE_WALK_SPEED = 16
 
--- Tagging a thief: anyone nearby can do it, including bystanders.
-Config.TAG_HOLD = 0.4
-Config.TAG_DISTANCE = 14
+-- NABBING A THIEF: anyone nearby can do it, including bystanders.
+--
+-- IT IS CALLED A NAB BECAUSE "TAG" WAS FOUR WORDS AT ONCE AND NAMED THE WRONG
+-- HALF OF THE ACTION. Inside this project alone it already meant a
+-- `CollectionService` tag, the character `Nametag`, and the plot sign -- and
+-- `HeistService.nab` is also what the guard dog calls, so the one word covered
+-- a player pressing a prompt and a dog catching somebody. It also named the
+-- TOUCH rather than the OUTCOME, which is the opposite of every other prompt
+-- in this game: `BANK COINS`, `OPEN IT`, `RECOVER`, `STEAL`.
+--
+-- The words that were ruled out are worth keeping, because each is taken by
+-- something this game already does: `snag` is the fence penalty, `catch` is
+-- `DOG_TIERS.catchRadius`, `bust`/`BUSTED` is the arrest scene's stamp, and
+-- `collar` is the guard-duty tell. And `tackle`/`takedown` are refused for the
+-- audience for the same reason the officer carries no baton -- Roblox's
+-- maturity questionnaire is answered by what is literally in the model, and a
+-- verb describing violence is that same decision made in text.
+--
+-- WHAT IS STILL WRONG WITH IT, AND IS THE NEXT THING TO FIX: this is a 0.4
+-- second hold with exactly two outcomes -- all the coins or none -- paying the
+-- person who presses it nothing at all. It is the terminal action of the
+-- entire defence half of the game and it is what a STEAL used to be before
+-- `Config.CRACK` turned that into a decision. See `docs/MASTER-PLAN.md`; the
+-- rename is step one of three and the fields below grow with it.
+Config.NAB = {
+	-- A hold rather than a touch, and it is measured against
+	-- `Config.DODGE.immunity` (0.5) rather than chosen: a dodge has to be able
+	-- to beat it outright, so that eating one costs the nabber the whole hold
+	-- and they have to start again. That is a real read-and-counter and it is
+	-- currently invisible to both players.
+	hold = 0.4,
+
+	-- The prompt's reach. Generous on purpose: this is the only prompt in the
+	-- game welded to a MOVING target, pressed by somebody who is also running,
+	-- by an audience mostly on tablets. `HeistService` re-checks it
+	-- server-side with slack on top, because the prompt's range is a client
+	-- hint.
+	distance = 14,
+
+	-- ------------------------------------------------------------------
+	-- THE TUG. A NAB WAS 100/0 AND IS A DECISION ON BOTH SIDES NOW.
+	-- ------------------------------------------------------------------
+	--
+	-- The crack turned a steal from a transaction into a decision and that
+	-- surgery was performed on the THIEF and on nobody else. Measured against
+	-- the old nab, the defender's half of the same robbery was: one 0.4s
+	-- hold, two outcomes, no decision, and it paid them NOTHING. Everything
+	-- the crack was built to fix applied word for word to the terminal action
+	-- of the entire defence half of the game.
+	--
+	-- Coins now flow back PER TICK while somebody holds the prompt. Let go,
+	-- lose them, or get dodged, and you keep what has already come home.
+
+	-- How often a slice goes back. Five ticks a second: fast enough that the
+	-- figure over the thief's head visibly falls rather than stepping, slow
+	-- enough that a full recovery is several distinct events rather than one.
+	tickRate = 0.2,
+
+	-- HOW LONG A CLEAN RECOVERY TAKES, AND IT IS MEASURED AGAINST THE
+	-- GETAWAY RATHER THAN CHOSEN.
+	--
+	-- The shortest run home is 53 studs at carry speed, about 4.4 seconds. A
+	-- tug that recovered everything in a fifth of that would be the old
+	-- binary nab with extra frames; one that took most of the run would make
+	-- a single nabber a hard stop, which is the wall this design refuses
+	-- everywhere else. One second is a fifth of the getaway: long enough to
+	-- contain a decision, short enough that two children are not standing
+	-- still in a game about movement.
+	recoverSeconds = 1.0,
+
+	-- WHAT THE NABBER EARNS, MINTED, AND THE EXPLOIT CLOSES ITSELF.
+	--
+	-- Minted rather than taken from the victim, for the reason
+	-- `HEIST_PAYOUT` is 2: a rescue fee deducted from the person being
+	-- rescued is "every point of incentive is a point of pain" with the sign
+	-- flipped. It overflows capacity like a DELIVERY rather than being
+	-- refused like a sale -- a sale is a trade the player chose and a bounty
+	-- arrives because somebody else robbed somebody.
+	--
+	-- ANY VALUE BELOW `HEIST_PAYOUT` MAKES A STAGED ROBBERY STRICTLY WORSE
+	-- THAN SIMPLY DELIVERING IT. Two friends farming this -- A robs B, C nabs
+	-- A, repeat -- give up the haul times 2.0 to gain the haul times this
+	-- number. At 0.25 that is an eight-to-one loss before the stun and the
+	-- broken spree. The exploit is closed by arithmetic rather than by a
+	-- check, which is the only kind that cannot be forgotten.
+	bounty = 0.25,
+
+	-- SPLIT AMONG WHOEVER TOOK PART, NEVER MULTIPLIED. One fee per robbery
+	-- divided by the crowd, so piling on stops being individually profitable
+	-- without anybody being refused. Paid per tick to whoever is holding at
+	-- that tick, so somebody who joins late earns from the moment they join
+	-- and no earlier.
+
+	-- THE PER-THIEF REST, AND IT IS THE LOAD-BEARING HALF OF ALL OF THIS.
+	--
+	-- Measured off the live numbers: a thief carries at 12 and a free
+	-- bystander runs at 16, so a chaser closes 4 studs a second over a
+	-- 4.42-second getaway -- which means a bystander starting up to THIRTY
+	-- STUDS BEHIND still gets inside `distance` with `hold` to spare. A thief
+	-- has exactly one dodge per run (`DODGE.cooldown` is 5s against a 4.4s
+	-- getaway), so against n chasers one dodge loses to n - 1 of them.
+	--
+	-- SHIPPING THE BOUNTY WITHOUT THIS MAKES ROBBING HARDER AND GIVES
+	-- NOTHING BACK. It is the same shape as one wheelie bin per pursuit and
+	-- `STEAL_COOLDOWN` per thief per victim: the rest is on the PERSON BEING
+	-- ACTED ON, so the bound on what an entire street can do to one child is
+	-- the same bound as one player on their own.
+	--
+	-- THE INVARIANT, MEASURED AND WRITTEN DOWN RATHER THAN LEFT AS A TUNING
+	-- PASS: NO COMBINATION OF BYSTANDERS MAY REDUCE A WELL-PLAYED ROBBERY TO
+	-- UNWINNABLE.
+	--
+	--     tug duty cycle = recoverSeconds / (recoverSeconds + cooldown)
+	--
+	-- At 1.0 and 3.0 that is 25%: a thief can be under a tug for at most a
+	-- QUARTER of any stretch of time, however many people are holding, because
+	-- the rest is on the thief rather than on the nabber. Eight players cannot
+	-- do more to one child than one player can.
+	--
+	-- Raising `recoverSeconds` or lowering this number raises that fraction,
+	-- and the two multiply -- which is the shape of mistake this file records
+	-- more than any other. `LOSS_CAP` x `HEIST_PAYOUT`, capacity x income, a
+	-- resident's pig x a capacity ladder: two curves tuned in separate sessions
+	-- and never multiplied together, found months later by somebody happening
+	-- to measure.
+	cooldown = 3.0,
+}
+-- HOW CLOSE AN OWNER HAS TO GET TO THEIR OWN LOCK TO BREAK UP A ROBBERY.
+--
+-- Wider than `STEAL_RANGE` (11) on purpose: the thief is already standing at
+-- the pig, so a range equal to theirs would mean the owner has to be close
+-- enough to touch them. 16 is arriving on the lawn rather than winning a
+-- wrestling match, which is what "being home means something" should feel
+-- like -- and it is still well inside the 64-stud plot, so an owner standing
+-- at their own gate does not passively suppress every robbery on the lawn.
+--
+-- IT IS THE OWNER'S ONLY DEFENCE WHILE THEY ARE HOME, which is what sizes it.
+-- `releaseDog` stands the dog down for a present owner -- two hard stops on
+-- one lawn is how a plot becomes a wall -- so this replaces the dog rather
+-- than stacking on it.
+Config.OWNER_INTERRUPT_RANGE = 16
+
+-- ============================================================
+-- THE GATE JAM
+-- ============================================================
+--
+-- THE OWNER-LOCKED GATE WAS PROPOSED AND REFUSED, AND THIS IS THE
+-- INVERSION THAT SURVIVED.
+--
+-- Locking your own gate fails three ways: it contradicts the rule that the
+-- gate is always open at every tier (24 studs at Rickety and still 8 at the
+-- Moat), it does nothing about a camping owner who is already standing on
+-- the lawn, and it is defence stacking on the one plot that already has a
+-- defender in it. What is salvageable is the same idea pointed the other
+-- way: let the THIEF jam it, behind them, on the way out.
+--
+-- THAT PUTS IT WHERE THIS DESIGN ACTUALLY WANTS PRESSURE -- the getaway,
+-- where every other cost in this game already lands.
+--
+-- A PROMPT ON THE GATE RATHER THAN A HOT BAR SLOT. The number row is full
+-- at ten, the eleventh consumable already had to take a letter, and there
+-- are fewer letters left than it looks. A prompt costs no slot and
+-- `Config.PROMPTS` is already the vocabulary for giving one a colour, a
+-- glyph and a verb.
+Config.GATE_JAM = {
+	-- Coins every use, like every other counter in this game. A consumable
+	-- whose abuse would matter needs a price AND a clock, but this one has a
+	-- natural clock already: it is only reachable while carrying, and a
+	-- carry lasts seconds.
+	cost = 2500,
+
+	-- TWO TO THREE SECONDS, AND THE GETAWAY IS WHAT SETS IT.
+	--
+	-- The run home is 53 studs at carry speed, about 4.4 seconds. A jam that
+	-- lasted five would cover essentially the whole getaway and delete the
+	-- defence; two to three breaks the line without erasing the run. Same
+	-- rule as the wheelie bin, which is sold on buying a BREATH rather than
+	-- an escape.
+	seconds = 2.5,
+
+	-- WHAT CROSSING A JAMMED GATE COSTS, and it is a SNAG rather than a
+	-- wall.
+	--
+	-- A solid part would be the honest picture and it cannot have the one
+	-- property this needs: a `CanCollide` gate blocks EVERYBODY, including
+	-- the owner, and shutting a child out of their own garden is precisely
+	-- the griefing case this feature has to be unable to produce. Roblox
+	-- collision groups are per PART rather than per player, so there is no
+	-- arrangement of one part that stops a chaser and admits an owner.
+	--
+	-- A penalty volume can ask who is crossing. So the gate stays passable
+	-- and passing it costs you, which is the same instrument the fences
+	-- already use and lands in the same place: `HeistService.applyFencePenalty`
+	-- via `PlotService.onFencePenalty`, so a jam and a fence cannot drift
+	-- apart in how they slow somebody.
+	--
+	-- SIZED AGAINST WHAT A CHASER ACTUALLY GAINS, AND THE FIRST NUMBERS WERE
+	-- WRONG BY A FACTOR OF TWO AND A HALF.
+	--
+	-- 0.35 for 2.0s reads modest and is not: a chaser held at 5.6 instead of
+	-- 16 for two seconds loses 20.8 STUDS. Over the whole 4.42-second getaway
+	-- a free chaser only closes 4 studs a second on a carrying thief -- 17.7
+	-- studs in total -- so one jam did not slow the chase down, it deleted it
+	-- outright and handed back more ground than the chaser could ever make up.
+	--
+	-- That is the wheelie bin's own rule broken: a counter here BUYS A BREATH
+	-- AND NEVER AN ESCAPE. The bin's exit burst is deliberately worth about one
+	-- dodge, 4.8 studs, for exactly this reason.
+	--
+	-- At 0.55 for 1.2s a crossing costs 8.6 studs -- about half what a chaser
+	-- gains over a full getaway, so it is a real setback that still leaves the
+	-- chase winnable. Two curves multiplied without anybody checking the
+	-- product is the mistake this file records more than any other, and this
+	-- one was caught by measuring rather than by playing.
+	slow = 0.55,
+	duration = 1.2,
+}
+
 Config.STUN_SECONDS = 4
 
--- How close a thief must get to their own piggy to bank the loot.
+-- How close a thief must get to their own piggy to deliver the loot.
 --
 -- Sized against PLOT_SPACING deliberately. STEAL_RANGE + DROPOFF_RADIUS must
 -- stay well under the spacing, or a thief could stand in their own drop-off
 -- zone and rob a neighbour without ever running -- and the run is the entire
--- risk half of the trade. At 11 + 16 against a spacing of 80 the shortest
--- possible getaway is 53 studs, about 4.4 seconds at carry speed -- it was 37
--- studs and 3.1 seconds before the plot was widened, and this is the number
--- that moved with it.
+-- risk half of the trade. At 11 + 9 against a spacing of 80 the shortest
+-- possible getaway is 60 studs, about 5.0 seconds at carry speed -- it was 37
+-- studs before the plot was widened and 53 while arriving was the whole of
+-- delivering, and this is the number that moved with both.
 --
 -- SO THIS IS THE LEVER IF ROBBING EVER READS AS TOO HARD. A drop-off radius is
 -- a fraction of your own plot rather than an absolute distance, so it can grow
 -- with the plot and hand the run back without touching PLOT_SPACING, which the
--- alley and the row length both depend on. Measured over the longer run, an
--- alerted Titan at 17 closes 22.1 studs on a carrying thief against 15.5
--- before.
-Config.DROPOFF_RADIUS = 16
+-- alley and the row length both depend on.
+--
+-- IT WENT 16 -> 9 WHEN ARRIVING STOPPED BEING DELIVERING, AND THE TWO HALVES
+-- OF THAT ARE WORTH SEPARATING because only one of them is a balance change.
+--
+-- The ACTION changed: a thief used to cross an invisible sixteen-stud circle
+-- and the coins banked themselves, and now they walk up to the pig and press
+-- DELIVER. That is the loop closing -- the pig is the wallet, so the wallet is
+-- where money goes -- and it is the same rule a neighbour now obeys, so the
+-- street reads one way for both. It also makes a silent state change into a
+-- thing a nine-year-old can see.
+--
+-- The DISTANCE is the balance change and it was measured before it was made.
+-- `robberyCycleSeconds` derives the run from this constant, so shrinking it
+-- lengthens every getaway in the game and drops the audited advantage:
+--
+--     reach   run   cycle    worst advantage (8 players, cold)
+--       16    53    21.23s        3.37x
+--        9    60    22.25s        3.22x
+--        0    69    23.56s        3.04x     <- floor is 3.00
+--
+-- NINE RATHER THAN ZERO, AND THAT IS THE WHOLE REASON THERE IS STILL A RADIUS
+-- AT ALL. Requiring a thief to actually touch the pig spends the entire audit
+-- margin: 3.04x against a `ROBBERY_ADVANTAGE.min` of 3.0 is one per cent of
+-- headroom on the invariant that says perfect robbing must beat standing
+-- still. Nine studs is three studs off a twelve-stud pig's surface -- close
+-- enough that a player is unambiguously AT it, which is the thing the change
+-- was for -- and it keeps seven per cent. It is also exactly what the retired
+-- `COLLECT_RANGE` was, and for the same reason: that one was deliberately
+-- tighter than `STEAL_RANGE` so an owner could not reach their own pig from
+-- further out than a thief needs to.
+Config.DROPOFF_RADIUS = 9
 
 -- How many coin discs make up a full piggy. Income and capacity scale
 -- together, so a coin lands roughly every 15 seconds at every level -- the
@@ -567,7 +937,7 @@ Config.UPGRADES = {
 	dog = {
 		tree = "defense", order = 3, name = "Guard Dog", max = 3,
 		baseCost = 5000, growth = 2.6,
-		blurb = "Chases thieves and tags them for you",
+		blurb = "Chases thieves and nabs them for you",
 	},
 	lockpicks = {
 		tree = "offense", order = 1, name = "Lockpicks", max = 4,
@@ -683,12 +1053,24 @@ Config.CRACK = {
 	-- How many slices a pig can give up in one attempt.
 	--
 	-- FIVE, AND THE ARITHMETIC PICKED IT rather than taste. The slices run
-	-- 2.0, 2.8, 3.9, 5.5 and 7.7 per cent, so a full clean run takes 21.9%
-	-- against a LOSS_CAP of 25% -- a greedy thief can empty a victim's whole
-	-- hourly allowance in one attempt and no further, which is the shape
-	-- that stops a plot being farmed by inches. At six steps the run reaches
-	-- 28.9% and the last slice is silently clamped to nothing, which reads
-	-- as the minigame being broken rather than as a cap being reached.
+	-- 2.0, 2.8, 3.9, 5.5 and 7.7 per cent, so a clean run takes 21.9% at a
+	-- bare sack and 41.6% at a maxed one -- which is what `LOSS_CAP` is now
+	-- solved against, so it is the SACK rather than this step count that sets
+	-- the ceiling.
+	--
+	-- THIS ARGUMENT USED TO RUN THE OTHER WAY AND NO LONGER DOES, which is
+	-- worth recording because the number did not move. It read: a clean run
+	-- takes 21.9% against a cap of 25%, so a greedy thief empties their whole
+	-- hourly allowance in one attempt and no further, and a sixth step would
+	-- reach 28.9% and be silently clamped to nothing. Raising the cap to 45%
+	-- to stop it gutting Bigger Sack took that reasoning with it: a sixth
+	-- step would now FIT.
+	--
+	-- Five stays on its own merits. The slices grow 1.4x, so a sixth is worth
+	-- 10.8% of a pig by itself -- half as much again as the whole base run's
+	-- last slice, and the "one rung worth more than everything under it"
+	-- shape this file already rejected when Bigger Sack was scaled. The step
+	-- count is a pacing decision now rather than a consequence of the cap.
 	--
 	-- It also calibrates against what this game already does: today's flat
 	-- 8% take lands between step three (8.7%) and step two (4.8%). So the
@@ -772,10 +1154,150 @@ Config.CRACK = {
 -- IT DOES NOT MAKE A CLEAN ROBBERY INVISIBLE, which is the objection to
 -- check it against. The thief still carries a labelled miniature of the
 -- victim's own pig, still wears a Highlight visible through walls, and can
--- still be tagged by anybody who spots them. What a silent crack buys is
+-- still be nabbed by anybody who spots them. What a silent crack buys is
 -- that nobody was TOLD -- it is stealth of the alarm, never stealth of the
 -- getaway, and the run home is as public as it ever was.
 Config.CRACK_ALARM_ON_MISS = true
+
+-- ============================================================
+-- THE SMASH -- THE OTHER WAY IN
+-- ============================================================
+--
+-- ONE PIG, TWO ROBBERIES, AND THE CHOICE IS MADE BEFORE ANYTHING IS TOUCHED.
+-- A crack is quiet, slow and greedy: five slices, no alarm unless you fumble,
+-- and the Vault Lock fighting you for every one of them. A smash is loud,
+-- quick and small: one hold, a fixed take, and the dog and the owner both
+-- know about it the instant it lands.
+--
+-- WHAT IT IS ACTUALLY FOR IS MAKING THE TWO DEFENCE RUNGS POINT AT DIFFERENT
+-- ATTACKS, which is the half to protect if any of these numbers ever move. A
+-- Vault Lock narrows the crack's windows and does NOTHING to a smash, because
+-- there is no lock being picked. A dog is nearly irrelevant to a clean crack
+-- -- the alarm only fires on a fumble -- and is the entire cost of a smash.
+-- So the two stop being "more defence" and become answers to different
+-- questions: a well-locked pig with no dog is soft to a smash, a well-guarded
+-- pig with no lock is soft to a crack, and a thief can read BOTH from the
+-- pavement, because the dial says one and the kennel says the other.
+--
+-- THE TAKE IS THE CRACK'S OWN LADDER RATHER THAN A NUMBER OF ITS OWN, and
+-- that is what stops the two drifting apart. `getSmashFraction` is exactly
+-- `getCrackFraction(SMASH.steps)`, so it inherits `baseSlice`, `stepGrowth`
+-- and the Bigger Sack scaling in one expression. A second constant here would
+-- be a second description of what a robbery is worth, and this file has paid
+-- for that twice already -- `RESIDENTS.pigSeconds` solved against a take that
+-- was then replaced, and `SHOP_BANK_PIG_SECONDS` pinned and wrong by 62% on
+-- the first boot that audited it.
+--
+-- SCALING WITH THE SACK IS NOT OPTIONAL. Bigger Sack is sold as "take more
+-- coins per grab", and a smash that ignored it would be a rung bought with
+-- coins that quietly does nothing for anybody who prefers the loud way in.
+-- That is the Tiptoe rung sitting on disk describing an upgrade that did not
+-- exist, and the Bigger Sack levels silently refunded by `LOSS_CAP`, arriving
+-- a third time.
+--
+-- ============================================================
+-- WHY TWO SLICES AND NOT THREE
+-- ============================================================
+--
+-- A SMASH MUST PAY STRICTLY LESS PER SECOND THAN A CLEAN CRACK, or it is not
+-- a choice, it is the answer -- and `auditRobbery`'s entire model rests on the
+-- crack being optimal play. It measures `robberyCycleSeconds(maxSteps)` and
+-- calls the result an UPPER BOUND on what a thief can earn. A faster way in
+-- that paid better per second would make that sentence false with nothing in
+-- the audit changing and nothing in any log, which is this project's
+-- most-repeated failure exactly: two curves multiplied without anybody
+-- checking the product.
+--
+-- Measured on the live server, at both ends of the sack ladder:
+--
+--                crack cycle   smash cycle   smash as a share of the rate
+--     house         21.23s        9.53s                  49%
+--     shop          16.85s        5.15s                  72%
+--
+-- The share is FLAT across the sack, because both sides scale on the same
+-- `sackScale` -- 4.80% against 21.89% at level 0 and 9.12% against 41.59% at
+-- level 4 is 0.219 either way. That constancy is the property to keep: a
+-- ratio that MOVED would mean no single step count is right for both ends of
+-- the game, which is the argument `RESIDENTS.pigSeconds` already turns on.
+--
+-- Three slices was the tempting answer, because 8.7% is almost exactly the
+-- flat 8% take this game shipped with for its whole life and there is a neat
+-- story in restoring it as the loud option. The arithmetic refuses it: on a
+-- house it is 92% of a clean crack's rate for 45% of the exposure, so nobody
+-- would ever crack anything again.
+--
+-- AND A CLAIM THAT STOOD HERE FOR ONE SESSION WAS SIMPLY FALSE, WHICH IS
+-- RECORDED RATHER THAN QUIETLY DELETED because it is this file's own most
+-- expensive class. It read: a three-slice smash would push a six-target lap
+-- to about 55s against a 60-second `STEAL_COOLDOWN` and break `auditRobbery`'s
+-- fourth check. **A LAP IS CYCLE TIME TIMES TARGETS AND CONTAINS NO STEP
+-- COUNT AT ALL**, so it is 57.2s at two slices and 57.2s at three, and the
+-- step count could never have moved it. The reasoning was written from the
+-- shape of the concern rather than from the expression, it was plausible, it
+-- named a real check, and it was wrong -- exactly the `gable()` comment and
+-- the kennel rotation, caught this time by measuring before anybody believed
+-- it. THE RATE ABOVE IS THE WHOLE ARGUMENT FOR TWO SLICES; the lap never
+-- had anything to do with it.
+--
+-- WHAT THE LAP ACTUALLY SAYS IS BETTER NEWS AND IS WORTH KEEPING. At 57.2s
+-- against a 60-second cooldown a smash-only thief is COOLDOWN-BOUND: they
+-- arrive back at the first pig three seconds early and wait, so their real
+-- rate falls to 47% of a clean crack rather than 49%. The mechanic
+-- self-limits, and it does so through a number that was already there for
+-- other reasons. A shop-only smasher is bound far harder -- four shops lap in
+-- 20.6s against the same 60 -- which is what makes the 72% above a best case
+-- that cannot be sustained rather than a rate anybody can farm.
+--
+-- THE SHOP COLUMN IS THE THIN END AND IS THE THING TO WATCH. 72% is a lot
+-- closer to 100% than the house's 49%, because a shop's run home is short so
+-- the cycle is mostly the hold -- and a shop has no dog and nobody home, so
+-- the alarm this path buys costs a thief less there than anywhere else. It
+-- stays under the crack at every level and the cooldown does the rest, but if
+-- shop smashing ever reads as the only thing worth doing, the lever is
+-- `SMASH.hold` rather than `steps`: lengthening the hold moves the cycle
+-- without touching the take, so it costs the house nothing.
+--
+-- SO WHY WOULD ANYBODY SMASH? Three reasons, and not one of them is money:
+--
+--   * IT CANNOT BE MISSED. A crack is five timing tests, and a maxed Vault
+--     Lock clamps the fifth window to `minWindow`. For a nine-year-old the
+--     EXPECTED value of a crack on a defended pig is a long way under 21.9%;
+--     a smash is 4.8% with certainty.
+--   * IT IS OVER. 1.3 seconds standing on somebody's lawn against 13.5, and
+--     a dog crossing that lawn is measured in seconds.
+--   * THE LOCK DOES NOT APPLY. It is the answer to the one defence that had
+--     no answer.
+--
+-- Everything else about it is worse, which is the trade: a fifth of the
+-- coins, the dog awake before you have moved, and the owner told who did it.
+Config.SMASH = {
+	-- How many of the crack's slices a smash is worth. See above -- this is the
+	-- number the whole trade turns on, bounded ABOVE by the crack having to
+	-- stay the best rate in the game and BELOW by a smash having to be worth
+	-- the alarm it raises.
+	steps = 2,
+
+	-- The hold, in seconds.
+	--
+	-- DERIVED FROM THE DIAL RATHER THAN PICKED, and the sentence it is derived
+	-- from is the one a player should end up feeling: A SMASH TAKES LESS TIME
+	-- THAN ONE SLICE OF A CRACK. Half a sweep, which is 1.3s today and follows
+	-- `sweepSeconds` if the dial is ever re-paced.
+	--
+	-- It is deliberately LONGER than `CRACK.openHold`, which is the opposite of
+	-- what "near-instant" sounds like and is right for the same reason that
+	-- hold exists at all. Opening a lock can be walked away from having taken
+	-- nothing. A smash cannot: one press drops your shield, empties a fifth of
+	-- somebody's pig, wakes their dog and tells them your name. It may never be
+	-- startable by a brushed prompt.
+	hold = Config.CRACK.sweepSeconds / 2,
+}
+
+-- Fraction of the pig a smash takes. One expression, for the reason in
+-- `Config.SMASH`: there is only one description of what a robbery is worth.
+function Config.getSmashFraction(thiefSack: number): number
+	return Config.getCrackFraction(Config.SMASH.steps, thiefSack)
+end
 
 -- WHAT THE BIGGER SACK BUYS NOW THAT A TAKE IS A DECISION.
 --
@@ -933,6 +1455,62 @@ end
 -- THEY ARE A RESOURCE, NOT A RIVAL. No revenge marker, no place on the
 -- Richest Piggies or Most Wanted boards, no rap sheet. A resident is scenery
 -- that happens to be worth money.
+-- WHAT A NEIGHBOUR SAYS WHEN THEY ARE STANDING ABOUT.
+--
+-- The street reads as a street because there are people on it, and until now
+-- those people did nothing but stand and occasionally walk. A line over a
+-- neighbour's head is the cheapest thing in this game that makes the world
+-- feel inhabited rather than populated -- no new system, no input, no state
+-- a player can be wrong about.
+--
+-- IT ONLY HAPPENS WHEN SOMEBODY IS THERE TO HEAR IT, and that is the half
+-- worth being deliberate about. A street of neighbours talking to an empty
+-- pavement is a server burning ticks on nobody; more to the point, walking up
+-- to a house and having its owner say something is a REACTION, and a line
+-- that was already running when you arrived is scenery. The server tests for
+-- a real character inside `range` before it picks a line at all.
+--
+-- THE SERVER PICKS THE LINE AND EVERY CLIENT SEES THE SAME ONE, which is the
+-- rule the leaderboards already keep: two players standing together must not
+-- be told the neighbour said two different things. The bubble is a
+-- BillboardGui with `MaxDistance` on it, so WHO SEES IT is still per viewer
+-- and costs the server nothing -- the same split the dog's nameplate makes.
+--
+-- ADD LINES HERE AND NOWHERE ELSE. The list is the whole vocabulary; nothing
+-- reads an index into it, so a line can be added, reordered or removed
+-- without touching a line of code.
+Config.RESIDENT_CHATTER = {
+	lines = {
+		"I can see you wanna vibe with me",
+		"Just say you wan' vibe with me",
+	},
+
+	-- How close a character has to be before a neighbour bothers, in studs.
+	-- Sized against the street rather than picked: `PLOT_SPACING` is 80, so
+	-- at 60 a player standing on one lawn can hear the neighbour whose lawn
+	-- they are on and not the one two doors down -- which is what keeps a
+	-- walk down the street a sequence of encounters rather than a chorus.
+	range = 60,
+
+	-- Seconds between one neighbour's lines, drawn fresh each time. A pair
+	-- rather than a single interval because eight residents on one clock
+	-- speak in lockstep, which reads as a mechanism rather than as people --
+	-- the same argument the fireworks' jitter and the patrol's schedule make.
+	--
+	-- AND THE FLOOR IS WHAT STOPS IT BEING NAGGING. `playCoinDrop`'s comment
+	-- calls a coin every fifteen seconds a heartbeat and anything louder
+	-- nagging; a person repeating themselves is worse than a coin, so the
+	-- gap starts well above it.
+	minGap = 14,
+	maxGap = 30,
+
+	-- How long a line stays up. Long enough to read at a walk -- the notify
+	-- cards solve the same problem with `NOTIFY_READ` and land between 3.9
+	-- and 8.9 seconds -- and short enough that a neighbour is not standing
+	-- there with a speech bubble welded to them.
+	hold = 4.5,
+}
+
 Config.RESIDENTS = {
 	-- Clearly not players. A nine-year-old has to be able to tell at a
 	-- glance whether the house they are about to rob belongs to a person,
@@ -993,9 +1571,93 @@ Config.RESIDENTS = {
 	-- was first measured.
 	pigSeconds = 200,
 
+	-- A RESIDENT'S PER-VICTIM COOLDOWN IS THE SAME AS A PLAYER'S, AND THE
+	-- SESSION IT SPENT AT 30 IS WORTH KEEPING BECAUSE THE ARGUMENT FOR
+	-- HALVING IT WAS SOUND AND ITS PREMISE IS GONE.
+	--
+	-- The premise was a supply floor of TWO houses, left over from capping
+	-- the server at six against eight plots. At two targets a thief laps the
+	-- street in about 42s against a 60s cooldown, so they would spend a
+	-- quarter of every cycle waiting and the robbing advantage would still
+	-- SLOPE with population -- which is the exact failure the floor exists to
+	-- remove. Halving it made the floor saturate and the ratio flat.
+	--
+	-- `SHOPS` raised the floor to FOUR instead, and four targets lap in
+	-- about 85s -- comfortably over 60 -- so the cooldown never binds and the
+	-- ratio is flat at every population with no asymmetry needed at all.
+	-- Measured: three permanent targets is the threshold, and there are four.
+	--
+	-- SO THE FOURTH ASYMMETRY IS WITHDRAWN. The three that remain -- no
+	-- `LOSS_CAP`, no grudge or revenge marker, no notifications -- are all one
+	-- sentence: a resident does not need the protections a CHILD needs.
+	-- `STEAL_COOLDOWN` is not one of those. It is the ANTI-FARMING
+	-- protection, and farming an NPC is exactly as bad for this economy as
+	-- farming a person, so there was never a reason of that shape to shorten
+	-- it -- only a reason of arithmetic, and the arithmetic moved.
+	--
+	-- Kept as its own field rather than deleted, and `Config.stealCooldownFor`
+	-- still asks: the two are the same number today and the question is a real
+	-- one, so a table with one value in it is cheaper than re-deriving where
+	-- the branch went if a later floor makes it want to move again.
+	stealCooldown = 60,
+
 	-- Seconds between accrual ticks. Matches EconomyService's own cadence so
 	-- a resident's pile climbs at visibly the same rate a player's does.
 	tickRate = 1,
+
+	-- A NEIGHBOUR WHO GOES OUT AND ROBS SOMEBODY.
+	--
+	-- Residents fixed "a quiet server has nothing to rob". This is the mirror
+	-- of it: a quiet server has NOBODY TO DEFEND AGAINST, so every rung of
+	-- the defence tree -- the Vault Lock, the Fence, the Guard Dog, the Guard
+	-- Duty Treat, the Sprinkler -- protects against nothing in a solo
+	-- session, and half the shop is inert. A child who spends an afternoon
+	-- buying a Mastiff has bought a thing that will never once be used.
+	walk = {
+		-- SPEED IS THE CURRENCY, AND THIS IS THE WHOLE BALANCE OF THE
+		-- FEATURE. `BASE_WALK_SPEED` is 16 and a carrying player does 12; a
+		-- neighbour strolls at 9 and carries at 7, so A PLAYER CAN ALWAYS RUN
+		-- ONE DOWN -- on their own lawn, on the pavement, or at the
+		-- neighbour's gate.
+		--
+		-- That ordering is what stops this being a tax rather than a game:
+		-- the coins are recoverable by doing the thing, every time, with no
+		-- purchase involved. Anything that raises these past 12 hands a
+		-- player a loss they cannot answer, which is the one outcome this
+		-- design will not put in front of a nine-year-old.
+		speed = 9,
+		carrySpeed = 7,
+
+		-- HOW MANY ARE OUT AT ONCE. Two, and it is a cap on the PICTURE as
+		-- much as on the cost: eight neighbours all out at once is a street
+		-- where every house is empty and nobody is home, which is the
+		-- opposite of what the walk is for. Somebody being out has to be an
+		-- EVENT you notice, not the default state of the road.
+		--
+		-- It also bounds the only real cost here. A resident standing at home
+		-- writes nothing at all; two walking is about the replication of the
+		-- one patrol officer this game already runs.
+		maxOut = 2,
+
+		-- Seconds at home between trips, drawn per resident so the row does
+		-- not set off in step.
+		restMin = 45,
+		restMax = 150,
+
+		-- HOW LONG THEY STAND AT THE PIG. A crack is a DECISION for a player
+		-- and a resident has none to make, so what it spends instead is TIME
+		-- STANDING IN THE OPEN -- which is precisely the window a victim has
+		-- to walk over and do something about it. Shorten this and the
+		-- robbery stops being answerable.
+		crackSeconds = 6,
+
+		-- What one visit takes, as a share of the pig it finds. Deliberately
+		-- close to a player's own clean five-slice run (21.9%) so a neighbour
+		-- is never worse to be robbed by than a person -- and `LOSS_CAP` is
+		-- applied on top by the one function that owns it, so this is what
+		-- they ASK for rather than what they get.
+		takeFraction = 0.2,
+	},
 
 	-- A RESIDENT IS A PEER, NOT A LADDER OF ITS OWN. Its income and capacity
 	-- come from the same curves players use, at a level derived from the
@@ -1147,6 +1809,23 @@ Config.DOG_TIERS = {
 		cooldown = 34,
 		maxChase = 12,
 		scale = 0.8,
+		-- BREED SHAPE. Three animals out of one part list, and `scale` alone
+		-- could only ever produce the SAME dog at three sizes -- which is what
+		-- shipped: a terrier, a shepherd and a mastiff that differed by colour
+		-- and by nothing else at all.
+		--
+		--   leg      how tall it stands; everything above the legs is lifted
+		--            to match, so the belly never ends up in the grass.
+		--   girth    how heavy it is, across and through -- never ALONG, or a
+		--            stocky breed comes out longer instead of thicker.
+		--   head     how much of the dog is head, scaled about the head's own
+		--            centre so the eyes and brow travel with the skull.
+		--   earDroop degrees of hang. The clearest breed tell there is, and it
+		--            costs nothing: the ears are hinged at their roots.
+		--
+		-- Low and slight, on short legs, with the biggest ears on the street
+		-- for its size. A terrier is mostly ears and attitude.
+		shape = { leg = 0.82, girth = 0.94, head = 1.06, earDroop = 0 },
 		boneResist = 1.0,
 		fur = Color3.fromRGB(198, 154, 98),
 		furDark = Color3.fromRGB(158, 116, 68),
@@ -1169,6 +1848,10 @@ Config.DOG_TIERS = {
 		cooldown = 29,
 		maxChase = 15,
 		scale = 1.0,
+		-- The athlete: longest legs in the catalogue, ordinary build, ears
+		-- straight up. It is the one breed that should read as FAST standing
+		-- still, and leg length is the only thing that says so.
+		shape = { leg = 1.14, girth = 1.00, head = 1.00, earDroop = 0 },
 		boneResist = 0.8,
 		fur = Color3.fromRGB(126, 94, 66),
 		furDark = Color3.fromRGB(72, 52, 38),
@@ -1197,6 +1880,11 @@ Config.DOG_TIERS = {
 		cooldown = 24,
 		maxChase = 18,
 		scale = 1.3,
+		-- Heavy, short-legged and mostly head, with ears that HANG. The droop
+		-- is doing the most work: it is the only one of the four that changes
+		-- the silhouette rather than its proportions, and at a hundred studs
+		-- a hanging ear is the difference between "big dog" and "Mastiff".
+		shape = { leg = 0.88, girth = 1.20, head = 1.24, earDroop = 112 },
 		boneResist = 0.6,
 		fur = Color3.fromRGB(58, 56, 64),
 		furDark = Color3.fromRGB(32, 31, 37),
@@ -1204,6 +1892,353 @@ Config.DOG_TIERS = {
 		glow = true,
 		blurb = "Runs down fully booted thieves. Nothing leaves this plot",
 	},
+}
+
+-- ============================================================
+-- THE DOG IS YOURS -- COATS
+-- ============================================================
+--
+-- The dog is already the most alive thing on a lawn: it patrols, sleeps,
+-- barks, wears a collar and a tag, carries a nameplate and has a kennel of
+-- its own. Every one of those is decided by which TIER was bought, and none
+-- of it is the player's. This is the first thing here that is.
+--
+-- A COAT IS TASTE. THE TIER IS STILL THE TIER, AND THAT SEPARATION IS THE
+-- ONLY REASON THIS IS ALLOWED. A thief reads the dog to decide the risk, so a
+-- Scruffy dressed as a Titan would be a defence upgrade sold for money. The
+-- tier therefore has to live on a channel no coat can touch.
+--
+-- IT ALREADY DOES, AND THAT WAS MEASURED BEFORE A LINE OF THIS WAS WRITTEN.
+-- `DOG_TIERS` carries `scale`, and `shape` carries `leg`, `girth`, `head` and
+-- `earDroop` -- so the three breeds differ in PROPORTION rather than in size,
+-- and the relationship INVERTS between the top two:
+--
+--     Scruffy   scale 0.8   leg 0.82   girth 0.94   head 1.06
+--     Rex       scale 1.0   leg 1.14   girth 1.00   head 1.00   tall, narrow
+--     Titan     scale 1.3   leg 0.88   girth 1.20   head 1.24   low, wide
+--
+-- That work was done for exactly this reason -- see BREED SHAPE above, which
+-- says in as many words that scale alone "could only ever produce the SAME
+-- dog at three sizes... a terrier, a shepherd and a mastiff that differed by
+-- colour and by nothing else at all." The colour cue is therefore spare, and
+-- freeing it costs the tier read nothing. **ANY FUTURE COSMETIC THAT REACHES
+-- `scale` OR `shape` BREAKS THIS AND IS NOT ALLOWED.**
+--
+-- ONE CATALOGUE, THREE COLOURS, THE SAME SHAPE AS A PIGGY SKIN. `fur` and
+-- `furDark` are the body and its muzzle/brow shading, `collar` is the collar
+-- and tag -- the direct parallel of a skin's `body` and `trim`, so the shop
+-- card, `Config.rarityOf` and the equip toggle all work with nothing new.
+--
+-- NO EXPLICIT `rarity` FIELD, DELIBERATELY, BECAUSE EVERY ONE OF THESE IS
+-- PRICED. `Config.rarityOf` reads an explicit rarity first and falls back to
+-- the coin cost, so a priced catalogue derives its own tiers and cannot drift
+-- when a price moves. The moment a coat is added that is NOT bought with
+-- coins -- a crate-only drop, an event reward -- it needs an explicit
+-- `rarity` or it silently falls through to `common`, which is the trap the
+-- ten drop-pool skins and all twelve accessories already carry a rarity to
+-- avoid.
+--
+-- AN EMPTY `equipped` MEANS THE BREED'S OWN COLOURS, so there is no "default"
+-- row in here to keep in step with `DOG_TIERS`. Equipping a coat you are
+-- already wearing takes it off, the same toggle accessories and decorations
+-- use, which is the only way to get back to the breed look.
+Config.DOG_COATS = {
+	chocolate = {
+		name = "Chocolate", order = 1, cost = 15000,
+		fur = Color3.fromRGB(104, 68, 46), furDark = Color3.fromRGB(68, 42, 28),
+		collar = Color3.fromRGB(214, 138, 62),
+	},
+	husky = {
+		name = "Husky", order = 2, cost = 60000,
+		fur = Color3.fromRGB(196, 202, 210), furDark = Color3.fromRGB(78, 86, 98),
+		collar = Color3.fromRGB(96, 158, 206),
+	},
+	goldenboy = {
+		name = "Golden Boy", order = 3, cost = 150000,
+		fur = Color3.fromRGB(226, 174, 96), furDark = Color3.fromRGB(166, 116, 54),
+		collar = Color3.fromRGB(206, 62, 78),
+	},
+	dalmatian = {
+		name = "Spotless Dalmatian", order = 4, cost = 400000,
+		fur = Color3.fromRGB(232, 232, 228), furDark = Color3.fromRGB(46, 46, 48),
+		collar = Color3.fromRGB(206, 62, 78),
+	},
+	shadow = {
+		name = "Shadow", order = 5, cost = 1500000,
+		fur = Color3.fromRGB(52, 52, 60), furDark = Color3.fromRGB(28, 28, 34),
+		collar = Color3.fromRGB(198, 54, 62),
+	},
+	glacier = {
+		name = "Glacier", order = 6, cost = 12000000,
+		fur = Color3.fromRGB(214, 232, 244), furDark = Color3.fromRGB(122, 168, 200),
+		collar = Color3.fromRGB(96, 214, 226),
+	},
+}
+
+-- THE KENNEL IS THE SECOND HALF OF THE PAIR, AND IT REPAINTS THE HOUSE AND
+-- NEVER THE ROOF.
+--
+-- `docs/MASTER-PLAN.md` asks for "the kennel as a display" and gives the reason
+-- in one line: *its roof already takes the collar colour so it reads as
+-- belonging to the dog*. That is exactly why a kennel skin must not touch the
+-- roof. `applyTier` paints `roof` from the coat's `collar`, so the roof is the
+-- one surface on that model saying WHOSE dog lives here -- and a bought skin
+-- that overrode it would sell a player the ability to make their kennel
+-- disagree with their own dog.
+--
+-- So the two catalogues own two channels of one object: **the kennel says what
+-- the house is made of and the coat says who lives in it.** Buy both and they
+-- read as a set, which is what the plan wanted from rolling them in one pool
+-- -- and it costs nothing to keep true, because neither can reach the other's
+-- field.
+--
+-- TWO TONES, `wood` AND `trim`, WHICH IS THE WHOLE MODEL LESS THE ROOF.
+-- `wood` is the floor and the three walls; `trim` is the base course, the door
+-- posts, the lintel, the ridge, the eaves and the food bowl. The name board is
+-- deliberately `wood` (see `KENNEL` in `GuardDog`), so a skin carries the
+-- board with it and the painted name stays legible against whatever the walls
+-- become -- the label colour is a literal cream in `GuardDog` rather than a
+-- tone, for exactly that reason.
+--
+-- COINS AND NOT A CRATE ROLL, WHICH IS A DEVIATION FROM THE PLAN AND FOLLOWS
+-- THE COATS RATHER THAN THE DOCUMENT. `docs/MASTER-PLAN.md` proposes rolling
+-- coats and kennels in one crate pool; coats shipped priced in coins, so a
+-- crate-only kennel would put one half of a matched pair behind luck and the
+-- other behind a price. `Config.rarityOf` derives a tier from the cost, so a
+-- priced catalogue borders itself and cannot drift when a price moves -- and
+-- the first kennel added that is NOT bought with coins needs an explicit
+-- `rarity` or it silently falls through to `common`.
+--
+-- AN EMPTY `kennel` MEANS THE PLAIN WOODEN ONE, the same way an empty coat
+-- means the breed's own colours. There is no "default" row to keep in step
+-- with `KENNEL_WOOD`/`KENNEL_TRIM`, and the toggle is the only way back to it.
+Config.DOG_KENNELS = {
+	redbrick = {
+		name = "Red Brick", order = 1, cost = 10000,
+		wood = Color3.fromRGB(168, 86, 72), trim = Color3.fromRGB(232, 226, 214),
+	},
+	mint = {
+		name = "Mint Cottage", order = 2, cost = 45000,
+		wood = Color3.fromRGB(146, 206, 180), trim = Color3.fromRGB(244, 248, 244),
+	},
+	midnight = {
+		name = "Midnight", order = 3, cost = 120000,
+		wood = Color3.fromRGB(54, 58, 72), trim = Color3.fromRGB(98, 104, 124),
+	},
+	candy = {
+		name = "Candy Cane", order = 4, cost = 350000,
+		wood = Color3.fromRGB(238, 232, 226), trim = Color3.fromRGB(206, 62, 78),
+	},
+	royal = {
+		name = "Royal Kennel", order = 5, cost = 2000000,
+		wood = Color3.fromRGB(72, 52, 124), trim = Color3.fromRGB(226, 182, 88),
+	},
+	gilded = {
+		name = "Solid Gold", order = 6, cost = 14000000,
+		wood = Color3.fromRGB(226, 186, 86), trim = Color3.fromRGB(150, 112, 40),
+	},
+}
+
+-- THE TOYS, WHICH ARE THE FIRST THING ON A LAWN THAT THE DOG ACTUALLY USES.
+--
+-- `docs/MASTER-PLAN.md`: *"A ball it fetches, a bed it sleeps in instead of the
+-- kennel, a bowl it visits. It already patrols and sleeps on its own clock;
+-- two or three places to go makes it read as owned rather than deployed."*
+-- That is the whole design and it is worth being exact about why it is cheap:
+-- the dog ALREADY walks to a random point inside `DOG_PATROL_RADIUS` and
+-- ALREADY settles at its kennel door. A toy does not add a behaviour, it
+-- REPLACES the destination of one the dog already had.
+--
+-- **A TOY MAY NEVER CHANGE AN OUTCOME, AND TWO THINGS ENFORCE THAT RATHER
+-- THAN PROMISE IT.**
+--
+-- First, `spot` is kennel-local and every one of them is inside the patrol
+-- radius the dog already wanders, and `GuardDog` CLAMPS the walk to that
+-- radius on top -- so no toy, at any offset anybody types here later, can pull
+-- a guard dog further from its post than an ordinary patrol step already does.
+-- A cosmetic that could station the dog somewhere else would be a defence
+-- change sold for coins, which is the line every cosmetic in this game holds.
+--
+-- Second, **A TOY IS SILENT.** The bark is the "a dog has seen me" signal a
+-- thief reads from the pavement, and a ball that squeaked would be a bought
+-- object faking a defence tell. The ball bounces and nothing makes a sound.
+--
+-- THE BED IS THE ONE THAT MOVES A TELL, AND IT SURVIVES BECAUSE THE TELL WAS
+-- NEVER THE KENNEL. What a thief has to read is *this plot is unguarded right
+-- now*, and that is carried by the sleeping POSTURE, the puff and the OFF DUTY
+-- line on the nameplate -- all three of which follow the dog. The dog was
+-- never hidden inside the kennel to begin with; it settles at the DOORWAY, in
+-- plain sight. A bed a few studs away is the same picture in a different spot,
+-- and the puff moved off the kennel roof and onto the dog in the same change
+-- so it cannot be left hanging over an empty house.
+--
+-- THE SPOTS ARE KENNEL-LOCAL AND ARE MEASURED INTO A REAL POCKET, and they
+-- have now been measured TWICE -- which is the argument for them being
+-- kennel-local rather than plot-local, and it was worth the whole of what it
+-- cost.
+--
+-- The first placement was solved against a kennel standing at plot (26, 17)
+-- with no rotation, and it put a Water Bowl at plot z 25.5 against a
+-- `PLOT_FRONT_LINE` of 25.6: a 25,000-coin object standing ON the fence and
+-- reaching through it. The kennel then MOVED, to (25, 16) with a quarter turn
+-- so its doorway faces across the lawn -- and because these offsets are
+-- kennel-local they travelled with it automatically and landed, measured on a
+-- live plot, at ball (29.0, 10.5), bowl (24.5, 10.5) and bed (27.0, 5.5).
+-- All three behind the kennel, and the BED sitting on top of decor slot
+-- `lawnH` at (25, 0, 4), where an ornament would have stood inside it.
+--
+-- **THAT IS THE PROPERTY WORTH KEEPING: a kennel-local offset cannot be left
+-- behind by a kennel that moves, only made wrong.** A plot-local one would
+-- have gone on pointing at the old corner with the kennel nowhere near it,
+-- which is a bug nobody would have thought to look for.
+--
+-- The turn maps kennel-local +Z onto plot -X, so `plot = (25 - local.Z,
+-- 16 + local.X)`. The band that is actually free is bounded on four sides:
+-- the GATE WALK at |x| 12, the KENNEL itself from plot x 21.45, decor slot
+-- `lawnH` behind it (which an 11.0-stud ornament carries out to plot z 9.5),
+-- and `PLOT_FRONT_LINE` at 25.6. Measured in that band, on the live plot:
+--
+--     ball  plot x 13.67..15.33   z 13.17..14.83
+--     bowl  plot x 16.20..18.80   z 10.20..12.80
+--     bed   plot x 14.40..18.84   z 17.05..22.95
+--
+--     bed to the kennel                          1.41 studs
+--     bowl to the kennel                         1.45
+--     ball to the kennel                         4.92
+--     bed to the front fence                     2.65
+--     bed to the gate walk                       2.40
+--     ball to the gate walk                      1.67
+--     bowl to what an ornament in lawnH reaches  0.70
+--     closest toy to another toy                 0.87
+--     lowest point of any toy                   -0.06, sunk into the lawn
+--
+-- MEASURE THE KENNEL, NOT ITS WALLS. The first fit here put the bed 0.42
+-- studs from the kennel because it was solved against the wall line; measured
+-- live the kennel spans plot x 20.25..29.75, because the roof panels are
+-- pitched at 28 degrees and reach a stud further out on each side than
+-- anything holding them up.
+--
+-- AND THE BED IS DELIBERATELY OFF THE REST SPOT. The dog rests at plot
+-- (17.85, 16) and the bed starts at z 17.05, so settling down is a walk of
+-- about four studs rather than a dog lying down exactly where it already
+-- stood. A bed the dog is already standing in makes the one toy that changes
+-- behaviour look like it changes nothing.
+--
+-- THE COLOURS LIVE HERE AND THE SHAPES LIVE IN `GuardDog`, which is the same
+-- split `DOG_COATS` already makes and it is load-bearing rather than tidy: the
+-- SHOP has to draw a swatch for these, and `GuardDog` is a server service the
+-- client cannot require. Colours in the geometry and colours again in the
+-- payload would be the near-identical second copy this project keeps
+-- recording -- and the failure shape is specific and known, because a toy with
+-- no swatch renders as a blank cream tile, which is exactly what eleven
+-- effects did before they got a gradient.
+--
+-- `body` and `trim` are the pair every card in this shop already sends;
+-- `accent` is the bowl's water and is the one thing here a card does not draw.
+--
+-- OWNED AND OUT ARE TWO TABLES, the same pair `data.decor` already keeps.
+-- One table would make "put it away" mean "sell it", and this game refunds
+-- nothing -- so a player who wanted a bare lawn for a week would have to buy
+-- the toy again. The card's press is the toggle, which is also what stops an
+-- owned toy being a tile that does nothing when tapped.
+Config.DOG_TOYS = {
+	ball = {
+		name = "Squeaky Ball", order = 1, cost = 8000,
+		body = Color3.fromRGB(224, 78, 62), trim = Color3.fromRGB(244, 238, 226),
+		spot = Vector3.new(-2.0, 0, 10.5),
+		kind = "visit",
+	},
+	bowl = {
+		name = "Water Bowl", order = 2, cost = 25000,
+		body = Color3.fromRGB(74, 142, 206), trim = Color3.fromRGB(232, 236, 240),
+		accent = Color3.fromRGB(128, 196, 236),
+		-- Deliberately NOT where the kennel's own food bowl is (kennel-local
+		-- x +3.90): that one is scenery on every kennel in the game including
+		-- a resident's, and a bought bowl landing on top of it would read as a
+		-- purchase that did nothing.
+		spot = Vector3.new(-4.5, 0, 7.5),
+		kind = "visit",
+	},
+	bed = {
+		name = "Dog Bed", order = 3, cost = 120000,
+		body = Color3.fromRGB(206, 152, 168), trim = Color3.fromRGB(158, 100, 122),
+		-- Its own column further out, because it is by far the biggest of the
+		-- three at 5.4 by 4.2 and will not share one with the other two.
+		spot = Vector3.new(4.0, 0, 8.5),
+		kind = "sleep",
+	},
+}
+
+-- How often a patrol step picks a toy instead of a random point, when there is
+-- at least one out. Under a half on purpose: a dog that went to a toy EVERY
+-- time would stop patrolling and start commuting, and the pacing round the
+-- lawn is what the Guard Dog rung actually bought.
+Config.DOG_TOY_VISIT_CHANCE = 0.45
+
+-- THE GUARD-DUTY TELL, MOVED OFF THE COLLAR AND ONTO A WORN OBJECT.
+--
+-- `showGuardDuty` used to flip the collar and tag to `Neon` and write ON GUARD
+-- on the nameplate. The collar half cannot survive coats: a player wearing a
+-- bright cosmetic collar would make the tell unreadable, which is WORSE than
+-- no tell at all -- a thief would burn a 30,000-coin Golden Bone finding out,
+-- or get caught by a dog they had every reason to think was bribeable.
+--
+-- DELETING IT OUTRIGHT IS ALSO WRONG, because it takes guard duty from two
+-- channels down to one. The nameplate is a `BillboardGui` with `MaxDistance`
+-- 90 and `TextScaled`, so it does reach the pavement -- but it is small there
+-- and it would be the only thing left. **A BUFF NOBODY CAN SEE IS A TRAP** is
+-- a rule this project already holds, and the whole point of the tell is that
+-- the correct response -- go and rob one of the other plots -- is readable
+-- before anybody commits.
+--
+-- So duty gets its OWN object: a hi-vis vest over the dog's back, on for the
+-- shift and off the rest of the time. Two channels again, cosmetic collars
+-- can be any colour anybody likes, and it is a better picture than a glowing
+-- collar ever was -- a dog that visibly clocks in.
+--
+-- It is NOT in `DOG_COATS` and must never be buyable. It is a state readout,
+-- and a state readout somebody can recolour is the same failure as the collar
+-- one level along.
+Config.DOG_DUTY_VEST = Color3.fromRGB(246, 186, 40)
+
+-- NAMING THE DOG, WHICH IS THE THING THAT ACTUALLY MAKES IT YOURS.
+--
+-- A coat changes what the dog looks like; a name changes whose it is. It is
+-- also the only place in this game where a PLAYER'S OWN TEXT is shown to other
+-- players, and that single fact is most of what this costs.
+--
+-- **THE NAME IS USER-GENERATED CONTENT AND MUST BE FILTERED.** On this
+-- platform that means `TextService:FilterStringAsync` on the SERVER, followed
+-- by `GetNonChatStringForBroadcastAsync` because the result is shown to
+-- everybody rather than to one recipient. Not optional, not a later pass, and
+-- not something the client can be trusted to have done -- the client sends
+-- what was typed and the server decides what is displayed. The filter call
+-- yields and can throw, so it is pcalled, and a failure falls back to the
+-- BREED name rather than to the raw text: a moderation call that errors must
+-- never fail open.
+--
+-- FREE, AND THE PLAN SAID ROBUX. `docs/MASTER-PLAN.md` proposes charging for a
+-- rename as a SERVICE -- which is the cleanest possible Robux product, since
+-- it mints no currency and touches no random outcome. It is free here because
+-- there is no developer product id in this game yet (`Config.PASSES.stylePack`
+-- is still 0), and shipping a charge against an id that does not exist is a
+-- purchase that visibly does nothing. The cooldown below is what stands in for
+-- the charge, and it is doing a different job anyway.
+--
+-- THE COOLDOWN IS ABOUT THE MODERATION API, NOT ABOUT GREED. Every rename is
+-- a filter call, and an unbounded rename button is an unbounded call rate on
+-- somebody else's service. A child should never be locked out of naming their
+-- own pet, so the first name is instant; it is only re-naming that waits.
+Config.DOG_NAME = {
+	-- Long enough for "Sergeant Barkley", short enough that the kennel board
+	-- and the 110px nameplate can both hold it without `TextScaled` quietly
+	-- shrinking it to nothing. Measured against the plate rather than chosen.
+	maxLength = 16,
+
+	-- Seconds between renames. Not a price and not a punishment: it is a rate
+	-- limit on the filter call, and it is short enough that a child who typed
+	-- a typo is not stuck with it.
+	cooldown = 45,
 }
 
 Config.DOG_START_DELAY = 0.9
@@ -1412,8 +2447,8 @@ Config.BONES = {
 -- carrying thief still nets about four and a half studs over simply
 -- running. What is new is only that a stationary player gets to move.
 --
--- THE IMMUNITY IS THE POINT. For half a second you cannot be tagged, caught by
--- a dog, or hit by a gadget. TAG_HOLD is 0.4s, so a defender who eats a dodge
+-- THE IMMUNITY IS THE POINT. For half a second you cannot be nabbed, caught by
+-- a dog, or hit by a gadget. NAB.hold is 0.4s, so a defender who eats a dodge
 -- has to start their hold again -- a real cost, paid in the currency of the
 -- chase rather than in coins.
 --
@@ -1504,7 +2539,7 @@ Config.DODGE = {
 -- in. Hiding with the goods is riskier than hiding without.
 Config.BINS = {
 	-- Long enough that diving in with somebody on your heels just gets you
-	-- tagged -- TAG_HOLD is 0.4, so a 1.2 entry cannot be won from contact.
+	-- nabbed -- NAB.hold is 0.4, so a 1.2 entry cannot be won from contact.
 	-- You have to make a gap first, which is the whole skill.
 	enterHold = 1.2,
 
@@ -1787,7 +2822,7 @@ end
 -- reason bones do: a top-of-tree purchase had no counter.
 --
 -- getCarryMultiplier caps at 1.0, so a thief with boots maxed carries at 16 --
--- the SAME speed as the person chasing them. Tagging becomes impossible
+-- the SAME speed as the person chasing them. Nabbing becomes impossible
 -- unless you are already standing on top of them. That is the hole. These
 -- close it, and nothing more.
 --
@@ -1802,41 +2837,51 @@ end
 --     reach a thief who already got clear.
 --
 -- A FOURTH RULE USED TO STAND HERE -- that the ONLY valid target was somebody
--- carrying loot -- and it has been deliberately dropped. It is worth being
--- exact about what it was protecting, because the protection is kept and only
--- the refusal is gone.
+-- carrying loot -- and it went in two stages, a session apart. Both are worth
+-- keeping, because the first one was only half a fix and read for a while as
+-- though it were a whole one.
 --
--- It was never about the tree's balance. It was that a gadget pointable at
+-- IT WAS NEVER ABOUT THE TREE'S BALANCE. It was that a gadget pointable at
 -- anybody is a harassment toy handed to under-twelves. But what makes a toy
 -- harassment is the EFFECT, not the aim: being able to take somebody's
--- movement away, repeatedly, at will. So the aim opens and the effect is what
--- gets held down. A hit on somebody who is not carrying anything is a PRANK:
+-- movement away, repeatedly, at will.
 --
---   * It lasts GADGET_FUN.duration, a fraction of the real one, and the
---     zapper's dead stop is capped at GADGET_FUN.stunCap. Long enough to be
---     funny, too short to stop anybody getting anywhere.
---   * One target may only be pranked once every GADGET_FUN.targetCooldown
---     seconds, by ANYBODY. The cooldown is on the person being hit rather
---     than on the thrower, which is the only version that stops six players
---     taking turns on one child.
---   * It costs the same coins as a real throw, so it is never free.
---   * It never touches the raincoat. Burning a coat somebody bought to
---     survive a chase with a 1,500-coin joke would be the grief this whole
---     block exists to prevent.
---   * Nothing is stolen, dropped or lost by it, ever. It cannot be used to
---     start, help or finish a robbery, because the SERIOUS effect still
---     requires the target to be carrying.
+-- STAGE ONE OPENED THE AIM AND HELD THE EFFECT DOWN. A hit on somebody who
+-- was not carrying became a PRANK -- about a second, the zapper's dead stop
+-- capped to a blink, and the raincoat never even looked at it. Its own
+-- summary line was that it "cannot start, help or finish a robbery, because
+-- the SERIOUS effect still requires the target to be carrying."
 --
--- A carrier is still found FIRST, at every range, so nothing about a real
--- chase changes: a gadget only looks around for somebody to prank when there
--- is nobody to stop.
+-- STAGE TWO DELETED THAT SENTENCE, BECAUSE IT WAS ALSO A DESCRIPTION OF THE
+-- ONE THING THIS GAME CANNOT DO. Every mechanic here is adversarial except a
+-- passive friend bonus, and the obvious cooperative play -- you hold the
+-- owner, I crack the pig -- was refused by exactly those three numbers. A
+-- defender standing on their own lawn could be hit and could not be
+-- affected. So the effect opened too: it is the real one now, whoever is
+-- hit, and `Config.GADGET_GUARD` is the whole of what keeps that safe. See
+-- the note there for why a cooldown on the PERSON BEING HIT is the right
+-- instrument and a cap on the effect never was.
+--
+-- WHAT STILL HOLDS, UNCHANGED, is everything that made a gadget setup rather
+-- than a finisher: it costs coins every throw, tagging is still what recovers
+-- the loot, and nothing is stolen, dropped or lost by a gadget at any time.
+-- A raincoat still sheds the two cheap ones -- and now sheds them for
+-- somebody who is not carrying too, WITHOUT being spent, so the grief the old
+-- rule was really worried about (burning a 22,000-coin coat with a 1,500-coin
+-- throw off somebody who was not even robbing anybody) is still refused.
+--
+-- AND THE TARGET IS CHOSEN BY THE THROWER NOW RATHER THAN BY PROXIMITY. A
+-- gadget used to find the nearest carrier, then the nearest drone, then the
+-- nearest anybody, all measured from the thrower -- so "which of those two do
+-- I stop" was a decision the game made on your behalf. It is aimed. See
+-- Config.THROW.
 --
 -- The three differ in KIND rather than just in magnitude -- reach, denial,
 -- finisher -- which is what stops the cheap two being dead weight once the
 -- expensive one is affordable.
 --
 -- The arithmetic each was tuned against, worst case: thief at 16 (boots
--- maxed), defender at 16, both running in a straight line, TAG_DISTANCE 14.
+-- maxed), defender at 16, both running in a straight line, NAB.distance 14.
 --
 --   plunger  from 34 studs -> ends at 24.4   never a catch on its own
 --   gum      from 26 studs -> ends at  8.4   a catch, if you run it perfectly
@@ -1868,35 +2913,274 @@ Config.GADGETS = {
 	},
 }
 
--- Same flight time and cooldown as a bone: these are the same gesture, and
--- two different throw feels in one hand would be worse than one.
+-- Same cooldown as a bone: these are the same gesture, and two different
+-- throw feels in one hand would be worse than one.
 Config.GADGET_THROW_COOLDOWN = 1.5
-Config.GADGET_FLIGHT = 0.45
 
--- WHAT A GADGET DOES TO SOMEBODY WHO IS NOT CARRYING ANYTHING.
+-- ============================================================
+-- AIMING A GADGET
+-- ============================================================
 --
--- The whole of "you may throw one at anyone" lives in these three numbers,
--- and they are what keep an open aim from being a harassment toy. See the
--- long note over Config.GADGETS.
+-- A GADGET IS AIMED AND A BONE IS NOT, AND THAT SPLIT IS THE WHOLE DESIGN.
 --
--- `duration` is about a third of the shortest real one (the zapper's 1.2s)
--- and a quarter of the longest, so a prank is a wobble and a hit on a robber
--- is still the thing that closes a gap. `stunCap` is the important half of
--- that: a stun is zero WalkSpeed AND zero JumpHeight, which is the one effect
--- that takes control away rather than just slowing somebody down, so the
--- zapper's 0.6 comes down to a blink.
+-- Every throw in this game used to be a guaranteed hit. `arc` re-read the
+-- target's position every frame and lerped to it, so the flight was
+-- DECORATIVE: pick the item, press the button, it lands, always. There was
+-- nothing in a throw to be good at -- and the target was chosen by proximity
+-- rather than by the player, so "which of those two do I stop" was a
+-- decision the game quietly made on your behalf.
 --
--- `targetCooldown` is on the PERSON BEING HIT, never on the thrower. A
--- thrower cooldown would be no protection at all: six players with plungers
--- would simply take turns, and the one child in the middle would never get
--- to move. Because it is on the target, the worst anybody can do to them --
--- however many people are throwing, however rich -- is 0.9 seconds in every
--- 6, and even that costs somebody 1,500 coins a go.
-Config.GADGET_FUN = {
-	duration = 0.9,
-	stunCap = 0.3,
-	targetCooldown = 6,
+-- BONES STAY AUTOMATIC, DELIBERATELY. The whole "cheap counters bounce, the
+-- expensive one gets through" balance assumes a bone LANDS: `boneResist` is
+-- what makes a tier hard, not somebody's thumb. A dog is also a small fast
+-- thing crossing a lawn at up to 17 studs a second, so making that a test of
+-- aim would re-price every dog tier by accident and would land hardest on
+-- the tablet half of this audience. Nothing in BoneService changed.
+--
+-- IT IS A BALLISTIC PROJECTILE NOW, AND IT WAS A LOB FOR ONE SESSION. That
+-- first version threw along the FLAT facing to a fixed point `spec.range`
+-- away, on a fixed parabola -- so pitch was discarded, every throw travelled
+-- exactly the same distance whether the target was three studs away or
+-- thirty, and it read as tossing a bomb at a marked spot rather than as
+-- throwing something AT somebody. Both halves of that were wrong for a
+-- plunger.
+--
+-- What replaces it is the honest version: it launches along the FULL aim
+-- direction, pitch included, at `speed`, and `gravity` pulls it down for as
+-- long as it is in the air. So the two skills are:
+--
+--   * POINT AT THEM, in three dimensions rather than two.
+--   * LEAD THEM, because it takes real time to arrive.
+--   * AND AIM HIGH FOR ANYTHING FAR AWAY, because it drops.
+--
+-- THE DROPOFF IS THE POINT AND THE TWO NUMBERS ARE SOLVED FOR IT. Drop over
+-- a level throw is `gravity/2 * (distance/speed)^2`, so at 60 and 64:
+--
+--     10 studs   0.9 of drop    inside `hitRadius` -- point straight at them
+--     18 studs   2.9            still inside it: the zapper is a flat weapon
+--     26 studs   6.0            over it -- the gum needs a little elevation
+--     34 studs  10.3            the plunger's far end wants real compensation
+--
+-- So a gadget is point-and-shoot at conversation range and a judged lob at
+-- the end of its reach, with the change arriving gradually rather than at a
+-- line somebody drew. That is what `hitRadius` being 4.5 actually buys: it
+-- is the distance at which the drop stops mattering.
+--
+-- GRAVITY IS OURS AND NOT `workspace.Gravity`, WHICH IS 196.2 AND WOULD MAKE
+-- THIS UNTHROWABLE. Three reasons and only the first is about feel: a real
+-- gravity puts 34 studs of drop on a 34-stud throw, which is a mortar rather
+-- than a plunger; the preview on the client has to trace the identical curve
+-- and a shared constant is the only way two implementations cannot disagree;
+-- and `workspace.Gravity` is a global somebody may retune for jumping, which
+-- would silently re-aim every gadget in the game.
+--
+-- AND THE REMOTE CARRIES A DIRECTION NOW, WHICH REVERSES A RULE AND IS WORTH
+-- BEING EXACT ABOUT. `GadgetThrow` used to carry a key and nothing else, and
+-- the first aimed version kept that by reading the CHARACTER'S OWN FACING on
+-- the server -- which works right up until pitch matters, because a Roblox
+-- character cannot look up or down. There is no way to aim a lob from data
+-- the server already holds.
+--
+-- What the old rule protected was "no coordinate to forge and no range check
+-- to defeat", and BOTH SURVIVE: the server still owns the origin (its own
+-- copy of the root), the speed, the gravity, the range cap, the hit radius
+-- and the entire simulation. A direction is not a position -- forging one
+-- lets you aim wherever you like, which is the FEATURE. What a forged
+-- direction could buy is a perfect lead-and-drop solution every time, and
+-- that is the same thing this file already decided about the crack: the best
+-- outcome of a perfectly forged client is landing every one, which is also
+-- what a good player gets, and a gadget costs coins per throw and only slows
+-- somebody down. There is no jackpot here to protect.
+Config.THROW = {
+	-- Studs a second along the aim direction, and it is a SPEED rather than
+	-- a flight time because the lead a player has to learn is "how far do
+	-- they move while it is in the air" -- only learnable if the answer does
+	-- not change per item. At 60 a plunger crosses its full 34 studs in
+	-- 0.57s, over which a runner covers 9.1 against a hit radius of 4.5, so
+	-- a throw aimed straight at somebody sprinting sideways still misses.
+	speed = 60,
+
+	-- Studs per second squared of drop. See the table above: this is the
+	-- number that decides where "point straight at them" stops working, and
+	-- it is the one to turn if the dropoff reads as too harsh or too flat.
+	gravity = 64,
+
+	-- How close the projectile has to pass to count as a hit. THE ONLY
+	-- FORGIVENESS DIAL, and it is what makes the near half of every gadget's
+	-- range point-and-shoot: under about 15 studs the drop is inside it.
+	hitRadius = 4.5,
+
+	-- How close an aimed throw has to pass an ALIEN DRONE to knock it down,
+	-- and it is wider than `hitRadius` for a geometric reason rather than a
+	-- generosity one: a drone hovers about fifteen studs up, so measured on
+	-- a person's radius an aimed gadget would pass underneath one and a raid
+	-- would quietly stop having a counter. Throwing roughly AT one is what a
+	-- raid always asked for -- it is a big slow thing over somebody's lawn,
+	-- not a sprinting player.
+	droneRadius = 18,
+
+	-- How far above the root the throw leaves the hand.
+	launchHeight = 2.5,
+
+	-- Degrees the aim may be tilted, up or down. It exists to refuse a
+	-- forged straight-up or straight-down direction rather than to shape
+	-- play: nothing a player can do with a camera comes near it.
+	maxPitch = 75,
+
+	-- A hard stop, so a throw lobbed off the edge of the world cannot leave
+	-- a loop running. The ground or the range cap ends every real throw long
+	-- before this.
+	maxSeconds = 4,
 }
+
+-- NORMALISED AND PITCH-CLAMPED, and nil for anything that is not a usable
+-- direction. The one place a client's aim is taken apart, so a forged
+-- payload meets exactly one gate rather than three call sites that each
+-- forgot a different case.
+function Config.throwClampDirection(dir: any): Vector3?
+	if typeof(dir) ~= "Vector3" then
+		return nil
+	end
+	local m = dir.Magnitude
+	-- Rejects (0,0,0) and anything carrying a NaN, which fails every
+	-- comparison including this one.
+	if not (m > 1e-4) or m ~= m then
+		return nil
+	end
+
+	local unit = dir.Unit
+	local flat = Vector3.new(unit.X, 0, unit.Z)
+	if flat.Magnitude < 1e-4 then
+		-- Straight up or straight down carries no heading to clamp against,
+		-- so there is nothing to salvage.
+		return nil
+	end
+
+	local limit = math.rad(Config.THROW.maxPitch)
+	local pitch = math.clamp(math.asin(math.clamp(unit.Y, -1, 1)), -limit, limit)
+	return (flat.Unit * math.cos(pitch) + Vector3.new(0, math.sin(pitch), 0)).Unit
+end
+
+-- The launch velocity for an already-clamped direction.
+function Config.throwVelocity(dir: Vector3): Vector3
+	return dir * Config.THROW.speed
+end
+
+-- Where the projectile is `t` seconds after it left the hand. THE ONE CURVE:
+-- the server flies the real thing through this and the client traces its
+-- preview through it, so the dotted line somebody is looking at and the
+-- throw they are about to make cannot disagree.
+function Config.throwPointAt(origin: Vector3, velocity: Vector3, t: number): Vector3
+	return origin + velocity * t - Vector3.new(0, 0.5 * Config.THROW.gravity * t * t, 0)
+end
+
+-- How far a LEVEL throw falls over a given horizontal distance. The flight
+-- itself steps `throwPointAt` rather than calling this; what reads it is the
+-- audit below, which is the whole reason it is a function and not a comment.
+function Config.throwDrop(distance: number): number
+	local t = distance / Config.THROW.speed
+	return 0.5 * Config.THROW.gravity * t * t
+end
+
+-- IS A GADGET STILL POINT-AND-SHOOT UP CLOSE AND A LOB FAR OUT?
+--
+-- The whole feel of an aimed throw is one relationship between three numbers
+-- -- `speed`, `gravity` and each gadget's `range` -- and NOTHING ABOUT IT
+-- ERRORS WHEN IT GOES WRONG. Make gravity a little too low and every throw
+-- is flat, so the aiming is decorative and the drop nobody has to think
+-- about might as well not exist. Make it a little too high, or lengthen a
+-- range, and the near half stops working: a player pointing straight at
+-- somebody ten studs away watches it land at their feet, which reads as the
+-- item being broken rather than as a skill they have not learned.
+--
+-- That is the same shape as every other audit in this file. `auditFences`
+-- was clean through the entire period every tier was jumpable because it
+-- asked the wrong question; `auditRobbery` exists because two curves were
+-- multiplied for months without anybody checking the product. So the
+-- relationship gets checked at startup rather than remembered.
+--
+-- TWO QUESTIONS, AND THEY PULL IN OPPOSITE DIRECTIONS ON PURPOSE. The
+-- SHORTEST-range gadget has to be flat at its own maximum -- that is what
+-- makes the zapper a thing you point -- and the LONGEST-range one has to
+-- drop more than `hitRadius` at its maximum, or nobody ever has to aim high
+-- and the mechanic is a lie. A single check could be satisfied by making
+-- everything flat or everything a mortar; the pair cannot.
+function Config.auditThrow(): { string }
+	local problems = {}
+	local shortest, longest
+	for key, spec in pairs(Config.GADGETS) do
+		if not shortest or spec.range < Config.GADGETS[shortest].range then
+			shortest = key
+		end
+		if not longest or spec.range > Config.GADGETS[longest].range then
+			longest = key
+		end
+	end
+	if not shortest or not longest then
+		return problems
+	end
+
+	local radius = Config.THROW.hitRadius
+	local near = Config.throwDrop(Config.GADGETS[shortest].range)
+	if near > radius then
+		table.insert(problems, ("the shortest gadget (%s, range %d) already drops %.1f studs at its own maximum, against a hit radius of %.1f -- so there is no distance at which pointing straight at somebody works, and every throw reads as broken. Lower THROW.gravity or raise THROW.speed.")
+			:format(Config.GADGETS[shortest].name, Config.GADGETS[shortest].range, near, radius))
+	end
+
+	local far = Config.throwDrop(Config.GADGETS[longest].range)
+	if far <= radius then
+		table.insert(problems, ("the longest gadget (%s, range %d) only drops %.1f studs at its own maximum, inside a hit radius of %.1f -- so nothing in the game ever has to be aimed high and the dropoff is decorative. Raise THROW.gravity or lower THROW.speed.")
+			:format(Config.GADGETS[longest].name, Config.GADGETS[longest].range, far, radius))
+	end
+
+	return problems
+end
+
+-- WHAT A GADGET DOES TO SOMEBODY WHO IS NOT CARRYING ANYTHING: THE SAME
+-- THING IT DOES TO EVERYBODY ELSE, WHICH REVERSES WHAT THIS TABLE SAID.
+--
+-- It held three numbers. A `duration` of 0.9 seconds and a `stunCap` of 0.3
+-- are gone, and the rule they encoded went with them: that a hit on a
+-- non-carrier is a PRANK, which "cannot start, help or finish a robbery,
+-- because the effect that matters in a chase still requires the target to be
+-- holding somebody's coins."
+--
+-- THAT SENTENCE IS ALSO THE ONE THAT MADE HELPING SOMEBODY ROB IMPOSSIBLE,
+-- which is why it had to go. A defender standing on their own lawn while a
+-- friend cracked their pig was untouchable: you could hit them, and hitting
+-- them did nothing worth doing. So the one genuinely cooperative play this
+-- game has to offer -- YOU HOLD THEM, I TAKE THE COINS -- could not be made
+-- by anybody, and the entire gadget tree was blind to the defensive half of
+-- a robbery. Two children robbing a house together is the best thing on
+-- offer here and three numbers quietly refused it.
+--
+-- SO THE EFFECT IS THE REAL ONE NOW, WHOEVER IS HIT, and `targetCooldown` is
+-- the only thing left holding the harassment line. That is the right
+-- instrument and always was: it is keyed to the PERSON BEING HIT and never
+-- to the thrower, so six players with plungers cannot take turns. The bound
+-- on what an entire server can do to one child is the same bound as one
+-- player on their own, however many are throwing and however rich they are.
+--
+-- IT IS DERIVED FROM THE PENALTY IT GUARDS RATHER THAN PINNED, which is the
+-- rule the fence penalty already lives under: a cooldown shorter than the
+-- thing it guards merely lets the next one land as the last expires, which
+-- is the same freeze at a slower rate. At `restMultiple` 4 a target can be
+-- held for at most a quarter of any stretch of time -- the gum's 2.2 seconds
+-- buys 8.8 of quiet and the zapper's 1.2 buys 4.8 -- so a longer gadget
+-- earns a longer rest with nothing to remember, and what is actually bounded
+-- is the DUTY CYCLE rather than a number somebody typed.
+--
+-- `minRest` is the floor for anything short enough that the multiple would
+-- not produce a real gap.
+Config.GADGET_GUARD = {
+	restMultiple = 4,
+	minRest = 4,
+}
+
+-- How long somebody is left alone after taking a gadget outside a robbery.
+function Config.gadgetRest(duration: number): number
+	return math.max(Config.GADGET_GUARD.minRest, duration * Config.GADGET_GUARD.restMultiple)
+end
 
 function Config.gadgetCount(): number
 	local n = 0
@@ -2008,6 +3292,30 @@ local ICON = {
 	EYES = utf8.char(0x1F440),
 	TROLLEY = utf8.char(0x1F6D2),
 	ALIEN = utf8.char(0x1F47D),
+	-- The gate jam. U+1F6A7 CONSTRUCTION SIGN -- a barrier, which is what a
+	-- jammed gate is, and it is four-byte so it has no monochrome text form to
+	-- fall back to. It wants the same render-and-measure check the four above
+	-- were given before anybody trusts its width on a prompt card.
+	JAM = utf8.char(0x1F6A7),
+	-- The mailbox. U+1F4EB CLOSED MAILBOX WITH RAISED FLAG, which is the
+	-- picture the prompt is about rather than merely a postbox -- the flag
+	-- IS the tell. Four-byte, so it has no monochrome text form to fall
+	-- back to and cannot pick up the fault that made the warning triangle
+	-- render 4px narrower than everything beside it.
+	POST = utf8.char(0x1F4EB),
+	-- The doorstep crate. U+1F4E6 PACKAGE -- a delivery, which is what this
+	-- is: something that has ARRIVED and is waiting on the step, rather
+	-- than a present somebody wrapped. Four-byte, so it has no monochrome
+	-- text form to fall back to, and measured with the rest at 37.0.
+	CRATE = utf8.char(0x1F4E6),
+	-- The smash. U+1F4A5 COLLISION -- the EFFECT rather than the tool, which
+	-- is the deliberate half: a hammer would put an implement on a card in a
+	-- game whose officer carries no baton, and the starburst says the one
+	-- thing this kind is actually about, which is that this way in is LOUD.
+	-- Four-byte, so it has no monochrome text form to fall back to and cannot
+	-- pick up the fault that made the warning triangle render 4px narrower
+	-- than everything beside it.
+	SMASH = utf8.char(0x1F4A5),
 }
 
 -- EVERY KIND GETS ITS OWN ICON, and that is the point of having one.
@@ -2228,6 +3536,8 @@ Config.POLICE = {
 	-- Well inside ROAD_HALF_WIDTH so it never clips a kerb.
 	lane = 4.2,
 
+	-- (Config.DELIVERY, below this table, reads that lane and negates it.)
+
 	-- THE ARREST SCENE'S OWN CLOCK, which is NOT the detention's.
 	--
 	-- It used to be derived from STUN_SECONDS on the argument that a cutscene
@@ -2408,6 +3718,22 @@ Config.EVENT_UI = {
 -- somewhere useful, which is the whole point of telling anybody.
 Config.EVENT_SOON = 60
 
+-- HOW MANY SECONDS OF THE WARNING GET A TICK, and it is smaller than the
+-- warning itself on purpose.
+--
+-- `EVENTS.warning` is twenty seconds of banner. A tick running for all of
+-- it is a metronome nobody can turn off, and this game already refuses that
+-- shape once: the coin drip is tuned so a coin lands about every fifteen
+-- seconds because anything louder "becomes nagging". Five is the last
+-- moment -- long enough to mean get ready, short enough that the sound is
+-- an event rather than a background.
+--
+-- IT IS CLIENT-SIDE AND PER VIEWER, like the moat and the animated skins:
+-- the server publishes the phase and its deadline, and every machine works
+-- out for itself which second it is on. Nothing about a tick needs to
+-- replicate.
+Config.EVENT_TICK_FROM = 5
+
 -- The glyph the standing countdown wears. An hourglass rather than anything
 -- about a specific event, because WHICH event is deliberately not known yet
 -- -- the roster is rolled when the quiet stretch ends, and a chip naming it
@@ -2571,9 +3897,14 @@ Config.SETS = {
 		blurb = "Knocked out of the sky over your own street",
 		-- Ordered cheapest first, which is also the order they read as a
 		-- ladder on the set card.
+		-- FOUR ITEMS, NOT SIX. The Antenna Headband and the Abductor Visor went
+		-- with the accessory catalogue. What that costs is the argument this
+		-- set was designed on -- that spanning five systems beats six
+		-- recolours -- and it still spans four, which is the half of that
+		-- argument worth keeping. A set is a VIEW over the existing
+		-- catalogues, so dropping two rows is the whole edit: no ownership to
+		-- migrate, no grant path to unpick.
 		items = {
-			{ kind = "accessory", key = "antenna" },
-			{ kind = "accessory", key = "abductor" },
 			{ kind = "decor", key = "crashedDrone" },
 			{ kind = "effect", key = "tractor" },
 			{ kind = "skin", key = "martian" },
@@ -2585,6 +3916,14 @@ Config.SETS = {
 -- The catalogue an item of a given kind lives in. One table rather than a
 -- five-branch if, because every reader of a set needs this and a second copy
 -- is the one that drifts.
+-- THE KINDS `catalogueFor` ANSWERS, NAMED ONCE.
+--
+-- `catalogueFor` maps a kind to a table and cannot be asked what kinds it
+-- knows -- so anything that has to sweep every catalogue was going to keep
+-- its own copy of this list, and a copy that drifts by one entry is a
+-- catalogue silently skipped rather than an error.
+Config.COSMETIC_KINDS = { "skin", "effect", "accessory", "decor", "ride", "catch" }
+
 function Config.catalogueFor(kind: string)
 	return (({
 		skin = Config.SKINS,
@@ -2592,6 +3931,10 @@ function Config.catalogueFor(kind: string)
 		accessory = Config.ACCESSORIES,
 		decor = Config.DECOR_ITEMS,
 		ride = Config.RIDES,
+		-- A catch effect is owned, equipped and sold exactly as the other five
+		-- are, so `SetService.grant`, `.revoke` and `.inUse` reach it for free
+		-- rather than through a second grant path.
+		catch = Config.CATCH_EFFECTS,
 	}) :: any)[kind]
 end
 
@@ -2626,6 +3969,22 @@ end
 -- it produces are the same colour: robbing somebody is the `alarm` red their
 -- victim is about to see, banking is the `money` gold, and being chased down
 -- is the `chase` amber.
+-- WHOSE PROMPT THIS IS, WHEN IT IS ONLY EVER FOR ONE PERSON.
+--
+-- `PromptUI` already refuses every prompt inside the local player's own
+-- character, on the rule that a prompt on your own body is never for you.
+-- This is the inverse and the same instrument: a prompt carrying this
+-- attribute is disabled on every client EXCEPT the one whose UserId it
+-- names.
+--
+-- `Enabled` written from a client affects only that machine's view, which
+-- is the only per-player prompt Roblox offers -- so this is the client
+-- declining to ask for a known no, and the server refuses regardless. What
+-- it buys is that a thief standing on somebody's lawn does not read CHECK
+-- POST over a mailbox that will not open for them, which is a control that
+-- looks available and does nothing.
+Config.PROMPT_OWNER_ATTRIBUTE = "PromptOwner"
+
 Config.PROMPTS = {
 	-- Your own piggy. Gold, and the quietest of the set: this is the thing a
 	-- player does a thousand times and it should never shout.
@@ -2642,12 +4001,52 @@ Config.PROMPTS = {
 		verb = "STEAL",
 	},
 
+	-- The other way into the same pig. See `Config.SMASH`.
+	--
+	-- IT WEARS `steal`'S OWN RED, WHICH IS A DECISION RATHER THAN A REUSE.
+	-- Everywhere else in this vocabulary a shared tone would be a fault: this
+	-- file already records that the alarm and the chase had to stop being the
+	-- same red, because two identical signals stop meaning two different
+	-- things. These two are not two different things. They are one crime by
+	-- two methods, they appear TOGETHER on the same pig, and a thief choosing
+	-- between them is choosing how rather than whether -- so giving the loud
+	-- one a hue of its own would say they were different crimes, which is a
+	-- worse lie than the ambiguity it fixes.
+	--
+	-- What separates them is the other two channels, which is exactly what
+	-- this file's own rule asks for: COLOUR IS NEVER THE ONLY SIGNAL. One card
+	-- says STEAL and carries a money bag; the other says SMASH and carries a
+	-- bang. Either alone is enough -- and on a touchscreen they are the ONLY
+	-- things that are, because `keyText` prints HOLD on both when there is no
+	-- key to name.
+	smash = {
+		glyph = ICON.SMASH, tone = Color3.fromRGB(230, 72, 64),
+		verb = "SMASH",
+	},
+
 	-- Catching a thief who is carrying. Amber, matching the chase alert: this
 	-- is the one prompt that appears ON another player and disappears again in
 	-- seconds, so it wants to be seen from across a lawn.
-	tag = {
+	--
+	-- "NAB" RATHER THAN "TAG THIEF", and the shorter word is not the reason --
+	-- see `Config.NAB` for why the old one was four things at once. What the
+	-- length buys is that it drops straight into the card measured for
+	-- `STEAL` and `HIDE` with nothing to re-fit, and the row no longer has to
+	-- name what it is being done to: a prompt only ever appears on a thief who
+	-- is carrying, so "THIEF" was telling the reader something the prompt's
+	-- own existence already told them.
+	nab = {
 		glyph = ICON.SIREN, tone = Color3.fromRGB(230, 147, 64),
-		verb = "TAG THIEF",
+		verb = "NAB",
+	},
+
+	-- JAMMING THE GATE BEHIND YOU. Orange rather than red, and the register is
+	-- the point: this is a thing the THIEF does on the way out rather than a
+	-- thing being done to the reader, so it is the caution colour rather than
+	-- the alarm one.
+	jam = {
+		glyph = ICON.JAM, tone = Color3.fromRGB(240, 148, 56),
+		verb = "JAM",
 	},
 
 	-- Climbing into a wheelie bin. Slate: cover is not a prize and should not
@@ -2673,6 +4072,39 @@ Config.PROMPTS = {
 		verb = "SHOP",
 	},
 
+	-- YOUR OWN MAILBOX, and it is GOLD for the same reason `collect` was:
+	-- this game's colour system says gold means money, and what is in the
+	-- box is a daily reward denominated in your own income.
+	--
+	-- SHARING A TONE IS SAFE HERE AND WOULD NOT BE IF COLOUR WERE THE ONLY
+	-- SIGNAL. Every prompt in this table carries a tone, a GLYPH and a WORD,
+	-- precisely so that two things which are both "your own plot handing you
+	-- money" can share a colour without becoming the same object. A mailbox
+	-- and a piggy bank are told apart by the picture before the colour is
+	-- read at all.
+	post = {
+		glyph = ICON.POST, tone = Color3.fromRGB(255, 203, 61),
+		verb = "CHECK POST",
+	},
+
+	-- THE DOORSTEP CRATE, and it is GOLD for the same reason `collect` and
+	-- `post` are: this is your own plot handing you something. The three of
+	-- them are told apart by glyph and word before the colour is read at
+	-- all, which is the whole argument for every prompt carrying all three.
+	--
+	-- "OPEN CRATE" AND NOT "OPEN IT", which `dig` already owns. Those two
+	-- can never appear together -- one is on a wheelie bin on the verge and
+	-- the other against a house's front wall -- so sharing would have been
+	-- safe and would still have been one word doing two jobs. It also names
+	-- the noun, which matters here: what is on the step is the same object
+	-- the Crates tab sells, and a player who has opened one for coins should
+	-- recognise this as the same thing arriving free.
+	--
+	crate = {
+		glyph = ICON.CRATE, tone = Color3.fromRGB(255, 203, 61),
+		verb = "OPEN CRATE",
+	},
+
 	-- Taking the loot back off a raid drone.
 	recover = {
 		glyph = ICON.ALIEN, tone = Color3.fromRGB(59, 204, 209),
@@ -2684,6 +4116,73 @@ Config.PROMPTS = {
 -- not an index, so a prompt built in one file cannot be silently re-styled by
 -- a reorder in another.
 Config.PROMPT_KIND_ATTRIBUTE = "PromptKind"
+
+-- WHICH CARD THIS IS WHEN TWO PROMPTS SHARE ONE PART.
+--
+-- This file already records that two prompts share a part in two places --
+-- collect/steal on a piggy's Body, hide/dig on a bin's Hatch -- and that the
+-- game GUARANTEES they are exclusive, so exactly one card is ever drawn.
+-- `PromptUI` was built on that guarantee: every card takes the same
+-- `StudsOffset` and there is no offsetting logic anywhere in it. The note
+-- beside that measurement says in as many words that anything adding a third
+-- prompt to a shared part has to keep the property.
+--
+-- THE SMASH IS THE FIRST THING THAT CANNOT KEEP IT. Steal and smash are the
+-- two ways into one pig and they have to be READ TOGETHER, because a choice
+-- you cannot see is not a choice. So both are live at once, on one part, for
+-- the same player. That is the guarantee spent deliberately, and this is what
+-- pays for it.
+--
+-- A SLOT AND NOT A STUD OFFSET, AND THE DIFFERENCE IS WHY THIS IS AN INTEGER.
+-- A `BillboardGui` sized in OFFSET pixels is a fixed size on screen at every
+-- distance, while `StudsOffset` is a world displacement that projects to
+-- FEWER pixels the further away you stand. Against the shipped card: at 5
+-- studs the existing 1.6-stud offset is about 152px and two cards would be
+-- clear of each other; at `STEAL_RANGE` it is about 69px against a card 82px
+-- tall, so a fixed stud offset overlaps at exactly the distance a thief
+-- decides from. `PromptUI` grows the billboard by the slot and pins the card
+-- to its bottom edge instead, which is a constant PIXEL separation at every
+-- range.
+--
+-- Absent or 0 is the card exactly where it has always been, so every prompt
+-- in the game that does not set this is untouched by construction.
+Config.PROMPT_SLOT_ATTRIBUTE = "PromptSlot"
+
+-- SETTING A KIND AND SETTING THE STYLE ARE ONE ACTION, AND SPLITTING THEM
+-- SHIPPED TWO PROMPTS DRAWN IN ROBLOX'S GREY PILL.
+--
+-- `PromptUI` adopts a prompt on `PromptShown` and refuses anything still on
+-- the DEFAULT style, on the sound reasoning that a default-styled prompt is
+-- one nobody has given a kind yet -- and drawing a card over Roblox's own
+-- would be worse than either alone. The guard is right. What it cannot see
+-- is a prompt that HAS a kind and was never switched to Custom, which is
+-- two separate lines at every call site and therefore two chances to write
+-- one of them.
+--
+-- MEASURED: the gate jam and the mailbox both set the attribute, neither
+-- set the style, and both rendered as the default pill -- the exact
+-- "seven actions, one picture" failure this whole vocabulary exists to
+-- fix. Neither errored, and both PASSED a check that read the prompt's
+-- properties back: `ActionText`, `HoldDuration`, range and kind were all
+-- correct. A property read proves a thing was built and says nothing about
+-- whether it was seen.
+--
+-- One call sets both, so they cannot be written apart. Config is the right
+-- home for the same reason `chestEntry` is: it requires nothing, both ends
+-- read it, and the emitter and the reader of a format belong together.
+function Config.setPromptKind(prompt: ProximityPrompt, kind: string)
+	prompt:SetAttribute(Config.PROMPT_KIND_ATTRIBUTE, kind)
+	-- Custom suppresses Roblox's own pill. Without it there are two cards,
+	-- or -- with PromptUI's guard -- none of ours at all.
+	--
+	-- AND THE SWEEP THAT CONVERTED THE CALL SITES ATE THIS VERY LINE. The
+	-- pattern that stripped the now-redundant `X.Style = ...Custom` from nine
+	-- files matched it here too, inside the one function that has to keep it.
+	-- Same class as the regex that deleted three blurbs when it was aimed at
+	-- one: count the matches before a bulk delete, and check what still reads
+	-- the name afterwards.
+	prompt.Style = Enum.ProximityPromptStyle.Custom
+end
 
 -- What this action is WORTH, printed beside the verb.
 --
@@ -2726,6 +4225,175 @@ Config.PLOT_VAULT_ATTRIBUTE = "VaultAmount"
 -- the interface, which this file has already paid for once.
 Config.PLOT_LOCK_ATTRIBUTE = "LockLevel"
 
+-- SOMEBODY ON THIS PLOT JUST REBIRTHED, published as a COUNTER.
+--
+-- A counter and never a flag or a timestamp, for the reason `DodgeRoll`
+-- and `CATCH_COUNT_ATTRIBUTE` are counters: an attribute set to the same
+-- value twice fires ONE changed signal, so a player who rebirths twice in
+-- a session would get one show. Bumping a number cannot collide with
+-- itself.
+--
+-- ATTRIBUTES RATHER THAN A REMOTE, because this is the one thing about a
+-- rebirth that is addressed to THE STREET rather than to the player who
+-- paid for it. A remote would have to be fired at everybody and would
+-- reach nobody who joined a second later; an attribute is already on the
+-- plot for anyone who looks. Same call the animated skins and the moat
+-- make, and the same division of labour: the server decides, publishes
+-- two numbers and never touches it again.
+Config.PLOT_FIREWORK_ATTRIBUTE = "FireworkCount"
+
+-- WHICH REBIRTH IT WAS, so the show can be sized to it. Written BEFORE
+-- the counter, because the counter is what is watched -- see `Fireworks`,
+-- where the read order is the write order reversed.
+Config.PLOT_FIREWORK_RANK_ATTRIBUTE = "FireworkRank"
+
+-- THE REBIRTH SHOW.
+--
+-- Rebirth is the one purchase in this game that costs a player everything
+-- they own, and until now the whole of it happened on ONE SCREEN: a toast,
+-- a skin drop, and a plot quietly rebuilt at level 0. The street had no
+-- way of knowing anybody had done the hard thing, which for the mechanic
+-- this design most needs players to press is the wrong way round.
+--
+-- NEON AND NOT LIGHTS, WHICH IS NOT A STYLE CHOICE. `WorldService` sets
+-- `ClockTime` to 14.5 exactly once and nothing ever moves it: THERE IS NO
+-- NIGHT IN THIS GAME. A PointLight at brightness 9 over an 18-stud range
+-- is invisible in full sun from thirty studs away -- measured, and it is
+-- what made the endgame house tiers read as vanilla until they were
+-- rebuilt on emissive parts. Neon renders flat out whatever the scene is
+-- doing and the shipped BloomEffect takes it from there.
+Config.FIREWORKS = {
+	-- HOW MANY SHELLS, and it grows with the rebirth count on purpose.
+	--
+	-- The gate is `REBIRTH_CAPACITY_MULTIPLE` times a capacity that has
+	-- itself been climbing, so a tenth rebirth genuinely IS a bigger thing
+	-- than a first -- 193.8M against 6.0M, measured. A show that could not
+	-- tell those apart would be saying the same sentence about two very
+	-- different afternoons.
+	--
+	-- The cap is not decoration either: `Config.maxLevel` stops opening
+	-- ceilings at rebirth 10, so that is where the ladder this is measured
+	-- against runs out. Above it the show would grow past the thing it is
+	-- describing.
+	shells = 4,
+	shellsPerRebirth = 1,
+	maxShells = 10,
+
+	-- SECONDS BETWEEN LAUNCHES, and the floor on it is an accessibility
+	-- number rather than a taste one. `HouseFX` holds the whole game to
+	-- three flashes a second; shells rise on a FIXED clock, so bursts
+	-- arrive exactly as often as launches and this gap IS the flash rate.
+	--
+	-- THE NUMBER THAT HAS TO CLEAR THE CEILING IS THE GAP LESS ITS JITTER,
+	-- NOT THE GAP. The first pass here was written as "0.45, which is 2.2 a
+	-- second, comfortably under" -- and 2.2 is the MEAN. The fastest draw
+	-- is 0.45 - 0.15 = 0.30, which is 3.3 a second and OVER the ceiling,
+	-- roughly one launch in six. Same shape as every other post-mortem in
+	-- this project: two numbers multiplied without anybody checking the
+	-- product, and nothing would ever have errored.
+	--
+	-- 0.52 - 0.14 is 0.38, which is 2.6 a second at its worst and 1.9 at
+	-- its mean. ANY EDIT TO EITHER FIELD HAS TO RE-CHECK `1 / (gap -
+	-- gapJitter)` against 3.
+	--
+	-- The jitter is what stops a show being a metronome. Ten evenly spaced
+	-- bangs read as a machine; the same ten unevenly spaced read as a
+	-- celebration.
+	gap = 0.52,
+	gapJitter = 0.14,
+
+	-- THE CLIMB. `apex` is measured from the plot slab, so it clears the
+	-- 64-stud Neon Tower -- the tallest thing any plot can stand -- by
+	-- better than twenty studs, and clears the grove behind it outright.
+	-- That is what makes it a STREET event rather than a garden one.
+	riseSeconds = 1.15,
+	apex = 90,
+	apexJitter = 16,
+	-- How far off the plot centre a shell may go up from. Well inside the
+	-- 64-wide slab, so a shell is never launched from a neighbour's lawn.
+	spread = 20,
+
+	-- THE BURST.
+	burst = 70,
+	burstSpeed = NumberRange.new(26, 46),
+	burstLife = NumberRange.new(0.9, 1.7),
+	-- SIZED AGAINST THE DISTANCE IT IS READ FROM, WHICH IS NOT ARM'S
+	-- LENGTH. It was 2.6, and photographed from 213 studs -- a viewer on
+	-- the road, which is where the whole feature is aimed -- every burst
+	-- rendered as the SAME WHITE CLOUD whatever colour it was. Six colours
+	-- doing the work of one.
+	--
+	-- The palette was never the problem: photographed from 60 studs the
+	-- identical bursts read pink, green, violet and amber. A 2.6-stud
+	-- particle at 213 studs is a handful of pixels, and what survives that
+	-- is the texture's bright CORE rather than the tint over it. At 4.5
+	-- the same shot reads orange and ice-blue as separate colours.
+	burstSize = 4.5,
+	-- Sparks FALL. Every other effect in this game accelerates upward
+	-- because it is being thrown off a piggy bank; this one has already
+	-- been thrown and is on its way down, which is the whole read.
+	fall = -34,
+
+	-- The flash at the centre of a burst, which is what a particle cloud
+	-- alone cannot give you: a hard bright core for a fifth of a second.
+	flashSize = 7,
+	flashSeconds = 0.28,
+
+	-- HOW ADDITIVE A SPARK IS, AND IT IS NOT 1.
+	--
+	-- `LightEmission` blends a particle toward pure additive, so at 1 the
+	-- colour is added to whatever is behind it and every channel clips.
+	-- PHOTOGRAPHED AT 1 AGAINST THE SKY, ALL SIX PALETTE COLOURS RENDERED
+	-- AS THE SAME WHITE -- a six-colour palette doing the work of one, with
+	-- nothing erroring and nothing in any log to say so. Only a picture
+	-- could have said it, which is the rule this project already writes for
+	-- CSG holes arriving on a particle system.
+	--
+	-- It is the Martian skin's lesson one more time: a bright colour driven
+	-- flat out is a white hole rather than a glowing thing. The flash CORE
+	-- is allowed to stay white-hot -- that is what the middle of a firework
+	-- is -- and the sparks are what have to carry the hue.
+	--
+	-- 0.4 was measured and was still too hot at street distance; 0.25 is
+	-- what the picture settled on, alongside a bigger spark. The two are
+	-- one decision -- a small particle needs the core, a big one does not.
+	--
+	-- Named `sparkGlow` and not `glow` deliberately: `glow` is already a
+	-- lantern colour on `HOUSE_TIERS`, and this file has one recorded bug
+	-- from `glow` and `fxGlow` reading as the same field.
+	sparkGlow = 0.25,
+
+	-- SIX COLOURS, AND NONE OF THEM IS GOLD.
+	--
+	-- Gold means money everywhere else in this game and this is the one
+	-- celebration that is explicitly NOT about money -- a rebirth takes
+	-- every coin the player had. Painting it in the coin colour would be
+	-- the shop's pink-panel mistake at altitude: an accent spent saying
+	-- something it does not mean.
+	palette = {
+		Color3.fromRGB(255, 96, 132),   -- rose
+		Color3.fromRGB(120, 226, 255),  -- ice
+		Color3.fromRGB(168, 122, 255),  -- prestige violet
+		Color3.fromRGB(126, 255, 158),  -- lime
+		Color3.fromRGB(255, 152, 72),   -- ember
+		Color3.fromRGB(255, 244, 214),  -- white heat
+	},
+}
+
+-- The show's size, solved in one place because it is a DERIVATION rather
+-- than a number: change any of the three fields above and both the clamp
+-- and the ladder follow. The alternative is the client keeping its own
+-- copy of the arithmetic, which is the near-identical duplicate this
+-- project keeps recording -- and the one that drifts silently, since a
+-- show that is one shell short looks exactly like a show.
+function Config.fireworkShells(rebirths: number): number
+	local fw = Config.FIREWORKS
+	return math.clamp(
+		fw.shells + math.max(0, rebirths - 1) * fw.shellsPerRebirth,
+		fw.shells,
+		fw.maxShells)
+end
+
 -- WHEN THIS PLAYER'S NEW-PLAYER SHIELD LAPSES, in `workspace:GetServerTimeNow`
 -- seconds, written on the PLAYER rather than on their plot.
 --
@@ -2756,6 +4424,92 @@ Config.PLAYER_SHIELD_ATTRIBUTE = "ShieldUntil"
 -- answers -- and this project's rule is that a flag which can disagree with
 -- reality eventually does.
 Config.PLAYER_FIRST_JOB_ATTRIBUTE = "NeedsFirstJob"
+
+-- WHOSE COINS SOMEBODY IS RUNNING OFF WITH, published on the CARRIER.
+--
+-- It replaces a Highlight, and the reason is worth writing down because the
+-- Highlight was doing its job correctly and was still wrong.
+--
+-- A carrying thief used to wear a gold Highlight visible through walls, on
+-- the rule that a thief must never be able to hide. That is right for a
+-- PLAYER thief on an eight-player street. It went badly wrong once residents
+-- started robbing each other: `RESIDENTS.walk.maxOut` neighbours are out at
+-- any moment, every one of them carrying, so the street was permanently full
+-- of glowing figures -- and a signal that is on all the time is one nobody
+-- reads. Worse, almost none of it concerned the person looking at it: a
+-- neighbour robbing another neighbour is not that player's business.
+--
+-- SO THE MARK IS PER VIEWER NOW, AND IT ONLY APPEARS FOR THE PERSON BEING
+-- ROBBED. This attribute is the whole channel: it carries the UserId of the
+-- plot owner whose coins are in those arms, or nothing at all when the
+-- victim is a resident or a shop -- because then it is nobody's base and
+-- there is nobody to tell. `Shared/RobberMark` reads it on every client and
+-- draws over exactly the carriers whose value is the local player's own id.
+--
+-- ON THE CARRIER RATHER THAN ON THE VICTIM, which is what makes it work for
+-- both kinds of thief with one reader. A player thief's Character and a
+-- resident's Model are both Instances in `workspace`, both replicate their
+-- attributes, and neither needs a remote -- the same shape as `SkinKey` and
+-- `DodgeRoll`, where the server publishes a fact and every client decides
+-- for itself what to draw.
+--
+-- WHAT THIS COSTS, STATED PLAINLY: A BYSTANDER CAN NO LONGER SEE A THIEF
+-- THROUGH A WALL. The old Highlight was also how somebody uninvolved found a
+-- robbery in progress to join in on, and this file's `attachLoot` records
+-- that in as many words -- "anyone nearby can tag, not just the victim.
+-- Bystanders joining the chase is the bit that turns a robbery into a story."
+-- Nabbing is UNCHANGED and still open to anybody: the nab prompt still sits on
+-- the loot, at the same range, for everyone. What a bystander loses is the
+-- x-ray, not the verb. They can still see a thief they can actually see --
+-- who is carrying a labelled miniature of somebody's pig over their head.
+Config.CARRY_VICTIM_ATTRIBUTE = "CarryingFrom"
+
+-- WHAT THE CARRIED MINIATURE IS CALLED, and it is here because the name is now
+-- an INTERFACE rather than a label.
+--
+-- For most of this project's life exactly one place wrote it and nothing read
+-- it, so a literal in `PiggyModel` was the honest home for it. `CarryPose`
+-- changed that: every client watches the character for this child and poses
+-- the thief off its presence, which is what keeps the pig and the pose from
+-- ever disagreeing about whether somebody is carrying -- they are the same
+-- fact. That makes it the `"LockLevel"` shape, and this project has already
+-- paid once for leaving one of those as a string: a rename that misses a
+-- reader does not error, it reads nil and silently does nothing.
+--
+-- So the writer and the reader go through here, and the way to find any
+-- future reader is to grep the CONSTANT rather than the word.
+Config.LOOT_MODEL_NAME = "StolenPiggy"
+
+-- WHETHER THIS CHARACTER IS ACTUALLY TIPTOEING, published so that EVERY
+-- client can draw the creep rather than only the person doing it.
+--
+-- `TiptoeState` already tells the sneaker themselves, and that remote is not
+-- enough on its own: it is a FireClient to one player, so nobody else in the
+-- server knows. A sneak that only the sneaker can see is worth nothing --
+-- half the point of a tiptoe is what it says to somebody watching a figure
+-- come up their driveway, and this project prefers a tell to a fight
+-- everywhere it can get one.
+--
+-- IT CARRIES THE EFFECTIVE STATE, NEVER THE INTENT, and that distinction is
+-- the whole reason it is written where it is. `HeistService.setTiptoe` is
+-- where the button lands, but the tiptoe is also refused mid-CLIMB -- and a
+-- climb starts and stops without anybody pressing anything. Published from
+-- the button, a player who grabbed a ladder would go on being drawn creeping
+-- up it at full walk speed. It is written by `refreshSpeed` instead, off the
+-- same test `currentSpeed` uses to decide whether to apply the multiplier at
+-- all, so the animation and the speed cannot disagree by construction.
+--
+-- On the CHARACTER rather than the Player, because it dies with the rig it
+-- describes: a respawn clears it for free, which is exactly what a stale
+-- "still sneaking" flag on a fresh character would otherwise cost.
+Config.SNEAK_ATTRIBUTE = "Sneaking"
+
+-- How high above a carrier's own head the "!" floats, in studs.
+--
+-- Measured against what is already up there rather than chosen: the loot
+-- label sits just over the carried piggy, so the mark has to clear it or the
+-- two overlap on exactly the person a victim is trying to read.
+Config.ROBBER_MARK_HEIGHT = 4.6
 
 -- Above this many seconds the hold shows a COUNTDOWN as well as a bar.
 --
@@ -3049,6 +4803,133 @@ end
 -- A tier in the band does not error and does not look wrong. It reads as a
 -- fence that works, right up until somebody hops out of a yard they had to
 -- climb into -- which is exactly how this shipped and stayed shipped.
+
+-- CAN ANYBODY ACTUALLY WALK ABOUT IN A SHOP? See `Config.SHOP_ROOM` for the
+-- three measurements that made this necessary, and note the shape they share
+-- with every other post-mortem in this project: two fittings sized correctly
+-- and nobody multiplying them against the room they both stand in.
+--
+-- IT AUDITS GAPS RATHER THAN PLACEMENTS, because a placement is a design
+-- decision and a gap is a fact. Moving the counter back is fine; moving it
+-- back until nobody fits behind it is not, and only one of those two is
+-- something a number can tell you.
+--
+-- IT CANNOT SEE THE BAY'S RIGHT-HAND EDGE, and that is stated rather than
+-- fudged: the display bay is centred on the WINDOW, which falls out of the
+-- pier spacing in `ShopFront` and is not a number this file holds. That one
+-- check lives over there, next to the arithmetic that produces it.
+-- IS EVERY STOLEN SKIN ACTUALLY WINNABLE BACK? This is the rail the whole
+-- feature rests on -- `isStealableSkin` is `spec.chest ~= nil`, and that tag
+-- is a STRING naming a crate, which is an interface with no compiler behind
+-- it exactly like `"LockLevel"` was. A skin pointing at a retired or renamed
+-- crate is still stealable and is no longer obtainable by anybody, so a
+-- nine-year-old loses it permanently and the message telling them where to
+-- get it back names a crate that is not in the shop.
+--
+-- Nothing about that errors. `chestPool` would simply never emit it, the
+-- Crates tab would never show it, and the only symptom is one skin quietly
+-- becoming unobtainable. So it is checked at startup, in Studio too, for the
+-- reason `auditEconomy` is: the moment to hear about it is while you are
+-- typing it.
+function Config.auditSkinSteal(): { string }
+	local problems = {}
+
+	-- The user's own requirement, kept as a rule rather than as a number
+	-- somebody typed once: a player has to be a better prize than a shop, or
+	-- there is no reason to take the risk that comes with robbing one.
+	-- Measured, `LOSS_CAP` already holds player robberies to about 2.1 an
+	-- hour against 173 shop cracks, so this is a floor rather than a ceiling.
+	if Config.SKIN_STEAL.chance <= Config.SHOP_VAULT_DROP.chance then
+		table.insert(problems, ("a player drops a skin %.0f%% of the time against a shop's %.0f%%; robbing a person is meant to be the bigger prize")
+			:format(Config.SKIN_STEAL.chance * 100, Config.SHOP_VAULT_DROP.chance * 100))
+	end
+
+	for key, skin in pairs(Config.SKINS) do
+		if Config.isStealableSkin(key) then
+			local crate = Config.CHESTS[skin.chest]
+			if not crate then
+				table.insert(problems, ("%s can be stolen and names crate '%s', which does not exist")
+					:format(key, tostring(skin.chest)))
+			else
+				-- NAMING A CRATE IS NOT THE SAME AS BEING IN ONE. `chestPool`
+				-- also refuses anything `isEarnedElsewhere`, so a skin that
+				-- grew a `pass` or `set` field while keeping its old tag
+				-- would pass the test above and still be unreachable.
+				local pool = Config.chestPool(skin.chest)
+				local found = false
+				for _, keys in pairs(pool) do
+					for _, k in ipairs(keys) do
+						if k == key then
+							found = true
+							break
+						end
+					end
+				end
+				if not found then
+					table.insert(problems, ("%s can be stolen but is not in the %s pool it names")
+						:format(key, crate.name))
+				end
+			end
+		end
+	end
+	return problems
+end
+
+function Config.auditShopRoom(): { string }
+	local u = Config.SHOP_UNIT
+	local r = Config.SHOP_ROOM
+	local problems = {}
+
+	local function walk(what: string, gap: number)
+		if gap < r.minWalk then
+			table.insert(problems, ("%s is %.2f studs against a minimum of %.2f"):format(
+				what, gap, r.minWalk))
+		end
+	end
+
+	-- The walkways, front to back.
+	walk("the aisle from the door to the vault", u.roomWidth / 2 - r.aisleX)
+	walk("the customer strip in front of the counter", r.bayBack - r.counterFront)
+	walk("the shopkeeper's pocket behind the counter", r.counterBack + u.roomDepth / 2)
+
+	-- Nothing on the fittings side may reach into the aisle. The counter is
+	-- the piece that nearly did, and it is the one this file can measure.
+	if r.counterRight > r.aisleX then
+		table.insert(problems, ("the counter reaches x %.2f, which is inside the aisle at %.2f")
+			:format(r.counterRight, r.aisleX))
+	end
+
+	-- AND THE OPEN VAULT DOOR IS THE OBSTACLE BETWEEN THE TWO, so the gap the
+	-- shopkeeper leaves their pocket through is measured against the leaf and
+	-- not against the aisle behind it.
+	--
+	-- THE NEAR EDGE FOR THE WALKWAY AND THE FAR EDGE FOR THE AISLE, which is
+	-- the split that was missing when both were one number: the counter has
+	-- to clear whatever reaches FURTHEST toward it, and the aisle has to
+	-- start beyond whatever reaches furthest away from it. Spending one value
+	-- on both questions answered the second correctly and the first by a
+	-- factor of three.
+	walk("the way past the counter to the aisle", r.vaultDoorNearX - r.counterRight)
+	if r.aisleX < r.vaultDoorFarX then
+		table.insert(problems, ("the aisle starts at x %.2f, inside the swept open vault door at %.2f")
+			:format(r.aisleX, r.vaultDoorFarX))
+	end
+
+	-- AND THE SHOPKEEPER HAS TO BE STANDING IN THE POCKET RATHER THAN IN THE
+	-- FURNITURE. `keeperZ` is derived from the pocket so it cannot drift out
+	-- of it; `keeperX` is typed, and this is what catches a typed one.
+	if r.keeperX < r.shelfFace or r.keeperX > r.aisleX then
+		table.insert(problems, ("the shopkeeper stands at x %.2f, outside the pocket (%.2f to %.2f)")
+			:format(r.keeperX, r.shelfFace, r.aisleX))
+	end
+	if r.keeperZ > r.counterBack or r.keeperZ < -u.roomDepth / 2 then
+		table.insert(problems, ("the shopkeeper stands at z %.2f, outside the pocket (%.2f to %.2f)")
+			:format(r.keeperZ, -u.roomDepth / 2, r.counterBack))
+	end
+
+	return problems
+end
+
 function Config.auditFences(): { string }
 	local problems = {}
 	for i, tier in ipairs(Config.FENCE_TIERS) do
@@ -3146,51 +5027,279 @@ Config.FENCE_PENALTY_GRACE = 1.0
 Config.DEFAULT_SKIN = "classic"
 Config.DEFAULT_EFFECT = "none"
 
+-- ============================================================
+-- SURFACE PACKS -- ONE TEXTURE, MANY SKINS
+-- ============================================================
+--
+-- A pack is a SURFACE and a skin is a COLOUR, and keeping those two apart is
+-- the whole economy of this. `AlphaMode.Overlay` composites a pack's colour
+-- map over the part's own `Color` using the map's ALPHA -- so a map that is
+-- transparent everywhere hands the tint entirely to the skin, and one upload
+-- becomes gold, chrome, copper, rose gold and anything else somebody types a
+-- colour for. Authoring 46 metal skins would have been 46 textures.
+--
+-- THE MAPS ARE NUMBERS THAT HAPPEN TO BE STORED IN IMAGES, not pictures.
+-- Metalness says treat the colour as a reflection rather than as a pigment;
+-- roughness says how tightly to focus it. Both are read as LINEAR data, which
+-- is why they are authored through Blender with the colourspace forced to
+-- Non-Color -- a roughness of 0.30 saved as though it were a photograph comes
+-- back as 0.58, and nothing anywhere would error.
+--
+-- A PACK OVERRIDES `material`, WHICH IS THE TRAP TO REMEMBER. A part carrying
+-- a SurfaceAppearance ignores its own Material while going on REPORTING it --
+-- so a Neon skin given a pack renders as ordinary metal with `Material` still
+-- reading `Neon` in the properties panel, on all 22 of them, silently. That is
+-- the `UseJumpPower` family exactly: an API that accepts the write, stores it,
+-- reports it back and ignores it. `Config.skinSurface` refuses the pairing
+-- rather than trusting nobody will write it.
+-- ROJO OWNS THE MAPS AND ONLY THE NAME LIVES HERE, WHICH IS THE FOURTH TIME
+-- THIS PROJECT HAS HAD TO MAKE THAT MOVE.
+--
+-- `SurfaceAppearance.ColorMap` is PLUGIN-GATED: a real Script cannot write it.
+-- Measured, from a live server rather than from a probe --
+--
+--     [AdminService] 'skin' errored: The current thread cannot write
+--     'ColorMap' (lacking capability Plugin)
+--
+-- -- which took `applySkin` down with it, so every skin change in the game
+-- threw. `AlphaMode` is NOT gated, so the instance was created and left with
+-- a mode set and four empty maps, which is the shape that made it look like a
+-- failed asset rather than a refused write.
+--
+-- SO THE PACK IS A `.model.json` AND IS CLONED RATHER THAN ASSEMBLED, exactly
+-- as `MaterialVariant` had to be after the identical refusal. Rojo serialises
+-- the instance from source control, so the maps arrive already set and nothing
+-- ever writes them. It also lands in `Shared`, which is ALREADY a mapped path
+-- -- worth knowing, because `default.project.json` is not hot reloaded and a
+-- new branch would have needed `rojo serve` restarting to appear at all.
+--
+-- TWO COPIES OF FOUR ASSET IDS IS THE DUPLICATE THIS FILE KEEPS RECORDING, so
+-- the ids live in the model file and nowhere else. A dangling `template` is
+-- safe: the pig simply wears its `material` instead, which is the same
+-- fallback an empty mesh id already takes.
+-- EMPTY AS IT SHIPS, AND THAT IS A RESULT RATHER THAN AN UNFINISHED JOB. The
+-- same shape as `Config.HOUSE_REBUILD`: the machinery is built and proven, and
+-- a pack is one row here plus one `.model.json`.
+--
+-- THE FIRST PACK WAS METAL AND IT WAS MEASURED AS WORSE THAN DOING NOTHING,
+-- which is the finding worth keeping. Photographed at one camera under shipped
+-- lighting with the pack the only variable: with it, a flat wash of yellow;
+-- without it, on stock `Enum.Material.Metal`, a deeper gold with real tonal
+-- range and a sheen on the snout and flank. The stock material won.
+--
+-- WHY, AND IT IS THE OPPOSITE OF THE ARGUMENT THAT BUILT IT. The pack's maps
+-- were UNIFORM, on the reasoning that "smooth shiny metal" is a statement
+-- about how light behaves and a smooth surface has no detail. True, and
+-- self-defeating here: `EnvironmentSpecularScale` is 0.08 -- pulled back
+-- deliberately, see `WorldService`, because a bright specular on SmoothPlastic
+-- reads as plastic rather than as painted -- so there is almost no environment
+-- to reflect, and a perfectly uniform metal has NOTHING LEFT to vary. What
+-- makes `Material.Metal` read as metal in this lighting is the tonal variation
+-- it carries for free, and the pack replaced exactly that with a flat value.
+--
+-- Confirmed the two obvious levers were not the constraint either: part
+-- `Reflectance` at 1.00 barely moved the picture, and raising
+-- `EnvironmentSpecularScale` to 1.00 barely moved it either -- which is worth
+-- knowing, because that global is load-bearing for 27 SmoothPlastic skins and
+-- would have been a whole-world regression bought for nothing.
+--
+-- SO A PACK IS FOR WHAT A `Material` CANNOT DO: speckle, crazing, glitter,
+-- spots, hammering -- patterns with real variation, which are also the only
+-- things that need the UV unwrap. A pack that competes with a stock material
+-- has to beat it, and this one was measured losing.
+--
+-- AND THE FIRST THING A PACK WOULD SILENTLY BREAK IS THE `reflectance` FIELD
+-- THE METAL SKINS NOW CARRY. A part wearing a SurfaceAppearance ignores its
+-- own `Reflectance` while going on REPORTING the value it was set to -- so
+-- putting a `surface` on `bullion` would not merely fail to help, it would
+-- quietly delete the thing that makes that skin read as gold, with the
+-- property panel still showing 0.45. That is the `UseJumpPower` family
+-- exactly: an API that accepts the write, stores it, reads it back and
+-- ignores it. Any pack that lands on a metal skin has to carry the shine in
+-- its OWN metalness and roughness maps, and this file's note about a
+-- capability-gated property applies to the same class of trap.
+Config.SURFACE_PACKS = {
+	-- THE BAND OVERLAY: ONE IMAGE, EVERY METAL. `AlphaMode.Overlay`
+	-- composites this map over the part's own `Color3` using THE MAP'S ALPHA,
+	-- so the map carries the BANDING and the skin carries the COLOUR. Gold,
+	-- silver, chrome, copper and anything somebody types a colour for come out
+	-- of one upload; authoring a texture per metal would have been a texture
+	-- per metal forever.
+	--
+	-- IT VARIES WITH HEIGHT AND IS CONSTANT AROUND THE ANIMAL, which is the
+	-- decision the whole thing rests on. The physical story is a horizontally
+	-- striped room -- bright sky, dark ground, a bright horizon -- reflected in
+	-- a turned cylinder, which is what every swatch in the reference palettes
+	-- is a picture of. It also makes the mesh's U seam unable to show: a
+	-- cylindrical unwrap smears the faces crossing the back of the animal, and
+	-- a pattern that does not vary along U has nothing there to smear.
+	--
+	-- THE MAP IS NEUTRAL AND MOSTLY SHADOW, and both halves were measured. A
+	-- tinted map would drag every skin toward its own colour and make silver
+	-- brassy, so it is white and black only. And white does not brighten a
+	-- colour, it DESATURATES it -- on a metal, base colour is reflectance
+	-- tint, so a strong white band is the move toward chrome. Rendered on gold
+	-- and on silver at a highlight alpha of 0.49, silver was right and gold
+	-- came out washed out. Highlights peak at 0.17 now and the shadows do the
+	-- work, because darkening moves a colour down its own value axis and
+	-- leaves the hue alone.
+	--
+	-- IT NEEDS THE CYLINDRICAL UNWRAP AND CANNOT WORK WITHOUT IT. Measured on
+	-- the old `smart_project` UVs, the direction world +Z maps to had a
+	-- coherence of 0.583 on the body and 0.282 on the trim, so a band would
+	-- have run a different way on every island. The mesh is unwrapped on one
+	-- cylinder now and measures 0.941 and 0.857.
+	bands = { name = "Polished Metal", template = "bands" },
+
+	-- ------------------------------------------------------------------
+	-- THE ANIMAL PACKS: ONE COAT, A SWAPPABLE PATTERN
+	-- ------------------------------------------------------------------
+	--
+	-- THE FUR IS THE DEFAULT LAYER AND THE PATTERN IS THE SEPARABLE ONE, which
+	-- is the shape these were asked for in. All three carry the SAME
+	-- `pig_fur_normal` in their NormalMap and differ only in the ColorMap, so
+	-- adding a new marking is one PNG and one six-line template pointing at
+	-- the fur that already exists -- never a new coat.
+	--
+	-- A PART TAKES EXACTLY ONE `SurfaceAppearance`, so these are COMBINATIONS
+	-- rather than a stack. That is the whole reason the fur id is repeated
+	-- three times here: it is one uploaded asset referenced three times, not
+	-- three uploads, and there is no way to layer two packs on one part.
+	--
+	-- THE MARKING'S COLOUR LIVES IN THE MAP AND THE BASE COLOUR IN THE SKIN.
+	-- Overlay resolves to `lerp(partColour, mapRGB, mapAlpha)`, and a part has
+	-- one `Color3` -- so one surface cannot hold two independently variable
+	-- colours. Both pattern maps are therefore authored NEAR-BLACK (14,12,14)
+	-- with the shape in the alpha, which is the convention that covers nearly
+	-- every real animal: tiger, leopard, cow, zebra, giraffe and hyena are all
+	-- a dark marking over a base the skin chooses. A LIGHT
+	-- marking needs a second map rather than a second colour field.
+	--
+	-- `trimTemplate` IS THE FUR WITHOUT THE PATTERN, and it is not a detail.
+	-- The ears, snout, tail and legs share the body's cylindrical unwrap, so
+	-- handing them the striped map would run tiger bars across a snout. They
+	-- take the coat and nothing else.
+	animal = {
+		name = "Fur", template = "animal", trimTemplate = "animal",
+	},
+	animal_spots = {
+		name = "Spotted Fur", template = "animal_spots", trimTemplate = "animal",
+	},
+	animal_stripes = {
+		name = "Striped Fur", template = "animal_stripes", trimTemplate = "animal",
+	},
+
+	-- THE FIRST FULL-COLOUR PACK, AND IT WORKS BY THE SAME EXPRESSION READ THE
+	-- OTHER WAY. The three above carry a SHAPE in alpha and one constant RGB, so
+	-- `lerp(partColour, mapRGB, mapAlpha)` lets one sheet dress a leopard and a
+	-- snow leopard off two different `Color3`s. This one is
+	-- opaque everywhere, and at alpha 1 that same lerp resolves to `mapRGB` --
+	-- the map REPLACES the part's colour outright.
+	--
+	-- WHAT IT COSTS IS THE COLOURWAY, STATED PLAINLY: `SKINS.bee.body` and
+	-- `.trim` stop doing anything, so a colour tweak is a re-bake and a
+	-- re-upload rather than a line here. What it buys is that what was painted
+	-- in Blender is exactly what ships, with no mask, no marking colour and no
+	-- second thing to keep in step.
+	--
+	-- IT HAS ITS OWN `trimTemplate` RATHER THAN `animal`, because the trim
+	-- genuinely carries art here -- a yellow snout and yellow outer ears
+	-- against black legs -- which is the thing a single flat `trim` colour
+	-- could never say and which `SKINS.bee.parts` was written for and could
+	-- not deliver while the split trim stayed unuploaded.
+	--
+	-- NO NORMAL MAP, unlike the three fur packs above. Those share
+	-- `pig_fur_normal` because they are coats; a bumblebee is
+	-- `SmoothPlastic` and every preview it was approved from had a smooth
+	-- surface. Adding one here would ship a pig nobody has looked at.
+	animal_bee = {
+		name = "Bumblebee", template = "animal_bee",
+		trimTemplate = "animal_bee_trim",
+	},
+}
+
+-- The pack a skin should actually wear, or nil.
+--
+-- ONE FUNCTION OWNS BOTH REFUSALS so neither can be forgotten at a call site.
+-- A missing pack degrades to a plain skin, which is the same shape as
+-- `Config.piggyMesh` returning nil for an empty id: the pig looks ordinary
+-- rather than half-dressed.
+function Config.skinSurface(tier)
+	if not tier or not tier.surface then
+		return nil
+	end
+	-- NEON AND GLASS NEVER TAKE A PACK. See the note above -- a pack overrides
+	-- the material while `Material` goes on reporting whatever was set, so the
+	-- failure is silent in both directions.
+	--
+	-- NEON was the known case: it would kill the glow on 22 skins. GLASS was
+	-- found by trying to convert the Snow Leopard, whose whole identity is a
+	-- glass body carrying deliberately plastic marks -- a pack would have
+	-- turned the one thing separating it from the Leopard into grey plastic,
+	-- with `material = Enum.Material.Glass` still sitting in its row saying
+	-- otherwise. That is the `UseJumpPower` family exactly, and the fix is the
+	-- same shape as Neon's: refuse the pairing rather than trusting that
+	-- nobody writes it.
+	--
+	-- ANY MATERIAL WHOSE LOOK IS THE POINT belongs on this list. The test is
+	-- not "is it exotic" -- it is whether the skin would still be that skin
+	-- rendered as plain plastic.
+	if tier.material == Enum.Material.Neon
+		or tier.material == Enum.Material.Glass then
+		return nil
+	end
+	local pack = Config.SURFACE_PACKS[tier.surface]
+	if not pack or not pack.template then
+		return nil
+	end
+	return pack
+end
+
 Config.SKINS = {
 	classic = {
-		name = "Classic Pink", order = 1, cost = 0,
+		name = "Classic Pink", order = 1, cost = 0, rarity = "common",
 		body = Color3.fromRGB(244, 168, 194), trim = Color3.fromRGB(214, 122, 148),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 	},
 	bubblegum = {
-		chest = "classics",
-		name = "Bubblegum", order = 2, cost = 8000,
+		chest = "og",
+		name = "Bubblegum", order = 2, cost = 8000, rarity = "common",
 		body = Color3.fromRGB(255, 132, 190), trim = Color3.fromRGB(206, 78, 148),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 	},
 	mint = {
-		chest = "classics",
-		name = "Mint Choc", order = 3, cost = 20000,
+		chest = "og",
+		name = "Mint Choc", order = 3, cost = 20000, rarity = "common",
 		body = Color3.fromRGB(148, 226, 190), trim = Color3.fromRGB(88, 62, 52),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 	},
 	sunset = {
-		chest = "classics",
-		name = "Sunset", order = 4, cost = 45000,
+		chest = "og",
+		name = "Sunset", order = 4, cost = 45000, rarity = "common",
 		body = Color3.fromRGB(255, 158, 92), trim = Color3.fromRGB(206, 92, 108),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 	},
 	midnight = {
-		chest = "classics",
-		name = "Midnight", order = 5, cost = 90000,
+		chest = "og",
+		name = "Midnight", order = 5, cost = 90000, rarity = "common",
 		body = Color3.fromRGB(78, 84, 156), trim = Color3.fromRGB(44, 48, 96),
 		material = Enum.Material.Glass, transparency = 0,
 	},
 	lava = {
-		chest = "classics",
-		name = "Lava", order = 6, cost = 200000,
+		chest = "og",
+		name = "Lava", order = 6, cost = 200000, rarity = "common",
 		body = Color3.fromRGB(232, 92, 48), trim = Color3.fromRGB(58, 30, 26),
 		material = Enum.Material.Neon, transparency = 0,
 	},
 	galaxy = {
-		chest = "classics",
-		name = "Galaxy", order = 7, cost = 500000,
+		chest = "og",
+		name = "Galaxy", order = 7, cost = 500000, rarity = "common",
 		body = Color3.fromRGB(126, 82, 200), trim = Color3.fromRGB(52, 34, 92),
 		material = Enum.Material.Neon, transparency = 0,
 	},
 	pearl = {
-		chest = "classics",
-		name = "Pearl", order = 8, cost = 1200000,
+		chest = "og",
+		name = "Pearl", order = 8, cost = 1200000, rarity = "common",
 		body = Color3.fromRGB(248, 244, 236), trim = Color3.fromRGB(206, 198, 220),
 		material = Enum.Material.Glass, transparency = 0,
 	},
@@ -3198,17 +5307,77 @@ Config.SKINS = {
 	-- Earned by rebirthing rather than paid for, so the collection has two
 	-- routes into it and a rebirth still hands you something to show off.
 	bronze = {
-		name = "Bronze", order = 20, unlockRebirths = 1,
+		name = "Bronze", order = 20, unlockRebirths = 1, rarity = "rare",
 		body = Color3.fromRGB(196, 132, 74), trim = Color3.fromRGB(150, 96, 50),
 		material = Enum.Material.Metal, transparency = 0,
+		reflectance = 0.35,
 	},
+	-- AND THE NOTE THAT USED TO SIT HERE WAS WRONG, WHICH IS WORTH KEEPING
+	-- BECAUSE IT SOUNDED RIGHT. It read: "leaf is thin and pale on purpose, so
+	-- it keeps its light colour" -- and it kept the two golds apart by keeping
+	-- this one BRIGHT, which is precisely the fault `bullion` had just been
+	-- fixed for. Measured, it was the worst offender in the whole set: body
+	-- luminance 0.753 against bullion's 0.613, so it had 0.247 of headroom to
+	-- white where bullion had 0.387. Reported, accurately, as not looking
+	-- metallic at all.
+	--
+	-- THE TWO GOLDS ARE SEPARATED BY HUE AND SATURATION INSTEAD, which costs
+	-- neither of them their range: this one is a cool, muted, antique gold
+	-- (luminance 0.601) and `bullion` is a warm saturated one. A skin that has
+	-- to stay pale to be recognisable cannot be metallic, and this one never
+	-- had to.
 	goldleaf = {
-		name = "Gold Leaf", order = 21, unlockRebirths = 3,
-		body = Color3.fromRGB(238, 190, 78), trim = Color3.fromRGB(198, 148, 44),
+		name = "Gold Leaf", order = 21, unlockRebirths = 3, rarity = "rare",
+		body = Color3.fromRGB(186, 152, 72), trim = Color3.fromRGB(140, 110, 46),
 		material = Enum.Material.Metal, transparency = 0,
+		reflectance = 0.40,
 	},
+	-- NO `chest` TAG YET, DELIBERATELY. Skins are crate-only, so a chest tag
+	-- is what makes one obtainable -- and adding this to a pool would
+	-- rebalance that pool's odds as a side effect of a rendering test. It is
+	-- reachable through the admin console until somebody decides which crate
+	-- it belongs in, and that decision is a design call rather than a
+	-- consequence of shipping the texture.
+	-- `Enum.Material.Metal` AND NO SURFACE PACK, WHICH IS A MEASURED CHOICE
+	-- RATHER THAN THE ABSENCE OF ONE. This skin wore the metal pack for one
+	-- session and was photographed side by side with and without it under
+	-- shipped lighting: the stock material is the better-looking metal, for
+	-- the reason written at `Config.SURFACE_PACKS`. Putting `surface` back on
+	-- this row makes the pig FLATTER, not shinier.
+	--
+	-- AND THE COLOUR CAME DOWN RATHER THAN THE SHINE GOING UP, WHICH IS THE
+	-- HALF THAT ACTUALLY MADE IT READ AS METAL. It shipped at (241, 164, 50),
+	-- which is a bright orange-yellow -- and a highlight on a surface that
+	-- bright has NOTHING TO BE BRIGHTER THAN. Photographed at one camera
+	-- under shipped lighting the pig was a flat orange lozenge with no
+	-- hotspot, no rim on the ears and no shading under the belly, against a
+	-- Cycles reference whose gold runs from near-white down to deep brown.
+	--
+	-- A METAL IS READ BY ITS TONAL RANGE, NOT BY ITS BRIGHTNESS. Dropping the
+	-- base to (214, 152, 30) and letting `reflectance` put the light back
+	-- gives the same average gold with a range around it: measured at one
+	-- camera, a warm hotspot on the upper flank, ear rims, and a deep bronze
+	-- under the belly. It is DARKER on paper and reads as SHINIER on screen,
+	-- which is the opposite of what the numbers look like.
+	--
+	-- AND `reflectance` IS DEAD ON THIS ROW WHILE THE PACK IS ON IT, WHICH IS
+	-- WHY IT IS STILL WRITTEN HERE. A part wearing a SurfaceAppearance ignores
+	-- its own `Reflectance` while going on REPORTING the value it was set to --
+	-- the `UseJumpPower` family, an API that accepts the write, stores it,
+	-- reads it back and ignores it. It is kept rather than deleted because it
+	-- is what this skin falls back to if the pack ever fails to load, and
+	-- because deleting it would leave the next person to drop the pack with a
+	-- flat pig and nothing saying why.
+	bullion = {
+		name = "Solid Gold", order = 232, cost = 1500000, rarity = "legendary",
+		body = Color3.fromRGB(214, 152, 30), trim = Color3.fromRGB(162, 104, 16),
+		material = Enum.Material.Metal, transparency = 0,
+		reflectance = 0.45,
+		surface = "bands",
+	},
+
 	diamond = {
-		name = "Diamond", order = 22, unlockRebirths = 6,
+		name = "Diamond", order = 22, unlockRebirths = 6, rarity = "legendary",
 		body = Color3.fromRGB(150, 226, 236), trim = Color3.fromRGB(104, 190, 208),
 		material = Enum.Material.Glass, transparency = 0,
 	},
@@ -3223,7 +5392,7 @@ Config.SKINS = {
 	-- is 700+ writes a second across twelve plots for something every client
 	-- can compute for itself from a single attribute.
 	ember = {
-		chest = "classics",
+		chest = "og",
 		name = "Ember Glow", order = 30, rarity = "rare",
 		body = Color3.fromRGB(226, 104, 52), trim = Color3.fromRGB(120, 44, 30),
 		material = Enum.Material.Neon, transparency = 0,
@@ -3232,7 +5401,7 @@ Config.SKINS = {
 		} },
 	},
 	frostbite = {
-		chest = "classics",
+		chest = "og",
 		name = "Frostbite", order = 31, rarity = "rare",
 		body = Color3.fromRGB(186, 232, 248), trim = Color3.fromRGB(120, 176, 208),
 		material = Enum.Material.Glass, transparency = 0,
@@ -3241,7 +5410,7 @@ Config.SKINS = {
 		} },
 	},
 	toxic = {
-		chest = "classics",
+		chest = "og",
 		name = "Toxic Ooze", order = 32, rarity = "rare",
 		body = Color3.fromRGB(140, 226, 84), trim = Color3.fromRGB(66, 122, 40),
 		material = Enum.Material.Neon, transparency = 0,
@@ -3250,7 +5419,7 @@ Config.SKINS = {
 		} },
 	},
 	candyswirl = {
-		chest = "classics",
+		chest = "og",
 		name = "Candy Swirl", order = 33, rarity = "rare",
 		body = Color3.fromRGB(255, 150, 200), trim = Color3.fromRGB(255, 236, 244),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
@@ -3260,8 +5429,8 @@ Config.SKINS = {
 	},
 
 	aurora = {
-		chest = "classics",
-		name = "Aurora", order = 40, rarity = "epic",
+		chest = "og",
+		name = "Aurora", order = 40, rarity = "rare",
 		body = Color3.fromRGB(96, 226, 190), trim = Color3.fromRGB(60, 110, 150),
 		material = Enum.Material.Neon, transparency = 0,
 		anim = { kind = "cycle", speed = 0.55, glow = 1.6, palette = {
@@ -3270,8 +5439,8 @@ Config.SKINS = {
 		} },
 	},
 	magma = {
-		chest = "classics",
-		name = "Magma Core", order = 41, rarity = "epic",
+		chest = "og",
+		name = "Magma Core", order = 41, rarity = "rare",
 		body = Color3.fromRGB(210, 58, 30), trim = Color3.fromRGB(52, 20, 16),
 		material = Enum.Material.Neon, transparency = 0,
 		anim = { kind = "flicker", speed = 9, glow = 2.2, palette = {
@@ -3279,8 +5448,8 @@ Config.SKINS = {
 		} },
 	},
 	voidsilk = {
-		chest = "classics",
-		name = "Void Silk", order = 42, rarity = "epic",
+		chest = "og",
+		name = "Void Silk", order = 42, rarity = "rare",
 		body = Color3.fromRGB(46, 30, 72), trim = Color3.fromRGB(22, 14, 36),
 		material = Enum.Material.Glass, transparency = 0,
 		anim = { kind = "pulse", speed = 0.5, glow = 1.4, palette = {
@@ -3289,7 +5458,7 @@ Config.SKINS = {
 	},
 
 	supernova = {
-		chest = "classics",
+		chest = "og",
 		name = "Supernova", order = 50, rarity = "legendary",
 		body = Color3.fromRGB(255, 230, 150), trim = Color3.fromRGB(232, 128, 40),
 		material = Enum.Material.Neon, transparency = 0,
@@ -3299,7 +5468,7 @@ Config.SKINS = {
 		} },
 	},
 	stormcaller = {
-		chest = "classics",
+		chest = "og",
 		name = "Stormcaller", order = 51, rarity = "legendary",
 		body = Color3.fromRGB(120, 176, 255), trim = Color3.fromRGB(40, 52, 92),
 		material = Enum.Material.Neon, transparency = 0,
@@ -3308,7 +5477,7 @@ Config.SKINS = {
 		} },
 	},
 	prismatic = {
-		chest = "classics",
+		chest = "og",
 		name = "Prismatic", order = 52, rarity = "legendary",
 		body = Color3.fromRGB(255, 120, 120), trim = Color3.fromRGB(255, 255, 255),
 		material = Enum.Material.Neon, transparency = 0,
@@ -3362,7 +5531,7 @@ Config.SKINS = {
 	-- all four are stocked rather than roughly stocked.
 	ladybird = {
 		chest = "animal",
-		name = "Ladybird", order = 100, cost = 25000,
+		name = "Ladybird", order = 100, cost = 25000, rarity = "common", rarity = "common",
 		body = Color3.fromRGB(214, 44, 44), trim = Color3.fromRGB(30, 28, 32),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		-- Small, round, evenly spread and not many: a ladybird's spots are
@@ -3375,7 +5544,7 @@ Config.SKINS = {
 	},
 	cow = {
 		chest = "animal",
-		name = "Dairy Cow", order = 101, cost = 35000,
+		name = "Dairy Cow", order = 101, cost = 35000, rarity = "common", rarity = "common",
 		-- The trim stays PINK rather than going black with the blotches. It
 		-- paints the snout, and a cow's muzzle is the one part of it that is
 		-- pink -- so the two channels each say something instead of both
@@ -3383,92 +5552,148 @@ Config.SKINS = {
 		body = Color3.fromRGB(246, 244, 238), trim = Color3.fromRGB(226, 158, 168),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		-- Few and LARGE, with heavy size jitter, because a cow is blotches
-		-- rather than dots -- the difference between this and the dalmatian
-		-- below is entirely `count` against `size`.
+		-- rather than dots. The difference is entirely `count` against `size`,
+		-- which is what the Dalmatian below used to demonstrate before it went
+		-- with the flat-paint animals.
 		pattern = {
 			kind = "spots", seed = 11,
 			colour = Color3.fromRGB(34, 32, 38),
 			count = 11, size = 0.30, vary = 0.40,
 		},
 	},
-	sheep = {
-		chest = "animal",
-		name = "Woolly Sheep", order = 102, cost = 60000,
-		body = Color3.fromRGB(238, 232, 220), trim = Color3.fromRGB(48, 44, 46),
-		material = Enum.Material.SmoothPlastic, transparency = 0,
-		-- THE ONLY `bump` IN THE CATALOGUE, and the one place a ball beats a
-		-- disc. A fleece is not a marking, it is a texture -- what says sheep
-		-- is that the silhouette has gone lumpy -- and a flat disc cannot be
-		-- lumpy at any size. `bump` therefore keeps clear of the hat anchor by
-		-- construction; see CROWN_LIMIT in PiggyModel.
-		pattern = {
-			kind = "spots", seed = 5, bump = true, proud = 0.55,
-			colour = Color3.fromRGB(250, 246, 238),
-			count = 32, size = 0.24, vary = 0.28,
-			material = Enum.Material.SmoothPlastic, transparency = 0,
-		},
-	},
-	dalmatian = {
-		chest = "animal",
-		name = "Dalmatian", order = 103, cost = 90000,
-		body = Color3.fromRGB(248, 246, 242), trim = Color3.fromRGB(44, 42, 48),
-		material = Enum.Material.SmoothPlastic, transparency = 0,
-		pattern = {
-			kind = "spots", seed = 7,
-			colour = Color3.fromRGB(30, 28, 34),
-			count = 27, size = 0.10, vary = 0.40,
-		},
-	},
 
 	zebra = {
 		chest = "animal",
-		name = "Zebra", order = 110, cost = 250000,
+		name = "Zebra", order = 110, cost = 250000, rarity = "common",
 		body = Color3.fromRGB(244, 242, 236), trim = Color3.fromRGB(36, 34, 38),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
-		-- Bands run ACROSS the spine, which is the only orientation the
-		-- builder draws and the only one a zebra wears. `wobble` jitters each
-		-- band's position and width off the even spacing, because seven
-		-- identical bands at identical intervals is a barcode.
+		-- THE POLE IS THE MUZZLE, AND THAT IS THE WHOLE SKIN. Every other
+		-- pattern in this catalogue girdles the SPINE, which is right for a
+		-- bee and was never right for a zebra. Measured on the version this
+		-- replaces: the nearest band sat 54 degrees off the snout, so there
+		-- was nothing on the face at all, and the lowest one stopped 4.6
+		-- degrees ABOVE the equator -- the whole marking was a cap of bars
+		-- pulled down over the head with clean white flanks underneath it.
+		-- No arrangement of seven spine-girdling bands fixes that, which is
+		-- why this is a new axis rather than new numbers.
+		--
+		-- `axis` aims the pole out through the snout instead, and ONE family
+		-- of bands then does all three things a zebra's markings do at once:
+		-- a circle of constant angle from that pole is a ring on the FACE
+		-- near the pole, a near-vertical stripe down the FLANK at ninety
+		-- degrees, and a ring closing on the TAIL beyond it. So the stripes
+		-- radiate out of the face, run down the sides and converge on the
+		-- rump. Nothing else about the builder changed.
+		--
+		-- 17.7 DEGREES BELOW THE FORWARD HORIZONTAL, and that is a compromise
+		-- between the two piggies one spec has to draw: the plot piggy's own
+		-- snout sits at 24.1 degrees and the carried mini's at 13.4, so a pole
+		-- aimed at either one is visibly off the other's face.
+		--
+		-- `faceGap` is what lets a fan cross the face at all. It cuts each
+		-- band's arc around the eyeballs rather than drawing a stripe through
+		-- one, so a stripe ENDS at the eye and picks up past it -- which is
+		-- what a real zebra's face does. 16 degrees against an eyeball six
+		-- degrees across leaves about ten degrees of white either side on
+		-- BOTH piggies, which is the slack that lets one number serve two
+		-- models whose eyes are 7.8 degrees apart. `taper` brings each band to
+		-- a point as it runs under the belly, because a band of one width the
+		-- whole way round is a hoop rather than a marking.
+		--
+		-- MEASURED BEFORE IT WAS WRITTEN, against the shipped geometry: 71
+		-- segments (the old pattern was 50), clear of the eyeballs by 19.8
+		-- degrees on the plot piggy and 19.1 on the mini, clear of the vault
+		-- dial by 44.1 -- so a thief still reads the lock tier off the back --
+		-- clear of the snout's own 16.4-degree disc by 32.3, which is the ring
+		-- of white the reference plush wears round its muzzle, and reaching
+		-- 22.2 degrees below the equator against legs that meet the body at
+		-- 41.3.
+		--
+		-- `wobble` jitters each band's position and width off the even
+		-- spacing, because nine identical bands at identical intervals is a
+		-- barcode.
+		--
+		-- STILL THE PART-BUILT PATTERN, and it is the last thing about this
+		-- skin that is. The painted map (`pig_stripes_bold_color.png`, eleven
+		-- bars) is built and looked at and is not uploaded, so there is no
+		-- `surface` pack to point at yet -- see the tiger and the leopard for
+		-- the shape this takes once there is.
 		pattern = {
 			kind = "stripes", seed = 13,
 			colour = Color3.fromRGB(30, 28, 32),
-			count = 7, width = 0.15, spread = 0.70, arc = 195, wobble = 0.35,
+			axis = Vector3.new(0, -0.32, 1),
+			count = 9, width = 0.15, spread = 0.85, arc = 240, wobble = 0.30,
+			taper = 0.50, faceGap = 16,
 		},
+		-- THE FIRST SKIN TO NAME A FUR SET, which is what the set table was
+		-- built for. A zebra's mane is a short upright brush between the ears
+		-- and nothing else -- handed the default it would wear the tiger's
+		-- full ruff and cheek sweeps, which is a lion.
+		--
+		-- `fur` is the flag AND the colour, so this is what makes the tuft
+		-- appear at all. It takes the TRIM's black rather than the body's
+		-- white: the plush reference has a solid dark brush, and seven strands
+		-- each carrying a fragment of a stripe is noise at that size.
+		fur = Color3.fromRGB(36, 34, 38),
+		furSet = "crest",
 	},
 	bee = {
 		chest = "animal",
-		name = "Bumblebee", order = 111, cost = 400000,
-		body = Color3.fromRGB(250, 198, 40), trim = Color3.fromRGB(40, 36, 34),
+		name = "Bumblebee", order = 111, cost = 400000, rarity = "common",
+		-- DEEPER THAN IT WAS, TWICE. (250, 198, 40) is a pale lemon; the
+		-- reference is a saturated golden yellow, and against black bands the
+		-- pale one reads as washed rather than as a bee. The first correction
+		-- to (247, 178, 24) was still light -- looked at beside the reference
+		-- the plush is deeper again, and the difference is mostly in the GREEN
+		-- channel, which is what separates a lemon from a honey.
+		body = Color3.fromRGB(236, 160, 12), trim = Color3.fromRGB(26, 23, 22),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		-- FOUR FAT BANDS AND NO WOBBLE, which is the whole difference from the
 		-- zebra: a bee is regular and a zebra is not, and both come out of the
 		-- same three numbers.
-		pattern = {
-			kind = "stripes", seed = 2,
-			colour = Color3.fromRGB(34, 30, 28),
-			count = 4, width = 0.20, spread = 0.62, arc = 230, wobble = 0,
-		},
-	},
-	cheetah = {
-		chest = "animal",
-		name = "Cheetah", order = 112, cost = 900000,
-		body = Color3.fromRGB(226, 178, 102), trim = Color3.fromRGB(150, 106, 54),
-		material = Enum.Material.SmoothPlastic, transparency = 0,
-		-- Many small solid dots, against the leopard's fewer larger ones. That
-		-- is the real difference between the two animals and it is the only
-		-- one this builder can draw: a rosette is a ring, and a ring needs a
-		-- second mark per spot, which doubles the part count of a skin that
-		-- twelve piggies might be wearing at once.
-		pattern = {
-			kind = "spots", seed = 17,
-			colour = Color3.fromRGB(58, 42, 30),
-			count = 32, size = 0.085, vary = 0.30,
+		--
+		-- THE MAP REPLACED THE PART-BUILT PATTERN, WHICH IS WHAT THE NOTE HERE
+		-- HAS BEEN WAITING FOR. `pattern = { kind = "stripes", ... }` drew four
+		-- fat bands out of real geometry standing off the body, and its own
+		-- comment recorded the fault: it draws the wrong AXIS. A bee's bands are
+		-- slices of a loaf from nose to tail; that builder rings the animal at
+		-- constant HEIGHT, which is a belt rather than a band and cannot be
+		-- turned into one by any of its three numbers.
+		--
+		-- BOTH ARE DELETED RATHER THAN ONE LEFT DORMANT. A skin carrying a
+		-- `surface` AND a `pattern` wears the map with stripe segments standing
+		-- on top of it, which reads as the map having failed.
+		surface = "animal_bee",
+		-- THE ONE SKIN THAT NEEDS THE SPLIT TRIM, AND THE REASON IT EXISTS.
+		--
+		-- Everything else in the catalogue says its second tone once. The
+		-- reference bumblebee has a YELLOW FACE MASK against BLACK EARS and
+		-- BLACK LEGS, with the tail coming out of a yellow rump -- two
+		-- colours on what used to be one welded MeshPart, which no texture
+		-- map can express because a trim part wears a flat colour by design.
+		--
+		-- Snout and Tail are named; Ears and Legs are not, so they fall
+		-- through to `trim` above. A skin says only what differs.
+		--
+		-- INERT UNTIL THE FOUR PARTS ARE UPLOADED. With `PIGGY_TRIM_PARTS`
+		-- unfilled the pig stands up its joined `Trim` and this table matches
+		-- nothing, so the bee is a black-trimmed yellow pig -- which is what
+		-- it already was, rather than a broken one.
+		parts = {
+			Snout = Color3.fromRGB(236, 160, 12),
+			Tail = Color3.fromRGB(236, 160, 12),
+			-- The nostrils stay near-black against the yellow face, which is
+			-- what the reference has and what `NEAR_BLACK` already gives --
+			-- named here anyway, because the bee is the skin whose face this
+			-- was reported on and a default that happens to be right is not
+			-- the same as a decision.
+			Nostril = Color3.fromRGB(26, 23, 22),
 		},
 	},
 
 	giraffe = {
 		chest = "animal",
-		name = "Giraffe", order = 120, cost = 1800000,
+		name = "Giraffe", order = 120, cost = 1800000, rarity = "common",
 		body = Color3.fromRGB(234, 196, 124), trim = Color3.fromRGB(168, 120, 62),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		-- Large patches packed close, with LOW jitter: a giraffe reads as a
@@ -3482,28 +5707,28 @@ Config.SKINS = {
 	},
 	leopard = {
 		chest = "animal",
-		name = "Leopard", order = 121, cost = 2400000,
+		name = "Leopard", order = 121, cost = 2400000, rarity = "common",
 		body = Color3.fromRGB(232, 186, 110), trim = Color3.fromRGB(128, 86, 44),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
-		pattern = {
-			kind = "spots", seed = 23,
-			colour = Color3.fromRGB(46, 32, 24),
-			count = 22, size = 0.13, vary = 0.45,
-		},
-	},
-	orca = {
-		chest = "animal",
-		name = "Orca", order = 122, cost = 4000000,
-		-- The one inverted animal in the bucket: pale marks on a dark body
-		-- rather than the other way round, which is most of why it reads as a
-		-- different creature and not as another cow.
-		body = Color3.fromRGB(32, 34, 42), trim = Color3.fromRGB(240, 244, 248),
-		material = Enum.Material.SmoothPlastic, transparency = 0,
-		pattern = {
-			kind = "spots", seed = 29,
-			colour = Color3.fromRGB(244, 248, 252),
-			count = 10, size = 0.28, vary = 0.30,
-		},
+		-- The second skin on a texture pack, and the pair is deliberate: one
+		-- stripes, one spots, both live, with the other eight animals left on
+		-- the part-built `pattern` so the two can be compared on one street
+		-- rather than the whole bucket being converted on an argument.
+		-- `fur` IS THE RAISED RUFF, AND IT IS THE BODY'S OWN COLOUR ON
+		-- PURPOSE. It came off this skin once, when the lobes had no usable
+		-- UVs and could therefore only be a flat colour -- which on a
+		-- patterned coat is a PATCH whatever shade it is: cream read as white
+		-- blobs stuck on the animal, and the body's colour would have read as
+		-- a bald spot where the spots stop.
+		--
+		-- The lobe mesh is unwrapped on the BODY'S OWN CYLINDER now, so it
+		-- samples the same ColorMap at the same place and the pattern carries
+		-- straight over the fur. What is left for this field to do is the base
+		-- tone UNDER that pattern, which should match the body or the ruff
+		-- reads as a different animal stitched on. Give it its own value only
+		-- to deliberately make a contrasting mane.
+		surface = "animal_spots",
+		fur = Color3.fromRGB(232, 186, 110),
 	},
 
 	-- CHEST-ONLY. An explicit `rarity` and no `cost`, which is what keeps them
@@ -3513,21 +5738,43 @@ Config.SKINS = {
 	-- `Config.getSkinsOfRarity` selects on `rarity` and excludes only `set`.
 	tiger = {
 		chest = "animal",
-		name = "Bengal Tiger", order = 130, rarity = "legendary",
+		name = "Bengal Tiger", order = 130, rarity = "common",
 		body = Color3.fromRGB(238, 132, 36), trim = Color3.fromRGB(250, 240, 228),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
-		-- The most bands of anything here, the thinnest, and the most wobble:
-		-- nine narrow uneven stripes is what separates a tiger from a zebra at
-		-- a glance, and the arc is wider so they carry down both flanks.
-		pattern = {
-			kind = "stripes", seed = 31,
-			colour = Color3.fromRGB(32, 24, 22),
-			count = 8, width = 0.11, spread = 0.76, arc = 190, wobble = 0.55,
-		},
+		-- THE FIRST SKIN OFF THE PART-BUILT PATTERN AND ONTO A TEXTURE, and
+		-- the `pattern` spec above it is gone rather than kept alongside. The
+		-- built version drew eight bands out of PARTS: real geometry standing
+		-- proud of the body, which cost parts per pig and could only ever be
+		-- bands rather than the tapered wobbling shapes a tiger actually has.
+		-- The map draws fifteen, each with its own wobble and taper, for no
+		-- parts at all -- and it clears the eyes, which the part version could
+		-- not, because a stripe through an eye is the one place this stopped
+		-- reading as an animal.
+		--
+		-- `fur` IS THE THIRD COLOUR AND IT IS NOT OPTIONAL FOR A FURRED SKIN.
+		-- The lobes are their own MeshPart, so they cannot carry the body's
+		-- pattern map -- their UVs do not correspond to it. Left the body's
+		-- colour they read as orange lumps interrupting the stripes; in the
+		-- trim's cream they read as a ruff, which is what an animal has.
+		-- `fur` IS THE RAISED RUFF, AND IT IS THE BODY'S OWN COLOUR ON
+		-- PURPOSE. It came off this skin once, when the lobes had no usable
+		-- UVs and could therefore only be a flat colour -- which on a
+		-- patterned coat is a PATCH whatever shade it is: cream read as white
+		-- blobs stuck on the animal, and the body's colour would have read as
+		-- a bald spot where the spots stop.
+		--
+		-- The lobe mesh is unwrapped on the BODY'S OWN CYLINDER now, so it
+		-- samples the same ColorMap at the same place and the pattern carries
+		-- straight over the fur. What is left for this field to do is the base
+		-- tone UNDER that pattern, which should match the body or the ruff
+		-- reads as a different animal stitched on. Give it its own value only
+		-- to deliberately make a contrasting mane.
+		surface = "animal_stripes",
+		fur = Color3.fromRGB(238, 132, 36),
 	},
 	snowleopard = {
 		chest = "animal",
-		name = "Snow Leopard", order = 131, rarity = "legendary",
+		name = "Snow Leopard", order = 131, rarity = "common",
 		body = Color3.fromRGB(228, 234, 244), trim = Color3.fromRGB(150, 164, 184),
 		material = Enum.Material.Glass, transparency = 0,
 		-- The marks stay PLASTIC on a glass body. Glass at 0.28 would make the
@@ -3540,12 +5787,64 @@ Config.SKINS = {
 			material = Enum.Material.SmoothPlastic, transparency = 0.08,
 		},
 	},
+	-- THE ONLY LEGENDARY ON THIS SHELF, AND THE ONLY ONE THAT MEETS THE
+	-- TIER'S OWN BRIEF: it glows AND the glow moves. Everything else in the
+	-- Animal Kingdom is a painted coat, which is what a common is.
+	--
+	-- IT IS WEARING PAINT RATHER THAN ITS COAT, AND THAT IS PENDING AN UPLOAD
+	-- RATHER THAN A DECISION. `blender/pig/skins/stormwolf/` holds the built
+	-- skin -- a near-black marbled animal with forked lightning running
+	-- through it, baked through the alpha pass so the bolt CHANNEL is handed
+	-- to the animator and the core stays baked. What is missing is the one
+	-- thing this repo cannot do for itself: the sheet has to be published
+	-- under the developer's own account, and every upload is moderated.
+	--
+	-- WHEN IT LANDS IT IS ONE FIELD. Add `surface = "stormwolf"` here and a
+	-- `SurfacePacks/stormwolf.model.json` beside the other five, exactly as
+	-- the tiger and the leopard already resolve. Until then `skinSurface`
+	-- returns nil for a skin naming no pack and the body paint below shows --
+	-- the same graceful-degradation contract `FUR_SETS.crest` keeps with its
+	-- empty id, and the reason an unfinished skin can sit in the catalogue
+	-- without erroring.
+	--
+	-- AND THE MATERIAL MAY NOT BE NEON OR GLASS, which is why a storm animal
+	-- is SmoothPlastic. `Config.skinSurface` refuses a pack to either, because
+	-- a part wearing a `SurfaceAppearance` ignores its own Material while
+	-- going on reporting it -- so a Neon Storm Wolf would silently lose its
+	-- coat the day the coat arrived.
+	--
+	-- PRICED, THOUGH NOTHING BUYS IT. `sellValue` applies its cap only to a
+	-- skin carrying a cost, so an unpriced legendary sells for the full tier
+	-- value of 1,000,000 out of a 500,000 chest -- a duplicate paying DOUBLE
+	-- the open, against this game's rule that a duplicate is always a real
+	-- loss. At 500,000 the cap bites at 125,000, which is 25% of an open and
+	-- lands inside the 21-35% band the sell ladder was measured for. A cost on
+	-- a crate-only skin is a SELL CEILING and nothing else now, because the
+	-- rarity beside it is explicit.
+	stormwolf = {
+		chest = "animal",
+		name = "Storm Wolf", order = 140, cost = 500000, rarity = "legendary",
+		-- The marble and the storm, straight off the Blender build's own
+		-- palette: a near-black animal is a silhouette with nothing in it, so
+		-- the dark is swirled blue-violet rather than flat.
+		body = Color3.fromRGB(48, 40, 74), trim = Color3.fromRGB(8, 8, 16),
+		material = Enum.Material.SmoothPlastic, transparency = 0,
+		-- FLICKER, BECAUSE IT IS LIGHTNING. The palette runs the bolt channel
+		-- from a deep storm blue to the near-white core -- which reads right
+		-- both ways round: on the bare paint the whole animal flickers, and
+		-- under the coat only the alpha-0 bolt channels do, because that is the
+		-- only place the part's own Color survives the overlay.
+		anim = { kind = "flicker", speed = 13, glow = 3.2, palette = {
+			Color3.fromRGB(44, 58, 112), Color3.fromRGB(240, 249, 255),
+		} },
+	},
 
 	-- ============================================================
 	-- THE NEON BUCKET
 	-- ============================================================
 	--
-	-- `chest = "neon"`. Every body here is Neon and every body here is DEEP,
+	-- THE NEON RUN, WHICH IS PART OF `og` NOW RATHER THAN A SHELF OF ITS OWN.
+	-- Every body here is Neon and every body here is DEEP,
 	-- which is the rule the Martian and the Marble Palace both paid for: Neon
 	-- renders a colour flat out and the BloomEffect takes it from there, so a
 	-- pale tint on a twelve-stud sphere is a white hole rather than a glowing
@@ -3563,8 +5862,8 @@ Config.SKINS = {
 	-- near-white or near-black -- a mid-tone would disappear for whichever
 	-- part of the cycle the body happened to pass through it.
 	cyberlime = {
-		chest = "neon",
-		name = "Cyber Lime", order = 200, cost = 12000,
+		chest = "og",
+		name = "Cyber Lime", order = 200, cost = 12000, rarity = "rare",
 		body = Color3.fromRGB(110, 200, 20), trim = Color3.fromRGB(48, 92, 10),
 		material = Enum.Material.Neon, transparency = 0,
 		anim = { kind = "pulse", speed = 1.2, palette = {
@@ -3572,8 +5871,8 @@ Config.SKINS = {
 		} },
 	},
 	neonmint = {
-		chest = "neon",
-		name = "Neon Mint", order = 201, cost = 40000,
+		chest = "og",
+		name = "Neon Mint", order = 201, cost = 40000, rarity = "rare",
 		body = Color3.fromRGB(36, 196, 146), trim = Color3.fromRGB(16, 92, 72),
 		material = Enum.Material.Neon, transparency = 0,
 		anim = { kind = "pulse", speed = 0.9, palette = {
@@ -3581,8 +5880,8 @@ Config.SKINS = {
 		} },
 	},
 	hotwire = {
-		chest = "neon",
-		name = "Hot Wire", order = 202, cost = 75000,
+		chest = "og",
+		name = "Hot Wire", order = 202, cost = 75000, rarity = "rare",
 		body = Color3.fromRGB(168, 26, 34), trim = Color3.fromRGB(72, 14, 18),
 		material = Enum.Material.Neon, transparency = 0,
 		-- Opaque marks on a 30%-transparent shell. Inheriting the body's own
@@ -3598,25 +5897,10 @@ Config.SKINS = {
 			Color3.fromRGB(168, 26, 34), Color3.fromRGB(226, 58, 40),
 		} },
 	},
-	circuit = {
-		chest = "neon",
-		name = "Circuit Board", order = 203, cost = 96000,
-		body = Color3.fromRGB(22, 96, 62), trim = Color3.fromRGB(10, 44, 30),
-		material = Enum.Material.Neon, transparency = 0,
-		pattern = {
-			kind = "stripes", seed = 43,
-			colour = Color3.fromRGB(196, 246, 120),
-			count = 6, width = 0.07, spread = 0.74, arc = 195,
-			transparency = 0,
-		},
-		anim = { kind = "pulse", speed = 0.6, palette = {
-			Color3.fromRGB(22, 96, 62), Color3.fromRGB(38, 140, 86),
-		} },
-	},
 
 	laserdream = {
-		chest = "neon",
-		name = "Laser Grid", order = 210, cost = 220000,
+		chest = "og",
+		name = "Laser Grid", order = 210, cost = 220000, rarity = "rare",
 		body = Color3.fromRGB(152, 24, 112), trim = Color3.fromRGB(68, 10, 52),
 		material = Enum.Material.Neon, transparency = 0,
 		pattern = {
@@ -3631,8 +5915,8 @@ Config.SKINS = {
 		} },
 	},
 	plasma = {
-		chest = "neon",
-		name = "Plasma Ball", order = 211, cost = 480000,
+		chest = "og",
+		name = "Plasma Ball", order = 211, cost = 480000, rarity = "rare",
 		body = Color3.fromRGB(86, 32, 180), trim = Color3.fromRGB(36, 14, 78),
 		material = Enum.Material.Neon, transparency = 0,
 		pattern = {
@@ -3646,8 +5930,8 @@ Config.SKINS = {
 		} },
 	},
 	vaporwave = {
-		chest = "neon",
-		name = "Vaporwave", order = 212, cost = 850000,
+		chest = "og",
+		name = "Vaporwave", order = 212, cost = 850000, rarity = "rare",
 		body = Color3.fromRGB(198, 44, 146), trim = Color3.fromRGB(56, 26, 110),
 		material = Enum.Material.Neon, transparency = 0,
 		pattern = {
@@ -3663,8 +5947,8 @@ Config.SKINS = {
 	},
 
 	synthwave = {
-		chest = "neon",
-		name = "Synthwave Sun", order = 220, cost = 1600000,
+		chest = "og",
+		name = "Synthwave Sun", order = 220, cost = 1600000, rarity = "rare",
 		body = Color3.fromRGB(214, 46, 84), trim = Color3.fromRGB(58, 20, 74),
 		material = Enum.Material.Neon, transparency = 0,
 		-- The one DARK trace in the bucket, and it is the reference: a
@@ -3682,8 +5966,8 @@ Config.SKINS = {
 		} },
 	},
 	ultraviolet = {
-		chest = "neon",
-		name = "Ultraviolet", order = 221, cost = 3200000,
+		chest = "og",
+		name = "Ultraviolet", order = 221, cost = 3200000, rarity = "rare",
 		body = Color3.fromRGB(58, 20, 140), trim = Color3.fromRGB(24, 8, 60),
 		material = Enum.Material.Neon, transparency = 0,
 		pattern = {
@@ -3697,8 +5981,8 @@ Config.SKINS = {
 		} },
 	},
 	gridrunner = {
-		chest = "neon",
-		name = "Gridrunner", order = 222, cost = 6000000,
+		chest = "og",
+		name = "Gridrunner", order = 222, cost = 6000000, rarity = "rare",
 		body = Color3.fromRGB(14, 84, 104), trim = Color3.fromRGB(6, 36, 48),
 		material = Enum.Material.Neon, transparency = 0,
 		pattern = {
@@ -3713,8 +5997,8 @@ Config.SKINS = {
 	},
 
 	hyperdrive = {
-		chest = "neon",
-		name = "Hyperdrive", order = 230, cost = 14000000,
+		chest = "og",
+		name = "Hyperdrive", order = 230, cost = 14000000, rarity = "legendary",
 		body = Color3.fromRGB(24, 58, 196), trim = Color3.fromRGB(10, 22, 86),
 		material = Enum.Material.Neon, transparency = 0,
 		-- Eleven hairline bands over almost the whole sphere: the read is
@@ -3731,7 +6015,7 @@ Config.SKINS = {
 		} },
 	},
 	singularity = {
-		chest = "neon",
+		chest = "og",
 		name = "Singularity", order = 231, rarity = "legendary",
 		-- CHEST-ONLY, like the tiger and the snow leopard. Near-black is a
 		-- deliberate abuse of Neon rather than an oversight: Neon at this
@@ -3749,7 +6033,181 @@ Config.SKINS = {
 			Color3.fromRGB(20, 6, 40), Color3.fromRGB(122, 52, 226),
 		} },
 	},
+
+	-- ---------------------------------------------------------- PASS SKINS
+	--
+	-- A `pass` FIELD IS AN EXCLUSION FIRST AND A LABEL SECOND, exactly as
+	-- `set` is. `Config.isEarnedElsewhere` keeps these out of the rebirth
+	-- drop pool, out of every chest, and out of the free-if-costless branch
+	-- that would otherwise unlock an unpriced skin for the entire server --
+	-- which is a bug this catalogue has actually shipped once, on the
+	-- Tractor Beam.
+	--
+	-- THEY CARRY A `rarity` AND NO `cost`, and both halves are load-bearing.
+	-- No cost, because a Robux purchase may hand over a named item and may
+	-- never mint the coins that would buy it -- printing a coin price on a
+	-- pass skin is that rule broken in the one place a player reads about
+	-- it. A rarity, because `Config.rarityOf` reads price when there is no
+	-- explicit tier, so without one these would border as `common`.
+	velvet = {
+		name = "Velvet Rope", order = 70, pass = "vip", rarity = "legendary",
+		-- Deep red and gold: the two colours a rope-and-stanchion actually
+		-- is, and the one pairing in this catalogue nothing else uses -- the
+		-- reds here are all warm pinks and the golds all sit on cream.
+		-- SmoothPlastic rather than Neon on purpose: every Neon skin in the
+		-- shop is bright, so the loudest thing a paid exclusive could do is
+		-- be the one that is deep.
+		body = Color3.fromRGB(122, 18, 38), trim = Color3.fromRGB(226, 178, 72),
+		material = Enum.Material.SmoothPlastic, transparency = 0,
+	},
+	firstday = {
+		name = "First Day", order = 71, pass = "starterPack", rarity = "rare",
+		-- RARE RATHER THAN LEGENDARY, and that is the starter pack knowing
+		-- its place. A pack sold to somebody in their first session must not
+		-- out-rank the thing sold to somebody in their thirtieth, or the
+		-- cheapest purchase in the game is also the best one and there is
+		-- nothing left to want.
+		body = Color3.fromRGB(96, 186, 232), trim = Color3.fromRGB(250, 246, 232),
+		material = Enum.Material.SmoothPlastic, transparency = 0,
+	},
 }
+
+-- ============================================================
+-- THE SKIN COLLECTION -- ONE SHAPE, READ BY EVERY MENU
+-- ============================================================
+--
+-- The shop grid, the inventory's collection log and anything else that lists
+-- skins all read THIS, so "how skins are grouped" is one answer rather than
+-- one per surface. That is the whole point: the grouping was about to be
+-- typed out twice, and two lists of categories drift the first time a crate
+-- is added -- which is the near-identical-copy fault this file records for
+-- the mini piggy, `Decor.buildOne` and `RideSound`.
+--
+-- IT IS DERIVED RATHER THAN TYPED, and that is what stops it going stale.
+-- A skin's `chest` field already says which themed pool it belongs to, so the
+-- categories ARE the distinct chest tags present on skins -- add a crate and
+-- tag some skins into it and a new collection appears in both menus with
+-- nothing to remember here. A hand-written list would have to be updated in
+-- lockstep with the catalogue, and the entry that gets missed is the one that
+-- lies.
+--
+-- THE TIER CRATES ARE EXCLUDED BY CONSTRUCTION, WHICH IS THE HALF A TYPED
+-- LIST WOULD HAVE GOT WRONG. `rarecrate` and `legendarycrate` draw ACROSS the
+-- themed pools -- their own comment calls them "every skin in the coin
+-- economy at rare or better" -- so they are ways to BUY a skin rather than
+-- collections to complete. No skin names them in its `chest` field, so
+-- walking the skins rather than the chests leaves them out without a rule.
+--
+-- FUNCTIONS RATHER THAN A TABLE, because this reads `Config.CHESTS`, which is
+-- declared three thousand lines below. A top-level table doing that is the
+-- forward reference that has taken this whole server down eleven times; a
+-- function body cannot run at module load and is safe by construction.
+local skinCollectionCache: any = nil
+
+-- Ordered collections, each with the crate that fills it and its own skins in
+-- catalogue order. Memoised, because both menus ask on every repaint.
+function Config.skinCollections(): any
+	if skinCollectionCache then
+		return skinCollectionCache
+	end
+
+	local byChest: any = {}
+	local loose: any = {}
+	for key, spec in pairs(Config.SKINS) do
+		local tag = spec.chest
+		if tag ~= nil then
+			byChest[tag] = byChest[tag] or {}
+			table.insert(byChest[tag], key)
+		else
+			table.insert(loose, key)
+		end
+	end
+
+	local function byOrder(a: string, b: string): boolean
+		local sa, sb = Config.SKINS[a], Config.SKINS[b]
+		return (sa.order or 0) < (sb.order or 0)
+	end
+
+	local out: any = {}
+	for tag, keys in pairs(byChest) do
+		local crate = Config.CHESTS[tag]
+		table.sort(keys, byOrder)
+		table.insert(out, {
+			key = tag,
+			-- THE CRATE'S OWN NAME, never a second one typed here. A category
+			-- called anything else would be a player reading "Animals" in
+			-- their collection and hunting for a crate called something they
+			-- have never seen.
+			name = (crate and crate.name) or tag,
+			tone = crate and crate.colour,
+			chest = tag,
+			order = (crate and crate.order) or 999,
+			skins = keys,
+		})
+	end
+	table.sort(out, function(a: any, b: any): boolean
+		return a.order < b.order
+	end)
+
+	-- EVERYTHING NO CRATE FILLS, LAST. The free starter skin, the rebirth
+	-- drops, the pass skins and the set skin. They belong in a collection log
+	-- -- they are skins somebody can be missing -- and they deliberately do
+	-- NOT point at a crate, because no crate can hand them over. `skinSource`
+	-- below is what a card shows instead.
+	if #loose > 0 then
+		table.sort(loose, byOrder)
+		table.insert(out, {
+			key = "special", name = "Special", chest = nil,
+			order = 1000, skins = loose,
+		})
+	end
+
+	skinCollectionCache = out
+	return out
+end
+
+-- Which collection a skin sits in, or nil for a key that is not a skin.
+function Config.skinCollectionOf(key: string): any
+	for _, group in ipairs(Config.skinCollections()) do
+		for _, k in ipairs(group.skins) do
+			if k == key then
+				return group
+			end
+		end
+	end
+	return nil
+end
+
+-- WHERE A SKIN YOU DO NOT OWN COMES FROM, in one short line a card can print.
+--
+-- Returns the sentence AND the crate key, so a caller can both SAY it and
+-- ACT on it -- the inventory sends the crate key to the shop's Crates tab and
+-- prints the sentence underneath. A nil crate key means there is nothing to
+-- open, which is exactly the four sources a crate cannot supply.
+function Config.skinSource(key: string): (string, string?)
+	local spec = Config.SKINS[key]
+	if not spec then
+		return "", nil
+	end
+	if spec.unlockRebirths then
+		return ("Rebirth %d"):format(spec.unlockRebirths), nil
+	end
+	if spec.pass then
+		local pass = Config.PASSES and Config.PASSES[spec.pass]
+		return ((pass and pass.name) or "Game pass"), nil
+	end
+	if spec.set then
+		local set = Config.SETS and Config.SETS[spec.set]
+		return ((set and set.name) or "Event set"), nil
+	end
+	if spec.chest then
+		local crate = Config.CHESTS[spec.chest]
+		return ((crate and crate.name) or "A crate"), spec.chest
+	end
+	-- The free starter skin is the only thing that reaches here.
+	return "Yours already", nil
+end
+
 
 -- Named for what they actually look like. Roblox ships three particle
 -- textures; everything here is those three recoloured and retimed, so
@@ -3822,6 +6280,42 @@ Config.EFFECTS = {
 		-- is what turned the whole yard white on the first build.
 		light = { colour = Color3.fromRGB(72, 226, 160), brightness = 2.5, range = 18, kind = "steady" },
 	},
+
+	-- -------------------------------------------------------- PASS EFFECTS
+	--
+	-- Same exclusion as the pass skins above, honoured by the same
+	-- predicate. No `cost`, so a rarity is stated rather than derived.
+	spotlight = {
+		name = "Spotlight", order = 70, pass = "vip", rarity = "legendary",
+		texture = SPARK,
+		-- A NARROW WARM COLUMN, which is the one shape missing from this
+		-- table: everything else either falls, boils or scatters over a wide
+		-- cone. At spread 10 it reads as a beam standing on the pig rather
+		-- than as an aura around it.
+		color = ColorSequence.new(Color3.fromRGB(255, 250, 226), Color3.fromRGB(246, 206, 96)),
+		rate = 40, speed = NumberRange.new(6, 11), size = 1.8, lifetime = NumberRange.new(1.2, 1.8),
+		drag = 0.8, accel = Vector3.new(0, 9, 0), spread = 10, rotSpeed = 20,
+		-- Warm and modest. Two bright sources on one piggy compound, and this
+		-- one can sit on the Velvet Rope skin, which is deep -- so the light
+		-- is what makes that skin read at all rather than something fighting
+		-- it. Well under Inferno's 9 / 30 for the same reason the Tractor
+		-- Beam is.
+		light = { colour = Color3.fromRGB(255, 226, 158), brightness = 3.0, range = 20, kind = "steady" },
+	},
+	confetti = {
+		name = "Confetti", order = 71, pass = "starterPack", rarity = "rare",
+		texture = SPARK,
+		-- Falls, turns fast, and is the only multi-hue ramp in the table --
+		-- which is what says PARTY rather than says a colour. No light: the
+		-- starter pack does not out-shine the thing above it.
+		color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 226, 96)),
+			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(246, 118, 160)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(110, 196, 246)),
+		}),
+		rate = 24, speed = NumberRange.new(3, 6), size = 1.1, lifetime = NumberRange.new(1.4, 2.2),
+		drag = 1.2, accel = Vector3.new(0, -5, 0), spread = 120, rotSpeed = 220,
+	},
 }
 
 function Config.getSkin(key: string)
@@ -3830,6 +6324,216 @@ end
 
 function Config.getEffect(key: string)
 	return Config.EFFECTS[key] or Config.EFFECTS[Config.DEFAULT_EFFECT]
+end
+
+-- A SKIN'S OWN AURA: the particles a LEGENDARY throws off, which are part of
+-- the skin rather than something the player equipped.
+--
+-- `applyEffect` has always been driven by `cosmetics.effect` alone -- the
+-- player's own choice -- so a skin had no say. A legendary in the animal
+-- crate is meant to be a different KIND of object from an epic rather than a
+-- better picture of one, and this is the half of that which is not paint.
+--
+-- IT STACKS WITH THE EQUIPPED EFFECT RATHER THAN REPLACING IT. A player
+-- wearing Inferno and a legendary skin gets both. That is a deliberate call
+-- and the cost is stated: two emitters on one twelve-stud sphere is exactly
+-- the crowding this file records for four reward cards firing at once, and
+-- the rates want tuning once the pairs can be looked at.
+--
+-- **AN AURA CARRIES PARTICLES AND NEVER A LIGHT, AND THAT IS THE RULE THAT
+-- KEEPS STACKING AFFORDABLE.** A piggy already carries TWO PointLights --
+-- `Glow`, which EconomyService drives for vault fill and the skin animator
+-- tints, and `AuraLight`, which the equipped effect owns. A third inside one
+-- sphere is not a tuning problem, it is the entry above about a lamp at
+-- brightness 2.00 rendering the animal as a featureless white blob with no
+-- eyes, no snout and no legs. This file also already records that two bright
+-- sources COMPOUND, which is why a set effect that may sit on a Neon skin was
+-- given a weaker light than Inferno's -- written when a piggy could carry
+-- one. So an aura's `light`, if anybody ever writes one, is IGNORED: the
+-- glow of a legendary comes from its animated coat and its particles, and the
+-- lighting stays the equipped effect's business. A Neon body is therefore no
+-- worse off with an aura than without one.
+--
+-- It is an ORDINARY `Config.EFFECTS` KEY rather than a table of its own, so an
+-- aura cannot describe a particle system the effects catalogue could not, and
+-- anything learned tuning one is learned for both.
+function Config.skinAura(tier: any)
+	if not tier or type(tier.aura) ~= "string" then
+		return nil
+	end
+	return Config.EFFECTS[tier.aura]
+end
+
+-- ============================================================
+-- CATCH EFFECTS
+-- ============================================================
+--
+-- THE THIRD KIND OF COSMETIC, AND THE FIRST ONE THAT LANDS ON SOMEBODY
+-- ELSE.
+--
+-- `Config.EFFECTS` is particles on your own PIGGY and `data.gear` is
+-- something worn on your own BODY. Both are seen by other people and
+-- neither is a thing you DO to them. A catch effect is a one-shot burst
+-- that fires on the THIEF at the moment you pull the loot back out of
+-- their hands.
+--
+-- IT FIRES ON THEM RATHER THAN ON YOU, WHICH IS THE WHOLE DESIGN AND IS
+-- ALSO WHAT MAKES IT WORTH BUYING. A cosmetic that plays on your own body
+-- during your own win is a cosmetic you cannot watch -- the camera is
+-- behind you and you are looking at the person you just caught. Every
+-- other cosmetic here is bought to be seen BY other people; this one is
+-- bought to be seen by its own owner, and the only way to do that is to
+-- put it over there.
+--
+-- THREE RULES, AND WITHOUT ANY ONE OF THEM THIS IS A HARASSMENT SURFACE.
+--
+-- 1. IT MAY NEVER CHANGE AN OUTCOME. No slow, no stun, no push, no
+--    collision, no query. The stun a nab applies is `STUN_SECONDS` and it
+--    belongs to the NAB; this is drawn on top of a thing that already
+--    happened. Same line the whole yard is built on -- every ornament is
+--    `CanCollide` and `CanQuery` false precisely so a purchase cannot
+--    body-block a chase -- and the trampoline's veto is the precedent for
+--    what it takes when a cosmetic wants to touch a mechanic at all.
+--
+-- 2. IT MAY NEVER OBSCURE THE OTHER PLAYER'S VIEW. Nothing here is a
+--    ScreenGui, a full-screen flash or a camera write: it is particles in
+--    the WORLD at the thief's own feet, so it is loudest to everybody
+--    watching and quietest to the person it is on. A burst that blinded
+--    the loser would be the one purchase in this game that made somebody
+--    else's screen worse, which is exactly what an under-12 audience must
+--    never be sold.
+--
+-- 3. IT EXPIRES WITH `Config.STUN_SECONDS`. The nab holds the thief still
+--    for that long and then gives them their legs back; an effect that
+--    outlived it would be a mark following somebody who is already
+--    running again, which reads as a tag rather than as a flourish.
+--    DERIVED rather than pinned, so retuning the stun carries the effect
+--    with it -- the same call the arrest scene makes about its own length.
+--
+-- COINS BUY THESE, AND THAT IS NOT A CONCESSION. Coins are not purchasable
+-- with Robux at any price, so a coin route keeps this catalogue outside the
+-- paid-random-item rule entirely and keeps the spirit of
+-- nothing-locked-behind-money. What a pass may later add is MORE of them,
+-- never the only ones.
+--
+-- THE PRICE SPREAD IS AUTHORED DELIBERATELY, BECAUSE A MISSING SPREAD IS
+-- THE EXACT REASON THE EFFECTS TAB STILL HAS A BUY BUTTON. Measured there:
+-- five buyable effects at 15K / 40K / 90K / 220K / 600K against
+-- `RARITY_BANDS` is three commons and two rares -- no epic, no legendary,
+-- and the top end is the entire reason a crate is ever opened. These five
+-- span all four tiers by construction (60K / 250K / 1.2M / 3M / 12M), so a
+-- catch-effect chest is a row in `Config.CHESTS` whenever one is wanted
+-- rather than a re-pricing exercise first.
+--
+-- THE SHAPE IS `Config.EFFECTS`' SHAPE ON PURPOSE. Same texture, colour,
+-- speed, lifetime, spread, accel and rotSpeed fields, so the shop's
+-- particle simulation renders one of these with no second implementation --
+-- the near-identical copy this file keeps recording as the thing that
+-- drifts. What is added is `burst`, because an aura is a RATE and this is a
+-- COUNT: an emitter that runs forever against one that goes off once.
+Config.DEFAULT_CATCH = "none"
+
+-- The attribute pair the server writes on a thief's character and every
+-- client renders from. A COUNTER as well as a key, for the reason
+-- `DodgeRoll` is a counter rather than a flag: an attribute set twice
+-- fires one changed signal, so nabbing the same person twice in a session
+-- would animate once.
+Config.CATCH_ATTRIBUTE = "CatchFX"
+Config.CATCH_COUNT_ATTRIBUTE = "CatchFXCount"
+
+Config.CATCH_EFFECTS = {
+	-- Everybody owns this and it is not nothing: a nab still has its own
+	-- sound, its own toast and the loot visibly leaving. None is the
+	-- unadorned version of an event that already happens.
+	none = { name = "None", order = 1, cost = 0 },
+
+	-- COMMON. Brown-grey, heavy, falling -- the cheapest thing that can
+	-- happen to somebody, and the only one in the set with no colour in it.
+	dust = {
+		name = "Dust Cloud", order = 2, cost = 60000, texture = SMOKE,
+		color = ColorSequence.new(Color3.fromRGB(206, 190, 168), Color3.fromRGB(122, 106, 88)),
+		rate = 20, burst = 26, speed = NumberRange.new(3, 7), size = 4.2,
+		lifetime = NumberRange.new(0.5, 1.0), drag = 3.5, accel = Vector3.new(0, -6, 0),
+		spread = 180, rotSpeed = 24,
+	},
+
+	-- RARE. The loot coming back out of them, which is literally what a nab
+	-- IS -- so this is the one in the set that describes the mechanic rather
+	-- than decorating it. Gold, thrown up, falling under its own gravity.
+	coins = {
+		name = "Coin Shower", order = 3, cost = 250000, texture = SPARK,
+		color = ColorSequence.new(Color3.fromRGB(255, 238, 168), Color3.fromRGB(226, 168, 44)),
+		rate = 34, burst = 34, speed = NumberRange.new(8, 15), size = 1.5,
+		lifetime = NumberRange.new(0.8, 1.4), drag = 0.6, accel = Vector3.new(0, -22, 0),
+		spread = 55, rotSpeed = 120,
+	},
+
+	-- EPIC. Slow, round and pink, drifting UP -- the one in the set that is
+	-- gentle, which is the joke: the loudest thing you can do to somebody is
+	-- not always the funniest.
+	bubbles = {
+		name = "Bubble Trouble", order = 4, cost = 1200000, texture = SPARK,
+		color = ColorSequence.new(Color3.fromRGB(255, 236, 248), Color3.fromRGB(246, 152, 206)),
+		rate = 22, burst = 24, speed = NumberRange.new(2, 5), size = 2.6,
+		lifetime = NumberRange.new(1.4, 2.2), drag = 1.6, accel = Vector3.new(0, 4, 0),
+		spread = 180, rotSpeed = 18,
+	},
+
+	-- EPIC. The patrol's own blue, in the hands of somebody who is not the
+	-- patrol. It carries a light, and the light is BLUE alone rather than
+	-- the red-and-blue pair a real one would use: two saturated hues at this
+	-- brightness read as one white smear, which is the palace colonnade's
+	-- own lesson arriving on a particle.
+	sirens = {
+		name = "Blue Lights", order = 5, cost = 3000000, texture = SPARK,
+		color = ColorSequence.new(Color3.fromRGB(214, 236, 255), Color3.fromRGB(56, 118, 246)),
+		rate = 46, burst = 40, speed = NumberRange.new(6, 13), size = 2.0,
+		lifetime = NumberRange.new(0.7, 1.3), drag = 1.0, accel = Vector3.new(0, 3, 0),
+		spread = 90, rotSpeed = 60,
+		light = { colour = Color3.fromRGB(96, 150, 255), brightness = 6, range = 22 },
+	},
+
+	-- LEGENDARY, and the top of a catalogue should be the loudest thing in
+	-- it. A white-hot upward blast with a light on it. Deliberately the only
+	-- entry over ten million, so this ladder has a real legendary rather
+	-- than a dear epic -- which is the half `Config.EFFECTS` never had.
+	thunder = {
+		name = "Thunderclap", order = 6, cost = 12000000, texture = FIRE,
+		color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(120, 176, 255)),
+		rate = 80, burst = 60, speed = NumberRange.new(12, 24), size = 3.0,
+		lifetime = NumberRange.new(0.5, 1.1), drag = 0.4, accel = Vector3.new(0, 10, 0),
+		spread = 40, rotSpeed = 150,
+		light = { colour = Color3.fromRGB(190, 220, 255), brightness = 9, range = 28 },
+	},
+
+	-- ------------------------------------------------------- PASS EXCLUSIVE
+	--
+	-- FLASHBULBS, AND IT IS THE ONE THAT WRITES ITSELF. This game already
+	-- opens its arrest scene with a camera flash and a mugshot card, so a
+	-- press pack going off on somebody you have just caught is a picture
+	-- the street has already been taught to read -- and it is the only
+	-- entry here that is about the CATCHER rather than about the loot.
+	--
+	-- Short, white and hard: real flashes are over before you have turned
+	-- round. 0.35 at the top of the range against the catalogue's next
+	-- shortest at 0.5, which is what makes it read as pops rather than as
+	-- a cloud.
+	paparazzi = {
+		name = "Paparazzi", order = 70, pass = "vip", rarity = "legendary",
+		texture = SPARK,
+		color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(214, 226, 255)),
+		rate = 60, burst = 30, speed = NumberRange.new(1, 4), size = 3.4,
+		lifetime = NumberRange.new(0.18, 0.35), drag = 4.0, accel = Vector3.new(0, 2, 0),
+		spread = 180, rotSpeed = 0,
+		-- A single hard white pop. It is the shortest light in the game by a
+		-- distance -- see LIGHT_SECONDS in CatchFX, which fades every one of
+		-- these over 0.55 -- and that is the whole read.
+		light = { colour = Color3.fromRGB(255, 255, 255), brightness = 10, range = 24 },
+	},
+}
+
+function Config.getCatchEffect(key: string)
+	return Config.CATCH_EFFECTS[key] or Config.CATCH_EFFECTS[Config.DEFAULT_CATCH]
 end
 
 -- A skin is available if it's free, already bought, or earned by rebirths.
@@ -3877,15 +6581,17 @@ Config.RARITY_COLOURS = {
 -- handful of table allocations this costs.
 -- The REBIRTH DROP POOL, and its only caller is CosmeticsService.
 --
--- A SET SKIN IS NEVER A DROP. Set items carry a rarity like everything else,
--- because the shop borders every card with one -- but rarity is also what
--- puts a skin in this pool, so the Martian would have started falling out of
--- rebirths for players who had never seen an invasion. `set` is the
--- exclusion, and this is one of exactly two places it has to be honoured.
+-- A SET SKIN IS NEVER A DROP, AND NEITHER IS A PASS SKIN. Both carry a
+-- rarity like everything else, because the shop borders every card with
+-- one -- but rarity is also what puts a skin in this pool, so the Martian
+-- would have started falling out of rebirths for players who had never
+-- seen an invasion, and a VIP skin would fall out of them for players who
+-- never bought the pass. `Config.isEarnedElsewhere` is the exclusion, and
+-- this is one of the places it has to be honoured.
 function Config.getSkinsOfRarity(rarity: string): { string }
 	local out = {}
 	for key, skin in pairs(Config.SKINS) do
-		if skin.rarity == rarity and not skin.set then
+		if skin.rarity == rarity and not Config.isEarnedElsewhere(skin) then
 			table.insert(out, key)
 		end
 	end
@@ -3916,6 +6622,43 @@ function Config.rollRarity(rebirths: number, sinceLegendary: number, rng: Random
 	return "rare"
 end
 
+-- ONE QUESTION ASKED IN TEN PLACES: DOES THIS ITEM HAVE A SOURCE THAT IS
+-- NOT THE COIN SHOP?
+--
+-- It was written out longhand as `not spec.set` at every one of those
+-- sites, which was correct while `set` was the only other source. A Robux
+-- pass is the second, and adding `and not spec.pass` ten times is exactly
+-- the shape of change this file has a post-mortem about: the raw
+-- `"LockLevel"` string had four readers where it looked like two, and
+-- converting some of them would have been WORSE than converting none --
+-- a missed site does not error, it reads nil and falls through to the
+-- wrong branch, silently, forever.
+--
+-- TWO DIFFERENT QUESTIONS RESOLVE TO THIS ONE PREDICATE, and it is worth
+-- being exact about both because they fail in opposite directions:
+--
+--   MAY IT COME OUT OF A RANDOM POOL? The rebirth drop, the accessory
+--   roll and the chest pools. A pass skin falling out of a rebirth would
+--   hand a paid exclusive to somebody who never paid.
+--
+--   IS IT FREE BECAUSE IT HAS NO PRICE? Everything earned elsewhere is
+--   unpriced in coins, and `(nil or 0) <= 0` is TRUE -- which is the hole
+--   that once unlocked the Tractor Beam for every player in the server
+--   from their first second. A pass item is unpriced for the same reason
+--   and would go the same way.
+--
+-- AND THE THIRD SOURCE WAS EXACTLY ONE LINE, WHICH IS THIS FUNCTION
+-- BEING PAID FOR. A trophy is EARNED -- by robbing, by stopping a thief,
+-- by outrunning a patrol -- so it is unpriced in coins like everything
+-- else here, and both halves above apply to it unchanged: a Victim Shelf
+-- falling out of a crate would hand over a record of robberies nobody
+-- committed, and `(nil or 0) <= 0` would have made all four free.
+--
+-- SO THE NEXT SOURCE IS ONE LINE HERE RATHER THAN TEN SITES. That is the
+-- whole argument for the function existing.
+function Config.isEarnedElsewhere(spec: any): boolean
+	return spec ~= nil and (spec.set ~= nil or spec.pass ~= nil or spec.trophy ~= nil)
+end
 function Config.isSkinUnlocked(key: string, owned: { [string]: boolean }, rebirths: number): boolean
 	local skin = Config.SKINS[key]
 	if not skin then
@@ -3928,11 +6671,12 @@ function Config.isSkinUnlocked(key: string, owned: { [string]: boolean }, rebirt
 	-- Without this, every legendary would be unlocked for everyone from the
 	-- first second, because the fallback below treats cost 0 as unlocked.
 	--
-	-- `set` is here for the same reason and stated separately rather than
-	-- leaning on `rarity`: a set skin is priced in MEDALS, so it also has no
-	-- `cost`, and a future set item authored without a rarity would fall
-	-- straight through to the free branch.
-	if skin.rarity or skin.set then
+	-- `isEarnedElsewhere` is here for the same reason and stated separately
+	-- rather than leaning on `rarity`: a set skin is priced in LOOT and a
+	-- pass skin is priced in Robux, so neither has a `cost`, and either one
+	-- authored without a rarity would fall straight through to the free
+	-- branch below.
+	if skin.rarity or Config.isEarnedElsewhere(skin) then
 		return owned[key] == true
 	end
 	return (skin.cost or 0) <= 0 or owned[key] == true
@@ -3942,14 +6686,55 @@ end
 -- PLOTS
 -- ============================================================
 
--- Two rows of six facing each other across a street, not a solid block.
+-- Two rows facing each other across a street, not a solid block.
 --
 -- The block was quietly unfair: in a 4x3 grid the two interior plots had four
 -- adjacent neighbours and the corners had two, so how often you got robbed
 -- was decided by what time you happened to log in. Facing rows give every
 -- plot the same exposure -- two beside, one across -- and put a full piggy
 -- permanently in your eyeline, which is the read the whole game runs on.
--- FOUR A SIDE, AND EIGHT PLAYERS.
+-- FIVE A SIDE AGAINST EIGHT PLAYERS, SO TWO HOUSES CAN NEVER BE MOVED INTO.
+--
+-- THIS IS THE SUPPLY FLOOR, AND IT IS THE HALF `SHOPS` COULD NOT BUY.
+-- Residents are seated on UNCLAIMED plots, so the number of robbable NPC
+-- houses is `PLOT_COUNT - players online` and reaches zero the moment the
+-- cap and the plot count are equal -- see MAX_PLAYERS for the measurement
+-- that forced the shops, and RESIDENT_FLOOR for what is left standing. The
+-- shops fixed the CLIFF; they did not stop the whole non-player supply of
+-- this economy being four pigs on a busy street, which is the open risk
+-- `docs/MASTER-PLAN.md` Part III D4 records as *eight thieves working four
+-- shops will drain them*.
+--
+-- One column a side puts two permanent resident houses behind those four
+-- shops at EVERY population, and it costs no players. That is the trade this
+-- design has always preferred: the entry under MAX_PLAYERS records at length
+-- that capping the server to buy supply spends the one resource a busy street
+-- is made of.
+--
+-- IT IS TWO CONSTANTS BECAUSE THE DERIVATION WAS ALREADY WRITTEN FOR IT.
+-- `RESIDENT_FLOOR` is `SHOP_COUNT + math.max(0, PLOT_COUNT -
+-- MAX_PLAYERS)` and `auditRobbery` sweeps population off the same pair, so
+-- that second term has been sitting at zero waiting for this rather than
+-- needing to be invented.
+--
+-- AND AN ODD COUNT IS FINE, WHICH A STALE RULE SAID IT WAS NOT. This file
+-- used to state that the count "has to be EVEN, because that is what gives
+-- the slot grid a true middle to leave empty" -- and that middle gap was
+-- removed the day the town square moved onto the verge (*A ROW IS CONTINUOUS,
+-- AND THE HOLE IN THE MIDDLE OF IT LASTED ONE PASS*). Verified rather than
+-- trusted: `plotColumnX` centres on `(PLOTS_PER_ROW - 1) / 2`, so five
+-- columns simply put one at x 0, and every other reader -- `plotCFrame`'s
+-- row/column split, `streetMetrics.endX`, the street-tree veto's own
+-- `perRow - 1` and `perRow - 2` loops -- is derived from the same number.
+--
+-- WHAT IT COSTS IS THE WALK, AND THAT IS A DECISION MADE ONCE ALREADY IN THE
+-- OTHER DIRECTION. The history below is kept because it is the argument this
+-- reopens: the map was cut from six a side to four because the corner-to-
+-- corner walk was twenty-one seconds, and `PLOT_SPACING` has grown 64 -> 80
+-- since, so a column is dearer now than it was then. The row span goes 240 to
+-- 320 studs. One column back is a small version of a cut that was made for
+-- good reasons, and the thing to watch is whether the street reads as long
+-- again rather than whether the audit passes.
 --
 -- It was six a side and twelve, and the map that made was too big for what
 -- happens on it. Measured before the cut: the far corner of one row to the
@@ -3967,13 +6752,727 @@ end
 -- What it COSTS is rides. The walk between plots is what a ride is sold
 -- against, and halving the street halves that. Four a side rather than three
 -- is where that argument stopped.
-Config.PLOTS_PER_ROW = 4
+Config.PLOTS_PER_ROW = 5
 
 -- DERIVED, AND IT HAS TO BE. These were two independent constants, and
 -- `plotCFrame` puts row 0 at -z and EVERYTHING ELSE at +z -- so setting the
 -- per-row count without the total would have built plots 9..12 silently on
 -- top of 5..8, in the same place, with nothing in the log to say so.
 Config.PLOT_COUNT = Config.PLOTS_PER_ROW * 2
+
+-- A VAULT IN EVERY SHOP, AND IT IS THE SUPPLY FLOOR THIS ECONOMY NEVER HAD.
+-- See `MAX_PLAYERS` for the measurement that forced it: resident houses are
+-- seated on UNCLAIMED plots, so the one thing every robbery figure in this
+-- game is measured against runs out exactly as the server fills up, and PvP
+-- cannot take over because `LOSS_CAP` caps the whole street's theft budget
+-- however many people are standing on it.
+--
+-- AND IT IS NO LONGER A PIGGY BANK, WHICH IS A RULE THIS PROJECT SPENT ON
+-- PURPOSE RATHER THAN FORGOT.
+--
+-- What stood here was a twelve-stud pig on a paving apron, and the entry
+-- justifying it said in as many words that a shop target was allowed ONLY
+-- because nothing new had been invented to rob: the same hatch, the same
+-- crack, the same coin pile, the same rob badge. That was true and the
+-- picture it bought was wrong -- a shop with its own piggy bank standing
+-- outside it reads as a game object parked on a pavement rather than as a
+-- place, and four of them read as it four times.
+--
+-- So the noun is spent. There are two kinds of thing to rob in this game
+-- now: a piggy bank on a lawn, and a vault in a shop. What is bought is that
+-- the shops stop being furniture with a target bolted to the front; what is
+-- spent is the one-noun rule, and it may not be spent a third time without
+-- an argument at least this long.
+--
+-- WHAT IT DID NOT SPEND IS THE PLOT, WHICH IS WHY IT COST SO LITTLE.
+-- `plot.shop` is still the whole implementation and `PlotService.assign`
+-- still skips anything carrying one, so `ResidentService` seats a shopkeeper
+-- at boot and is never asked to evict them. Everything a robbery touches is
+-- keyed off a plot: the steal prompt, the rob badge, the published pile, the
+-- lock attribute, the per-victim cooldown id, casing, the crack, the
+-- drop-off and the rap sheet. THIS CHANGE MOVED GEOMETRY, NOT A TARGET TYPE.
+--
+-- WHAT A SHOP DELIBERATELY DOES NOT HAVE IS A DOG OR A FENCE, and that is
+-- what pays for the short run home. The vault stands on the back wall of the
+-- unit, which is the side facing the HOUSES -- so going inside moves the
+-- target CLOSER to every drop-off on the street rather than further from it
+-- (see `shopVaultRunStuds`, where that reversed a plan written the other way
+-- round). A shop is the FAST, CHEAP, LOUD target -- nothing to get past, a
+-- smaller pig, and an alarm that brings the patrol rather than a defender --
+-- and a house stays the slow, rich, quiet one. That is variety INSIDE the
+-- loop, which is the one thing nothing else was solving.
+--
+-- THE PLACEMENT LIVES HERE AND NOWHERE ELSE, and it did not used to.
+-- `NeighborhoodService` carried its own `gap`, `side` and `name` for each of
+-- the four units while this table carried the same three for each till --
+-- two copies of one arrangement, which cost nothing for as long as the pig
+-- stood on the forecourt and could be a stud out without anybody noticing.
+-- It cannot now: the vault stands INSIDE the unit, so a table that disagreed
+-- by one gap would put a robbable vault in an empty patch of verge and leave
+-- the shop next door with nothing in it. Style, colour and window display
+-- stay over there, keyed by `tab`; where a unit STANDS is decided here.
+Config.SHOPS = {
+	{ tab = "piggy", gap = 0, side = 1, name = "PIGGY OUTFITTERS" },
+	{ tab = "home", gap = 2, side = 1, name = "HOME & GARDEN" },
+	{ tab = "gear", gap = 0, side = -1, name = "WHEELS & KIT" },
+	{ tab = "defend", gap = 2, side = -1, name = "LOCK & KEY" },
+}
+
+Config.SHOP_COUNT = #Config.SHOPS
+
+-- THE SHELL, AND THE ROOM INSIDE IT, live further down beside
+-- `Config.PLOT_SIZE` -- see `Config.SHOP_UNIT`. They belong HERE, and they
+-- cannot be here: the interior floor is a plot slab, so `floorY` is derived
+-- from that constant, and a Config field that forward-references another
+-- Config field throws while this module is still loading rather than limping
+-- the way a nil global does. Eleventh forward reference in this project and
+-- the second on a table field.
+
+-- HOW MUCH LESS A SHOP PAYS PER SECOND THAN A HOUSE DOES, and it is the one
+-- number here that is a judgement rather than a derivation. Everything else
+-- about a vault's pig falls out of it -- see `Config.shopVaultPigSeconds`.
+--
+-- IT IS LITERALLY THE COINS-PER-SECOND RATIO, which is worth stating because
+-- it makes the dial legible. A haul is a share of the pig and the pig is
+-- `pigSeconds` of income, so a target's coins per second is
+-- `pigSeconds / cycle` -- and `shopVaultPigSeconds` is defined as a house's
+-- scaled by the ratio of the two cycles TIMES this. The cycles cancel. A
+-- shop pays exactly this fraction of what a house pays, at every level and
+-- every rebirth.
+--
+-- IT WAS 0.85 AND THE RISK ARGUMENT ALWAYS WANTED LESS. A shop has no dog to
+-- get past and the carry home is 1.91 seconds against a house's 4.42, so a
+-- thief is exposed for 43% as long on the leg that matters and it should pay
+-- about that share. The old entry recorded that the economy could not afford it: at a
+-- FULL server the shops were the entire non-player supply, so their rate WAS
+-- the floor, and `ROBBERY_ADVANTAGE.min` of 3.0x bottomed out at a discount
+-- of about 0.73.
+--
+-- THAT CONSTRAINT WAS LOOSENED BY SOMETHING ELSE ENTIRELY, WHICH IS THE
+-- INTERESTING HALF. `PLOTS_PER_ROW` went 4 -> 5, so a full server now has
+-- TWO permanent resident houses behind the four shops rather than none --
+-- and those two carry the floor while the shops are free to be worth less.
+-- Measured at eight players (2 houses + 4 shops), cold: 0.85 gives 3.74x,
+-- 0.70 gives 3.36x, 0.65 gives 3.23x and 0.60 gives 3.11x against a floor of
+-- 3.0. So the premium risk actually asks for is affordable now, and it was
+-- bought by a column of plots rather than by this dial.
+--
+-- 0.70 rather than the 0.60 the audit would still pass, because the skew
+-- check refuses anything under 0.60 outright and sitting on a floor is not a
+-- margin. It lands at 3.36x with 12% of headroom.
+Config.SHOP_VAULT_DISCOUNT = 0.70
+
+-- The seconds of its own income a shop vault holds, against
+-- `RESIDENTS.pigSeconds` for a house.
+--
+-- DERIVED FROM THE TWO CYCLES RATHER THAN PINNED, and the first version of
+-- this was pinned and was wrong by 62%. It was set to 110 on the reasoning
+-- that the run home is about half a house's, so the pig should be about half
+-- -- and a cycle is not a run. `CRACK.openHold` plus five sweeps of the dial
+-- is most of a robbery and does not care how far anybody walked, so a pig
+-- priced off the run made a target strictly worse than the one beside it,
+-- which nobody would ever choose. `auditRobbery` caught it on the first boot
+-- after it was written.
+function Config.shopVaultPigSeconds(): number
+	local houseCycle = Config.robberyCycleSeconds(Config.CRACK.maxSteps)
+	local shopCycle = Config.robberyCycleSeconds(Config.CRACK.maxSteps, Config.shopVaultRunStuds())
+	return Config.RESIDENTS.pigSeconds * (shopCycle / houseCycle) * Config.SHOP_VAULT_DISCOUNT
+end
+
+-- The centre of a driveway gap, which is where a shop stands.
+-- `NeighborhoodService` has its own local doing exactly this; both read
+-- `plotColumnX`, so they cannot drift, and this exists so `Config` can answer
+-- the question without requiring anything.
+function Config.shopGapX(gap: number): number
+	return (Config.plotColumnX(gap) + Config.plotColumnX(gap + 1)) / 2
+end
+
+-- WHERE A SHOP UNIT STANDS, and therefore where its plot does.
+--
+-- The unit and the plot inside it share one frame to the stud: the plot
+-- origin is the room's own centre, so `buildShopPlot` authors the floor, the
+-- vault and the shopkeeper in exactly the coordinates `ShopFront` builds the
+-- walls in. Two frames would be two chances to put a vault through a wall,
+-- and the wall does not collide, so nothing would ever have said so.
+--
+-- The one conversion to remember: this frame's y is the PLOT's, half a slab
+-- above the pavement `ShopFront` measures its own bands from.
+function Config.shopUnitCFrame(spec: { gap: number, side: number }): CFrame
+	local m = Config.streetMetrics()
+	-- Authored facing +Z like everything else here, so the far verge turns a
+	-- half circle to look back across the road and the near one takes none.
+	local yaw = if spec.side > 0 then math.pi else 0
+	return CFrame.new(Config.shopGapX(spec.gap), 0, spec.side * m.shopZ)
+		* CFrame.Angles(0, yaw, 0)
+end
+
+-- IS SOMEBODY ACTUALLY IN THE SHOP, and it is what makes "robbed by going
+-- inside" true rather than decorative.
+--
+-- A ProximityPrompt measures to a PART'S CENTRE, so a vault standing on a
+-- back wall 0.8 studs thick is two studs from the grass behind the building
+-- -- and there is no activation distance that admits a twelve-stud room and
+-- excludes a strip right behind its rear wall. Line of sight is not the
+-- escape it looks like either: the check runs from the CAMERA, and a
+-- third-person camera sits ten studs behind a player who has just stepped
+-- inside, so it would refuse the one player standing exactly where they are
+-- meant to be.
+--
+-- So the ROOM is the range. A rectangle in the unit's own frame, tested
+-- against where the thief is standing, checked at the moment an attempt
+-- opens and polled for as long as it runs -- the same shape as the crack's
+-- own range binding, which already ends an attempt when somebody walks away.
+--
+-- THE REFUSAL IS NAMED, not silent. A prompt that offers an action the
+-- server will refuse is the silent-failure rule wearing a button, and this
+-- one has an answer a nine-year-old can act on: go in.
+--
+-- The slack is a stud and a half so the threshold counts. The doorway sits
+-- at the room's own front edge, and a rule that refused somebody standing in
+-- the door would read as the shop being shut.
+Config.SHOP_ROOM_SLACK = 1.5
+
+-- WHAT HOLDS A PLOT'S MONEY, WHICHEVER OF THE TWO IT IS, and it exists
+-- because the CLIENT finds that object by NAME.
+--
+-- The server never had this problem: `plot.piggy` is one field and
+-- `PiggyBank.buildVault` returns the same `Refs` a piggy does, so fourteen
+-- readers there never learned there were two kinds. The client has no plot
+-- record at all -- it is handed a Model out of `workspace.Plots` and has to
+-- go looking -- and it was looking for `PiggyBank` and `Body` by name in
+-- THREE places: the steal prompt, the rob badge and the skin animator.
+--
+-- MEASURED, AND IT SHIPPED BROKEN FOR EXACTLY ONE PLAY SESSION. A shop's
+-- money is a `ShopVault`, so `bindPlot` waited ten seconds for a child that
+-- was never coming and returned: the steal prompt on all four shop vaults
+-- stayed `Enabled = false` forever, which is a target nobody can rob and
+-- nothing anywhere to say so. That is the `"LockLevel"` lesson from the
+-- other end -- an interface with no compiler behind it, found by pressing
+-- the thing rather than by reading it.
+--
+-- So the two names live HERE and nowhere else, and the part inside is `Body`
+-- on both so no caller ever has to know a second one. The skin animator is
+-- deliberately NOT a caller: it wants the pig specifically, because a vault
+-- has no skin to cycle.
+--
+-- It WAITS, because a plot's children replicate after the plot does and a
+-- caller polling on its own would be a fourth copy of this.
+Config.PLOT_BANK_NAMES = { "PiggyBank", "ShopVault" }
+
+function Config.waitForPlotBank(plotModel: Instance, timeout: number): Instance?
+	local deadline = os.clock() + timeout
+	while true do
+		for _, name in ipairs(Config.PLOT_BANK_NAMES) do
+			local found = plotModel:FindFirstChild(name)
+			if found then
+				return found
+			end
+		end
+		if os.clock() >= deadline then
+			return nil
+		end
+		task.wait(0.1)
+	end
+end
+
+function Config.shopRoomHolds(unitCF: CFrame, position: Vector3): boolean
+	local u = Config.SHOP_UNIT
+	local inside = unitCF:PointToObjectSpace(position)
+	return math.abs(inside.X) <= u.roomWidth / 2 + Config.SHOP_ROOM_SLACK
+		and math.abs(inside.Z) <= u.roomDepth / 2 + Config.SHOP_ROOM_SLACK
+end
+
+-- WHAT A CLEAN CRACK ON A SHOP VAULT HANDS OVER BESIDES COINS.
+--
+-- PER COMPLETED RUN, never per slice and never per attempt. The crack is a
+-- greed dial and its whole shape is that staying in is a decision; a drop
+-- per slice would pay for bailing out, which is the one thing it must not
+-- reward.
+--
+-- NO LEGAL QUESTION, and it is worth writing down that there is not one.
+-- Coins are not purchasable with Robux at any price, so this is an ordinary
+-- in-game reward for in-game effort exactly like a chest: no odds
+-- disclosure, no `PolicyService` gate, no regional lockouts. That is the
+-- rule under "COINS ARE NOT PURCHASABLE" doing its work.
+-- THE SHOPKEEPER, WHO IS THE SHOP'S GUARD DOG.
+--
+-- `applyLevel`'s `plot.shop` branch ladders ONLY the Vault Lock -- no fence,
+-- no dog, no house -- so a shop has ONE defence where a house has four. That
+-- is deliberate and it is what makes a shop the fast, cheap, loud target. It
+-- also left the figure behind the counter watching a robbery and doing
+-- nothing, which `docs/MASTER-PLAN.md` Part III D2 calls worse than not being there
+-- at all.
+--
+-- THIS IS NOT A FOURTH DEFENCE, IT IS THE SECOND ONE. `releaseDog` already
+-- returns early on a plot whose dog is tier 0, and every shop's is -- so the
+-- shopkeeper is simply what that function does when there is no dog to let
+-- off. One branch, and it inherits every call site the dog already has.
+--
+-- WHAT WAKES THEM IS EXACTLY WHAT WAKES A DOG, AND THAT IS WHAT KEEPS THE
+-- ECONOMY AUDIT HONEST. `auditRobbery` models an UPPER BOUND on optimal play
+-- -- no dog, no missed slice, no tag, no patrol -- so it is structurally
+-- incapable of seeing a defender. That means a shopkeeper who reacted to a
+-- CLEAN crack would quietly change what a shop is worth with no audited
+-- number moving and nothing in any log, on the four targets that carry the
+-- supply floor at a full server (measured 3.37x against a floor of 3.0, which
+-- is 12% of headroom to spend).
+--
+-- So they react to a FUMBLED SLICE and to a SMASH, and to nothing else. Both
+-- are already the loud paths; a clean crack stays silent, which preserves the
+-- crack's whole skill reward -- the alarm is fumble-only, and stealth of the
+-- alarm is the thing a good thief is actually buying. The audit assumes no
+-- misses, so a defender that only answers a miss cannot move the bound it
+-- prints. It is blind to this CORRECTLY rather than accidentally.
+--
+-- THE FOOTSTEP PATH EXCLUDES ITSELF, which is worth knowing before anybody
+-- "fixes" it. `watchLawns` only calls `releaseDog` behind
+-- `GuardDog.isWatching`, and that tests `level > 0` -- so walking into a shop
+-- can never start a chase, which it must not, because walking in is how you
+-- reach the vault.
+Config.SHOPKEEPER = {
+	-- THE OFFICER'S OWN NUMBER, AND THE REUSE IS THE POINT. 14.5 sits between
+	-- a carrying thief's 12 and a free player's 16, so holding the loot means
+	-- losing ground and DELIVERING is the answer -- the counter is a decision
+	-- the player already knows how to make. A shopkeeper who could outrun an
+	-- empty-handed thief would be a wall rather than a cost, and nothing in
+	-- this game may exceed `BASE_WALK_SPEED`.
+	speed = 14.5,
+	-- 4.5, AND THE TERRIER'S 7 WAS MEASURED TO BE WRONG HERE RATHER THAN
+	-- REASONED ABOUT.
+	--
+	-- A dog's radius is sized against a LAWN, which is 64 studs across. A
+	-- shop room is twelve. Measured live with the shopkeeper at its counter
+	-- and a thief standing where the smash prompt can actually be reached:
+	-- **6.83 studs apart**, which is inside a radius of 7 -- so the catch
+	-- fired on the first tick of the chase, the shopkeeper never took a step
+	-- (peak distance from the counter 0.00 across a seventeen-second sample),
+	-- and robbing a shop became an unavoidable instant arrest. Not a tuning
+	-- slip: a radius that covers most of the room makes the room the catch.
+	catchRadius = 4.5,
+	-- THE BEAT BEFORE THEY MOVE, AND IT IS THE DOG'S OWN NUMBER FOR THE DOG'S
+	-- OWN REASON.
+	--
+	-- `DOG_WATCH.wakeDelay` is 1.2 and its comment is the whole argument:
+	-- the gap between being disturbed and being come for is what makes a
+	-- crack a DECISION -- you hear it stir and choose whether to finish or
+	-- bail -- rather than a coin flip you find out the result of. A
+	-- shopkeeper without one is strictly worse than a dog: instant,
+	-- unavoidable, and with no tell to read.
+	--
+	-- It gates the CATCH as well as the walk, which is the half that matters
+	-- in a room this size. Gating only the walk would still let a shopkeeper
+	-- standing inside the radius take somebody on the first tick.
+	wakeDelay = 1.2,
+	-- Seconds before they give up and walk back. The Terrier's `maxChase` is
+	-- 12 and this matches it, so the cheapest dog in the game and the
+	-- shopkeeper cost a thief the same amount of time.
+	maxChase = 12,
+	-- And a hard leash in studs, because a shop stands on the VERGE and the
+	-- street is 350 studs long: a chase with only a clock on it ends with a
+	-- shopkeeper stranded outside somebody's house at the far end. Measured
+	-- against the run home the whole economy is priced on -- a shop's carry
+	-- is 23.0 studs -- so this covers the getaway and stops well short of the
+	-- next plot column.
+	giveUp = 60,
+}
+
+Config.SHOP_VAULT_DROP = {
+	chance = 0.20,
+	-- What each unit hands over, by the tab its own door opens. A shop drops
+	-- what it sells.
+	--
+	-- THE LAST ROW IS THE REASON THIS FEATURE IS WORTH MORE THAN IT LOOKS.
+	-- The `defend` tab sells upgrade LEVELS, which are not items and cannot
+	-- drop -- so that shop has to hand over something else, and consumables
+	-- are the honest answer. They are also the exact thing a new player
+	-- cannot buy: a Titan hears anything that moves, a maxed sneak clears
+	-- nothing, and the only bone that breaks a chase in progress costs
+	-- 30,000 coins. The counter to the wall is priced above the players the
+	-- wall stops, and a cheap easy target that can drop one is the on-ramp.
+	kinds = {
+		-- `accessory` is gone with the catalogue. An empty section is a header
+		-- over an empty grid, which the parked cars' retirement records as
+		-- reading like a catalogue that failed to load rather than like a
+		-- deliberate removal.
+		piggy = { "skin", "effect" },
+		home = { "decor" },
+		gear = { "ride" },
+	},
+	-- WEIGHTED BY THE INVERSE OF WHAT IT COSTS, so the cheap counters arrive
+	-- often and the expensive one is a prize rather than a faucet. Measured
+	-- across the six: plunger 44%, dog bone 26%, gum 11%, steak 7%, zapper
+	-- 3% and the Golden Bone 2.2% -- which against a 20% drop chance is one
+	-- Golden Bone per roughly seventy minutes of PERFECT robbing, and a
+	-- plunger every few jobs.
+	--
+	-- A flat roll was the alternative and it is a faucet: one in six of 20%
+	-- is a 30,000-coin bone every eight minutes, which would price the whole
+	-- guard-dog tree out of meaning anything.
+	consumables = { "bone", "steak", "golden", "plunger", "gum", "zapper" },
+}
+
+-- ============================================================
+-- TAKING A SKIN OFF A PLAYER
+-- ============================================================
+--
+-- WHAT THIS COSTS, WRITTEN FIRST BECAUSE IT IS THE ONLY ENTRY IN THIS FILE
+-- THAT SPENDS A RULE RATHER THAN KEEPING ONE.
+--
+-- Three separate entries in `CLAUDE.md` refuse this, and the bluntest reads:
+-- *losing permanent progress was proposed as the incentive and rejected -- it
+-- is the one thing every big game on the platform protects, and for this
+-- audience it is a crying-then-uninstall event a parent sees.* That is still
+-- the argument against it. It was put to the owner with the arithmetic below
+-- and taken anyway, deliberately, because the collection is the only stake
+-- this game has left worth playing for -- so the job here is not to soften it
+-- into nothing but to make a REAL loss survivable, which is the same call
+-- `chargeBail`'s 3x cap already makes for coins.
+--
+-- FOUR RAILS, AND EACH ONE IS LOAD-BEARING RATHER THAN POLITENESS:
+--
+--   1. ONLY A SKIN THAT CAME OUT OF A CRATE CAN BE TAKEN. `isStealableSkin`
+--      is `spec.chest ~= nil`, which is exactly the set the coin crates can
+--      hand back -- so what a robbery costs is TIME, never the item. It
+--      excludes the free default (no tag), the three rebirth drops, the
+--      alien set skin and both pass skins for nothing, because none of them
+--      carries a chest tag either.
+--   2. A SPARE ABSORBS IT. If the victim holds a spare copy the spare is
+--      what goes and they keep wearing the skin -- so `data.spares` grows a
+--      second job and "keep a spare of the one you love" becomes a real
+--      defensive purchase. The loss only ever lands on somebody who chose
+--      not to insure.
+--   3. ONE PER VICTIM PER HOUR, WHOEVER IS ROBBING. Same shape and same
+--      reason as `LOSS_CAP`: seven players taking turns may not strip a
+--      child's collection, and the bound has to be on the VICTIM or it is
+--      not a bound at all.
+--   4. IT IS LOUD AT BOTH ENDS, and the victim's line names the crate it
+--      comes back from. A loss a nine-year-old cannot see a route out of is
+--      the thing that ends a session.
+--
+-- AND THE CHANCE IS HIGH ON PURPOSE, WHICH IS ARITHMETIC RATHER THAN NERVE.
+-- `LOSS_CAP` already throttles how often a real player can be cracked at all:
+-- at 45% of a pig an hour against a 21.9% clean crack, a victim may be robbed
+-- 2.05 times an hour ACROSS EVERY THIEF IN THE SERVER, which is about 2.1
+-- player robberies an hour for one thief against 173 shop cracks. So the
+-- shop's own 20% would land a skin once every two and a half hours -- a
+-- feature nobody would ever meet. The protection that made PvP economically
+-- pointless is exactly what makes this affordable.
+--
+-- Measured at the shipped numbers: 1.03 skins an hour for a thief at a bare
+-- sack, 0.54 at a maxed one, against the cap's ceiling of one per victim.
+--
+-- AND IT DELIBERATELY REVERSES WHICH TARGET THE INCENTIVE POINTS AT, WHICH IS
+-- THE HALF TO WATCH.
+--
+-- `LOSS_CAP`'s own entry ends: *what still points a thief at a resident is
+-- RISK -- no alarm, no police, no revenge marker, no grudge, no notification.
+-- That is a real pull and a weaker one, and if robbing children ever starts
+-- reading as the better play, this is the number that did it.* This is that
+-- number. A resident and a player pay the same coins, and only one of them
+-- has a collection on it.
+--
+-- IT IS TAKEN AS A TRADE RATHER THAN OVERLOOKED, and the reading that makes
+-- it coherent is worth stating: residents are the SAFE INCOME and players are
+-- the RISKY PRIZE. A resident cannot sound an alarm, cannot put you on Most
+-- Wanted, cannot hold a grudge and cannot rob you back -- so the thing a
+-- player robbery pays extra for is the four ways it can go wrong, which is
+-- the same shape every other risk premium in this file has. What it must not
+-- become is the ONLY thing worth doing: `auditRobbery` cannot see this,
+-- because it models coins and this is not coins, so the check is by hand --
+-- if the street stops robbing shops and residents entirely, `chance` is the
+-- dial and it comes down before anything else does.
+-- ============================================================
+-- COINS RUSHING INTO THE PIG
+-- ============================================================
+--
+-- WHAT A DELIVERY LOOKS LIKE IN THE WORLD, and it is in the world rather than
+-- on the HUD on purpose.
+--
+-- The first build flew coin tokens across the SCREEN into the piggy bank
+-- panel in the top-right, which is reliable and is describing the wrong
+-- object. A delivery happens with the player standing on their own lawn
+-- inside `DROPOFF_RADIUS` of the actual pig -- the thing the whole game is
+-- named after is RIGHT THERE, twelve studs of it, and the payoff was being
+-- drawn as a number moving between two corners of a heads-up display.
+--
+-- CLIENT-SIDE, AND FOR THE PLAYER WHO EARNED IT ONLY. This is a one-second
+-- burst of about a dozen parts; done on the server it is a CFrame write per
+-- part per frame replicated to everybody, which is the cost that put the
+-- animated skins, the moat and `HouseFX` on the client and is a far worse
+-- trade for something that happens once. What the STREET gets is the sound,
+-- which `PlotService.playBank` already plays in 3D at the pig -- so a
+-- neighbour still hears a delivery land without anybody replicating a coin.
+--
+-- THE FACE IS ONE ID, AND AN EMPTY ONE IS NOT A MISSING FEATURE. With no
+-- image the coin is `Theme.coin` -- the drawn gold disc with a struck rim and
+-- an off-centre highlight that the HUD already uses, built out of frames and
+-- needing no upload at all. That is the same call `SOUNDS.SIREN` makes by
+-- shipping empty: a placeholder nobody remembers to swap is worse than a
+-- thing that already looks right. Drop an id in and every coin becomes it.
+Config.BANK_RUSH = {
+	-- Enough to read as a STREAM rather than as a handful. Above about
+	-- twenty they stop being countable and start being a smear, which is a
+	-- different effect and a worse one -- the point is that these are coins.
+	count = 14,
+
+	-- Where they start, in studs above the pig's own centre, and how far
+	-- they scatter across it before they come in. The spread is what makes
+	-- them arrive as a shower rather than as a column.
+	height = 11,
+	spread = 4.5,
+
+	-- How big one is, IN PIXELS across, because the face is an offset-sized
+	-- BillboardGui -- see `rushCoins`, which records why studs is the
+	-- instinct here and is the wrong unit: everything `Theme.coin` draws is
+	-- laid out in pixels, so a stud-sized billboard fits its own contents at
+	-- exactly one distance.
+	--
+	-- 44 against a HUD coin chip of 34: a shower of them beside a
+	-- twelve-stud pig, read from the drop-off, wants to be a little larger
+	-- than the same object sitting in a corner of the screen.
+	size = 44,
+
+	-- THE RUSH. `fall` is one coin's trip and `stagger` is the gap between
+	-- them starting, so the whole burst lasts `fall + count * stagger` --
+	-- about 1.1 seconds, which is under the summary card's own hold and is
+	-- what keeps the two reading as one event.
+	--
+	-- The tween eases IN rather than out, which is the whole word "rush":
+	-- it starts slow, gathers, and disappears into the pig fastest at the
+	-- moment it arrives. Eased the other way they drift in and settle, which
+	-- is what money being put away looks like rather than money being
+	-- poured.
+	fall = 0.5,
+	stagger = 0.045,
+
+	-- A piggy coin icon goes here. Empty means the drawn one.
+	image = "",
+}
+
+-- ============================================================
+-- THE CRACK'S NOTE LADDER
+-- ============================================================
+--
+-- A RISING RUN AS THE SLICES LAND, WHICH IS THE GREED DIAL IN THE ONE CHANNEL
+-- A PLAYER WATCHING THE MARKER CAN STILL READ. The slices already grow 1.4x
+-- and the gauge already draws the next one getting bigger; both of those are
+-- on a screen the thief is staring at a moving marker on.
+--
+-- IT WAS A LINEAR RAMP AND A LINEAR RAMP IS NOT NOTES. The first version
+-- pitched by `1 + 0.04 * step` -- 1.04, 1.08, 1.12, 1.16 -- which is four
+-- even steps of about two thirds of a semitone each. Even steps in FREQUENCY
+-- are uneven steps in PITCH, because pitch is logarithmic, so what that
+-- produced is a slide rather than a tune: audibly rising, and not a scale any
+-- ear can name.
+--
+-- SO THE STEPS ARE INTERVALS. `2^(n/12)` is equal temperament, and the run is
+-- the MAJOR PENTATONIC -- 0, 2, 4, 7, 9 semitones -- which is chosen for one
+-- property above all: every subset of it, from any starting note, in any
+-- order, sounds consonant. That is what makes it safe to DERIVE the run from
+-- `CRACK.maxSteps` rather than hand-writing five values. A sixth slice
+-- continues into the octave above with nothing to retune; a run of three
+-- still sounds like a run of three.
+--
+-- WHAT IT IS PLAYED ON IS A LIGHT SWITCH, AND THAT IS THE HONEST LIMIT HERE.
+-- `SOUNDS.CLICK` is a Mack Truck light switch from Pro Sound Effects: it is
+-- percussive and broadband, so it has no pitch centre for an interval to LAND
+-- on -- resampled up it reads as a tighter click rather than as a higher
+-- note. The intervals below are still the right intervals and this will still
+-- sound better than the ramp did, but the change that would actually make it
+-- sing is a TUNED source: a marimba, kalimba or glockenspiel hit.
+--
+-- THAT SOURCE WAS SEARCHED FOR AND NOT FOUND, which is worth writing down
+-- because the next person will look too. The Creator Store's free audio for
+-- "marimba", "bell", "ding" and "chime" comes back as unattributed user
+-- uploads, Minecraft rips (`command_block_hit`, `Trident_return.ogg`), Wii
+-- Sports and one asset with `[ULTRAKILL]` in its own name -- exactly what
+-- this file already records, confirmed again. The two safe creators on those
+-- pages are APMOfficial (APM Music) and Pro Sound Effects, and neither has a
+-- single mallet note in it: PSE is a FIELD RECORDING library and APM's are
+-- two-to-four-second musical stings. So this ships on the click we already
+-- own and license, and swapping the source is a one-line change here.
+--
+-- 1.682 AT THE TOP, WHICH IS A 68% RESAMPLE AND IS FINE HERE FOR A REASON
+-- THIS FILE OTHERWISE ARGUES AGAINST. The ride audio caps its pitching near
+-- 30% because `PlaybackSpeed` is a raw resample and a SUSTAINED loop shows
+-- the grain badly. A 0.41-second percussive hit is the opposite case -- it is
+-- what every sampler in the world does to build a keyboard, and the artefact
+-- has no time to be heard. If it ever does read as thin, the lever is the
+-- SCALE (drop to 0, 2, 4, 5, 7 and the top comes to 1.498) rather than the
+-- count.
+Config.CRACK_NOTES = {
+	-- Semitones above the root, walked in order and wrapping up an octave
+	-- every time it runs out -- so this is a shape rather than a fixed run.
+	scale = { 0, 2, 4, 7, 9 },
+	octave = 12,
+	volume = 0.45,
+
+	-- A MISS FALLS. The comment this replaces argued a fumble should be
+	-- silent here "because the alarm and the dog are what a fumble sounds
+	-- like" -- and those are the STREET'S answer to it, played in 3D at the
+	-- pig for everybody else. This is the thief's own channel, 2D and audible
+	-- to nobody else, so the two do not compete and the alarm keeps every bit
+	-- of the stealth it is balanced on.
+	--
+	-- Same split `HeistService` already draws when a chased player hears the
+	-- dog's snarl flat at the front: the person it is about is the one the
+	-- 3D mix serves worst.
+	--
+	-- A fifth DOWN from the root, which is the interval an ear reads as
+	-- "wrong" fastest without being a comedy sound.
+	miss = -7,
+	missVolume = 0.4,
+}
+
+-- Equal temperament, and the one place this game does the arithmetic.
+function Config.semitonePitch(semitones: number): number
+	return 2 ^ (semitones / 12)
+end
+
+-- The note for a slice, 1-indexed, derived from the shape above rather than
+-- read out of a table sized to today's `CRACK.maxSteps`.
+function Config.crackNotePitch(step: number): number
+	local notes = Config.CRACK_NOTES
+	local scale = notes.scale
+	local i = math.max(1, math.floor(step)) - 1
+	local degree = scale[(i % #scale) + 1]
+	return Config.semitonePitch(degree + notes.octave * math.floor(i / #scale))
+end
+
+Config.SKIN_STEAL = {
+	-- Per COMPLETED crack on a player. A fumbled one takes nothing here for
+	-- the same reason it spends no cooldown: what that attempt cost was the
+	-- alarm, which is a steeper price and a more interesting one.
+	chance = 0.5,
+
+	-- A REVENGE CRACK TAKES ONE FOR CERTAIN, and it needs no new state --
+	-- `HeistService` already computes `revenge` from the grudge table two
+	-- lines above where this is read. They took something of yours; the game
+	-- should not then also roll dice on whether you get to answer it.
+	revengeChance = 1.0,
+
+	-- The cap, in skins per victim per rolling window. Held in memory and
+	-- keyed on the Player exactly as `LOSS_CAP` is, and dropped when they
+	-- leave -- which costs nothing, because a plot is released the moment its
+	-- owner logs off and nobody can be robbed while away.
+	cap = 1,
+	window = 60 * 60,
+
+	-- WORN ON THE THIEF THE MOMENT IT LANDS, which is the half that makes
+	-- this a mechanic rather than a transfer. A stolen skin walking about is
+	-- the taunt, it is how the street finds out, and it paints the thief as
+	-- the obvious revenge target -- so the loudest robber is the most robbed,
+	-- and the feature limits itself with nothing to tune.
+	wear = true,
+}
+
+-- WHICH SKINS MAY BE TAKEN, AND THE PREDICATE IS THE MERCY RAIL.
+--
+-- `spec.chest ~= nil` is the whole test, and it says one thing: A STOLEN SKIN
+-- IS ALWAYS WINNABLE BACK OUT OF THE CRATE IT CAME FROM. Everything without a
+-- tag falls out for free and every one of them is something that could never
+-- be handed back -- the free default, the three rebirth drops, the alien set
+-- item and the two pass skins.
+--
+-- `isEarnedElsewhere` is stated as well rather than leant on, for the reason
+-- `chestPool` states it: "it cannot reach here" is exactly what was true of
+-- the free-if-costless hole right up until it was not, and the thing on the
+-- other side of this one is a Robux purchase.
+function Config.isStealableSkin(key: string): boolean
+	local skin = Config.SKINS[key]
+	return skin ~= nil
+		and key ~= Config.DEFAULT_SKIN
+		and skin.chest ~= nil
+		and not Config.isEarnedElsewhere(skin)
+end
+
+-- EIGHT PLAYERS AGAINST TEN PLOTS, AND THE GAP IS DELIBERATE -- BUT IT IS
+-- BOUGHT WITH PLOTS RATHER THAN PAID FOR WITH PLAYERS, WHICH IS THE WHOLE
+-- DIFFERENCE FROM THE VERSION THIS FILE REJECTED.
+--
+-- Read that carefully, because the two look identical in the arithmetic and
+-- are opposite decisions. A gap between the cap and the plot count is what
+-- guarantees a resident house nobody can evict. It spent one session at
+-- `MAX_PLAYERS` 6 against 8 plots, and that was REFUSED -- not because the
+-- gap was wrong but because it was opened by taking two children off the
+-- street, which is the one resource this design least wants to spend. The gap
+-- is now opened from the other end: `PLOTS_PER_ROW` went 4 -> 5, so the cap
+-- stays at eight and the street grew a column. Same floor, nobody turned
+-- away.
+--
+-- **THIS IS A PLAIN NUMBER NOW, NOT `Config.PLOT_COUNT`.** It has to be: the
+-- moment it is derived from the plot count the gap closes itself the next
+-- time anybody adds a column, silently, taking the supply floor with it. The
+-- one invariant that still holds is the direction -- `Main` kicks anybody it
+-- cannot seat, so this may never go ABOVE `PLOT_COUNT`, and `auditRobbery`
+-- refuses that outright.
+--
+-- The diagnosis that produced all of this is kept below, because it is right
+-- and only the first lever was wrong.
+--
+-- THE DIAGNOSIS: residents are seated on UNCLAIMED plots -- `ResidentService`
+-- evicts on claim and seats on release -- so the number of robbable NPC
+-- houses is exactly `PLOT_COUNT - players online`, and at a cap equal to the
+-- plot count A FULL SERVER HAS NONE. Every figure `auditRobbery` prints is
+-- measured against residents, so the entire economic case for robbing
+-- evaporated exactly as a server filled up, which is to say exactly when the
+-- game was doing well. Measured at level 20: 4.12x idling with three or more
+-- residents, 2.92x with two, 1.46x with one, and **0.14x with none**, against
+-- a `ROBBERY_ADVANTAGE.min` of 3.0. Same shape as every other post-mortem in
+-- this file: two curves multiplied without anybody checking the product --
+-- resident supply times server population, one level up from LOSS_CAP times
+-- HEIST_PAYOUT.
+--
+-- THE WRONG LEVER: capping the server at 6 fixed that by REMOVING PLAYERS,
+-- and it bought a supply floor that was available far more cheaply. A busy
+-- server is the thing this design most wants and the last thing it should
+-- spend -- the eight-plot map exists so that eight children share a street,
+-- and the entry above records the lobby argument for it in as many words.
+--
+-- AND PvP CANNOT BE THE ANSWER AT ANY CAP, WHICH IS THE MEASUREMENT THAT
+-- SETTLES IT. `LOSS_CAP` lets a victim lose a quarter of their pig an hour
+-- across ALL thieves, so the whole server's theft budget is fixed however
+-- many people are in it -- adding a player adds a victim AND a competitor in
+-- the same breath. Measured at level 20 with every victim permanently full,
+-- which is the best case that can exist: one thief's share is 0.07x idling at
+-- two players and 0.12x at eight, and even a SOLE thief robbing seven
+-- permanently-full neighbours perfectly reaches 0.97x -- still less than
+-- standing still. So the supply has to be non-player at every population.
+-- That is arithmetic rather than a preference, and no cap fixes it.
+--
+-- THE RIGHT LEVER IS `SHOPS`: the four shops already standing on the
+-- verge each carry a VAULT, robbed exactly as a house is, seated with a
+-- resident that can never be evicted because a shop plot can never be
+-- claimed. Measured, THREE permanent non-player targets saturate a thief at
+-- the original 60-second cooldown -- so four shops put the floor above the
+-- requirement at every population from one player to eight, and both this cap
+-- and `RESIDENTS.stealCooldown` went back to what they were.
+--
+-- What DOES still hold from the rule this replaces is the half it was
+-- originally written for: `Main` kicks anybody it cannot seat, so this may
+-- never go ABOVE `PLOT_COUNT`. `auditRobbery` refuses that outright.
+--
+-- AND FOUR SHOPS TURNED OUT NOT TO BE THE END OF IT. The sentence above --
+-- three permanent targets saturate a thief, so four clears it -- is true of
+-- the LAP and says nothing about how much is in the pigs. On a full street
+-- those four were the entire non-player supply of the economy, so eight
+-- thieves shared them and drained them; `docs/MASTER-PLAN.md` Part III D4
+-- lists that as the first number to look at in a real playtest. The extra
+-- plot column puts two resident houses behind them at every population, and
+-- `RESIDENT_FLOOR` picks that up with no edit because the term was already
+-- written.
+Config.MAX_PLAYERS = 8
+
+-- The number of robbable pigs that exists no matter how busy the street is.
+-- DERIVED rather than stated, so it cannot disagree with the numbers it comes
+-- from, and `auditRobbery` measures the economy AT THIS FLOOR -- the worst
+-- case rather than the empty-server best case it used to assume.
+--
+-- The shops are the whole of it on a full server, which is the point:
+-- the house term goes to zero exactly when the street is busiest, and that is
+-- the failure this floor exists to survive rather than to describe.
+Config.RESIDENT_FLOOR = Config.SHOP_COUNT
+	+ math.max(0, Config.PLOT_COUNT - Config.MAX_PLAYERS)
 
 -- WIDER THAN IT IS DEEP, AND THAT IS WHAT MADE THE TWO HALVES OF THE FENCE
 -- STOP BEING THE SAME NUMBER. It was 48 x 48 -- see PLOT_HALF_WIDTH below,
@@ -4002,9 +7501,279 @@ Config.PLOT_COUNT = Config.PLOTS_PER_ROW * 2
 -- here measures a light show.
 Config.PLOT_SIZE = Vector3.new(64, 1, 48)
 
+-- THE SHELL, AND THE ROOM INSIDE IT. Three files need these now -- the one
+-- that builds the building, the one that stands a vault and a shopkeeper in
+-- it, and this one, which prices the run home off where that vault ended up
+-- -- so they live where all three can read them rather than as locals in the
+-- builder that happened to need them first.
+--
+-- WHAT COLLIDES IS THE SHELL AND THE FLOOR, AND NOTHING ELSE IN HERE.
+--
+-- This entry read "THE INTERIOR IS NOT SOLID AND MUST NOT BECOME SOLID" for
+-- the life of the shop vaults, on the argument that `PoliceService` and
+-- `GuardDog` both walk in a straight line at their target with no
+-- pathfinding -- so a building with solid walls would be a place nothing in
+-- the game can reach you, an exploit wanting pathfinding in two services to
+-- fix for a cosmetic gain.
+--
+-- THE ARGUMENT NAMES PATHFINDING AND NEITHER OF THOSE TWO USES ANY, WHICH IS
+-- WHAT MAKES IT WRONG RATHER THAN CAUTIOUS. An officer, a guard dog and a
+-- shopkeeper are ANCHORED parts driven by `Model:PivotTo` and by per-frame
+-- CFrame writes -- there is not a physics-driven body among them -- so a
+-- collision hull is not something any of them walks INTO, it is something
+-- they walk THROUGH. Making the shell solid takes nothing from a chase and
+-- stops the one thing it was ever meant to: reaching a vault on a back wall
+-- by standing in the grass behind it, which `Config.shopRoomHolds` had to be
+-- written to refuse because the geometry would not.
+--
+-- So `ShopFront` stands an invisible barrier ring with a gap at the door, and
+-- every visible piece of the building stays `CanCollide` false. THE FITTINGS
+-- ARE DELIBERATELY STILL WALK-THROUGH: a counter, a shelf run and a display
+-- case are a picture of a shop rather than a maze, and `Config.SHOP_ROOM`
+-- below is what keeps them out of the walk instead.
+-- 21 x 15 RATHER THAN 18 x 14, AND THE ROOM IS WHY.
+--
+-- The entry below divides this floor into bands and audits the gaps between
+-- them. What that audit could not say, because it was reading a broken
+-- number, is that the room had nothing left: measured on the shipped build,
+-- bay 4.6 + customer strip 2.5 + counter 2.2 + keeper pocket 3.0 came to
+-- 12.3 of 12.6, with every band already at its floor. The strip cleared
+-- `minWalk` by a TENTH OF A STUD and the way past the counter was 1.05.
+--
+-- So the fittings could not be rearranged into a room that works -- solved
+-- both ways, a turned counter and a moved one, and at 16.4 of width neither
+-- fits a counter, a shopkeeper behind it and the vault door's own 1.55-stud
+-- intrusion at any walkway worth the name. The room was too small for what
+-- it was being asked to hold, which is a thing to fix rather than to shuffle.
+--
+-- WIDTH IS THE CHEAP AXIS AND THE VERGE SURVEY SAYS SO. That survey measured
+-- the buildable band between the kerb and the fences at 47 studs against a
+-- forecourt of 21.4; at 21 wide the forecourt is 24.4 and there are still
+-- twenty-two studs spare. Depth is the dearer one -- it is spent against the
+-- ClimbZone behind and the pavement in front -- so it takes one stud and the
+-- width takes three.
+Config.SHOP_UNIT = {
+	width = 21,
+	depth = 15,
+	height = 13,
+	-- The usable room, inside the wall faces.
+	roomWidth = 19.4,
+	roomDepth = 13.6,
+	-- The interior floor's TOP, above the pavement the unit stands on.
+	-- DERIVED, because it is a plot slab: `buildShopPlot` seats an ordinary
+	-- plot base in here and everything else in the game measures a plot's
+	-- walkable surface as half a slab above its origin.
+	--
+	-- AND IT IS WHY THIS WHOLE TABLE SITS DOWN HERE RATHER THAN BESIDE
+	-- `Config.SHOPS`, WHICH IS WHERE IT BELONGS AND WHERE IT WAS FOR ONE
+	-- BOOT. A Config FIELD that forward-references another Config field does
+	-- not limp the way a `local` read as a nil global does -- it throws while
+	-- this module is still LOADING, and Config is required by every service
+	-- and every client. Measured: `nil.Y` twice, once from `Main` and once
+	-- from `ClientMain`, no plots, no services, no HUD, and no "Ready" in the
+	-- log at all. Same fault `LAWN_LIFT` records four hundred lines below,
+	-- walked into again by somebody who had read that entry.
+	floorY = Config.PLOT_SIZE.Y,
+	-- Where the vault stands, in the unit's own frame. Against the back wall
+	-- and on the door's own centre line, so walking in points you at it --
+	-- the door sits to one side of the frontage because the display window
+	-- takes the other, and a vault in the middle of the back wall would be
+	-- behind the counter instead of at the end of the walk.
+	-- ON THE DOOR'S OWN CENTRE LINE, WHICH IS WHY THIS MOVED WITH THE WIDTH.
+	-- `ShopFront` derives its door from the pier spacing, so a wider unit
+	-- puts the entrance further out and a pinned vault would no longer be at
+	-- the end of the walk. It is `clear - doorW/2 - 0.15` over there and 5.25
+	-- here; move the piers or the door width and re-derive it.
+	--
+	-- Note both of these are read by `Config.shopVaultRunStuds`, so they are
+	-- economy numbers as well as placement ones -- the run home is built out
+	-- of them. `SHOP_VAULT_DISCOUNT` is solved against the RATIO of the two
+	-- cycles, so coins per second survive a move like this by construction;
+	-- `auditRobbery` is what proves it did.
+	vaultX = 5.25,
+	-- Backed onto the wall rather than pinned: the carcass is 2.4 deep about
+	-- its own origin, so this is the back wall's inner face plus 1.2.
+	vaultZ = -5.5,
+}
+
+-- THE ROOM'S PLAN, AND IT IS A PLAN RATHER THAN A LIST OF PLACEMENTS.
+--
+-- Three files stand something on this floor -- `ShopFront` builds the
+-- fittings, `PlotService` stands the vault, `ResidentService` stands the
+-- shopkeeper -- and while each carried its own numbers the room filled up
+-- without anybody adding it up. Measured on the shipped build:
+--
+--   * the display case's backboard stood 1.45 studs in front of the counter
+--     top, which is the gap a customer stands in and is NARROWER THAN A
+--     CHARACTER, so the one place in the room a person is meant to walk to
+--     was the one place they could not fit;
+--   * the shopkeeper's pocket, between that counter and the back shelves,
+--     was 2.68 -- passable, and it reads as a figure wedged in a slot;
+--   * and the garden centre's planted back wall ran the FULL 16.4-stud width
+--     of the room at z 0.8, between the door and its own vault.
+--
+-- None of that errors and none of it is visible from any number the builder
+-- prints. So the FLOOR is divided into bands, front to back, the gaps
+-- between them are the walkways, and `Config.auditShopRoom` is what stops
+-- the next fitting quietly eating one.
+--
+-- THE MOVE THAT MADE IT FIT WAS TURNING THE SHELVES. On the back wall they
+-- spent 1.3 studs of the room's DEPTH, which is the axis the counter, the
+-- pocket, the customer strip and the window bay are all competing for; along
+-- the LEFT WALL they spend WIDTH, which nothing else wants.
+Config.SHOP_ROOM = (function()
+	local counterBack = -3.3
+	return {
+		-- EVERYTHING RIGHT OF THIS IS THE AISLE: the straight walk from the
+		-- door to the vault, which is the one line through this room a
+		-- robbery depends on. It has to clear the vault's own OPEN DOOR,
+		-- which swings out into the room -- see `vaultDoorFarX` below, and
+		-- note that the number to clear is NOT `VaultModel.SIZE.doorReach`,
+		-- which is a distance along the leaf and not an extent across the
+		-- floor.
+		-- 2.5 RATHER THAN 1.0, BECAUSE THE DOOR IT HAS TO CLEAR MOVED WITH
+		-- THE UNIT. `vaultDoorFarX` is 2.37 now, and an aisle starting
+		-- inside the swung leaf is an aisle with a vault door in it -- which
+		-- is the second of the two checks below, and it fires on this pair.
+		aisleX = 2.5,
+
+		-- The window display, against the glazing. `bayBack` is the back
+		-- face of its backboard and is therefore the front edge of the floor;
+		-- the bay is centred on the WINDOW, which only `ShopFront` knows, so
+		-- that file checks its own right-hand edge against `aisleX`.
+		--
+		-- 1.4 is what the display needs and not a stud more: `ShopFront`
+		-- solves its cap off the model's own turned diagonal, and this is
+		-- where that lands with a hand's clearance to the backboard behind
+		-- and to the glass in front. Every tenth taken off it is a tenth
+		-- added to the customer strip, which is why the audit measures the
+		-- strip rather than trusting this.
+		-- THE BAY GREW WITH THE GLAZING RATHER THAN STAYING PUT, and it had
+		-- to: `ShopFront` derives its window from the pier spacing, so a
+		-- wider unit is a wider window, and a 6.2 case behind an 8.25 window
+		-- leaves two studs of glass with the shop's own interior behind it --
+		-- which is the "an opening needs something behind it" fault this
+		-- file already paid for once on the garden centre. `caseWidth` is
+		-- the glazing plus about a stud, `bayWidth` a shade under it.
+		bayBack = 1.7,
+		bayFront = 6.2,
+		bayWidth = 9.0,
+		caseWidth = 9.4,
+
+		-- WHERE THE VAULT'S OWN OPEN DOOR STANDS ON THIS FLOOR, and it takes
+		-- TWO numbers because two different things run into it.
+		--
+		-- These are `SHOP_UNIT.vaultX` less `VaultModel.SIZE.doorAcrossMax`
+		-- and `.doorAcrossMin`, copies for the reason recorded over there:
+		-- Config requires nothing and is not about to start requiring a model
+		-- builder. Move either and move both.
+		--
+		-- THIS WAS ONE NUMBER, `vaultDoorX = 0.87`, AND IT WAS THE WRONG EDGE
+		-- OF THE WRONG OBJECT -- which is the whole reason the shops read as
+		-- unwalkable while this audit reported them clean.
+		--
+		-- 0.87 is the leaf's FAR edge, the side toward the entrance. The
+		-- audit spends it as the NEAR one, in `vaultDoorX - counterRight`, so
+		-- it was measuring from the wrong side of a blade a stud thick.
+		-- Measured, the leaf runs -0.23 to 0.87, so even leaf-only the way
+		-- past the counter was 2.57 rather than the 3.47 being reported.
+		--
+		-- AND THE LOCK DIAL BOLTED TO THAT LEAF SWINGS WITH IT, which nothing
+		-- had ever measured. A 3.9-stud plate on the outward face reaches a
+		-- further 1.37 studs into the room: the real near edge is -1.55, and
+		-- the real gap between it and the counter is 1.05 STUDS -- against a
+		-- `minWalk` of 2.40 and a character about two studs across. Standing
+		-- in the customer strip puts that dial 2.2 studs from your face.
+		--
+		-- Same family as `SHOP_BANK_PIG_SECONDS` and the vault opening sized
+		-- against one of four lock tiers: a number measured correctly on one
+		-- part, then spent as though it described the whole assembly, with an
+		-- audit dutifully passing on it for the life of the feature.
+		--
+		-- It is an obstacle nothing here can move -- a vault door standing
+		-- open is the readout that makes the coin bars visible -- so the
+		-- fittings are measured against it rather than the other way round.
+		vaultDoorNearX = -0.05,
+		vaultDoorFarX = 2.37,
+
+		-- The counter, across the fittings side and stopping well short of
+		-- the aisle. It is SHORTER than it was: the old one reached x -0.7,
+		-- which left 0.53 studs between it and that open leaf -- two
+		-- obstacles in a line with a slot between them rather than a way
+		-- past, which is the same fault as the customer strip one band
+		-- forward and was one nobody had looked for.
+		-- IT IS WIDER, SHALLOWER AND FURTHER LEFT, and every one of those
+		-- three is a band paying for a walkway rather than a taste call.
+		-- Left and right came off the wider room, which is what finally
+		-- lets `counterRight` clear the swung vault door by 3.25 instead of
+		-- the 1.05 that was there; the front came back so the customer strip
+		-- is 3.3 rather than 2.5. What it costs is 0.5 of counter DEPTH --
+		-- 1.7 against 2.2 -- which is the one dimension of a counter nobody
+		-- stands in.
+		counterBack = counterBack,
+		counterFront = -1.6,
+		counterLeft = -8.35,
+		counterRight = -3.3,
+
+		-- The shelves, along the left wall. `shelfFace` is the face that
+		-- looks into the room, so it is where the shopkeeper's pocket starts.
+		shelfFace = -8.65,
+		shelfBack = -6.5,
+		-- Stopping BEHIND the counter's own front line, so the run cannot
+		-- put an upright into the customer strip it does not belong in.
+		shelfFront = -1.8,
+
+		-- WHERE THE SHOPKEEPER STANDS, and `keeperZ` is DERIVED rather than
+		-- typed: it is the middle of the pocket the counter and the back wall
+		-- leave between them, and a typed one stops being the middle the
+		-- first time either of those moves. That is how the shipped
+		-- `SHOP_STAND_AT` came to be where it was: a typed -3.2 put the
+		-- shopkeeper 0.55 studs behind a counter with 2.68 studs of pocket
+		-- behind it, which is hard up against the furniture rather than
+		-- standing in the room.
+		-- Behind the counter's own run, which moved left with it. The audit
+		-- catches a typed one that falls outside the pocket; it cannot catch
+		-- one that merely stopped being central, so it is worth re-deriving
+		-- by eye whenever the counter moves.
+		keeperX = -6.0,
+		keeperZ = (counterBack - Config.SHOP_UNIT.roomDepth / 2) / 2,
+
+		-- WHAT A WALKWAY HAS TO BE TO BE ONE. A character measures about two
+		-- studs across, so this is that plus enough not to read as a squeeze.
+		--
+		-- 3.0 RATHER THAN 2.4, AND THE OLD FLOOR IS PART OF WHY THIS ROOM
+		-- READ WRONG WHILE AUDITING CLEAN. The customer strip was 2.50
+		-- against 2.40 -- passing by a tenth of a stud -- and it was reported
+		-- as a corridor, which is the honest answer: a player is two studs
+		-- wide and the third-person CAMERA sits behind them, so a gap that
+		-- merely admits the body puts the view inside the furniture. A floor
+		-- that a shipped, complained-about gap clears is not a floor.
+		--
+		-- Raising it is what forced the unit to grow rather than the
+		-- fittings to shuffle, which is the point of having one.
+		minWalk = 3.0,
+	}
+end)()
+
 -- Derived the moment its source exists, never before it. See the fence
 -- section above for what this is and why it is the slab's own thickness.
 Config.LAWN_LIFT = Config.PLOT_SIZE.Y
+
+-- WHERE A WHEEL BELONGS, and it is a fact about the ROAD rather than about
+-- whoever is driving on it.
+--
+-- `NeighborhoodService` lays the tarmac 0.06 proud of the world ground so
+-- the two never z-fight -- coplanar surfaces give the renderer nothing to
+-- sort by and the grass flickers through the asphalt -- so anything parked
+-- at ground level sinks that much into it.
+--
+-- It lived as a private local in `PoliceService`, which was correct while
+-- exactly one thing drove on this road. A second vehicle would have been a
+-- second copy of the same derivation, and the failure shape is the one this
+-- file keeps recording: the two agree today, somebody re-lays the road, and
+-- one of them is left half a stud under the tarmac with nothing erroring.
+-- Derived here, in the file that already owns PLOT_SIZE.
+Config.ROAD_SURFACE_Y = -Config.PLOT_SIZE.Y / 2 + 0.06
 
 -- How far a fence stands off the slab edge.
 Config.FENCE_OFFSET = 1.6
@@ -4203,6 +7972,27 @@ end
 Config.ANIMATIONS = {
 	dodgeRoll = "112707884196284",
 
+	-- THE TIPTOE, AND IT IS DELIBERATELY EMPTY UNTIL SOMEBODY UPLOADS IT.
+	--
+	-- An empty row reads as "not published yet", so the sneak registers itself
+	-- in Studio exactly as the dodge did before it was uploaded, and `Main`
+	-- names it at startup on a live server. That warning is the whole safety
+	-- net here: `RegisterKeyframeSequence` is refused live, so shipping this
+	-- blank means a published game where the tiptoe silently goes back to
+	-- being a speed number with the ordinary walk cycle on top -- which is the
+	-- precise bug the animation was written to fix, reintroduced by omission.
+	sneak = "",
+
+	-- THE CARRY POSE, EMPTY FOR THE SAME REASON AND WITH A SHARPER COST.
+	--
+	-- A thief holding somebody's piggy is the most-watched three seconds in
+	-- this game -- the whole risk half of a robbery is that the run home is
+	-- VISIBLE -- and with this row blank on a live server the pose is refused
+	-- and the pig goes back to floating in front of a person with their arms
+	-- swinging at their sides. The loot, the label and the chase all still
+	-- work, which is exactly what makes it the quiet kind of broken.
+	carry = "",
+
 	bmx = "114403644299903",
 	["bmx#trick"] = "123032044115813",
 	skateboard = "90962106232371",
@@ -4231,7 +8021,28 @@ Config.ANIMATIONS = {
 	-- swap would look like a subtly wrong pose rather than like an error.
 	["bmx@onehand"] = "86219177400254",
 	["bmx@onehand#trick"] = "139912200308894",
-	["hoverboard@crossed"] = "78348588466887",
+	-- EMPTY BECAUSE IT IS A NEW POSE AND NOBODY HAS UPLOADED IT YET, and the
+	-- row it replaces was `hoverboard@crossed` at 78348588466887 -- an ARMS
+	-- FOLDED stance that is retired. That asset is still on the account and
+	-- still playable; nothing in the game asks for it any more.
+	--
+	-- A stance with no id is not a stance that fails loudly. `getAnimationId`
+	-- degrades to the pose it is a variant of, so live, a player who picks
+	-- Upside Down gets the ORDINARY hoverboard pose and a warning on their own
+	-- client -- the ride works, the style is silently absent, and this file
+	-- already records that exact bug shipping once as "some vehicles animate,
+	-- the e-bike style is not there". `Main` names every empty row at startup
+	-- on a live server, which is the whole safety net.
+	--
+	-- To fill it: run the `animdump` admin command, which builds every
+	-- sequence `RidePose.animationKeys()` asks for -- including this one, with
+	-- no list to update -- publish `RidePose_hoverboard@upsidedown` from
+	-- ReplicatedStorage, and paste the id here. Then fetch it back with
+	-- `GetKeyframeSequenceAsync` and diff it against the built sequence, which
+	-- is the test this project set itself after eight near-identically named
+	-- assets went up by hand: the name on an asset is the one thing nothing in
+	-- the engine checks.
+	["hoverboard@upsidedown"] = "",
 	["scooter@nohands"] = "119583457591823",
 	["scrambler@onehand"] = "129207650513579",
 	["scrambler@onehand#trick"] = "84072966360791",
@@ -4314,58 +8125,354 @@ end
 -- frame would drive that same muddy multiply. Clearing `TextureID` re-mints
 -- the mesh, which is where these ids come from.
 --
--- The offsets and sizes are measured against the shipped landmark contract
--- rather than chosen: lawn y 0.500, crown y 14.256, width 11.870, tail reach
--- z -7.220. Twelve accessories, the vault dial and the coin pile all measure
--- against those, so they are the thing that must not move.
+-- THE SIZES ARE ONE UNIFORM SCALE OFF WHAT THE GENERATOR RETURNED, AND THE
+-- SCALE WAS CHOSEN TO PIN THE WIDTH. The generation came back 10.230 across
+-- and every other number in this game -- the lawn slot grid, the fence
+-- clearances, `STEAL_RANGE` measured to the body centre -- was cut against a
+-- pig 11.870 across, so the scale is 11.870 / 10.230 = 1.16031 and nothing
+-- that measures ACROSS the pig moved. Uniform rather than per axis, because
+-- the proportions are what make it read as a pig: squashing it back into the
+-- old body's box would have cost 25% of its length and undone the one thing
+-- the regeneration was for.
+--
+-- WHAT DID MOVE IS HEIGHT AND LENGTH, and that is a real bill rather than a
+-- footnote. Measured: lawn y 0.500 unchanged, crown y 12.145 against the old
+-- 14.256, tail reach z -8.249 against -7.220, snout reach z 9.155 against
+-- 7.100. So this pig is two studs lower and four studs longer, and every
+-- accessory anchor, the vault dial's own push and the coin pile were
+-- re-derived against it rather than inherited.
+--
+-- The model also arrives YAWED -- this one by -52.13 degrees, on all four
+-- parts alike -- so the offsets here are taken after undoing that and after
+-- turning the snout onto +Z, which is the direction every other model in
+-- this project is authored to face.
+-- THE BODY IS ONE MODELLED MESH NOW, NOT FOUR GENERATED ONES, AND THAT COSTS
+-- THE TRIM COLOUR.
+--
+-- Every generated body this project has stood up carried the same two faults:
+-- features nobody asked for (cheek nubs, a raised disc on the snout) that no
+-- amount of seating could reach, and a segmentation socket wherever a part
+-- came off. `segmentation: "explicit"` bought the ear/snout/tail as separate
+-- MeshParts -- which is what gave 46 skins their second tone -- and paid for
+-- it with a hole in the rump and a face that had to be shaved.
+--
+-- This body is a modelled piggy bank cut in Blender: the vault hatch and the
+-- coin slot are real openings bored through the shell, the cheeks are clean,
+-- and there is nothing to cap because nothing came off.
+--
+-- WHAT IT COSTS, STATED PLAINLY: IT IS A SINGLE MESHPART, SO IT HAS ONE
+-- `Color`. The file carries two materials -- the body, and the eyes and
+-- nostrils as a mirrored set of four patches -- and Roblox's 3D importer
+-- MERGED them rather than splitting them into two parts. So the trim tone
+-- every skin is authored in has nothing to attach to today, and the face is
+-- carried by the code-built `Eye` and `Nostril` parts seated on the model's
+-- own eye and nostril patches (see `MESH_FACE` in PiggyBank).
+--
+-- Getting the second tone back means splitting the ears and snout into their
+-- own OBJECT in Blender -- not merely their own material, which is what the
+-- importer just merged away -- and importing that as a second MeshPart. That
+-- is one more upload under the developer's own account, which this file
+-- records as the most expensive mistake in it, so it is a decision rather
+-- than a tidy-up.
+-- THE PIG IS TWO OBJECTS AGAIN, AND THAT IS THE WHOLE REASON IT WAS
+-- REMODELLED RATHER THAN RESEATED.
+--
+-- The entry this replaces recorded the cost of the last body in as many
+-- words: it was ONE MeshPart, so it had one `Color`, so the second tone all
+-- 48 skins are authored in had nothing to attach to. Roblox's importer merges
+-- MATERIALS into a single part and splits on OBJECTS -- so a trim material
+-- was never going to survive, and the fix was never a seating number.
+--
+-- `blender/pig/build_pig.py` builds this one as a PAIR from the first vertex:
+-- `Body` is the shell, `Trim` is the ears, snout, legs and tail. Two objects,
+-- one .obj, two MeshParts, and `applySkin` paints the second exactly as it
+-- did on the primitives pig. Nothing about the skin system moves.
+--
+-- THE OPENINGS ARE CUT IN BLENDER, so there is no run-time CSG anywhere near
+-- this. The body is a hollow shell with a 0.30-stud wall and the vault hatch
+-- and coin slot are bored through it, which is what `swapToMesh` already
+-- turns `DoubleSided` on to read. The hatch is not placed by eye either: it
+-- is solved against `dialCFrame`'s own axis, so the lock plate seats over its
+-- own hole by construction rather than by somebody matching two numbers.
+--
+-- THE SCALE IS DERIVED. `PiggyBank.BODY_R` is 6 and the model's own half
+-- width is 1.00, so the export runs at exactly 6.0 -- which makes the sphere
+-- the whole of PiggyBank is solved against LITERALLY TRUE of this body. The
+-- semi-axes come out 6.00 / 6.48 / 5.76 studs against that 6, where the last
+-- body missed it by up to 2.2 and left 22 pattern skins seating their spots
+-- in mid-air.
 Config.PIGGY_MESH = {
 	{
 		part = "Body",
 		trim = false,
-		id = "82135918153310",
-		offset = Vector3.new(0.0000, 7.3223, 0.0488),
-		size = Vector3.new(11.8700, 13.6447, 12.0634),
+		-- PASTE THE ID FROM THE STUDIO IMPORT HERE. An empty id makes
+		-- `Config.piggyMesh` return nil for the WHOLE spec, so the pig stays on
+		-- primitives rather than standing up half a mesh -- which is the right
+		-- way round: a missing id is a pig that looks old, not a pig with no
+		-- ears.
+		-- 81131525639524 is the SEAM-FIXED body. The bounds did not move --
+		-- 12.0000 x 11.5200 x 12.7930, byte-identical to the last one -- so
+		-- nothing seated against this pig had to be re-derived, and the ID
+		-- CHANGING IS THE ONLY EVIDENCE THE MESH DID: Roblox deduplicates
+		-- identical uploads, so a new id proves a new mesh and an unchanged
+		-- one would have proved the export never took.
+		id = "88003051962029",
+		-- Measured off the exported mesh, not typed. `offset.Y` is where the
+		-- body's own bounding-box centre lands once the LEGS are standing on
+		-- the slab at 0.5, and the Z is not zero because the vault hatch takes
+		-- a bite out of the rump and moves that centre forward.
+		offset = Vector3.new(0.0000, 6.6200, 0.0835),
+		size = Vector3.new(12.0000, 11.5200, 12.7930),
+		-- A HALF TURN, BECAUSE THE IMPORTER MIRRORS Z AND NOTHING SAYS SO.
+		-- Recorded on the last body and kept: the .obj is authored snout at +Z,
+		-- vault at -Z, and it arrives facing the other way, which puts the dial
+		-- on the pig's face and the eyes inside its rump. Only a photograph
+		-- catches it. If a future import comes in unmirrored this is the line
+		-- to drop -- from BOTH entries, or the two parts face opposite ways.
+		rot = CFrame.Angles(0, math.pi, 0),
 	},
 	{
-		part = "Ear",
+		part = "Trim",
 		trim = true,
-		id = "104941738279878",
-		offset = Vector3.new(-0.0089, 11.8276, 3.7980),
-		size = Vector3.new(11.6009, 4.8568, 2.1506),
+		id = "91960729236102",
+		-- The trim reaches further back than forward -- the tail curls out past
+		-- the rump by more than the snout stands off the face -- so its centre
+		-- sits behind the body's.
+		offset = Vector3.new(0.0000, 7.4869, -0.2544),
+		size = Vector3.new(9.3379, 13.9739, 17.0759),
+		rot = CFrame.Angles(0, math.pi, 0),
 	},
+}
+
+-- THE TRIM CAN BE FOUR PARTS INSTEAD OF ONE, AND IT IS ALL-OR-NOTHING.
+--
+-- `Trim` above is the snout, the ears, the legs and the tail welded together,
+-- which is one MeshPart and therefore ONE `Color`. That covers 45 skins,
+-- where the second tone is a single colour. It cannot express the bumblebee:
+-- the reference has a yellow face against black ears, and no texture map
+-- helps, because the map is the BODY's pattern and a trim part wears a flat
+-- colour by design.
+--
+-- `blender/pig/build_pig.py` cuts these four out of the finished trim rather
+-- than building them separately, so each carries the exact surface, normals
+-- and UVs the joined trim carries -- and it still exports `pig_trim.obj`, so
+-- the one-part pig stays a working configuration.
+--
+-- ALL FOUR OR NONE, WHICH IS THE SAFETY PROPERTY. `piggyMesh` uses these only
+-- when every one of them has an id; a single blank falls back to `Trim`
+-- whole. The alternative -- skipping blanks individually -- is a pig missing
+-- its ears with nothing in any log, which is exactly the failure the Body's
+-- own "an empty id makes the WHOLE spec nil" rule exists to prevent, one
+-- level down.
+--
+-- The numbers are measured by `build_pig.py` and printed under
+-- "PASTE INTO Config.PIGGY_MESH (split trim)" on every build. Typing one by
+-- hand is how a part ends up describing a body that no longer exists.
+Config.PIGGY_TRIM_PARTS = {
 	{
 		part = "Snout",
 		trim = true,
-		id = "83872101529583",
-		offset = Vector3.new(0.0037, 7.0822, 6.3384),
-		size = Vector3.new(4.0700, 4.5150, 1.5231),
+		id = "",
+		offset = Vector3.new(0.0000, 5.8455, 4.7200),
+		size = Vector3.new(6.7845, 7.2333, 7.1272),
+		rot = CFrame.Angles(0, math.pi, 0),
+	},
+	{
+		-- BOTH EARS IN ONE MESH, because they are always the same colour and a
+		-- second upload to say so would be one too many. `PiggyBank` reads
+		-- `Ears` here and `Ear` on the primitives pig, so neither had to be
+		-- renamed.
+		part = "Ears",
+		trim = true,
+		id = "",
+		offset = Vector3.new(0.0000, 11.8885, 2.1541),
+		size = Vector3.new(9.3379, 5.1706, 2.3399),
+		rot = CFrame.Angles(0, math.pi, 0),
+	},
+	{
+		part = "Legs",
+		trim = true,
+		id = "",
+		offset = Vector3.new(0.0000, 2.0000, -0.1800),
+		size = Vector3.new(8.6400, 3.0000, 8.7600),
+		rot = CFrame.Angles(0, math.pi, 0),
 	},
 	{
 		part = "Tail",
 		trim = true,
-		id = "73112501514345",
-		offset = Vector3.new(0.0000, 9.7000, -6.0300),
-		size = Vector3.new(2.3500, 2.0538, 0.4700),
-		-- THE ONLY PART THAT CARRIES A TURN, and it is the difference between
-		-- a tail and a screw. The shape is generated lying in its own XY
-		-- plane with its LONG axis on X; the turn stands it in the pig's SIDE
-		-- plane and points that long axis backward, which is the curl you see
-		-- walking past on the pavement rather than edge-on.
-		--
-		-- IT IS A HOOK RATHER THAN A COIL, AND THAT IS THE SECOND ATTEMPT.
-		-- A corkscrew read as a drill bit screwed into the rump; a coil lying
-		-- flat down the back read as a spring bolted on. A single smooth bend
-		-- is what a cartoon pig tail actually is.
-		--
-		-- AND IT IS SMOOTH BECAUSE THE PROMPT FOUGHT FOR IT. Two earlier
-		-- generations came back as a STRAND OF PEARLS -- a chain of separate
-		-- blobs, the exact failure this project already records for the
-		-- turtle's headband -- because the generator models a small tube as a
-		-- string of spheres. Naming the failure ("no bumps, no balls, no
-		-- beads, no segments") and asking at a LARGER size is what produced
-		-- one unbroken surface.
-		rot = CFrame.Angles(0, math.rad(90), 0),
+		id = "",
+		offset = Vector3.new(-0.0577, 9.5579, -6.5721),
+		size = Vector3.new(2.9926, 3.0000, 4.3698),
+		rot = CFrame.Angles(0, math.pi, 0),
 	},
+}
+
+-- ============================================================
+-- WHERE THE MESH PIG'S FACE IS
+-- ============================================================
+--
+-- Read by `PiggyBank`, which seats the eyes, the nostrils and the plaster on
+-- the twelve-stud pig standing on a lawn, AND by `PiggyModel`, which builds
+-- the same mesh at preview size for the victim shelf, the inventory and the
+-- crate reel. It lived in PiggyBank while that was the only pig; a second
+-- copy for the mini would be two answers to "where are a pig's eyes" on one
+-- asset, drifting silently the first time either was touched.
+--
+-- Every coordinate is in the PLOT-SEAT frame the mesh spec above uses, so a
+-- preview scales these by exactly the factor it scales the mesh by.
+Config.PIGGY_MESH_FACE = {
+	-- Body-local centre of the mesh body, so a seat can be turned to face it.
+	bodyCentre = Vector3.new(0, 6.6200, 0),
+	-- THE MODELLED BODY CAME WITH ITS OWN EYES AND NOSTRILS, as a second
+	-- material carrying four mirrored patches -- and the importer merged that
+	-- material into the body, so they are invisible. What they still give is
+	-- the one thing guesswork could not: WHERE the person who modelled this
+	-- pig put its face. Measured off those patches, the eyes centre on
+	-- (+/-1.630, 8.346) with the skin at z 5.118, and the nostrils on
+	-- (+/-0.326, 6.667) with the skin at 6.428.
+	--
+	-- The 1.25-stud ball keeps its 0.14 of sink, so it shows about half a
+	-- stud of disc exactly as it did on the generated body.
+	eye = { x = 1.909, y = 8.802, z = 5.333 },
+	-- AND THE NOSTRILS ARE BACK, because the reason they were dropped has
+	-- gone. On the generated snout they were two black boxes standing on a
+	-- smooth dome and read as bricks stuck to the nose at every depth tried.
+	-- This snout has nostril patches modelled INTO it, so a dark block seated
+	-- 0.05 proud sits in a hollow the model already has rather than on a
+	-- curve that has nothing to hold it.
+	-- Seated at the FLOOR of the dimples the snout is modelled with, pushed
+	-- forward by half the block's own depth so it hangs just inside the
+	-- hollow. A dark block in a dent reads as a nostril; the same block on a
+	-- smooth dome reads as a brick stuck to the nose, which is what retired
+	-- them on the generated snout.
+	--
+	-- AND THE Z WAS WRONG BY 0.89 STUDS, WHICH IS MOST OF THE BLOCK'S OWN
+	-- DEPTH -- so the nostrils have been sunk almost entirely INSIDE the
+	-- snout, which is why a pig with black nostrils read as having none.
+	--
+	-- `build_pig.py` computes this seat from the snout's own surface point,
+	-- held in a local called `surf` -- and three hundred lines below that, the
+	-- EYE PREVIEW loop writes `surf, n = ...` at module scope, once per eye.
+	-- So the expression that prints this number had been reading the last
+	-- eye's surface point rather than the snout's ever since the preview was
+	-- added: -0.9257 against a true -1.0740, which is 0.8903 studs once
+	-- scaled. Both are plausible points on the same body, nothing errors, and
+	-- the arithmetic either side of it is correct.
+	--
+	-- The shadowing family this file already records for `legRoll` and the
+	-- cylinder axis, in its quietest form. The builder holds `SNOUT_SURF` now
+	-- and prints the delta on every run so the correction cannot silently
+	-- reverse.
+	nostril = { x = 1.050, y = 6.689, z = 7.354 },
+	-- THE NOSTRILS ARE GONE ON THE MESH PIG, and there is no seat for them
+	-- here because there is no part left to seat. They were a Block 0.50 by
+	-- 0.95 by 0.40, which works on the ball pig's CYLINDER snout -- a flat
+	-- face, where a dark box standing a third of a stud proud reads as a
+	-- dent. The generated snout is domed and smooth, and the same two boxes on
+	-- it read as black rectangles stuck to the pig's nose at every depth they
+	-- were tried at, flush included. Reported as exactly that.
+	--
+	-- The primitives piggy keeps them; `swapToMesh` destroys them alongside
+	-- the snout and the ears it replaces. If the snout ever wants nostrils
+	-- back they are a CUT, like the vault and the coin slit -- a hole in a
+	-- surface, not a solid stuck on one.
+	-- The plaster is placed BY DIRECTION on the ball; the same direction hits
+	-- the mesh's forehead at body-local (0, 4.52, 5.69), and it keeps the
+	-- original's 0.06 of sink so the strip's middle beds into the curve.
+	plaster = Vector3.new(0, 10.422, 4.783),
+
+	-- THE SPHERE A SKIN'S PATTERN IS PLACED ON, which is NOT the body's own
+	-- bounding-box centre -- 8.5 against the body's 6.62. `applyPattern`
+	-- places every mark by DIRECTION on a sphere, and this is the sphere that
+	-- makes a stripe land where a stripe should on this particular animal.
+	--
+	-- A COPY of `PiggyBank`'s `BODY_Y` and `BODY_R`, on the same terms as
+	-- `SHOP_ROOM.vaultDoorNearX`: Config requires nothing and is not about to
+	-- start requiring a service for two numbers. MOVE EITHER AND MOVE BOTH --
+	-- the lawn pig and the preview pig have to agree about where a pattern
+	-- goes, and the failure is a stripe in a different place on the same skin
+	-- depending on which menu you are looking at.
+	patternCentre = Vector3.new(0, 8.5, 0),
+	patternRadius = 6,
+
+	-- The eyeball the lawn pig seats. A preview scales it with everything
+	-- else, so the mini's eyes are the same eyes at the same sink.
+	eyeSize = 1.25,
+}
+
+-- THE VAULT HATCH IS A REAL BORE AGAIN, AND THE OLD "ANY SUBTRACT BREAKS THIS
+-- MESH" FINDING DID NOT SURVIVE THE NEW BODY.
+--
+-- That finding is real and it is recorded at length: on asset 82135918153310
+-- a through-bore, a blind recess and the coin slit each independently stopped
+-- the body being drawn at all from a camera behind it, with every geometric
+-- measurement agreeing with the version that worked. It was a fact about ONE
+-- ASSET rather than about `SubtractAsync`. Re-tested on this body from the
+-- same cameras: cut and uncut render identically, and the bore shows the
+-- hollow interior with the coin pile behind it.
+--
+-- `depth` IS MEASURED INWARD FROM THE SKIN AND WAS FOUND BY LOOKING, which is
+-- the only instrument that can see a CSG hole -- rays hit the collision hull
+-- and a bounding box barely moves. Three depths cut side by side and
+-- photographed: 2.0 leaves a shallow DISH (the shell is thicker than it looks
+-- once the body is scaled up), 3.5 breaks through cleanly, 6.0 is past the
+-- point of buying anything. The shell is not thin here, so grazing it leaves
+-- a ragged lip rather than an opening.
+--
+-- THE RADIUS IS NOT HERE ON PURPOSE. `PiggyBank.VAULT_R` already derives it
+-- as `LOCK_TIERS[1].radius - VAULT_COVER`, so the cheapest lock plate covers
+-- the hole by construction, and a second copy of that number in this file is
+-- the near-identical duplicate that drifts the first time either is touched.
+-- This table carries only what is a fact about the CUT.
+Config.PIGGY_VAULT = {
+	depth = 3.5,
+	-- Where the cutter's OUTER face starts, well clear of the skin, so the
+	-- mouth of the bore is the pig's own surface rather than a cutter edge.
+	standOff = 2.5,
+}
+
+-- AND TWO NUBS UNDER THE EYES COME OFF IN THE SAME SUBTRACT.
+--
+-- The generation left a small hard-edged lump on each cheek, just below and
+-- outboard of the eye -- reported as "little extrusions under the eyes", and
+-- that is exactly what they are. They are in the MESH, so no amount of moving
+-- parts around reaches them, and nothing in the seating numbers was wrong.
+--
+-- FOUND BY SWEEPING THE FACE RATHER THAN BY EYE, because a lump on a smooth
+-- dome has no landmark to measure against. Raycasting a grid across the front
+-- of a probe body and printing how far forward the skin reaches, the face
+-- falls away smoothly everywhere except one square: at body-local y 2.4 the
+-- surface runs 7.44 at x 1.4, jumps to 7.56 at x 1.6, holds that to x 2.0 and
+-- drops to 7.17 at x 2.2. A step of nearly half a stud across one sample is
+-- not a curve, it is an EDGE -- which is why it catches the light as a nub.
+-- Interpolating the neighbours puts the true skin near 7.32 there, so the
+-- lump stands about a quarter of a stud proud.
+--
+-- A SPHERE RATHER THAN A BOX, AND A SMALL ONE. A box leaves a flat facet with
+-- a hard rim, which is the same fault one notch quieter. A sphere tangent to
+-- the skin cuts a shallow scoop that tapers to nothing at its own edge.
+--
+-- AND THE RADIUS IS THE WHOLE OF IT: THE FIRST ONE WAS 2.5 AND PUT A WINDOW
+-- THROUGH THE PIG'S FACE. The arithmetic said it would stay a stud across --
+-- the sphere lifts only 0.07 by 0.6 studs out, against a face falling three
+-- times faster -- and that is true of the DEPTH and says nothing about the
+-- REACH. A 2.5 ball centred on the cheek spans x -0.68 to 4.32 and y -0.18 to
+-- 4.82, which runs straight into the socket the EAR plugs. It did not cut a
+-- deep hole; it shaved the thin shell beside an opening that was already
+-- there, and the coin pile showed through the result.
+--
+-- MEASURE THE CUTTER AGAINST WHAT ELSE IT TOUCHES, NOT ONLY AGAINST WHAT IT
+-- IS AIMED AT. The lump is 0.55 by 0.35, so the cutter is sized to it: at
+-- 0.8 the scoop is confined to about half a stud either side and comes
+-- nowhere near the ear.
+--
+-- MIRRORED ON X from one entry rather than listed twice, so the two cheeks
+-- cannot drift apart.
+Config.PIGGY_SHAVE = {
+	radius = 0.8,
+	-- Where the cutter's surface touches: the skin the lump stands on.
+	tangent = 7.33,
+	at = Vector3.new(1.82, 8.897, 0),
 }
 
 -- THE COIN SLIT IS SUBTRACTED OUT OF THE BODY, SO IT IS A REAL HOLE.
@@ -4394,11 +8501,18 @@ Config.PIGGY_MESH = {
 -- 0.70x4.20 deep 1.54, 0.55x3.00 deep 0.89, 0.45x2.40 deep 0.64 -- and the
 -- middle one is the only one that reads as a slot from the pavement without
 -- reading as damage up close.
-Config.PIGGY_SLOT = {
-	width = 0.55,   -- across the pig, the slit's narrow axis
-	length = 3.00,  -- along the spine
-	floor = 13.25,  -- the bottom of the cut, against a crown of 14.14
-}
+-- AND ALL OF THAT IS RETIRED, BECAUSE THE SUBTRACT BROKE THE BODY'S
+-- RENDERING. Cut, the piggy is not drawn at all from a camera directly
+-- behind it -- see the long note in `PiggyBank.ensureMeshTemplates`, where
+-- the through-bore, a blind recess and this slit on its own were each
+-- measured breaking it. The openings are drawn parts again and their
+-- numbers live in `PiggyBank` beside the mesh's other seating corrections,
+-- because they are facts about one generated asset rather than tunables.
+--
+-- The two tables are left here as a headstone rather than deleted outright:
+-- the shapes and the reasoning above are the record of what was tried, and
+-- the first instinct on reading that the hatch is a drawn disc again will be
+-- to reach for CSG.
 
 -- AND THE VAULT HATCH IS BORED OUT FOR REAL TOO, WHICH RETIRES THE RIM.
 --
@@ -4443,18 +8557,174 @@ Config.PIGGY_SLOT = {
 -- `radius` clears the largest tier's plate (DIAL_MAX_R 1.95) by 0.15, so a
 -- gold-locked piggy is a door sitting IN a hole rather than a disc covering
 -- one. `floor` is measured in from the seat plane along the dial's own axis.
-Config.PIGGY_VAULT = {
-	radius = 2.10,
-	floor = -0.60,
-}
+-- (retired with PIGGY_SLOT above)
 
 -- Nil unless EVERY part has an id, because a partial mesh piggy is worse than
 -- none: the body would arrive smooth with the old wedge ears and cylinder
 -- snout still stuck to it, which reads as a broken model rather than as an
 -- unfinished setting. All or nothing is the honest state.
-function Config.piggyMesh(): { any }?
-	local out = {}
+-- ============================================================
+-- THE FUR MESH -- RAISED FUR, WORN BY SOME SKINS AND NOT OTHERS
+-- ============================================================
+--
+-- A SEPARATE PART BECAUSE THE BODY IS ONE ASSET WORN BY FORTY-SIX SKINS.
+-- Fur modelled into the body would grow on the Solid Gold pig and on all
+-- twenty-two neon ones, so the only route to fur that belongs to SOME skins
+-- is geometry that can be taken off -- which is what the trim parts already
+-- are, and this rides the same mechanism.
+--
+-- IT IS THE SILHOUETTE AND THE MAP IS THE SURFACE, and neither substitutes
+-- for the other. `pig_fur_normal` gives the coat its grain; a normal map
+-- cannot make an OUTLINE fuzzy, because it does not move a single vertex. So
+-- the fluff a player actually reads from the pavement is these 6,080
+-- triangles and nothing else. Measured the other way too: at street distance
+-- the normal map contributes nothing visible at all.
+--
+-- 152 LOBES RATHER THAN THOUSANDS OF STRANDS, and that was arrived at by
+-- building the other two. A ten-to-one cone is a QUILL -- reported as "these
+-- are big spikes". A short blunt nub half a stud across is a CRUMB: 724 of
+-- them read as breakfast cereal stuck to the pig, because at that size every
+-- piece is a separate object the eye can count. THERE IS A FLOOR ON A PIECE
+-- OF GEOMETRY -- it has to be big enough to be a SHAPE -- so these are
+-- squashed domes 1.2 to 1.9 studs across, overlapping into one mass the way
+-- a sheep or any plush toy is drawn. It is also the cheaper of the three.
+--
+-- THE SIZE AND OFFSET ARE MEASURED AGAINST THE BODY'S OWN EXPORT rather than
+-- typed, and that check caught a real one: `make_fur_tufts.py` exported in
+-- BLENDER UNITS while `build_pig.py` exports in studs, so the mesh was 2.04
+-- across instead of 12.24 -- a sixth of the size, which would have imported
+-- as a pea and cost an upload to discover. Nothing errors either way and
+-- neither file looks wrong alone; only measuring the two exports AGAINST EACH
+-- OTHER finds it.
+-- THESE TWO GO STALE THE MOMENT THE MESH IS REBUILT, AND THEY DID. They were
+-- measured off the WOOL version and left behind when the tufts were reshaped
+-- three times -- so `Size` squashed the mesh to 0.88 x 0.92 of itself, which
+-- pulls every tuft INWARD toward the cloud's own centre and buries them in the
+-- pig. Reported as "fur tufts generated inside of the pig", and it is exactly
+-- that: a MeshPart is scaled to whatever `Size` it is given, so a stale size
+-- is a silent shrink rather than an error.
+--
+-- `PiggyBank` DOES NOT WRITE `Size` ANY MORE -- the mesh comes in at its own
+-- natural size and this field is a CHECK instead, warned about on mismatch.
+-- The offset still has to be carried, because Roblox recentres an imported
+-- mesh on its own bounding box and cannot tell you where that sat in Blender.
+-- `make_fur_tufts.py` prints both lines ready to paste on every build.
+-- THERE IS MORE THAN ONE MANE NOW, AND THE SINGLE MESH WAS WHY EVERY FURRED
+-- ANIMAL LOOKED LIKE THE SAME ANIMAL IN DIFFERENT PAINT.
+--
+-- One `FUR_MESH` meant the tiger, the leopard and anything else that ever
+-- wanted fur wore the identical ruff-and-brisket. The reference plush zebra
+-- has no ruff and no brisket at all -- it carries a short upright BRUSH on
+-- the crown and nothing else -- and there is no parameter on a single mesh
+-- that can express that.
+--
+-- IT IS A TABLE OF SETS RATHER THAN A FIELD ON EACH SKIN, for the reason
+-- `SURFACE_PACKS` is: two animals share a mane far more often than they need
+-- their own, so the shared thing is named once and pointed at. A skin picks
+-- one with `furSet`; leaving it off means `DEFAULT_FUR_SET`, so all four
+-- existing furred skins are untouched by this table existing.
+--
+-- EACH SET IS ITS OWN UPLOAD, which is the honest cost and the reason not to
+-- add one per animal. `make_fur_tufts.py` builds them -- `FUR_SET=mane` and
+-- `FUR_SET=crest` -- and prints the size/offset block for each.
+Config.FUR_SETS = {
+	-- The full ruff: a parted crest over the crown, a sweep down each cheek
+	-- and a brisket across the chest. 36 tufts, 900 triangles.
+	mane = {
+		id = "79359659715894",
+		size = Vector3.new(13.9434, 12.9934, 10.7314),
+		offset = Vector3.new(0.1801, 7.1895, 1.0574),
+	},
+	-- The zebra's forelock: one short upright band between the ears. 7 tufts,
+	-- 175 triangles -- a fifth of the mane, because it is a fifth of the fur.
+	--
+	-- ID PENDING THE IMPORT of `blender/pig/pig/pig_fur_crest.obj`. An empty id is
+	-- a pig with no tuft rather than an error, which is the same contract the
+	-- body and the mane already keep -- so this can sit here unfilled and the
+	-- zebra simply wears no fur until it is uploaded.
+	crest = {
+		id = "",
+		size = Vector3.new(2.1927, 2.3579, 3.0955),
+		offset = Vector3.new(0.1497, 12.2011, 2.4288),
+	},
+}
+
+-- The set a skin gets when it does not name one. Not a literal at the call
+-- site: `applyFur` and `furMesh` both need it, and two copies of a default is
+-- how one of them ends up pointing at a set that was renamed.
+Config.DEFAULT_FUR_SET = "mane"
+
+-- The fur mesh for a named set, or nil. Same contract as `piggyMesh`: an
+-- empty id is a pig with no fur rather than an error, so a set can sit here
+-- unuploaded and the skins that want it simply go bare.
+--
+-- AN UNKNOWN SET NAME IS ALSO NIL RATHER THAN A THROW, and deliberately not a
+-- fall back to the default. A skin naming a set that does not exist is a typo,
+-- and quietly handing it the mane would put the tiger's ruff on a zebra with
+-- nothing in any log -- the silent-wrong-thing this file refuses everywhere
+-- else. No fur is visibly missing and gets reported.
+function Config.furMesh(setName: string?): { any }?
+	local set = Config.FUR_SETS[setName or Config.DEFAULT_FUR_SET]
+	if not set then
+		return nil
+	end
+	local id = set.id
+	if type(id) ~= "string" or id == "" then
+		return nil
+	end
+	-- THE OFFSET IS HANDED BACK RELATIVE TO THE BODY, not to the plot, and
+	-- the body entry is FOUND rather than indexed. Both meshes are measured
+	-- in one Blender scene, so the difference of the two offsets is where the
+	-- fur sits on the animal -- and doing that subtraction here keeps it
+	-- beside the table it reads, where `PiggyBank` cannot get it wrong.
+	-- `PIGGY_MESH[1]` happens to be the Body today; a reordered table would
+	-- have seated the ruff off an ear with nothing erroring.
+	local bodyOffset = nil
 	for _, entry in ipairs(Config.PIGGY_MESH) do
+		if entry.part == "Body" then
+			bodyOffset = entry.offset
+			break
+		end
+	end
+	if not bodyOffset then
+		return nil
+	end
+	return {
+		id = if id:match("^%d+$") then "rbxassetid://" .. id else id,
+		size = set.size,
+		offset = set.offset - bodyOffset,
+	}
+end
+
+-- True when every split trim part has been uploaded. All four or none -- see
+-- `PIGGY_TRIM_PARTS`.
+function Config.trimIsSplit(): boolean
+	for _, entry in ipairs(Config.PIGGY_TRIM_PARTS) do
+		if type(entry.id) ~= "string" or entry.id == "" then
+			return false
+		end
+	end
+	return true
+end
+
+function Config.piggyMesh(): { any }?
+	local split = Config.trimIsSplit()
+	local rows = {}
+	for _, entry in ipairs(Config.PIGGY_MESH) do
+		-- THE JOINED TRIM IS DROPPED ONLY WHEN ALL FOUR PIECES CAN REPLACE IT,
+		-- so the pig is never standing there with neither.
+		if not (split and entry.part == "Trim") then
+			table.insert(rows, entry)
+		end
+	end
+	if split then
+		for _, entry in ipairs(Config.PIGGY_TRIM_PARTS) do
+			table.insert(rows, entry)
+		end
+	end
+
+	local out = {}
+	for _, entry in ipairs(rows) do
 		local id = entry.id
 		if type(id) ~= "string" or id == "" then
 			return nil
@@ -4755,12 +9025,64 @@ Config.FENCE_MESH = {
 		size = Vector3.new(6.1413, 4.6939, 0.3500),
 	},
 
-	-- Not generated yet; each falls back to its primitive decorator until it
-	-- is. `moat` is deliberately absent rather than blank -- see below.
-	rickety = nil,
-	barbed = nil,
-	electric = nil,
+	-- THE FIRST RICKETY PANEL WAS REGENERATED AND THE REASON IS WORTH KEEPING.
+	-- Asked for "old broken wooden fence, posts leaning at slight angles, one
+	-- plank missing", the generator returned CREAM POSTS WITH PALE BLUE RAILS,
+	-- perfectly upright and perfectly tidy -- a smart modern rail fence. It
+	-- was not subtly wrong, it was the opposite of the brief, and it would
+	-- have made the tier's own blurb ("Leaning posts and missing planks") a
+	-- lie on screen. Words like "derelict", "rotten", "splintered", "shabby"
+	-- and an explicit "dark brown" got it; "old", "weathered" and "broken" did
+	-- not. THE GENERATOR ANSWERS ADJECTIVES OF CONDITION, NOT OF AGE, and a
+	-- colour it is not told is a colour it will invent.
+	rickety = {
+		id = "123040692953259",
+		texture = "78545697475837",
+		size = Vector3.new(2.3975, 2.1072, 0.4000),
+	},
+	barbed = {
+		id = "110789712560510",
+		texture = "72915336083332",
+		size = Vector3.new(3.0100, 2.2807, 0.3500),
+	},
+	electric = {
+		id = "72116488758769",
+		texture = "89401559415439",
+		size = Vector3.new(2.4452, 2.0805, 0.3500),
+		-- EXTRA WIRES, STRUNG UNDER THE PANEL'S OWN PAIR. The generated panel
+		-- carries two cables and puts both of them near the TOP, which left
+		-- the bottom two thirds of an eight-stud fence as open air -- it read
+		-- as a row of posts rather than as something strung.
+		--
+		-- Measured off the render: the panel's own cables sit about 8.8 and
+		-- 6.8 above FENCE_BASE_Y, two studs apart, so these continue that
+		-- spacing rather than being placed by eye.
+		--
+		-- ONE PART PER WIRE PER SIDE, NOT PER PANEL. They span the whole run,
+		-- which is what the primitive `decorElectric` already did and is the
+		-- only version that does not undo the part saving: two wires across
+		-- five sides is ten parts, where per panel it would be sixty-eight.
+		wires = {
+			heights = { 4.8, 2.8 },
+			thickness = 0.16,
+			colour = Color3.fromRGB(70, 140, 240),
+		},
+	},
+
+	-- `moat` is deliberately absent rather than blank -- it resolves to
+	-- `electric` in the accessor below, because the code already does.
 }
+
+-- WHAT EACH TIER COSTS IN PARTS, measured rather than assumed, because the
+-- whole point of a panel is that it is cheaper than the primitives it
+-- replaces. Panel length is the authored length scaled to reach `decorTop`,
+-- so a squat mesh tiles more often than a long one:
+--
+--      rickety   4.8 studs a panel      picket   7.3
+--      barbed   12.0                    electric 9.6
+--
+-- Against a perimeter of roughly 346 studs that is 72, 47, 29 and 36 panels
+-- -- every one of them far under the ~276 parts the primitive picket built.
 
 -- The panel for a fence style, or nil to use the primitive decorator.
 --
@@ -4784,6 +9106,158 @@ function Config.fenceMesh(style: string): { any }?
 		texture = assetId(spec.texture),
 		size = spec.size,
 		tint = spec.tint,
+		wires = spec.wires,
+	}
+end
+
+-- ------------------------------------------------------------
+-- THE HOUSE
+-- ------------------------------------------------------------
+--
+-- ONE MESH PER ARCHETYPE, STANDING IN FOR THAT TIER'S PRIMITIVE BUILDER.
+--
+-- This is the same shape as the fence, the tree and the piggy: an id here, an
+-- accessor that returns nil when it is unset, and `House.build` falling back
+-- to the builder that has always drawn that tier. AN EMPTY ROW IS THE HOUSE
+-- THIS GAME ALREADY SHIPS -- nothing in `House.luau` was deleted to make room
+-- for this, so a row can be filled, looked at, and emptied again with the old
+-- house standing in the same frame.
+--
+-- WHY A HOUSE AND NOT A PANEL: THE ARGUMENT IS PURELY VISUAL HERE, WHICH IS
+-- A FIRST. The fence paid for itself in parts -- 276 primitives down to 47
+-- panels -- and that is not the case on a house: measured on the live street,
+-- the tiers run 12 to 72 parts, which is nothing. So this buys no frames and
+-- is not defended on those grounds. What it buys is that the house stops
+-- being the last blocky object on a street whose pig, trees, grass and fences
+-- are all rounded meshes. A cottage that is a grey box with two wedges on top
+-- reads as a different game from the tree standing next to it.
+--
+-- SCALED UNIFORMLY, OFF `height` BY PREFERENCE, AND THAT CHOICE IS A
+-- MEASUREMENT RATHER THAN A TASTE. A row gives ONE target and the other two
+-- axes follow it, because scaling each axis to the tier's own width and depth
+-- separately would stretch a generated building into a different one.
+--
+-- Height is the better handle because it is the axis this world is already
+-- tuned on: `STOREY` is 9 studs against a five-stud character, so a two-storey
+-- house wants to land near 20 whatever its floor plan. Width cannot do that
+-- job, because THE GENERATOR DOES NOT TAKE PROPORTIONS FROM THE SIZE BOX --
+-- measured, a cottage asked for at 26 x 20 x 20 came back 10.3 x 20.0 x 12.3,
+-- fitted INSIDE the box at its own aspect. So a row that pins width would take
+-- a house the generator happened to make narrow and stretch it to fifty studs
+-- tall to get there.
+--
+-- `width` is still accepted and is the right handle for a mesh whose aspect
+-- already matches its tier, where the binding constraint is the side fence --
+-- the note over HOUSE_TIERS records a Manor whose wings went straight through
+-- one. Whichever is given, the other two axes are carried along.
+--
+-- IT KEEPS ITS BAKED TEXTURE, which is the TREE's rule and deliberately not
+-- the PIGGY's. The pig is stripped because forty-six skins multiply a colour
+-- onto it and a painted mesh is muddy on forty-five of them. A house has no
+-- skin system -- its colours are constants in the tier table -- so the shading
+-- baked between the boards, tiles and window frames is free depth, and it is
+-- most of what separates a cartoon house from a smooth blob.
+--
+-- WHAT STAYS PRIMITIVE IS THE LIGHT SHOW. The top four tiers carry `HouseFX`
+-- neon parts that are colour-written every frame on every client, and those
+-- are geometry the mesh cannot supply: an emissive part is a MATERIAL, not a
+-- shape. A row may therefore carry `keepFX`, which runs the tier's own builder
+-- for its glowing parts only and drops every solid part it made. That is how
+-- a meshed Neon Tower still has bands that cycle.
+--
+-- `RenderFidelity` IS `Automatic`, FOR THE TREE'S REASON RATHER THAN THE
+-- PIGGY'S. A house stands seventy studs behind its own piggy and there are up
+-- to eight of them on screen; shedding triangles with distance is exactly what
+-- that wants. The pig is `Precise` because it is read from the pavement and is
+-- the one object a robbery is about.
+Config.HOUSE_MESH = {
+	-- Nothing generated yet. Each style falls back to `builders.<style>` in
+	-- House.luau until its row is filled, so the catalogue can be done one
+	-- tier at a time and a fresh empty place plus this repo still builds the
+	-- nine houses this game has always built.
+	shack = nil,
+	cottage = nil,
+	townhouse = nil,
+	villa = nil,
+	manor = nil,
+	modern = nil,
+	tower = nil,
+	palace = nil,
+	castle = nil,
+}
+
+-- WHICH STYLES USE THE REBUILT, LOW-POLY BUILDER RATHER THAN THE ORIGINAL.
+--
+-- The same opt-in shape as HOUSE_MESH above and for the same reason: the
+-- houses this game already ships are not deleted to make room for a new look.
+-- An empty set is the catalogue exactly as it stands; adding a style swaps
+-- that ONE tier and leaves the other eight alone, so a rebuild can be looked
+-- at on a real plot next to the originals and backed out by deleting a word.
+--
+-- WHY A CODE REBUILD AND NOT A MESH, WHICH REVERSES THE INSTINCT THIS PROJECT
+-- HAS FOLLOWED SINCE THE PIG. The pig, the trees and the fence panels all went
+-- to generated meshes because they are ORGANIC OR CURVED -- a pig is a shape
+-- primitives genuinely cannot make, and the whole complaint about it was that
+-- it read as blocky. A low-poly cartoon house is the opposite case: the style
+-- IS flat polygons with hard edges and flat blocks of colour, which is the
+-- native vocabulary Roblox hands you for free. Reaching for a mesh there buys
+-- nothing the engine was not already giving, and costs an upload under the
+-- developer own account -- see the moderation entry in CLAUDE.md, which is the
+-- most expensive thing in this project history.
+--
+-- WHAT ACTUALLY MAKES A HOUSE READ AS "OLD ROBLOX", measured against the
+-- reference art rather than guessed:
+--
+--   * TEXTURED MATERIALS. The originals use Brick, Slate, WoodPlanks and
+--     CorrodedMetal. Every low-poly reference is FLAT COLOUR. SmoothPlastic
+--     throughout is the single biggest move, and it is free.
+--   * NO TILE ROWS. A roof drawn as two bare wedges is a ramp; a roof drawn
+--     as overlapping courses of tiles is a ROOF, and it is the one detail
+--     every reference has in common.
+--   * UNFRAMED OPENINGS. A flat rectangle of glass laid on a wall is a
+--     sticker. A frame, a sill and a mullion cross make it a window.
+--   * NOTHING WHERE THE BUILDING MEETS THE GROUND. A plinth is what stops a
+--     house looking like a box resting on grass.
+Config.HOUSE_REBUILD = {
+	-- A style named here stands its REBUILT low-poly builder; a style left out
+	-- stands exactly the builder it has always had. Empty means the catalogue
+	-- as it shipped, which is what makes the whole rebuild backable-out by
+	-- deleting words rather than by reverting a file.
+	--
+	-- All nine are on. The originals in `House.luau` are still there and still
+	-- work -- they are what a removed line here falls back to -- and the one
+	-- thing to know before deleting a line is that the ORIGINALS carry the
+	-- coplanar flicker this pass was started to fix: thirty-two pairs across
+	-- the eight of them, with the Neon Tower alone at thirteen.
+	shack = true,
+	cottage = true,
+	townhouse = true,
+	villa = true,
+	manor = true,
+	modern = true,
+	tower = true,
+	palace = true,
+	castle = true,
+}
+
+-- The mesh for a house style, or nil to use the primitive builder.
+function Config.houseMesh(style: string): { any }?
+	local spec = Config.HOUSE_MESH[style]
+	if not spec then
+		return nil
+	end
+	local id = assetId(spec.id)
+	if not id then
+		return nil
+	end
+	return {
+		id = id,
+		texture = assetId(spec.texture),
+		height = spec.height,
+		width = spec.width,
+		yaw = spec.yaw,
+		tint = spec.tint,
+		keepFX = spec.keepFX,
 	}
 end
 
@@ -4885,7 +9359,13 @@ end
 -- under-reported for a whole release, and it should now be a visible mistake
 -- rather than a quiet one.
 function Config.animationKeys(rideKeys: { string }): { string }
-	local keys = { "dodgeRoll" }
+	-- The two animations that belong to a PLAYER rather than to a ride. Both
+	-- are hardcoded because neither is derived from a catalogue -- and the
+	-- stance bug is why this list is worth being careful with: `animationKeys`
+	-- once described what the CATALOGUE held rather than what the runtime asks
+	-- for, so eight keys existed that nothing in the pipeline knew about, and
+	-- all three ends failed silently in the same direction.
+	local keys = { "dodgeRoll", "sneak", "carry" }
 	if type(rideKeys) ~= "table" then
 		warn("[Config] animationKeys was called without the ride keys, so it can "
 			.. "only report the dodge roll. Pass RidePose.animationKeys().")
@@ -4906,8 +9386,20 @@ Config.DATASTORE_NAME = "PiggyBank_Player"
 -- v2 added the `upgrades` table for the defence and offence trees.
 -- v3 added `cosmetics`, which rebirth deliberately does not reset.
 -- ============================================================
--- PIG ACCESSORIES
+-- PIG ACCESSORIES -- RETIRED
 -- ============================================================
+--
+-- EVERYTHING FROM HERE TO THE END OF THE LEGAL ARGUMENT DESCRIBES A FEATURE
+-- THAT IS NO LONGER IN THE GAME, and it is kept rather than deleted because
+-- the second half of it is not about accessories at all. The bullets below
+-- describe the retired accessory ROLL; the "paid random item" reasoning after
+-- them outlives it and still governs every chest in the game.
+--
+-- Copy outliving the thing it describes is a fault this file records twice
+-- over -- a SNEAKING section still selling a retired disguise kit, and a
+-- STREET_SPACING comment justified by a car nobody could find -- so the note
+-- goes at the top rather than leaving the next reader to work out which half
+-- is still live. See `Config.ACCESSORIES` below for the retirement itself.
 --
 -- Hats, glasses, capes and shoes, worn one per slot, all four at once. Skins
 -- recolour the pig; these sit ON it, so a decorated piggy is a combination
@@ -4986,6 +9478,28 @@ Config.RARITIES = {
 	epic      = { label = "Epic",      weight = 15,  colour = Color3.fromRGB(181, 97, 255) },
 	legendary = { label = "Legendary", weight = 4,   colour = Color3.fromRGB(255, 203, 61) },
 }
+
+-- THE LADDER IN ORDER, WHICH IS A THING TWO FILES WERE EACH KEEPING THEIR OWN
+-- COPY OF. `Config.RARITIES` is a map and a map has no order, so `ChestService`
+-- carried `local TIERS = { "common", "rare", "epic", "legendary" }` to walk it
+-- deterministically -- and the moment a chest could carry a rarity FLOOR this
+-- file needed the same sequence to compare against. Two copies of one grammar
+-- is what `RideSound` already paid for by keeping a second copy of the ride-key
+-- format and breaking within the hour.
+Config.RARITY_ORDER = { "common", "rare", "epic", "legendary" }
+
+-- Where a tier sits on that ladder, 1 to 4, or 0 for something that is not a
+-- tier at all. Used to compare against a chest's `floor`; nil-safe on purpose,
+-- because a typo in a `floor` should stock the chest with everything rather
+-- than empty it and refuse to open.
+function Config.rarityRank(tier: string?): number
+	for i, name in ipairs(Config.RARITY_ORDER) do
+		if name == tier then
+			return i
+		end
+	end
+	return 0
+end
 
 -- Cheapest first. A cost at or above `from` takes that tier, so the last band
 -- a price clears is the one it lands in.
@@ -5080,26 +9594,142 @@ end
 -- that matters here is OPENS, not price: the odds are what gate a collection,
 -- and the price only decides how much of the economy it drains on the way.
 Config.CHESTS = {
-	classics = {
-		name = "Piggy Classics",
+	-- THE OG SHELF, WHICH IS THE OLD CLASSICS CRATE WITH NEON NIGHTS FOLDED
+	-- INTO IT.
+	--
+	-- There are TWO skin collections now rather than three, and the second
+	-- one is `animal`. Neon Nights was never a different KIND of thing from
+	-- Classics -- both are the street's own skins rather than a costume of
+	-- something else -- so it was a shelf split on palette, which is the one
+	-- axis a nine-year-old cannot act on: nobody wants "a glowing one", they
+	-- want a specific pig. Animal is a real category because it answers a
+	-- question somebody actually asks.
+	--
+	-- THE ODDS LOST `epic` AND NOTHING ELSE MOVED. A skin is one of three
+	-- tiers now, so the middle rung carries what two used to: 32 + 12 = 44.
+	-- Legendary stays at 4, which is what holds the whole price ladder below
+	-- still -- it is solved on COINS PER LEGENDARY, so touching that number
+	-- reprices every crate at once.
+	og = {
+		name = "Piggy Originals",
 		order = 1,
 		kind = "skin",
 		currency = "coins",
 		cost = 500000,
-		odds = { common = 52, rare = 32, epic = 12, legendary = 4 },
+		odds = { common = 52, rare = 44, legendary = 4 },
 		colour = Color3.fromRGB(236, 138, 178),
-		blurb = "Every piggy skin the street started with",
+		blurb = "The skins the street was built on, glow and all",
 	},
-	gear = {
-		name = "Dress-Up Crate",
-		order = 2,
-		kind = "accessory",
+	-- THE DRESS-UP CRATE IS RETIRED WITH THE ACCESSORIES IT HELD. Its pool was
+	-- `Config.ACCESSORIES` and nothing else, so once that emptied this chest
+	-- would have taken 350,000 coins and rolled over a pool with no stock in
+	-- any tier -- `liveOdds` drops empty tiers, and with all four gone there
+	-- is nothing left to hand over. This file's own rule is that the charge
+	-- happens AFTER the outcome exists precisely so a chest can never do
+	-- that, and an empty pool is the one way round it that the guard cannot
+	-- see. Order 2 is free; the ladder sorts on `order` and does not mind a
+	-- gap, as the jump from 2 to 5 already showed.
+	-- ============================================================
+	-- THE TIER LADDER
+	-- ============================================================
+	--
+	-- WHY THESE EXIST: A FLAT PRICE STOPS BEING A PRICE.
+	--
+	-- Measured against the real curves, a 500,000-coin chest is THIRTEEN AND
+	-- A HALF HOURS of idling at level 1 and FOUR SECONDS at level 40 rebirth
+	-- 10 -- a spread of about 12,500 to one. So the permanent cosmetic track,
+	-- which is the whole reason rebirth is worth pressing, is unreachable for
+	-- the first ten levels and free after about level 25. That is the daily
+	-- ladder's own rule arriving on the one place nobody applied it: a coin
+	-- reward is denominated in SECONDS OF YOUR OWN INCOME, never in a flat
+	-- number.
+	--
+	-- THE HONEST FIX IS A SHARE OF CAPACITY and it was refused on purpose --
+	-- measured, it lands every chest at 2 to 6 minutes of idling at every
+	-- point on the ladder. What is here instead is a PRICE LADDER, which
+	-- fixes the top end and not the bottom: a Legendary Crate at six million
+	-- is 33 minutes at level 20 and still 47 seconds at the very top. That
+	-- residual is recorded rather than argued away, and the lever if it ever
+	-- matters is `UPGRADE_COST_CEILING`'s own trick applied here.
+	--
+	-- AND THE TWO COIN SKIN CHESTS ABOVE ARE THE COMMON RUNG, which is why
+	-- no crate here is called one. A themed crate and a tier crate answer
+	-- different questions -- "I want animal skins" against "I want a good
+	-- skin" -- and both are legible to a nine-year-old.
+	--
+	-- THE LADDER IS SOLVED ON COINS PER LEGENDARY, NOT PICKED. A tier crate
+	-- has to be worth buying and must not be strictly better, and those pull
+	-- opposite ways: value per coin is odds over price, so matching the cheap
+	-- crate exactly would mean the top one costs `odds x 12.5M` and is
+	-- therefore CHEAP. What a player actually buys up here is SPEED and a
+	-- floor -- 2.9 opens to a legendary against 25, and never a common -- so
+	-- the ladder carries a deliberate, measured premium for it:
+	--
+	--     crate           price    legendary   coins/legendary   opens
+	--     themed (any)     500K        4%           12.5M         25.0
+	--     Rare Crate       1.5M       10%           15.0M         10.0
+	--     Legendary Crate  6.0M       35%           17.1M          2.9
+	--
+	-- 37% dearer at the top, for a route that is nine times faster and cannot
+	-- pay out a skin you were not chasing. Anything that moves a price or an
+	-- odds row has to re-run that table, or one rung silently becomes a trap.
+	--
+	-- STOCK, MEASURED THROUGH `chestPool` RATHER THAN COUNTED BY EYE -- and
+	-- the difference mattered: eight skins carry no chest tag at all (the
+	-- three rebirth drops, Solid Gold, Classic Pink, the alien skin and the
+	-- two pass skins), so they are not in this economy and cannot be in a
+	-- crate. ACROSS THE TWO SHELVES THE REAL FIGURES ARE 9 common, 20 rare
+	-- and 7 legendary, so a `rare` floor stocks 27 items -- deep enough to
+	-- be a pool rather than a coin flip. That is the check to re-run before
+	-- adding a rung, and it is the one that catches a floor naming a tier
+	-- nothing carries.
+	rarecrate = {
+		name = "Rare Crate",
+		order = 5,
+		kind = "skin",
 		currency = "coins",
-		cost = 350000,
-		odds = { common = 52, rare = 32, epic = 12, legendary = 4 },
-		colour = Color3.fromRGB(150, 96, 190),
-		blurb = "Hats, glasses, capes and shoes for your piggy",
+		cost = 1500000,
+		-- EVERY SKIN IN THE COIN ECONOMY AT RARE OR BETTER, across all three
+		-- themed pools -- which is the other thing this rung sells. A themed
+		-- crate is the route to a theme; this is the route to a SPECIFIC skin
+		-- whatever shelf it came off.
+		floor = "rare",
+		odds = { rare = 90, legendary = 10 },
+		colour = Color3.fromRGB(64, 147, 230),
+		blurb = "No commons. Rare or better, from every shelf",
 	},
+	legendarycrate = {
+		name = "Legendary Crate",
+		order = 6,
+		kind = "skin",
+		currency = "coins",
+		cost = 6000000,
+		-- ITS FLOOR WAS `epic` AND HAD TO COME DOWN TO `rare`, WHICH IS THE
+		-- ONE PLACE DROPPING A TIER BROKE SOMETHING RATHER THAN SIMPLIFYING
+		-- IT.
+		--
+		-- `chestPool` admits anything at or above the floor by RANK, and a
+		-- legendary outranks an epic -- so a floor naming a tier no skin
+		-- carries any more did not empty this crate, it left LEGENDARY as the
+		-- only stocked tier. `liveOdds` then renormalises over what is in
+		-- stock, so six million coins bought a GUARANTEED legendary. That is
+		-- the failure the combine ladder is tuned against, arriving through
+		-- the front door: a top tier you manufacture rather than get.
+		--
+		-- A floor that empties a crate is caught loudly. A floor that silently
+		-- promotes it is not, and only the arithmetic says so.
+		--
+		-- WHAT IT COSTS: the two tier crates now stock the SAME 27 items and
+		-- differ only in price and odds. The rung still sells what the table
+		-- above says it sells -- 2.9 opens to a legendary against 10 -- and
+		-- the coins-per-legendary column does not move, because 35% at six
+		-- million is 17.1M either way.
+		floor = "rare",
+		odds = { rare = 65, legendary = 35 },
+		colour = Color3.fromRGB(255, 203, 61),
+		blurb = "The best odds on a Legendary anywhere",
+	},
+
 	-- ============================================================
 	-- EVENT CHESTS
 	-- ============================================================
@@ -5152,20 +9782,38 @@ Config.CHESTS = {
 		kind = "skin",
 		currency = "coins",
 		cost = 500000,
-		odds = { common = 52, rare = 32, epic = 12, legendary = 4 },
+		-- EIGHT PAINTED COATS AND ONE STORM WOLF: THIS SHELF HAS NO RARE TIER
+		-- AT ALL, AND THE ODDS ROW SAYS SO RATHER THAN LEAVING IT TO
+		-- `liveOdds`.
+		--
+		-- The tier ladder here is the TECHNIQUE ladder (see
+		-- `docs/animal-crate-plan.md`): a painted coat is a common however good
+		-- the painting is, and a legendary glows AND the glow moves. Every
+		-- animal built so far is a coat. Only the Storm Wolf goes through the
+		-- alpha pass, so it is the only thing above common on this shelf.
+		--
+		-- AUTHORING `rare = 44` WITH NO RARE IN STOCK WOULD NOT HAVE ERRORED,
+		-- IT WOULD HAVE REPRICED THE CRATE. `liveOdds` drops a tier with no
+		-- stock and renormalises what is left, so 52/44/4 over a pool with no
+		-- rares resolves to 93% common and 7.1% LEGENDARY -- which is 7.0M per
+		-- legendary against the 12.5M every other 500K crate charges, making
+		-- this quietly the best value in the game. The whole tier ladder is
+		-- solved on coins per legendary, so that is a repricing rather than a
+		-- rounding.
+		--
+		-- 96/4 keeps legendary at the 4% the ladder is built on. When the first
+		-- rare animal lands, this row goes back to 52/44/4 and the pool carries
+		-- it -- and the number to check is that legendary is still 4.
+		odds = { common = 96, legendary = 4 },
 		colour = Color3.fromRGB(214, 158, 96),
 		blurb = "Stripes, spots and fleece. Your piggy, as something else",
 	},
-	neon = {
-		name = "Neon Nights",
-		order = 4,
-		kind = "skin",
-		currency = "coins",
-		cost = 500000,
-		odds = { common = 52, rare = 32, epic = 12, legendary = 4 },
-		colour = Color3.fromRGB(120, 232, 255),
-		blurb = "Glow that carries from the far end of the street",
-	},
+	-- NEON NIGHTS IS RETIRED INTO `og`, and its eleven skins carry
+	-- `chest = "og"` now. Circuit Board went entirely.
+	--
+	-- Order 4 is free. The ladder sorts on `order` and does not mind a gap,
+	-- as the jump from 2 to 5 already showed when the dress-up crate went.
+
 	--
 	-- EFFECTS DO NOT HAVE A CHEST YET, AND MORE EFFECTS WOULD NOT FIX IT.
 	--
@@ -5217,8 +9865,34 @@ Config.CHESTS = {
 -- set without ever turning up. Duplicates from an event chest are still real
 -- spares, which is a small thank-you for attending, but the arrow only points
 -- one way.
+-- FIVE OF A TIER, NOT THREE, AND THE THIRD TIER COMING OUT IS WHY.
+--
+-- The old note read THREE, NOT TWO, and its arithmetic was right for FOUR
+-- tiers: at 2:1 a legendary compounds out of about eight commons, which
+-- makes the top tier something you manufacture rather than something you
+-- get. What it did not survive is the ladder getting shorter.
+--
+-- THE PROPERTY IS THE RATIO BETWEEN THE TWO ROUTES, NOT THE NUMBER. Rolling
+-- a legendary directly is 25 opens at 4%. Combining has always been quicker
+-- than that and is supposed to be -- measured on the shipped four-tier
+-- ladder it is 10.5 opens, so 2.4x. That gap is what makes spares worth
+-- keeping without making the crate a common dispenser.
+--
+-- Dropping to three tiers moves the rung below legendary from 12% to 44%,
+-- so the last hop gets dramatically cheaper and `need` has to absorb it.
+-- Measured across the same odds:
+--
+--     need 3   4.9 opens   5.1x cheaper than rolling   -- a shortcut
+--     need 4   7.0 opens   3.6x
+--     need 5   9.2 opens   2.7x                        -- today's ratio
+--     need 6  11.4 opens   2.2x
+--
+-- So 5 is where the ratio lands back on what the game already ships, and it
+-- is derived from the odds rather than picked. ANYTHING THAT MOVES AN ODDS
+-- ROW HAS TO RE-RUN THAT TABLE -- leaving this at 3 through the tier change
+-- would have halved the cost of the top tier with nothing in any log.
 Config.COMBINE = {
-	need = 3,
+	need = 5,
 	-- Tiers to climb, and the chance of each. Clamped at legendary, so
 	-- combining epics is simply a legendary.
 	odds = { [1] = 85, [2] = 12, [3] = 3 },
@@ -5290,16 +9964,78 @@ Config.SELL = {
 -- Nothing free is in a chest today, so this guards a door nobody can currently
 -- reach. It is written anyway because the failure is silent: tagging a costless
 -- skin into a chest would mint coins with nothing in the log to say so.
+-- AND THE SECOND TEST IS WHETHER A CHEST COULD EVER HAVE DUPLICATED IT,
+-- WHICH IS WHAT THE COST TEST WAS STANDING IN FOR AND GOT WRONG.
+--
+-- `(spec.cost or 0) > 0` admits anything with a coin price, and rides and
+-- decorations have coin prices -- so the Inventory panel offered SELL on a
+-- 90,000-coin BMX for 22.5K, and pressing it fired a genuine, un-refused
+-- last-copy sale through the same `SetService.revoke` path a skin uses. No
+-- chest in the game can produce a spare ride or a spare ornament, so that
+-- was never a spare sale: it was a 75% refund on a purchase, offered in a
+-- panel whose entire subject is duplicates.
+--
+-- IT WAS NOT AN EXPLOIT AND THAT IS WHY IT SURVIVED. `Config.SELL` caps
+-- every payout at a fraction of the item's own price, so selling is always
+-- a loss and there is no sell-and-rebuy loop to close. What there is, is a
+-- nine-year-old refunding three quarters of the most expensive thing they
+-- own, from a screen that exists to tell them spares are safe to sell.
+--
+-- SO THE RULE IS MEMBERSHIP OF A POOL RATHER THAN A PRICE. If no chest can
+-- ever hand you a second one, there is no such thing as a spare of it, and
+-- the sell control has nothing to be about. A ride or an ornament that is
+-- put in a chest tomorrow becomes sellable that day with nothing here to
+-- remember -- which is the same derivation `rarityOf` already uses, and the
+-- reason neither can drift.
+--
+-- THE ALIEN SET IS WHY THIS IS NOT SIMPLY "skins, effects and
+-- accessories". A set spans five catalogues, so the Hoverdisc is a RIDE
+-- that a chest genuinely can duplicate. A rule written against catalogues
+-- rather than against pools would have been wrong about exactly the items
+-- the set economy exists to make special.
+local function inAnyChestPool(kind: string, key: string): boolean
+	for chestKey, chest in pairs(Config.CHESTS) do
+		if chest.kind == "set" then
+			local set = Config.SETS[chest.set]
+			if set then
+				for _, entry in ipairs(set.items) do
+					if entry.kind == kind and entry.key == key then
+						return true
+					end
+				end
+			end
+		elseif chest.kind == kind then
+			local catalogue = Config.catalogueFor(kind)
+			local spec = catalogue and catalogue[key]
+			-- Mirrors `chestPool` exactly: an item earned somewhere other than
+			-- the coin shop is never in a coin chest, even when its own
+			-- catalogue is that chest's source table.
+			if spec and spec.chest == chestKey and not Config.isEarnedElsewhere(spec) then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 function Config.isSellable(kind: string, key: string): boolean
 	local catalogue = Config.catalogueFor(kind)
 	local spec = catalogue and catalogue[key]
 	if not spec then
 		return false
 	end
-	if spec.rarity or spec.set or spec.unlockRebirths then
-		return true
+
+	-- THE FREE TEST STILL RUNS FIRST AND IS UNCHANGED. It is the one that
+	-- guards a coin faucet rather than a bad refund, so it keeps its place
+	-- at the top: a costless, untagged, unranked item is the "none" effect
+	-- class, and selling one of those for a tier value mints coins from
+	-- nothing.
+	local earned = spec.rarity or spec.unlockRebirths or Config.isEarnedElsewhere(spec)
+	if not earned and (spec.cost or 0) <= 0 then
+		return false
 	end
-	return (spec.cost or 0) > 0
+
+	return inAnyChestPool(kind, key)
 end
 
 -- WHAT A POOL ENTRY MEANS, AND IT LIVES HERE BECAUSE THERE ARE THREE
@@ -5400,8 +10136,35 @@ function Config.chestPool(chestKey: string): ({ [string]: { string } }, number)
 	for key, spec in pairs(source) do
 		-- `set` items are event loot and are never in a COIN chest: they are
 		-- bought with event tokens in the themed chest above, which is the
-		-- whole point of that currency.
-		if spec.chest == chestKey and not spec.set then
+		-- whole point of that currency. A PASS item is excluded by the same
+		-- predicate and for a harder reason -- a chest that could hand over a
+		-- paid exclusive is a paid exclusive with a coin price, which is the
+		-- one thing the whole Robux position here rests on not happening.
+		--
+		-- Belt and braces, since a pass item carries no `chest` tag either.
+		-- Stated anyway, because "it cannot reach here" is exactly what was
+		-- true of the free-if-costless hole right up until it was not.
+		-- TWO WAYS A CHEST CLAIMS AN ITEM, AND THE SECOND IS WHAT MAKES A
+		-- RARITY TIER POSSIBLE WITHOUT RE-TAGGING THE CATALOGUE.
+		--
+		-- A THEMED chest names itself on each item (`chest = "animal"`), which
+		-- is right for a pool that is a THEME: somebody has to decide that a
+		-- zebra belongs with the fleece. A TIER chest cannot work that way --
+		-- it would mean tagging every skin twice, and a skin whose price moved
+		-- across a rarity band would have to be re-tagged by hand or quietly
+		-- sit in the wrong crate forever, which is the failure `rarityOf`
+		-- exists to make impossible.
+		--
+		-- So a chest carrying a `floor` takes EVERY item already in the coin
+		-- crate economy at or above that tier, and the membership test is
+		-- `spec.chest ~= nil` -- the same one `isStealableSkin` uses, and for
+		-- the same reason: it is exactly the set that can be handed back.
+		-- Adding a skin to any themed crate stocks the tier crates for free.
+		local claimed = if chest.floor
+			then spec.chest ~= nil
+				and Config.rarityRank(Config.rarityOf(spec)) >= Config.rarityRank(chest.floor)
+			else spec.chest == chestKey
+		if claimed and not Config.isEarnedElsewhere(spec) then
 			local tier = Config.rarityOf(spec)
 			pool[tier] = pool[tier] or {}
 			table.insert(pool[tier], key)
@@ -5420,6 +10183,24 @@ end
 -- `anchors` is always a LIST. Three of the slots have exactly one attachment
 -- point and the fourth has four, and a shoe slot that special-cased itself
 -- everywhere it was read would be worse than one empty-looking loop.
+--
+-- AND THERE ARE TWO SETS, BECAUSE THERE ARE TWO PIGS. `anchors` is the
+-- primitives piggy -- a 6-stud ball centred at y 8.5 with cylinder legs --
+-- and `meshAnchors` is the generated body, which is a different animal: two
+-- studs lower, four studs longer, and with its legs in different places.
+-- `PiggyBank.applyAccessories` picks by whether the mesh actually stood up.
+--
+-- ONE SET WOULD HAVE BROKEN WHICHEVER PIG IT WAS NOT WRITTEN FOR, and the
+-- failure is silent in both directions: a hat solved for the mesh sits two
+-- studs inside the ball, and a hat solved for the ball floats two studs over
+-- the mesh. The primitives piggy only stands when the mesh fails to load,
+-- which is exactly the moment nobody is going to be checking hats.
+--
+-- EVERY MESH NUMBER HERE WAS MEASURED AGAINST THE SKIN RATHER THAN DERIVED
+-- FROM THE BOX. A probe copy of the body at PreciseConvexDecomposition
+-- collision was raycast from outside along each anchor's own direction --
+-- the shipped body is Box fidelity on purpose, so raycasting the real one
+-- answers with its bounding box and would put every one of these wrong.
 Config.ACCESSORY_SLOTS = {
 	hat = {
 		order = 1, label = "HATS", empty = "Bare head",
@@ -5427,6 +10208,28 @@ Config.ACCESSORY_SLOTS = {
 		-- so its top is 14.5; this sits a little into it so no gap opens under
 		-- the brim. Every builder in this slot is authored with y=0 there.
 		anchors = { Vector3.new(0, 14.15, 0) },
+		-- AND THE Z IS THE HALF THAT MATTERED, WHICH ONLY A PICTURE SHOWED.
+		-- On the ball pig z 0 IS the head, because the body is a sphere with a
+		-- snout stuck on it. The generated body is four studs longer and z 0 is
+		-- the middle of its BACK -- so a cap seated at the old anchor sat on
+		-- the pig's shoulders, correct to the stud and obviously wrong to look
+		-- at. Every anchor solved only in Y has this trap in it.
+		--
+		-- Swept along the spine, the crown runs y 5.22 at z 0, 5.69 at z +3,
+		-- 5.38 at z +4 and 4.93 at z +5 in body-local terms: the head's own
+		-- dome. The ears occupy z 3.81 to 6.40, so the cap goes at z 4 -- on
+		-- the forehead, between them -- and 0.35 into a crown of 11.96, which
+		-- is the same bite the ball pig's brim takes.
+		-- Re-derived on the modelled body: the crown runs 11.484 at z 2,
+		-- 11.305 at z 2.5 and 11.054 at z 3, and the ears occupy z 1.35 to
+		-- 3.64 -- so the cap goes BETWEEN them at z 2.5, taking the same 0.35
+		-- bite out of the crown that both earlier pigs took.
+		-- Re-derived on the modelled body, and it goes BETWEEN THE EARS rather
+		-- than dead centre because this pig's ears are 2.16 studs forward of
+		-- the middle. That also keeps the brim off the coin slit, which starts
+		-- roughly where the ears stop -- a hat that swallowed the slot would
+		-- hide the one opening a player posts coins into.
+		meshAnchors = { Vector3.new(0, 11.777, 1.856) },
 	},
 	eyes = {
 		order = 2, label = "GLASSES", empty = "No glasses",
@@ -5435,6 +10238,15 @@ Config.ACCESSORY_SLOTS = {
 		-- z 5.53, and the head's surface at that height is z 5.62 -- so a lens
 		-- at 5.5 was inside both. Sits 0.28 proud of the head instead.
 		anchors = { Vector3.new(0, 10.6, 5.9) },
+		-- Same 0.28 proud, measured along this anchor's own direction from the
+		-- mesh body's centre rather than guessed off the bounding box: the
+		-- skin is 7.94 out there and the anchor is 8.22.
+		-- Same 0.28 proud, measured along this anchor's own direction from
+		-- the modelled body's centre: the skin is 5.773 out there.
+		-- Same 0.28 proud, and solved along THIS pig's own eye line rather
+		-- than the ball's, so the lenses land over the eyeballs instead of
+		-- near where a different animal happened to keep them.
+		meshAnchors = { Vector3.new(0, 9.134, 6.146) },
 	},
 	back = {
 		order = 3, label = "BACKS", empty = "Nothing on the back",
@@ -5442,6 +10254,27 @@ Config.ACCESSORY_SLOTS = {
 		-- 5.45, so z -5.6 sits a hair proud; -5.0 was 0.41 deep, which is why
 		-- the jetpack came out of the middle of the pig.
 		anchors = { Vector3.new(0, 11.0, -5.6) },
+		-- A tenth proud of a skin measured at 7.91 along this direction. It
+		-- still hangs over the vault hatch, which is the accepted cost this
+		-- file already records: the player's own cape covers the game's tell.
+		-- A tenth proud of a skin measured at 6.540 along this direction.
+		-- It still hangs over the vault hatch, which is the accepted cost
+		-- recorded above: the player's own cape covers the game's tell.
+		-- RAISED OFF THE BALL'S OWN ANGLE UNTIL IT CLEARS THE TAIL, which was
+		-- measured rather than nudged. The ball hangs a cape at 24 degrees
+		-- above the horizontal and on this body that direction leaves the shell
+		-- in the middle of the curl -- "a cape hung where the tail already is",
+		-- which this project has recorded once. Swept upward, 48 degrees is the
+		-- first that stands a clear 0.65 studs off every point of the tail.
+		--
+		-- It moved once already: the tail had to be raised off the vault door
+		-- (it was crossing the hatch and every lock plate), and this angle is
+		-- re-solved against where the tail ended up rather than kept. Anything
+		-- that moves the tail again has to re-run that sweep.
+		--
+		-- It still hangs over the vault hatch, which is the accepted cost: the
+		-- player's own cape covers the game's tell.
+		meshAnchors = { Vector3.new(0, 11.191, -4.116) },
 	},
 	feet = {
 		order = 4, label = "SHOES", empty = "Barefoot",
@@ -5455,109 +10288,67 @@ Config.ACCESSORY_SLOTS = {
 			Vector3.new(-3.1, 0.5, -3.1), Vector3.new(3.1, 0.5, -3.1),
 			Vector3.new(-3.1, 0.5, 3.1), Vector3.new(3.1, 0.5, 3.1),
 		},
+		-- THE MESH'S LEGS ARE SOMEWHERE ELSE, and they were found by sweeping
+		-- the underside rather than assumed: casting upward across the belly,
+		-- the sole plane (body-local y -6.07, which is the lawn at y 0.507) is
+		-- reached over x 1.8 to 3.6 and z -4.0 to -2.5 at the back and z 2.5
+		-- to 4.0 at the front. So the legs centre on x 2.7 and z 3.4, not on
+		-- the ball pig's 3.1 and 3.1.
+		-- THE MODELLED BODY'S LEGS ARE SOMEWHERE ELSE AGAIN, and they were
+		-- found the same way: casting upward across the belly, the sole plane
+		-- is reached in two clusters centred on x 2.96, z 2.28 at the front
+		-- and x 2.95, z -3.76 at the back. They are NOT symmetric in z --
+		-- this pig's back legs sit further from the middle than its front
+		-- ones -- so the four are not one number mirrored twice.
+		-- STRAIGHT OFF THE MODEL'S OWN LEG CONSTANTS, so there is nothing to
+		-- find by raycasting a belly: the legs are built at x +/-0.50 and y
+		-- -0.48 / +0.54 in Blender, which is this at a scale of 6. They are
+		-- still not symmetric front to back -- the back pair sits further out
+		-- than the front -- so these are not one number mirrored twice.
+		meshAnchors = {
+			Vector3.new(-3.00, 0.5, -3.24), Vector3.new(3.00, 0.5, -3.24),
+			Vector3.new(-3.00, 0.5, 2.88), Vector3.new(3.00, 0.5, 2.88),
+		},
 	},
 }
 
-Config.ACCESSORIES = {
-	-- HATS
-	cap = {
-		chest = "gear",
-		name = "Ball Cap", slot = "hat", rarity = "common", order = 1,
-		colour = Color3.fromRGB(198, 72, 68), trim = Color3.fromRGB(240, 238, 230),
-		blurb = "Worn backwards by absolutely everyone",
-	},
-	tophat = {
-		chest = "gear",
-		name = "Top Hat", slot = "hat", rarity = "rare", order = 2,
-		colour = Color3.fromRGB(32, 32, 40), trim = Color3.fromRGB(196, 46, 62),
-		blurb = "For a pig with a portfolio",
-	},
-	crown = {
-		chest = "gear",
-		name = "Gold Crown", slot = "hat", rarity = "epic", order = 3,
-		colour = Color3.fromRGB(246, 198, 52), trim = Color3.fromRGB(226, 62, 88),
-		blurb = "Rules over one lawn, absolutely",
-	},
-	halo = {
-		chest = "gear",
-		name = "Halo", slot = "hat", rarity = "legendary", order = 4,
-		colour = Color3.fromRGB(255, 238, 158), trim = Color3.fromRGB(255, 250, 220),
-		blurb = "Innocent. Definitely never robbed anybody",
-	},
-
-	-- GLASSES
-	nerd = {
-		chest = "gear",
-		name = "Round Specs", slot = "eyes", rarity = "common", order = 5,
-		colour = Color3.fromRGB(38, 34, 32), trim = Color3.fromRGB(198, 226, 240),
-		blurb = "Has read the whole rulebook",
-	},
-	shades = {
-		chest = "gear",
-		name = "Shades", slot = "eyes", rarity = "common", order = 6,
-		colour = Color3.fromRGB(24, 24, 28), trim = Color3.fromRGB(52, 58, 72),
-		blurb = "Did not see you there. Does not care",
-	},
-	visor = {
-		chest = "gear",
-		name = "Cyber Visor", slot = "eyes", rarity = "epic", order = 7,
-		colour = Color3.fromRGB(28, 30, 40), trim = Color3.fromRGB(88, 244, 226),
-		blurb = "Scanning your piggy bank. Probably",
-	},
-
-	-- BACKS
-	cape = {
-		chest = "gear",
-		name = "Hero Cape", slot = "back", rarity = "rare", order = 8,
-		-- Puts the collar ON the shoulder surface; the flare does the rest.
-		offset = Vector3.new(0, 1.8, 1.1),
-		colour = Color3.fromRGB(196, 46, 62), trim = Color3.fromRGB(246, 198, 52),
-		blurb = "Billows even indoors",
-	},
-	jetpack = {
-		chest = "gear",
-		name = "Jetpack", slot = "back", rarity = "epic", order = 9,
-		-- Stands off the back and rides high, clear of the tail ball.
-		offset = Vector3.new(0, 1.0, -0.7),
-		colour = Color3.fromRGB(188, 190, 198), trim = Color3.fromRGB(255, 146, 58),
-		blurb = "Purely decorative. The pig is not going anywhere",
-	},
-	wings = {
-		chest = "gear",
-		name = "Angel Wings", slot = "back", rarity = "legendary", order = 10,
-		offset = Vector3.new(0, 0.4, -0.3),
-		colour = Color3.fromRGB(252, 250, 244), trim = Color3.fromRGB(226, 236, 250),
-		blurb = "Suspiciously well earned",
-	},
-
-	-- SHOES
-	boots = {
-		chest = "gear",
-		name = "Work Boots", slot = "feet", rarity = "common", order = 11,
-		colour = Color3.fromRGB(124, 84, 52), trim = Color3.fromRGB(58, 44, 34),
-		blurb = "Four of them. Obviously",
-	},
-	skates = {
-		chest = "gear",
-		name = "Roller Skates", slot = "feet", rarity = "rare", order = 12,
-		colour = Color3.fromRGB(240, 240, 246), trim = Color3.fromRGB(226, 62, 120),
-		blurb = "Does not make the pig any faster",
-	},
-
-	-- ALIEN SET, both carrying `set` so neither can ever come out of the coin
-	-- accessory roll. Without that an alien hat would be handed to players who
-	-- have never seen an invasion, and the set would stop meaning attendance.
-	antenna = {
-		name = "Antenna Headband", slot = "hat", rarity = "epic", order = 13,
-		set = "alien", loot = 12, style = "antenna",
-		colour = Color3.fromRGB(64, 72, 92), trim = Color3.fromRGB(96, 255, 176),
-	},
-	abductor = {
-		name = "Abductor Visor", slot = "eyes", rarity = "epic", order = 14,
-		set = "alien", loot = 12, style = "abductor",
-		colour = Color3.fromRGB(44, 52, 68), trim = Color3.fromRGB(96, 255, 176),
-	},
-}
+-- ============================================================
+-- ACCESSORIES -- RETIRED
+-- ============================================================
+--
+-- The fourteen piggy accessories are out of the game. `PigGear.luau` is
+-- UNTOUCHED and still builds every one of them, which is this file's own
+-- retirement rule: a retired item loses its catalogue row and keeps its
+-- builder, because a builder is the expensive half and a row is the cheap
+-- one. Putting them back is re-adding rows here.
+--
+-- EMPTYING THE CATALOGUE IS THE SWITCH, AND THAT IS THE WHOLE REASON IT IS
+-- CHEAP. Every reader in the game goes through `Config.ACCESSORIES` or
+-- `Config.catalogueFor("accessory")` -- the shop grid, the inventory, the
+-- wardrobe on the pig, the admin unlock, the set panel -- so an empty table
+-- retires all of them at once with nothing to keep in step. `accessory` stays
+-- in `COSMETIC_KINDS` and in `catalogueFor` for exactly that reason: the
+-- generic machinery is what makes this reversible, and pulling the kind out
+-- of it would be the change that has to be undone by hand later.
+--
+-- WHAT COULD NOT SURVIVE AN EMPTY CATALOGUE WENT WITH THEM, and each is
+-- recorded where it was removed rather than only here:
+--
+--   * the Dress-Up Crate, whose entire pool was this table. A chest with an
+--     empty pool takes 350,000 coins and hands over nothing, which is the one
+--     failure this file calls theft rather than bad luck.
+--   * the accessory ROLL, its price ladder and its loot cost. With nothing
+--     rollable the button reads COLLECTION COMPLETE forever, which is a
+--     control that does nothing wearing a finished state.
+--   * the two ALIEN SET accessories. The set is four items now.
+--   * the shop's accessory section, which would otherwise be a header over an
+--     empty grid -- the exact thing the parked cars' retirement records as
+--     reading like a catalogue that failed to load.
+--
+-- The type annotation is load-bearing under `--!strict`: a bare `{}` infers an
+-- empty table type and every `Config.ACCESSORIES[key]` in the game stops
+-- compiling.
+Config.ACCESSORIES = {} :: { [string]: any }
 
 -- ============================================================
 -- THE ROLL CURRENCY
@@ -5604,63 +10395,13 @@ function Config.lootWord(n: number): string
 		else Config.ROLL_CURRENCY.plural)
 end
 
--- What a roll costs at `owned` accessories already collected.
---
--- Small integers, because a currency earned one and two at a time has to be
--- countable on a card. Climbs on purpose: the first roll is affordable from a
--- single day-one daily claim so that everybody tries it, and the last is a
--- fortnight of turning up.
---
--- The whole twelve comes to 102 tokens. Against the two sources -- about 17 a
--- week from the daily ladder and roughly 20 from events at two hours a day --
--- that is close to three weeks to finish the collection: slower than either
--- upgrade tree, faster than a stack of rebirths, and paced by ATTENDANCE
--- rather than by whoever has the deepest vault. That was already the intent
--- of the old coin ladder and it was never true of it.
--- One, not two: at one loot per delivery the ladder reads as "how many
--- robberies", and the first roll is the first robbery -- somebody who installs
--- this game today robs a neighbour and rolls an accessory today.
-Config.ROLL_BASE_COST = 1
-Config.ROLL_GROWTH = 1.25
+-- THE ROLL'S PRICE LADDER IS RETIRED WITH THE ROLL. `ROLL_BASE_COST`,
+-- `ROLL_GROWTH`, `getRollCost`, `accessoryCount` and `rollableAccessoryCount`
+-- all existed to price and pace the accessory collection, and there is no
+-- collection to pace. `Config.ROLL_CURRENCY` and `Config.lootWord` above are
+-- deliberately NOT part of this: they name the loot currency, which the
+-- event chests still price in.
 
-function Config.getRollCost(owned: number): number
-	-- Never below one. A free roll is a button that hands out random items for
-	-- nothing, which is a worse shape than an expensive one.
-	return math.max(1, math.floor(Config.ROLL_BASE_COST
-		* (Config.ROLL_GROWTH ^ math.max(0, owned))))
-end
-
-function Config.accessoryCount(): number
-	local n = 0
-	for _ in pairs(Config.ACCESSORIES) do
-		n += 1
-	end
-	return n
-end
-
--- HOW MANY ACCESSORIES THE ROLL CAN ACTUALLY RETURN, which is NOT how many
--- exist -- and the difference is a real bug the token rework surfaced rather
--- than caused.
---
--- Set accessories are earned by attending events and bought with medals, so
--- `rollFrom` has always excluded them. But the roll's PRICE and its "have you
--- finished" test both counted the whole catalogue, so with two alien items in
--- ACCESSORIES the collection could never read complete from rolling alone: a
--- player who had rolled all twelve was told they had 12 of 14, charged the
--- thirteenth price, and then refused with "Nothing left to roll." It ran the
--- other way too -- buying an alien hat with medals pushed the coin roll's
--- price up a rung, so a set purchase silently made rolling more expensive.
---
--- Both ends now measure the same pool: what a roll can give you.
-function Config.rollableAccessoryCount(): number
-	local n = 0
-	for _, spec in pairs(Config.ACCESSORIES) do
-		if not spec.set then
-			n += 1
-		end
-	end
-	return n
-end
 
 -- ============================================================
 -- HOUSES
@@ -6082,8 +10823,18 @@ Config.DRIVEWAY_WIDTH = 17
 -- Ornaments are shallower than they are wide, so two slots whose Z differs by
 -- at least the deepest ornament CANNOT overlap whatever stands in them, and
 -- two whose X differs by at least the widest cannot either. That is two
--- numbers covering all 324 pairings instead of a per-pair clearance nobody
--- will re-check when the twentieth ornament lands. Measured: widest 13.70
+-- numbers covering EVERY pairing in the catalogue instead of a per-pair
+-- clearance nobody will re-check when the next ornament lands.
+--
+-- THE COUNT USED TO BE WRITTEN OUT HERE AND IT DRIFTED, WHICH IS THE
+-- SMALLEST POSSIBLE EXAMPLE OF THE THING THIS COMMENT IS ABOUT. It said
+-- 324 -- eighteen lawn items squared -- and it was right the day it was
+-- typed. Four trophies later there are twenty-two and the honest figure is
+-- 484, and the same number sat stale at 196 in `docs/GAME.md` and still
+-- does in CLAUDE.md's own post-mortem. Three copies of one DERIVED figure,
+-- three different values, none of them erroring. The rule is what matters
+-- and the count is `#items` squared for anybody who wants it.
+-- Measured: widest 13.70
 -- (Shark In Trainers), deepest 11.00 (Giant Rubber Duck). Columns are 16.5+
 -- apart and rows 12, both with margin.
 --
@@ -6302,6 +11053,321 @@ Config.DECOR_ITEMS = {
 		cost = 6000000, swatch = Color3.fromRGB(126, 222, 78),
 		blurb = "Suspiciously green. Definitely bubbling",
 	},
+
+	-- ------------------------------------------------------------
+	-- THE TROPHIES
+	-- ------------------------------------------------------------
+	--
+	-- MONEY BUYS THE FRAME; ROBBERY BUYS THE PICTURE. These four are the
+	-- only entries in this catalogue with NO `cost`, and that is the whole
+	-- of what makes them trophies: nothing in the shop sells one, and the
+	-- only thing that hands one over is the thing it is a record of.
+	--
+	-- THEY ARE ORDINARY DECOR ITEMS IN EVERY OTHER RESPECT, and that is
+	-- the decision worth recording rather than the geometry. A trophy
+	-- placed, put away, auto-slotted, rebuilt on a plot and rendered on a
+	-- shop card is `data.decor` doing all five, unchanged -- so the whole
+	-- feature cost one field here and one branch in `buyDecor`. The
+	-- alternative was a parallel `data.trophies.placed` with its own slot
+	-- grid, which is nine accessors with a decor-shaped hole under every
+	-- one. WHEN A NEW THING HAS TO BEHAVE LIKE AN EXISTING THING IN
+	-- TWENTY PLACES, MAKE IT ONE -- the same call the shops made.
+	--
+	-- IT ALSO MAKES THE SLOTS SCARCE BY CONSTRUCTION, which `docs/MASTER-PLAN.md`
+	-- asks for in as many words: there are nine lawn slots, eighteen
+	-- ornaments and now four trophies, so displaying what you have DONE
+	-- costs a slot you were using to display what you BOUGHT. Choosing is
+	-- the whole of what makes a shelf mean anything, and that argument
+	-- does not survive giving trophies a grid of their own.
+	--
+	-- EVERY ONE CARRIES AN EXPLICIT `rarity`, and it is load-bearing rather
+	-- than decoration: `Config.rarityOf` reads a PRICE when there is no
+	-- explicit tier, so an unpriced trophy would border as `common` -- the
+	-- exact trap the pass skins and the dog kennels each have a note about.
+	--
+	-- AND `Config.isEarnedElsewhere` NOW READS `trophy`, which is one line
+	-- covering ten sites: no trophy can fall out of a chest, and none can
+	-- be sold back for coins through the free-if-costless branch that once
+	-- unlocked the Tractor Beam for an entire server.
+	victimshelf = {
+		name = "Victim Shelf", zone = "lawn", style = "victimshelf", order = 40,
+		trophy = "victimshelf", rarity = "legendary",
+		swatch = Color3.fromRGB(226, 138, 170),
+		blurb = "A little pig for every skin you have robbed",
+	},
+	haulvault = {
+		name = "The Haul", zone = "lawn", style = "haulvault", order = 41,
+		trophy = "haulvault", rarity = "epic",
+		swatch = Color3.fromRGB(226, 186, 86),
+		blurb = "An open safe, and it fills up as you take more",
+	},
+	medalboard = {
+		name = "Medal Board", zone = "lawn", style = "medalboard", order = 42,
+		trophy = "medalboard", rarity = "epic",
+		swatch = Color3.fromRGB(196, 72, 88),
+		blurb = "One rosette for every thief stopped on your lawn",
+	},
+	sirenpost = {
+		name = "Siren Post", zone = "lawn", style = "sirenpost", order = 43,
+		trophy = "sirenpost", rarity = "rare",
+		swatch = Color3.fromRGB(72, 132, 226),
+		blurb = "A lamp for every patrol you have outrun",
+	},
+}
+
+-- ============================================================
+-- THE GARDEN
+-- ============================================================
+--
+-- PLANTING IS EXPRESSION THAT DOES NOT SPEND A TROPHY SLOT, AND THAT IS THE
+-- WHOLE REASON THESE ARE NOT ORNAMENTS.
+--
+-- There are nine lawn slots and twenty-odd things that want to stand in them,
+-- and `docs/MASTER-PLAN.md` is explicit that the scarcity IS the feature:
+-- choosing what to display is what makes the shelf mean anything, and that
+-- argument does not survive adding slots to fit more things. A border of
+-- plants added as ornaments would have cost a slot per plant, so a player who
+-- wanted a garden would have had to clear their shelf to get one -- which is
+-- the opposite of what a garden is for.
+--
+-- So a border, a path and a window box are PLOT-WIDE COSMETICS: one equipped
+-- at a time out of its own catalogue, rendered along geometry the plot already
+-- has, consuming no slot at all. Same shape as the dog's coat and kennel, and
+-- for the same reason -- `DOG_COATS` is a wardrobe over an animal that exists,
+-- and these are a wardrobe over a fence, a gate walk and a house that exist.
+--
+-- WHAT THEY MAY NEVER DO is the third rule `docs/MASTER-PLAN.md` sets and every
+-- phase of it re-reads: A COSMETIC MAY NEVER IMPLY A TIER THAT HAS NOT BEEN
+-- BOUGHT. Nothing here reaches `scale`, `shape`, a fence tier, a lock tier or
+-- a dog tier; all three are colour and geometry on ground nobody prices a
+-- robbery on. They are also `CanCollide` and `CanQuery` off like everything
+-- else on a lawn, so none of them can body-block a thief, a defender or the
+-- dog, and none can eat a raycast meant for a piggy.
+
+-- HOW TALL A BORDER MAY STAND, AND IT IS DERIVED RATHER THAN TYPED.
+--
+-- `docs/MASTER-PLAN.md` states the cap in prose: "anything above roughly the
+-- fence's own `decorTop` starts hiding the piggy from the pavement, which is
+-- the object the whole decision is about." That is the right constraint and
+-- "roughly" is the wrong way to ship it -- a pinned number describes the
+-- fence ladder as it was on the day somebody typed it, which is exactly how
+-- `SHOP_BANK_PIG_SECONDS` came to be wrong by 62% and how the vault opening
+-- came to be sized against one of four lock tiers.
+--
+-- THE DERIVATION IS EXACT RATHER THAN APPROXIMATE, and that is worth stating
+-- because it makes the guarantee provable instead of tasteful. A border
+-- stands ON THE FENCE LINE. A plant of height H standing on the fence line
+-- occludes precisely the sightline a fence of height H occludes -- same
+-- ground, same distance from the viewer, same distance from the pig. So a
+-- border clamped to `decorTop` HIDES NOTHING THE FENCE DOES NOT ALREADY HIDE,
+-- by construction, at every tier and from every camera on the pavement. There
+-- is no measurement to redo when a tier's height moves and no audit to write.
+--
+-- WHAT IT COSTS, STATED PLAINLY: YOUR FENCE TIER NOW SETS HOW TALL YOUR
+-- GARDEN MAY BE. Rickety clamps to 4.2 and the Moat to 8.9, so the same
+-- Sunflowers are a low run on a cheap fence and a full hedge behind an
+-- expensive one. That is a real coupling between a defence purchase and a
+-- cosmetic one, and it is the honest direction: the tall garden is available
+-- to the player who has already paid to hide their own pig, and never to the
+-- one who has not. A cosmetic that could out-reach the fence would be a
+-- cosmetic implying a tier, which is the rule above.
+-- AND IT IS INDEXED THE WAY `buildFence` INDEXES, WHICH IS NOT THE OBVIOUS
+-- WAY AND COST THE WHOLE GUARANTEE FOR AN AFTERNOON.
+--
+-- `FENCE_TIERS` is 1-based and a level of 0 means NO FENCE, so the tier
+-- standing at level N is `FENCE_TIERS[N]` and not `FENCE_TIERS[N + 1]`.
+-- Written the obvious way this clamped against the tier ABOVE the one
+-- actually built: measured on a live plot at level 2, a Sunflower border
+-- stood at y 8.64 against a picket fence whose visible top is 5.10 -- three
+-- and a half studs of garden over the top of the thing it is bounded by,
+-- which is precisely what the derivation exists to make impossible.
+--
+-- NOTHING IN ANY PROBE COULD SEE IT, because every check compared the border
+-- against `borderHeight`'s own answer and they agreed with each other
+-- perfectly. It took a PHOTOGRAPH from the pavement -- which is this
+-- project's own rule for anything whose whole purpose is being read from
+-- there, and which had been skipped here in favour of numbers that were all
+-- internally consistent and all measured against the wrong tier. A
+-- MEASUREMENT AGAINST A MODEL OF A THING IS NOT A MEASUREMENT OF THE THING.
+function Config.borderHeight(spec: any, fenceLevel: number): number
+	local tier = Config.FENCE_TIERS[math.clamp(fenceLevel, 1, #Config.FENCE_TIERS)]
+	-- `decorTop` and NOT `top`: the barrier is what a jump is measured against
+	-- and the DECOR line is what a viewer actually sees, which is the pair
+	-- `buildFence` already keeps apart and the pair this file records somebody
+	-- confusing once. A border is a visual, so it takes the visual height.
+	-- LESS `LAWN_LIFT`, BECAUSE THE FENCE AND THE GARDEN STAND ON DIFFERENT
+	-- GROUND, AND THAT IS A TRAP THIS PROJECT HAS ALREADY PAID FOR ONCE.
+	--
+	-- A fence is built from `FENCE_BASE_Y`, the world ground; a border is
+	-- planted on the LAWN, which is the plot slab a stud above it. So a plant
+	-- clamped to the raw `decorTop` starts a stud higher than the fence does
+	-- and finishes a stud above it -- measured on the live ladder, a Sunflower
+	-- border stood at 4.45 / 5.68 against fences whose decoration tops out at
+	-- 3.20 / 4.60.
+	--
+	-- This is the SAME asymmetry that made three fence tiers hoppable in one
+	-- direction only: "a fence is a stud taller from the street than from the
+	-- lawn", recorded when `BASE_JUMP_HEIGHT` was retuned. It bites here from
+	-- the other side -- the lawn is the high ground, so anything standing on it
+	-- gets a stud for free. Verified after: the cap lands on 3.20 / 4.60 / 7.90
+	-- against measured visible fence tops of 3.20 / 4.60 / 7.90, which is the
+	-- derivation being exact rather than approximately right.
+	return math.min(spec.height, tier.decorTop - Config.LAWN_LIFT)
+end
+
+-- PLANTS ALONG THE FENCE LINE.
+--
+-- `height` is what the plant WANTS to be and is clamped by `borderHeight`
+-- above, so a catalogue entry is authored at its natural size rather than at
+-- whatever the cheapest fence happens to allow. `spacing` is how far apart
+-- they stand along the run, and it is a PART BUDGET as much as a look: this
+-- is the first thing in the game that repeats along the whole visible
+-- perimeter of a plot, and the grass tufts are already 47% of every part in
+-- the world. Only a plot whose owner has BOUGHT one carries any of this, so
+-- the cost lands on up to eight plots rather than on all fourteen.
+Config.BORDER_PLANTS = {
+	lavender = {
+		name = "Lavender Row", order = 1, cost = 40000,
+		height = 2.6, spacing = 3.2, style = "spikes",
+		leaf = Color3.fromRGB(108, 150, 96), bloom = Color3.fromRGB(150, 120, 206),
+		swatch = Color3.fromRGB(150, 120, 206),
+		blurb = "A low purple run along the fence",
+	},
+	boxhedge = {
+		name = "Box Hedge", order = 2, cost = 120000,
+		height = 4.2, spacing = 2.4, style = "hedge",
+		leaf = Color3.fromRGB(78, 128, 68), bloom = Color3.fromRGB(96, 148, 84),
+		swatch = Color3.fromRGB(78, 128, 68),
+		blurb = "Clipped green, wall to wall",
+	},
+	roses = {
+		name = "Rose Bushes", order = 3, cost = 350000,
+		height = 5.0, spacing = 4.0, style = "bush",
+		leaf = Color3.fromRGB(64, 118, 62), bloom = Color3.fromRGB(226, 74, 96),
+		swatch = Color3.fromRGB(226, 74, 96),
+		blurb = "Red heads on dark green",
+	},
+	sunflowers = {
+		name = "Sunflowers", order = 4, cost = 900000,
+		height = 8.4, spacing = 4.6, style = "tall",
+		leaf = Color3.fromRGB(86, 140, 70), bloom = Color3.fromRGB(246, 200, 60),
+		swatch = Color3.fromRGB(246, 200, 60),
+		blurb = "As tall as your fence will let them grow",
+	},
+}
+
+-- THE PATH FROM THE GATE TO THE PIG.
+--
+-- IT IS LAID FLAT AND THEREFORE COSTS NO SIGHTLINE AT ALL, which is what
+-- makes it the one garden item with no cap on it. It also cannot be a surface
+-- anybody stands on in the collision sense -- like every other decoration
+-- here it is `CanCollide` and `CanQuery` off -- so it is a SUGGESTION about
+-- where to walk rather than a claim on anybody's feet.
+--
+-- WHICH IS THE ONLY INTERESTING THING ABOUT IT: people follow paths. Where an
+-- owner lays one nudges where a thief approaches from, and it does that with
+-- no mechanical hold on the thief whatsoever -- no slow, no veto, no tell.
+-- That is this project's preferred shape for influence, the same call the
+-- guard-duty vest and the rob badge make: give the other player information
+-- and let them decide what to do about it.
+--
+-- A SLAB IS PROUD OF THE LAWN, NEVER SUNK INTO IT. Nothing here can be dug --
+-- the lawn is one solid Part -- so a path set below the grass simply
+-- vanishes, which is the moat's own lesson at a twentieth of the scale.
+Config.GARDEN_PATH_LIFT = 0.06
+
+Config.GARDEN_PATHS = {
+	gravel = {
+		name = "Gravel Path", order = 1, cost = 25000,
+		colour = Color3.fromRGB(188, 180, 164), material = Enum.Material.Slate,
+		width = 4.0, slab = 1.6, gap = 0.35,
+		swatch = Color3.fromRGB(188, 180, 164),
+		blurb = "Crunchy, cheap, and it does the job",
+	},
+	stepping = {
+		name = "Stepping Stones", order = 2, cost = 90000,
+		colour = Color3.fromRGB(156, 158, 152), material = Enum.Material.Slate,
+		width = 3.2, slab = 2.4, gap = 1.8,
+		swatch = Color3.fromRGB(156, 158, 152),
+		blurb = "One stone at a time, across the grass",
+	},
+	brick = {
+		-- NOT "Red Brick", WHICH IS ALREADY A DOG KENNEL.
+		--
+		-- Both would have stood on the SAME shop tab a few sections apart --
+		-- one a paving choice, one a kennel paint job -- with nothing but the
+		-- header above them to tell a nine-year-old which was which. Found by
+		-- sweeping every catalogue for duplicate display names rather than by
+		-- noticing it: the shop renders 12 cards where 11 were expected, which
+		-- is the only symptom a name collision has.
+		--
+		-- Two more survive that sweep and are older than this: "Midnight" is a
+		-- kennel AND a skin, and "Solid Gold" is a kennel AND a skin. Both are
+		-- cross-TAB, which is why nobody has tripped over them, and both are
+		-- left alone here rather than renamed in passing.
+		name = "Herringbone", order = 3, cost = 300000,
+		colour = Color3.fromRGB(178, 88, 66), material = Enum.Material.SmoothPlastic,
+		width = 4.4, slab = 1.2, gap = 0.25,
+		swatch = Color3.fromRGB(178, 88, 66),
+		blurb = "A proper laid walk up to your piggy",
+	},
+	marble = {
+		name = "Marble Walk", order = 4, cost = 1200000,
+		colour = Color3.fromRGB(238, 236, 230), material = Enum.Material.SmoothPlastic,
+		width = 5.0, slab = 3.0, gap = 0.3,
+		swatch = Color3.fromRGB(238, 236, 230),
+		blurb = "The one your neighbours will mention",
+	},
+}
+
+-- WINDOW BOXES, AND THEY ARE HUNG ON A HOUSE RATHER THAN BUILT INTO ONE.
+--
+-- Nine house tiers accept no decoration at all today, and the ladder is
+-- flattest across the middle of it -- a townhouse and a villa are a different
+-- silhouette and very nearly the same amount of building. A box under every
+-- ground-floor window is the cheapest thing that distinguishes them.
+--
+-- IT IS A POST-PASS OVER THE BUILT MODEL, NOT AN ARGUMENT THREADED THROUGH
+-- NINE BUILDERS. `LowPoly.framedWindow` names its ledge `Sill` and every
+-- window in the game goes through it, so hanging a box means walking the
+-- house for that name after it is parented -- which is what
+-- `bindTrampolinesIn` already does for a mat. Threaded instead, it would be
+-- one optional argument through `House.build`, nine tier builders and
+-- `windowBand`: nine chances to leave it out, and a missing one reads as nil,
+-- which is the silent EMPTY case this file records `signWord` and `setDecor`
+-- both refusing.
+--
+-- GROUND FLOOR ONLY, WHICH IS AN ARGUMENT ALREADY WON RATHER THAN A NEW ONE.
+-- `framedWindow`'s own comment records the measurement: a lit window is right
+-- on the cottage's two and wrong on the manor's eleven, so the rule became
+-- "the ground floor is lit and nothing above it is". Boxes take the identical
+-- rule and inherit its reasoning for free -- warmth where somebody standing
+-- on the lawn is looking, and a building that still reads by its walls above
+-- that. It also stops the count running away on the tall tiers, where a box
+-- per window over three storeys would be the row-of-white-holes failure
+-- rendered in planters.
+Config.WINDOW_BOXES = {
+	geraniums = {
+		name = "Geraniums", order = 1, cost = 60000,
+		box = Color3.fromRGB(132, 92, 62), leaf = Color3.fromRGB(84, 132, 72),
+		bloom = Color3.fromRGB(224, 72, 76),
+		swatch = Color3.fromRGB(224, 72, 76),
+		blurb = "Red heads under every downstairs window",
+	},
+	daisies = {
+		name = "Daisies", order = 2, cost = 160000,
+		box = Color3.fromRGB(228, 226, 218), leaf = Color3.fromRGB(96, 144, 80),
+		bloom = Color3.fromRGB(248, 248, 238),
+		swatch = Color3.fromRGB(248, 248, 238),
+		blurb = "White and cheerful, in a painted box",
+	},
+	trailing = {
+		name = "Trailing Ivy", order = 3, cost = 520000,
+		box = Color3.fromRGB(72, 78, 74), leaf = Color3.fromRGB(66, 122, 62),
+		bloom = Color3.fromRGB(88, 150, 78),
+		swatch = Color3.fromRGB(66, 122, 62),
+		blurb = "Green spilling down the brickwork",
+	},
 }
 
 -- How hard a trampoline throws you, in studs per second of upward velocity.
@@ -6329,6 +11395,198 @@ function Config.firstFreeDecorSlot(zone: string, placed: { [string]: string }): 
 		end
 	end
 	return nil
+end
+
+-- ============================================================
+-- TROPHIES
+-- ============================================================
+--
+-- WHAT EACH TROPHY IS A RECORD OF, AND WHAT IT TAKES TO EARN ONE.
+--
+-- `count` names a number `TrophyService.counts` produces and NOTHING
+-- ELSE: this table may not read a save, because Config requires nothing
+-- and has to go on requiring nothing. The server owns the shape of the
+-- data and this owns what the ladder is, which is the same split
+-- `Config.GEAR` already draws against `data.gear.escapes`.
+--
+-- THREE OF THE FOUR NUMBERS ALREADY EXISTED AND WERE DISPLAYED NOWHERE.
+-- `data.totalStolen` has been written on every delivery since the heist
+-- system shipped, `data.gear.escapes` since the most-wanted gear did, and
+-- neither has ever appeared on a screen -- so two thirds of this feature
+-- is a readout for arithmetic the game was already doing. That is the
+-- cheapest kind of content this design has, and it is the reason
+-- the old roadmap put the trophies before the garden.
+--
+-- A TROPHY IS A READOUT, NOT A BADGE, which is what `need` and the growth
+-- below are for. A thing that appears once and never changes again is
+-- spent the moment it lands; one that visibly grows is worth walking past
+-- for the rest of the account's life. The coin pile on the lawn has made
+-- that argument since the first week of this project.
+--
+-- ONE IS OFFENCE, ONE IS DEFENCE, ONE IS THE POLICE AND ONE IS THE
+-- COLLECTION, and that spread is deliberate rather than tidy. A yard that
+-- only rewarded robbing would say "I rob" and offer nothing at all to a
+-- player who spent their coins on fences, dogs and locks -- which is half
+-- the catalogue and the half that never sees a reward for it.
+Config.TROPHIES = {
+	-- THE SLEEPER, and the only one that is a COLLECTION rather than a
+	-- counter. It is driven purely by robbing, it is built on a builder
+	-- that already exists, and it gives all 46 skins a second reason to be
+	-- authored: today a skin is seen by its owner and by whoever happens to
+	-- walk past their plot, and nothing else in the game ever shows one.
+	--
+	-- FIVE, NOT ONE. A shelf that arrives on your first robbery is a
+	-- participation medal and holds one pig, which is not a collection --
+	-- five is far enough in that the case is worth looking at when it lands
+	-- and near enough that an evening reaches it.
+	victimshelf = {
+		count = "victims", need = 5,
+		requirement = "Rob 5 different piggy skins",
+	},
+
+	-- OFFENCE. `data.totalStolen` measures what VICTIMS LOST rather than
+	-- the doubled figure banked at home -- the same number the rap sheet
+	-- and the weekly board rank on -- so the safe fills with coins that
+	-- were actually taken out of somebody's pig rather than minted on the
+	-- way back to yours.
+	haulvault = {
+		count = "stolen", need = 100000, coins = true,
+		requirement = "Steal 100K coins from other pigs",
+		-- IT DOUBLES RATHER THAN COUNTING, because this is the one figure
+		-- here that spans the whole economy: a level-40 thief takes more in
+		-- one delivery than a new one takes in an evening. A linear ladder
+		-- would be full by the second hour and then say nothing for the rest
+		-- of the account's life. Ten bars is 100K doubled nine times, which
+		-- is 51.2M and comfortably past the end of the catalogue.
+		double = true, max = 10,
+	},
+
+	-- DEFENCE, and the one number here that had to be invented. There was
+	-- no count of thieves stopped anywhere in the save: `data.totalLost`
+	-- tracks the INVERSE -- coins somebody took off you -- so building a
+	-- defender's trophy on it would have been a prize for being robbed.
+	--
+	-- IT COUNTS A DOG'S CATCH AND A PLAYER'S NAB AND NOT AN ARREST. The
+	-- patrol belongs to nobody, which is the whole point of it; crediting a
+	-- plot owner for a car the street sent would be the first time anything
+	-- in this game claimed the police as a defence upgrade.
+	medalboard = {
+		count = "caught", need = 3, max = 9,
+		requirement = "Stop 3 thieves on your own lawn",
+	},
+
+	-- THE POLICE. `data.gear.escapes` is already the unlock ladder for the
+	-- Most Wanted gear, so this is a SECOND readout of one number rather
+	-- than a second counter -- which is what keeps the two from ever
+	-- disagreeing about how many patrols somebody has outrun.
+	--
+	-- ONE, because escaping a most-wanted pursuit is already rare enough to
+	-- be its own event: you have to be top of the board, be come for, and
+	-- get away. A threshold above one would leave the lamp unlit for the
+	-- players who have done the hardest thing in this list.
+	sirenpost = {
+		count = "escapes", need = 1, max = 5,
+		requirement = "Escape one most-wanted patrol",
+	},
+}
+
+-- How full a trophy is, from 0 (not earned) up to its own `max`.
+--
+-- ONE FUNCTION RATHER THAN A BRANCH IN EACH BUILDER, because the geometry
+-- and the shop card have to agree about what "grade 4" means -- a case
+-- standing four bars tall beside a plaque reading three is the kind of
+-- disagreement nobody reports and everybody stops trusting.
+--
+-- The victim shelf takes no grade at all: it shows one pig per skin, so
+-- its own list is the readout and a number derived from its length would
+-- be a second answer to a question the list already answers exactly.
+function Config.trophyGrade(key: string, have: number): number
+	local spec = Config.TROPHIES[key]
+	if not spec or have < spec.need then
+		return 0
+	end
+	local max = spec.max or 1
+	if spec.double then
+		return math.clamp(math.floor(math.log(have / spec.need, 2)) + 1, 1, max)
+	end
+	return math.clamp(math.floor(have / spec.need), 1, max)
+end
+
+-- The line a locked card prints where a price would go.
+--
+-- Read out of the table rather than assembled from `count` and `need`,
+-- for the reason `Config.gearRequirement` is a sentence rather than a
+-- format string: "Steal 100000 stolen" is what a generated one says, and
+-- the sentence is the one part of a trophy a nine-year-old actually reads.
+function Config.trophyRequirement(key: string): string
+	local spec = Config.TROPHIES[key]
+	return if spec then spec.requirement else ""
+end
+
+-- ============================================================
+-- THE FRAME
+-- ============================================================
+--
+-- MONEY BUYS THE FRAME. Every trophy stands on a plinth, one purchase
+-- restyles ALL of them, and nothing here can be earned -- which is the
+-- exact inverse of the four above and is the whole economy of the shelf:
+-- a rich player who has never robbed anybody has a row of beautiful empty
+-- pedestals, and a thief with no coins has four trophies on bare concrete.
+--
+-- ONE LADDER FOR THE WHOLE YARD RATHER THAN A PLINTH PER TROPHY. Four
+-- separate purchases would be four cards saying the same thing, and a yard
+-- with a gilded safe next to a concrete shelf reads as unfinished rather
+-- than as a choice. It also means the ladder can be priced as one thing.
+--
+-- THE ENGRAVING IS A RUNG, NOT A FREEBIE, and that is what makes the
+-- middle of this ladder worth buying. `Marble` is where a trophy starts
+-- SAYING its own number -- "482K STOLEN" on a brass plaque -- so the step
+-- from `Stone` up is a step from an object to a readout. The top rung adds
+-- the uplight, which is the only thing here that reads from the pavement.
+--
+-- NEON, NEVER A LIGHT. There is no night in this game -- `WorldService`
+-- sets `ClockTime` to 14.5 exactly once and nothing ever moves it -- so a
+-- PointLight at 14:30 is an invisible purchase. Every celebration in this
+-- project is emissive geometry for the same reason.
+--
+-- A PLINTH CONFERS NOTHING, which is the line that lets it be sold for
+-- coins at all. It repaints a base and adds a label; the trophy standing
+-- on it is the same trophy, and no amount of money spent here changes a
+-- single thing a thief reads off the lawn.
+Config.TROPHY_PLINTHS = {
+	stone = {
+		name = "Dressed Stone", order = 1, cost = 40000,
+		base = Color3.fromRGB(176, 172, 164), trim = Color3.fromRGB(138, 134, 126),
+		material = Enum.Material.SmoothPlastic,
+	},
+	marble = {
+		name = "White Marble", order = 2, cost = 400000,
+		base = Color3.fromRGB(238, 236, 230), trim = Color3.fromRGB(198, 158, 78),
+		material = Enum.Material.SmoothPlastic, plaque = true,
+	},
+	gilded = {
+		name = "Gilded", order = 3, cost = 4000000,
+		base = Color3.fromRGB(226, 186, 86), trim = Color3.fromRGB(150, 112, 40),
+		material = Enum.Material.SmoothPlastic, plaque = true,
+		-- The uplight, and it is DEEP AMBER rather than a pale cream for the
+		-- reason the street lamp had to come down off (255, 240, 190): Neon
+		-- renders a colour flat out and the BloomEffect takes it from there,
+		-- so a pale tint is a white hole and a saturated one is a lamp.
+		glow = Color3.fromRGB(226, 148, 40),
+	},
+}
+
+-- The plain concrete every trophy stands on before anything is bought.
+-- Not a row in the table above, because it is not for sale: a catalogue
+-- entry with no price is a card that cannot be pressed.
+Config.TROPHY_PLINTH_BASE = {
+	name = "Plain Concrete",
+	base = Color3.fromRGB(150, 148, 144), trim = Color3.fromRGB(120, 118, 114),
+	material = Enum.Material.SmoothPlastic,
+}
+
+function Config.trophyPlinth(key: string?): any
+	return (key and key ~= "" and Config.TROPHY_PLINTHS[key]) or Config.TROPHY_PLINTH_BASE
 end
 
 -- ============================================================
@@ -6439,8 +11697,175 @@ Config.PASSES = {
 		-- twice: "owns the pass and owns no ride" stops being true the instant
 		-- it fires.
 		entryRide = "skateboard",
+
+		-- ALREADY HAS A HOME, so the general offers shelf leaves it alone.
+		--
+		-- This one is sold on the RIDES tab, beside the stances it unlocks and
+		-- under the same header -- which is a better place for it than a shelf
+		-- of offers, because what it buys only means anything next to a board.
+		-- Two cards for one pass would be the near-identical duplicate this
+		-- file keeps recording, on the one screen where a player is deciding
+		-- whether to spend real money.
+		--
+		-- A pass with no `soldWith` appears on the shelf, which is the right
+		-- default: the failure it prevents is a paid product with no way to
+		-- buy it from inside the game.
+		soldWith = "rides",
+	},
+
+	-- ====================================================================
+	-- VIP
+	-- ====================================================================
+	--
+	-- WHAT VIP IS NOT, FIRST, BECAUSE THE THREE MOST COMMON VIP PERKS ON
+	-- THIS PLATFORM ARE ALL ILLEGAL HERE AND THEY ARE THE FIRST THREE
+	-- ANYBODY WILL SUGGEST.
+	--
+	-- NEVER CURRENCY. Coins are not purchasable with Robux at any price --
+	-- the single rule keeping the entire chest catalogue outside
+	-- paid-random-item regulation, and one that can only be broken once,
+	-- because the day it goes every chest in the game becomes a regulated
+	-- loot box retroactively. Loot is worse still: loot buys a roll, so
+	-- Robux to loot is literally paying for a random outcome. That kills a
+	-- daily free crate, a VIP-only chest and a monthly coin stipend.
+	--
+	-- NEVER A RATE, AND THIS ONE IS ARITHMETIC RATHER THAN POLICY. A
+	-- 2x-income pass fails `Config.auditRobbery` on boot: the full-server
+	-- figure goes 3.51x to 1.76x, straight through `ROBBERY_ADVANTAGE.min`
+	-- of 3.0. Even a 1.25x pass lands at 2.81x and fails. The whole
+	-- residents-and-shops programme exists because idling was out-earning
+	-- robbing, and a rate pass reintroduces exactly that failure for paying
+	-- players specifically -- which is the worst possible group to break it
+	-- for.
+	--
+	-- SO IT IS NAMED THINGS AND A MARK ON THE STREET, which is the safest
+	-- shape there is to put in front of an under-12 audience: a purchase
+	-- that hands over a specific item mints no coins, feeds no chest, and
+	-- is an ordinary direct purchase.
+	--
+	-- THE ITEMS ARE NOT LISTED HERE, AND THAT IS DELIBERATE. Anything in
+	-- any catalogue carrying `pass = "vip"` is granted, so adding one is a
+	-- row in the catalogue it belongs to and nothing else -- no second list
+	-- to keep in step, which is the near-identical duplicate this file
+	-- keeps recording as the thing that drifts. Today that is the Velvet
+	-- Rope skin, the Spotlight aura and the Paparazzi catch effect.
+	vip = {
+		id = 0,
+		name = "VIP",
+		blurb = "A skin, an aura, a catch effect and your name in gold on the street.",
+		-- Display only. Roblox owns the real price; this is what the shop
+		-- tile prints so the offer can be read before the prompt opens, and
+		-- the two are kept in step BY HAND -- there is no API that makes this
+		-- authoritative.
+		robux = 249,
+
+		-- THE MARK ON THE PLOT SIGN, and it is the only physical boast
+		-- surface this game has. It is a WORD as well as a colour, because
+		-- colour alone separates things only for players who can see the
+		-- difference -- the same two-channel rule the rarity borders already
+		-- follow.
+		signWord = "VIP",
+		-- A DEEP ANTIQUE GOLD, AND THE FIRST VALUE WAS MEASURED AND
+		-- REJECTED.
+		--
+		-- The obvious colour is the theme's own gold, (246, 206, 96). The
+		-- plot sign's panel is cream (244, 236, 218), and that pairing
+		-- measures 1.28:1 -- a name you can see is there and cannot read,
+		-- which is the exact failure this project already recorded for raw
+		-- gold on paper at 1.42:1. It would have made the one thing VIP buys
+		-- on the street WORSE than not buying it.
+		--
+		-- (140, 96, 10) measures 4.71:1 on that panel, clearing the body
+		-- floor rather than the 3.0 a scaled label could have settled for,
+		-- and it still reads as gold against the plain name's brown (70, 46,
+		-- 30) at 10.69. Anything that repaints `SignPanel` has to re-measure
+		-- this pair.
+		signColour = Color3.fromRGB(140, 96, 10),
+	},
+
+	-- ====================================================================
+	-- THE STARTER PACK
+	-- ====================================================================
+	--
+	-- A PASS RATHER THAN A DEVELOPER PRODUCT, which is the opposite of how
+	-- every other game on this platform sells one, and the reason is the
+	-- reason `PassService` exists at all: a pass is an entitlement held by
+	-- ROBLOX and re-checkable forever, so a lost save gives the items back
+	-- on the next join. A developer product's receipt arrives once, and if
+	-- the write recording it fails the purchase is simply gone. That is not
+	-- an acceptable failure for a nine-year-old who spent birthday Robux,
+	-- and it is the likeliest purchase in the game to be somebody's first.
+	--
+	-- BE CAREFUL WITH CONSUMABLES, WHICH IS WHERE THE GENRE'S STARTER PACKS
+	-- LIVE AND WHY THIS ONE HAS NONE. Ten Golden Bones is 300,000 coins of
+	-- value in a trenchcoat, which is selling currency with extra steps --
+	-- and the coins-are-not-purchasable rule does not care whether the
+	-- currency arrives as a number or as a stack of things that number would
+	-- have bought.
+	--
+	-- AND NO COUNTDOWN, NO FAKE DISCOUNT, NO "was 999 R$". Time-pressure
+	-- selling aimed at nine-year-olds is a decision made here rather than a
+	-- rules question, and the answer is no.
+	--
+	-- PRICED BELOW THE STYLE PACK'S 99, because it is the entry offer and
+	-- the cheapest thing in the game should be the thing somebody buys
+	-- first.
+	starterPack = {
+		id = 0,
+		name = "Starter Pack",
+		blurb = "A skin, an aura, and a board to get around on if you have none.",
+		robux = 79,
+
+		-- THE SAME FLOOR THE STYLE PACK CARRIES, and for the same reason: a
+		-- pass is buyable from the experience's store page, outside this
+		-- game's UI, so nothing may assume the buyer already owns anything.
+		-- The CHEAPEST ride, never a matching one -- rides run 25,000 to
+		-- 4,500,000 coins, and handing over an expensive one would price a
+		-- cosmetic above the largest coin sink in the game and delete the
+		-- reason to go on earning.
+		--
+		-- Self-clearing, so there is nothing to record and no way to grant it
+		-- twice: "owns the pass and owns no ride" stops being true the
+		-- instant it fires.
+		entryRide = "skateboard",
 	},
 }
+
+-- EVERY PASS-EXCLUSIVE ITEM IN EVERY CATALOGUE, derived rather than listed.
+--
+-- The alternative is a `grants` array on each pass row, which is a second
+-- copy of a fact the catalogues already carry -- and the failure shape is
+-- known and silent: an item tagged `pass = "vip"` but missing from the
+-- list is excluded from every roll and granted by nothing, so it exists,
+-- borders as legendary, and is unobtainable by any route. Deriving cannot
+-- produce that state.
+--
+-- IT WALKS `Config.catalogueFor`'S OWN KINDS, so a seventh catalogue is
+-- covered the moment it is added there rather than the session somebody
+-- notices. Returns `{kind, key}` pairs, which is the grammar
+-- `SetService.grant` already speaks.
+function Config.passItems(passKey: string): { { kind: string, key: string } }
+	local out = {}
+	for _, kind in ipairs(Config.COSMETIC_KINDS) do
+		local catalogue = Config.catalogueFor(kind)
+		if catalogue then
+			for key, spec in pairs(catalogue) do
+				if type(spec) == "table" and spec.pass == passKey then
+					table.insert(out, { kind = kind, key = key })
+				end
+			end
+		end
+	end
+	-- Sorted, so a grant announces its items in the same order every time
+	-- rather than in whatever order `pairs` happened to walk two tables.
+	table.sort(out, function(a, b)
+		if a.kind ~= b.kind then
+			return a.kind < b.kind
+		end
+		return a.key < b.key
+	end)
+	return out
+end
 
 -- HOW FAST THE SIDEWAYS STANCE CATCHES UP TO A NEW HEADING, in degrees per
 -- second, never applied instantly.
@@ -6764,13 +12189,30 @@ Config.DAILY_CYCLE = {
 		short = "COINS", label = "15 min of income" },
 	{ kind = "boost", boost = "boost15",
 		short = "2x BOOST", label = "2x for 15 min" },
-	{ kind = "bone", bone = "steak", count = 2,
-		short = "STEAKS", label = "2 Juicy Steaks" },
-	-- Day seven is the streak payoff and the reason to come back on day six.
-	-- When crates ship this becomes a KEY -- see the plan -- and the Golden
-	-- Bone moves to day six.
+	-- Day six is the Golden Bone now, moved down a rung to make room. It is
+	-- still the second-best thing on the ladder and still the reason to come
+	-- back on day five.
 	{ kind = "golden", seconds = 1800, floor = 5000,
 		short = "GOLDEN", label = "Golden Bone + 30 min" },
+	-- DAY SEVEN IS A FREE CRATE, AND IT IS THE ONLY RUNG THAT PAYS SOMETHING
+	-- PLAYING CANNOT.
+	--
+	-- This table's own comment has said "when crates ship this becomes a KEY"
+	-- since it was written, and crates shipped. Every other rung -- coins
+	-- denominated in your own income, a boost, a couple of bones -- hands over
+	-- something a player would have earned anyway by turning up and playing
+	-- for a few minutes, so the ladder was giving nobody a reason to return
+	-- that the game did not already give them. A crate open lands on the
+	-- PERMANENT COSMETIC TRACK, which is the one thing an hour of idling
+	-- cannot buy.
+	--
+	-- `classics` rather than the dearest crate: it is the entry chest, the
+	-- one a new player recognises, and at 500,000 coins it is still a real
+	-- prize on day seven of somebody's first week. Note the pool is unowned-
+	-- aware through `liveOdds`, so a player who has finished it gets a spare
+	-- worth selling rather than nothing.
+	{ kind = "crate", crate = "og",
+		short = "CRATE", label = "A free Piggy Originals crate" },
 }
 
 -- Stored, never auto-applied.
@@ -6795,6 +12237,54 @@ Config.BOOSTS = {
 function Config.dayIndex(when: number?): number
 	return (when or os.time()) // 86400
 end
+
+-- Weeks are day indices divided down, for exactly the reason above: the only
+-- question ever asked is WHICH WEEK, so no clock, timezone or daylight saving
+-- can get between the save and the answer, and two servers in different
+-- regions cannot disagree about it.
+function Config.weekIndex(when: number?): number
+	return Config.dayIndex(when) // 7
+end
+
+-- THE STREET'S LADDER OUTLIVES THE SERVER NOW, AND THAT IS THE ONLY SAFE WAY
+-- TO MAKE A NINE-YEAR-OLD FEEL BEHIND.
+--
+-- This design has removed every form of loss on purpose and should keep it
+-- that way: a plot is RELEASED when its owner logs off so nobody is ever
+-- robbed while away, a robbery never costs progress, rebirth keeps every
+-- cosmetic, and offline accrual runs eight hours and never decays. All four
+-- are deliberate and none of them is negotiable for this audience.
+--
+-- What went with them, and was never a decision, is COMPARISON. There was not
+-- one `OrderedDataStore` in the project: both boards read
+-- `Players:GetPlayers()`, so every ranking in the game evaporated when the
+-- server did. Nothing anybody did on Tuesday was visible on Wednesday, to them
+-- or to anybody else.
+--
+-- **RANK IS THE ONE THING THAT CAN SAFELY DECAY, BECAUSE NOBODY EVER OWNED
+-- IT.** Being overtaken costs a player nothing they had -- no coins, no
+-- upgrade, no skin -- and it is the whole of what "I should get back on" feels
+-- like. That is loss aversion with no loss in it, which is the only version of
+-- it this game is allowed to have.
+--
+-- WEEKLY RATHER THAN LIFETIME, and that is the same argument the session rap
+-- sheet already won. Most Wanted used to rank `data.totalStolen` and was
+-- unwinnable -- whoever had played longest wore it forever, so the one status
+-- that cannot be bought was also the one nobody could earn. A lifetime ladder
+-- here would make exactly that mistake at a larger scale. A week is long
+-- enough that a good session still shows on Thursday and short enough that
+-- somebody starting today can win it.
+Config.WEEKLY_HEIST = {
+	-- Bumped only if the shape of what is stored changes; the week itself is
+	-- part of the key, so a new week is a new page rather than a migration.
+	store = "WeeklyHeist.v1",
+	rows = 8,
+	-- Seconds between reads of the sorted page. The write budget is
+	-- 60 + 10 per player a minute and the sorted-read budget is 5 + 2 per
+	-- player, so at six players this is nowhere near either -- it is set by
+	-- how fast a board should react, not by the quota.
+	refresh = 45,
+}
 
 -- ONE missed day is forgiven; two ends the streak.
 --
@@ -6905,7 +12395,95 @@ end
 --
 -- (17 was THE PIG IS THE WALLET -- `vault` folded into `coins`, `medals` and
 -- `tokens` into `loot`. 16 added the shards this one retires.)
-Config.SCHEMA_VERSION = 18
+--
+-- 19 IS `data.week`, AND IT IS THE FREE KIND OF CHANGE. A brand new table of
+-- two numbers, both defaulting to zero, on a path `reconcile` already descends
+-- -- so every existing save picks it up on its next join with no migration
+-- branch, nothing to pay out and nothing that can run twice. The same free
+-- ride `loot` and `spares` took, and the argument for doing it NOW rather than
+-- after the board it feeds has an audience.
+-- 20 ADDS `dogs`, THE DOG'S WARDROBE, AND IT IS THE SAME FREE RIDE AGAIN: a
+-- new top-level table of an owned set and one equipped key, filled in by the
+-- generic pass in `reconcile` with no migration branch, nothing to pay out and
+-- nothing that can run twice.
+--
+-- LANDED BEFORE ANY UI READS IT, WHICH IS THE WHOLE REASON IT COST NOTHING.
+-- The `shards` to `spares` change is the precedent from the other side: it was
+-- free precisely because no chest tab existed yet, so reconcile could simply
+-- drop the field. The same edit after a tab ships needs a real payout, and a
+-- payout that runs on every join is a money printer -- a far worse bug than
+-- the one being fixed. Anything else still carrying a placeholder shape wants
+-- moving on that argument, while it is still free.
+-- 21 ADDS `catch`, THE CATCH-EFFECT WARDROBE, AND IT IS THE FREE RIDE A
+-- FOURTH TIME: a new top-level table of an owned set and one equipped key,
+-- filled in by the generic pass in `reconcile`, with no migration branch,
+-- nothing to pay out and nothing that can run twice.
+--
+-- LANDED IN THE SAME CHANGE AS THE CATALOGUE AND BEFORE ANY UI READ IT,
+-- which is the rule the paragraph below sets and this is the first time it
+-- has been followed deliberately rather than by luck.
+-- SCHEMA 22: `daily.crate`, the chest a day-seven claim is still OWED.
+--
+-- The day-seven reward used to be opened inside the claim, so it landed
+-- while the player was still looking at the daily board and the one rung
+-- on that ladder which pays something playing cannot had no moment of its
+-- own. It stands on the doorstep now, and the crate has to survive a
+-- disconnect or a player would lose a week's streak to a dropped session.
+--
+-- A new field defaulting to an empty string, so `reconcile`'s generic pass
+-- fills it in one level down inside `daily` with no migration branch,
+-- nothing to pay out and nothing that can run twice.
+-- THE DELIVERY VAN.
+--
+-- Traffic, and nothing else. It confers nothing, it cannot be reached,
+-- called, bought, aimed or robbed, and nothing on it collides -- see
+-- `VanModel`, where that is enforced rather than promised. What it buys is
+-- that the street reads as somewhere people live rather than as a diorama
+-- with one police car in it, and it is the world's own explanation for the
+-- mailbox on every lawn and the crate on a seventh-day doorstep.
+Config.DELIVERY = {
+	-- SLOWER THAN THE PATROL, WHICH IS THE POINT RATHER THAN A SAVING. The
+	-- car does 34 because it is answering an alarm; a van doing the same
+	-- speed reads as a second emergency. It is also well under
+	-- `BASE_WALK_SPEED`'s neighbours in every direction that matters --
+	-- nothing here can catch, block or outrun anybody, because nothing here
+	-- touches anybody at all.
+	speed = 20,
+
+	-- THE OPPOSITE LANE FROM THE PATROL'S, DERIVED SO THE TWO CANNOT DRIFT
+	-- ONTO THE SAME LINE. Two vehicles sharing a centreline is a road with
+	-- one lane on it; negating the police's own number keeps them on
+	-- opposite sides by construction, and a retune of that lane moves both.
+	lane = -Config.POLICE.lane,
+
+	-- HOW LONG THE ROAD STAYS EMPTY BETWEEN RUNS, drawn between these two.
+	--
+	-- A van every thirty seconds is a motorway and a van every ten minutes
+	-- is a van nobody ever sees. At 70 to 150 a player in a fifteen-minute
+	-- session meets six or seven, which is often enough to read as a street
+	-- and rare enough that one arriving is still worth looking up at.
+	--
+	-- Randomised rather than fixed for the reason the fireworks' launches
+	-- are: an exactly regular arrival is a machine, and a player who can
+	-- predict the next one has stopped noticing them.
+	gapMin = 70,
+	gapMax = 150,
+
+	-- A FRESH SERVER GETS A BEAT BEFORE THE FIRST ONE. Somebody who has
+	-- just loaded in is reading a HUD and finding their own plot, which is
+	-- the same argument `Config.MUSIC.START_DELAY` makes for holding the
+	-- first cue back.
+	firstDelay = 45,
+}
+
+-- 23: `data.trophies`. A brand new TOP-LEVEL table, which is the free
+-- case -- the generic pass in `DataService.reconcile` fills it in on every
+-- existing save with no migration branch and nothing that can run twice.
+-- Landed BEFORE anything reads it, which `docs/MASTER-PLAN.md` names as the only
+-- window in which a schema change is free: the same move after a UI ships
+-- needs a real payout, and a payout that runs on every join is a money
+-- printer.
+Config.SCHEMA_VERSION = 24
 
 Config.AUTOSAVE_INTERVAL = 60
 
@@ -7048,6 +12626,27 @@ function Config.auditEconomy(): { string }
 		RIDES = Config.RIDES, ACCESSORIES = Config.ACCESSORIES,
 		BONES = Config.BONES, GADGETS = Config.GADGETS,
 		HOME_ITEMS = Config.HOME_ITEMS,
+		-- The dog's two wardrobes. Added here the day the kennels landed, and
+		-- the coats had been priced for a session without being audited --
+		-- which is the same gap this whole function exists to close, arriving
+		-- on a catalogue nobody thought of as one. Anything with a `cost` in
+		-- it belongs in this table; the test is the FIELD, not whether it
+		-- feels like a shop.
+		DOG_COATS = Config.DOG_COATS,
+		DOG_KENNELS = Config.DOG_KENNELS,
+		DOG_TOYS = Config.DOG_TOYS,
+		-- Priced in the same breath it was added, on the lesson directly
+		-- above: the test for membership is whether an entry carries a
+		-- `cost`. Its legendary is the dearest thing in this table after the
+		-- houses, which is exactly the sort of number that wants a machine
+		-- checking it against the pig rather than a person remembering to.
+		CATCH_EFFECTS = Config.CATCH_EFFECTS,
+		-- The trophy frames, priced in the same change that added them, on
+		-- the lesson two entries up: the test is the FIELD. The four
+		-- TROPHIES themselves are deliberately absent -- they carry no
+		-- `cost` at all, so there is no price here for a pig to fail to
+		-- hold.
+		TROPHY_PLINTHS = Config.TROPHY_PLINTHS,
 	}
 	for name, catalogue in pairs(catalogues) do
 		if type(catalogue) == "table" then
@@ -7285,15 +12884,54 @@ Config.ROBBERY_ADVANTAGE = {
 -- things: falling under `min` means even PERFECT robbing loses to standing
 -- still, which is damning, while going over `max` means the best case is too
 -- good, which is a warning about the ceiling rather than about the average.
-function Config.robberyCycleSeconds(steps: number): number
-	local run = Config.PLOT_SPACING - Config.STEAL_RANGE - Config.DROPOFF_RADIUS
-	local approach = run / Config.BASE_WALK_SPEED
-	local getaway = run / (Config.BASE_WALK_SPEED * Config.CARRY_SPEED_MULTIPLIER)
+function Config.robberyCycleSeconds(steps: number, run: number?): number
+	local distance = run or (Config.PLOT_SPACING - Config.STEAL_RANGE - Config.DROPOFF_RADIUS)
+	local approach = distance / Config.BASE_WALK_SPEED
+	local getaway = distance / (Config.BASE_WALK_SPEED * Config.CARRY_SPEED_MULTIPLIER)
 	local crack = Config.CRACK.openHold + steps * Config.CRACK.sweepSeconds
 	return approach + crack + getaway
 end
 
--- Coins an hour from cycling residents at `incomeLevel` and `rebirths`,
+-- HOW FAR A THIEF CARRIES A SHOP VAULT'S COINS, and it is the number the
+-- whole shop trade is priced against.
+--
+-- DERIVED FROM WHERE THE VAULT ACTUALLY STANDS rather than measured once and
+-- written down, for the reason `robberyCycleSeconds` is derived: a pinned
+-- figure describes the street as it was on the day somebody typed it, and
+-- this one moves with `STREET_SPACING`, `PLOT_SPACING`, `SHOP_UNIT` and the
+-- shop set-back all at once.
+--
+-- AND RE-DERIVING IT REVERSED THE PLAN THAT ASKED FOR IT, WHICH IS THE
+-- ARGUMENT FOR DERIVING RATHER THAN ADJUSTING. `docs/MASTER-PLAN.md` says
+-- the run home "grows by the shop's depth" when the target moves from the
+-- forecourt to the back wall, and that is backwards: a shop's back faces the
+-- HOUSES, and a drop-off is a thief's own plot behind the fence line. So
+-- going inside moves the target 12.4 studs CLOSER to every drop-off on the
+-- street. Measured, the carry falls 33.6 studs to 23.0.
+--
+-- The across term moved the other way and does not undo it. A till stood 16
+-- studs off the gap centre, which leaned it toward one plot column and put
+-- it 24 studs from it; a vault sits on the unit's own centre line less
+-- `vaultX`, which is 36.3. Net, the straight line to the nearest drop-off is
+-- 50.0 studs against the till's 60.6, against 80 between two houses.
+--
+-- THAT SHORTER RUN IS THE WHOLE REASON A SHOP IS WORTH LESS. See
+-- `SHOP_VAULT_DISCOUNT`, which is solved against the ratio of the two cycles
+-- so that coins per second come out at exactly that fraction and a thief
+-- picks a shop for the shape of the job rather than for the money.
+function Config.shopVaultRunStuds(): number
+	local m = Config.streetMetrics()
+	local u = Config.SHOP_UNIT
+	-- `vaultZ` is NEGATIVE -- the unit's own frame faces the road on +Z, so
+	-- the back wall is at -Z and the vault standing on it is further from the
+	-- carriageway and nearer the fence line behind.
+	local dz = Config.STREET_SPACING / 2 - (m.shopZ - u.vaultZ)
+	local dx = Config.PLOT_SPACING / 2 - u.vaultX
+	local straight = math.sqrt(dx * dx + dz * dz)
+	return math.max(0, straight - Config.STEAL_RANGE - Config.DROPOFF_RADIUS)
+end
+
+-- Coins an hour from cycling non-player pigs at `incomeLevel` and `rebirths`,
 -- against coins an hour from doing nothing at all. Both are returned so a
 -- caller can print them rather than only their quotient.
 --
@@ -7302,13 +12940,58 @@ end
 -- `pigSeconds` then cancels the rate out of the ratio entirely. THAT
 -- CANCELLATION IS THE INVARIANT, and computing it the long way here rather
 -- than asserting it is what lets the spread check see it break.
-function Config.robberyRates(incomeLevel: number, rebirths: number, spreeSteps: number?): (number, number)
+--
+-- `houses` IS THE THIRD AXIS AND LEAVING IT OUT IS WHAT HID THE WORST BUG IN
+-- THIS ECONOMY. This used to assume a thief robs back to back forever, which
+-- is only true while there are enough targets that the per-victim cooldown
+-- never binds. Residents are seated on UNCLAIMED plots, so how many there are
+-- is a function of how busy the server is -- and at a cap equal to the plot
+-- count a full server has none at all.
+--
+-- `shops` IS THE FOURTH, AND IT IS THE ONE THAT MAKES THE THIRD SURVIVABLE.
+-- Shop vaults stand on plots nobody can claim, so their count does not move
+-- with population at all -- see `Config.SHOPS`. Both default to the
+-- floor, which is the worst case rather than the best one.
+--
+-- THE TWO CLASSES ARE AVERAGED RATHER THAN MODELLED SEPARATELY, and that is
+-- an approximation with a stated direction. A shop is a smaller pig on a
+-- shorter cycle and a house is a bigger pig on a longer one, so a thief
+-- working the whole street earns the weighted mean of the two -- which is
+-- what this computes. What it does NOT model is a thief who works ONLY the
+-- shops, and that is deliberate: `SHOP_VAULT_DISCOUNT` is solved to make
+-- the two rates equal, so the two strategies converge by construction and the
+-- audit measuring the mean is measuring both. If that constant is ever moved
+-- so the rates diverge, this function has to grow a per-class sweep and the
+-- audit has to check the BETTER of the two rather than the average.
+function Config.robberyRates(incomeLevel: number, rebirths: number, spreeSteps: number?,
+	houses: number?, shops: number?): (number, number)
 	local rate = Config.getIncomeRate(incomeLevel, rebirths)
-	local pig = Config.RESIDENTS.pigSeconds * rate
 	local payout = Config.HEIST_PAYOUT * Config.getSpreePayout(spreeSteps or 0)
-	local haul = pig * Config.getCrackTotal(0) * payout
-	local cycle = Config.robberyCycleSeconds(Config.CRACK.maxSteps)
-	return haul * (3600 / cycle), rate * 3600
+	local take = Config.getCrackTotal(0) * payout
+
+	local nHouses = houses or math.max(0, Config.PLOT_COUNT - Config.MAX_PLAYERS)
+	local nShops = shops or Config.SHOP_COUNT
+	local n = nHouses + nShops
+	if n <= 0 then
+		return 0, rate * 3600
+	end
+
+	local houseHaul = Config.RESIDENTS.pigSeconds * rate * take
+	local shopHaul = Config.shopVaultPigSeconds() * rate * take
+	local houseCycle = Config.robberyCycleSeconds(Config.CRACK.maxSteps)
+	local shopCycle = Config.robberyCycleSeconds(Config.CRACK.maxSteps, Config.shopVaultRunStuds())
+
+	local haul = (houseHaul * nHouses + shopHaul * nShops) / n
+	local cycle = (houseCycle * nHouses + shopCycle * nShops) / n
+
+	-- HAULS AN HOUR IS WHICHEVER OF TWO LIMITS BINDS FIRST: how fast one
+	-- robbery can be performed, and how fast the same pig may be robbed
+	-- twice. With N pigs a thief completes one every `cycle`, and revisits any
+	-- given one every `N x cycle` -- so the cooldown only costs anything when
+	-- that lap is shorter than it. Zero pigs is zero income, which is the case
+	-- the old formula could not express.
+	local perHour = 3600 * math.min(1 / cycle, n / Config.RESIDENTS.stealCooldown)
+	return haul * perHour, rate * 3600
 end
 
 -- WARNS RATHER THAN THROWS, and returns the list so a test can assert on it
@@ -7374,21 +13057,104 @@ function Config.auditRobbery(): { string }
 			.. "something is riding a curve again, see RESIDENTS.pigSeconds")
 	end
 
-	-- A THIEF MAY NOT LAP THE STREET FASTER THAN THE COOLDOWN, or every figure
-	-- above is optimistic by however far they overshoot. `STEAL_COOLDOWN` is
-	-- per victim, so a thief working every resident in turn is held up by
-	-- whichever of the two is slower, and this model only holds while that is
-	-- the lap. Note it tightens as the street gets SHORTER or the crack gets
-	-- QUICKER, so it is exactly the kind of thing a good local retune breaks.
-	local residents = Config.PLOT_COUNT - 1
-	local lap = residents * Config.robberyCycleSeconds(Config.CRACK.maxSteps)
-	if lap < Config.STEAL_COOLDOWN then
-		table.insert(problems, ("%d residents lap in %.1fs against a %ds STEAL_COOLDOWN: "):format(
-			residents, lap, Config.STEAL_COOLDOWN)
-			.. "a thief runs out of targets, so the advantage measured above is optimistic")
+	-- THE POPULATION SWEEP, WHICH IS THE ONE THAT WAS MISSING AND THE ONE THAT
+	-- ACTUALLY BROKE. Everything above measures how the advantage moves with
+	-- LEVEL and REBIRTH. It moves with SERVER POPULATION too, and far harder,
+	-- because residents are seated on unclaimed plots -- so the supply is
+	-- `PLOT_COUNT - players online` and the old audit measured exactly one
+	-- point on that axis.
+	--
+	-- Swept at the busiest the street can be and every population under it,
+	-- because the WORST case is a FULL server rather than an empty one, which
+	-- is the opposite of what the level sweeps assume.
+	for players = 1, Config.MAX_PLAYERS do
+		local houses = math.max(0, Config.PLOT_COUNT - players)
+		local robbing, idling = Config.robberyRates(20, 0, 0, houses, Config.SHOP_COUNT)
+		local ratio = robbing / idling
+		if ratio < band.min then
+			table.insert(problems, ("with %d players there are %d resident houses and %d shop vaults, and robbing returns %.2fx idling against a floor of %.2fx: "):format(
+				players, houses, Config.SHOP_COUNT, ratio, band.min)
+				.. "the economy depends on how busy the server is, see MAX_PLAYERS, SHOPS and RESIDENT_FLOOR")
+		end
+	end
+
+	-- AND THE FLOOR POPULATION MUST SATURATE, which is what makes the sweep
+	-- above come out FLAT rather than merely passing. A thief working the
+	-- fewest houses the street can ever hold should never be left waiting on a
+	-- cooldown -- if they are, the advantage falls with every extra player and
+	-- the ratio moves for the same reason `pigSeconds` exists to stop it
+	-- moving with level.
+	-- The lap at the floor. Measured on the SHOP cycle rather than the house
+	-- one, because at a full server the shops are the entire floor -- so this
+	-- is the fastest a thief can get round the fewest pigs the street ever
+	-- holds, which is exactly the case that has to clear the cooldown.
+	local floorLap = Config.RESIDENT_FLOOR
+		* Config.robberyCycleSeconds(Config.CRACK.maxSteps, Config.shopVaultRunStuds())
+	if Config.RESIDENT_FLOOR <= 0 then
+		table.insert(problems, ("MAX_PLAYERS %d against PLOT_COUNT %d and %d shops leaves nothing to rob on a full server: "):format(
+			Config.MAX_PLAYERS, Config.PLOT_COUNT, Config.SHOP_COUNT)
+			.. "robbing stops paying exactly when the server fills up, see SHOPS")
+	elseif floorLap < Config.RESIDENTS.stealCooldown then
+		table.insert(problems, ("%d permanent pigs lap in %.1fs against a %ds cooldown: "):format(
+			Config.RESIDENT_FLOOR, floorLap, Config.RESIDENTS.stealCooldown)
+			.. "a thief on a full server waits on the cooldown, so the advantage falls as the street fills -- add a shop or shorten the cooldown")
+	end
+
+	-- A SHOP MAY PAY LESS THAN A HOUSE AND MAY NEVER PAY MORE, AND THE CHECK
+	-- IS DIRECTIONAL BECAUSE THE DESIGN IS.
+	--
+	-- The two are not the same job: a shop has no dog and a carry home about
+	-- 43% as long, so paying the same for it would make the houses pointless
+	-- the moment a player worked out which was which.
+	-- `Config.SHOP_VAULT_DISCOUNT` is that risk premium, and it is meant to
+	-- come out BELOW parity -- so a symmetric skew check would fire on the
+	-- design working correctly, which is the cry-wolf failure this file
+	-- already records for the clipping checks.
+	--
+	-- WHAT IT IS ACTUALLY GUARDING IS `robberyRates`, which models a thief
+	-- working the whole street and returns the weighted MEAN of the two
+	-- classes. A mean is only a fair summary of a strategy while the two are
+	-- close: let a shop pay more and a thief works shops exclusively, so every
+	-- figure the sweeps above print describes a strategy nobody uses. Let a
+	-- shop pay far less and the same is true from the other side -- nobody
+	-- would walk to one, and the supply floor those shops are supposed to BE
+	-- is fictional.
+	--
+	-- The floor case is the sharp one and it is already covered above: at a
+	-- full server the shops are the entire supply, so a shop too cheap fails
+	-- `ROBBERY_ADVANTAGE.min` in the population sweep before it fails here.
+	do
+		local houseRate = Config.RESIDENTS.pigSeconds
+			/ Config.robberyCycleSeconds(Config.CRACK.maxSteps)
+		local shopRate = Config.shopVaultPigSeconds()
+			/ Config.robberyCycleSeconds(Config.CRACK.maxSteps, Config.shopVaultRunStuds())
+		if shopRate > houseRate then
+			table.insert(problems, ("a shop vault pays %.2f coins per pig-second of cycle against a house's %.2f: "):format(
+				shopRate, houseRate)
+				.. "a shop has no dog and a shorter carry, so paying MORE than a house makes every house on the street pointless -- see SHOP_VAULT_DISCOUNT")
+		elseif shopRate / houseRate < 0.6 then
+			table.insert(problems, ("a shop vault pays %.2f coins per pig-second of cycle against a house's %.2f, only %.0f%%: "):format(
+				shopRate, houseRate, shopRate / houseRate * 100)
+				.. "nobody would walk to one, so the supply floor they exist to be is fictional -- see SHOP_VAULT_DISCOUNT")
+		end
+	end
+
+	-- A cap ABOVE the plot count is the older and louder failure: `Main` kicks
+	-- anybody it cannot seat, so those players are turned away at the door.
+	if Config.MAX_PLAYERS > Config.PLOT_COUNT then
+		table.insert(problems, ("MAX_PLAYERS %d is above PLOT_COUNT %d: "):format(
+			Config.MAX_PLAYERS, Config.PLOT_COUNT)
+			.. "Main kicks anybody it cannot seat, so that many players are refused entry")
 	end
 
 	return problems
+end
+
+-- WHICH PER-VICTIM COOLDOWN APPLIES, in one place so the two can never be
+-- asked separately and drift. See `RESIDENTS.stealCooldown` for why an empty
+-- house does not need the protection a child does.
+function Config.stealCooldownFor(isResident: boolean): number
+	return if isResident then Config.RESIDENTS.stealCooldown else Config.STEAL_COOLDOWN
 end
 
 

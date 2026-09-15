@@ -22,8 +22,31 @@ local DEFINITIONS = {
 	-- Server tells a client something worth a toast ("Banked 4,210 coins").
 	Notify = "RemoteEvent",
 
-	-- How much loot the player is currently carrying (0 when empty-handed).
+	-- How much loot the player is currently carrying (0 when empty-handed),
+	-- what is in the haul, and whether they are standing close enough to
+	-- their own pig to deliver it.
+	--
+	-- THE RANGE FLAG RIDES THIS PUSH RATHER THAN A CHANNEL OF ITS OWN, and
+	-- rather than being worked out on the client. It is the same argument the
+	-- haul list makes one line up: the server already polls every carrier
+	-- four times a second to answer exactly this question, and it is the side
+	-- that has to answer it anyway, because `DeliverRequest` is re-checked
+	-- there. A client computing its own distance would be a second
+	-- implementation of the one number that decides whether a robbery pays.
 	CarryUpdate = "RemoteEvent",
+
+	-- Thief presses DELIVER. CARRIES NOTHING, for the reason `CrackTap`,
+	-- `BoneThrow` and `placeLadder` carry nothing: the press means "now", and
+	-- the server owns which plot is theirs, how far away it is and what the
+	-- haul is worth. There is no position to forge and no range check to
+	-- defeat.
+	--
+	-- IT REPLACED AN AUTOMATIC DELIVERY rather than being added beside one.
+	-- Arriving used to bank the loot on its own, so a player crossed an
+	-- invisible circle and the coins appeared -- two ways to deliver would be
+	-- two mechanisms for one thing, and the automatic one would always win
+	-- the race and make the button decorative.
+	DeliverRequest = "RemoteEvent",
 
 	-- Server tells ONE thief that one victim is on cooldown for them, as
 	-- (victimUserId, expiresAtServerTime). Fired on a completed grab and on
@@ -131,6 +154,23 @@ local DEFINITIONS = {
 	CrackTap = "RemoteEvent",
 	CrackStop = "RemoteEvent",
 
+	-- WHAT A DELIVERY WAS WORTH, sent to the thief the moment it lands.
+	--
+	-- The delivery has always fired a `Notify` -- one line of text, six
+	-- seconds, gone -- for the single biggest payoff moment in the game. That
+	-- was fine while a delivery was only ever coins. It is not fine now that
+	-- a robbery can carry a COSMETIC home: an item arriving in a save with a
+	-- sentence about it in a toast is the reward equivalent of a receipt.
+	--
+	-- A SECOND CHANNEL RATHER THAN A RICHER TOAST, because the two are
+	-- different objects. `Notify` is a stack of things that just happened and
+	-- is deliberately transient; this is one summary of one event, it wants
+	-- to animate, and it wants to be able to send you somewhere (the bag).
+	-- The toast survives alongside it for the reason the arrest scene's does:
+	-- the summary is the part that could fail to build, and a payout the
+	-- player cannot see is indistinguishable from a broken feature.
+	HeistDelivered = "RemoteEvent",
+
 	-- Sent to ONE player: they have just been arrested, and this carries the
 	-- numbers their mugshot card needs. Targeted rather than broadcast
 	-- because a mugshot is yours -- the street already saw the arrest happen.
@@ -162,10 +202,28 @@ local DEFINITIONS = {
 	GadgetRequest = "RemoteEvent",
 	GadgetState = "RemoteEvent",
 
-	-- Client asks to throw a gadget. Like BoneThrow it sends the KEY AND
-	-- NOTHING ELSE. The server picks the target from its own list of who is
-	-- carrying loot, so there is no position to forge, no range check to
-	-- defeat, and no way to name a victim who is not currently robbing anyone.
+	-- Client asks to throw a gadget, and sends a KEY AND AN AIM DIRECTION.
+	--
+	-- IT USED TO SEND THE KEY AND NOTHING ELSE, like BoneThrow still does,
+	-- and the note here said the server picked the target itself so there
+	-- was "no position to forge, no range check to defeat, and no way to
+	-- name a victim". A gadget is aimed now, and once the throw acquired a
+	-- DROP the aim had to carry pitch -- which a Roblox character cannot
+	-- express, so there was nothing on the server to read it from.
+	--
+	-- WHAT THE OLD RULE PROTECTED SURVIVES, AND IT IS WORTH BEING EXACT.
+	-- A direction is not a position. The server still owns the origin (its
+	-- own copy of the root), the speed, the gravity, the horizontal range
+	-- cap, the hit radius and every step of the simulation, and
+	-- `Config.throwClampDirection` is the single gate every aim passes
+	-- through. Forging a direction lets a client aim wherever it likes,
+	-- which is the feature; at best it buys a perfect lead-and-drop every
+	-- time, which is also what a good player gets, on an item that costs
+	-- coins per throw and only slows somebody down. The same argument this
+	-- file's crack already makes: there is no jackpot here to protect.
+	--
+	-- A nil or malformed direction is not an error. The server falls back to
+	-- the thrower's own facing, which is a legal flat throw.
 	GadgetThrow = "RemoteEvent",
 
 	-- Client buys or puts away a ride; server pushes what they own and
@@ -191,6 +249,11 @@ local DEFINITIONS = {
 	-- from the server's own clock and the server's own save.
 	DailyRequest = "RemoteEvent",
 	DailyState = "RemoteEvent",
+	-- Opens the daily board on one client. Server to client only, and it
+	-- carries nothing: the board is already rendered from `DailyState`, so
+	-- this is the mailbox saying "look at what you already have" rather
+	-- than a second copy of the state.
+	DailyOpen = "RemoteEvent",
 
 	-- Client activates a boost it already holds, by key. Acts on the caller
 	-- and nobody else, like the other consumable uses.
