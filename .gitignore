@@ -8,3 +8,11 @@
 *.bak
 Thumbs.db
 .DS_Store
+
+# Generated 3D source. These are the INPUT to an upload rather than the thing
+# that ships -- what ships is an asset id in Config.PIGGY_MESH and its
+# neighbours, and a Roblox asset outlives any file here. A .glb is also
+# undiffable and permanent: git keeps every version of one forever, so a
+# 21MB acorn is 21MB in every clone this repo ever has.
+assets/**/*.glb
+assets/**/*.fbx

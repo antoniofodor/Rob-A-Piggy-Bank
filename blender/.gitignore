@@ -1,0 +1,53 @@
+# Blender's own rolling backups -- written on every save, never wanted.
+*.blend1
+*.blend2
+__pycache__/
+
+# Preview renders. Every one of these is reproducible by re-running the script
+# beside it, and they are the largest thing in this folder by a distance --
+# the first clean-up here removed 25.5 MB of superseded previews against 8.9 MB
+# of everything else. What IS worth committing is in `skins/`: those are the
+# textures that get uploaded, so they are the source of a shipped asset rather
+# than a picture of one.
+*.png
+!**/skins/**/*.png
+
+# `renders/` is where every preview script writes now, so a session of looking
+# at the pig cannot bury the .obj files that ship. Covered by the rule above
+# already; named here so the folder reads as deliberate rather than as debris.
+renders/
+
+# THE MASKS UNDER `skins/` ARE THE ONE THING HERE THAT CANNOT BE REGENERATED.
+# Everything else in this folder is output: the .obj files come from
+# `build_pig.py`, the previews from the script beside them, the procedural maps
+# from `make_animal_maps.py`. A hand-painted greyscale mask has no generator, so
+# losing one is losing the work rather than a re-run. They are inside `skins/`
+# specifically so the un-ignore above keeps them.
+
+# The scene files are large and are rebuilt by `build_pig.py` and
+# `make_fur_tufts.py` from source that IS committed. The .obj exports are the
+# things actually uploaded to Roblox, so they stay.
+*.blend
+
+# ---- what is regenerable, measured rather than assumed --------------------
+#
+# The policy above keeps `skins/**/*.png` and the .obj exports on the grounds
+# that they are the source of a shipped asset. That is right about WHICH files
+# matter and wrong about which of them git has to carry: measured, the .obj
+# exports are 8.3 MB and the colour maps 14.5 MB, and every one of them is
+# written by a script committed beside it -- build_pig.py for the meshes,
+# bake_skin.py and make_animal_maps.py for the maps. Re-running a script is
+# cheap; carrying 23 MB in every clone forever is not.
+#
+# THE ALPHA MASKS STAY, and they are the whole reason this is a rule rather
+# than a blanket ignore. The note above is correct that a hand-painted mask
+# has no generator, so losing one is losing the work. They are 1.5 MB.
+*_color.png
+*_alpha.png
+!**/skins/**/*_alpha.png
+*.obj
+
+# Raw third-party downloads. The Meshy AI export is 12.8 MB of texture and
+# FBX that was an INPUT to the stormwolf bake -- it is re-downloadable, it is
+# somebody else's output, and nothing in the pipeline reads it after the bake.
+**/source/
