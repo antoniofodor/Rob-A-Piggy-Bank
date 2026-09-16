@@ -1,0 +1,14 @@
+Generated with the built-in image_gen tool, editing tree-oak-render.png.
+Deliverable: tree-oak-render-v2.png. Raster concept render only; dimensions and mesh separation must be implemented and checked in the 3D asset. No runtime mesh replaced.
+Design context: docs/MASTER-PLAN.md sections 4, 5, and Art 7. Current plan reuses Config.TREE_MESH at 0.85 scale; acorns and basket are separate runtime objects.
+
+Use case: precise-object-edit
+Asset type: Revised low-poly 3D oak tree concept render for Rob a Piggy Bank.
+Input image: Existing oak tree render, the edit target.
+Primary request: Remove EVERY acorn, nut, cap, and acorn stem from the tree. The game adds acorns separately at runtime. There must be ZERO acorns anywhere in the final image.
+Preserve: The reference's friendly flat-shaded low-poly style, natural green faceted foliage, warm brown angular trunk and branching, matte materials, soft upper-left studio lighting, single complete isolated tree and transparent background.
+Alignment with the project's master plan section 4: A compact front-lawn oak, approximately 11.8 studs tall with a 10.2-stud-wide canopy when modeled, a modestly taller-than-wide overall silhouette. The trunk and canopy are visually distinct groups so a future mesh can animate the canopy shivering. Keep the lower trunk clearly exposed and accessible for a SHAKE interaction. Keep roots compact at the trunk base so a separate basket can sit beside it without roots crossing through it. Keep a clean open area below the leafy crown for separately animated acorns to fall. Maintain the familiar oak silhouette and branching character; only modestly refine compact proportions if needed.
+Scene: Tree ONLY. Do not include the basket, acorns, ground plane, platform, fence, scenery, characters, diagrams, measurements, labels, UI, text or watermark.
+Composition: Full tree including roots and canopy, centered with ample transparent margin on all sides, three-quarter view, crisp finished 3D game asset beauty render.
+Background: Actual alpha transparency, no checkerboard baked in.
+Critical: Remove all six visible acorns from the reference and do not replace them with any fruit, ornaments, or hanging objects.

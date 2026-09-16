@@ -1,0 +1,61 @@
+{
+  "reference": "../tree-oak-render-v2.png",
+  "method": "Blender geometry authored against the approved image, not automatic image-to-3D reconstruction",
+  "units": "1 Blender unit = 1 intended Roblox stud; GLB is Y-up",
+  "parts": {
+    "Trunk": {
+      "triangles": 2400,
+      "vertices": 1210,
+      "boundsBlender": {
+        "min": [
+          -3.10371732711792,
+          -1.6830288171768188,
+          0.0
+        ],
+        "max": [
+          3.1042490005493164,
+          2.022355318069458,
+          8.302892684936523
+        ]
+      },
+      "sizeRoblox": [
+        6.207966327667236,
+        8.302892684936523,
+        3.705384135246277
+      ],
+      "offsetRoblox": [
+        0.0002658367156982422,
+        4.151446342468262,
+        -0.16966325044631958
+      ]
+    },
+    "Canopy": {
+      "triangles": 6400,
+      "vertices": 3420,
+      "boundsBlender": {
+        "min": [
+          -4.266842365264893,
+          -1.6129225492477417,
+          4.2122039794921875
+        ],
+        "max": [
+          4.233157634735107,
+          3.0644590854644775,
+          9.249588966369629
+        ]
+      },
+      "sizeRoblox": [
+        8.5,
+        5.037384986877441,
+        4.677381634712219
+      ],
+      "offsetRoblox": [
+        -0.016842365264892578,
+        6.730896472930908,
+        -0.7257682681083679
+      ]
+    }
+  },
+  "installedInStudio": true,
+  "runtimeConfig": "Config.ACORN_OAK_MESH uses measured Studio assembly offsets; imported X/Z signs differ from this source report."
+}

@@ -20,10 +20,10 @@
 	the player; loot scales with going out, and a rich player cannot buy
 	their way up this one.
 
-	THIS IS THE ONE PLACE LOOT IS GRANTED. `award` is what a delivery, an
-	event and the dev console all call, so a balance can never move without
-	both of its readers -- the set panel here and the roll button in
-	CosmeticsService, reached through a registered pusher -- being told.
+	`award` currently serves explicit development grants and refreshes its
+	balance readers. Events and pig deliveries never call it. The approved
+	rebirth completion bonus lives in ProgressionService; tree growth/shakes
+	remain Phase 2 work.
 
 	NOTHING IS EVER LOCKED BEHIND LUCK. Every set item carries a loot price,
 	so a drop only ever saves you time. That is the line that makes a wheel
@@ -324,12 +324,10 @@ function SetService.rollDrop(player: Player, setKey: string)
 
 	local pool = SetService.unowned(data, setKey)
 
-	-- Collection complete. Pay out instead of silently doing nothing, the
-	-- same fallback ProgressionService uses when the skin pool is empty: an
-	-- event that quietly awards nothing is indistinguishable from a bug.
+	-- The raid's coin bounty is paid separately to everyone. A finished set
+	-- gives no duplicate, spare or Acorn fallback; events cannot mint Acorns.
 	if #pool == 0 then
-		SetService.award(player, Config.LOOT.event.setComplete,
-			("%s set complete!"):format(set.name))
+		Remotes.get("Notify"):FireClient(player, ("You already own the whole %s set!"):format(set.name), "good")
 		return
 	end
 

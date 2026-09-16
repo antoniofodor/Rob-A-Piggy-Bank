@@ -929,7 +929,6 @@ commands.reset = function(player)
 	data.decor = { owned = {}, placed = {} }
 	data.consumables = {}
 	data.accessories = { owned = {}, worn = {} }
-	data.sinceLegendary = 0
 	-- Through RideService rather than by clearing the field here, because the
 	-- player may be ON one right now: the model is welded to their character
 	-- and the multiplier is held inside HeistService, and neither of those is

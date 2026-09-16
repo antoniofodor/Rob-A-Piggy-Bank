@@ -537,7 +537,7 @@ Config.LOSS_CAP = {
 }
 
 -- REVENGE PAYS TRIPLE. Robbing somebody who robbed YOU inside `window` pays
--- `payout` times the haul instead of HEIST_PAYOUT, and `loot` extra on top.
+-- `payout` times the coin haul instead of HEIST_PAYOUT; no Acorn payout.
 --
 -- One table, because the marker over the thief's plot lasts exactly `window`
 -- too: the picture and the rule are the same number and cannot disagree.
@@ -655,12 +655,8 @@ Config.BASE_WALK_SPEED = 16
 -- maturity questionnaire is answered by what is literally in the model, and a
 -- verb describing violence is that same decision made in text.
 --
--- WHAT IS STILL WRONG WITH IT, AND IS THE NEXT THING TO FIX: this is a 0.4
--- second hold with exactly two outcomes -- all the coins or none -- paying the
--- person who presses it nothing at all. It is the terminal action of the
--- entire defence half of the game and it is what a STEAL used to be before
--- `Config.CRACK` turned that into a decision. See `docs/MASTER-PLAN.md`; the
--- rename is step one of three and the fields below grow with it.
+-- A completed player tug transfers the intact carry. The original claimant
+-- stays on its record; victim-return and alternate-holder payouts are Phase 3.3.
 Config.NAB = {
 	-- A hold rather than a touch, and it is measured against
 	-- `Config.DODGE.immunity` (0.5) rather than chosen: a dodge has to be able
@@ -687,12 +683,9 @@ Config.NAB = {
 	-- the crack was built to fix applied word for word to the terminal action
 	-- of the entire defence half of the game.
 	--
-	-- Coins now flow back PER TICK while somebody holds the prompt. Let go,
-	-- lose them, or get dodged, and you keep what has already come home.
-
-	-- How often a slice goes back. Five ticks a second: fast enough that the
-	-- figure over the thief's head visibly falls rather than stepping, slow
-	-- enough that a full recovery is several distinct events rather than one.
+	-- Ticks accumulate tug progress only. No currency is refunded or minted
+	-- until a delivery/return settles the carry. The first tick waits this
+	-- interval, so five ticks take the full second below.
 	tickRate = 0.2,
 
 	-- HOW LONG A CLEAN RECOVERY TAKES, AND IT IS MEASURED AGAINST THE
@@ -707,30 +700,14 @@ Config.NAB = {
 	-- still in a game about movement.
 	recoverSeconds = 1.0,
 
-	-- WHAT THE NABBER EARNS, MINTED, AND THE EXPLOIT CLOSES ITSELF.
-	--
-	-- Minted rather than taken from the victim, for the reason
-	-- `HEIST_PAYOUT` is 2: a rescue fee deducted from the person being
-	-- rescued is "every point of incentive is a point of pain" with the sign
-	-- flipped. It overflows capacity like a DELIVERY rather than being
-	-- refused like a sale -- a sale is a trade the player chose and a bounty
-	-- arrives because somebody else robbed somebody.
-	--
-	-- ANY VALUE BELOW `HEIST_PAYOUT` MAKES A STAGED ROBBERY STRICTLY WORSE
-	-- THAN SIMPLY DELIVERING IT. Two friends farming this -- A robs B, C nabs
-	-- A, repeat -- give up the haul times 2.0 to gain the haul times this
-	-- number. At 0.25 that is an eight-to-one loss before the stun and the
-	-- broken spree. The exploit is closed by arithmetic rather than by a
-	-- check, which is the only kind that cannot be forgotten.
+	-- Returns mint a single bounty in the returned currency, rounded down.
+	-- Own harvests and voluntary undos by the claimant earn no bounty.
 	bounty = 0.25,
+	-- Non-claimants keep half of the RAW currency, floored, plus the whole
+	-- item haul. No revenge/spree/rebirth multiplier applies to this share.
+	keepShare = 0.5,
 
-	-- SPLIT AMONG WHOEVER TOOK PART, NEVER MULTIPLIED. One fee per robbery
-	-- divided by the crowd, so piling on stops being individually profitable
-	-- without anybody being refused. Paid per tick to whoever is holding at
-	-- that tick, so somebody who joins late earns from the moment they join
-	-- and no earlier.
-
-	-- THE PER-THIEF REST, AND IT IS THE LOAD-BEARING HALF OF ALL OF THIS.
+	-- THE PER-HOLDER REST, AND IT IS THE LOAD-BEARING HALF OF ALL OF THIS.
 	--
 	-- Measured off the live numbers: a thief carries at 12 and a free
 	-- bystander runs at 16, so a chaser closes 4 studs a second over a
@@ -934,7 +911,7 @@ Config.UPGRADES = {
 		blurb = "Slower and nastier to climb over",
 	},
 	dog = {
-		tree = "defense", order = 3, name = "Guard Dog", max = 3,
+		tree = "defense", order = 3, name = "Guard", max = 5,
 		baseCost = 5000, growth = 2.6,
 		blurb = "Chases thieves and nabs them for you",
 	},
@@ -1891,6 +1868,26 @@ Config.DOG_TIERS = {
 		glow = true,
 		blurb = "Runs down fully booted thieves. Nothing leaves this plot",
 	},
+	{
+		name = "Dire Wolf", breed = "Dire Wolf",
+		bark = "rbxassetid://9113955086", pitch = 0.62, volume = 0.8,
+		speed = 19, catchRadius = 10, notice = 0,
+		cooldown = 21, maxChase = 20, boneResist = 0.5,
+		scale = 1.4, -- kennel/anchor only; imported mesh sizes are authored per tier
+		fur = Color3.fromRGB(124,137,154), furDark = Color3.fromRGB(67,76,92),
+		collar = Color3.fromRGB(127,83,210), glow = false,
+		blurb = "A larger guardian with a longer chase and shorter rest",
+	},
+	{
+		name = "Cerberus", breed = "Cerberus",
+		bark = "rbxassetid://9113955086", pitch = 0.55, volume = 0.85,
+		speed = 21, catchRadius = 10.5, notice = 0,
+		cooldown = 18, maxChase = 22, boneResist = 0.4,
+		scale = 1.5,
+		fur = Color3.fromRGB(76,65,84), furDark = Color3.fromRGB(37,31,44),
+		collar = Color3.fromRGB(217,72,54), glow = false,
+		blurb = "Three heads, relentless pursuit. Bring a bone",
+	},
 }
 
 -- ============================================================
@@ -1971,6 +1968,24 @@ Config.DOG_COATS = {
 		name = "Glacier", order = 6, cost = 12000000,
 		fur = Color3.fromRGB(214, 232, 244), furDark = Color3.fromRGB(122, 168, 200),
 		collar = Color3.fromRGB(96, 214, 226),
+	},
+	gorilla = {
+		name = "Gorilla · Tier 4", order = 7, cost = 250000,
+		guardModel = "gorilla", requiredTier = 4,
+		fur = Color3.fromRGB(94,83,103), furDark = Color3.fromRGB(45,39,51),
+		collar = Color3.fromRGB(223,177,44),
+	},
+	raptor = {
+		name = "Raptor · Tier 4", order = 8, cost = 250000,
+		guardModel = "raptor", requiredTier = 4,
+		fur = Color3.fromRGB(84,164,132), furDark = Color3.fromRGB(38,97,80),
+		collar = Color3.fromRGB(223,177,44),
+	},
+	triceratops = {
+		name = "Triceratops · Tier 5", order = 9, cost = 500000,
+		guardModel = "triceratops", requiredTier = 5,
+		fur = Color3.fromRGB(151,119,193), furDark = Color3.fromRGB(85,63,125),
+		collar = Color3.fromRGB(223,177,44),
 	},
 }
 
@@ -3658,8 +3673,8 @@ Config.EVENTS = {
 	-- derived from the weights, not pinned.
 	roster = {
 		-- `set` is which themed set this event's drop rolls from. Rush Hour
-		-- has none: it pays medals for turning up and nothing else, because
-		-- there is nothing in it to be good at.
+		-- has none: its reward is the increased coin value of steals during
+		-- the event. Neither event pays attendance Acorns.
 		raid = { name = "ALIEN INVASION", weight = 1, seconds = 150, set = "alien" },
 		rush = { name = "RUSH HOUR", weight = 2, seconds = 180 },
 	},
@@ -3823,48 +3838,10 @@ Config.RUSH = {
 }
 
 -- ============================================================
--- MEDALS AND SETS
+-- EVENT SETS
 -- ============================================================
---
--- WHY A SECOND CURRENCY AT ALL. Events paid coins, and coins are not scarce:
--- measured against the live economy, events contribute 7.5% of hourly income
--- at endgame -- 808K an hour at best against 10.8M an hour of simply standing
--- still. A coin payout is a thank-you, not a reason to come back. Medals are
--- what make attendance compound.
---
--- MEDALS ARE FLAT, AND THAT IS THE ONE PLACE THE SECONDS-OF-INCOME RULE IS
--- DELIBERATELY NOT FOLLOWED. Every other reward here is denominated in the
--- player's own income precisely so it keeps meaning the same thing as they
--- grow. Medals do the opposite ON PURPOSE: a set costs the same number of
--- events for a brand-new player as for a maxed one, so the ladder measures
--- ATTENDANCE and nothing else. Coins scale with the player; medals scale with
--- turning up. A rich player cannot buy their way up this one.
--- WHERE LOOT COMES FROM. `data.loot` is the second currency and the only one
--- besides coins: medals, tokens and the daily token pips were three currencies
--- doing one job badly, and a nine-year-old cannot hold three. Both old fields
--- were merged one-for-one into `loot` at schema 17.
---
--- Legacy event rewards remain here until the Phase 1.9 faucet audit.
--- Piggy deliveries no longer award this currency; trees arrive in Phase 2.
-Config.LOOT = {
-	event = {
-		-- Everybody present when an event resolves. Never zero: an event that
-		-- pays nothing to somebody who could not reach a drone is an event that
-		-- teaches them not to bother next time.
-		attend = 3,
-		-- Per drone you personally knocked down. This is the only part that
-		-- rewards playing rather than being logged in.
-		perDrone = 2,
-		-- Shared by everyone when the street clears every drone. A co-operative
-		-- bonus has to be co-operative: it pays the people who did nothing too,
-		-- or the incentive is to let a neighbour fail.
-		cleared = 3,
-		-- Paid instead of a drop when a player already owns the whole set, the
-		-- same fallback ProgressionService uses when the skin pool is empty.
-		-- Paying out beats silently doing nothing.
-		setComplete = 10,
-	},
-}
+-- Events pay coins and free set drops. They never mint Acorns. The legacy
+-- Config.LOOT event/attendance/completion faucet was retired in Phase 1.9.
 
 -- A SET IS A VIEW OVER THE EXISTING CATALOGUES, NEVER A NEW CATALOGUE.
 --
@@ -4014,6 +3991,8 @@ Config.PROMPTS = {
 	-- bang. Either alone is enough -- and on a touchscreen they are the ONLY
 	-- things that are, because `keyText` prints HOLD on both when there is no
 	-- key to name.
+	shake = { glyph = ICON.SMASH, tone = Color3.fromRGB(164, 96, 49), verb = "SHAKE" },
+	acornRaid = { glyph = ICON.SMASH, tone = Color3.fromRGB(164, 96, 49), verb = "RAID" },
 	smash = {
 		glyph = ICON.SMASH, tone = Color3.fromRGB(230, 72, 64),
 		verb = "SMASH",
@@ -4196,6 +4175,10 @@ end
 -- Empty or absent draws nothing at all, which is what every prompt that is
 -- not about money does.
 Config.PROMPT_AMOUNT_ATTRIBUTE = "PromptAmount"
+-- Client-only nearby feedback; never an authorization to steal.
+Config.PROMPT_COOLDOWN_ATTRIBUTE = "AcornCooldownText"
+Config.PLOT_CAPPED_ATTRIBUTE = "CappedUntil"
+Config.PLOT_HOT_SKIN_ATTRIBUTE = "HotSkinUntil"
 
 -- A plot's uncollected pile, published so a thief standing at the gate can be
 -- told what a grab is worth.
@@ -4212,6 +4195,11 @@ Config.PROMPT_AMOUNT_ATTRIBUTE = "PromptAmount"
 -- HOLD already is. Presentation only -- the server re-derives the real amount
 -- on the trigger and never reads this back.
 Config.PLOT_VAULT_ATTRIBUTE = "VaultAmount"
+Config.PLOT_ACORNS_ATTRIBUTE = "AcornAmount" -- banked storage
+Config.PLOT_TREE_ACORNS_ATTRIBUTE = "TreeAcorns"
+Config.PLOT_GROUND_ACORNS_ATTRIBUTE = "GroundAcorns"
+Config.PLOT_SHAKE_ATTRIBUTE = "AcornShakeAt"
+Config.PLOT_ACORN_RAID_READY_ATTRIBUTE = "AcornRaidReadyAt"
 
 -- The plot's Vault Lock tier, published for the same reason the pile is: a
 -- client has to be able to read it without asking. `PlotService.setLockLevel`
@@ -4829,14 +4817,8 @@ end
 function Config.auditSkinSteal(): { string }
 	local problems = {}
 
-	-- The user's own requirement, kept as a rule rather than as a number
-	-- somebody typed once: a player has to be a better prize than a shop, or
-	-- there is no reason to take the risk that comes with robbing one.
-	-- Measured, `LOSS_CAP` already holds player robberies to about 2.1 an
-	-- hour against 173 shop cracks, so this is a floor rather than a ceiling.
-	if Config.SKIN_STEAL.chance <= Config.SHOP_VAULT_DROP.chance then
-		table.insert(problems, ("a player drops a skin %.0f%% of the time against a shop's %.0f%%; robbing a person is meant to be the bigger prize")
-			:format(Config.SKIN_STEAL.chance * 100, Config.SHOP_VAULT_DROP.chance * 100))
+	if Config.SKIN_STEAL.chance ~= 1 then
+		table.insert(problems, "clean player cracks must take eligible skins at 100%")
 	end
 
 	for key, skin in pairs(Config.SKINS) do
@@ -5258,51 +5240,51 @@ Config.SKINS = {
 	},
 	bubblegum = {
 		chest = "og",
-		name = "Bubblegum", order = 2, cost = 8000, rarity = "common",
+		name = "Bubblegum", order = 2, sellBasis = 8000, rarity = "common",
 		body = Color3.fromRGB(255, 132, 190), trim = Color3.fromRGB(206, 78, 148),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 	},
 	mint = {
 		chest = "og",
-		name = "Mint Choc", order = 3, cost = 20000, rarity = "common",
+		name = "Mint Choc", order = 3, sellBasis = 20000, rarity = "common",
 		body = Color3.fromRGB(148, 226, 190), trim = Color3.fromRGB(88, 62, 52),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 	},
 	sunset = {
 		chest = "og",
-		name = "Sunset", order = 4, cost = 45000, rarity = "common",
+		name = "Sunset", order = 4, sellBasis = 45000, rarity = "common",
 		body = Color3.fromRGB(255, 158, 92), trim = Color3.fromRGB(206, 92, 108),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 	},
 	midnight = {
 		chest = "og",
-		name = "Midnight", order = 5, cost = 90000, rarity = "common",
+		name = "Midnight", order = 5, sellBasis = 90000, rarity = "common",
 		body = Color3.fromRGB(78, 84, 156), trim = Color3.fromRGB(44, 48, 96),
 		material = Enum.Material.Glass, transparency = 0,
 	},
 	lava = {
 		chest = "og",
-		name = "Lava", order = 6, cost = 200000, rarity = "common",
+		name = "Lava", order = 6, sellBasis = 200000, rarity = "common",
 		body = Color3.fromRGB(232, 92, 48), trim = Color3.fromRGB(58, 30, 26),
 		material = Enum.Material.Neon, transparency = 0,
 	},
 	galaxy = {
 		chest = "og",
-		name = "Galaxy", order = 7, cost = 500000, rarity = "common",
+		name = "Galaxy", order = 7, sellBasis = 500000, rarity = "common",
 		body = Color3.fromRGB(126, 82, 200), trim = Color3.fromRGB(52, 34, 92),
 		material = Enum.Material.Neon, transparency = 0,
 	},
 	pearl = {
 		chest = "og",
-		name = "Pearl", order = 8, cost = 1200000, rarity = "common",
+		name = "Pearl", order = 8, sellBasis = 1200000, rarity = "common",
 		body = Color3.fromRGB(248, 244, 236), trim = Color3.fromRGB(206, 198, 220),
 		material = Enum.Material.Glass, transparency = 0,
 	},
 
-	-- Earned by rebirthing rather than paid for, so the collection has two
-	-- routes into it and a rebirth still hands you something to show off.
+	-- Former rebirth milestones now belong to Piggy Originals. Schema 25
+	-- preserves ownership earned under the old thresholds.
 	bronze = {
-		name = "Bronze", order = 20, unlockRebirths = 1, rarity = "rare",
+		name = "Bronze", order = 20, chest = "og", rarity = "rare",
 		body = Color3.fromRGB(196, 132, 74), trim = Color3.fromRGB(150, 96, 50),
 		material = Enum.Material.Metal, transparency = 0,
 		reflectance = 0.35,
@@ -5322,7 +5304,7 @@ Config.SKINS = {
 	-- to stay pale to be recognisable cannot be metallic, and this one never
 	-- had to.
 	goldleaf = {
-		name = "Gold Leaf", order = 21, unlockRebirths = 3, rarity = "rare",
+		name = "Gold Leaf", order = 21, chest = "og", rarity = "rare",
 		body = Color3.fromRGB(186, 152, 72), trim = Color3.fromRGB(140, 110, 46),
 		material = Enum.Material.Metal, transparency = 0,
 		reflectance = 0.40,
@@ -5372,15 +5354,14 @@ Config.SKINS = {
 	},
 
 	diamond = {
-		name = "Diamond", order = 22, unlockRebirths = 6, rarity = "legendary",
+		name = "Diamond", order = 22, chest = "og", rarity = "legendary",
 		body = Color3.fromRGB(150, 226, 236), trim = Color3.fromRGB(104, 190, 208),
 		material = Enum.Material.Glass, transparency = 0,
 	},
 
-	-- ANIMATED DROP POOL
+	-- ANIMATED CRATE SKINS
 	--
-	-- Not for sale at any price. The only way in is rebirthing, which is what
-	-- makes them worth chasing -- coins can buy every skin above this line.
+	-- Their chest tags determine where these skins can be earned.
 	--
 	-- `anim` is read by the CLIENT, never the server. Animating a colour
 	-- server-side would replicate a property write per piggy per frame, which
@@ -5526,7 +5507,7 @@ Config.SKINS = {
 	-- all four are stocked rather than roughly stocked.
 	ladybird = {
 		chest = "animal",
-		name = "Ladybird", order = 100, cost = 25000, rarity = "common", rarity = "common",
+		name = "Ladybird", order = 100, sellBasis = 25000, rarity = "common", rarity = "common",
 		body = Color3.fromRGB(214, 44, 44), trim = Color3.fromRGB(30, 28, 32),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		-- Small, round, evenly spread and not many: a ladybird's spots are
@@ -5539,7 +5520,7 @@ Config.SKINS = {
 	},
 	cow = {
 		chest = "animal",
-		name = "Dairy Cow", order = 101, cost = 35000, rarity = "common", rarity = "common",
+		name = "Dairy Cow", order = 101, sellBasis = 35000, rarity = "common", rarity = "common",
 		-- The trim stays PINK rather than going black with the blotches. It
 		-- paints the snout, and a cow's muzzle is the one part of it that is
 		-- pink -- so the two channels each say something instead of both
@@ -5559,7 +5540,7 @@ Config.SKINS = {
 
 	zebra = {
 		chest = "animal",
-		name = "Zebra", order = 110, cost = 250000, rarity = "common",
+		name = "Zebra", order = 110, sellBasis = 250000, rarity = "common",
 		body = Color3.fromRGB(244, 242, 236), trim = Color3.fromRGB(36, 34, 38),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		-- THE POLE IS THE MUZZLE, AND THAT IS THE WHOLE SKIN. Every other
@@ -5634,7 +5615,7 @@ Config.SKINS = {
 	},
 	bee = {
 		chest = "animal",
-		name = "Bumblebee", order = 111, cost = 400000, rarity = "common",
+		name = "Bumblebee", order = 111, sellBasis = 400000, rarity = "common",
 		-- DEEPER THAN IT WAS, TWICE. (250, 198, 40) is a pale lemon; the
 		-- reference is a saturated golden yellow, and against black bands the
 		-- pale one reads as washed rather than as a bee. The first correction
@@ -5688,7 +5669,7 @@ Config.SKINS = {
 
 	giraffe = {
 		chest = "animal",
-		name = "Giraffe", order = 120, cost = 1800000, rarity = "common",
+		name = "Giraffe", order = 120, sellBasis = 1800000, rarity = "common",
 		body = Color3.fromRGB(234, 196, 124), trim = Color3.fromRGB(168, 120, 62),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		-- Large patches packed close, with LOW jitter: a giraffe reads as a
@@ -5702,7 +5683,7 @@ Config.SKINS = {
 	},
 	leopard = {
 		chest = "animal",
-		name = "Leopard", order = 121, cost = 2400000, rarity = "common",
+		name = "Leopard", order = 121, sellBasis = 2400000, rarity = "common",
 		body = Color3.fromRGB(232, 186, 110), trim = Color3.fromRGB(128, 86, 44),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		-- The second skin on a texture pack, and the pair is deliberate: one
@@ -5728,9 +5709,8 @@ Config.SKINS = {
 
 	-- CHEST-ONLY. An explicit `rarity` and no `cost`, which is what keeps them
 	-- out of the shop's coin grid and stops the free-if-costless fallback in
-	-- `Config.isSkinUnlocked` handing them to everybody. Note this also puts
-	-- them in the REBIRTH DROP POOL, exactly as the classics' drop skins are:
-	-- `Config.getSkinsOfRarity` selects on `rarity` and excludes only `set`.
+	-- `Config.isSkinUnlocked` handing them to everybody. Rebirth opens the
+	-- standard Legendary Crate, whose floor excludes common skins.
 	tiger = {
 		chest = "animal",
 		name = "Bengal Tiger", order = 130, rarity = "common",
@@ -5808,17 +5788,11 @@ Config.SKINS = {
 	-- going on reporting it -- so a Neon Storm Wolf would silently lose its
 	-- coat the day the coat arrived.
 	--
-	-- PRICED, THOUGH NOTHING BUYS IT. `sellValue` applies its cap only to a
-	-- skin carrying a cost, so an unpriced legendary sells for the full tier
-	-- value of 1,000,000 out of a 500,000 chest -- a duplicate paying DOUBLE
-	-- the open, against this game's rule that a duplicate is always a real
-	-- loss. At 500,000 the cap bites at 125,000, which is 25% of an open and
-	-- lands inside the 21-35% band the sell ladder was measured for. A cost on
-	-- a crate-only skin is a SELL CEILING and nothing else now, because the
-	-- rarity beside it is explicit.
+	-- Historical resale basis only: cap this legendary's coin sale at 25%
+	-- of 500K. It is not a coin price and cannot open a second purchase route.
 	stormwolf = {
 		chest = "animal",
-		name = "Storm Wolf", order = 140, cost = 500000, rarity = "legendary",
+		name = "Storm Wolf", order = 140, sellBasis = 500000, rarity = "legendary",
 		-- The marble and the storm, straight off the Blender build's own
 		-- palette: a near-black animal is a silhouette with nothing in it, so
 		-- the dark is swirled blue-violet rather than flat.
@@ -5858,7 +5832,7 @@ Config.SKINS = {
 	-- part of the cycle the body happened to pass through it.
 	cyberlime = {
 		chest = "og",
-		name = "Cyber Lime", order = 200, cost = 12000, rarity = "rare",
+		name = "Cyber Lime", order = 200, sellBasis = 12000, rarity = "rare",
 		body = Color3.fromRGB(110, 200, 20), trim = Color3.fromRGB(48, 92, 10),
 		material = Enum.Material.Neon, transparency = 0,
 		anim = { kind = "pulse", speed = 1.2, palette = {
@@ -5867,7 +5841,7 @@ Config.SKINS = {
 	},
 	neonmint = {
 		chest = "og",
-		name = "Neon Mint", order = 201, cost = 40000, rarity = "rare",
+		name = "Neon Mint", order = 201, sellBasis = 40000, rarity = "rare",
 		body = Color3.fromRGB(36, 196, 146), trim = Color3.fromRGB(16, 92, 72),
 		material = Enum.Material.Neon, transparency = 0,
 		anim = { kind = "pulse", speed = 0.9, palette = {
@@ -5876,7 +5850,7 @@ Config.SKINS = {
 	},
 	hotwire = {
 		chest = "og",
-		name = "Hot Wire", order = 202, cost = 75000, rarity = "rare",
+		name = "Hot Wire", order = 202, sellBasis = 75000, rarity = "rare",
 		body = Color3.fromRGB(168, 26, 34), trim = Color3.fromRGB(72, 14, 18),
 		material = Enum.Material.Neon, transparency = 0,
 		-- Opaque marks on a 30%-transparent shell. Inheriting the body's own
@@ -5895,7 +5869,7 @@ Config.SKINS = {
 
 	laserdream = {
 		chest = "og",
-		name = "Laser Grid", order = 210, cost = 220000, rarity = "rare",
+		name = "Laser Grid", order = 210, sellBasis = 220000, rarity = "rare",
 		body = Color3.fromRGB(152, 24, 112), trim = Color3.fromRGB(68, 10, 52),
 		material = Enum.Material.Neon, transparency = 0,
 		pattern = {
@@ -5911,7 +5885,7 @@ Config.SKINS = {
 	},
 	plasma = {
 		chest = "og",
-		name = "Plasma Ball", order = 211, cost = 480000, rarity = "rare",
+		name = "Plasma Ball", order = 211, sellBasis = 480000, rarity = "rare",
 		body = Color3.fromRGB(86, 32, 180), trim = Color3.fromRGB(36, 14, 78),
 		material = Enum.Material.Neon, transparency = 0,
 		pattern = {
@@ -5926,7 +5900,7 @@ Config.SKINS = {
 	},
 	vaporwave = {
 		chest = "og",
-		name = "Vaporwave", order = 212, cost = 850000, rarity = "rare",
+		name = "Vaporwave", order = 212, sellBasis = 850000, rarity = "rare",
 		body = Color3.fromRGB(198, 44, 146), trim = Color3.fromRGB(56, 26, 110),
 		material = Enum.Material.Neon, transparency = 0,
 		pattern = {
@@ -5943,7 +5917,7 @@ Config.SKINS = {
 
 	synthwave = {
 		chest = "og",
-		name = "Synthwave Sun", order = 220, cost = 1600000, rarity = "rare",
+		name = "Synthwave Sun", order = 220, sellBasis = 1600000, rarity = "rare",
 		body = Color3.fromRGB(214, 46, 84), trim = Color3.fromRGB(58, 20, 74),
 		material = Enum.Material.Neon, transparency = 0,
 		-- The one DARK trace in the bucket, and it is the reference: a
@@ -5962,7 +5936,7 @@ Config.SKINS = {
 	},
 	ultraviolet = {
 		chest = "og",
-		name = "Ultraviolet", order = 221, cost = 3200000, rarity = "rare",
+		name = "Ultraviolet", order = 221, sellBasis = 3200000, rarity = "rare",
 		body = Color3.fromRGB(58, 20, 140), trim = Color3.fromRGB(24, 8, 60),
 		material = Enum.Material.Neon, transparency = 0,
 		pattern = {
@@ -5977,7 +5951,7 @@ Config.SKINS = {
 	},
 	gridrunner = {
 		chest = "og",
-		name = "Gridrunner", order = 222, cost = 6000000, rarity = "rare",
+		name = "Gridrunner", order = 222, sellBasis = 6000000, rarity = "rare",
 		body = Color3.fromRGB(14, 84, 104), trim = Color3.fromRGB(6, 36, 48),
 		material = Enum.Material.Neon, transparency = 0,
 		pattern = {
@@ -5993,7 +5967,7 @@ Config.SKINS = {
 
 	hyperdrive = {
 		chest = "og",
-		name = "Hyperdrive", order = 230, cost = 14000000, rarity = "legendary",
+		name = "Hyperdrive", order = 230, sellBasis = 14000000, rarity = "legendary",
 		body = Color3.fromRGB(24, 58, 196), trim = Color3.fromRGB(10, 22, 86),
 		material = Enum.Material.Neon, transparency = 0,
 		-- Eleven hairline bands over almost the whole sphere: the read is
@@ -6183,9 +6157,6 @@ function Config.skinSource(key: string): (string, string?)
 	local spec = Config.SKINS[key]
 	if not spec then
 		return "", nil
-	end
-	if spec.unlockRebirths then
-		return ("Rebirth %d"):format(spec.unlockRebirths), nil
 	end
 	if spec.pass then
 		local pass = Config.PASSES and Config.PASSES[spec.pass]
@@ -6531,92 +6502,6 @@ function Config.getCatchEffect(key: string)
 	return Config.CATCH_EFFECTS[key] or Config.CATCH_EFFECTS[Config.DEFAULT_CATCH]
 end
 
--- A skin is available if it's free, already bought, or earned by rebirths.
--- ============================================================
--- REBIRTH DROPS
--- ============================================================
---
--- Every rebirth grants exactly one animated skin. The roll decides HOW RARE,
--- never WHETHER -- rebirth already costs a player every upgrade they own, and
--- handing back nothing for that is the fastest way to make people stop doing
--- it. There is no outcome where you get nothing.
---
--- Odds climb with rebirth count but a legendary is reachable on the very first
--- one, at about 3%. That matters: a ladder where the good stuff is gated behind
--- rebirth 20 tells a new player the chase is not for them yet.
---
--- Weights, not probabilities -- they are normalised at roll time, so tuning one
--- line cannot silently break the total.
-function Config.getDropWeights(rebirths: number): { [string]: number }
-	local r = math.clamp(rebirths, 0, 40)
-	return {
-		rare = math.max(10, 80 - r * 2.0),
-		epic = 18 + r * 1.2,
-		legendary = 2 + r * 0.8,
-	}
-end
-
--- Rebirths in a row without a legendary before one is guaranteed.
---
--- Pure chance has no floor: a player can be unlucky twelve times running and
--- reasonably conclude the drop is a lie. This caps the worst case at a number
--- somebody can actually see coming.
-Config.LEGENDARY_PITY = 12
-
-Config.DROP_RARITIES = { "rare", "epic", "legendary" }
-
-Config.RARITY_COLOURS = {
-	rare = Color3.fromRGB(96, 170, 240),
-	epic = Color3.fromRGB(176, 110, 236),
-	legendary = Color3.fromRGB(248, 190, 72),
-}
-
--- Every skin of a given rarity. Rebuilt per call rather than cached: the pool
--- is tiny and a stale cache after a Config edit is a worse problem than the
--- handful of table allocations this costs.
--- The REBIRTH DROP POOL, and its only caller is CosmeticsService.
---
--- A SET SKIN IS NEVER A DROP, AND NEITHER IS A PASS SKIN. Both carry a
--- rarity like everything else, because the shop borders every card with
--- one -- but rarity is also what puts a skin in this pool, so the Martian
--- would have started falling out of rebirths for players who had never
--- seen an invasion, and a VIP skin would fall out of them for players who
--- never bought the pass. `Config.isEarnedElsewhere` is the exclusion, and
--- this is one of the places it has to be honoured.
-function Config.getSkinsOfRarity(rarity: string): { string }
-	local out = {}
-	for key, skin in pairs(Config.SKINS) do
-		if skin.rarity == rarity and not Config.isEarnedElsewhere(skin) then
-			table.insert(out, key)
-		end
-	end
-	table.sort(out)
-	return out
-end
-
--- Picks a rarity for one rebirth. `rng` is passed in so the caller owns the
--- seed and the whole thing stays testable.
-function Config.rollRarity(rebirths: number, sinceLegendary: number, rng: Random): string
-	if sinceLegendary >= Config.LEGENDARY_PITY then
-		return "legendary"
-	end
-
-	local weights = Config.getDropWeights(rebirths)
-	local total = 0
-	for _, rarity in ipairs(Config.DROP_RARITIES) do
-		total += weights[rarity]
-	end
-
-	local roll = rng:NextNumber() * total
-	for _, rarity in ipairs(Config.DROP_RARITIES) do
-		roll -= weights[rarity]
-		if roll <= 0 then
-			return rarity
-		end
-	end
-	return "rare"
-end
-
 -- ONE QUESTION ASKED IN TEN PLACES: DOES THIS ITEM HAVE A SOURCE THAT IS
 -- NOT THE COIN SHOP?
 --
@@ -6654,13 +6539,10 @@ end
 function Config.isEarnedElsewhere(spec: any): boolean
 	return spec ~= nil and (spec.set ~= nil or spec.pass ~= nil or spec.trophy ~= nil)
 end
-function Config.isSkinUnlocked(key: string, owned: { [string]: boolean }, rebirths: number): boolean
+function Config.isSkinUnlocked(key: string, owned: { [string]: boolean }, _rebirths: number): boolean
 	local skin = Config.SKINS[key]
 	if not skin then
 		return false
-	end
-	if skin.unlockRebirths then
-		return rebirths >= skin.unlockRebirths
 	end
 	-- A drop-pool skin has no cost, but "no cost" must not read as "free".
 	-- Without this, every legendary would be unlocked for everyone from the
@@ -6671,7 +6553,7 @@ function Config.isSkinUnlocked(key: string, owned: { [string]: boolean }, rebirt
 	-- pass skin is priced in Robux, so neither has a `cost`, and either one
 	-- authored without a rarity would fall straight through to the free
 	-- branch below.
-	if skin.rarity or Config.isEarnedElsewhere(skin) then
+	if skin.chest or skin.rarity or Config.isEarnedElsewhere(skin) then
 		return owned[key] == true
 	end
 	return (skin.cost or 0) <= 0 or owned[key] == true
@@ -7174,8 +7056,8 @@ Config.SHOP_VAULT_DROP = {
 -- the same shape every other risk premium in this file has. What it must not
 -- become is the ONLY thing worth doing: `auditRobbery` cannot see this,
 -- because it models coins and this is not coins, so the check is by hand --
--- if the street stops robbing shops and residents entirely, `chance` is the
--- dial and it comes down before anything else does.
+-- The old probability tuning above is historical. Phase 1.6 makes clean
+-- player cracks deterministic; the cap, insurance and hot recovery are the rails.
 -- ============================================================
 -- COINS RUSHING INTO THE PIG
 -- ============================================================
@@ -7338,13 +7220,7 @@ Config.SKIN_STEAL = {
 	-- Per COMPLETED crack on a player. A fumbled one takes nothing here for
 	-- the same reason it spends no cooldown: what that attempt cost was the
 	-- alarm, which is a steeper price and a more interesting one.
-	chance = 0.5,
-
-	-- A REVENGE CRACK TAKES ONE FOR CERTAIN, and it needs no new state --
-	-- `HeistService` already computes `revenge` from the grudge table two
-	-- lines above where this is read. They took something of yours; the game
-	-- should not then also roll dice on whether you get to answer it.
-	revengeChance = 1.0,
+	chance = 1,
 
 	-- The cap, in skins per victim per rolling window. Held in memory and
 	-- keyed on the Player exactly as `LOSS_CAP` is, and dropped when they
@@ -7366,7 +7242,7 @@ Config.SKIN_STEAL = {
 -- `spec.chest ~= nil` is the whole test, and it says one thing: A STOLEN SKIN
 -- IS ALWAYS WINNABLE BACK OUT OF THE CRATE IT CAME FROM. Everything without a
 -- tag falls out for free and every one of them is something that could never
--- be handed back -- the free default, the three rebirth drops, the alien set
+-- be handed back -- the free default, coin-only skins, the alien set
 -- item and the two pass skins.
 --
 -- `isEarnedElsewhere` is stated as well rather than leant on, for the reason
@@ -8971,6 +8847,95 @@ function Config.treeMesh(): { any }?
 	}
 end
 
+-- Imported assets/tree/blender/oak.glb, at the compact 8.5-stud yard size.
+-- Offsets are measured from the imported trunk's ground contact: Studio's
+-- importer reverses X/Z relative to the GLB report. Keep the assembled pose.
+-- Independent of TREE_MESH; street scenery keeps its own oak.
+Config.ACORN_OAK_MESH = {
+	parts = {
+		{
+			part = "Trunk", id = "86596500351307", texture = "122626758016508",
+			offset = Vector3.new(-0.00026703, 4.15144634, 0.16966248),
+			size = Vector3.new(6.20796633, 8.30289268, 3.70538425),
+		},
+		{
+			part = "Canopy", id = "126109660219617", texture = "122626758016508",
+			offset = Vector3.new(0.01684570, 6.73089504, 0.72576904),
+			size = Vector3.new(8.5, 5.03738499, 4.67738152),
+		},
+	},
+}
+
+function Config.acornOakMesh(): { any }?
+	local parts = {}
+	for _, entry in ipairs(Config.ACORN_OAK_MESH.parts) do
+		local id = assetId(entry.id)
+		local texture = assetId(entry.texture)
+		if not id or not texture then return nil end
+		table.insert(parts, {
+			part = entry.part, id = id, texture = texture,
+			offset = entry.offset, size = entry.size,
+		})
+	end
+	return parts
+end
+
+-- Source: assets/basket/basket.rbxmx. Measured from the imported bottom
+-- pivot; contents are separate objects, never baked into this empty bowl.
+Config.ACORN_BASKET_MESH = {
+	parts = {
+		{
+			part = "Basket", id = "100678587274495", texture = "138402969079437",
+			offset = Vector3.new(0.00187683, 0.45282504, -0.00001144),
+			size = Vector3.new(2.46588612, 0.90565002, 2.5),
+		},
+		{
+			part = "BasketDetail2", id = "94132455116099", texture = "110241410993564",
+			offset = Vector3.new(0.00000191, 0.96808410, -0.00014496),
+			size = Vector3.new(2.54199457, 0.46452266, 0.77379179),
+		},
+	},
+}
+
+-- Source: assets/crate/AcornStorageCrate.rbxmx; bottom-centre measurements (studs).
+Config.ACORN_STORAGE_MESH = { parts = {
+	{ part = "CrateBody", id = "114021735333130", texture = "108648327781313",
+		size = Vector3.new(3.45, 1.73894882, 2.65), offset = Vector3.new(0, 0.86947799, 0) },
+	{ part = "CornerPosts", id = "73778528926375", texture = "108648327781313",
+		size = Vector3.new(3.6, 1.7, 2.8), offset = Vector3.new(0, 0.85, 0) },
+	{ part = "TopRim", id = "137168620124935", texture = "108648327781313",
+		size = Vector3.new(3.6, 0.23, 2.8), offset = Vector3.new(0, 1.78500533, 0) },
+	{ part = "AcornEmblem", id = "106520226066739", texture = "108648327781313",
+		size = Vector3.new(0.74, 0.74, 0.061), offset = Vector3.new(0, 1.02999949, -1.34649658) },
+} }
+
+function Config.acornStorageMesh(): { any }?
+	local parts = {}
+	for _, entry in ipairs(Config.ACORN_STORAGE_MESH.parts) do
+		local id, texture = assetId(entry.id), assetId(entry.texture)
+		if not id or not texture then return nil end
+		table.insert(parts, {
+			part = entry.part, id = id, texture = texture,
+			offset = entry.offset, size = entry.size,
+		})
+	end
+	return parts
+end
+
+function Config.acornBasketMesh(): { any }?
+	local parts = {}
+	for _, entry in ipairs(Config.ACORN_BASKET_MESH.parts) do
+		local id = assetId(entry.id)
+		local texture = assetId(entry.texture)
+		if not id or not texture then return nil end
+		table.insert(parts, {
+			part = entry.part, id = id, texture = texture,
+			offset = entry.offset, size = entry.size,
+		})
+	end
+	return parts
+end
+
 -- ------------------------------------------------------------
 -- THE FENCE
 -- ------------------------------------------------------------
@@ -9504,32 +9469,10 @@ Config.RARITY_BANDS = {
 	{ rarity = "legendary", from = 10000000 },
 }
 
--- The tier for anything sold or dropped, from whatever the thing happens to
--- carry. Three sources, in this order, and the order is the point:
---
---   1. An EXPLICIT `rarity`. The drop-pool skins and every accessory have one
---      because they are not bought at all -- there is no price to read, and
---      the rarity is what decides how likely they were in the first place.
---   2. `unlockRebirths`. A rebirth-locked skin is also unpriced, and what it
---      costs is resets rather than coins. Bronze at 1 reset is Rare, Gold
---      Leaf at 3 is Epic, Diamond at 6 is Legendary.
---   3. The PRICE. Everything else in the shop is a direct coin purchase, and
---      in this economy the price is the rarity -- there is no drop rate to
---      express, so pretending otherwise would mean hand-tagging sixty items
---      and re-tagging them every time a price moved.
---
--- Deriving rather than tagging is what keeps this honest as the shop grows: a
--- decoration added at 12 million is Legendary the moment it is priced, with
--- nothing else to remember.
+-- Explicit catalogue rarity wins; direct coin items derive theirs from price.
 function Config.rarityOf(spec: any): string
 	if type(spec.rarity) == "string" and Config.RARITIES[spec.rarity] then
 		return spec.rarity
-	end
-
-	if type(spec.unlockRebirths) == "number" then
-		return if spec.unlockRebirths >= 5 then "legendary"
-			elseif spec.unlockRebirths >= 2 then "epic"
-			else "rare"
 	end
 
 	local cost = spec.cost or 0
@@ -9546,13 +9489,11 @@ end
 -- CHESTS
 -- ============================================================
 --
--- COINS ARE NOT PURCHASABLE WITH ROBUX, AND THAT IS WHAT MAKES ALL OF THIS
--- LEGAL. A chest bought with coins is a paid random item ONLY if those coins
--- can be bought with real money -- so the day a coin pack ships, every chest
--- in this game retroactively becomes a regulated loot box with nothing in this
--- repo having changed. Monetization is direct purchases of NAMED things: pets,
--- rides, passes. Never currency. See the note in CLAUDE.md; this comment is
--- the short version and the rule is not negotiable.
+-- Every crate costs earned Acorns (the persisted currency is "loot").
+-- Coins never buy a random crate outcome. ChestService rejects other
+-- currencies and auditEconomy reports any catalogue regression at boot.
+-- The coin-price calculations below are historical; current pricing is
+-- decided in docs/MASTER-PLAN.md section 6. Odds and pools are unchanged.
 --
 -- A CHEST DECLARES ITS ODDS AND ITS MEMBERS DECLARE THEIR CHEST. Membership is
 -- a `chest` field on each item rather than a list here, for the reason `zone`
@@ -9560,7 +9501,7 @@ end
 -- and the one that goes stale is always the list.
 --
 -- A CHEST'S TIER FOR AN ITEM IS `Config.rarityOf`, NOT A NEW FIELD. That
--- function already reads an explicit `rarity`, then `unlockRebirths`, then the
+-- function already reads an explicit `rarity`, then the
 -- price -- so the drop-pool skins keep the rarity they were authored with and
 -- the priced ones land where their price already put them. Adding a second
 -- notion of tier would be two numbers to disagree.
@@ -9609,8 +9550,8 @@ Config.CHESTS = {
 		name = "Piggy Originals",
 		order = 1,
 		kind = "skin",
-		currency = "coins",
-		cost = 500000,
+		currency = "loot",
+		cost = 5,
 		odds = { common = 52, rare = 44, legendary = 4 },
 		colour = Color3.fromRGB(236, 138, 178),
 		blurb = "The skins the street was built on, glow and all",
@@ -9682,8 +9623,8 @@ Config.CHESTS = {
 		name = "Rare Crate",
 		order = 5,
 		kind = "skin",
-		currency = "coins",
-		cost = 1500000,
+		currency = "loot",
+		cost = 15,
 		-- EVERY SKIN IN THE COIN ECONOMY AT RARE OR BETTER, across all three
 		-- themed pools -- which is the other thing this rung sells. A themed
 		-- crate is the route to a theme; this is the route to a SPECIFIC skin
@@ -9697,8 +9638,8 @@ Config.CHESTS = {
 		name = "Legendary Crate",
 		order = 6,
 		kind = "skin",
-		currency = "coins",
-		cost = 6000000,
+		currency = "loot",
+		cost = 40,
 		-- ITS FLOOR WAS `epic` AND HAD TO COME DOWN TO `rare`, WHICH IS THE
 		-- ONE PLACE DROPPING A TIER BROKE SOMETHING RATHER THAN SIMPLIFYING
 		-- IT.
@@ -9775,8 +9716,8 @@ Config.CHESTS = {
 		name = "Animal Kingdom",
 		order = 3,
 		kind = "skin",
-		currency = "coins",
-		cost = 500000,
+		currency = "loot",
+		cost = 5,
 		-- EIGHT PAINTED COATS AND ONE STORM WOLF: THIS SHELF HAS NO RARE TIER
 		-- AT ALL, AND THE ODDS ROW SAYS SO RATHER THAN LEAVING IT TO
 		-- `liveOdds`.
@@ -9825,6 +9766,15 @@ Config.CHESTS = {
 	-- stay direct-purchase.
 }
 
+-- Combining uses existing spares and targets regular Acorn crates only.
+-- Event-set crates keep their separate route even though all prices now
+-- use the same currency. Shared by the server guard and ChestState UI flag.
+function Config.canCombineChest(chestKey: string): boolean
+	local chest = Config.CHESTS[chestKey]
+	return chest ~= nil and chest.currency == "loot"
+		and chest.kind ~= "set" and chest.set == nil
+end
+
 -- COMBINING: three of a tier for one of the next.
 --
 -- THREE, NOT TWO, AND THE ARITHMETIC IS THE WHOLE ARGUMENT. At 2:1 the ladder
@@ -9854,12 +9804,9 @@ Config.CHESTS = {
 -- The word "shard" leaves the player's vocabulary entirely: there is no second
 -- noun to teach, because the thing being combined is the skins they can see.
 --
--- COMBINING STILL ONLY TARGETS COIN CHESTS. Event chests take tokens and
--- nothing else, or attendance would stop being the only route to event loot --
--- a rich player could grind coin chests and combine their way into the alien
--- set without ever turning up. Duplicates from an event chest are still real
--- spares, which is a small thank-you for attending, but the arrow only points
--- one way.
+-- Combining targets regular Acorn crates via Config.canCombineChest.
+-- Event-set crates remain excluded, so ordinary spares cannot bypass their
+-- event reward route. Event duplicates can still be sold as spares.
 -- FIVE OF A TIER, NOT THREE, AND THE THIRD TIER COMING OUT IS WHY.
 --
 -- The old note read THREE, NOT TWO, and its arithmetic was right for FOUR
@@ -10025,7 +9972,7 @@ function Config.isSellable(kind: string, key: string): boolean
 	-- at the top: a costless, untagged, unranked item is the "none" effect
 	-- class, and selling one of those for a tier value mints coins from
 	-- nothing.
-	local earned = spec.rarity or spec.unlockRebirths or Config.isEarnedElsewhere(spec)
+	local earned = spec.rarity or Config.isEarnedElsewhere(spec)
 	if not earned and (spec.cost or 0) <= 0 then
 		return false
 	end
@@ -10072,8 +10019,9 @@ function Config.sellValue(kind: string, key: string): number
 		return 0
 	end
 	local value = Config.SELL.base * (Config.RARITIES.common.weight / rarity.weight)
-	if type(spec.cost) == "number" and spec.cost > 0 then
-		value = math.min(value, spec.cost * Config.SELL.priceFraction)
+	local basis = spec.cost or spec.sellBasis
+	if type(basis) == "number" and basis > 0 then
+		value = math.min(value, basis * Config.SELL.priceFraction)
 	end
 	return math.floor(value)
 end
@@ -10170,6 +10118,19 @@ function Config.chestPool(chestKey: string): ({ [string]: { string } }, number)
 		table.sort(keys)
 	end
 	return pool, total
+end
+
+-- Rebirth opens the same crate as the shop. A complete legendary collection
+-- receives its Acorn price instead. Exclusives outside this pool do not count.
+Config.REBIRTH_CRATE = "legendarycrate"
+function Config.rebirthCrateComplete(owned: { [string]: boolean }): boolean
+	local pool = Config.chestPool(Config.REBIRTH_CRATE)
+	local keys = pool.legendary or {}
+	if #keys == 0 then return false end
+	for _, key in ipairs(keys) do
+		if owned[key] ~= true then return false end
+	end
+	return true
 end
 
 -- Where each slot hangs off the pig, in the same local space PiggyBank.build
@@ -10362,8 +10323,86 @@ Config.ROLL_CURRENCY = {
 -- Phase 1 foundation for the tree's shake payout. Piggy deliveries never
 -- call this. A nil victim rebirth count means a resident; zero is a player.
 Config.ACORNS = {
+	-- Tree growth and banked storage are independent. Only storage raids use the loss cap.
+	growCap = 8, share = 0.25, lossCap = 4, lossWindow = 3600,
+	shakeSeconds = 5, shakeCooldown = 60, startDelay = 0.35, groundSeconds = 60,
+	-- Four starting Acorns total, split so both resident interactions are available.
+	resident = { seedRipe = 2, seedStored = 2, harvestSeconds = 900, raidSeconds = 900 },
+	fallSeconds = 0.4, catchMinSeconds = 0.15, catchGrace = 0.3,
+	-- The imported Blender oak is already at yard size (8.5 studs across).
+	treeScale = 1, slot = "lawnI", treeOffset = Vector3.new(-25, 0, 16),
+	-- The wood mesh includes wide branches. Only the lower trunk blocks a
+	-- character; a box around all the wood would wall off empty lawn.
+	treeCollisionSize = Vector3.new(1.3, 3.4, 1.3),
+	treeCollisionOffset = Vector3.new(0, 1.7, 0),
+	-- On the pig side of the oak, within the retired lawnI footprint.
+	storageOffset = Vector3.new(-20, 0, 16), basketScale = 1,
 	payout = { resident = 1, player = 5, perRebirthAbove = 1, revenge = 2 },
 }
+
+-- Imported Workspace.acorn, archived in assets/acorn/acorn.json/rbxmx.
+-- Nut-centred offsets match the existing basket fill positions at scale 1.
+Config.ACORN_MESH = { parts = {
+	{ part = "Stem", id = "rbxassetid://123914273548822", texture = "rbxassetid://120631223897118",
+		size = Vector3.new(0.096932940, 0.115000010, 0.066295095),
+		offset = Vector3.new(-0.017829895, 0.494493484, 0.000000000) },
+	{ part = "Cap", id = "rbxassetid://99661896461850", texture = "rbxassetid://120631223897118",
+		size = Vector3.new(0.594365239, 0.294259816, 0.594365239),
+		offset = Vector3.new(0.000000000, 0.333129883, 0.000000000) },
+	{ part = "Nut", id = "rbxassetid://107705713264554", texture = "rbxassetid://120631223897118",
+		size = Vector3.new(0.492000014, 0.550000012, 0.492000014),
+		offset = Vector3.new(0.000000000, 0.000000000, 0.000000000) },
+} }
+
+Config.ACORNS.growSeconds = Config.OFFLINE_CAP_SECONDS / Config.ACORNS.growCap
+
+-- Both ends render/check the same drop windows; the client cannot choose
+-- how many Acorns exist or extend the time for catching one.
+function Config.acornFallWindow(startedAt: number, index: number, count: number): (number, number)
+	-- All loose Acorns stay available for the entire collection round.
+	return startedAt, startedAt + Config.ACORNS.shakeSeconds
+end
+
+-- A saved growth cursor, independent of autosaves. Missing legacy cursors
+-- start at lastSave; invalid/future timestamps cannot grant extra currency.
+function Config.acornGrowthCursor(value: any, now: number): number
+	if type(value) ~= "number" or value ~= value or math.abs(value) == math.huge then
+		return now
+	end
+	return math.clamp(math.floor(value), now - Config.OFFLINE_CAP_SECONDS, now)
+end
+
+-- Shared arithmetic for the server's offline and live paths. Preserve partial
+-- hours below cap. Time spent full is discarded, never banked for after spending.
+function Config.growAcorns(data: any, now: number): number
+	local cursor = Config.acornGrowthCursor(data.acornsGrownAt, now)
+	local before = data.treeAcorns or 0
+	if before >= Config.ACORNS.growCap then
+		data.acornsGrownAt = now
+		return 0
+	end
+	local elapsed = math.floor((now - cursor) / Config.ACORNS.growSeconds)
+	local gained = math.min(elapsed, Config.ACORNS.growCap - before)
+	data.treeAcorns = before + gained
+	data.acornsGrownAt = if data.treeAcorns >= Config.ACORNS.growCap then now
+		else cursor + elapsed * Config.ACORNS.growSeconds
+	return gained
+end
+-- Ground stock is saved separately, so reconnecting cannot duplicate a shake.
+function Config.expireGroundAcorns(data: any, now: number): boolean
+	if (data.groundAcorns or 0) > 0 and now >= (data.acornsDroppedAt or 0) + Config.ACORNS.groundSeconds then
+		data.groundAcorns = 0
+		return true
+	end
+	return false
+end
+
+-- Explicit modelling assumptions, not new reward sources: one full basket
+-- harvested daily, one passive raid/day, two active hours at parity/no revenge.
+Config.ACORN_AUDIT = { activeHours = 2, passiveRaids = 1, minPopulationRatio = 0.5, minActiveRatio = 3 }
+-- Reserved integration point for the later coin-pack step. No product is sold.
+-- Rebirth still rolls a standard Legendary Crate, per the designer correction.
+Config.COIN_PACK = { productId = 0 }
 
 function Config.acornMultiplier(thief: number, victim: number?, revenge: boolean): number
 	local payout = Config.ACORNS.payout
@@ -10376,6 +10415,13 @@ end
 function Config.lootWord(n: number): string
 	return string.lower(if n == 1 then Config.ROLL_CURRENCY.name
 		else Config.ROLL_CURRENCY.plural)
+end
+
+-- The same refusal on the crate card and the authoritative server response.
+function Config.acornShortfall(held: number, cost: number): string
+	local short = math.max(0, cost - held)
+	return ("Need %d more %s. Shake trees to earn %s."):format(
+		short, Config.lootWord(short), Config.ROLL_CURRENCY.plural:lower())
 end
 
 -- THE ROLL'S PRICE LADDER IS RETIRED WITH THE ROLL. `ROLL_BASE_COST`,
@@ -10610,7 +10656,6 @@ function Config.isAdminUserId(userId: number): boolean
 	return Config.ADMINS[userId] == true
 end
 
--- Bumped for `sinceLegendary`. DataService.reconcile fills it in on old saves.
 -- ============================================================
 -- LAWN DECORATIONS
 -- ============================================================
@@ -10852,9 +10897,9 @@ Config.DECOR_SLOTS = {
 	{ id = "lawnG", zone = "lawn", offset = Vector3.new(-25, 0, 4) },
 	{ id = "lawnH", zone = "lawn", offset = Vector3.new(25, 0, 4) },
 
-	-- Front row, left only. The front-right corner is the kennel -- see the
-	-- GuardDog.build call in PlotService.buildPlot.
-	{ id = "lawnI", zone = "lawn", offset = Vector3.new(-25, 0, 16) },
+	-- Front corners are reserved for the acorn oak/basket and the kennel.
+	-- Retired lawnI placements are shelved by DataService's catalogue prune;
+	-- the player still owns the ornament and can place it in another slot.
 
 	-- Outside the fence, and OUTBOARD OF THE MOAT rather than beside the gate.
 	--
@@ -12155,7 +12200,7 @@ end
 --
 -- NO LOOT ON THIS LADDER, since the pivot. It used to pay the roll currency
 -- on every rung, which made turning up a route to the collection. Loot is the
--- currency you go out and earn -- see Config.LOOT -- and a ladder that paid it
+-- currency you go out and earn -- see Config.ACORNS -- and a ladder that paid it
 -- would let a player who never robs anybody finish the thief's collection.
 --
 -- `short` is the word the daily board prints on the card. It lives here
@@ -12227,6 +12272,45 @@ end
 -- regions cannot disagree about it.
 function Config.weekIndex(when: number?): number
 	return Config.dayIndex(when) // 7
+end
+
+-- Phase 1.7 needs the season clock before the Phase 5 rank/rewards UI.
+-- Share the existing UTC week epoch: four active weeks plus one rest week.
+Config.SEASON = { weeks = 4, rest = 1 }
+function Config.seasonIndex(when: number?): number
+	return Config.weekIndex(when) // (Config.SEASON.weeks + Config.SEASON.rest)
+end
+
+function Config.seasonEndsAt(when: number?): number
+	return (Config.seasonIndex(when) + 1) * (Config.SEASON.weeks + Config.SEASON.rest) * 7 * 86400
+end
+
+Config.BUYBACK = { perStep = 3, tiers = { "common", "rare", "legendary" } }
+function Config.buybackCost(key: string): number?
+	if not Config.isStealableSkin(key) then return nil end
+	local skin = Config.SKINS[key]
+	local chest = Config.CHESTS[skin.chest]
+	-- Skins use THREE steps; the global rarity ladder also includes epic.
+	local rank = table.find(Config.BUYBACK.tiers, Config.rarityOf(skin))
+	if not chest or chest.currency ~= "loot" or not rank then return nil end
+	if type(chest.cost) ~= "number" or chest.cost <= 0 or chest.cost == math.huge then return nil end
+	local pool = Config.chestPool(skin.chest)
+	if not table.find(pool[Config.rarityOf(skin)] or {}, key) then return nil end
+	return chest.cost * Config.BUYBACK.perStep ^ rank
+end
+
+-- Claims are eligibility for the rest of a season, not copies or a payout.
+-- Keep an owned skin's claim: the button is hidden while it is owned.
+function Config.pruneBuybackClaims(claims: { [string]: number }, when: number?): boolean
+	local season = Config.seasonIndex(when)
+	local changed = false
+	for key, index in pairs(claims) do
+		if index ~= season or type(key) ~= "string" or not Config.buybackCost(key) then
+			claims[key] = nil
+			changed = true
+		end
+	end
+	return changed
 end
 
 -- THE STREET'S LADDER OUTLIVES THE SERVER NOW, AND THAT IS THE ONLY SAFE WAY
@@ -12466,7 +12550,8 @@ Config.DELIVERY = {
 -- window in which a schema change is free: the same move after a UI ships
 -- needs a real payout, and a payout that runs on every join is a money
 -- printer.
-Config.SCHEMA_VERSION = 24
+-- 25: preserve the former rebirth-gated skins as explicit ownership, once.
+Config.SCHEMA_VERSION = 25
 
 Config.AUTOSAVE_INTERVAL = 60
 
@@ -12588,6 +12673,22 @@ end
 function Config.auditEconomy(): { string }
 	local problems = {}
 
+	-- A retired ownership gate anywhere in Config is a catalogue regression.
+	local visited = {}
+	local function checkGates(value: any, path: string)
+		if type(value) ~= "table" or visited[value] then return end
+		visited[value] = true
+		for key, child in pairs(value) do
+			local childPath = path .. "." .. tostring(key)
+			if key == "unlockRebirths" then
+				table.insert(problems, childPath .. " uses a retired rebirth ownership gate")
+			end
+			checkGates(child, childPath)
+		end
+	end
+	checkGates(Config, "Config")
+
+
 	-- The two trees, over every level anybody can ever reach.
 	for level = 0, Config.ABSOLUTE_MAX_LEVEL - 1 do
 		local pig = Config.getCapacity(level)
@@ -12640,6 +12741,13 @@ function Config.auditEconomy(): { string }
 						:format(name, tostring(key), item.cost, biggest))
 				end
 			end
+		end
+	end
+
+	-- Crates are outside the coin catalogue, regardless of their price.
+	for key, chest in pairs(Config.CHESTS) do
+		if chest.currency ~= "loot" then
+			table.insert(problems, ("CHESTS.%s must cost earned Acorns (currency = loot)"):format(key))
 		end
 	end
 
@@ -13140,5 +13248,171 @@ function Config.stealCooldownFor(isResident: boolean): number
 	return if isResident then Config.RESIDENTS.stealCooldown else Config.STEAL_COOLDOWN
 end
 
+
+-- Phase 1.9: audit the proposed tree economy independently of the coin
+-- economy. These are capacity/throughput estimates, not measured play rates.
+-- Each raw grown Acorn is assigned to one harvest/delivery, never both.
+-- New-growth capture ceilings omit failed catches, expiry and travel time.
+-- Existing stored balances can be re-raided; that recirculation is outside this model.
+local function finite(value: any): boolean
+	return type(value) == "number" and value == value and math.abs(value) < math.huge
+end
+
+function Config.acornRates(players: number): any
+	local a, model = Config.ACORNS, Config.ACORN_AUDIT
+	local growth = 3600 / a.growSeconds
+	local residents = Config.PLOT_COUNT - players
+	-- With multiple players, this ceiling assigns all player-grown Acorns
+	-- to theft at parity. In solo play, the only player harvests their own.
+	-- The old circuit counted player supply both as own harvest and stolen.
+	local playerPayout = if players > 1 then Config.acornMultiplier(0, 0, false) else 1
+	local server = growth * (players * playerPayout + residents * Config.acornMultiplier(0, nil, false))
+	local hourly = server / players
+	local loss = math.min(a.lossCap, math.floor(a.growCap * a.share)) * model.passiveRaids
+	local passive = a.growCap - loss
+	local active = a.growCap + model.activeHours * hourly
+	return { players = players, residents = residents, mintedPerHour = Config.PLOT_COUNT * growth,
+		serverPerHour = server, perThiefPerHour = hourly, expectedDailyLoss = loss,
+		ownHarvestPerHour = Config.PLOT_COUNT * growth / players,
+		initialResidentSupply = residents * (a.resident.seedRipe + a.resident.seedStored),
+		passiveDaily = passive, activeDaily = active, activeRatio = active / passive,
+		commonMinutes = Config.CHESTS.og.cost / hourly * 60,
+		legendaryHours = Config.CHESTS.legendarycrate.cost / hourly }
+end
+
+function Config.auditAcorns(): { string }
+	local problems = {}
+	local function fail(code: string, detail: string) table.insert(problems, "[" .. code .. "] " .. detail) end
+	local a, model = Config.ACORNS, Config.ACORN_AUDIT
+	if type(a) ~= "table" or type(model) ~= "table" or type(a.payout) ~= "table" or type(a.resident) ~= "table" then
+		fail("acorn.config", "missing tree/model/payout/resident configuration");return problems
+	end
+	local invalid = false
+	for key, value in pairs({ growCap = a.growCap or false, growSeconds = a.growSeconds or false,
+		lossCap = a.lossCap or false, lossWindow = a.lossWindow or false,
+		plots = Config.PLOT_COUNT or false, players = Config.MAX_PLAYERS or false,
+		activeHours = model.activeHours or false, resident = a.payout.resident or false,
+		player = a.payout.player or false, offline = Config.OFFLINE_CAP_SECONDS or false }) do
+		if not finite(value) or value <= 0 then fail("acorn.number", key .. " must be finite and positive");invalid = true end
+	end
+	if not finite(a.share) or a.share <= 0 or a.share > 1 then
+		fail("acorn.share", "share must be in (0, 1]");invalid = true
+	end
+	for _, key in ipairs({ "passiveRaids", "minPopulationRatio", "minActiveRatio" }) do
+		if not finite(model[key]) or model[key] <= 0 then
+			fail("acorn.model", key .. " must be finite and positive");invalid = true
+		end
+	end
+	for _, key in ipairs({ "perRebirthAbove", "revenge" }) do
+		local value = a.payout[key]
+		if not finite(value) or value < (if key == "revenge" then 1 else 0) then
+			fail("acorn.multiplier", key .. " is invalid");invalid = true
+		end
+	end
+	for _, key in ipairs({"seedRipe", "seedStored"}) do
+		local value = a.resident[key]
+		if not finite(value) or value < 0 or value % 1 ~= 0 then
+			fail("acorn.resident", key .. " must be a non-negative whole count"); invalid = true
+		end
+	end
+	for _, key in ipairs({"harvestSeconds", "raidSeconds"}) do
+		if not finite(a.resident[key]) or a.resident[key] <= 0 then
+			fail("acorn.resident", key .. " must be finite and positive"); invalid = true
+		end
+	end
+	if invalid then return problems end
+	if a.resident.seedRipe + a.resident.seedStored > a.growCap then
+		fail("acorn.resident", "initial resident supply must not exceed one full tree")
+	end
+	if a.resident.raidSeconds > a.growSeconds then
+		fail("acorn.resident", "raid cadence must allow at least one collection per growth interval")
+	end
+	if Config.MAX_PLAYERS > Config.PLOT_COUNT or Config.MAX_PLAYERS % 1 ~= 0 or Config.PLOT_COUNT % 1 ~= 0 then
+		fail("acorn.population", "player/plot counts must be whole and players cannot exceed plots");return problems
+	end
+	if a.growCap % 1 ~= 0 or a.lossCap % 1 ~= 0 then fail("acorn.whole", "tree/storage loss caps must be whole Acorns") end
+	if math.abs(a.growSeconds * a.growCap - Config.OFFLINE_CAP_SECONDS) > 0.001 then
+		fail("acorn.growth", "a full tree must take one offline window to grow")
+	end
+	if a.lossCap * 3600 / a.lossWindow > a.growCap / 2 then
+		fail("acorn.lossCap", "stored losses in one hour must not exceed half a tree harvest")
+	end
+	for _, key in ipairs({ "og", "legendarycrate" }) do
+		local chest = Config.CHESTS[key]
+		if not chest or not finite(chest.cost) or chest.cost <= 0 then
+			fail("acorn.price", key .. " must have a finite positive price");return problems
+		end
+	end
+	local solo, full = Config.acornRates(1), Config.acornRates(Config.MAX_PLAYERS)
+	if full.perThiefPerHour < solo.perThiefPerHour * model.minPopulationRatio then
+		fail("acorn.populationFloor", ("solo %.2f / full %.2f Acorns per thief-hour; full must be at least %.0f%% of solo")
+			:format(solo.perThiefPerHour, full.perThiefPerHour, model.minPopulationRatio * 100))
+	end
+	if solo.passiveDaily <= 0 then
+		fail("acorn.passive", ("basket %g must exceed expected daily loss %g"):format(a.growCap, solo.expectedDailyLoss))
+	else
+		for _, rate in ipairs({ solo, full }) do
+			if rate.activeRatio < model.minActiveRatio then
+				fail("acorn.activeFloor", ("%d players: active %.2f/day versus passive %.2f/day = %.2fx, below %.2fx")
+					:format(rate.players, rate.activeDaily, rate.passiveDaily, rate.activeRatio, model.minActiveRatio))
+			end
+		end
+	end
+	-- Retired faucets must not be silently reintroduced into configuration.
+	if Config.LOOT ~= nil then fail("acorn.legacyFaucet", "Config.LOOT is retired; events and pig deliveries award no Acorns") end
+	for _, key in ipairs({ "spree", "boost", "income" }) do
+		if a.payout[key] ~= nil then fail("acorn.coinMultiplier", key .. " must not multiply Acorns") end
+	end
+	return problems
+end
+
+-- Random outcomes: inspect authored tags AND actual pools (including mixed
+-- event sets), since either side can accidentally add a coin purchase route.
+function Config.auditRandomOutcomes(): { string }
+	local problems = {}
+	local function fail(code: string, detail: string) table.insert(problems, "[" .. code .. "] " .. detail) end
+	for key, chest in pairs(Config.CHESTS) do
+		if chest.currency ~= "loot" then fail("random.currency", key .. " must cost earned Acorns") end
+		if not finite(chest.cost) or chest.cost <= 0 or chest.cost % 1 ~= 0 then
+			fail("random.price", key .. " needs a finite positive whole-Acorn price")
+		end
+		local ok, pool = pcall(Config.chestPool, key)
+		if not ok then
+			fail("random.pool", key .. " pool cannot be resolved")
+		else
+			for _, entries in pairs(pool) do
+				for _, entry in ipairs(entries) do
+					local kind, itemKey = Config.chestEntry(key, entry)
+					local spec = Config.getSetItem(kind, itemKey)
+					if spec and spec.cost ~= nil then fail("random.coinPool", kind .. ":" .. itemKey .. " is coin-priced inside " .. key) end
+					if spec and spec.pass ~= nil then fail("random.passPool", kind .. ":" .. itemKey .. " is pass-exclusive inside " .. key) end
+				end
+			end
+		end
+	end
+	local seen = {}
+	local function walk(value: any, path: string)
+		if type(value) ~= "table" or seen[value] then return end
+		seen[value] = true
+		if value.cost ~= nil and value.chest ~= nil then fail("random.coinTag", path .. " carries both cost and chest") end
+		if value.unlockRebirths ~= nil then fail("random.rebirthGate", path .. " carries retired unlockRebirths") end
+		for key, child in pairs(value) do walk(child, path .. "." .. tostring(key)) end
+	end
+	walk(Config, "Config")
+	for key, skin in pairs(Config.SKINS) do
+		if skin.pass ~= nil and Config.isStealableSkin(key) then fail("random.passTheft", key .. " is a stealable pass skin") end
+	end
+	if Config.SKIN_STEAL.chance ~= 1 then fail("random.theft", "eligible skin theft must stay at 100%") end
+	if not Config.CHESTS[Config.REBIRTH_CRATE] then fail("random.rebirthCrate", "rebirth must reference a real crate") end
+	local pack = Config.COIN_PACK
+	if type(pack) ~= "table" or not finite(pack.productId) or pack.productId < 0 or pack.productId % 1 ~= 0 then
+		fail("random.coinPackId", "COIN_PACK.productId must be zero (disabled) or a whole positive id")
+	elseif pack.productId > 0 then
+		-- Rebirth's actual service calls grantFree: it rolls, as explicitly
+		-- requested by the designer. Never invent a flag claiming otherwise.
+		fail("random.paidRebirth", "a live coin-pack product would fund the random rebirth crate; keep the pack disabled")
+	end
+	return problems
+end
 
 return Config

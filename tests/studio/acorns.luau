@@ -12,7 +12,7 @@ local ok, result = pcall(function()
 	local Config = require(configCopy)
 	assert(Config.lootWord(1) == "acorn" and Config.lootWord(0) == "acorns")
 	assert(Config.ROLL_CURRENCY.colour == require(shared.Theme).ACORN)
-	assert(Config.LOOT.delivery == nil and Config.REVENGE.loot == nil)
+	assert(Config.LOOT == nil and Config.REVENGE.loot == nil)
 	for _, case in {
 		{0, nil, false, 1}, {8, nil, true, 1}, {0, 0, false, 5},
 		{8, 1, false, 5}, {2, 8, false, 11}, {2, 8, true, 22}, {3, 3, true, 10},
@@ -23,17 +23,20 @@ local ok, result = pcall(function()
 	local first = assert(source:find("local function deliver(thief: Player)", 1, true))
 	local last = assert(source:find("\n-- ============================================================", first, true))
 	local deliver = source:sub(first, last - 1)
+	local helperFirst = assert(source:find("local function isRevenge(", 1, true))
+	local helperLast = assert(source:find("-- [victim][thief] -> os.clock()", helperFirst, true))
+	local helpers = source:sub(helperFirst, helperLast - 1)
 	assert(not deliver:find("acornMultiplier", 1, true), "piggy delivery calls shake payout")
 	harness.Source = [=[
 local Config = require(script.Parent.AcornConfigTest)
 local function run(kind, revenge, spree)
  local thief = {DisplayName = "Thief", SetAttribute = function() end}
  local victim = {DisplayName = "Victim"}
- local data = {coins = 100, loot = 37, totalStolen = 0, capacityLevel = 0}
+ local data = {coins = 100, loot = 37, robberies = 0, totalStolen = 0, capacityLevel = 0}
  local victimData = {totalLost = 0}
  local item = {kind = if kind == "shop" then "effect" else "skin", key = "fixture"}
  local carrying = {[thief] = {amount = 100, victim = victim, haul = {item}}}
- local grudge = {[thief] = {[victim] = if revenge then os.clock() + 60 else 0}}
+ local grudge = {[thief] = {[victim] = {expires = if revenge then os.clock() + 60 else 0, skins = {}}}}
  local granted, equipped, payload, toast = nil, nil, nil, nil
  local function clearCarry(player)
   assert(#carrying[player].haul == 0, "delivered haul was returned to victim")
@@ -63,10 +66,11 @@ local function run(kind, revenge, spree)
  local format = Config.formatCoins
  local function notify(_, text) toast = text end
  local notifyTarget = noop
-]=] .. deliver .. [=[
+]=] .. helpers .. deliver .. [=[
  deliver(thief)
  local expected = math.floor(100 * (if revenge then Config.REVENGE.payout else Config.HEIST_PAYOUT) * spree)
  assert(data.coins == 100 + expected and data.totalStolen == 100, "coin settlement changed")
+ assert(data.robberies == 1, "delivery must count one lifetime robbery")
  assert(data.loot == 37, "saved Acorn balance changed")
  assert(granted and granted.key == item.key and granted.kind == item.kind, "haul not granted")
  assert(payload and payload.banked == expected and payload.loot == nil and #payload.items == 1)

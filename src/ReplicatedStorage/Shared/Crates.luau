@@ -26,13 +26,9 @@
 	item. A crate is a container, so its card is the three best things in it,
 	built by the same builders the rest of the shop uses.
 
-	THE ODDS ARE ON THE CARD, DRAWN RATHER THAN WRITTEN. Nothing requires that
-	-- coins are not purchasable, so none of this is a regulated random item
-	and there is no disclosure obligation. It is here for the reason the drop
-	reel already prints its percentages: being outside the regulation is not a
-	reason to stop, it is the reason it costs nothing to comply with the
-	spirit of it. A stacked bar is also the version a nine-year-old can read
-	without reading -- the gold sliver being thin IS the information.
+	THE ODDS ARE ON THE CARD, DRAWN RATHER THAN WRITTEN. Crates cost earned
+	Acorns. The stacked bar shows the server's actual odds before opening;
+	the gold sliver being thin is information a child can read at a glance.
 
 	AND THEY ARE THE SERVER'S OWN NUMBERS. `ChestState` carries the odds
 	`ChestService.liveOdds` actually rolled with, renormalised over the tiers
@@ -42,6 +38,7 @@
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local ShopStyle = require(ReplicatedStorage.Shared.ShopStyle)
@@ -66,7 +63,8 @@ local DOT = utf8.char(0x00B7)
 -- which left exactly TWELVE pixels of free band between the blurb and the
 -- button. A 34-pixel row does not fit in 12, so the card grew rather than
 -- the row being squeezed into a space that would have clipped it.
-local CARD_H = 280
+-- Two blurb lines fit the Acorn shortfall and earning hint above combining.
+local CARD_H = 298
 local COMBINE_H = 26
 local WELL_H = 86
 local BAR_H = 20
@@ -77,8 +75,9 @@ local BAR_H = 20
 local deps: any = nil
 local grid: ScrollingFrame? = nil
 local cards: { [string]: any } = {}
+local buybackCards: { [string]: any } = {}
 local latest: any = nil
-local coins, loot = 0, 0
+local loot = 0
 
 local function tierColour(tier: string): Color3
 	local r = Config.RARITIES[tier]
@@ -127,10 +126,8 @@ end
 
 -- ONE CARD PER CHEST, BUILT ONCE AND REPAINTED FOREVER.
 --
--- The coin balance moves constantly while a player is earning, and the buy
--- state on this card is a function of it -- so a render that tore the card
--- down and rebuilt it would rebuild three ViewportFrames per chest per coin
--- tick. Everything below the previews is a property write on an instance that
+-- Balance updates arrive frequently while a player is earning. Rebuilding
+-- the card on every update would rebuild three ViewportFrames per chest. Everything below the previews is a property write on an instance that
 -- already exists. Same rule the upgrade ladder follows: rebuild only when the
 -- SHAPE changes, which for a chest is never.
 local function buildCard(chestKey: string, info: any): any
@@ -141,7 +138,7 @@ local function buildCard(chestKey: string, info: any): any
 	card.Name = "Crate_" .. chestKey
 	card.BackgroundColor3 = ShopStyle.CARD
 	card.BorderSizePixel = 0
-	card.LayoutOrder = chest.order or 50
+	card.LayoutOrder = (chest.order or 50) * 1000
 	card.Parent = grid
 	ShopStyle.round(card, 14)
 	-- The chest's OWN colour is the edge, which is what makes five cards read
@@ -152,6 +149,11 @@ local function buildCard(chestKey: string, info: any): any
 
 	local name = label(card, chest.name or chestKey, UDim2.new(1, -104, 0, 26),
 		UDim2.new(0, 12, 0, 10), Enum.Font.FredokaOne, 19, ShopStyle.TEXT)
+	name.TextScaled = true
+	local nameSize = Instance.new("UITextSizeConstraint")
+	nameSize.MinTextSize = 12
+	nameSize.MaxTextSize = 19
+	nameSize.Parent = name
 
 	-- Owned of total, which is the one number that says "keep going".
 	local progress = ShopStyle.chip(card, ShopStyle.deepen(hue, 0.5), Theme.PAPER)
@@ -223,9 +225,10 @@ local function buildCard(chestKey: string, info: any): any
 		segments[tier] = seg
 	end
 
-	local blurb = label(card, chest.blurb or "", UDim2.new(1, -24, 0, 18),
+	local blurb = label(card, chest.blurb or "", UDim2.new(1, -24, 0, 36),
 		UDim2.new(0, 12, 0, 42 + WELL_H + 10 + BAR_H + 8), Enum.Font.Gotham, 12,
 		ShopStyle.MUTED)
+	blurb.TextWrapped = true
 
 	-- ---- combining spares ------------------------------------------------
 	--
@@ -251,7 +254,7 @@ local function buildCard(chestKey: string, info: any): any
 	combineRow.Name = "Combine"
 	combineRow.BackgroundTransparency = 1
 	combineRow.Size = UDim2.new(1, -24, 0, COMBINE_H)
-	combineRow.Position = UDim2.new(0, 12, 0, 42 + WELL_H + 10 + BAR_H + 8 + 20)
+	combineRow.Position = UDim2.new(0, 12, 0, 42 + WELL_H + 10 + BAR_H + 8 + 38)
 	combineRow.Parent = card
 
 	local combineLayout = Instance.new("UIListLayout")
@@ -341,20 +344,17 @@ local function buildCard(chestKey: string, info: any): any
 	ShopStyle.outline(open, 3)
 	ShopStyle.gloss(open)
 
-	-- THE CLIENT DOES NOT DECIDE ANYTHING, which is why this fires whatever
-	-- the button looks like. The server re-reads the cost, re-rolls the tier
-	-- and re-picks the item; a greyed button here is a courtesy, not a check.
-	-- What it must not do is fire when it is plainly refusing, because a
-	-- control that looks dead and still costs coins is worse than either.
+	-- A short balance still gets the server's refusal and earning hint.
+	-- Only a valid Acorn-priced card sends an open request.
 	open.Activated:Connect(function()
-		if cards[chestKey] and cards[chestKey].affordable and deps.open then
+		if cards[chestKey] and cards[chestKey].canOpen and deps.open then
 			deps.open(chestKey)
 		end
 	end)
 
 	local _ = info
 	return { card = card, name = name, progress = progress, segments = segments,
-		open = open, blurb = blurb, affordable = false,
+		open = open, blurb = blurb, affordable = false, canOpen = false,
 		combines = combines, combineRow = combineRow, ready = {} }
 end
 
@@ -365,7 +365,7 @@ local function paint(chestKey: string, info: any)
 		return
 	end
 	local chest = Config.CHESTS[chestKey]
-	local currency = info.currency or "coins"
+	local currency = info.currency
 
 	ui.progress.Text = ("%d/%d"):format(info.owned or 0, info.total or 0)
 
@@ -393,15 +393,16 @@ local function paint(chestKey: string, info: any)
 		end
 	end
 
-	local held = if currency == "loot" then loot else coins
+	local held = math.floor(loot)
 	local cost = info.cost or 0
-	ui.affordable = held >= cost
+	ui.canOpen = currency == "loot"
+	ui.affordable = ui.canOpen and held >= cost
 	local complete = (info.owned or 0) >= (info.total or 0) and (info.total or 0) > 0
 
 	if currency == "loot" then
 		Theme.acornPrice(ui.open, ("OPEN %s %d %s"):format(DOT, cost, Config.lootWord(cost)))
 	else
-		ui.open.Text = ("OPEN %s %s"):format(DOT, deps.format(cost))
+		ui.open.Text = "UNAVAILABLE"
 	end
 	ui.open.BackgroundColor3 = if ui.affordable then ShopStyle.BUY else ShopStyle.DEAR
 	ui.open.TextColor3 = if ui.affordable then ShopStyle.TEXT else ShopStyle.MUTED
@@ -411,7 +412,9 @@ local function paint(chestKey: string, info: any)
 	-- is a spare, and a spare sells or combines. A button that went dead at
 	-- 12/12 would be telling a player their collection had stopped paying,
 	-- which is the exact thing the spare system exists to make untrue.
-	ui.blurb.Text = if complete
+	ui.blurb.Text = if ui.canOpen and not ui.affordable
+		then Config.acornShortfall(held, cost)
+		elseif complete
 		then "You have them all. Opens now pay spares."
 		else (chest.blurb or "")
 
@@ -431,18 +434,14 @@ local function paint(chestKey: string, info: any)
 	local perTier = (latest and latest.perTier) or {}
 	local need = (latest and latest.need) or Config.COMBINE.need
 
-	-- A LOOT CHEST CANNOT BE COMBINED INTO, and the row says so rather than
-	-- disappearing. `ChestService.combine` refuses a non-coin chest outright
-	-- -- spares combine only into COIN chests, which is what stops a rich
-	-- player grinding coin crates into the alien set without ever attending
-	-- an event -- so a live-looking row on the alien card would be three
-	-- buttons that always refuse.
-	local coinChest = currency == "coins"
-	ui.combineRow.Visible = coinChest
+	-- The server distinguishes regular crates from event sets explicitly;
+	-- currency no longer separates them now that every crate costs Acorns.
+	local canCombine = info.canCombine == true
+	ui.combineRow.Visible = canCombine
 
 	for tier, chip in pairs(ui.combines) do
 		local have = perTier[tier] or 0
-		local ready = coinChest and have >= need
+		local ready = canCombine and have >= need
 		ui.ready[tier] = ready
 
 		-- SHORTENED TO FIT RATHER THAN SCALED. A third of a card this wide is
@@ -541,6 +540,86 @@ function Crates.reveal(payload: any)
 	}, deps.iconFor)
 end
 
+-- Claimed skins sit beside their source crate, with an exact-item preview.
+-- They use separate cards so several claims never squeeze the crate controls.
+local function buildBuybackCard(key: string, info: any): any
+	local card = Instance.new("Frame")
+	card.Name = "Buyback_" .. key
+	card.BackgroundColor3 = ShopStyle.CARD
+	card.BorderSizePixel = 0
+	card.Parent = grid
+	ShopStyle.round(card, 14)
+	ShopStyle.outline(card, 3, tierColour(info.tier))
+	local name = label(card, info.name, UDim2.new(1, -24, 0, 26),
+		UDim2.fromOffset(12, 10), Enum.Font.FredokaOne, 19, ShopStyle.TEXT)
+	name.TextScaled = true
+	local limit = Instance.new("UITextSizeConstraint")
+	limit.MinTextSize = 12
+	limit.MaxTextSize = 19
+	limit.Parent = name
+	local well = Instance.new("Frame")
+	well.Name = "SkinPreview"
+	well.Size = UDim2.new(1, -24, 0, 110)
+	well.Position = UDim2.fromOffset(12, 42)
+	well.BackgroundColor3 = ShopStyle.SUNK
+	well.BorderSizePixel = 0
+	well.ClipsDescendants = true
+	well.Parent = card
+	ShopStyle.round(well, 10)
+	if deps.iconFor then deps.iconFor("skin", key, well) end
+	local source = Config.CHESTS[info.chest]
+	label(card, source.name, UDim2.new(1, -24, 0, 20),
+		UDim2.fromOffset(12, 160), Enum.Font.GothamBold, 12, ShopStyle.TEXT)
+	local hint = label(card, "", UDim2.new(1, -24, 0, 46),
+		UDim2.fromOffset(12, 184), Enum.Font.Gotham, 12, ShopStyle.MUTED)
+	hint.TextWrapped = true
+	local buy = Instance.new("TextButton")
+	buy.Name = "BuyBack"
+	buy.Size = UDim2.new(1, -24, 0, 44)
+	buy.Position = UDim2.new(0, 12, 1, -56)
+	buy.BorderSizePixel = 0
+	buy.Font = Enum.Font.FredokaOne
+	buy.TextSize = 15
+	buy.TextWrapped = true
+	buy.AutoButtonColor = true
+	buy.Parent = card
+	ShopStyle.round(buy, 12)
+	ShopStyle.outline(buy, 3)
+	buy.Activated:Connect(function()
+		-- A stale card cannot request past its advertised season boundary.
+		if latest and (latest.buybacksExpireAt or 0) > workspace:GetServerTimeNow()
+			and latest.buybacks and latest.buybacks[key] and deps.buyback then
+			deps.buyback(key)
+		end
+	end)
+	return { card = card, buy = buy, hint = hint }
+end
+
+local function paintBuybacks()
+	local offered = if latest and (latest.buybacksExpireAt or 0) > workspace:GetServerTimeNow()
+		then (latest.buybacks or {}) else {}
+	for key, ui in pairs(buybackCards) do
+		if not offered[key] then ui.card:Destroy();buybackCards[key] = nil end
+	end
+	for key, info in pairs(offered) do
+		if Config.SKINS[key] and Config.CHESTS[info.chest] then
+			local ui = buybackCards[key]
+			if not ui then
+				ui = buildBuybackCard(key, info)
+				buybackCards[key] = ui
+			end
+			ui.card.LayoutOrder = (Config.CHESTS[info.chest].order or 50) * 1000 + (info.order or 0) + 1
+			local held = math.floor(loot)
+			local affordable = held >= info.cost
+			Theme.acornPrice(ui.buy, ("BUY BACK\n%d %s"):format(info.cost, Config.lootWord(info.cost)))
+			ui.buy.BackgroundColor3 = if affordable then ShopStyle.BUY else ShopStyle.DEAR
+			ui.buy.TextColor3 = if affordable then ShopStyle.TEXT else ShopStyle.MUTED
+			ui.hint.Text = if affordable then "This season only. Get this exact skin back."
+				else Config.acornShortfall(held, info.cost)
+		end
+	end
+end
+
 -- ---- state ---------------------------------------------------------------
 
 function Crates.render(state: any?)
@@ -558,20 +637,31 @@ function Crates.render(state: any?)
 			paint(chestKey, info)
 		end
 	end
+	paintBuybacks()
+end
+
+-- Opened from the recovery objective. Wait for the newly visible grid to
+-- lay out before scrolling, and re-read positions while it settles.
+function Crates.focusBuyback(key: string)
+	task.spawn(function()
+		for _ = 1, 8 do
+			RunService.RenderStepped:Wait()
+			local ui = buybackCards[key]
+			if not grid or not ui or not latest or not latest.buybacks or not latest.buybacks[key]
+				or latest.buybacksExpireAt <= workspace:GetServerTimeNow() then return end
+			local top = ui.card.AbsolutePosition.Y - grid.AbsolutePosition.Y + grid.CanvasPosition.Y - 4
+			local limit = math.max(0, grid.AbsoluteCanvasSize.Y - grid.AbsoluteWindowSize.Y)
+			grid.CanvasPosition = Vector2.new(0, math.clamp(top, 0, limit))
+		end
+	end)
 end
 
 -- THE BALANCE ARRIVES SEPARATELY, because it always did.
 --
--- `ChestState` is pushed when a chest ACTION happens; coins move on their own
--- clock and loot on a third. So this is the same dirty-driven shape the front
--- page uses, one layer smaller: whoever already handles those pushes tells us,
--- and only the buy state repaints.
-function Crates.setBalance(newCoins: number?, newLoot: number?)
+-- Coin ticks cannot change crate affordability. Keep the existing caller
+-- signature while repainting only when the earned Acorn balance changes.
+function Crates.setBalance(_newCoins: number?, newLoot: number?)
 	local changed = false
-	if type(newCoins) == "number" and newCoins ~= coins then
-		coins = newCoins
-		changed = true
-	end
 	if type(newLoot) == "number" and newLoot ~= loot then
 		loot = newLoot
 		changed = true
@@ -627,6 +717,17 @@ function Crates.init(view: Frame, injected: any)
 	cell.SortOrder = Enum.SortOrder.LayoutOrder
 	cell.Parent = scroll
 
+	-- Expire visible offers locally at the boundary; the server independently
+	-- rechecks every request and clears saved claims during its rollover pass.
+	local elapsed = 0
+	RunService.Heartbeat:Connect(function(dt)
+		elapsed += dt
+		if elapsed < 1 then return end
+		elapsed = 0
+		if latest and next(buybackCards) and (latest.buybacksExpireAt or 0) <= workspace:GetServerTimeNow() then
+			paintBuybacks()
+		end
+	end)
 	Crates.render()
 end
 

@@ -224,7 +224,8 @@ local function build(prompt: ProximityPrompt, inputType: Enum.ProximityPromptInp
 	-- the line was being written correctly and the card went on showing the
 	-- lock. It was latent for every other site too.
 	local function setDetail()
-		local text = prompt.ObjectText
+		local cooldown = prompt:GetAttribute(Config.PROMPT_COOLDOWN_ATTRIBUTE)
+		local text = cooldown or prompt.ObjectText
 		if text == "" or text == nil then
 			text = prompt.ActionText
 		end
@@ -270,7 +271,7 @@ local function build(prompt: ProximityPrompt, inputType: Enum.ProximityPromptInp
 	-- is. Note 172 and not the 176 a first pass assumed from the card width;
 	-- the offset is -78 on a 250 card starting at x66.
 	local function setAmount(text: string?)
-		local shown = type(text) == "string" and text ~= ""
+		local shown = not prompt:GetAttribute(Config.PROMPT_COOLDOWN_ATTRIBUTE) and type(text) == "string" and text ~= ""
 		amount.Visible = shown
 		amount.Text = if shown then text :: string else ""
 		sub.Size = if shown then UDim2.new(1, -152, 0, 18) else UDim2.new(1, -78, 0, 18)
@@ -341,6 +342,21 @@ local function build(prompt: ProximityPrompt, inputType: Enum.ProximityPromptInp
 	if count.Visible then
 		count.Text = ("%.1fs"):format(prompt.HoldDuration)
 	end
+	-- Keep the prompt present at its normal interaction range while waiting.
+	-- Disabling it would hide the very reason the player cannot use the prop.
+	-- The server still rejects early triggers from keyboard/touch/controller.
+	local function setCooldown()
+		local waiting = prompt:GetAttribute(Config.PROMPT_COOLDOWN_ATTRIBUTE) ~= nil
+		chip.Text = if waiting then utf8.char(0x231B) else style.glyph
+		verb.Text = if waiting then "RESTING" else style.verb
+		key.Visible = not waiting
+		track.Visible = not waiting and prompt.HoldDuration > 0
+		count.Visible = not waiting and prompt.HoldDuration > Config.PROMPT_COUNTDOWN_OVER
+		setDetail()
+		setAmount(prompt:GetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE) :: string?)
+	end
+	table.insert(watchText, prompt:GetAttributeChangedSignal(Config.PROMPT_COOLDOWN_ATTRIBUTE):Connect(setCooldown))
+	setCooldown()
 
 	-- A small pop on arrival. One tween, not a loop: this appears whenever
 	-- anybody walks near anything, so it has to be cheap and it must never
@@ -402,7 +418,7 @@ function PromptUI.start()
 
 	ProximityPromptService.PromptButtonHoldBegan:Connect(function(prompt)
 		local entry = live[prompt]
-		if entry then
+		if entry and not prompt:GetAttribute(Config.PROMPT_COOLDOWN_ATTRIBUTE) then
 			entry.holdFrom = os.clock()
 		end
 	end)

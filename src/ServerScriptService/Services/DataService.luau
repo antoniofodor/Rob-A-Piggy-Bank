@@ -37,6 +37,8 @@ export type PlayerData = {
 	incomeLevel: number,
 	capacityLevel: number,
 	rebirths: number,
+	-- Skin key -> season index of its loss. Filled for existing schema-25 saves.
+	claims: { [string]: number },
 	-- Daily claim. `lastDay` is a UTC day index, not a timestamp: the only
 	-- question ever asked of it is which day it was, and storing the day
 	-- directly means no timezone can get between the save and the answer.
@@ -47,6 +49,8 @@ export type PlayerData = {
 	boostUntil: number,
 	boostMult: number,
 	lastSave: number,
+	-- Lifetime delivered robberies, against any target; survives rebirth.
+	robberies: number,
 	totalStolen: number,
 	totalLost: number,
 	-- THE WEEKLY LADDER. `index` is a UTC week index, never a timestamp, for
@@ -138,6 +142,10 @@ export type PlayerData = {
 	--
 	-- Never wiped by rebirth, like every other cosmetic track.
 	loot: number,
+	acornsGrownAt: number,
+	treeAcorns: number,
+	groundAcorns: number,
+	acornsDroppedAt: number,
 	houseShown: number,
 	decor: {
 		owned: { [string]: boolean },
@@ -205,8 +213,6 @@ export type PlayerData = {
 		-- anything.
 		toys: { owned: { [string]: boolean }, out: { [string]: boolean } },
 	},
-	-- Rebirths since the last legendary drop, for the pity floor.
-	sinceLegendary: number,
 	cosmetics: {
 		owned: { [string]: boolean },
 		ownedEffects: { [string]: boolean },
@@ -249,6 +255,7 @@ local function defaultData(): PlayerData
 		capacityLevel = 1,
 		rebirths = 0,
 		lastSave = os.time(),
+		robberies = 0,
 		totalStolen = 0,
 		totalLost = 0,
 		-- Schema 19. reconcile descends one level, so an existing save picks
@@ -270,9 +277,12 @@ local function defaultData(): PlayerData
 		-- LOOT. Flat, never scaled by income, never wiped by rebirth -- it buys
 		-- cosmetics, which are the permanent track. See the type above.
 		loot = 0,
+		acornsGrownAt = os.time(),
+		treeAcorns = 0, groundAcorns = 0, acornsDroppedAt = 0,
 		-- Spare copies by "kind:key". Missing keys read as zero, so an item
 		-- added later needs no migration -- the shape `consumables` uses.
 		spares = {},
+		claims = {},
 		decor = { owned = {}, placed = {} },
 		-- Schema 24. A new top-level table, so the generic fill picks it up on
 		-- every existing save with no migration branch -- the same free ride
@@ -306,7 +316,6 @@ local function defaultData(): PlayerData
 		-- players to burn their stock the hour before rebirthing, which is a
 		-- chore, not a decision.
 		consumables = {},
-		sinceLegendary = 0,
 		-- Never reset by rebirth. This is the account's permanent collection.
 		-- Rolled, never bought, and never wiped by rebirth -- accessories are
 		-- the flex that survives a reset, same bracket as skins and houses.
@@ -371,6 +380,22 @@ local function reconcile(data: any): PlayerData
 	if type(data) ~= "table" then
 		return base
 	end
+
+	-- Before generic defaults: legacy saves catch up from their last save,
+	-- capped to the same eight-hour allowance as coins. Existing cursors keep
+	-- their partial hour across saves and server changes.
+	data.acornsGrownAt = Config.acornGrowthCursor(
+		if data.acornsGrownAt == nil then data.lastSave else data.acornsGrownAt, os.time())
+	-- Existing loot stays banked. Adding tree stock never copies the wallet.
+	local function stock(value: any, cap: number): number
+		if type(value) ~= "number" or value ~= value or math.abs(value) == math.huge then return 0 end
+		return math.clamp(math.floor(value), 0, cap)
+	end
+	data.treeAcorns = stock(data.treeAcorns, Config.ACORNS.growCap)
+	data.groundAcorns = stock(data.groundAcorns, 1000000)
+	data.acornsDroppedAt = Config.acornGrowthCursor(data.acornsDroppedAt or 0, os.time())
+	Config.expireGroundAcorns(data, os.time())
+	local previousSchema = tonumber(data.schema) or 0
 
 	-- Schema 17: THE PIG IS THE WALLET. `vault` (the stealable pile) and
 	-- `coins` (the banked balance) became one field, and `medals` and
@@ -665,6 +690,27 @@ local function reconcile(data: any): PlayerData
 		end
 	end
 
+	-- Schema 25 converts arithmetic ownership to saved ownership. Keep these
+	-- historical thresholds here: changing catalogue rewards must not change
+	-- what an older save already earned. Never restore a later sold/stolen skin.
+	if previousSchema < 25 then
+		local thresholds = { bronze = 1, goldleaf = 3, diamond = 6 }
+		for key, threshold in pairs(thresholds) do
+			if (tonumber(data.rebirths) or 0) >= threshold then
+				data.cosmetics.owned[key] = true
+			end
+		end
+	end
+	-- Older saves start at zero: stolen coin totals cannot recover a count.
+	local robberies = data.robberies
+	if type(robberies) ~= "number" or robberies ~= robberies or math.abs(robberies) == math.huge then
+		data.robberies = 0
+	else
+		data.robberies = math.max(0, math.floor(robberies))
+	end
+	if type(data.claims) ~= "table" then data.claims = {} end
+	Config.pruneBuybackClaims(data.claims)
+	data.sinceLegendary = nil
 	data.schema = Config.SCHEMA_VERSION
 	return data
 end
@@ -834,10 +880,17 @@ function DataService.save(player: Player): boolean
 end
 
 -- Final write, then clears the lock so the player can join elsewhere.
+local beforeRelease: { (Player) -> () } = {}
+function DataService.onBeforeRelease(handler: (Player) -> ())
+	table.insert(beforeRelease, handler)
+end
+
 function DataService.release(player: Player)
 	local data = cache[player]
-	if not data then
-		return
+	if not data then return end
+	for _, handler in ipairs(beforeRelease) do
+		local ok, err = pcall(handler, player)
+		if not ok then warn("[DataService] before release: " .. tostring(err)) end
 	end
 
 	data.lastSave = os.time()

@@ -371,7 +371,8 @@ local function releaseHome(thief: Player)
 end
 
 local function arrest(alarm: Alarm)
-	local recovered, victim = HeistService.confiscate(alarm.thief)
+	local recovered, victim, carryKind = HeistService.confiscate(alarm.thief)
+	local currency = if carryKind == "basket" then "Acorns" else "coins"
 	-- `alarm.amount` is the loot in their hands for an ordinary bust and the
 	-- whole rap sheet for a most-wanted one, so `chargeBail` needs no branch:
 	-- it charges three times what this arrest was for, either way.
@@ -402,6 +403,7 @@ local function arrest(alarm: Alarm)
 	Remotes.get("PoliceBust"):FireClient(alarm.thief, {
 		bail = bail,
 		recovered = recovered,
+		currency = currency,
 		-- A victim may be a RESIDENT now rather than a player, so the name
 		-- comes from HeistService's own accessor. Re-deriving it here would
 		-- be a second copy of that branch in a file that has no business
@@ -421,10 +423,10 @@ local function arrest(alarm: Alarm)
 	end
 
 	if recovered > 0 and victim then
-		notify(alarm.thief, ("The police took back %s coins."):format(format(recovered)), "bad")
+		notify(alarm.thief, ("The police took back %s %s."):format(format(recovered), currency), "bad")
 		-- Silent when the victim is a resident: nothing is reading it.
-		HeistService.notifyTarget(victim, ("The patrol caught %s. Your %s coins are back!"):format(
-			alarm.thief.DisplayName, format(recovered)), "money")
+		HeistService.notifyTarget(victim, ("The patrol caught %s. Your %s %s are back!"):format(
+			alarm.thief.DisplayName, format(recovered), currency), "money")
 	-- Never sent for a self-bust from the admin console, where victim and
 	-- thief are the same player: being told you robbed yourself is noise.
 	-- `alarm.victim` may be a RESIDENT, which has no `.Parent` -- that read

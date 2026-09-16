@@ -10,11 +10,10 @@
 	discouragements. Config.LOSS_CAP bounds what a victim can lose in an
 	hour, whoever is robbing them; and anything SPENT is gone from the pig
 	and therefore permanently safe, so a robbery costs minutes of income and
-	never a house, a skin or an upgrade.
+	never a house or an upgrade. Eligible crate skins have separate theft rails.
 
 	THE THIEF'S REWARD IS NOT THE VICTIM'S LOSS. A delivered haul is worth
-	Config.HEIST_PAYOUT times what the victim lost (triple on revenge), plus
-	loot, the currency the accessory collection costs. Bail, the rap sheet
+	Config.HEIST_PAYOUT times what the victim lost (triple on revenge). Bail, the rap sheet
 	and totalStolen all measure the victim's figure. Stolen coins land in the
 	thief's own pig and are stealable in turn, so the loot stays in play.
 ]]
@@ -51,6 +50,10 @@ local ResidentService = require(script.Parent.ResidentService)
 -- which is what lets this file, GuardDog's catch path and the police all
 -- reach it without a cycle anywhere.
 local TrophyService = require(script.Parent.TrophyService)
+
+local ShakeService = require(script.Parent.ShakeService)
+local AcornBasket = require(ReplicatedStorage.Shared.AcornBasket)
+local AcornModel = require(ReplicatedStorage.Shared.AcornModel)
 
 local HeistService = {}
 
@@ -225,6 +228,12 @@ end
 -- took it from, exactly as the coins go back. A shop has nobody behind it, so
 -- a shop's drop is simply gone -- which is the same asymmetry `lossAllowance`
 -- already draws between a player and a resident.
+type HotSkin = { expires: number, deadline: number, spare: boolean, reserved: boolean? }
+type Grudge = {
+	expires: number,
+	skins: { [string]: HotSkin },
+}
+
 type Haul = {
 	kind: string,
 	key: string,
@@ -235,9 +244,19 @@ type Haul = {
 	-- Returning the wrong one either duplicates a skin or leaves somebody
 	-- wearing a skin they no longer own.
 	spare: boolean?,
+	wasWorn: boolean?,
+	-- Recovery removes the stolen owned copy, bypassing ordinary insurance.
+	-- The receipt restores the same hot claim if this getaway fails.
+	hot: HotSkin?,
+	recoveryOwner: Player?,
+	loss: { since: number, lost: number }?,
 }
 
 type Carry = {
+	claimant: Player, -- original grabber; preserved for the entire getaway
+	holder: Player, -- player whose current character the loot is welded to
+	kind: string?, -- nil is a legacy pig carry
+	receipts: { any }?,
 	amount: number,
 	victim: Target,
 	-- The mini piggy welded to the thief's chest. NOT the stolen items --
@@ -263,9 +282,54 @@ type Carry = {
 	-- victim's pig is, which is never inside your own drop-off: nil and false
 	-- mean the same thing and the first poll writes the real answer.
 	inRange: boolean?,
+	dropAction: string?,
+	returnAvailable: boolean?,
 }
 
+-- Construct only after attachment succeeds. Further slices/catches mutate this
+-- record; they never assign a new claimant. Holder changes belong to handoff.
+local function newCarry(grabber: Player, victim: Target, amount: number,
+	loot: Model, prompt: ProximityPrompt, kind: string?, receipt: any?): Carry
+	local carry: Carry = {
+		claimant = grabber, holder = grabber, victim = victim, amount = amount,
+		loot = loot, prompt = prompt, kind = kind, haul = {},
+		receipts = if receipt then {receipt} else nil,
+	}
+	prompt.Triggered:Connect(function(nabber)
+		HeistService.nab(nabber, carry.holder)
+	end)
+	return carry
+end
+
+-- Identity comes from the server carry, never the delivery request. The
+-- claimant may have departed; their immutable identity still selects the rate.
+local function canDeliverCarry(player: Player, carry: Carry): boolean
+	return carry.holder == player and carry.claimant ~= nil
+end
+
 local carrying: { [Player]: Carry } = {}
+type Crack = {
+	victim: Target,
+	plot: any,
+	sack: number,
+	locks: number,
+	picks: number,
+	steps: number,
+	banked: number,
+	-- The pig and the allowance AS THEY WERE when the attempt opened. The
+	-- gauge is drawn against these, so it cannot shift under the player
+	-- while they are deciding whether to take one more.
+	pig0: number,
+	allowance0: number,
+	stepStart: number, -- server time this sweep began
+	zone: number,      -- 0..1 along the dial
+	width: number,     -- 0..1
+	lastTap: number,
+	ending: boolean,
+}
+
+local cracking: { [Player]: Crack } = {}
+
 -- When each player's join shield lapses, in os.clock() seconds.
 local shieldUntil: { [Player]: number } = {}
 
@@ -274,7 +338,7 @@ local shieldUntil: { [Player]: number } = {}
 -- turns. `since` is when the window opened; it re-opens once
 -- Config.LOSS_CAP.window has passed. See lossAllowance.
 -- Residents never appear in here. See `lossAllowance`.
-local losses: { [Target]: { since: number, lost: number } } = {}
+local losses: { [Target]: { since: number, lost: number, deadline: number } } = {}
 
 -- HOW MANY SKINS EACH VICTIM HAS LOST IN THE CURRENT WINDOW, and it is the
 -- same shape as `losses` directly above for the same reason: seven players
@@ -283,10 +347,133 @@ local losses: { [Target]: { since: number, lost: number } } = {}
 -- argument for the whole feature.
 local skinLosses: { [Player]: { since: number, lost: number } } = {}
 
--- WHO HOLDS A GRUDGE AGAINST WHOM: [victim][thief] -> os.clock() expiry.
--- Written on a delivery, read when the victim robs that thief back inside
--- Config.REVENGE.window, and cleared the moment it pays out.
-local grudge: { [Player]: { [Player]: number } } = {}
+-- Delivered theft opens a coin revenge window and, when applicable, a hot
+-- skin claim. Spending the coin bonus does not erase an unexpired skin claim.
+local grudge: { [Player]: { [Player]: Grudge } } = {}
+
+local function isRevenge(thief: Player, victim: Target): boolean
+	local entry = grudge[thief] and grudge[thief][victim :: Player]
+	return entry ~= nil and entry.expires > os.clock()
+end
+
+local function recordGrudge(victim: Player, thief: Player, item: Haul?)
+	local now = os.clock()
+	grudge[victim] = grudge[victim] or {}
+	local entry = grudge[victim][thief] or { expires = 0, skins = {} }
+	entry.expires = now + Config.REVENGE.window
+	-- Latest taker of THIS owner's skin wins. Unrelated skins, other owners
+	-- and subsequent coin robberies never overwrite or extend a hot claim.
+	if item then
+		for _, older in pairs(grudge[victim]) do older.skins[item.key] = nil end
+		entry.skins[item.key] = {
+			expires = now + Config.REVENGE.window,
+			deadline = workspace:GetServerTimeNow() + Config.REVENGE.window,
+			spare = item.spare == true,
+		}
+	end
+	grudge[victim][thief] = entry
+end
+
+-- A private view of the existing claims/haul, never a second recovery rule.
+-- The client needs a wall-clock deadline because server os.clock() is local.
+function HeistService.recoveryState(player: Player): any?
+	local data = DataService.get(player)
+	if not data then return nil end
+	local now = os.clock()
+	local season = Config.seasonIndex()
+	local byKey: { [string]: any } = {}
+	local priorities = { home = 1, chase = 2, recover = 3, buyback = 4 }
+	local function offer(key: string, stage: string, robber: Player?, hot: HotSkin?, spare: boolean?)
+		if not Config.isStealableSkin(key) then return end
+		local owned = SetService.owns(data, "skin", key)
+		-- Reacquiring an owned copy resolves its objective. An insured spare
+		-- still has a real missing copy to recover even while the skin is worn.
+		if owned and not spare then return end
+		local cost = if not owned and data.claims and data.claims[key] == season
+			then Config.buybackCost(key) else nil
+		if stage == "buyback" and not cost then return end
+		local row = { key = key, stage = stage, cost = cost,
+			name = (if spare then "Spare " else "") .. Config.SKINS[key].name,
+			robberId = if robber then robber.UserId else nil,
+			robberName = if robber then robber.DisplayName else nil,
+			expiresAt = if hot then hot.deadline else nil }
+		local old = byKey[key]
+		if not old or priorities[stage] < priorities[old.stage] then byKey[key] = row end
+	end
+	for key, index in pairs(data.claims or {}) do
+		if index == season then offer(key, "buyback", nil, nil, false) end
+	end
+	for robber, entry in pairs(grudge[player] or {}) do
+		local robberData = if robber.Parent then DataService.get(robber) else nil
+		for key, hot in pairs(entry.skins) do
+			if hot.expires > now and not hot.reserved and robberData
+				and SetService.owns(robberData, "skin", key) then
+				offer(key, "recover", robber, hot, hot.spare)
+			end
+		end
+	end
+	for carrier, carry in pairs(carrying) do
+		if not carrier.Parent then continue end
+		for _, item in ipairs(carry.haul) do
+			if item.kind ~= "skin" then continue end
+			if carrier == player and item.recoveryOwner == player then
+				-- Once recovered it can be delivered even after the timer ends.
+				offer(item.key, "home", item.victim, nil, item.hot and item.hot.spare)
+			elseif item.victim == player and not item.hot then
+				-- Theft precedes delivery: show the chase immediately, without
+				-- pretending the ten-minute post-delivery window has started.
+				offer(item.key, "chase", carrier, nil, item.spare)
+			end
+		end
+	end
+	local rows = {}
+	for _, row in pairs(byKey) do table.insert(rows, row) end
+	table.sort(rows, function(a, b) return a.key < b.key end)
+	return { claims = rows, buybacksExpireAt = Config.seasonEndsAt() }
+end
+
+local objectiveLast: { [Player]: any } = {}
+local objectiveReady: { [Player]: number } = {}
+local function sameObjectives(a: any, b: any): boolean
+	if not a or a.buybacksExpireAt ~= b.buybacksExpireAt or #a.claims ~= #b.claims then return false end
+	for i, row in ipairs(a.claims) do
+		local other = b.claims[i]
+		for key, value in pairs(row) do if other[key] ~= value then return false end end
+		for key, value in pairs(other) do if row[key] ~= value then return false end end
+	end
+	return true
+end
+
+local function pushObjectives(player: Player)
+	local state = HeistService.recoveryState(player)
+	if state and not sameObjectives(objectiveLast[player], state) then
+		objectiveLast[player] = state
+		Remotes.get("RecoveryObjective"):FireClient(player, state)
+	end
+end
+
+local function startObjectives()
+	-- Subscribe after connecting the client listener. This also repairs a
+	-- late client start without a race against the initial player-data push.
+	Remotes.get("RecoveryObjective").OnServerEvent:Connect(function(player)
+		local now = os.clock()
+		if objectiveReady[player] and now - objectiveReady[player] < 1 then return end
+		objectiveReady[player] = now
+		objectiveLast[player] = nil
+		pushObjectives(player)
+	end)
+	Players.PlayerRemoving:Connect(function(player)
+		objectiveLast[player] = nil
+		objectiveReady[player] = nil
+	end)
+	task.spawn(function()
+		while task.wait(0.25) do
+			-- Ownership, disconnects and in-flight returns all flow through
+			-- the existing tables. Emit only changes, not countdown packets.
+			for player in pairs(objectiveReady) do pushObjectives(player) end
+		end
+	end)
+end
 
 -- [victim][thief] -> os.clock() of last grab, and count this session.
 local lastGrab: { [Target]: { [Player]: number } } = {}
@@ -369,11 +556,45 @@ local function lossAllowance(victim: Target, balance: number): number
 	local now = os.clock()
 	local entry = losses[victim]
 	if not entry or now - entry.since > Config.LOSS_CAP.window then
-		entry = { since = now, lost = 0 }
+		entry = { since = now, lost = 0, deadline = workspace:GetServerTimeNow() + Config.LOSS_CAP.window }
 		losses[victim] = entry
 	end
 	local allowance = Config.LOSS_CAP.fraction * (balance + entry.lost) - entry.lost
 	return math.max(0, math.floor(allowance))
+end
+
+-- Public street facts expose no claimant identities or private skin keys.
+-- Reuse the same allowance and recovery snapshot as the actual actions.
+function HeistService.streetState(): { [number]: any }
+	local state: { [number]: any } = {}
+	for _, player in ipairs(Players:GetPlayers()) do
+		state[player.UserId] = { cappedUntil = 0, hotUntil = 0 }
+	end
+	for _, player in ipairs(Players:GetPlayers()) do
+		local entry = losses[player]
+		if entry and targetCoins(player) >= 1 and lossAllowance(player, targetCoins(player)) <= 0 then
+			state[player.UserId].cappedUntil = losses[player].deadline
+		end
+		local recovery = HeistService.recoveryState(player)
+		for _, row in ipairs(if recovery then recovery.claims else {}) do
+			local target = state[row.robberId]
+			if target and row.stage == "recover" then target.hotUntil = math.max(target.hotUntil, row.expiresAt) end
+		end
+	end
+	return state
+end
+
+local function startStreetState()
+	task.spawn(function()
+		while task.wait(0.25) do
+			local state = HeistService.streetState()
+			for _, plot in ipairs(PlotService.getAll()) do
+				local row = plot.owner and state[plot.owner.UserId]
+				plot.model:SetAttribute(Config.PLOT_CAPPED_ATTRIBUTE, if row then row.cappedUntil else 0)
+				plot.model:SetAttribute(Config.PLOT_HOT_SKIN_ATTRIBUTE, if row then row.hotUntil else 0)
+			end
+		end
+	end)
 end
 
 -- Coins that went home again -- a tag, a confiscation, a death -- were never
@@ -382,27 +603,15 @@ end
 -- THE TUG
 -- ============================================================
 --
--- A nab used to be one 0.4-second hold with two outcomes and no decision,
--- and it paid the nabber nothing. It is a HOLD that pulls coins back a
--- slice at a time now, which is the same conversion the crack performed on
--- the other side of the same robbery: the honest outcome of a busy street
--- becomes *the thief got home with less* rather than *the thief cannot get
--- home*.
---
--- ONE TUG PER THIEF, NOT PER NABBER. Everybody holding is in `nabbers`,
--- they share one fee, and the recovery runs at one rate however many there
--- are -- which is what stops a crowd being a hard stop.
+-- One tug per holder. Progress never moves currency; the full escrow moves
+-- once at completion. Contributions choose an eligible winner without making
+-- a crowd pull faster. Join order gives ties a stable, visible cause.
 type Tug = {
+	carry: Carry,
 	nabbers: { [Player]: number },
-	perTick: number,
-	recovered: number,
-	victim: Target,
-	-- WHO GOT HOLD FIRST, kept only to break a tie when the catch effect
-	-- has to pick one nabber. Everybody who held shares the fee evenly, so
-	-- two people who never let go finish on identical shares -- and
-	-- `pairs` order would then decide whose cosmetic plays, differently on
-	-- every run. A tie has to resolve to a FACT rather than to a hash.
-	starter: Player,
+	joined: { [Player]: number },
+	joinCount: number,
+	progress: number,
 }
 local tugs: { [Player]: Tug } = {}
 
@@ -508,12 +717,89 @@ end
 -- a NEW entry in it to fire the grab pop-up, which is the same trick the
 -- crack's note ladder uses to see a slice land: the server sends state, and
 -- an event is a state that went up.
+local function basketWorth(player: Player, carry: Carry): number
+	if carry.claimant ~= player then return math.floor(carry.amount * Config.NAB.keepShare) end
+	if carry.victim == player then return carry.amount end -- harvesting never receives theft multipliers
+	local data = DataService.get(player)
+	local victimPlayer = asPlayer(carry.victim)
+	local victimData = if victimPlayer then DataService.get(victimPlayer) else nil
+	return carry.amount * Config.acornMultiplier(if data then data.rebirths else 0,
+		if victimPlayer then (if victimData then victimData.rebirths else 0) else nil,
+		isRevenge(player, carry.victim))
+end
+
+local function returnCarryAmount(carry: Carry, amount: number)
+	if carry.kind == "basket" then ShakeService.refund(carry.victim, amount, carry.receipts or {})
+	else giveBack(carry.victim, amount) end
+end
+
+local function carryNearHome(carry: Carry, plot: any, root: BasePart): boolean
+	local target = if carry.kind == "basket" then plot.acornStorage and plot.acornStorage.body else plot.base
+	if not target then return false end
+	if carry.kind == "basket" then return (root.Position - target.Position).Magnitude <= Config.DROPOFF_RADIUS end
+	return (root.Position - target.Position).Magnitude <= Config.DROPOFF_RADIUS
+end
+
+local function returnPlot(carry: Carry): any?
+	local victim = carry.victim
+	local plot = targetPlot(victim)
+	if not plot then return nil end
+	local player = asPlayer(victim)
+	if player then
+		if not player.Parent or not DataService.get(player) or plot.owner ~= player then return nil end
+	elseif plot.owner or ResidentService.get(plot) ~= victim then return nil end
+	return plot
+end
+
+local function returnBounty(player: Player, carry: Carry): number
+	-- A voluntary undo and an own harvest never mint a rescue reward.
+	if player == carry.claimant or carry.claimant == carry.victim then return 0 end
+	return math.floor(carry.amount * Config.NAB.bounty)
+end
+
+local function dropAction(player: Player, carry: Carry): string?
+	if not canDeliverCarry(player, carry) or cracking[player] or ShakeService.isShaking(player) then return nil end
+	local root, humanoid = getRoot(player), getHumanoid(player)
+	if not root or not humanoid or humanoid.Health <= 0 then return nil end
+	local ownHarvest = carry.kind == "basket" and carry.claimant == player and carry.victim == player
+	local destination = if not ownHarvest then returnPlot(carry) else nil
+	if destination and carryNearHome(carry, destination, root) then return "return" end
+	-- Recovering your own haul is always a return, never a keep payout.
+	if carry.victim == player and not ownHarvest then return nil end
+	local home = PlotService.getPlot(player)
+	if home and carryNearHome(carry, home, root) then return "keep" end
+	return nil
+end
+
+local function carryOptions(player: Player, carry: Carry): any
+	local original = carry.claimant == player
+	local ownHarvest = carry.kind == "basket" and carry.victim == player and original
+	local ownReturn = carry.victim == player and not ownHarvest
+	local worth
+	if carry.kind == "basket" then worth = basketWorth(player, carry)
+	elseif not original then worth = math.floor(carry.amount * Config.NAB.keepShare)
+	else
+		local payout = if isRevenge(player, carry.victim) then Config.REVENGE.payout else Config.HEIST_PAYOUT
+		worth = math.floor(carry.amount * payout * SocialService.getSpreeMultiplier(player))
+	end
+	return {
+		action = dropAction(player, carry), canKeep = not ownReturn,
+		canReturn = not ownHarvest and returnPlot(carry) ~= nil,
+		victim = targetName(carry.victim), ownReturn = ownReturn,
+		keepWorth = worth, bounty = returnBounty(player, carry),
+	}
+end
+
 local function pushCarryState(player: Player)
 	local carry = carrying[player]
 	Remotes.get("CarryUpdate"):FireClient(player,
 		if carry then math.floor(carry.amount) else 0,
 		if carry then carry.haul else nil,
-		if carry then carry.inRange == true else false)
+		if carry then carry.inRange == true else false,
+		if carry then carry.kind or "pig" else nil,
+		if carry and carry.kind == "basket" then basketWorth(player, carry) else nil,
+		carry ~= nil and carry.kind == "basket" and carry.victim == player and carry.claimant == player,
+		if carry then carryOptions(player, carry) else nil)
 end
 
 -- ============================================================
@@ -531,6 +817,7 @@ local function inShopRoom(thief: Player, plot: any): boolean
 end
 
 local function whyCannotSteal(thief: Player, victim: Target): string?
+	if ShakeService.isShaking(thief) then return "Finish shaking this tree first." end
 	if (thief :: any) == victim then
 		return "That's your own piggy."
 	end
@@ -588,7 +875,7 @@ end
 -- This used to be an abstract glowing ball floating over the thief's head.
 -- Carrying somebody's actual piggy makes a chase legible from across the
 -- street: you can see who is being robbed, not just that someone is running.
-local function attachLoot(thief: Player, victim: Target, amount: number): (Model?, ProximityPrompt?)
+local function attachLoot(thief: Player, victim: Target, amount: number, kind: string?): (Model?, ProximityPrompt?)
 	local root = getRoot(thief)
 	if not root then
 		return nil, nil
@@ -600,7 +887,25 @@ local function attachLoot(thief: Player, victim: Target, amount: number): (Model
 	local victimPlayer = asPlayer(victim)
 	local victimData = if victimPlayer then DataService.get(victimPlayer) else nil
 	local skinKey = if victimData then victimData.cosmetics.skin else Config.DEFAULT_SKIN
-	local loot = PiggyBank.buildMini(skinKey)
+	local loot: Model
+	if kind == "basket" then
+		local built = AcornBasket.build(root.Parent :: Instance, CFrame.new())
+		if not built then return nil, nil end
+		loot = built.model
+		loot.Name = Config.LOOT_MODEL_NAME
+		loot.PrimaryPart = built.body
+		for _, part in ipairs(loot:GetDescendants()) do
+			if part:IsA("BasePart") then
+				part.Anchored, part.Massless = false, true
+				if part ~= built.body then
+					local weld = Instance.new("WeldConstraint")
+					weld.Part0, weld.Part1, weld.Parent = built.body, part, part
+				end
+			end
+		end
+	else
+		loot = PiggyBank.buildMini(skinKey)
+	end
 	local body = loot.PrimaryPart :: BasePart
 
 	-- WHERE IT SITS IS `CarryPose`'S TO DECIDE, NOT THIS FILE'S, because the
@@ -619,6 +924,7 @@ local function attachLoot(thief: Player, victim: Target, amount: number): (Model
 	loot.Parent = root.Parent
 
 	local weld = Instance.new("WeldConstraint")
+	weld.Name = "CarryWeld"
 	weld.Part0 = root
 	weld.Part1 = body
 	weld.Parent = body
@@ -662,7 +968,8 @@ local function attachLoot(thief: Player, victim: Target, amount: number): (Model
 	text.TextColor3 = GOLD
 	text.TextStrokeTransparency = 0.2
 	-- Names the owner, so a bystander knows whose side to take.
-	text.Text = ("%s's piggy  %s"):format(targetName(victim), format(amount))
+	text.Text = if kind == "basket" then ("%s's basket · %d Acorns"):format(targetName(victim), amount)
+		else ("%s's piggy  %s"):format(targetName(victim), format(amount))
 	text.Parent = label
 
 	-- WHOSE COINS THESE ARE, published on the thief for the one player who is
@@ -1637,27 +1944,7 @@ end
 local CRACK_MIN_OFFSET = 0.08
 local CRACK_TAP_DEBOUNCE = 0.15
 
-type Crack = {
-	victim: Target,
-	plot: any,
-	sack: number,
-	locks: number,
-	picks: number,
-	steps: number,
-	banked: number,
-	-- The pig and the allowance AS THEY WERE when the attempt opened. The
-	-- gauge is drawn against these, so it cannot shift under the player
-	-- while they are deciding whether to take one more.
-	pig0: number,
-	allowance0: number,
-	stepStart: number, -- server time this sweep began
-	zone: number,      -- 0..1 along the dial
-	width: number,     -- 0..1
-	lastTap: number,
-	ending: boolean,
-}
 
-local cracking: { [Player]: Crack } = {}
 
 -- Where the marker sits at server time `t`, 0..1.
 --
@@ -1750,11 +2037,13 @@ end
 -- attachLoot and then again after every slice, because the thing in a
 -- thief's hands is a running total now.
 local function setLootAmount(carry: Carry, victim: Target)
+	if carry.kind == "basket" then AcornModel.fillCarry(carry.loot, carry.amount) end
 	local body = carry.loot and carry.loot.PrimaryPart
 	local label = body and body:FindFirstChild("LootLabel")
 	local text = label and label:FindFirstChild("Amount")
 	if text and text:IsA("TextLabel") then
-		text.Text = ("%s's piggy  %s"):format(targetName(victim), format(carry.amount))
+		text.Text = if carry.kind == "basket" then ("%s's basket · %d Acorns"):format(targetName(victim), carry.amount)
+			else ("%s's piggy  %s"):format(targetName(victim), format(carry.amount))
 	end
 end
 
@@ -1952,6 +2241,7 @@ end
 -- is a no-op for one. Only the house path can reach it, and on a house it is
 -- a dog.
 function HeistService.scare(thief: Player, victim: Target, catcher: string?)
+	ShakeService.finish(thief, "scared")
 	endCrack(thief, "scared")
 	notify(thief, if catcher
 		then ("%s saw you off!"):format(catcher)
@@ -1992,7 +2282,9 @@ end
 -- is here is the three decisions that live in the code rather than in a
 -- number.
 --
--- ONE: IT ONLY FIRES ON A SKIN THE THIEF DOES NOT ALREADY OWN, which is what
+-- Ordinary theft skips skins already owned. Hot recovery is the exception:
+-- it revokes the last robber's stolen copy even if the owner reacquired one.
+-- ONE: ORDINARY THEFT ONLY TAKES A SKIN THE THIEF DOES NOT OWN, which is what
 -- makes the mechanic DIRECTIONAL. You rob the pig whose colour you want, so
 -- the street becomes a shopping list and the choice of target finally means
 -- something beyond how full the pig is. It also settles the duplicate
@@ -2017,119 +2309,99 @@ end
 -- a setback rather than at something being taken away for good. That is the
 -- same call the sell refusal and every bone rejection already make: never
 -- fail silently, and never leave somebody without the next thing to do.
-local function rollSkinSteal(thief: Player, victim: Player, revenge: boolean)
-	local chance = if revenge then Config.SKIN_STEAL.revengeChance else Config.SKIN_STEAL.chance
-	if math.random() >= chance then
-		return
-	end
-
+local function rollSkinSteal(thief: Player, victim: Player)
 	local victimData = DataService.get(victim)
 	local thiefData = DataService.get(thief)
-	if not victimData or not thiefData then
-		return
-	end
+	local carry = carrying[thief]
+	-- A vanished character must not turn a stolen skin into an instant grant.
+	if not victimData or not thiefData or not carry or carry.victim ~= victim then return end
 
-	-- WHAT THEY ARE WEARING, not a draw from what they own. The worn one is
-	-- the one a thief could SEE from the pavement when they picked this plot,
-	-- and a random pick out of a collection would be a reward nobody aimed
-	-- at -- which is the whole difference between this and another crate.
-	local key = victimData.cosmetics and victimData.cosmetics.skin
-	if type(key) ~= "string" or not Config.isStealableSkin(key) then
-		return
+	for _, item in ipairs(carry.haul) do
+		if item.kind == "skin" and item.victim == victim then return end
 	end
-	-- Already theirs: nothing to take, and silently, because there is no
-	-- reward to report and no failure either. Same branch shape as a shop
-	-- drop finding a tab it has finished.
-	if SetService.owns(thiefData, "skin", key) then
-		return
-	end
-
-	-- THE CAP, AND IT IS CHECKED BEFORE ANYTHING MOVES. Same window logic as
-	-- `lossAllowance`: the entry re-opens once the window has passed, so a
-	-- player who was robbed an hour ago starts clean rather than carrying a
-	-- tally nobody can see.
 	local now = os.clock()
-	local entry = skinLosses[victim]
-	if not entry or now - entry.since > Config.SKIN_STEAL.window then
-		entry = { since = now, lost = 0 }
-		skinLosses[victim] = entry
+	local claim = grudge[thief] and grudge[thief][victim]
+	local hot: HotSkin? = nil
+	local hotKey: string? = nil
+	local pendingClaim = false
+	if claim then
+		for key, candidate in pairs(claim.skins) do
+			if candidate.expires <= now then
+				claim.skins[key] = nil
+			else
+				pendingClaim = true
+				if not candidate.reserved and SetService.owns(victimData, "skin", key)
+					and (not hot or candidate.expires < hot.expires
+						or (candidate.expires == hot.expires and key < (hotKey :: string))) then
+					hot, hotKey = candidate, key
+				end
+			end
+		end
 	end
-	if entry.lost >= Config.SKIN_STEAL.cap then
-		return
+	-- Recover the oldest available claim first, one skin per clean crack.
+	-- If a live claim is in transit or no longer owned, do not replace its
+	-- promised skin with an unrelated outfit on this crack.
+	if pendingClaim and not hot then return end
+	local key = if hot then hotKey else victimData.cosmetics.skin
+	if type(key) ~= "string" or not Config.isStealableSkin(key) then return end
+	if not SetService.owns(victimData, "skin", key) then return end
+	if not hot and SetService.owns(thiefData, "skin", key) then return end
+
+	local entry = nil
+	if not hot then
+		entry = skinLosses[victim]
+		if not entry or now - entry.since > Config.SKIN_STEAL.window then
+			entry = { since = now, lost = 0 }
+			skinLosses[victim] = entry
+		end
+		if entry.lost >= Config.SKIN_STEAL.cap then return end
 	end
 
 	local skin = Config.getSkin(key)
-	local tookSpare = false
+	local wasWorn = victimData.cosmetics.skin == key
 	local spareEntry = "skin:" .. key
 	local heldSpares = (victimData.spares and victimData.spares[spareEntry]) or 0
-
-	if heldSpares > 0 then
-		-- INSURED. The spare goes, the skin stays on their pig, and they are
-		-- told what it just bought them -- a defence nobody can see working
-		-- is a defence nobody buys twice.
+	local tookSpare = not hot and heldSpares > 0
+	if tookSpare then
 		local left = heldSpares - 1
 		victimData.spares[spareEntry] = if left > 0 then left else nil
-		tookSpare = true
+	else
+		-- Recovery revokes the stolen owned copy even if the thief changed
+		-- outfits, bought insurance or was already protected by the loss cap.
+		victimData.claims = victimData.claims or {}
+		Config.pruneBuybackClaims(victimData.claims)
+		victimData.claims[key] = Config.seasonIndex()
+		victimData.cosmetics.owned[key] = nil
+		if wasWorn then victimData.cosmetics.skin = Config.DEFAULT_SKIN end
+	end
+	if entry then entry.lost += 1 end
+	if hot then hot.reserved = true end -- reserve before any call can yield
+	table.insert(carry.haul, {
+		kind = "skin", key = key, victim = victim, spare = tookSpare,
+		wasWorn = wasWorn, hot = hot, recoveryOwner = if hot then thief else nil,
+		loss = entry,
+	})
+	-- Stage both sides before saving: a nab during a yielding save must find
+	-- the skin on the carry so it can return it, never grant it a second time.
+	pushCarryState(thief)
+	if hot then
+		notify(victim, ("%s took back their %s skin!"):format(thief.DisplayName, skin.name), "bad")
+		notify(thief, ("You recovered %s! Get it home."):format(skin.name), "loot")
+	elseif tookSpare then
 		notify(victim, ("%s took your spare %s! You are still wearing yours."):format(
 			thief.DisplayName, skin.name), "bad")
 	else
-		-- The real thing. `owned` is written directly rather than through
-		-- `SetService.revoke`, which refuses outright on a copy IN USE -- and
-		-- the copy in use is exactly what this takes. That guard exists to
-		-- stop a stray thumb SELLING the thing off your own back; it is not a
-		-- statement that the item can never leave.
-		victimData.cosmetics.owned[key] = nil
-		victimData.cosmetics.skin = Config.DEFAULT_SKIN
-		-- NAMED DEFENSIVELY. `isStealableSkin` guarantees a `chest` tag, and
-		-- it does NOT guarantee a chest by that name still exists -- a
-		-- retired crate would leave every skin pointing at nothing. That
-		-- would throw here, INSIDE the branch that has already taken the
-		-- skin, so the victim would be robbed with no message and no pushes:
-		-- the silent-failure rule, landing on the worst possible line.
 		local crate = Config.CHESTS[skin.chest]
-		local line = if crate
-			then ("%s stole your %s skin! Win it back from the %s."):format(
-				thief.DisplayName, skin.name, crate.name)
-			else ("%s stole your %s skin!"):format(thief.DisplayName, skin.name)
-		notify(victim, line, "bad")
+		notify(victim, ("%s stole your %s skin! Nab them now, or take it back after they deliver. %s can also replace it."):format(
+			thief.DisplayName, skin.name, if crate then crate.name else "Its crate"), "bad")
 	end
-	entry.lost += 1
-
-	-- Push the victim before the thief. Their pig has changed colour on the
-	-- lawn and their inventory has changed underneath them, and the toast
-	-- above is already on screen saying so.
+	if not hot then
+		notify(thief, ("You lifted %s's %s skin! Get it home."):format(victim.DisplayName, skin.name), "loot")
+	end
 	CosmeticsService.applyToPlot(victim)
 	CosmeticsService.push(victim)
 	SetService.push(victim)
 	DataService.save(victim)
-
-	-- CARRIED, NOT GRANTED, AND THAT REVERSES HOW THIS SHIPPED.
-	--
-	-- It used to call `SetService.grant` here and equip the skin on the spot.
-	-- That made the one half of a robbery that is not coins immune to
-	-- everything the getaway exists to create: a thief could crack a pig,
-	-- take a Pearl skin and walk into a guard dog with nothing left to lose.
-	-- The run home is the risk half of the whole trade, and an item already
-	-- banked is not in it.
-	--
-	-- On the carry it is at stake with the coins, `deliver` grants it, and
-	-- `clearCarry` gives it back to the person it came off. The taunt that
-	-- used to be an instant auto-equip is still there and is simply DEFERRED
-	-- to the moment it is actually theirs.
-	local carry = carrying[thief]
-	if carry then
-		table.insert(carry.haul,
-			{ kind = "skin", key = key, victim = victim, spare = tookSpare })
-		pushCarryState(thief)
-	else
-		-- No carry to put it in. This is reachable -- the crack banks its
-		-- coins slice by slice and `attachLoot` can fail on a character that
-		-- vanished mid-robbery -- and the honest answer is to hand it over
-		-- rather than to destroy a skin somebody has already lost.
-		SetService.grant(thief, "skin", key)
-	end
-	notify(thief, ("You lifted %s's %s skin! Get it home."):format(
-		victim.DisplayName, skin.name), "loot")
 end
 
 local function rollShopDrop(thief: Player, tab: string)
@@ -2348,7 +2620,7 @@ function endCrack(thief: Player, why: string)
 
 		-- Names what it is WORTH, which is the doubled figure: the number a
 		-- thief is deciding whether to run for is the one they will bank.
-		local worth = total * (if grudge[thief] and (grudge[thief][victim] or 0) > os.clock()
+		local worth = total * (if isRevenge(thief, victim)
 			then Config.REVENGE.payout else Config.HEIST_PAYOUT)
 		if why == "done" then
 			notify(thief, ("Cracked it clean! %s coins, worth %s at home. Run!"):format(
@@ -2380,13 +2652,11 @@ function endCrack(thief: Player, why: string)
 		-- `LOSS_CAP` allows on a person, which is the faucet this whole
 		-- feature is affordable without.
 		--
-		-- `revenge` is read rather than recomputed: it is the same grudge
-		-- lookup the payout above already made, ten lines up, and two reads
-		-- of one table is two chances to disagree about whether this was one.
+		-- Skin recovery reads its own per-owner claim at the clean crack.
+		-- Its deadline survives unrelated robberies and spent coin revenge.
 		local victimPlayer = asPlayer(victim)
 		if why == "done" and victimPlayer then
-			local avenging = (grudge[thief] and (grudge[thief][victim] or 0) > os.clock()) == true
-			task.spawn(rollSkinSteal, thief, victimPlayer, avenging)
+			task.spawn(rollSkinSteal, thief, victimPlayer)
 		end
 
 		-- Last, and spawned. A subscriber that errors or yields must not be
@@ -2490,13 +2760,7 @@ function HeistService.crackTap(thief: Player)
 			endCrack(thief, "gone")
 			return
 		end
-		carrying[thief] = {
-			amount = amount,
-			victim = victim,
-			loot = loot,
-			haul = {},
-			prompt = prompt,
-		}
+		carrying[thief] = newCarry(thief, victim, amount, loot, prompt)
 
 		-- THE FIRST SLICE IS THE GRAB, and everything the old code hung on a
 		-- completed steal hangs here instead. You are a thief the moment a
@@ -2509,9 +2773,6 @@ function HeistService.crackTap(thief: Player)
 		setCarrySpeed(thief, true)
 		pushCarryState(thief)
 
-		prompt.Triggered:Connect(function(nabber)
-			HeistService.nab(nabber, thief)
-		end)
 	end
 
 	if crack.plot then
@@ -2534,7 +2795,7 @@ function HeistService.crackStop(thief: Player)
 end
 
 function HeistService.isCracking(player: Player): boolean
-	return cracking[player] ~= nil
+	return cracking[player] ~= nil or ShakeService.isShaking(player)
 end
 
 -- ============================================================
@@ -2689,7 +2950,9 @@ local function returnHaul(carry: Carry)
 	-- SHOP LOOT IS SIMPLY LOST, because there is nobody behind a shop to give
 	-- it back to -- the same asymmetry `lossAllowance` already draws between
 	-- a person and a resident. A `victim` of nil is what says so.
-	for _, item in ipairs(carry.haul or {}) do
+	local haul = carry.haul or {}
+	carry.haul = {}
+	for _, item in ipairs(haul) do
 		local owner = item.victim
 		if owner and owner.Parent then
 			local data = DataService.get(owner)
@@ -2702,7 +2965,7 @@ local function returnHaul(carry: Carry)
 					DataService.save(owner)
 				else
 					SetService.grant(owner, item.kind, item.key)
-					if item.kind == "skin" then
+					if item.kind == "skin" and item.wasWorn ~= false then
 						-- Back on their pig as well as back in their save.
 						-- `grant` restores ownership and says nothing about
 						-- what they are WEARING, and this took the worn one.
@@ -2712,8 +2975,15 @@ local function returnHaul(carry: Carry)
 				-- Off the victim's window too, for the reason the coins come
 				-- off theirs: it was never lost.
 				local window = skinLosses[owner]
-				if window then
+				if window and window == item.loss then
 					window.lost = math.max(0, window.lost - 1)
+				end
+				local recoveredFor = item.recoveryOwner
+				local hot = item.hot
+				if recoveredFor and hot and hot.expires > os.clock()
+					and grudge[recoveredFor] and grudge[recoveredFor][owner]
+					and grudge[recoveredFor][owner].skins[item.key] == hot then
+					hot.reserved = nil
 				end
 				notify(owner, ("You got your %s skin back!"):format(
 					Config.getSkin(item.key).name), "good")
@@ -2723,6 +2993,11 @@ local function returnHaul(carry: Carry)
 end
 
 local function clearCarry(thief: Player): Carry?
+	if tugs[thief] then
+		tugs[thief] = nil
+		nabRest[thief] = os.clock() + Config.NAB.cooldown
+	end
+	ShakeService.finish(thief, "lost")
 	-- ANYTHING THAT TAKES THE LOOT ENDS THE ATTEMPT. A thief nabbed, arrested
 	-- or killed part way through a crack would otherwise go on holding a
 	-- panel over a pig they are no longer standing at, and their next tap
@@ -2919,16 +3194,7 @@ function HeistService.smash(thief: Player, victim: Target)
 		giveBack(victim, amount)
 		return
 	end
-	carrying[thief] = {
-		amount = amount,
-		victim = victim,
-		loot = loot,
-		haul = {},
-		prompt = prompt,
-	}
-	prompt.Triggered:Connect(function(nabber)
-		HeistService.nab(nabber, thief)
-	end)
+	carrying[thief] = newCarry(thief, victim, amount, loot, prompt)
 
 	-- You are a thief the moment a coin leaves somebody else's pig, which on
 	-- this path is the same instant the robbery ends. Same three writes the
@@ -2948,7 +3214,7 @@ function HeistService.smash(thief: Player, victim: Target)
 	PlotService.updatePile(plot, targetCoins(victim), targetCapacity(victim))
 	PlotService.playCoinDrop(plot)
 
-	local worth = amount * (if grudge[thief] and (grudge[thief][victim] or 0) > os.clock()
+	local worth = amount * (if isRevenge(thief, victim)
 		then Config.REVENGE.payout else Config.HEIST_PAYOUT)
 	notify(thief, ("Smashed it! %s coins, worth %s at home. Run!"):format(
 		format(amount), format(worth)), "loot")
@@ -3012,145 +3278,121 @@ local function fireCatchEffect(thief: Player, nabber: Player)
 		(character:GetAttribute(Config.CATCH_COUNT_ATTRIBUTE) or 0) + 1)
 end
 
--- WHOSE EFFECT PLAYS WHEN SEVERAL PEOPLE PULLED.
---
--- The one who pulled back the most, with whoever got hold FIRST winning a
--- tie. Playing everybody's at once was the other option and it is worse in
--- both directions: three bursts on one body is noise rather than three
--- cosmetics, and the person who bought the expensive one would see it
--- buried under two Dust Clouds.
---
--- MOST-RECOVERED RATHER THAN WHO PRESSED LAST, because the fee is already
--- split by exactly that measure -- so the cosmetic and the money answer
--- the same question about who did the work.
-local function catchWinner(tug: Tug): Player
-	local best, bestShare = tug.starter, -1
+-- Empty hands and a live, nearby character are required on every tick and
+-- again at handoff. A winner can never overwrite another carry or pull a haul
+-- into a missing character. Busy players finish their own activity first.
+local function canReceiveCarry(nabber: Player, thief: Player): boolean
+	if nabber == thief or not nabber.Parent or not DataService.get(nabber)
+		or carrying[nabber] or cracking[nabber] or ShakeService.isShaking(nabber)
+		or inBin[nabber] or isStunned(nabber) or rideMultiplier[nabber] ~= nil then return false end
+	local root, thiefRoot = getRoot(nabber), getRoot(thief)
+	local humanoid = getHumanoid(nabber)
+	return root ~= nil and thiefRoot ~= nil and humanoid ~= nil and humanoid.Health > 0
+		and (root.Position - thiefRoot.Position).Magnitude <= Config.NAB.distance + 6
+end
+
+local function catchWinner(thief: Player, tug: Tug): Player?
+	local best: Player? = nil
+	local bestShare, bestOrder = -1, math.huge
 	for nabber, share in pairs(tug.nabbers) do
-		if share > bestShare or (share == bestShare and nabber == tug.starter) then
-			best, bestShare = nabber, share
+		local order = tug.joined[nabber]
+		if share > 0 and canReceiveCarry(nabber, thief)
+			and (share > bestShare or (share == bestShare and order < bestOrder)) then
+			best, bestShare, bestOrder = nabber, share, order
 		end
 	end
 	return best
 end
--- Ends a tug and stamps the thief's rest, whichever way it ended.
---
--- THE REST IS STAMPED ON EVERY EXIT, not only on a completed recovery. A
--- cooldown that only applied when the nabber WON would leave a dodged
--- thief immediately nabbable by the next person in the queue, which is the
--- swarm this exists to stop, arriving through the failure case.
+
+-- Move the same model, prompt, receipts and haul. No clearCarry here: that is
+-- a losing path which refunds items and destroys the model. This transaction
+-- performs no asset loading or yielding between validation and ownership swap.
+local function handOff(thief: Player, winner: Player): boolean
+	local carry = carrying[thief]
+	local thiefHumanoid = getHumanoid(thief)
+	if not carry or carry.holder ~= thief or not thief.Parent
+		or not thiefHumanoid or thiefHumanoid.Health <= 0
+		or not canReceiveCarry(winner, thief) then return false end
+	local oldRoot, newRoot = getRoot(thief), getRoot(winner)
+	local body = carry.loot.PrimaryPart
+	local weld = body and body:FindFirstChild("CarryWeld")
+	if not oldRoot or not newRoot or carry.loot.Parent ~= oldRoot.Parent
+		or not weld or not weld:IsA("WeldConstraint")
+		or weld.Part0 ~= oldRoot or weld.Part1 ~= body then return false end
+
+	weld.Part0 = nil
+	carry.loot:PivotTo(newRoot.CFrame * CarryPose.HOLD)
+	carry.loot.Parent = newRoot.Parent
+	weld.Part0 = newRoot
+	carrying[thief], carrying[winner] = nil, carry
+	carry.holder, carry.inRange, carry.dropAction, carry.returnAvailable = winner, nil, nil, nil
+	carry.prompt.ObjectText = winner.DisplayName
+	nabRest[winner] = os.clock() + Config.NAB.cooldown
+	oldRoot.Parent:SetAttribute(Config.CARRY_VICTIM_ATTRIBUTE, nil)
+	local victim = asPlayer(carry.victim)
+	newRoot.Parent:SetAttribute(Config.CARRY_VICTIM_ATTRIBUTE, if victim then victim.UserId else nil)
+	setCarrySpeed(thief, false)
+	dropShield(winner)
+	HeistService.setTiptoe(winner, false)
+	setCarrySpeed(winner, true)
+	pushCarryState(thief)
+	pushCarryState(winner)
+	return true
+end
+
+-- Rest belongs to whoever holds the haul after the tug. Failed/cancelled
+-- tugs leave all escrow with the old holder and never award a catch or bounty.
 local function endTug(thief: Player, why: string)
 	local tug = tugs[thief]
-	if not tug then
-		return
-	end
+	if not tug then return end
 	tugs[thief] = nil
-	nabRest[thief] = os.clock() + Config.NAB.cooldown
-
-	-- Each nabber is told what they got, because a partial recovery with no
-	-- line about it reads exactly like a nab that failed.
-	--
-	-- AND `why` FINALLY HAS A READER. It was captured and thrown away for
-	-- the life of the tug -- `local _ = why` -- because nothing downstream
-	-- cared how a recovery ended. The Medal Board does: a tug that EMPTIED
-	-- the thief is a thief stopped, and one BROKEN by a dodge or by
-	-- somebody letting go is a thief who got away with the rest. Crediting
-	-- both would make a rosette mean "I held on for a moment", which is
-	-- what a partial recovery already pays a bounty for.
-	local caught = why == "emptied"
-	for nabber, share in pairs(tug.nabbers) do
-		if nabber.Parent and share > 0 then
-			notify(nabber, ("You pulled back %s coins."):format(format(math.floor(share))), "good")
-			-- EVERY NABBER WHO ACTUALLY PULLED SOMETHING BACK, not just the
-			-- one who started it. A tug is explicitly a thing a crowd may
-			-- join -- `NAB.bounty` is divided rather than duplicated -- so a
-			-- board that only ever credited the starter would teach the
-			-- street not to help.
-			if caught then
-				TrophyService.recordCatch(nabber)
-			end
+	local winner = if why == "emptied" and carrying[thief] == tug.carry
+		and tug.progress + 0.000001 >= Config.NAB.recoverSeconds
+		then catchWinner(thief, tug) else nil
+	if winner and handOff(thief, winner) then
+		fireCatchEffect(thief, winner)
+		for nabber, share in pairs(tug.nabbers) do
+			if nabber.Parent and share > 0 then TrophyService.recordCatch(nabber) end
 		end
+		notify(thief, ("%s took the haul! You can chase it back."):format(winner.DisplayName), "bad")
+		notify(winner, "You took the haul! Watch out for other nabbers.", "loot")
+		if tug.carry.victim ~= winner then
+			notifyTarget(tug.carry.victim, ("%s is now carrying your %s."):format(winner.DisplayName,
+				if tug.carry.kind == "basket" then "Acorns" else "piggy"), "warn")
+		end
+	else
+		nabRest[thief] = os.clock() + Config.NAB.cooldown
 	end
 end
 
--- One tick of one tug. Returns false when it should stop.
---
--- EVERY REASON TO STOP IS CHECKED HERE RATHER THAN AT THE CALL SITE, so a
--- tug cannot outlive the thing it is about -- the thief delivering, dying,
--- dodging, or simply walking out of reach.
-local function tugTick(thief: Player): boolean
+-- One tick advances time only. The loop passes its own tug token so an old
+-- coroutine cannot tick a replacement tug or a new carry on the same player.
+local function tugTick(thief: Player, expected: Tug?): boolean
 	local tug = tugs[thief]
 	local carry = carrying[thief]
-	if not tug or not carry or not thief.Parent then
-		return false
-	end
-
-	-- THE DODGE BREAKS IT, AND THAT IS THE THIEF'S HALF OF THE DECISION.
-	-- `DODGE.cooldown` is 5 seconds against a 4.4-second getaway, so a thief
-	-- gets exactly ONE per run and it now has two uses that cannot both be
-	-- had: spend it early to slip a chaser, or hold it to break a tug after
-	-- some coins have already gone back. One resource, two uses, one run --
-	-- with no new key and nothing new to teach.
+	local humanoid = getHumanoid(thief)
+	if not tug or (expected and tug ~= expected) or carry ~= tug.carry
+		or not carry or carry.holder ~= thief or not thief.Parent
+		or not humanoid or humanoid.Health <= 0 then return false end
+	if tug.progress + 0.000001 >= Config.NAB.recoverSeconds then return false end
 	if HeistService.isDodgeImmune(thief) then
 		for nabber in pairs(tug.nabbers) do
-			if nabber.Parent then
-				notify(nabber, ("%s dodged you!"):format(thief.DisplayName), "warn")
-			end
+			if nabber.Parent then notify(nabber, ("%s dodged you!"):format(thief.DisplayName), "warn") end
 		end
 		notify(thief, "Dodged! You shook them off.", "good")
 		return false
 	end
-
-	-- WHO IS STILL HOLDING. Re-checked every tick with the same slack the
-	-- one-shot nab used, so letting go IS walking away -- there is no
-	-- release event to listen for, which sidesteps `PromptButtonHoldEnded`
-	-- firing at hold COMPLETION as well as on release. This file already
-	-- lost every steal in the game for weeks to that signal.
-	local thiefRoot = getRoot(thief)
-	if not thiefRoot then
-		return false
-	end
 	local holding: { Player } = {}
 	for nabber in pairs(tug.nabbers) do
-		local root = nabber.Parent and getRoot(nabber)
-		if root and (root.Position - thiefRoot.Position).Magnitude <= Config.NAB.distance + 6 then
-			table.insert(holding, nabber)
-		end
+		if canReceiveCarry(nabber, thief) then table.insert(holding, nabber) end
 	end
-	if #holding == 0 then
-		return false
-	end
-
-	-- The slice, clamped to what is actually left. A tug can never pull back
-	-- more than the thief is holding, however many ticks have run.
-	local slice = math.min(tug.perTick, carry.amount)
-	if slice <= 0 then
-		return false
-	end
-
-	-- COINS LEAVE THE CARRY AND GO HOME AS THEY LAND, for the reason the
-	-- crack takes slices per step rather than settling up at the end: two
-	-- nabbers working one thief cannot both be promised the same coins, and
-	-- the figure over the thief's head visibly falls while it happens.
-	carry.amount -= slice
-	tug.recovered += slice
-	giveBack(tug.victim, slice)
-	pushCarryState(thief)
-
-	-- THE BOUNTY IS MINTED AND SPLIT, and it overflows capacity like a
-	-- delivery rather than being refused like a sale.
-	local fee = slice * Config.NAB.bounty / #holding
+	if #holding == 0 then return false end
+	local step = math.min(Config.NAB.tickRate, Config.NAB.recoverSeconds - tug.progress)
+	tug.progress += step
 	for _, nabber in ipairs(holding) do
-		tug.nabbers[nabber] = (tug.nabbers[nabber] or 0) + fee
-		local data = DataService.get(nabber)
-		if data then
-			data.coins += fee
-		end
+		tug.nabbers[nabber] += step / #holding
 	end
-
-	if carry.amount <= 0 then
-		return false
-	end
-	return true
+	return tug.progress + 0.000001 < Config.NAB.recoverSeconds
 end
 
 -- `catcher` IS THE WORDING AND `byDog` IS THE BEHAVIOUR, AND THEY HAD TO
@@ -3215,6 +3457,7 @@ function HeistService.nab(nabber: Player, thief: Player, byDog: boolean?, catche
 	end
 
 	if not byDog then
+		if not canReceiveCarry(nabber, thief) then return end
 		local nabberRoot, thiefRoot = getRoot(nabber), getRoot(thief)
 		if not nabberRoot or not thiefRoot then
 			return
@@ -3235,8 +3478,8 @@ function HeistService.nab(nabber: Player, thief: Player, byDog: boolean?, catche
 		-- goes for the patrol, which does not come through here at all --
 		-- `confiscate` is its own path and an arrest is a confiscation.
 
-		-- THE REST IS ON THE THIEF, and it is what makes the bounty safe to
-		-- pay at all. Refused quietly rather than out loud: the prompt is on
+		-- THE REST IS ON THE HOLDER, including a player who just received
+		-- the haul. Refused quietly rather than out loud: the prompt is on
 		-- a moving target in a crowd, so a toast per refused press would be
 		-- noise about somebody else's cooldown.
 		if os.clock() < (nabRest[thief] or 0) then
@@ -3245,72 +3488,37 @@ function HeistService.nab(nabber: Player, thief: Player, byDog: boolean?, catche
 
 		local existing = tugs[thief]
 		if existing then
-			-- JOINING COSTS THE THIEF NOTHING EXTRA. A second nabber does not
-			-- speed the recovery up -- `perTick` is fixed when the tug opens --
-			-- they only divide the fee. That is the half that stops a crowd
-			-- being a hard stop while still letting everybody take part.
-			existing.nabbers[nabber] = existing.nabbers[nabber] or 0
+			-- Joining divides contribution credit without speeding the tug up.
+			-- Repeated presses retain the original join order.
+			if existing.nabbers[nabber] == nil then
+				existing.joinCount += 1
+				existing.joined[nabber] = existing.joinCount
+				existing.nabbers[nabber] = 0
+			end
 			return
 		end
 
 		SoundKit.on(thiefRoot, Config.SOUNDS.NAB,
 			{ name = "Nab", volume = 0.5, distance = 80 })
 
-		-- The rate is fixed against the carry AS IT WAS WHEN THE TUG OPENED,
-		-- so a recovery always takes `recoverSeconds` whatever else happens to
-		-- the amount -- the same reason a crack slice is a share of the pig as
-		-- it was when the attempt opened rather than of a pig several slices
-		-- lighter.
+		-- Freeze the grab before the tug; further crack taps/catches cannot
+		-- append to escrow while somebody is taking it from the current holder.
+		ShakeService.finish(thief, "nabbed")
+		endCrack(thief, "lost")
 		local tug: Tug = {
-			nabbers = { [nabber] = 0 },
-			starter = nabber,
-			perTick = carry.amount * (Config.NAB.tickRate / Config.NAB.recoverSeconds),
-			recovered = 0,
-			victim = carry.victim,
+			carry = carry, nabbers = { [nabber] = 0 },
+			joined = { [nabber] = 1 }, joinCount = 1, progress = 0,
 		}
 		tugs[thief] = tug
-
 		notify(thief, "Somebody has hold of you! Dodge to break free.", "chase")
-
 		task.spawn(function()
-			while tugTick(thief) do
+			repeat
 				task.wait(Config.NAB.tickRate)
-			end
-
-			-- EMPTIED IS THE ONLY ENDING THAT IS A CATCH. Every other exit --
-			-- dodged, let go, walked out of range, delivered -- leaves the
-			-- thief on their feet with whatever is left, which is the partial
-			-- outcome this whole change exists to produce.
-			local left = carrying[thief]
-			local emptied = (not left) or left.amount <= 0
-			endTug(thief, if emptied then "emptied" else "broken")
-
-			-- FINISHED INLINE RATHER THAN BY RE-ENTERING `nab` WITH `byDog`. That
-			-- was the first shape and it would have printed DOG wording on a
-			-- player's nab -- "A guard dog got you!" for somebody who was caught
-			-- by a child. `byDog` is a genuine asymmetry, not a convenient flag
-			-- for reusing an ending.
-			if emptied and left then
-				-- FIRED BEFORE THE CARRY IS CLEARED, so the loot model is still
-				-- on the thief's back for the first frame of the burst -- which
-				-- is the picture the effect is about. It reads the CHARACTER,
-				-- not the carry, so nothing here depends on that ordering being
-				-- kept; it is simply the better frame to start on.
-				fireCatchEffect(thief, catchWinner(tug))
-				clearCarry(thief)
-				local humanoid = getHumanoid(thief)
-				if humanoid then
-					humanoid.WalkSpeed = 0
-					task.delay(Config.STUN_SECONDS, function()
-						if humanoid.Parent and not carrying[thief] then
-							humanoid.WalkSpeed = Config.BASE_WALK_SPEED
-						end
-					end)
-				end
-				notify(thief, "They got it all back! You dropped the haul.", "bad")
-				notifyTarget(tug.victim,
-					("%s was nabbed. Your coins are back!"):format(thief.DisplayName), "good")
-			end
+			until not tugTick(thief, tug)
+			if tugs[thief] ~= tug then return end
+			local complete = carrying[thief] == tug.carry
+				and tug.progress + 0.000001 >= Config.NAB.recoverSeconds
+			endTug(thief, if complete then "emptied" else "broken")
 		end)
 		return
 	end
@@ -3342,10 +3550,10 @@ function HeistService.nab(nabber: Player, thief: Player, byDog: boolean?, catche
 
 	-- Coins go home to the victim, not to the nabber. Nabbing is defence,
 	-- never a way to launder someone else's money into your own pig.
-	giveBack(victim, amount)
+	returnCarryAmount(carry, amount)
 	do
 		notifyTarget(victim, if byDog
-			then ("Your guard dog caught %s. %s coins saved!"):format(thief.DisplayName, format(amount))
+			then ("Your guard dog caught %s. %s %s saved!"):format(thief.DisplayName, format(amount), if carry.kind == "basket" then "Acorns" else "coins")
 			else ("%s nabbed %s. Your %s coins are back!"):format(targetName(nabber), thief.DisplayName, format(amount)),
 			"good")
 	end
@@ -3409,7 +3617,7 @@ end
 -- paperwork, or a thief could roll at the moment of arrest and keep the loot
 -- while the officer stood over them. PoliceService checks it before it decides
 -- it has caught anybody.
-function HeistService.confiscate(thief: Player): (number, Target?)
+function HeistService.confiscate(thief: Player): (number, Target?, string?)
 	local carry = carrying[thief]
 	if not carry then
 		return 0, nil
@@ -3420,20 +3628,129 @@ function HeistService.confiscate(thief: Player): (number, Target?)
 
 	-- Home to the victim, exactly as a tag would. The patrol is not a second
 	-- thief and coins do not disappear into it.
-	giveBack(victim, amount)
+	returnCarryAmount(carry, amount)
 
-	return amount, victim
+	return amount, victim, carry.kind
+end
+
+-- The carry is consumed before grants can yield/save. Recovery receipts still
+-- belong to their original owner when another holder keeps that skin.
+local function grantHaul(thief: Player, data: any, haul: { Haul }): { { kind: string, key: string } }
+	local delivered: { { kind: string, key: string } } = {}
+	for _, item in ipairs(haul) do
+		local granted
+		if item.hot and item.hot.spare and item.recoveryOwner == thief then
+			-- Return the insured copy that was actually lost, never mint an
+			-- extra spare just because an ordinary stolen skin is already owned.
+			local key = item.kind .. ":" .. item.key
+			data.spares[key] = (data.spares[key] or 0) + 1
+			SetService.push(thief)
+			DataService.save(thief)
+			granted = true
+		else
+			granted = SetService.grant(thief, item.kind, item.key)
+		end
+		if granted then
+			table.insert(delivered, { kind = item.kind, key = item.key })
+			if item.kind == "skin" and Config.SKIN_STEAL.wear and not (item.hot and item.hot.spare and item.recoveryOwner == thief) then
+				CosmeticsService.equipSkin(thief, item.key)
+			end
+		end
+		if item.hot and item.victim then
+			local recoveryOwner = item.recoveryOwner or thief
+			local claim = grudge[recoveryOwner] and grudge[recoveryOwner][item.victim]
+			if claim and claim.skins[item.key] == item.hot then
+				claim.skins[item.key] = nil
+			end
+		end
+		if item.kind == "skin" then
+			local robbed = if item.hot then item.recoveryOwner else item.victim
+			if robbed and robbed ~= thief and robbed.Parent then
+				recordGrudge(robbed, thief, {kind=item.kind, key=item.key,
+					spare=if item.hot then item.hot.spare else item.spare})
+				SocialService.markRevenge(robbed, thief)
+			end
+		end
+	end
+
+	return delivered
+end
+
+local function returnCarry(player: Player)
+	local carry = carrying[player]
+	if not carry or not canDeliverCarry(player, carry) or not returnPlot(carry) then return end
+	local data = DataService.get(player)
+	if not data then return end
+	if carry.kind == "basket" then
+		local backed = 0
+		for _, receipt in ipairs(carry.receipts or {}) do backed += receipt.amount end
+		if backed < carry.amount then return end
+	end
+	local amount, victim = carry.amount, carry.victim
+	local bounty = returnBounty(player, carry)
+	local haul = carry.haul
+	carry.haul = {}
+	clearCarry(player) -- consume before refund/grant callbacks can yield
+	returnCarryAmount(carry, amount)
+	if carry.kind == "basket" then data.loot += bounty else data.coins += bounty end
+	carry.haul = haul
+	returnHaul(carry)
+	SetService.push(player)
+	local home = PlotService.getPlot(player)
+	if home then
+		if carry.kind == "basket" then PlotService.updateAcorns(home, data.loot)
+		else PlotService.updatePile(home, data.coins, Config.getCapacity(data.capacityLevel)) end
+	end
+	local currency = if carry.kind == "basket" then "Acorns" else "coins"
+	notify(player, ("Returned %s %s and the haul. Bounty: %s %s."):format(
+		format(amount), currency, format(bounty), currency), "good")
+	if victim ~= player then
+		notifyTarget(victim, ("%s returned %s of your %s and the haul!"):format(player.DisplayName, format(amount), currency), "good")
+	end
 end
 
 -- Thief reached their own plot: the loot becomes theirs, in their pig.
 local function deliver(thief: Player)
 	local carry = carrying[thief]
-	if not carry then
+	if not carry or not canDeliverCarry(thief, carry) then
 		return
 	end
 
 	local data = DataService.get(thief)
 	if not data then
+		return
+	end
+
+	if carry.victim == thief and carry.claimant ~= thief then
+		returnCarry(thief)
+		return
+	end
+	local original = carry.claimant == thief
+
+	if carry.kind == "basket" then
+		ShakeService.finish(thief, "done")
+		local amount, victim = carry.amount, carry.victim
+		local banked = basketWorth(thief, carry)
+		local haul = carry.haul
+		carry.haul = {}
+		clearCarry(thief)
+		data.loot += banked
+		if thief ~= victim then
+			data.robberies += 1
+			thief:SetAttribute(Config.PLAYER_FIRST_JOB_ATTRIBUTE, false)
+			local mine = grudge[thief]
+			if original and isRevenge(thief, victim) and mine then mine[victim :: Player].expires = 0 end
+			local victimPlayer = asPlayer(victim)
+			if victimPlayer then recordGrudge(victimPlayer, thief); SocialService.markRevenge(victimPlayer, thief) end
+			-- Count the getaway/spree without mixing Acorns into coin leaderboards.
+			SocialService.recordSteal(thief, 0)
+		end
+		grantHaul(thief, data, haul) -- all counters are staged before a grant can save
+		SetService.push(thief)
+		local home = PlotService.getPlot(thief)
+		if home then PlotService.updateAcorns(home, data.loot) end
+		notify(thief, ("Deposited %d Acorns; %d added to your crate%s."):format(amount, banked, if original then "" else " (half share)"), "loot")
+		if thief ~= victim then notifyTarget(victim, ("%s got away with %d of your Acorns."):format(thief.DisplayName, amount), "bad") end
 		return
 	end
 
@@ -3449,13 +3766,13 @@ local function deliver(thief: Player)
 	clearCarry(thief)
 
 	-- REVENGE. The thief is robbing back somebody who robbed THEM inside the
-	-- window: the payout steps up and the grudge is spent. Read before the
+	-- window: the payout steps up and the coin bonus is spent. Read before the
 	-- coins move so the multiplier is decided by the state at delivery, and
 	-- cleared so a second robbery of the same person is an ordinary one.
 	local mine = grudge[thief]
-	local revenge = mine ~= nil and (mine[victim] or 0) > os.clock()
+	local revenge = original and isRevenge(thief, victim)
 	if revenge and mine then
-		mine[victim] = nil
+		mine[victim :: Player].expires = 0
 	end
 
 	-- STOLEN COINS COUNT DOUBLE (triple on revenge). The extra is minted, not
@@ -3465,7 +3782,8 @@ local function deliver(thief: Player)
 	-- Allowed to overflow capacity: income stops above the cap anyway, so an
 	-- overfull pig is self-limiting, and it is the juiciest target on the
 	-- street, which is exactly the tension a robbery should create.
-	local payout = if revenge then Config.REVENGE.payout else Config.HEIST_PAYOUT
+	local payout = if not original then Config.NAB.keepShare
+		elseif revenge then Config.REVENGE.payout else Config.HEIST_PAYOUT
 
 	-- ROBBERIES IN A ROW ARE WORTH MORE. Read BEFORE `recordSteal` below,
 	-- which is what bumps the run -- so the delivery that starts a spree pays
@@ -3476,11 +3794,17 @@ local function deliver(thief: Player)
 	-- different things being rewarded (who you robbed, and how fast you are
 	-- working), and a thief who lines up a revenge hit in the middle of a run
 	-- has done both.
-	payout *= SocialService.getSpreeMultiplier(thief)
+	if original then payout *= SocialService.getSpreeMultiplier(thief) end
 
 	local banked = math.floor(amount * payout)
 	data.coins += banked
 	data.totalStolen += amount
+	-- One completed getaway, regardless of target, payout or haul size.
+	-- The carry is consumed above, so repeated delivery requests cannot count
+	-- it twice. Record before any reward callback can save the player's data.
+	if amount > 0 or #haul > 0 then
+		data.robberies += 1
+	end
 	-- The first delivery retires the onboarding line, for good and on every
 	-- future session, because `totalStolen` is what it is derived from.
 	thief:SetAttribute(Config.PLAYER_FIRST_JOB_ATTRIBUTE, false)
@@ -3537,24 +3861,13 @@ local function deliver(thief: Player)
 	-- AND THE HAUL LANDS HERE, which is the moment it becomes theirs.
 	--
 	-- `SetService.grant` returns false on something already owned, and that
-	-- is the whole duplicate rule for this path: `rollSkinSteal` only ever
-	-- takes a skin the thief does not have, so a false here means they
-	-- acquired it some other way between the grab and the door. Nothing is
+	-- is the duplicate rule for ordinary theft. A recovery may also return
+	-- a skin its original owner reacquired; no extra spare is minted for it.
+	-- Only an explicitly tracked stolen spare is restored as a spare. Nothing is
 	-- minted for it -- no spare, no coins -- for the reason `rollShopDrop`
 	-- refuses to pay duplicates in spares: a spare is combine fuel, and a
 	-- robbery that produced one would be a faucet outside the chest system.
-	local delivered: { { kind: string, key: string } } = {}
-	for _, item in ipairs(haul) do
-		if SetService.grant(thief, item.kind, item.key) then
-			table.insert(delivered, { kind = item.kind, key = item.key })
-			if item.kind == "skin" and Config.SKIN_STEAL.wear then
-				-- THE TAUNT, DEFERRED TO THE MOMENT IT IS ACTUALLY THEIRS.
-				-- It used to fire at the grab, on a skin that was not yet
-				-- won; worn here it says the same thing and is true.
-				CosmeticsService.equipSkin(thief, item.key)
-			end
-		end
-	end
+	local delivered = grantHaul(thief, data, haul)
 
 	-- A BONUS NOBODY IS TOLD ABOUT IS A BONUS NOBODY BELIEVES, so the run is
 	-- named in the line that reports the money rather than in a card of its
@@ -3594,7 +3907,9 @@ local function deliver(thief: Player)
 		bank = bank,
 	})
 
-	notify(thief, if revenge
+	notify(thief, if not original
+		then ("Kept the haul! Half share: %s coins."):format(format(banked))
+		elseif revenge
 		then ("REVENGE! %s stolen coins, worth %s to you.%s"):format(
 			format(amount), format(banked), runNote)
 		else ("Delivered %s stolen coins, worth %s to you.%s"):format(
@@ -3614,8 +3929,7 @@ local function deliver(thief: Player)
 	-- triple payout that no one can collect, and put scenery on a board
 	-- meant for players. The whole social layer stops at the doorstep.
 	if victimPlayer then
-		grudge[victimPlayer] = grudge[victimPlayer] or {}
-		grudge[victimPlayer][thief] = os.clock() + Config.REVENGE.window
+		recordGrudge(victimPlayer, thief, nil)
 		SocialService.markRevenge(victimPlayer, thief)
 	end
 end
@@ -3637,19 +3951,12 @@ end
 -- at somebody who is already running would be noise from their own lag.
 local function deliverRequest(thief: Player)
 	local carry = carrying[thief]
-	if not carry then
+	if not carry or not canDeliverCarry(thief, carry) then
 		return
 	end
-	local plot = PlotService.getPlot(thief)
-	local root = getRoot(thief)
-	if not (plot and root) then
-		return
-	end
-	local flat = Vector3.new(root.Position.X, plot.base.Position.Y, root.Position.Z)
-	if (flat - plot.base.Position).Magnitude > Config.DROPOFF_RADIUS then
-		return
-	end
-	deliver(thief)
+	local action = dropAction(thief, carry)
+	if action == "return" then returnCarry(thief)
+	elseif action == "keep" then deliver(thief) end
 end
 
 function HeistService.onPlayerAdded(player: Player)
@@ -3681,6 +3988,14 @@ function HeistService.onPlayerAdded(player: Player)
 		if not humanoid then
 			return
 		end
+		humanoid.Died:Connect(function()
+			ShakeService.finish(player, "gone")
+			local carry = carrying[player]
+			if carry and carry.kind == "basket" then
+				clearCarry(player)
+				returnCarryAmount(carry, carry.amount)
+			end
+		end)
 		humanoid.StateChanged:Connect(function(old, new)
 			if old == Enum.HumanoidStateType.Climbing
 				or new == Enum.HumanoidStateType.Climbing then
@@ -3707,11 +4022,12 @@ function HeistService.onPlayerAdded(player: Player)
 	player.CharacterAdded:Connect(watchClimb)
 
 	player.CharacterAdded:Connect(function()
+		ShakeService.finish(player, "gone")
 		-- Dying drops the loot back to its owner. Otherwise the fastest way
 		-- to escape a chase would be to reset.
 		local carry = carrying[player]
 		if carry then
-			giveBack(carry.victim, carry.amount)
+			returnCarryAmount(carry, carry.amount)
 			returnHaul(carry)
 			carrying[player] = nil
 			pushCarryState(player)
@@ -3766,7 +4082,78 @@ function HeistService.isCarrying(player: Player): boolean
 	return carrying[player] ~= nil
 end
 
+function HeistService.shake(thief: Player, victim: Target)
+	ShakeService.open(thief, victim)
+end
+
 function HeistService.start()
+	ShakeService.configure({
+		player = asPlayer, id = targetId, name = targetName, plot = targetPlot,
+		root = getRoot, humanoid = getHumanoid, notify = notify,
+		pushBalance = SetService.push,
+		disabled = function(player) return isStunned(player) or inBin[player] == true or rideMultiplier[player] ~= nil end,
+		reason = function(thief, victim)
+			local carry = carrying[thief]
+			if tugs[thief] or cracking[thief] or (carry and (carry.claimant ~= thief or carry.kind ~= "basket" or carry.victim ~= victim)) then
+				return "Deposit your current haul first."
+			end
+			if thief == victim then return nil end
+			local owner = asPlayer(victim)
+			if owner and (shieldUntil[owner] or 0) > os.clock() then return "That player is still protected." end
+			local last = lastGrab[victim] and lastGrab[victim][thief]
+			if last and os.clock() - last < Config.ACORNS.shakeCooldown then return "Wait before robbing this victim again." end
+			return nil
+		end,
+		opened = function(thief, victim, plot, source)
+			if thief == victim then return end
+			dropShield(thief)
+			HeistService.setTiptoe(thief, false)
+			PlotService.playAlarm(plot)
+			notifyTarget(victim, ("%s is taking Acorns from your %s! Get close to stop them."):format(thief.DisplayName, if source == "storage" then "crate" else "tree"), "alarm")
+			releaseDog(thief, victim, plot)
+		end,
+		caught = function(thief, victim, receipt)
+			local carry = carrying[thief]
+			if carry then
+				if tugs[thief] or carry.claimant ~= thief or carry.holder ~= thief or carry.kind ~= "basket" or carry.victim ~= victim then return false end
+				carry.amount += 1
+				table.insert(carry.receipts :: {any}, receipt)
+			else
+				local loot, prompt = attachLoot(thief, victim, 1, "basket")
+				if not loot or not prompt then return false end
+				carry = newCarry(thief, victim, 1, loot, prompt, "basket", receipt)
+				carrying[thief] = carry
+				setCarrySpeed(thief, true)
+				if thief ~= victim then
+					for _, handler in ipairs(stealHandlers) do task.spawn(handler, thief, victim, 1) end
+				end
+			end
+			if thief ~= victim then
+				lastGrab[victim] = lastGrab[victim] or {}
+				lastGrab[victim][thief] = os.clock()
+			end
+			setLootAmount(carry, victim)
+			pushCarryState(thief)
+			return true
+		end,
+	})
+	ShakeService.start()
+	-- Resolve basket escrow before either participant's final save. Existing
+	-- PlayerRemoving order otherwise permits a refund after the save is gone.
+	DataService.onBeforeRelease(function(player)
+		ShakeService.leaving(player)
+		local returning = {}
+		for thief, carry in pairs(carrying) do
+			if carry.kind == "basket" and (thief == player or carry.victim == player) then table.insert(returning, thief) end
+		end
+		for _, thief in ipairs(returning) do
+			local carry = carrying[thief]
+			clearCarry(thief)
+			returnCarryAmount(carry, carry.amount)
+		end
+	end)
+	startObjectives()
+	startStreetState()
 	-- THE GATE JAM'S DECISION LIVES HERE, because every question it asks
 	-- belongs to this file: is this player carrying, is this their own plot,
 	-- and can they pay. PlotService owns the geometry and the prompt and asks
@@ -3918,6 +4305,26 @@ function HeistService.start()
 		-- LOUD AND FAST. See `Config.SMASH`.
 		wireEntry(plot, plot.piggy.smashPrompt, Config.SMASH.hold,
 			"You did not get a grip on it.", HeistService.smash)
+		if plot.acornTree and not plot.shop then
+			local prompt = Instance.new("ProximityPrompt")
+			prompt.Name, prompt.ActionText, prompt.ObjectText = "ShakePrompt", "Shake Tree", "Acorns"
+			prompt.KeyboardKeyCode, prompt.GamepadKeyCode = Enum.KeyCode.H, Enum.KeyCode.ButtonY
+			prompt.HoldDuration = Config.CRACK.openHold
+			prompt.MaxActivationDistance, prompt.RequiresLineOfSight = Config.STEAL_RANGE, false
+			Config.setPromptKind(prompt, "shake")
+			prompt.Parent = plot.acornTree.collider
+			wireEntry(plot, prompt, Config.CRACK.openHold, "Hold to shake the tree.", HeistService.shake)
+			local raid = Instance.new("ProximityPrompt")
+			raid.Name, raid.ActionText, raid.ObjectText = "StorageRaidPrompt", "Raid Crate", "Acorn Storage"
+			raid.KeyboardKeyCode, raid.GamepadKeyCode = Enum.KeyCode.J, Enum.KeyCode.ButtonX -- R belongs to the hotbar
+			raid.HoldDuration = Config.CRACK.openHold
+			raid.MaxActivationDistance, raid.RequiresLineOfSight = Config.STEAL_RANGE, false
+			Config.setPromptKind(raid, "acornRaid")
+			raid.Parent = plot.acornStorage.body
+			wireEntry(plot, raid, Config.CRACK.openHold, "Hold to raid the crate.", function(thief, victim)
+				ShakeService.open(thief, victim, "storage")
+			end)
+		end
 	end
 
 	-- THE TAP CARRIES NOTHING AND THE STOP CARRIES NOTHING. Everything about
@@ -3941,13 +4348,14 @@ function HeistService.start()
 		-- quits mid-crack keeps nothing, but the victim has to get the coins
 		-- that already left their pig back, and that happens through the
 		-- carry below.
+		ShakeService.leaving(player)
 		endCrack(player, "lost")
 		cracking[player] = nil
 
 		-- Return anything in transit, then forget the player entirely.
 		local carry = carrying[player]
 		if carry then
-			giveBack(carry.victim, carry.amount)
+			returnCarryAmount(carry, carry.amount)
 			returnHaul(carry)
 			carrying[player] = nil
 		end
@@ -4110,15 +4518,11 @@ function HeistService.start()
 		while true do
 			task.wait(0.25)
 			for thief, carry in pairs(carrying) do
-				local plot = PlotService.getPlot(thief)
-				local root = getRoot(thief)
-				local near = false
-				if plot and root then
-					local flat = Vector3.new(root.Position.X, plot.base.Position.Y, root.Position.Z)
-					near = (flat - plot.base.Position).Magnitude <= Config.DROPOFF_RADIUS
-				end
-				if near ~= (carry.inRange == true) then
-					carry.inRange = near
+				local action = dropAction(thief, carry)
+				local canReturn = returnPlot(carry) ~= nil
+				if action ~= carry.dropAction or canReturn ~= carry.returnAvailable then
+					carry.dropAction, carry.returnAvailable = action, canReturn
+					carry.inRange = action ~= nil
 					pushCarryState(thief)
 				end
 			end

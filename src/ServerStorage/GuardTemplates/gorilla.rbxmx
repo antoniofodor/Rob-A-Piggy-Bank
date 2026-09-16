@@ -1,0 +1,1231 @@
+<roblox version="4">
+  <Item class="Model" referent="model">
+    <Properties>
+      <string name="Name">gorilla</string>
+    </Properties>
+    <Item class="MeshPart" referent="p0">
+      <Properties>
+        <string name="Name">BackL</string>
+        <Content name="MeshId">
+          <url>rbxassetid://95028640150989</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.991216242313385</X>
+          <Y>0.8148818612098694</Y>
+          <Z>1.002106785774231</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.991216242313385</X>
+          <Y>0.8148818612098694</Y>
+          <Z>1.002106785774231</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.7825698852539062</X>
+          <Y>1.0379314422607422</Y>
+          <Z>0.67547607421875</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p1">
+      <Properties>
+        <string name="Name">BackL_Foot</string>
+        <Content name="MeshId">
+          <url>rbxassetid://79649573746757</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.8046435117721558</X>
+          <Y>0.2682146728038788</Y>
+          <Z>0.9555555582046509</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.8046435117721558</X>
+          <Y>0.2682146728038788</Y>
+          <Z>0.9555555582046509</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.8402328491210938</X>
+          <Y>0.1341075897216797</Y>
+          <Z>0.49425506591796875</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p2">
+      <Properties>
+        <string name="Name">BackL_Lower</string>
+        <Content name="MeshId">
+          <url>rbxassetid://123490002210296</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.6762816905975342</X>
+          <Y>0.7479028701782227</Y>
+          <Z>0.7591066360473633</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.6762816905975342</X>
+          <Y>0.7479028701782227</Y>
+          <Z>0.7591066360473633</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.8319931030273438</X>
+          <Y>0.48601531982421875</Y>
+          <Z>0.667236328125</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p3">
+      <Properties>
+        <string name="Name">BackR</string>
+        <Content name="MeshId">
+          <url>rbxassetid://133133534458606</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.991216242313385</X>
+          <Y>0.8148818612098694</Y>
+          <Z>1.002106785774231</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.991216242313385</X>
+          <Y>0.8148818612098694</Y>
+          <Z>1.002106785774231</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.7825698852539062</X>
+          <Y>1.0379314422607422</Y>
+          <Z>0.67547607421875</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p4">
+      <Properties>
+        <string name="Name">BackR_Foot</string>
+        <Content name="MeshId">
+          <url>rbxassetid://136307217882151</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.8046435117721558</X>
+          <Y>0.2682146728038788</Y>
+          <Z>0.9555555582046509</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.8046435117721558</X>
+          <Y>0.2682146728038788</Y>
+          <Z>0.9555555582046509</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.8402328491210938</X>
+          <Y>0.1341075897216797</Y>
+          <Z>0.49425506591796875</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p5">
+      <Properties>
+        <string name="Name">BackR_Lower</string>
+        <Content name="MeshId">
+          <url>rbxassetid://130783089694033</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.6762816905975342</X>
+          <Y>0.7479028701782227</Y>
+          <Z>0.7591066360473633</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.6762816905975342</X>
+          <Y>0.7479028701782227</Y>
+          <Z>0.7591066360473633</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.8319931030273438</X>
+          <Y>0.48601531982421875</Y>
+          <Z>0.667236328125</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p6">
+      <Properties>
+        <string name="Name">Body</string>
+        <Content name="MeshId">
+          <url>rbxassetid://85868097813829</url>
+        </Content>
+        <Vector3 name="size">
+          <X>2.504214286804199</X>
+          <Y>2.734865665435791</Y>
+          <Z>1.878161072731018</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>2.504214286804199</X>
+          <Y>2.734865665435791</Y>
+          <Z>1.878161072731018</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>1.680459976196289</Y>
+          <Z>0.1647491455078125</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p7">
+      <Properties>
+        <string name="Name">Brow_L</string>
+        <Content name="MeshId">
+          <url>rbxassetid://139720321132080</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.6919538974761963</X>
+          <Y>0.20429134368896484</Y>
+          <Z>0.21417629718780518</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.6919538974761963</X>
+          <Y>0.20429134368896484</Y>
+          <Z>0.21417629718780518</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.43659210205078125</X>
+          <Y>3.8057470321655273</Y>
+          <Z>-1.502532958984375</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p8">
+      <Properties>
+        <string name="Name">Brow_R</string>
+        <Content name="MeshId">
+          <url>rbxassetid://93062867154261</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.6919538974761963</X>
+          <Y>0.20429134368896484</Y>
+          <Z>0.21417629718780518</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.6919538974761963</X>
+          <Y>0.20429134368896484</Y>
+          <Z>0.21417629718780518</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.43659210205078125</X>
+          <Y>3.8057470321655273</Y>
+          <Z>-1.502532958984375</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p9">
+      <Properties>
+        <string name="Name">Chest</string>
+        <Content name="MeshId">
+          <url>rbxassetid://70874376412457</url>
+        </Content>
+        <Vector3 name="size">
+          <X>1.5025286674499512</X>
+          <Y>1.548659086227417</Y>
+          <Z>0.11532598733901978</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>1.5025286674499512</X>
+          <Y>1.548659086227417</Y>
+          <Z>0.11532598733901978</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>1.6475105285644531</Y>
+          <Z>-0.802337646484375</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p10">
+      <Properties>
+        <string name="Name">Ear_-1</string>
+        <Content name="MeshId">
+          <url>rbxassetid://75306745706519</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.36245203018188477</X>
+          <Y>0.5013997554779053</Y>
+          <Z>0.046130359172821045</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.36245203018188477</X>
+          <Y>0.5013997554779053</Y>
+          <Z>0.046130359172821045</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>1.1038284301757812</X>
+          <Y>3.3444442749023438</Y>
+          <Z>-0.560150146484375</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p11">
+      <Properties>
+        <string name="Name">Ear_1</string>
+        <Content name="MeshId">
+          <url>rbxassetid://116731508453476</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.36245203018188477</X>
+          <Y>0.5013997554779053</Y>
+          <Z>0.046130359172821045</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.36245203018188477</X>
+          <Y>0.5013997554779053</Y>
+          <Z>0.046130359172821045</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.1038284301757812</X>
+          <Y>3.3444442749023438</Y>
+          <Z>-0.560150146484375</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p12">
+      <Properties>
+        <string name="Name">Eye_L</string>
+        <Content name="MeshId">
+          <url>rbxassetid://138153369222806</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.22076624631881714</X>
+          <Y>0.27263593673706055</Y>
+          <Z>0.04613029956817627</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.22076624631881714</X>
+          <Y>0.27263593673706055</Y>
+          <Z>0.04613029956817627</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.43659210205078125</X>
+          <Y>3.5586204528808594</Y>
+          <Z>-1.4596939086914062</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p13">
+      <Properties>
+        <string name="Name">Eye_R</string>
+        <Content name="MeshId">
+          <url>rbxassetid://93883986457136</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.22076624631881714</X>
+          <Y>0.27263593673706055</Y>
+          <Z>0.04613029956817627</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.22076624631881714</X>
+          <Y>0.27263593673706055</Y>
+          <Z>0.04613029956817627</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.43659210205078125</X>
+          <Y>3.5586204528808594</Y>
+          <Z>-1.4596939086914062</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p14">
+      <Properties>
+        <string name="Name">FaceMask</string>
+        <Content name="MeshId">
+          <url>rbxassetid://87633089200546</url>
+        </Content>
+        <Vector3 name="size">
+          <X>1.746359944343567</X>
+          <Y>1.318007469177246</Y>
+          <Z>0.09720325469970703</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>1.746359944343567</X>
+          <Y>1.318007469177246</Y>
+          <Z>0.09720325469970703</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>3.245594024658203</Y>
+          <Z>-1.371551513671875</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p15">
+      <Properties>
+        <string name="Name">Fang_-1</string>
+        <Content name="MeshId">
+          <url>rbxassetid://125225001723620</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.1797749102115631</X>
+          <Y>0.2306516170501709</Y>
+          <Z>0.15568959712982178</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.1797749102115631</X>
+          <Y>0.2306516170501709</Y>
+          <Z>0.15568959712982178</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.3954010009765625</X>
+          <Y>2.6854400634765625</Y>
+          <Z>-1.6981735229492188</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p16">
+      <Properties>
+        <string name="Name">Fang_1</string>
+        <Content name="MeshId">
+          <url>rbxassetid://122580187991963</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.1797749102115631</X>
+          <Y>0.2306516170501709</Y>
+          <Z>0.15568959712982178</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.1797749102115631</X>
+          <Y>0.2306516170501709</Y>
+          <Z>0.15568959712982178</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.3954010009765625</X>
+          <Y>2.6854400634765625</Y>
+          <Z>-1.6981735229492188</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p17">
+      <Properties>
+        <string name="Name">FrontL</string>
+        <Content name="MeshId">
+          <url>rbxassetid://94508573348071</url>
+        </Content>
+        <Vector3 name="size">
+          <X>1.5632190704345703</X>
+          <Y>1.8211846351623535</Y>
+          <Z>1.291546106338501</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>1.5632190704345703</X>
+          <Y>1.8211846351623535</Y>
+          <Z>1.291546106338501</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>1.304168701171875</X>
+          <Y>2.100574493408203</Y>
+          <Z>-0.2800750732421875</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p18">
+      <Properties>
+        <string name="Name">FrontL_Foot</string>
+        <Content name="MeshId">
+          <url>rbxassetid://124125695503559</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.987517237663269</X>
+          <Y>0.3291725516319275</Y>
+          <Z>1.0873563289642334</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.987517237663269</X>
+          <Y>0.3291725516319275</Y>
+          <Z>1.0873563289642334</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>1.8452072143554688</X>
+          <Y>0.16458702087402344</Y>
+          <Z>-1.1203079223632812</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p19">
+      <Properties>
+        <string name="Name">FrontL_Lower</string>
+        <Content name="MeshId">
+          <url>rbxassetid://132273842364573</url>
+        </Content>
+        <Vector3 name="size">
+          <X>1.1320303678512573</X>
+          <Y>1.528348684310913</Y>
+          <Z>1.4073731899261475</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>1.1320303678512573</X>
+          <Y>1.528348684310913</Y>
+          <Z>1.4073731899261475</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>1.713409423828125</X>
+          <Y>0.8402290344238281</Y>
+          <Z>-0.7001876831054688</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p20">
+      <Properties>
+        <string name="Name">FrontR</string>
+        <Content name="MeshId">
+          <url>rbxassetid://85846067427547</url>
+        </Content>
+        <Vector3 name="size">
+          <X>1.5632190704345703</X>
+          <Y>1.8211846351623535</Y>
+          <Z>1.291546106338501</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>1.5632190704345703</X>
+          <Y>1.8211846351623535</Y>
+          <Z>1.291546106338501</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.304168701171875</X>
+          <Y>2.100574493408203</Y>
+          <Z>-0.2800750732421875</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p21">
+      <Properties>
+        <string name="Name">FrontR_Foot</string>
+        <Content name="MeshId">
+          <url>rbxassetid://77709278810185</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.987517237663269</X>
+          <Y>0.3291725516319275</Y>
+          <Z>1.0873563289642334</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.987517237663269</X>
+          <Y>0.3291725516319275</Y>
+          <Z>1.0873563289642334</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.8452072143554688</X>
+          <Y>0.16458702087402344</Y>
+          <Z>-1.1203079223632812</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p22">
+      <Properties>
+        <string name="Name">FrontR_Lower</string>
+        <Content name="MeshId">
+          <url>rbxassetid://102535752317741</url>
+        </Content>
+        <Vector3 name="size">
+          <X>1.1320303678512573</X>
+          <Y>1.528348684310913</Y>
+          <Z>1.4073731899261475</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>1.1320303678512573</X>
+          <Y>1.528348684310913</Y>
+          <Z>1.4073731899261475</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.713409423828125</X>
+          <Y>0.8402290344238281</Y>
+          <Z>-0.7001876831054688</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p23">
+      <Properties>
+        <string name="Name">Head</string>
+        <Content name="MeshId">
+          <url>rbxassetid://82425495534935</url>
+        </Content>
+        <Vector3 name="size">
+          <X>2.174712657928467</X>
+          <Y>2.0099616050720215</Y>
+          <Z>1.614559531211853</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>2.174712657928467</X>
+          <Y>2.0099616050720215</Y>
+          <Z>1.614559531211853</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>3.2950191497802734</Y>
+          <Z>-0.5601577758789062</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p24">
+      <Properties>
+        <string name="Name">LowerFang_-1</string>
+        <Content name="MeshId">
+          <url>rbxassetid://84354197773073</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.1255570650100708</X>
+          <Y>0.14827585220336914</Y>
+          <Z>0.10873556137084961</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.1255570650100708</X>
+          <Y>0.14827585220336914</Y>
+          <Z>0.10873556137084961</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.3954010009765625</X>
+          <Y>2.858428955078125</Y>
+          <Z>-1.5634841918945312</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p25">
+      <Properties>
+        <string name="Name">LowerFang_1</string>
+        <Content name="MeshId">
+          <url>rbxassetid://117050435349208</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.1255570650100708</X>
+          <Y>0.14827585220336914</Y>
+          <Z>0.10873556137084961</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.1255570650100708</X>
+          <Y>0.14827585220336914</Y>
+          <Z>0.10873556137084961</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.3954010009765625</X>
+          <Y>2.858428955078125</Y>
+          <Z>-1.5634841918945312</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p26">
+      <Properties>
+        <string name="Name">LowerJaw</string>
+        <Content name="MeshId">
+          <url>rbxassetid://134676147608452</url>
+        </Content>
+        <Vector3 name="size">
+          <X>1.1532566547393799</X>
+          <Y>0.25042128562927246</Y>
+          <Z>0.500842809677124</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>1.1532566547393799</X>
+          <Y>0.25042128562927246</Y>
+          <Z>0.500842809677124</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>2.6772022247314453</Y>
+          <Z>-1.5206527709960938</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p27">
+      <Properties>
+        <string name="Name">LowerMouthInside</string>
+        <Content name="MeshId">
+          <url>rbxassetid://93924065784529</url>
+        </Content>
+        <Vector3 name="size">
+          <X>1.0214558839797974</X>
+          <Y>0.049425363540649414</Y>
+          <Z>0.42835235595703125</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>1.0214558839797974</X>
+          <Y>0.049425363540649414</Y>
+          <Z>0.42835235595703125</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>2.8090038299560547</Y>
+          <Z>-1.5486602783203125</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p28">
+      <Properties>
+        <string name="Name">MouthBack</string>
+        <Content name="MeshId">
+          <url>rbxassetid://134109705781468</url>
+        </Content>
+        <Vector3 name="size">
+          <X>1.0214558839797974</X>
+          <Y>0.42835235595703125</Y>
+          <Z>0.05931055545806885</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>1.0214558839797974</X>
+          <Y>0.42835235595703125</Y>
+          <Z>0.05931055545806885</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>2.7678165435791016</Y>
+          <Z>-1.4036788940429688</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p29">
+      <Properties>
+        <string name="Name">MouthLine</string>
+        <Content name="MeshId">
+          <url>rbxassetid://89971157708933</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.7275938391685486</X>
+          <Y>0.06420707702636719</Y>
+          <Z>0.03954017162322998</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.7275938391685486</X>
+          <Y>0.06420707702636719</Y>
+          <Z>0.03954017162322998</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>2.7142486572265625</Y>
+          <Z>-1.7776641845703125</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p30">
+      <Properties>
+        <string name="Name">Nose</string>
+        <Content name="MeshId">
+          <url>rbxassetid://84070882619494</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.879770040512085</X>
+          <Y>0.3558623790740967</Y>
+          <Z>0.3558621406555176</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.879770040512085</X>
+          <Y>0.3558623790740967</Y>
+          <Z>0.3558621406555176</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>3.278543472290039</Y>
+          <Z>-1.5733718872070312</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p31">
+      <Properties>
+        <string name="Name">Nostril_-1</string>
+        <Content name="MeshId">
+          <url>rbxassetid://94344461674240</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.19770114123821259</X>
+          <Y>0.11281538009643555</Y>
+          <Z>0.04613041877746582</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.19770114123821259</X>
+          <Y>0.11281538009643555</Y>
+          <Z>0.04613041877746582</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.19770050048828125</X>
+          <Y>3.2620697021484375</Y>
+          <Z>-1.7611846923828125</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p32">
+      <Properties>
+        <string name="Name">Nostril_1</string>
+        <Content name="MeshId">
+          <url>rbxassetid://136213515399447</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.19770114123821259</X>
+          <Y>0.11281538009643555</Y>
+          <Z>0.04613041877746582</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.19770114123821259</X>
+          <Y>0.11281538009643555</Y>
+          <Z>0.04613041877746582</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.19770050048828125</X>
+          <Y>3.2620697021484375</Y>
+          <Z>-1.7611846923828125</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p33">
+      <Properties>
+        <string name="Name">UpperMuzzle</string>
+        <Content name="MeshId">
+          <url>rbxassetid://82200265585657</url>
+        </Content>
+        <Vector3 name="size">
+          <X>1.2191569805145264</X>
+          <Y>0.31632161140441895</Y>
+          <Z>0.5107280015945435</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>1.2191569805145264</X>
+          <Y>0.31632161140441895</Y>
+          <Z>0.5107280015945435</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>2.932567596435547</Y>
+          <Z>-1.5536041259765625</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+      </Properties>
+    </Item>
+  </Item>
+</roblox>

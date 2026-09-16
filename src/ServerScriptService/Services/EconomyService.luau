@@ -50,6 +50,7 @@ local milestoneReached: { [Player]: number } = {}
 -- tick compares against this and catches up within a second whatever moved
 -- the number.
 local lastShown: { [Player]: number } = {}
+local lastAcornsShown: { [Player]: number } = {}
 
 -- ============================================================
 -- HELPERS
@@ -75,9 +76,17 @@ local function pushState(player: Player)
 		return
 	end
 
+	local acorns = math.floor(data.loot)
+	local plot = PlotService.getPlot(player)
+	if plot then
+		PlotService.updateAcorns(plot, acorns)
+		PlotService.updateTreeAcorns(plot, data.treeAcorns or 0, data.groundAcorns or 0)
+	end
+	lastAcornsShown[player] = acorns
 	local capacity = Config.getCapacity(data.capacityLevel)
 	Remotes.get("StateUpdate"):FireClient(player, {
 		coins = math.floor(data.coins),
+		acorns = acorns,
 		capacity = capacity,
 		-- Income has stopped. The HUD turns the bar red on this rather than
 		-- on the ratio, because a pig can sit ABOVE capacity after a robbery
@@ -169,6 +178,8 @@ function EconomyService.applyOfflineIncome(player: Player): number
 		return 0
 	end
 
+	Config.growAcorns(data, os.time())
+	Config.expireGroundAcorns(data, os.time())
 	local elapsed = math.max(0, os.time() - data.lastSave)
 	local counted = math.min(elapsed, Config.OFFLINE_CAP_SECONDS)
 	if counted <= 0 then
@@ -286,6 +297,7 @@ function EconomyService.start()
 		lastRequest[player] = nil
 		milestoneReached[player] = nil
 		lastShown[player] = nil
+		lastAcornsShown[player] = nil
 	end)
 
 	-- Accrual loop. Uses elapsed wall time rather than assuming the tick
@@ -301,6 +313,8 @@ function EconomyService.start()
 			for _, player in ipairs(Players:GetPlayers()) do
 				local data = DataService.get(player)
 				if data then
+					local grown = Config.growAcorns(data, os.time())
+					local expired = Config.expireGroundAcorns(data, os.time())
 					local capacity = Config.getCapacity(data.capacityLevel)
 					if data.coins < capacity then
 						-- A daily boost multiplies the live drip only. It deliberately
@@ -326,6 +340,14 @@ function EconomyService.start()
 							checkMilestones(player, plot, data.coins / capacity)
 						end
 						pushState(player)
+					elseif grown > 0 or expired or math.floor(data.loot) ~= lastAcornsShown[player] then
+						-- A full pig still grows Acorns, and any other wallet change
+						-- must repaint storage/tree even when coins did not move.
+						pushState(player)
+					end
+					if grown > 0 then
+						local plot = PlotService.getPlot(player)
+						if plot then Remotes.get("AcornGrown"):FireAllClients(plot.model, grown) end
 					end
 				end
 			end

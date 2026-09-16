@@ -135,14 +135,13 @@ for exactly this reason.
 
 ## 3. Currencies
 
-There are **two**. Which one buys what used to be a legal question as much as
-a design one; it no longer is, because neither can be bought with Robux, at
-any price, ever.
+There are **two**. Coins buy the standing catalogue; earned-only Acorns buy
+crates and set items. Neither currency is currently sold for Robux.
 
 | | Field | Earned by | Buys | Purchasable with Robux? |
 |---|---|---|---|---|
-| **Coins** | `data.coins` — the piggy bank, all of it stealable | idle accrual (stops at capacity), delivering a robbery (**counts double**, triple on revenge), dailies, events, **selling a chest-duplicate spare** (`Config.SELL`, below) | upgrades, effects, houses, decorations, rides, consumables, **trophy plinths** (§9), and **chests** (below) — skins are crate-only now, bought with coins only indirectly, §9 | **never, at any price** |
-| **Acorns** | `data.loot` (unchanged save field) | legacy event rewards remain; tree shakes are planned in Phase 2. Piggy deliveries pay none | set items and the `alien` event chest, both live in the shop's **Crates** tab; the accessory roll (`Config.ROLL_CURRENCY`) this row used to name is retired along with `ACCESSORIES` (§9) | **never, at any price** |
+| **Coins** | `data.coins` — the piggy bank, all of it stealable | idle accrual (stops at capacity), delivering a robbery (**counts double**, triple on revenge), dailies, events, **selling a chest-duplicate spare** (`Config.SELL`, below) | upgrades, effects, houses, decorations, rides, consumables, **trophy plinths** (§9); crates use Acorns | No current product |
+| **Acorns** | `data.loot` (unchanged save field) | approved full-legendary-collection rebirth bonus; tree growth/shakes remain Phase 2. Events and piggy deliveries pay none | set items and every crate in `Config.CHESTS`; the accessory roll is retired along with `ACCESSORIES` (§9) | **never, at any price** |
 
 **Medals and tokens are retired into loot.** `data.medals` and `data.tokens`
 were merged into `data.loot` one-for-one at schema 17. The daily ladder pays
@@ -150,42 +149,25 @@ coins and boosts and no Acorns.
 Chest duplicates are a separate, chest-internal currency — see **spares**,
 below.
 
-### Why nothing here is a regulated loot box
+### Earned-only crate purchases
 
-Roblox defines a **paid random item** as one bought with Robux *or with in-game
-currency purchasable with Robux*. Regulated ones carry a real cost: odds
-disclosed before purchase summing to 100%, plus a `PolicyService` gate that
-makes the feature refuse to open for restricted users in an expanding list of
-regions.
+**No crate charges coins.** Every `Config.CHESTS` entry uses the persisted
+`loot` currency, named Acorns by `Config.ROLL_CURRENCY`. `ChestService` refuses
+an unknown, missing or coin currency before rolling or charging; it has no
+coin-payment fallback. `Config.auditEconomy` reports any crate that violates
+this rule at boot, separately from the coin catalogue's capacity checks.
 
-**The coin pack was dropped entirely, and that single rule is what now keeps
-the whole shop outside the regulation rather than compliant with it.** A chest
-bought with coins is a paid random item only if those coins can be bought with
-real money — so with coins permanently unsellable, *anything* may be sold for
-coins, including random things, with no odds disclosure, no gate and no
-regional lockout. `Config.CHESTS`' own header comment states this as the reason
-the chest system is allowed to exist at all.
+This implements master-plan step 1.4. Step 1.9 now adds the broader
+random-outcome sweep and removes legacy event Acorn payouts (below).
+No coin product is sold. The accessory roll is retired with `ACCESSORIES` (§9).
 
-**The rule can only be broken once.** The day a coin pack ships, every chest in
-the game becomes a regulated loot box retroactively, with nothing in this repo
-having changed — and by then there will be a catalogue of them, not one roll
-button. Monetization is named things, never currency: a Robux purchase may
-grant an item (a ride, a pass, a stance) but never a coin or a chest, because a
-purchase that hands over a specific thing mints no currency and feeds no roll
-(see §15).
+### Chests — Acorn-priced, and duplicates are allowed
 
-The accessory roll predated this rule and was the earlier, narrower fix for the
-same problem — earn-only currency rather than an unsellable one. It never had
-to carry that weight for long: it is retired now, along with the whole
-`ACCESSORIES` catalogue it rolled from (§9).
-
-### Chests — coin-bought, and duplicates are allowed
-
-`Config.CHESTS` is **five** chests, all skins: four on coins (`og` — "Piggy
-Originals", 28 skins tagged `chest = "og"`; `animal` — "Animal Kingdom", 9
+`Config.CHESTS` is **five** Acorn-priced chests: four skin crates (`og` — "Piggy
+Originals", 31 skins tagged `chest = "og"`; `animal` — "Animal Kingdom", 9
 skins tagged `chest = "animal"`; `rarecrate` and `legendarycrate`, which carry
 no themed pool of their own and instead draw rare-or-better across both skin
-shelves) and one on loot (`alien`, an **event** chest — see below). `og` is
+shelves) and one event-set crate (`alien` — see below). `og` is
 the old `classics` chest with the retired `neon` chest's eleven skins folded
 into it — the two were never a different *kind* of skin, just a palette
 split, and palette is not an axis a nine-year-old shops on; `animal` is left
@@ -226,13 +208,16 @@ has no `rare` skin in stock at all and is priced `common 96 / legendary 4`
 instead, holding legendary at the same 4% `og` sells: `Config.chestPool`
 drops an unstocked tier and `liveOdds` renormalises the rest, so the `44%`
 `rare` slice would otherwise have fallen onto `legendary` and repriced the
-shelf. `rarecrate` (1.5M) draws `rare 90 / legendary 10`; `legendarycrate`
-(6M) draws `rare 65 / legendary 35`, and its `floor` moved from `epic` to
-`rare` — a floor naming a tier no skin carries any more would have left
-`legendary` the only stocked tier, turning six million coins into a
-*guaranteed* legendary rather than good odds on one. The price ladder these
-odds are solved against is unchanged: 12.5M coins per legendary from a themed
-chest, 15.0M from the Rare Crate, 17.1M from the Legendary Crate.
+shelf. The tier crates retain their `odds` and rare `floor`; the Acorn price
+ladder lives in `Config.CHESTS` and master-plan section 6. Neither the pools
+nor the odds change with the currency conversion.
+
+The Crates cards draw `Theme.acornPrice` and compare their price only with
+`data.loot`. A short balance shows `Config.acornShortfall`: the missing amount
+and the tree-shaking route. Pressing the card can request the same refusal
+from the server, which checks the current balance before rolling. The hint
+has two lines of space. Tree earning itself remains pending Phase 2; this
+incremental workspace change is not a completed economy release.
 
 **`Config.COMBINE.need` went from 3 to 5.** Losing the epic rung made the tier
 just below legendary far more abundant — 12% of a roll to 44% — which made
@@ -248,8 +233,10 @@ because a set spans five catalogues at once; every other chest today is a
 plain `skin` scan — `Config.ACCESSORIES` is retired and empty (§9), and the
 `gear` chest that once drew from it went with it, though the `chest`-tag scan
 still supports `accessory` as a kind for whichever catalogue next wants one.
-Skins in a coin chest keep their ordinary `cost` too — the chest is a second,
-faster route to the same catalogue, not a replacement for direct purchase.
+Crate skins have explicit rarities and no coin purchase `cost`. Historical
+resale limits live in `sellBasis`, read only by `Config.sellValue`; all 24
+moved values preserve their previous sale amounts. The skin service refuses
+unowned crate skins on a direct coin request (§9).
 
 **Unlike the roll, a chest can return a duplicate on purpose** — that reverses
 the collection rule stated in §9. A duplicate becomes a **spare** of that
@@ -259,18 +246,19 @@ is the one place that knows the grammar both ways — a bare key for an
 ordinary chest, `"kind:key"` for a `kind = "set"` one — and `ChestService`'s
 own `entryKey` builds a spare's storage key the same way), not a counter per
 tier. `Config.COMBINE` still pools spares **by tier** when combining — any
-three commons make a rare roll, whatever items they are — so a duplicate out
+`Config.COMBINE.need` commons fund a higher-tier roll, whatever items they are — so a duplicate out
 of a finished chest is still fuel for one barely started, with a small chance
-of climbing two or three tiers in one combine. **Combining spends only on coin
-chests**, never on `alien`, so a rich player cannot grind their way into event
-loot without ever attending an event. Effects have no chest: there are too few
+of climbing two or three tiers in one combine. **Combining spends spares into regular Acorn crates**, never into `alien`.
+`Config.canCombineChest` distinguishes regular crates from event sets rather
+than inferring eligibility from currency. `ChestState.canCombine` carries
+that decision to the card; the service checks it again before consuming spares. Effects have no chest: there are too few
 priced tiers to spread across rarities, so effects stay direct-purchase.
 
 **A spare has two exits: combine it, or sell it for coins.**
 `ChestService.sell` (remote `SpareSell`) pays `Config.sellValue(kind, key)`
 per copy — the tier's coin value off the inverse `Config.RARITIES` weight,
-**capped at `Config.SELL.priceFraction` of the item's own coin cost** where it
-has one, so buying something in the shop and selling it straight back can
+**capped at `Config.SELL.priceFraction` of the item's coin cost or historical
+`sellBasis`** where it has one, so buying something in the shop and selling it straight back can
 never turn a profit. **You may sell your last copy of an item, not only
 spares** — the one guard is `SetService.inUse`, which refuses only the copy
 currently equipped/worn/placed, so an accidental sale of the thing a player is
@@ -282,12 +270,12 @@ that would overflow the pig's capacity is **refused outright, never clamped
 and never partially filled** — the "spend it or lose it" pig rule (§4) applied
 to a payout instead of an accrual.
 
-**`alien` is the first event chest**, bought with loot rather than coins and
+**`alien` is the first event chest**, bought with Acorns and
 drawing on the same alien **set** (§8) that loot already unlocks item-by-item
-— a `kind = "set"` chest is a gamble sitting *beside* the guaranteed loot
+— a `kind = "set"` chest is a gamble sitting *beside* the guaranteed Acorn
 price, never a replacement for it. Duplicates from it still produce spares,
 which is a small thank-you for attending; those spares can be **sold** but
-cannot be **combined** back into `alien` — only into a coin chest.
+cannot be **combined** back into `alien` — only into a regular crate.
 
 **A chest can also arrive as a free delivery instead of a purchase.** Day
 seven of the daily ladder (`Config.DAILY_CYCLE`) owes the claimer a chest
@@ -303,9 +291,9 @@ the player is still looking at the daily board. It survives a disconnect
 between the claim and the walk by design — losing a seven-day streak's reward
 to a dropped session would be the worst thing that ladder could do.
 
-**`ChestService` is built and wired end to end, and two of its three remotes
-now have a real front door.** `ChestService.open`, `.combine` and `.sell` are
-real, the `ChestOpen` / `ChestCombine` / `SpareSell` / `ChestResult` /
+**`ChestService` is wired end to end.** Opening, combining, selling and
+seasonal skin buy-back are reachable through the shop/inventory. The
+`ChestOpen` / `ChestCombine` / `SpareSell` / `SkinBuyback` / `ChestResult` /
 `ChestState` remotes are live, `Main` starts the service and registers
 `EconomyService.push` and `CosmeticsService.push` as its balance pushers, and
 `data.spares` is a real save field (`Config.SCHEMA_VERSION` 18).
@@ -313,10 +301,9 @@ real, the `ChestOpen` / `ChestCombine` / `SpareSell` / `ChestResult` /
 renders `ChestState` / `ChestResult`; **`Shared/Inventory.luau`** (§14) — the
 one place a player can see every spare they hold, since a chest reveal shows
 only the one item just opened — fires `SpareSell` from a real card button.
-**`ChestCombine` still has none**: nothing in `ClientMain` fires it, so
-combining remains reachable only through the admin panel's `chest` /
-`combine` dev commands. The plan is to put a COMBINE control on the `Crates`
-tab's own cards, since a combine rolls into a specific coin chest. See §17.
+The Crates card's combine chips call `ChestCombine`; event-set cards hide
+that row. An Acorn purchase pushes both the crate state and currency balances.
+The existing `data.loot` balance is used directly, with no save migration.
 
 `Config.isSellable` does not know which catalogues can actually carry a
 spare — it admits anything with a coin `cost`, so a ride or a decoration
@@ -324,6 +311,186 @@ spare — it admits anything with a coin `cost`, so a ride or a decoration
 selling one is a genuine, un-refused last-copy sale through the same
 `SetService.revoke` path a skin or accessory uses. Recorded as a known gap in
 §17, not fixed.
+
+### Residential Acorn oaks, carry baskets and storage
+
+`Shared/AcornTree.luau` loads the two uploaded meshes from
+`Config.ACORN_OAK_MESH` once and clones them into each residential plot after
+its final rotation. The source is `assets/tree/blender/oak.glb`, imported by
+the designer at 8.5 studs wide and about 9.25 tall. Studio-measured offsets
+preserve the imported assembly; `treeScale = 1` avoids shrinking it twice.
+Both meshes keep a white tint and the shared baked palette.
+
+`PlotService` seats the ground pivot at `ACORNS.treeOffset`, with the lawn
+surface height. A hidden lower-trunk collider is the sole physical/query
+part; visual roots, branches and foliage do not create a bounding-box barrier.
+Shops use a separate builder and receive no tree. `lawnI` is reserved; existing
+save reconciliation shelves placements there while retaining owned ornaments.
+The remaining eight lawn slots continue to work.
+
+Studio Edit fixtures verified asset loading, grounding, both street-row
+orientations, fence-line clearance and trunk/open-space raycasts. Full in-game
+visual/walk-through checks remain pending.
+
+`Shared/AcornBasket.luau` supplies the imported woven **carry basket**.
+Residential lawns now have an open `AcornStorage` crate at (-20, 16), beside
+the oak. The imported four-mesh `AcornStorageCrate` is 3.6 wide × 2.8 deep ×
+1.9 tall. `Config.ACORN_STORAGE_MESH` stores its uploaded IDs and measured
+assembly; the builder caches templates and retains the old invisible floor
+for prompts and fill. A complete wooden fallback handles asset-load failures.
+Source art and import measurements are in `assets/crate/`. Shops have neither
+tree nor crate.
+
+Trees grow one Acorn/hour up to eight ripe, online and offline. Saved
+`treeAcorns` is independent of banked `loot`; a stored balance of 200 does
+not stop a tree growing. Existing wallet balances remain banked unchanged.
+`acornsGrownAt` preserves partial hours; full-tree time cannot be banked.
+Shaken Acorns move into saved `groundAcorns` with `acornsDroppedAt`, and
+expire after 60 seconds. A round started near expiry gets its full duration.
+
+`AcornFill` uses the imported Nut/Cap/Stem asset for ripe tree Acorns, fallen
+ground Acorns and bounded crate contents. The crate always displays the
+exact stored count, including zero and values above eight; PACKED is gone.
+The HUD/spending systems continue to use `loot`. Imported assets are archived
+under `assets/acorn/`. The renderer handles late/removed props and plots.
+
+### Carry ownership
+
+Every successful pig or basket attachment records `claimant` (the original
+player who grabbed it) and `holder` (the player whose character carries it).
+Later crack slices and Acorn catches retain that record. Both delivery entry
+points validate the holder against the requesting player and read claimant
+before settlement. Original-holder payouts are unchanged. Missing claimant or
+mismatched holder leaves escrow intact. Completed tugs transfer the same carry.
+
+`DeliverRequest` remains an empty request. The server checks a living carrier,
+current position, activity and destination ownership on every press. Coins use
+the pig's existing plot drop-off; Acorns use the storage crate. Both check
+vertical distance. A newly occupied resident/player property cannot receive
+an old victim's return.
+
+- **Keep at home:** claimant receives the existing normal/revenge/spree coin
+  payout or Acorn multiplier. Other holders get floor(raw amount ×
+  `NAB.keepShare`) with no multipliers, plus the whole item haul. Keeping
+  counts one getaway; Acorns never inflate coin statistics.
+- **Return to the victim:** full raw coins and items are restored. Acorn
+  receipts restore their original storage or ground source. The delivering
+  non-claimant gets floor(raw amount × `NAB.bounty`) in the same currency.
+  No robbery/revenge bonus is awarded. Own harvests and claimant undos pay no
+  bounty. A victim bringing their own intercepted haul home always returns it.
+- **Nabbed again:** claimant and receipts persist; the final holder decides.
+
+The final keeper becomes the victim's revenge target. If an in-flight skin
+recovery is intercepted, its original recovery owner gets the claim against
+that keeper; insured recoveries never create a spare for an interceptor.
+Unrelated owners' claims remain independent. Carries are consumed before
+item grants can yield, so repeated requests cannot repeat payouts/refunds.
+
+`CarryDelivery` formats server-owned choices for `LootHaul`'s destination card.
+It names both drop-offs and rewards, handles item-only carries, and offers
+KEEP/RETURN only for the current location. The card replaces the old RUN HOME
+banner and hides during crack/collection minigames. The server also refuses
+settlement during those activities. Touch and the existing F action use the
+same empty request.
+
+### Timed Acorn collection and storage raids
+
+Hold H (gamepad Y) at any residential tree for half a second. One ripe Acorn
+is enough to shake; an existing loose pile can be collected again. A
+five-second panel represents the ground pile: drag as many Acorns as you can
+into your basket. All remain available through the timer. Missed Acorns
+stay on the ground briefly, while newly grown stock remains on the tree.
+Owner harvesting is free of alarms, theft cooldowns and loss limits. Owners
+can retry leftovers with a basket from the same tree.
+
+Hold J (gamepad X) at another property's crate for a storage raid using the
+same timer. It offers max(1, floor(stored × .25)), limited to four net Acorns
+per victim in a rolling hour. Misses stay in the crate. Tree theft offers
+loose stock independently of the storage loss limit. Both theft sources
+share owner notification, dog response,
+shield/sneak drop and owner-interrupt checks. Own storage cannot be raided.
+
+Every catch is server-checked by attempt, unique index, timer, position,
+character state and current plot occupant. Concurrent attempts reserve the
+available supply. Catches enter carry escrow, not spendable storage.
+
+Bring the basket to your **own crate** and use DELIVER to bank it. Your own
+harvest pays one-for-one and never increments robberies or creates revenge.
+Stolen Acorns retain the resident x1/player x5-plus-rebirth-gap payout,
+doubled for revenge, at deposit only. Coin boosts/statistics remain separate.
+Failed carries refund raw Acorns to their original source; tree refunds
+return to the ground with a fresh collection window. Death/departure refunds
+settle before the final save. Imported carry contents show up to eight.
+
+### Resident Acorn supply
+
+Residential NPCs start with **two ripe Acorns and two stored**, four total.
+`ResidentAcorns` retains one stock record per plot per server; the resident's
+coin haul `.loot` is unchanged. Trees grow at one/hour, up to eight ripe,
+independently of the stored balance. A crop starting on an empty tree stays
+available for fifteen minutes, then a resident at home banks the ripe stock.
+Loose ground or a live collection lease postpones harvesting. This is a
+server stock transfer, with no new NPC harvesting animation.
+
+A valid round opening starts a **shared fifteen-minute cooldown** across
+both resident sources and every thief. Player-target Acorn cooldown remains
+60 seconds per thief/victim. Empty/out-of-range refusals start no timer.
+Both resident prompts show an hourglass and Steal ready in m:ss nearby and
+return to their stock counts when
+ready. Existing resident coin raids keep their original cooldown.
+
+Player occupancy freezes resident growth/harvest clocks; releasing the plot
+resumes the same stock and partial hour. No repeat seed, hidden tree growth
+or transfer of resident stock to the player occurs. Real-time raid/ground
+expiry continues, and delayed old receipts refund the retained resident stock.
+Shops have no stock or Acorn interactions. Initial stock resets only with a
+new server. Live input/carry visual review remains pending.
+
+### Lifetime delivered robberies
+
+`data.robberies` counts one nonempty getaway delivered home against any
+player, resident or shop. Coins, partial cracks and skin-only recoveries all
+qualify; carrying multiple items or earning a larger payout still counts once.
+HeistService consumes the carry before crediting the counter, preventing
+repeat requests from counting twice. Failed getaways and empty carries earn
+no credit. The count updates before item rewards can trigger a save.
+
+DataService defaults it to zero on new and existing schema-25 saves, retaining
+all existing currency totals. Historical `totalStolen` cannot reconstruct a
+robbery count. Reconciliation keeps finite nonnegative whole numbers, and
+rebirth preserves the count alongside seasonal `claims`. Existing autosave
+and final release persist it; no new per-delivery DataStore write is added.
+Master-plan 1.10 is implemented, including the 4.1 delivery increment early;
+rank thresholds and plot-sign stars remain future work. Isolated tests cover
+real load/save/release/rejoin using a copying store double, plus actual theft
+and rebirth paths. Live DataStore persistence remains unverified.
+
+### Acorn and random-outcome boot audits
+
+`Config.auditAcorns` checks finite growth/payout/resident parameters, whole
+bounded seeds, valid raid/harvest cadence, population/share/storage caps,
+one-offline-window tree growth, crate prices and the existing modeled
+population/active-to-passive thresholds. Coin boosts/events do not feed Acorns.
+
+`Config.acornRates` now counts each freshly grown Acorn once. With full capture,
+parity theft and no losses, the **new-growth-only** banking scenarios are
+10 solo / 5.25 full per player-hour. Full-capture own harvesting instead gives
+1.25/full. Initial resident seeds and re-raids of existing storage are excluded;
+these are neither observed earnings nor ceilings on all sources of income.
+The illustrative daily audit adds an eight-Acorn overnight harvest and assumes
+one two-Acorn storage loss: 6 passive, 28 solo active, 18.5 full active, ratios
+4.67x/3.08x. See master-plan §17 for limitations. No payout/price changed.
+
+`Config.auditRandomOutcomes` checks Acorn crate currencies and whole positive
+prices, both authored coin-price/crate tags and actual pools, pass exclusions,
+100% eligible skin theft, retired rebirth gates and the rebirth crate reference.
+The designer-approved rebirth reward still rolls a standard Legendary Crate.
+`COIN_PACK.productId = 0` reserves a disabled future integration point; setting
+it live warns about the random rebirth reward. No product is currently sold.
+Main prints model figures, warns per violation and catches audit exceptions
+without stopping startup. The 185 isolated audit tests provoke every rule,
+verify reward services/boot warnings and preserve all affected resale values.
+Live boot/event/persistence checks remain pending.
 
 ### Why medals and tokens became one currency
 
@@ -351,7 +518,7 @@ adds one per rebirth above the thief, then doubles for revenge.
 `data.loot` field and pushes `SetState`. `PiggyPanel:setAcorns` renders that
 balance in a compact chip beside the event timer. `Theme.acorn` draws the
 approved brown nut, green cap and cocoa outline without images or animation;
-shop prices and the Acorn-priced crate use the same glyph.
+shop prices and all crate cards use the same glyph.
 `Config.lootWord(n)` supplies singular/plural wording. Existing balances
 are preserved; no save migration is needed for this rename.
 
@@ -426,7 +593,17 @@ skins, effects, houses, decorations, accessories, gear, rides, loot and bones.
   against the real ladder and gate functions — no robbing, no offline accrual,
   no dailies — a pure idler now reaches rebirth 10 / level 40 in about **1.4
   days** of continuous play, roughly 17 days at two hours a day.
-- **Every rebirth grants a skin.** The roll decides how rare, never whether.
+- **Every rebirth opens a standard free Legendary Crate**, through
+  `ChestService.grantFree` and `Config.REBIRTH_CRATE`. Its ordinary rare/legendary
+  odds apply, and an owned result pays a spare. It does not select the next
+  unowned skin, and it leaves the equipped skin unchanged. When
+  `Config.rebirthCrateComplete` finds every legendary in that crate already
+  owned, the reward is its Acorn price instead. Exclusives outside the crate
+  do not count toward completion. The old rarity roll, pity timer and coin
+  fallback are retired.
+- **Bronze, Gold Leaf and Diamond are Piggy Originals crate skins.** Their
+  explicit rarities remain; they are now stealable. Existing earned ownership
+  is preserved by the schema-25 migration (§13), not by rebirth-count gates.
 - **The plot fires a firework show, sized to the rebirth.**
   `PlotService.fireFireworks` writes `Config.PLOT_FIREWORK_RANK_ATTRIBUTE`
   (which rebirth this was) before bumping `Config.PLOT_FIREWORK_ATTRIBUTE` (a
@@ -452,10 +629,9 @@ skins, effects, houses, decorations, accessories, gear, rides, loot and bones.
   survive) rather than counting today's inventory, because a promise has to be
   total and a count read off a stale push can disagree with the server; and
   **YOU UNLOCK** is a row of rendered tiles rather than sentences — a drawn coin
-  for the income step, a piggy with a "?" for the guaranteed skin (which one is
-  a roll, so naming one would promise what the server never said), and any
-  count-unlocked skin rendered from its own catalogue key. The model renderer is
-  passed in from `ClientMain` rather than reimplemented.
+  for the income step and a drawn Legendary Crate, or an Acorn glyph and
+  the fallback amount when the legendary collection is complete. It refreshes
+  the reward when a cosmetics snapshot changes while the page is open.
 
 ### Offline
 
@@ -767,8 +943,8 @@ whole heist loop reachable by a single player.
    and no remote for it, because the loot model's presence already answers the
    question. Rides are disabled **server-wide** while loot is in transit —
    otherwise a bystander on a scrambler runs down a thief on foot.
-4. **Deliver** to your own drop-off, or get **nabbed** — a hold that pulls
-   coins back a slice at a time rather than a single grab (below).
+4. **Deliver** to your own drop-off, or get **nabbed** — a completed tug
+   transfers the intact carry to the winning player (below).
 
 **A dog that has been alerted — woken by footsteps, a missed slice or a smash,
 it is the same release every time (`HeistService.releaseDog`) — branches
@@ -821,49 +997,30 @@ alerted Titan at 17 more time to close. **If robbing ever reads as too hard,
 `DROPOFF_RADIUS` is the lever**: it is a fraction of your own plot rather than
 an absolute, so it can grow with the plot.
 
-**Being nabbed by a player is a hold that pulls coins back over time, not a
-touch that ends the robbery outright — the same conversion the crack already
-performed on the thief's own half of the game.** `HeistService.nab` is the
-`ProximityPrompt` welded to the loot itself (§14), open to anyone in reach
-except the thief. Landing the initial `Config.NAB.hold` opens (or joins) a
-**tug**: one per *thief*, never one per nabber, so a crowd shares a single
-recovery rather than each pressing their own, and a second or third nabber
-joining costs the thief nothing extra — the rate does not speed up, the
-arriving nabber only starts sharing the fee from the moment they join. The
-rate is fixed the instant the tug opens, as a share of whatever the thief was
-carrying *then*, so a clean recovery always takes exactly
-`Config.NAB.recoverSeconds` however the amount or the crowd changes
-afterwards — the same "measured against the getaway, not against a moving
-target" rule the crack's own slices already follow. Every `Config.NAB.tickRate`
-seconds a slice comes back, and every nabber still within `Config.NAB.distance`
-of the thief at that instant — proximity is the only signal the server
-trusts, since a `ProximityPrompt`'s own release event cannot be, and this
-project has already lost every steal in the game once to believing it — earns
-a **minted** bounty (`Config.NAB.bounty` of the slice, split evenly among
-whoever is currently holding), credited straight into their piggy and
-allowed to overflow capacity like a delivery, because a bounty is not a trade
-anybody chose to make.
+**A completed player nab transfers the intact carry.** The initial
+`Config.NAB.hold` opens or joins one tug per holder. Each `tickRate` interval
+advances progress toward `recoverSeconds`; a crowd divides contribution
+credit without speeding it up. No coins or Acorns leave escrow during a tug,
+and no bounty is minted. A haul containing only a skin still takes the same time.
+The ongoing crack/collection round closes when the tug starts.
 
-**A tug ends one of three ways, and only one of them is a real catch.**
-**Emptied** — the thief has nothing left — clears the loot, stuns the thief
-for `Config.STUN_SECONDS`, and fires a catch effect (§9) on whoever recovered
-the largest share, tie broken by whoever started the tug rather than by
-`pairs` order. **Dodged** costs the nabber their whole hold and ends the tug
-there — the dodge has to beat `Config.NAB.hold` outright, checked both at the
-moment a hold completes and on every tick after, which is the one
-read-and-counter this design gives a thief against being nabbed at all — and
-**simply running clear of every nabber, or a nabber letting go**, ends it the
-same way: the thief keeps whatever is left, with no stun and no catch effect,
-because nothing about it is a catch. Every ending, including a dodge, stamps
-the same rest on the thief (`Config.NAB.cooldown`) — deliberately
-unconditional, because a rest that only applied when a nabber *won* would
-leave a dodged thief immediately re-nabbable by the next person in the queue,
-which is the swarm the rest exists to stop, arriving through the failure case
-instead. `Config.NAB.recoverSeconds / (recoverSeconds + cooldown)` is the
-resulting duty cycle — a hard ceiling on how much of any stretch of time a
-thief can be under a tug, whatever the crowd — the same "the bound on what a
-street can do to one child is the bound one player can" shape
-`STEAL_COOLDOWN` and one-wheelie-bin-per-pursuit already use.
+At completion, the greatest contributor who is still alive, nearby and
+empty-handed wins; equal contributions use join order. Busy, missing or
+out-of-range players cannot receive the carry. The same loot model, prompt,
+haul and Acorn receipts move to the winner's character; claimant and victim
+stay unchanged. The loser loses the carry slow without being stunned. The
+winner receives the slow, loses shield/sneak, and gets `NAB.cooldown` rest.
+The prompt reads its current holder, so the original thief can take it back
+after that rest. Catch credit goes to contributors only on a successful transfer.
+
+A dodge or escape breaks the tug, preserving the entire carry and applying
+rest to its existing holder. A failed attachment likewise preserves escrow.
+Death, departure, delivery or confiscation cannot let an old tug award a catch
+or affect a replacement carry: each loop checks its original tug and carry.
+The current-holder rest preserves the existing anti-swarm duty-cycle bound.
+
+**Phase 3.3 settlement is implemented:** see Carry ownership above for the
+return/keep rules. Live two-player end-to-end verification remains pending.
 
 **A guard dog cannot tug, and the patrol was never in this at all.**
 `HeistService.nab(nabber, thief, byDog)` only enters the tug when `byDog` is
@@ -875,7 +1032,7 @@ describes). The patrol's confiscation (§7) is a third thing again, and never
 `HeistService.nab` at all — the patrol defends nobody and thanks nobody, so
 it owes none of the wording or the counterplay a nab carries.
 
-**What a delivery pays.** The victim loses the sum of every slice landed during
+**What an original claimant's coin delivery pays.** The victim loses the sum of every slice landed during
 the crack — `Config.getCrackFraction`, each slice scaled by the thief's Bigger
 Sack — or the single fixed take of a smash (`Config.getSmashFraction`,
 above), taken out of their pig the instant it lands rather than promised for
@@ -890,6 +1047,55 @@ the same window. `Config.STEAL_FRACTION` survives only as the calibration
 baseline the crack's slices are measured against — the old flat take lands
 between the second and third slice of a clean run — and as the sack-scaling
 factor inside `Config.getStealFraction`.
+
+**Clean player cracks take eligible worn skins without a dice roll.**
+`Config.SKIN_STEAL` retains the per-victim loss cap and window. Ordinary theft
+skips a skin already owned by the thief and only admits `isStealableSkin`;
+a spare absorbs the loss before the owned copy. Residents and incomplete
+cracks grant no stolen skin. Items stay on the carry through player nabs until delivery. Voluntary return,
+dog catch, arrest, death or departure use `returnHaul` to restore the original copy.
+
+**Skin recovery claims stack independently.** On delivery, `HeistService`
+records the skin under `grudge[owner][robber].skins`, with its own
+`Config.REVENGE.window` deadline. A robber's later victims do not erase earlier
+claims. A later theft of the same skin from the same owner replaces its old
+robber claim; other skins remain valid. A clean crack selects the oldest
+available claim and takes that skin from the robber's ownership, regardless
+of outfit. Recovery bypasses ordinary insurance and skin-loss caps; the skin
+still has to be carried home. Getting caught returns it and releases the
+reservation without extending its original deadline.
+
+Coin revenge has a separate expiry: using its bonus does not spend a skin
+claim, and another coin robbery cannot refresh a skin's timer. Claims expire
+individually and are cleared on player departure; they are not saved. If the
+robber no longer owns the hot skin, that crack does not substitute an unrelated
+skin. Recovered insured spares restore exactly the spare lost; an ordinary
+skin reacquired before recovery yields no extra spare. Recovery itself creates
+no timed counter-claim.
+
+**A seasonal buy-back claim is separate from timed recovery.** Losing an owned
+stealable skin writes `data.claims[key] = Config.seasonIndex()`; spare-only
+loss does not. A claimed, currently unowned skin has an exact-item BUY BACK
+card beside its source crate. `ChestService.buyback` (remote `SkinBuyback`)
+checks the current season, skin eligibility, ownership and Acorn balance on
+the server. The price is the themed source crate's cost times `3^rank`, with
+skin ranks common=1, rare=2, legendary=3: **15 / 45 / 135 Acorns**. It charges
+before `SetService.grant` writes ownership; the normal grant save contains
+both. No roll or spare is awarded, and the robber keeps their copy. The claim
+persists through the season, hidden while owned, so duplicate requests cannot
+charge again. Free recovery remains available inside its separate timer.
+
+`Config.SEASON` currently supplies only the clock: four active weeks plus
+one rest week, anchored to the existing UTC `weekIndex`. Requests reject
+expiry immediately. Crate cards expire locally; a 30-second server rollover
+pass clears/saves online claims, and reconcile prunes expired offline claims.
+The recovery objective card (§14) is implemented; season ranks/rewards remain
+pending. It reads private `RecoveryObjective` snapshots derived from the
+actual haul, timed claims and current ownership. Before delivery it directs
+the victim to nab the fleeing robber; after delivery it uses the claim's
+wall-clock deadline for a countdown. This does not change the server's
+monotonic recovery expiry. Expiry switches locally to the existing buy-back
+price only while eligible. No client-supplied claim, timer or price is used.
 
 **Consecutive deliveries are worth more, and it is the only thing in the game
 that varies *between* robberies rather than within one.** `SocialService`
@@ -932,8 +1138,9 @@ reversed now:** a robbable pig carries its own contents in gold
 (`Config.formatCoins`), because which pig is worth crossing the road for is
 the whole decision a thief makes from the pavement, and "no badge" told them
 nothing about that. A refusal still wins over the figure, checked in the same
-order as `HeistService.whyCannotSteal`: the victim's new-player shield, your
-own per-victim cooldown, an empty vault. Nothing shows over an unclaimed plot
+order as `HeistService.whyCannotSteal`: the victim's shield (NEW HERE while
+`NeedsFirstJob`, otherwise SHIELD), your own per-victim cooldown, an empty
+vault, then CAPPED with the loss-window deadline. Nothing shows over an unclaimed plot
 or your own, and a resident's plot reads exactly like a player's — the vault
 comes from the same `Config.PLOT_VAULT_ATTRIBUTE` either way, and eligibility
 from `Config.PLOT_RESIDENT_ID_ATTRIBUTE`/`OwnerUserId`, whichever is set. It
@@ -1275,20 +1482,19 @@ floor without the board changing hands.
 - **An event suppresses the patrol**, which is what lets them share a HUD row.
   The patrol is *deferred*, never cancelled.
 
-**Rewards:** coins (income-seconds), **loot** (`Config.LOOT.event`), and a
-**set drop**. Loot for the Alien Invasion is `attend` (everybody present) plus
-`perDrone` for every drone *you* personally knocked down, plus a shared
-`cleared` bonus if the street downed every one of them — the co-operative
-bonus pays the people who did nothing too, on purpose, or the incentive would
-be to let a neighbour fail. Rush Hour, the cheap continuous event, pays only
-`attend`. The coin reward may overflow a full piggy bank, same as any other
-delivery (§4); loot has no capacity to overflow.
+**Rewards:** the Alien Invasion pays its existing coin bounty (income-seconds,
+1.5x on a cleared street) and one free unowned set drop per player present.
+A full set receives a completion message with no additional item, spare or
+currency. Rush Hour rewards the boosted coin steals made during its window;
+there is no separate attendance payout. Events never award Acorns. The old
+`Config.LOOT.event` attend/per-drone/clear/completed-set faucet is retired.
+The coin bounty may overflow a full piggy bank, like any other delivery (§4).
 
 **Sets** are a **view over the existing catalogues**, never a new catalogue.
 `Config.SETS` lists `{kind, key}` pairs pointing at ordinary members of `SKINS`,
 `EFFECTS`, `ACCESSORIES`, `DECOR_ITEMS` and `RIDES`. No new ownership storage, no
 new equip path. **`set` is an exclusion** — it keeps set items out of the
-rebirth drop pool and out of both free-if-costless fallbacks (it also kept
+crate pools and out of both free-if-costless fallbacks (it also kept
 them out of the accessory roll, which is retired along with the rest of
 `ACCESSORIES`, §9).
 
@@ -1319,7 +1525,7 @@ particular are pure prestige.
 
 | Catalogue | Config | Bought with | Notes |
 |---|---|---|---|
-| **Skins** | `SKINS` | **crates**, or granted by rebirth — a priced skin refuses a coin purchase outright, below | Animated skins are driven **on the client** from a `SkinKey` attribute. 45 skins, all carrying an explicit `rarity` of `common`/`rare`/`legendary` (§3) — 37 also carry a `chest` tag (28 `og`, 9 `animal`); the other 8 are the free default `classic`, the three rebirth-drop skins, Solid Gold, the two pass skins and the alien set's `martian` — none carries a `chest` tag, and `martian` instead reaches the Alien Cache through `set = "alien"` (§8) |
+| **Skins** | `SKINS` | **crates**, including a free Legendary Crate on rebirth — a priced skin refuses a coin purchase outright, below | Animated skins are driven **on the client** from a `SkinKey` attribute. 45 skins, all carrying an explicit `rarity` of `common`/`rare`/`legendary` (§3) — 40 also carry a `chest` tag (31 `og`, 9 `animal`); the other 5 are the free default `classic`, Solid Gold, the two pass skins and the alien set's `martian` — none carries a `chest` tag, and `martian` instead reaches the Alien Cache through `set = "alien"` (§8) |
 | **Effects** | `EFFECTS` | coins — **deliberately not moving to a chest** | Shop tiles *simulate* the real particle numbers — a ViewportFrame renders BaseParts and nothing else. The 5 priced tiers (15K–600K) land 3 commons and 2 rares on `Config.RARITY_BANDS` with no epic or legendary, so a chest would have no top end |
 | **Houses** | `HOUSE_TIERS` | coins | Bought as a ladder (`houseLevel`), worn as a shelf (`houseShown`) — move back into any tier free, forever |
 | **Decorations** | `DECOR_ITEMS` | coins, except four **trophies** — earned only, below | Auto-placed into slots; **slots are scarcer than items** on purpose — the four trophies make that literal, since a trophy on display costs a slot an ornament was using |
@@ -1344,10 +1550,8 @@ shop and buy the exact one you want. **Prices stay in Config regardless**:
 `cost` — remove the price and the sell cap collapses. A skin's chest *tier* no
 longer needs the price at all, now that all 45 carry an explicit `rarity`
 (§3), but `Config.rarityOf` checks that field first for every catalogue in
-the shop, so nothing about the derivation changed for anything else. The
-legal position is unchanged either way: coins still can never be bought with
-Robux (§15), so a chest that only ever charges coins is still not a
-regulated paid random item, luck or no luck.
+the shop, so nothing about the derivation changed for anything else. Every crate now charges earned Acorns, and `ChestService` refuses any
+other currency. Acorns have no Robux purchase path (§15).
 
 **Applied at both ends.** `CosmeticsService.buySkin` refuses a coin purchase
 by name — *"%s comes from crates now, not coins."* — for any skin that
@@ -1574,7 +1778,7 @@ a locked trophy card.
 ### The roll — retired
 
 The accessory roll was the older of the two random-outcome mechanics, and the
-one the coin chests' own collection rule (duplicates allowed, producing a
+one the regular crates' own collection rule (duplicates allowed, producing a
 spare, §3) was written to deliberately reverse. It is gone now, in the same
 edit that emptied `Config.ACCESSORIES` (§9): `CosmeticsService`'s
 `ownedCount`, `rollFrom` and `rollAccessory`, `Config.getRollCost` and its two
@@ -1585,8 +1789,7 @@ still price in; the roll was one spender of loot, not its definition.
 ### Rarity
 
 **One ladder for the whole shop**, `Config.RARITIES`, with **absolute** coin
-bands. A tier is **derived, never hand-tagged**: an explicit `rarity` wins, then
-`unlockRebirths`, then the price. That is what keeps it honest as the shop grows.
+bands. An explicit `rarity` wins; otherwise the price determines the tier. That is what keeps it honest as the shop grows.
 **Only things you keep get a tier** — consumables deliberately have none.
 
 The chests in §3 reuse this same function (`Config.rarityOf`) to sort their
@@ -2112,16 +2315,16 @@ measured — see §17.
 | `BoneService` | Thrown bones |
 | `EconomyService` | Accrual loop, milestones, the `StateUpdate` push (fires whenever the whole-coin balance changes) |
 | `UpgradeService` | Both upgrade trees |
-| `HeistService` | The crack and the smash (§5), carrying, nabbing (including which catch effect fires and on whom, §9), delivering, the loss cap, revenge, the dodge, tiptoe (`tiptoeInEffect`, the local shared by `currentSpeed` and the `Config.SNEAK_ATTRIBUTE` publish in `refreshSpeed`, §5), and the lawn watch (`watchLawns`) that wakes a guard dog on footsteps or a missed slice — against a `Target` of a player **or** a resident. `releaseDog` is where a wake decides alarm-only (owner home) versus a chase (owner away); `markIntruder`, a `HeistService`-local, marks the alarmed thief with a Highlight — see §5. A delivered robbery, a nab and a dog's catch each report to `TrophyService` (§9); a completed shop-vault crack also rolls its item drop (`Config.SHOP_VAULT_DROP`, §5) — a duplicate off an owned pool pays coins instead of nothing — pushed to the hot bar through `registerStockPusher` — filled by `Main` with `BoneService.push`/`GadgetService.push`; `shopkeeperCatch` (§5) runs the same `nab`/`scare` a real dog's catch does, with an optional `catcher` name so the toast can say "The shopkeeper" instead |
+| `HeistService` | The crack and the smash (§5), carrying, nabbing (including which catch effect fires and on whom, §9), delivering, the loss cap, coin revenge and per-owner timed skin recovery claims/private recovery objectives, the dodge, tiptoe (`tiptoeInEffect`, the local shared by `currentSpeed` and the `Config.SNEAK_ATTRIBUTE` publish in `refreshSpeed`, §5), and the lawn watch (`watchLawns`) that wakes a guard dog on footsteps or a missed slice — against a `Target` of a player **or** a resident. `releaseDog` is where a wake decides alarm-only (owner home) versus a chase (owner away); `markIntruder`, a `HeistService`-local, marks the alarmed thief with a Highlight — see §5. A delivered robbery, a nab and a dog's catch each report to `TrophyService` (§9); a completed shop-vault crack also rolls its item drop (`Config.SHOP_VAULT_DROP`, §5) — a duplicate off an owned pool pays coins instead of nothing — pushed to the hot bar through `registerStockPusher` — filled by `Main` with `BoneService.push`/`GadgetService.push`; `shopkeeperCatch` (§5) runs the same `nab`/`scare` a real dog's catch does, with an optional `catcher` name so the toast can say "The shopkeeper" instead |
 | `TrophyService` | The trophy shelf (§9): what has been earned, the plinth ladder, and the one place a trophy or a plinth is ever granted. **A leaf** — requires only `DataService` and `PlotService` — and pushes the shop's repaint through a registry (`registerPusher`) `Main` fills with `CosmeticsService.push` |
 | `CosmeticsService` | Buying and equipping everything cosmetic, including catch effects (§9) and trophy plinths (routed to `TrophyService`, §9); **the roll**, priced in loot; the dog's coats, kennels and toys, and `nameDog` — the only caller of Roblox's text-filter API anywhere in this game (§9); the garden's three catalogues through one function, `buyGarden` (§9); `grantPassItems`, the one path every Robux pass grants through, hooked to `PassService.Granted` (§15) |
-| `ProgressionService` | Rebirth |
+| `ProgressionService` | Rebirth reset, free Legendary Crate or completed-collection Acorn payout, immediate save |
 | `SocialService` | Friend bonus, leaderboards, Most Wanted board, revenge markers, the per-player rap sheet push (`pushWanted`, remote `WantedState`, §14), and the spree — consecutive-delivery payout/pursuit-floor state (`recordSteal`/`breakSpree`), kept in a table separate from the rap sheet on purpose (§5, §7) |
 | `PoliceService` | Patrol schedule, pursuit, arrest, the radio |
 | `TrafficService` | The delivery van — one at a time, west to east through both tunnels, standing down while `PoliceService.isOut()` (§11). Confers nothing and carries no gameplay hook |
 | `EventService` | The event roster |
 | `SetService` | Loot, sets, the drop reel, ownership lookups shared with chests (`owns`, `inUse`, `grant`, `revoke`) |
-| `ChestService` | Opening chests, combining per-item spares by tier, selling spares for coins (leaf: requires `DataService`, `SetService`) — opening (Crates tab) and selling (Inventory panel) are reachable; combining is not, see §17 |
+| `ChestService` | Opening chests, seasonal exact-skin Acorn buy-backs, combining per-item spares by tier, selling spares for coins (leaf: requires `DataService`, `SetService`) — opening and combining are on the Crates tab; selling is in the Inventory panel |
 | `DailyService` | The daily ladder and boosts; raises the mailbox flag and re-opens the board (`push`, §11) in the same push that fills it; the chest a day-seven claim owes until it is opened at the doorstep (`openCrate`, §3) |
 | `RideService` | Mount gate, welds, tricks |
 | `StealthService` | Bins, hiding, and the thief kit (Ladder, Raincoat) |
@@ -2215,6 +2418,22 @@ maps against their catalogues and falls each equipped field back to `""` if
 it no longer resolves, the same catalogue-not-a-list-of-names rule as the
 dog's wardrobe and the trophy shelf, written once as a loop over the three
 pairs rather than three copies of the same nine lines.
+
+**Schema 25** preserves the former rebirth milestones as explicit
+`cosmetics.owned` entries for Bronze, Gold Leaf and Diamond. `reconcile` captures
+`data.schema` before filling defaults, grants each whose historical threshold
+was reached, then stamps `Config.SCHEMA_VERSION`. This runs only for older
+saves, so a later sale or theft is never undone by rejoining. The equipped
+skin, coins, Acorns and spares are preserved; `sinceLegendary` is removed.
+The historical thresholds live only in the migration. `auditEconomy` reports
+any surviving `unlockRebirths` field anywhere in Config.
+
+**Seasonal buy-back claims** add `claims: { [skinKey]: seasonIndex }` with an
+empty default and generic reconciliation; no schema bump or currency grant.
+Load-time validation removes expired, future, malformed and ineligible keys.
+A current claim survives rejoin and remains stored while its skin is owned;
+only currently unowned eligible skins are offered. This is distinct from the
+session-local timed robber-recovery claims (§5).
 
 **No schema bump** covers the skin restructuring (§3, §9): retiring five skins
 and folding one chest into another needed no new field, only a wider prune.
@@ -2331,8 +2550,16 @@ in `settings` may ever affect an outcome** — no speed, no income, no odds.
   the same reel the event drop already used, generalised with three optional
   fields (`title`, `subtitle`, `note`) rather than forking a second one — the
   event drop's own call is untouched, and `note` is where a chest's "Spare ·
-  sells for N" line goes. Opening is reachable from here; combining is not
-  — see §17.
+  sells for N" line goes. Regular crates also show combine chips; Alien
+  remains excluded. A short balance shows the Acorn shortfall and tree hint;
+  tapping OPEN still requests the server refusal. Tree earning is pending Phase 2.
+  Seasonal buy-back cards sit beside the source crate, with the real lost skin
+  preview, server price and shortfall. Only current unowned claims are shown;
+  `SkinBuyback` sends the key alone. Ownership changes refresh the cards through
+  `CosmeticsService.registerCollectionPusher(ChestService.push)`; cards also
+  disappear locally at the supplied `buybacksExpireAt` boundary. Buy-back has
+  no crate reveal. Isolated UI state checks pass; live rendering/input remains
+  unverified.
 - **Inventory — a standalone panel, not a shop tab.** `Shared/Inventory.luau`
   is the mirror of Crates and never shows a price — that is the property the
   module exists to protect. **Crates is how you *get* a cosmetic; Inventory is
@@ -2406,12 +2633,43 @@ in `settings` may ever affect an outcome** — no speed, no income, no odds.
   The viewer's own Lockpicks level rides in on `UpgradeState`, the same push
   the shop's tree rows read, so the badge and the card selling the rung can
   never disagree about whether it is owned.
-- **Onboarding.** `Shared/FirstJob.luau` is the whole tutorial, one sentence:
-  a card at top centre reading *"Your piggy bank is empty. Go and rob a
-  neighbour!"* plus a gold highlight on the nearest robbable pig — usually a
-  resident's (§5). Driven by `Config.PLAYER_FIRST_JOB_ATTRIBUTE`, derived from
-  `data.totalStolen` rather than a new save field, and it retires for good,
-  this session and every future one, on a player's first delivery.
+- **Skin tags and nearby Acorn cooldown.** Street badges have no Acorn row.
+  `CappedUntil` and `HotSkinUntil` publish only server-owned public facts.
+  A valid private recovery claim changes HOT SKIN to **RECOVER SKIN** for
+  its owner. Refunds, reacquisition, disconnects and expiration clear the
+  corresponding state; changing outfits does not. A nearby tree or storage
+  prompt shows an hourglass and **Steal ready in m:ss** during that viewer's
+  Acorn theft cooldown. `AcornCooldown` sends private server deadlines for
+  both sources; resident rest uses the existing public plot deadline. Owners
+  can still harvest. Expiry restores the prompt locally; server validation
+  remains authoritative even if a client attempts to trigger early.
+- **Onboarding and recovery objective.** `Shared/FirstJob.luau` shares one
+  objective slot. Onboarding/buy-back use a 44-pixel card; a live recovery
+  uses a compact 64×68 skin task icon, expandable to show details. The preview
+  is built from the exact claim key, independent of the robber’s worn skin,
+  and reused across timer ticks. With no recovery objective, onboarding says
+  **GO AND ROB A PIGGY BANK** and highlights the nearest worthwhile pig.
+  `Config.PLAYER_FIRST_JOB_ATTRIBUTE` still derives from `data.totalStolen`;
+  the first delivery retires onboarding, but leaves recovery listening.
+  A stolen skin shows **RECOVER SKIN**, the robber's name and "Nab them now"
+  when expanded. The compact icon reads CHASE while in flight, then the
+  actual countdown, with a highlight on the robber's
+  pig after delivery. A recovered carry says **GET IT HOME** and points home;
+  the carried copy remains deliverable after the timer ends. Expired or
+  unavailable free recovery falls back to **BUY IT BACK — N ACORNS** only for
+  a current unowned seasonal claim. Tapping opens Crates and scrolls to that
+  exact skin, with no purchase on the objective itself.
+  Multiple claims prioritize a carried recovery, then an active chase, then
+  the earliest recovery deadline before paid claims; `+N more` shows the
+  remaining stack. Owned reacquisitions disappear; insured spares retain
+  their free-recovery objective but have no paid fallback. The client listens
+  before subscribing to `RecoveryObjective` and retries until a snapshot
+  arrives. HeistService polls subscribed players every 0.25 seconds and sends
+  only changes privately; repeated subscribe requests are throttled. Local
+  wall-clock rendering flips at expiry without a packet. The card and marker
+  hide beneath shop/bag overlays. Responsive bounds clear the bank column;
+  long names truncate. Isolated state/layout checks pass, while live input,
+  multiplayer latency and rendering remain unverified.
 - **Music.** Cues play through once from a shuffled bag with 55–110 seconds of
   silence between them. **Nothing loops.** The toggle turns off *music only* —
   muting effects would hide the siren.
@@ -2643,17 +2901,11 @@ and stun the thief for nothing.
 
 ## 15. Monetization and compliance
 
-**Coins are never purchasable with Robux, at any price, ever.** That single
-rule — not the earned-only tokens that came before it — is what now keeps every
-coin sink in the game, including the two coin chests in §3, outside Roblox's
-paid-random-item regulation. It can only be broken once: the day a coin pack
-ships, every chest in the game becomes a regulated loot box retroactively, with
-nothing in this repo having changed. See §3 for the full argument.
-
-**Monetization is named things, never currency.** A Robux purchase may grant a
-ride, a pass or a stance — never a coin, loot or a chest. Granting a named
-thing mints no currency and feeds no roll; granting currency would put a price
-on however that currency gets spent, including randomly.
+**No coin or Acorn product is currently enabled.** Monetization grants
+named rides, passes and stances. Crates now charge earned-only Acorns and
+reject coin payment (§3). The master plan keeps broader reward and economy
+gates ahead of any future coin product; converting crates alone does not
+complete those gates.
 
 **Shippable today:** three game passes, `Config.PASSES` — the **Style Pack**
 (riding stances, §10), **VIP** (a skin, an aura, a catch effect and a mark on
@@ -2712,12 +2964,10 @@ matching one, when the buyer owns none.
   them — the same argument against a near-identical duplicate this file makes
   everywhere else.
 
-**The rebirth skin drop is the one open question left.** It is random, it is
-*not* purchased, but the gate in front of it is the coins in the piggy bank
-(§4) — so once coins could in principle be earned faster by any future paid
-mechanic, money would buy a faster route to a random outcome even though it
-never buys the outcome itself. Weaker than the case the coin-pack ban already
-closes, and the next thing to look at if that ban is ever revisited.
+**Rebirth still leads to a random reward.** The designer chose a standard
+Legendary Crate rather than the proposed deterministic reward. Coins currently
+have no purchase product. Any future coin-sale work must revisit this route
+and the master plan's random-reward audit before shipping.
 
 **Audio licensing:** prefer **Pro Sound Effects** (a library Roblox licensed
 wholesale). The Creator Store is full of "free" effects lifted from Minecraft and
@@ -2827,7 +3077,7 @@ already shipped. Corrected below.
   hides the row outright rather than showing three chips that always refuse.
   Server-path verification is unchanged and still holds: `combine` pools
   per-item spares by tier and auto-picks cheapest first, a client-named list
-  it does not hold is refused whole, combining into the loot-priced `alien`
+  it does not hold is refused whole, combining into the event-set `alien`
   chest is refused, and 42 spares across 14 items survived a full server
   restart at schema 18. **What has NOT run is a pointer press on the chip
   itself** — the same class of gap as the hot bar drag and the rebirth
@@ -2843,13 +3093,11 @@ already shipped. Corrected below.
   duplicate either — a 90,000-coin BMX shows "SELL 22.5K", and pressing it
   fires a genuine, un-refused last-copy sale through the same
   `SetService.revoke` path a skin uses. Recorded, not fixed.
-- **Loot buys the `alien` chest too, and it is opened exactly the way the coin
-  chests are.** `Crates.render` walks every chest `ChestState` sends with
-  stock, so `Config.CHESTS.alien` gets a card on the same tab, priced and
-  opened in loot rather than coins — nothing in the Crates tab is coin-only by
-  construction. This has not been verified live the way the coin chests were —
-  the "verified live" list above was run against the chest then called
-  `classics` (now `og`) only.
+- **All five crates now use earned Acorns.** `Crates.render` walks every
+  stocked chest in `ChestState`, including `alien`. Phase 1.4 tests cover
+  their prices, charges, refusals and combine eligibility with service doubles.
+  Live Studio property checks cover card text and combine visibility; purchase
+  effects and reveal visuals still need an end-to-end play-test.
   `CosmeticsService.rollAccessory` — once a second, parallel route to
   loot-priced accessories — is gone along with `Config.ACCESSORIES` (§9), so
   the accessory roll this bullet used to record as a duplicate route no

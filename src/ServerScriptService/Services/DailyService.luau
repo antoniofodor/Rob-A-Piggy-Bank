@@ -135,7 +135,7 @@ function DailyService.claim(player: Player)
 
 	-- NO LOOT HERE, since the pivot: loot is the currency you go out and
 	-- earn, and a ladder that paid it would let a player who never robs
-	-- anybody finish the thief's collection. See Config.LOOT.
+	-- anybody finish the thief's collection. See Config.ACORNS.
 
 	local message
 	if reward.kind == "coins" then

@@ -110,11 +110,6 @@ type Beam = {
 
 local beams: { Beam } = {}
 
--- Drones each player personally knocked down this raid. Cleared at the start
--- of every raid rather than at the end, so a raid that errors halfway cannot
--- pay somebody twice on the next one.
-local downed: { [Player]: number } = {}
-
 -- Rush Hour's multiplier on the steal fraction, read by HeistService. 1 when
 -- nothing is running, which is what makes it safe to consult unconditionally.
 local stealMultiplier = 1
@@ -302,7 +297,6 @@ local function recover(entry: Beam, breaker: Player)
 		end
 	end
 	payIncomeSeconds(breaker, Config.RAID.breakerSeconds, "Drone scrapped.")
-	downed[breaker] = (downed[breaker] or 0) + 1
 
 	-- Destroyed rather than recalled. A drone that has been caught is out of
 	-- the raid for good, which is what makes clearing the street a winnable
@@ -391,6 +385,20 @@ function EventService.nearestDrone(from: Vector3, range: number): (BasePart?, st
 	return nil, nil
 end
 
+local function rewardRaid(cleared: boolean)
+	local set = Config.EVENTS.roster.raid.set
+	for _, player in ipairs(Players:GetPlayers()) do
+		payIncomeSeconds(player, Config.RAID.bountySeconds
+			* (if cleared then 1.5 else 1), "Invasion survived.")
+
+		-- Attendance pays the coin bounty above and one free set drop.
+		-- Events never mint Acorns, including on a completed collection.
+		if set then
+			SetService.rollDrop(player, set)
+		end
+	end
+end
+
 local function runRaid()
 	local m = Config.streetMetrics()
 	local raid = Config.RAID
@@ -403,7 +411,6 @@ local function runRaid()
 	-- first measured beam was 201 studs long -- a tractor beam is supposed to
 	-- be overhead, and one stretching the length of the road reads as a girder
 	-- rather than as something holding a piggy bank.
-	table.clear(downed)
 
 	local targets = candidates()
 	local count = math.clamp(#targets, 0, raid.maxDrones)
@@ -566,30 +573,8 @@ local function runRaid()
 		then "THE STREET WON. Every drone knocked out of the sky."
 		else ("The saucer left with %s coins."):format(format(lostTotal)), if cleared then "good" else "warn")
 
-	local set = Config.EVENTS.roster.raid.set
-	for _, player in ipairs(Players:GetPlayers()) do
-		payIncomeSeconds(player, Config.RAID.bountySeconds
-			* (if cleared then 1.5 else 1), "Invasion survived.")
+	rewardRaid(cleared)
 
-		-- LOOT: turning up, plus what you personally did, plus a shared
-		-- bonus if the street cleared it. The shared part pays the people who
-		-- did nothing too, on purpose -- a co-operative bonus that only paid
-		-- the doers would make letting a neighbour fail the correct play.
-		local m = Config.LOOT.event
-		local earned = m.attend
-			+ (downed[player] or 0) * m.perDrone
-			+ (if cleared then m.cleared else 0)
-		SetService.award(player, earned, "Invasion survived.")
-
-		-- Then one spin of the set. Everyone present gets one; it can only
-		-- ever return something they do not already own, and anything luck
-		-- does not give them is still buyable with the medals above.
-		if set then
-			SetService.rollDrop(player, set)
-		end
-	end
-
-	table.clear(downed)
 	endRaid()
 end
 
@@ -635,14 +620,9 @@ local function runRush()
 	stealMultiplier = 1
 	announce("Rush hour is over.", "warn")
 
-	-- Medals, but no drop and no clear bonus. Rush Hour has nothing to fight,
-	-- so there is nothing to be good at -- paying attendance and nothing else
-	-- is the honest reading of what a player did during it.
-	for _, player in ipairs(Players:GetPlayers()) do
-		-- Attendance only. Rush Hour has no drones and no clear bonus, so
-		-- there is nothing to be good at and nothing to scale by.
-		SetService.award(player, Config.LOOT.event.attend, "Rush hour over.")
-	end
+	-- Rush Hour rewards the boosted coin steals made during the event.
+	-- There is no separate attendance currency payout.
+
 end
 
 -- Read by HeistService. Safe to consult unconditionally because it is 1

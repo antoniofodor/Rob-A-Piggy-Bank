@@ -19,7 +19,7 @@ whichever the depth buffer happened to hand you, and half of any edit lands on
 a mesh that is about to be thrown away. That is not a scene you can work in.
 
 So this drops the joined Trim, keeps the five real parts, and leaves the eye
-and nostril previews as unselectable reference so they cannot be grabbed by
+preview as unselectable reference so they cannot be grabbed by
 accident while still showing where the face is.
 
 THE VERTEX GROUPS ARE PRUNED TO THE PART'S OWN. `part_from_group` copies the
@@ -82,7 +82,7 @@ PAINT = paths.pig("pig_paint.blend")
 # The five that become MeshParts in the game, in build order.
 PARTS = ["Body", "Snout", "Ears", "Legs", "Tail"]
 # Kept, but locked: they are where the face is, and they never leave Blender.
-REFERENCE = ["EyePreview", "NostrilPreview"]
+REFERENCE = ["EyePreview"]
 JOINED = "Trim"
 
 
@@ -150,6 +150,11 @@ def split():
         raise RuntimeError(
             "pig.blend has no %s -- run build_pig.py first, it is what cuts "
             "the trim into pieces" % ", ".join(missing))
+
+    # Also clean older raw scenes that still contain the retired black inserts.
+    for ob in list(bpy.data.objects):
+        if ob.name.startswith("NostrilPreview"):
+            bpy.data.objects.remove(ob, do_unlink=True)
 
     joined = bpy.data.objects.get(JOINED)
     if joined:

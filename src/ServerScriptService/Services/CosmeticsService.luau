@@ -40,6 +40,10 @@ local PassService = require(script.Parent.PassService)
 local TrophyService = require(script.Parent.TrophyService)
 
 local CosmeticsService = {}
+local collectionPushers: { (Player) -> () } = {}
+function CosmeticsService.registerCollectionPusher(fn: (Player) -> ())
+	table.insert(collectionPushers, fn)
+end
 
 local function notify(player: Player, message: string, kind: string)
 	Remotes.get("Notify"):FireClient(player, message, kind)
@@ -58,58 +62,6 @@ end
 -- purpose: they survive rebirth, they confer nothing, and they belong to the
 -- same "permanent collection" idea as skins. Reusing this channel also keeps
 -- the whole collection in a single snapshot push.
--- Rolls one animated skin for a rebirth and grants it.
---
--- Returns the key and its rarity, or nil if the player already owns every
--- animated skin in the game -- at which point the caller pays coins instead,
--- because a completed collection should not turn rebirth into a dead end.
---
--- Duplicates never waste a roll. Landing on a rarity you have completed walks
--- UPWARD first, so an unlucky roll on a full "rare" shelf turns into an epic
--- rather than into nothing.
-function CosmeticsService.rollRebirthDrop(player: Player): (string?, string?)
-	local data = DataService.get(player)
-	if not data then
-		return nil, nil
-	end
-
-	local owned = data.cosmetics.owned
-	local rng = Random.new()
-	local rolled = Config.rollRarity(data.rebirths, data.sinceLegendary or 0, rng)
-
-	-- Search order: the rolled rarity, then rarer, then commoner.
-	local order = { rolled }
-	local rolledIndex = table.find(Config.DROP_RARITIES, rolled) or 1
-	for i = rolledIndex + 1, #Config.DROP_RARITIES do
-		table.insert(order, Config.DROP_RARITIES[i])
-	end
-	for i = rolledIndex - 1, 1, -1 do
-		table.insert(order, Config.DROP_RARITIES[i])
-	end
-
-	for _, rarity in ipairs(order) do
-		local candidates = {}
-		for _, key in ipairs(Config.getSkinsOfRarity(rarity)) do
-			if not owned[key] then
-				table.insert(candidates, key)
-			end
-		end
-		if #candidates > 0 then
-			local key = candidates[rng:NextInteger(1, #candidates)]
-			owned[key] = true
-
-			if rarity == "legendary" then
-				data.sinceLegendary = 0
-			else
-				data.sinceLegendary = (data.sinceLegendary or 0) + 1
-			end
-			return key, rarity
-		end
-	end
-
-	return nil, nil
-end
-
 -- Tapping a house tile either buys the next rung or moves back into one
 -- already owned.
 --
@@ -300,7 +252,7 @@ end
 -- `ChestService` still reads. The roll was one SPENDER of loot rather than
 -- its definition.
 
--- Loot is granted by SetService.award and nowhere else; this file only
+-- Acorn grants are server-owned; this file only
 -- REPORTS it, in the push. It used to spend it too, on the accessory roll,
 -- which is retired -- so nothing in this file takes loot off anybody now.
 function CosmeticsService.getLoot(player: Player): number
@@ -569,22 +521,8 @@ function CosmeticsService.buySkin(player: Player, key: string)
 		return
 	end
 
-	-- Rebirth skins are earned, not bought -- but an EARNED one still has to
-	-- be wearable. This used to reject them unconditionally, which meant
-	-- Bronze, Gold Leaf and Diamond could never be equipped by anyone at any
-	-- rebirth count: the reward existed and was permanently unreachable.
-	if skin.unlockRebirths then
-		if Config.isSkinUnlocked(key, data.cosmetics.owned, data.rebirths) then
-			CosmeticsService.equipSkin(player, key)
-		else
-			notify(player, ("%s unlocks at %d rebirths. You have %d."):format(
-				skin.name, skin.unlockRebirths, data.rebirths), "warn")
-		end
-		return
-	end
-
 	local cosmetics = data.cosmetics
-	if cosmetics.owned[key] or (skin.cost or 0) <= 0 then
+	if cosmetics.owned[key] or (not skin.chest and (skin.cost or 0) <= 0) then
 		CosmeticsService.equipSkin(player, key)
 		return
 	end
@@ -611,13 +549,8 @@ function CosmeticsService.buySkin(player: Player, key: string)
 	-- rolling for one. There is no outcome here that is unreachable, only
 	-- outcomes that are slower.
 	--
-	-- THE PRICE STAYS IN `Config` AND IS NOT A PRICE ANY MORE. `rarityOf`
-	-- reads a skin's `cost` to decide its TIER and `sellValue` caps a spare's
-	-- payout at a fraction of it, so deleting the numbers would collapse the
-	-- crate ladder to one tier AND take the sell cap off -- which is the
-	-- measured money printer where a flat common value paid five times
-	-- Bubblegum's own shop price forever. A skin's cost is a rarity and a
-	-- ceiling first and a purchase not at all.
+	-- Crate skins have explicit rarities. Historical resale limits live in
+	-- sellBasis, not cost; a missing coin price never makes a crate skin free.
 	--
 	-- REFUSED OUT LOUD RATHER THAN SILENTLY, because the client no longer
 	-- draws a buy button and so nothing should ever reach this -- which means
@@ -766,6 +699,11 @@ function CosmeticsService.equipDogCoat(player: Player, key: string)
 		return
 	end
 
+	if coat.requiredTier and (data.upgrades.dog or 0) ~= coat.requiredTier then
+		notify(player, ("This guard skin requires tier %d."):format(coat.requiredTier), "warn")
+		return
+	end
+
 	if not data.dogs.owned[key] then
 		notify(player, ("%s isn't unlocked yet."):format(coat.name), "warn")
 		return
@@ -791,6 +729,11 @@ function CosmeticsService.buyDogCoat(player: Player, key: string)
 	local coat = Config.DOG_COATS[key]
 	local data = DataService.get(player)
 	if not coat or not data or type(data.dogs) ~= "table" then
+		return
+	end
+
+	if coat.requiredTier and (data.upgrades.dog or 0) ~= coat.requiredTier then
+		notify(player, ("This guard skin requires tier %d."):format(coat.requiredTier), "warn")
 		return
 	end
 
@@ -1124,16 +1067,6 @@ function CosmeticsService.nameDog(player: Player, raw: string)
 	notify(player, ("Your dog is called %s now."):format(shown), "good")
 end
 
--- Called after a rebirth: the newly reached tier may have unlocked a skin,
--- and that's the visible reward for resetting everything else.
-function CosmeticsService.announceRebirthUnlocks(player: Player, rebirths: number)
-	for _, skin in pairs(Config.SKINS) do
-		if skin.unlockRebirths == rebirths then
-			notify(player, ("Rebirth reward: the %s skin is yours forever."):format(skin.name), "good")
-		end
-	end
-end
-
 -- ============================================================
 -- STATE
 -- ============================================================
@@ -1150,28 +1083,11 @@ function CosmeticsService.push(player: Player)
 			name = skin.name,
 			order = skin.order,
 			cost = skin.cost or 0,
-			unlockRebirths = skin.unlockRebirths,
 			unlocked = Config.isSkinUnlocked(key, data.cosmetics.owned, data.rebirths),
 			equipped = data.cosmetics.skin == key,
 			body = skin.body,
 			trim = skin.trim,
-			-- Explicit for the ten drop-pool skins, from unlockRebirths for the
-			-- three reset-locked ones, and from the price for the rest. See
-			-- Config.rarityOf. Only the KEY crosses the wire; the client resolves
-			-- the label and the colour, which it already has in Config.
 			rarity = Config.rarityOf(skin),
-			-- Only the ten drop-pool skins carry an explicit rarity, and they are
-			-- the ONLY skins that are neither bought nor reset-gated. Without
-			-- this flag the shop tile had nothing left to say about them and fell
-			-- through to the price branch -- where a missing cost reads as zero,
-			-- so the ten rarest skins in the game each advertised themselves as
-			-- free, in gold, on the you-can-afford-this green.
-			-- NOT a drop if it belongs to a set. Set skins carry a rarity like
-			-- everything else so the shop can border the card, but `drop` is
-			-- what makes the tile say REBIRTH DROP -- and a medal item that
-			-- advertised itself as a rebirth reward would send players to
-			-- the wrong feature entirely.
-			drop = skin.rarity ~= nil and not Config.isEarnedElsewhere(skin),
 			loot = skin.loot,
 			set = skin.set,
 			-- WHICH PASS SELLS IT, and it travels as a NAME rather than as a
@@ -1339,6 +1255,8 @@ function CosmeticsService.push(player: Player)
 	local dogCoats: { [string]: any } = {}
 	for key, coat in pairs(Config.DOG_COATS) do
 		dogCoats[key] = {
+			requiredTier = coat.requiredTier,
+			available = not coat.requiredTier or (data.upgrades.dog or 0) == coat.requiredTier,
 			name = coat.name,
 			order = coat.order,
 			cost = coat.cost or 0,
@@ -1545,6 +1463,7 @@ function CosmeticsService.push(player: Player)
 		-- costs nothing today and repopulates on its own if the catalogue
 		-- ever does.
 	})
+	for _, push in ipairs(collectionPushers) do push(player) end
 end
 
 -- ============================================================

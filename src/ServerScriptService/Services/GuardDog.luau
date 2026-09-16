@@ -17,19 +17,17 @@
 	small dog going under things. It just lerps along the ground toward its
 	target and gives up after the tier's maxChase.
 
-	Each level is a different breed rather than the same dog with a bigger
-	number. Parts are resized and recoloured in place on upgrade, so the Dog
-	record stays valid and nothing holding a reference has to care.
-
-	Parts are anchored and moved with Model:PivotTo, which moves every
-	descendant -- so there are deliberately no welds here. Welds would only
-	have to be torn down and rebuilt every time a tier change resized things.
+	The imported mesh rig is swapped per tier; this record and its movement
+	anchor survive upgrades. GuardVisual owns the meshes and repaired joints,
+	while GuardAnimator drives local motion from replicated gameplay states.
 ]]
 
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+
+local GuardVisual = require(script.Parent.GuardVisual)
 
 local GuardDog = {}
 
@@ -188,122 +186,7 @@ local REST_OFFSET = Vector3.new(0, 0, 5.5)
 local TORSO_Y = 1.9
 local LEG_TOP = 1.725
 
--- The head group is scaled ABOUT THIS POINT rather than in place. See `layout`.
-local HEAD_ANCHOR = Vector3.new(0, 3.25, 2.48)
-
--- Dog geometry, all at scale 1, relative to the dog's own feet. The torso
--- must come first: it becomes the model's PrimaryPart and therefore its
--- pivot, it carries the three voices, and `facing` depends on the snout being
--- at +Z.
---
--- A DOG IS A TAPER, NOT A BOX. The first build was one slab for the body and
--- one cube for the head, at the same width and the same height with nothing
--- between them -- so on the Mastiff, whose fur and furDark are both nearly
--- black, you could not see where the animal ended and its head began. Chest,
--- barrel and haunch at three different widths, with a raised neck carrying
--- the head clear of the shoulders, is what makes the silhouette read as an
--- animal from the pavement.
---
--- `group` is what lets ONE part list produce three breeds -- see BREED SHAPE
--- in Config.DOG_TIERS and the arithmetic in `layout`.
-local SKELETON: { any } = {
-	-- MEASURED AND PULLED IN. The first build ran 7.8 studs nose to tail at
-	-- scale 1, which is 10.9 on the Mastiff -- nearly as long as the PIGGY
-	-- BANK, and visibly longer than the kennel it is supposed to sleep in. A
-	-- big dog should be big; it should not be furniture.
-	{ name = "Torso", size = Vector3.new(2.20, 1.90, 3.00), offset = Vector3.new(0, TORSO_Y, -0.15), tone = "fur", group = "body" },
-	-- THE DUTY VEST. Hidden unless the dog is on guard duty -- see
-	-- `showGuardDuty` and `Config.DOG_DUTY_VEST` for why the tell had to come
-	-- off the collar the day collars became buyable.
-	--
-	-- SIZED TO STAND PROUD, NEVER FLUSH. The torso is 2.20 across and this is
-	-- 2.34, so the vest clears its own sides by 0.07 -- and it is SHORTER on
-	-- both other axes (1.62 against 1.90 tall, 1.90 against 3.00 long) so it
-	-- ends nowhere near the torso's own faces. Two surfaces at one depth is
-	-- the coplanar flicker this project has now recorded four times, and a
-	-- saddle laid exactly on a back is the easiest possible way to get it.
-	--
-	-- `group = "body"` so it takes GIRTH on X and Y exactly as the torso
-	-- under it does. Anything else and the vest fits the Shepherd and floats
-	-- off the Mastiff, whose girth is 1.20.
-	{ name = "Vest", size = Vector3.new(2.34, 1.62, 1.90), offset = Vector3.new(0, TORSO_Y, -0.10), tone = "vest", group = "body" },
-	{ name = "Chest", size = Vector3.new(2.35, 1.60, 1.40), offset = Vector3.new(0, 1.92, 1.30), tone = "fur", group = "body" },
-	{ name = "Haunch", size = Vector3.new(2.30, 2.00, 1.50), offset = Vector3.new(0, 2.00, -1.60), tone = "fur", group = "body" },
-	{ name = "Neck", size = Vector3.new(1.50, 1.50, 1.20), offset = Vector3.new(0, 2.55, 1.82), tone = "fur", group = "body" },
-
-	{ name = "Head", size = Vector3.new(1.80, 1.60, 1.60), offset = Vector3.new(0, 3.25, 2.48), tone = "fur", group = "head" },
-	-- A MUZZLE, NOT A PAINTED SQUARE. The old snout was a 0.9 cube sitting on
-	-- the face; a box that projects past the skull and carries a nose on the
-	-- end of it is the difference between a dog and a bear.
-	{ name = "Muzzle", size = Vector3.new(1.00, 0.85, 1.10), offset = Vector3.new(0, 2.95, 3.28), tone = "dark", group = "head" },
-	{ name = "Nose", size = Vector3.new(0.55, 0.45, 0.35), offset = Vector3.new(0, 3.05, 3.90), tone = "dark", group = "head" },
-	-- A brow ridge, which is what gives a flat-shaded face any expression at
-	-- all: it is the only thing on the head that casts a line over the eyes.
-	{ name = "Brow", size = Vector3.new(1.50, 0.30, 0.55), offset = Vector3.new(0, 3.72, 3.20), tone = "dark", group = "head" },
-
-	-- Named parts, both of them: `showGuardDuty` finds the collar and the tag
-	-- BY NAME to flip them to Neon, which is the tell an owner paid for.
-	-- The collar is 1.66 and not 1.75 because the HEAD grows on a Mastiff and
-	-- the collar does not: at head 1.24 against girth 1.20 the two agreed on
-	-- their side planes to within a hundredth of a stud, which is a flicker
-	-- around the throat of the one dog anybody looks at twice.
-	{ name = "Collar", size = Vector3.new(1.66, 0.55, 0.85), offset = Vector3.new(0, 2.52, 1.88), tone = "collar", group = "body" },
-	{ name = "Tag", size = Vector3.new(0.32, 0.40, 0.40), offset = Vector3.new(0, 2.22, 2.42), tone = "collar", group = "body" },
-
-	-- Two segments, angled up. A tail is the one part of a dog that is never
-	-- straight, and a single box pointing backwards is invisible from every
-	-- angle anybody actually looks at a lawn from.
-	-- THE KINK IS THE WHOLE POINT. Two segments at 32 and 58 degrees are
-	-- close enough to being collinear that they render as ONE straight plank
-	-- sticking out of the back at forty-five degrees -- which is what the
-	-- first build looked like on the Mastiff, where scale 1.3 made the plank
-	-- two studs long. Nearly level, then sharply up, reads as a tail.
-	{ name = "TailBase", size = Vector3.new(0.46, 0.46, 0.95), offset = Vector3.new(0, 2.86, -2.42), tone = "dark", group = "tail", rot = CFrame.Angles(math.rad(34), 0, 0) },
-	{ name = "TailTip", size = Vector3.new(0.34, 0.34, 0.80), offset = Vector3.new(0, 3.51, -2.91), tone = "dark", group = "tail", rot = CFrame.Angles(math.rad(76), 0, 0) },
-}
-
-for _, side in ipairs({ -1, 1 }) do
-	-- THE EAR'S OFFSET IS ITS ROOT, NOT ITS CENTRE, because `layout` hinges it
-	-- there -- an ear spun about its own middle swings half of itself into the
-	-- skull, which is exactly what a drooping breed needs not to do.
-	table.insert(SKELETON, {
-		name = "Ear", size = Vector3.new(0.55, 1.05, 0.75),
-		offset = Vector3.new(side * 0.72, 3.62, 2.55), tone = "dark", group = "ear",
-	})
-	-- Z is 3.36, and it is the head group, so it scales ABOUT the head.
-	--
-	-- The original note here recorded 3.13 against a face at 3.15: a 0.2-deep
-	-- eye centred on 3.05 put its own front face at exactly 3.15 too, and two
-	-- surfaces at identical depth give the renderer nothing to sort by. The
-	-- rule survives the rebuild and gained a second half -- an eye scaled in
-	-- PLACE while the head grew around it disappeared inside the Mastiff.
-	table.insert(SKELETON, {
-		name = "Eye", size = Vector3.new(0.34, 0.34, 0.34),
-		offset = Vector3.new(side * 0.52, 3.55, 3.20), tone = "eye", group = "head",
-		shape = Enum.PartType.Ball,
-	})
-	-- PAWS. Four sticks ending in nothing is the single cheapest thing to fix
-	-- on a low-poly animal: a foot wider and deeper than the leg above it
-	-- gives the dog somewhere to stand.
-	for _, z in ipairs({ 1.20, -1.42 }) do
-		table.insert(SKELETON, {
-			name = "Leg", size = Vector3.new(0.68, 1.45, 0.72),
-			offset = Vector3.new(side * 0.70, 1.00, z), tone = "dark", group = "leg",
-		})
-		table.insert(SKELETON, {
-			name = "Paw", size = Vector3.new(0.90, 0.42, 0.96),
-			offset = Vector3.new(side * 0.70, 0.21, z + 0.22), tone = "dark", group = "paw",
-		})
-	end
-end
-
--- Kennel geometry, relative to the kennel origin. Open at +Z.
---
--- IT IS A LITTLE HOUSE AND IT IS BUILT LIKE ONE NOW: a base course under the
--- walls, a framed doorway, and a ridge over the roof panels with an eave
--- board each side -- the same vocabulary the nine house tiers use, at a
--- twelfth the size. It was `WoodPlanks` and `Slate`, which are the exact two
--- textured materials the house pass removed from this game.
+-- Kennel geometry remains separate from the imported guard rig.
 local KENNEL: { any } = {
 	{ name = "Base", size = Vector3.new(6.20, 0.50, 6.60), offset = Vector3.new(0, 0.25, 0), tone = "trim" },
 	{ name = "Floor", size = Vector3.new(5.30, 0.40, 5.44), offset = Vector3.new(0, 0.66, 0), tone = "wood" },
@@ -489,10 +372,16 @@ end
 -- going. Returns true if it arrived. `abort` is polled every frame so a
 -- patrol can drop everything the moment an alarm fires.
 local function walkTo(dog: Dog, target: Vector3, speed: number, timeout: number, abort: (() -> boolean)?): boolean
+	if not dog.model.Parent or (abort and abort()) then return false end
+	GuardVisual.state(dog, "Walk")
+	local function finished()
+		if dog.model:GetAttribute("GuardState") == "Walk" then GuardVisual.state(dog, "Idle") end
+	end
 	local deadline = os.clock() + timeout
 	while os.clock() < deadline do
 		local dt = RunService.Heartbeat:Wait()
-		if abort and abort() then
+		if not dog.model.Parent or (abort and abort()) then
+			finished()
 			return false
 		end
 
@@ -500,6 +389,7 @@ local function walkTo(dog: Dog, target: Vector3, speed: number, timeout: number,
 		local to = Vector3.new(target.X, from.Y, target.Z)
 		local delta = to - from
 		if delta.Magnitude < 0.6 then
+			finished()
 			return true
 		end
 
@@ -509,6 +399,7 @@ local function walkTo(dog: Dog, target: Vector3, speed: number, timeout: number,
 		local moved = from + heading * math.min(speed * dt, delta.Magnitude)
 		dog.model:PivotTo(facing(moved, heading))
 	end
+	finished()
 	return false
 end
 
@@ -765,6 +656,7 @@ local function settle(dog: Dog, tier: any)
 	end
 
 	dog.sleeping = true
+	GuardVisual.state(dog, "Sleep")
 	dog.model:PivotTo(sleepCFrame(dog, tier))
 	dog.zzz.Enabled = true
 	dog.breedLabel.Text = if dog.distracted then "DISTRACTED" else "OFF DUTY"
@@ -772,6 +664,7 @@ end
 
 local function rouse(dog: Dog, tier: any)
 	dog.sleeping = false
+	GuardVisual.state(dog, "Idle")
 	dog.distracted = false
 	dog.zzz.Enabled = false
 	-- Keeps the guard-duty tell if that is still running. Waking up from an
@@ -1002,6 +895,7 @@ end
 -- to keep in step, and this file has already been caught once by four kennel
 -- `Finial`s answering to the same `FindFirstChild`.
 local function showGuardDuty(dog: Dog, on: boolean)
+	GuardVisual.duty(dog, on)
 	local tier = Config.getDogTier(dog.level)
 	if not tier then
 		return
@@ -1103,87 +997,20 @@ end
 -- BUILD AND TIERS
 -- ============================================================
 
--- BREED SHAPE. Three animals out of one part list.
---
--- `tier.scale` was doing all of the work and it can only ever produce the SAME
--- dog at three sizes -- which is what shipped: a terrier, a shepherd and a
--- mastiff that differed by colour and nothing else. Four numbers per breed
--- change that, and each is applied to a `group` rather than to a named part,
--- so adding a piece of geometry costs nothing here:
---
---   leg      how tall it stands. Everything above the legs is lifted to match.
---   girth    how heavy it is, across and through -- never along, or a stocky
---            breed comes out LONGER instead of thicker.
---   head     how much of the dog is head, scaled ABOUT THE HEAD'S OWN CENTRE.
---   earDroop the single clearest breed tell there is, and it is free: the
---            ears are already hinged at their roots.
+-- Scale the kennel and place the authored guard at ground level.
 local function layout(dog: Dog, tier: any)
 	local scale = tier.scale
-	local shape = tier.shape or {}
-	local legF = shape.leg or 1
-	local girth = shape.girth or 1
-	local headF = shape.head or 1
-	local droop = shape.earDroop or 0
-	local lift = (legF - 1) * LEG_TOP
-
 	for _, piece in ipairs(dog.kennelPieces) do
 		piece.part.Size = piece.size * scale
-		piece.part.CFrame = dog.originCF
-			* CFrame.new(piece.offset * scale)
-			* (piece.rot or CFrame.identity)
+		piece.part.CFrame = dog.originCF * CFrame.new(piece.offset * scale) * (piece.rot or CFrame.identity)
 	end
-
-	for _, piece in ipairs(dog.pieces) do
-		local size, offset = piece.size, piece.offset
-		local group = piece.group
-
-		if group == "leg" then
-			-- Grown from the ground up: scaling the offset by the same factor as
-			-- the length keeps the foot where it was and pushes the shoulder up.
-			size = Vector3.new(size.X * girth, size.Y * legF, size.Z)
-			offset = Vector3.new(offset.X * girth, offset.Y * legF, offset.Z)
-		elseif group == "paw" then
-			-- A paw is on the FLOOR whatever the leg above it is doing, so it
-			-- takes the girth and neither the leg factor nor the lift.
-			size = Vector3.new(size.X * girth, size.Y, size.Z)
-			offset = Vector3.new(offset.X * girth, offset.Y, offset.Z)
-		else
-			if group == "head" or group == "ear" then
-				-- ABOUT THE HEAD'S OWN CENTRE, not in place. Grown in place, the
-				-- eyes and the brow stay where they were while the skull swells
-				-- around them -- measured on the Mastiff at head 1.24, where both
-				-- eyes ended up entirely inside the face.
-				size = size * headF
-				offset = HEAD_ANCHOR + (offset - HEAD_ANCHOR) * headF
-			elseif group == "body" then
-				size = Vector3.new(size.X * girth, size.Y * girth, size.Z)
-			end
-			offset += Vector3.new(0, lift, 0)
-		end
-
-		piece.part.Size = size * scale
-
-		if group == "ear" then
-			-- HINGED AT THE ROOT. An ear turned about its own middle swings half
-			-- of itself into the skull, which is precisely what a hanging breed
-			-- must not do -- so the stored offset is the ear's BASE and the half
-			-- length is added back after the turn.
-			local side = if offset.X < 0 then -1 else 1
-			piece.part.CFrame = dog.originCF
-				* CFrame.new((REST_OFFSET + offset) * scale)
-				* CFrame.Angles(0, 0, -side * math.rad(8 + droop))
-				* CFrame.new(0, size.Y * scale / 2, 0)
-		else
-			piece.part.CFrame = dog.originCF
-				* CFrame.new((REST_OFFSET + offset) * scale)
-				* (piece.rot or CFrame.identity)
-		end
-	end
-
-	dog.home = restCFrame(dog, tier).Position
-	-- Clear of the ears, which are the tallest thing on the dog. The plate is
-	-- not AlwaysOnTop, so anything it overlaps will chew holes in the text.
-	dog.plate.StudsOffsetWorldSpace = Vector3.new(0, 2.4 * scale, 0)
+	dog.model:PivotTo(restCFrame(dog, tier))
+	dog.home = dog.body.Position
+	GuardVisual.apply(dog, tier, torsoY(tier))
+	local height = dog.model:GetAttribute("GuardHeight") or 2.5
+	local head = dog.plate.Parent :: BasePart
+	head.CFrame = dog.body.CFrame * CFrame.new(0, height - torsoY(tier), 0)
+	dog.plate.StudsOffsetWorldSpace = Vector3.new(0, 0.65, 0)
 end
 
 -- WHAT IS ACTUALLY VISIBLE ON THE LAWN, which is not the same question as
@@ -1288,6 +1115,8 @@ function GuardDog.applyTier(dog: Dog, level: number)
 	local tier = Config.getDogTier(dog.level)
 
 	if not tier then
+		GuardVisual.apply(dog, nil, 0)
+		GuardVisual.state(dog, "Hidden")
 		for _, piece in ipairs(dog.pieces) do
 			piece.part.Transparency = 1
 		end
@@ -1422,6 +1251,9 @@ function GuardDog.applyTier(dog: Dog, level: number)
 		elseif dog.sleeping then "OFF DUTY"
 		else string.upper(tier.breed)
 
+	dog.zzz.Enabled = dog.sleeping
+	GuardVisual.state(dog, if dog.sleeping then "Sleep" elseif dog.chasing then "Chase" else "Idle")
+
 	-- A tier change mid-nap has to re-seat the dog, or it snaps to the rest
 	-- spot at the new scale while still flagged asleep.
 	if dog.sleeping then
@@ -1535,23 +1367,12 @@ function GuardDog.build(originCF: CFrame, parent: Instance, yardCF: CFrame?): Do
 	end
 
 	local pieces: { Piece } = {}
-	local body: Part? = nil
-	local skull: Part? = nil
-	for _, bone in ipairs(SKELETON) do
-		local p = makePart(bone, model)
-		table.insert(pieces, {
-			part = p, size = bone.size, offset = bone.offset,
-			tone = bone.tone, rot = bone.rot, group = bone.group,
-		})
-		if not body then
-			body = p
-		end
-		if bone.name == "Head" then
-			skull = p
-		end
-	end
-
-	local torso = assert(body, "SKELETON must define at least the torso")
+	local torso = makePart({name = "GuardAnchor", size = Vector3.new(0.1,0.1,0.1), offset = REST_OFFSET + Vector3.new(0,TORSO_Y,0)}, model)
+	torso.Transparency = 1
+	torso.CanTouch = false
+	local skull = makePart({name = "NameplateAnchor", size = Vector3.new(0.1,0.1,0.1), offset = REST_OFFSET + Vector3.new(0,2.5,0)}, model)
+	skull.Transparency = 1
+	skull.CanTouch = false
 
 	-- Three voices, not one. The dog previously "barked" with the coin-collect
 	-- chime played at 1.6x, which was a placeholder that outlived its welcome.
@@ -1570,7 +1391,7 @@ function GuardDog.build(originCF: CFrame, parent: Instance, yardCF: CFrame?): Do
 		sound.Parent = torso
 	end
 
-	local head = assert(skull, "SKELETON must define a Head for the nameplate")
+	local head = skull
 
 	local plate = Instance.new("BillboardGui")
 	plate.Name = "Nameplate"
@@ -1750,6 +1571,8 @@ function GuardDog.chase(dog: Dog, getTargetRoot: () -> BasePart?, onCatch: () ->
 		rouse(dog, tier)
 	end
 
+	GuardVisual.state(dog, "Chase")
+
 	-- The alarm bark. This is the sound a thief hears the instant they are
 	-- noticed, and the one the owner hears from anywhere on their plot.
 	play(dog, "Bark")
@@ -1762,7 +1585,7 @@ function GuardDog.chase(dog: Dog, getTargetRoot: () -> BasePart?, onCatch: () ->
 
 		-- `dog.lured` ends the chase early: that is a Golden Bone landing
 		-- mid-run, the one bone a dog will break off for.
-		while os.clock() < deadline and not dog.lured do
+		while os.clock() < deadline and not dog.lured and dog.level > 0 and dog.model.Parent do
 			local dt = RunService.Heartbeat:Wait()
 			local root = getTargetRoot()
 			if not root then
@@ -1787,7 +1610,9 @@ function GuardDog.chase(dog: Dog, getTargetRoot: () -> BasePart?, onCatch: () ->
 			-- A snarl rather than a bark, so being caught sounds different from
 			-- being chased. The chase already had its own noise.
 			play(dog, "Snarl")
+			GuardVisual.state(dog, "Attack")
 			onCatch()
+			task.wait(0.45)
 		end
 
 		-- Broken off by a bone. The lure owns the dog from here -- it is

@@ -1,0 +1,36 @@
+{
+  "name": "AcornStorageCrate",
+  "triangles": {
+    "CrateBody": 572,
+    "CornerPosts": 176,
+    "TopRim": 176,
+    "AcornEmblem": 42
+  },
+  "total_triangles": 966,
+  "dimensions_blender_xyz": [
+    3.5999999046325684,
+    2.799999952316284,
+    1.899999976158142
+  ],
+  "bounds_min": [
+    -1.7999999523162842,
+    -1.399999976158142,
+    0.0
+  ],
+  "bounds_max": [
+    1.7999999523162842,
+    1.399999976158142,
+    1.899999976158142
+  ],
+  "dimensions_roblox_xyz": [
+    3.5999999046325684,
+    1.899999976158142,
+    2.799999952316284
+  ],
+  "pivot": "Bottom centre (0, 0, 0)",
+  "transforms_applied": true,
+  "atlas": "512x512 sRGB flat colours; embedded in GLB and packed in blend",
+  "front": "Blender -Y / glTF +Z",
+  "material_count": 1,
+  "glb_bytes": 114416
+}

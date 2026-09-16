@@ -1,0 +1,650 @@
+{
+  "source": "blender/pig/pig/pig.blend",
+  "source_vertex_counts": {
+    "Body": 3176,
+    "Ears": 3580,
+    "EyePreview": 532,
+    "Legs": 1024,
+    "Snout": 1245,
+    "Tail": 798
+  },
+  "lowpoly_vertex_counts": {
+    "Body": 508,
+    "Ears": 307,
+    "EyePreview": 120,
+    "Legs": 241,
+    "Snout": 287,
+    "Tail": 201
+  },
+  "mesh_count": 48,
+  "feather_count": 32,
+  "triangles": 4168,
+  "units": "6 Roblox studs per Blender unit",
+  "axes": "Blender +Z up, -Y front. Source origin retained. Ground z=-1.02.",
+  "animation": {
+    "name": "Phoenix_Idle",
+    "fps": 30,
+    "frames": [
+      1,
+      121
+    ],
+    "duration_seconds": 4
+  },
+  "bones": {
+    "Root": {
+      "pivot": [
+        0,
+        0,
+        0
+      ],
+      "parent": null
+    },
+    "Mantle_R_Front": {
+      "pivot": [
+        0.5,
+        0.2,
+        0.3
+      ],
+      "parent": "Root"
+    },
+    "Mantle_R_Back": {
+      "pivot": [
+        0.5,
+        0.65,
+        0.3
+      ],
+      "parent": "Root"
+    },
+    "Mantle_L_Back": {
+      "pivot": [
+        -0.5,
+        0.65,
+        0.3
+      ],
+      "parent": "Root"
+    },
+    "Mantle_L_Front": {
+      "pivot": [
+        -0.5,
+        0.2,
+        0.3
+      ],
+      "parent": "Root"
+    },
+    "Ruff_L": {
+      "pivot": [
+        -0.62,
+        -0.56,
+        0.1
+      ],
+      "parent": "Root"
+    },
+    "Ruff_R": {
+      "pivot": [
+        0.62,
+        -0.56,
+        0.1
+      ],
+      "parent": "Root"
+    },
+    "Crest_0": {
+      "pivot": [
+        -0.12,
+        -0.49,
+        0.86
+      ],
+      "parent": "Root"
+    },
+    "Crest_1": {
+      "pivot": [
+        0.1,
+        -0.4,
+        0.92
+      ],
+      "parent": "Root"
+    },
+    "Crest_2": {
+      "pivot": [
+        0,
+        -0.64,
+        0.78
+      ],
+      "parent": "Root"
+    },
+    "TailFan_0": {
+      "pivot": [
+        -0.10875693444439799,
+        1.02,
+        0.41
+      ],
+      "parent": "Root"
+    },
+    "TailFan_1": {
+      "pivot": [
+        -0.06535668420180325,
+        1.02,
+        0.41
+      ],
+      "parent": "Root"
+    },
+    "TailFan_2": {
+      "pivot": [
+        0.0,
+        1.02,
+        0.41
+      ],
+      "parent": "Root"
+    },
+    "TailFan_3": {
+      "pivot": [
+        0.06535668420180325,
+        1.02,
+        0.41
+      ],
+      "parent": "Root"
+    },
+    "TailFan_4": {
+      "pivot": [
+        0.10875693444439799,
+        1.02,
+        0.41
+      ],
+      "parent": "Root"
+    }
+  },
+  "parts": [
+    {
+      "name": "Body",
+      "bone": "Root",
+      "tone": "Orange",
+      "color": [
+        245,
+        80,
+        10
+      ]
+    },
+    {
+      "name": "Ears",
+      "bone": "Root",
+      "tone": "Gold",
+      "color": [
+        255,
+        177,
+        20
+      ]
+    },
+    {
+      "name": "Eyes",
+      "bone": "Root",
+      "tone": "Eye",
+      "color": [
+        20,
+        12,
+        9
+      ]
+    },
+    {
+      "name": "Legs",
+      "bone": "Root",
+      "tone": "Crimson",
+      "color": [
+        148,
+        15,
+        24
+      ]
+    },
+    {
+      "name": "Snout",
+      "bone": "Root",
+      "tone": "Gold",
+      "color": [
+        255,
+        177,
+        20
+      ]
+    },
+    {
+      "name": "Tail",
+      "bone": "Root",
+      "tone": "Gold",
+      "color": [
+        255,
+        177,
+        20
+      ]
+    },
+    {
+      "name": "Mantle_R_Front_Orange",
+      "bone": "Mantle_R_Front",
+      "tone": "Orange",
+      "color": [
+        245,
+        80,
+        10
+      ]
+    },
+    {
+      "name": "Mantle_R_Back_Vermilion",
+      "bone": "Mantle_R_Back",
+      "tone": "Vermilion",
+      "color": [
+        217,
+        40,
+        15
+      ]
+    },
+    {
+      "name": "Mantle_L_Back_Vermilion",
+      "bone": "Mantle_L_Back",
+      "tone": "Vermilion",
+      "color": [
+        217,
+        40,
+        15
+      ]
+    },
+    {
+      "name": "Mantle_L_Front_Orange",
+      "bone": "Mantle_L_Front",
+      "tone": "Orange",
+      "color": [
+        245,
+        80,
+        10
+      ]
+    },
+    {
+      "name": "Mantle_L_Front_Amber",
+      "bone": "Mantle_L_Front",
+      "tone": "Amber",
+      "color": [
+        255,
+        133,
+        12
+      ]
+    },
+    {
+      "name": "Mantle_R_Front_Amber",
+      "bone": "Mantle_R_Front",
+      "tone": "Amber",
+      "color": [
+        255,
+        133,
+        12
+      ]
+    },
+    {
+      "name": "Mantle_R_Back_Orange",
+      "bone": "Mantle_R_Back",
+      "tone": "Orange",
+      "color": [
+        245,
+        80,
+        10
+      ]
+    },
+    {
+      "name": "Mantle_L_Back_Orange",
+      "bone": "Mantle_L_Back",
+      "tone": "Orange",
+      "color": [
+        245,
+        80,
+        10
+      ]
+    },
+    {
+      "name": "Mantle_R_Back_Crimson",
+      "bone": "Mantle_R_Back",
+      "tone": "Crimson",
+      "color": [
+        148,
+        15,
+        24
+      ]
+    },
+    {
+      "name": "Mantle_L_Back_Crimson",
+      "bone": "Mantle_L_Back",
+      "tone": "Crimson",
+      "color": [
+        148,
+        15,
+        24
+      ]
+    },
+    {
+      "name": "Ruff_L_Orange",
+      "bone": "Ruff_L",
+      "tone": "Orange",
+      "color": [
+        245,
+        80,
+        10
+      ]
+    },
+    {
+      "name": "Ruff_L_Glow",
+      "bone": "Ruff_L",
+      "tone": "Glow",
+      "color": [
+        255,
+        206,
+        49
+      ]
+    },
+    {
+      "name": "Root_Gold",
+      "bone": "Root",
+      "tone": "Gold",
+      "color": [
+        255,
+        177,
+        20
+      ]
+    },
+    {
+      "name": "Ruff_R_Orange",
+      "bone": "Ruff_R",
+      "tone": "Orange",
+      "color": [
+        245,
+        80,
+        10
+      ]
+    },
+    {
+      "name": "Ruff_R_Glow",
+      "bone": "Ruff_R",
+      "tone": "Glow",
+      "color": [
+        255,
+        206,
+        49
+      ]
+    },
+    {
+      "name": "Crest_0_Glow",
+      "bone": "Crest_0",
+      "tone": "Glow",
+      "color": [
+        255,
+        206,
+        49
+      ]
+    },
+    {
+      "name": "Crest_1_Glow",
+      "bone": "Crest_1",
+      "tone": "Glow",
+      "color": [
+        255,
+        206,
+        49
+      ]
+    },
+    {
+      "name": "Crest_2_Glow",
+      "bone": "Crest_2",
+      "tone": "Glow",
+      "color": [
+        255,
+        206,
+        49
+      ]
+    },
+    {
+      "name": "TailFan_0_Glow",
+      "bone": "TailFan_0",
+      "tone": "Glow",
+      "color": [
+        255,
+        206,
+        49
+      ]
+    },
+    {
+      "name": "TailFan_1_Glow",
+      "bone": "TailFan_1",
+      "tone": "Glow",
+      "color": [
+        255,
+        206,
+        49
+      ]
+    },
+    {
+      "name": "TailFan_2_Glow",
+      "bone": "TailFan_2",
+      "tone": "Glow",
+      "color": [
+        255,
+        206,
+        49
+      ]
+    },
+    {
+      "name": "TailFan_3_Glow",
+      "bone": "TailFan_3",
+      "tone": "Glow",
+      "color": [
+        255,
+        206,
+        49
+      ]
+    },
+    {
+      "name": "TailFan_4_Glow",
+      "bone": "TailFan_4",
+      "tone": "Glow",
+      "color": [
+        255,
+        206,
+        49
+      ]
+    },
+    {
+      "name": "EyeGlint_-1",
+      "bone": "Root",
+      "tone": "Sun",
+      "color": [
+        255,
+        214,
+        57
+      ]
+    },
+    {
+      "name": "EyeGlint_1",
+      "bone": "Root",
+      "tone": "Sun",
+      "color": [
+        255,
+        214,
+        57
+      ]
+    },
+    {
+      "name": "Ruff_L_Amber",
+      "bone": "Ruff_L",
+      "tone": "Amber",
+      "color": [
+        255,
+        133,
+        12
+      ]
+    },
+    {
+      "name": "Ruff_R_Amber",
+      "bone": "Ruff_R",
+      "tone": "Amber",
+      "color": [
+        255,
+        133,
+        12
+      ]
+    },
+    {
+      "name": "Crest_0_Orange",
+      "bone": "Crest_0",
+      "tone": "Orange",
+      "color": [
+        245,
+        80,
+        10
+      ]
+    },
+    {
+      "name": "Crest_0_Amber",
+      "bone": "Crest_0",
+      "tone": "Amber",
+      "color": [
+        255,
+        133,
+        12
+      ]
+    },
+    {
+      "name": "Crest_1_Orange",
+      "bone": "Crest_1",
+      "tone": "Orange",
+      "color": [
+        245,
+        80,
+        10
+      ]
+    },
+    {
+      "name": "Crest_1_Amber",
+      "bone": "Crest_1",
+      "tone": "Amber",
+      "color": [
+        255,
+        133,
+        12
+      ]
+    },
+    {
+      "name": "Crest_2_Amber",
+      "bone": "Crest_2",
+      "tone": "Amber",
+      "color": [
+        255,
+        133,
+        12
+      ]
+    },
+    {
+      "name": "TailFan_0_Vermilion",
+      "bone": "TailFan_0",
+      "tone": "Vermilion",
+      "color": [
+        217,
+        40,
+        15
+      ]
+    },
+    {
+      "name": "TailFan_0_Amber",
+      "bone": "TailFan_0",
+      "tone": "Amber",
+      "color": [
+        255,
+        133,
+        12
+      ]
+    },
+    {
+      "name": "TailFan_1_Orange",
+      "bone": "TailFan_1",
+      "tone": "Orange",
+      "color": [
+        245,
+        80,
+        10
+      ]
+    },
+    {
+      "name": "TailFan_1_Amber",
+      "bone": "TailFan_1",
+      "tone": "Amber",
+      "color": [
+        255,
+        133,
+        12
+      ]
+    },
+    {
+      "name": "TailFan_2_Vermilion",
+      "bone": "TailFan_2",
+      "tone": "Vermilion",
+      "color": [
+        217,
+        40,
+        15
+      ]
+    },
+    {
+      "name": "TailFan_2_Amber",
+      "bone": "TailFan_2",
+      "tone": "Amber",
+      "color": [
+        255,
+        133,
+        12
+      ]
+    },
+    {
+      "name": "TailFan_3_Orange",
+      "bone": "TailFan_3",
+      "tone": "Orange",
+      "color": [
+        245,
+        80,
+        10
+      ]
+    },
+    {
+      "name": "TailFan_3_Amber",
+      "bone": "TailFan_3",
+      "tone": "Amber",
+      "color": [
+        255,
+        133,
+        12
+      ]
+    },
+    {
+      "name": "TailFan_4_Vermilion",
+      "bone": "TailFan_4",
+      "tone": "Vermilion",
+      "color": [
+        217,
+        40,
+        15
+      ]
+    },
+    {
+      "name": "TailFan_4_Amber",
+      "bone": "TailFan_4",
+      "tone": "Amber",
+      "color": [
+        255,
+        133,
+        12
+      ]
+    }
+  ],
+  "fx_blender_positions": {
+    "Crown": [
+      0.1,
+      -0.4,
+      1.6
+    ],
+    "Tail": [
+      0,
+      1.08,
+      1.14
+    ]
+  },
+  "nostril_inserts": false
+}

@@ -10,6 +10,18 @@ pipeline is `blender/pig/` and it has its own contract in
 `blender/pig/WORKFLOW.md` and its own `paths.py`; **do not move anything
 there**, because sixty scripts resolve their locations through that one file.
 
+The newer oak and dog Blender authoring scripts live in `blender/tree/` and
+`blender/dogs/`; their reviewable `.blend`, GLB, and render deliverables live
+with the named assets in `assets/tree/blender/` and `assets/dogs/`. This does
+not change the pig pipeline's paths.
+
+The approved simpler guard direction is in `assets/guards/`, authored by
+`blender/guards/`. It includes the three revised dogs and five wild/elite
+creatures, editable rigs, and starter animation clips. They are integrated
+in the local project and Studio; the primitive guards have been retired. Reproducible imported
+mesh templates live in `src/ServerStorage/GuardTemplates`; see
+`assets/guards/ANIMATION-GUIDE.md` for animation details.
+
 ---
 
 ## The rule: one folder per named thing, named after its `Config` key

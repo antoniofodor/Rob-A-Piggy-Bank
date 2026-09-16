@@ -1,0 +1,730 @@
+{
+  "creature": "cerberus",
+  "label": "Cerberus",
+  "tier": 5,
+  "triangles": 2278,
+  "parts": {
+    "Body": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "Body"
+    },
+    "Neck": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "Body"
+    },
+    "Head": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "Head"
+    },
+    "Ear_L": {
+      "triangles": 8,
+      "tone": "fur",
+      "bone": "Ear_L"
+    },
+    "Ear_L_Inner": {
+      "triangles": 8,
+      "tone": "inner",
+      "bone": "Ear_L"
+    },
+    "Ear_R": {
+      "triangles": 8,
+      "tone": "fur",
+      "bone": "Ear_R"
+    },
+    "Ear_R_Inner": {
+      "triangles": 8,
+      "tone": "inner",
+      "bone": "Ear_R"
+    },
+    "Eye_L": {
+      "triangles": 36,
+      "tone": "eye",
+      "bone": "Head"
+    },
+    "Brow_L": {
+      "triangles": 44,
+      "tone": "brow",
+      "bone": "Brow_L"
+    },
+    "Eye_R": {
+      "triangles": 36,
+      "tone": "eye",
+      "bone": "Head"
+    },
+    "Brow_R": {
+      "triangles": 44,
+      "tone": "brow",
+      "bone": "Brow_R"
+    },
+    "UpperMuzzle": {
+      "triangles": 44,
+      "tone": "light",
+      "bone": "Head"
+    },
+    "LowerJaw": {
+      "triangles": 44,
+      "tone": "light",
+      "bone": "Jaw"
+    },
+    "MouthBack": {
+      "triangles": 12,
+      "tone": "mouth",
+      "bone": "Head"
+    },
+    "LowerMouthInside": {
+      "triangles": 12,
+      "tone": "mouth",
+      "bone": "Jaw"
+    },
+    "Nose": {
+      "triangles": 44,
+      "tone": "nose",
+      "bone": "Head"
+    },
+    "Smile_0": {
+      "triangles": 12,
+      "tone": "mouth",
+      "bone": "Jaw"
+    },
+    "Smile_1": {
+      "triangles": 12,
+      "tone": "mouth",
+      "bone": "Jaw"
+    },
+    "Smile_2": {
+      "triangles": 12,
+      "tone": "mouth",
+      "bone": "Jaw"
+    },
+    "Smile_3": {
+      "triangles": 12,
+      "tone": "mouth",
+      "bone": "Jaw"
+    },
+    "Fang_-1": {
+      "triangles": 8,
+      "tone": "teeth",
+      "bone": "Head"
+    },
+    "LowerFang_-1": {
+      "triangles": 8,
+      "tone": "teeth",
+      "bone": "Jaw"
+    },
+    "Fang_1": {
+      "triangles": 8,
+      "tone": "teeth",
+      "bone": "Head"
+    },
+    "LowerFang_1": {
+      "triangles": 8,
+      "tone": "teeth",
+      "bone": "Jaw"
+    },
+    "Collar": {
+      "triangles": 44,
+      "tone": "collar",
+      "bone": "Head"
+    },
+    "FrontL": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "FrontL"
+    },
+    "FrontL_Lower": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "FrontL_Lower"
+    },
+    "FrontL_Foot": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "FrontL_Lower"
+    },
+    "BackL": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "BackL"
+    },
+    "BackL_Lower": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "BackL_Lower"
+    },
+    "BackL_Foot": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "BackL_Lower"
+    },
+    "FrontR": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "FrontR"
+    },
+    "FrontR_Lower": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "FrontR_Lower"
+    },
+    "FrontR_Foot": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "FrontR_Lower"
+    },
+    "BackR": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "BackR"
+    },
+    "BackR_Lower": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "BackR_Lower"
+    },
+    "BackR_Foot": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "BackR_Lower"
+    },
+    "Tail": {
+      "triangles": 26,
+      "tone": "fur",
+      "bone": "Tail"
+    },
+    "Head_Left": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "Head_Left"
+    },
+    "Ear_L_Left": {
+      "triangles": 8,
+      "tone": "fur",
+      "bone": "Ear_L_Left"
+    },
+    "Ear_L_Inner_Left": {
+      "triangles": 8,
+      "tone": "inner",
+      "bone": "Ear_L_Left"
+    },
+    "Ear_R_Left": {
+      "triangles": 8,
+      "tone": "fur",
+      "bone": "Ear_R_Left"
+    },
+    "Ear_R_Inner_Left": {
+      "triangles": 8,
+      "tone": "inner",
+      "bone": "Ear_R_Left"
+    },
+    "Eye_L_Left": {
+      "triangles": 36,
+      "tone": "eye",
+      "bone": "Head_Left"
+    },
+    "Brow_L_Left": {
+      "triangles": 44,
+      "tone": "brow",
+      "bone": "Brow_L_Left"
+    },
+    "Eye_R_Left": {
+      "triangles": 36,
+      "tone": "eye",
+      "bone": "Head_Left"
+    },
+    "Brow_R_Left": {
+      "triangles": 44,
+      "tone": "brow",
+      "bone": "Brow_R_Left"
+    },
+    "UpperMuzzle_Left": {
+      "triangles": 44,
+      "tone": "light",
+      "bone": "Head_Left"
+    },
+    "LowerJaw_Left": {
+      "triangles": 44,
+      "tone": "light",
+      "bone": "Jaw_Left"
+    },
+    "MouthBack_Left": {
+      "triangles": 12,
+      "tone": "mouth",
+      "bone": "Head_Left"
+    },
+    "LowerMouthInside_Left": {
+      "triangles": 12,
+      "tone": "mouth",
+      "bone": "Jaw_Left"
+    },
+    "Nose_Left": {
+      "triangles": 44,
+      "tone": "nose",
+      "bone": "Head_Left"
+    },
+    "Smile_0_Left": {
+      "triangles": 12,
+      "tone": "mouth",
+      "bone": "Jaw_Left"
+    },
+    "Smile_1_Left": {
+      "triangles": 12,
+      "tone": "mouth",
+      "bone": "Jaw_Left"
+    },
+    "Smile_2_Left": {
+      "triangles": 12,
+      "tone": "mouth",
+      "bone": "Jaw_Left"
+    },
+    "Smile_3_Left": {
+      "triangles": 12,
+      "tone": "mouth",
+      "bone": "Jaw_Left"
+    },
+    "Fang_-1_Left": {
+      "triangles": 8,
+      "tone": "teeth",
+      "bone": "Head_Left"
+    },
+    "LowerFang_-1_Left": {
+      "triangles": 8,
+      "tone": "teeth",
+      "bone": "Jaw_Left"
+    },
+    "Fang_1_Left": {
+      "triangles": 8,
+      "tone": "teeth",
+      "bone": "Head_Left"
+    },
+    "LowerFang_1_Left": {
+      "triangles": 8,
+      "tone": "teeth",
+      "bone": "Jaw_Left"
+    },
+    "Collar_Left": {
+      "triangles": 44,
+      "tone": "collar",
+      "bone": "Head_Left"
+    },
+    "Neck_Left": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "Body"
+    },
+    "Head_Right": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "Head_Right"
+    },
+    "Ear_L_Right": {
+      "triangles": 8,
+      "tone": "fur",
+      "bone": "Ear_L_Right"
+    },
+    "Ear_L_Inner_Right": {
+      "triangles": 8,
+      "tone": "inner",
+      "bone": "Ear_L_Right"
+    },
+    "Ear_R_Right": {
+      "triangles": 8,
+      "tone": "fur",
+      "bone": "Ear_R_Right"
+    },
+    "Ear_R_Inner_Right": {
+      "triangles": 8,
+      "tone": "inner",
+      "bone": "Ear_R_Right"
+    },
+    "Eye_L_Right": {
+      "triangles": 36,
+      "tone": "eye",
+      "bone": "Head_Right"
+    },
+    "Brow_L_Right": {
+      "triangles": 44,
+      "tone": "brow",
+      "bone": "Brow_L_Right"
+    },
+    "Eye_R_Right": {
+      "triangles": 36,
+      "tone": "eye",
+      "bone": "Head_Right"
+    },
+    "Brow_R_Right": {
+      "triangles": 44,
+      "tone": "brow",
+      "bone": "Brow_R_Right"
+    },
+    "UpperMuzzle_Right": {
+      "triangles": 44,
+      "tone": "light",
+      "bone": "Head_Right"
+    },
+    "LowerJaw_Right": {
+      "triangles": 44,
+      "tone": "light",
+      "bone": "Jaw_Right"
+    },
+    "MouthBack_Right": {
+      "triangles": 12,
+      "tone": "mouth",
+      "bone": "Head_Right"
+    },
+    "LowerMouthInside_Right": {
+      "triangles": 12,
+      "tone": "mouth",
+      "bone": "Jaw_Right"
+    },
+    "Nose_Right": {
+      "triangles": 44,
+      "tone": "nose",
+      "bone": "Head_Right"
+    },
+    "Smile_0_Right": {
+      "triangles": 12,
+      "tone": "mouth",
+      "bone": "Jaw_Right"
+    },
+    "Smile_1_Right": {
+      "triangles": 12,
+      "tone": "mouth",
+      "bone": "Jaw_Right"
+    },
+    "Smile_2_Right": {
+      "triangles": 12,
+      "tone": "mouth",
+      "bone": "Jaw_Right"
+    },
+    "Smile_3_Right": {
+      "triangles": 12,
+      "tone": "mouth",
+      "bone": "Jaw_Right"
+    },
+    "Fang_-1_Right": {
+      "triangles": 8,
+      "tone": "teeth",
+      "bone": "Head_Right"
+    },
+    "LowerFang_-1_Right": {
+      "triangles": 8,
+      "tone": "teeth",
+      "bone": "Jaw_Right"
+    },
+    "Fang_1_Right": {
+      "triangles": 8,
+      "tone": "teeth",
+      "bone": "Head_Right"
+    },
+    "LowerFang_1_Right": {
+      "triangles": 8,
+      "tone": "teeth",
+      "bone": "Jaw_Right"
+    },
+    "Collar_Right": {
+      "triangles": 44,
+      "tone": "collar",
+      "bone": "Head_Right"
+    },
+    "Neck_Right": {
+      "triangles": 44,
+      "tone": "fur",
+      "bone": "Body"
+    }
+  },
+  "bones": {
+    "Root": {
+      "head": [
+        0,
+        0,
+        0
+      ],
+      "parent": null
+    },
+    "Body": {
+      "head": [
+        0.0,
+        0.0,
+        1.6462346315383911
+      ],
+      "parent": "Root"
+    },
+    "Head": {
+      "head": [
+        0.0,
+        -1.349912405014038,
+        2.4693520069122314
+      ],
+      "parent": "Body"
+    },
+    "Ear_L": {
+      "head": [
+        -0.5885288715362549,
+        -1.7120839357376099,
+        3.761646270751953
+      ],
+      "parent": "Head"
+    },
+    "Ear_R": {
+      "head": [
+        0.5885288715362549,
+        -1.7120839357376099,
+        3.761646270751953
+      ],
+      "parent": "Head"
+    },
+    "Brow_L": {
+      "head": [
+        -0.4346059262752533,
+        -2.5187389850616455,
+        3.6052539348602295
+      ],
+      "parent": "Head"
+    },
+    "Brow_R": {
+      "head": [
+        0.4346059262752533,
+        -2.5187389850616455,
+        3.6052539348602295
+      ],
+      "parent": "Head"
+    },
+    "Jaw": {
+      "head": [
+        0.0,
+        -2.288266181945801,
+        2.5845885276794434
+      ],
+      "parent": "Head"
+    },
+    "FrontL": {
+      "head": [
+        -1.2198598384857178,
+        -1.0957337617874146,
+        1.6133099794387817
+      ],
+      "parent": "Body"
+    },
+    "FrontL_Lower": {
+      "head": [
+        -1.2198598384857178,
+        -1.1128545999526978,
+        0.5906689763069153
+      ],
+      "parent": "FrontL"
+    },
+    "BackL": {
+      "head": [
+        -1.2198598384857178,
+        1.044371247291565,
+        1.6791592836380005
+      ],
+      "parent": "Body"
+    },
+    "BackL_Lower": {
+      "head": [
+        -1.2198598384857178,
+        1.4039089679718018,
+        0.6677128076553345
+      ],
+      "parent": "BackL"
+    },
+    "FrontR": {
+      "head": [
+        1.2198598384857178,
+        -1.0957337617874146,
+        1.6133099794387817
+      ],
+      "parent": "Body"
+    },
+    "FrontR_Lower": {
+      "head": [
+        1.2198598384857178,
+        -1.1128545999526978,
+        0.5906689763069153
+      ],
+      "parent": "FrontR"
+    },
+    "BackR": {
+      "head": [
+        1.2198598384857178,
+        1.044371247291565,
+        1.6791592836380005
+      ],
+      "parent": "Body"
+    },
+    "BackR_Lower": {
+      "head": [
+        1.2198598384857178,
+        1.4039089679718018,
+        0.6677128076553345
+      ],
+      "parent": "BackR"
+    },
+    "Tail": {
+      "head": [
+        0.0,
+        1.3696672916412354,
+        1.92609441280365
+      ],
+      "parent": "Body"
+    },
+    "Head_Left": {
+      "head": [
+        -1.7299796342849731,
+        -1.2629872560501099,
+        2.1634814739227295
+      ],
+      "parent": "Body"
+    },
+    "Ear_L_Left": {
+      "head": [
+        -2.3259530067443848,
+        -1.4636412858963013,
+        3.3394694328308105
+      ],
+      "parent": "Head_Left"
+    },
+    "Ear_R_Left": {
+      "head": [
+        -1.2822833061218262,
+        -1.7045915126800537,
+        3.3394694328308105
+      ],
+      "parent": "Head_Left"
+    },
+    "Brow_L_Left": {
+      "head": [
+        -2.354599714279175,
+        -2.210392475128174,
+        3.1971523761749268
+      ],
+      "parent": "Head_Left"
+    },
+    "Brow_R_Left": {
+      "head": [
+        -1.5838898420333862,
+        -2.388324737548828,
+        3.1971523761749268
+      ],
+      "parent": "Head_Left"
+    },
+    "Jaw_Left": {
+      "head": [
+        -1.9220657348632812,
+        -2.095003843307495,
+        2.2683467864990234
+      ],
+      "parent": "Head_Left"
+    },
+    "Head_Right": {
+      "head": [
+        1.7299796342849731,
+        -1.2629872560501099,
+        2.1634814739227295
+      ],
+      "parent": "Body"
+    },
+    "Ear_L_Right": {
+      "head": [
+        1.2822833061218262,
+        -1.7045915126800537,
+        3.3394694328308105
+      ],
+      "parent": "Head_Right"
+    },
+    "Ear_R_Right": {
+      "head": [
+        2.3259530067443848,
+        -1.4636412858963013,
+        3.3394694328308105
+      ],
+      "parent": "Head_Right"
+    },
+    "Brow_L_Right": {
+      "head": [
+        1.5838898420333862,
+        -2.388324737548828,
+        3.1971523761749268
+      ],
+      "parent": "Head_Right"
+    },
+    "Brow_R_Right": {
+      "head": [
+        2.354599714279175,
+        -2.210392475128174,
+        3.1971523761749268
+      ],
+      "parent": "Head_Right"
+    },
+    "Jaw_Right": {
+      "head": [
+        1.9220657348632812,
+        -2.095003843307495,
+        2.2683467864990234
+      ],
+      "parent": "Head_Right"
+    }
+  },
+  "height": 4.699999809265137,
+  "boundsBlender": {
+    "min": [
+      -2.6977272033691406,
+      -3.410339593887329,
+      0.0
+    ],
+    "max": [
+      2.6977272033691406,
+      2.8055689334869385,
+      4.699999809265137
+    ]
+  },
+  "clips": {
+    "Idle": {
+      "start": 1,
+      "end": 61,
+      "fps": 30,
+      "loop": true
+    },
+    "Chase": {
+      "start": 1,
+      "end": 25,
+      "fps": 30,
+      "loop": true
+    },
+    "Attack": {
+      "start": 1,
+      "end": 25,
+      "fps": 30,
+      "loop": false
+    }
+  },
+  "animationStatus": "Editable starter motions, not final gameplay-tuned animations",
+  "installedInGame": false,
+  "units": "Blender Z up, -Y forward. Nominal authored units; verify FBX importer scale in Studio.",
+  "palette": {
+    "fur": [
+      86,
+      60,
+      70
+    ],
+    "dark": [
+      49,
+      33,
+      45
+    ],
+    "light": [
+      151,
+      113,
+      119
+    ],
+    "collar": [
+      235,
+      169,
+      46
+    ]
+  }
+}

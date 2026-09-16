@@ -1379,41 +1379,7 @@ bpy.ops.object.join()
 eyes = bpy.context.active_object
 eyes.name = "EyePreview"
 
-# ------------------------------------------------------- NOSTRILS (preview)
-# NOT EXPORTED EITHER, AND LEAVING THEM OUT MADE EVERY RENDER LIE. The game
-# builds two near-black `Nostril` parts and seats them in the dimples this
-# snout carries -- so in the engine a pig has dark nostrils and always has.
-# The preview drew the eyes and not these, so every animal shot out of this
-# folder showed BODY-COLOURED nostrils, and the bumblebee was reported as
-# needing black ones it already had.
-#
-# A PREVIEW THAT OMITS A SHIPPED PART IS A PREVIEW THAT CANNOT BE TRUSTED TO
-# SAY WHAT IS MISSING, which is the same class as the always-on-top billboards
-# this project photographed for months without ever seeing them. Seated from
-# the SAME expression that prints `MESH_FACE.nostril`, so the picture and the
-# number cannot disagree.
-_nR = Matrix.Rotation(math.radians(-SNOUT_LIFT), 3, 'X')
-_nsnout_at = Vector((0.0, SNOUT_SURF.y - SNOUT_OUT + SNOUT_DEPTH / 2.0, SNOUT_Z))
-_nfloor = Vector((NOS_DX, -SNOUT_DEPTH / 2.0 + NOS_SINK, NOS_Z))
-_nos_local = _nR @ (_nfloor - Vector((0, (0.4 / SCALE) / 2.0, 0))) + _nsnout_at
-nosobs = []
-for _side in (-1, 1):
-    bpy.ops.mesh.primitive_cube_add(size=1.0)
-    _n = bpy.context.active_object
-    _n.name = "NostrilPreview"
-    # the game part is 0.5 x 0.95 x 0.4 studs; roblox (x, y, z) is blender
-    # (x, z, -y), so height and depth swap on the way back
-    _n.scale = Vector((0.5, 0.4, 0.95)) / (2.0 * SCALE)
-    _n.location = Vector((_side * _nos_local.x, _nos_local.y, _nos_local.z))
-    _n.rotation_euler = (math.radians(-SNOUT_LIFT), 0.0, 0.0)
-    nosobs.append(_n)
-bpy.ops.object.select_all(action='DESELECT')
-for _n in nosobs:
-    _n.select_set(True)
-bpy.context.view_layer.objects.active = nosobs[0]
-bpy.ops.object.join()
-nostrils = bpy.context.active_object
-nostrils.name = "NostrilPreview"
+# Nostrils are the sculpted snout recesses; separate black preview inserts retired.
 
 # ---------------------------------------------------------------- SHADE + REPORT
 # CLEANED BEFORE IT IS SHADED, NOT AFTER, because the shading pass is what

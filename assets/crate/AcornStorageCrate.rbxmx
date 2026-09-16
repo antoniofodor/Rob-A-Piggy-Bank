@@ -1,0 +1,176 @@
+<?xml version='1.0' encoding='utf-8'?>
+<roblox version="4">
+  <Item class="Model" referent="CRATE">
+    <Properties>
+      <string name="Name">AcornStorageCrate</string>
+    </Properties>
+    <Item class="MeshPart" referent="PART_CrateBody">
+      <Properties>
+        <string name="Name">CrateBody</string>
+        <Content name="MeshId">
+          <url>rbxassetid://114021735333130</url>
+        </Content>
+        <Content name="TextureID">
+          <url>rbxassetid://108648327781313</url>
+        </Content>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <Vector3 name="size">
+          <X>3.450000286102295</X>
+          <Y>1.7389488220214844</Y>
+          <Z>2.6500003337860107</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>3.450000286102295</X>
+          <Y>1.7389488220214844</Y>
+          <Z>2.6500003337860107</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>0.8694779872894287</Y>
+          <Z>0</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4294967295</Color3uint8>
+        <token name="Material">256</token>
+        <token name="CollisionFidelity">1</token>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="PART_CornerPosts">
+      <Properties>
+        <string name="Name">CornerPosts</string>
+        <Content name="MeshId">
+          <url>rbxassetid://73778528926375</url>
+        </Content>
+        <Content name="TextureID">
+          <url>rbxassetid://108648327781313</url>
+        </Content>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <Vector3 name="size">
+          <X>3.6000001430511475</X>
+          <Y>1.7000000476837158</Y>
+          <Z>2.8000001907348633</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>3.6000001430511475</X>
+          <Y>1.7000000476837158</Y>
+          <Z>2.8000001907348633</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>0.8500001430511475</Y>
+          <Z>0</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4294967295</Color3uint8>
+        <token name="Material">256</token>
+        <token name="CollisionFidelity">1</token>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="PART_TopRim">
+      <Properties>
+        <string name="Name">TopRim</string>
+        <Content name="MeshId">
+          <url>rbxassetid://137168620124935</url>
+        </Content>
+        <Content name="TextureID">
+          <url>rbxassetid://108648327781313</url>
+        </Content>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <Vector3 name="size">
+          <X>3.6000001430511475</X>
+          <Y>0.23000001907348633</Y>
+          <Z>2.8000001907348633</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>3.6000001430511475</X>
+          <Y>0.23000001907348633</Y>
+          <Z>2.8000001907348633</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>1.7850053310394287</Y>
+          <Z>0</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4294967295</Color3uint8>
+        <token name="Material">256</token>
+        <token name="CollisionFidelity">1</token>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="PART_AcornEmblem">
+      <Properties>
+        <string name="Name">AcornEmblem</string>
+        <Content name="MeshId">
+          <url>rbxassetid://106520226066739</url>
+        </Content>
+        <Content name="TextureID">
+          <url>rbxassetid://108648327781313</url>
+        </Content>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <Vector3 name="size">
+          <X>0.7400000095367432</X>
+          <Y>0.7399999499320984</Y>
+          <Z>0.06099998950958252</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>0.7400000095367432</X>
+          <Y>0.7399999499320984</Y>
+          <Z>0.06099998950958252</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>1.0299994945526123</Y>
+          <Z>-1.34649658203125</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4294967295</Color3uint8>
+        <token name="Material">256</token>
+        <token name="CollisionFidelity">1</token>
+      </Properties>
+    </Item>
+  </Item>
+</roblox>

@@ -1,16 +1,708 @@
-# Session handoff — 2026-09-15
+# Session handoff — 2026-09-16
 
-## Resume here
+## Resume here — September 16 checkpoint
+
+This checkpoint is intended for `main` on
+`https://github.com/antoniofodor/Rob-A-Piggy-Bank`. The user requested that all
+current project changes be committed and pushed before moving machines.
+Use `git log -1 --oneline` to identify the checkpoint after pulling.
+
+### Start on the other machine
+
+1. Pull `main` (or clone the repository) and open this project folder.
+2. Install/use **Rojo 7.7**, Python 3 and the official Luau CLI. Blender is only
+   needed for asset authoring; runtime assets already reference uploaded Roblox
+   mesh/texture IDs and the committed guard templates.
+3. Run `rojo serve default.project.json --port 34872` at the project root.
+4. Open **Rob A Piggy Bank**, place ID **135433647855162**, in Roblox Studio.
+   Connect the Rojo plugin to `localhost:34872` in **Edit mode**, allowing its
+   script-modification permission. Connecting from Play's Client causes
+   `Http requests can only be executed by game server`.
+5. Enable Studio MCP and confirm the tool connection identifies that place.
+   The repo's `.mcp.json` is a Windows launcher; configure Studio's MCP for the
+   destination OS. The previous Mac's `/tmp/piggy_studio_mcp.py`, `/tmp/piggy-rojo`
+   and `/tmp/piggy-luau` helpers are **temporary and not part of this checkout**.
+6. Verify Rojo source sync, then start Play and check startup output. The last
+   Phase 3.4 sync attempt found Studio with **no place open**, so that feature's
+   live sync/startup/layout verification has not been completed.
+
+### Current implementation and approved decisions
+
+- Master plan foundation through **1.10**, separate tree/ground/storage Acorn
+  loop through **2.5**, and carry handoff/keep/return code through **3.3** are
+  implemented. Detailed validation limits are recorded in the entries below.
+- **3.4 is implemented on disk:** cream street badges distinguish NEW HERE,
+  SHIELD, ROBBED, EMPTY and CAPPED; no Acorn counts on the street badge.
+  Owners see **RECOVER SKIN**, others see HOT SKIN. The private recovery task
+  shows the actual stolen skin thumbnail and timer; select it for details.
+- Acorn theft cooldown appears **only on nearby tree/crate prompts**, with an
+  hourglass and **Steal ready in m:ss**. Player cooldowns are private and shared
+  across both sources; resident rest remains shared. Own harvesting is exempt.
+- Recovery remains tied to the last taker of that owner's particular skin,
+  independent of the robber's outfit or later thefts from other players.
+  Multiple owners retain separate claims and timers against the same robber.
+- The approved exploratory mockup is archived at
+  `docs/design/rob-badge-mockup.html`. It is the conversation HTML fragment;
+  it uses host-provided Lucide/Tweak helpers. It is a design reference, not a
+  Studio screenshot. The nearby cooldown cue was approved after that mockup.
+- Imported guards are integrated; see `assets/guards/README.md` and the guard
+  entry below. Phoenix art/generator/validation/effect companion work is also
+  included; see `assets/phoenix/README.md`. **Phoenix runtime skin integration,
+  real imported-asset placement and published animation ID remain pending.**
+- Generated `.glb`/`.fbx` exports and Blender outputs covered by existing
+  `.gitignore` rules are regenerated with the committed scripts. Asset folders
+  document their rebuild/import steps; no dependency on those ignored exports
+  is needed to run the currently integrated guard/tree/crate gameplay.
+
+### Next work, in order
+
+1. Verify 3.4 in Studio: four badge states from pavement distance, own/bystander
+   skin tags, task thumbnail and expand/collapse on phone/desktop, countdown
+   expiry, and tree/crate cooldown visibility only at interaction range.
+2. Finish the **3.3 two-player pursuit, return and keep** test, including both
+   clients' toasts, carried poses, transferred skins and recovery targets.
+3. Complete the outstanding live Acorn drag/catch/getaway and full mobile HUD
+   review. Earlier native component bounds tests are not full gameplay passes.
+4. Continue **Phase 4.1 (robbery ranks and plot-sign stars)** after those gates,
+   unless the user explicitly chooses to advance earlier. Follow
+   `docs/MASTER-PLAN.md`; do not restart completed implementation steps.
+
+### Last verified checks
+
+- **1,267 isolated checks across eighteen suites**, **102 Luau scripts compile**,
+  Rojo build succeeds, and `git diff --check` is clean.
+- Example targeted command:
+  `python3 tests/run-crates.py --luau /path/to/luau --suite badges`.
+  The runner's `--help` lists all suites; the default runs only `crates`.
+- Build: `rojo build default.project.json -o RobAPiggyBank.rbxlx` (ignored output).
+- No live player balances/saves were changed by these checks. No Roblox live
+  place publication was performed. Studio visual checks are still pending.
+
+## Imported guard integration — 2026-09-16
+
+- Replaced primitive guard geometry with the eight imported mesh creatures;
+  preserved gameplay anchors, kennel/toys, coat/name cosmetics, bait, sleep,
+  cooldowns and paid guard-duty vest.
+- Five defaults: Terrier, Shepherd, Mastiff, Dire Wolf, Cerberus. Gorilla and
+  Raptor are tier-4 wardrobe skins (250k each); Triceratops tier 5 (500k).
+  Tier 4/5 upgrades follow existing 5k × 2.6^level pricing; new stats in Config.
+- `GuardVisual` repairs Root-attached facial/foot meshes from authored report
+  bone assignments. `GuardAnimator` runs local Motor6D motions and red eyes
+  from authoritative `GuardState`; all three Cerberus jaws are independent.
+- Mesh IDs, sizes and original mesh extents recorded in `assets/guards/studio-imports.json`.
+  `blender/guards/build_runtime_assets.py` generates the catalog and eight
+  ServerStorage RBXMX templates, mapped in the Rojo project.
+- Source imports archived in Studio ServerStorage.GuardImportArchive.
+  No hellhound/silverback in the active catalog. No live-place publication.
+- Studio regression fixture: `tests/studio/guards.luau`. All eight rigs passed
+  part/bone/coat/upgrade/duty/reset/catch/bait/sleep tests. The 54 save and
+  90 rebirth checks also passed. Temporary test scripts/fixtures removed;
+  Studio left in Edit mode. Client sampling verified six
+  red Cerberus eyes and independent moving jaws. Viewport capture timed out;
+  direct screen capture returned desktop wallpaper, so no screenshot QA pass.
+
+## Earlier reconnect notes — September 15
+
+**Mac reconnect update — 2026-09-15:** `main` is current and the Rojo 7.7
+checkpoint builds. Studio MCP connects to the correct place, and Rojo's Edit
+session connects to `localhost:34872`. All 89 project scripts matched disk;
+a temporary module also confirmed live file syncing and was removed. Allow
+Rojo's script-modification permission when prompted. Connect Rojo in **Edit**
+mode: connecting from Play's Client produces `Http requests can only be
+executed by game server`.
+
+The iPhone 17 Pro landscape HUD loaded (750×361 safe-area viewport), but this
+Mac's MCP viewport captures timed out. Direct Edit-mode regression snippets
+also hit Studio's script-capability restrictions when requiring/cloning game
+modules. These are incomplete checks, not a verified HUD pass. Pointer drags,
+boost-state visuals, desktop/Android review and persistence remain pending.
 
 The user paused the session to move to another machine, then requested a
 commit and push of the current changes to `main`.
 
-**Finish the current HUD fixes before continuing the master plan.** Latest
-request: move the left menu farther left, replace the oversized/ugly
+**The user has resumed the master plan despite the pending HUD review.** Prior
+HUD request: move the left menu farther left, replace the oversized/ugly
 `USE 2x` boost HUD, fix dragging/reordering hotbar items, and redesign the
 next-event countdown. The implementation is on disk and synced through
 Rojo, but the latest changes still need a live Studio play-test and visual
 review. Do not report this HUD pass as fully verified yet.
+
+## Latest development — Phase 3.4 badges/recovery/Acorn cues (September 16)
+
+- User approved the cream-card mockup, then removed the Acorn street row.
+  Tree/ground/crate contents remain visible on the props. RECOVER SKIN replaces
+  YOUR SKIN for the rightful owner; other viewers see HOT SKIN.
+- RobBadge now distinguishes NEW HERE from SHIELD and follows server refusal
+  order through ROBBED, EMPTY and CAPPED. Rush worth and unlocked casing pips
+  remain. Server publishes public cap/hot deadlines without claimant identities
+  or skin keys. Income/refunds/reacquisition/expiry clear applicable states.
+- FirstJob retains existing private authoritative recovery objectives, now as a
+  compact task with the actual claimed skin's model and countdown. Tapping
+  expands details. CHASE/HOME cover transported copies; claim priority and
+  independent stacked deadlines stay unchanged. Buy-back still opens Crates.
+- Nearby tree/crate prompts show an hourglass and Steal ready in m:ss. Private
+  player-target deadlines share both sources; resident rest remains shared.
+  Own harvesting is unaffected. Late subscriptions receive only their own
+  snapshot; no client timer is accepted. Expiry restores ready prompts locally.
+- **1,267 isolated checks pass in eighteen suites; all 102 source scripts
+  compile, Rojo builds, and whitespace checks pass.** Checks include cooldown
+  privacy/source switches/expiry, changing plot owners, exact-key thumbnails,
+  thumbnail reuse/cleanup, stacked tags and live cap income/refund transitions.
+- Rojo is serving this project on localhost:34872. Studio MCP initially found
+  the place in Edit, then reported **Place is not open** during source checks.
+  User has been asked to reopen it. Live source-sync, native layout/input and
+  the 3.4 pavement screenshot remain pending; do not call the visual gate passed.
+  The earlier 3.3 live two-player pursuit/return/keep gate also remains pending.
+
+## Latest development — Phase 3.3 keep/return settlement (September 16)
+
+- Implemented both drop-offs using the existing empty `DeliverRequest`.
+  Server checks living holder/claimant, actual 3D position, current destination
+  occupant and no active crack/collection. Acorns drop at crates; coins use the
+  existing pig/plot radius. Returning your own intercepted haul is a return.
+- Original claimant payouts remain unchanged. Other keepers receive half the
+  RAW coins/Acorns rounded down, plus all carried items, with no revenge/spree/
+  rebirth multiplier. This resolves conflicting plan wording in favor of its
+  explicit 0.5x anti-farming example. Keeping counts one completed getaway.
+- Returns restore all raw currency/items; Acorn receipts restore storage or
+  ground as appropriate. One 25% bounty, floored, goes to the return deliverer
+  in the returned currency. Own harvests and claimant undos mint no bounty.
+  Returns do not count robberies or mint a coin reward for returning Acorns.
+- The final keeper receives the skin and becomes its recovery/revenge target.
+  Intercepted recoveries preserve the original recovery owner's claim against
+  the final keeper. An interceptor gets no insured spare; the original owner
+  can still recover that exact insured copy. Unrelated claims remain intact.
+- Both destinations, owner names and reward amounts now appear on a carry card
+  via `CarryDelivery` / `LootHaul`. KEEP/RETURN uses the existing tap/F request.
+  Item-only carries work. The old carry banner is replaced to avoid overlapping
+  the card; crack/collection panels hide the card and action while active.
+- **1,219 isolated checks pass** across seventeen suites, including 76 new
+  settlement and 15 presentation checks. Four old identity checks were retired
+  because non-claimant delivery is now supported. **102 scripts compile**, Rojo
+  builds, and Studio Play reaches Ready without feature errors.
+- Native client fixtures cloned the real card/button and confirmed unclipped
+  labels, in-bounds controls and an 8px gap at 1399×793, 750×361, 480×320 and
+  320×568. These are component layout checks, not a complete mobile HUD review.
+  Fixtures changed no player balances/saves. Existing pass-ID/MaxPlayers/mane
+  warnings remain; concurrent guard work is separate.
+- **Still required for the plan's 3.3 completion gate:** a live two-player
+  pursuit, return and keep session, checking both players' toasts and carried
+  poses. Isolated player/physics doubles are not that multiplayer verification.
+  After that, 3.4 is the badge-row design/art step.
+
+## Latest development — Phase 3.2 completed-tug handoff (September 16)
+
+- Completed player tugs now move the same loot model, prompt and carry record
+  to the winning nabber. `claimant` and victim remain fixed; `holder` changes.
+  Coins, whole Acorns, source receipts and staged skins remain intact.
+- Ticks advance time/contribution only: no per-tick refund, amount reduction or
+  minted bounty. The first tick waits its interval; a clean tug takes one second
+  regardless of crowd, currency or a haul-only carry. Opening closes the current
+  crack/collection round. Highest eligible contribution wins; ties use join order.
+- The old holder is empty-handed and loses the carry slow without a stun. The
+  winner gets carry speed, loses shield/sneak, and gets three seconds of rest.
+  Victim markers, prompt owner text and both HUDs follow the transfer. The prompt
+  binds to the record's current holder, allowing the original claimant to nab it
+  back after rest. Only successful handoffs award catch credit/effects.
+- Transfer rechecks live nearby characters, empty hands and the exact root weld.
+  Missing/dead/departed/busy winners or broken attachments preserve old escrow.
+  Per-tug/carry tokens prevent old coroutines from touching replacement attempts.
+  Confiscation/delivery invalidates a tug; those endings do not award catches.
+- Dog and patrol paths retain full refunds and haul return; dog stun is unchanged.
+  Acorn collection cannot append to a non-claimant's transferred basket.
+- **1,132 isolated checks pass** in fifteen suites, including **78 new handoff
+  checks** executing the actual private transfer, public nab, prompt callback,
+  timed coroutine, cancellation and confiscation paths with player/physics doubles.
+  **101 source scripts compile**, Rojo builds, and whitespace checks pass.
+- Fresh Studio Play reaches Ready with no handoff/startup errors. HeistService
+  and Config exactly match the running server sources after Rojo sync. Existing
+  pass-ID and MaxPlayers warnings remain. Live two-player welding/pose and pursuit testing
+  is still pending; isolated physics doubles are not a multiplayer visual pass.
+- **Next: 3.3**, victim-return and alternate-holder keep payouts/drop-off choices.
+  Current non-claimants carry and can be re-nabbed, but do not cash out until that
+  step. Original-claimant delivery is unchanged; unusable home delivery prompts
+  are suppressed for non-claimants in the meantime.
+
+## Latest development — Imported storage crate + Phase 3.1 (September 16)
+
+- Integrated the user's imported `Workspace.AcornStorageCrate`: four mesh
+  parts, shared atlas, measured bottom-centre offsets, 3.6 × 1.9 × 2.8 XYZ.
+  All residential plots now clone cached templates. The existing `Storage`
+  floor remains an invisible interaction/fill anchor; mesh-load failure keeps
+  the complete wooden fallback. The woven transport basket is unchanged.
+- Archived the Studio IDs/measurements and a portable assembly under
+  `assets/crate/AcornStorageCrate.json` / `.rbxmx`; Blender source remains there.
+- **3.1 implemented:** `Carry.claimant` records the original grabber and
+  `Carry.holder` records the player whose character carries the loot. One
+  constructor initializes both after successful crack, smash or Acorn catch
+  attachment. Additional slices/catches retain the existing identity.
+- Both delivery entry points validate holder and claimant. Original-holder
+  coin, skin and Acorn payouts remain unchanged. Missing/mismatched identities
+  cannot settle and leave escrow intact. Phase 3.3 will add non-claimant
+  settlement; Phase 3.2 transfer is not implemented yet.
+- **1,054 isolated checks pass** across all fourteen suites; **98 source
+  scripts compile** and Rojo builds. Tests cover both crate orientations,
+  mesh cache/failure cleanup, retained floor anchor and refused-delivery escrow.
+- Fresh Studio Play verified ten crates / forty imported parts, correct atlas,
+  anchors and non-colliding visuals. The real-client display fixture passed
+  0/3/8/24/200/0 stored counts, independent tree/ground contents and cleanup.
+  No feature boot errors; existing pass-ID, MaxPlayers and stale mane warnings
+  remain. Fixtures only change local display objects, never player balances.
+- All 101 current sources match Studio Edit after the final sync (additional
+  scripts arrived from concurrent work after compilation). Studio left in Edit.
+  Live pointer collection, carried-pose review and end-to-end getaway remain
+  pending; structural/display checks do not replace those play-tests.
+- **Next: 3.2**, completed tug transfers the intact carry to the winning nabber
+  while retaining claimant; then 3.3 adds the victim-return/alternate-holder exits.
+
+## Latest development — Phase 2.5 resident Acorn supply (September 16)
+
+- Implemented `ResidentAcorns` and real ResidentService seat/tick/evict wiring.
+  Each residential plot gets four starting Acorns total: two ripe, two stored.
+  The seed happens once per plot per server lifetime; shops have no Acorn stock.
+  `resident.acornStock` is separate from resident carried coin `.loot`.
+- Same one/hour tree growth and eight-ripe cap as players. Stored balance does
+  not stop growth. A crop starting on an empty tree waits fifteen minutes;
+  a resident at home then banks ripe stock. Ground leftovers and live collection
+  leases postpone harvest. This conserves stock and introduces no new NPC
+  harvest/carry animation. Coin production/raids stay unchanged.
+- Valid resident Acorn openings start a shared 15-minute deadline across all
+  thieves and both sources. Invalid/empty openings consume nothing. Prompt
+  counters show RESTING m:ss and restore ripe/stored counts at expiry.
+  Player-target Acorn cooldown remains 60 seconds per thief/victim.
+- Claiming a property freezes resident production/harvesting. Releasing it
+  restores the same stock and partial growth hour, never a new seed or a
+  hidden growing tree. Raid/ground expiry remains real-time. Old in-flight
+  receipts refund retained stock without crediting the new player occupant.
+- Corrected the new-growth economy model, which previously counted some
+  player crops as both own harvest and theft. Full capture at parity gives
+  10 solo / 5.25 full per player-hour; own-harvest-only capture gives 1.25 at
+  eight players. These are fresh-production scenarios, not observed earnings
+  or an all-income ceiling. Initial seeds and re-raids of existing storage
+  are excluded. No growth rate, payout multiplier or crate price was changed.
+- **1,004 isolated checks pass**, including 36 resident stock/service checks,
+  eight new shared-cooldown/refund checks and native-prompt behavior covered
+  by both isolated and real-client fixtures. **97 scripts compile**, Rojo
+  builds, and all source scripts match Studio Edit. Fresh Play boots cleanly
+  for this feature; existing pass-ID and max-player warnings remain.
+- Real client verified all nine resident houses at 2 ripe + 2 stored, using
+  imported Acorn visuals and enabled H/J prompts; all four shops excluded.
+  Local countdown fixture verified RESTING → counts and no cooldown leakage
+  to a new player occupant. Fixture removed; no player balance/save edited.
+- Natural 15-minute/one-hour timing is covered with deterministic clocks,
+  including a 24-hour conservation run and actual ResidentService integration.
+  Live player drag/catch/getaway and carry-pose review (2.4) remain pending.
+- Updated master-plan §§3–5, §17, Phase 2.5 and `docs/GAME.md` to match.
+  Final generated storage-crate art was integrated in the later 3.1 entry above.
+- Next implementation: **3.1**, separate a haul's original claimant from its
+  current holder, before the Phase 3.2 completed-tug transfer.
+
+## Latest development — Tree → carry basket → storage crate (September 16)
+
+This designer-approved correction supersedes the older 2.2/2.3 behavior below.
+
+- Trees now grow into saved `treeAcorns` (one/hour, eight ripe maximum),
+  independently of stored `loot`. Existing Acorn balances remain banked and
+  are never copied into the tree. Offline/partial-hour growth is retained.
+- H/Y at a tree opens a five-second collection round. One ripe Acorn is
+  sufficient. Shaking moves ripe stock onto the ground; drag the offered
+  Acorns into the carry basket. All icons stay available through the timer.
+  Missed ground stock lasts 60 seconds and can be collected again. Tree and
+  ground counts/timestamp persist; reconnecting cannot replay a harvest.
+- Owners harvest without an alarm, theft cooldown or loss cap, and can retry
+  leftovers with their own harvest basket. Own deposits pay one-for-one;
+  they never count robberies, create grudges or consume revenge.
+- J/X at another property's storage crate opens the same timed drag round.
+  Quarter-share storage raids offer at least one if stock exists, bounded by
+  four net losses per victim per rolling hour. Tree theft uses loose supply,
+  independently of that storage budget. Both theft sources share the 60-second
+  thief/victim cooldown and existing owner/dog/interruption protections.
+  J avoids the hotbar's existing R binding.
+- Imported woven baskets are exclusively transport. Residential properties
+  have an open wooden `AcornStorage` blockout, 3.6 wide × 2.8 deep × 1.9 tall,
+  at the old basket location. Carry delivery is at one's own crate. Storage
+  labels always show the exact balance, including zero and 200; no PACKED.
+  Imported Acorns are visible in tree, on ground, in storage and in carry.
+- Source-tagged receipts preserve refunds: storage returns release matching
+  loss receipts; tree returns go to loose ground with a fresh collection
+  window, never directly into the wallet. Death/departure settlement still
+  occurs before saving. Concurrent reservations and catch replay checks apply
+  to both sources. Final tree/storage visual parts do not affect physics.
+- **937 isolated checks pass**, all **96 source scripts compile**, Rojo builds
+  and all 96 sources match Studio Edit. Fresh Play boots without Acorn errors.
+  Real-client display fixtures passed exact 0/3/8/24/200/0 storage labels,
+  eight stored plus eight ripe, shake-to-ground, catch/expiry and cleanup.
+  Only local display fixtures were changed; no player balance was edited for
+  tests. Final Play confirms ten crates, own harvesting enabled, own storage
+  raiding disabled, nine other raid prompts on J, and a 440×284 collection
+  panel. Existing pass IDs/player-cap warnings remain.
+- **Live pointer collection, carried pose and end-to-end deposit still need
+  play-testing.** The panel is a close-up representation of loose ground or
+  crate contents; world Acorns are synchronized decorative models.
+- Final crate art is pending import. Prompt and asset contract:
+  `assets/crate/BLENDER-PROMPT.md`. Master plan sections 4–5 and Phase 2 plus
+  `docs/GAME.md` describe the revised behavior.
+- Next: Phase 2.4 live carry/gesture review, then 2.5 resident supply. Resident
+  seeding/harvesting/regrowth/cadence remain unimplemented. Previous supply
+  audit numbers are explicitly marked as needing tuning for separate stock.
+
+## Latest development — Phase 2.3 shake and imported Acorn
+
+- Implemented `HeistService.shake` / `ShakeService` and `Shared/Shake`.
+  Residential trunks offer a half-second SHAKE hold on **H** (gamepad Y);
+  client hides your own prompt and prompts while carrying/shaking. Shops
+  receive none. Opening sounds the alarm, alerts the owner, drops the
+  thief's shield/sneak and invokes the existing dog response.
+- Four-second panel uses Theme's existing Acorn glyph, 56px drag targets,
+  a 160×50 basket target, countdown, confirmed caught count and RUN. Mouse
+  and touch each own their gesture; unrelated touches cannot finish it.
+  Controller A catches a selected Acorn. The canopy shivers on all clients.
+- Server schedules each Acorn, accepts only its unique attempt/index in its
+  lifetime and rechecks range, life, stun/bin/ride state, owner interruption
+  and plot occupant on every catch. Takes a floored quarter, at most four
+  per victim in an actual rolling hour. Concurrent reservations share that
+  budget. Repeat shakes wait 60 seconds; refusals name the reason.
+- Added the carry settlement needed by 2.3/2.3a: catches debit one raw Acorn
+  into a carried basket; only delivery at your own basket applies x1 for a
+  resident or x5 + rebirth difference for a player, doubled for revenge.
+  Coin/spree/friend/event bonuses do not multiply Acorns. Delivery counts one
+  robbery, creates a player grudge, and keeps coin totals/weekly stats separate.
+- Basket carries use existing slow/dodge/bin/jam/nab/patrol paths. Tug recovery
+  returns whole Acorns without a coin bounty; dog/patrol/death and either
+  participant's departure refund raw receipts. `DataService.onBeforeRelease`
+  settles basket escrow before the final save. Receipts prevent duplicate
+  refunds or an old return clearing newer losses from the rolling cap.
+- User imported `Workspace.acorn` during this task. Wired its Nut/Cap/Stem
+  mesh IDs and texture into `Config.ACORN_MESH`, with Studio-measured offsets
+  and bounds (0.594×0.827×0.594). `AcornModel` prewarms a replicated template
+  for basket fill, growth drops and carried contents. The original uploaded
+  assembly is archived in `assets/acorn/acorn.json` and `acorn.rbxmx`; the
+  original source GLB is still unavailable. 2D panel/HUD glyph is retained.
+- **894 isolated checks pass**, including 36 shake authority, 36 basket
+  settlement and 36 mouse/touch/controller/layout checks. All **95 scripts**
+  compile, Rojo builds, and all 95 match Studio in Edit. Fresh Play boots with
+  no shake/Acorn runtime errors. Existing pass IDs/max-player warnings remain;
+  this boot also reported an unrelated stale mane mesh dimension warning.
+- Running client verified ten shake prompts, own prompt disabled, and a
+  440×284 panel / 56px targets / 160×50 basket inside a 750×361 test viewport.
+  Imported fill fixture passed 0/3/8/20/0 counts, white tint, exactly three
+  MeshParts per Acorn, no collision/query/touch and cleanup/re-entry.
+- **Live drag/catch/delivery and visual review remain pending.** MCP refused
+  a synthetic `ShakeState:FireClient` because of script capabilities; no
+  bypass attempted. The mouse test therefore had no panel to operate on.
+  Native computer-use capture also failed to initialize on this Mac. Isolated
+  gesture tests are not a live phone pass. Temporary fixture vanished on
+  restarting Play; no player balance/save was edited for testing.
+- Next: **2.4 carry presentation/engine review** (core safe settlement is
+  already in place); **2.5 resident basket seeding/regrowth and 15-minute
+  cadence remain unimplemented**. Residents currently have no seeded Acorns;
+  their existing `.loot` continues to mean stolen coins, never Acorns. Full
+  shake economy audit figures remain modeled until resident supply lands.
+
+## Latest development — Phase 2.2 growth and basket fill
+
+- User approved the 2.1 oak/basket appearance. Implemented hourly Acorn growth
+  in the existing server economy loop and offline-income path. Eight hours
+  fills an empty wallet to eight; balances above eight are preserved.
+- Saved `acornsGrownAt` retains partial hours through autosave/rejoin. Legacy
+  saves use `lastSave` within the eight-hour allowance. Invalid/future cursors
+  reset safely; time spent full is discarded. Income, friend and daily boosts
+  do not multiply growth. The pig being full does not stop Acorn growth.
+- `PLOT_ACORNS_ATTRIBUTE` publishes the wallet on the residential plot. The
+  client draws up to eight Acorns inside the basket and PACKED above eight.
+  HUD/crate/shop affordability follows the exact balance through StateUpdate;
+  other services' balance changes repaint within one economy tick. Ownership
+  changes clear the display; delayed/streamed/replaced plots are handled.
+- `AcornGrown` is a server-only cosmetic cue for a falling Acorn on live growth.
+  Offline catch-up draws the final pile silently. Client parts are anchored,
+  non-colliding/non-queryable/non-touching, with bounded, cleaned-up flights.
+- **Art limitation:** the plan's `assets/acorn/acorn.glb` is missing in this
+  checkout; no named standalone Acorn was found in Studio. The fill uses small
+  two-tone modeled Acorns from `AcornFill` until the intended mesh is supplied.
+  Full/empty readability and the drop's appearance still need visual review.
+- **784 isolated checks** pass, including 40 growth, 43 client-fill lifecycle,
+  and 49 save checks. All 92 source scripts compile and Rojo builds. All 92
+  match Studio through Rojo in Edit. Restarted Play boots without new errors.
+- The actual running client passed temporary-fixture checks at 0/3/8/20/0:
+  exact capped fill, PACKED only above eight, no physics/query/touch effects,
+  and removal/re-entry cleanup. Fixture destroyed; no player balance/save
+  was edited. Live growth/drop timing is covered by the isolated economy and
+  renderer tests; the hourly production clock was not accelerated.
+- Next: **2.3**, the shake interaction and its Art 4 panel design. Resident
+  basket seeding/regrowth stays in 2.5; resident carried coin `.loot` is not
+  used as an Acorn wallet. Shaking/carrying are not implemented yet.
+
+## Latest development — Phase 2.1 basket integration
+
+- Finished the residential tree/basket placement foundation. `AcornBasket`
+  loads the imported hollow bowl and handles once, then clones the assembly
+  at plot-local (-20, 16), beside the oak at (-25, 16). It follows both plot
+  orientations and stays on the lawn across ownership changes. Shops get
+  neither a tree nor a basket.
+- Mesh/texture references are in `Config.ACORN_BASKET_MESH`, with measured
+  offsets and original dimensions. Both parts are anchored, non-colliding,
+  non-queryable and non-touching. `plot.acornBasket` keeps body/handle refs
+  for the later fill and carry work. No saved balance or earnings changed.
+- Studio Edit checks loaded the real uploaded assets and measured both rows:
+  0.625 studs clear of the oak wood bounding box, 8.35 from the front fence
+  and 12.33 from the side fence; bottom at lawn height. Temporary fixtures
+  were removed. The prior `lawnI` migration still shelves owned decorations.
+- **689 isolated checks** pass, including 89 oak/basket checks. All 91 source
+  scripts compile and Rojo builds; all 91 match Studio in Edit mode through
+  Rojo. Full in-game visual review remains pending.
+- Next: **2.2**, online/offline growth and the Acorn fill display (up to eight,
+  then PACKED). The basket is currently empty scenery; filling, prompts,
+  shaking and carrying are not implemented. Art 7's full/empty readability
+  check remains tied to that display.
+
+## Latest integration — imported compact oak
+
+- The designer imported `assets/tree/blender/oak.glb` into Studio. Recorded
+  its uploaded mesh/texture references in `Config.ACORN_OAK_MESH`; all
+  residential plots now build this 8.5-stud oak, including resident yards.
+  Shops remain tree-free. Street `TREE_MESH` is unchanged.
+- Used Studio's measured offsets: the importer reverses X/Z relative to the
+  GLB report. The builder keeps the white texture tint and the ground pivot.
+  A 1.3 × 3.4 × 1.3 invisible trunk collider prevents the branch mesh's wide
+  bounding box from blocking empty lawn. Visual meshes do not collide/query.
+- Studio Edit checks loaded both uploaded meshes through InsertService,
+  verified dimensions, grounded both plot orientations and tested raycasts
+  against the trunk/open branch space. Side/front fence-line clearances are
+  4.37/6.54 studs. Temporary check geometry was removed; no player save used.
+- All **655 isolated checks** pass, including 55 oak checks. All 90 source
+  scripts compile and Rojo builds. All 90 scripts match Studio in Edit mode
+  through Rojo. A full in-game visual/collision walk-through remains pending.
+- Basket placement is now implemented above. Fill display/growth continue
+  in 2.2. The old generated oak source stays available as a fallback.
+
+## Latest asset work — compact Blender oak
+
+- The designer installed Blender and asked for a smaller oak based on
+  `assets/tree/tree-oak-render-v2.png`. Built an editable candidate with
+  separate `Trunk` and `Canopy` meshes in `assets/tree/blender/oak.blend` and
+  a textured `oak.glb` export. Source: `blender/tree/build_oak.py`.
+- Size: 8.5 studs wide, about 9.25 tall and 4.68 deep. Trunk: 2,400 triangles;
+  canopy: 6,400; one 256px base-colour texture. No acorns or basket are baked
+  into the tree. The character comparison uses a 5.5-stud block scale guide.
+- This is a Blender draft modeled against the approved reference, not an
+  automatic image-to-3D reconstruction. The designer subsequently imported
+  it; runtime integration and numeric checks are recorded above. The previous
+  generated oak remains a fallback. In-game visual review remains pending.
+- The installed Blender's bundled NumPy fails against this macOS version;
+  a static GLB exporter avoids it. `blender/tree/validate_glb.py` independently
+  checks the exported binary and texture. Multi-view and scale previews live
+  beside the model. Phase 2 is still incomplete.
+
+## Latest development — Phase 1.10
+
+- Added saved, typed `data.robberies`, defaulting to zero for new and older
+  saves without changing schema 25. Existing stolen-coin totals are preserved;
+  no historical robbery count is invented. Reconciliation normalizes invalid
+  counts to finite nonnegative whole numbers.
+- Heist delivery records one lifetime robbery for a nonempty getaway against
+  any player, resident or shop. Partial coin hauls and skin-only recoveries
+  count; failed getaways, empty carries and repeated delivery requests do not.
+  The count is recorded before reward callbacks can save. It survives rebirth
+  and uses the existing autosave/final-release path.
+- `claims` defaults/reconciliation were already completed in 1.7. The delivery
+  increment from 4.1 lands now so progress accumulates before rank UI ships;
+  rank thresholds and plot-sign stars remain Phase 4 work.
+- Validation: **600 isolated checks** pass (including 37 new DataService
+  lifecycle checks, 118 theft checks and 90 rebirth checks). Copying DataStore
+  doubles exercise real load/save/release/rejoin and session-lock behavior;
+  no live player saves were used. All 89 source scripts compile and Rojo
+  builds `/tmp/piggy-step110.rbxlx`.
+- Studio was in Play mode during final verification; Edit-mode source sync
+  for these changes and live DataStore persistence are not yet verified.
+  Stop Play, allow Rojo to sync in Edit, then start a fresh play session.
+- Next: Phase 2, starting with 2.1's tree/basket design and implementation.
+  Phase 0 remains deferred; 1.3 still depends on the Phase 2 shake system.
+
+## Latest development — Phase 1.9
+
+- Added `Config.auditAcorns` and `Config.auditRandomOutcomes`, warned at boot
+  without stopping startup. Main also prints the explicitly labelled tree
+  model; tree growth/shakes remain unimplemented Phase 2 work.
+- The random-outcome sweep checks crate currencies/prices, authored coin-price
+  plus crate tags, actual pool membership (including mixed event sets), pass
+  exclusions, guaranteed skin theft, retired rebirth gates, rebirth crate
+  existence and the future coin-pack id. `COIN_PACK.productId = 0` reserves
+  the later integration point without selling anything.
+- **Designer correction preserved:** rebirth still rolls a normal free
+  Legendary Crate. A live coin-pack id now warns that it would fund that
+  random reward. The approved 40-Acorn full-collection rebirth bonus stays.
+- Removed event attendance/per-drone/clear/full-set Acorn payouts and their
+  `Config.LOOT` table. Raids keep their coin bounty (including the clear
+  bonus) and one free unowned set drop; a full set gets feedback and no
+  duplicate/currency fallback. Rush Hour keeps boosted coin steals and has
+  no separate attendance payout. No saved balance is migrated or removed.
+- Moved 24 crate skins' historical coin-price fields to `sellBasis`, preserving
+  their explicit rarities and every sale amount. Unowned crate skins still
+  reject direct coin requests; missing `cost` never makes them free.
+- Added the planned growth/share/loss constants early so the audit can model
+  Phase 2. Its explicit assumptions are one full daily harvest, one passive
+  raid/day and two active hours at parity without revenge. Solo/full-server
+  rates are **10 / 5.625 Acorns per thief-hour**, with active/passive ratios
+  **4.67x / 3.21x**. Full-server common/legendary waits are **53.33 min / 7.11 h**.
+  These recompute the plan's rounded estimates; they are not live earning
+  rates or a complete launch economy. The current routine tree source is
+  still missing; existing balances and the approved rebirth bonus remain.
+- Validation: **550 isolated checks** pass, including 167 audit/event checks.
+  Every one of the 27 new audit rules was deliberately provoked and restored;
+  tests exercise real raid settlement, full-set drops, Rush Hour, stale coin
+  purchase requests, boot warning/error handling and unchanged resale values.
+  Run `python3 tests/run-crates.py --suite audits --luau /path/to/luau`.
+  All 89 source scripts compile, Rojo builds, and all 89 match Studio in Edit
+  mode. No live player save was used. Live boot/event/persistence verification
+  and Phase 2 earning-rate playtests remain pending.
+- Step 1.10 is now implemented above (`claims` landed in 1.7).
+  Phase 0 remains deferred and 1.3 still needs Phase 2.
+
+## Latest development — Phase 1.8
+
+- `FirstJob` now shares one card between onboarding and skin recovery. False
+  `NeedsFirstJob` retires only onboarding; veterans can still see new losses.
+- The private `RecoveryObjective` snapshot comes from HeistService's actual
+  haul, timed claims, ownership and seasonal buy-back claims. The client
+  subscribes after connecting its listener, retries until its first snapshot,
+  and the server polls at 0.25s but sends only changed state. No client claim,
+  price or deadline is trusted. Subscription requests are throttled.
+- A fresh theft shows **GET IT BACK**, the robber's name and **Nab them now**,
+  pointing to the fleeing character. After delivery, it points to the robber's
+  pig with the real ten-minute countdown. Its wall-clock deadline is recorded
+  alongside the existing monotonic expiry; coin revenge never extends it.
+- A carried recovery says **GET IT HOME**, pointing home, including after its
+  deadline. When recovery ends, the card becomes **BUY IT BACK — N ACORNS**
+  only with a valid unowned seasonal claim. Tapping opens Crates and scrolls
+  to that skin; it does not spend Acorns. Expiry flips locally without needing
+  a new packet. Buying/recovering/returning the skin clears the objective.
+- Stacks prioritize getting a carried skin home, an active chase, then the
+  earliest recovery deadline before paid claims, with `+N more` shown. Latest
+  takers replace only the same owner's skin target. Insured spares can be
+  recovered but never acquire a paid fallback. Missing/disconnected robbers
+  fall back to a valid buy-back rather than an unreachable recovery target.
+- Card geometry clears the bank/Acorn column on desktop and landscape phones;
+  text is bounded/truncated. Shop/bag overlays hide the card and marker.
+- Validation: **383 isolated checks** (73 crates, 89 rebirth, 106 theft,
+  70 buy-back, 45 objective). Run the new client checks with
+  `python3 tests/run-crates.py --suite objective --luau /path/to/luau`.
+  Actual theft transitions, private subscription/poll behavior, startup/load
+  races, stale clicks, stacked timers, local expiry, navigation and viewport
+  bounds are covered. All 89 source files compile and Rojo builds; all 89
+  scripts match Studio in Edit mode through Rojo. Engine rendering, live
+  multiplayer latency/input and persistence remain unverified;
+  no live player saves were used.
+- Step 1.9 is now implemented above. Phase 0 remains deferred, 1.3 needs
+  Phase 2; step 1.10 is now implemented above.
+
+## Latest development — Phase 1.7
+
+- Losing an owned, stealable skin now saves `claims[key] = seasonIndex`.
+  Losing only an insured spare creates no buy-back claim. Claims survive
+  rejoining and last through the current five-week season (four active weeks
+  plus one rest week, using the existing UTC week epoch).
+- Crates shows an exact-skin BUY BACK card beside its source crate, only for
+  a current claim whose skin is unowned. Prices are source crate cost times
+  `3^rank`: **15 / 45 / 135 Acorns** for common / rare / legendary. The skin
+  ladder has three steps; global `epic` does not inflate the legendary price.
+- `SkinBuyback` accepts only the skin key. The server checks the claim, season,
+  ownership and Acorn balance, then directly calls `SetService.grant`. Its
+  save includes the charge and ownership together. No roll/spare is awarded;
+  the robber keeps their copy. Repeated requests cannot charge an owned skin.
+- Claims stay eligible for the rest of the season, hidden while owned.
+  Cosmetic ownership updates refresh crate cards. Requests enforce expiry
+  immediately; idle cards expire locally and a server rollover pass clears
+  and saves online claims. Reconcile clears offline/invalid claims on load.
+- The `claims` default/type/reconcile portion of 1.10 landed before its UI.
+  The `robberies` counter remains pending. Only the Phase 5 season clock has
+  landed early; ranks/rewards/season UI are still pending.
+- Validation: **298 isolated checks** pass (73 crates, 89 rebirth, 69 theft,
+  67 buy-back). `python3 tests/run-crates.py --suite buyback --luau /path/to/luau`
+  exercises real Config/reconcile/ChestService/SetService and Crates state
+  with engine and persistence doubles. It covers price tiers, rejoin, remote
+  forgery, reentrant requests, direct grants, rollover and card expiry.
+  All 89 source files compile and Rojo builds; all 89 scripts match Studio
+  in Edit mode through Rojo. No live player save was used; live purchase,
+  input/rendering and DataStore verification remain pending.
+- Step 1.8 is now implemented above. Phase 0 remains deferred, 1.3 needs
+  Phase 2; step 1.10 is now implemented above.
+
+## Latest development — Phase 1.6
+
+- Clean player cracks now always take an eligible skin; `revengeChance` is
+  retired. Ordinary duplicate, protected-skin, spare and hourly-cap rules stay.
+- **Designer clarification:** recovery claims stack by original owner, robber
+  and skin. Robbing somebody else or changing outfits never erases an earlier
+  victim's claim. Only the latest taker of that owner's same skin is valid.
+- Each claim lasts `Config.REVENGE.window` from delivery. Coin revenge is
+  separate: spending/refreshing it does not consume/extend the skin timer.
+- A clean crack recovers one available skin (oldest deadline first) from the
+  robber's owned collection, ignoring their outfit, skin-loss cap and spare
+  insurance. It still needs to reach home; getting caught returns the copy
+  and allows a retry inside the original window. An originally stolen spare
+  is restored as that spare, with no ordinary duplicate-spare payout.
+- Skin transfers are staged on the carry before any save can yield. Returning
+  a carry drains its haul once and only refunds the matching loss window.
+- Tests: 67 isolated checks in `tests/luau/theft.luau`, run with
+  `python3 tests/run-crates.py --suite theft --luau /path/to/luau`.
+  Full HeistService logic runs with service doubles and physical carry cleanup
+  stubbed. Multiple victims, timers, latest taker, changed outfits, failed
+  getaways, insurance and coin settlement are covered. Live multiplayer input
+  and visuals remain unverified; no player saves were used. The 89 rebirth
+  and 73 crate checks also pass (229 total). Luau compilation and Rojo build
+  pass; Config and HeistService match Studio in Edit mode through Rojo.
+- Step 1.7 is now implemented above. Phase 0 remains deferred and 1.3 needs
+  Phase 2; step 1.10 is now implemented above.
+
+## Latest development — Phase 1.5–1.5b
+
+- **Designer correction:** rebirth opens a standard free Legendary Crate;
+  do not implement next-unowned-in-order rewards. Normal 65% rare / 35%
+  legendary odds and duplicate spares apply. Existing equipped skin stays on.
+- Full eligible legendary collection still receives 40 Acorns instead.
+- Bronze/Gold Leaf/Diamond now belong to `og`, retain explicit rarities and
+  can be stolen. Their old rebirth-count ownership gates are removed.
+- Schema 25 migrates earned ownership once using historical thresholds 1/3/6.
+  Rejoining does not grant duplicates or restore a later sold/stolen skin.
+  The retired pity field is removed; coins, Acorns and spares are untouched.
+- The rebirth page shows a crate or completion Acorns. Old random-drop/pity
+  helpers and unlock announcements are removed; the economy audit catches
+  retired ownership gates anywhere in Config.
+- Validation: 89 isolated checks in `tests/luau/rebirth.luau`, run with
+  `python3 tests/run-crates.py --suite rebirth --luau /path/to/luau`.
+  These use real services/reconciliation with engine and persistence doubles;
+  no live player data is used. The 73 crate checks also pass, along with Luau
+  compilation and Rojo build. All nine modified scripts match Studio through
+  Rojo, in Edit mode. Live rebirth/reveal review remains pending.
+- Step 1.6 is now implemented above. Phase 0 remains
+  deferred. Step 1.3 still depends on Phase 2; 1.10 is now implemented above
+  using the existing schema 25 from the ownership migration.
+
+## Latest development — Phase 1.4
+
+- User requested continuing the master plan; step 1.3 depends on Phase 2,
+  so step 1.4 is the next independent implementation.
+- All crates now charge existing `data.loot` Acorns: Originals/Animal 5,
+  Rare 15, Legendary 40, Alien unchanged at 6. No balance migration.
+- Server refuses coin/missing/unknown crate currencies before rolling.
+  The card and refusal show the shortfall and tree-shaking hint; tree earning
+  remains unimplemented, so this is not ready to publish as a complete economy.
+- Regular crates retain combining via `Config.canCombineChest` and the
+  server's `canCombine` card flag. Event-set crates remain excluded.
+- `auditEconomy` catches a non-Acorn crate, separately from coin capacity.
+- `python3 tests/run-crates.py --luau /tmp/piggy-luau/luau` runs isolated
+  full-service tests without player data. Roblox constructors are stubbed;
+  rendering, replication and persistence are outside that harness.
+- Validation: 73 isolated crate checks pass; Luau compilation and Rojo build
+  pass. Live card properties show correct prices and combine flags on desktop,
+  iPhone 17 Pro (750×361) and Galaxy A06 (705×338). Phone title truncation was
+  fixed with bounded text sizing; the equivalent live properties and a
+  temporary shortfall-label fixture fit on both phones. This is property-level
+  validation, not screenshot review; no crate purchases used the live save.
+- Studio output showed no crate runtime errors. Existing warnings remain:
+  three pass IDs are unset and the place allows 60 players versus Config's 8.
+- Step 1.5 and its skin-ownership migration are now implemented above.
+  Phase 0 is still deferred; HUD visual/input checks remain open separately.
 
 ## Project and workflow
 
@@ -25,10 +717,10 @@ review. Do not report this HUD pass as fully verified yet.
 - `ClientMain.client.luau` is near Luau's 200-local ceiling. Put new UI builders
   in shared modules and avoid adding top-level locals to the client.
 - No Roblox publish was performed. Git push is separate from publishing.
-- The last observed Studio state was **Edit**, iPhone 17 Pro landscape,
+- The last observed Studio state was **Edit**, default desktop viewport,
   connected to Rojo. The place was reopened from Studio's recent experiences
   after it closed during this session.
-- This machine used StudioMCP.exe through a temporary Python stdio bridge.
+- This Mac used StudioMCP through a temporary Python stdio bridge.
   That bridge and the local Studio ID are machine-specific and not committed.
   Discover/connect the Studio tools available on the new machine.
 
@@ -66,9 +758,8 @@ review. Do not report this HUD pass as fully verified yet.
 - `Config.acornMultiplier(thiefRebirths, victimRebirths, revenge)` is prepared
   for Phase 2: **nil** victim means resident ×1; player starts at ×5, plus
   the positive rebirth gap, then ×2 for revenge. No production caller yet.
-- **Tree earning is not implemented.** Crate conversion, legacy-faucet audit
-  and the other Phase 1 steps are still pending. Most crates still cost coins;
-  the Alien Cache is currently the Acorn-priced crate.
+- **Tree earning is not implemented.** Crate conversion is now done (1.4);
+  the legacy-faucet audit and the other Phase 1 steps are still pending.
 - Verified: Rojo build; seven multiplier cases and twelve isolated delivery
   cases in `tests/studio/acorns.luau`; phone HUD/crate visuals; balance
   hydration and spacing; no client errors. Preview images: `assets/acorn-ui`.
@@ -156,8 +847,9 @@ police banner logic are retained.
    and inspect the client error log. Update `docs/GAME.md` with this follow-up
    once the final behavior has been reviewed (it still describes some old
    boost/drag behavior).
-7. Only then return to the master plan. Phase 0 remains deferred. Steps
-   1.3–1.10 are open; 1.3 depends on the Phase 2 shake system. Respect future
+7. Continue the master plan alongside the pending HUD review, as requested.
+   Phase 0 remains deferred. Step 3.3 is implemented; verify the two-player exits, then design Phase 3.4.
+   Step 1.3 depends on the Phase 2 shake system. Respect future
    design gates without reopening the already-approved Acorn icon decision.
 
 ## Test execution notes

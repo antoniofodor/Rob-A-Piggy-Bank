@@ -22,6 +22,7 @@ local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local DataService = require(script.Parent.DataService)
 local PlotService = require(script.Parent.PlotService)
 local CosmeticsService = require(script.Parent.CosmeticsService)
+local ChestService = require(script.Parent.ChestService)
 
 local ProgressionService = {}
 
@@ -82,7 +83,7 @@ function ProgressionService.rebirth(player: Player)
 		data.upgrades[key] = 0
 	end
 
-	-- Lifetime stats survive: totalStolen and totalLost are who you've been,
+	-- Lifetime stats survive: robberies, totalStolen and totalLost are who you've been,
 	-- not what you currently own.
 
 	local plot = PlotService.getPlot(player)
@@ -105,23 +106,15 @@ function ProgressionService.rebirth(player: Player)
 	notify(player, ("REBIRTH %d! Your piggy earns +%d%% forever."):format(
 		data.rebirths, math.floor(data.rebirths * Config.REBIRTH_MULTIPLIER * 100)), "good")
 
-	-- The drop. Every rebirth grants one animated skin; the odds of a rarer
-	-- one climb with the rebirth count, and a legendary is reachable on the
-	-- very first rebirth.
-	local key, rarity = CosmeticsService.rollRebirthDrop(player)
-	if key then
-		local skin = Config.getSkin(key)
-		notify(player, ("%s DROP: %s!"):format(string.upper(rarity or "?"), skin.name), "good")
-		-- Wear it immediately. The reward for a reset that took everything
-		-- should be visible on the plot before the player looks away.
-		CosmeticsService.equipSkin(player, key)
+	-- The standard Legendary Crate, with its normal odds and duplicate spares.
+	-- Once every eligible legendary is owned, pay its price in Acorns instead.
+	if Config.rebirthCrateComplete(data.cosmetics.owned) then
+		local bonus = Config.CHESTS[Config.REBIRTH_CRATE].cost
+		data.loot = (data.loot or 0) + bonus
+		notify(player, ("Legendary collection complete! %d %s instead."):format(
+			bonus, Config.lootWord(bonus)), "good")
 	else
-		-- Collection complete. Pay out instead of silently doing nothing.
-		-- A quarter of the gate the player just cleared, so the hand-back grows
-		-- with the reset instead of being a flat 250K nobody notices by rebirth 5.
-		local bonus = threshold // 4
-		data.coins += bonus
-		notify(player, ("Collection complete! %d bonus coins instead."):format(bonus), "good")
+		ChestService.grantFree(player, Config.REBIRTH_CRATE)
 	end
 
 	-- Persist immediately. Losing a rebirth to a crash would be the single
@@ -129,7 +122,6 @@ function ProgressionService.rebirth(player: Player)
 	-- Reapply the collection: rebirth wiped the upgrades, never the skins,
 	-- and this rebirth may just have unlocked a new one.
 	CosmeticsService.applyToPlot(player)
-	CosmeticsService.announceRebirthUnlocks(player, data.rebirths)
 	CosmeticsService.push(player)
 
 	DataService.save(player)

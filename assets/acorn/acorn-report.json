@@ -1,0 +1,16 @@
+{
+  "triangles": {
+    "Nut": 356,
+    "Cap": 1116,
+    "Stem": 52
+  },
+  "total_triangles": 1524,
+  "roblox_size": [
+    0.5943652391433716,
+    0.8270000219345093,
+    0.5943652391433716
+  ],
+  "pivot": "rounded nut bottom at ground; shared origin",
+  "texture": "64x64 embedded base color only",
+  "glb_bytes": 168120
+}

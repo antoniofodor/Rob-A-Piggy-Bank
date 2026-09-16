@@ -46,6 +46,8 @@ local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local SoundKit = require(ReplicatedStorage.Shared.SoundKit)
 local Theme = require(ReplicatedStorage.Shared.Theme)
 
+local CarryDelivery = require(ReplicatedStorage.Shared.CarryDelivery)
+
 local LootHaul = {}
 
 -- HOW LONG EACH BEAT LASTS, read against what is happening on screen while it
@@ -424,6 +426,48 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 	deliverLabel.Parent = deliverBtn
 	Theme.title(deliverLabel, 24, Theme.INK)
 
+	local deliverAcorn = Theme.acorn(deliverBtn, 28)
+	deliverAcorn.Position, deliverAcorn.AnchorPoint = deliverCoin.Position, deliverCoin.AnchorPoint
+	deliverAcorn.ZIndex, deliverAcorn.Visible = 13, false
+
+	-- Both destinations remain legible while running. The existing action
+	-- button chooses the destination underfoot, as confirmed by the server.
+	local destinations = Instance.new("Frame")
+	destinations.Name = "CarryDestinations"
+	destinations.Size = UDim2.new(0, 304, 0, 92)
+	destinations.Position = UDim2.new(0.5, 0, 1, -164)
+	destinations.AnchorPoint = Vector2.new(0.5, 1)
+	destinations.Visible, destinations.Active, destinations.ZIndex = false, false, 10
+	destinations.Parent = gui
+	Theme.card(destinations, 12)
+	local function destinationRow(name: string, y: number): TextLabel
+		local label = Instance.new("TextLabel")
+		label.Name, label.BackgroundTransparency = name, 1
+		label.Position, label.Size = UDim2.fromOffset(10, y), UDim2.new(1, -20, 0, 40)
+		label.TextWrapped, label.TextScaled, label.ZIndex = true, true, 11
+		label.Parent = destinations
+		Theme.title(label, 16, Theme.PAPER)
+		local limit = Instance.new("UITextSizeConstraint")
+		limit.MinTextSize, limit.MaxTextSize, limit.Parent = 11, 16, label
+		return label
+	end
+	local homeRow, returnRow = destinationRow("Keep", 4), destinationRow("Return", 48)
+	local carryShown, deliveryReady, crackOpen, shakeOpen = false, false, false, false
+	local function updateCarryVisibility()
+		local busy = crackOpen or shakeOpen
+		destinations.Visible = carryShown and not busy
+		deliverBtn.Visible = deliveryReady and not busy
+	end
+	Remotes.get("CrackState").OnClientEvent:Connect(function(payload)
+		crackOpen = payload ~= nil
+		updateCarryVisibility()
+	end)
+	Remotes.get("ShakeState").OnClientEvent:Connect(function(payload)
+		shakeOpen = payload ~= nil and payload.ended ~= true
+		updateCarryVisibility()
+	end)
+
+
 	-- ONE PATH FOR THE TAP AND THE KEY, so a desktop player and a tablet
 	-- player reach the same guard rather than two copies of it.
 	--
@@ -571,14 +615,18 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 	end
 
 	Remotes.get("CarryUpdate").OnClientEvent:Connect(function(amount: number, haul: any,
-		inRange: boolean?)
-		-- THE BUTTON IS BOTH HALVES OF ONE STATE, AND NEITHER IS INFERRED.
-		-- Carrying comes from the amount and in-range comes from the server's
-		-- own poll, so the client never measures a distance -- which keeps
-		-- the one number that decides whether a robbery pays on the side that
-		-- has to check it anyway. The carry banner in `ClientMain` flips its
-		-- wording off this same flag in the same frame.
-		deliverBtn.Visible = amount > 0 and inRange == true
+		_inRange: boolean?, kind: string?, _worth: number?, _ownBasket: boolean?, options: any?)
+		local view = CarryDelivery.describe(amount, haul, kind, options)
+		deliveryReady, deliverLabel.Text = view.canPress, view.button
+		deliverCoin.Visible, deliverAcorn.Visible = kind ~= "basket", kind == "basket"
+		carryShown = view.visible
+		updateCarryVisibility()
+		homeRow.Visible = view.showHome
+		returnRow.Visible = view.showReturn or not view.showHome
+		homeRow.Text, returnRow.Text = view.home, view.returning
+		local both = homeRow.Visible and returnRow.Visible
+		destinations.Size = UDim2.fromOffset(304, if both then 92 else 48)
+		returnRow.Position = UDim2.fromOffset(10, if both then 48 else 4)
 		local list = if type(haul) == "table" then haul else {}
 		-- A LIST THAT GOT LONGER IS THE EVENT. Anything else -- a re-push on
 		-- a landed slice, the same haul arriving twice -- must not re-pop, or

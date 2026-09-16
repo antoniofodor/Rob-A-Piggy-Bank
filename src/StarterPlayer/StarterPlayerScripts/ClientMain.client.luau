@@ -2730,7 +2730,11 @@ local function renderCosmetics()
 		local entry = ensureCosmeticButton("dogcoat", key, info)
 		entry.title.Text = info.name
 
-		if info.equipped then
+		if info.available == false then
+			entry.sub.Text = "Requires guard tier " .. tostring(info.requiredTier)
+			entry.sub.TextColor3 = Theme.MUTED_LIGHT
+			entry.button.BackgroundColor3 = ShopStyle.CARD
+		elseif info.equipped then
 			-- "ON YOUR DOG" rather than the skins tab's "EQUIPPED", because
 			-- the wearer is not the player and a card that just said EQUIPPED
 			-- would leave a nine-year-old asking equipped to what.
@@ -5391,6 +5395,9 @@ do
 		open = function(chestKey: string)
 			Remotes.get("ChestOpen"):FireServer(chestKey)
 		end,
+		buyback = function(key: string)
+			Remotes.get("SkinBuyback"):FireServer(key)
+		end,
 		-- A TIER AND A CHEST, AND DELIBERATELY NO LIST OF SPARES. The remote
 		-- takes an optional pick, and omitting it is what makes `autoPick`
 		-- run server-side: cheapest first, from the spares the server can see
@@ -6885,7 +6892,13 @@ local function render(state: any)
 	-- clock rather than on `ChestState`. Only the buy state repaints -- the
 	-- cards themselves are built once, or this would rebuild fifteen
 	-- ViewportFrames every time a coin landed.
-	Crates.setBalance(state.coins, nil)
+	Crates.setBalance(state.coins, state.acorns)
+	if type(state.acorns) == "number" and state.acorns ~= setUI.loot then
+		setUI.loot = state.acorns
+		bankHUD:setAcorns(state.acorns)
+		setUI.dirty = true
+		renderCosmetics()
+	end
 
 	-- The two EARN rows in the Upgrades tab. They are painted from HERE and
 	-- not from renderUpgrades, because their levels, ceilings and prices ride
@@ -6960,42 +6973,19 @@ Remotes.get("RevengeMarker").OnClientEvent:Connect(function(plotModel: Model, th
 	end)
 end)
 
-Remotes.get("CarryUpdate").OnClientEvent:Connect(function(amount: number, _haul: any,
-	inRange: boolean?)
-	carryBanner.Visible = amount > 0
-	if amount > 0 then
-		-- THE BANNER IS THE INSTRUCTION AND IT CHANGES WHEN YOU ARRIVE.
-		--
-		-- It said RUN HOME for the whole carry, which was the complete truth
-		-- while arriving home WAS delivering. Now there is a press at the end
-		-- of the run, and a banner still shouting RUN HOME at somebody who is
-		-- already standing on their own lawn is the loudest thing on screen
-		-- telling them to do the one thing they have finished doing.
-		--
-		-- SO THE READOUT AND THE BUTTON SAY THE SAME WORD. `LootHaul` puts
-		-- DELIVER on screen off this same flag, in the same frame -- two
-		-- elements, one state, and neither can be showing while the other is
-		-- not. That is also what makes the banner the thing that tells you
-		-- you are in range, which is a question the button alone answers only
-		-- by existing.
-		--
-		-- "DELIVER!" RATHER THAN "DELIVER IT!", WHICH IS A MEASUREMENT AND NOT
-		-- A PREFERENCE. This label is `TextScaled`, so it cannot overflow and
-		-- the failure is SILENT SHRINKAGE instead -- the longest line quietly
-		-- renders smaller than every other one. At the worst balance the two
-		-- candidates are 26 and 29 characters against the existing worst case
-		-- of 27 ("CARRYING 999.9M . RUN HOME!"), so the short one cannot make
-		-- the fit worse than it already is and the long one would have.
-		carryLabel.Text = if inRange
-			then ("%s  CARRYING %s %s DELIVER!"):format(
-				GLYPH.loot, format(amount), GLYPH.dot)
-			else ("%s  CARRYING %s %s RUN HOME!"):format(
-				GLYPH.loot, format(amount), GLYPH.dot)
+Remotes.get("CarryUpdate").OnClientEvent:Connect(function(amount: number, haul: any,
+	_inRange: boolean?, kind: string?, _worth: number?, _ownBasket: boolean?, options: any?)
+	local view = require(ReplicatedStorage.Shared.CarryDelivery).describe(amount, haul, kind, options)
+	-- The destination card replaces this banner, avoiding overlap on phones.
+	carryBanner.Visible = view.visible and options == nil
+	if view.visible then
+		carryLabel.Text = ("%s · %s"):format(
+			if kind == "basket" then ("%d ACORNS"):format(amount) else ("CARRYING %s"):format(format(amount)), view.banner)
 	end
 	-- The steal prompts change meaning the instant loot is in hand: you cannot
 	-- rob anybody while carrying, so every one of them stops quoting a take
 	-- and starts naming the haul instead.
-	stealInfo.carrying = amount
+	stealInfo.carrying = if view.visible then math.max(1, amount) else 0
 	if refreshStealPrompts then
 		refreshStealPrompts()
 	end
@@ -7270,6 +7260,7 @@ require(ReplicatedStorage.Shared.CatchFX).start()
 -- ceiling has shaped a decision. It wants nothing from here either: it
 -- finds the plot folder itself and watches one attribute on each plot.
 require(ReplicatedStorage.Shared.Fireworks).start()
+require(ReplicatedStorage.Shared.AcornFill).start()
 
 -- SOMEBODY IS RUNNING OFF WITH YOUR COINS -- the "!" over a thief's head, and
 -- the replacement for a Highlight that used to glow on every carrier in the
@@ -7285,16 +7276,27 @@ require(ReplicatedStorage.Shared.RobberMark).start()
 -- because everything it draws arrives on one remote from the server that
 -- decided it.
 require(ReplicatedStorage.Shared.Crack).start(gui)
+require(ReplicatedStorage.Shared.Shake).start(gui)
 
--- THE ONE LINE OF ONBOARDING THIS GAME HAS. Same shape and same reason as
--- the badge above it: a module, required and started in a single statement
--- holding no local at all, because this chunk is at the 200-register ceiling
--- and has twice lost the ENTIRE HUD to four of them.
---
--- It needs the ScreenGui because its card is a HUD element rather than
--- something standing on a lawn; everything else it needs it reads off plot
--- attributes and one attribute on the player.
-require(ReplicatedStorage.Shared.FirstJob).start(player, gui)
+-- One shared onboarding/recovery objective slot. Keep it in its own module:
+-- ClientMain is at Luau's top-level local ceiling. Crates remains the purchase
+-- surface; the objective only opens the exact claimed skin's card.
+require(ReplicatedStorage.Shared.FirstJob).start(player, gui, {
+	canShow = Rebirth.canShow,
+	skinIcon = function(parent: GuiObject, key: string)
+		return makeModelIcon(parent, PiggyModel.build(key), UDim2.fromScale(1, 1), UDim2.fromOffset(0, 0), false)
+	end,
+	openCrates = function(key: string)
+		for i, tab in ipairs(tabs) do
+			if tab.view.Name == "CratesView" then
+				panel.Visible = true
+				selectTab(i)
+				Crates.focusBuyback(key)
+				break
+			end
+		end
+	end,
+})
 
 -- THE SESSION ARC, WHICH HAD A MECHANISM AND NO DISPLAY. The rap sheet, Most
 -- Wanted and the pursuit floor already model an arc across a session, and the
@@ -9131,7 +9133,7 @@ local function buildBustScene()
 		caseNo.Text = ("CASE #%04d"):format(math.random(1, 9999))
 		victimRow.Text = ("VICTIM   %s"):format(payload.victim or "--")
 		recoveredRow.Text = if recovered > 0
-			then ("SEIZED   %s coins"):format(exact(recovered))
+			then ("SEIZED   %s %s"):format(exact(recovered), if payload.currency == "Acorns" then "Acorns" else "coins")
 			else "SEIZED   nothing -- already delivered"
 		bailValue.Text = "0"
 

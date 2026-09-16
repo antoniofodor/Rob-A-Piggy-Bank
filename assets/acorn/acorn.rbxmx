@@ -1,0 +1,135 @@
+<?xml version='1.0' encoding='utf-8'?>
+<roblox version="4">
+  <Item class="Model" referent="ACORN">
+    <Properties>
+      <string name="Name">acorn</string>
+      <Ref name="PrimaryPart">PART_Nut</Ref>
+    </Properties>
+    <Item class="MeshPart" referent="PART_Stem">
+      <Properties>
+        <string name="Name">Stem</string>
+        <Content name="MeshId">
+          <url>rbxassetid://123914273548822</url>
+        </Content>
+        <Content name="TextureID">
+          <url>rbxassetid://120631223897118</url>
+        </Content>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <Vector3 name="size">
+          <X>0.09693294018507004</X>
+          <Y>0.11500000953674316</Y>
+          <Z>0.0662950947880745</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.01782989501953125</X>
+          <Y>0.4944934844970703</Y>
+          <Z>0.0</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4294967295</Color3uint8>
+        <Vector3 name="InitialSize">
+          <X>0.09693294018507004</X>
+          <Y>0.11500000953674316</Y>
+          <Z>0.0662950947880745</Z>
+        </Vector3>
+        <token name="Material">256</token>
+        <token name="CollisionFidelity">1</token>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="PART_Cap">
+      <Properties>
+        <string name="Name">Cap</string>
+        <Content name="MeshId">
+          <url>rbxassetid://99661896461850</url>
+        </Content>
+        <Content name="TextureID">
+          <url>rbxassetid://120631223897118</url>
+        </Content>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <Vector3 name="size">
+          <X>0.5943652391433716</X>
+          <Y>0.29425981640815735</Y>
+          <Z>0.5943652391433716</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.0</X>
+          <Y>0.3331298828125</Y>
+          <Z>0.0</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4294967295</Color3uint8>
+        <Vector3 name="InitialSize">
+          <X>0.5943652391433716</X>
+          <Y>0.29425981640815735</Y>
+          <Z>0.5943652391433716</Z>
+        </Vector3>
+        <token name="Material">256</token>
+        <token name="CollisionFidelity">1</token>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="PART_Nut">
+      <Properties>
+        <string name="Name">Nut</string>
+        <Content name="MeshId">
+          <url>rbxassetid://107705713264554</url>
+        </Content>
+        <Content name="TextureID">
+          <url>rbxassetid://120631223897118</url>
+        </Content>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <Vector3 name="size">
+          <X>0.492000013589859</X>
+          <Y>0.550000011920929</Y>
+          <Z>0.492000013589859</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.0</X>
+          <Y>0.0</Y>
+          <Z>0.0</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4294967295</Color3uint8>
+        <Vector3 name="InitialSize">
+          <X>0.492000013589859</X>
+          <Y>0.550000011920929</Y>
+          <Z>0.492000013589859</Z>
+        </Vector3>
+        <token name="Material">256</token>
+        <token name="CollisionFidelity">1</token>
+      </Properties>
+    </Item>
+  </Item>
+</roblox>

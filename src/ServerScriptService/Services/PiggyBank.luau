@@ -754,11 +754,11 @@ local function swapToMesh(refs: Refs): boolean
 	end
 
 	-- The face, moved off the ball and onto the mesh. Found by NAME off the
-	-- model rather than through `refs`, because the eyes, the nostrils and the
-	-- plaster are all pairs and a missed one is a dark spot floating inside a
+	-- model rather than through `refs`, because the eyes and the
+	-- plaster are both pairs and a missed one is a dark spot floating inside a
 	-- pig -- the `Finial` trap this project has already hit twice.
 	local faceCentre = origin + MESH_FACE.bodyCentre
-	local seen = { Eye = 0, Nostril = 0, Plaster = 0 }
+	local seen = { Eye = 0, Plaster = 0 }
 	for _, child in ipairs(refs.model:GetChildren()) do
 		if child:IsA("BasePart") and seen[child.Name] ~= nil then
 			seen[child.Name] += 1
@@ -768,9 +768,6 @@ local function swapToMesh(refs: Refs): boolean
 			if child.Name == "Eye" then
 				local e = MESH_FACE.eye
 				child.CFrame = CFrame.new(origin + Vector3.new(side * e.x, e.y, e.z))
-			elseif child.Name == "Nostril" then
-				local n = MESH_FACE.nostril
-				child.CFrame = CFrame.new(origin + Vector3.new(side * n.x, n.y, n.z))
 			else
 				-- Both strips share one seat and keep their own crossed spin,
 				-- which is carried in the rotation they were built with. The
@@ -1013,11 +1010,7 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	snout.Shape = Enum.PartType.Cylinder
 	snout.Color = PINK_DARK
 
-	for _, offset in ipairs({ -1, 1 }) do
-		local nostril = part("Nostril", model, Vector3.new(0.5, 0.95, 0.4), CFrame.new(at(offset * 0.8, BODY_Y + SNOUT_Y, BODY_R + 0.7)))
-		nostril.Color = NEAR_BLACK
-		nostril.Material = Enum.Material.SmoothPlastic
-	end
+	-- The mesh snout already has sculpted nostril recesses; no black inserts.
 
 	-- Face ------------------------------------------------------------
 	for _, offset in ipairs({ -1, 1 }) do
@@ -1629,7 +1622,7 @@ local function applyFur(refs: Refs, tier)
 end
 
 -- The equipped skin owns the piggy's whole appearance. Rebirth-earned looks
--- are just skins with an unlockRebirths instead of a price, so there's one
+-- are ordinary crate skins now, so there's one
 -- system here rather than a tier system fighting a cosmetic one.
 function PiggyBank.applySkin(refs: Refs, skinKey: string)
 	-- A SHOP VAULT WEARS NOTHING, and this is the only place the two kinds
@@ -1743,71 +1736,16 @@ function PiggyBank.applySkin(refs: Refs, skinKey: string)
 		p.Reflectance = tier.reflectance or 0
 	end
 
-	-- THE FACE PARTS TAKE THE SAME OVERRIDE, AND THEY WERE THE ONE THING ON
-	-- THIS PIG A SKIN COULD NOT REACH AT ALL.
-	--
-	-- `Eye` and `Nostril` are code-built parts painted `NEAR_BLACK` once at
-	-- build and never touched again, so every one of the 46 skins wore the
-	-- same eyes and the same nostrils whatever else it changed. That is right
-	-- as a DEFAULT -- a dark eye reads on all 46 -- and wrong as a ceiling:
-	-- the reference bumblebee wants black nostrils against a yellow snout,
-	-- and a pale skin may want the opposite.
-	--
-	-- WRITTEN ON EVERY SKIN RATHER THAN ONLY WHERE AN OVERRIDE EXISTS, which
-	-- is the rule `reflectance` and `transparency` on the body already follow
-	-- for the same reason: a skin is CHANGED INTO, so a field left alone
-	-- keeps whatever the last skin set. Without the `or NEAR_BLACK` fallback,
-	-- switching off a skin that recoloured its eyes would leave the next pig
-	-- wearing them for the rest of the session with nothing in any log.
-	--
-	-- FOUND BY WALKING THE MODEL, not through `refs`, because the eyes and
-	-- the nostrils are PAIRS and neither is held by reference -- the same
-	-- reason the mesh swap re-seats them the same way. A `Finial` miss here
-	-- would be one recoloured nostril and one that was not.
-	--
-	-- AND THE EYES CAN GLOW, WHICH IS THE ONE THING A LEGENDARY GETS THAT NO
-	-- AMOUNT OF PAINT COULD BUY. `Eye` is a code-built part, so it is in no
-	-- texture and no surface pack can reach it -- a skin could recolour it and
-	-- never make it a light source. One `Material` write does.
-	--
-	-- IT IS SAFE ON A PART THIS SIZE, and that is worth stating because this
-	-- file spends four entries warning about Neon. Every one of them is about a
-	-- TWELVE-STUD SPHERE rendering flat out under the BloomEffect and coming
-	-- back as a white hole with a pink rim. An eyeball is 0.16 studs across.
-	-- There is no light involved either, so nothing compounds with `Glow`, with
-	-- `AuraLight` or with a skin's own aura.
-	--
-	-- NOSTRILS ARE DELIBERATELY EXCLUDED. A glowing eye is a creature with
-	-- something behind it; a glowing nostril is a different animal entirely,
-	-- and the two are one `or` apart, which is exactly how it would arrive by
-	-- accident.
-	--
-	-- **WRITTEN ON EVERY SKIN, NEVER ONLY ON THE GLOWING ONES**, for the reason
-	-- the colour above already gives: a skin is CHANGED INTO, so a field left
-	-- alone keeps whatever the last skin set. Without the `else` a player who
-	-- takes off a glowing legendary keeps the glowing eyes on every skin after
-	-- it for the rest of the session, with nothing in any log -- which is the
-	-- `busyUntil` family and the guard dog's repainted duty vest arriving on a
-	-- third object.
-	--
-	-- Nothing repaints these afterwards: the only other write to an eye's
-	-- `Material` is at BUILD, and `applyFur` writes the ruff rather than the
-	-- face. Checked by grepping the property rather than by reasoning about the
-	-- call order, which is the habit this file asks for.
-	--
-	-- A shop vault never reaches here: `applySkin` returns above on
-	-- `refs.vault`, so nobody should go looking for glowing eyes on a
-	-- strongroom.
+	-- Reset eye color and glow on every skin change so the previous skin cannot
+	-- leave its face treatment behind. Nostrils are sculpted mesh recesses.
 	local glowEyes = tier.glowEyes == true
 	for _, child in ipairs(refs.model:GetChildren()) do
 		if child:IsA("BasePart")
-			and (child.Name == "Eye" or child.Name == "Nostril") then
+			and child.Name == "Eye" then
 			child.Color = (overrides and overrides[child.Name]) or NEAR_BLACK
-			if child.Name == "Eye" then
-				child.Material = if glowEyes
-					then Enum.Material.Neon
-					else Enum.Material.SmoothPlastic
-			end
+			child.Material = if glowEyes
+				then Enum.Material.Neon
+				else Enum.Material.SmoothPlastic
 		end
 	end
 

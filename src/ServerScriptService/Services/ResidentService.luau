@@ -84,11 +84,13 @@ local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local Services = ServerScriptService:WaitForChild("Services")
 local DataService = require(Services.DataService)
 local PlotService = require(Services.PlotService)
+local ResidentAcorns = require(Services.ResidentAcorns)
 local PiggyModel = require(ReplicatedStorage.Shared.PiggyModel)
 local ResidentModel = require(ReplicatedStorage.Shared.ResidentModel)
 
 export type Resident = {
 	plot: PlotService.Plot,
+	acornStock: ResidentAcorns.Stock?,
 	-- WHO THIS SHOPKEEPER IS AFTER, and until when. Only ever set on a
 	-- resident seated on a shop plot -- see `Config.SHOPKEEPER`. A house
 	-- resident is never given these because a house has a dog, and two
@@ -588,6 +590,15 @@ local function drawSkin(): string
 	return table.remove(skinBag) :: string
 end
 
+-- Publish only for the current occupant. Refunds may hold an evicted resident.
+local function publishAcorns(resident: Resident)
+	local plot, stock = resident.plot, resident.acornStock
+	if not stock or plot.owner or residents[plot.index] ~= resident then return end
+	PlotService.updateAcorns(plot, stock.acorns)
+	PlotService.updateTreeAcorns(plot, stock.treeAcorns, stock.groundAcorns)
+	plot.model:SetAttribute(Config.PLOT_ACORN_RAID_READY_ATTRIBUTE, stock.raidReadyAt)
+end
+
 -- Seats a resident on a plot that has just become free (or is free at
 -- startup). Safe to call twice: the second call is ignored rather than
 -- replacing a resident and losing its pile.
@@ -606,6 +617,7 @@ function ResidentService.seat(plot: PlotService.Plot)
 
 	local resident: Resident = {
 		plot = plot,
+		acornStock = ResidentAcorns.attach(plot.index, plot.shop ~= nil, os.time()),
 		-- Indexed by plot rather than picked at random, so a house keeps its
 		-- identity across an owner arriving and leaving.
 		--
@@ -699,6 +711,7 @@ function ResidentService.seat(plot: PlotService.Plot)
 	-- HeistService exactly, or a client would key its cooldown badge to an
 	-- id the server never sends and the badge would never count down.
 	plot.model:SetAttribute(Config.PLOT_RESIDENT_ID_ATTRIBUTE, -plot.index)
+	publishAcorns(resident)
 end
 
 -- Takes the resident off a plot a player is moving into.
@@ -723,7 +736,9 @@ function ResidentService.evict(plot: PlotService.Plot)
 	if resident.model then
 		resident.model:Destroy()
 	end
+	ResidentAcorns.suspend(plot.index, os.time())
 	residents[plot.index] = nil
+	plot.model:SetAttribute(Config.PLOT_ACORN_RAID_READY_ATTRIBUTE, nil)
 	plot.model:SetAttribute(Config.PLOT_RESIDENT_ATTRIBUTE, nil)
 	plot.model:SetAttribute(Config.PLOT_RESIDENT_ID_ATTRIBUTE, nil)
 end
@@ -1643,6 +1658,11 @@ local function tick()
 			-- being the one that was right. The published number IS the
 			-- interface; anything that changes the pig has to republish it.
 			PlotService.updatePile(resident.plot, resident.coins, pigSize(level, resident.plot))
+		end
+
+		local stock = resident.acornStock
+		if stock and ResidentAcorns.tick(stock, os.time(), resident.state == "home") then
+			publishAcorns(resident)
 		end
 
 		local capacity = pigSize(resident.capacityLevel, resident.plot)

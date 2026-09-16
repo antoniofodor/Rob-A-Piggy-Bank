@@ -1,0 +1,101 @@
+{
+  "parts": [
+    {
+      "offset": [
+        0,
+        3.1949241161346436,
+        0
+      ],
+      "canCollide": true,
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": "Plastic",
+      "name": "Trunk",
+      "meshSize": [
+        3.971250057220459,
+        6.390005111694336,
+        3.924283504486084
+      ],
+      "size": [
+        3.971250057220459,
+        6.390005111694336,
+        3.924283504486084
+      ],
+      "cframe": [
+        9.931681632995605,
+        3.1949241161346436,
+        -29.431976318359375,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      "mesh": "rbxassetid://116272975875106",
+      "texture": "rbxassetid://105699975027595"
+    },
+    {
+      "offset": [
+        -0.009613990783691406,
+        7.5356340408325195,
+        -0.012218475341796875
+      ],
+      "canCollide": false,
+      "color": [
+        1,
+        1,
+        1
+      ],
+      "material": "Plastic",
+      "name": "Canopy",
+      "meshSize": [
+        10.199999809265137,
+        6.695493698120117,
+        8.097639083862305
+      ],
+      "size": [
+        10.199999809265137,
+        6.695493698120117,
+        8.097639083862305
+      ],
+      "cframe": [
+        9.922067642211914,
+        7.5356340408325195,
+        -29.444194793701172,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      "mesh": "rbxassetid://123133251567070",
+      "texture": "rbxassetid://89722835463946"
+    }
+  ],
+  "origin": [
+    9.931681632995605,
+    0,
+    -29.431976318359375
+  ],
+  "name": "AcornOak",
+  "size": [
+    10.199583053588867,
+    10.883380889892578,
+    8.097440719604492
+  ],
+  "referenceImage": "assets/tree/tree-oak-render-v2.png",
+  "generator": "Roblox Studio generate_mesh",
+  "requestedMaxTriangles": 9000,
+  "prompt": "A single stylized low-poly oak tree for a colorful Roblox neighborhood game. NO ACORNS, NO FRUIT, NO BASKET. Compact yard oak, broad spreading crown, overall slightly taller than wide (height 11.8, crown width 10.2, crown depth 8.96). Warm medium brown thick tapering trunk, angular sculpted bark grooves, modest compact flared roots, strong branching fork and several substantial upward/outward branches visible below foliage. Lower trunk is exposed and accessible for player interaction. Crown is a natural irregular collection of rounded lobed leafy clusters with crisp low-poly faceted planes, natural rich green with lighter fresh green top faces and deeper green undersides. Leafy masses look like a sculpted oak crown, not spheres, not a conifer, no individual fine twigs or photoreal leaf cards. Clean matte flat-shaded game asset, playful sturdy proportions. All wood trunk, branches and roots form the Trunk group; all green foliage forms the Canopy group so foliage can shiver during the shake action. Keep roots close to trunk, leave clearance beside the base for a separate gameplay basket. No hanging objects of any kind, no acorns anywhere, no fruit, no mushrooms, no rocks, no grass, no ground, no platform, no scenery, no text. Tree only."
+}

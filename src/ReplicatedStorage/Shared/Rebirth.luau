@@ -61,7 +61,6 @@ local Theme = require(ReplicatedStorage.Shared.Theme)
 local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
-local PiggyModel = require(ReplicatedStorage.Shared.PiggyModel)
 
 local Rebirth = {}
 
@@ -104,13 +103,6 @@ local page: Frame
 local keepList: ScrollingFrame
 local loseList: ScrollingFrame
 local unlockList: Frame
--- HANDED IN BY `init` RATHER THAN WRITTEN AGAIN. `makeModelIcon` lives in
--- ClientMain and knows things this module has no business knowing -- how to
--- frame a model from its own bounding box, which way to tilt it, that the
--- icon copy re-centres on its VISUAL centre while the world copy keeps its
--- authored pivot. A second nearly-identical viewport helper is the copy that
--- drifts the first time either is touched.
-local makeIcon: ((GuiObject, Model, UDim2, UDim2, boolean) -> Instance)?
 local pageTitle: TextLabel
 local confirmButton: TextButton
 
@@ -837,36 +829,40 @@ local function fill()
 			coin.AnchorPoint = Vector2.new(0.5, 0.5)
 		end)
 
-	-- The guaranteed skin. WHICH one is a roll, so the picture is a piggy
-	-- wearing the starter skin with a "?" on it -- the honest image of "a
-	-- skin, and you will find out which". Rendering a specific one here would
-	-- promise something the server never said.
+	-- This is the standard crate, not a promised skin or a guaranteed rarity.
+	local owned = {}
+	for key, skin in pairs((seen.cosmetics and seen.cosmetics.skins) or {}) do
+		owned[key] = skin.unlocked == true
+	end
+	local chest = Config.CHESTS[Config.REBIRTH_CRATE]
 	order += 1
-	unlockTile(order, "A new piggy skin, guaranteed",
-		function(well)
-			if makeIcon then
-				makeIcon(well, PiggyModel.build("classic"),
-					UDim2.new(1, -10, 1, -10), UDim2.new(0, 5, 0, 5), false)
-			end
-		end, "?")
-
-	-- Anything the COUNT itself unlocks. Read off the pushed catalogue rather
-	-- than Config, so the page can never promise a skin the server would not
-	-- actually hand over -- and rendered from the same key, so the picture
-	-- cannot disagree with the name under it either.
-	if seen.cosmetics and seen.cosmetics.skins then
-		for key, skin in pairs(seen.cosmetics.skins) do
-			if skin.unlockRebirths == next_ then
-				order += 1
-				unlockTile(order, ("%s, yours to wear"):format(skin.name),
-					function(well)
-						if makeIcon then
-							makeIcon(well, PiggyModel.build(key),
-								UDim2.new(1, -10, 1, -10), UDim2.new(0, 5, 0, 5), false)
-						end
-					end)
-			end
-		end
+	if Config.rebirthCrateComplete(owned) then
+		unlockTile(order, ("%d %s\nCollection complete"):format(chest.cost, Config.lootWord(chest.cost)),
+			function(well)
+				local acorn = Theme.acorn(well, 54)
+				acorn.Position = UDim2.new(0.5, 0, 0.5, 0)
+				acorn.AnchorPoint = Vector2.new(0.5, 0.5)
+			end)
+	else
+		unlockTile(order, "Free " .. chest.name,
+			function(well)
+				local box = Instance.new("Frame")
+				box.Size = UDim2.fromOffset(52, 42)
+				box.Position = UDim2.new(0.5, -26, 0.5, -19)
+				box.BackgroundColor3 = Theme.SAND_DEEP
+				box.BorderSizePixel = 0
+				box.Parent = well
+				corner(box, 5)
+				Theme.outline(box, Theme.OUTLINE_THIN)
+				for _, x in ipairs({ 8, 36 }) do
+					local band = Instance.new("Frame")
+					band.Size = UDim2.fromOffset(8, 42)
+					band.Position = UDim2.fromOffset(x, 0)
+					band.BackgroundColor3 = chest.colour
+					band.BorderSizePixel = 0
+					band.Parent = box
+				end
+			end, "?")
 	end
 
 	-- Every row above was built after the page was, so it has not been
@@ -929,19 +925,17 @@ end
 
 function Rebirth.onCosmetics(c: any)
 	seen.cosmetics = c
+	if Rebirth.isOpen() then fill() end
 end
 
 function Rebirth.onRides(list: any)
 	seen.rides = list
 end
 
--- `icon` is optional and the page degrades to empty wells without it, which
--- is the same trade the drip statue's hair makes: a picture missing is a far
--- smaller fault than a page that does not build.
+-- Keep the existing injection signature; rewards now use drawn crate/Acorn icons.
 function Rebirth.init(gui: ScreenGui, confirm: () -> (),
-	icon: ((GuiObject, Model, UDim2, UDim2, boolean) -> Instance)?)
+	_icon: ((GuiObject, Model, UDim2, UDim2, boolean) -> Instance)?)
 	onConfirm = confirm
-	makeIcon = icon
 	buildButton(gui)
 	buildPage(gui)
 end

@@ -1,49 +1,14 @@
 --!strict
 --[[
-	ChestService
-
-	Opening a chest, and combining the duplicates it produces.
-
-	WHY THIS IS LEGAL, WHICH IS THE FIRST THING TO KNOW ABOUT IT.
-
-	A coin-bought chest is a paid random item ONLY if those coins can be bought
-	with real money. They cannot, and never will -- see the note above
-	Config.CHESTS and the long entry in CLAUDE.md. That single rule is what puts
-	this whole file outside Roblox's paid-random-item regulation rather than
-	compliant with it: no odds disclosure obligation, no PolicyService gate, no
-	player in a restricted region meeting a button that refuses to open.
-
-	It can only ever be broken once. The day somebody sells coins, every chest
-	here becomes a regulated loot box retroactively, with nothing in this file
-	having changed.
-
-	TWO CURRENCIES, AND THE ARROW ONLY POINTS ONE WAY.
-
-	Coins buy the standing catalogue. Tokens buy EVENT chests, and no amount of
-	coins reaches them -- you were on the street when the saucer came or you
-	were not. Spares, which duplicates produce, can only be COMBINED into coin
-	chests, so a rich player cannot grind their way into event loot without
-	attending.
-
-	A DUPLICATE IS A SPARE COPY, AND A SPARE HAS TWO EXITS.
-
-	It can be COMBINED -- three of any one tier for a roll at the next -- or
-	SOLD for coins. Selling is what makes the per-item shape work at all: a
-	spare that can never be combined is still worth something, so the rule that
-	a duplicate is never a dead outcome survives the move off per-tier shards.
-
-	SELLING IS ALWAYS A LOSS, AND THAT IS LOAD-BEARING RATHER THAN MEAN.
-	Measured across all four coin chests, an open that lands a duplicate sells
-	back for 21% to 35% of what the chest cost -- see Config.SELL, which caps a
-	tier's value against the item's own price precisely so that buying an item
-	in the shop and selling it straight back cannot turn a profit.
-
-	NOTHING IS EVER LOCKED BEHIND LUCK. Every set item still carries its medal
-	price, so the guaranteed route survives alongside this one. Bad luck here
-	only ever costs time.
+	Crates charge earned Acorns only; there is no coin fallback.
+	Duplicates become per-item spares. Config.COMBINE.need spares of one
+	tier can roll into a regular crate; event-set crates cannot be combined
+	into. Selling spares still pays coins through Config.sellValue.
+	Free daily crates share the reveal and grant path without charging.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
@@ -219,29 +184,11 @@ local function takeSpare(data: any, entry: string)
 	data.spares[entry] = if left > 0 then left else nil
 end
 
-local function spend(data: any, currency: string, cost: number): boolean
-	if currency == "loot" then
-		local held = math.floor(data.loot or 0)
-		if held < cost then
-			return false
-		end
-		data.loot = held - cost
-		return true
-	end
-	if data.coins < cost then
-		return false
-	end
-	data.coins -= cost
+local function spend(data: any, cost: number): boolean
+	local held = math.floor(data.loot or 0)
+	if held < cost then return false end
+	data.loot = held - cost
 	return true
-end
-
-local function shortfallMessage(chest: any, held: number, cost: number): string
-	if (chest.currency or "coins") == "loot" then
-		local short = cost - held
-		return ("Need %d more %s."):format(
-			short, Config.lootWord(short))
-	end
-	return ("Need %d more coins for the %s."):format(cost - held, chest.name)
 end
 
 -- NO `DataService.save` PER OPEN, AND THAT MATCHES THE HOUSE STYLE RATHER THAN
@@ -295,6 +242,13 @@ local function roll(player: Player, chestKey: string, charge: boolean)
 		return
 	end
 
+	-- Fail closed if a future catalogue edit forgets the earned-only price.
+	if chest.currency ~= "loot" then
+		notify(player, ("The %s is unavailable. Crates only take %s."):format(
+			chest.name, Config.ROLL_CURRENCY.plural:lower()), "warn")
+		return
+	end
+
 	local odds, pool, total = liveOdds(chestKey)
 	if total == 0 or next(odds) == nil then
 		-- Never fail silently. A chest with nothing in it is a button that
@@ -304,11 +258,10 @@ local function roll(player: Player, chestKey: string, charge: boolean)
 		return
 	end
 
-	local currency = chest.currency or "coins"
 	if charge then
-		local held = if currency == "loot" then math.floor(data.loot or 0) else data.coins
+		local held = math.floor(data.loot or 0)
 		if held < chest.cost then
-			notify(player, shortfallMessage(chest, held, chest.cost), "warn")
+			notify(player, Config.acornShortfall(held, chest.cost), "warn")
 			return
 		end
 	end
@@ -324,7 +277,7 @@ local function roll(player: Player, chestKey: string, charge: boolean)
 	-- Charged only once the outcome exists. A chest that took the money and
 	-- then found nothing to hand over would be the one failure mode here that
 	-- looks like theft.
-	if charge and not spend(data, currency, chest.cost) then
+	if charge and not spend(data, chest.cost) then
 		return
 	end
 
@@ -360,18 +313,48 @@ function ChestService.open(player: Player, chestKey: string)
 	return roll(player, chestKey, true)
 end
 
--- A CHEST OPENED WITHOUT PAYING FOR ONE. The daily ladder's day seven, and
--- nothing else today.
---
--- It is a real open rather than a coin payout, which is the entire point of
--- it: every other rung on that ladder pays something a player would have got
--- anyway by playing -- coins denominated in their own income, a boost, a
--- couple of bones -- so the ladder gave nobody a reason to come back that
--- playing did not already give them. A crate open is the one reward in this
--- game that cannot be reached any other way in that moment, and it lands on
--- the permanent cosmetic track rather than in the pig.
+-- Daily rewards and rebirths open the same crate as the shop, without a charge.
+-- No client remote exposes this free path.
 function ChestService.grantFree(player: Player, chestKey: string)
 	return roll(player, chestKey, false)
+end
+
+-- Direct recovery of a lost skin, never a random roll. Eligibility, ownership
+-- and price are re-read on the server; clients supply only the skin key.
+function ChestService.buyback(player: Player, key: string)
+	if type(key) ~= "string" then return end
+	local data = DataService.get(player)
+	if not data then return end
+	data.claims = data.claims or {}
+	Config.pruneBuybackClaims(data.claims)
+	local cost = Config.buybackCost(key)
+	if not cost or data.claims[key] ~= Config.seasonIndex() then
+		notify(player, "That skin has no buy-back claim this season.", "warn")
+		ChestService.push(player)
+		return
+	end
+	if SetService.owns(data, "skin", key) then
+		notify(player, "You already own that skin.", "warn")
+		ChestService.push(player)
+		return
+	end
+	local held = math.floor(data.loot or 0)
+	if held < cost then
+		notify(player, Config.acornShortfall(held, cost), "warn")
+		return
+	end
+	-- No yield between eligibility, charge and grant's ownership write. Its
+	-- normal save includes this balance and the retained seasonal claim.
+	data.loot = held - cost
+	if not SetService.grant(player, "skin", key) then
+		data.loot += cost
+		notify(player, "Could not return that skin. Your Acorns were refunded.", "warn")
+	else
+		notify(player, ("Bought back %s for %d %s."):format(
+			Config.SKINS[key].name, cost, Config.lootWord(cost)), "good")
+	end
+	ChestService.push(player)
+	pushBalances(player)
 end
 
 -- WHICH THREE, WHEN THE PLAYER DOES NOT SAY.
@@ -437,12 +420,8 @@ local function validatePick(data: any, tier: string, chosen: { string }): { stri
 	return chosen
 end
 
--- Three spares of a tier for one roll at a higher one.
---
--- THE TARGET CHEST IS THE PLAYER'S CHOICE AND MUST BE A COIN CHEST. Shards are
--- global, so they would otherwise be a route into event loot for somebody who
--- never attended an event -- and attendance being the only route is the entire
--- point of that currency.
+-- Config.COMBINE.need spares for a higher-tier roll into a regular crate.
+-- Event-set crates remain excluded independently of their currency.
 function ChestService.combine(player: Player, tier: string, chestKey: string,
 	chosen: { string }?)
 	local data = DataService.get(player)
@@ -450,9 +429,8 @@ function ChestService.combine(player: Player, tier: string, chestKey: string,
 	if not data or not chest then
 		return
 	end
-	if (chest.currency or "coins") ~= "coins" then
-		notify(player, ("The %s only takes %s."):format(
-			chest.name, Config.ROLL_CURRENCY.plural:lower()), "warn")
+	if not Config.canCombineChest(chestKey) then
+		notify(player, ("Spares cannot be combined into the %s."):format(chest.name), "warn")
 		return
 	end
 
@@ -643,6 +621,18 @@ function ChestService.push(player: Player)
 		return
 	end
 
+	data.claims = data.claims or {}
+	Config.pruneBuybackClaims(data.claims)
+	local buybacks = {}
+	for key in pairs(data.claims) do
+		local cost = Config.buybackCost(key)
+		if cost and not SetService.owns(data, "skin", key) then
+			local skin = Config.SKINS[key]
+			buybacks[key] = { name = skin.name, chest = skin.chest,
+				cost = cost, tier = Config.rarityOf(skin), order = skin.order }
+		end
+	end
+
 	local chests = {}
 	for key, chest in pairs(Config.CHESTS) do
 		local odds, pool, total = liveOdds(key)
@@ -661,7 +651,8 @@ function ChestService.push(player: Player)
 				name = chest.name,
 				order = chest.order,
 				cost = chest.cost,
-				currency = chest.currency or "coins",
+				currency = chest.currency,
+				canCombine = Config.canCombineChest(key),
 				blurb = chest.blurb,
 				colour = chest.colour,
 				odds = odds,
@@ -699,6 +690,8 @@ function ChestService.push(player: Player)
 
 	Remotes.get("ChestState"):FireClient(player, {
 		chests = chests,
+		buybacks = buybacks,
+		buybacksExpireAt = Config.seasonEndsAt(),
 		spares = spares,
 		-- Copies per tier, which is what the combine button is gated on. Summed
 		-- here rather than on the client, because the client would have to know
@@ -710,6 +703,29 @@ function ChestService.push(player: Player)
 end
 
 function ChestService.start()
+	Remotes.get("SkinBuyback").OnServerEvent:Connect(function(player, key)
+		if type(key) == "string" then ChestService.buyback(player, key) end
+	end)
+
+	-- Requests always enforce the current season. This also clears idle
+	-- players' saved claims/cards when a boundary passes during a session.
+	task.spawn(function()
+		local season = Config.seasonIndex()
+		while task.wait(30) do
+			local current = Config.seasonIndex()
+			if current ~= season then
+				season = current
+				for _, player in ipairs(Players:GetPlayers()) do
+					local data = DataService.get(player)
+					if data and data.claims and Config.pruneBuybackClaims(data.claims) then
+						ChestService.push(player)
+						DataService.save(player)
+					end
+				end
+			end
+		end
+	end)
+
 	Remotes.get("ChestOpen").OnServerEvent:Connect(function(player, chestKey)
 		if type(chestKey) ~= "string" then
 			return

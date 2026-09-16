@@ -1,0 +1,170 @@
+[
+  {
+    "creature": "cerberus",
+    "triangles": 2278,
+    "bones": 29,
+    "height": 4.7,
+    "clips": {
+      "Idle": {
+        "motionDisplacement": 0.21518,
+        "singleClip": true
+      },
+      "Chase": {
+        "motionDisplacement": 0.83387,
+        "singleClip": true
+      },
+      "Attack": {
+        "motionDisplacement": 0.44857,
+        "singleClip": true
+      }
+    },
+    "passed": true
+  },
+  {
+    "creature": "direwolf",
+    "triangles": 1122,
+    "bones": 17,
+    "height": 4.3,
+    "clips": {
+      "Idle": {
+        "motionDisplacement": 0.182,
+        "singleClip": true
+      },
+      "Chase": {
+        "motionDisplacement": 0.73499,
+        "singleClip": true
+      },
+      "Attack": {
+        "motionDisplacement": 0.36857,
+        "singleClip": true
+      }
+    },
+    "passed": true
+  },
+  {
+    "creature": "gorilla",
+    "triangles": 1200,
+    "bones": 14,
+    "height": 4.3,
+    "clips": {
+      "Idle": {
+        "motionDisplacement": 0.05284,
+        "singleClip": true
+      },
+      "Chase": {
+        "motionDisplacement": 1.45378,
+        "singleClip": true
+      },
+      "Attack": {
+        "motionDisplacement": 0.2692,
+        "singleClip": true
+      }
+    },
+    "passed": true
+  },
+  {
+    "creature": "mastiff",
+    "triangles": 1214,
+    "bones": 17,
+    "height": 4.05,
+    "clips": {
+      "Idle": {
+        "motionDisplacement": 0.21947,
+        "singleClip": true
+      },
+      "Chase": {
+        "motionDisplacement": 0.79287,
+        "singleClip": true
+      },
+      "Attack": {
+        "motionDisplacement": 0.3485,
+        "singleClip": true
+      }
+    },
+    "passed": true
+  },
+  {
+    "creature": "raptor",
+    "triangles": 1010,
+    "bones": 13,
+    "height": 4.3,
+    "clips": {
+      "Idle": {
+        "motionDisplacement": 0.3579,
+        "singleClip": true
+      },
+      "Chase": {
+        "motionDisplacement": 0.90947,
+        "singleClip": true
+      },
+      "Attack": {
+        "motionDisplacement": 0.31348,
+        "singleClip": true
+      }
+    },
+    "passed": true
+  },
+  {
+    "creature": "shepherd",
+    "triangles": 1194,
+    "bones": 17,
+    "height": 3.25,
+    "clips": {
+      "Idle": {
+        "motionDisplacement": 0.12841,
+        "singleClip": true
+      },
+      "Chase": {
+        "motionDisplacement": 0.54127,
+        "singleClip": true
+      },
+      "Attack": {
+        "motionDisplacement": 0.26924,
+        "singleClip": true
+      }
+    },
+    "passed": true
+  },
+  {
+    "creature": "terrier",
+    "triangles": 1158,
+    "bones": 17,
+    "height": 2.5,
+    "clips": {
+      "Idle": {
+        "motionDisplacement": 0.11369,
+        "singleClip": true
+      },
+      "Chase": {
+        "motionDisplacement": 0.42438,
+        "singleClip": true
+      },
+      "Attack": {
+        "motionDisplacement": 0.19171,
+        "singleClip": true
+      }
+    },
+    "passed": true
+  },
+  {
+    "creature": "triceratops",
+    "triangles": 1086,
+    "bones": 15,
+    "height": 4.7,
+    "clips": {
+      "Idle": {
+        "motionDisplacement": 0.23547,
+        "singleClip": true
+      },
+      "Chase": {
+        "motionDisplacement": 0.77015,
+        "singleClip": true
+      },
+      "Attack": {
+        "motionDisplacement": 0.38287,
+        "singleClip": true
+      }
+    },
+    "passed": true
+  }
+]

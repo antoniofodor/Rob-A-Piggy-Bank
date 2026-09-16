@@ -19,12 +19,21 @@ local DEFINITIONS = {
 	-- Server pushes the authoritative snapshot of a player's own state.
 	StateUpdate = "RemoteEvent",
 
+	-- Server-only cosmetic cue for live growth; no client request handler.
+	AcornGrown = "RemoteEvent",
+	ShakeState = "RemoteEvent",
+	ShakeCatch = "RemoteEvent", -- attempt ID and server-scheduled Acorn index only
+	ShakeStop = "RemoteEvent",
+	-- Private victim-id -> server-time deadlines, shared by tree/crate raids.
+	-- Empty client request resends its own snapshot; no timers accepted.
+	AcornCooldown = "RemoteEvent",
+
 	-- Server tells a client something worth a toast ("Banked 4,210 coins").
 	Notify = "RemoteEvent",
 
 	-- How much loot the player is currently carrying (0 when empty-handed),
 	-- what is in the haul, and whether they are standing close enough to
-	-- their own pig to deliver it.
+	-- the selected home/victim drop-off to settle it.
 	--
 	-- THE RANGE FLAG RIDES THIS PUSH RATHER THAN A CHANNEL OF ITS OWN, and
 	-- rather than being worked out on the client. It is the same argument the
@@ -33,7 +42,13 @@ local DEFINITIONS = {
 	-- that has to answer it anyway, because `DeliverRequest` is re-checked
 	-- there. A client computing its own distance would be a second
 	-- implementation of the one number that decides whether a robbery pays.
+	-- Trailing options: action (keep/return), canKeep/canReturn, victim,
+	-- ownReturn, keepWorth and bounty; clients show both named destinations.
 	CarryUpdate = "RemoteEvent",
+
+	-- Private recovery objectives; client sends an empty subscribe request.
+	-- No client claim, timer or price is accepted.
+	RecoveryObjective = "RemoteEvent",
 
 	-- Thief presses DELIVER. CARRIES NOTHING, for the reason `CrackTap`,
 	-- `BoneThrow` and `placeLadder` carry nothing: the press means "now", and
@@ -302,6 +317,8 @@ local DEFINITIONS = {
 	-- its own odds and picks the item from its own pool, so there is nothing
 	-- here to forge that is worth forging.
 	ChestOpen = "RemoteEvent",
+	-- Buy back one claimed skin; only the skin key crosses the wire.
+	SkinBuyback = "RemoteEvent",
 
 	-- Client asks to spend three spares of a tier. Carries the tier and the
 	-- chest to roll in, and OPTIONALLY the three entries to consume -- both

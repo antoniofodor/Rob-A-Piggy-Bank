@@ -182,6 +182,8 @@ HeistService.registerStockPusher(GadgetService.push)
 -- What a chest has to tell the client when it takes payment. SetService.grant
 -- covers the ITEM; these two cover the money, and the duplicate case pushes
 -- nothing at all without them.
+-- Skin theft, recovery and grants refresh buy-back eligibility immediately.
+CosmeticsService.registerCollectionPusher(ChestService.push)
 ChestService.registerBalancePusher(EconomyService.push)
 ChestService.registerBalancePusher(CosmeticsService.push)
 -- EVERY ANIMATION IN THIS GAME NEEDS AN UPLOADED ASSET, AND SAYS SO IF IT HAS
@@ -349,6 +351,27 @@ do
 	local problems = Config.auditThrow()
 	for _, problem in ipairs(problems) do
 		warn("[Main] throw balance: " .. problem)
+	end
+end
+
+-- Phase 1.9 audits warn without blocking startup. Tree figures are a model
+-- of full capture at parity, not observed live earning rates. Resident seed
+-- is one-off server stock and is excluded from hourly production.
+do
+	for _, audit in ipairs({ { name = "Acorns", run = Config.auditAcorns }, { name = "random-outcome sweep", run = Config.auditRandomOutcomes } }) do
+		local ok, problems = pcall(audit.run)
+		if not ok then
+			warn("[Main] " .. audit.name .. " audit could not run: " .. tostring(problems))
+		else
+			for _, problem in ipairs(problems) do warn("[Main] " .. audit.name .. ": " .. problem) end
+		end
+	end
+	local ok, solo, full = pcall(function()
+		return Config.acornRates(1), Config.acornRates(Config.MAX_PLAYERS)
+	end)
+	if ok then
+		print(("[Main] Acorn new-growth model (full capture, parity; seed/re-raids excluded): solo %.2f/full %.2f per thief-hour; active/passive %.2fx/%.2fx; full-server common %.1f min, legendary %.2f h")
+			:format(solo.perThiefPerHour, full.perThiefPerHour, solo.activeRatio, full.activeRatio, full.commonMinutes, full.legendaryHours))
 	end
 end
 

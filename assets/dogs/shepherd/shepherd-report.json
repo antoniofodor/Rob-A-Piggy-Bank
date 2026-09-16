@@ -1,0 +1,414 @@
+{
+  "breed": "shepherd",
+  "name": "Rex",
+  "authoredIn": "Blender",
+  "units": "1 unit = 1 intended stud. GLB +Y up, +Z forward.",
+  "sizing": "Final tier proportions; do not reapply DOG_TIERS.scale/shape.",
+  "rig": "Separate static parts with joint origins; no skeletal animations.",
+  "installedInGame": false,
+  "parts": {
+    "Body": {
+      "triangles": 831,
+      "tone": "fur",
+      "group": "body",
+      "originBlender": [
+        0.0,
+        0.0,
+        2.009999990463257
+      ],
+      "material": "shepherd_fur"
+    },
+    "Head": {
+      "triangles": 760,
+      "tone": "fur",
+      "group": "head",
+      "originBlender": [
+        0.0,
+        -1.4900000095367432,
+        2.619999885559082
+      ],
+      "material": "shepherd_fur"
+    },
+    "Muzzle": {
+      "triangles": 420,
+      "tone": "dark",
+      "group": "head",
+      "originBlender": [
+        0.0,
+        -1.4900000095367432,
+        2.619999885559082
+      ],
+      "material": "shepherd_dark"
+    },
+    "Nose": {
+      "triangles": 80,
+      "tone": "eye",
+      "group": "head",
+      "originBlender": [
+        0.0,
+        -2.822200059890747,
+        2.8355000019073486
+      ],
+      "material": "Eyes_nose_mouth"
+    },
+    "Mouth": {
+      "triangles": 56,
+      "tone": "eye",
+      "group": "head",
+      "originBlender": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "material": "Eyes_nose_mouth"
+    },
+    "Eye_L": {
+      "triangles": 80,
+      "tone": "eye",
+      "group": "head",
+      "originBlender": [
+        -0.3779999911785126,
+        -2.147900104522705,
+        3.1071999073028564
+      ],
+      "material": "Eyes_nose_mouth"
+    },
+    "EyeGlint_L": {
+      "triangles": 20,
+      "tone": "fixed",
+      "group": "head",
+      "originBlender": [
+        -0.4129999876022339,
+        -2.224900007247925,
+        3.148200035095215
+      ],
+      "material": "Eye_glint_fixed"
+    },
+    "Brow_L": {
+      "triangles": 80,
+      "tone": "fur",
+      "group": "head",
+      "originBlender": [
+        -0.3779999911785126,
+        -2.1298999786376953,
+        3.2871999740600586
+      ],
+      "material": "shepherd_fur"
+    },
+    "Ear_L": {
+      "triangles": 10,
+      "tone": "fur",
+      "group": "ear",
+      "originBlender": [
+        -0.43470001220703125,
+        -1.6100000143051147,
+        3.428800106048584
+      ],
+      "material": "shepherd_fur"
+    },
+    "Ear_L_Inset": {
+      "triangles": 12,
+      "tone": "dark",
+      "group": "ear",
+      "originBlender": [
+        -0.43470001220703125,
+        -1.6100000143051147,
+        3.428800106048584
+      ],
+      "material": "shepherd_dark"
+    },
+    "Eye_R": {
+      "triangles": 80,
+      "tone": "eye",
+      "group": "head",
+      "originBlender": [
+        0.3779999911785126,
+        -2.147900104522705,
+        3.1071999073028564
+      ],
+      "material": "Eyes_nose_mouth"
+    },
+    "EyeGlint_R": {
+      "triangles": 20,
+      "tone": "fixed",
+      "group": "head",
+      "originBlender": [
+        0.34299999475479126,
+        -2.224900007247925,
+        3.148200035095215
+      ],
+      "material": "Eye_glint_fixed"
+    },
+    "Brow_R": {
+      "triangles": 80,
+      "tone": "fur",
+      "group": "head",
+      "originBlender": [
+        0.3779999911785126,
+        -2.1298999786376953,
+        3.2871999740600586
+      ],
+      "material": "shepherd_fur"
+    },
+    "Ear_R": {
+      "triangles": 10,
+      "tone": "fur",
+      "group": "ear",
+      "originBlender": [
+        0.43470001220703125,
+        -1.6100000143051147,
+        3.428800106048584
+      ],
+      "material": "shepherd_fur"
+    },
+    "Ear_R_Inset": {
+      "triangles": 12,
+      "tone": "dark",
+      "group": "ear",
+      "originBlender": [
+        0.43470001220703125,
+        -1.6100000143051147,
+        3.428800106048584
+      ],
+      "material": "shepherd_dark"
+    },
+    "FrontLeg_L": {
+      "triangles": 270,
+      "tone": "fur",
+      "group": "leg",
+      "originBlender": [
+        -0.5799999833106995,
+        -1.0499999523162842,
+        1.9500000476837158
+      ],
+      "material": "shepherd_fur"
+    },
+    "FrontPaw_L": {
+      "triangles": 80,
+      "tone": "fur",
+      "group": "paw",
+      "originBlender": [
+        -0.5799999833106995,
+        -1.149999976158142,
+        0.28999999165534973
+      ],
+      "material": "shepherd_fur"
+    },
+    "FrontToe_L-1": {
+      "triangles": 16,
+      "tone": "dark",
+      "group": "paw",
+      "originBlender": [
+        -0.5799999833106995,
+        -1.149999976158142,
+        0.28999999165534973
+      ],
+      "material": "shepherd_dark"
+    },
+    "FrontToe_L1": {
+      "triangles": 16,
+      "tone": "dark",
+      "group": "paw",
+      "originBlender": [
+        -0.5799999833106995,
+        -1.149999976158142,
+        0.28999999165534973
+      ],
+      "material": "shepherd_dark"
+    },
+    "HindLeg_L": {
+      "triangles": 270,
+      "tone": "fur",
+      "group": "leg",
+      "originBlender": [
+        -0.5799999833106995,
+        1.0199999809265137,
+        1.9500000476837158
+      ],
+      "material": "shepherd_fur"
+    },
+    "HindPaw_L": {
+      "triangles": 80,
+      "tone": "fur",
+      "group": "paw",
+      "originBlender": [
+        -0.5799999833106995,
+        1.0299999713897705,
+        0.28999999165534973
+      ],
+      "material": "shepherd_fur"
+    },
+    "HindToe_L-1": {
+      "triangles": 16,
+      "tone": "dark",
+      "group": "paw",
+      "originBlender": [
+        -0.5799999833106995,
+        1.0299999713897705,
+        0.28999999165534973
+      ],
+      "material": "shepherd_dark"
+    },
+    "HindToe_L1": {
+      "triangles": 16,
+      "tone": "dark",
+      "group": "paw",
+      "originBlender": [
+        -0.5799999833106995,
+        1.0299999713897705,
+        0.28999999165534973
+      ],
+      "material": "shepherd_dark"
+    },
+    "FrontLeg_R": {
+      "triangles": 270,
+      "tone": "fur",
+      "group": "leg",
+      "originBlender": [
+        0.5799999833106995,
+        -1.0499999523162842,
+        1.9500000476837158
+      ],
+      "material": "shepherd_fur"
+    },
+    "FrontPaw_R": {
+      "triangles": 80,
+      "tone": "fur",
+      "group": "paw",
+      "originBlender": [
+        0.5799999833106995,
+        -1.149999976158142,
+        0.28999999165534973
+      ],
+      "material": "shepherd_fur"
+    },
+    "FrontToe_R-1": {
+      "triangles": 16,
+      "tone": "dark",
+      "group": "paw",
+      "originBlender": [
+        0.5799999833106995,
+        -1.149999976158142,
+        0.28999999165534973
+      ],
+      "material": "shepherd_dark"
+    },
+    "FrontToe_R1": {
+      "triangles": 16,
+      "tone": "dark",
+      "group": "paw",
+      "originBlender": [
+        0.5799999833106995,
+        -1.149999976158142,
+        0.28999999165534973
+      ],
+      "material": "shepherd_dark"
+    },
+    "HindLeg_R": {
+      "triangles": 270,
+      "tone": "fur",
+      "group": "leg",
+      "originBlender": [
+        0.5799999833106995,
+        1.0199999809265137,
+        1.9500000476837158
+      ],
+      "material": "shepherd_fur"
+    },
+    "HindPaw_R": {
+      "triangles": 80,
+      "tone": "fur",
+      "group": "paw",
+      "originBlender": [
+        0.5799999833106995,
+        1.0299999713897705,
+        0.28999999165534973
+      ],
+      "material": "shepherd_fur"
+    },
+    "HindToe_R-1": {
+      "triangles": 16,
+      "tone": "dark",
+      "group": "paw",
+      "originBlender": [
+        0.5799999833106995,
+        1.0299999713897705,
+        0.28999999165534973
+      ],
+      "material": "shepherd_dark"
+    },
+    "HindToe_R1": {
+      "triangles": 16,
+      "tone": "dark",
+      "group": "paw",
+      "originBlender": [
+        0.5799999833106995,
+        1.0299999713897705,
+        0.28999999165534973
+      ],
+      "material": "shepherd_dark"
+    },
+    "Tail": {
+      "triangles": 96,
+      "tone": "dark",
+      "group": "tail",
+      "originBlender": [
+        0.0,
+        1.1663999557495117,
+        2.259999990463257
+      ],
+      "material": "shepherd_dark"
+    },
+    "Collar": {
+      "triangles": 160,
+      "tone": "collar",
+      "group": "body",
+      "originBlender": [
+        0.0,
+        -1.4199999570846558,
+        2.4707000255584717
+      ],
+      "material": "shepherd_collar"
+    },
+    "Tag": {
+      "triangles": 80,
+      "tone": "collar",
+      "group": "body",
+      "originBlender": [
+        0.0,
+        -2.0899999141693115,
+        2.270699977874756
+      ],
+      "material": "shepherd_collar"
+    },
+    "Saddle": {
+      "triangles": 169,
+      "tone": "dark",
+      "group": "body",
+      "originBlender": [
+        0.0,
+        0.0,
+        2.009999990463257
+      ],
+      "material": "shepherd_dark"
+    }
+  },
+  "triangles": 4584,
+  "sizeRoblox": [
+    1.838053584098816,
+    4.44379985332489,
+    5.753317356109619
+  ],
+  "boundsBlender": {
+    "min": [
+      -0.9135423898696899,
+      -2.9822001457214355,
+      -0.004999995231628418
+    ],
+    "max": [
+      0.924511194229126,
+      2.7711172103881836,
+      4.438799858093262
+    ]
+  }
+}

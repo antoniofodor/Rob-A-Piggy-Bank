@@ -26,6 +26,8 @@ local House = require(ReplicatedStorage.Shared.House)
 local Decor = require(ReplicatedStorage.Shared.Decor)
 local SoundKit = require(ReplicatedStorage.Shared.SoundKit)
 local GrassTuft = require(ReplicatedStorage.Shared.GrassTuft)
+local AcornTree = require(ReplicatedStorage.Shared.AcornTree)
+local AcornStorage = require(ReplicatedStorage.Shared.AcornStorage)
 -- The ladder a player stands against a fence. Shared geometry rather than a
 -- second copy here, for the reason House and Decor live in Shared: the shop
 -- renders the real item, and a near-identical copy drifts the first time
@@ -52,6 +54,9 @@ export type Plot = {
 	fenceLevel: number,
 	house: Model?,
 	decor: Model?,
+	-- Present on residential plots, including residents; shops have no tree.
+	acornTree: AcornTree.Refs?,
+	acornStorage: AcornStorage.Refs?,
 	-- THE GARDEN: a border along the fence, a path up to the pig, and boxes
 	-- under the windows. Three models rather than one, because they are
 	-- rebuilt on three different events -- the border follows the FENCE, the
@@ -861,6 +866,11 @@ local function buildPlot(index: number): Plot
 	local dog = GuardDog.build(
 		cf * CFrame.new(KENNEL_X, 0, KENNEL_Z) * CFrame.Angles(0, KENNEL_YAW, 0),
 		model, cf)
+	-- Build after PivotTo so the ground contact and far-row facing are final.
+	local tree = AcornTree.build(model, cf * CFrame.new(
+		Config.ACORNS.treeOffset + Vector3.new(0, Config.PLOT_SIZE.Y / 2, 0)))
+	local storage = AcornStorage.build(model, cf * CFrame.new(
+		Config.ACORNS.storageOffset + Vector3.new(0, Config.PLOT_SIZE.Y / 2, 0)))
 
 	local plot: Plot = {
 		index = index,
@@ -869,6 +879,8 @@ local function buildPlot(index: number): Plot
 		cframe = cf,
 		piggy = piggy,
 		dog = dog,
+		acornTree = tree,
+		acornStorage = storage,
 		fence = fence,
 		fenceLevel = 0,
 		house = nil,
@@ -2783,6 +2795,15 @@ end
 
 -- Returns how many coins newly appeared, so callers can decide whether that
 -- deserves a sound.
+function PlotService.updateAcorns(plot: Plot, amount: number)
+	plot.model:SetAttribute(Config.PLOT_ACORNS_ATTRIBUTE, math.max(0, math.floor(amount)))
+end
+
+function PlotService.updateTreeAcorns(plot: Plot, ripe: number, ground: number)
+	plot.model:SetAttribute(Config.PLOT_TREE_ACORNS_ATTRIBUTE, math.max(0, math.floor(ripe)))
+	plot.model:SetAttribute(Config.PLOT_GROUND_ACORNS_ATTRIBUTE, math.max(0, math.floor(ground)))
+end
+
 function PlotService.updatePile(plot: Plot, vault: number, capacity: number): number
 	-- Published here rather than at the call sites because this is the one
 	-- function every path already goes through -- the accrual tick, a steal, a
@@ -3072,6 +3093,9 @@ function PlotService.assign(player: Player): Plot?
 				end
 			end
 
+			PlotService.updateAcorns(plot, 0)
+			PlotService.updateTreeAcorns(plot, 0, 0)
+			plot.model:SetAttribute(Config.PLOT_ACORN_RAID_READY_ATTRIBUTE, nil)
 			plot.owner = player
 			byPlayer[player] = plot
 			plot.model:SetAttribute("OwnerUserId", player.UserId)
@@ -3100,6 +3124,9 @@ function PlotService.release(player: Player)
 		return
 	end
 
+	PlotService.updateAcorns(plot, 0)
+	PlotService.updateTreeAcorns(plot, 0, 0)
+	plot.model:SetAttribute(Config.PLOT_ACORN_RAID_READY_ATTRIBUTE, nil)
 	plot.owner = nil
 	byPlayer[player] = nil
 	plot.model:SetAttribute("OwnerUserId", nil)
@@ -3228,6 +3255,10 @@ function PlotService.start()
 	-- possibly need it -- a saved lawn reconstructing on join is the one
 	-- moment this would otherwise race a purchase.
 	Decor.prewarm()
+	AcornTree.prewarm()
+	AcornStorage.prewarm()
+	require(ReplicatedStorage.Shared.AcornBasket).prewarm() -- carried mesh is ready before any catch
+	require(ReplicatedStorage.Shared.AcornModel).prewarm()
 
 	local existing = workspace:FindFirstChild("Plots")
 	if existing then

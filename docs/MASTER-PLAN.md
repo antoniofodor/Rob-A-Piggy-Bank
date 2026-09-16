@@ -81,7 +81,7 @@ Settled. Design around them; do not propose removing them.
 | what coins can **actually be spent on** | **218.6M**, of which houses are 142.0M (65%) | re-summed, section 14 |
 | skins a player may buy with coins | **one** (Solid Gold, 1.5M); 37 are crate-only and 3 are rebirth-gated | `SKINS` |
 | effects obtainable by any route today | **none of 7** | `EFFECTS`, and the retired Piggy tab |
-| the nab today | a 1.0s tug that drains coins back to the victim per tick; 25% bounty minted and split; 3s rest on the thief; the dodge breaks it | `NAB` |
+| the nab today | a 1.0s tug transfers the intact carry; no tick refunds/bounty; 3s rest follows the holder; dodge breaks it; return/keep settlement implemented (3.3); live two-player check pending | `NAB` |
 | the rob badge today | "NEW HERE 1m" for any shield, "ROBBED 54s" for your own per-victim cooldown, EMPTY, or the pig's value in gold; readable to 224 studs | `RobBadge` |
 | shop drop today | 20% of clean shop cracks, flat, every shop; a duplicate pays its sell value | `SHOP_VAULT_DROP` |
 | audits at boot | robbery 0, skin-steal 0, economy 0 problems | live |
@@ -185,185 +185,121 @@ either too cruel to the victim or too thin for the thief, with nothing in
 between. Decoupled, a shake that costs a child two acorns can pay the thief
 ten, and the two halves can be tuned against different things.
 
-**AND THE MULTIPLIER IS WHAT HOLDS ACORN INCOME UP AS A SERVER FILLS, which
-is the one product that has already broken this project twice.** The acorn
-faucet is **one per plot per hour and nothing else** -- ten trees on a
-ten-plot street, whether a player or a resident is standing under them -- so
-a fixed faucet is shared by a growing number of thieves. Measured against the
-resident floor (section 17): a solo thief working nine resident trees earns
-about **10 an hour**; eight thieves sharing seven player trees and two
-resident ones earn about **5.6 each**. Raising the PLAYER multiplier is what
-closes that, because it only pays out where the extra thieves are: at x5 the
-fall is 1.8x, and **x10 would make it flat.** It is at 5 because x10 means a
-single shake catching two acorns banks twenty -- four crates -- which is a
-currency inflating faster than it is countable. Recorded rather than solved:
-it is the first number telemetry re-derives.
+**Population and supply.** Trees grow one raw Acorn per plot per hour.
+The x5 player-theft payout helps compensate for sharing that supply. The
+revised **new-growth capture model** is 10 Acorns/hour solo and 5.25 per
+player/hour at eight players, assuming every fresh Acorn is collected and
+all multiplayer player crops are stolen at parity. Each grown Acorn is
+counted once; own harvesting and theft cannot both claim it. Seed stock,
+repeat theft of stored balances, revenge, missed catches and travel are
+outside that model. Section 17 separates those assumptions from observed
+play earnings. Payout constants have not changed.
 
-**RESIDENTS PAY ACORNS ON A SLOWER CLOCK THAN THEY PAY COINS.** The coin
-cooldown stays at 60 seconds per target; **a resident's basket may be shaken
-at most once per 15 minutes.** Growth binds harder than the cadence does in
-the long run -- nine trees can only ever yield nine an hour -- so what the
-cadence actually buys is the SESSION SHAPE: a thief arriving on a street of
-full baskets takes the harvest in one lap and then has to wait, which is what
-stops a solo player mining the resident row on a sixty-second loop and makes
-a real player, who has no such cadence, the better target inside the hour.
+**Residents use a shared quarter-hour raid cadence.** Their coin cooldown
+remains unchanged. Opening a valid Acorn round starts a 15-minute deadline
+shared by all thieves and both sources, tree and crate. Empty/out-of-range
+refusals do not consume it. The prompt displays RESTING m:ss until it ends.
+Four starting Acorns are split two ripe/two stored, seeded once per plot per
+server lifetime. Residents bank ripe crops while home, after the crop has
+been available for at least fifteen minutes. This moves stock; it is not a
+refill. Ordinary hourly growth is the only repeating production source.
 
 **THE SPREE MULTIPLIES COINS AND NEVER ACORNS.** A spree that multiplied
 acorns would put a hot thief at ten a shake -- two crates from one tree --
 and every price below would be wrong by a factor of two for exactly the
 players who play best.
 
-## 4. The tree and the basket
+## 4. The tree, carry basket and storage crate
 
-Every plot has an **oak on the lawn** and a **basket at its foot**, and the
-basket is where a player's acorns live. It is the readout, the trickle and
-the stake at once.
+**Designer correction, September 2026:** growing stock, carried stock and
+spendable storage are separate. This replaces the earlier wallet-growth,
+stationary-basket and PACKED design. A player can have eight banked Acorns
+and another eight ripe on their tree at the same time.
 
-**Where it stands.** The tree takes the front-left lawn corner -- the slot
-`lawnI`, at plot-local (-25, 16) -- which mirrors the kennel at (25, 16), so
-the two flank the gate walk and the lawn reads as a garden with a dog on one
-side and a tree on the other. The slot comes out of `DECOR_SLOTS`, which
-takes the lawn from nine ornament slots to eight; the scarcity argument for
-the shelf says fewer is more curated, and a save with an ornament placed on
-`lawnI` is pruned by the same catalogue-not-a-list rule every retired slot
-already takes. The basket sits on the pig side of the trunk, at about
-(-20, 16), in the ornament footprint so nothing else can ever stand in it.
+Every residential plot has the compact imported `AcornOak` at lawnI
+(-25, 16) and an **open wooden storage crate** beside it at (-20, 16).
+Shops have neither. The tree remains the approved 8.5-stud-wide imported oak;
+lawnI stays retired and existing ornaments remain owned but shelved.
+The imported woven basket is now exclusively the player's transport prop.
+`AcornStorage` supplies a functional 3.6 × 2.8 × 1.9-stud wooden blockout
+until the final Blender prop is imported. Art prompt: `assets/crate/BLENDER-PROMPT.md`.
 
-**The tree is the street's own oak, smaller.** `Config.TREE_MESH` is already
-generated, uploaded and textured; the yard oak is the same two parts at a
-scale of about 0.85, so the canopy is roughly ten studs across. Measured
-against the plot: canopy edge at x -30 against a side fence at -33.6, and at
-z 21 against a front fence at 25.6, so it neither hangs over the alley nor
-the pavement; and because it stands beside the pig rather than in front of
-it, the sightline from the pavement over the front fence to the piggy is
-untouched. No upload, no new art.
+**Growth:** one Acorn per hour online/offline, up to eight **on the tree**.
+`treeAcorns` and the partial-hour cursor are saved. Existing `loot` remains
+banked storage, uncapped by growth; migration never copies it into the tree.
+Time spent at the tree cap is discarded. Coin boosts do not affect growth.
+Ripe Acorns stay visible on the tree until shaken.
 
-**Acorns fall.** The tree grows one acorn an hour, online and offline alike,
-and it falls into the basket -- a client-side drop animation on the tick, so
-a player looking at their own lawn sees the harvest arrive and a player
-joining sees the night's acorns already in the basket. **The rate and the cap
-are derived rather than typed:** `growCap` is 8 and `growSeconds` is
-`OFFLINE_CAP_SECONDS / growCap`, which is 28,800 over 8, exactly 3,600. **A
-full basket is one offline window** -- the same eight hours the pig already
-fills over -- and a school day fills both.
+**Ground:** shaking moves ripe Acorns into `groundAcorns`, not the wallet.
+Missed Acorns remain around the trunk for 60 seconds from the shake, allowing
+another collection round. A round begun just before expiry gets its full
+five seconds. Collection of an existing pile does not shake newly grown
+Acorns down; clear that pile first. Growth can resume while a pile is loose.
+Ground count and expiry are saved so rejoining cannot duplicate a harvest.
+Expired loose Acorns disappear; storage is unaffected. Failed carries return
+raw tree Acorns to the ground with another 60-second collection window.
 
-**These two numbers are now the entire acorn supply of the game.** Nothing
-else creates one. Ten trees on a ten-plot street at one an hour is a faucet of
-**ten acorns an hour per server**, whatever anybody does, and everything below
--- the crate prices, the season tiers, the buy-back ladder -- is priced
-against that figure and the shake's multiplier on top of it.
+**Storage:** the crate displays an exact count, including zero and large
+balances. Decorative contents are bounded to eight meshes for performance;
+there is no PACKED label. Deposited Acorns are available to all existing
+Acorn purchases, crates and buybacks. The HUD continues to show this balance.
 
-**Growth stops at the cap; robbing has no ceiling.** The pig's own rule --
-income stops at capacity, a delivery overflows it -- applied to the second
-currency, so there is one sentence covering both balances. A player holding
-two hundred acorns grows none; a player holding three grows five overnight.
+**Resident supply:** `ResidentAcorns` owns one stock record per residential
+plot for the server's lifetime; `resident.acornStock` references it. Each
+starts with two ripe and two stored Acorns, zero loose. Shops get no stock.
+Resident `.loot` remains carried coins. A new crop starting on an empty tree
+waits fifteen minutes before a resident at home banks it. Harvesting waits
+while loose Acorns or an active collection lease exist; no new NPC carrying
+animation is introduced by this stock transfer.
 
-**The basket draws eight and reads PACKED above that.** The coin pile inside
-the pig already works this way. A readout with a ceiling is a picture, and
-the exact number lives on the HUD where a number belongs. What a thief reads
-from the pavement is *full* or *not*, and the rob badge (section 9) prints
-the count.
+Claiming a plot freezes its resident production/harvest clocks. Releasing it
+resumes the same stock and partial growth hour, never another seed. Raid
+cooldown and ground expiry continue in real time. An old carried receipt can
+refund this retained stock without crediting the new player occupant.
 
-**Residents have trees, and they are now the whole non-player floor.** A
-resident's basket is seeded at four and regrows at the same rate, so a quiet
-server always has baskets to shake; the 15-minute cadence in section 3 is
-about a resident's basket and nothing else. **Shops have no tree and pay no
-acorns** -- a vault is a room inside a building and there is no lawn for one --
-which is a real cost rather than a tidy-up: the four tills used to carry a
-quarter of the non-player acorn floor, and the floor is nine resident trees at
-a quiet server and two at a full one.
+## 5. Timed harvesting and storage raids
 
-**Nothing bought with coins may touch the rate, the cap or the share.** The
-garden catalogues may restyle the tree and the basket; they may never raise
-the yield. A coin-bought bigger tree would be money buying a faster route to
-every crate in the game.
+**Tree collection:** hold H (gamepad Y) at a residential trunk for half a
+second. One ripe Acorn is enough; loose leftovers can also be collected.
+Shaking releases ripe stock onto the ground and opens a **five-second drag
+round**. Drag as many available Acorns as possible into the carry basket.
+All offered Acorns remain draggable through the timer, rather than falling
+out of the panel individually. The collection panel represents the ground
+pile; replicated decorative models show that pile around the actual trunk.
+Own-tree harvesting has no alarm, theft cooldown, quarter-share or loss cap.
+An owner may retry leftovers with their current basket from that same tree.
 
-**What this spends, because it is a rule the designer has refused once.**
-*Displayed objects generating money per second, stolen off your base, is
-Steal a Brainrot with pigs* -- and this is an object on a lawn that fills up
-and that other people take from. Three things make it a different object: it
-produces **no coins**, so it cannot compete with the income ladder or move a
-number `auditRobbery` measures; **the tree is never taken**, only the harvest;
-and the harvest is taken by a robbery with the same carry, the same nab and
-the same dog as any other, so it adds no second way to farm a lawn. What it
-buys is both of the brief's yard asks in one object: the yard has a job for
-its owner (the Tuesday hook -- the basket is full) and a job for a thief (a
-rich player is *visibly* worth crossing the road for).
+**Storage raid:** hold J (gamepad X) at another property's crate. The same
+five-second interaction moves Acorns from the crate into the carry basket.
+The take is a quarter of stored stock rounded down, **at least one if any
+exists**, bounded by the remaining **four-Acorn rolling-hour loss limit**.
+Uncollected storage stays banked. A player cannot raid their own storage.
 
-## 5. Robbing the basket
+**Theft protections:** tree theft and storage raids alert the owner, wake the
+dog and drop the thief's shield/sneak. Owner arrival, death, distance, stun,
+bins, rides or plot occupant changes interrupt collection. Player-target repeat cooldown
+is 60 seconds per thief/victim across both sources. Resident targets instead
+share a 15-minute deadline across every thief and both sources; the hourly loss budget
+applies to storage only. Active attempts reserve available stock so two
+collectors cannot claim the same Acorn. Every drag is verified by attempt ID,
+index, server time and current scene state. Shops have no Acorn prompts.
 
-Taking acorns is its own robbery and the ONLY way to take one. It is not a
-side effect of cracking a pig, it is not a drop off a shop vault, and it is
-not a number added to a delivery toast: a thief who wants acorns walks up to
-somebody's tree, **shakes it**, catches what falls, and **carries the basket
-home**.
+**Carry and deposit:** accepted drags debit one raw Acorn into a carried
+basket. An incompatible haul must be deposited first. Only deposit at the
+carrier's **own storage crate** credits spendable `loot`. Own harvesting
+pays one-for-one and never counts a robbery, creates a grudge or consumes
+revenge. Theft keeps the existing resident x1/player x5-plus-positive-rebirth-gap
+payout, with revenge doubled, computed at delivery. Coin bonuses do not apply.
+A completed stolen basket counts one robbery; coin leaderboards are unchanged.
 
-**The shake.** A prompt on the trunk, SHAKE, on its own key, with a hold of
-`CRACK.openHold` (half a second). Holding it opens the panel: the canopy
-shivers and acorns tumble down the screen for `ACORNS.shakeSeconds` (4
-seconds); the thief **drags each one into the basket icon** at the bottom
-before it rolls off the edge. Every acorn caught is one taken, up to the take
-below. It is drag rather than tap because most of this audience is on a
-tablet, and it is a dexterity test rather than a timing one so it is not the
-crack again with a different picture.
+Nabs, dog/patrol confiscation, death and departures return raw receipts to
+the correct source. Storage refunds also release the matching loss budget;
+ground refunds never bank the owner's harvest. Receipts prevent duplicate
+returns; departure settlement runs before the final save.
 
-**How much falls.** A quarter of what the victim holds, rounded down, and
-the victim may lose at most **four in a rolling hour whoever is robbing** --
-half a basket, which is `LOSS_CAP`'s own shape and very nearly its own
-fraction. A share rather than a flat number is what makes the rich the better
-target: at eight held a thief may catch two, at a hundred and thirty-five they
-may catch the capped four. Which of those actually land is the drag.
-
-Note which of the two numbers binds, because it is not the obvious one. Over
-an hour a tree only grows one acorn, so **growth binds long before the cap
-does** and the cap is doing a different job entirely: it bounds the RAID on a
-basket somebody filled overnight. A player who joins holding eight cannot be
-stripped in the first ten minutes by a queue of thieves; they lose half a
-basket an hour at worst, and they were asleep for the other half.
-
-**The carry.** What is caught is a second carry kind: a basket welded to the
-thief's back where the stolen pig would be, at `CARRY_SPEED_MULTIPLIER`,
-nabbable, dodgeable, jammable, hideable, and confiscated by the patrol exactly
-as a pig is. It is delivered at the thief's own basket.
-
-**And it pays a MULTIPLE of what it holds, which reverses this section's own
-first answer.** The draft said *it pays exactly what it holds, no doubling*,
-on the grounds that minting on delivery would make a fat basket worth three
-crates in one run and end the crack as a target. **That argument expired when
-the crack stopped paying acorns.** It was a claim about two jobs competing for
-one currency; they no longer share one. The crack pays coins and takes skins,
-the shake pays acorns, and they are not substitutes -- so what is left is the
-reason `HEIST_PAYOUT` exists at all, which applies here with more force than
-it does to coins, because the acorn faucet is ten an hour for a whole street
-and a currency that is only ever moved and never minted cannot pay eight
-people. `ACORNS.payout` is **5 on a real player's tree and 1 on a resident's**
-(section 3), so a shake that costs a child two acorns banks the thief ten, and
-the two halves are tuned against different things: the victim's loss against
-how much a day of growing is worth, the thief's gain against how many thieves
-are standing on the street.
-
-**The tree is the LOUD target.** A shake wakes a watching dog on the first
-tick and tells the owner, the way a smash does; there is no quiet way to
-shake a tree. So a plot now reads from the pavement as three jobs: the crack
-(quiet, skilled, coins and maybe a skin), the smash (loud, fast, coins), and
-the shake (loud, unskilled, acorns). The owner-interrupt range ends a shake
-as it ends a crack; the per-thief per-victim cooldown is the same 60 seconds;
-and a shake on a real player counts for the hot rule and the grudge exactly
-as a crack does.
-
-**The two jobs no longer have to be compared, and that is worth saying once,
-because the draft spent a paragraph on it.** A crack and a shake pay different
-currencies now, so neither can out-earn the other and there is no ratio to
-protect: a thief who wants coins cracks, a thief who wants a crate shakes, and
-a thief who wants both does both to the same plot. What replaced that check is
-a harder one -- **acorns per hour against the crate prices**, since the shake
-is now the only thing being checked against them. `auditAcorns` (section 17)
-holds that end.
-
-**What the owner does about it.** Spend them. A basket that is sitting at
-forty is a basket somebody will shake, and a crate is five. That is the
-spend-it-or-lose-it loop the pig already runs on, arriving on the second
-currency with the same answer.
+The imported basket is used for carried contents (up to eight visible
+Acorns). Live gesture/carry/visual review remains part of Phase 2.4. Phase 3's
+future claimant/holder transfer design is unchanged.
 
 ## 6. Crates, and the Rebirth Crate
 
@@ -401,12 +337,19 @@ x5 multiplier, which is two crates -- so the sentence a player learns is
 **shake somebody rich and you can open something.** If the multiplier moves,
 these four prices move with it; they are the same number written twice.
 
+**Designer clarification — 2026-09-15:** A rebirth opens a standard free
+Legendary Crate with its usual odds and duplicate spares. It does **not** select
+the next unowned skin in order. The completed-legendary-collection fallback
+remains the crate's Acorn price. This overrides option 1 below and the original
+guaranteed wording of step 1.5. Coin sales remain unimplemented; the later
+random-reward audit must retain its check for a rolled rebirth reward.
+
 **Rebirth opens a Legendary Crate, and the rebirth-only skins retire with the
-drop that handed them out.** Today `ProgressionService` calls
-`CosmeticsService.rollRebirthDrop`, rolls a rarity and equips one skin, with a
-coins fallback when the pool is empty; and three skins -- **Bronze (rebirth
-1), Gold Leaf (3) and Diamond (6)** -- carry an `unlockRebirths` gate instead
-of a price, so they are owned by arithmetic rather than by anything in the
+drop that handed them out.** Before step 1.5, `ProgressionService` called
+`CosmeticsService.rollRebirthDrop`, rolled a rarity and equipped one skin, with a
+coins fallback when the pool was empty; and three skins -- **Bronze (rebirth
+1), Gold Leaf (3) and Diamond (6)** -- carried an `unlockRebirths` gate instead
+of a price, so they were owned by arithmetic rather than by anything in the
 save. All of that goes. A rebirth opens a **Legendary Crate**: the same reel,
 the same reveal, the same forty-acorn crate everybody else earns.
 
@@ -451,8 +394,8 @@ Three ways out:
 
 1. **The Rebirth Crate is guaranteed rather than rolled**: it hands over the
    next legendary you do not own, in a published order, with the reel still
-   spinning. Nothing is random, so nothing is exposed. **Recommended**, and
-   it is the better reward anyway -- a real Legendary Crate draws `rare 65 /
+   spinning. Nothing is random, so nothing is exposed. **Previously recommended; not selected by the designer**, since
+   the standard crate is the requested reward. The original rationale was -- a real Legendary Crate draws `rare 65 /
    legendary 35`, so two rebirths in three would hand over a rare, which is
    a letdown on the hardest button in the game.
 2. The pack refuses to open when it would carry a player over their own
@@ -474,7 +417,8 @@ a crate* -- once the crates are priced in acorns, and it settles every case:
 | class | stealable? | why |
 |---|---|---|
 | crate skins (**40** -- 37 today plus Bronze, Gold Leaf and Diamond, section 6) | **yes** | the crate returns them, for acorns |
-| acorns in the basket | **yes, capped** | section 5 -- a quarter a shake, four per victim per hour |
+| banked Acorns in storage | **yes, capped** | section 5 -- quarter share (minimum one), four per victim per hour |
+| ripe/loose tree Acorns | **yes** | section 5 -- timed collection, separate from the storage loss cap |
 | the free default, alien set skins, pass skins | no | no coin-or-acorn crate returns them; already excluded by the predicate |
 | **coin-bought skins (Solid Gold, and anything section 14 adds)** | no | the coin shelf is the safe shelf, and the rule below is what keeps it safe as it grows |
 | houses, upgrades, rides, ornaments, coats, kennels, garden, plinths | **no** | their route back is **coins**, and coins are for sale -- so stealing one would create *pay to get your stuff back*, the one shape that turns a robbery game into a complaint |
@@ -521,17 +465,31 @@ shipped 50% was solved against `LOSS_CAP` throttling player cracks to two an
 hour; with the rails in front of it a roll adds nothing but the sense that
 the fifth slice sometimes does nothing.
 
-**The hot rule is the free route back.** A stolen skin is *hot* for
-`REVENGE.window`. A revenge crack on the thief takes it back at 100%
-**whatever they are wearing** -- today the roll takes what the victim wears,
-so a thief could hide it by changing skin, which is the loophole this closes
--- and a recovered skin comes *off* the thief. Two outcomes a nine-year-old
-can hold: **get them back now and take it off them, or rob somebody else and
-buy it back.**
+**The hot rule is the free route back.** Each delivered stolen skin creates a
+claim for its original owner against that robber for `REVENGE.window`, starting
+at delivery. A clean revenge crack takes that skin from the robber's ownership
+regardless of their outfit. It is carried home under the usual getaway rules;
+being caught returns it and reopens the claim inside its original deadline.
+
+**Designer clarification — 2026-09-15:** Claims stack per owner, robber and
+skin. The robber taking from another player does not erase an earlier victim's
+claim, so several players can recover from the same robber independently.
+Only the latest person to take a particular skin from that owner has the valid
+claim; a later theft of a different skin does not replace it. Each skin keeps
+its own deadline. Spending coin revenge or a subsequent coin robbery does not
+consume or extend the skin window. One clean crack recovers one available
+claim, oldest deadline first. Claims remain session-local, like revenge.
+
+Recovery revokes the owned copy, bypassing ordinary skin-loss caps and spare
+insurance on the robber. If the original loss was an insured spare, delivery
+restores that spare; an already reacquired ordinary skin pays no extra copy.
+If the robber no longer owns the claimed skin, this crack does not substitute
+an unrelated outfit. Paid seasonal buy-back is implemented below.
 
 **The buy-back ladder, and why 3x per step is the right shape.** Losing a
-skin writes `data.claims[key]`; for the rest of the season that skin's crate
-card carries BUY BACK, a direct purchase in acorns with no roll, and the thief
+owned skin writes `data.claims[key] = seasonIndex`; for the rest of the season
+an exact-skin card beside its source crate carries BUY BACK while unowned, a
+direct purchase in acorns with no roll, and the thief
 keeps their copy. Measured against the og crate's real pool, rolling for a
 specific skin costs:
 
@@ -560,15 +518,21 @@ against a free route inside ten minutes that costs nothing but a fight.
 
 **The sixty seconds after.** The plaster, the toast naming thief and crate,
 the revenge marker over the thief's plot and the thief wearing the skin are
-all shipped. New: the objective card that carries *go and rob a piggy bank*
-for a new player carries **GET IT BACK -- JAMIE, 10:00** with the countdown,
-and flips to **BUY IT BACK -- 135 ACORNS** when the window closes.
+all shipped. The shared objective card now carries **GET IT BACK**, the
+robber's name and a countdown after delivery, then **BUY IT BACK -- 135
+ACORNS** when the window closes (while the seasonal claim is valid/unowned).
+Before delivery it says to nab the fleeing robber; a recovered carry says
+**GET IT HOME**. A tap on the paid objective opens the matching Crates card.
+Stacked claims prioritize a current carry/chase, then the earliest live
+recovery deadline, with the remaining count shown. Insured spares have no paid
+fallback. Returning/reacquiring the skin clears its objective; onboarding
+resumes only if the first job is still unfinished.
 
 ## 8. The nab is a hand-off
 
-Today a nab is a one-second tug that drains coins back to the victim per tick
-and pays the nabber a minted quarter. **It becomes a confiscation: the nabber
-takes the pig, and is now the one carrying it.** The tug keeps everything
+Phase 3.2 now implements the one-second tug handoff; ticks move no currency.
+**The nabber takes the intact pig or basket and becomes its holder.**
+Phase 3.3 now implements the return/keep settlement choices. The tug keeps everything
 that made it safe -- the hold, the dodge that breaks it, the crowd that
 joins without speeding it up, the rest stamped on the thief -- and changes
 only its ending.
@@ -577,7 +541,7 @@ only its ending.
 
 | the nabber... | delivers where | gets | the victim gets |
 |---|---|---|---|
-| **keeps it** | their own pig | half the coins' worth at home, half the acorns rounded down, and **the whole haul** -- a stolen skin goes with the pig | nothing more than they had already lost |
+| **keeps it** | their own pig | half the raw coins or Acorns, rounded down, and **the whole haul** -- a stolen skin goes with the pig | nothing more than they had already lost |
 | **returns it** | the victim's pig (the drop-off radius on the victim's own plot) | the bounty, minted, `NAB.bounty` of what came back | every coin, and the skin, if one was in the haul |
 | **is nabbed in turn** | -- | -- | -- |
 
@@ -609,8 +573,9 @@ their skin now -- and the claimant, who lost it, is nobody's target for it.
 
 **What does not change.** The dog's catch stays binary and returns the coins
 outright: an NPC has no decision to make. The patrol's arrest stays a
-confiscation with its own scene. The bounty is still minted and still split
-across everybody who held. And the staged-robbery arithmetic still refuses
+confiscation with its own scene. One bounty is minted to the return deliverer,
+in the returned currency and rounded down; no per-participant payout is made.
+Own harvests and claimant undos earn no bounty. And the staged-robbery arithmetic still refuses
 the farm: a pair who rob, nab and keep give up the claimant's full 2.0x to
 collect 0.5x, so the honest play is still to deliver.
 
@@ -620,36 +585,37 @@ partial outcome: *the thief got it back*, or *a stranger ran off with it*.
 That is a better story and a worse guarantee, and the two-player session is
 what decides whether it reads.
 
-## 9. Timers visible from the street
+## 9. Street badges and nearby Acorn cooldowns
 
-The rob badge over every pig already says most of this, per viewer, to 224
-studs: **NEW HERE 1m** for a shield, **ROBBED 54s** for the reader's own
-per-victim cooldown, **EMPTY**, or the pig's worth in gold. What is missing,
-and what each costs:
+**Designer-approved September 16:** warm cream street badges show coin worth
+or one blocking state, plus a small recovery tag. No Acorn counts or Acorn
+cooldown row on the street badge: players inspect the tree, ground and storage
+crate themselves. The carried basket remains transport.
 
-* **A rejoin shield is not "new here".** The same attribute carries both
-  shields and the badge cannot tell them apart. It can: `NeedsFirstJob` is
-  already published on the player and is true exactly for somebody who has
-  never delivered a robbery. NEW HERE when that is set; **SHIELD 45s**
-  otherwise. Zero new state.
-* **The hourly loss cap is invisible.** A victim who has been robbed to
-  `LOSS_CAP` is un-robbable for the rest of the window and nothing on the
-  street says so; the crack refuses out loud only once you are standing at
-  the pig. The server publishes `CappedUntil` on the plot when the allowance
-  runs out; the badge reads **CAPPED 41m**. The badge's own rule stands --
-  it is kept in the same order as `whyCannotSteal` asks its questions, so
-  the new row goes where the refusal goes.
-* **The basket needs a row.** Under the coin figure, an acorn glyph and the
-  count, or SHAKEN 54s while the reader's own tree cooldown runs, or the
-  same CAPPED when the acorn cap has bound. It is the same card, one row
-  taller, and it is what lets a thief compare two lawns from the road.
-* **A hot skin gets a mark** on the badge, so the whole street can see who is
-  holding stolen goods and the owner can see where theirs went.
+* **NEW HERE / SHIELD:** while a shield is active, `NeedsFirstJob` selects
+  NEW HERE; returning players see SHIELD and the remaining time. A finished
+  or dropped shield never stays protected just because onboarding is unfinished.
+* **ROBBED / EMPTY / CAPPED:** the viewer's coin cooldown, empty balance and
+  hourly loss cap follow the server's refusal order. `CappedUntil` comes from
+  the actual loss allowance/window and clears when income, refunds or expiry
+  reopen it. Rush worth and unlocked lock pips remain on available targets.
+* **RECOVER SKIN:** the rightful owner sees this tag on the last robber's plot
+  while their private recovery claim is valid. Bystanders see HOT SKIN when
+  any valid claim remains. Neither depends on the robber's equipped skin.
+* **Personal recovery task:** a compact icon renders the actual stolen skin,
+  with its countdown (or CHASE/HOME during transport). Selecting it expands
+  the robber/skin details. Multiple claims retain their independent timers;
+  the task prioritizes getting a carry home, an active chase, then the earliest
+  recovery deadline. Other claims remain available as the current one resolves.
+* **Nearby Acorn cooldown:** at the normal tree/crate interaction range, an
+  hourglass and **Steal ready in 0:54** replace the ready action. Only the
+  affected viewer sees their player-target cooldown; resident rest remains
+  shared. The same deadline covers both sources. Own harvesting is exempt.
+  Both prompts return to normal at expiry without needing a new server packet.
 
-Every one of those is a property read on the client; the only new server
-write is the capped-until stamp. And the check for all of it is a photograph
-from the pavement, not a probe: the badge is not `AlwaysOnTop`, so it is one
-of the few labels in this game that a capture can actually see.
+Implemented in Phase 3.4. Automated state/expiry checks pass. The remaining
+art gate is a real pavement view showing all four badge states legibly at plot
+spacing; badges remain occluded by the world (`AlwaysOnTop = false`).
 
 ## 10. Shop drops are smaller, and the wheels shop is gated
 
@@ -882,7 +848,7 @@ stakes* true while the safe shelf doubles. The boot audit walks it both ways.
 
 **And nothing added may touch an outcome.** A coin-bought thing may change how
 the plot looks and may never change the steal, the chase, the tag, the
-getaway, the tree's rate, the basket's cap or the shake's share. The yard
+getaway, the tree's rate, the tree's cap or the storage-raid share. The yard
 already has this written down -- *a cosmetic may never imply a tier that has
 not been bought* -- and the expansion is where it gets tested, because a fence
 STYLE and a fence TIER are one object wearing two meanings.
@@ -955,11 +921,11 @@ The decision to sell coins stands; this is how to make it survivable.
   robbed. Spend them."* Once opened, every bought coin is stealable at the
   game's own rule. Nothing softens that, because softening it is the timed
   shield this plan rejects.
-* **Order is compliance-critical, and section 14 is now part of it:** crates
-  to acorns, the Rebirth Crate guaranteed, the boot audit, *and enough coin
-  shelf to be worth buying* -- all before the pack's product id is set. The
-  first three are what keep it legal; the fourth is what keeps it from being
-  a refund queue.
+* **Coin sales remain a later design gate.** The designer selected the
+  standard rolled Rebirth Crate in section 6. The original prerequisite of a
+  guaranteed reward therefore has not been met. Resolve that interaction,
+  complete the boot audit and build the coin shelf before setting a pack's
+  product id.
 * **Stated disagreement, for the record.** In this genre the products that
   sell are named things, and a coin pack in a game whose every coin is
   stealable will generate refund requests that name the game's own rules.
@@ -977,8 +943,11 @@ in month two. Say that on the card rather than discovering it in the reviews.
 
 ## 16. The random-outcome sweep
 
-The invariant: **no random outcome is priced in coins or gated behind
-coins.**
+The crate invariant: **no random outcome is priced in coins.** The original
+coin-gate rule has one explicit designer correction: rebirth opens a standard
+random Legendary Crate (1.5), so the future coin pack must stay disabled while
+that reward remains. The boot sweep reports a live coin-pack id as a conflict;
+it does not silently replace the approved crate with a deterministic skin.
 
 | outcome | costs / gated by | Robux-reachable? |
 |---|---|---|
@@ -992,10 +961,10 @@ coins.**
 | the basket shake | *not random* -- what you catch is what you get | not applicable |
 | a shop vault | pays **no acorns at all** (section 10) | not applicable -- there is nothing to reach |
 | everything section 14 adds to the coin shelf | coins | not applicable -- **none of it is random and none of it may enter a crate** (7, 14.1) |
-| **the Rebirth Crate** | a rebirth, gated by banked coins | **only if guaranteed** (section 6); rolled, plus a pack, it is a paid random item |
+| **the Rebirth Crate** | a rebirth, gated by banked coins | standard random Legendary Crate by designer correction; `COIN_PACK.productId` must remain 0, and a live id triggers the audit |
 | season tier rewards | acorns this season | no |
 | the tree's growth | a flat rate, capped at eight | not applicable |
-| daily boosts | attendance; accelerate coins only | coins reach nothing random, so a boost reaches nothing random |
+| daily boosts | attendance; accelerate coins only | do not multiply tree growth or shake payouts; the approved random rebirth reward still exists |
 
 **The one honest grey area.** Coins buy Speed Boots and Lockpicks, which
 make clean cracks more frequent, so a coin buyer earns acorns faster. Under
@@ -1018,72 +987,60 @@ knows about. Warn, never throw.
 
 **To re-derive before anything ships:** the shake multiplier and the resident
 multiplier (3 -- these are now the only levers the acorn economy has); the
-resident acorn cadence (3); the basket's share and hourly loss cap (5 -- the
-growth rate and the cap on the BASKET are derived from `OFFLINE_CAP_SECONDS`,
+resident acorn cadence (3); the storage raid share and hourly loss cap (5 -- the
+growth rate and the cap on the TREE are derived from `OFFLINE_CAP_SECONDS`,
 these two are judgement); the four crate prices (6); the ten tier thresholds
 (12); the buy-back ladder (7, derived from the real pool odds); the nabber's
 keep share (8); the rank thresholds and the per-shop drop chances (10); the
 six added coin shelves (14); and the pack's size (15, equal to capacity by
 construction).
 
-**Product one -- the acorn faucet against the number of people drinking from
-it. This is the sharpest product in the plan and it is the one that has broken
-this project twice already.** The faucet is fixed by construction:
+**Product one — new growth versus population.** Trees produce at most ten
+raw Acorns/hour on a ten-house street. The model assigns each to exactly one
+harvest/deposit. In solo play, the owner collects their own crop and steals
+resident supply at x1. With multiple players, the upper scenario assigns all
+player crops to theft at parity x5 and all resident supply to theft at x1.
+This is a **new-growth capture ceiling**, not expected earnings or a ceiling
+on all possible income. Stored balances can be stolen again; that circulation,
+opening seeds, revenge, rebirth differences and the approved rebirth completion
+bonus are outside this calculation. Misses, expiry, absence and travel reduce
+fresh-supply capture.
 
-    acorns minted / hour  =  trees x (3600 / growSeconds)  =  10 x 1  =  10
-    acorns banked / hour  =  sum over trees of (growth x that tree's multiplier)
+| Players / residents | New-growth banking, whole server | Per player/hour | Opening resident seed |
+|---|---:|---:|---:|
+| 1 / 9 | 1 own + 9 resident = 10 | 10 | 36 |
+| 4 / 6 | 4 × 5 + 6 = 26 | 6.5 | 24 |
+| 8 / 2 | 8 × 5 + 2 = 42 | 5.25 | 8 |
 
-Ten trees on a ten-plot street, whoever is standing under them. The multiplier
-is the only thing that responds to population, because it only pays out where
-the extra people are:
+Seed is **four total per resident**, created once per server plot and excluded
+from hourly supply. If multiplayer crops are harvested by their owners instead,
+the full-capture banking scenario is 10 / player-count per hour: 1.25 at eight
+players. Mixed play sits between these fresh-supply scenarios. The old
+5.625/full estimate double-counted some player stock as both own harvest and
+theft and is superseded. Actual rate needs play telemetry; payout remains x5.
 
-| population | trees available to one thief | banked / hour, whole server | per thief | vs solo |
-|---|---|---|---|---|
-| 1 player, 9 residents | 9 resident + own | 9 x1 + 1 = **10** | 10.0 | -- |
-| 4 players, 6 residents | 3 player + 6 resident + own | 3 x5 + 6 x1 + 4 = **25** | 6.3 | 1.6x down |
-| 8 players, 2 residents | 7 player + 2 resident + own | 7 x5 + 2 x1 + 8 = **45** | 5.6 | **1.8x down** |
+**Product two — illustrative daily comparison.** The existing audit scenario
+assumes an eight-Acorn overnight harvest already deposited, one storage raid
+costing two, and two additional active hours at the fresh-supply capture ceiling.
+It yields passive 6/day, active 28 solo or 18.5 at eight players, ratios 4.67x
+and 3.08x. These conditional figures keep the 3x audit check; they do not
+promise that players achieve them. Harvest theft before banking can lose more
+than the assumed storage raid. The scenarios must not be presented as live rates.
 
-**A 1.8x fall as a server fills, against a coin economy that this project
-fought for months to get flat.** It is recorded rather than hidden, and the
-lever is named: **x10 on a player's tree makes the curve flat** (7 x 10 + 2 +
-8 = 80, 10.0 each). It ships at x5 because x10 means one shake catching two
-acorns banks twenty, which is four crates from one tree and a currency
-inflating faster than a nine-year-old can count it. **The other lever is the
-one this plan will not pull**: raising `growCap` raises the faucet for
-everybody including the player who never robs anybody, which is the brief's
-own rule broken -- *robbing must pay what coins cannot buy*. `auditAcorns`
-asserts the full-server figure is at least half the solo one and warns with
-both numbers, so the day the fall gets worse it is in the boot log rather than
-in a review.
+**Product three — storage protection.** The four-Acorn rolling-hour loss cap
+protects **stored** balances. Tree and loose stock are separately stealable,
+so the older claim that a player's total worst-hour loss is four is false.
+Storage refunds release their matching loss receipts. The resident 15-minute
+cadence is shared across all thieves; invalid opens do not consume it. The
+server's initial stock, partial growth, automatic banking and reseating are
+checked for conservation, including old carry refunds.
 
-**Product two -- robbing against growing.** A player who never robs anybody
-grows eight a day and loses some of it, netting about six: **a common crate a
-day, and a legendary crate a week.** A player who works the street for two
-hours banks about 19 a day at a full server and 28 solo, on top of the same
-harvest. The ratio is **3.4x to 4.5x**, which clears the 3.0 floor this
-project holds the coin economy to and clears it by less than the coin economy
-does. `auditAcorns` asserts it at both ends.
-
-**Product three -- the tree's growth against what a thief may take.** A full
-basket is eight and the hourly loss cap is four, so **the worst hour anybody
-can have costs them half a basket** -- and they were asleep for the eight
-hours that filled it. The invariant is unchanged and is the one that stops the
-basket reading as broken: `growCap` must exceed the expected daily loss at the
-shipped share and cap, or a passive player holds nothing ever, which is an
-empty basket that never fills and is indistinguishable from the tree not
-working.
-
-**Product four -- the crate prices against the faucet.** Five acorns is a
-common crate; forty is a legendary. At 5.6 an hour on a full server that is a
-common crate every 54 minutes and a legendary every seven hours, and the whole
-40-skin og pool is a long autumn. **That is the number to look at first in a
-real playtest**, because it is the one this plan is least confident about:
-every acorn figure above rests on the tree growing exactly one an hour, which
-was derived from `OFFLINE_CAP_SECONDS` back when the tree was a supplement and
-has never been re-derived now that it is the whole supply. If crates read as
-unreachable, the order to try the levers in is **the multiplier, then the
-crate prices, then `growCap` last** -- because the first two pay robbers and
-the third pays everybody.
+**Product four — crate prices versus fresh supply.** Common/Legendary costs
+remain 5/40. At the full-server fresh-supply ceiling of 5.25/hour, those are
+57.14 minutes/7.62 hours; they are scenario-based reference times. Re-raids of
+stored balances may increase income, while gameplay losses/absence reduce it.
+Measure actual collection and deposit rates before changing multiplier, prices
+or growth. The current change does not rebalance those constants.
 
 **Product five -- tier thresholds against the realistic pace.** Section 12's
 thresholds now assume about twenty acorns a day for a keen player rather than
@@ -1173,14 +1130,14 @@ Measured against the working tree rather than remembered.
 | houses | 9 tiers, rebuilt low-poly, 1,032 parts, zero coplanar pairs | CODE | section 14 wants breadth; interiors do not exist at all |
 | shop units | 4, 433 parts, each with a room, a counter, a shopkeeper and a vault | CODE | the INTERIORS are one room shape four times with a different accent -- the exact complaint that was fixed on the outsides and never on the insides. **[DESIGN]** |
 | fences | 5 tiers, all meshed, every tier cheaper than the primitives it replaced | GEN | tier STYLES (the panel, never the height or the hazard) are a section 14 shelf that does not exist |
-| the guard dog | 3 breeds off one 24-part list, four tone slots, four shape numbers | CODE | **moving to `EXT` by decision -- see 18.5** |
+| the guard dog | live: code-built breeds; latest chunky Blender candidates in `assets/guards/`, generated by `blender/guards/build_guards.py`; earlier sculpted set retained in `assets/dogs/` | CODE + EXT | revised dogs grow by tier; five additional wild/elite creature candidates (Tier 4 retains Gorilla; Tier 5 has Triceratops and Cerberus; Silverback and armored hellhound are retired), tintable parts, rigs and starter Idle/Chase/Attack FBXs. Studio import, runtime mapping, duty-vest fitting and final animation/gameplay work remain pending; proposed later tiers are not live rules. See 18.5 and `assets/guards/ANIMATION-GUIDE.md` |
 | residents and shopkeepers | one code-built figure, per-server skin bag | CODE | fine; they inherit whatever the pig gets |
 | the patrol car and officer | code-built originals, posed on the server | CODE | fine |
 | rides | 6, each sized to the rider by measured contacts | CODE | section 14 wants 4 more |
 | consumable props | 11 across `BoneModel`, `GadgetModel`, `HomeModel`, `ThiefModel` | CODE | **3 gadgets only**, and no throw or use animation for any of them |
 | lawn ornaments | 23 | CODE | section 14 wants 15 more |
-| **the acorn** | **source art DONE** -- `assets/acorn/acorn.glb`, 3,138 triangles, one material | EXT | not uploaded, and **unsegmented**: one mesh, one primitive, one `Color`, so the nut and the cap live in a baked map and can never be recoloured. Fine while the acorn's colour is a constant (the tree's argument); a re-split the day an acorn hue lands in `Theme`. Its 21.4 MB is ALL texture, including a metallic-roughness map a flat-shaded street does not use. **The ICON is a separate asset -- see below** |
-| **the oak and the basket** | neither exists | GEN + CODE | the oak reuses `TREE_MESH` at 0.85 and needs no upload; **the basket is new** and is the object a whole currency is read off. **[DESIGN]** |
+| **the acorn** | **IMPORTED / WIRED** -- Nut, Cap and Stem; 0.594×0.827×0.594 studs; one texture. Archived in `assets/acorn/acorn.json` and `.rbxmx` | EXT | `AcornModel` replicates a prewarmed template for tree/ground Acorns, storage contents and carried contents; white tint, nut-centred placement. The original source GLB is unavailable. The 2D interface keeps `Theme.acorn`. |
+| **the oak and the basket** | **source models generated** -- `assets/tree/tree.rbxmx`, `assets/basket/basket.rbxmx`; staged in Studio as `AcornOak` and `AcornBasket` | GEN | oak integrated into residential plots through `AcornTree` / `ACORN_OAK_MESH`; current script sources match Studio through Rojo. Basket: 4,374 measured triangles, recessed empty interior, separate runtime acorns; basket geometry is now integrated through `AcornBasket` / `ACORN_BASKET_MESH` on residential plots; fill display remains 2.2 work. The compact Blender replacement in `assets/tree/blender/` is now imported and configured for residential plots: 8.5 × 9.25 studs, separate wood/foliage, 2,400/6,400 triangles. Studio Edit asset/placement/collision-query checks pass; full in-game visual review remains pending. Existing street `TREE_MESH` is unchanged. **[DESIGN]** full/empty readability and remaining Phase 2 gameplay still need verification |
 | trees, grass | `TREE_MESH`, `GrassTuft`; 46 canopies, 1,463 tufts | GEN | fine |
 
 **Animations.** `Config.ANIMATIONS` holds nine rows and **two are empty**, and
@@ -1214,7 +1171,7 @@ to design against rather than this one:
 | the bag / inventory | its own HUD button | shares the shop's card |
 | **the daily rewards board** | seven rungs, a free crate on day 7 | **[DESIGN]** -- named by the designer |
 | **the crack minigame** | `Crack.luau` -- a dial, a marker, a gauge, a cap line | **[DESIGN]** -- the one screen a robbery happens on |
-| **the shake minigame** | does not exist | **[DESIGN]** -- section 5 |
+| **the shake minigame** | **IMPLEMENTED** -- five-second ground/storage drag panel | CODE | 56px targets, basket target, countdown, RUN and controller alternative; live touch/visual Art 4 review remains pending |
 | the reel | `SpinWheel`, shared by the event drop and every crate open | **[DESIGN]** -- it is the reveal for the whole cosmetic track |
 | the rebirth page | two columns and an unlock band | recently reworked |
 | the arrest scene | mugshot card, stamp, bail counter | deliberately dark; rotated onto the warm axis |
@@ -1398,7 +1355,7 @@ it -- never change the shipped flag.
 | 53 | Shop fascia plaque | distance-capped **260**; NOT always-on-top | a name punching through its own building reads as HUD |
 | 54 | Shop bracket sign | guis on LEFT and RIGHT faces | the street runs along X |
 | 55 | Police car plate, van livery, statue prints | `PoliceModel`, `VanModel`, `Decor` x3 | originals, never real brands |
-| 56 | **Basket readout** | *does not exist* | draws up to 8 and PACKED above. **[DESIGN]**, Art 7 |
+| 56 | **Storage crate readout** | **implemented** | bounded decorative contents with the exact stored count at every balance; final crate art pending |
 
 **The two boards do not share a pixel scale** -- 20 per stud against 25 -- so a
 height copied from one renders visibly smaller on the other. **Choose it in
@@ -1518,8 +1475,81 @@ their receipts name none. `Config.acornMultiplier` is ready for Phase 2,
 with no production caller yet (nil victim rebirth count means a resident).
 Checks: Rojo build, phone HUD/crate preview, no client errors, seven multiplier
 cases and twelve isolated delivery cases in `tests/studio/acorns.luau`.
-Steps **1.3–1.10 remain open**. Trees/shakes are not implemented yet; legacy
-event faucets await 1.9. This is an incremental local change, not a release.
+**Step 1.4 implemented — 2026-09-15:** All crate prices use Acorns; the
+server rejects coin/missing/unknown currencies before rolling. Cards show the
+Acorn glyph, shortfall and shake-tree hint. Regular crates retain spare
+combining through an explicit eligibility flag; Alien Cache stays excluded.
+`auditEconomy` reports non-Acorn crates. Isolated full-service tests cover
+charging, refusals, duplicates, free crates, combines and provoked audit
+failures (73 checks); no player saves are used. See `tests/run-crates.py`.
+Luau compilation and Rojo build pass. Live desktop/iPhone/Android card
+properties confirm prices and combine flags; phone text-fit checks pass with
+bounded title sizing. Screenshot/reveal review remains pending.
+
+**Steps 1.5–1.5b implemented — 2026-09-15:** Rebirth opens the standard free
+Legendary Crate, with a crate-price Acorn fallback for the full legendary
+collection. Bronze, Gold Leaf and Diamond join `og`; schema 25 records their
+legacy threshold ownership once. The rebirth page shows the crate or fallback.
+Isolated tests cover normal odds and duplicates, progression, migration
+thresholds, rejoin idempotence and no regrant after a sold/stolen skin (89 checks).
+The 73 crate checks, Luau compilation and Rojo build also pass; modified scripts
+match Studio through Rojo. Live
+rebirth/reveal review remains pending; the player's save was not used as a test.
+
+**Step 1.6 implemented — 2026-09-15:** Guaranteed eligible clean-crack theft,
+per-owner timed claim stacks, latest-taker replacement and carried recovery.
+The normal duplicate/cap/spare rails remain, with restitution bypassing the
+robber's insurance and cap. Isolated tests cover multiple victims, separate
+expiry, changed outfits, failed getaways and claim supersession (67 checks).
+The full 229-check set, Luau compilation and Rojo build pass. Config and
+HeistService match Studio through Rojo. Multiplayer
+input/visual verification remains pending; no live player saves were used.
+
+**Step 1.7 implemented — 2026-09-15:** Persisted seasonal claims, direct
+15/45/135-Acorn skin buy-backs and exact-skin Crates cards. Eligibility and
+pricing are server-owned; owned, unclaimed or expired skins cannot be bought.
+The robber keeps their copy. Claims remain valid through a five-week cycle
+(four active weeks plus rest), with immediate request validation, local card
+expiry, online rollover cleanup and load-time pruning. Claim defaults from
+1.10 and the Phase 5 season clock landed early; season ranks/rewards remain
+pending. The 298 isolated checks, all 89 source compilations and Rojo build
+pass; all 89 scripts match Studio in Edit mode through Rojo. Live purchase,
+input/rendering and DataStore checks remain pending.
+
+**Step 1.8 implemented — 2026-09-15:** FirstJob now shows private recovery
+objectives even after onboarding is finished. A 0.25-second server poll sends
+changes from the actual heist records; client wall-clock rendering handles
+timer expiry without waiting for another packet. In-flight chase, timed
+recovery, carrying home and seasonal buy-back are distinct states. Stacks,
+latest takers, insured spares, disappearance/reacquisition and subscriber
+startup races are covered. The 383 isolated checks, all 89 source compilations
+and Rojo build pass; all 89 scripts match Studio through Rojo in Edit mode.
+Live multiplayer timing/input and visual review remain pending; no player
+saves were used.
+
+**Step 1.9 implemented — 2026-09-15:** Acorn and random-outcome boot audits,
+with 27 rule failures deliberately provoked. Removed event Acorn faucets;
+raid coin bounties/free set drops and Rush Hour coin multipliers remain.
+Crate skins use `sellBasis` for their preserved resale limits rather than a
+coin purchase `cost`. The standard random rebirth crate remains, with a
+warning if the reserved coin-pack product id becomes live. Planned Phase 2
+constants support an explicitly labelled model, not live earnings. All 550
+isolated checks pass. All 89 scripts compile, Rojo builds, and all 89 match
+Studio in Edit mode. Live boot/event/persistence checks remain pending.
+
+**Step 1.10 implemented — 2026-09-15:** Saved `robberies` defaults to zero
+for new/older saves, normalizes malformed counters and survives rebirth.
+Every nonempty delivered robbery counts once against any target. The 4.1
+increment lands early so progress accumulates before rank UI; thresholds and
+stars remain pending. Existing coin totals cannot reconstruct historical
+robbery counts. Claims defaults/reconciliation already landed in 1.7.
+All 600 isolated checks pass, including real DataService lifecycle tests with
+copying store doubles. All 89 scripts compile and Rojo builds. Studio was in
+Play during final verification; Edit-mode source sync and live persistence
+remain unverified for this step. No live player saves were used.
+
+**1.3 remains open** and depends on Phase 2; trees/shakes are not implemented.
+This is an incremental local change, not a release.
 
 1.1 **The name. [DESIGN -- Art 8]** `Config.ROLL_CURRENCY` is the one table
 player-facing wording reads; set it to Acorns with the acorn glyph and its own
@@ -1559,12 +1589,12 @@ coin catalogue.
 
 1.5 **The Rebirth Crate, and the rebirth skins retire with it.**
 `ProgressionService.rebirth` calls `ChestService.grantFree(player,
-"legendarycrate")` -- guaranteed form: the pool is the legendaries the player
-does not own, in `order`, and the reel lands on the first. Retire
-`rollRebirthDrop`, `getDropWeights`, `LEGENDARY_PITY` and `DROP_RARITIES`; the
-coins fallback becomes forty acorns. *Done when* a rebirth on a fresh save
-opens the crate and hands over a legendary, and a rebirth on a save owning
-every legendary pays forty acorns.
+"legendarycrate")` with the standard crate odds, per the designer's correction
+on 2026-09-15. The outcome may be rare or legendary; duplicates pay spares.
+Retire `rollRebirthDrop`, `getDropWeights`, `LEGENDARY_PITY` and `DROP_RARITIES`;
+the completed-legendary-collection fallback becomes forty acorns. *Done when*
+a rebirth on a fresh save opens a free standard Legendary Crate, and a rebirth
+on a save owning every eligible legendary pays forty acorns.
 
 1.5a **Bronze, Gold Leaf and Diamond move into Piggy Originals.** Drop
 `unlockRebirths` from all three, give each an explicit `rarity`, tag each
@@ -1586,125 +1616,146 @@ owning all three, rejoins owning exactly three, and a save at rebirth 0 joins
 owning none.
 
 1.6 **Skin theft at 100%, and the hot rule.** `SKIN_STEAL.chance = 1`;
-`revengeChance` retires. `rollSkinSteal` on a revenge crack takes the hot
-skin from the thief's `owned` regardless of what they wear, and revokes it.
-The hot set is the `grudge` table's victim entry extended with the skin key.
-*Done when* a revenge crack on a thief wearing a different skin still
-returns the stolen one and removes it from them.
+`revengeChance` retires. A clean crack recovers a live claimed skin from the
+last robber's `owned`, regardless of what they wear. `grudge[victim][thief]`
+contains separate coin expiry and per-skin timed claims. Claims stack across
+victims and skins, and only a later theft of that owner's same skin replaces
+its previous robber claim (designer clarification in section 7). *Done when*
+two victims can independently recover from one robber who changed outfits,
+inside each claim's own window; expired or superseded claims cannot recover.
 
-1.7 **The buy-back ladder.** `data.claims[key] = seasonIndex` written in
-`rollSkinSteal`; `Config.BUYBACK = { perStep = 3 }`; the crate card shows
-BUY BACK at `crate.cost * 3^rank` for any claimed skin, a direct grant through
+1.7 **The buy-back ladder. [IMPLEMENTED]** `data.claims[key] = seasonIndex`
+written in `rollSkinSteal` on owned-copy loss; `Config.BUYBACK.perStep = 3`;
+a card beside the source crate shows BUY BACK at `crate.cost * 3^rank` for
+any current, unowned claimed skin, a direct grant through
 `SetService.grant` charged in acorns, cleared when the season rolls. *Done
 when* a claimed common buys back at 15, a rare at 45, a legendary at 135, and
 the button is absent for an unclaimed skin.
 
-1.8 **The objective card.** The first-job card gains a second reason to
+1.8 **The objective card. [IMPLEMENTED]** The first-job card gains a second reason to
 show: a live claim inside the revenge window prints GET IT BACK with the
 countdown, then BUY IT BACK with the price. *Done when* the card is on screen
 within a second of a theft and flips at the window's end.
 
-1.9 **`auditAcorns` and the sweep audit** (sections 16 and 17), warned at
+1.9 **`auditAcorns` and the sweep audit [IMPLEMENTED]** (sections 16 and 17), warned at
 boot beside the other four. *Done when* the boot log is clean and each check
 is provoked once to prove it fires.
 
-1.10 **Save.** `data.claims` (new top-level table, generic reconcile) and
-`data.robberies` (new counter). Schema 25. Both land before any UI reads
-them.
+1.10 **Save. [IMPLEMENTED]** `data.claims` (new top-level table, generic
+reconcile) and `data.robberies` (new lifetime counter). Schema 25 landed for
+1.5b; no further version bump is needed. Claims landed with 1.7 before its UI.
+Robberies defaults to zero, survives rebirth and records each nonempty
+successful delivery once, ahead of its Phase 4 UI.
 
-## Phase 2 -- The tree, the basket and the shake
+## Phase 2 -- The tree, carry basket, storage crate and timed collection
 
-2.1 **The tree and the basket. [DESIGN -- Art 7]** `Config.ACORNS = { growCap = 8, growSeconds
-= OFFLINE_CAP_SECONDS / 8, share = 0.25, lossCap = 4, lossWindow = 3600,
-shakeSeconds = 4, treeScale = 0.85, slot = "lawnI", payout = { resident = 1,
-player = 5 } }`. `PlotService.buildPlot`
-builds the oak from `Config.treeMesh()` at the slot and a code-built basket
-beside it; `lawnI` comes out of `DECOR_SLOTS` and `reconcile` prunes any
-`placed` entry on it. *Done when* every plot boots with a tree and a basket,
-the canopy clears both fences by the numbers in section 4, and a save with
-an ornament on `lawnI` boots with that ornament shelved.
+2.1 **Props. [IMPLEMENTED; final storage art pending]** Approved imported oak
+and carry basket. A functional open wooden storage crate now replaces the
+stationary basket at (-20, 16), with an exact-count label. Generate its final
+art using `assets/crate/BLENDER-PROMPT.md`, then integrate measured imported
+mesh offsets without changing the storage interaction. Shops have no props.
 
-2.2 **Growth.** `data.acornsGrownAt` (a timestamp); `EconomyService`'s
-accrual tick adds one per `growSeconds` while `loot < growCap`, offline
-included through the same path offline coins take. The basket publishes
-`Config.PLOT_ACORNS_ATTRIBUTE` and the client draws up to eight and PACKED
-above. *Done when* a save left eight hours joins with eight, a save at
-twenty grows none, and the drop animation plays on a live tick.
+2.2 **Growth. [IMPLEMENTED; revised to separate tree stock]** Saved
+`treeAcorns`, `groundAcorns`, `acornsDroppedAt`, `acornsGrownAt`; unchanged
+banked `loot`. One/hour, maximum eight ripe, bounded offline growth and
+partial-hour preservation. Stored balances never block growth. Imported
+Acorns appear on the tree, fall when shaken, and remain on the ground until
+collected/expired. Crate contents have an exact-count label, never PACKED.
 
-2.3 **The shake, which is now the only way an acorn changes hands. [DESIGN --
-Art 4, and this one blocks: there is no shake without its panel.]** A prompt
-on the trunk, kind `shake`, on its own key, hold `CRACK.openHold`;
-`HeistService.shake` opens an attempt bound to the lawn like a crack, wakes the
-dog and notifies the owner on open, computes the take (share, `lossCap`,
-`lossWindow` -- keyed per VICTIM like `losses`, never per thief), and fires
-`ShakeState` with the count. `Shared/Shake.luau` renders the fall and the drag;
-`ShakeCatch` reports each catch and the server accepts up to the take. The
-owner-interrupt poll ends it. *Done when* a shake on a resident holding eight
-offers two, the drag lands them, a second shake inside 60s is refused, and a
-victim who has already lost four this hour offers nothing with the reason named
-rather than an empty minigame.
+2.3 **Five-second collection and storage raids. [IMPLEMENTED; live input
+review pending]** H/Y tree collection (including own trees), J/X storage raid
+(other properties only), half-second server-checked hold, five-second drag
+panel. Tree attempts offer the loose supply, up to eight at once. Storage
+raids offer max(1, floor(balance × .25)), bounded by four net losses in a
+rolling hour. Unique server-checked catches and concurrent reservations;
+interruptions and 60-second theft cooldown. Missed ground persists for 60
+seconds; missed stored Acorns remain in storage. Full rules are in §4–5.
 
-2.3a **The multiplier is applied at DELIVERY, not at the catch.** What the
-thief carries is what the victim lost; `Config.acornMultiplier` is read when
-the basket is delivered, so the carry label reads *3 acorns, worth 15 at home*
--- the crack's own sentence arriving on the second currency -- and a basket
-confiscated or nabbed pays whoever ends up delivering it on the same rule.
-Applied at the catch instead, the victim's loss and the thief's carry would
-disagree on a label both of them can see. *Done when* a three-acorn catch off
-a player delivers 15, the same catch off a resident delivers 3, and the
-victim's basket falls by exactly 3 in both cases.
+2.3a **Deposit accounting. [IMPLEMENTED]** Own harvest deposits one-for-one
+with no robbery/grudge. Theft multiplier applies only on delivery at one's
+own crate. Raw refundable receipts retain the source; no premature banking.
 
-2.4 **The basket carry.** `Carry.kind = "pig" | "basket"`; `attachLoot`
-builds a basket model for the second kind; the delivery poll accepts a
-basket at the thief's own tree and credits exactly what it holds; every
-reader of `carrying` -- the nab, the dodge, the jam, the bins, `confiscate`,
-the carry label -- is walked and made kind-agnostic. *Done when* a basket
-run delivers its count, a nab on a basket carrier works, and the patrol
-confiscates one.
+2.4 **Basket carry. [CORE HANDOFF IMPLEMENTED; engine/presentation review
+remains]** Imported carry basket displays up to eight Acorns. The existing
+nab/dodge/bin/jam/patrol paths use whole-Acorn refunds. Death and departure
+settle receipts before saving. Crate range gates delivery. Isolated tests
+cover replay/refunds/settlement and mouse/touch/controller handlers; live
+catch-to-deposit and carried pose review remain.
 
-2.5 **Residents' baskets, which are the whole non-player floor now.**
-`ResidentService.seat` seeds four and the tick regrows them at `growSeconds`;
-the 15-minute cadence of 1.3 gates the shake. Shops are explicitly given no
-tree -- `PlotService` skips the slot on any plot carrying a `shop` -- which is
-the one line standing between this plan and a fifth acorn source nobody
-designed. *Done when* a solo player can shake nine resident trees, a shop
-offers no shake prompt at all, and `auditAcorns` reports the solo and
-full-server figures of section 17 within a tenth of an acorn an hour.
+2.5 **Resident supply. [IMPLEMENTED]** Two ripe + two stored Acorns per
+residential plot, seeded once per server. Same one/hour growth as players;
+residents at home bank a crop once its first ripe Acorn has waited fifteen
+minutes, postponing for ground stock or an active collection. Shops have no
+Acorn stock. A successful round opening starts a shared 15-minute raid timer
+for all thieves and both sources, displayed on the prompts. Invalid/empty
+openings do not start it. Claim/release pauses/resumes the same stock, so no
+reseeding or hidden production occurs under a player's tree. Delayed refunds
+retain the correct stock identity. Existing coin growth/robberies are unchanged.
+
+Isolated tests cover full production/harvest cycles, real ResidentService
+seat/tick/evict integration, cooldown boundaries and refunds across occupants.
+Studio verifies nine resident houses with both seeded sources and four shops
+with neither, plus real-client countdown expiry and ownership handover.
+Section 17's new-growth-only model counts each fresh Acorn once. NPC harvest
+animation and live player gesture/getaway review remain separate visual work.
 
 ## Phase 3 -- The hand-off, and the timers on the street
 
-3.1 **The carry's claimant.** `Carry.claimant` written at the grab;
-`Carry.holder` is the character it is welded to. *Done when* the two fields
-exist and every delivery reads both.
+3.1 **The carry's claimant. [IMPLEMENTED]** `Carry.claimant` is written on
+successful crack, smash or basket attachment; `Carry.holder` identifies the
+player whose character it is welded to. Additional slices/catches retain the
+original record. Both delivery entry points read both fields and reject stale
+holder indexes or non-claimant settlement until 3.3 supplies that branch.
+Coin/skin/Acorn regressions cover unchanged original-holder payouts and intact
+escrow on refusal. The imported four-part storage crate is also integrated,
+retaining its existing floor anchor and a complete asset-load fallback.
 
-3.2 **The tug ends in a transfer.** `endTug(thief, "emptied")` calls
+3.2 **The tug ends in a transfer. [IMPLEMENTED]** `endTug(thief, "emptied")` calls
 `handOff(thief, catchWinner(tug))`: detach the loot from the loser, attach
 it to the winner, keep `claimant`, stamp `nabRest` on the new holder, and
 retire `tugTick`'s per-tick `giveBack`. The dog and the patrol paths are
 untouched. *Done when* a completed tug moves the pig to the nabber with the
 haul intact and the old thief is empty-handed and unstunned.
+Implementation retains the same model/prompt and escrow record, binds the
+prompt to the current holder, and selects the highest-contributing eligible
+nabber with join-order ties. Every tick preserves the whole amount and receipts;
+no bounty is paid during a tug. Missing/busy/dead/distant winners, broken welds,
+and stale carry/tug callbacks cannot consume escrow or credit a catch. Both
+player HUDs and victim markers update. Phase 3.3 now supplies non-claimant delivery.
 
-3.3 **The three exits.** The carrier's own prompt card names both drop-offs;
+3.3 **The three exits. [IMPLEMENTED — live two-player verification pending]** The carrier's own prompt card names both drop-offs;
 delivery at the victim's plot is `returnCarry` (victim refunded through the
 existing `refund`, bounty minted to the deliverer); delivery at the holder's
 own pig pays by claimant test -- full for the claimant, `NAB.keepShare` (0.5)
 of coins and acorns otherwise, the haul whole. The grudge and revenge marker
 re-point to a non-claimant deliverer. *Done when* each exit is driven with
 two players and the toasts name what happened at both ends.
+Implemented explicit keep/return selection by server-checked position, current
+occupant and living-holder identity; the request still carries no payload.
+Non-claimant keep is floor(raw amount × 0.5), without multipliers, matching the
+anti-farming 0.5x example above. Return bounty is floor(raw amount × 0.25) in
+the same currency, paid once to the deliverer. Original-claimant undos and
+own-harvest returns mint no bounty. Acorn refunds retain source receipts.
+Victim holders take the return path, and item-only carries have working actions.
+Both named destinations/payouts appear on a carry card; minigames hide it.
+Automated settlement/UI checks and native cloned-card layout fixtures pass;
+a live two-player pursuit/settlement test remains the completion gate.
 
-3.4 **The badge rows. [DESIGN -- Art 5, and this one blocks: four states in
-text is a paragraph over a pig.]** `RobBadge` reads `NeedsFirstJob` to choose NEW HERE
-against SHIELD; `HeistService.lossAllowance` publishes `CappedUntil` on the
-plot when it hits zero and the badge prints CAPPED; a second row prints the
-basket count, SHAKEN while the reader's tree cooldown runs, and the hot
-mark. *Done when* a photograph from the pavement -- the badge is not
-`AlwaysOnTop`, so a capture can see it -- shows all four states legibly at
-the plot spacing.
+3.4 **Street badges, recovery task and nearby Acorn cooldown. IMPLEMENTED;
+live art review pending.** The approved cream badge shows NEW HERE / SHIELD,
+ROBBED, EMPTY, CAPPED or coin worth in server-refusal order. Public HOT SKIN
+becomes RECOVER SKIN for the relevant owner. A private task uses the actual
+stolen skin thumbnail and its independent deadline; tapping expands details.
+Acorn quantities stay off street badges. Nearby tree/crate prompts show an
+hourglass and Steal ready in m:ss for the viewer's shared source cooldown,
+then restore normally at expiry. Automated checks pass. *Done when* a real
+pavement photograph and mobile interaction review confirm legibility and
+placement. The separate 3.3 multiplayer settlement gate remains pending.
 
 ## Phase 4 -- Shop drops, and the pack
 
-4.1 **The rank.** `data.robberies` incremented in `deliver`;
-`Config.RAP_SHEET_RANK = { 0, 25, 100, 400, 1600 }`; a star row on the plot
+4.1 **The rank.** `data.robberies` already increments in `deliver` as of 1.10;
+add `Config.RAP_SHEET_RANK = { 0, 25, 100, 400, 1600 }`; a star row on the plot
 sign. *Done when* a save at 99 shows one star and at 100 shows two.
 
 4.2 **The drop table.** `SHOP_VAULT_DROP.chance` becomes per-shop with the
@@ -1841,11 +1892,9 @@ both the light and dark token sets, walked live rather than eyeballed.
 they are one job because they are the two screens a robbery happens on and
 they must not look like two different games. The crack exists and works -- a
 dial, a sweeping marker, a gauge with the next slice drawn on it and the loss
-cap as a red line -- and has never been designed. The shake does not exist at
-all: acorns falling down a panel for four seconds, dragged into a basket, on a
-tablet. *Ask for:* a layout sketch for each, and specifically **how a falling
-acorn reads as catchable on a phone held sideways**, which is the only
-genuinely new interaction in this plan. *Done when* both are driven end to end
+cap as a red line. The implemented collection panel offers ground or stored
+Acorns for five seconds, dragged into a carry basket. *Review:* whether the
+56px targets and two-row layout read clearly on a phone held sideways. *Done when* both are driven end to end
 on a touch target: five slices landed, and a shake caught and delivered.
 
 **Art 5 -- the re-rob timer, as an element rather than a word. [DESIGN]**
@@ -1869,23 +1918,20 @@ for:* a layout for the board, and a treatment for the reel's landing moment.
 reel's printed odds are still the server's own `liveOdds` numbers and not a
 second copy computed on the client.
 
-**Art 7 -- the acorn, the oak and the basket. [DESIGN]** **The acorn's 3D
-source is done** -- `assets/acorn/acorn.glb`, remeshed to 3,138 triangles
-against the 10,000 ceiling, on 2026-09-15. What is left on it is a job with no
-design in it (strip the PBR maps, resize the base colour, upload, put the id in
-`Config`) and ONE open design question: it came back unsegmented, so it gets a
-single `Color` and its two tones are baked. That is the right answer if the
-acorn's colour is a constant, and the wrong one the moment `Theme` carries an
-acorn hue -- decide which before uploading, because splitting it afterwards
-re-does the upload. **The ICON is a separate asset and is NOT this mesh
-shrunk**: see 18.3's interface table.
+**Art 7 -- the acorn, the oak and the basket. [INTEGRATED -- filled/readability review pending]**
+The designer imported a three-part Acorn (Nut, Cap, Stem) during 2.3. Its
+shared texture and measured transforms now live in `Config.ACORN_MESH`;
+`AcornModel` supplies tree/ground Acorns, storage fill and carried contents. The
+imported assembly is archived under `assets/acorn/`. The earlier recorded
+source GLB is not present on this machine. The panel/HUD icon remains the
+separate code-drawn `Theme.acorn`, legible at touch/chip size.
 
-The oak is `TREE_MESH` at 0.85 and costs no upload. **The basket is new**, and it is the object an entire
-currency is read off from the pavement: it draws up to eight and reads PACKED
-above that, and a thief decides whether to cross the road by looking at it.
-*Ask for:* what the basket looks like full and empty. *Done when* the canopy
-clears both fences by section 4's numbers, the sightline from the pavement to
-the pig is unchanged, and full and empty are told apart at the kerb.
+The oak now uses the imported compact Blender asset in `ACORN_OAK_MESH`,
+superseding the street oak at 0.85. The woven basket is the carry prop.
+The open storage crate now holds the spendable balance and always shows its
+exact count. Its blockout is implemented; final art should follow
+`assets/crate/BLENDER-PROMPT.md`. *Review:* ripe versus loose Acorns, empty
+versus full storage, and carried basket readability from normal camera range.
 
 **Art 8 -- the events, built out and fixed. [DESIGN for the reveal]** There
 are two events in this game, `raid` and `rush`, and section 13 rewrote what

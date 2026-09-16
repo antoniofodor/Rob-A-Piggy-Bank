@@ -1,0 +1,12 @@
+Generated with the built-in image_gen tool.
+Deliverable: tree-oak-render.png, a raster concept render, not an importable 3D mesh.
+
+Use case: stylized-concept
+Asset type: 3D-rendered oak tree concept asset for the Roblox game Rob a Piggy Bank, for a tree players shake to drop acorns.
+Primary request: One charming, sturdy oak tree in polished flat-shaded low-poly 3D game art.
+Subject: Thick warm brown gently tapered trunk with a few angular sculpted bark grooves, flared roots, readable branching fork, and broad irregular rounded crown made of distinct faceted leafy volumes. Rich natural green foliage with lighter upper planes. Include a small number of clearly recognizable brown acorns with darker caps hanging visibly beneath the lower canopy, large enough to read but secondary to the tree. Keep the lower half of trunk accessible and visible for the shake interaction.
+Composition/framing: Single complete isolated tree, centered, three-quarter view with slight elevation, full crown and roots in frame, comfortable margins, roughly square composition. Strong recognizable oak silhouette, wide spreading crown rather than a tall cone. No cropped parts.
+Style/medium: High quality 3D game asset render, simple chunky geometry, matte materials, crisp polygonal planes, clean shapes that could be modeled as a low-poly mesh, playful proportions appropriate for a colorful Roblox neighborhood.
+Lighting: Soft studio key light from upper left, gentle ambient occlusion for form, no dramatic effects.
+Scene/backdrop: Genuine transparent background, isolated tree only.
+Constraints: No text, labels, watermark, UI, characters, basket, landscape, ground platform, floating acorns, particle effects, or photorealistic leaf detail. This is a single beauty render, not a collage or multiview sheet.
