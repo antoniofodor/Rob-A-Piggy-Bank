@@ -74,6 +74,11 @@ local DEFINITIONS = {
 
 	-- Client asks to buy a defence or offence upgrade, by key.
 	UpgradeRequest = "RemoteEvent",
+	-- Buy the next tree level (step 2.7). Carries nothing.
+	TreeRequest = "RemoteEvent",
+	-- Phase 5: the reader's season (tier, acorns, next need, end time) and
+	-- the season board rows around them. Server -> client.
+	SeasonState = "RemoteEvent",
 
 	-- Server pushes the player's upgrade levels, costs and caps.
 	UpgradeState = "RemoteEvent",

@@ -42,6 +42,8 @@ end}
 modules.SocialService={getSpreeMultiplier=function(p) return p.spree or 1 end,getSpree=function() return 1 end,
  recordSteal=noop,recordWeekly=noop,markRevenge=function(v,t) events[v]=events[v] or {};events[v].revengeTarget=t end}
 modules.TrophyService={recordVictim=noop,recordSpree=noop}
+modules.SeasonService={earn=function() end,recordNemesis=function() end}
+for _,k in {"recordClean","recordWanted","recordHarvest","recheck","recordVictim","recordSpree","recordCatch"} do modules.TrophyService[k]=modules.TrophyService[k] or function() end end
 modules.SetService={owns=function(d,kind,key) return d.cosmetics.owned[key]==true end,push=noop,
  grant=function(p,kind,key)
   assert(kind=="skin")
@@ -77,6 +79,7 @@ return {request=deliverRequest,returnCarry=returnCarry,options=carryOptions,acti
  objectives=HeistService.recoveryState,startObjectives=startObjectives}
 ]]
 local transformed,n=source:gsub("return HeistService%s*$",tail);assert(n==1)
+if modules.SocialService then modules.SocialService.recordDefend=modules.SocialService.recordDefend or function() end end
 local run=assert(loadstring(transformed,"HeistService"));setfenv(run,setmetatable(env,{__index=getfenv()}))
 local H=run()
 local function carry(p,v)

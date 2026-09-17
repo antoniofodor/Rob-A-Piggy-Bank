@@ -56,6 +56,8 @@ local DailyService = require(Services.DailyService)
 local PassService = require(Services.PassService)
 local TrophyService = require(Services.TrophyService)
 local AdminService = require(Services.AdminService)
+local TreeService = require(Services.TreeService)
+local SeasonService = require(Services.SeasonService)
 
 DataService.start()
 WorldService.start()
@@ -110,6 +112,11 @@ PassService.start()
 RideService.start()
 SettingsService.start()
 SetService.start()
+TreeService.start()
+SeasonService.start()
+-- A house purchase can open a new tree level (Config.TREE_HOUSE_GATE), so
+-- the owner's offer is rewritten the moment one lands.
+CosmeticsService.onHouseBought(TreeService.refresh)
 
 -- WHAT MAY NOT BE DRAWN, AND WHY IT IS REGISTERED RATHER THAN REQUIRED.
 --
@@ -150,6 +157,11 @@ SetService.registerPusher("ride", RideService.push)
 -- until something else happens to push -- which reads as the grant not
 -- working and is the quietest possible way to be wrong.
 SetService.registerPusher("catch", CosmeticsService.push)
+-- Phase 5.3's season reward kinds. Ownership lives in four more tables, and
+-- every one of them is drawn by the cosmetics push.
+for _, kind in ipairs({ "finish", "plinth", "kennel", "coat" }) do
+	SetService.registerPusher(kind, CosmeticsService.push)
+end
 -- Loot is spent in two places -- the set panel, which SetService pushes
 -- itself, and the accessory roll, whose balance rides on CosmeticsService's
 -- push -- so an award has to reach both.
@@ -354,6 +366,14 @@ do
 	end
 end
 
+-- Phase 5: every season tier must promise something that exists, and every
+-- finish must stay season-only and dim.
+do
+	for _, problem in ipairs(Config.auditSeason()) do
+		warn("[Main] season: " .. problem)
+	end
+end
+
 -- Phase 1.9 audits warn without blocking startup. The acorn figures are a
 -- ceiling model (step 2.6: own tree plus the pig-crack acorn), not observed
 -- live earning rates. Resident seed is one-off stock and is excluded.
@@ -370,8 +390,8 @@ do
 		return Config.acornRates(1), Config.acornRates(Config.MAX_PLAYERS)
 	end)
 	if ok then
-		print(("[Main] Acorn faucet model (own tree + pig-crack ceiling; no storage raids, Harvest Moon excluded): solo %.2f/full %.2f per player-hour (%.2f from cracks); active/passive %.2fx/%.2fx; solo common %.0f min, full-server common %.0f min, legendary %.2f h")
-			:format(solo.perThiefPerHour, full.perThiefPerHour, full.crackPerHour, solo.activeRatio, full.activeRatio, solo.commonMinutes, full.commonMinutes, full.legendaryHours))
+		print(("[Main] Acorn faucet model (own tree + pig-crack ceiling; no storage raids, no acorn theft; online growth only, the overnight fill is in tests/sim/acorns): solo %.2f/full %.2f per player-hour (%.2f from cracks); active/passive %.2fx/%.2fx; solo common %.0f min, full-server common %.0f min, legendary %.2f h; a top tree grows %.2f/h live")
+			:format(solo.perThiefPerHour, full.perThiefPerHour, full.crackPerHour, solo.activeRatio, full.activeRatio, solo.commonMinutes, full.commonMinutes, full.legendaryHours, solo.treeTopPerHour))
 	end
 end
 
@@ -448,6 +468,9 @@ local function onPlayerAdded(player: Player)
 	ProgressionService.push(player)
 	CosmeticsService.applyToPlot(player)
 	CosmeticsService.push(player)
+	TreeService.apply(player)
+	-- The season chip, the nemesis line and the season push (Phase 5).
+	SeasonService.onPlayerAdded(player)
 	HeistService.onPlayerAdded(player)
 	BoneService.push(player)
 	GadgetService.push(player)

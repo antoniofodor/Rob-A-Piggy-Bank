@@ -66,7 +66,7 @@ local MENU: { Group } = {
 		note = "Each borrows the street without touching the schedule.",
 		rows = {
 			{ label = "ALIEN INVASION now", cmd = "event", a = "raid" },
-			{ label = "RUSH HOUR now", cmd = "event", a = "rush" },
+			{ label = "MIDNIGHT HEIST now", cmd = "event", a = "midnight" },
 			{ label = "What is running?", cmd = "eventstate" },
 		},
 	},
@@ -108,6 +108,28 @@ local MENU: { Group } = {
 			-- same two attributes at both ends of that ladder.
 			{ label = "Fireworks: first rebirth", cmd = "fireworks", a = 1 },
 			{ label = "Fireworks: tenth rebirth", cmd = "fireworks", a = 10 },
+		},
+	},
+	{
+		name = "Season",
+		note = "Launch fell in a rest week: shift a week first to earn.",
+		rows = {
+			{ label = "Shift season clock +1 week", cmd = "seasonshift", a = 1 },
+			{ label = "Reset season clock", cmd = "seasonshift", a = 0 },
+			{ label = "+50 season acorns", cmd = "seasonearn", a = 50 },
+			{ label = "+300 season acorns", cmd = "seasonearn", a = 300 },
+			{ label = "Season status", cmd = "seasonstate" },
+		},
+	},
+	{
+		name = "Tree",
+		note = "Sets the level outright; the house gate only restricts buying.",
+		rows = {
+			{ label = "Tree Lv0", cmd = "tree", a = 0 },
+			{ label = "Tree Lv2", cmd = "tree", a = 2 },
+			{ label = "Tree Lv4", cmd = "tree", a = 4 },
+			{ label = "Fill tree to its cap", cmd = "ripe", a = 999 },
+			{ label = "Empty tree", cmd = "ripe", a = 0 },
 		},
 	},
 	{

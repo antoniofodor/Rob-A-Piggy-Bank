@@ -48,6 +48,7 @@ local services={
  DataService={get=function() return wallet end},
  PlotService={getPlot=function() return plot end,updateAcorns=function(_,count) table.insert(plotCounts,count) end,
   updateTreeAcorns=function(_,ripe,ground) plot.ripe=ripe;plot.ground=ground end,
+  publishTree=function(_,d) plot.ripe=d.treeAcorns or 0;plot.ground=d.groundAcorns or 0;plot.clockCap=Config.treeCap(d) end,
   updatePile=function() return 0 end,updateSign=function() end,playMilestone=function() end},
  SocialService={getFriendBonus=function() return 100 end},DailyService={getMultiplier=function() return 100 end},
 }

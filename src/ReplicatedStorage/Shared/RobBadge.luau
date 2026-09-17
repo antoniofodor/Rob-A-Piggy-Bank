@@ -11,7 +11,10 @@ local me: Player? = nil
 local cards: { [Instance]: any } = {}
 local cooldown: { [number]: number } = {}
 local recovery: any = nil
-local myPicks, stealMultiplier = 0, 1
+local myPicks, mySack, stealMultiplier = 0, 0, 1
+-- The reader's own pig, for the home-take cap (Config.homeTake). nil until
+-- the first StateUpdate, and the badge falls back to the pile until then.
+local myCoins: number?, myCapacity: number? = nil, nil
 local REACH = Config.STREET_SPACING + Config.PLOT_SPACING
 local CARD_W, CARD_H, LOCK_ROW, TAG_H = 224, 42, 10, 20
 
@@ -32,7 +35,28 @@ function RobBadge.describe(facts: any, now: number): any
 	elseif (facts.capped or 0) > now then
 		return { text = "CAPPED", timer = clockText(facts.capped - now), tone = "WARN_INK", glyph = "⌛" }
 	end
+	-- WHAT THE READER CAN CARRY HOME, NOT WHAT IS IN THE PIG (designer
+	-- direction, 4c.6): a clean crack's take, paid out and capped at the room
+	-- in the reader's own pig. A full pig says so instead of a number, because
+	-- "0" reads as an empty target.
+	if facts.home ~= nil then
+		if facts.home <= 0 then
+			return { text = "PIG FULL", timer = "", tone = "WARN_INK", glyph = "●" }
+		end
+		return { text = Config.formatCoins(facts.home), timer = "", tone = "GOLD_INK", available = true }
+	end
 	return { text = Config.formatCoins(facts.vault * (facts.multiplier or 1)), timer = "", tone = "GOLD_INK", available = true }
+end
+
+-- The figure `describe` prints for an available pig, or nil before the
+-- reader's own pig has been pushed.
+function RobBadge.homeFigure(vault: number?, sack: number, multiplier: number?,
+	coins: number?, capacity: number?): number?
+	if coins == nil or capacity == nil then
+		return nil
+	end
+	return (Config.homeTake(vault, Config.getCrackFraction(Config.CRACK.maxSteps, sack),
+		multiplier, coins, capacity))
 end
 
 function RobBadge.recoverable(state: any, victimId: number, now: number): boolean
@@ -109,11 +133,13 @@ local function paint()
 		badge.gui.Enabled = victimId ~= nil and victimId ~= (me :: Player).UserId
 		if not badge.gui.Enabled then continue end
 		local owner = if ownerId then Players:GetPlayerByUserId(ownerId) else nil
+		local vault = plot:GetAttribute(Config.PLOT_VAULT_ATTRIBUTE)
 		local spec = RobBadge.describe({
 			shield = owner and owner:GetAttribute(Config.PLAYER_SHIELD_ATTRIBUTE),
 			firstJob = owner and owner:GetAttribute(Config.PLAYER_FIRST_JOB_ATTRIBUTE) == true,
-			cooldown = cooldown[victimId], vault = plot:GetAttribute(Config.PLOT_VAULT_ATTRIBUTE),
+			cooldown = cooldown[victimId], vault = vault,
 			capped = plot:GetAttribute(Config.PLOT_CAPPED_ATTRIBUTE), multiplier = stealMultiplier,
+			home = RobBadge.homeFigure(vault, mySack, stealMultiplier, myCoins, myCapacity),
 		}, now)
 		local recover = RobBadge.recoverable(recovery, victimId, now)
 		local hot = (plot:GetAttribute(Config.PLOT_HOT_SKIN_ATTRIBUTE) or 0) > now
@@ -149,6 +175,13 @@ function RobBadge.start(player: Player)
 	Remotes.get("UpgradeState").OnClientEvent:Connect(function(state)
 		local row = state and state[Config.CASING.upgrade]
 		myPicks = (row and row.level) or 0
+		local sack = state and state.sack
+		mySack = (sack and sack.level) or 0
+	end)
+	Remotes.get("StateUpdate").OnClientEvent:Connect(function(state)
+		if type(state) == "table" and type(state.coins) == "number" and type(state.capacity) == "number" then
+			myCoins, myCapacity = state.coins, state.capacity
+		end
 	end)
 	Remotes.get("StealCooldown").OnClientEvent:Connect(function(id, deadline) cooldown[id] = deadline end)
 	Remotes.get("RecoveryObjective").OnClientEvent:Connect(function(state) recovery = state end)

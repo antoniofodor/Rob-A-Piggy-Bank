@@ -27,6 +27,23 @@ check(state.available and state.text==Config.formatCoins(12345), "exact expiry r
 facts.multiplier=2
 check(B.describe(facts,2500).text==Config.formatCoins(24690), "rush worth preserved")
 check(not B.describe({vault=0.9},100).available, "fractional sub-coin balance is empty like server")
+-- 4c.6: the figure is what the READER can carry home, capped at their own pig.
+local clean=Config.getCrackFraction(Config.CRACK.maxSteps,0)
+local full=math.floor(math.floor(100000*clean)*Config.HEIST_PAYOUT)
+check(B.homeFigure(100000,0,1,0,1e9)==full,"an empty reader pig gets the whole clean-crack payout")
+check(B.homeFigure(100000,0,1,1e9-50,1e9)==50,"a nearly full reader pig shows only its room")
+check(B.homeFigure(100000,0,1,1e9,1e9)==0,"a full reader pig shows zero")
+check(B.homeFigure(100000,0,1,nil,nil)==nil,"no pushed pig yet falls back to the pile")
+check(B.homeFigure(100000,0,2,0,1e9)==math.floor(math.floor(100000*clean*2)*Config.HEIST_PAYOUT),"the rush multiplier is in the take")
+local sack=Config.UPGRADES.sack.max
+check(B.homeFigure(100000,sack,1,0,1e9)>full,"a bigger sack shows a bigger take")
+local home={vault=100000,home=50}
+check(B.describe(home,100).text==Config.formatCoins(50) and B.describe(home,100).available,"badge prints the capped home figure")
+home.home=0
+local fullSpec=B.describe(home,100)
+check(fullSpec.text=="PIG FULL" and not fullSpec.available,"a full reader pig reads PIG FULL, not a number")
+home.vault=0
+check(B.describe(home,100).text=="EMPTY","an empty target still reads EMPTY before PIG FULL")
 local claims={claims={{key="bronze",robberId=12,stage="recover",expiresAt=200},
  {key="goldleaf",robberId=12,stage="recover",expiresAt=300}}}
 check(B.recoverable(claims,12,100), "owner sees recovery tag for actual target")

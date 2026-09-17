@@ -774,6 +774,11 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 		cardCoins.Text = ("+%s"):format(Config.formatCoins(payload.banked or 0))
 
 		local bits = {}
+		-- A full pig spills (MASTER-PLAN 4c.6); the card says so beside the
+		-- figure it explains, so "+0" never reads as a delivery that failed.
+		if (payload.spilled or 0) > 0 then
+			table.insert(bits, ("PIGGY FULL: %s SPILLED"):format(Config.formatCoins(payload.spilled)))
+		end
 		if (payload.run or 0) > 1 then
 			table.insert(bits, ("%dx IN A ROW"):format(payload.run))
 		end

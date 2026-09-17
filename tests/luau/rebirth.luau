@@ -140,7 +140,7 @@ check(grants==1 and saves==1 and data.rebirths==1, "repeat request cannot duplic
 reset();data.coins=Config.getRebirthThreshold(0);data.loot=3
 for _,key in pool.legendary do data.cosmetics.owned[key]=true end
 Progression.rebirth(player)
-check(data.coins==0 and data.loot==43 and data.rebirths==1 and grants==0 and saves==1, "complete collection rebirth pays Acorns only and saves")
-check(randomCalls==0 and messages.Notify:find("40 acorns",1,true)~=nil and messages.ChestResult==nil, "completed collection fallback does not roll a spare")
+check(data.coins==0 and data.loot==3+Config.CHESTS.legendarycrate.cost and data.rebirths==1 and grants==0 and saves==1, "complete collection rebirth pays Acorns only and saves")
+check(randomCalls==0 and messages.Notify:find(("%d acorns"):format(Config.CHESTS.legendarycrate.cost),1,true)~=nil and messages.ChestResult==nil, "completed collection fallback does not roll a spare")
 check(#Config.auditEconomy()==0, "audit restored after mutation tests")
 print(("PASS: %d rebirth checks; migration thresholds, rejoin/idempotence, ownership, audit, standard crate rewards, fallback and progression. No player saves."):format(checks))

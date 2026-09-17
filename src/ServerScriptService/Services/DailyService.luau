@@ -113,6 +113,18 @@ local function coinValue(data: any, reward: any): number
 	return math.max(reward.floor, math.floor(rate * reward.seconds))
 end
 
+-- Nothing puts more in a pig than it holds (MASTER-PLAN 4c.6), the daily
+-- ladder included, and the spill is said rather than swallowed.
+local function fitDaily(data: any, amount: number): (number, number)
+	return Config.fitInPig(data.coins, Config.getCapacity(data.capacityLevel), amount)
+end
+
+local function spillNote(spilled: number): string
+	return if spilled > 0
+		then (" Your piggy was full, so %s spilled."):format(Config.formatCoins(spilled))
+		else ""
+end
+
 function DailyService.claim(player: Player)
 	local data = DataService.get(player)
 	if not data then
@@ -139,9 +151,9 @@ function DailyService.claim(player: Player)
 
 	local message
 	if reward.kind == "coins" then
-		local amount = coinValue(data, reward)
+		local amount, spilled = fitDaily(data, coinValue(data, reward))
 		data.coins += amount
-		message = ("Day %d: %s coins!"):format(streak, tostring(amount))
+		message = ("Day %d: %s coins!%s"):format(streak, tostring(amount), spillNote(spilled))
 	elseif reward.kind == "boost" then
 		data.boosts[reward.boost] = (data.boosts[reward.boost] or 0) + 1
 		local boost = Config.BOOSTS[reward.boost]
@@ -152,9 +164,9 @@ function DailyService.claim(player: Player)
 		message = ("Day %d: %s!"):format(streak, reward.label)
 	elseif reward.kind == "golden" then
 		data.consumables.golden = (data.consumables.golden or 0) + 1
-		local amount = coinValue(data, reward)
+		local amount, spilled = fitDaily(data, coinValue(data, reward))
 		data.coins += amount
-		message = ("Day %d: a Golden Bone and %s coins!"):format(streak, tostring(amount))
+		message = ("Day %d: a Golden Bone and %s coins!%s"):format(streak, tostring(amount), spillNote(spilled))
 	elseif reward.kind == "crate" then
 		local chest = Config.CHESTS[reward.crate]
 		-- THE CRATE IS OWED, NOT OPENED. Written into the save here and paid

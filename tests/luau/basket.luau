@@ -25,6 +25,8 @@ local heat,weekly=0,0
 modules.SocialService={recordSteal=function(_,amount) heat+=amount end,recordWeekly=function(_,amount) weekly+=amount end,
  getSpreeMultiplier=function() return 99 end,markRevenge=noop}
 modules.CosmeticsService={};modules.TrophyService={}
+modules.SeasonService={earn=function() end,recordNemesis=function() end}
+for _,k in {"recordClean","recordWanted","recordHarvest","recheck","recordVictim","recordSpree","recordCatch"} do modules.TrophyService[k]=modules.TrophyService[k] or function() end end
 modules.Remotes={get=function(name) return {FireClient=function(_,p,...)
  events[p]=events[p] or {};events[p][name]={...}
 end} end}
@@ -42,6 +44,7 @@ return {newCarry=newCarry,deliver=deliver,request=deliverRequest,carrying=carryi
  refund=returnCarryAmount,confiscate=HeistService.confiscate,tugs=tugs,tick=tugTick}
 ]]
 local modified,n=source:gsub("return HeistService%s*$",tail);assert(n==1)
+if modules.SocialService then modules.SocialService.recordDefend=modules.SocialService.recordDefend or function() end end
 local run=assert(loadstring(modified,"HeistService basket"));setfenv(run,setmetatable(environment,{__index=getfenv()}));local H=run()
 local serial=0
 local function actor(rebirths)

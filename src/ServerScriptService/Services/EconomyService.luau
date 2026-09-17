@@ -80,7 +80,7 @@ local function pushState(player: Player)
 	local plot = PlotService.getPlot(player)
 	if plot then
 		PlotService.updateAcorns(plot, acorns)
-		PlotService.updateTreeAcorns(plot, data.treeAcorns or 0, data.groundAcorns or 0)
+		PlotService.publishTree(plot, data)
 	end
 	lastAcornsShown[player] = acorns
 	local capacity = Config.getCapacity(data.capacityLevel)
@@ -89,8 +89,8 @@ local function pushState(player: Player)
 		acorns = acorns,
 		capacity = capacity,
 		-- Income has stopped. The HUD turns the bar red on this rather than
-		-- on the ratio, because a pig can sit ABOVE capacity after a robbery
-		-- and is just as full then.
+		-- on the ratio. Nothing puts a pig above capacity any more (4c.6),
+		-- but a dev grant or an old save still can, and it is just as full.
 		full = data.coins >= capacity,
 		rate = Config.getIncomeRate(data.incomeLevel, data.rebirths, SocialService.getFriendBonus(player)),
 		friendBonus = SocialService.getFriendBonus(player),
@@ -178,7 +178,9 @@ function EconomyService.applyOfflineIncome(player: Player): number
 		return 0
 	end
 
-	Config.growAcorns(data, os.time())
+	-- Offline: the tree's own rate, WITHOUT the rebirth bonus, which is for
+	-- playing (Config.TREE_REBIRTH_BONUS).
+	Config.growAcorns(data, os.time(), false)
 	Config.expireGroundAcorns(data, os.time())
 	local elapsed = math.max(0, os.time() - data.lastSave)
 	local counted = math.min(elapsed, Config.OFFLINE_CAP_SECONDS)
@@ -313,7 +315,7 @@ function EconomyService.start()
 			for _, player in ipairs(Players:GetPlayers()) do
 				local data = DataService.get(player)
 				if data then
-					local grown = Config.growAcorns(data, os.time())
+					local grown = Config.growAcorns(data, os.time(), true)
 					local expired = Config.expireGroundAcorns(data, os.time())
 					local capacity = Config.getCapacity(data.capacityLevel)
 					if data.coins < capacity then

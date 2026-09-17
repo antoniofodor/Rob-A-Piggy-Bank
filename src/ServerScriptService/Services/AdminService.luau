@@ -41,6 +41,8 @@ local UpgradeService = require(script.Parent.UpgradeService)
 local CosmeticsService = require(script.Parent.CosmeticsService)
 local TrophyService = require(script.Parent.TrophyService)
 local ProgressionService = require(script.Parent.ProgressionService)
+local TreeService = require(script.Parent.TreeService)
+local SeasonService = require(script.Parent.SeasonService)
 local HeistService = require(script.Parent.HeistService)
 local BoneService = require(script.Parent.BoneService)
 local PoliceService = require(script.Parent.PoliceService)
@@ -180,6 +182,36 @@ commands.house = function(player, which)
 	-- reapply the whole plot or the sign goes stale.
 	refresh(player)
 	return ("Moved into the %s"):format(tier.name)
+end
+
+-- THE TREE LADDER (step 2.7) without buying the houses that gate it. Sets
+-- the level outright -- the gate only restricts BUYING -- and redraws the oak,
+-- the Grow offer and the next-acorn clock.
+commands.tree = function(player, level)
+	local data = DataService.get(player)
+	if not data or type(level) ~= "number" then
+		return nil
+	end
+	-- Settle at the old rate first, as a purchase does.
+	Config.growAcorns(data, os.time(), true)
+	data.tree.level = math.clamp(math.floor(level), 0, #Config.TREE_LEVELS - 1)
+	TreeService.apply(player)
+	return ("Tree set to level %d (%g acorns an hour, holds %d)"):format(
+		data.tree.level, Config.treeGrowthPerHour(data.tree.level), Config.treeCap(data))
+end
+
+-- Fills the tree to its cap (or empties it with 0), for the clock's FULL
+-- state and for Harvest Moon tests.
+commands.ripe = function(player, amount)
+	local data = DataService.get(player)
+	if not data or type(amount) ~= "number" then
+		return nil
+	end
+	local cap = Config.treeCap(data)
+	data.treeAcorns = math.clamp(math.floor(amount), 0, cap)
+	data.acornsGrownAt = os.time()
+	TreeService.apply(player)
+	return ("Tree holds %d of %d ripe acorns"):format(data.treeAcorns, cap)
 end
 
 commands.rebirths = function(player, count)
@@ -833,6 +865,32 @@ end
 
 commands.eventstate = function(player)
 	return EventService.status()
+end
+
+-- PHASE 5. The season only counts in a real season week and launched in a
+-- rest week, so a test needs the clock moved: `seasonshift 1` moves this
+-- server's season clock a week forward (never saved). `seasonearn` credits
+-- acorns to the season exactly as a harvest would, through the real path.
+commands.seasonshift = function(_player, weeks)
+	SeasonService.shiftWeeks(math.clamp(math.floor(tonumber(weeks) or 0), -10, 10))
+	for _, p in ipairs(Players:GetPlayers()) do
+		SeasonService.refreshSign(p)
+		SeasonService.push(p)
+	end
+	return SeasonService.status()
+end
+
+commands.seasonearn = function(player, amount)
+	local n = math.clamp(math.floor(tonumber(amount) or 0), 0, 10000)
+	SeasonService.earn(player, n)
+	local data = DataService.get(player)
+	local season = data and SeasonService.state(data)
+	return if season then ("Season acorns %d, tier %d (%s)"):format(season.earned, season.tier,
+		SeasonService.status()) else nil
+end
+
+commands.seasonstate = function(_player)
+	return SeasonService.status()
 end
 
 commands.policestate = function(player)

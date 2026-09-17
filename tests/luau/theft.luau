@@ -27,6 +27,8 @@ modules.PlotService={getPlot=function() return nil end}
 modules.SocialService={getSpreeMultiplier=function() return 1 end,getSpree=function() return 1 end,
  recordSteal=noop,recordWeekly=noop,markRevenge=noop}
 modules.TrophyService={recordVictim=noop,recordSpree=noop}
+modules.SeasonService={earn=function() end,recordNemesis=function() end}
+for _,k in {"recordClean","recordWanted","recordHarvest","recheck","recordVictim","recordSpree","recordCatch"} do modules.TrophyService[k]=modules.TrophyService[k] or function() end end
 modules.SetService={owns=function(d,kind,key) return d.cosmetics.owned[key]==true end,push=noop,
  grant=function(p,kind,key)
   assert(kind=="skin")
@@ -54,13 +56,14 @@ clearCarry = function(p)
  if carry then returnHaul(carry) end
  return carry
 end
-return {newCarry=newCarry,steal=rollSkinSteal,deliver=deliver,returnHaul=returnHaul,clear=clearCarry,
+return {newCarry=newCarry,steal=rollSkinSteal,deliver=deliver,returnHaul=returnHaul,clear=clearCarry,giveBack=giveBack,
  carrying=carrying,grudge=grudge,losses=skinLosses,record=recordGrudge,
  cracking=cracking,endCrack=endCrack,isRevenge=isRevenge,
  objectives=HeistService.recoveryState,startObjectives=startObjectives,
  street=HeistService.streetState,coinLosses=losses,allowance=lossAllowance,lootOdds=robberyOdds,skinChoice=skinLootChoice}
 ]]
 local transformed,n=source:gsub("return HeistService%s*$",tail);assert(n==1)
+if modules.SocialService then modules.SocialService.recordDefend=modules.SocialService.recordDefend or function() end end
 local run=assert(loadstring(transformed,"HeistService"));setfenv(run,setmetatable(env,{__index=getfenv()}))
 local H=run()
 local function carry(p,v)
@@ -424,4 +427,70 @@ local missed=carry(et,ev);crackFor(et,ev,3);H.endCrack(et,"range")
 check(missed.clean==nil,"a crack ended early leaves the carry unstamped")
 H.clear(et)
 check(Config.crackAcorns(true,true,false)==CRACK and Config.crackAcorns(true,true,true)==CRACKR and Config.crackAcorns(false,true,true)==0 and Config.crackAcorns(true,false,true)==0,"crackAcorns gates")
+-- MIDNIGHT HEIST: a clean player crack that ENDED under the night mints
+-- double acorns, even delivered after dawn; residents still mint none.
+local nt, nv = player("NightThief"), player("NightVictim")
+modules.EventService.getAcornMultiplier = function() return Config.MIDNIGHT.acornMultiplier end
+local nightCarry = carry(nt, nv); crackFor(nt, nv, 5); H.cracking[nt].banked = 10; H.endCrack(nt, "done")
+check(nightCarry.acornMultiplier == 2, "a crack ending at night stamps the doubled acorn on the carry")
+modules.EventService.getAcornMultiplier = function() return 1 end
+H.carrying[nt] = nightCarry; H.deliver(nt)
+check(data[nt].loot == 13 + CRACK * 2 and events[nt].HeistDelivered.acorns == CRACK * 2, "delivered after dawn, it still pays double")
+local dayCarry = carry(nt, nv); crackFor(nt, nv, 5); H.cracking[nt].banked = 10; H.endCrack(nt, "done")
+H.carrying[nt] = dayCarry; H.deliver(nt)
+check(data[nt].loot == 13 + CRACK * 3, "a daytime crack pays the plain acorn")
+modules.EventService.getAcornMultiplier = function() return 2 end
+local nightNpc = carry(nt, npc); crackFor(nt, npc, 5); H.cracking[nt].banked = 10; H.endCrack(nt, "done")
+H.carrying[nt] = nightNpc; H.deliver(nt)
+check(data[nt].loot == 13 + CRACK * 3, "a resident crack mints nothing, night or not: no solo acorn bonus")
+modules.EventService.getAcornMultiplier = nil
+
+-- 4c.6: A DELIVERY IS CAPPED AT THE PIG, AND THE REST SPILLS OUT LOUD.
+local PAY=10*Config.HEIST_PAYOUT
+local capT,capV=player("CapThief"),player("CapVictim")
+local capacity=Config.getCapacity(data[capT].capacityLevel)
+check(PAY<capacity,"the fixture's payout fits an empty pig")
+data[capT].coins=capacity
+local lostBefore=data[capV].totalLost
+local full=carry(capT,capV);full.clean=true;H.deliver(capT)
+local sum=events[capT].HeistDelivered
+check(data[capT].coins==capacity and sum.banked==0 and sum.spilled==PAY,"a delivery into a full pig banks zero and spills the whole payout")
+check(events[capT].Notify:find("spilled",1,true) and events[capT].Notify:find(tostring(PAY),1,true),"the spill is said, with its size")
+check(data[capV].totalLost==lostBefore+10,"the victim is still charged the full amount")
+check(data[capT].robberies==1 and data[capT].totalStolen==10 and data[capT].loot==13+CRACK and sum.acorns==CRACK,
+ "a spilled delivery still counts the robbery, the stolen total and the acorn")
+data[capT].coins=capacity-7
+carry(capT,capV);H.deliver(capT)
+sum=events[capT].HeistDelivered
+check(data[capT].coins==capacity and sum.banked==7 and sum.spilled==PAY-7,"a nearly full pig banks only its room")
+data[capT].coins=0
+carry(capT,capV);H.deliver(capT)
+sum=events[capT].HeistDelivered
+check(data[capT].coins==PAY and sum.banked==PAY and sum.spilled==0 and not events[capT].Notify:find("spilled",1,true),
+ "an empty pig banks the full payout and says nothing about spilling")
+-- The toast that ends a crack promises exactly what the delivery then banks.
+local function previewThenDeliver(coins)
+ data[capT].coins=coins
+ local c=carry(capT,capV);crackFor(capT,capV,5);H.cracking[capT].banked=10;H.endCrack(capT,"done")
+ local said=events[capT].Notify
+ H.carrying[capT]=c;H.deliver(capT)
+ return said,events[capT].HeistDelivered
+end
+local said,got=previewThenDeliver(0)
+check(said:find(("worth %s at home"):format(Config.formatCoins(got.banked)),1,true),"empty pig: preview names the banked figure ("..said..")")
+said,got=previewThenDeliver(capacity-7)
+check(got.banked==7 and said:find(("room for %s"):format(Config.formatCoins(7)),1,true),"nearly full pig: preview names the room ("..said..")")
+said,got=previewThenDeliver(capacity)
+check(got.banked==0 and said:find("none of it will fit",1,true),"full pig: preview says nothing fits ("..said..")")
+-- 4c.6, extended: coins coming BACK are capped too, and the spill is said.
+local rv2=player("RefundVictim")
+local rcap=Config.getCapacity(data[rv2].capacityLevel)
+data[rv2].coins=rcap-4
+check(H.giveBack(rv2,30)==4 and data[rv2].coins==rcap,"a refund into a nearly full pig banks only its room")
+check(events[rv2].Notify:find("spilled",1,true) and events[rv2].Notify:find("26",1,true),"the refund spill is said, with its size")
+events[rv2].Notify=nil
+check(H.giveBack(rv2,30)==0 and data[rv2].coins==rcap and events[rv2].Notify:find("spilled",1,true),"a full pig takes no refund and says so")
+data[rv2].coins=0;events[rv2].Notify=nil
+check(H.giveBack(rv2,30)==30 and data[rv2].coins==30 and events[rv2].Notify==nil,"an empty pig takes the whole refund silently")
+-- Every coin return (nab, dog, patrol, voluntary return) goes through giveBack.
 print(("PASS: %d theft checks; guaranteed clean cracks, per-owner timed stacks, latest taker, outfit independence, recovery/returns, insurance and unchanged payouts. No player saves."):format(checks))

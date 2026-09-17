@@ -1533,6 +1533,12 @@ faucet.
 
 ### 19.3 Banked acorns are safe; theft happens only under the Harvest Moon
 
+> **Amended September 16 (designer):** the Harvest Moon was replaced by
+> **Midnight Heist** (coin steals 2x, pig-crack acorns 2x, a dusk), and
+> **acorn theft is disabled** for now -- no event opens another player's tree.
+> The reasoning below about an event rather than a night cycle still holds;
+> the tree-theft half is on hold until play-testing. See 6.4.
+
 **Coins are the risk currency; acorns are the timer currency.** That
 asymmetry is deliberate and is the whole of this section.
 
@@ -1667,6 +1673,20 @@ scenarios in `tests/luau/audits.luau`. The solo rate falls -- no resident
 tree lap outside the moon -- to roughly a crate every two to four hours from
 an unupgraded tree, which is what a timer economy is meant to feel like and
 is the first number telemetry has to check.
+
+**Re-solved for 2.7 and 6.4 (September 16, later): crates tripled.** The 2.6
+figures below count ONLINE growth only; a tree also fills for up to eight
+hours offline, and the ladder lifts the rate. `tests/sim/acorns/model.py`
+(reusing the late-game simulator's house timelines) measures per day: casual
+5-12, regular 13-24, active solo 20-28, active multiplayer 22-30 (the pig-crack
+acorn and the night's doubling add ~2). The designer approved crate prices
+x3 -- `og`/`animal` 15, `alien` 18, `rarecrate` 45, `legendarycrate` 120 --
+giving a regular player about one common crate a visit and a legendary every
+5-9 days, a casual player a legendary every 10-25 days. Buy-back tickets
+(3x per step off the crate) and the rebirth-crate bonus follow. Still to
+re-solve against the new model: the season tier table (section 12, not built
+yet). The old "crate every two to four hours" target was deliberately not
+used: it would need 8-16x prices.
 
 **Re-derived with step 2.6 (September 16), and it came out slower than the
 estimate above.** `Config.acornRates` now models the two steady sources --
@@ -2007,6 +2027,28 @@ online)`. Coin prices go through `auditEconomy`. Ships with a placeholder
 scale change on the oak until B5 lands. *Done when* growth at each level
 matches the table over a simulated day, the rebirth bonus applies online and
 not offline, and a cost above the largest pig is refused by the audit.
+**IMPLEMENTED September 16 (Studio check pending).** `Config.TREE_LEVELS`
+(rates per 19.4; first-pass prices 25K / 100K / 1M / 12M, each below the
+cheapest house of the rarity that opens it), `TREE_HOUSE_GATE` (19.4a caps and
+level gates, read from the best OWNED house), `TREE_REBIRTH_BONUS` (+3% a
+rebirth online, capped at +60%). `Config.growAcorns(data, now, online)` reads
+level, cap and bonus off the save; residents unchanged. `data.tree.level`
+(generic fill, no schema bump; survives rebirth). `TreeService` sells the next
+rung from an owner-only **Grow Tree** prompt (J, slot 1 on the oak) and
+`TreeRequest`; a house purchase refreshes the offer. Placeholder growth is
+HEIGHT ONLY (up to 1.2x) because the trunk mesh's bounding box already meets
+the storage crate at level 0; the ripe-acorn display rises with it
+(`PLOT_TREE_GROWTH_ATTRIBUTE`). New `tree` suite, 93 checks, all *Done when*
+conditions included; 24 suites pass. Solo top rate 4.0 an hour (level 4, full
+bonus) against 1.0 base. **The next-acorn clock landed the same day, over the
+tree rather than on the HUD (designer choice):** an owner-only card above the
+canopy reading `🌰 3/12 · next 42m` or `FULL`, drawn by `Shared/TreeClock`
+from `TreeNextAcornAt` / `TreeCap`, which the server publishes through
+`PlotService.publishTree` on the economy push, a shake, a purchase, join and
+a house purchase (`Config.nextAcornIn`). `tree` suite now 106 checks.
+*Not done:* the fertiliser and the tree wobble (the rest of 19.4's
+anticipation layer), crate-price re-solve (19.5), and an admin command to set
+a tree level for Studio testing.
 
 ## Phase 3 -- The hand-off, and the timers on the street
 
@@ -2157,6 +2199,19 @@ the section layout at 1040 and 546.
 4b.4 **The catalogue (L4). [needs B3 from GPT, per house]** The five houses
 that fit today's pig may land before 4b.1; the 150M-1B four after it. Each is
 one row; the audit admits it automatically.
+**Rows landed September 16, ahead of the art (designer direction).** All
+nineteen revision-2 rows are in `Config.HOUSE_TIERS` in price order: the nine
+new ids stand `placeholder` blocks sized to their brief height, with a
+construction band so they cannot be mistaken for the finished house; the
+re-themes renamed `villa`, `modern` and `palace` in place and still stand their
+old models; `goldenpig` is earned (no `cost`, `earned = "houses"`), refused by
+`buyHouse` and granted on the last priced purchase. Residents climb only the
+built houses (`Config.residentHouseLevel`). `auditEconomy` refuses a priced
+earned house, a priced row with no number, a placeholder over the 60x57 yard
+limit and a catalogue out of price order. `houses` suite 1,239 checks; all 23
+suites pass; placeholders sweep at zero coplanar pairs. *Still per house:* the
+real builder under each `style`, then drop `placeholder`. *Not verified live:*
+a Studio Play of the blocks on a plot and on the shop card.
 
 4b.5 **Trophy rooms (L5). [needs B2 from GPT]** `HOUSE-TROPHY-ROOMS.md`, with
 the named display points in B2. The reason "own all eighteen" is not the
@@ -2282,8 +2337,9 @@ residents at 60. It keeps revenge viable inside its 600 s window, costs the
 resident supply nothing, and makes back-and-forth visibly not a thing. It is
 one constant and `auditRobbery`'s lap check re-runs on it.
 
-4c.6 **DELIVERY IS CAPPED AT THE PIG, AND THE REST IS LOST. [Fable; not in
-place today -- designer direction September 16]** `HeistService.deliver`
+4c.6 **DELIVERY IS CAPPED AT THE PIG, AND THE REST IS LOST. [Fable] --
+IMPLEMENTED September 16; live check pending** (see the status note at the end
+of this step) `HeistService.deliver`
 currently banks `amount * payout` with no cap -- its comment reads *"allowed
 to overflow capacity: income stops above the cap anyway, so an overfull pig
 is self-limiting, and it is the juiciest target on the street."* That
@@ -2319,6 +2375,18 @@ zero, spills loudly, still charges the victim, still counts the robbery and
 the acorn, and the crack panel's preview matches the banked figure across a
 full and an empty pig.
 
+*Status, September 16:* `Config.fitInPig` caps every mint -- delivery, return
+bounty, shop-drop resale, daily coin rungs, event payouts -- and each names its
+spill; by designer decision own coins coming back (refunds, returned carries,
+drone recovery, resident refunds) are capped and spill too. `deliver` sends
+`spilled` on `HeistDelivered` and the card shows it. The crack and smash toasts
+use `homeWorthPhrase` (payout x spree x room). The rob badge and the steal and
+smash cards show `Config.homeTake` -- what the reader can carry home, capped at
+their own room, PIG FULL / FULL when none fits. `theft` +14 checks, `badges`
++9, `shopdrops` +2; the `handoff` and `shopdrops` fixtures now carry
+`capacityLevel`. All 23 suites pass.
+*Not verified live:* a real robbery into a full pig in Studio.
+
 ## Phase 5 -- The reputation yard and season one
 
 5.1 **The sign.** Tier chip, rank stars, NEMESIS line from `data.nemesis`
@@ -2336,6 +2404,19 @@ beside `skin` in `data.cosmetics`, a `Config.FINISHES` table, rendered in
 `OrderedDataStore` pages, the season board drawn five above and five below.
 *Done when* a season rolls over lazily on a real week boundary with the
 previous page intact, and a tier crossing grants once and never twice.
+
+> **Implemented September 17 (Fable).** All five steps, in `SeasonService`,
+> `Shared/SeasonBoard` and the files listed in `PROGRESS.md`. Differences from
+> the text above, by decision or by measurement: the tier table is
+> 10/20/40/75/150/210/280/370/480/620, re-solved on `tests/sim/acorns/model.py
+> x3 season` after the x3 crates and the overnight fill (section 12's 3..700
+> predates both); Season 1 is index 592 and opens 2026-09-24 (launch fell in
+> 591's rest week); Van Job is deferred with the Cash Van; finishes carry no
+> particles (standing rule); the season board is drawn three above and four
+> below on the one street board, which now turns three pages rather than
+> standing two more boards. Checked by the `season` suite (lazy rollover,
+> grant-once). **Not verified live:** Studio look, DataStore pages, and the
+> multiplayer paths.
 
 ## Phase 6 -- Events as structure
 
@@ -2361,6 +2442,20 @@ Weight and length are numbers to re-derive (19.5). *Done when* the event
 runs end to end on a one-player server, the shake prompt on another tree
 exists only while the banner does, the lighting returns to `ClockTime` 14.5
 exactly, and the roster's measured frequencies are recorded.
+**SUPERSEDED THE SAME DAY BY MIDNIGHT HEIST (designer decision).** The moon
+was built (150 s, `acornTheft`) and measured: its inherited x5 on player trees
+made moon theft ~67 acorns a day for an active multiplayer player against ~28
+from their own tree. The designer replaced it, and Rush Hour with it:
+**`roster.midnight`** (180 s, weight 2) is a dusk (`Config.MIDNIGHT_LIGHT`,
+`WorldService.setNight` / `restoreDay` / `DAY`) during which coin steals pay
+2x and a clean player-pig crack that ends under it pays 2x acorns
+(`Config.MIDNIGHT`, stamped on the carry). **Acorn theft is disabled** --
+no row opens it, `auditAcorns` (`theft.disabled`) refuses one that does --
+to be revisited after play-testing; the shake/basket theft code stays,
+closed. Solo players get no acorn bonus (residents mint no crack acorn),
+by decision. Measured: raid 40.9% of slots (every ~37 min), night 59.1%.
+`midnight` suite 31 checks; `theft` +4 (night stamp, paid after dawn,
+residents still nothing). *Not done:* Studio run; B4 is now the night's look.
 
 ## Phase 7 -- Verbs
 

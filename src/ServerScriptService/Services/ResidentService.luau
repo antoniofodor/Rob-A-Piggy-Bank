@@ -449,8 +449,9 @@ local function applyLevel(resident: Resident)
 	PlotService.buildFence(plot, math.clamp(math.floor(level / R.fencePerLevels), 0, #Config.FENCE_TIERS))
 	PlotService.setLockLevel(plot, math.clamp(math.floor(level / R.lockPerLevels), 0,
 		Config.UPGRADES.locks.max))
-	PlotService.setHouseLevel(plot, math.clamp(math.floor(level / R.housePerLevels), 0,
-		#Config.HOUSE_TIERS - 1))
+	-- Up the BUILT houses only: a neighbour never stands a placeholder block
+	-- or an earned trophy (see Config.residentHouseLevel).
+	PlotService.setHouseLevel(plot, Config.residentHouseLevel(level / R.housePerLevels))
 
 	-- A RICHER NEIGHBOUR HAS A FULLER GARDEN, which is free information read
 	-- from the pavement: a bare lawn is a house at the bottom of the street
@@ -1588,9 +1589,14 @@ end
 
 -- Puts coins back, for the one path that needs it: a grab that was charged
 -- and then failed to attach its loot model.
-function ResidentService.refund(resident: Resident, amount: number)
-	resident.coins += math.max(0, amount)
-	PlotService.updatePile(resident.plot, resident.coins, ResidentService.getCapacity(resident))
+-- Returned coins fill only the room the pig has now (MASTER-PLAN 4c.6); the
+-- rest spills, exactly as it would for a player. Returns what was banked.
+function ResidentService.refund(resident: Resident, amount: number): number
+	local capacity = ResidentService.getCapacity(resident)
+	local banked = Config.fitInPig(resident.coins, capacity, amount)
+	resident.coins += banked
+	PlotService.updatePile(resident.plot, resident.coins, capacity)
+	return banked
 end
 
 -- ============================================================

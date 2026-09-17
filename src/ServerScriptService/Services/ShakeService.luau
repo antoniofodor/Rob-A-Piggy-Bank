@@ -35,7 +35,12 @@ local function publish(victim: any)
 	local plot, data = hooks.plot(victim), wallet(victim)
 	if plot and data and (plot.owner or ResidentService.get(plot)) == victim then
 		PlotService.updateAcorns(plot, balance(victim, "storage"))
-		PlotService.updateTreeAcorns(plot, data.treeAcorns or 0, data.groundAcorns or 0)
+		if hooks.player(victim) then
+			-- A player's tree also carries the owner's next-acorn clock.
+			PlotService.publishTree(plot, data)
+		else
+			PlotService.updateTreeAcorns(plot, data.treeAcorns or 0, data.groundAcorns or 0)
+		end
 	end
 	if hooks.player(victim) then hooks.pushBalance(victim) end
 end
@@ -110,7 +115,7 @@ function ShakeService.open(thief: Player, victim: any, source: string?)
 		return
 	end
 	if thief ~= victim and not (hooks.theftOpen and hooks.theftOpen()) then
-		hooks.notify(thief, "Only the Harvest Moon shakes loose somebody else's tree.", "warn"); return
+		hooks.notify(thief, "Only its owner can shake this tree.", "warn"); return
 	end
 	local data = wallet(victim)
 	local reason = hooks.reason(thief, victim)
@@ -132,7 +137,9 @@ function ShakeService.open(thief: Player, victim: any, source: string?)
 	Config.expireGroundAcorns(data, os.time())
 	local shook = false
 	if source == "tree" and (data.groundAcorns or 0) == 0 then
-		Config.growAcorns(data, os.time()) -- settle time at the old fill level before emptying
+		-- Settle time at the old fill level before emptying. `online` only
+		-- matters for a player's tree; a resident's stock has no rebirths.
+		Config.growAcorns(data, os.time(), hooks.player(victim) ~= nil)
 		data.groundAcorns, data.treeAcorns = data.treeAcorns or 0, 0
 		data.acornsDroppedAt = os.time()
 		shook = data.groundAcorns > 0

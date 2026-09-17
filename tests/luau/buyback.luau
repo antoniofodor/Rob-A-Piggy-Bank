@@ -27,7 +27,7 @@ for key,skin in Config.SKINS do
  if cost then keys[skin.rarity]=key end
 end
 for i,tier in {"common","rare","legendary"} do
- check(keys[tier]~=nil and Config.buybackCost(keys[tier])==5*3^i,tier.." price from themed crate")
+ check(keys[tier]~=nil and Config.buybackCost(keys[tier])==Config.CHESTS.og.cost*3^i,tier.." price from themed crate")
 end
 local common,rare,legendary=keys.common,keys.rare,keys.legendary
 for _,key in {"classic","bullion","martian","nonexistent"} do
@@ -82,22 +82,23 @@ local function reset(key,balance)
  messages={};saved={};saves=0;balancePushes=0
 end
 for _,key in {common,rare,legendary} do
- reset(key,200);local price=Config.buybackCost(key)
+ reset(key,1000);local price=Config.buybackCost(key)
  Chest.push(player);local offer=messages[player].ChestState.buybacks[key]
  check(offer.cost==price and offer.name==Config.SKINS[key].name and offer.chest==Config.SKINS[key].chest,"exact claimed skin offer")
  Chest.buyback(player,key)
- check(data[player].loot==200-price and data[player].coins==1e12,"Acorn-only exact charge")
+ check(data[player].loot==1000-price and data[player].coins==1e12,"Acorn-only exact charge")
  check(data[player].cosmetics.owned[key] and next(data[player].spares)==nil,"direct exact grant, no spare")
  check(data[robber].cosmetics.owned[key],"robber keeps their copy")
- check(saved[player].loot==200-price and saved[player].cosmetics.owned[key] and saves==1,"same save includes charge and skin")
+ check(saved[player].loot==1000-price and saved[player].cosmetics.owned[key] and saves==1,"same save includes charge and skin")
  check(data[player].claims[key]==season and not messages[player].ChestState.buybacks[key],"claim retained but owned skin hidden")
  check(messages[player].ChestResult==nil and balancePushes==1,"no crate reel; balance refresh")
  Chest.buyback(player,key)
- check(data[player].loot==200-price and saves==1 and next(data[player].spares)==nil,"repeated request cannot charge or mint spare")
+ check(data[player].loot==1000-price and saves==1 and next(data[player].spares)==nil,"repeated request cannot charge or mint spare")
 end
-reset(common,14);Chest.buyback(player,common)
-check(data[player].loot==14 and not data[player].cosmetics.owned[common] and saves==0,"one-Acorn shortfall refuses despite coins")
-check(messages[player].Notify==Config.acornShortfall(14,15),"shortfall uses shared earning hint")
+local commonPrice=Config.buybackCost(common)
+reset(common,commonPrice-1);Chest.buyback(player,common)
+check(data[player].loot==commonPrice-1 and not data[player].cosmetics.owned[common] and saves==0,"one-Acorn shortfall refuses despite coins")
+check(messages[player].Notify==Config.acornShortfall(commonPrice-1,commonPrice),"shortfall uses shared earning hint")
 reset();Chest.push(player)
 check(next(messages[player].ChestState.buybacks)==nil,"unclaimed skins absent")
 for _,key in {common,"nonexistent","classic"} do Chest.buyback(player,key) end
@@ -112,7 +113,7 @@ modules.SetService.registerPusher("skin",function(p)
  Chest.push(p)
 end)
 Chest.buyback(player,common)
-check(reentered and data[player].loot==185 and saves==1,"reentrant double request charges once")
+check(reentered and data[player].loot==200-Config.buybackCost(common) and saves==1,"reentrant double request charges once")
 check(not messages[player].ChestState.buybacks[common] and messages[player].ChestState.buybacks[rare],"purchase removes only matching card")
 modules.SetService.registerPusher("skin",noop)
 reset(common)
@@ -121,8 +122,8 @@ Chest.buyback(player,common);modules.SetService.grant=grant
 check(data[player].loot==200 and not data[player].cosmetics.owned[common] and saves==0,"failed grant refunds full cost")
 Chest.start()
 check(type(handlers.SkinBuyback)=="function","buy-back remote wired")
-reset(legendary);handlers.SkinBuyback(player,legendary,0,season+10)
-check(data[player].loot==65,"forged price/season arguments ignored")
+reset(legendary,1000);handlers.SkinBuyback(player,legendary,0,season+10)
+check(data[player].loot==1000-Config.buybackCost(legendary),"forged price/season arguments ignored")
 reset(common);now=boundary
 handlers.SkinBuyback(player,common)
 check(data[player].loot==200 and next(data[player].claims)==nil and saves==0,"expired remote refused at exact boundary")

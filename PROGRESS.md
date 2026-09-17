@@ -40,6 +40,265 @@ the tree ladder (2.7) and the crate prices.
 **Not verified live:** a two-player session (Phase 0.2) is still owed; the
 house purchase path is proven at service level, not through the remote.
 
+## Phase 5 implemented: the reputation yard and season one (September 17, latest)
+
+User asked for all of Phase 5. Committed and pushed together with every
+earlier uncommitted step below (tree ladder, 4c.6 caps, house catalogue,
+Midnight Heist).
+
+- **5.1 The sign.** `PlotService` narrows the rank row and adds a
+  `SeasonChip` (`setSeasonChip`, text/colour from `Config.seasonChipText` /
+  `seasonChipColour`) and a `Nemesis` line (`setNemesis`). The ledger is
+  `data.nemesis = { index, rows }`, twenty rows (`Config.NEMESIS_ROWS`),
+  written by `SeasonService.recordNemesis` on every player-victim delivery and
+  reset with the season. Rank stars were already on the sign (4c).
+- **5.2 Trophies.** Six new `TROPHIES` rows with `Decor` builders: Hot Streak
+  (`bestSpree`, `ladder = "above"`), Old Hand (rap-sheet rank), Clean Sheet
+  (clean five-slice deliveries), Season Cup (best tier ever), Wanted Poster
+  (sessions on the Most Wanted poster), Good Harvest (own-tree acorns
+  banked). New counters `trophies.clean/wanted/harvested`;
+  `TrophyService.recordClean/recordWanted/recordHarvest/recheck`.
+  **Van Job skipped: there is no Cash Van yet.**
+- **5.3 The season.** `SeasonService` (new). `Config.SEASON.first = 592`
+  (launch week 2026-09-17 is 591's rest week, so **Season 1 opens
+  2026-09-24 UTC**). Rank is acorns BANKED this season (own-tree basket
+  deposit and the pig-crack acorn), counted only in the four live weeks.
+  Tiers 10/20/40/75/150/210/280/370/480/620, re-solved on
+  `tests/sim/acorns/model.py x3 season` (the plan's 3..700 predates the x3
+  crates and the overnight fill). Rewards go through `SetService.grant`
+  (new kinds finish/plinth/kennel/coat), are recorded in `season.granted`
+  so they land once, and an already-owned reward is said, not converted.
+  Tier 9 is the sign's STAR words, tier 10 the season finish
+  (`SEASON.finishes[1] = "midnightstar"`; a season with no row warns and
+  skips). Lazy rollover keeps `season.best`. `Config.auditSeason` at boot.
+- **5.4 Finishes.** `Config.FINISHES` (Bright Eyes, Polished, Lantern Glow,
+  Gilded, Midnight Star): reflectance, neon eyes and the aura light, lamps
+  capped at 0.6 by the audit. `cosmetics.finish/ownedFinishes`, pruned in
+  reconcile. `PiggyBank.applyFinish` runs after the skin and effect;
+  `CosmeticsService.equipFinish` (toggle, owned only); a **Finishes** tab in
+  the inventory. **No particles**, per the standing no-piggy-effects rule.
+- **5.5 Boards.** Top Defenders (`WEEKLY_DEFEND`, `data.defend`, counted on a
+  nab win, a dog catch for the owner and an owner's hot recovery) and the
+  season board (`SEASON_BOARD`, two 100-row pages, cached a minute). The one
+  street board turns pages every `BOARD_PAGE_SECONDS` (thieves, defenders,
+  season) and publishes `BoardPage`; on the season page each client hides it
+  and draws `Shared/SeasonBoard` from its own `SeasonState`: three rows
+  above and four below the reader, or the top seven plus a "you" row.
+- **Admin:** Season group (shift a week, reset, +50, +300, status);
+  `seasonshift`, `seasonearn`, `seasonstate` commands.
+- **Checks:** new `season` suite (82 checks: clock and launch dates, tiers,
+  grants once, already-owned, rollover and best, rest week, pre-season,
+  window, nemesis cap, audit provocations, trophy grades and counters,
+  finish prune, set kinds, defend counter, the board footer). Four heist
+  suites gained SeasonService/Trophy/recordDefend stubs. All 26 suites pass;
+  every script compiles; Rojo builds; `git diff --check` clean.
+- **Not verified live (no Studio session):** the sign's new geometry
+  (chip/nemesis/boasts overlap), the local season page over the board, the
+  finishes on a real pig, the six trophy models, DataStore publish/fetch,
+  and every multiplayer path (nemesis, defends).
+
+## Midnight Heist, acorn theft off, crates x3 (September 16)
+
+Designer decisions, all implemented; uncommitted (no commit yet by request).
+
+- **Crates x3 (19.5):** `og`/`animal` 5->15, `alien` 6->18, `rarecrate`
+  15->45, `legendarycrate` 40->120. Buy-back (3x per step) and the
+  rebirth-crate bonus derive from them. `crates`, `buyback`, `rebirth`,
+  `audits` tests now read prices from Config or were updated.
+- **Midnight Heist replaces Rush Hour and the Harvest Moon.**
+  `roster.midnight` (180 s, weight 2); `EVENT_UI.midnight` (U+1F319, the
+  periwinkle); `Config.MIDNIGHT` (stealMultiplier 2, acornMultiplier 2);
+  `Config.MIDNIGHT_LIGHT` + `WorldService.setNight` (renamed from setMoon).
+  `EventService.runMidnight` sets both multipliers before the push;
+  `getAcornMultiplier`; `HeistService.endCrack` stamps
+  `carry.acornMultiplier` on a clean crack so a delivery after dawn is still
+  doubled. Solo gets no acorn bonus (residents mint none), by decision.
+  `Config.RUSH` and `runRush` are gone; admin panel has MIDNIGHT HEIST now.
+- **Acorn theft disabled:** no row carries `acornTheft`; `auditAcorns`
+  `theft.disabled` refuses one; `midnight.acorns` caps the night at 2x. The
+  shake refusal now reads "Only its owner can shake this tree." Theft code
+  remains, closed — revisit after play-testing.
+- **Model** (`tests/sim/acorns/model.py [x3|old]`): per day — casual 5–12,
+  regular 13–24, active solo 20–28, active multiplayer 22–30. Regular: ~1–1.6
+  common crates a visit, a legendary every 5–9 days.
+- **Measured event shares:** raid 40.9% (every ~37 min), night 59.1%.
+- **Admin:** Tree group (`tree`, `ripe`) from earlier in this step.
+- **Checks:** `moon` suite renamed `midnight` (31); `theft` 171 (+4 night
+  acorn checks); all 25 suites pass; compile and Rojo build clean.
+- **Not verified live:** the night's look, the crescent glyph's width, a
+  doubled acorn delivery in a two-player session.
+
+## 6.4 implemented: the Harvest Moon (September 16)
+
+User asked for the next step; 6.4 was the remaining plan step needing
+neither GPT art nor a live play session. Uncommitted, on top of everything
+below; no commit yet by request.
+
+- **Event:** `Config.EVENTS.roster.moon` = HARVEST MOON, 150 s, weight 1,
+  `acornTheft = true`; `EVENT_UI.moon` (U+1F315, tone 192/182/255 after the
+  first pick measured 4.46:1 at the warning pulse low). The banner, warning,
+  countdown chip and patrol suppression are the generic event path.
+- **Theft:** nothing new — 2.6's `EventService.isAcornTheftOpen`,
+  `ShakeService.open` gate and the client prompt gate on
+  `EventState.acornTheft` light up while `running == "moon"`. Ripe acorns
+  only, basket x5 player / x1 resident, storage safe, normal getaway. A round
+  already started may finish after the moon sets.
+- **Light:** `Config.HARVEST_MOON` dusk; `WorldService.setMoon(on)` tweens
+  (3 s) and on the way back sets `WorldService.DAY` exactly (ClockTime 14.5,
+  Brightness 2.4, both ambients, sun tint). `restoreDay` also runs if the moon
+  errors. The boot lighting now reads the same `DAY` table.
+- **Audit:** `auditAcorns` requires exactly one theft row, 60–240 s, weight
+  > 0, with a banner row.
+- **Admin:** "HARVEST MOON now" button.
+- **Measured shares** (40,000 slots): moon 27.9% (~1 an hour), raid 27.5%
+  (down from ~41%, about one every 55 min), rush 44.7%.
+- **Checks:** new `moon` suite (29); `audits` stub gained WorldService. All
+  25 suites pass; 105 scripts compile; Rojo builds.
+- **Not verified live:** the dusk's look and readability, the moon glyph's
+  width, another tree's prompt appearing and disappearing with the banner in
+  a real session, and a shaken neighbour's acorns delivered home.
+
+## 2.7 implemented: the tree ladder (September 16)
+
+Uncommitted, on top of the 4c.6 and house-catalogue work below.
+
+- **Config:** `TREE_LEVELS` (0–4: 1.0/1.25/1.5/2.0/2.5 per hour; prices 25K,
+  100K, 1M, 12M, each under the cheapest house of the rarity that opens it —
+  first pass, re-solve with 19.5), `TREE_HOUSE_GATE` (best OWNED house: Common
+  lv1/cap 8, Rare lv2/12, Epic lv3/16, Legendary lv4/24),
+  `TREE_REBIRTH_BONUS` (+3% per rebirth, online only, max +60%). Helpers
+  `bestHouseRarity`, `treeGate`, `treeLevelOf`, `treeCap`,
+  `treeGrowthPerHour`, `nextTreeLevel`, `treeGateRarityFor`.
+- `Config.growAcorns(data, now, online)` reads rate and cap off the save:
+  offline path passes `false`, live tick `true`, shake settles with the
+  owner's online state. Residents grow exactly as before.
+- **Save:** `data.tree = { level = 0 }` via the generic fill (no schema bump);
+  reconcile clamps the level and re-clamps ripe stock to the house cap after
+  houses resolve. Level survives rebirth.
+- **TreeService** (new): owner-only **Grow Tree** prompt on the oak (J,
+  slot 1, kind `grow`, built in `PlotService.buildPlot`), plus `TreeRequest`.
+  Refusals (gated, fully grown, won't fit, too few coins) name the reason and
+  never charge; a purchase settles growth at the old rate, charges, redraws
+  and saves. `CosmeticsService.onHouseBought` refreshes the offer. Main
+  starts it and calls `TreeService.apply` on join; `PlotService.release`
+  resets the oak and the prompt owner.
+- **Placeholder look:** height-only stretch to 1.2x at level 4
+  (`AcornTree.setGrowth`). Sideways growth was dropped: the trunk mesh's
+  bounding box already reaches the storage crate at level 0. The ripe-acorn
+  display scales its height by `PLOT_TREE_GROWTH_ATTRIBUTE`.
+- **Audits:** `auditAcorns` checks the ladder, gate and bonus;
+  `auditEconomy` prices the rungs. Boot line reports the top tree rate
+  (4.0/h vs the 1.0/h base).
+- **Checks:** new `tree` suite, 93 checks (simulated day per level, online-only
+  bonus, house caps incl. 19.4a's "20 after eight hours", partial-hour carry
+  across a purchase, purchase path and refusals, saves, provocations,
+  level-4 clearances). All 24 suites pass; 104 scripts compile; Rojo builds.
+- **Not done / not verified:** no Studio session (prompt card, J key, the
+  stretched oak and the 🌳 glyph's width are unseen); the "next acorn" HUD
+  chip and fertiliser; crate-price re-solve (19.5); an admin command to set
+  tree level for testing.
+
+**Follow-up, same day — the next-acorn clock over the tree** (designer
+asked for it above the tree rather than on the HUD):
+- `Shared/TreeClock` (client, owner-only, started in `ClientMain` with no
+  new local): a paper card just above the canopy — chestnut glyph, `3/12`,
+  `next 42m` / `0:42`, or `FULL` in good ink. Rises with the canopy.
+- Server publishes `Config.PLOT_TREE_NEXT_ATTRIBUTE` (server time of the
+  next acorn, nil when full) and `PLOT_TREE_CAP_ATTRIBUTE` via
+  `PlotService.publishTree` / `updateTreeClock`; `Config.nextAcornIn`
+  shares `growAcorns`' cursor and rate. Published from the economy push,
+  a shake (`ShakeService.publish`), `TreeService.refresh` (join, purchase,
+  house purchase); cleared on release.
+- `tree` suite 106 (+13); `growth` and `shake` stubs gained `publishTree`.
+  All 24 suites pass; 105 scripts compile; Rojo builds.
+- **Not verified:** the card in Studio (position above the canopy, the
+  chestnut glyph's width, `24/24` fitting its 62px box).
+
+**Next:** Studio verification of the three uncommitted steps, then the
+designer's call on the remaining order (19.5 re-solve, Harvest Moon 6.4,
+the 4c robbery rework).
+
+## 4c.6 implemented: nothing puts more in a pig than it holds (September 16)
+
+User direction: skip the trophy rooms (4b.5) for now, do 4c.6 before 2.7, and
+leave the three re-themed houses on their old models until the new models are
+swapped in. Uncommitted.
+
+- `Config.pigRoom` / `Config.fitInPig(coins, capacity, amount) -> banked, spilled`.
+- **Capped (all minted coins):** `HeistService.deliver` (original, revenge
+  and kept-haul half share), the return bounty, the shop-drop duplicate
+  resale, `DailyService` coin rungs (including the Golden Bone day), and
+  `EventService.payIncomeSeconds` (raid bounty). Each names the spill.
+- **Coins coming back are capped too** (designer correction): `giveBack`
+  (every coin return: nab, dog, patrol, voluntary return),
+  `ResidentService.refund` and the drone recovery bank only the room and
+  name the spill. The loss ledger is still credited in full.
+- The victim is still charged in full; `totalStolen`, rap sheet, weekly board,
+  robbery count and pig-crack acorn are unchanged. `HeistDelivered` carries
+  `spilled`; `LootHaul` shows "PIGGY FULL: X SPILLED".
+- Crack and smash toasts go through `homeWorthPhrase` (payout x spree x room),
+  so the preview matches the banked figure.
+- **Badge and prompt cards** (designer correction) show `Config.homeTake`:
+  what the reader can carry home from a clean crack (smash card: a smash),
+  capped at their own room. A full reader pig reads **PIG FULL** on the badge
+  and **FULL** on the cards. `RobBadge` now listens to `StateUpdate` and the
+  sack level; `ClientMain` keeps the reader's coins/capacity on `stealInfo`
+  (no new top-level locals) and refreshes the cards on every push.
+- **Design flag:** daily coin rungs (5–30 min of income) can mostly spill on
+  a full pig. Lever if it feels harsh: hold the coins until there is room.
+- **Checks:** `theft` 167 (+14), `badges` 26 (+9), `shopdrops` 104 (+2);
+  `handoff` and `shopdrops` fixtures now carry `capacityLevel`; all 23 suites
+  pass; 103 scripts compile; Rojo builds.
+  GAME.md §4 and CLAUDE.md updated.
+- **Not verified live:** no Studio session; a real delivery into a full pig,
+  the card's spill line, and the badge/prompt `PIG FULL` / `FULL` text (width
+  unmeasured on screen) are unseen.
+
+**Next:** 2.7 (tree ladder and rebirth growth bonus), unless the designer
+reorders. 4b.5 trophy rooms are deferred.
+
+## Revision-2 house catalogue landed with placeholders (September 16, later)
+
+The designer direction above is **done**; uncommitted. All nineteen rows from
+`docs/HOUSE-TIER-BRIEF.md` §1 are in `Config.HOUSE_TIERS` in price order
+(18 priced, shack to the 1B Void, plus the earned Golden Piggy).
+
+- **New houses** (`mushroom`, `treehouse`, `slime`, `candy`, `crystal`,
+  `galleon`, `portal`, `thundercloud`, `void`, `goldenpig`) carry
+  `placeholder = true` and a brief `height`. `House.build` stands
+  `buildPlaceholder` for them: plinth, block in the row's wall colour, roof
+  cap, door, and a yellow-and-black construction band. Measured in a stubbed
+  sweep: 29–71 parts each, zero coplanar pairs, footprints up to 51.2 x 37.2,
+  heights equal to the brief. A style with no builder and no flag also gets
+  the block now (it used to borrow the shack).
+- **Re-themes** renamed in place (Fairy Lantern Cottage, Fishbowl House, Ice
+  Palace) with new blurbs. **They keep standing their old models** so no
+  paying owner wakes up in a block; switching `style` when the new builder
+  lands is the one-word change. The Sky Castle blurb no longer says "the last
+  thing anyone buys".
+- **Golden Piggy:** no `cost`, `earned = "houses"`, explicit legendary.
+  `isEarnedElsewhere` reads `earned`. `buyHouse` refuses it by name with the
+  progress count (never charges); `CosmeticsService.grantEarnedHouses` grants
+  it on the last priced purchase without moving the player out of what they
+  just bought; it can then be moved into for free. The payload marks it
+  `earned` with `earnedHave/earnedNeed`, and its card reads `EARNED n/18`.
+  `Config.earnedHouseProgress` counts priced houses (shack included).
+- **Residents** climb only built houses via `Config.residentHouseLevel`, so
+  every neighbour stands exactly the house it did before.
+- **Audit** now refuses a priced earned house, a priced row with no number, a
+  placeholder over the 60x57 limit, and a catalogue out of price order.
+- **Checks:** `houses` suite 1,239 (was 1,025); all 23 suites pass; all 103
+  scripts compile; Rojo builds; `git diff --check` clean. The old test pinning
+  the nine at positions 0–8 now asserts their relative order instead.
+- **Not verified live:** no Studio session was available, so the blocks on a
+  real plot, the shop card render, the sign and a purchase through the remote
+  are unseen. The Void's near-black block against the card's near-black icon
+  well is the first thing to look at (brief §2 trap 2).
+
+**Next:** the house INSIDES — 4b.5 trophy rooms (`HOUSE-TROPHY-ROOMS.md`, brief
+B2; GPT's blockouts in `assets/design/phase-4b/rooms/`). Each new house's real
+builder can land any time under its `style`, then drop `placeholder`.
+
 ## Fable handoff — economy and acorn re-centring (September 16)
 
 Planning only; no runtime Config, service or client code changed. Three

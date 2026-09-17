@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Run isolated economy tests with the official Luau CLI; no Studio or saves.
-Usage: python3 tests/run-crates.py --luau /path/to/luau [--suite crates|rebirth|theft|buyback|objective|audits|saves|oak|growth|fill|shake|basket|shakeui|residents|handoff|settlement|deliveryui|badges|ranks|shopdrops|robberyui|ladder|houses]
+Usage: python3 tests/run-crates.py --luau /path/to/luau [--suite crates|rebirth|theft|buyback|objective|audits|saves|oak|growth|fill|shake|basket|shakeui|residents|handoff|settlement|deliveryui|badges|ranks|shopdrops|robberyui|ladder|houses|tree|midnight|season]
 Roblox value constructors are inert stubs; these tests assert economy logic,
 not engine rendering, input, replication or DataStore persistence.
 """
@@ -20,7 +20,7 @@ def literal(text):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--luau", default="luau")
-    parser.add_argument("--suite", choices=("crates", "rebirth", "theft", "buyback", "objective", "audits", "saves", "oak", "growth", "fill", "shake", "basket", "shakeui", "residents", "handoff", "settlement", "deliveryui", "badges", "ranks", "shopdrops", "robberyui", "ladder", "houses"), default="crates")
+    parser.add_argument("--suite", choices=("crates", "rebirth", "theft", "buyback", "objective", "audits", "saves", "oak", "growth", "fill", "shake", "basket", "shakeui", "residents", "handoff", "settlement", "deliveryui", "badges", "ranks", "shopdrops", "robberyui", "ladder", "houses", "tree", "midnight", "season"), default="crates")
     args = parser.parse_args()
     prelude = r'''
 local valueMeta = {__mul = function(a, b) return a end}
@@ -79,6 +79,12 @@ end
     elif args.suite == "audits":
         inputs = "{" + ",".join(name + "=" + literal((ROOT / "src/ServerScriptService/Services" / (name + ".luau")).read_text(encoding="utf-8")) for name in ("EventService", "SetService", "DataService", "CosmeticsService", "PiggyBank")) + "}"
         inputs = inputs[:-1] + ",Main=" + literal((ROOT / "src/ServerScriptService/Main.server.luau").read_text(encoding="utf-8")) + "}"
+    elif args.suite == "midnight":
+        inputs = "{" + ",".join(name + "=" + literal((ROOT / "src/ServerScriptService/Services" / (name + ".luau")).read_text(encoding="utf-8")) for name in ("EventService", "WorldService")) + "}"
+    elif args.suite == "season":
+        inputs = "{" + ",".join(name + "=" + literal((ROOT / "src/ServerScriptService/Services" / (name + ".luau")).read_text(encoding="utf-8")) for name in ("DataService", "SetService", "TrophyService", "SeasonService", "SocialService")) + ",SeasonBoard=" + literal((ROOT / "src/ReplicatedStorage/Shared/SeasonBoard.luau").read_text(encoding="utf-8")) + "}"
+    elif args.suite == "tree":
+        inputs = "{" + ",".join(name + "=" + literal((ROOT / "src/ServerScriptService/Services" / (name + ".luau")).read_text(encoding="utf-8")) for name in ("DataService", "TreeService")) + ",TreeClock=" + literal((ROOT / "src/ReplicatedStorage/Shared/TreeClock.luau").read_text(encoding="utf-8")) + "}"
     elif args.suite == "objective":
         inputs = "{" + ",".join(name + "=" + literal((ROOT / "src/ReplicatedStorage/Shared" / (name + ".luau")).read_text(encoding="utf-8")) for name in ("FirstJob", "HUDLayout")) + "}"
     else:

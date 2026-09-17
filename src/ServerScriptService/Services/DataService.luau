@@ -112,9 +112,26 @@ export type PlayerData = {
 		victims: { [string]: boolean },
 		caught: number,
 		bestSpree: number,
+		-- Phase 5.2: clean cracks delivered, times topping Most Wanted, and
+		-- acorns harvested from the player's own tree, lifetime.
+		clean: number,
+		wanted: number,
+		harvested: number,
 		plinths: { [string]: boolean },
 		plinth: string,
 	},
+	-- PHASE 5.3: THE SEASON. `index` is the `Config.seasonIndex` these
+	-- numbers belong to; `earned` is acorns earned in it, `tier` the tier
+	-- reached, `granted` which tier rewards already landed (so a crossing
+	-- grants once and never twice), `best` the best tier ever (the Season
+	-- Cup). Rolled lazily on read by SeasonService.
+	season: { index: number, earned: number, tier: number, best: number,
+		granted: { [string]: boolean } },
+	-- PHASE 5.1: who robbed this player most this season. Keyed by the
+	-- thief's UserId as a string, at most `Config.NEMESIS_ROWS` rows.
+	nemesis: { index: number, rows: { [string]: { name: string, count: number } } },
+	-- PHASE 5.5: thieves stopped this week, for Top Defenders.
+	defend: { index: number, count: number },
 	upgrades: { [string]: number },
 	-- Prestige, not power. Never reset by rebirth.
 	--
@@ -147,6 +164,10 @@ export type PlayerData = {
 	-- Never wiped by rebirth, like every other cosmetic track.
 	loot: number,
 	acornsGrownAt: number,
+	-- THE TREE LADDER (step 2.7). The bought level, 0..#Config.TREE_LEVELS-1.
+	-- Survives rebirth like the houses that gate it; only the deferred Legacy
+	-- reset may take it.
+	tree: { level: number },
 	treeAcorns: number,
 	groundAcorns: number,
 	acornsDroppedAt: number,
@@ -221,6 +242,10 @@ export type PlayerData = {
 		ownedEffects: { [string]: boolean },
 		skin: string,
 		effect: string,
+		-- Phase 5.4: the finish worn over the skin ("" for none) and the
+		-- finishes earned.
+		finish: string,
+		ownedFinishes: { [string]: boolean },
 	},
 	-- Schema 21. THE THIRD KIND OF COSMETIC, and it is deliberately its own
 	-- top-level table rather than two more fields inside `cosmetics`: that
@@ -272,7 +297,10 @@ local function defaultData(): PlayerData
 		-- branch and nothing that can run twice. Every field defaults to
 		-- empty or zero, so a save written before trophies existed joins
 		-- with an empty shelf rather than with a payout.
-		trophies = { victims = {}, caught = 0, bestSpree = 0,
+		season = { index = 0, earned = 0, tier = 0, best = 0, granted = {} },
+		nemesis = { index = 0, rows = {} },
+		defend = { index = 0, count = 0 },
+		trophies = { victims = {}, caught = 0, bestSpree = 0, clean = 0, wanted = 0, harvested = 0,
 			plinths = {}, plinth = "" },
 		upgrades = upgrades,
 		houses = { owned = { shack = true }, shown = "shack" },
@@ -280,6 +308,9 @@ local function defaultData(): PlayerData
 		-- cosmetics, which are the permanent track. See the type above.
 		loot = 0,
 		acornsGrownAt = os.time(),
+		-- A new top-level table: the generic fill in `reconcile` gives every
+		-- existing save level 0, which is the tree they already have.
+		tree = { level = 0 },
 		treeAcorns = 0, groundAcorns = 0, acornsDroppedAt = 0,
 		-- Spare copies by "kind:key". Missing keys read as zero, so an item
 		-- added later needs no migration -- the shape `consumables` uses.
@@ -349,6 +380,8 @@ local function defaultData(): PlayerData
 			ownedEffects = {},
 			skin = Config.DEFAULT_SKIN,
 			effect = Config.DEFAULT_EFFECT,
+			finish = "",
+			ownedFinishes = {},
 		},
 		-- Schema 21, and the same free ride `week` and `dogs` took: a brand
 		-- new top-level table filled in by the generic pass in `reconcile`,
@@ -393,7 +426,13 @@ local function reconcile(data: any): PlayerData
 		if type(value) ~= "number" or value ~= value or math.abs(value) == math.huge then return 0 end
 		return math.clamp(math.floor(value), 0, cap)
 	end
-	data.treeAcorns = stock(data.treeAcorns, Config.ACORNS.growCap)
+	-- Clamped to the largest cap any house allows here; the house set is not
+	-- resolved yet. Re-clamped to this save's own cap once it is (below).
+	local largestCap = Config.ACORNS.growCap
+	for _, gate in pairs(Config.TREE_HOUSE_GATE) do
+		largestCap = math.max(largestCap, gate.cap)
+	end
+	data.treeAcorns = stock(data.treeAcorns, largestCap)
 	data.groundAcorns = stock(data.groundAcorns, 1000000)
 	data.acornsDroppedAt = Config.acornGrowthCursor(data.acornsDroppedAt or 0, os.time())
 	Config.expireGroundAcorns(data, os.time())
@@ -481,6 +520,15 @@ local function reconcile(data: any): PlayerData
 		data.houses.owned.shack = true
 		data.houses.shown = Config.getShownHouse(data).id
 	end
+
+	-- THE TREE (step 2.7): a whole level on the ladder, and ripe stock no
+	-- larger than what this save's best house lets the tree hold. Houses are
+	-- never lost in play, so the second clamp only bites a hand-edited save.
+	if type(data.tree) ~= "table" then
+		data.tree = { level = 0 }
+	end
+	data.tree.level = Config.treeLevelOf(data)
+	data.treeAcorns = math.min(data.treeAcorns, Config.treeCap(data))
 
 	-- DECOR IS PRUNED AGAINST THE CATALOGUE, not against a list of names.
 	--
@@ -730,6 +778,35 @@ local function reconcile(data: any): PlayerData
 					data[key][innerKey] = innerValue
 				end
 			end
+		end
+	end
+
+	-- FINISHES (Phase 5.4) are pruned against the catalogue like every other
+	-- wardrobe, and the worn one must be owned or it comes off.
+	do
+		local c = data.cosmetics
+		if type(c.ownedFinishes) ~= "table" then
+			c.ownedFinishes = {}
+		end
+		for key, held in pairs(c.ownedFinishes) do
+			if held ~= true or not Config.FINISHES[key] then
+				c.ownedFinishes[key] = nil
+			end
+		end
+		if type(c.finish) ~= "string" or (c.finish ~= "" and not c.ownedFinishes[c.finish]) then
+			c.finish = ""
+		end
+		-- The season and nemesis tables need their one-deeper shape.
+		for _, key in ipairs({ "season", "nemesis", "defend" }) do
+			if type(data[key]) ~= "table" then
+				data[key] = base[key]
+			end
+		end
+		if type(data.season.granted) ~= "table" then
+			data.season.granted = {}
+		end
+		if type(data.nemesis.rows) ~= "table" then
+			data.nemesis.rows = {}
 		end
 	end
 

@@ -95,6 +95,11 @@ local SECTIONS = {
 	{ kind = "ride", from = "rides", tab = "Rides", icon = utf8.char(0x1F6F9),
 		hue = "gear", owned = "owned", worn = "equipped", wire = "ride",
 		empty = "Boards and bikes are bought in the shop." },
+	-- FINISHES (Phase 5.4) are season rewards: the server sends only the
+	-- owned ones, so there is never a gap to draw here, and none is sellable.
+	{ kind = "finish", from = "finishes", tab = "Finishes", icon = utf8.char(0x1F31F),
+		hue = "effects", owned = "owned", worn = "equipped", wire = "finish",
+		empty = "Finishes come from season tiers. Grow acorns while a season runs." },
 }
 
 -- ---- state -----------------------------------------------------------------

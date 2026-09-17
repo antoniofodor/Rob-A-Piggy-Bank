@@ -16,6 +16,19 @@ local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local TweenService = game:GetService("TweenService")
+
+-- THE DAY, AS ONE TABLE, because Midnight Heist (step 6.4) has to put these
+-- five back EXACTLY when it ends. The reasoning for each value lives beside
+-- the line that applies it in `setupLighting`; this is only where the
+-- numbers are kept, so the moon's restore and the boot cannot disagree.
+local DAY = {
+	ClockTime = 14.5,
+	Brightness = 2.4,
+	Ambient = Color3.fromRGB(92, 98, 124),
+	OutdoorAmbient = Color3.fromRGB(88, 100, 132),
+	ColorShift_Top = Color3.fromRGB(255, 243, 210),
+}
 
 local WorldService = {}
 
@@ -138,14 +151,14 @@ local function setupLighting()
 	-- than brightness alone. It is also why this can be done without
 	-- crushing anything: the shadows stay bright enough for a nine-year-old
 	-- to see what is in them, and still read as shadow.
-	Lighting.Ambient = Color3.fromRGB(92, 98, 124)
-	Lighting.OutdoorAmbient = Color3.fromRGB(88, 100, 132)
+	Lighting.Ambient = DAY.Ambient
+	Lighting.OutdoorAmbient = DAY.OutdoorAmbient
 	-- THE SUN IS TINTED WARM AND THE SHADOWS ARE LEFT COOL, which is what
 	-- makes a flat-shaded street read as sunlit rather than as evenly filled.
 	-- Every surface in this game is one flat colour, so the only thing that
 	-- can separate a lit face from a shaded one is the LIGHT's own colour --
 	-- there is no texture detail to carry it.
-	Lighting.ColorShift_Top = Color3.fromRGB(255, 243, 210)
+	Lighting.ColorShift_Top = DAY.ColorShift_Top
 	Lighting.ColorShift_Bottom = Color3.fromRGB(96, 118, 150)
 	-- 2.4 IS DELIBERATELY UNCHANGED. Four files reason about this number
 	-- against `BloomEffect`'s threshold to decide how a Neon part reads, so
@@ -153,9 +166,9 @@ local function setupLighting()
 	-- the house light shows, the shop glazing, the neon skins. The exposure
 	-- below is the right lever for "the image is too hot", because it acts on
 	-- the final picture rather than on the sun's brightness relative to Neon.
-	Lighting.Brightness = 2.4
+	Lighting.Brightness = DAY.Brightness
 	Lighting.ExposureCompensation = -0.04
-	Lighting.ClockTime = 14.5
+	Lighting.ClockTime = DAY.ClockTime
 	Lighting.GeographicLatitude = 12
 	Lighting.EnvironmentDiffuseScale = 0.50
 	-- Specular pulled back: a bright specular on SmoothPlastic is a white
@@ -237,6 +250,48 @@ local function setupLighting()
 	rays.Intensity = 0.03
 	rays.Spread = 0.8
 end
+
+-- MIDNIGHT HEIST'S DUSK (step 6.4), a tween for the window only. `on`
+-- fades to `Config.MIDNIGHT_LIGHT.lighting`; off fades back and then SETS the
+-- day values outright, so a tween that was interrupted, overlapped or left a
+-- float a hair off still ends on ClockTime 14.5 exactly. There is no night in
+-- this game, and this is what keeps that true.
+local nightTween: Tween? = nil
+local nightToken = 0
+function WorldService.setNight(on: boolean)
+	nightToken += 1
+	local token = nightToken
+	if nightTween then
+		nightTween:Cancel()
+		nightTween = nil
+	end
+	local spec = Config.MIDNIGHT_LIGHT
+	local goal = if on then spec.lighting else DAY
+	local tween = TweenService:Create(Lighting,
+		TweenInfo.new(spec.fadeSeconds, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), goal)
+	nightTween = tween
+	tween:Play()
+	if not on then
+		task.delay(spec.fadeSeconds + 0.1, function()
+			if nightToken == token then
+				WorldService.restoreDay()
+			end
+		end)
+	end
+end
+
+-- The day, set outright. Also the teardown if an event errors mid-moon.
+function WorldService.restoreDay()
+	if nightTween then
+		nightTween:Cancel()
+		nightTween = nil
+	end
+	for key, value in pairs(DAY) do
+		(Lighting :: any)[key] = value
+	end
+end
+
+WorldService.DAY = DAY
 
 function WorldService.start()
 	clearDefaults()

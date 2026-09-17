@@ -50,6 +50,7 @@ local ResidentService = require(script.Parent.ResidentService)
 -- which is what lets this file, GuardDog's catch path and the police all
 -- reach it without a cycle anywhere.
 local TrophyService = require(script.Parent.TrophyService)
+local SeasonService = require(script.Parent.SeasonService)
 
 local ShakeService = require(script.Parent.ShakeService)
 local AcornBasket = require(ReplicatedStorage.Shared.AcornBasket)
@@ -289,6 +290,8 @@ type Carry = {
 	-- delivery and never on the grab, for the reason every other count in
 	-- this file is: loot nabbed out of your hands was never stolen.
 	clean: boolean?,
+	-- Midnight Heist's acorn multiplier when the clean crack ended (1 otherwise).
+	acornMultiplier: number?,
 }
 
 -- Construct only after attachment succeeds. Further slices/catches mutate this
@@ -636,32 +639,67 @@ end
 
 -- The one place a victim's balance changes because of a robbery. Repaints
 -- the pile so the street sees it; the economy tick pushes the HUD.
-local function giveBack(victim: Target, amount: number)
+--
+-- CAPPED LIKE EVERY OTHER WAY COINS ARRIVE (MASTER-PLAN 4c.6, designer
+-- decision): returned coins fill only the room the pig has NOW, and the rest
+-- spills. The pig may have refilled from income since the robbery; a full
+-- pig takes nothing back. The loss ledger is still credited with the whole
+-- amount -- the robbery was undone, and what spilled is the full-pig rule,
+-- not the thief. Returns what was banked.
+local function notify(player: Player, message: string, kind: string)
+	Remotes.get("Notify"):FireClient(player, message, kind)
+end
+
+local function giveBack(victim: Target, amount: number): number
 	local resident = asResident(victim)
 	if resident then
-		-- Straight back into the pig it came out of. ResidentService owns
-		-- republishing the pile, so the street sees it land.
-		ResidentService.refund(resident, amount)
-		return
+		-- Straight back into the pig it came out of, capped at that pig.
+		-- ResidentService owns republishing the pile.
+		return ResidentService.refund(resident, amount)
 	end
 
 	local player = victim :: Player
 	local victimData = DataService.get(player)
 	if not victimData then
-		return
+		return 0
 	end
-	victimData.coins += amount
+	local capacity = Config.getCapacity(victimData.capacityLevel)
+	local banked, spilled = Config.fitInPig(victimData.coins, capacity, amount)
+	victimData.coins += banked
 	refund(victim, amount)
 	local plot = PlotService.getPlot(player)
 	if plot then
-		PlotService.updatePile(plot, victimData.coins, Config.getCapacity(victimData.capacityLevel))
+		PlotService.updatePile(plot, victimData.coins, capacity)
 	end
+	if spilled > 0 and player.Parent then
+		notify(player, ("Your piggy was full: %s of your returned coins spilled."):format(
+			Config.formatCoins(spilled)), "warn")
+	end
+	return banked
 end
 
 local GOLD = Color3.fromRGB(238, 194, 72)
 
-local function notify(player: Player, message: string, kind: string)
-	Remotes.get("Notify"):FireClient(player, message, kind)
+-- WHAT A HAUL IS WORTH AT HOME, as the toast that ends a crack or a smash
+-- says it. The same arithmetic `deliver` runs -- the payout, the spree, and
+-- the cap at the thief's own pig -- so the number a thief decides to run for
+-- is the number they will bank if nothing changes on the way (MASTER-PLAN
+-- 4c.6). Returns the phrase that follows "N coins, ".
+local function homeWorthPhrase(thief: Player, victim: Target, amount: number): string
+	local payout = (if isRevenge(thief, victim) then Config.REVENGE.payout else Config.HEIST_PAYOUT)
+		* SocialService.getSpreeMultiplier(thief)
+	local worth = math.floor(amount * payout)
+	local data = DataService.get(thief)
+	if not data then
+		return ("worth %s at home"):format(Config.formatCoins(worth))
+	end
+	local banked, spilled = Config.fitInPig(data.coins, Config.getCapacity(data.capacityLevel), worth)
+	if spilled <= 0 then
+		return ("worth %s at home"):format(Config.formatCoins(banked))
+	elseif banked <= 0 then
+		return "but your piggy is full, so none of it will fit"
+	end
+	return ("but your piggy only has room for %s"):format(Config.formatCoins(banked))
 end
 
 local function format(value: number): string
@@ -2459,6 +2497,9 @@ local function rollShopDrop(thief: Player, tab: string)
 			worth = Config.sellValue(entry.kind, entry.key)
 			if worth <= 0 then return end
 			mode = "sold"
+			-- Minted, so capped (Config.fitInPig). A full pig sells the
+			-- duplicate for what fits, and the line below reports that figure.
+			worth = Config.fitInPig(data.coins, Config.getCapacity(data.capacityLevel), worth)
 			data.coins += worth
 			local plot = PlotService.getPlot(thief)
 			if plot then PlotService.updatePile(plot, data.coins, Config.getCapacity(data.capacityLevel)) end
@@ -2478,7 +2519,9 @@ local function rollShopDrop(thief: Player, tab: string)
 			chance=odds.chance,odds=entry.odds,shop=tab,
 		})
 		local note = if mode == "carried" then " Get it home."
-			elseif mode == "sold" then (" Sold your duplicate for %s coins."):format(Config.formatCoins(worth)) else ""
+			elseif mode == "sold" then (if worth > 0
+				then (" Sold your duplicate for %s coins."):format(Config.formatCoins(worth))
+				else " You already had it, and your piggy is too full to sell it.") else ""
 		notify(thief,("There was a %s in the vault!%s"):format(entry.name,note),"loot")
 		return
 	end
@@ -2513,16 +2556,16 @@ function endCrack(thief: Player, why: string)
 			PlotService.setRobbed(plot, Config.ROBBED_MARK_SECONDS)
 		end
 
-		-- Names what it is WORTH, which is the doubled figure: the number a
-		-- thief is deciding whether to run for is the one they will bank.
-		local worth = total * (if isRevenge(thief, victim)
-			then Config.REVENGE.payout else Config.HEIST_PAYOUT)
+		-- Names what it is WORTH AT HOME -- the payout, capped at the room in
+		-- the thief's own pig: the number a thief is deciding whether to run
+		-- for is the one they will bank. See homeWorthPhrase.
+		local worth = homeWorthPhrase(thief, victim, total)
 		if why == "done" then
-			notify(thief, ("Cracked it clean! %s coins, worth %s at home. Run!"):format(
-				format(total), format(worth)), "loot")
+			notify(thief, ("Cracked it clean! %s coins, %s. Run!"):format(
+				format(total), worth), "loot")
 		elseif why ~= "lost" and why ~= "scared" then
-			notify(thief, ("%d of %d slices. %s coins, worth %s at home. Run!"):format(
-				crack.steps, Config.CRACK.maxSteps, format(total), format(worth)), "loot")
+			notify(thief, ("%d of %d slices. %s coins, %s. Run!"):format(
+				crack.steps, Config.CRACK.maxSteps, format(total), worth), "loot")
 		end
 
 		-- THE CARRY REMEMBERS A CLEAN RUN, so the delivery can pay the
@@ -2532,6 +2575,11 @@ function endCrack(thief: Player, why: string)
 		local carry = carrying[thief]
 		if why == "done" and carry then
 			carry.clean = true
+			-- MIDNIGHT HEIST doubles the acorn for a crack that ENDED under
+			-- it, stamped here so a thief still running home after dawn is
+			-- paid what the night promised.
+			carry.acornMultiplier = if EventService.getAcornMultiplier
+				then EventService.getAcornMultiplier() else 1
 		end
 
 		-- A CLEAN RUN ON A SHOP MAY ALSO HAND OVER SOMETHING FROM ITS OWN
@@ -3118,10 +3166,8 @@ function HeistService.smash(thief: Player, victim: Target)
 	PlotService.updatePile(plot, targetCoins(victim), targetCapacity(victim))
 	PlotService.playCoinDrop(plot)
 
-	local worth = amount * (if isRevenge(thief, victim)
-		then Config.REVENGE.payout else Config.HEIST_PAYOUT)
-	notify(thief, ("Smashed it! %s coins, worth %s at home. Run!"):format(
-		format(amount), format(worth)), "loot")
+	notify(thief, ("Smashed it! %s coins, %s. Run!"):format(
+		format(amount), homeWorthPhrase(thief, victim, amount)), "loot")
 
 	-- THE LOUD HALF, AND IT IS THE WHOLE PRICE OF THIS PATH. All three fire
 	-- together and at once: the plot's own alarm, the victim told who did it,
@@ -3256,7 +3302,11 @@ local function endTug(thief: Player, why: string)
 	if winner and handOff(thief, winner) then
 		fireCatchEffect(thief, winner)
 		for nabber, share in pairs(tug.nabbers) do
-			if nabber.Parent and share > 0 then TrophyService.recordCatch(nabber) end
+			if nabber.Parent and share > 0 then
+				TrophyService.recordCatch(nabber)
+				-- Top Defenders (Phase 5.5): a thief stopped this week.
+				SocialService.recordDefend(nabber)
+			end
 		end
 		notify(thief, ("%s took the haul! You can chase it back."):format(winner.DisplayName), "bad")
 		notify(winner, "You took the haul! Watch out for other nabbers.", "loot")
@@ -3494,6 +3544,7 @@ function HeistService.nab(nabber: Player, thief: Player, byDog: boolean?, catche
 	local owner = asPlayer(victim)
 	if owner then
 		TrophyService.recordCatch(owner)
+		SocialService.recordDefend(owner)
 	end
 	if (nabber :: any) ~= victim and not byDog then
 		notify(nabber, ("Nice nab! You saved %s's coins."):format(targetName(victim)), "good")
@@ -3556,6 +3607,11 @@ local function grantHaul(thief: Player, data: any, haul: { Haul }): { { kind: st
 		end
 		if granted then
 			table.insert(delivered, { kind = item.kind, key = item.key })
+			-- A hot skin brought home by its own owner is a defence too
+			-- (Top Defenders, Phase 5.5).
+			if item.hot and item.recoveryOwner == thief then
+				SocialService.recordDefend(thief)
+			end
 			if item.kind == "skin" and Config.SKIN_STEAL.wear and not (item.hot and item.hot.spare and item.recoveryOwner == thief) then
 				CosmeticsService.equipSkin(thief, item.key)
 			end
@@ -3596,7 +3652,16 @@ local function returnCarry(player: Player)
 	carry.haul = {}
 	clearCarry(player) -- consume before refund/grant callbacks can yield
 	returnCarryAmount(carry, amount)
-	if carry.kind == "basket" then data.loot += bounty else data.coins += bounty end
+	-- The coin bounty is minted, so it fits the pig like any other mint
+	-- (Config.fitInPig); the returned coins themselves were the victim's own
+	-- and go back in full above.
+	local bountySpill = 0
+	if carry.kind == "basket" then
+		data.loot += bounty
+	else
+		bounty, bountySpill = Config.fitInPig(data.coins, Config.getCapacity(data.capacityLevel), bounty)
+		data.coins += bounty
+	end
 	carry.haul = haul
 	returnHaul(carry)
 	SetService.push(player)
@@ -3606,8 +3671,9 @@ local function returnCarry(player: Player)
 		else PlotService.updatePile(home, data.coins, Config.getCapacity(data.capacityLevel)) end
 	end
 	local currency = if carry.kind == "basket" then "Acorns" else "coins"
-	notify(player, ("Returned %s %s and the haul. Bounty: %s %s."):format(
-		format(amount), currency, format(bounty), currency), "good")
+	notify(player, ("Returned %s %s and the haul. Bounty: %s %s.%s"):format(
+		format(amount), currency, format(bounty), currency,
+		if bountySpill > 0 then (" Your piggy was full: %s spilled."):format(format(bountySpill)) else ""), "good")
 	if victim ~= player then
 		notifyTarget(victim, ("%s returned %s of your %s and the haul!"):format(player.DisplayName, format(amount), currency), "good")
 	end
@@ -3650,6 +3716,13 @@ local function deliver(thief: Player)
 			SocialService.recordSteal(thief, 0)
 		end
 		grantHaul(thief, data, haul) -- all counters are staged before a grant can save
+		-- PHASE 5: acorns banked into the crate count toward the season, and a
+		-- player's own harvest fills the Good Harvest barrel. After every
+		-- counter above, because a tier crossing saves.
+		SeasonService.earn(thief, banked)
+		if thief == victim then
+			TrophyService.recordHarvest(thief, banked)
+		end
 		SetService.push(thief)
 		local home = PlotService.getPlot(thief)
 		if home then
@@ -3671,6 +3744,7 @@ local function deliver(thief: Player)
 	local haul = carry.haul or {}
 	carry.haul = {}
 	local clean = carry.clean == true
+	local acornNight = math.max(1, math.floor(tonumber(carry.acornMultiplier) or 1))
 	clearCarry(thief)
 
 	-- REVENGE. The thief is robbing back somebody who robbed THEM inside the
@@ -3687,9 +3761,11 @@ local function deliver(thief: Player)
 	-- taken from the victim -- see Config.HEIST_PAYOUT for why the thief's
 	-- reward had to stop being the victim's loss.
 	--
-	-- Allowed to overflow capacity: income stops above the cap anyway, so an
-	-- overfull pig is self-limiting, and it is the juiciest target on the
-	-- street, which is exactly the tension a robbery should create.
+	-- CAPPED AT THE PIG (MASTER-PLAN 4c.6). This comment used to say a
+	-- delivery was allowed to overflow capacity; that is reversed. The victim
+	-- still loses the full `amount` -- that happened slice by slice, and every
+	-- counter below measures it -- while the thief banks only what fits and
+	-- the rest SPILLS, said out loud. See Config.fitInPig.
 	local payout = if not original then Config.NAB.keepShare
 		elseif revenge then Config.REVENGE.payout else Config.HEIST_PAYOUT
 
@@ -3704,12 +3780,15 @@ local function deliver(thief: Player)
 	-- has done both.
 	if original then payout *= SocialService.getSpreeMultiplier(thief) end
 
-	local banked = math.floor(amount * payout)
+	local worth = math.floor(amount * payout)
+	local capacity = Config.getCapacity(data.capacityLevel)
+	local banked, spilled = Config.fitInPig(data.coins, capacity, worth)
 	data.coins += banked
 	data.totalStolen += amount
 	-- One completed getaway, regardless of target, payout or haul size.
 	-- The carry is consumed above, so repeated delivery requests cannot count
 	-- it twice. Record before any reward callback can save the player's data.
+	local rankBefore = Config.getRapSheetRank(data.robberies)
 	if amount > 0 or #haul > 0 then
 		data.robberies += 1
 	end
@@ -3741,6 +3820,7 @@ local function deliver(thief: Player)
 	-- pays none, because the original grabber's claim is what the acorn
 	-- is for. Every gate lives in `Config.crackAcorns`, audited at boot.
 	local acorns = if original then Config.crackAcorns(clean, victimPlayer ~= nil, revenge) else 0
+	acorns *= acornNight
 	if acorns > 0 then
 		data.loot += acorns
 	end
@@ -3759,7 +3839,7 @@ local function deliver(thief: Player)
 	local plot = PlotService.getPlot(thief)
 	if plot then
 		PlotService.updateRank(plot, data.robberies)
-		PlotService.updatePile(plot, data.coins, Config.getCapacity(data.capacityLevel))
+		PlotService.updatePile(plot, data.coins, capacity)
 		PlotService.playBank(plot)
 		if acorns > 0 then
 			PlotService.updateAcorns(plot, data.loot)
@@ -3790,6 +3870,23 @@ local function deliver(thief: Player)
 	-- robbery that produced one would be a faucet outside the chest system.
 	local delivered = grantHaul(thief, data, haul)
 
+	-- PHASE 5. The pig-crack acorn counts toward the season; a clean crack
+	-- that got home counts toward Clean Sheet; the victim's ledger learns who
+	-- robbed them; and a new robber rank can land Old Hand. All after every
+	-- counter above, because each of these may save.
+	if acorns > 0 then
+		SeasonService.earn(thief, acorns)
+	end
+	if original and clean and amount > 0 then
+		TrophyService.recordClean(thief)
+	end
+	if victimPlayer then
+		SeasonService.recordNemesis(victimPlayer, thief)
+	end
+	if Config.getRapSheetRank(data.robberies) ~= rankBefore then
+		TrophyService.recheck(thief)
+	end
+
 	-- A BONUS NOBODY IS TOLD ABOUT IS A BONUS NOBODY BELIEVES, so the run is
 	-- named in the line that reports the money rather than in a card of its
 	-- own -- the same rule the event tokens follow, where one card carries
@@ -3808,6 +3905,13 @@ local function deliver(thief: Player)
 	-- Named in the same line as the coins, for the reason the run is: a
 	-- currency handed over with nothing on screen is one nobody believes.
 	local acornNote = if acorns > 0 then (" +%d Acorn%s."):format(acorns, if acorns == 1 then "" else "s") else ""
+	-- THE SPILL IS SAID. A clamp nobody mentions reads as coins vanishing on
+	-- the way home, which from the thief's side is indistinguishable from a
+	-- bug. It leads the toast rather than trailing it, because it is the one
+	-- part of this line the player can do something about next time.
+	local spillNote = if spilled > 0
+		then (" Your piggy was full: %s spilled."):format(format(spilled))
+		else ""
 
 	-- THE SUMMARY, FIRED BEFORE THE TOAST so the panel is what the player
 	-- looks at and the toast is the receipt behind it. Both, deliberately:
@@ -3824,6 +3928,7 @@ local function deliver(thief: Player)
 	Remotes.get("HeistDelivered"):FireClient(thief, {
 		amount = amount,
 		banked = banked,
+		spilled = spilled,
 		run = runNow,
 		revenge = revenge,
 		items = delivered,
@@ -3833,12 +3938,12 @@ local function deliver(thief: Player)
 	})
 
 	notify(thief, if not original
-		then ("Kept the haul! Half share: %s coins."):format(format(banked))
+		then ("Kept the haul! Half share: %s coins.%s"):format(format(banked), spillNote)
 		elseif revenge
-		then ("REVENGE! %s stolen coins, worth %s to you.%s%s"):format(
-			format(amount), format(banked), runNote, acornNote)
-		else ("Delivered %s stolen coins, worth %s to you.%s%s"):format(
-			format(amount), format(banked), runNote, acornNote),
+		then ("REVENGE! %s stolen coins, %s banked.%s%s%s"):format(
+			format(amount), format(banked), spillNote, runNote, acornNote)
+		else ("Delivered %s stolen coins, %s banked.%s%s%s"):format(
+			format(amount), format(banked), spillNote, runNote, acornNote),
 		"money")
 	notifyTarget(victim, ("%s got away with %s of your coins. Get them back for triple!"):format(
 		thief.DisplayName, format(amount)), "bad")

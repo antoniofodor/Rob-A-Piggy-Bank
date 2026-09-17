@@ -171,7 +171,9 @@ No coin product is sold. The accessory roll is retired with `ACCESSORIES` (§9).
 
 ### Chests — Acorn-priced, and duplicates are allowed
 
-`Config.CHESTS` is **five** Acorn-priced chests: four skin crates (`og` — "Piggy
+`Config.CHESTS` is **five** Acorn-priced chests (15 / 15 / 18 / 45 / 120 for
+`og` / `animal` / `alien` / `rarecrate` / `legendarycrate` since the 19.5
+re-solve; buy-back tickets and the rebirth-crate bonus derive from them): four skin crates (`og` — "Piggy
 Originals", 31 skins tagged `chest = "og"`; `animal` — "Animal Kingdom", 9
 skins tagged `chest = "animal"`; `rarecrate` and `legendarycrate`, which carry
 no themed pool of their own and instead draw rare-or-better across both skin
@@ -349,7 +351,27 @@ for prompts and fill. A complete wooden fallback handles asset-load failures.
 Source art and import measurements are in `assets/crate/`. Shops have neither
 tree nor crate.
 
-Trees grow one Acorn/hour up to eight ripe, online and offline. Saved
+**The tree ladder (step 2.7).** A tree grows at the rate of its saved level
+(`data.tree.level`, `Config.TREE_LEVELS`: 1.0 / 1.25 / 1.5 / 2.0 / 2.5 an
+hour for levels 0–4) and holds as many ripe acorns as the **best house the
+player owns** allows (`Config.TREE_HOUSE_GATE`: Common 8, Rare 12, Epic 16,
+Legendary 24). The same gate decides how high the ladder may be bought
+(Common to 1, Rare 2, Epic 3, Legendary 4). A house never adds a tree or
+acorns per hour. Rungs are coin-priced and bought from the owner-only
+**Grow Tree** prompt (J) on the oak, or `TreeRequest`; `TreeService` settles
+growth at the old rate before charging, refuses by name without charging,
+and redraws the oak (a placeholder height stretch until brief B5) and the
+offer. A house purchase refreshes the offer. Rebirths add 3% each to growth
+**while online only**, capped at +60% (`Config.TREE_REBIRTH_BONUS`).
+`Config.growAcorns(data, now, online)` reads all of it off the save, so a
+resident's stock (no level, no houses) grows exactly as before. The level
+survives rebirth. `auditAcorns` checks the ladder and gate; `auditEconomy`
+prices the rungs against the largest pig. Over the owner's own oak,
+`Shared/TreeClock` shows ripe count against cap and the time to the next acorn
+(or FULL), counting down to `TreeNextAcornAt`, which the server publishes
+(`PlotService.publishTree`).
+
+Trees grow one Acorn/hour up to eight ripe at level 0 with a Common house, online and offline. Saved
 `treeAcorns` is independent of banked `loot`; a stored balance of 200 does
 not stop a tree growing. Existing wallet balances remain banked unchanged.
 `acornsGrownAt` preserves partial hours; full-tree time cannot be banked.
@@ -478,6 +500,84 @@ Phase 4.1's isolated renderer check verifies one star at 99 and two at 100;
 settlement tests cover coin, Acorn and skin-only threshold crossings. Native
 Studio rank-zero loading and text bounds pass; final visual review remains open.
 Save/rejoin and rebirth checks use isolated data; live persistence is unverified.
+Phase 5 narrows the rank row to seat the season chip beside it (below).
+
+### The season (Phase 5)
+
+**Season rank is Acorns *earned* this season, and `SeasonService` never mints
+one.** A season is the same `Config.seasonIndex` the buy-back claims already
+use (`Config.SEASON.weeks` active weeks plus `Config.SEASON.rest`), numbered
+from `Config.SEASON.first` by `Config.seasonNumber` — an earlier index is
+pre-season. `Config.seasonActive` is true only in a numbered season's active
+weeks; in a rest week or pre-season `SeasonService.earn` does nothing.
+`HeistService` calls `earn` with Acorns it has *already banked*: a delivered
+basket (in practice the owner's own-tree harvest, since acorn theft is off,
+§8) and a delivery's pig-crack acorn. Refunds, grants and admin gifts do not
+count — only the `seasonearn` dev command goes through `earn` directly (§16).
+
+**The save and the lazy rollover.** `data.season` is `{index, earned, tier,
+best, granted}`. `SeasonService.state` rolls a save carrying an older index the
+first time anything reads it — `earned`, `tier` and `granted` reset, `best`
+(the highest tier ever reached) is kept — so nothing runs at the boundary, the
+same shape as the weekly street-board pages (§14).
+
+**Tiers grant once per season.** `Config.SEASON.tiers` is a ladder of `need`
+thresholds (`Config.seasonTier`), each with one `reward`. When `earn` crosses a
+tier, every tier reached and not yet in `season.granted` is marked there
+*before* its grant, so a re-entrant call cannot pay twice; the sign is
+refreshed, trophies are re-asked and the player is saved. Reward kinds:
+
+| Kind | What happens |
+|---|---|
+| `finish`, `plinth`, `kennel`, `catch` | `SetService.grant` (which now knows the `finish`/`plinth`/`kennel`/`coat` ownership tables; `Main` registers `CosmeticsService.push` as their pusher). Already owned: announced and skipped — never converted to Acorns |
+| `finish` keyed `"season"` | resolved by `Config.seasonReward` through `Config.SEASON.finishes[number]`, the season's never-sold-again exclusive; a season with no row warns and grants nothing rather than repeating last season's |
+| `trophy` | `TrophyService.recheck` — the Season Cup reads `season.best` (§9) |
+| `sign` | a word on the plot sign's season chip |
+
+**Finishes** (`Config.FINISHES`) are the season's own cosmetic: an *addition*
+over a skin, never a repaint and never a particle aura — a `reflectance` added
+to the skin's own, Neon `eyes`, and/or a dim `light` on the pig's spare
+`AuraLight`. Every row carries `season`, which `Config.isEarnedElsewhere` now
+reads, so no finish can reach a crate, a sale or a free fallback; `season = N`
+marks season N's exclusive. Owned in `cosmetics.ownedFinishes`, worn in
+`cosmetics.finish`. `PiggyBank.applyFinish` runs after the skin and effect
+repaints (which reset what it adds) and skips a shop vault;
+`PlotService.applyFinish` remembers `plot.finishKey` and re-applies it after
+every skin repaint; `CosmeticsService.applyToPlot` puts it on last.
+`CosmeticsService.equipFinish` (`CosmeticRequest` kind `"finish"`) toggles an
+owned finish and refuses an unowned one by name. The cosmetics push carries
+only *owned* finishes, drawn on the Inventory's Finishes tab (§14).
+
+**The plot sign.** The rank row carries a **season chip**
+(`PlotService.setSeasonChip`; text and colour from `Config.seasonChipText` and
+`Config.seasonChipColour` — hidden below tier 1, the colour climbing the rarity
+ladder, the season's words from the top tiers). Under the boasts, a
+**NEMESIS** line (`PlotService.setNemesis`) names who has robbed this player
+most this season; while it shows, the boasts give up part of their height.
+`SeasonService.refreshSign` writes both on join, on a tier crossing and on a
+new ledger entry; `PlotService.release` clears both and the finish. Neither
+layout has been checked in Studio.
+
+**The nemesis ledger.** `data.nemesis` is `{index, rows}`, rows keyed by the
+thief's UserId (`name`, `count`), rolling with the season index like
+`data.season`. `SeasonService.recordNemesis(victim, thief)` is called from
+`HeistService.deliver` when the victim is a player; at `Config.NEMESIS_ROWS`
+the smallest row is dropped for a new one. `nemesisOf` returns the top row.
+
+**The season board.** One `OrderedDataStore` per season, named from
+`Config.SEASON_BOARD.store` and the index. A player's total is published when
+it changed, on the service's loop and on leaving; the loop then fetches
+`pages` × `pageSize` sorted rows at most every `refresh` seconds and pushes
+every player `SeasonState` — season number, whether it is active, earned,
+tier, what the next tier needs, the season's end in server time, and the rows
+from `SeasonService.window`: `above`/`below` rows around the reader, or the
+top of the list plus a "you" row when the reader is outside the cached pages.
+`SeasonService.getTop` feeds the shared season page of the street board (§14).
+
+**Audited at boot.** `Config.auditSeason` checks that thresholds climb, every
+promised reward exists, every season-exclusive row is flagged for its season,
+and every finish is unpriced, season-only and under a light-brightness
+ceiling; `Main` warns per problem.
 
 ### Acorn and random-outcome boot audits
 
@@ -665,8 +765,22 @@ offline accrual — your friends were not in the server while you were asleep.
 ### Full
 
 Income stops at capacity and there is no bank to empty the pig into. The way
-to make room is to **spend** — or to be robbed. Anything delivered from a
-robbery, a daily or an event may overflow capacity; income never does.
+to make room is to **spend** — or to be robbed. **Nothing puts more in a pig
+than it holds** (`Config.fitInPig`, MASTER-PLAN 4c.6): a robbery delivery, the
+return bounty, a shop-drop resale, a daily coin reward and an event payout all
+bank only the room that is left, and the rest **spills** — named in the toast
+and, for a delivery, on the summary card (`HeistDelivered.spilled`). The
+victim still loses the full amount, and bail, the rap sheet, `totalStolen`,
+the weekly board and the pig-crack acorn are all measured against that. Coins
+coming **back** obey the same cap: a refund, a returned carry (nab, dog,
+patrol, voluntary return — all through `HeistService.giveBack`, and
+`ResidentService.refund` for a resident) and a drone recovery bank only the
+room left and name the spill. Every street figure is what the reader can
+actually carry home (`Config.homeTake`: a clean crack's take x the event
+multiplier x `HEIST_PAYOUT`, capped at the reader's own room): the rob badge
+(reads **PIG FULL** when there is no room), the steal card and the smash card
+(**FULL**), and the "worth X at home" line that ends a crack or a smash
+(`homeWorthPhrase`, which adds revenge and the spree).
 
 **Where the numbers live:** `Config.BASE_INCOME`, `BASE_CAPACITY`,
 `INCOME_GROWTH`(`_B`), `CAPACITY_GROWTH`(`_B`), the matching `*_COST_GROWTH`,
@@ -857,9 +971,9 @@ tabs roll from an *unowned* pool first, so a drop is real progress for as
 long as progress is possible; once a thief owns everything a tab can give,
 `rollShopDrop` falls back to a second pool of the *owned* items, weighted by
 the same `Config.RARITIES` odds, and pays `Config.sellValue` of whichever one
-it lands on straight into the pig — allowed to overflow capacity like the
-delivery it arrives beside, naming the item and saying it sold rather than
-handing back nothing. It pays coins rather than a **spare** on purpose: a
+it lands on straight into the pig — capped at the room left like every other
+mint (§4), naming the item and saying it sold rather than handing back
+nothing; a full pig sells it for nothing and says so. It pays coins rather than a **spare** on purpose: a
 spare is `Config.COMBINE` fuel, and a shop drop that produced one would be a
 way to farm combines by robbing rather than by opening chests — the same
 arrow this design already refuses to run backwards for the `alien` chest,
@@ -912,7 +1026,8 @@ is ever applied to one, because a vault has no skin to cycle.
 rather than `Player`; `typeof(t) == "Instance"` is the whole discriminator, so
 nothing else in the file branches on which kind it has. **A resident is a
 resource, never a rival:** no `Config.LOSS_CAP`, no revenge marker, no
-notification, no place on the Richest Piggies or Most Wanted boards — but the
+notification, no nemesis ledger (§3), no place on the street board or the
+Most Wanted poster — but the
 take, the crack, the carry penalty, the getaway, the dog, the nab, the patrol
 and the rap sheet are all identical to robbing a player, and a delivery
 against one still counts toward Most Wanted (§7). That is what makes the
@@ -1143,12 +1258,12 @@ both. No roll or spare is awarded, and the robber keeps their copy. The claim
 persists through the season, hidden while owned, so duplicate requests cannot
 charge again. Free recovery remains available inside its separate timer.
 
-`Config.SEASON` currently supplies only the clock: four active weeks plus
-one rest week, anchored to the existing UTC `weekIndex`. Requests reject
+`Config.SEASON` is the claims' clock: active weeks plus a rest week,
+anchored to the existing UTC `weekIndex` — and, since Phase 5, the season
+rank and rewards on the same index (§3, *The season*). Requests reject
 expiry immediately. Crate cards expire locally; a 30-second server rollover
 pass clears/saves online claims, and reconcile prunes expired offline claims.
-The recovery objective card (§14) is implemented; season ranks/rewards remain
-pending. It reads private `RecoveryObjective` snapshots derived from the
+The recovery objective card (§14) is implemented. It reads private `RecoveryObjective` snapshots derived from the
 actual haul, timed claims and current ownership. Before delivery it directs
 the victim to nab the fleeing robber; after delivery it uses the claim's
 wall-clock deadline for a countdown. This does not change the server's
@@ -1522,7 +1637,7 @@ floor without the board changing hands.
 ## 8. Events
 
 `EventService` runs a roster on a timer. Two events today: **Alien Invasion**
-(the flagship) and **Rush Hour**.
+(the flagship) and **Midnight Heist**.
 
 - **An event reuses the heist verbs and adds none.** You break a beam by
   *throwing* a gadget and recover loot by *holding a prompt*. No new input, no
@@ -1540,13 +1655,34 @@ floor without the board changing hands.
 - **An event suppresses the patrol**, which is what lets them share a HUD row.
   The patrol is *deferred*, never cancelled.
 
+**Midnight Heist** (`roster.midnight`, 180 s, weight 2; replaced Rush Hour
+and the short-lived Harvest Moon on September 16). The street fades to a dusk
+(`Config.MIDNIGHT_LIGHT`, `WorldService.setNight`, then the day table
+`WorldService.DAY` — ClockTime 14.5 — is set outright; a night that errors is
+restored by the scheduler). For its length every coin steal pays
+`Config.MIDNIGHT.stealMultiplier` (2x, pushed as `EventState.stealMultiplier`
+before the phase push) and a clean crack of a **player's** pig that ends under
+it stamps `carry.acornMultiplier` (2x), so the pig-crack acorn is doubled even
+if the carry is delivered after dawn. Residents and shops mint no pig-crack
+acorn, so a solo player gets no acorn bonus. Measured shares: raid ~41% of
+slots (every ~37 min), night ~59%. Admin panel: MIDNIGHT HEIST now.
+
+**Acorn theft is disabled.** No roster row carries `acornTheft`, so
+`EventService.isAcornTheftOpen()` is always false, `ShakeService.open`
+refuses anyone's tree but the owner's ("Only its owner can shake this tree"),
+and the client never shows the shake prompt on another tree. `auditAcorns`
+(`theft.disabled`) refuses a row that re-opens it, and
+`midnight.acorns` caps the night's acorn multiplier at 2. The
+shake-another-tree and acorn-basket carry code stays in place, closed.
+
 **Rewards:** the Alien Invasion pays its existing coin bounty (income-seconds,
 1.5x on a cleared street) and one free unowned set drop per player present.
 A full set receives a completion message with no additional item, spare or
-currency. Rush Hour rewards the boosted coin steals made during its window;
-there is no separate attendance payout. Events never award Acorns. The old
+currency. Midnight Heist rewards the boosted coin steals (and doubled
+pig-crack acorns) made during its window; there is no separate attendance
+payout. Events never award Acorns. The old
 `Config.LOOT.event` attend/per-drone/clear/completed-set faucet is retired.
-The coin bounty may overflow a full piggy bank, like any other delivery (§4).
+The coin bounty is capped at the room left in the pig and names any spill (§4).
 
 **Sets** are a **view over the existing catalogues**, never a new catalogue.
 `Config.SETS` lists `{kind, key}` pairs pointing at ordinary members of `SKINS`,
@@ -1576,7 +1712,7 @@ free.**
 
 ## 9. Cosmetics
 
-Roughly a hundred items across fourteen catalogues — the skins catalogue alone
+Roughly a hundred items across fifteen catalogues — the skins catalogue alone
 is 45. **None of them confer anything.**
 That is what makes them safe to price steeply, and it is why houses in
 particular are pure prestige.
@@ -1585,8 +1721,8 @@ particular are pure prestige.
 |---|---|---|---|
 | **Skins** | `SKINS` | **crates**, including a free Legendary Crate on rebirth — a priced skin refuses a coin purchase outright, below | Animated skins are driven **on the client** from a `SkinKey` attribute. 45 skins, all carrying an explicit `rarity` of `common`/`rare`/`legendary` (§3) — 40 also carry a `chest` tag (31 `og`, 9 `animal`); the other 5 are the free default `classic`, Solid Gold, the two pass skins and the alien set's `martian` — none carries a `chest` tag, and `martian` instead reaches the Alien Cache through `set = "alien"` (§8) |
 | **Effects** | `EFFECTS` | coins — **deliberately not moving to a chest** | Shop tiles *simulate* the real particle numbers — a ViewportFrame renders BaseParts and nothing else. The 5 priced tiers (15K–600K) land 3 commons and 2 rares on `Config.RARITY_BANDS` with no epic or legendary, so a chest would have no top end |
-| **Houses** | `HOUSE_TIERS` | coins | A shelf, not a ladder: `CosmeticsService.buyHouse` will sell *any* unowned tier once its price fits the pig — no "buy the cheaper one first" rule. Each row carries a stable `id` (ownership key, saved in `data.houses.owned`) separate from its `style` (builder key); worn tier is `data.houses.shown`. Move back into any owned tier free, forever |
-| **Decorations** | `DECOR_ITEMS` | coins, except four **trophies** — earned only, below | Auto-placed into slots; **slots are scarcer than items** on purpose — the four trophies make that literal, since a trophy on display costs a slot an ornament was using |
+| **Houses** | `HOUSE_TIERS` | coins | A shelf, not a ladder: `CosmeticsService.buyHouse` will sell *any* unowned tier once its price fits the pig — no "buy the cheaper one first" rule. Each row carries a stable `id` (ownership key, saved in `data.houses.owned`) separate from its `style` (builder key); worn tier is `data.houses.shown`. Move back into any owned tier free, forever. Nineteen rows (revision 2): rows flagged `placeholder` stand `House.build`'s construction-band block until their builder lands, and residents only climb built rows (`Config.residentHouseLevel`). `goldenpig` has no `cost` and `earned = "houses"` — never sold, granted by `CosmeticsService.grantEarnedHouses` once every priced house is owned (`Config.earnedHouseProgress`) |
+| **Decorations** | `DECOR_ITEMS` | coins, except the ten **trophies** — earned only, below | Auto-placed into slots; **slots are scarcer than items** on purpose — the trophies make that literal, since a trophy on display costs a slot an ornament was using |
 | **Border plants** | `BORDER_PLANTS` | coins | Along the fence line (not a lawn slot — a run of plants down each stretch of fence). Height is clamped to the fence's own visible top (`Config.borderHeight`), below |
 | **Garden paths** | `GARDEN_PATHS` | coins | Gate to piggy, laid flat on the lawn. No fence needed — the one garden item a bare plot can carry |
 | **Window boxes** | `WINDOW_BOXES` | coins | Ground-floor windows only, hung by walking the built house for parts named `Sill` — a post-pass, not an argument threaded through nine house-tier builders |
@@ -1597,6 +1733,7 @@ particular are pure prestige.
 | **Dog coats** | `DOG_COATS` | coins | Repaints only `fur`/`furDark`/`collar` on a Guard Dog you already own. `scale` and `shape` — what a thief actually reads to price the risk — are structurally off limits; see below |
 | **Dog kennels** | `DOG_KENNELS` | coins | Repaints only `wood`/`trim`. The roof always follows the *coat's* `collar`, never the kennel skin's own, so the two read as one dog's house |
 | **Dog toys** | `DOG_TOYS` | coins | Not worn — placed on the lawn. Changes *where* the dog goes, never how fast, how far it hears, or whether a bone works; see below |
+| **Finishes** | `FINISHES` | **season tiers only** — never sold, never in a crate | An addition over the worn skin (sheen, glowing eyes, a dim light), never a repaint or a particle aura. Worn from the Inventory's Finishes tab; see §3, *The season* |
 | **Catch effects** | `CATCH_EFFECTS` | coins, or granted by the VIP pass (§15) | A one-shot burst that fires on the **thief**, not on you, the moment you nab loot back out of their hands — the third kind of cosmetic, worn by neither a piggy nor a player. Worn tab (§14); see below |
 
 **Skins are crate-only now, which is a deliberate reversal of "nothing is
@@ -1778,7 +1915,7 @@ is granted, never bought, by the VIP pass (§15).
 
 ### The trophy shelf
 
-**Money buys the frame; robbery buys the picture.** Four lawn ornaments are
+**Money buys the frame; play buys the picture.** Ten lawn ornaments are
 *earned* rather than bought, in `Config.TROPHIES`, and stand on a fifth,
 coin-bought ladder of bases, `Config.TROPHY_PLINTHS`. A trophy is an
 **ordinary decor item** in every other respect — it lives in
@@ -1795,26 +1932,38 @@ slot an ornament was using.
 | **The Haul** (`haulvault`) | `data.totalStolen` — lifetime coins taken off other pigs | a gold bar per **doubling** from 100K, ten bars |
 | **Medal Board** (`medalboard`) | `data.trophies.caught` — thieves *you* stopped: your own guard dog emptying one on your lawn, or you personally nabbing one empty anywhere on the street | a rosette every three catches, capped at nine |
 | **Siren Post** (`sirenpost`) | `data.gear.escapes` — most-wanted patrols outrun (§7) | one blue Neon lamp per escape, up to five |
+| **Hot Streak** (`hotstreak`) | `data.trophies.bestSpree` — the longest run of consecutive deliveries (§5) | one flame tier per grade, a grade per step past its need |
+| **Old Hand** (`oldhand`) | the robber rank, `Config.getRapSheetRank(data.robberies)` (§3) | one star per grade, a grade per rank past its need |
+| **Clean Sheet** (`cleansheet`) | `data.trophies.clean` — clean five-slice cracks delivered home | a gold ring on a vault dial per grade, graded by doubling |
+| **Season Cup** (`seasoncup`) | `data.season.best` — the best season tier ever reached (§3) | a larger cup and one gem per grade, a grade per tier past its need |
+| **Wanted Poster** (`wantedposter`) | `data.trophies.wanted` — times this player topped Most Wanted | one poster per grade, graded by doubling |
+| **Good Harvest** (`goodharvest`) | `data.trophies.harvested` — Acorns delivered from the player's **own** tree | a barrel, with one ring of acorns heaped over the rim per grade, graded by doubling |
 
-The spread is deliberate — offence (Haul), defence (Medal Board), the police
-(Siren Post), collection (Victim Shelf) — so a player who spent everything on
-fences and locks still has something to earn. A patrol **arrest** never
-counts toward Medal Board: the police belong to nobody, so crediting a plot
-owner for a car the street sent would make the patrol a defence upgrade.
-Two of the four numbers (`data.totalStolen`, `data.gear.escapes`) already
-existed and had never been shown anywhere; only `caught` and `bestSpree`
-(the longest run of consecutive deliveries an account has ever put together,
-§5) are new fields, and `bestSpree` is written on every delivery and read by
-nothing yet (§17).
+The spread is deliberate — offence (Haul, Hot Streak, Old Hand, Clean Sheet),
+defence (Medal Board), the police (Siren Post, Wanted Poster), collection
+(Victim Shelf), the tree (Good Harvest) and the season (Season Cup) — so a
+player who spent everything on fences and locks still has something to earn.
+A patrol **arrest** never counts toward Medal Board: the police belong to
+nobody, so crediting a plot owner for a car the street sent would make the
+patrol a defence upgrade. The need, grade cap and ladder of each live in
+`Config.TROPHIES`; `Config.trophyGrade` reads them — a count grades linearly,
+by doubling (`double`), or one grade per step past the need (`ladder =
+"above"`, for counts that are already small ladders).
 
-**`TrophyService.counts`/`.state`** are the only place any of the four
-numbers is read for display, so a shop card's progress bar (the same
-have/need pair the Most Wanted gear cards already draw) and the geometry
-standing on the lawn can never disagree about what "earned" means.
-`TrophyService.check` runs after every event that could move one of the four
-— a delivery, a nab, a dog's catch, a patrol escape — and grants **and
-auto-places** anything newly earned, in catalogue order; if the lawn is full
-it still grants ownership and says so, rather than silently withholding a
+**`TrophyService.counts`/`.state`** are the only place any of these numbers
+is read for display, so a shop card's progress bar (the same have/need pair
+the Most Wanted gear cards already draw) and the geometry standing on the lawn
+can never disagree about what "earned" means. `TrophyService.check` runs after
+every event that could move one — a delivery, a nab, a dog's catch, a patrol
+escape, a new best spree (`recordSpree`), and the three Phase 5 counters,
+each bumped where the thing is *complete*: `recordClean` when a clean crack's
+haul gets home, `recordHarvest` when an own-tree basket is delivered, and
+`recordWanted` when `SocialService` hands the Most Wanted board to a player —
+at most once per session each, or two friends trading the lead would farm it.
+Counts that live elsewhere in the save (the robber rank, the season's best
+tier) are re-asked through `TrophyService.recheck` by their writers. It grants
+**and auto-places** anything newly earned, in catalogue order; if the lawn is
+full it still grants ownership and says so, rather than silently withholding a
 reward already earned.
 
 **`Config.TROPHY_PLINTHS`** is the coin side of the shelf: Stone (40K) →
@@ -2364,24 +2513,29 @@ measured — see §17.
 | Service | Owns |
 |---|---|
 | `DataService` | Session-locked DataStore persistence, the schema, reconcile |
-| `WorldService` | Ground, lighting, `ClockTime` (fixed — **there is no night**) |
+| `WorldService` | Ground, lighting, `ClockTime` — fixed at the day table (`WorldService.DAY`) except for Midnight Heist's dusk (`setNight`/`restoreDay`, §8), which never goes dark |
 | `NeighborhoodService` | Road, tunnels, verge, shopfronts, trees, street furniture, bins |
-| `PlotService` | Plot pool, fences, ladders, driveways, ownership, signs, the mailbox (`setMail`/`setMailOwner`/`onMailCheck`, §11), the doorstep crate box (`setCrate`/`setCrateOwner`/`onCrateOpen`, §3), the rebirth firework attributes (`fireFireworks`, §4), and the four un-claimable shop-vault plots (`Config.SHOPS`, built on the same frame `ShopFront` builds its walls in) — publishes `onClaim`/`onRelease` hooks; forwards the dog's coat, kennel skin, toys and filtered name to `GuardDog` (`setDogCoat`/`setDogKennel`/`setDogToys`/`setDogName`, §9); holds each plot's trophy state and rebuilds the lawn from it (`setTrophyState`, §9); holds what a plot's owner has planted and puts it up (`setGarden`/`refreshBorder`/`refreshWindowBoxes`, §9), and records a plot's own equipped skin (`applySkin`, `plot.skinKey`) so a topiary knows what to render |
+| `PlotService` | Plot pool, fences, ladders, driveways, ownership, signs, the mailbox (`setMail`/`setMailOwner`/`onMailCheck`, §11), the doorstep crate box (`setCrate`/`setCrateOwner`/`onCrateOpen`, §3), the rebirth firework attributes (`fireFireworks`, §4), and the four un-claimable shop-vault plots (`Config.SHOPS`, built on the same frame `ShopFront` builds its walls in) — publishes `onClaim`/`onRelease` hooks; forwards the dog's coat, kennel skin, toys and filtered name to `GuardDog` (`setDogCoat`/`setDogKennel`/`setDogToys`/`setDogName`, §9); holds each plot's trophy state and rebuilds the lawn from it (`setTrophyState`, §9); holds what a plot's owner has planted and puts it up (`setGarden`/`refreshBorder`/`refreshWindowBoxes`, §9), and records a plot's own equipped skin (`applySkin`, `plot.skinKey`) so a topiary knows what to render; the sign's season chip and NEMESIS line (`setSeasonChip`/`setNemesis`) and the worn finish, remembered as `plot.finishKey` and re-applied after every skin repaint (`applyFinish`, §3); the owner's Grow Tree prompt and the tree's level and next-acorn clock (`setTreeOwner`/`setTreeLevel`/`publishTree`, §3) |
 | `ResidentService` | The NPC neighbour seated on every plot nobody owns — a name, a seeded pig, and defences/garden that track the server's average level plus a fixed, per-resident downward offset (§5). Also seats a permanent shopkeeper on each shop plot, laddering only its Vault Lock, and gives that shopkeeper the shop's guard-dog reaction — `alertShopkeeper` wakes and chases on a fumble or a smash, `registerCatch` is a registry `Main` fills with `HeistService.shopkeeperCatch` (§5) |
-| `PiggyBank` | The piggy model, coin pile, skins, effects, vault dial, the robbed plaster, and the shop strongroom (`buildVault`, wrapping the same `Refs` a piggy bank returns, §5) |
+| `PiggyBank` | The piggy model, coin pile, skins, effects, the season finish over a skin (`applyFinish`, §3), vault dial, the robbed plaster, and the shop strongroom (`buildVault`, wrapping the same `Refs` a piggy bank returns, §5) |
+| `GuardVisual` | The imported mesh guard models, rebuilt from their authored bone assignments; required by `GuardDog` |
 | `GuardDog` | Patrol, kennel, guard duty, the off-duty nap, and the awake/asleep posture that tells a thief whether the owner is home. Exposes `isOwnerHome`/`bark` so `HeistService` can drive the alarm-only branch without `GuardDog` knowing anything about players (§5). Also owns the dog's wardrobe — coat, kennel skin, toys and its (pre-filtered) name — repainted through the one function, `applyTier` (§9); `clampToYard` holds every patrol/toy/sleep destination inside the fence (§11) |
 | `BoneService` | Thrown bones |
 | `EconomyService` | Accrual loop, milestones, the `StateUpdate` push (fires whenever the whole-coin balance changes) |
 | `UpgradeService` | Both upgrade trees |
-| `HeistService` | The crack and the smash (§5), carrying, nabbing (including which catch effect fires and on whom, §9), delivering, the loss cap, coin revenge and per-owner timed skin recovery claims/private recovery objectives, the dodge, tiptoe (`tiptoeInEffect`, the local shared by `currentSpeed` and the `Config.SNEAK_ATTRIBUTE` publish in `refreshSpeed`, §5), and the lawn watch (`watchLawns`) that wakes a guard dog on footsteps or a missed slice — against a `Target` of a player **or** a resident. `releaseDog` is where a wake decides alarm-only (owner home) versus a chase (owner away); `markIntruder`, a `HeistService`-local, marks the alarmed thief with a Highlight — see §5. A delivered robbery, a nab and a dog's catch each report to `TrophyService` (§9); a completed shop-vault crack also rolls its item drop (`Config.SHOP_VAULT_DROP`, §5) — a duplicate off an owned pool pays coins instead of nothing — pushed to the hot bar through `registerStockPusher` — filled by `Main` with `BoneService.push`/`GadgetService.push`; `shopkeeperCatch` (§5) runs the same `nab`/`scare` a real dog's catch does, with an optional `catcher` name so the toast can say "The shopkeeper" instead |
-| `TrophyService` | The trophy shelf (§9): what has been earned, the plinth ladder, and the one place a trophy or a plinth is ever granted. **A leaf** — requires only `DataService` and `PlotService` — and pushes the shop's repaint through a registry (`registerPusher`) `Main` fills with `CosmeticsService.push` |
-| `CosmeticsService` | Buying and equipping everything cosmetic, including catch effects (§9) and trophy plinths (routed to `TrophyService`, §9); **the roll**, priced in loot; the dog's coats, kennels and toys, and `nameDog` — the only caller of Roblox's text-filter API anywhere in this game (§9); the garden's three catalogues through one function, `buyGarden` (§9); `grantPassItems`, the one path every Robux pass grants through, hooked to `PassService.Granted` (§15) |
+| `HeistService` | The crack and the smash (§5), carrying, nabbing (including which catch effect fires and on whom, §9), delivering, the loss cap, coin revenge and per-owner timed skin recovery claims/private recovery objectives, the dodge, tiptoe (`tiptoeInEffect`, the local shared by `currentSpeed` and the `Config.SNEAK_ATTRIBUTE` publish in `refreshSpeed`, §5), and the lawn watch (`watchLawns`) that wakes a guard dog on footsteps or a missed slice — against a `Target` of a player **or** a resident. `releaseDog` is where a wake decides alarm-only (owner home) versus a chase (owner away); `markIntruder`, a `HeistService`-local, marks the alarmed thief with a Highlight — see §5. A delivered robbery, a nab and a dog's catch each report to `TrophyService` (§9) — a clean crack delivered calls `recordClean`, an own-tree basket `recordHarvest`, a new robber rank `recheck`; banked Acorns (a basket, the pig-crack acorn) go to `SeasonService.earn`, a delivery against a player to `SeasonService.recordNemesis` (§3), and a player's nab win, a dog's catch for its owner and a hot skin brought home by its owner to `SocialService.recordDefend` (§14); a completed shop-vault crack also rolls its item drop (`Config.SHOP_VAULT_DROP`, §5) — a duplicate off an owned pool pays coins instead of nothing — pushed to the hot bar through `registerStockPusher` — filled by `Main` with `BoneService.push`/`GadgetService.push`; `shopkeeperCatch` (§5) runs the same `nab`/`scare` a real dog's catch does, with an optional `catcher` name so the toast can say "The shopkeeper" instead |
+| `TrophyService` | The trophy shelf (§9): what has been earned, the plinth ladder, and the one place a trophy or a plinth is ever granted; the Phase 5 counters (`recordClean`/`recordWanted`/`recordHarvest`) and `recheck` for counts other services own. **A leaf** — requires only `DataService` and `PlotService` — and pushes the shop's repaint through a registry (`registerPusher`) `Main` fills with `CosmeticsService.push` |
+| `CosmeticsService` | Buying and equipping everything cosmetic, including catch effects (§9), wearing an earned season finish (`equipFinish`, the `finishes` push payload, §3) and trophy plinths (routed to `TrophyService`, §9); **the roll**, priced in loot; the dog's coats, kennels and toys, and `nameDog` — the only caller of Roblox's text-filter API anywhere in this game (§9); the garden's three catalogues through one function, `buyGarden` (§9); `grantPassItems`, the one path every Robux pass grants through, hooked to `PassService.Granted` (§15) |
 | `ProgressionService` | Rebirth reset, free Legendary Crate or completed-collection Acorn payout, immediate save |
-| `SocialService` | Friend bonus, leaderboards, Most Wanted board, revenge markers, the per-player rap sheet push (`pushWanted`, remote `WantedState`, §14), and the spree — consecutive-delivery payout/pursuit-floor state (`recordSteal`/`breakSpree`), kept in a table separate from the rap sheet on purpose (§5, §7) |
+| `SeasonService` | The season (§3): lazy rollover of `data.season`, `earn` (never mints), tier grants once per season through `SetService.grant`, the nemesis ledger (`recordNemesis`/`nemesisOf`), the season board store, `window` rows and the `SeasonState` push, `getTop` for the street board, `refreshSign`, and a server-local dev clock shift (`shiftWeeks`). Requires `DataService`, `PlotService`, `SetService`, `TrophyService` |
+| `SocialService` | Friend bonus, the one street board and the three pages it turns (Top Thieves, Top Defenders — `recordDefend` and a weekly `Config.WEEKLY_DEFEND` store — and the season, §14), Most Wanted board (handing it over calls `TrophyService.recordWanted`), revenge markers, the per-player rap sheet push (`pushWanted`, remote `WantedState`, §14), and the spree — consecutive-delivery payout/pursuit-floor state (`recordSteal`/`breakSpree`), kept in a table separate from the rap sheet on purpose (§5, §7) |
 | `PoliceService` | Patrol schedule, pursuit, arrest, the radio |
 | `TrafficService` | The delivery van — one at a time, west to east through both tunnels, standing down while `PoliceService.isOut()` (§11). Confers nothing and carries no gameplay hook |
 | `EventService` | The event roster |
-| `SetService` | Loot, sets, the drop reel, ownership lookups shared with chests (`owns`, `inUse`, `grant`, `revoke`) |
+| `TreeService` | The tree ladder (§3): buying the next level (`TreeRequest`, the owner-only Grow Tree prompt) and the offer; growth itself is `Config.growAcorns` |
+| `ShakeService` | Shaking a tree: moving ripe Acorns into a refundable carry, and the per-thief Acorn cooldowns (`AcornCooldown`); opening anyone's tree but the owner's is closed (§8) |
+| `ResidentAcorns` | One Acorn stock record per residential plot for the server's life (§3) |
+| `SetService` | Loot, sets, the drop reel, ownership lookups shared with chests (`owns`, `inUse`, `grant`, `revoke`) — which also resolve the season's reward kinds `finish`, `plinth`, `kennel` and `coat` (ownership only; none is in `Config.catalogueFor`) |
 | `ChestService` | Opening chests, seasonal exact-skin Acorn buy-backs, combining per-item spares by tier, selling spares for coins (leaf: requires `DataService`, `SetService`) — opening and combining are on the Crates tab; selling is in the Inventory panel |
 | `DailyService` | The daily ladder and boosts; raises the mailbox flag and re-opens the board (`push`, §11) in the same push that fills it; the chest a day-seven claim owes until it is opened at the doorstep (`openCrate`, §3) |
 | `RideService` | Mount gate, welds, tricks |
@@ -2395,7 +2549,8 @@ measured — see §17.
 **Cycles are broken with registries, not with requires.** `SetService.registerPusher`,
 `HeldItemService`'s vetoes, `ChestService.registerBalancePusher`,
 `HeistService.registerStockPusher` and `TrophyService.registerPusher` are all
-filled in by `Main`, which keeps each service's dependency list at one line and makes a
+filled in by `Main` (which also registers `CosmeticsService.push` as the
+`SetService` pusher for the season's `finish`/`plinth`/`kennel`/`coat` grants), which keeps each service's dependency list at one line and makes a
 cycle impossible rather than merely absent today. `PlotService.onClaim`/
 `.onRelease` are the same shape from the other direction: `ResidentService`
 requires `PlotService` and calls these directly, so `PlotService` never has to
@@ -2505,6 +2660,18 @@ Load-time validation removes expired, future, malformed and ineligible keys.
 A current claim survives rejoin and remains stored while its skin is owned;
 only currently unowned eligible skins are offered. This is distinct from the
 session-local timed robber-recovery claims (§5).
+
+**Phase 5 (no schema bump; `Config.SCHEMA_VERSION` is unchanged)** adds three
+top-level tables and five fields, all filled by the generic pass with empty or
+zero defaults: `season` `{index, earned, tier, best, granted}`, `nemesis`
+`{index, rows}` and `defend` `{index, count}` (§3, §14);
+`trophies.clean`/`.wanted`/`.harvested` (§9); and `cosmetics.finish` plus
+`cosmetics.ownedFinishes` (§3). `season` and `nemesis` roll lazily on read
+against `Config.seasonIndex`, `defend` against `Config.weekIndex` — no
+rollover job. `reconcile` prunes `ownedFinishes` against `Config.FINISHES`,
+takes the worn `finish` off (`""`) unless it is owned, and restores the
+one-deeper shapes (`season.granted`, `nemesis.rows`) if a save carries the
+wrong type. The tree ladder's `data.tree` `{level}` (§3) arrived the same way.
 
 **No schema bump** covers the skin restructuring (§3, §9): retiring five skins
 and folding one chest into another needed no new field, only a wider prune.
@@ -2639,8 +2806,10 @@ in `settings` may ever affect an outcome** — no speed, no income, no odds.
   look at what you already own, so it is its own full-screen panel (`I`, or
   the bag toggle beside SHOP) built to the shop panel's own geometry — same
   scale, corner and close button — and the two are **mutually exclusive**,
-  opening one closes the other. It lists every **owned** item across the five
-  wearable/placeable catalogues (skins, effects, accessories, decor, rides),
+  opening one closes the other. It lists every **owned** item across the
+  wearable/placeable catalogues (skins, effects, accessories, decor, rides,
+  and a **Finishes** tab for season finishes, §3 — sent only when owned,
+  worn through `CosmeticRequest` kind `"finish"`, never sellable),
   one card each: the real rendered model, a rarity stroke, a spare-count chip
   showing the *total* copies held (one spare reads `x2`), a WEAR/WEARING
   toggle and a SELL button. Wearing fires the shop's own `CosmeticRequest`
@@ -2665,9 +2834,23 @@ in `settings` may ever affect an outcome** — no speed, no income, no odds.
   sound and hold. Toasts **stack**, each owns its own clock, and the hold is a
   function of how much there is to read. The three urgent kinds flash the screen
   edges.
-- **Physical boards.** The leaderboard and the Most Wanted poster are objects in
-  the world at *both* ends of the street, not HUD panels — the physicality is the
-  mechanic. `SurfaceGui` culls by distance from the **character**, not the camera.
+- **Physical boards.** The street board and the Most Wanted poster are objects
+  in the world, standing mid-verge (§11), not HUD panels — the physicality is
+  the mechanic. `SurfaceGui` culls by distance from the **character**, not the
+  camera. **The one street board turns three pages** (Phase 5), each for
+  `Config.BOARD_PAGE_SECONDS`, publishing which is up as
+  `Config.BOARD_PAGE_ATTRIBUTE` on the panel: **Top Thieves this week**
+  (`Config.WEEKLY_HEIST`), **Top Defenders this week** — thieves a player
+  stopped (a nab win, their dog's catch, a hot skin they carried home;
+  `SocialService.recordDefend`, counted in `data.defend` and published to a
+  weekly `Config.WEEKLY_DEFEND` store on the same cadence as Top Thieves) — and
+  **the season**, whose server copy paints the global top from
+  `SeasonService.getTop`. On that page `Shared/SeasonBoard.luau` hides the
+  server's `BoardGui` *on this client only* and draws its own local
+  `SurfaceGui` from the reader's `SeasonState` (§3): the rows around the
+  reader, their own row in gold, and a footer with their tier and what the
+  next one needs. It never writes to the replicated labels. Its layout mirrors
+  the server board and has not been checked in Studio.
 - **The rap sheet chip.** `Shared/Wanted.luau` is the second chip in the
   top-right column, directly under the standing event countdown chip (176×46
   at y 196, the same 8px gap the countdown leaves under the piggy bank panel)
@@ -3062,6 +3245,15 @@ protects nothing.
 `AdminPanel.MENU` is a **table**, grouped by what you are testing rather than by
 which service owns it. Adding a command is one row.
 
+The **Season** group (Phase 5) exists because the season only counts in an
+active week and the launch fell in a rest week: `seasonshift` moves *this
+server's* season clock by whole weeks (`SeasonService.shiftWeeks`, never
+saved, bounded) and repaints every sign and push; `seasonearn` credits season
+Acorns through the real `SeasonService.earn` path, so tier grants, the sign
+and the save all run as they would in play; `seasonstate` prints
+`SeasonService.status`. A **Tree** group sets the tree level outright
+(`tree`), bypassing the house gate that only restricts buying.
+
 A command may target another player by userId (resolved **server-side** from the
 live player list); `reset` is self-only, because every other command is undone by
 pressing another button and a wiped save is not.
@@ -3336,11 +3528,21 @@ already shipped. Corrected below.
   service required there hands back a fresh module whose `start()` never ran.
 - **The music toggle lives in the shop header**, which is the wrong place and is
   written down as a stopgap in the source.
-- **`data.trophies.bestSpree` (§9, §13) is tracked and read by nothing.**
-  `TrophyService.recordSpree` is called on every delivery and keeps the
-  longest run of consecutive deliveries an account has ever put together, but
-  no trophy, card or board reads it yet — the schema bump was free the day it
-  landed and will not be once something is actually built on the field.
+- **Phase 5 (the season, finishes, the nemesis ledger, six new trophies and
+  the paging street board) has not run in Studio or against a real
+  DataStore.** Every layout that is new is marked unverified in its own
+  source: the season chip on the narrowed rank row (the widest star row was
+  not photographed at that width), the NEMESIS line and the shortened boasts,
+  and `Shared/SeasonBoard`'s local page, which mirrors the server board's
+  measured layout without having been looked at. The season board and Top
+  Defenders stores have never been written to or read from live, and a
+  season tier crossing, a finish on a real pig under the bloom, and the six
+  new trophy builders standing on a lawn are all unobserved. Launch fell in a
+  rest week, so nothing counts until Season 1's first active week; testing
+  sooner needs the `seasonshift` dev command (§16). `Config.SEASON.tiers` are
+  solved in the acorn model and are flagged there to be re-derived from
+  telemetry before Season 2. `bestSpree` — recorded here previously as read by
+  nothing — is now read by the Hot Streak trophy (§9).
 
 `CLAUDE.md`'s "Not yet verified" section is the long-form version of this list
 and is kept in more detail.

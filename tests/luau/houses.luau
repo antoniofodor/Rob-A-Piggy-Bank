@@ -33,10 +33,83 @@ for i,tier in ipairs(Config.HOUSE_TIERS) do
  check(Config.getHouseById(tier.id)==tier,"id resolves to its own row")
  check(Config.houseLevelOf(tier.id)==i-1,"id resolves to its catalogue position")
 end
+local lastLegacy=-1
 for rung,id in ipairs(ORDER) do
  check(Config.getHouseById(id)~=nil,"legacy rung "..rung.." names a real house")
- check(Config.getHouseById(id)==Config.getHouseTier(rung-1),"legacy order still matches catalogue order for the nine")
+ -- Revision 2 inserts new houses BETWEEN the nine, so their positions move;
+ -- what must hold is that the nine keep their relative order.
+ check(Config.houseLevelOf(id)>lastLegacy,"the nine keep their relative order in the catalogue")
+ lastLegacy=Config.houseLevelOf(id)
 end
+
+-- ---- REVISION 2 (docs/HOUSE-TIER-BRIEF.md section 1) ------------------------
+local BRIEF={
+ {"shack",0,"common"},{"cottage",35000,"common"},{"townhouse",120000,"rare"},
+ {"mushroom",250000,"rare"},{"villa",400000,"rare"},{"treehouse",750000,"rare"},
+ {"manor",1400000,"epic"},{"slime",2500000,"epic"},{"modern",5000000,"epic"},
+ {"candy",8000000,"epic"},{"neontower",15000000,"legendary"},{"crystal",25000000,"legendary"},
+ {"palace",40000000,"legendary"},{"skycastle",80000000,"legendary"},{"galleon",150000000,"legendary"},
+ {"portal",300000000,"legendary"},{"thundercloud",600000000,"legendary"},{"void",1000000000,"legendary"},
+ {"goldenpig",nil,"legendary"},
+}
+check(#Config.HOUSE_TIERS==#BRIEF,"nineteen rows: eighteen priced and the earned pig")
+for i,row in ipairs(BRIEF) do
+ local tier=Config.HOUSE_TIERS[i]
+ check(tier.id==row[1],("row %d is %s (got %s)"):format(i,row[1],tostring(tier.id)))
+ check(tier.cost==row[2],row[1].." costs what the brief says")
+ check(Config.rarityOf(tier)==row[3],row[1].." is "..row[3])
+ check(type(tier.name)=="string" and type(tier.blurb)=="string" and tier.drive and tier.walls and tier.roof,row[1].." has a name, blurb, drive and colours")
+end
+check(Config.getHouseById("villa").name=="Fairy Lantern Cottage" and Config.getHouseById("modern").name=="Fishbowl House"
+ and Config.getHouseById("palace").name=="Ice Palace","the three re-themes are renamed in place")
+check(Config.getHouseById("villa").style=="villa" and not Config.getHouseById("palace").placeholder,
+ "a re-theme keeps standing its old model until the new one lands")
+for _,id in ipairs({"mushroom","treehouse","slime","candy","crystal","galleon","portal","thundercloud","void","goldenpig"}) do
+ local tier=Config.getHouseById(id)
+ check(tier.placeholder==true and type(tier.height)=="number" and tier.height>0,id.." stands a placeholder of its brief height")
+end
+check(Config.getHouseById("void").height>Config.getHouseById("thundercloud").height,"the void is the tallest priced house")
+local pig=Config.getHouseById("goldenpig")
+check(pig.cost==nil and pig.earned=="houses","the golden pig has no price and is earned")
+check(Config.isEarnedElsewhere(pig) and not Config.isEarnedElsewhere(Config.getHouseById("void")),"isEarnedElsewhere reads the earned tag and only that")
+local have,need=Config.earnedHouseProgress({shack=true,cottage=true,goldenpig=true})
+check(have==2 and need==18,"progress counts priced houses only (shack included)")
+check(Config.earnedHouseProgress(nil)==0,"progress on no set is zero")
+check(Config.getShownHouse({houses={owned={shack=true,goldenpig=true},shown="ghost"}}).id=="shack"
+ or Config.getShownHouse({houses={owned={shack=true,goldenpig=true},shown="ghost"}}).id=="goldenpig",
+ "fallback over an unpriced house does not throw")
+check(Config.getShownHouse({houses={owned={shack=true,goldenpig=true},shown="goldenpig"}}).id=="goldenpig","an owned earned house can be shown")
+
+-- Residents climb the nine BUILT houses exactly as before revision 2.
+for step=0,8 do
+ check(Config.residentHouseLevel(step)==Config.houseLevelOf(ORDER[step+1]),"resident step "..step.." stands "..ORDER[step+1])
+end
+check(Config.residentHouseLevel(20)==Config.houseLevelOf("skycastle") and Config.residentHouseLevel(-3)==0,"resident steps clamp to the built range")
+for step=0,30 do
+ local tier=Config.getHouseTier(Config.residentHouseLevel(step))
+ check(not tier.placeholder and tier.earned==nil,"a resident never stands a placeholder or an earned house")
+end
+
+-- Audit provocations for the new row kinds.
+local function auditSays(text)
+ for _,p in Config.auditEconomy() do if p:find(text,1,true) then return true end end
+ return false
+end
+pig.cost=5
+check(auditSays("earned and also carries a cost"),"audit refuses a priced earned house")
+pig.cost=nil
+local void=Config.getHouseById("void")
+void.cost=nil
+check(auditSays("has no price"),"audit refuses a priced row with no number")
+void.cost=1000000000
+void.width=70
+check(auditSays("over the 60x57 yard limit"),"audit refuses a placeholder wider than the yard")
+void.width=44
+local mush=Config.getHouseById("mushroom")
+mush.cost=1
+check(auditSays("cheaper than the row above"),"audit refuses a catalogue out of price order")
+mush.cost=250000
+check(#Config.auditEconomy()==0,"audit clean after the provocations")
 check(Config.getHouseById("nothing")==nil and Config.getHouseById(3)==nil and Config.houseLevelOf(nil)==nil,"unknown ids resolve to nothing")
 check(#Config.auditEconomy()==0,"auditEconomy clean with ids")
 table.insert(Config.HOUSE_TIERS,{id="shack",name="Twin",style="shack",cost=1})
@@ -162,6 +235,36 @@ Cos.buyHouse(player,"ghost")
 check(lastWarn() and applied==3,"an unknown id is refused by name")
 Cos.buyHouse(player,3)
 check(lastWarn() and applied==3,"a numeric position is not an id any more")
+
+-- The earned house: never sold, handed over on the last priced purchase.
+reset(0);data.coins=1e12;data.capacityLevel=60
+Cos.buyHouse(player,"goldenpig")
+check(lastWarn() and messages[#messages].text:find("earned",1,true) and not data.houses.owned.goldenpig
+ and data.coins==1e12 and applied==0,"the golden pig is refused by name, free of charge")
+Cos.buyHouse(player,"mushroom")
+check(data.houses.owned.mushroom and data.houses.shown=="mushroom" and data.coins==1e12-250000,"a placeholder house buys and moves in like any other")
+local priced={}
+for _,tier in ipairs(Config.HOUSE_TIERS) do
+ if tier.earned==nil and not data.houses.owned[tier.id] then table.insert(priced,tier.id) end
+end
+for i,id in ipairs(priced) do
+ Cos.buyHouse(player,id)
+ if i<#priced then check(not data.houses.owned.goldenpig,"no golden pig before the last priced house ("..id..")") end
+end
+check(data.houses.owned.goldenpig==true,"the last priced purchase grants the golden pig")
+check(data.houses.shown==priced[#priced],"the grant does not move anybody out of what they just bought")
+local told=false
+for _,m in ipairs(messages) do if m.kind=="good" and m.text:find("Golden Piggy",1,true) then told=true end end
+check(told,"the grant says so")
+for _,m in ipairs(messages) do
+ check(not m.text:find("the The",1,true) and not m.text:find("The The",1,true),"a name with its own article is not prefixed twice: "..m.text)
+end
+local before=applied
+Cos.buyHouse(player,"goldenpig")
+check(data.houses.shown=="goldenpig" and applied==before+1,"an earned golden pig can be moved into for free")
+check(Cos.grantEarnedHouses(nil,data)==false,"granting again is a no-op")
+local partial={houses={owned={shack=true}}}
+check(Cos.grantEarnedHouses(nil,partial)==false and not partial.houses.owned.goldenpig,"a partial set earns nothing")
 
 reset(0);data.coins=100;data.capacityLevel=20
 Cos.buyHouse(player,"cottage")

@@ -9308,6 +9308,69 @@ spent the moment it is thrown, so a stockpile is not standing power the way a
 maxed tree is — and wiping it would only teach players to burn their stock the
 hour before rebirthing, which is a chore, not a decision.
 
+**MIDNIGHT HEIST IS A DUSK FOR THREE MINUTES, AND IT DOES NOT BREAK "THERE
+IS NO NIGHT IN THIS GAME" (step 6.4, revised).** Every emissive, the bloom
+threshold and the pig's readability are tuned against one sun, so the night
+never goes dark: ClockTime 17.9 and Brightness 1.5. And the way back is not
+trusted to a tween -- `WorldService.setNight(false)` fades and then SETS the
+day table outright, and the scheduler calls `restoreDay` if the night errors.
+The boot reads the same `WorldService.DAY`, so the restore and the start
+cannot disagree about what day looks like.
+
+**IT REPLACED THE HARVEST MOON WITHIN THE DAY, AND THE REASON IS A MULTIPLIER
+NOBODY CHOSE.** The moon opened other players' trees "at the existing x5" --
+a figure inherited from the retired storage raids -- against trees that now
+hold up to 24. Modelled, moon theft paid an active multiplayer player ~67
+acorns a day against ~28 from their own tree. **A MULTIPLIER CARRIED ACROSS
+FROM A RETIRED MECHANIC IS A NUMBER NOBODY PRICED**, the same family as the
+shopkeeper's catch radius measured against a lawn. The designer's answer was
+simpler than any retune: acorn theft is off (`theft.disabled` in
+`auditAcorns`), and the night doubles what the street already rewards --
+coin steals and the pig-crack acorn -- instead of inventing a new take.
+
+**THE NIGHT'S ACORN BONUS IS STAMPED ON THE CARRY WHEN THE CRACK ENDS**, not
+read at delivery: a thief still running home after dawn is paid what the
+night promised, which is the rule every other carry-borne fact already
+follows (the clean flag, the claimant).
+
+**AND THE BOOT AUDIT'S ACORN RATES ARE ONLINE-ONLY.** "Solo 1 an hour, a
+crate every 5 hours" ignored the overnight fill; a regular player was
+already at ~9 a day before the tree ladder. Prices were re-solved on
+`tests/sim/acorns/model.py`, which counts it -- read that, not the boot line,
+before moving a crate price.
+
+**THE SEASON COUNTS ACORNS BANKED BY PLAYING AND NOTHING ELSE (Phase 5.3).**
+`SeasonService.earn` is called at exactly two sites, the own-tree basket
+deposit and the pig-crack acorn, and only in a live week. A refund, a crate
+grant, an admin gift or a reward is never earned: a season rank that a grant
+can raise is a faucet feeding itself. **AND AN ALREADY-OWNED REWARD IS SAID
+AND SKIPPED, NEVER CONVERTED INTO ACORNS**, for the same reason.
+
+**A TIER IS MARKED GRANTED BEFORE IT IS GRANTED.** `season.granted[i]` is
+written first, so a re-entrant push or a second `earn` in the same frame
+cannot hand a reward over twice -- the plan's own done-when. It is per
+season, so Season 2 grants its ladder again; the best tier survives the
+rollover in `season.best`, which is what the Season Cup reads.
+
+**A SEASON WITH NO AUTHORED FINISH WARNS AND SKIPS; IT NEVER REPEATS LAST
+SEASON'S.** "Never sold again" is the whole value of tier 10, and a quiet
+fallback would re-issue it with nothing in the log. The warning is the
+live-ops reminder that `Config.SEASON.finishes` needs a row.
+
+**SEASON 1 IS INDEX 592, NOT "WHATEVER INDEX IS CURRENT".** Launch day fell
+in the rest week of 591, so a derived "first season" would have been a
+five-day season with its rest week already running. `Config.SEASON.first`
+is pinned, and everything below it reads as pre-season.
+
+**THE SEASON PAGE IS A LOCAL SURFACEGUI OVER THE BOARD, NEVER CLIENT WRITES
+TO THE SERVER'S LABELS.** A client write to a replicated property lasts until
+the server next writes that property, so two writers on one label drift.
+`Shared/SeasonBoard` hides `BoardGui` locally on the `season` page and draws
+its own gui from the reader's `SeasonState` -- which is also what makes
+"three above, four below THE READER" possible on a board everybody shares.
+The board turns pages rather than a fourth board being built: the verge has
+no room for one, and three pages is the plan's "three boards and no more".
+
 **THE WHOLE GAME WAS RENDERING ON THE LEGACY VOXEL LIGHTING PIPELINE WITH A
 `Retro` TONEMAPPER, AND NEITHER OF THOSE WAS A DECISION ANYBODY MADE.** Asked
 to make the street brighter and more colourful, the first thing to find was
@@ -11824,9 +11887,82 @@ level 0, 16.6 at level 20 and 27.7 at level 40 -- roughly ONE SESSION at every
 level -- and a full pig STOPS EARNING. That is the clock the whole "spend it
 or lose it" loop runs on, it is the one deadline in the game that is not a
 timer somebody else set, and until now the only way to learn it existed was to
-hit it. Delivery is also the only thing allowed to overflow capacity, so the
-sentence the pair of them makes is *idle and you cap out; rob and you can go
-past it, and then you are the best target on the street.*
+hit it. Delivery USED to be the only thing allowed to overflow capacity --
+*idle and you cap out; rob and you can go past it* -- and that is reversed:
+see the 4c.6 entry below. Nothing goes past the pig now.
+
+**NOTHING PUTS MORE IN A PIG THAN IT HOLDS, AND A ROBBERY IS NOT AN
+EXCEPTION (MASTER-PLAN 4c.6, designer decision).** `deliver` banked
+`amount * payout` straight past capacity, on the argument that an overfull
+pig is self-limiting and the juiciest target on the street. What it actually
+did: a level-5 player cracking a level-32 resident banked 180 times their own
+pig in one run, and "fill your piggy bank" at the rebirth gate could be met by
+somebody whose ceiling was nowhere near it. Capped, the same run banks a full
+pig -- still the best minute of the session -- and robbing with a full pig
+SPILLS, so a thief empties the pig into the shop first, which is the loop the
+whole economy runs on.
+
+**`Config.fitInPig` IS THE ONE RULE, AND IT COVERS EVERY MINT, NOT ONLY
+ROBBERY:** the delivery, the 25% return bounty, a shop-drop resale, the daily
+coin rungs and the event payouts. One sentence rather than a robbery rule plus
+exceptions. **AND IT COVERS A PLAYER'S OWN COINS COMING BACK TOO**, by designer
+decision: a refund, a returned carry and a drone recovery fill only the room
+the pig has now. The first build exempted them on the argument that capping
+destroys coins that were already the player's; the designer overruled it --
+one rule with no exceptions, and a player who lets their pig refill while
+their coins are out is in the same position as one who robs with a full pig.
+The loss ledger is still credited with the whole amount, because the robbery
+was undone.
+
+**THE VICTIM IS STILL CHARGED THE FULL AMOUNT, AND EVERY COUNTER MEASURES
+THAT.** Bail, the rap sheet, `totalStolen`, the weekly board and the pig-crack
+acorn all read what the victim lost, so a spilled delivery still counts as a
+robbery in every respect but the thief's balance. `auditRobbery` needed no
+change: it is an upper bound that already assumes room.
+
+**A CLAMP IS SILENT BY DEFAULT, SO EVERY ONE OF THEM SPEAKS.** The toast names
+the spill ("Your piggy was full: 1.2M spilled."), the delivery card carries
+`spilled`, and the "worth X at home" line that ends a crack or a smash goes
+through `homeWorthPhrase` -- the payout, the spree AND the room, i.e. the same
+arithmetic `deliver` runs -- so a thief is never promised coins their pig
+cannot take. `tests/luau/theft.luau` holds the preview and the banked figure
+equal across an empty, a nearly full and a full pig.
+
+**WHAT IT COSTS, STATED PLAINLY: A DAILY REWARD CAN SPILL MOST OF ITSELF.**
+The coin rungs are 5 to 30 minutes of income and a pig fills in 8 to 28, so a
+day-seven claim on a full pig is mostly lost. That is the rule working, and
+the boost rung already tells players to claim with room. If it reads as
+punishing, the lever is holding the coins in the ladder until there is room --
+not an exception to the cap.
+
+**THE TREE LADDER'S RATE AND CAP LIVE ON THE SAVE, AND `growAcorns` IS THE
+ONLY READER (step 2.7).** Level sets the rate, the best OWNED house sets the
+cap and the gate, and the rebirth bonus applies only when the caller says the
+owner is `online`. Putting all three inside the one growth function is what
+keeps the offline path, the live tick and the shake agreeing -- three callers
+each multiplying their own copy would be the `LOSS_CAP` x `HEIST_PAYOUT`
+failure again. A resident's stock has no level, no houses and no rebirths,
+so it reads as today's tree by construction.
+
+**THE PLACEHOLDER OAK GROWS UP, NEVER OUT.** The first pass widened it 6% at
+level 4, and the new suite refused it: the trunk mesh's bounding box is 6.2
+studs across and already meets the storage crate's edge at level 0. That is
+a bounding box -- the forks are up in the air where the crate is not -- so it
+may be fine, but nothing offline can say so, and a clearance nobody measured
+in Studio is not one to spend. Height alone changes no horizontal clearance.
+**THE RIPE CROP IS HUNG OFF THE COLLIDER, WHICH DOES NOT MOVE**, so it has to
+be told the height factor (`PLOT_TREE_GROWTH_ATTRIBUTE`) or a taller tree
+leaves its acorns floating a stud under the canopy.
+
+**THE ROB BADGE SHOWS WHAT THE READER CAN CARRY HOME, NOT WHAT IS IN THE
+PIG** (designer decision; the first build left it showing the pile).
+`Config.homeTake` is a clean crack's take times the event multiplier times
+`HEIST_PAYOUT`, capped at the reader's own room; a full reader pig reads
+**PIG FULL** in warn ink rather than "0", which would read as an empty target.
+The steal and smash cards print the same figure (`FULL` there, because the
+amount box is 64 pixels), so the badge and the prompt still agree. It leaves
+out revenge and the spree, which a client cannot know in advance, so it never
+promises more than a plain delivery banks.
 
 **DERIVED IN THE RENDERER, NOT PUSHED.** `coins`, `capacity` and `rate` are
 all already in that payload, so a fourth field would be a second way to say

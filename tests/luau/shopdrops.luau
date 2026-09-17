@@ -26,7 +26,7 @@ local load = assert(loadstring("return function(" .. body .. "\nend", "rollShopD
 setfenv(load,env)
 local roll = load()
 local function reset(count)
- data={robberies=count,coins=100,loot=7,consumables={}}
+ data={robberies=count,coins=100,loot=7,consumables={},capacityLevel=20}
  grants,notices,saves,pushes,rngCalls=0,0,0,0,0
  carrying[thief]=nil;allOwned=false;discovery=nil;draw=function() return 0 end
 end
@@ -83,6 +83,13 @@ check(data.coins==100 and notices==0,"rank gate also blocks owned-ride coin fall
 reset(100);allOwned=true;roll(thief,"gear")
 check(data.coins>100 and grants==0 and saves==1 and notices==1,"eligible complete ride collection still pays resale coins")
 check(discovery.mode=="sold" and discovery.coins==data.coins-100,"resale reveal reports coins rather than a new ride")
+-- Nothing puts more in a pig than it holds (4c.6): a resale into a nearly
+-- full pig pays only the room, and a full one pays nothing and says why.
+local cap=Config.getCapacity(20)
+reset(100);data.coins=cap-5;allOwned=true;roll(thief,"gear")
+check(data.coins==cap and discovery.coins==5,"resale into a nearly full pig pays only the room")
+reset(100);data.coins=cap;allOwned=true;roll(thief,"gear")
+check(data.coins==cap and discovery.coins==0 and notices==1,"resale into a full pig pays nothing and still reports the find")
 -- Actual rarity chances are normalized over the currently eligible items.
 local odds=Config.shopLootOdds("gear",100,function() return false end)
 local sum=0

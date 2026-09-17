@@ -79,4 +79,28 @@ function AcornTree.build(parent: Instance, base: CFrame): Refs?
 	return { model = model, trunk = built.Trunk, canopy = built.Canopy, collider = collider }
 end
 
+-- THE PLACEHOLDER GROWTH for a tree level (step 2.7), until brief B5 draws
+-- the real five: the two visual meshes stretched about the tree's own ground
+-- pivot. The collider is left alone -- it is the lower trunk, the thing a
+-- runner bumps into and the shake prompt hangs on, and neither of those
+-- should move because somebody bought a rung.
+function AcornTree.setGrowth(refs: Refs?, scaleXZ: number, scaleY: number)
+	if not refs or not refs.model or not refs.model.Parent then
+		return
+	end
+	local parts = Config.acornOakMesh()
+	if not parts then
+		return
+	end
+	local base = refs.model.WorldPivot
+	local stretch = Vector3.new(scaleXZ, scaleY, scaleXZ)
+	for _, entry in ipairs(parts) do
+		local part = refs.model:FindFirstChild(entry.part)
+		if part and part:IsA("BasePart") then
+			part.Size = entry.size * Config.ACORNS.treeScale * stretch
+			part.CFrame = base * CFrame.new(entry.offset * Config.ACORNS.treeScale * stretch)
+		end
+	end
+end
+
 return AcornTree

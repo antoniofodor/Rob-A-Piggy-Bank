@@ -62,6 +62,7 @@ local DataService = require(script.Parent.DataService)
 local PlotService = require(script.Parent.PlotService)
 local SetService = require(script.Parent.SetService)
 local CosmeticsService = require(script.Parent.CosmeticsService)
+local WorldService = require(script.Parent.WorldService)
 
 local EventService = {}
 
@@ -187,12 +188,16 @@ local function payIncomeSeconds(player: Player, seconds: number, why: string)
 	if not data then
 		return 0
 	end
-	local amount = math.floor(incomeOf(data) * seconds)
-	if amount <= 0 then
+	local amount, spilled = Config.fitInPig(data.coins, Config.getCapacity(data.capacityLevel),
+		incomeOf(data) * seconds)
+	if amount <= 0 and spilled <= 0 then
 		return 0
 	end
+	-- Capped at the pig like every other mint (Config.fitInPig), and the
+	-- spill is named rather than silently dropped.
 	data.coins += amount
-	notify(player, ("%s +%s coins."):format(why, format(amount)), "money")
+	notify(player, ("%s +%s coins.%s"):format(why, format(amount),
+		if spilled > 0 then (" Your piggy was full: %s spilled."):format(format(spilled)) else ""), "money")
 	return amount
 end
 
@@ -216,22 +221,25 @@ local function takeFromVault(player: Player, amount: number): number
 	return taken
 end
 
--- Recovered coins go back into the pig, and may overflow it: they were the
--- victim's before the drone took them, and a full pig does not make them
--- less so.
+-- Recovered coins go back into the pig, capped at the room it has now like
+-- every other way coins arrive (MASTER-PLAN 4c.6); the rest spills, and the
+-- owner is told. Returns what was banked, which is what the toasts name.
 local function giveToVault(player: Player, amount: number): number
 	local data = DataService.get(player)
 	if not data or amount <= 0 then
 		return 0
 	end
 	local capacity = Config.getCapacity(data.capacityLevel)
-	local before = data.coins
-	data.coins += amount
+	local banked, spilled = Config.fitInPig(data.coins, capacity, amount)
+	data.coins += banked
 	local plot = PlotService.getPlot(player)
 	if plot then
 		PlotService.updatePile(plot, data.coins, capacity)
 	end
-	return math.floor(data.coins - before)
+	if spilled > 0 and player.Parent then
+		notify(player, ("Your piggy was full: %s of your recovered coins spilled."):format(format(spilled)), "warn")
+	end
+	return banked
 end
 
 -- ============================================================
@@ -583,50 +591,44 @@ local function runRaid()
 end
 
 -- ============================================================
--- RUSH HOUR
+-- MIDNIGHT HEIST (designer, September 16; replaces Rush Hour and the
+-- Harvest Moon)
 -- ============================================================
 --
--- Deliberately the cheapest thing on the roster: one multiplier and a banner.
--- It is here to prove the framework takes more than one event rather than
--- being the raid with extra steps -- and because not everything on a roster
--- should cost a week to build.
+-- The street goes dusk and, for its length, every coin steal pays double
+-- (Rush Hour's old job) and a clean pig crack's acorn pays double
+-- (`Config.MIDNIGHT`). It opens nobody's tree: acorn theft is disabled.
+--
+-- THE MULTIPLIERS ARE SET BEFORE THE PUSH. `pushPhase` stamps
+-- `stealMultiplier` into the payload so the steal prompt and the badge can
+-- quote what a grab is worth, and Rush Hour once set it on the line AFTER the
+-- push -- so no push in the whole cycle ever carried a 2, and nothing read it
+-- to say so. Anything that changes a number publishes it in the same breath.
 
-local function runRush()
-	-- THE MULTIPLIER IS SET BEFORE THE PUSH, AND IT USED TO BE SET AFTER -- SO
-	-- NOBODY WAS EVER TOLD.
-	--
-	-- `pushPhase` stamps `stealMultiplier` into the payload and its own
-	-- comment says what that is for: "sent so the steal prompt can print what
-	-- a grab is actually worth". Written in this order, `setPhase` pushed
-	-- while the multiplier was still 1; the reset at the end of the rush
-	-- happened before the "quiet" push; and NO PUSH IN THE WHOLE CYCLE EVER
-	-- CARRIED A 2. The field was on the wire, correctly named, always 1.
-	--
-	-- It was invisible for two reasons that reinforced each other. The one
-	-- client that DID see a 2 was somebody JOINING mid-rush, because
-	-- `EventService.start` defers a `pushPhase` per player -- so the value was
-	-- reachable, just never on the transition that matters. And nothing read
-	-- it: a payload field with no reader cannot be wrong out loud.
-	--
-	-- Same shape as `updatePile` publishing everywhere except the one tick
-	-- that mattered: ANYTHING THAT CHANGES A NUMBER HAS TO PUBLISH IT IN THE
-	-- SAME BREATH, which here means setting it on the line ABOVE the push
-	-- rather than the line below.
-	stealMultiplier = Config.RUSH.stealMultiplier
-	setPhase("running", "rush", Config.EVENTS.roster.rush.seconds)
-	announce(("RUSH HOUR! Steals are worth %dx for %d seconds."):format(
-		Config.RUSH.stealMultiplier, Config.EVENTS.roster.rush.seconds), "police")
+local acornMultiplier = 1
+
+local function runMidnight()
+	local spec = Config.EVENTS.roster.midnight
+	stealMultiplier = Config.MIDNIGHT.stealMultiplier
+	acornMultiplier = Config.MIDNIGHT.acornMultiplier
+	WorldService.setNight(true)
+	setPhase("running", "midnight", spec.seconds)
+	announce(("MIDNIGHT HEIST! For %d seconds every steal pays %dx, and a clean crack on a player's pig pays %dx acorns.")
+		:format(spec.seconds, Config.MIDNIGHT.stealMultiplier, Config.MIDNIGHT.acornMultiplier), "police")
 
 	while os.clock() < phaseEnds do
 		task.wait(0.25)
 	end
 
 	stealMultiplier = 1
-	announce("Rush hour is over.", "warn")
+	acornMultiplier = 1
+	WorldService.setNight(false)
+	announce("Dawn. The Midnight Heist is over.", "warn")
+end
 
-	-- Rush Hour rewards the boosted coin steals made during the event.
-	-- There is no separate attendance currency payout.
-
+-- Read by HeistService when a clean crack ends. 1 whenever nothing is running.
+function EventService.getAcornMultiplier(): number
+	return acornMultiplier
 end
 
 -- Read by HeistService. Safe to consult unconditionally because it is 1
@@ -650,9 +652,10 @@ function EventService.isEventLive(): boolean
 	return running ~= nil
 end
 
--- THE ONLY WINDOW IN WHICH ANOTHER PLAYER'S ACORNS CAN BE TAKEN (MASTER-PLAN
--- 19.3). True while a roster row carrying `acornTheft = true` is running --
--- Harvest Moon, step 6.4. No such row exists yet, so this is false.
+-- THE ONLY WINDOW IN WHICH ANOTHER PLAYER'S ACORNS COULD BE TAKEN (MASTER-PLAN
+-- 19.3). True while a roster row carrying `acornTheft = true` is running.
+-- ACORN THEFT IS DISABLED (September 16): no row carries the flag and
+-- `auditAcorns` refuses one that does, so this is always false.
 function EventService.isAcornTheftOpen(): boolean
 	local spec = running and Config.EVENTS.roster[running]
 	return spec ~= nil and spec.acornTheft == true
@@ -744,9 +747,9 @@ function EventService.trigger(name: string?): string
 end
 
 function EventService.status(): string
-	return ("phase=%s event=%s left=%.1fs beams=%d saucer=%s rush=x%d"):format(
+	return ("phase=%s event=%s left=%.1fs beams=%d saucer=%s steals=x%d acorns=x%d"):format(
 		phase, phaseName, math.max(0, phaseEnds - os.clock()),
-		#beams, tostring(saucer ~= nil), stealMultiplier)
+		#beams, tostring(saucer ~= nil), stealMultiplier, acornMultiplier)
 end
 
 function EventService.start()
@@ -782,7 +785,8 @@ function EventService.start()
 			end
 
 			running = chosen
-			local ok, err = pcall(if chosen == "raid" then runRaid else runRush)
+			local run = if chosen == "raid" then runRaid else runMidnight
+			local ok, err = pcall(run)
 			if not ok then
 				warn(("[EventService] '%s' failed: %s"):format(chosen, tostring(err)))
 			end
@@ -790,7 +794,13 @@ function EventService.start()
 			-- must not leave a saucer parked over the street forever.
 			running = nil
 			stealMultiplier = 1
+			acornMultiplier = 1
 			endRaid()
+			-- The day back, whatever the night did or failed to do. A night
+			-- that errored halfway must not leave the street at dusk forever.
+			if chosen == "midnight" and not ok then
+				WorldService.restoreDay()
+			end
 
 			setPhase("quiet", "", 2)
 		end

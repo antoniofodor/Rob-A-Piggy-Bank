@@ -3376,6 +3376,10 @@ local ICON = {
 	-- pick up the fault that made the warning triangle render 4px narrower
 	-- than everything beside it.
 	SMASH = utf8.char(0x1F4A5),
+	-- Growing your tree (step 2.7). U+1F333 DECIDUOUS TREE, four-byte, so it
+	-- has no monochrome text form. NOT YET render-measured the way the rest
+	-- of this table was; do that before trusting its width on the card.
+	TREE = utf8.char(0x1F333),
 }
 
 -- EVERY KIND GETS ITS OWN ICON, and that is the point of having one.
@@ -3722,11 +3726,18 @@ Config.EVENTS = {
 		-- has none: its reward is the increased coin value of steals during
 		-- the event. Neither event pays attendance Acorns.
 		raid = { name = "ALIEN INVASION", weight = 1, seconds = 150, set = "alien" },
-		rush = { name = "RUSH HOUR", weight = 2, seconds = 180 },
-		-- A row carrying `acornTheft = true` is the ONLY window in which
-		-- another player's ripe tree acorns can be shaken (MASTER-PLAN 19.3).
-		-- Harvest Moon (step 6.4) is that row; until it lands, none exists
-		-- and acorn theft is closed.
+		-- MIDNIGHT HEIST (designer, September 16) REPLACES BOTH RUSH HOUR AND
+		-- THE HARVEST MOON. The street goes dusk and, for its length, every
+		-- coin steal pays double (Rush Hour's old job) and a clean pig crack's
+		-- acorn pays double too (`Config.MIDNIGHT`). It takes Rush Hour's
+		-- weight and length, so the raid is back to ~41% of slots.
+		--
+		-- ACORN THEFT IS DISABLED. The Harvest Moon was the one event that
+		-- opened other players' trees (a row carrying `acornTheft = true`), and
+		-- its inherited x5 swamped the multiplayer faucet. No row opens it now,
+		-- and `auditAcorns` refuses one that does; the shake-another-tree path
+		-- stays in the code, closed, until play-testing says otherwise.
+		midnight = { name = "MIDNIGHT HEIST", weight = 2, seconds = 180 },
 	},
 }
 
@@ -3761,10 +3772,35 @@ Config.EVENT_UI = {
 		tone = Color3.fromRGB(59, 204, 209),
 		live = "DRONES ON THE STREET",
 	},
-	rush = {
-		glyph = utf8.char(0x26A1) .. VS16,
-		tone = Color3.fromRGB(255, 176, 46),
-		live = "STEALS ARE DOUBLE",
+	-- U+1F319 CRESCENT MOON, four-byte, so no monochrome text form. NOT YET
+	-- render-measured like the raid's glyph. A light periwinkle: far from the
+	-- raid's cyan, and light enough to carry ink -- measured 8.6:1 lit and
+	-- 5.2:1 at the bottom of the warning pulse, where a first pick at
+	-- (176, 164, 255) fell to 4.46 against a 4.5 floor.
+	midnight = {
+		glyph = utf8.char(0x1F319),
+		tone = Color3.fromRGB(192, 182, 255),
+		live = "STEALS PAY DOUBLE",
+	},
+}
+
+-- MIDNIGHT HEIST'S LIGHT, AND IT IS A TWEEN FOR THE WINDOW ONLY.
+--
+-- There is no night in this game (CLAUDE.md, the Lighting entries): every
+-- neon effect, the bloom threshold and the pig's readability are tuned
+-- against one sun at ClockTime 14.5. So "midnight" is a DUSK, not a night --
+-- the sun low and orange, the shadows violet, the whole street a stop
+-- darker -- and it goes back to the exact day values when the event ends,
+-- whatever happened in between (`WorldService.setNight`). Brightness stays
+-- well above zero so a nine-year-old can still read a pig and a dog.
+Config.MIDNIGHT_LIGHT = {
+	fadeSeconds = 3,
+	lighting = {
+		ClockTime = 17.9,
+		Brightness = 1.5,
+		Ambient = Color3.fromRGB(96, 88, 136),
+		OutdoorAmbient = Color3.fromRGB(92, 86, 140),
+		ColorShift_Top = Color3.fromRGB(255, 190, 140),
 	},
 }
 
@@ -3879,12 +3915,16 @@ Config.RAID = {
 	beamRadius = 2.0,
 }
 
--- RUSH HOUR is deliberately the cheapest thing on the roster: a multiplier on
--- one number and a continuous patrol. It exists to prove the event framework
--- takes more than one event rather than being the raid with extra steps, and
--- because not everything on the roster should cost a week.
-Config.RUSH = {
+-- MIDNIGHT HEIST's two multipliers. `stealMultiplier` is Rush Hour's, moved
+-- here unchanged: it doubles what a coin steal takes (EventService pushes it,
+-- so the prompts and the badge quote it). `acornMultiplier` doubles the
+-- pig-crack acorn (`Config.crackAcorns`) on a delivery whose CRACK ENDED
+-- during the event -- it is stamped on the carry, so walking home after dawn
+-- still pays what the night promised. A solo player gets no acorn bonus:
+-- residents and shops mint no pig-crack acorn, and doubling zero is zero.
+Config.MIDNIGHT = {
 	stealMultiplier = 2,
+	acornMultiplier = 2,
 }
 
 -- ============================================================
@@ -4041,6 +4081,9 @@ Config.PROMPTS = {
 	-- things that are, because `keyText` prints HOLD on both when there is no
 	-- key to name.
 	shake = { glyph = ICON.SMASH, tone = Color3.fromRGB(164, 96, 49), verb = "SHAKE" },
+	-- Buying the next tree level. The good green, because it is spending on
+	-- your own plot and never an act against anybody.
+	grow = { glyph = ICON.TREE, tone = Color3.fromRGB(92, 176, 84), verb = "GROW" },
 	smash = {
 		glyph = ICON.SMASH, tone = Color3.fromRGB(230, 72, 64),
 		verb = "SMASH",
@@ -4245,6 +4288,16 @@ Config.PLOT_HOT_SKIN_ATTRIBUTE = "HotSkinUntil"
 Config.PLOT_VAULT_ATTRIBUTE = "VaultAmount"
 Config.PLOT_ACORNS_ATTRIBUTE = "AcornAmount" -- banked storage
 Config.PLOT_TREE_ACORNS_ATTRIBUTE = "TreeAcorns"
+-- The oak's placeholder height factor for its level (step 2.7), so the ripe
+-- acorns the client hangs on it rise with the canopy. Missing reads as 1.
+Config.PLOT_TREE_GROWTH_ATTRIBUTE = "TreeGrowth"
+-- THE NEXT-ACORN CLOCK over the owner's tree (MASTER-PLAN 19.4's
+-- anticipation layer). `TreeNextAcornAt` is the server time the next ripe
+-- acorn lands, or nil while the tree is full; `TreeCap` is how many it holds.
+-- Published by the server, which owns the growth cursor; the client only
+-- counts down to it.
+Config.PLOT_TREE_NEXT_ATTRIBUTE = "TreeNextAcornAt"
+Config.PLOT_TREE_CAP_ATTRIBUTE = "TreeCap"
 Config.PLOT_GROUND_ACORNS_ATTRIBUTE = "GroundAcorns"
 Config.PLOT_SHAKE_ATTRIBUTE = "AcornShakeAt"
 
@@ -6597,7 +6650,8 @@ end
 -- SO THE NEXT SOURCE IS ONE LINE HERE RATHER THAN TEN SITES. That is the
 -- whole argument for the function existing.
 function Config.isEarnedElsewhere(spec: any): boolean
-	return spec ~= nil and (spec.set ~= nil or spec.pass ~= nil or spec.trophy ~= nil)
+	return spec ~= nil and (spec.set ~= nil or spec.pass ~= nil or spec.trophy ~= nil
+		or spec.earned ~= nil or spec.season ~= nil)
 end
 function Config.isSkinUnlocked(key: string, owned: { [string]: boolean }, _rebirths: number): boolean
 	local skin = Config.SKINS[key]
@@ -9648,6 +9702,14 @@ end
 -- game -- roughly 9% of the 1.17B the whole economy contains. Note the number
 -- that matters here is OPENS, not price: the odds are what gate a collection,
 -- and the price only decides how much of the economy it drains on the way.
+-- PRICES TRIPLED ON SEPTEMBER 16 (MASTER-PLAN 19.5; designer approved). The
+-- boot audit had been pricing against 1 acorn per ONLINE hour, but a tree
+-- also fills overnight, and the tree ladder (2.7) lifts the rate: measured in
+-- tests/sim/acorns/model.py, a regular player makes 15-26 acorns a day, which
+-- at the old 5/15/40 was three to five crates a visit. At 15/45/120 it is
+-- about one common crate a visit and a legendary every five to eight days.
+-- Buy-back tickets and the rebirth-crate bonus derive from these, so they
+-- moved with them.
 Config.CHESTS = {
 	-- THE OG SHELF, WHICH IS THE OLD CLASSICS CRATE WITH NEON NIGHTS FOLDED
 	-- INTO IT.
@@ -9670,7 +9732,7 @@ Config.CHESTS = {
 		order = 1,
 		kind = "skin",
 		currency = "loot",
-		cost = 5,
+		cost = 15,
 		odds = { common = 52, rare = 44, legendary = 4 },
 		colour = Color3.fromRGB(236, 138, 178),
 		blurb = "The skins the street was built on, glow and all",
@@ -9743,7 +9805,7 @@ Config.CHESTS = {
 		order = 5,
 		kind = "skin",
 		currency = "loot",
-		cost = 15,
+		cost = 45,
 		-- EVERY SKIN IN THE COIN ECONOMY AT RARE OR BETTER, across all three
 		-- themed pools -- which is the other thing this rung sells. A themed
 		-- crate is the route to a theme; this is the route to a SPECIFIC skin
@@ -9758,7 +9820,7 @@ Config.CHESTS = {
 		order = 6,
 		kind = "skin",
 		currency = "loot",
-		cost = 40,
+		cost = 120,
 		-- ITS FLOOR WAS `epic` AND HAD TO COME DOWN TO `rare`, WHICH IS THE
 		-- ONE PLACE DROPPING A TIER BROKE SOMETHING RATHER THAN SIMPLIFYING
 		-- IT.
@@ -9813,7 +9875,7 @@ Config.CHESTS = {
 		kind = "set",
 		set = "alien",
 		currency = "loot",
-		cost = 6,
+		cost = 18,
 		-- Six items: one rare, four epic, one legendary. The odds follow the
 		-- stock rather than the coin chests' ladder, because there is no common
 		-- tier here at all -- an event pool is small and top-heavy by nature.
@@ -9836,7 +9898,7 @@ Config.CHESTS = {
 		order = 3,
 		kind = "skin",
 		currency = "loot",
-		cost = 5,
+		cost = 15,
 		-- EIGHT PAINTED COATS AND ONE STORM WOLF: THIS SHELF HAS NO RARE TIER
 		-- AT ALL, AND THE ODDS ROW SAYS SO RATHER THAN LEAVING IT TO
 		-- `liveOdds`.
@@ -10519,21 +10581,166 @@ function Config.acornGrowthCursor(value: any, now: number): number
 	return math.clamp(math.floor(value), now - Config.OFFLINE_CAP_SECONDS, now)
 end
 
+-- ============================================================
+-- THE TREE LADDER (MASTER-PLAN 19.4, 19.4a; step 2.7)
+-- ============================================================
+--
+-- ONE TREE PER PLOT, WITH LEVELS; NEVER MORE TREES. The ladder sells the
+-- RATE and is priced in coins -- the direction the title wants: rob pigs,
+-- spend coins on your tree, grow acorns, open crates -- and it is the
+-- repeatable coin sink the shop was missing.
+--
+-- THE HOUSE GATES AND HOLDS; IT NEVER GENERATES. The best house a player
+-- OWNS (never the one shown -- moving into a cheaper-looking house for taste
+-- must not cost anybody their tree) decides how high the ladder may be
+-- bought and how many ripe acorns the tree holds. It never adds a tree and
+-- never adds acorns per hour, so every acorn price solved against the
+-- faucet stays solved whatever house somebody buys.
+--
+-- Rows are levels 0..4 at index level + 1. Level 0 is the tree everybody has
+-- and must equal the base rate `ACORNS.growSeconds` describes, or the
+-- offline window stops filling a Common tree exactly (auditAcorns checks).
+-- `scaleXZ`/`scaleY` are the PLACEHOLDER growth on the oak until brief B5
+-- lands the real five levels. HEIGHT ONLY: the trunk mesh's bounding box
+-- already reaches the storage crate's edge at level 0 (its forks are 6.2
+-- studs across, up in the air where the crate is not), so any sideways
+-- growth would be a clearance nobody measured in Studio. Taller changes no
+-- clearance at all (tests/luau/tree.luau), and still reads from the pavement.
+--
+-- FIRST-PASS PRICES, each set just below the cheapest house of the rarity
+-- that opens it, so the rung is affordable the moment the gate opens and
+-- never outprices the house that unlocked it. Re-solve with 19.5.
+Config.TREE_LEVELS = {
+	{ rate = 1.0, scaleXZ = 1.0, scaleY = 1.0 },
+	{ rate = 1.25, cost = 25000, scaleXZ = 1.0, scaleY = 1.05 },
+	{ rate = 1.5, cost = 100000, scaleXZ = 1.0, scaleY = 1.1 },
+	{ rate = 2.0, cost = 1000000, scaleXZ = 1.0, scaleY = 1.15 },
+	{ rate = 2.5, cost = 12000000, scaleXZ = 1.0, scaleY = 1.2 },
+}
+
+-- Best owned house rarity -> the highest tree level that may be BOUGHT and
+-- the ripe acorns the tree HOLDS. Common's cap is today's cap: nothing moves
+-- for anybody who owns only Common houses.
+Config.TREE_HOUSE_GATE = {
+	common = { maxLevel = 1, cap = 8 },
+	rare = { maxLevel = 2, cap = 12 },
+	epic = { maxLevel = 3, cap = 16 },
+	legendary = { maxLevel = 4, cap = 24 },
+}
+
+-- REBIRTH GROWS THE TREE WHILE YOU PLAY. A few percent per rebirth, ONLINE
+-- ONLY -- the loop is on the street -- and capped, so it is the one thing
+-- rebirth still grows past the ladder's ceiling without becoming a faucet.
+Config.TREE_REBIRTH_BONUS = { perRebirth = 0.03, max = 0.6 }
+
+-- The highest-rarity house in an owned set. Reads `data.houses.owned`; a
+-- table with no houses (a resident's stock) is Common.
+function Config.bestHouseRarity(data: any): string
+	local houses = type(data) == "table" and data.houses
+	local owned = type(houses) == "table" and houses.owned
+	local best, bestRank = "common", Config.rarityRank("common")
+	if type(owned) ~= "table" then
+		return best
+	end
+	for _, tier in ipairs(Config.HOUSE_TIERS) do
+		if owned[tier.id] == true then
+			local rarity = Config.rarityOf(tier)
+			local rank = Config.rarityRank(rarity)
+			if rank > bestRank then
+				best, bestRank = rarity, rank
+			end
+		end
+	end
+	return best
+end
+
+function Config.treeGate(data: any): { maxLevel: number, cap: number }
+	return Config.TREE_HOUSE_GATE[Config.bestHouseRarity(data)] or Config.TREE_HOUSE_GATE.common
+end
+
+-- The saved level, clamped to the ladder. Deliberately NOT clamped to the
+-- gate: houses are never lost in play, and a level already bought stays.
+function Config.treeLevelOf(data: any): number
+	local tree = type(data) == "table" and data.tree
+	local level = type(tree) == "table" and tonumber(tree.level) or 0
+	if level ~= level then
+		level = 0
+	end
+	return math.clamp(math.floor(level), 0, #Config.TREE_LEVELS - 1)
+end
+
+function Config.treeCap(data: any): number
+	return Config.treeGate(data).cap
+end
+
+function Config.treeRebirthFactor(rebirths: number?, online: boolean?): number
+	if not online then
+		return 1
+	end
+	local b = Config.TREE_REBIRTH_BONUS
+	return 1 + math.min(b.max, math.max(0, math.floor(tonumber(rebirths) or 0)) * b.perRebirth)
+end
+
+function Config.treeGrowthPerHour(level: number, rebirths: number?, online: boolean?): number
+	local row = Config.TREE_LEVELS[math.clamp(math.floor(level), 0, #Config.TREE_LEVELS - 1) + 1]
+	return row.rate * Config.treeRebirthFactor(rebirths, online)
+end
+
 -- Shared arithmetic for the server's offline and live paths. Preserve partial
 -- hours below cap. Time spent full is discarded, never banked for after spending.
-function Config.growAcorns(data: any, now: number): number
+--
+-- THE RATE AND THE CAP ARE THE SAVE'S OWN (step 2.7): the tree level and
+-- the rebirth bonus (live only -- `online`) set the seconds per acorn, and
+-- the best owned house sets the cap. A resident's stock carries no level, no
+-- houses and no rebirths, so it grows exactly as before: 1 an hour to 8.
+function Config.growAcorns(data: any, now: number, online: boolean?): number
+	local cap = Config.treeCap(data)
+	local seconds = 3600 / Config.treeGrowthPerHour(Config.treeLevelOf(data), data.rebirths, online)
 	local cursor = Config.acornGrowthCursor(data.acornsGrownAt, now)
 	local before = data.treeAcorns or 0
-	if before >= Config.ACORNS.growCap then
+	if before >= cap then
 		data.acornsGrownAt = now
 		return 0
 	end
-	local elapsed = math.floor((now - cursor) / Config.ACORNS.growSeconds)
-	local gained = math.min(elapsed, Config.ACORNS.growCap - before)
+	local elapsed = math.floor((now - cursor) / seconds)
+	local gained = math.min(elapsed, cap - before)
 	data.treeAcorns = before + gained
-	data.acornsGrownAt = if data.treeAcorns >= Config.ACORNS.growCap then now
-		else cursor + elapsed * Config.ACORNS.growSeconds
+	data.acornsGrownAt = if data.treeAcorns >= cap then now
+		else cursor + elapsed * seconds
 	return gained
+end
+
+-- Seconds until the next ripe acorn, or nil while the tree is full. The same
+-- cursor and rate `growAcorns` uses; call it right after a `growAcorns` so
+-- the cursor is settled.
+function Config.nextAcornIn(data: any, now: number, online: boolean?): number?
+	if (data.treeAcorns or 0) >= Config.treeCap(data) then
+		return nil
+	end
+	local seconds = 3600 / Config.treeGrowthPerHour(Config.treeLevelOf(data), data.rebirths, online)
+	local cursor = Config.acornGrowthCursor(data.acornsGrownAt, now)
+	return math.max(0, cursor + seconds - now)
+end
+
+-- What the owner's tree prompt says and sells next: nil when fully grown.
+function Config.nextTreeLevel(data: any): (number?, any?, boolean)
+	local nextLevel = Config.treeLevelOf(data) + 1
+	local row = Config.TREE_LEVELS[nextLevel + 1]
+	if not row then
+		return nil, nil, false
+	end
+	return nextLevel, row, nextLevel <= Config.treeGate(data).maxLevel
+end
+
+-- The cheapest rarity whose gate allows `level`, for the refusal's wording.
+function Config.treeGateRarityFor(level: number): string?
+	for _, rarity in ipairs(Config.RARITY_ORDER) do
+		local gate = Config.TREE_HOUSE_GATE[rarity]
+		if gate and gate.maxLevel >= level then
+			return rarity
+		end
+	end
+	return nil
 end
 -- Ground stock is saved separately, so reconnecting cannot duplicate a shake.
 function Config.expireGroundAcorns(data: any, now: number): boolean
@@ -10646,13 +10853,48 @@ Config.HOUSE_TIERS = {
 		trim = Color3.fromRGB(238, 234, 226),
 		blurb = "Three floors stacked narrow. Bay window and a stoop",
 	},
+
+	-- REVISION 2 OF THE CATALOGUE (docs/HOUSE-TIER-BRIEF.md section 1) LANDS
+	-- AHEAD OF ITS MODELS. A row carrying `placeholder` has no builder yet:
+	-- House.build stands a plain, clearly-temporary block of `width` x
+	-- `height` x `depth` in its colours, so buying, moving in, the card and
+	-- the sign all work end to end while the art is still being drawn. The
+	-- day a real builder lands under the row's `style`, the flag comes off
+	-- and nothing about ownership moves -- that is what stable ids buy.
+	--
+	-- `height` is the brief's silhouette ladder, because height is the one
+	-- thing that has to read from the road. Width and depth are this file's
+	-- guess inside the brief's limits (structure <= 60 wide, <= 57 deep) and
+	-- are expected to change when the model arrives.
 	{
-		id = "villa", name = "Suburban Villa", style = "villa", cost = 400000,
+		id = "mushroom", name = "Toadstool Cottage", style = "mushroom", cost = 250000,
+		placeholder = true, height = 14,
+		drive = { colour = Color3.fromRGB(96, 124, 70), material = Enum.Material.Ground, edge = false },
+		width = 18, depth = 18, storeys = 1,
+		walls = Color3.fromRGB(238, 226, 200), roof = Color3.fromRGB(186, 44, 52),
+		trim = Color3.fromRGB(78, 52, 40),
+		blurb = "A giant spotted toadstool with a round door in the stalk",
+	},
+	{
+		-- RE-THEMED IN PLACE (was the Suburban Villa). Same id, same price,
+		-- same owners. It keeps standing the villa's model until the lantern
+		-- cottage builder lands under a new style, so nobody who paid for
+		-- this house wakes up in a placeholder block.
+		id = "villa", name = "Fairy Lantern Cottage", style = "villa", cost = 400000,
 		drive = { colour = Color3.fromRGB(196, 194, 188), material = Enum.Material.Concrete, edge = true },
 		width = 33, depth = 24, storeys = 2,
 		walls = Color3.fromRGB(236, 228, 210), roof = Color3.fromRGB(96, 104, 100),
 		trim = Color3.fromRGB(198, 188, 168),
-		blurb = "Sprawling, low and wide, with a double garage",
+		blurb = "A crooked little cottage under a string of glowing lanterns",
+	},
+	{
+		id = "treehouse", name = "The Treehouse", style = "treehouse", cost = 750000,
+		placeholder = true, height = 30,
+		drive = { colour = Color3.fromRGB(128, 96, 64), material = Enum.Material.Ground, edge = false },
+		width = 22, depth = 22, storeys = 2,
+		walls = Color3.fromRGB(150, 104, 66), roof = Color3.fromRGB(86, 138, 64),
+		trim = Color3.fromRGB(96, 66, 42),
+		blurb = "A cabin up in the boughs, with a rope ladder and a bridge",
 	},
 	{
 		id = "manor", name = "Stone Manor", style = "manor", cost = 1400000,
@@ -10663,7 +10905,18 @@ Config.HOUSE_TIERS = {
 		blurb = "Symmetrical wings, stone columns, and far too many windows",
 	},
 	{
-		id = "modern", name = "Midnight Modern", style = "modern", cost = 5000000,
+		id = "slime", name = "Gloop House", style = "slime", cost = 2500000,
+		placeholder = true, height = 18,
+		drive = { colour = Color3.fromRGB(96, 176, 76), material = Enum.Material.SmoothPlastic, edge = true },
+		width = 28, depth = 24, storeys = 2,
+		walls = Color3.fromRGB(112, 204, 92), roof = Color3.fromRGB(58, 140, 60),
+		trim = Color3.fromRGB(228, 96, 160),
+		blurb = "A house being eaten by slime, cheerfully",
+	},
+	{
+		-- RE-THEMED IN PLACE (was the Midnight Modern), on the villa's terms
+		-- above: the old model stands until the fishbowl builder lands.
+		id = "modern", name = "Fishbowl House", style = "modern", cost = 5000000,
 		drive = { colour = Color3.fromRGB(32, 33, 38), material = Enum.Material.Asphalt, edge = true, lit = true },
 		width = 44, depth = 32, storeys = 2,
 		walls = Color3.fromRGB(26, 27, 32), roof = Color3.fromRGB(18, 19, 23),
@@ -10673,7 +10926,16 @@ Config.HOUSE_TIERS = {
 		-- rather than left to fall back, because the fallback is what the
 		-- palace and the castle both got wrong.
 		fxGlow = Color3.fromRGB(255, 186, 66),
-		blurb = "Blacked-out glass box. Cantilevered upper floor, rooftop terrace",
+		blurb = "A pod house inside a giant glass dome full of water",
+	},
+	{
+		id = "candy", name = "Gingerbread Manor", style = "candy", cost = 8000000,
+		placeholder = true, height = 24,
+		drive = { colour = Color3.fromRGB(236, 150, 180), material = Enum.Material.SmoothPlastic, edge = true },
+		width = 32, depth = 26, storeys = 2,
+		walls = Color3.fromRGB(176, 112, 62), roof = Color3.fromRGB(236, 96, 128),
+		trim = Color3.fromRGB(250, 246, 236),
+		blurb = "Two storeys of biscuit, piped icing on every edge",
 	},
 
 	-- The three tiers above here are the endgame ladder, and they are built
@@ -10704,7 +10966,18 @@ Config.HOUSE_TIERS = {
 		blurb = "Six floors of glass with lit edges. Visible from the far end of the street",
 	},
 	{
-		id = "palace", name = "Marble Palace", style = "palace", cost = 40000000,
+		id = "crystal", name = "Crystal Spire", style = "crystal", cost = 25000000,
+		placeholder = true, height = 45,
+		drive = { colour = Color3.fromRGB(40, 38, 48), material = Enum.Material.SmoothPlastic, edge = true, lit = true },
+		width = 24, depth = 24, storeys = 4,
+		walls = Color3.fromRGB(44, 40, 52), roof = Color3.fromRGB(122, 46, 196),
+		trim = Color3.fromRGB(150, 70, 230),
+		blurb = "A geode cracked open, with a glowing crystal for a tower",
+	},
+	{
+		-- RE-THEMED IN PLACE (was the Marble Palace), on the villa's terms:
+		-- the palace model stands until the ice builder lands.
+		id = "palace", name = "Ice Palace", style = "palace", cost = 40000000,
 		drive = { colour = Color3.fromRGB(228, 222, 206), material = Enum.Material.Marble, edge = true, lit = true },
 		width = 46, depth = 30, storeys = 3,
 		walls = Color3.fromRGB(244, 240, 230), roof = Color3.fromRGB(212, 176, 96),
@@ -10730,7 +11003,7 @@ Config.HOUSE_TIERS = {
 		-- full brightness. The colonnade and the steps are white; only a
 		-- colour a long way from white can be seen against them.
 		fxGlow = Color3.fromRGB(255, 166, 24),
-		blurb = "Gold dome, colonnade, and lantern-lit steps. Unsubtle on purpose",
+		blurb = "A palace carved out of ice, with icicles on every line",
 	},
 	{
 		-- 80M AND NOT 100M, BECAUSE 100M WAS A PRICE NO WALLET COULD HOLD.
@@ -10757,7 +11030,70 @@ Config.HOUSE_TIERS = {
 		-- floating shards' undersides out to plain white, so the one thing
 		-- meant to say "magic" said "lit from below" instead.
 		fxGlow = Color3.fromRGB(198, 42, 255),
-		blurb = "Four turrets, battlements and a banner. The last thing anyone buys",
+		-- No longer the last thing anyone buys: four rungs sit above it now
+		-- that band C carries the pig to 1.24B.
+		blurb = "Four turrets, battlements and a banner",
+	},
+
+	-- THE FOUR ABOVE THE OLD TOP. They could not be sold until 4b.1 carried
+	-- the largest pig to 1,241,390,843; `auditEconomy` is what says they fit.
+	{
+		id = "galleon", name = "The Beached Galleon", style = "galleon", cost = 150000000,
+		placeholder = true, height = 50,
+		drive = { colour = Color3.fromRGB(122, 88, 58), material = Enum.Material.SmoothPlastic, edge = true, lit = true },
+		width = 42, depth = 20, storeys = 3,
+		walls = Color3.fromRGB(96, 64, 42), roof = Color3.fromRGB(196, 58, 52),
+		trim = Color3.fromRGB(212, 168, 84),
+		blurb = "A pirate ship run aground on the lawn and moved into",
+	},
+	{
+		id = "portal", name = "Portal House", style = "portal", cost = 300000000,
+		placeholder = true, height = 40,
+		drive = { colour = Color3.fromRGB(118, 116, 124), material = Enum.Material.SmoothPlastic, edge = true, lit = true },
+		width = 36, depth = 28, storeys = 3,
+		walls = Color3.fromRGB(150, 146, 140), roof = Color3.fromRGB(64, 40, 120),
+		trim = Color3.fromRGB(40, 176, 170),
+		blurb = "Half a house here, and half of it somewhere else",
+	},
+	{
+		id = "thundercloud", name = "Thundercloud Fortress", style = "thundercloud", cost = 600000000,
+		placeholder = true, height = 55,
+		-- STORM GREY-BLUE, NOT BLACK. The brief allows exactly one black
+		-- house and it is the Void.
+		drive = { colour = Color3.fromRGB(88, 96, 112), material = Enum.Material.SmoothPlastic, edge = true, lit = true },
+		width = 44, depth = 36, storeys = 5,
+		walls = Color3.fromRGB(92, 102, 122), roof = Color3.fromRGB(62, 70, 90),
+		trim = Color3.fromRGB(170, 130, 240),
+		blurb = "Dark towers rising out of a heavy storm cloud",
+	},
+	{
+		id = "void", name = "The Void", style = "void", cost = 1000000000,
+		placeholder = true, height = 60,
+		-- The one black house, at the tunnel liner's near-black: charcoal
+		-- catches the sky and reads grey.
+		drive = { colour = Color3.fromRGB(17, 17, 19), material = Enum.Material.SmoothPlastic, edge = true, lit = true },
+		width = 44, depth = 36, storeys = 5,
+		walls = Color3.fromRGB(17, 17, 19), roof = Color3.fromRGB(24, 22, 30),
+		trim = Color3.fromRGB(150, 50, 240),
+		blurb = "An all-black manor with a galaxy inside it",
+	},
+
+	-- EARNED, NOT BOUGHT. No `cost` at all -- `(nil or 0) <= 0` is the hole
+	-- that once made a medal item free, so every reader of a house price
+	-- asks `earned` first. Granted by CosmeticsService the moment the last
+	-- PRICED house lands in `houses.owned` (`Config.earnedHouseProgress`),
+	-- and `Config.isEarnedElsewhere` reads the tag, so it can never fall out
+	-- of a crate or be sold. Its rarity is stated because there is no price
+	-- to derive one from.
+	{
+		id = "goldenpig", name = "The Golden Piggy", style = "goldenpig",
+		earned = "houses", rarity = "legendary",
+		placeholder = true, height = 40,
+		drive = { colour = Color3.fromRGB(226, 186, 86), material = Enum.Material.SmoothPlastic, edge = true, lit = true },
+		width = 50, depth = 36, storeys = 3,
+		walls = Color3.fromRGB(226, 186, 86), roof = Color3.fromRGB(240, 150, 176),
+		trim = Color3.fromRGB(44, 32, 34),
+		blurb = "A colossal gold piggy bank. Own every other house to move in",
 	},
 }
 
@@ -10829,11 +11165,43 @@ function Config.getShownHouse(data: any)
 	end
 	local best = nil
 	for _, tier in ipairs(Config.HOUSE_TIERS) do
-		if owned[tier.id] and (best == nil or tier.cost >= best.cost) then
+		if owned[tier.id] and (best == nil or (tier.cost or 0) >= (best.cost or 0)) then
 			best = tier
 		end
 	end
 	return best or Config.HOUSE_TIERS[1]
+end
+
+-- How close a save is to an EARNED house: owned priced houses against all of
+-- them. Derived from the catalogue every time, so a house added later raises
+-- the bar for anybody who has not earned it yet -- and never takes it off
+-- anybody who has, because nothing here revokes.
+function Config.earnedHouseProgress(owned: any): (number, number)
+	local have, need = 0, 0
+	for _, tier in ipairs(Config.HOUSE_TIERS) do
+		if tier.earned == nil then
+			need += 1
+			if type(owned) == "table" and owned[tier.id] == true then
+				have += 1
+			end
+		end
+	end
+	return have, need
+end
+
+-- The houses a RESIDENT may stand, as catalogue positions: every row with a
+-- real builder, in price order. Residents climb this by street level, so a
+-- placeholder block or an earned trophy on a neighbour's lawn is impossible
+-- by construction -- and with the nine built houses in the same relative
+-- order, every resident stands exactly the house it did before revision 2.
+function Config.residentHouseLevel(step: number): number
+	local built = {}
+	for index, tier in ipairs(Config.HOUSE_TIERS) do
+		if not tier.placeholder and tier.earned == nil then
+			table.insert(built, index - 1)
+		end
+	end
+	return built[math.clamp(math.floor(step), 0, #built - 1) + 1] or 0
 end
 
 -- ============================================================
@@ -11344,6 +11712,43 @@ Config.DECOR_ITEMS = {
 		swatch = Color3.fromRGB(72, 132, 226),
 		blurb = "A lamp for every patrol you have outrun",
 	},
+	-- Phase 5.2.
+	hotstreak = {
+		name = "Hot Streak", zone = "lawn", style = "hotstreak", order = 44,
+		trophy = "hotstreak", rarity = "rare",
+		swatch = Color3.fromRGB(232, 110, 48),
+		blurb = "A brazier that burns higher for your longest run",
+	},
+	oldhand = {
+		name = "Old Hand", zone = "lawn", style = "oldhand", order = 45,
+		trophy = "oldhand", rarity = "epic",
+		swatch = Color3.fromRGB(150, 104, 44),
+		blurb = "A star on the board for every robber rank",
+	},
+	cleansheet = {
+		name = "Clean Sheet", zone = "lawn", style = "cleansheet", order = 46,
+		trophy = "cleansheet", rarity = "epic",
+		swatch = Color3.fromRGB(96, 100, 108),
+		blurb = "A vault dial that gains a gold ring as your clean cracks double",
+	},
+	seasoncup = {
+		name = "Season Cup", zone = "lawn", style = "seasoncup", order = 47,
+		trophy = "seasoncup", rarity = "legendary",
+		swatch = Color3.fromRGB(226, 186, 86),
+		blurb = "A cup that grows with the best season tier you ever reached",
+	},
+	wantedposter = {
+		name = "Wanted Poster", zone = "lawn", style = "wantedposter", order = 48,
+		trophy = "wantedposter", rarity = "rare",
+		swatch = Color3.fromRGB(196, 72, 88),
+		blurb = "A poster pinned up for every time you topped Most Wanted",
+	},
+	goodharvest = {
+		name = "Good Harvest", zone = "lawn", style = "goodharvest", order = 49,
+		trophy = "goodharvest", rarity = "rare",
+		swatch = Color3.fromRGB(164, 96, 49),
+		blurb = "A barrel that fills as your own tree's harvest doubles",
+	},
 }
 
 -- ============================================================
@@ -11719,6 +12124,34 @@ Config.TROPHIES = {
 		count = "escapes", need = 1, max = 5,
 		requirement = "Escape one most-wanted patrol",
 	},
+
+	-- PHASE 5.2 (MASTER-PLAN 11): six more rows on the same shape. Every
+	-- `count` is a key of `TrophyService.counts`. Van Job waits for the Cash
+	-- Van (6.2), which does not exist yet.
+	hotstreak = {
+		count = "bestSpree", need = 3, max = 4, ladder = "above",
+		requirement = "Deliver 3 robberies in a row",
+	},
+	oldhand = {
+		count = "rank", need = 1, max = 4, ladder = "above",
+		requirement = "Reach robber rank 1 (25 robberies)",
+	},
+	cleansheet = {
+		count = "clean", need = 10, max = 6, double = true,
+		requirement = "Get 10 clean five-slice cracks home",
+	},
+	seasoncup = {
+		count = "seasonBest", need = 6, max = 5, ladder = "above",
+		requirement = "Reach season tier 6",
+	},
+	wantedposter = {
+		count = "wanted", need = 1, max = 6, double = true,
+		requirement = "Top the Most Wanted board once",
+	},
+	goodharvest = {
+		count = "harvested", need = 100, max = 7, double = true,
+		requirement = "Harvest 100 acorns from your own tree",
+	},
 }
 
 -- How full a trophy is, from 0 (not earned) up to its own `max`.
@@ -11737,6 +12170,11 @@ function Config.trophyGrade(key: string, have: number): number
 		return 0
 	end
 	local max = spec.max or 1
+	-- `ladder = "above"`: one grade per step past the need (a streak of 3 is
+	-- grade 1, 4 is grade 2), for counts that are already small ladders.
+	if spec.ladder == "above" then
+		return math.clamp(math.floor(have - spec.need) + 1, 1, max)
+	end
 	if spec.double then
 		return math.clamp(math.floor(math.log(have / spec.need, 2)) + 1, 1, max)
 	end
@@ -12488,6 +12926,203 @@ function Config.seasonEndsAt(when: number?): number
 	return (Config.seasonIndex(when) + 1) * (Config.SEASON.weeks + Config.SEASON.rest) * 7 * 86400
 end
 
+-- ============================================================
+-- SEASON ONE (Phase 5.3, MASTER-PLAN 12)
+-- ============================================================
+--
+-- A SEASON IS THE SAME INDEX THE BUY-BACK CLAIMS ALREADY USE, and the fifth
+-- week of it is REST: nothing counts, the board shows the final standings,
+-- and the next index starts fresh. Keeping `seasonIndex` untouched is what
+-- keeps every saved buy-back claim meaning what it meant.
+--
+-- `first` is the index Season 1 is: the launch week (2026-09-17) fell in the
+-- rest week of index 591, so the first real season is 592. An index below
+-- it is PRE-SEASON: nothing counts and the chip stays off the sign.
+Config.SEASON.first = 592
+
+-- Season rank is ACORNS EARNED this season: the own-tree harvest deposited
+-- and the pig-crack acorn. Never a refund, a grant or an admin gift. Tiers
+-- are solved in tests/sim/acorns/model.py (`python3 model.py x3 season`):
+-- a casual child reaches tier 6-7 over a season, a regular player 9-10, a
+-- keen player tier 10 in the third or fourth week. Two segments, because the
+-- overnight fill flattens the gap between casual and keen and one geometric
+-- ratio could not hit both targets. Re-derive from telemetry before season 2.
+--
+-- `reward` is one grant through `SetService.grant` (kinds finish, plinth,
+-- kennel, catch), or a `sign` word the plot sign shows. A reward already
+-- owned is said and skipped: nothing converts to acorns, which would be a
+-- faucet. Tier 6 is the Season Cup trophy, which reads the best tier ever
+-- reached (`Config.TROPHIES.seasoncup`), so it needs no grant here.
+Config.SEASON.tiers = {
+	{ need = 10, reward = { kind = "finish", key = "brighteyes" } },
+	{ need = 20, reward = { kind = "plinth", key = "marble" } },
+	{ need = 40, reward = { kind = "finish", key = "polished" } },
+	{ need = 75, reward = { kind = "kennel", key = "midnight" } },
+	{ need = 150, reward = { kind = "finish", key = "lanternglow" } },
+	{ need = 210, reward = { kind = "trophy", key = "seasoncup" } },
+	{ need = 280, reward = { kind = "catch", key = "bubbles" } },
+	{ need = 370, reward = { kind = "finish", key = "gilded" } },
+	{ need = 480, reward = { kind = "sign", key = "STAR" } },
+	{ need = 620, reward = { kind = "finish", key = "season" } },
+}
+
+-- THE SEASON FINISH, NEVER SOLD AGAIN. Tier 10 grants the finish named here
+-- for the season's number. A season with no row does NOT fall back to last
+-- season's exclusive: the grant is said and skipped, so a missing row is a
+-- visible gap for whoever runs the next season rather than a quiet repeat.
+Config.SEASON.finishes = { [1] = "midnightstar" }
+
+-- The Season number (1, 2, ...) for an index, or nil before Season 1.
+function Config.seasonNumber(index: number): number?
+	local n = index - Config.SEASON.first + 1
+	return if n >= 1 then n else nil
+end
+
+-- Whether acorns earned at `when` count: a real season, not its rest week.
+function Config.seasonActive(when: number?): boolean
+	local span = Config.SEASON.weeks + Config.SEASON.rest
+	local week = Config.weekIndex(when)
+	return Config.seasonNumber(week // span) ~= nil and week % span < Config.SEASON.weeks
+end
+
+-- The tier (0-10) for an earned total.
+function Config.seasonTier(earned: number): number
+	local tier = 0
+	for i, row in ipairs(Config.SEASON.tiers) do
+		if earned >= row.need then
+			tier = i
+		end
+	end
+	return tier
+end
+
+-- The concrete grant for tier `i` of season `number`, resolving the season
+-- finish; nil for a sign word, a trophy tier or an unauthored season finish.
+function Config.seasonReward(i: number, number: number?): { kind: string, key: string }?
+	local row = Config.SEASON.tiers[i]
+	local reward = row and row.reward
+	if not reward or reward.kind == "sign" or reward.kind == "trophy" then
+		return nil
+	end
+	if reward.kind == "finish" and reward.key == "season" then
+		local key = number and Config.SEASON.finishes[number]
+		return if key then { kind = "finish", key = key } else nil
+	end
+	return reward
+end
+
+-- What the plot sign's season chip says: nothing below tier 1, the tier
+-- number, and the season's words from tier 9.
+function Config.seasonChipText(number: number?, tier: number): string?
+	if not number or tier < 1 then
+		return nil
+	end
+	if tier >= #Config.SEASON.tiers then
+		return ("S%d CHAMPION"):format(number)
+	elseif tier >= 9 then
+		return ("S%d STAR"):format(number)
+	end
+	return ("S%d TIER %d"):format(number, tier)
+end
+
+-- The chip's colour climbs the rarity ladder with the tier.
+function Config.seasonChipColour(tier: number): Color3
+	local rarity = if tier >= 8 then "legendary" elseif tier >= 5 then "epic"
+		elseif tier >= 3 then "rare" else "common"
+	return Config.RARITIES[rarity].colour
+end
+
+-- THE BOARDS (Phase 5.5). The season board ranks acorns earned this season;
+-- `window` rows are drawn around the reader, not the top of the list,
+-- because a global top eight produces one euphoric winner and seven
+-- demoralised children. `pages` pages of 100 are cached per server.
+-- Top Defenders is the weekly twin of Top Thieves.
+Config.SEASON_BOARD = { store = "SeasonAcorns.v1", pageSize = 100, pages = 2, refresh = 60,
+	above = 3, below = 4 }
+Config.WEEKLY_DEFEND = { store = "WeeklyDefend.v1", rows = 8, refresh = 45 }
+-- The physical board shows each page this long before turning to the next.
+Config.BOARD_PAGE_SECONDS = 10
+Config.BOARD_PAGE_ATTRIBUTE = "BoardPage"
+
+-- THE NEMESIS LEDGER (Phase 5.1): who has robbed this player most this
+-- season, twenty counterparties at most, the smallest dropped first.
+Config.NEMESIS_ROWS = 20
+
+-- ============================================================
+-- FINISHES (Phase 5.4)
+-- ============================================================
+--
+-- AN ADDITION OVER A SKIN, NEVER A REPAINT: legendary skins carry baked
+-- textures, and a colour multiply over a texture is the muddy pig again. And
+-- NEVER A PARTICLE AURA: standalone piggy effects were retired by the
+-- designer (only coin feedback and legendary skin visuals may emit), so a
+-- finish is a sheen (`reflectance`, added to the skin's own), glowing eyes
+-- (`eyes`, Neon) and/or a soft light (`light`, on the pig's spare AuraLight --
+-- kept dim, because a light inside the shell once erased the whole pig).
+--
+-- Season-only: every row carries `season`, which `isEarnedElsewhere` reads,
+-- so a finish is never in a crate, never sold and never free.
+Config.FINISHES = {
+	brighteyes = { name = "Bright Eyes", order = 1, rarity = "common", season = true,
+		eyes = Color3.fromRGB(255, 208, 72) },
+	polished = { name = "Polished", order = 2, rarity = "common", season = true,
+		reflectance = 0.22 },
+	lanternglow = { name = "Lantern Glow", order = 3, rarity = "rare", season = true,
+		light = { colour = Color3.fromRGB(255, 176, 84), brightness = 0.5, range = 14 } },
+	gilded = { name = "Gilded", order = 4, rarity = "legendary", season = true,
+		reflectance = 0.3, eyes = Color3.fromRGB(255, 196, 40),
+		light = { colour = Color3.fromRGB(255, 196, 64), brightness = 0.45, range = 14 } },
+	midnightstar = { name = "Midnight Star", order = 5, rarity = "legendary", season = 1,
+		reflectance = 0.12, eyes = Color3.fromRGB(150, 110, 255),
+		light = { colour = Color3.fromRGB(132, 104, 255), brightness = 0.5, range = 14 } },
+}
+
+-- A season's every promised grant must exist, fit its kind, and never be a
+-- priced finish; the thresholds must climb. Warned at boot with the others.
+function Config.auditSeason(): { string }
+	local problems = {}
+	local last = 0
+	local known = {
+		finish = Config.FINISHES, plinth = Config.TROPHY_PLINTHS,
+		kennel = Config.DOG_KENNELS, catch = Config.CATCH_EFFECTS,
+	}
+	for i, row in ipairs(Config.SEASON.tiers) do
+		if type(row.need) ~= "number" or row.need <= last then
+			table.insert(problems, ("SEASON.tiers[%d] must need more acorns than the tier below"):format(i))
+		end
+		last = row.need or last
+		local reward = row.reward
+		if type(reward) ~= "table" then
+			table.insert(problems, ("SEASON.tiers[%d] has no reward"):format(i))
+		elseif reward.kind == "trophy" then
+			if not Config.TROPHIES[reward.key] then
+				table.insert(problems, ("SEASON.tiers[%d] names trophy %s, which does not exist"):format(i, tostring(reward.key)))
+			end
+		elseif reward.kind ~= "sign" and not (reward.kind == "finish" and reward.key == "season") then
+			local catalogue = known[reward.kind]
+			if not catalogue or not catalogue[reward.key] then
+				table.insert(problems, ("SEASON.tiers[%d] grants %s:%s, which does not exist"):format(
+					i, tostring(reward.kind), tostring(reward.key)))
+			end
+		end
+	end
+	for number, key in pairs(Config.SEASON.finishes) do
+		local spec = Config.FINISHES[key]
+		if not spec or spec.season ~= number then
+			table.insert(problems, ("SEASON.finishes[%d] must be a finish flagged season = %d"):format(number, number))
+		end
+	end
+	for key, spec in pairs(Config.FINISHES) do
+		if spec.cost ~= nil or not spec.season then
+			table.insert(problems, ("FINISHES.%s must be season-only and unpriced"):format(key))
+		end
+		if spec.light and (spec.light.brightness or 0) > 0.6 then
+			table.insert(problems, ("FINISHES.%s light is brighter than 0.6: a lamp in the shell erases the pig"):format(key))
+		end
+	end
+	return problems
+end
+
 Config.BUYBACK = { perStep = 3, tiers = { "common", "rare", "legendary" } }
 function Config.buybackCost(key: string): number?
 	if not Config.isStealableSkin(key) then return nil end
@@ -12843,6 +13478,46 @@ function Config.getCapacity(capacityLevel: number): number
 		Config.CAPACITY_GROWTH_B, Config.CAPACITY_GROWTH_C, capacityLevel))
 end
 
+-- NOTHING PUTS MORE IN A PIG THAN IT HOLDS (MASTER-PLAN 4c.6).
+--
+-- This used to be false for exactly one source: a robbery delivery banked
+-- `amount * payout` straight past capacity, on the argument that an overfull
+-- pig is self-limiting. Reversed by designer decision. A level-5 player
+-- cracking a level-32 resident could bank 180 times their own pig in one run;
+-- capped, they bank a full pig -- still the best minute of their session --
+-- and robbing with a full pig SPILLS, so "spend it or lose it" has teeth on
+-- the robbery side too.
+--
+-- EVERY WAY COINS ARRIVE goes through here: the delivery, the return bounty,
+-- a shop drop sold on the spot, the daily ladder, the event payouts -- and,
+-- by designer decision, coins coming BACK as well: a refund, a returned carry
+-- (nab, dog, patrol, voluntary return) and a drone recovery all fill only the
+-- room the pig has now. A full pig takes nothing back.
+--
+-- A clamp is silent by default, and this project refuses silent failure, so
+-- it returns the spill as well: every caller names it.
+function Config.pigRoom(coins: number, capacity: number): number
+	return math.max(0, math.floor(capacity - coins))
+end
+
+function Config.fitInPig(coins: number, capacity: number, amount: number): (number, number)
+	local whole = math.max(0, math.floor(amount))
+	local banked = math.min(whole, Config.pigRoom(coins, capacity))
+	return banked, whole - banked
+end
+
+-- WHAT A VIEWER COULD CARRY HOME FROM A PIG, for the street readouts (the
+-- rob badge and the two prompt cards): the take -- `fraction` of the pile,
+-- times the event multiplier -- times the plain payout, capped at the room
+-- in the viewer's own pig. The same arithmetic `HeistService.deliver` runs,
+-- minus the two bonuses a client cannot know in advance (revenge and the
+-- spree), so it never promises more than the plain delivery banks.
+function Config.homeTake(vault: number?, fraction: number, multiplier: number?,
+	coins: number?, capacity: number?): (number, number)
+	local take = math.floor((vault or 0) * fraction * (multiplier or 1))
+	return Config.fitInPig(coins or 0, capacity or 0, take * Config.HEIST_PAYOUT)
+end
+
 -- Costs are indexed by the level you are LEAVING, so they run one behind the
 -- value tables above -- `getIncomeCost(20)` is the price of reaching 21 and is
 -- therefore the first band-B price.
@@ -12898,8 +13573,8 @@ end
 -- being the levers rather than the prices is about. That rule is still right.
 -- A price above the largest wallet the game can produce is not slow pacing,
 -- it is a purchase that cannot exist, and no payout multiplier fixes it --
--- robbing overflows the cap, so it is the one route past this, and a route
--- that needs a populated server is not a route a solo player has.
+-- and since 4c.6 not even robbing gets past it: a delivery banks only what
+-- fits the pig, so the largest pig is a hard ceiling on every purchase.
 --
 -- WARNS RATHER THAN THROWS, for the reason `Decor.prewarm` is pcalled: a
 -- mispriced ornament may never stop the server starting. Returns the list so
@@ -12965,6 +13640,8 @@ function Config.auditEconomy(): { string }
 		-- `cost` at all, so there is no price here for a pig to fail to
 		-- hold.
 		TROPHY_PLINTHS = Config.TROPHY_PLINTHS,
+		-- The tree ladder (step 2.7): every rung above 0 is a coin price.
+		TREE_LEVELS = Config.TREE_LEVELS,
 	}
 	for name, catalogue in pairs(catalogues) do
 		if type(catalogue) == "table" then
@@ -12994,6 +13671,44 @@ function Config.auditEconomy(): { string }
 	for rung, id in ipairs(Config.HOUSE_LEGACY_ORDER) do
 		if not Config.getHouseById(id) then
 			table.insert(problems, ("HOUSE_LEGACY_ORDER[%d] names %q, which is not in HOUSE_TIERS"):format(rung, id))
+		end
+	end
+
+	-- A HOUSE IS EITHER PRICED OR EARNED, NEVER BOTH AND NEVER NEITHER. A
+	-- price on an earned house is a second route to a trophy; a priced row
+	-- with no number is `(nil or 0)` -- a free house. And a placeholder has
+	-- to fit the yard the brief measures against, or the temporary block is
+	-- the thing standing through somebody's side fence.
+	for index, tier in ipairs(Config.HOUSE_TIERS) do
+		local label = tostring(tier.id or index)
+		if tier.earned ~= nil then
+			if tier.cost ~= nil then
+				table.insert(problems, ("HOUSE_TIERS.%s is earned and also carries a cost"):format(label))
+			end
+			if type(tier.rarity) ~= "string" then
+				table.insert(problems, ("HOUSE_TIERS.%s is earned and states no rarity"):format(label))
+			end
+		elseif type(tier.cost) ~= "number" or tier.cost < 0 then
+			table.insert(problems, ("HOUSE_TIERS.%s has no price"):format(label))
+		end
+		if tier.placeholder then
+			if type(tier.height) ~= "number" or tier.height <= 0 then
+				table.insert(problems, ("HOUSE_TIERS.%s is a placeholder with no height"):format(label))
+			end
+			if (tier.width or 0) > 60 or (tier.depth or 0) > 57 then
+				table.insert(problems, ("HOUSE_TIERS.%s placeholder is %sx%s, over the 60x57 yard limit")
+					:format(label, tostring(tier.width), tostring(tier.depth)))
+			end
+		end
+	end
+	-- Price order is how the shop lists them and how residents climb.
+	local lastPrice = -1
+	for _, tier in ipairs(Config.HOUSE_TIERS) do
+		if tier.earned == nil and type(tier.cost) == "number" then
+			if tier.cost < lastPrice then
+				table.insert(problems, ("HOUSE_TIERS.%s is cheaper than the row above it"):format(tostring(tier.id)))
+			end
+			lastPrice = tier.cost
 		end
 	end
 
@@ -13529,8 +14244,12 @@ function Config.acornRates(players: number): any
 	local hourly = growth + crack
 	local passive = a.growCap
 	local active = a.growCap + model.activeHours * hourly
+	-- The best a tree can do (step 2.7): the top rung with the full online
+	-- rebirth bonus. Reported beside the base, never used by the floors
+	-- above, which are about a player who has bought nothing.
+	local top = Config.treeGrowthPerHour(#Config.TREE_LEVELS - 1, math.huge, true)
 	return { players = players, residents = Config.PLOT_COUNT - players,
-		treePerHour = growth, crackPerHour = crack, cleanPerVictimHour = cleanPerVictim,
+		treePerHour = growth, treeTopPerHour = top, crackPerHour = crack, cleanPerVictimHour = cleanPerVictim,
 		perThiefPerHour = hourly, passiveDaily = passive, activeDaily = active,
 		activeRatio = active / passive,
 		initialResidentSupply = (Config.PLOT_COUNT - players) * (a.resident.seedRipe + a.resident.seedStored),
@@ -13607,6 +14326,58 @@ function Config.auditAcorns(): { string }
 	if math.abs(a.growSeconds * a.growCap - Config.OFFLINE_CAP_SECONDS) > 0.001 then
 		fail("acorn.growth", "a full tree must take one offline window to grow")
 	end
+
+	-- THE TREE LADDER (step 2.7). Level 0 is the base tree; rates only climb;
+	-- every rung above 0 is priced; the gate never unlocks a level that does
+	-- not exist, never lowers the cap below today's, and only ever loosens
+	-- as the house gets rarer -- so a better house can never cost a tree.
+	local levels = Config.TREE_LEVELS
+	if type(levels) ~= "table" or #levels < 1 then
+		fail("tree.levels", "TREE_LEVELS must list at least the base tree"); return problems
+	end
+	if math.abs(levels[1].rate * a.growSeconds - 3600) > 0.001 or levels[1].cost ~= nil then
+		fail("tree.base", "level 0 must be the unpriced base tree at ACORNS.growSeconds")
+	end
+	for index = 2, #levels do
+		local row, below = levels[index], levels[index - 1]
+		if not finite(row.rate) or row.rate <= below.rate then
+			fail("tree.rate", ("level %d must grow faster than level %d"):format(index - 1, index - 2))
+		end
+		if not finite(row.cost) or row.cost <= 0 or (below.cost and row.cost < below.cost) then
+			fail("tree.cost", ("level %d needs a positive price no cheaper than the rung below"):format(index - 1))
+		end
+		if not finite(row.scaleXZ) or not finite(row.scaleY) or row.scaleXZ < below.scaleXZ or row.scaleY < below.scaleY then
+			fail("tree.scale", ("level %d must not shrink the oak"):format(index - 1))
+		end
+	end
+	local lastMax, lastCap = -1, 0
+	for _, rarity in ipairs(Config.RARITY_ORDER) do
+		local gate = Config.TREE_HOUSE_GATE[rarity]
+		if type(gate) ~= "table" or not finite(gate.maxLevel) or not finite(gate.cap) then
+			fail("tree.gate", rarity .. " needs a maxLevel and a cap")
+		else
+			if gate.maxLevel < lastMax or gate.cap < lastCap then
+				fail("tree.gate", rarity .. " must not gate or hold less than a commoner rarity")
+			end
+			if gate.maxLevel > #levels - 1 or gate.maxLevel < 0 or gate.maxLevel % 1 ~= 0 then
+				fail("tree.gate", rarity .. " unlocks a tree level that does not exist")
+			end
+			if gate.cap % 1 ~= 0 or gate.cap < a.growCap then
+				fail("tree.gate", rarity .. " must hold a whole number of acorns, at least ACORNS.growCap")
+			end
+			lastMax, lastCap = gate.maxLevel, gate.cap
+		end
+	end
+	if Config.TREE_HOUSE_GATE.common and Config.TREE_HOUSE_GATE.common.cap ~= a.growCap then
+		fail("tree.gate", "a Common house must hold exactly today's cap, so nothing moves for anybody")
+	end
+	local bonus = Config.TREE_REBIRTH_BONUS
+	if type(bonus) ~= "table" or not finite(bonus.perRebirth) or not finite(bonus.max)
+		or bonus.perRebirth < 0 or bonus.max < 0 then
+		fail("tree.rebirth", "TREE_REBIRTH_BONUS needs a non-negative perRebirth and max")
+	elseif Config.treeRebirthFactor(1000, false) ~= 1 then
+		fail("tree.rebirth", "the rebirth growth bonus must never apply offline")
+	end
 	for _, key in ipairs({ "og", "legendarycrate" }) do
 		local chest = Config.CHESTS[key]
 		if not chest or not finite(chest.cost) or chest.cost <= 0 then
@@ -13624,6 +14395,21 @@ function Config.auditAcorns(): { string }
 	if full.crackPerHour > full.treePerHour * model.maxCrackRatio then
 		fail("acorn.crackCeiling", ("the pig-crack faucet pays %.2f an hour against a tree's %.2f; the ceiling is %.1fx")
 			:format(full.crackPerHour, full.treePerHour, model.maxCrackRatio))
+	end
+	-- ACORN THEFT IS DISABLED (designer, September 16): no event may open
+	-- another player's tree. Acorns are the timer currency; coins carry the
+	-- risk. Re-enabling it is a decision, and this is where it gets made.
+	for key, spec in pairs(Config.EVENTS.roster) do
+		if spec.acornTheft then
+			fail("theft.disabled", key .. " opens acorn theft, which is switched off")
+		end
+	end
+	-- MIDNIGHT HEIST may double the pig-crack acorn and no more: it is an
+	-- existing faucet made louder for three minutes, never a new one.
+	local mid = Config.MIDNIGHT
+	if type(mid) ~= "table" or not finite(mid.acornMultiplier) or mid.acornMultiplier < 1
+		or mid.acornMultiplier > 2 or mid.acornMultiplier % 1 ~= 0 then
+		fail("midnight.acorns", "MIDNIGHT.acornMultiplier must be a whole 1 or 2")
 	end
 	-- Retired faucets must not be silently reintroduced into configuration.
 	if Config.LOOT ~= nil then fail("acorn.legacyFaucet", "Config.LOOT is retired; events award no Acorns and a pig delivery pays only through Config.crackAcorns") end

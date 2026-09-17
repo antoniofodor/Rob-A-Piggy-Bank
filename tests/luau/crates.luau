@@ -46,7 +46,8 @@ setfenv(run, setmetatable({
 local ChestService = run()
 ChestService.registerBalancePusher(function() pushes += 1 end)
 
-local prices = {og=5, animal=5, rarecrate=15, legendarycrate=40, alien=6}
+-- Tripled September 16 (MASTER-PLAN 19.5).
+local prices = {og=15, animal=15, rarecrate=45, legendarycrate=120, alien=18}
 for key, price in prices do
  check(Config.CHESTS[key].currency == "loot" and Config.CHESTS[key].cost == price, key .. " price")
  reset(price)
@@ -64,16 +65,16 @@ end
 check(not Config.canCombineChest("missing"), "unknown combine target")
 reset(nil)
 ChestService.open(player, "og")
-check(messages.Notify == "Need 5 more acorns. Shake trees to earn acorns.", "missing balance treated as zero")
+check(messages.Notify == ("Need %d more acorns. Shake trees to earn acorns."):format(Config.CHESTS.og.cost), "missing balance treated as zero")
 check(data.loot == nil and data.coins == 1000000000, "missing balance cannot spend coins")
-reset(5.9)
+reset(Config.CHESTS.og.cost + 0.9)
 ChestService.open(player, "og")
 check(data.loot == 0 and data.coins == 1000000000, "whole Acorn charging preserved")
 
 -- An existing item pays one spare, with exactly the same Acorn charge.
 local pool = Config.chestPool("og")
 local common = pool.common[1]
-reset(5, {["skin:" .. common]=true})
+reset(Config.CHESTS.og.cost, {["skin:" .. common]=true})
 ChestService.open(player, "og")
 check(data.spares["skin:" .. common] == 1 and #granted == 0, "duplicate yields one spare")
 check(messages.ChestResult.duplicate and data.loot == 0, "duplicate is charged once")

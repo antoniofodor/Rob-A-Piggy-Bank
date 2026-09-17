@@ -2114,6 +2114,60 @@ local function buildMeshHouse(tier, at: CFrame): boolean
 	return true
 end
 
+-- A HOUSE WHOSE MODEL HAS NOT BEEN DRAWN YET, and it has to LOOK it.
+--
+-- Revision 2 of the catalogue landed before its art (Config.HOUSE_TIERS rows
+-- carrying `placeholder`), so buying, moving in, the card and the sign could
+-- all be proven end to end. What stands meanwhile is a block of the row's own
+-- width x height x depth -- height is the brief's silhouette ladder, so the
+-- street already reads which houses tower -- in its wall and roof colours,
+-- wrapped in a yellow-and-black construction band so nobody mistakes it for
+-- the finished house. Everything is parts, so the shop card renders it.
+--
+-- Coplanar-safe by construction: the plinth, block and cap nest with 0.1 of
+-- overlap on every seam; the side bands stop short of the corners so they
+-- never share a face plane with the front and back bands; and the band is
+-- broken either side of the door rather than butting its edges.
+local HAZARD = Color3.fromRGB(240, 196, 40)
+local HAZARD_INK = Color3.fromRGB(34, 30, 30)
+local PLACEHOLDER_DOOR = 2 -- half-width of the doorway
+local function buildPlaceholder(tier, at: CFrame)
+	local w, d = tier.width or 20, tier.depth or 20
+	local h = tier.height or ((tier.storeys or 1) * STOREY)
+	local smooth = Enum.Material.SmoothPlastic
+
+	part("Plinth", Vector3.new(w + 1.2, 0.8, d + 1.2), at * CFrame.new(0, 0.3, 0), STONE, smooth)
+	part("Block", Vector3.new(w, h - 1.4, d), at * CFrame.new(0, 0.6 + (h - 1.4) / 2, 0), tier.walls, smooth)
+	part("Cap", Vector3.new(w + 1, 1, d + 1), at * CFrame.new(0, h - 0.4, 0), tier.roof, smooth)
+	part("Door", Vector3.new(PLACEHOLDER_DOOR * 2, 7, 0.3),
+		at * CFrame.new(0, 0.6 + 3.5, d / 2 + 0.15), tier.trim or DOOR, smooth)
+
+	-- One band, laid as alternating tiles along each face at knee height.
+	local bandY, bandH = 2.2, 1.6
+	local function band(span: number, place: (number, number) -> CFrame, along: string, skipDoor: boolean)
+		local count = math.max(2, math.floor(span / 2.4))
+		local tile = span / count
+		for i = 0, count - 1 do
+			local from = -span / 2 + i * tile
+			local to = from + tile
+			if not (skipDoor and to > -PLACEHOLDER_DOOR - 0.6 and from < PLACEHOLDER_DOOR + 0.6) then
+				local size = if along == "x"
+					then Vector3.new(tile, bandH, 0.3)
+					else Vector3.new(0.3, bandH, tile)
+				part("Construction", size, place((from + to) / 2, bandY),
+					if i % 2 == 0 then HAZARD else HAZARD_INK, smooth)
+			end
+		end
+	end
+	-- 0.2 wider than the block each side, so an end tile's face never lands
+	-- in the block's own side plane.
+	band(w + 0.4, function(x, y) return at * CFrame.new(x, y, d / 2 + 0.05) end, "x", true)
+	band(w + 0.4, function(x, y) return at * CFrame.new(x, y, -d / 2 - 0.05) end, "x", false)
+	for _, sx in ipairs({ -1, 1 }) do
+		band(d - 0.4, function(z, y) return at * CFrame.new(sx * (w / 2 + 0.05), y, z) end, "z", false)
+	end
+end
+
 function House.build(level: number, at: CFrame, parent: Instance): Model
 	local tier = Config.getHouseTier(level)
 
@@ -2130,8 +2184,14 @@ function House.build(level: number, at: CFrame, parent: Instance): Model
 		-- original. Both sets are kept: `Config.HOUSE_REBUILD` names the
 		-- styles that have been redrawn, and every other tier stands exactly
 		-- as it always has.
-		local build = (Config.HOUSE_REBUILD[tier.style] and rebuilt[tier.style])
-			or builders[tier.style] or builders.shack
+		-- A row still flagged `placeholder` stands the block even if a
+		-- builder has since appeared, because residents read the same flag
+		-- (Config.residentHouseLevel) and the two must agree. Unflagged with
+		-- no builder at all also gets the block: a missing model should look
+		-- unfinished, never silently borrow the shack.
+		local build = (tier.placeholder and buildPlaceholder)
+			or (Config.HOUSE_REBUILD[tier.style] and rebuilt[tier.style])
+			or builders[tier.style] or buildPlaceholder
 		build(tier, at)
 	end
 	model.Parent = parent

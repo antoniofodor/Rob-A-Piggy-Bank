@@ -72,6 +72,24 @@ end
 -- bought a Tower -- nothing about the game changes with which one is
 -- standing. It costs nothing, both ways, so there is no sell-and-rebuy loop
 -- to farm.
+-- "the Stone Manor", but "The Void" as named -- several revision-2 names
+-- carry their own article, and "Moved into the The Void" is the result of
+-- prefixing one blindly.
+local function theHouse(tier): string
+	return if tier.name:sub(1, 4) == "The " then tier.name else "the " .. tier.name
+end
+local function capitalise(text: string): string
+	return text:sub(1, 1):upper() .. text:sub(2)
+end
+
+-- Anything that has to hear about a house landing -- the tree ladder, whose
+-- gate reads the best owned house. Registered from Main, which requires both
+-- services, so neither has to require the other.
+local houseListeners: { (Player) -> () } = {}
+function CosmeticsService.onHouseBought(fn: (Player) -> ())
+	table.insert(houseListeners, fn)
+end
+
 function CosmeticsService.buyHouse(player: Player, requested: string)
 	local data = DataService.get(player)
 	if not data then
@@ -93,10 +111,19 @@ function CosmeticsService.buyHouse(player: Player, requested: string)
 		else
 			houses.shown = tier.id
 			CosmeticsService.applyToPlot(player)
-			notify(player, ("Moved into the %s."):format(tier.name), "good")
+			notify(player, ("Moved into %s."):format(theHouse(tier)), "good")
 			DataService.save(player)
 			CosmeticsService.push(player)
 		end
+		return
+	end
+
+	-- ASKED BEFORE THE PRICE, because an earned house has no price and
+	-- `tier.cost or 0` would sell the Golden Piggy for nothing.
+	if tier.earned ~= nil then
+		local have, need = Config.earnedHouseProgress(houses.owned)
+		notify(player, ("%s is earned, not bought. Own every other house (%d of %d)."):format(
+			capitalise(theHouse(tier)), have, need), "warn")
 		return
 	end
 
@@ -130,9 +157,39 @@ function CosmeticsService.buyHouse(player: Player, requested: string)
 	-- anything that changes what the plot should look like goes through it.
 	CosmeticsService.applyToPlot(player)
 
-	notify(player, ("Moved into the %s!"):format(tier.name), "good")
+	notify(player, ("Moved into %s!"):format(theHouse(tier)), "good")
+	CosmeticsService.grantEarnedHouses(player, data)
+	for _, fn in ipairs(houseListeners) do
+		fn(player)
+	end
 	DataService.save(player)
 	CosmeticsService.push(player)
+end
+
+-- THE COMPLETION HOUSE, handed over the moment the last priced house lands.
+-- Owned, not moved into: the player just paid for the house they are
+-- standing in, and taking that view away from them to show a trophy would
+-- make the purchase produce no visible change. The card and the toast say
+-- where it is. Never revokes, so a house added to the catalogue later
+-- raises the bar only for players who have not earned it yet.
+function CosmeticsService.grantEarnedHouses(player: Player?, data: any): boolean
+	local owned = data.houses.owned
+	local have, need = Config.earnedHouseProgress(owned)
+	if need == 0 or have < need then
+		return false
+	end
+	local granted = false
+	for _, tier in ipairs(Config.HOUSE_TIERS) do
+		if tier.earned == "houses" and not owned[tier.id] then
+			owned[tier.id] = true
+			granted = true
+			if player then
+				notify(player, ("You own every house on the street. %s is yours. Move in from the shop!")
+					:format(capitalise(theHouse(tier))), "good")
+			end
+		end
+	end
+	return granted
 end
 
 -- Bought and placed in one step: the next free slot for the item's zone.
@@ -432,6 +489,9 @@ function CosmeticsService.applyToPlot(player: Player)
 
 	PlotService.applySkin(plot, skinKey)
 	PlotService.applyEffect(plot, Config.DEFAULT_EFFECT)
+	-- The finish goes on last: the two calls above reset what it adds.
+	local finish = cosmetics.finish
+	PlotService.applyFinish(plot, if type(finish) == "string" and finish ~= "" then finish else nil)
 	-- The plot builds by POSITION (residents pick a house that way and
 	-- House.build has always taken a level); a player's house is an id and
 	-- this is the one seam where the two meet.
@@ -519,6 +579,25 @@ end
 -- ============================================================
 -- PURCHASE AND EQUIP
 -- ============================================================
+
+-- Wear a finish already earned, or take it off by asking twice. Finishes are
+-- never bought: a season hands them over (SeasonService).
+function CosmeticsService.equipFinish(player: Player, key: string)
+	local data = DataService.get(player)
+	local spec = Config.FINISHES[key]
+	if not data or not spec then
+		return
+	end
+	local c = data.cosmetics
+	if not (c.ownedFinishes and c.ownedFinishes[key]) then
+		notify(player, ("%s is a season reward. Earn acorns to reach its tier."):format(spec.name), "warn")
+		return
+	end
+	c.finish = if c.finish == key then "" else key
+	CosmeticsService.applyToPlot(player)
+	DataService.save(player)
+	CosmeticsService.push(player)
+end
 
 function CosmeticsService.buySkin(player: Player, key: string)
 	local skin = Config.SKINS[key]
@@ -1084,6 +1163,23 @@ function CosmeticsService.push(player: Player)
 	local effects: { [string]: any } = {}
 	-- Standalone auras are retired; preserve ownership in saves, omit UI offers.
 
+	-- FINISHES (Phase 5.4): season rewards, so only OWNED ones are sent --
+	-- the inventory never advertises a thing it cannot sell or explain.
+	local finishes: { [string]: any } = {}
+	local ownedFinishes = data.cosmetics.ownedFinishes or {}
+	for key, spec in pairs(Config.FINISHES) do
+		if ownedFinishes[key] then
+			finishes[key] = {
+				name = spec.name,
+				order = spec.order,
+				owned = true,
+				equipped = data.cosmetics.finish == key,
+				rarity = Config.rarityOf(spec),
+				season = if type(spec.season) == "number" then spec.season else nil,
+			}
+		end
+	end
+
 	-- Houses are a shelf, not a ladder (schema 26): every house is for sale
 	-- until it is owned, and every owned house can be moved into. So a card
 	-- carries both states -- `owned` says it can be lived in, `current` says
@@ -1092,16 +1188,24 @@ function CosmeticsService.push(player: Player)
 	-- order because the shop lists it that way.
 	local shown = Config.getShownHouse(data)
 	local houses = {}
+	-- An EARNED house is never for sale; its card carries the progress
+	-- instead, so a locked tile is a count rather than a price nobody can pay.
+	local earnedHave, earnedNeed = Config.earnedHouseProgress(data.houses.owned)
 	for i, tier in ipairs(Config.HOUSE_TIERS) do
+		local owned = data.houses.owned[tier.id] == true
 		houses[i] = {
 			id = tier.id,
 			name = tier.name,
 			order = i,
 			cost = tier.cost or 0,
 			blurb = tier.blurb,
-			owned = data.houses.owned[tier.id] == true,
+			owned = owned,
 			current = tier.id == shown.id,
-			forSale = data.houses.owned[tier.id] ~= true,
+			forSale = not owned and tier.earned == nil,
+			earned = tier.earned ~= nil or nil,
+			earnedHave = if tier.earned ~= nil then earnedHave else nil,
+			earnedNeed = if tier.earned ~= nil then earnedNeed else nil,
+			placeholder = tier.placeholder == true or nil,
 			rarity = Config.rarityOf(tier),
 			walls = tier.walls,
 		}
@@ -1397,6 +1501,7 @@ function CosmeticsService.push(player: Player)
 		garden = garden,
 		passes = passes,
 		effects = effects,
+		finishes = finishes,
 		catches = catches,
 		dogCoats = dogCoats,
 		dogKennels = dogKennels,
@@ -1510,6 +1615,8 @@ function CosmeticsService.start()
 			CosmeticsService.buyEffect(player, key)
 		elseif kind == "catch" then
 			CosmeticsService.buyCatch(player, key)
+		elseif kind == "finish" then
+			CosmeticsService.equipFinish(player, key)
 		elseif kind == "house" then
 			CosmeticsService.buyHouse(player, key)
 		elseif kind == "decor" then

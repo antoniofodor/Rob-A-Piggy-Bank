@@ -34,6 +34,8 @@ local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local Theme = require(ReplicatedStorage.Shared.Theme)
 local DataService = require(script.Parent.DataService)
 local PlotService = require(script.Parent.PlotService)
+local TrophyService = require(script.Parent.TrophyService)
+local SeasonService = require(script.Parent.SeasonService)
 
 local SocialService = {}
 
@@ -525,6 +527,89 @@ function SocialService.getWeeklyTop(): { { name: string, amount: number } }
 	return weeklyTop
 end
 
+-- ============================================================
+-- TOP DEFENDERS THIS WEEK (Phase 5.5)
+-- ============================================================
+--
+-- The weekly twin of Top Thieves, so defending is a collection rather than
+-- a tax: a thief nabbed, a dog's catch, a hot skin brought home. Same store
+-- shape, same lazy week roll, same cache.
+local defend = { top = {} :: { { name: string, amount: number } }, fetchedAt = -math.huge, fetching = false }
+
+local function defendStore(): OrderedDataStore
+	return DataStoreService:GetOrderedDataStore(
+		("%s.%d"):format(Config.WEEKLY_DEFEND.store, Config.weekIndex()))
+end
+
+local function currentWeekDefends(data): number
+	local week = Config.weekIndex()
+	if type(data.defend) ~= "table" then
+		data.defend = { index = week, count = 0 }
+	end
+	if data.defend.index ~= week then
+		data.defend.index = week
+		data.defend.count = 0
+	end
+	return data.defend.count
+end
+
+function SocialService.recordDefend(player: Player)
+	local data = DataService.get(player)
+	if not data then
+		return
+	end
+	currentWeekDefends(data)
+	data.defend.count += 1
+end
+
+local function publishDefend(player: Player)
+	local data = DataService.get(player)
+	if not data then
+		return
+	end
+	local count = currentWeekDefends(data)
+	if count <= 0 then
+		return
+	end
+	local ok, err = pcall(function()
+		defendStore():SetAsync(tostring(player.UserId), math.floor(count))
+	end)
+	if not ok then
+		warn(("[SocialService] could not publish %s's defends: %s"):format(player.Name, tostring(err)))
+	end
+end
+
+local function fetchDefend()
+	if defend.fetching or os.clock() - defend.fetchedAt < Config.WEEKLY_DEFEND.refresh then
+		return
+	end
+	defend.fetching = true
+	task.spawn(function()
+		local ok, err = pcall(function()
+			local page = defendStore():GetSortedAsync(false, Config.WEEKLY_DEFEND.rows):GetCurrentPage()
+			local fresh = {}
+			for _, entry in ipairs(page) do
+				local id = tonumber(entry.key)
+				local name = id and weeklyNames[id]
+				if id and not name then
+					local nameOk, resolved = pcall(function()
+						return Players:GetNameFromUserIdAsync(id)
+					end)
+					name = if nameOk then resolved else ("player %d"):format(id)
+					weeklyNames[id] = name
+				end
+				table.insert(fresh, { name = name or "?", amount = entry.value })
+			end
+			defend.top = fresh
+		end)
+		if not ok then
+			warn("[SocialService] defenders board fetch failed: " .. tostring(err))
+		end
+		defend.fetchedAt = os.clock()
+		defend.fetching = false
+	end)
+end
+
 local function buildBoard()
 	-- FLANKING THE TUNNEL, NOT STANDING IN IT.
 	--
@@ -557,6 +642,9 @@ local function buildBoard()
 	-- Roblox's "Front" face is -Z. After the yaw above that points down the
 	-- street toward the plots, which is where the readers are.
 	local surface = Instance.new("SurfaceGui")
+	-- Named, because the season page is drawn by each client over this one
+	-- (`Shared/SeasonBoard`), which hides it locally by name.
+	surface.Name = "BoardGui"
 	surface.Face = Enum.NormalId.Front
 	surface.CanvasSize = Vector2.new(600, 400)
 	-- Unlit, so the text stays readable whichever way the sun is pointing.
@@ -613,6 +701,7 @@ local function buildBoard()
 	-- the patrol is coming for, this session), and this landscape list is the
 	-- LADDER (who is winning, this week). Two questions, two boards, exactly
 	-- as before -- only the list's question got better.
+	title.Name = "Title"
 	title.Text = "TOP THIEVES  THIS WEEK"
 	title.Parent = backdrop
 
@@ -696,7 +785,26 @@ local function buildBoard()
 	empty.Parent = list
 
 	surface.Parent = panel
-	table.insert(boards, { empty = empty, rows = rows })
+	table.insert(boards, { empty = empty, rows = rows, title = title, panel = panel })
+end
+
+-- THE BOARD TURNS PAGES (Phase 5.5): Top Thieves, Top Defenders, and the
+-- season. "Three boards and no more", on the one board the street already
+-- has, because its geometry is measured and a second board is not. The
+-- season page is published here as the global top; each client redraws it
+-- around its own reader (`Shared/SeasonBoard`, keyed on the page attribute).
+local PAGES = { "thieves", "defenders", "season" }
+local pageClock = { index = 1, turnedAt = os.clock() }
+
+local function seasonTitle(): string
+	local now = SeasonService.now()
+	local index = Config.seasonIndex(now)
+	local number = Config.seasonNumber(index)
+	if not number then
+		return "SEASON 1  STARTS SOON"
+	end
+	return if Config.seasonActive(now) then ("SEASON %d  ACORNS"):format(number)
+		else ("SEASON %d  FINAL"):format(number)
 end
 
 local function refreshBoard()
@@ -704,25 +812,46 @@ local function refreshBoard()
 		return
 	end
 
-	-- Asks for a fresh page if the cached one is stale, and paints whatever it
-	-- currently holds either way. The fetch yields on a web call, so waiting
-	-- for it here would stall the refresh loop that also drives the poster and
-	-- the wanted chip -- and a board one tick behind is not a thing anybody
-	-- standing forty studs away can perceive.
+	-- Asks for fresh pages if the cached ones are stale, and paints whatever
+	-- they currently hold either way. The fetches yield on a web call, so
+	-- waiting for them here would stall the refresh loop that also drives the
+	-- poster and the wanted chip.
 	fetchWeekly()
-	local ranked = weeklyTop
+	fetchDefend()
+
+	if os.clock() - pageClock.turnedAt >= Config.BOARD_PAGE_SECONDS then
+		pageClock.index = pageClock.index % #PAGES + 1
+		pageClock.turnedAt = os.clock()
+	end
+	local page = PAGES[pageClock.index]
+
+	local ranked, title, emptyText, amountOf
+	if page == "thieves" then
+		ranked, title, emptyText = weeklyTop, "TOP THIEVES  THIS WEEK", "nobody yet this week"
+		amountOf = format
+	elseif page == "defenders" then
+		ranked, title, emptyText = defend.top, "TOP DEFENDERS  THIS WEEK", "no thieves stopped yet this week"
+		amountOf = function(n: number) return ("%d stopped"):format(n) end
+	else
+		ranked, title, emptyText = SeasonService.getTop(Config.LEADERBOARD_SIZE), seasonTitle(),
+			"no acorns banked yet this season"
+		amountOf = function(n: number) return ("%d acorns"):format(n) end
+	end
 
 	-- EVERY board, not the last one built. Ranking once and painting many is
 	-- also why the list is fetched out here: two boards must never disagree
 	-- about who is winning, and they cannot if they are reading one list.
 	for _, ui in ipairs(boards) do
+		ui.panel:SetAttribute(Config.BOARD_PAGE_ATTRIBUTE, page)
+		ui.title.Text = title
+		ui.empty.Text = emptyText
 		ui.empty.Visible = #ranked == 0
 		for index, entry in ipairs(ui.rows) do
 			local ranking = ranked[index]
 			entry.row.Visible = ranking ~= nil
 			if ranking then
 				entry.who.Text = ("%d.  %s"):format(index, ranking.name)
-				entry.amount.Text = format(ranking.amount)
+				entry.amount.Text = amountOf(ranking.amount)
 			end
 		end
 	end
@@ -848,6 +977,9 @@ end
 -- hunted every eight minutes for the rest of it. That is a question about the
 -- leader rather than about who leads, so it is asked once, here, and answered
 -- by `getPursuitTarget` rather than by `getMostWanted`.
+-- Wanted Poster (5.2) counts one session on the poster once.
+local wantedCounted: { [Player]: boolean } = {}
+
 local function refreshMostWanted()
 	local best: Player? = nil
 	local bestAmount = 0
@@ -905,6 +1037,12 @@ local function refreshMostWanted()
 	if best then
 		setHat(best, true)
 		announce(best, hunted)
+		-- The Wanted Poster trophy (Phase 5.2): one more time on top -- at
+		-- most once a session, or two friends trading the lead would farm it.
+		if not wantedCounted[best] then
+			wantedCounted[best] = true
+			TrophyService.recordWanted(best)
+		end
 	end
 end
 
@@ -1477,6 +1615,8 @@ function SocialService.start()
 		-- most worth having on the board, and it is the one a publish that
 		-- only ran on a tick would miss.
 		publishWeekly(player)
+		publishDefend(player)
+		wantedCounted[player] = nil
 		friendBonus[player] = nil
 		-- The rap sheet dies with the session it belongs to. Left behind, it
 		-- would also hold a Player reference open for the life of the server.
@@ -1504,6 +1644,7 @@ function SocialService.start()
 				lastWeeklyPublish = os.clock()
 				for _, player in ipairs(Players:GetPlayers()) do
 					task.spawn(publishWeekly, player)
+					task.spawn(publishDefend, player)
 				end
 			end
 			-- In this order: the poster reads whatever refreshMostWanted just

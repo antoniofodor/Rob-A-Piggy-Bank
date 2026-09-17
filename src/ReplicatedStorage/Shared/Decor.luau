@@ -2581,6 +2581,165 @@ builders.sirenpost = function(_item, at)
 		TROPHY_STEEL, Enum.Material.Metal)
 end
 
+-- ------------------------------------------------------------
+-- PHASE 5.2: SIX MORE TROPHIES
+-- ------------------------------------------------------------
+--
+-- Same contract as the four above: each reads one number off
+-- `trophyState`, grades it through `Config.trophyGrade`, stands on
+-- `trophyPlinth`, and stays inside the medal board's footprint (7.4 x 2.6)
+-- so the lawn slot grid's widest-ornament arithmetic does not move. Neon is
+-- deep and saturated: a pale Neon is a white hole under the bloom.
+-- UNVERIFIED IN STUDIO: authored from the builders above, not photographed.
+
+builders.hotstreak = function(_item, at)
+	local best = (trophyState and trophyState.bestSpree) or 0
+	local grade = Config.trophyGrade("hotstreak", best)
+	local top = trophyPlinth(at, 3.4, 3.4, ("BEST RUN %d"):format(best))
+	local stemH = 2.2
+	cylinderY("BrazierStem", stemH, 0.7, at * CFrame.new(0, top + stemH / 2, 0),
+		TROPHY_DARK, Enum.Material.SmoothPlastic)
+	local bowlY = top + stemH + 0.35
+	cylinderY("BrazierBowl", 0.7, 2.6, at * CFrame.new(0, bowlY, 0),
+		TROPHY_STEEL, Enum.Material.SmoothPlastic)
+	-- One flame tier per grade, each narrower and higher: the fire climbs.
+	for i = 1, grade do
+		local d = 2.0 - (i - 1) * 0.36
+		local h = 0.9
+		cylinderY("Flame", h, d, at * CFrame.new(0, bowlY + 0.35 + (i - 0.5) * h * 0.85, 0),
+			if i % 2 == 1 then Color3.fromRGB(236, 92, 20) else Color3.fromRGB(246, 150, 20),
+			Enum.Material.Neon)
+	end
+end
+
+builders.oldhand = function(_item, at)
+	local width, depth = 6.4, 2.4
+	local rank = (trophyState and trophyState.rank) or 0
+	local stars = Config.trophyGrade("oldhand", rank)
+	local top = trophyPlinth(at, width, depth, ("RANK %d"):format(rank))
+	local boardW, boardH = 5.6, 2.4
+	local boardY = top + 1.2 + boardH / 2
+	for _, side in ipairs({ -1, 1 }) do
+		part("OldHandPost", Vector3.new(0.4, 1.2 + boardH + 0.3, 0.4),
+			at * CFrame.new(side * (boardW / 2 + 0.1), top + (1.2 + boardH + 0.3) / 2, -0.1),
+			TROPHY_WOOD_DARK, Enum.Material.SmoothPlastic)
+	end
+	part("OldHandBoard", Vector3.new(boardW, boardH, 0.34),
+		at * CFrame.new(0, boardY, -0.1), TROPHY_WOOD, Enum.Material.SmoothPlastic)
+	-- A star is a gold diamond with a smaller one on it: legible at seventy
+	-- studs where a five-pointed outline is not.
+	for i = 1, stars do
+		local x = (i - (stars + 1) / 2) * 1.25
+		part("RankStar", Vector3.new(0.8, 0.8, 0.14),
+			at * CFrame.new(x, boardY, -0.1 + 0.17 + 0.07) * CFrame.Angles(0, 0, math.rad(45)),
+			TROPHY_GOLD, Enum.Material.SmoothPlastic)
+		part("RankStarCore", Vector3.new(0.4, 0.4, 0.1),
+			at * CFrame.new(x, boardY, -0.1 + 0.17 + 0.18) * CFrame.Angles(0, 0, math.rad(45)),
+			Color3.fromRGB(255, 232, 150), Enum.Material.SmoothPlastic)
+	end
+end
+
+builders.cleansheet = function(_item, at)
+	local clean = (trophyState and trophyState.clean) or 0
+	local rings = Config.trophyGrade("cleansheet", clean)
+	local top = trophyPlinth(at, 3.6, 2.6, ("%d CLEAN"):format(clean))
+	local standH = 1.6
+	part("DialStand", Vector3.new(0.6, standH, 0.6),
+		at * CFrame.new(0, top + standH / 2, 0), TROPHY_DARK, Enum.Material.SmoothPlastic)
+	local dialY = top + standH + 1.5
+	cylinderZ("DialFace", 0.4, 3.0, at * CFrame.new(0, dialY, 0),
+		TROPHY_STEEL, Enum.Material.SmoothPlastic)
+	-- Rings stack forward off the face, each smaller, so a full dial reads
+	-- as a target rather than as a coin.
+	for i = 1, rings do
+		cylinderZ("DialRing", 0.12, 3.0 - i * 0.38,
+			at * CFrame.new(0, dialY, 0.2 + i * 0.07),
+			if i % 2 == 1 then TROPHY_GOLD else TROPHY_DARK, Enum.Material.SmoothPlastic)
+	end
+	part("DialPointer", Vector3.new(0.16, 1.1, 0.1),
+		at * CFrame.new(0, dialY + 0.5, 0.26 + rings * 0.07 + 0.06), Color3.fromRGB(196, 72, 88),
+		Enum.Material.SmoothPlastic)
+end
+
+builders.seasoncup = function(_item, at)
+	local best = (trophyState and trophyState.seasonBest) or 0
+	local grade = Config.trophyGrade("seasoncup", best)
+	local top = trophyPlinth(at, 3.4, 3.4, ("BEST TIER %d"):format(best))
+	-- The cup grows with the grade: tier 6 is a cup, tier 10 is a big one.
+	local s = 0.8 + 0.15 * math.max(grade, 1)
+	cylinderY("CupFoot", 0.3 * s, 1.8 * s, at * CFrame.new(0, top + 0.15 * s, 0),
+		TROPHY_GOLD, Enum.Material.SmoothPlastic)
+	cylinderY("CupStem", 1.0 * s, 0.5 * s, at * CFrame.new(0, top + 0.3 * s + 0.5 * s - 0.05, 0),
+		TROPHY_GOLD, Enum.Material.SmoothPlastic)
+	local bowlY = top + 1.3 * s + 0.8 * s - 0.1
+	cylinderY("CupBowl", 1.6 * s, 2.0 * s, at * CFrame.new(0, bowlY, 0),
+		TROPHY_GOLD, Enum.Material.SmoothPlastic)
+	cylinderY("CupRim", 0.16 * s, 2.2 * s, at * CFrame.new(0, bowlY + 0.8 * s + 0.02, 0),
+		Color3.fromRGB(255, 220, 120), Enum.Material.SmoothPlastic)
+	for _, side in ipairs({ -1, 1 }) do
+		part("CupHandle", Vector3.new(0.3 * s, 1.0 * s, 0.3 * s),
+			at * CFrame.new(side * 1.2 * s, bowlY, 0), TROPHY_GOLD, Enum.Material.SmoothPlastic)
+	end
+	-- One gem per grade across the bowl's front.
+	for i = 1, grade do
+		ball("CupGem", 0.32 * s, at * CFrame.new((i - (grade + 1) / 2) * 0.36 * s, bowlY, 1.0 * s),
+			Color3.fromRGB(150, 70, 230), Enum.Material.Neon)
+	end
+end
+
+builders.wantedposter = function(_item, at)
+	local width, depth = 6.4, 2.4
+	local times = (trophyState and trophyState.wanted) or 0
+	local posters = Config.trophyGrade("wantedposter", times)
+	local top = trophyPlinth(at, width, depth, ("WANTED x%d"):format(times))
+	local boardW, boardH = 5.6, 3.2
+	local boardY = top + 1.2 + boardH / 2
+	for _, side in ipairs({ -1, 1 }) do
+		part("PosterPost", Vector3.new(0.4, 1.2 + boardH + 0.3, 0.4),
+			at * CFrame.new(side * (boardW / 2 + 0.1), top + (1.2 + boardH + 0.3) / 2, -0.1),
+			TROPHY_WOOD_DARK, Enum.Material.SmoothPlastic)
+	end
+	part("PosterBoard", Vector3.new(boardW, boardH, 0.34),
+		at * CFrame.new(0, boardY, -0.1), TROPHY_WOOD, Enum.Material.SmoothPlastic)
+	for i = 1, posters do
+		local row = math.floor((i - 1) / 3)
+		local col = (i - 1) % 3
+		local spot = at * CFrame.new((col - 1) * 1.7, boardY + 0.72 - row * 1.5, -0.1 + 0.17 + 0.05)
+		part("Poster", Vector3.new(1.3, 1.3, 0.08), spot * CFrame.Angles(0, 0, math.rad((i % 2 == 0) and 4 or -4)),
+			Color3.fromRGB(236, 222, 190), Enum.Material.SmoothPlastic)
+		part("PosterBand", Vector3.new(1.1, 0.24, 0.06),
+			spot * CFrame.new(0, 0.42, 0.06) * CFrame.Angles(0, 0, math.rad((i % 2 == 0) and 4 or -4)),
+			Color3.fromRGB(196, 72, 88), Enum.Material.SmoothPlastic)
+		ball("PosterPin", 0.2, spot * CFrame.new(0, 0.55, 0.1), TROPHY_STEEL, Enum.Material.SmoothPlastic)
+	end
+end
+
+builders.goodharvest = function(_item, at)
+	local harvested = (trophyState and trophyState.harvested) or 0
+	local fill = Config.trophyGrade("goodharvest", harvested)
+	local top = trophyPlinth(at, 3.6, 3.6, ("%d HARVESTED"):format(harvested))
+	local barrelH, barrelD = 3.0, 2.6
+	cylinderY("Barrel", barrelH, barrelD, at * CFrame.new(0, top + barrelH / 2, 0),
+		TROPHY_WOOD, Enum.Material.SmoothPlastic)
+	for _, y in ipairs({ 0.5, barrelH - 0.5 }) do
+		cylinderY("BarrelHoop", 0.22, barrelD + 0.1, at * CFrame.new(0, top + y, 0),
+			TROPHY_DARK, Enum.Material.SmoothPlastic)
+	end
+	-- Acorns heap up above the rim: one ring of them per grade.
+	local rim = top + barrelH
+	for level = 1, fill do
+		local count = math.max(1, 7 - level)
+		local radius = math.max(0, 0.95 - (level - 1) * 0.16)
+		for i = 1, count do
+			local angle = (i / count) * math.pi * 2 + level * 0.4
+			local pos = CFrame.new(math.cos(angle) * radius, rim + 0.15 + (level - 1) * 0.3, math.sin(angle) * radius)
+			ball("AcornNut", 0.46, at * pos, Color3.fromRGB(164, 96, 49), Enum.Material.SmoothPlastic)
+			ball("AcornCap", 0.36, at * pos * CFrame.new(0, 0.2, 0), Color3.fromRGB(104, 64, 34),
+				Enum.Material.SmoothPlastic)
+		end
+	end
+end
+
 function Decor.prewarm()
 	if not RunService:IsServer() then
 		return
@@ -2845,6 +3004,12 @@ local function showroom(): any
 		stolen = 400000,
 		caught = 3,
 		escapes = 2,
+		bestSpree = 5,
+		rank = 2,
+		clean = 40,
+		seasonBest = 8,
+		wanted = 4,
+		harvested = 400,
 		plinth = "",
 	}
 end

@@ -24,8 +24,10 @@ check(full.crackPerHour==2*Config.ACORNS.payout.crack and full.perThiefPerHour==
 check(Config.acornRates(2).crackPerHour==full.crackPerHour,"the crack ceiling is one victim's budget at any population above one")
 check(solo.passiveDaily==8 and full.passiveDaily==8,"a passive player keeps a whole tree: nothing in storage can be lost")
 check(solo.activeDaily==10 and full.activeDaily==14,"two active hours add growth and cracks")
-check(math.abs(solo.commonMinutes-300)<.001 and math.abs(full.commonMinutes-100)<.001,"crate times derived from prices and the new faucet")
-check(math.abs(full.legendaryHours-40/3)<.001,"legendary crate time derived")
+-- Online-only rates: the overnight fill and the tree ladder are modelled in
+-- tests/sim/acorns/model.py, which is what the 19.5 prices were solved on.
+check(math.abs(solo.commonMinutes-900)<.001 and math.abs(full.commonMinutes-300)<.001,"crate times derived from prices and the new faucet")
+check(math.abs(full.legendaryHours-120/3)<.001,"legendary crate time derived")
 check(solo.initialResidentSupply==36 and full.initialResidentSupply==8,"seed is separate from steady hourly production")
 provoke(Config.ACORNS,"resident",nil,A,"acorn.config")
 for _,v in {-1,1.5,math.huge,0/0} do provoke(Config.ACORNS.resident,"seedRipe",v,A,"acorn.resident") end
@@ -93,7 +95,7 @@ local replicated={Shared=names}
 local dataSource,n=sources.DataService:gsub("return DataService%s*$","return {defaults=defaultData}");assert(n==1)
 local Data=load("DataService",{game={JobId="audit-tests",GetService=function(_,name) return if name=="ReplicatedStorage" then replicated else {} end},require=function() return Config end},dataSource)
 local player={DisplayName="Test"};local data,events,saves,rolls,now
-local modules={Config=Config,AlienModel={},PlotService={},CosmeticsService={},PlayerGear={},PassService={},TrophyService={}}
+local modules={Config=Config,AlienModel={},PlotService={},CosmeticsService={},PlayerGear={},PassService={},TrophyService={},WorldService={setNight=function() end,restoreDay=function() end}}
 modules.Remotes={get=function(name) return {FireClient=function(_,p,payload) events[name]=payload end,
  FireAllClients=function(_,payload) events[name]=payload end} end}
 modules.DataService={get=function() return data end,save=function() saves+=1;return true end}
@@ -104,7 +106,7 @@ end},script={Parent=names},require=function(name) return assert(modules[name],na
  os={clock=function() return now end},task={wait=function(seconds) now+=seconds end}}
 modules.SetService=load("SetService",env)
 modules.SetService.award=function() error("event path tried to mint Acorns") end
-local eventSource,n=sources.EventService:gsub("return EventService%s*$","return {raid=rewardRaid,rush=runRush,multiplier=EventService.getStealMultiplier}");assert(n==1)
+local eventSource,n=sources.EventService:gsub("return EventService%s*$","return {raid=rewardRaid,midnight=runMidnight,multiplier=EventService.getStealMultiplier,acorns=EventService.getAcornMultiplier}");assert(n==1)
 local Event=load("EventService",env,eventSource)
 local function reset(complete)
  data=Data.defaults();data.loot=23;data.coins=17;events={};saves=0;now=0
@@ -122,9 +124,10 @@ for _,cleared in {false,true} do
   check(next(data.spares)==nil,"completed raid never mints spares")
  end
 end
-reset(false);Event.rush()
-check(data.loot==23 and data.coins==17 and saves==0,"Rush Hour settlement has no currency faucet")
-check(events.EventState.stealMultiplier==Config.RUSH.stealMultiplier and Event.multiplier()==1,"Rush coin-steal multiplier still starts and resets")
+reset(false);Event.midnight()
+check(data.loot==23 and data.coins==17 and saves==0,"Midnight Heist settlement has no currency faucet of its own")
+check(events.EventState.stealMultiplier==Config.MIDNIGHT.stealMultiplier and Event.multiplier()==1,"Midnight coin-steal multiplier still starts and resets")
+check(Event.acorns()==1,"Midnight acorn multiplier resets at dawn")
 reset(true);modules.SetService.rollDrop(player,"alien")
 check(data.loot==23 and saves==0 and events.Notify:find("already own",1,true),"full set provides feedback without bonus currency")
 -- Stale/malicious coin purchase requests still cannot grant unowned crate
@@ -183,7 +186,7 @@ local boot=assert(sources.Main:match("(%-%- Phase 1%.9 audits.-)ChestService%.st
 local warnings,prints={},{ }
 local bootEnv={Config=Config,warn=function(message) table.insert(warnings,message) end,print=function(message) table.insert(prints,message) end}
 load("Main audits",bootEnv,boot)
-check(#warnings==0 and #prints==1 and prints[1]:find("no storage raids, Harvest Moon excluded",1,true),"clean boot reports model honestly")
+check(#warnings==0 and #prints==1 and prints[1]:find("no storage raids, no acorn theft",1,true),"clean boot reports model honestly")
 local old=Config.COIN_PACK.productId;Config.COIN_PACK.productId=1
 load("Main audits",bootEnv,boot);Config.COIN_PACK.productId=old
 check(contains(warnings,"random.paidRebirth"),"boot surfaces paid-random conflict without throwing")

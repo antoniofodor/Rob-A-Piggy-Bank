@@ -17,7 +17,8 @@ local packets,notices,handlers,escrow={},{},{},{}
 local callbacks={}
 local names=setmetatable({}, {__index=function(_,k) return k end})
 local modules={Config=Config,DataService={get=function(p) return p.data end},
- PlotService={updateAcorns=function(plot,amount) plot.shown=amount end,updateTreeAcorns=function(plot,ripe,ground) plot.ripe=ripe;plot.ground=ground end,getAll=function() return {} end},
+ PlotService={updateAcorns=function(plot,amount) plot.shown=amount end,updateTreeAcorns=function(plot,ripe,ground) plot.ripe=ripe;plot.ground=ground end,
+ publishTree=function(plot,d) plot.ripe=d.treeAcorns or 0;plot.ground=d.groundAcorns or 0;plot.clockCap=Config.treeCap(d) end,getAll=function() return {} end},
  ResidentService={get=function(plot) return plot.resident end},
  Remotes={get=function(name) return {FireClient=function(_,p,payload) packets[p]=packets[p] or {};packets[p][name]=payload end,
  OnServerEvent={Connect=function(_,fn) handlers[name]=fn end}} end}}
@@ -75,11 +76,11 @@ check(not S.isShaking(owner) and notices[owner]:find("already available",1,true)
 -- ---- ANOTHER TREE ONLY UNDER THE MOON -----------------------------------------
 local r=victim(2,false)
 open(a,r)
-check(not S.isShaking(a) and notices[a]:find("Harvest Moon",1,true),"a resident's tree is refused outside the moon")
+check(not S.isShaking(a) and notices[a]:find("owner",1,true),"a resident's tree is refused outside the moon")
 check(r.acornStock.treeAcorns==2 and r.acornStock.groundAcorns==0 and alerts==0,"a refused shake knocks nothing loose and raises no alarm")
 local p=victim(8,true)
 open(a,p)
-check(not S.isShaking(a) and notices[a]:find("Harvest Moon",1,true) and p.data.treeAcorns==8,"a player's tree is refused outside the moon")
+check(not S.isShaking(a) and notices[a]:find("owner",1,true) and p.data.treeAcorns==8,"a player's tree is refused outside the moon")
 
 moon=true
 local initial=open(a,r)

@@ -85,6 +85,11 @@ export type Plot = {
 	signLabel: TextLabel,
 	signBoast: TextLabel,
 	signRank: TextLabel?, -- residential signs only; shops have no player rank
+	-- Phase 5.1, residential signs only: the season tier chip on the rank
+	-- row, and the NEMESIS line under the boasts.
+	signChip: Frame?,
+	signNemesis: TextLabel?,
+	finishKey: string?,
 	-- THE PAID MARK, HELD ON THE PLOT RATHER THAN PASSED IN.
 	--
 	-- `updateSign` has four callers across four services, so a fifth
@@ -110,6 +115,9 @@ export type Plot = {
 	-- Resident` already paid for.
 	mailFlag: BasePart?,
 	mailPrompt: ProximityPrompt?,
+	-- The owner's "Grow Tree" prompt (step 2.7); TreeService wires it and
+	-- writes what it says. Nil on a shop, which has no tree.
+	growPrompt: ProximityPrompt?,
 	-- THE DOORSTEP CRATE. Held the same way and for the same reason: a plot
 	-- is one flat model, so a part looked back up by name is whichever the
 	-- builder happened to make first.
@@ -659,10 +667,35 @@ local function buildPlot(index: number): Plot
 
 	local rank = Instance.new("TextLabel")
 	rank.Name = "RobberyRank"
-	rank.Position, rank.Size = UDim2.fromOffset(15, 187), UDim2.new(1, -30, 0, 52)
+	-- Narrowed from the full row to leave the season chip its right-hand
+	-- 190 (Phase 5.1). UNVERIFIED IN STUDIO: the star row at rank 4 is the
+	-- widest string and was not photographed at this width.
+	rank.Position, rank.Size = UDim2.fromOffset(15, 187), UDim2.new(1, -220, 0, 52)
 	rank.BackgroundTransparency, rank.Font = 1, Enum.Font.GothamBold
 	rank.TextColor3, rank.TextScaled = Color3.fromRGB(150, 104, 44), true
+	rank.TextXAlignment = Enum.TextXAlignment.Left
 	rank.Text, rank.Visible, rank.Parent = "", false, surface
+
+	-- THE SEASON CHIP (Phase 5.1): the tier as a coloured pill, drawn from
+	-- `Config.seasonChipText` / `seasonChipColour`. Hidden below tier 1.
+	local chip = Instance.new("Frame")
+	chip.Name = "SeasonChip"
+	chip.Position, chip.Size = UDim2.new(1, -200, 0, 191), UDim2.fromOffset(185, 44)
+	chip.BackgroundColor3 = Color3.fromRGB(172, 159, 145)
+	chip.BorderSizePixel, chip.Visible = 0, false
+	chip.Parent = surface
+	local chipCorner = Instance.new("UICorner")
+	chipCorner.CornerRadius = UDim.new(0.5, 0)
+	chipCorner.Parent = chip
+	local chipStroke = Instance.new("UIStroke")
+	chipStroke.Color, chipStroke.Thickness = Color3.fromRGB(70, 46, 30), 3
+	chipStroke.Parent = chip
+	local chipText = Instance.new("TextLabel")
+	chipText.Name = "Text"
+	chipText.Size, chipText.Position = UDim2.new(1, -20, 1, -8), UDim2.fromOffset(10, 4)
+	chipText.BackgroundTransparency, chipText.Font = 1, Enum.Font.FredokaOne
+	chipText.TextScaled, chipText.TextColor3 = true, Color3.fromRGB(41, 32, 27)
+	chipText.Text, chipText.Parent = "", chip
 
 	local boast = Instance.new("TextLabel")
 	boast.Name = "Boasts"
@@ -677,6 +710,19 @@ local function buildPlot(index: number): Plot
 	boast.TextColor3 = Color3.fromRGB(150, 104, 44)
 	boast.Text = ""
 	boast.Parent = surface
+
+	-- THE NEMESIS LINE (Phase 5.1). When it shows, the boasts give up the
+	-- bottom 44 of their 126 (`setNemesis`). UNVERIFIED IN STUDIO.
+	local nemesis = Instance.new("TextLabel")
+	nemesis.Name = "Nemesis"
+	nemesis.Size = UDim2.new(1, -30, 0, 40)
+	nemesis.Position = UDim2.fromOffset(15, 347)
+	nemesis.BackgroundTransparency = 1
+	nemesis.Font = Enum.Font.GothamBold
+	nemesis.TextScaled = true
+	nemesis.TextColor3 = Color3.fromRGB(168, 48, 40)
+	nemesis.Text, nemesis.Visible = "", false
+	nemesis.Parent = surface
 
 	-- ------------------------------------------------------- THE MAILBOX
 	--
@@ -882,6 +928,29 @@ local function buildPlot(index: number): Plot
 	local storage = AcornStorage.build(model, cf * CFrame.new(
 		Config.ACORNS.storageOffset + Vector3.new(0, Config.PLOT_SIZE.Y / 2, 0)))
 
+	-- THE TREE LADDER'S BUY BUTTON LIVES ON THE TREE (step 2.7). Slot 1 on
+	-- the collider, above the shake prompt in slot 0, on J -- the key the
+	-- retired storage raid gave back. Owner-only through
+	-- PROMPT_OWNER_ATTRIBUTE, like the mailbox: nobody else can grow your
+	-- tree, so nobody else should read the offer.
+	local growPrompt: ProximityPrompt? = nil
+	if tree then
+		local prompt = Instance.new("ProximityPrompt")
+		prompt.Name = "GrowPrompt"
+		prompt.ActionText = "Grow Tree"
+		prompt.ObjectText = ""
+		prompt.KeyboardKeyCode = Enum.KeyCode.J
+		prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
+		prompt.HoldDuration = Config.CRACK.openHold
+		prompt.MaxActivationDistance = Config.STEAL_RANGE
+		prompt.RequiresLineOfSight = false
+		prompt.Enabled = false
+		prompt:SetAttribute(Config.PROMPT_SLOT_ATTRIBUTE, 1)
+		Config.setPromptKind(prompt, "grow")
+		prompt.Parent = tree.collider
+		growPrompt = prompt
+	end
+
 	local plot: Plot = {
 		index = index,
 		model = model,
@@ -898,8 +967,11 @@ local function buildPlot(index: number): Plot
 		signLabel = label,
 		signBoast = boast,
 		signRank = rank,
+		signChip = chip,
+		signNemesis = nemesis,
 		mailFlag = flag,
 		mailPrompt = mailPrompt,
+		growPrompt = growPrompt,
 		crateParts = crateParts,
 		crateTint = crateTint,
 		cratePrompt = cratePrompt,
@@ -2815,6 +2887,23 @@ function PlotService.updateTreeAcorns(plot: Plot, ripe: number, ground: number)
 	plot.model:SetAttribute(Config.PLOT_GROUND_ACORNS_ATTRIBUTE, math.max(0, math.floor(ground)))
 end
 
+-- The next-acorn clock over the owner's tree. `secondsLeft` nil means the
+-- tree is full (the chip says so) and a nil `cap` clears the clock entirely,
+-- which is what an unowned plot shows. Written as a whole server second so a
+-- republish at the same deadline is not a replicated change.
+function PlotService.updateTreeClock(plot: Plot, secondsLeft: number?, cap: number?)
+	plot.model:SetAttribute(Config.PLOT_TREE_CAP_ATTRIBUTE, cap)
+	plot.model:SetAttribute(Config.PLOT_TREE_NEXT_ATTRIBUTE,
+		if cap and secondsLeft then math.floor(workspace:GetServerTimeNow() + secondsLeft + 0.5) else nil)
+end
+
+-- Both halves of a player's tree display from their save, for the three
+-- places that settle it: the economy push, a shake and a purchase.
+function PlotService.publishTree(plot: Plot, data: any)
+	PlotService.updateTreeAcorns(plot, data.treeAcorns or 0, data.groundAcorns or 0)
+	PlotService.updateTreeClock(plot, Config.nextAcornIn(data, os.time(), true), Config.treeCap(data))
+end
+
 function PlotService.updatePile(plot: Plot, vault: number, capacity: number): number
 	-- Published here rather than at the call sites because this is the one
 	-- function every path already goes through -- the accrual tick, a steal, a
@@ -2921,6 +3010,27 @@ function PlotService.setMail(plot: Plot, waiting: boolean)
 	prompt.Enabled = waiting
 end
 
+-- THE TREE'S LEVEL, drawn as the placeholder growth (step 2.7). A plot with
+-- no tree ignores it.
+function PlotService.setTreeLevel(plot: Plot, level: number)
+	local row = Config.TREE_LEVELS[math.clamp(math.floor(level), 0, #Config.TREE_LEVELS - 1) + 1]
+	AcornTree.setGrowth(plot.acornTree, row.scaleXZ, row.scaleY)
+	plot.model:SetAttribute(Config.PLOT_TREE_GROWTH_ATTRIBUTE, row.scaleY)
+end
+
+-- WHOSE "GROW TREE" OFFER THIS IS, on the mailbox's terms. The prompt stays
+-- off until TreeService has written what it sells.
+function PlotService.setTreeOwner(plot: Plot, player: Player?)
+	local prompt = plot.growPrompt
+	if not prompt then
+		return
+	end
+	prompt:SetAttribute(Config.PROMPT_OWNER_ATTRIBUTE, if player then player.UserId else nil)
+	if not player then
+		prompt.Enabled = false
+	end
+end
+
 -- WHO THE MAILBOX IS FOR, published so the prompt can refuse itself on
 -- everybody else's screen. See `Config.PROMPT_OWNER_ATTRIBUTE`.
 function PlotService.setMailOwner(plot: Plot, player: Player?)
@@ -3005,6 +3115,35 @@ function PlotService.updateRank(plot: Plot, robberies: number?)
 		else "ROBBER RANK  " .. string.rep("★", rank)
 end
 
+-- The season tier chip (Phase 5.1); nil text hides it.
+function PlotService.setSeasonChip(plot: Plot, text: string?, colour: Color3?)
+	local chip = plot.signChip
+	if not chip then
+		return
+	end
+	chip.Visible = text ~= nil
+	if text then
+		chip.BackgroundColor3 = colour or chip.BackgroundColor3
+		local label = chip:FindFirstChild("Text") :: TextLabel?
+		if label then
+			label.Text = text
+		end
+	end
+end
+
+-- The NEMESIS line (Phase 5.1); nil name hides it and gives the boasts back
+-- their full height.
+function PlotService.setNemesis(plot: Plot, name: string?, count: number?)
+	local line = plot.signNemesis
+	if not line then
+		return
+	end
+	local shown = name ~= nil and (count or 0) > 0
+	line.Visible = shown
+	line.Text = if shown then ("NEMESIS: %s (%d)"):format(name :: string, count :: number) else ""
+	plot.signBoast.Size = UDim2.new(1, -14, 0, if shown then 82 else 126)
+end
+
 function PlotService.setSignPass(plot: Plot, word: string?, colour: Color3?)
 	plot.signWord = word
 	plot.signColour = colour
@@ -3060,6 +3199,10 @@ end
 
 function PlotService.applySkin(plot: Plot, skinKey: string)
 	PiggyBank.applySkin(plot.piggy, skinKey)
+	-- A repaint resets reflectance and eyes; the finish goes back on top.
+	if plot.finishKey then
+		PiggyBank.applyFinish(plot.piggy, plot.finishKey)
+	end
 	-- Remembered for the topiary, which is clipped in whatever the pig is
 	-- wearing. `applyToPlot` calls this BEFORE `setDecor`, so the ornament
 	-- rebuild that follows already has the new value -- and that ordering is
@@ -3073,6 +3216,13 @@ end
 
 function PlotService.applyEffect(plot: Plot, effectKey: string)
 	PiggyBank.applyEffect(plot.piggy, effectKey)
+end
+
+-- The finish over the skin (Phase 5.4). Remembered on the plot, because a
+-- skin repaint resets the sheen and the eyes and has to put it back.
+function PlotService.applyFinish(plot: Plot, finishKey: string?)
+	plot.finishKey = finishKey
+	PiggyBank.applyFinish(plot.piggy, finishKey)
 end
 
 -- ============================================================
@@ -3164,6 +3314,15 @@ function PlotService.release(player: Player)
 	-- Castle left the Sky Castle standing.
 	PlotService.setMail(plot, false)
 	PlotService.setMailOwner(plot, nil)
+	-- The tree goes back to the unbought oak and its offer goes with the
+	-- owner, for the Sky Castle reason: nothing of the last owner stands.
+	PlotService.setTreeOwner(plot, nil)
+	PlotService.setTreeLevel(plot, 0)
+	PlotService.updateTreeClock(plot, nil, nil)
+	-- The last owner's season, nemesis and finish come down with them.
+	PlotService.setSeasonChip(plot, nil, nil)
+	PlotService.setNemesis(plot, nil, nil)
+	PlotService.applyFinish(plot, nil)
 	-- And the crate goes with it, for the reason the flag does: an unclaimed
 	-- plot standing a delivery for a player who has gone is the last owner
 	-- still being advertised. The Sky Castle bug, a third time.

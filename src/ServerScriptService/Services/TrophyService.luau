@@ -97,6 +97,11 @@ local function shelf(data: any)
 	end
 	t.caught = tonumber(t.caught) or 0
 	t.bestSpree = tonumber(t.bestSpree) or 0
+	-- Phase 5.2 counters. `reconcile` fills them one level down; this is the
+	-- belt to its braces.
+	t.clean = tonumber(t.clean) or 0
+	t.wanted = tonumber(t.wanted) or 0
+	t.harvested = tonumber(t.harvested) or 0
 	if type(t.plinth) ~= "string" then
 		t.plinth = ""
 	end
@@ -122,11 +127,18 @@ function TrophyService.counts(data: any): { [string]: number }
 		seen += 1
 	end
 	local gear = data.gear
+	local season = data.season
 	return {
 		victims = seen,
 		stolen = tonumber(data.totalStolen) or 0,
 		caught = t.caught,
 		escapes = (gear and tonumber(gear.escapes)) or 0,
+		bestSpree = t.bestSpree,
+		rank = Config.getRapSheetRank(tonumber(data.robberies) or 0),
+		clean = t.clean,
+		seasonBest = (type(season) == "table" and tonumber(season.best)) or 0,
+		wanted = t.wanted,
+		harvested = t.harvested,
 	}
 end
 
@@ -159,6 +171,12 @@ function TrophyService.state(data: any): any
 		stolen = counts.stolen,
 		caught = counts.caught,
 		escapes = counts.escapes,
+		bestSpree = counts.bestSpree,
+		rank = counts.rank,
+		clean = counts.clean,
+		seasonBest = counts.seasonBest,
+		wanted = counts.wanted,
+		harvested = counts.harvested,
 		plinth = t.plinth,
 	}
 end
@@ -332,7 +350,45 @@ function TrophyService.recordSpree(player: Player, run: number)
 	local t = shelf(data)
 	if run > t.bestSpree then
 		t.bestSpree = run
+		-- Hot Streak (5.2) reads this now, so a new best can earn or regrade.
+		TrophyService.check(player)
+		TrophyService.refresh(player)
 	end
+end
+
+-- PHASE 5.2 COUNTERS. Each bumps one number and re-asks the shelf, the
+-- `recordCatch` shape. All three are counted where the thing is COMPLETE:
+-- a clean crack when its haul gets home, a harvest when it is deposited,
+-- Most Wanted when the board changes hands to this player.
+local function bump(player: Player, field: string, amount: number)
+	local data = DataService.get(player)
+	if not data or amount <= 0 then
+		return
+	end
+	local t = shelf(data)
+	t[field] += amount
+	TrophyService.check(player)
+	TrophyService.refresh(player)
+	pushAll(player)
+end
+
+function TrophyService.recordClean(player: Player)
+	bump(player, "clean", 1)
+end
+
+function TrophyService.recordWanted(player: Player)
+	bump(player, "wanted", 1)
+end
+
+function TrophyService.recordHarvest(player: Player, amount: number)
+	bump(player, "harvested", math.floor(amount))
+end
+
+-- The robbery count and the season's best tier live elsewhere in the save;
+-- their writers call this so Old Hand and the Season Cup can land.
+function TrophyService.recheck(player: Player)
+	TrophyService.check(player)
+	TrophyService.refresh(player)
 end
 
 -- ============================================================

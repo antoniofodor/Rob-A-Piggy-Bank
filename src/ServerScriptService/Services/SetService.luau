@@ -86,6 +86,17 @@ local function ownedTable(data: any, kind: string): { [string]: boolean }?
 		-- reaches this before `reconcile` has filled the table in on some
 		-- paths, and a nil index here would take a grant down.
 		return data.catch and data.catch.owned
+	-- PHASE 5.3: the season's reward kinds. Ownership only -- none of these
+	-- is in `Config.catalogueFor`, so no chest, sale or spare can reach them
+	-- through this table.
+	elseif kind == "finish" then
+		return data.cosmetics and data.cosmetics.ownedFinishes
+	elseif kind == "plinth" then
+		return data.trophies and data.trophies.plinths
+	elseif kind == "kennel" then
+		return data.dogs and data.dogs.kennels
+	elseif kind == "coat" then
+		return data.dogs and data.dogs.owned
 	end
 	return nil
 end
@@ -120,6 +131,14 @@ function SetService.inUse(data: any, kind: string, key: string): boolean
 		return data.rides.equipped == key
 	elseif kind == "catch" then
 		return (data.catch and data.catch.equipped) == key
+	elseif kind == "finish" then
+		return data.cosmetics.finish == key
+	elseif kind == "plinth" then
+		return (data.trophies and data.trophies.plinth) == key
+	elseif kind == "kennel" then
+		return (data.dogs and data.dogs.kennel) == key
+	elseif kind == "coat" then
+		return (data.dogs and data.dogs.equipped) == key
 	elseif kind == "accessory" then
 		for _, worn in pairs(data.accessories.worn) do
 			if worn == key then

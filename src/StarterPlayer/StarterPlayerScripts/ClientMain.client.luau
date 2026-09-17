@@ -165,7 +165,7 @@ local latestUpgrades: { [string]: any } = {}
 -- multiplies BY the number the server is using rather than deciding what a
 -- rush is worth -- the same call the chest reel makes when it prints
 -- `ChestService`'s live odds instead of recomputing them from Config.
-local stealInfo = { carrying = 0, stealMultiplier = 1 }
+local stealInfo = { carrying = 0, stealMultiplier = 1, coins = nil :: number?, capacity = nil :: number? }
 -- Whether the daily board is up. Read by `Rebirth.canShow`, which is wired
 -- further down and would otherwise let the rebirth button sit on top of it:
 -- the same collision the shop panel already had.
@@ -2870,6 +2870,13 @@ local function renderCosmetics()
 			entry.sub.Text = "Tap to move in"
 			entry.sub.TextColor3 = Theme.MUTED_LIGHT
 			entry.button.BackgroundColor3 = ShopStyle.DEAR
+		elseif info.earned then
+			-- Earned, not bought: the card is a count toward owning every
+			-- priced house, never a price. Tapping it asks the server, which
+			-- says the same thing out loud.
+			entry.sub.Text = ("EARNED %d/%d"):format(info.earnedHave or 0, info.earnedNeed or 0)
+			entry.sub.TextColor3 = ShopStyle.LIGHT
+			entry.button.BackgroundColor3 = ShopStyle.LOCKED
 		elseif info.forSale then
 			entry.sub.Text = format(info.cost)
 			entry.sub.TextColor3 = GOLD
@@ -5350,6 +5357,21 @@ do
 				return Decor.buildOne(key, CFrame.new(), nil)
 			elseif kind == "ride" then
 				return RideModel.build(key)
+			elseif kind == "finish" then
+				-- The default piggy wearing the finish: shine and eye colour
+				-- are what a finish changes, so that is what the tile shows.
+				local spec = Config.FINISHES[key]
+				local m = PiggyModel.build(Config.DEFAULT_SKIN)
+				for _, d in ipairs(m:GetDescendants()) do
+					if spec and d:IsA("BasePart") then
+						if d.Name == "Eye" and spec.eyes then
+							d.Color, d.Material = spec.eyes, Enum.Material.Neon
+						elseif spec.reflectance then
+							d.Reflectance = math.min(1, d.Reflectance + spec.reflectance)
+						end
+					end
+				end
+				return m
 			elseif kind == "consumable" then
 				return if Config.BONES[key] then BoneModel.build(key, false) else GadgetModel.build(key, false)
 			end
@@ -6877,6 +6899,14 @@ local function render(state: any)
 	-- than repeating the figure.
 	bankHUD:render(state)
 	latestCoins = state.coins
+	-- The reader's own pig, for the capped home take the steal and smash
+	-- cards print (Config.homeTake). On `stealInfo` rather than two new
+	-- top-level locals: this chunk is at the 200-local ceiling.
+	stealInfo.coins, stealInfo.capacity = state.coins, state.capacity
+	-- Forward-declared; a push can land before the prompt code is defined.
+	if refreshStealPrompts then
+		refreshStealPrompts()
+	end
 	renderUpgrades()
 	-- Four of the five crates are priced in coins, and coins move on their own
 	-- clock rather than on `ChestState`. Only the buy state repaints -- the
@@ -7057,10 +7087,20 @@ function refreshStealPrompts()
 			entry.steal:SetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE, "")
 		else
 			local vault = math.floor(entry.model:GetAttribute(Config.PLOT_VAULT_ATTRIBUTE) or 0)
-			-- An empty piggy is refused outright, so saying so saves a hold
-			-- that was always going to end in a rejection toast.
+			-- WHAT A CLEAN CRACK CARRIES HOME, capped at this player's own
+			-- pig -- the same figure the rob badge shows (designer direction,
+			-- 4c.6), so the two readouts still agree. An empty piggy is
+			-- refused outright, so saying so saves a hold that was always
+			-- going to end in a rejection toast; a full pig of your own says
+			-- FULL, because a robbery would bank nothing.
+			local sack = (latestUpgrades.sack and latestUpgrades.sack.level) or 0
+			local home = Config.homeTake(vault, Config.getCrackFraction(Config.CRACK.maxSteps, sack),
+				stealInfo.stealMultiplier, stealInfo.coins, stealInfo.capacity)
 			entry.steal:SetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE,
-				if vault > 0 then ("~%s"):format(format(vault)) else "EMPTY")
+				if vault <= 0 then "EMPTY"
+				elseif stealInfo.capacity == nil then ("~%s"):format(format(vault))
+				elseif home <= 0 then "FULL"
+				else ("~%s"):format(format(home)))
 		end
 
 		-- THE OTHER CARD, AND IT PRINTS A DIFFERENT KIND OF NUMBER.
@@ -7118,11 +7158,18 @@ function refreshStealPrompts()
 			-- it is not a rounding the tilde can cover: the card was quoting
 			-- half of what `smash` pays, on the one card in the game whose
 			-- entire job is naming a take.
+			-- And, like the badge, what that take banks AT HOME: paid out and
+			-- capped at this player's own pig (Config.homeTake, 4c.6).
 			local take = math.floor(vault
 				* Config.getSmashFraction(sack)
 				* stealInfo.stealMultiplier)
+			local home = Config.homeTake(vault, Config.getSmashFraction(sack),
+				stealInfo.stealMultiplier, stealInfo.coins, stealInfo.capacity)
 			entry.smash:SetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE,
-				if take > 0 then ("~%s"):format(format(take)) else "EMPTY")
+				if take <= 0 then "EMPTY"
+				elseif stealInfo.capacity == nil then ("~%s"):format(format(take))
+				elseif home <= 0 then "FULL"
+				else ("~%s"):format(format(home)))
 		end
 	end
 end
@@ -7237,6 +7284,10 @@ end)
 -- the Player list and one remote, so it finds its own plots and needs no hook
 -- in `bindPlot`.
 require(ReplicatedStorage.Shared.RobBadge).start(player)
+-- The next-acorn clock over your own oak. One statement, no local: the
+-- 200-register ceiling again.
+require(ReplicatedStorage.Shared.TreeClock).start(player)
+require(ReplicatedStorage.Shared.SeasonBoard).start()
 
 -- THE BURST THAT GOES OFF ON A THIEF WHEN SOMEBODY NABS THEM. Required and
 -- started in ONE statement holding no local at all, which is the ninth time

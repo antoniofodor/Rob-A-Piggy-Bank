@@ -1861,6 +1861,53 @@ end
 -- Cosmetic particle aura around the piggy. Reuses one emitter rather than
 -- creating and destroying instances every time someone changes their mind
 -- in the shop.
+-- A FINISH OVER THE SKIN (Phase 5.4, `Config.FINISHES`). Called AFTER
+-- `applySkin` and `applyEffect`, which reset reflectance and eyes and turn
+-- the spare light off; this only ADDS: a sheen on top of the skin's own
+-- reflectance, Neon eyes in the finish colour, and a dim light on the
+-- otherwise unused AuraLight. Never a colour on the body or the trim, and
+-- never a particle -- piggy auras are retired. nil or "" takes nothing off,
+-- because the skin repaint that precedes every call already did.
+function PiggyBank.applyFinish(refs: Refs, finishKey: string?)
+	if refs.vault then
+		return
+	end
+	local spec = finishKey and Config.FINISHES[finishKey]
+	refs.model:SetAttribute("FinishKey", if spec then finishKey else nil)
+	if not spec then
+		return
+	end
+
+	if spec.reflectance then
+		local parts: { BasePart } = { refs.body }
+		if refs.trim then table.insert(parts, refs.trim) end
+		if refs.snout then table.insert(parts, refs.snout) end
+		if refs.tail then table.insert(parts, refs.tail) end
+		for _, ear in ipairs(refs.ears) do table.insert(parts, ear) end
+		for _, leg in ipairs(refs.legs) do table.insert(parts, leg) end
+		for _, part in ipairs(parts) do
+			part.Reflectance = math.min(1, part.Reflectance + spec.reflectance)
+		end
+	end
+
+	if spec.eyes then
+		for _, child in ipairs(refs.model:GetChildren()) do
+			if child:IsA("BasePart") and child.Name == "Eye" then
+				child.Color = spec.eyes
+				child.Material = Enum.Material.Neon
+			end
+		end
+	end
+
+	local light = refs.body:FindFirstChild("AuraLight") :: PointLight?
+	if light and spec.light then
+		light.Color = spec.light.colour
+		light.Brightness = spec.light.brightness
+		light.Range = spec.light.range
+		light.Enabled = true
+	end
+end
+
 function PiggyBank.applyEffect(refs: Refs, _effectKey: string)
 	-- Independent piggy auras are retired. Do not touch coin/deposit particles
 	-- or skinAura: Legendary skin visuals are owned by applySkin.

@@ -107,9 +107,12 @@ function AcornFill.start()
 				local ripe = folder("RipeAcorns", tree :: Instance)
 				local ground = folder("GroundAcorns", tree :: Instance)
 				local dropped = plot:GetAttribute(Config.PLOT_SHAKE_ATTRIBUTE)
+				-- A taller tree (step 2.7) lifts its crop with the canopy; the
+				-- collider this is measured from does not move.
+				local growth = tonumber(plot:GetAttribute(Config.PLOT_TREE_GROWTH_ATTRIBUTE)) or 1
 				for i = 1, math.min(count(Config.PLOT_TREE_ACORNS_ATTRIBUTE), Config.ACORNS.growCap) do
 					local angle = i * math.pi / 4
-					acorn(ripe, base * CFrame.new(math.cos(angle) * 1.65, 3.7 + (i % 2) * 0.5, math.sin(angle) * 1.65), 0.85)
+					acorn(ripe, base * CFrame.new(math.cos(angle) * 1.65, (3.7 + (i % 2) * 0.5) * growth, math.sin(angle) * 1.65), 0.85)
 				end
 				for i = 1, math.min(count(Config.PLOT_GROUND_ACORNS_ATTRIBUTE), Config.ACORNS.growCap) do
 					local angle = i * math.pi / 4
@@ -124,7 +127,8 @@ function AcornFill.start()
 		end
 		state.repaint = repaint
 		for _, key in ipairs({ Config.PLOT_ACORNS_ATTRIBUTE, Config.PLOT_TREE_ACORNS_ATTRIBUTE,
-			Config.PLOT_GROUND_ACORNS_ATTRIBUTE, Config.PLOT_SHAKE_ATTRIBUTE, "OwnerUserId" }) do
+			Config.PLOT_GROUND_ACORNS_ATTRIBUTE, Config.PLOT_SHAKE_ATTRIBUTE, "OwnerUserId",
+			Config.PLOT_TREE_GROWTH_ATTRIBUTE }) do
 			table.insert(state.connections, plot:GetAttributeChangedSignal(key):Connect(repaint))
 		end
 		local function relevant(item: Instance): boolean

@@ -20,6 +20,8 @@ for _,name in {"PiggyBank","UpgradeService","GuardDog","EventService","ResidentS
 modules.DataService={get=function(p) return p.data end}
 modules.PlotService={getPlot=function() return nil end}
 modules.TrophyService={recordCatch=function(p) p.catches=(p.catches or 0)+1 end}
+modules.SeasonService={earn=function() end,recordNemesis=function() end}
+for _,k in {"recordClean","recordWanted","recordHarvest","recheck","recordVictim","recordSpree","recordCatch"} do modules.TrophyService[k]=modules.TrophyService[k] or function() end end
 modules.ShakeService={finish=function(p) p.shaking=false end,isShaking=function(p) return p.shaking==true end,
  refund=function(victim,amount,receipts)
   local left=amount
@@ -52,13 +54,14 @@ return {newCarry=newCarry,carrying=carrying,tugs=tugs,rest=nabRest,cracking=crac
  confiscate=HeistService.confiscate,clear=clearCarry,deliver=deliver,canDeliver=canDeliverCarry,inBin=inBin,rides=rideMultiplier}
 ]]
 local modified,n=source:gsub("return HeistService%s*$",tail);assert(n==1)
+if modules.SocialService then modules.SocialService.recordDefend=modules.SocialService.recordDefend or function() end end
 local run=assert(loadstring(modified,"handoff"));setfenv(run,setmetatable(env,{__index=getfenv()}));local H=run()
 local function actor()
  serial+=1
  local char={attributes={}}
  function char:SetAttribute(k,val) self.attributes[k]=val end
  local p={player=true,UserId=serial,DisplayName="P"..serial,Parent=true,Character=char,
-  data={coins=100,loot=8,robberies=0},humanoid={Health=100,WalkSpeed=16,Parent=char},shield=true,tiptoe=true}
+  data={coins=100,loot=8,robberies=0,capacityLevel=1},humanoid={Health=100,WalkSpeed=16,Parent=char},shield=true,tiptoe=true}
  p.root={Position=v(0,0,0),CFrame=frame,Parent=char};return p
 end
 local function carry(p,victim,kind,amount)
