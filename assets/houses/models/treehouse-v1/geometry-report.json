@@ -1,0 +1,2197 @@
+{
+  "id": "treehouse",
+  "status": "offline physical prototype; Studio import, camera and playtest pending",
+  "paletteRGB": {
+    "Wall": [
+      229,
+      206,
+      160
+    ],
+    "Timber": [
+      132,
+      86,
+      47
+    ],
+    "Dark": [
+      71,
+      45,
+      28
+    ],
+    "Roof": [
+      61,
+      103,
+      47
+    ],
+    "Leaf": [
+      84,
+      138,
+      72
+    ],
+    "LeafLight": [
+      117,
+      159,
+      72
+    ],
+    "LeafDark": [
+      56,
+      111,
+      64
+    ],
+    "Glass": [
+      241,
+      186,
+      74
+    ],
+    "Rope": [
+      169,
+      139,
+      84
+    ],
+    "Stone": [
+      144,
+      134,
+      110
+    ],
+    "Cream": [
+      239,
+      225,
+      186
+    ],
+    "Gold": [
+      255,
+      203,
+      61
+    ]
+  },
+  "visualObjectCount": 113,
+  "totalTriangles": 7016,
+  "meshes": [
+    {
+      "name": "OakTrunk",
+      "triangles": 36,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "OakRoot",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "OakRoot.001",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "OakRoot.002",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "OakRoot.003",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "RearOakSupport",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "OakBough",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "OakBough.001",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "OakBough.002",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "MainDeck",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "DeckBeam",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "DeckBeam.001",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "DeckBeam.002",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "CabinFront",
+      "triangles": 276,
+      "nonManifoldEdges": 0,
+      "material": "Wall"
+    },
+    {
+      "name": "CabinFront_Pane",
+      "triangles": 92,
+      "nonManifoldEdges": 0,
+      "material": "Glass"
+    },
+    {
+      "name": "CabinFront_WindowFrame",
+      "triangles": 240,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "CabinFront_WindowFrame.001",
+      "triangles": 240,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "WindowMullionH",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "WindowMullionV",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "CabinFront_Pane.001",
+      "triangles": 92,
+      "nonManifoldEdges": 0,
+      "material": "Glass"
+    },
+    {
+      "name": "CabinFront_WindowFrame.002",
+      "triangles": 240,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "CabinFront_WindowFrame.003",
+      "triangles": 240,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "WindowMullionH.001",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "WindowMullionV.001",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "CabinSide-1",
+      "triangles": 112,
+      "nonManifoldEdges": 0,
+      "material": "Wall"
+    },
+    {
+      "name": "CabinSide-1_Pane",
+      "triangles": 92,
+      "nonManifoldEdges": 0,
+      "material": "Glass"
+    },
+    {
+      "name": "CabinSide-1_WindowFrame",
+      "triangles": 240,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "CabinSide-1_WindowFrame.001",
+      "triangles": 240,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "WindowMullionH.002",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "WindowMullionV.002",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "CornerFrame",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "CornerFrame.001",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "CabinSide1",
+      "triangles": 112,
+      "nonManifoldEdges": 0,
+      "material": "Wall"
+    },
+    {
+      "name": "CabinSide1_Pane",
+      "triangles": 92,
+      "nonManifoldEdges": 0,
+      "material": "Glass"
+    },
+    {
+      "name": "CabinSide1_WindowFrame",
+      "triangles": 240,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "CabinSide1_WindowFrame.001",
+      "triangles": 240,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "WindowMullionH.003",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "WindowMullionV.003",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "CornerFrame.002",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "CornerFrame.003",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "CabinRear",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Wall"
+    },
+    {
+      "name": "DoorFrame",
+      "triangles": 116,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "Door_Open",
+      "triangles": 56,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "HorizontalTrim",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "HorizontalTrim.001",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "GableWall",
+      "triangles": 8,
+      "nonManifoldEdges": 0,
+      "material": "Wall"
+    },
+    {
+      "name": "GableTrim",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "GableTrim.001",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "GableWall.001",
+      "triangles": 8,
+      "nonManifoldEdges": 0,
+      "material": "Wall"
+    },
+    {
+      "name": "GableTrim.002",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "GableTrim.003",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "RoofHalf",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Roof"
+    },
+    {
+      "name": "RoofCourse",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "LeafDark"
+    },
+    {
+      "name": "RoofCourse.001",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "LeafDark"
+    },
+    {
+      "name": "RoofCourse.002",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "LeafDark"
+    },
+    {
+      "name": "RoofHalf.001",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Roof"
+    },
+    {
+      "name": "RoofCourse.003",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "LeafDark"
+    },
+    {
+      "name": "RoofCourse.004",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "LeafDark"
+    },
+    {
+      "name": "RoofCourse.005",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "LeafDark"
+    },
+    {
+      "name": "LowerTread_00",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "UpperTread_00",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "LowerTread_01",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "UpperTread_01",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "LowerTread_02",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "UpperTread_02",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "LowerTread_03",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "UpperTread_03",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "LowerTread_04",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "UpperTread_04",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "LowerTread_05",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "UpperTread_05",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "LowerTread_06",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "UpperTread_06",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "LowerTread_07",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "UpperTread_07",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "LowerTread_08",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "UpperTread_08",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "LowerTread_09",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "UpperTread_09",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "LowerTread_10",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "UpperTread_10",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "LowerTread_11",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "UpperTread_11",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "MidLanding",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "UpperLanding",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "DeckLink",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "StairStringer",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "StairStringer.001",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "StairStringer.002",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "StairStringer.003",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "BridgeFloor",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "SidePlatform",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "Canopy_00",
+      "triangles": 80,
+      "nonManifoldEdges": 0,
+      "material": "Leaf"
+    },
+    {
+      "name": "Canopy_01",
+      "triangles": 80,
+      "nonManifoldEdges": 0,
+      "material": "LeafLight"
+    },
+    {
+      "name": "Canopy_02",
+      "triangles": 80,
+      "nonManifoldEdges": 0,
+      "material": "Leaf"
+    },
+    {
+      "name": "Canopy_03",
+      "triangles": 80,
+      "nonManifoldEdges": 0,
+      "material": "LeafDark"
+    },
+    {
+      "name": "Canopy_04",
+      "triangles": 80,
+      "nonManifoldEdges": 0,
+      "material": "LeafLight"
+    },
+    {
+      "name": "PulleyUpright",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "PulleyArm",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "BucketRope",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "material": "Rope"
+    },
+    {
+      "name": "Bucket",
+      "triangles": 36,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "DisplayShelf",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "DisplayShelf.001",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "ShelfSupport",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "ShelfSupport.001",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "FeaturedPlinth",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "RecordDesk",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Timber"
+    },
+    {
+      "name": "DeskLeg",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "DeskLeg.001",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "RecordBook",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Cream"
+    },
+    {
+      "name": "Rug",
+      "triangles": 12,
+      "nonManifoldEdges": 0,
+      "material": "Roof"
+    },
+    {
+      "name": "RailAssembly_Dark",
+      "triangles": 1472,
+      "nonManifoldEdges": 0,
+      "material": "Dark"
+    },
+    {
+      "name": "RailAssembly_Rope",
+      "triangles": 644,
+      "nonManifoldEdges": 0,
+      "material": "Rope"
+    }
+  ],
+  "boundsBlender": {
+    "min": [
+      -19.25,
+      -11.0,
+      -0.479519784450531
+    ],
+    "max": [
+      20.100000381469727,
+      25.69999885559082,
+      31.0
+    ],
+    "size": [
+      39.35000038146973,
+      36.69999885559082,
+      31.47951978445053
+    ]
+  },
+  "collisionBoxes": [
+    {
+      "name": "Trunk",
+      "blenderLocation": [
+        0,
+        6,
+        4.8
+      ],
+      "sizeXYZ": [
+        4.3,
+        4.3,
+        9.6
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "MainDeck",
+      "blenderLocation": [
+        0,
+        5,
+        9.75
+      ],
+      "sizeXYZ": [
+        20,
+        18,
+        0.5
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "DoorSide-1",
+      "blenderLocation": [
+        -4.85,
+        0,
+        14.5
+      ],
+      "sizeXYZ": [
+        4.3,
+        0.7,
+        9
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "CabinSide-1",
+      "blenderLocation": [
+        -6.65,
+        5.85,
+        14.5
+      ],
+      "sizeXYZ": [
+        0.7,
+        11,
+        9
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "DoorSide1",
+      "blenderLocation": [
+        4.85,
+        0,
+        14.5
+      ],
+      "sizeXYZ": [
+        4.3,
+        0.7,
+        9
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "CabinSide1",
+      "blenderLocation": [
+        6.65,
+        5.85,
+        14.5
+      ],
+      "sizeXYZ": [
+        0.7,
+        11,
+        9
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "DoorLintel",
+      "blenderLocation": [
+        0,
+        0,
+        18.6
+      ],
+      "sizeXYZ": [
+        5.4,
+        0.7,
+        0.8
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "CabinRear",
+      "blenderLocation": [
+        0,
+        11.7,
+        14.5
+      ],
+      "sizeXYZ": [
+        14,
+        0.7,
+        9
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "CabinCeiling",
+      "blenderLocation": [
+        0,
+        6,
+        19.15
+      ],
+      "sizeXYZ": [
+        13.5,
+        11.5,
+        0.3
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "LowerTread_00",
+      "blenderLocation": [
+        -17,
+        -6.5,
+        0.2566666666666667
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "UpperTread_00",
+      "blenderLocation": [
+        -11.5,
+        4.5,
+        5.256666666666667
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "LowerTread_01",
+      "blenderLocation": [
+        -17,
+        -5.5,
+        0.6733333333333333
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "UpperTread_01",
+      "blenderLocation": [
+        -11.5,
+        3.5,
+        5.673333333333333
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "LowerTread_02",
+      "blenderLocation": [
+        -17,
+        -4.5,
+        1.09
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "UpperTread_02",
+      "blenderLocation": [
+        -11.5,
+        2.5,
+        6.09
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "LowerTread_03",
+      "blenderLocation": [
+        -17,
+        -3.5,
+        1.5066666666666668
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "UpperTread_03",
+      "blenderLocation": [
+        -11.5,
+        1.5,
+        6.506666666666667
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "LowerTread_04",
+      "blenderLocation": [
+        -17,
+        -2.5,
+        1.9233333333333336
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "UpperTread_04",
+      "blenderLocation": [
+        -11.5,
+        0.5,
+        6.923333333333334
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "LowerTread_05",
+      "blenderLocation": [
+        -17,
+        -1.5,
+        2.34
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "UpperTread_05",
+      "blenderLocation": [
+        -11.5,
+        -0.5,
+        7.34
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "LowerTread_06",
+      "blenderLocation": [
+        -17,
+        -0.5,
+        2.7566666666666664
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "UpperTread_06",
+      "blenderLocation": [
+        -11.5,
+        -1.5,
+        7.756666666666666
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "LowerTread_07",
+      "blenderLocation": [
+        -17,
+        0.5,
+        3.1733333333333333
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "UpperTread_07",
+      "blenderLocation": [
+        -11.5,
+        -2.5,
+        8.173333333333334
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "LowerTread_08",
+      "blenderLocation": [
+        -17,
+        1.5,
+        3.59
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "UpperTread_08",
+      "blenderLocation": [
+        -11.5,
+        -3.5,
+        8.59
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "LowerTread_09",
+      "blenderLocation": [
+        -17,
+        2.5,
+        4.006666666666667
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "UpperTread_09",
+      "blenderLocation": [
+        -11.5,
+        -4.5,
+        9.006666666666668
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "LowerTread_10",
+      "blenderLocation": [
+        -17,
+        3.5,
+        4.423333333333333
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "UpperTread_10",
+      "blenderLocation": [
+        -11.5,
+        -5.5,
+        9.423333333333332
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "LowerTread_11",
+      "blenderLocation": [
+        -17,
+        4.5,
+        4.84
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "UpperTread_11",
+      "blenderLocation": [
+        -11.5,
+        -6.5,
+        9.84
+      ],
+      "sizeXYZ": [
+        4.4,
+        1,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "MidLanding",
+      "blenderLocation": [
+        -14.25,
+        7,
+        4.8
+      ],
+      "sizeXYZ": [
+        10,
+        4,
+        0.4
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "UpperLanding",
+      "blenderLocation": [
+        -11.5,
+        -8.5,
+        9.8
+      ],
+      "sizeXYZ": [
+        4.5,
+        3,
+        0.4
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "DeckLink",
+      "blenderLocation": [
+        -6.875,
+        -7.5,
+        9.8
+      ],
+      "sizeXYZ": [
+        4.75,
+        7,
+        0.4
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "LowerStairRail_Guard",
+      "blenderLocation": [
+        -19.100000381469727,
+        -1.0,
+        4.199999809265137
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        13.0
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          -1.0000001192092896,
+          8.742277657347586e-08,
+          2.4305623126956357e-15
+        ],
+        [
+          -3.3624143469523915e-08,
+          -0.3846154808998108,
+          0.9230769276618958
+        ],
+        [
+          8.06979443268574e-08,
+          0.9230769276618958,
+          0.38461539149284363
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "LowerStairRail_Guard",
+      "blenderLocation": [
+        -14.899999618530273,
+        -1.0,
+        4.199999809265137
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        13.0
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          -1.0000001192092896,
+          8.742277657347586e-08,
+          2.4305623126956357e-15
+        ],
+        [
+          -3.3624143469523915e-08,
+          -0.3846154808998108,
+          0.9230769276618958
+        ],
+        [
+          8.06979443268574e-08,
+          0.9230769276618958,
+          0.38461539149284363
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "UpperStairRail_Guard",
+      "blenderLocation": [
+        -13.600000381469727,
+        -1.0,
+        9.199999809265137
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        13.0
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.38461539149284363,
+          -0.923076868057251
+        ],
+        [
+          0.0,
+          0.923076868057251,
+          0.38461539149284363
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "UpperStairRail_Guard",
+      "blenderLocation": [
+        -9.399999618530273,
+        -1.0,
+        9.199999809265137
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        13.0
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.38461539149284363,
+          -0.923076868057251
+        ],
+        [
+          0.0,
+          0.923076868057251,
+          0.38461539149284363
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "LandingRear_Guard",
+      "blenderLocation": [
+        -14.25,
+        8.800000190734863,
+        6.699999809265137
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        9.700000597766977
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          1.1920928244535389e-07,
+          0.0,
+          0.9999998807907104
+        ],
+        [
+          0.9999998807907104,
+          1.1920928244535389e-07,
+          0.0
+        ],
+        [
+          0.0,
+          0.9999998807907104,
+          1.1920928244535389e-07
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "LandingLeft_Guard",
+      "blenderLocation": [
+        -19.100000381469727,
+        6.900000095367432,
+        6.699999809265137
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        3.8000001957541967
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          -0.9999999403953552,
+          8.742277657347586e-08,
+          0.0
+        ],
+        [
+          0.0,
+          3.4228538225988814e-08,
+          0.9999999403953552
+        ],
+        [
+          8.742277657347586e-08,
+          0.9999999403953552,
+          3.4228538225988814e-08
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "LandingRight_Guard",
+      "blenderLocation": [
+        -9.399999618530273,
+        6.900000095367432,
+        6.699999809265137
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        3.8000001957541967
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          -0.9999999403953552,
+          8.742277657347586e-08,
+          0.0
+        ],
+        [
+          0.0,
+          3.4228538225988814e-08,
+          0.9999999403953552
+        ],
+        [
+          8.742277657347586e-08,
+          0.9999999403953552,
+          3.4228538225988814e-08
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "UpperLandingSouth_Guard",
+      "blenderLocation": [
+        -11.425000190734863,
+        -9.850000381469727,
+        11.5
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        4.350000289390818
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          1.1920928244535389e-07,
+          0.0,
+          0.9999998807907104
+        ],
+        [
+          0.9999998807907104,
+          1.1920928244535389e-07,
+          0.0
+        ],
+        [
+          0.0,
+          0.9999998807907104,
+          1.1920928244535389e-07
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "UpperLandingWest_Guard",
+      "blenderLocation": [
+        -13.600000381469727,
+        -8.425000190734863,
+        11.5
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        2.8500004082395027
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          -0.9999999403953552,
+          8.742277657347586e-08,
+          0.0
+        ],
+        [
+          0.0,
+          3.4228538225988814e-08,
+          0.9999999403953552
+        ],
+        [
+          8.742277657347586e-08,
+          0.9999999403953552,
+          3.4228538225988814e-08
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "DeckLinkSouth_Guard",
+      "blenderLocation": [
+        -6.875,
+        -10.850000381469727,
+        11.5
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        4.450000188591771
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          1.7881392011531716e-07,
+          0.0,
+          0.9999998211860657
+        ],
+        [
+          0.9999998211860657,
+          2.3841856489070778e-07,
+          0.0
+        ],
+        [
+          -5.9604641222676946e-08,
+          0.9999998211860657,
+          1.7881392011531716e-07
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "DeckLinkEast_Guard",
+      "blenderLocation": [
+        -4.650000095367432,
+        -7.475000381469727,
+        11.5
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        6.750000565140312
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          -0.9999999403953552,
+          8.742277657347586e-08,
+          0.0
+        ],
+        [
+          0.0,
+          3.4228538225988814e-08,
+          0.9999999403953552
+        ],
+        [
+          8.742277657347586e-08,
+          0.9999999403953552,
+          3.4228538225988814e-08
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "DeckLinkWest_Guard",
+      "blenderLocation": [
+        -9.100000381469727,
+        -5.300000190734863,
+        11.5
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        2.4000000476837156
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          -0.9999999403953552,
+          8.742277657347586e-08,
+          0.0
+        ],
+        [
+          0.0,
+          3.4228538225988814e-08,
+          0.9999999403953552
+        ],
+        [
+          8.742277657347586e-08,
+          0.9999999403953552,
+          3.4228538225988814e-08
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "DeckFrontRight_Guard",
+      "blenderLocation": [
+        6.150000095367432,
+        -3.9000000953674316,
+        11.5
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        7.300000062707352
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          1.1920928244535389e-07,
+          0.0,
+          0.9999998807907104
+        ],
+        [
+          0.9999998807907104,
+          1.1920928244535389e-07,
+          0.0
+        ],
+        [
+          0.0,
+          0.9999998807907104,
+          1.1920928244535389e-07
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "DeckFrontLeft_Guard",
+      "blenderLocation": [
+        -3.549999952316284,
+        -3.9000000953674316,
+        11.5
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        1.099999908967448
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          1.1920928244535389e-07,
+          0.0,
+          0.9999998807907104
+        ],
+        [
+          0.9999998807907104,
+          1.1920928244535389e-07,
+          0.0
+        ],
+        [
+          0.0,
+          0.9999998807907104,
+          1.1920928244535389e-07
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "DeckRear_Guard",
+      "blenderLocation": [
+        0.0,
+        13.800000190734863,
+        11.5
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        19.60000009342116
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          1.7881392011531716e-07,
+          0.0,
+          0.9999998211860657
+        ],
+        [
+          0.9999998211860657,
+          2.3841856489070778e-07,
+          0.0
+        ],
+        [
+          -5.9604641222676946e-08,
+          0.9999998211860657,
+          1.7881392011531716e-07
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "DeckSideLeft_Guard",
+      "blenderLocation": [
+        -9.800000190734863,
+        4.949999809265137,
+        11.5
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        17.70000110346042
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          -0.9999999403953552,
+          8.742277657347586e-08,
+          0.0
+        ],
+        [
+          0.0,
+          3.4228538225988814e-08,
+          0.9999999403953552
+        ],
+        [
+          8.742277657347586e-08,
+          0.9999999403953552,
+          3.4228538225988814e-08
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "DeckSideRightFront_Guard",
+      "blenderLocation": [
+        9.800000190734863,
+        1.0,
+        11.5
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        9.80000004671058
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          -0.9999999403953552,
+          8.742277657347586e-08,
+          0.0
+        ],
+        [
+          0.0,
+          3.4228538225988814e-08,
+          0.9999999403953552
+        ],
+        [
+          8.742277657347586e-08,
+          0.9999999403953552,
+          3.4228538225988814e-08
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "DeckSideRightRear_Guard",
+      "blenderLocation": [
+        9.800000190734863,
+        11.950000762939453,
+        11.5
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        3.6999998144201283
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          -0.9999999403953552,
+          8.742277657347586e-08,
+          0.0
+        ],
+        [
+          0.0,
+          3.4228538225988814e-08,
+          0.9999999403953552
+        ],
+        [
+          8.742277657347586e-08,
+          0.9999999403953552,
+          3.4228538225988814e-08
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "BridgeFloor",
+      "blenderLocation": [
+        12.05,
+        8,
+        9.8
+      ],
+      "sizeXYZ": [
+        4.1,
+        4,
+        0.4
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "SidePlatform",
+      "blenderLocation": [
+        17.1,
+        8,
+        9.75
+      ],
+      "sizeXYZ": [
+        6,
+        6,
+        0.5
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "BridgeRope_Guard",
+      "blenderLocation": [
+        12.200000762939453,
+        6.099999904632568,
+        11.300000190734863
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        4.199999700273776
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          1.1920928244535389e-07,
+          0.0,
+          0.9999998807907104
+        ],
+        [
+          0.9999998807907104,
+          1.1920928244535389e-07,
+          0.0
+        ],
+        [
+          0.0,
+          0.9999998807907104,
+          1.1920928244535389e-07
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "BridgeRope_Guard",
+      "blenderLocation": [
+        12.200000762939453,
+        9.899999618530273,
+        11.300000190734863
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        4.199999700273776
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          1.1920928244535389e-07,
+          0.0,
+          0.9999998807907104
+        ],
+        [
+          0.9999998807907104,
+          1.1920928244535389e-07,
+          0.0
+        ],
+        [
+          0.0,
+          0.9999998807907104,
+          1.1920928244535389e-07
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "PlatformOuter_Guard",
+      "blenderLocation": [
+        19.899999618530273,
+        8.0,
+        11.399999618530273
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        5.600000395093631
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          -0.9999999403953552,
+          8.742277657347586e-08,
+          0.0
+        ],
+        [
+          0.0,
+          3.4228538225988814e-08,
+          0.9999999403953552
+        ],
+        [
+          8.742277657347586e-08,
+          0.9999999403953552,
+          3.4228538225988814e-08
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "PlatformEdge_Guard",
+      "blenderLocation": [
+        17.149999618530273,
+        5.150000095367432,
+        11.399999618530273
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        5.5
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          1.1920928244535389e-07,
+          0.0,
+          0.9999998807907104
+        ],
+        [
+          0.9999998807907104,
+          1.1920928244535389e-07,
+          0.0
+        ],
+        [
+          0.0,
+          0.9999998807907104,
+          1.1920928244535389e-07
+        ]
+      ],
+      "role": "guard"
+    },
+    {
+      "name": "PlatformEdge_Guard",
+      "blenderLocation": [
+        17.149999618530273,
+        10.850000381469727,
+        11.399999618530273
+      ],
+      "sizeXYZ": [
+        0.28,
+        2.8,
+        5.5
+      ],
+      "rotationZ": 0,
+      "rotationMatrix": [
+        [
+          1.1920928244535389e-07,
+          0.0,
+          0.9999998807907104
+        ],
+        [
+          0.9999998807907104,
+          1.1920928244535389e-07,
+          0.0
+        ],
+        [
+          0.0,
+          0.9999998807907104,
+          1.1920928244535389e-07
+        ]
+      ],
+      "role": "guard"
+    }
+  ],
+  "mountsBlender": {
+    "Shelf_1": [
+      -4.8,
+      10.7,
+      12.620000000000001
+    ],
+    "Shelf_2": [
+      -2.8,
+      10.7,
+      12.620000000000001
+    ],
+    "Shelf_3": [
+      -4.8,
+      10.7,
+      14.82
+    ],
+    "Shelf_4": [
+      -2.8,
+      10.7,
+      14.82
+    ],
+    "Featured": [
+      3.5,
+      9.4,
+      11.48
+    ],
+    "Record": [
+      3.8,
+      5,
+      13
+    ],
+    "Wall": [
+      6.15,
+      8.4,
+      15
+    ],
+    "Plaque_Legacy": [
+      0,
+      11.15,
+      16
+    ],
+    "Door_Exit": [
+      0,
+      -1,
+      10
+    ]
+  },
+  "routesBlender": [
+    {
+      "name": "Ground_to_cabin",
+      "points": [
+        [
+          -17,
+          -8,
+          0
+        ],
+        [
+          -17,
+          -6.5,
+          0.4167
+        ],
+        [
+          -17,
+          4.5,
+          5
+        ],
+        [
+          -17,
+          7,
+          5
+        ],
+        [
+          -11.5,
+          7,
+          5
+        ],
+        [
+          -11.5,
+          4.5,
+          5.4167
+        ],
+        [
+          -11.5,
+          -6.5,
+          10
+        ],
+        [
+          -11.5,
+          -8.2,
+          10
+        ],
+        [
+          -7,
+          -8.2,
+          10
+        ],
+        [
+          -7,
+          -2,
+          10
+        ],
+        [
+          0,
+          -2,
+          10
+        ],
+        [
+          0,
+          1,
+          10
+        ],
+        [
+          0,
+          6,
+          10
+        ]
+      ],
+      "clearWidth": 3.5,
+      "clearHeight": 6
+    },
+    {
+      "name": "Cabin_to_side_platform",
+      "points": [
+        [
+          0,
+          6,
+          10
+        ],
+        [
+          0,
+          -2,
+          10
+        ],
+        [
+          8.3,
+          -2,
+          10
+        ],
+        [
+          8.3,
+          8,
+          10
+        ],
+        [
+          17,
+          8,
+          10
+        ]
+      ],
+      "clearWidth": 2.8,
+      "clearHeight": 6
+    }
+  ],
+  "coordinateMapping": "Blender (x,y,z) -> Roblox/export (-x,z,y)",
+  "floorHeight": 10,
+  "doorWidth": 5.4,
+  "doorCrownHeight": 17.8,
+  "animation": "None; Rare. All routes and decks are static.",
+  "coplanarAudit": "pending",
+  "stairRiser": 0.4166666666666667,
+  "stairTreadDepth": 1,
+  "avatarRouteValidation": "offline samples only; live avatar and camera pending"
+}

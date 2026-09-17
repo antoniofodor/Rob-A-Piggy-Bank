@@ -1,0 +1,238 @@
+{
+  "status": "visual specification, not runtime implementation",
+  "authorization": "User explicitly requested animation on Portal House and all Legendary houses.",
+  "units": {
+    "period": "seconds per full cycle",
+    "phase": "fraction of cycle"
+  },
+  "houses": [
+    {
+      "id": "neontower",
+      "name": "Neon Tower",
+      "effects": [
+        {
+          "part": "WindowBand_1..4",
+          "kind": "chase",
+          "period": 8,
+          "phase": [
+            0,
+            0.25,
+            0.5,
+            0.75
+          ],
+          "range": "Accent intensity 0.35–0.75; never switches off."
+        }
+      ],
+      "fixed": "Tower, floors, windows and entry."
+    },
+    {
+      "id": "crystal",
+      "name": "Crystal Spire",
+      "effects": [
+        {
+          "part": "CrystalAccent_1..3",
+          "kind": "pulse",
+          "period": 9,
+          "phase": [
+            0,
+            0.3333333333333333,
+            0.6666666666666666
+          ],
+          "range": "Saturated violet intensity 0.45–0.8; no white peak."
+        }
+      ],
+      "fixed": "Rock shell, crystals, stair and floors."
+    },
+    {
+      "id": "palace",
+      "name": "Ice Palace",
+      "effects": [
+        {
+          "part": "IcicleAccent_1..4",
+          "kind": "chase",
+          "period": 12,
+          "phase": [
+            0,
+            0.25,
+            0.5,
+            0.75
+          ],
+          "range": "Deep-blue accent intensity 0.35–0.7; soft transitions."
+        }
+      ],
+      "fixed": "Palace structure, icicles, fountain and all walking surfaces."
+    },
+    {
+      "id": "skycastle",
+      "name": "Sky Castle",
+      "effects": [
+        {
+          "part": "OrbitShard_1..3",
+          "kind": "orbit",
+          "period": 36,
+          "phase": [
+            0,
+            0.3333333333333333,
+            0.6666666666666666
+          ],
+          "range": "Horizontal radius 6 studs around roof-local anchor; shrink if bounds require."
+        }
+      ],
+      "fixed": "Castle, stairs and structural floating-base illusion."
+    },
+    {
+      "id": "galleon",
+      "name": "The Beached Galleon",
+      "effects": [
+        {
+          "part": "MastLanternAccent",
+          "kind": "pulse",
+          "period": 7,
+          "phase": [
+            0
+          ],
+          "range": "Amber intensity 0.4–0.75."
+        },
+        {
+          "part": "SailDecor",
+          "kind": "sway",
+          "period": 11,
+          "phase": [
+            0.2
+          ],
+          "range": "±2 degrees about mast-local hinge; no walking or collision role."
+        }
+      ],
+      "fixed": "Hull, decks, gangplank, ladders and mast."
+    },
+    {
+      "id": "portal",
+      "name": "Portal House",
+      "effects": [
+        {
+          "part": "RingRim_1..12",
+          "kind": "cycle",
+          "period": 8,
+          "phase": "segment index / 12",
+          "range": "Violet-to-teal travel at constant readable brightness."
+        },
+        {
+          "part": "RingInnerCollar",
+          "kind": "rotate",
+          "period": 36,
+          "phase": [
+            0
+          ],
+          "range": "360 degrees in ring plane; centred in same stationary ring."
+        },
+        {
+          "part": "DecorStep_1..3",
+          "kind": "bob",
+          "period": 8,
+          "phase": [
+            0,
+            0.3333333333333333,
+            0.6666666666666666
+          ],
+          "range": "±0.3 studs vertical, outside the walking route."
+        }
+      ],
+      "fixed": "Outer frame, main hallway across ring, entry, stairs and floors."
+    },
+    {
+      "id": "thundercloud",
+      "name": "Thundercloud Fortress",
+      "effects": [
+        {
+          "part": "RainBar_1..6",
+          "kind": "cycle",
+          "period": 3,
+          "phase": "segment index / 6",
+          "range": "Descend 1.5 studs then fade at cloud boundary before reset."
+        },
+        {
+          "part": "CloudLightningBand",
+          "kind": "beacon",
+          "period": 10,
+          "phase": [
+            0
+          ],
+          "range": "One soft violet sweep, never flashing entire cloud."
+        }
+      ],
+      "fixed": "Cloud structure, towers, grounded stair and floors."
+    },
+    {
+      "id": "void",
+      "name": "The Void",
+      "effects": [
+        {
+          "part": "EdgeTrace_1..4",
+          "kind": "pulse",
+          "period": 12,
+          "phase": [
+            0,
+            0.25,
+            0.5,
+            0.75
+          ],
+          "range": "Violet intensity 0.4–0.7, black wall colour constant."
+        },
+        {
+          "part": "PlanetA / PlanetB / Comet",
+          "kind": "orbit",
+          "period": [
+            36,
+            48,
+            60
+          ],
+          "phase": [
+            0,
+            0.33,
+            0.67
+          ],
+          "range": "Separate model-local paths; start radii 8/10/12 studs, shrink to envelope."
+        },
+        {
+          "part": "StarInset_1..3",
+          "kind": "cycle",
+          "period": 15,
+          "phase": [
+            0,
+            0.3333333333333333,
+            0.6666666666666666
+          ],
+          "range": "Crossfade fixed sparse geometric insets; no spawn/despawn flashes."
+        }
+      ],
+      "fixed": "Manor, door rim, windows, stairs, floors and main silhouette ring."
+    },
+    {
+      "id": "goldenpig",
+      "name": "The Golden Piggy (earned proposal)",
+      "effects": [
+        {
+          "part": "FlankAccent_1..3",
+          "kind": "chase",
+          "period": 12,
+          "phase": [
+            0,
+            0.3333333333333333,
+            0.6666666666666666
+          ],
+          "range": "Gold-to-deep-gold sweep; do not turn body white."
+        },
+        {
+          "part": "SlotCoin",
+          "kind": "bob",
+          "period": 7,
+          "phase": [
+            0
+          ],
+          "range": "±0.35 studs above slot, never through skylight."
+        }
+      ],
+      "fixed": "Piggy-house body, balconies, coin-slot frame, stairs and floors."
+    }
+  ]
+}

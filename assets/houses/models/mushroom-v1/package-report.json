@@ -1,0 +1,72 @@
+{
+  "visualMeshes": 86,
+  "triangles": 5280,
+  "nonManifoldMeshes": [],
+  "objBoundsRobloxAxes": {
+    "min": [
+      -12.6,
+      0.0,
+      -5.903118
+    ],
+    "max": [
+      12.6,
+      14.4,
+      21.1
+    ],
+    "size": [
+      25.2,
+      14.4,
+      27.003118
+    ]
+  },
+  "collisionParts": 17,
+  "mounts": {
+    "Featured": [
+      0,
+      1.7,
+      14.8
+    ],
+    "Shelf_1": [
+      4.9,
+      3.14,
+      14.1
+    ],
+    "Shelf_2": [
+      3.1,
+      3.14,
+      14.1
+    ],
+    "Shelf_3": [
+      4.9,
+      5.14,
+      14.1
+    ],
+    "Shelf_4": [
+      3.1,
+      5.14,
+      14.1
+    ],
+    "Wall": [
+      -5.85,
+      5.7,
+      12.5
+    ],
+    "Record": [
+      -4,
+      3.1,
+      13.2
+    ],
+    "Plaque_Legacy": [
+      0,
+      6.7,
+      16.45
+    ],
+    "Door_Exit": [
+      0,
+      0.4,
+      -1
+    ]
+  },
+  "studioScaleCollisionCameraAndLiveFootprint": "pending",
+  "coordinateConversion": "Blender (x,y,z) -> export (-x,z,y), matched by companion model"
+}

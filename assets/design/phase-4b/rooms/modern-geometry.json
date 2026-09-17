@@ -1,0 +1,1082 @@
+[
+  {
+    "name": "Floor",
+    "size": [
+      37.2,
+      0.4,
+      31.2
+    ],
+    "pos": [
+      0,
+      -0.2,
+      15
+    ],
+    "token": "Theme.PAPER_DEEP",
+    "collide": true
+  },
+  {
+    "name": "Wall_Back",
+    "size": [
+      37.2,
+      14,
+      0.6
+    ],
+    "pos": [
+      0,
+      7,
+      30.3
+    ],
+    "token": "Theme.PAPER",
+    "collide": true
+  },
+  {
+    "name": "Wall_Side-1",
+    "size": [
+      0.6,
+      14,
+      30
+    ],
+    "pos": [
+      -18.3,
+      7,
+      15
+    ],
+    "token": "Theme.PAPER",
+    "collide": true
+  },
+  {
+    "name": "Wall_Front-1",
+    "size": [
+      14.8,
+      14,
+      0.6
+    ],
+    "pos": [
+      -11.2,
+      7,
+      -0.3
+    ],
+    "token": "Theme.PAPER",
+    "collide": true
+  },
+  {
+    "name": "Wall_Side1",
+    "size": [
+      0.6,
+      14,
+      30
+    ],
+    "pos": [
+      18.3,
+      7,
+      15
+    ],
+    "token": "Theme.PAPER",
+    "collide": true
+  },
+  {
+    "name": "Wall_Front1",
+    "size": [
+      14.8,
+      14,
+      0.6
+    ],
+    "pos": [
+      11.2,
+      7,
+      -0.3
+    ],
+    "token": "Theme.PAPER",
+    "collide": true
+  },
+  {
+    "name": "Door_LintelWall",
+    "size": [
+      7.6,
+      4,
+      0.6
+    ],
+    "pos": [
+      0,
+      12,
+      -0.3
+    ],
+    "token": "Theme.PAPER",
+    "collide": true
+  },
+  {
+    "name": "Ceiling",
+    "size": [
+      37.2,
+      0.4,
+      31.2
+    ],
+    "pos": [
+      0,
+      14.2,
+      15
+    ],
+    "token": "Theme.PAPER",
+    "collide": true
+  },
+  {
+    "name": "Ring_Back0.35",
+    "size": [
+      36,
+      0.7,
+      0.3
+    ],
+    "pos": [
+      0,
+      0.35,
+      29.8
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "Ring_Side-10.35",
+    "size": [
+      0.3,
+      0.7,
+      29.5
+    ],
+    "pos": [
+      -17.8,
+      0.35,
+      14.9
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "Ring_Side10.35",
+    "size": [
+      0.3,
+      0.7,
+      29.5
+    ],
+    "pos": [
+      17.8,
+      0.35,
+      14.9
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "Ring_Front-10.35",
+    "size": [
+      14,
+      0.7,
+      0.3
+    ],
+    "pos": [
+      -10.9,
+      0.35,
+      0.2
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "Ring_Front10.35",
+    "size": [
+      14,
+      0.7,
+      0.3
+    ],
+    "pos": [
+      10.9,
+      0.35,
+      0.2
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "Ring_Back13.5",
+    "size": [
+      36,
+      0.5,
+      0.3
+    ],
+    "pos": [
+      0,
+      13.5,
+      29.8
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "Ring_Side-113.5",
+    "size": [
+      0.3,
+      0.5,
+      29.5
+    ],
+    "pos": [
+      -17.8,
+      13.5,
+      14.9
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "Ring_Side113.5",
+    "size": [
+      0.3,
+      0.5,
+      29.5
+    ],
+    "pos": [
+      17.8,
+      13.5,
+      14.9
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "Ring_Front-113.5",
+    "size": [
+      14,
+      0.5,
+      0.3
+    ],
+    "pos": [
+      -10.9,
+      13.5,
+      0.2
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "Ring_Front113.5",
+    "size": [
+      14,
+      0.5,
+      0.3
+    ],
+    "pos": [
+      10.9,
+      13.5,
+      0.2
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "Door_Jamb-1",
+    "size": [
+      0.5,
+      9.8,
+      0.8
+    ],
+    "pos": [
+      -3.6,
+      4.9,
+      0
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "Door_Jamb1",
+    "size": [
+      0.5,
+      9.8,
+      0.8
+    ],
+    "pos": [
+      3.6,
+      4.9,
+      0
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "Door_Header",
+    "size": [
+      7.7,
+      0.5,
+      0.8
+    ],
+    "pos": [
+      0,
+      10.05,
+      0
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "Door_Leaf-1",
+    "size": [
+      3.25,
+      9,
+      0.3
+    ],
+    "pos": [
+      -1.65,
+      4.5,
+      -0.15
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "Door_Handle-1",
+    "size": [
+      0.12,
+      0.8,
+      0.2
+    ],
+    "pos": [
+      -0.45,
+      4.4,
+      0.1
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "Door_Leaf1",
+    "size": [
+      3.25,
+      9,
+      0.3
+    ],
+    "pos": [
+      1.65,
+      4.5,
+      -0.15
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "Door_Handle1",
+    "size": [
+      0.12,
+      0.8,
+      0.2
+    ],
+    "pos": [
+      0.45,
+      4.4,
+      0.1
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "FrontBoard-10",
+    "size": [
+      7.6,
+      5.4,
+      0.2
+    ],
+    "pos": [
+      -10,
+      5.8,
+      0.2
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "BoardSide-10-1",
+    "size": [
+      0.2,
+      5.0,
+      0.2
+    ],
+    "pos": [
+      -13.65,
+      5.8,
+      0.4
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "BoardSide-101",
+    "size": [
+      0.2,
+      5.0,
+      0.2
+    ],
+    "pos": [
+      -6.35,
+      5.8,
+      0.4
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "BoardRail-10-1",
+    "size": [
+      7.5,
+      0.2,
+      0.2
+    ],
+    "pos": [
+      -10,
+      3.1999999999999997,
+      0.4
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "BoardRail-101",
+    "size": [
+      7.5,
+      0.2,
+      0.2
+    ],
+    "pos": [
+      -10,
+      8.4,
+      0.4
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "FrontBoard10",
+    "size": [
+      7.6,
+      5.4,
+      0.2
+    ],
+    "pos": [
+      10,
+      5.8,
+      0.2
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "BoardSide10-1",
+    "size": [
+      0.2,
+      5.0,
+      0.2
+    ],
+    "pos": [
+      6.35,
+      5.8,
+      0.4
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "BoardSide101",
+    "size": [
+      0.2,
+      5.0,
+      0.2
+    ],
+    "pos": [
+      13.65,
+      5.8,
+      0.4
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "BoardRail10-1",
+    "size": [
+      7.5,
+      0.2,
+      0.2
+    ],
+    "pos": [
+      10,
+      3.1999999999999997,
+      0.4
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "BoardRail101",
+    "size": [
+      7.5,
+      0.2,
+      0.2
+    ],
+    "pos": [
+      10,
+      8.4,
+      0.4
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "AchievementBacking",
+    "size": [
+      13,
+      5.2,
+      0.18
+    ],
+    "pos": [
+      0,
+      8.4,
+      29.8
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "AchievementSide-1",
+    "size": [
+      0.22,
+      4.8,
+      0.2
+    ],
+    "pos": [
+      -6.35,
+      8.4,
+      29.6
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "AchievementRail-1",
+    "size": [
+      12.9,
+      0.22,
+      0.2
+    ],
+    "pos": [
+      0,
+      5.9,
+      29.6
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "AchievementSide1",
+    "size": [
+      0.22,
+      4.8,
+      0.2
+    ],
+    "pos": [
+      6.35,
+      8.4,
+      29.6
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "AchievementRail1",
+    "size": [
+      12.9,
+      0.22,
+      0.2
+    ],
+    "pos": [
+      0,
+      10.9,
+      29.6
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "BayPost-1_8_-5.75",
+    "size": [
+      0.7,
+      11.5,
+      0.5
+    ],
+    "pos": [
+      -17.35,
+      5.75,
+      2.25
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "BayPost-1_8_5.75",
+    "size": [
+      0.7,
+      11.5,
+      0.5
+    ],
+    "pos": [
+      -17.35,
+      5.75,
+      13.75
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "BayHeader-1_8",
+    "size": [
+      0.7,
+      0.5,
+      12
+    ],
+    "pos": [
+      -17.35,
+      11.75,
+      8
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "BayInset-1_8",
+    "size": [
+      0.16,
+      10.6,
+      10.8
+    ],
+    "pos": [
+      -17.9,
+      5.7,
+      8
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "BayAccent-1_8",
+    "size": [
+      0.12,
+      0.2,
+      10.4
+    ],
+    "pos": [
+      -17.7,
+      10.7,
+      8
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "BayPost-1_21_-5.75",
+    "size": [
+      0.7,
+      11.5,
+      0.5
+    ],
+    "pos": [
+      -17.35,
+      5.75,
+      15.25
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "BayPost-1_21_5.75",
+    "size": [
+      0.7,
+      11.5,
+      0.5
+    ],
+    "pos": [
+      -17.35,
+      5.75,
+      26.75
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "BayHeader-1_21",
+    "size": [
+      0.7,
+      0.5,
+      12
+    ],
+    "pos": [
+      -17.35,
+      11.75,
+      21
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "BayInset-1_21",
+    "size": [
+      0.16,
+      10.6,
+      10.8
+    ],
+    "pos": [
+      -17.9,
+      5.7,
+      21
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "BayAccent-1_21",
+    "size": [
+      0.12,
+      0.2,
+      10.4
+    ],
+    "pos": [
+      -17.7,
+      10.7,
+      21
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "BayPost1_8_-5.75",
+    "size": [
+      0.7,
+      11.5,
+      0.5
+    ],
+    "pos": [
+      17.35,
+      5.75,
+      2.25
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "BayPost1_8_5.75",
+    "size": [
+      0.7,
+      11.5,
+      0.5
+    ],
+    "pos": [
+      17.35,
+      5.75,
+      13.75
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "BayHeader1_8",
+    "size": [
+      0.7,
+      0.5,
+      12
+    ],
+    "pos": [
+      17.35,
+      11.75,
+      8
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "BayInset1_8",
+    "size": [
+      0.16,
+      10.6,
+      10.8
+    ],
+    "pos": [
+      17.9,
+      5.7,
+      8
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "BayAccent1_8",
+    "size": [
+      0.12,
+      0.2,
+      10.4
+    ],
+    "pos": [
+      17.7,
+      10.7,
+      8
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "BayPost1_21_-5.75",
+    "size": [
+      0.7,
+      11.5,
+      0.5
+    ],
+    "pos": [
+      17.35,
+      5.75,
+      15.25
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "BayPost1_21_5.75",
+    "size": [
+      0.7,
+      11.5,
+      0.5
+    ],
+    "pos": [
+      17.35,
+      5.75,
+      26.75
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "BayHeader1_21",
+    "size": [
+      0.7,
+      0.5,
+      12
+    ],
+    "pos": [
+      17.35,
+      11.75,
+      21
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "BayInset1_21",
+    "size": [
+      0.16,
+      10.6,
+      10.8
+    ],
+    "pos": [
+      17.9,
+      5.7,
+      21
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "BayAccent1_21",
+    "size": [
+      0.12,
+      0.2,
+      10.4
+    ],
+    "pos": [
+      17.7,
+      10.7,
+      21
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "Featured_Base",
+    "size": [
+      12,
+      0.6,
+      6
+    ],
+    "pos": [
+      0,
+      0.3,
+      24
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "Featured_Top",
+    "size": [
+      11.6,
+      0.2,
+      5.6
+    ],
+    "pos": [
+      0,
+      0.7,
+      24
+    ],
+    "token": "Theme.PAPER",
+    "collide": false
+  },
+  {
+    "name": "LampBracket-8",
+    "size": [
+      0.4,
+      1.5,
+      0.5
+    ],
+    "pos": [
+      -8,
+      7,
+      29.55
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "Lamp-8",
+    "size": [
+      0.65,
+      1.15,
+      0.65
+    ],
+    "pos": [
+      -8,
+      7,
+      29.1
+    ],
+    "token": "Theme.GOLD",
+    "collide": false
+  },
+  {
+    "name": "LampBracket8",
+    "size": [
+      0.4,
+      1.5,
+      0.5
+    ],
+    "pos": [
+      8,
+      7,
+      29.55
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "Lamp8",
+    "size": [
+      0.65,
+      1.15,
+      0.65
+    ],
+    "pos": [
+      8,
+      7,
+      29.1
+    ],
+    "token": "Theme.GOLD",
+    "collide": false
+  },
+  {
+    "name": "EntryLampBracket-5.4",
+    "size": [
+      0.4,
+      1.5,
+      0.5
+    ],
+    "pos": [
+      -5.4,
+      6.8,
+      0.45
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "EntryLamp-5.4",
+    "size": [
+      0.65,
+      1.15,
+      0.65
+    ],
+    "pos": [
+      -5.4,
+      6.8,
+      0.9
+    ],
+    "token": "Theme.GOLD",
+    "collide": false
+  },
+  {
+    "name": "EntryLampBracket5.4",
+    "size": [
+      0.4,
+      1.5,
+      0.5
+    ],
+    "pos": [
+      5.4,
+      6.8,
+      0.45
+    ],
+    "token": "Theme.SLAB",
+    "collide": false
+  },
+  {
+    "name": "EntryLamp5.4",
+    "size": [
+      0.65,
+      1.15,
+      0.65
+    ],
+    "pos": [
+      5.4,
+      6.8,
+      0.9
+    ],
+    "token": "Theme.GOLD",
+    "collide": false
+  },
+  {
+    "name": "LightSlot-1",
+    "size": [
+      0.08,
+      0.16,
+      25
+    ],
+    "pos": [
+      -17.6,
+      12.3,
+      15
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  },
+  {
+    "name": "LightSlot1",
+    "size": [
+      0.08,
+      0.16,
+      25
+    ],
+    "pos": [
+      17.6,
+      12.3,
+      15
+    ],
+    "token": "Theme.HUE.gear",
+    "collide": false
+  }
+]

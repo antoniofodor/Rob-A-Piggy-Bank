@@ -1,0 +1,104 @@
+{
+  "reports": [
+    {
+      "name": "desktop-1040",
+      "viewport": [
+        1440,
+        1040
+      ],
+      "cards": 18,
+      "states": [
+        "owned",
+        "affordable",
+        "shown",
+        "toodear",
+        "wontfit"
+      ],
+      "overflowingText": [],
+      "bodyOverflow": false,
+      "cardPixels": [
+        156,
+        182
+      ],
+      "listScreens": 2.073878627968338,
+      "brokenImages": []
+    },
+    {
+      "name": "phone-546",
+      "viewport": [
+        1180,
+        546
+      ],
+      "cards": 18,
+      "states": [
+        "owned",
+        "affordable",
+        "shown",
+        "toodear",
+        "wontfit"
+      ],
+      "overflowingText": [],
+      "bodyOverflow": false,
+      "cardPixels": [
+        121.67999267578125,
+        141.95999145507812
+      ],
+      "listScreens": 1.6733333333333333,
+      "brokenImages": []
+    },
+    {
+      "name": "phone-361",
+      "viewport": [
+        749,
+        361
+      ],
+      "cards": 18,
+      "states": [
+        "owned",
+        "affordable",
+        "shown",
+        "toodear",
+        "wontfit"
+      ],
+      "overflowingText": [],
+      "bodyOverflow": false,
+      "cardPixels": [
+        121.67999267578125,
+        141.95999145507812
+      ],
+      "listScreens": 3.1844660194174756,
+      "brokenImages": []
+    },
+    {
+      "name": "portrait",
+      "viewport": [
+        390,
+        844
+      ],
+      "cards": 18,
+      "states": [
+        "owned",
+        "affordable",
+        "shown",
+        "toodear",
+        "wontfit"
+      ],
+      "overflowingText": [],
+      "bodyOverflow": false,
+      "cardPixels": [
+        121.67999267578125,
+        141.95999145507812
+      ],
+      "listScreens": 2.7213740458015265,
+      "brokenImages": []
+    }
+  ],
+  "interactions": {
+    "ownedCount": 4,
+    "moved": "shown",
+    "bought": "shown",
+    "capacityHint": "This house costs 1B. Grow your pig beyond its 96.9M capacity.",
+    "empty": 1
+  },
+  "errors": []
+}

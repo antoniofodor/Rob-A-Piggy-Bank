@@ -1,0 +1,3 @@
+# Blender recovery copies are local working files. The .blend source is kept.
+*.blend1
+*.blend2

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "gardenbungalow",
+    "kind": "houses",
+    "path": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-44cf6a9d-0e1f-44d3-bfe6-2164fc30bfb8.png"
+  },
+  {
+    "id": "coastalvilla",
+    "kind": "houses",
+    "path": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-d11ad5b0-3e48-4754-ac61-ac0aa4368348.png"
+  },
+  {
+    "id": "skylinepenthouse",
+    "kind": "houses",
+    "path": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-418972a6-79b1-4c64-a9aa-02f908f76776.png"
+  },
+  {
+    "id": "hilltopmansion",
+    "kind": "houses",
+    "path": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-088594ff-64ab-4b9a-b662-ae5300a16212.png"
+  },
+  {
+    "id": "imperialestate",
+    "kind": "houses",
+    "path": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-f7453730-addb-49b6-ba55-d757594ea618.png"
+  },
+  {
+    "id": "cozy",
+    "kind": "rooms",
+    "path": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-aaa2ce1e-e13b-4ecb-84dd-61f179aae894.png"
+  },
+  {
+    "id": "celestialcitadel",
+    "kind": "houses",
+    "path": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-3726daee-67e0-469e-9c56-9fad4febb83e.png"
+  },
+  {
+    "id": "classic",
+    "kind": "rooms",
+    "path": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-f5e58371-f19c-441f-a76b-f643c46ef48c.png"
+  },
+  {
+    "id": "modern",
+    "kind": "rooms",
+    "path": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-d265d81c-4747-4ec2-af85-31bf87ba3ee8.png"
+  },
+  {
+    "id": "royal",
+    "kind": "rooms",
+    "path": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-bbd8afbc-ace3-42b9-9cb5-435c86b64a4f.png"
+  }
+]

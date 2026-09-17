@@ -1,0 +1,200 @@
+[
+  {
+    "id": "shack",
+    "name": "Starter Shack",
+    "price": 0,
+    "rarity": "common",
+    "interiorMood": "cozy",
+    "width": 18,
+    "depth": 14,
+    "storeys": 1,
+    "existing": true
+  },
+  {
+    "id": "cottage",
+    "name": "Cosy Cottage",
+    "price": 35000,
+    "rarity": "common",
+    "interiorMood": "cozy",
+    "width": 26,
+    "depth": 20,
+    "storeys": 1,
+    "existing": true
+  },
+  {
+    "id": "townhouse",
+    "name": "Brick Townhouse",
+    "price": 120000,
+    "rarity": "rare",
+    "interiorMood": "classic",
+    "width": 20,
+    "depth": 16,
+    "storeys": 3,
+    "existing": true
+  },
+  {
+    "id": "gardenbungalow",
+    "name": "Garden Bungalow",
+    "price": 250000,
+    "rarity": "rare",
+    "interiorMood": "cozy",
+    "width": 32,
+    "depth": 25,
+    "storeys": 1,
+    "existing": false
+  },
+  {
+    "id": "villa",
+    "name": "Suburban Villa",
+    "price": 400000,
+    "rarity": "rare",
+    "interiorMood": "classic",
+    "width": 33,
+    "depth": 24,
+    "storeys": 2,
+    "existing": true
+  },
+  {
+    "id": "coastalvilla",
+    "name": "Coastal Villa",
+    "price": 750000,
+    "rarity": "rare",
+    "interiorMood": "classic",
+    "width": 36,
+    "depth": 30,
+    "storeys": 2,
+    "existing": false
+  },
+  {
+    "id": "manor",
+    "name": "Stone Manor",
+    "price": 1400000,
+    "rarity": "epic",
+    "interiorMood": "classic",
+    "width": 34,
+    "depth": 28,
+    "storeys": 3,
+    "existing": true
+  },
+  {
+    "id": "hilltopmansion",
+    "name": "Hilltop Mansion",
+    "price": 2500000,
+    "rarity": "epic",
+    "interiorMood": "classic",
+    "width": 40,
+    "depth": 34,
+    "storeys": 3,
+    "existing": false
+  },
+  {
+    "id": "modern",
+    "name": "Midnight Modern",
+    "price": 5000000,
+    "rarity": "epic",
+    "interiorMood": "modern",
+    "width": 44,
+    "depth": 32,
+    "storeys": 2,
+    "existing": true
+  },
+  {
+    "id": "sunsetvilla",
+    "name": "Sunset Sky Villa",
+    "price": 8000000,
+    "rarity": "epic",
+    "interiorMood": "modern",
+    "width": 42,
+    "depth": 34,
+    "storeys": 5,
+    "existing": false
+  },
+  {
+    "id": "neontower",
+    "name": "Neon Tower",
+    "price": 15000000,
+    "rarity": "legendary",
+    "interiorMood": "modern",
+    "width": 24,
+    "depth": 22,
+    "storeys": 6,
+    "existing": true
+  },
+  {
+    "id": "emeraldchateau",
+    "name": "Emerald Chateau",
+    "price": 25000000,
+    "rarity": "legendary",
+    "interiorMood": "royal",
+    "width": 48,
+    "depth": 36,
+    "storeys": 4,
+    "existing": false
+  },
+  {
+    "id": "palace",
+    "name": "Marble Palace",
+    "price": 40000000,
+    "rarity": "legendary",
+    "interiorMood": "royal",
+    "width": 46,
+    "depth": 30,
+    "storeys": 3,
+    "existing": true
+  },
+  {
+    "id": "skycastle",
+    "name": "Sky Castle",
+    "price": 80000000,
+    "rarity": "legendary",
+    "interiorMood": "royal",
+    "width": 40,
+    "depth": 34,
+    "storeys": 5,
+    "existing": true
+  },
+  {
+    "id": "royalobservatory",
+    "name": "Royal Observatory",
+    "price": 150000000,
+    "rarity": "legendary",
+    "interiorMood": "royal",
+    "width": 44,
+    "depth": 38,
+    "storeys": 4,
+    "existing": false
+  },
+  {
+    "id": "skylinepenthouse",
+    "name": "Skyline Penthouse",
+    "price": 300000000,
+    "rarity": "legendary",
+    "interiorMood": "modern",
+    "width": 40,
+    "depth": 38,
+    "storeys": 8,
+    "existing": false
+  },
+  {
+    "id": "imperialestate",
+    "name": "Imperial Estate",
+    "price": 600000000,
+    "rarity": "legendary",
+    "interiorMood": "royal",
+    "width": 56,
+    "depth": 44,
+    "storeys": 6,
+    "existing": false
+  },
+  {
+    "id": "celestialcitadel",
+    "name": "Celestial Citadel",
+    "price": 1000000000,
+    "rarity": "legendary",
+    "interiorMood": "royal",
+    "width": 52,
+    "depth": 46,
+    "storeys": 7,
+    "existing": false
+  }
+]

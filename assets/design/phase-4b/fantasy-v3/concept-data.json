@@ -1,0 +1,80 @@
+[
+  {
+    "id": "villa",
+    "name": "Fairy Lantern Cottage",
+    "price": 400000,
+    "rarity": "Rare",
+    "width": 32,
+    "depth": 26,
+    "height": 16,
+    "floors": 1,
+    "status": "concept",
+    "measuredPartCount": null,
+    "measuredFootprint": null
+  },
+  {
+    "id": "modern",
+    "name": "Fishbowl House",
+    "price": 5000000,
+    "rarity": "Epic",
+    "width": 40,
+    "depth": 36,
+    "height": 22,
+    "floors": 1,
+    "status": "concept",
+    "measuredPartCount": null,
+    "measuredFootprint": null
+  },
+  {
+    "id": "palace",
+    "name": "Ice Palace",
+    "price": 40000000,
+    "rarity": "Legendary",
+    "width": 49,
+    "depth": 36,
+    "height": 38,
+    "floors": 2,
+    "status": "concept",
+    "measuredPartCount": null,
+    "measuredFootprint": null
+  },
+  {
+    "id": "portal",
+    "name": "Portal House",
+    "price": 300000000,
+    "rarity": "Legendary",
+    "width": 46,
+    "depth": 42,
+    "height": 40,
+    "floors": 2,
+    "status": "concept",
+    "measuredPartCount": null,
+    "measuredFootprint": null
+  },
+  {
+    "id": "thundercloud",
+    "name": "Thundercloud Fortress",
+    "price": 600000000,
+    "rarity": "Legendary",
+    "width": 52,
+    "depth": 46,
+    "height": 55,
+    "floors": 3,
+    "status": "concept",
+    "measuredPartCount": null,
+    "measuredFootprint": null
+  },
+  {
+    "id": "void",
+    "name": "The Void",
+    "price": 1000000000,
+    "rarity": "Legendary",
+    "width": 56,
+    "depth": 48,
+    "height": 60,
+    "floors": 3,
+    "status": "concept",
+    "measuredPartCount": null,
+    "measuredFootprint": null
+  }
+]

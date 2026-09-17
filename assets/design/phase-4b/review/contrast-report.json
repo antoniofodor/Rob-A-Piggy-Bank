@@ -1,0 +1,68 @@
+[
+  {
+    "foreground": "INK",
+    "background": "OWNED",
+    "ratio": 11.35,
+    "pass45": true
+  },
+  {
+    "foreground": "INK",
+    "background": "BUY",
+    "ratio": 12.89,
+    "pass45": true
+  },
+  {
+    "foreground": "INK",
+    "background": "DEAR",
+    "ratio": 9.96,
+    "pass45": true
+  },
+  {
+    "foreground": "INK",
+    "background": "PAPER_DEEP",
+    "ratio": 11.86,
+    "pass45": true
+  },
+  {
+    "foreground": "PAPER",
+    "background": "SLAB",
+    "ratio": 12.77,
+    "pass45": true
+  },
+  {
+    "foreground": "GOLD",
+    "background": "SLAB",
+    "ratio": 8.98,
+    "pass45": true
+  },
+  {
+    "foreground": "INK",
+    "background": "GOLD",
+    "ratio": 10.53,
+    "pass45": true
+  },
+  {
+    "foreground": "MUTED",
+    "background": "SAND",
+    "ratio": 5.53,
+    "pass45": true
+  },
+  {
+    "foreground": "INK",
+    "background": "COMMON",
+    "ratio": 6.17,
+    "pass45": true
+  },
+  {
+    "foreground": "INK",
+    "background": "RARE",
+    "ratio": 4.96,
+    "pass45": true
+  },
+  {
+    "foreground": "INK",
+    "background": "EPIC",
+    "ratio": 4.65,
+    "pass45": true
+  }
+]

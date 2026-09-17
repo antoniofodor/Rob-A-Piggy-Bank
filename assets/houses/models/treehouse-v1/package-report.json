@@ -1,0 +1,75 @@
+{
+  "id": "treehouse",
+  "visualMeshes": 113,
+  "triangles": 7016,
+  "collisionParts": 61,
+  "basePartsIncludingRoot": 175,
+  "objBoundsRoblox": {
+    "min": [
+      -20.1,
+      -0.47952,
+      -11.0
+    ],
+    "max": [
+      19.25,
+      31.0,
+      25.699999
+    ],
+    "size": [
+      39.35,
+      31.47952,
+      36.699999
+    ]
+  },
+  "nonManifoldMeshes": [],
+  "mounts": {
+    "Shelf_1": [
+      4.8,
+      12.620000000000001,
+      10.7
+    ],
+    "Shelf_2": [
+      2.8,
+      12.620000000000001,
+      10.7
+    ],
+    "Shelf_3": [
+      4.8,
+      14.82,
+      10.7
+    ],
+    "Shelf_4": [
+      2.8,
+      14.82,
+      10.7
+    ],
+    "Featured": [
+      -3.5,
+      11.48,
+      9.4
+    ],
+    "Record": [
+      -3.8,
+      13,
+      5
+    ],
+    "Wall": [
+      -6.15,
+      15,
+      8.4
+    ],
+    "Plaque_Legacy": [
+      0,
+      16,
+      11.15
+    ],
+    "Door_Exit": [
+      0,
+      10,
+      -1
+    ]
+  },
+  "studioScaleCollisionCameraAndFootprint": "pending",
+  "coplanarAudit": "pending",
+  "actualTrophyInstanceBudget": "additional, not included"
+}

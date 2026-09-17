@@ -1,0 +1,220 @@
+{
+  "units": "studs",
+  "pivot": "floor at front doorway centre",
+  "front": "-Z",
+  "inside": "+Z",
+  "defaultTheme": "classic",
+  "innerSize": [
+    36,
+    14,
+    30
+  ],
+  "mounts": [
+    {
+      "name": "Featured",
+      "position": [
+        0,
+        0.85,
+        24
+      ],
+      "yaw": 0,
+      "envelope": [
+        12,
+        11,
+        6
+      ]
+    },
+    {
+      "name": "Shelf_1",
+      "position": [
+        -14.5,
+        0.05,
+        8
+      ],
+      "yaw": -90,
+      "envelope": [
+        11.4,
+        11,
+        4.8
+      ]
+    },
+    {
+      "name": "Shelf_2",
+      "position": [
+        -14.5,
+        0.05,
+        21
+      ],
+      "yaw": -90,
+      "envelope": [
+        11.4,
+        11,
+        4.8
+      ]
+    },
+    {
+      "name": "Shelf_3",
+      "position": [
+        14.5,
+        0.05,
+        8
+      ],
+      "yaw": 90,
+      "envelope": [
+        11.4,
+        11,
+        4.8
+      ]
+    },
+    {
+      "name": "Shelf_4",
+      "position": [
+        14.5,
+        0.05,
+        21
+      ],
+      "yaw": 90,
+      "envelope": [
+        11.4,
+        11,
+        4.8
+      ]
+    },
+    {
+      "name": "Wall",
+      "position": [
+        0,
+        8.4,
+        29.5
+      ],
+      "yaw": 0,
+      "envelope": [
+        12,
+        4.4,
+        0.5
+      ]
+    },
+    {
+      "name": "Record",
+      "position": [
+        10,
+        5.8,
+        0.5
+      ],
+      "yaw": 180,
+      "envelope": [
+        7,
+        4.8,
+        0.5
+      ]
+    },
+    {
+      "name": "Plaque_Legacy",
+      "position": [
+        -10,
+        5.8,
+        0.5
+      ],
+      "yaw": 180,
+      "envelope": [
+        7,
+        4.8,
+        0.5
+      ]
+    },
+    {
+      "name": "Door_Exit",
+      "position": [
+        0,
+        0.1,
+        1.6
+      ],
+      "yaw": 0,
+      "envelope": [
+        6,
+        9,
+        2
+      ]
+    }
+  ],
+  "themes": {
+    "cozy": {
+      "wall": "Theme.PAPER_DEEP",
+      "trim": "Theme.MUTED",
+      "accent": "Theme.GOOD"
+    },
+    "classic": {
+      "wall": "Theme.PAPER",
+      "trim": "Theme.MUTED",
+      "accent": "Theme.SAND_DEEP"
+    },
+    "modern": {
+      "wall": "Theme.PAPER",
+      "trim": "Theme.SLAB",
+      "accent": "Theme.HUE.gear"
+    },
+    "royal": {
+      "wall": "Theme.SAND",
+      "trim": "Theme.SLAB",
+      "accent": "Theme.GOLD"
+    }
+  },
+  "palette": {
+    "Theme.PAPER": [
+      255,
+      247,
+      232
+    ],
+    "Theme.PAPER_DEEP": [
+      237,
+      220,
+      194
+    ],
+    "Theme.SAND": [
+      245,
+      225,
+      198
+    ],
+    "Theme.SAND_DEEP": [
+      224,
+      198,
+      166
+    ],
+    "Theme.INK": [
+      41,
+      32,
+      27
+    ],
+    "Theme.SLAB": [
+      54,
+      44,
+      37
+    ],
+    "Theme.MUTED": [
+      107,
+      84,
+      69
+    ],
+    "Theme.GOLD": [
+      255,
+      203,
+      61
+    ],
+    "Theme.GOOD": [
+      59,
+      209,
+      129
+    ],
+    "Theme.HUE.gear": [
+      64,
+      147,
+      230
+    ],
+    "Theme.HUE.effects": [
+      181,
+      97,
+      255
+    ]
+  },
+  "mountOrientation": "Attachment LookVector points toward viewer. Legacy Decor front is +Z; adapter must account for builder orientation."
+}

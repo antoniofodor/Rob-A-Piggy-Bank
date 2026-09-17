@@ -1,0 +1,75 @@
+{
+  "id": "slime",
+  "visualMeshes": 84,
+  "triangles": 12668,
+  "collisionParts": 11,
+  "basePartsIncludingRoot": 96,
+  "objBoundsRoblox": {
+    "min": [
+      -13.7,
+      -0.08,
+      -6.624632
+    ],
+    "max": [
+      13.7,
+      17.6,
+      23.200001
+    ],
+    "size": [
+      27.4,
+      17.68,
+      29.824633
+    ]
+  },
+  "nonManifoldMeshes": [],
+  "mounts": {
+    "Featured": [
+      0,
+      1.82,
+      17.6
+    ],
+    "Shelf_1": [
+      7.5,
+      3.02,
+      18.5
+    ],
+    "Shelf_2": [
+      5.5,
+      3.02,
+      18.5
+    ],
+    "Shelf_3": [
+      7.5,
+      5.220000000000001,
+      18.5
+    ],
+    "Shelf_4": [
+      5.5,
+      5.220000000000001,
+      18.5
+    ],
+    "Wall": [
+      -7,
+      6.2,
+      20.65
+    ],
+    "Record": [
+      -7,
+      3.2,
+      17.5
+    ],
+    "Plaque_Legacy": [
+      0,
+      7,
+      21
+    ],
+    "Door_Exit": [
+      0,
+      0.4,
+      -1
+    ]
+  },
+  "studioScaleCollisionCameraAndFootprint": "pending",
+  "coplanarAudit": "pending",
+  "actualTrophyInstanceBudget": "additional, not included"
+}
