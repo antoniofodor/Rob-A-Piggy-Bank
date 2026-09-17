@@ -812,8 +812,11 @@ local function fill()
 	--
 	-- PICTURES. See `unlockTile` for why.
 	order = 0
-	local step = math.floor(Config.REBIRTH_MULTIPLIER * 100)
-	local total = math.floor(next_ * Config.REBIRTH_MULTIPLIER * 100)
+	-- Through Config rather than by multiplying the constant: the multiplier
+	-- tapers past rebirth 10, and a page that printed 0.12 for the eleventh
+	-- would be promising a bonus the server does not pay.
+	local total = Config.rebirthBonusPercent(next_)
+	local step = total - Config.rebirthBonusPercent(next_ - 1)
 
 	-- The income tile is the one reward that is not an object, so it gets the
 	-- drawn coin the HUD already uses rather than a stand-in model. Gold means

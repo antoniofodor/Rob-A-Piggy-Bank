@@ -129,43 +129,44 @@ events.ShakeState.OnClientEvent:Fire({ended=true,id=2001})
 check(panel.Visible,"stale end cannot close a newer attempt")
 events.ShakeState.OnClientEvent:Fire({ended=true,id=2002})
 check(not panel.Visible and #field:GetChildren()==0,"server end cleans all drop targets")
--- The public deadline drives both prompt counters and expires locally.
+-- Another occupant's tree is offered only while an acorn-theft event is live
+-- (step 2.6); the crate carries no raid prompt at all.
 local plots=instance("Folder");plots.Name="Plots";plots.Parent=workspace;workspace.ChildAdded:Fire(plots)
 local plot=instance("Model");plot.Name="ResidentFixture"
 plot:SetAttribute(Config.PLOT_RESIDENT_ATTRIBUTE,"Resident")
 plot:SetAttribute(Config.PLOT_TREE_ACORNS_ATTRIBUTE,2);plot:SetAttribute(Config.PLOT_ACORNS_ATTRIBUTE,2)
-plot:SetAttribute(Config.PLOT_ACORN_RAID_READY_ATTRIBUTE,now+900)
 local tree=instance("Model");tree.Name="AcornOak";tree.Parent=plot
 local trunk=instance("Part");trunk.Name="TrunkCollider";trunk.Parent=tree
 local shakePrompt=instance("ProximityPrompt");shakePrompt.Name="ShakePrompt";shakePrompt.Parent=trunk
 local storage=instance("Model");storage.Name="AcornStorage";storage.Parent=plot
 local body=instance("Part");body.Name="Storage";body.Parent=storage
-local raidPrompt=instance("ProximityPrompt");raidPrompt.Name="StorageRaidPrompt";raidPrompt.Parent=body
 plot.Parent=plots;plots.ChildAdded:Fire(plot)
-check(shakePrompt:GetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE)=="RESTING 15:00","tree prompt shows resident raid deadline")
-check(raidPrompt:GetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE)=="RESTING 15:00","crate uses the same cooldown")
-now+=61;render:Fire()
-check(raidPrompt:GetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE)=="RESTING 13:59","countdown ticks without another server packet")
-now+=839;render:Fire()
-check(shakePrompt:GetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE)=="2 RIPE" and raidPrompt:GetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE)=="2 STORED","expiry restores counts on both sources")
-plot:SetAttribute(Config.PLOT_ACORN_RAID_READY_ATTRIBUTE,now+900);plot:SetAttribute("OwnerUserId",123)
-check(shakePrompt.Enabled and not raidPrompt.Enabled and shakePrompt:GetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE)=="2 RIPE","new player ownership does not inherit resident cooldown UI")
--- Private player deadlines share both sources, never leak by plot/owner.
+check(shakePrompt:GetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE)=="2 RIPE","tree prompt shows the ripe count, never a resting timer")
+check(not shakePrompt.Enabled,"a resident's tree is not offered outside the Harvest Moon")
+events.EventState.OnClientEvent:Fire({phase="live",acornTheft=true})
+check(shakePrompt.Enabled,"an acorn-theft event offers it")
+events.EventState.OnClientEvent:Fire({phase="quiet",acornTheft=false})
+check(not shakePrompt.Enabled,"and the end of the event withdraws it")
+events.EventState.OnClientEvent:Fire("garbage")
+check(not shakePrompt.Enabled,"a malformed event payload reads as closed")
+plot:SetAttribute("OwnerUserId",123)
+check(shakePrompt.Enabled and shakePrompt:GetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE)=="2 RIPE","own tree is always harvestable")
+-- Private player deadlines never leak by plot/owner.
 now=math.ceil(now)
+events.EventState.OnClientEvent:Fire({acornTheft=true})
 plot:SetAttribute("OwnerUserId",456)
 events.AcornCooldown.OnClientEvent:Fire({[456]=now+60})
 check(shakePrompt:GetAttribute(Config.PROMPT_COOLDOWN_ATTRIBUTE)=="Steal ready in 1:00","tree receives private player cooldown")
-check(raidPrompt:GetAttribute(Config.PROMPT_COOLDOWN_ATTRIBUTE)=="Steal ready in 1:00","same private deadline covers storage")
 now+=6;render:Fire()
-check(raidPrompt:GetAttribute(Config.PROMPT_COOLDOWN_ATTRIBUTE)=="Steal ready in 0:54","nearby cue ticks without server packets")
+check(shakePrompt:GetAttribute(Config.PROMPT_COOLDOWN_ATTRIBUTE)=="Steal ready in 0:54","nearby cue ticks without server packets")
 plot:SetAttribute("OwnerUserId",789)
-check(raidPrompt:GetAttribute(Config.PROMPT_COOLDOWN_ATTRIBUTE)==nil,"replacement occupant never inherits previous player's deadline")
+check(shakePrompt:GetAttribute(Config.PROMPT_COOLDOWN_ATTRIBUTE)==nil,"replacement occupant never inherits previous player's deadline")
 plot:SetAttribute("OwnerUserId",123)
 check(shakePrompt:GetAttribute(Config.PROMPT_COOLDOWN_ATTRIBUTE)==nil and shakePrompt.Enabled,"own tree remains harvestable")
 plot:SetAttribute("OwnerUserId",456)
 now+=54;render:Fire()
-check(shakePrompt:GetAttribute(Config.PROMPT_COOLDOWN_ATTRIBUTE)==nil and raidPrompt:GetAttribute(Config.PROMPT_COOLDOWN_ATTRIBUTE)==nil,"both cues retire at exact boundary")
-check(shakePrompt:GetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE)=="2 RIPE" and raidPrompt:GetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE)=="2 STORED","normal nearby prompts recover after cooldown")
+check(shakePrompt:GetAttribute(Config.PROMPT_COOLDOWN_ATTRIBUTE)==nil,"cue retires at exact boundary")
+check(shakePrompt:GetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE)=="2 RIPE","normal nearby prompt recovers after cooldown")
 events.AcornCooldown.OnClientEvent:Fire({})
-check(raidPrompt:GetAttribute(Config.PROMPT_COOLDOWN_ATTRIBUTE)==nil,"empty private snapshot clears stale deadlines")
+check(shakePrompt:GetAttribute(Config.PROMPT_COOLDOWN_ATTRIBUTE)==nil,"empty private snapshot clears stale deadlines")
 print(("PASS: %d shake UI checks; four viewport sizes, mouse/touch ownership, catch lifetime, controller and cancellation."):format(checks))

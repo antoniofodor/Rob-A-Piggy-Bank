@@ -64,7 +64,7 @@ local run=assert(loadstring(source,"EconomyService"));setfenv(run,setmetatable(e
 local E=run()
 local function reset(amount,cursor)
  wallet={loot=200,treeAcorns=amount,groundAcorns=0,acornsGrownAt=cursor,lastSave=now-8*hour,coins=Config.getCapacity(1),capacityLevel=1,
-  incomeLevel=1,rebirths=0,cosmetics={skin="classic"},houseLevel=0,houseShown=0}
+  incomeLevel=1,rebirths=0,cosmetics={skin="classic"},houses={owned={shack=true},shown="shack"}}
 end
 reset(0,now-8*hour)
 check(E.applyOfflineIncome(player)==0 and wallet.treeAcorns==8 and wallet.loot==200,"offline Acorns run even when pig is full")

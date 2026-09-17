@@ -166,6 +166,7 @@ local DEFINITIONS = {
 	-- the push-your-luck half, and the only input in this game whose whole
 	-- purpose is to stop early.
 	CrackState = "RemoteEvent",
+	RobberyLoot = "RemoteEvent", -- server-selected discovery; presentation only
 	CrackTap = "RemoteEvent",
 	CrackStop = "RemoteEvent",
 

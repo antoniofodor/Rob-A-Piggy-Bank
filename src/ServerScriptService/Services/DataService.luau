@@ -118,11 +118,15 @@ export type PlayerData = {
 	upgrades: { [string]: number },
 	-- Prestige, not power. Never reset by rebirth.
 	--
-	-- Two numbers: `houseLevel` is the highest tier bought and decides what is
-	-- for sale next; `houseShown` is the one actually standing on the plot,
-	-- because an owner can move back into any tier they own. Read them through
-	-- Config.getShownHouseLevel rather than separately.
-	houseLevel: number,
+	-- HOUSES BY STABLE ID (schema 26). `owned` is a set of `Config.HOUSE_TIERS`
+	-- ids and `shown` is the one standing on the plot. Any house may be bought
+	-- when its price fits the pig, any owned house may be moved into for
+	-- free, and the shack is always owned. Read the standing house through
+	-- `Config.getShownHouse(data)` rather than trusting `shown`: it falls back
+	-- to the dearest owned house if `shown` is stale. The two numeric fields
+	-- this replaced (`houseLevel`, `houseShown`) are read ONCE in reconcile
+	-- and deleted.
+	houses: { owned: { [string]: boolean }, shown: string },
 	-- SPARE COPIES, one count per item, keyed "kind:key" -- the grammar
 	-- `Config.chestEntry` already owns, because a bare key does not say
 	-- which of the five catalogues it came from. There are no collisions across
@@ -146,7 +150,6 @@ export type PlayerData = {
 	treeAcorns: number,
 	groundAcorns: number,
 	acornsDroppedAt: number,
-	houseShown: number,
 	decor: {
 		owned: { [string]: boolean },
 		-- slot id -> item key. Auto-assigned on purchase.
@@ -272,8 +275,7 @@ local function defaultData(): PlayerData
 		trophies = { victims = {}, caught = 0, bestSpree = 0,
 			plinths = {}, plinth = "" },
 		upgrades = upgrades,
-		houseLevel = 0,
-		houseShown = 0,
+		houses = { owned = { shack = true }, shown = "shack" },
 		-- LOOT. Flat, never scaled by income, never wiped by rebirth -- it buys
 		-- cosmetics, which are the permanent track. See the type above.
 		loot = 0,
@@ -429,14 +431,55 @@ local function reconcile(data: any): PlayerData
 	-- the one being fixed.
 	data.shards = nil
 
-	-- Schema 9 split the house into "highest owned" and "currently shown".
+	-- Schema 26: HOUSES BY STABLE ID. The numeric ladder (`houseLevel`, the
+	-- highest rung bought; `houseShown`, the rung standing, which schema 9
+	-- split off it) becomes `houses = { owned = { [id] = true }, shown = id }`
+	-- read against `Config.HOUSE_LEGACY_ORDER`, the nine ids in the order the
+	-- ladder counted them, frozen.
 	--
-	-- This has to run BEFORE the generic fill below, which would otherwise
-	-- give every existing save the default houseShown of 0 and evict a player
-	-- with a Sky Castle into a Starter Shack. A save from before the split was
-	-- always living in its newest house, so that is what it migrates to.
-	if data.houseShown == nil and type(data.houseLevel) == "number" then
-		data.houseShown = data.houseLevel
+	-- DERIVE-ONLY. `owned` is exactly the rungs the old level said were
+	-- bought -- a ladder owned every rung below its top, so a level-8 save
+	-- owns nine houses -- and never one more. `shown` keeps today's clamp
+	-- through `Config.legacyShownHouseLevel`: a shown rung above the owned
+	-- one builds the owned one, and a missing one (pre-schema-9) means the
+	-- newest. Both legacy fields are DELETED, because two meanings never
+	-- share one save and the only reader of the old shape is this block.
+	-- Idempotent by construction: a save carrying `houses` is not touched
+	-- here, and a second run finds no `houseLevel` to read.
+	--
+	-- Runs BEFORE the generic fill for the reason the schema-9 rule it
+	-- replaces did: the fill would otherwise hand every existing save the
+	-- default of "owns the shack, shows the shack" and evict a player with a
+	-- Sky Castle into a Starter Shack.
+	if type(data.houses) ~= "table" and type(data.houseLevel) == "number" then
+		local order = Config.HOUSE_LEGACY_ORDER
+		local level = math.clamp(math.floor(data.houseLevel), 0, #order - 1)
+		local owned = {}
+		for rung = 0, level do
+			owned[order[rung + 1]] = true
+		end
+		local shown = Config.legacyShownHouseLevel(level, data.houseShown)
+		data.houses = { owned = owned, shown = order[shown + 1] }
+	end
+	data.houseLevel = nil
+	data.houseShown = nil
+
+	-- HOUSES ARE PRUNED AGAINST THE CATALOGUE, for the reason decor is, and
+	-- the shack is always owned because level 0 always was. `shown` is
+	-- resolved through the same fallback every reader uses -- an unowned or
+	-- unknown id falls back to the dearest owned house, never the shack --
+	-- and written back so the save says what the plot shows.
+	if type(data.houses) == "table" then
+		if type(data.houses.owned) ~= "table" then
+			data.houses.owned = {}
+		end
+		for id, held in pairs(data.houses.owned) do
+			if held ~= true or not Config.getHouseById(id) then
+				data.houses.owned[id] = nil
+			end
+		end
+		data.houses.owned.shack = true
+		data.houses.shown = Config.getShownHouse(data).id
 	end
 
 	-- DECOR IS PRUNED AGAINST THE CATALOGUE, not against a list of names.

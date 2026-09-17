@@ -16,41 +16,42 @@ local A,R=Config.auditAcorns,Config.auditRandomOutcomes
 check(#A()==0 and #R()==0,"new boot audits clean")
 check(#Config.auditEconomy()==0 and #Config.auditSkinSteal()==0,"existing audits remain clean")
 local solo,full=Config.acornRates(1),Config.acornRates(Config.MAX_PLAYERS)
-check(solo.mintedPerHour==10 and solo.perThiefPerHour==10,"solo faucet derived from ten trees")
-check(full.residents==2 and full.serverPerHour==42 and full.perThiefPerHour==5.25,"full-server population model")
-check(Config.acornRates(4).serverPerHour==26,"intermediate population matches street circuit")
-check(solo.passiveDaily==6 and solo.activeDaily==28 and full.activeDaily==18.5,"daily assumptions explicit: one passive raid and two active hours")
-check(math.abs(full.commonMinutes-57.1428571)<.001 and math.abs(full.legendaryHours-7.6190476)<.001,"crate times derived from prices and faucet")
+-- Step 2.6 model: own tree plus the pig-crack acorn; storage loses nothing.
+local cracks=math.floor(Config.LOSS_CAP.fraction/Config.getCrackFraction(Config.CRACK.maxSteps,0))
+check(cracks==2 and full.cleanPerVictimHour==2,"LOSS_CAP admits two clean bare-sack cracks per victim-hour")
+check(solo.treePerHour==1 and solo.crackPerHour==0 and solo.perThiefPerHour==1,"solo faucet is the player's own tree alone")
+check(full.crackPerHour==2*Config.ACORNS.payout.crack and full.perThiefPerHour==3,"full server adds the pig-crack ceiling")
+check(Config.acornRates(2).crackPerHour==full.crackPerHour,"the crack ceiling is one victim's budget at any population above one")
+check(solo.passiveDaily==8 and full.passiveDaily==8,"a passive player keeps a whole tree: nothing in storage can be lost")
+check(solo.activeDaily==10 and full.activeDaily==14,"two active hours add growth and cracks")
+check(math.abs(solo.commonMinutes-300)<.001 and math.abs(full.commonMinutes-100)<.001,"crate times derived from prices and the new faucet")
+check(math.abs(full.legendaryHours-40/3)<.001,"legendary crate time derived")
 check(solo.initialResidentSupply==36 and full.initialResidentSupply==8,"seed is separate from steady hourly production")
-check(full.ownHarvestPerHour==1.25,"own harvest model does not apply theft multipliers")
-for n=1,Config.MAX_PLAYERS do
- local rate=Config.acornRates(n)
- check(rate.serverPerHour==(if n==1 then 10 else n*5+(10-n)),"every raw Acorn counted once at its delivery multiplier")
-end
 provoke(Config.ACORNS,"resident",nil,A,"acorn.config")
 for _,v in {-1,1.5,math.huge,0/0} do provoke(Config.ACORNS.resident,"seedRipe",v,A,"acorn.resident") end
 provoke(Config.ACORNS.resident,"seedStored",9,A,"acorn.resident")
 provoke(Config.ACORNS.resident,"harvestSeconds",0,A,"acorn.resident")
-provoke(Config.ACORNS.resident,"raidSeconds",7200,A,"acorn.resident")
+-- Storage raids are retired; any of their tunables coming back is refused.
+for _,key in {"share","lossCap","lossWindow"} do provoke(Config.ACORNS,key,4,A,"acorn.retiredRaid") end
+provoke(Config.ACORNS.resident,"raidSeconds",900,A,"acorn.retiredRaid")
 provoke(Config,"ACORNS",nil,A,"acorn.config")
 for _,v in {0,-1,math.huge,0/0} do provoke(Config.ACORNS,"growSeconds",v,A,"acorn.number") end
 provoke(Config.ACORNS,"growCap",nil,A,"acorn.number")
-provoke(Config.ACORNS,"share",0,A,"acorn.share")
-provoke(Config.ACORNS,"share",1.1,A,"acorn.share")
-provoke(Config.ACORN_AUDIT,"minActiveRatio",nil,A,"acorn.model")
+provoke(Config.ACORN_AUDIT,"minPopulationRatio",nil,A,"acorn.model")
+provoke(Config.ACORN_AUDIT,"maxCrackRatio",0,A,"acorn.model")
 provoke(Config.ACORNS.payout,"revenge",0,A,"acorn.multiplier")
 provoke(Config.ACORNS.payout,"perRebirthAbove",-1,A,"acorn.multiplier")
 provoke(Config,"MAX_PLAYERS",Config.PLOT_COUNT+1,A,"acorn.population")
 provoke(Config,"PLOT_COUNT",10.5,A,"acorn.population")
-provoke(Config.ACORNS,"lossCap",3.5,A,"acorn.whole")
+provoke(Config.ACORNS,"growCap",7.5,A,"acorn.whole")
 provoke(Config.ACORNS,"growSeconds",7200,A,"acorn.growth")
-provoke(Config.ACORNS,"lossCap",5,A,"acorn.lossCap")
-provoke(Config.ACORNS,"lossWindow",1800,A,"acorn.lossCap")
 provoke(Config.CHESTS.og,"cost",0,A,"acorn.price")
-provoke(Config.ACORNS.payout,"player",1,A,"acorn.populationFloor")
-provoke(Config.ACORN_AUDIT,"activeHours",.1,A,"acorn.activeFloor")
-provoke(Config.ACORN_AUDIT,"passiveRaids",4,A,"acorn.passive")
+provoke(Config.ACORN_AUDIT,"minPopulationRatio",4,A,"acorn.populationFloor")
+provoke(Config.ACORN_AUDIT,"maxCrackRatio",1.5,A,"acorn.crackCeiling")
 provoke(Config,"LOOT",{event={attend=3}},A,"acorn.legacyFaucet")
+for _,v in {0,1.5,-1} do provoke(Config.ACORNS.payout,"crack",v,A,"acorn.crack") end
+provoke(Config.ACORNS.payout,"crackRevenge",0,A,"acorn.crack")
+provoke(Config.ACORNS.payout,"crack",3,A,"acorn.crack")
 for _,key in {"spree","boost","income"} do provoke(Config.ACORNS.payout,key,2,A,"acorn.coinMultiplier") end
 for _,v in {"coins","unknown",false} do provoke(Config.CHESTS.og,"currency",if v==false then nil else v,R,"random.currency") end
 for _,v in {0,1.5,math.huge,0/0} do provoke(Config.CHESTS.og,"cost",v,R,"random.price") end
@@ -134,12 +135,55 @@ for key in sales do
  check(data.coins==17 and data.loot==23 and not data.cosmetics.owned[key] and saves==0,
   key.." direct coin request cannot grant a now-unpriced crate skin")
 end
+-- Retired piggy effects cannot charge, equip or grant through stale clients.
+local applied,pushed=0,0
+Cosmetics.applyToPlot=function() applied+=1 end
+Cosmetics.push=function() pushed+=1 end
+for key in Config.EFFECTS do
+ reset(false);data.coins=96000000
+ local before=data.cosmetics.effect
+ Cosmetics.buyEffect(player,key)
+ check(data.coins==96000000 and data.cosmetics.effect==before,
+  key.." retired purchase leaves coins/equipment unchanged")
+ if key~="none" then
+  data.cosmetics.ownedEffects[key]=true;Cosmetics.equipEffect(player,key)
+  check(data.cosmetics.effect==before,key.." legacy ownership cannot equip standalone aura")
+  data.cosmetics.ownedEffects[key]=nil
+  check(not modules.SetService.grant(player,"effect",key) and not data.cosmetics.ownedEffects[key],
+   key.." retired effect cannot be granted")
+ end
+end
+reset(false);data.cosmetics.effect="inferno";Cosmetics.equipEffect(player,"none")
+check(data.cosmetics.effect=="none" and applied==1 and pushed==1,"legacy aura can be cleared")
+check(Config.EFFECTS.starfall==nil,"unwanted new Starfall removed")
+check(Config.EFFECTS.aurora==nil,"unwanted new Aurora removed")
+reset(false);data.loot=100
+modules.SetService.buy(player,"effect","tractor")
+check(data.loot==100 and not data.cosmetics.ownedEffects.tractor,"stale Acorn purchase cannot charge for retired effect")
+check(Config.skinAura({rarity="legendary",aura="sparkle"})==Config.EFFECTS.sparkle,
+ "Legendary skin particle definitions remain available")
+check(Config.skinAura({rarity="rare",aura="sparkle"})==nil,"non-Legendary skins cannot gain particle auras")
+for passKey in Config.PASSES do
+ for _,entry in Config.passItems(passKey) do check(entry.kind~="effect","pass grants exclude standalone auras") end
+end
+for _,set in Config.SETS do
+ for _,entry in set.items do check(entry.kind~="effect","event set excludes standalone auras") end
+end
+local effectBody=assert(sources.PiggyBank:match("(function PiggyBank%.applyEffect.-)\nend")).."\nend"
+local render={}
+load("retired aura renderer",{PiggyBank=render},effectBody)
+local light={Enabled=true}
+local refs={aura={Enabled=true},skinAura={Enabled=true},drip={Enabled=true},
+ body={FindFirstChild=function() return light end},model={SetAttribute=function() end}}
+render.applyEffect(refs,"inferno")
+check(not refs.aura.Enabled and not light.Enabled,"legacy renderer disables separate aura and light")
+check(refs.skinAura.Enabled and refs.drip.Enabled,"renderer preserves skin and coin emitters")
 -- Execute the actual new boot block; warnings never throw or stop startup.
 local boot=assert(sources.Main:match("(%-%- Phase 1%.9 audits.-)ChestService%.start%(%)"))
 local warnings,prints={},{ }
 local bootEnv={Config=Config,warn=function(message) table.insert(warnings,message) end,print=function(message) table.insert(prints,message) end}
 load("Main audits",bootEnv,boot)
-check(#warnings==0 and #prints==1 and prints[1]:find("full capture, parity; seed/re-raids excluded",1,true),"clean boot reports model honestly")
+check(#warnings==0 and #prints==1 and prints[1]:find("no storage raids, Harvest Moon excluded",1,true),"clean boot reports model honestly")
 local old=Config.COIN_PACK.productId;Config.COIN_PACK.productId=1
 load("Main audits",bootEnv,boot);Config.COIN_PACK.productId=old
 check(contains(warnings,"random.paidRebirth"),"boot surfaces paid-random conflict without throwing")

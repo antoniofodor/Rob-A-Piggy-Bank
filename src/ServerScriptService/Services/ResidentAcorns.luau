@@ -7,7 +7,7 @@ local ResidentAcorns = {}
 export type Stock = {
 	acorns: number, treeAcorns: number, groundAcorns: number,
 	acornsGrownAt: number, acornsDroppedAt: number,
-	harvestReadyAt: number, raidReadyAt: number, collectingUntil: number,
+	harvestReadyAt: number, collectingUntil: number,
 	pausedAt: number?,
 }
 local stocks: { [number]: Stock } = {}
@@ -21,7 +21,7 @@ function ResidentAcorns.attach(index: number, shop: boolean, now: number): Stock
 			treeAcorns = Config.ACORNS.resident.seedRipe,
 			groundAcorns = 0, acornsGrownAt = now, acornsDroppedAt = 0,
 			harvestReadyAt = now + Config.ACORNS.resident.harvestSeconds,
-			raidReadyAt = 0, collectingUntil = 0,
+			collectingUntil = 0,
 		}
 		stocks[index] = stock
 	elseif stock.pausedAt then
@@ -32,8 +32,8 @@ function ResidentAcorns.attach(index: number, shop: boolean, now: number): Stock
 		stock.harvestReadyAt += paused
 		stock.pausedAt = nil
 	end
-	-- Raid cooldown and loose-ground expiry follow real elapsed time, even
-	-- during player occupancy. Only production/harvesting is suspended.
+	-- Loose-ground expiry follows real elapsed time, even during player
+	-- occupancy. Only production/harvesting is suspended.
 	Config.expireGroundAcorns(stock, now)
 	return stock
 end

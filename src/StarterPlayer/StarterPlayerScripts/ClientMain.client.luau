@@ -1191,24 +1191,8 @@ end
 --   Worn     the gear you wear YOURSELF, which is a different body from the
 --            piggy every other cosmetic goes on
 --
--- THE PIGGY TAB HAS GONE, AND IT WENT BECAUSE BOTH ITS SECTIONS DID.
---
--- It held exactly two things: PIGGY SKINS and EFFECTS. Skins are crate-only
--- -- 41 of the 46 carry a `chest` tag and their card had already stopped
--- printing a price, reading FROM CRATES instead -- so a shelf of them was a
--- catalogue you could look at and not buy from, which the Crates tab and the
--- bag between them already do better. Effects went with them, and the cost of
--- that is written down rather than solved: `Config.CHESTS` has no effects
--- crate and cannot have one yet, so the five buyable auras are unreachable
--- until somebody prices an epic and a legendary one.
---
--- An EMPTY TAB is not an option -- a rail slot that opens a blank page reads
--- as a shop that failed to load -- so the tab went with its contents. What is
--- LOST with it is the loot-priced route to the alien set's skin and aura:
--- `LootBuy` was only ever reachable from a skin or an effect card, so the
--- Martian and the Tractor Beam are Alien Cache drops now and nothing else.
--- The server half of that is untouched, so putting a guaranteed price back is
--- one call site rather than a feature.
+-- Standalone piggy effects are retired by design. Keep coin-deposit feedback
+-- and skin-authored Legendary visuals; do not restore an effects shelf.
 --
 -- Short labels, because the rail is one band. "Your Home" earned its
 -- possessive when there were four tabs and room for it; the icon carries the
@@ -2421,11 +2405,11 @@ local function ensureCosmeticButton(kind: string, key: string, info: any)
 	-- than the swatch it replaced.
 	local preview: Model? = nil
 	if kind == "house" then
-		-- The cosmetic key is the 1-based tier index; the house LEVEL is one
-		-- less. House.build seats itself against a fence at the end, which is
-		-- meaningless here and harmless: makeModelIcon re-centres on the
-		-- bounding box and undoes it.
-		preview = House.build((tonumber(key) or 1) - 1, CFrame.new(), nil)
+		-- The cosmetic key is the house's stable id; House.build takes the
+		-- catalogue position. It seats itself against a fence at the end,
+		-- which is meaningless here and harmless: makeModelIcon re-centres on
+		-- the bounding box and undoes it.
+		preview = House.build(Config.houseLevelOf(key) or 0, CFrame.new(), nil)
 	elseif kind:sub(1, 5) == "decor" then
 		preview = Decor.buildOne(key, CFrame.new(), nil)
 	end
@@ -2866,13 +2850,16 @@ local function renderCosmetics()
 		end
 	end
 
-	-- Houses are bought as a ladder and worn as a shelf: only the next tier is
-	-- ever for sale, but every one already bought stays available to move back
-	-- into for free. Which is why an owned tile reads as an action ("Tap to
-	-- move in") rather than as a state -- "Moved out" described the situation
-	-- accurately and gave no hint that tapping would undo it.
-	for index, info in ipairs(latestCosmetics.houses or {}) do
-		local entry = ensureCosmeticButton("house", tostring(index), info)
+	-- Houses are a shelf (schema 26): every house is for sale until owned,
+	-- and every owned one stays available to move into for free. Which is
+	-- why an owned tile reads as an action ("Tap to move in") rather than as
+	-- a state -- "Moved out" described the situation accurately and gave no
+	-- hint that tapping would undo it. Keyed by the house's ID, which is
+	-- what the server validates the tap against; the position is only the
+	-- display order. (The individual-purchase card states in
+	-- `docs/BRIEFS-FOR-GPT.md` B1 land on this loop.)
+	for _, info in ipairs(latestCosmetics.houses or {}) do
+		local entry = ensureCosmeticButton("house", info.id, info)
 		entry.title.Text = info.name
 
 		if info.current then
@@ -3274,10 +3261,10 @@ local function buildFrontPage()
 				local out = {}
 				for index, info in ipairs(latestCosmetics and latestCosmetics.houses or {}) do
 					table.insert(out, {
-						key = tostring(index), order = index,
+						key = info.id, order = index,
 						owned = info.owned,
-						-- Only the next rung is ever for sale, so a locked tier
-						-- has no reachable price and must not count as one.
+						-- Every unowned house is for sale (schema 26); an
+						-- owned one has no price to advertise.
 						cost = if info.forSale then info.cost else nil,
 						build = function()
 							return House.build(index - 1, CFrame.new(), nil)
@@ -5363,6 +5350,8 @@ do
 				return Decor.buildOne(key, CFrame.new(), nil)
 			elseif kind == "ride" then
 				return RideModel.build(key)
+			elseif kind == "consumable" then
+				return if Config.BONES[key] then BoneModel.build(key, false) else GadgetModel.build(key, false)
 			end
 			return nil
 		end)
@@ -5379,6 +5368,7 @@ do
 	Remotes.get("EventDrop").OnClientEvent:Connect(function(payload)
 		SpinWheel.play(gui, payload, iconFor)
 	end)
+	require(ReplicatedStorage.Shared.RobberyLoot).start(gui, iconFor)
 
 	-- THE CRATES TAB IS WIRED IN HERE RATHER THAN BESIDE ITS TAB, because
 	-- `iconFor` is local to this block and a crate card is three real item

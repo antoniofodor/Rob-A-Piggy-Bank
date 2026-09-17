@@ -284,6 +284,11 @@ type Carry = {
 	inRange: boolean?,
 	dropAction: string?,
 	returnAvailable: boolean?,
+	-- ALL FIVE SLICES LANDED. Stamped by `endCrack` on "done" and read by
+	-- `deliver`, which is where the pig-crack acorn is minted -- on the
+	-- delivery and never on the grab, for the reason every other count in
+	-- this file is: loot nabbed out of your hands was never stolen.
+	clean: boolean?,
 }
 
 -- Construct only after attachment succeeds. Further slices/catches mutate this
@@ -2009,6 +2014,55 @@ end
 -- without it. A MISS should fall and a WALK-AWAY should be silent -- nothing
 -- went wrong, and the player chose it -- and from the client both are the
 -- same nil.
+local function skinLootChoice(thief: Player, victim: Player): (string?, HotSkin?, string?)
+	local victimData, thiefData = DataService.get(victim), DataService.get(thief)
+	if not victimData or not thiefData then return nil,nil,"Player unavailable" end
+	local now = os.clock()
+	local claim = grudge[thief] and grudge[thief][victim]
+	local hot: HotSkin? = nil
+	local hotKey: string? = nil
+	local pending = false
+	for key, candidate in pairs(if claim then claim.skins else {}) do
+		if candidate.expires > now then
+			pending = true
+			if not candidate.reserved and SetService.owns(victimData,"skin",key)
+				and (not hot or candidate.expires < hot.expires
+					or (candidate.expires == hot.expires and key < (hotKey :: string))) then
+				hot,hotKey = candidate,key
+			end
+		end
+	end
+	if pending and not hot then return nil,nil,"Recovery skin in transit" end
+	local key = if hot then hotKey else victimData.cosmetics.skin
+	if type(key) ~= "string" or not Config.isStealableSkin(key) then return nil,nil,"This skin cannot be stolen" end
+	if not SetService.owns(victimData,"skin",key) then return nil,nil,"Skin unavailable" end
+	if not hot and SetService.owns(thiefData,"skin",key) then return nil,nil,"You already own this skin" end
+	local entry = skinLosses[victim]
+	if not hot and entry and now-entry.since <= Config.SKIN_STEAL.window and entry.lost >= Config.SKIN_STEAL.cap then
+		return nil,nil,"Skin theft limit reached"
+	end
+	return key,hot,nil
+end
+
+local function robberyOdds(thief: Player, victim: Target): any
+	local plot = targetPlot(victim)
+	if plot and plot.shop then
+		local data = DataService.get(thief)
+		if not data then return {chance=0,kind="shop",reason="Player unavailable"} end
+		local odds = Config.shopLootOdds(plot.shop,data.robberies,function(kind,key) return SetService.owns(data,kind,key) end)
+		-- Only the probabilities go on each crack tick. The reveal receives
+		-- the eligible model pool once, when a real item is discovered.
+		odds.pool,odds.total = nil,nil
+		return odds
+	end
+	local player = asPlayer(victim)
+	if not player then return {chance=0,kind="resident",reason="Coins only"} end
+	local key,_,reason = skinLootChoice(thief,player)
+	if not key then return {chance=0,kind="skin",reason=reason} end
+	local spec = Config.getSkin(key)
+	return {chance=1,kind="skin",name=spec.name,tier=Config.rarityOf(spec)}
+end
+
 local function pushCrack(thief: Player, crack: Crack?, why: string?)
 	if not crack then
 		Remotes.get("CrackState"):FireClient(thief, nil, why)
@@ -2016,6 +2070,7 @@ local function pushCrack(thief: Player, crack: Crack?, why: string?)
 	end
 	Remotes.get("CrackState"):FireClient(thief, {
 		victim = targetName(crack.victim),
+		loot = robberyOdds(thief, crack.victim),
 		-- The gauge: a pig that was this full, this much of it already in
 		-- your hands, and a floor at the point Config.LOSS_CAP stops you. A
 		-- resident's floor is zero, which is the cap not applying drawn
@@ -2319,42 +2374,21 @@ local function rollSkinSteal(thief: Player, victim: Player)
 	for _, item in ipairs(carry.haul) do
 		if item.kind == "skin" and item.victim == victim then return end
 	end
-	local now = os.clock()
 	local claim = grudge[thief] and grudge[thief][victim]
-	local hot: HotSkin? = nil
-	local hotKey: string? = nil
-	local pendingClaim = false
 	if claim then
 		for key, candidate in pairs(claim.skins) do
-			if candidate.expires <= now then
-				claim.skins[key] = nil
-			else
-				pendingClaim = true
-				if not candidate.reserved and SetService.owns(victimData, "skin", key)
-					and (not hot or candidate.expires < hot.expires
-						or (candidate.expires == hot.expires and key < (hotKey :: string))) then
-					hot, hotKey = candidate, key
-				end
-			end
+			if candidate.expires <= os.clock() then claim.skins[key] = nil end
 		end
 	end
-	-- Recover the oldest available claim first, one skin per clean crack.
-	-- If a live claim is in transit or no longer owned, do not replace its
-	-- promised skin with an unrelated outfit on this crack.
-	if pendingClaim and not hot then return end
-	local key = if hot then hotKey else victimData.cosmetics.skin
-	if type(key) ~= "string" or not Config.isStealableSkin(key) then return end
-	if not SetService.owns(victimData, "skin", key) then return end
-	if not hot and SetService.owns(thiefData, "skin", key) then return end
-
+	local key, hot = skinLootChoice(thief, victim)
+	if not key then return end
 	local entry = nil
 	if not hot then
 		entry = skinLosses[victim]
-		if not entry or now - entry.since > Config.SKIN_STEAL.window then
-			entry = { since = now, lost = 0 }
+		if not entry or os.clock() - entry.since > Config.SKIN_STEAL.window then
+			entry = {since=os.clock(),lost=0}
 			skinLosses[victim] = entry
 		end
-		if entry.lost >= Config.SKIN_STEAL.cap then return end
 	end
 
 	local skin = Config.getSkin(key)
@@ -2405,187 +2439,48 @@ local function rollSkinSteal(thief: Player, victim: Player)
 end
 
 local function rollShopDrop(thief: Player, tab: string)
-	local drop = Config.SHOP_VAULT_DROP
-	if math.random() >= drop.chance then
-		return
-	end
-
 	local data = DataService.get(thief)
-	if not data then
-		return
-	end
-
-	local kinds = drop.kinds[tab]
-
-	-- LOCK & KEY HAS NO ITEMS ON IT, AND THAT IS WHY IT IS THE BEST ONE.
-	--
-	-- The `defend` tab sells upgrade LEVELS, which are not owned things and
-	-- cannot drop -- so that shop has to hand over something else, and
-	-- consumables are the honest answer. They are also the exact thing a new
-	-- player cannot buy: the only bone that breaks a chase in progress costs
-	-- 30,000 coins, so the counter to the wall is priced above the players
-	-- the wall stops. A cheap easy target that can drop one is the on-ramp.
-	--
-	-- Weighted by the INVERSE of what it costs, so the plunger and the dog
-	-- bone arrive often and the Golden Bone is a prize rather than a faucet.
-	if not kinds then
-		local pool: { { key: string, name: string, weight: number } } = {}
-		local total = 0
-		for _, key in ipairs(drop.consumables) do
-			local spec = Config.BONES[key] or Config.GADGETS[key]
-			local cost = if spec then spec.cost else 0
-			if spec and cost and cost > 0 then
-				local weight = 1 / cost
-				total += weight
-				table.insert(pool, { key = key, name = spec.name, weight = weight })
-			end
-		end
-		if total <= 0 then
-			return
-		end
-
-		local roll, acc = math.random() * total, 0
-		for _, entry in ipairs(pool) do
-			acc += entry.weight
-			if roll <= acc then
-				if type(data.consumables) ~= "table" then
-					data.consumables = {}
-				end
-				data.consumables[entry.key] = (data.consumables[entry.key] or 0) + 1
-				-- The four services that own this table each push their own
-				-- slice of it. Writing the count and telling nobody would put
-				-- a Golden Bone in a save and leave the hot bar showing none.
-				for _, push in ipairs(stockPushers) do
-					push(thief)
-				end
-				DataService.save(thief)
-				notify(thief, ("There was a %s in the vault!"):format(entry.name), "loot")
-				return
-			end
-		end
-		return
-	end
-
-	-- TWO POOLS, AND THE SECOND ONE IS WHY A DROP CAN NEVER PAY NOTHING.
-	--
-	-- The unowned pool is the real prize and is rolled first, so every drop is
-	-- PROGRESS for as long as progress is possible -- the same rule the
-	-- accessory roll keeps when it refuses to hand back something you already
-	-- have. What used to happen once a thief owned everything a tab could
-	-- give is that `total` came out zero and this function returned in
-	-- silence: a one-in-five drop, on a completed crack, paying nothing, with
-	-- nothing on screen to say why. That is the silent-failure rule wearing a
-	-- reward, and it landed on exactly the player who had robbed the most.
-	--
-	-- SO A DUPLICATE PAYS ITS SELL VALUE IN COINS. Not a spare copy, which is
-	-- what the chests do and is deliberately NOT what happens here: a spare is
-	-- fuel for `Config.COMBINE`, so a shop drop that produced one would be a
-	-- spare faucet outside the chest system entirely -- a thief could farm
-	-- combines by robbing shops, which is the arrow this project already
-	-- refuses to let run backwards when it stops coin chests reaching the
-	-- alien set. Coins settle it: the drop always pays, and it pays into the
-	-- one place that cannot be turned back into a roll.
-	local pool: { { kind: string, key: string, name: string, weight: number } } = {}
-	local spares: { { kind: string, key: string, name: string, weight: number } } = {}
-	local total, spareTotal = 0, 0
-	for _, kind in ipairs(kinds) do
-		local catalogue = Config.catalogueFor(kind)
-		if catalogue then
-			for key, spec in pairs(catalogue) do
-				if not Config.isEarnedElsewhere(spec) then
-					local tier = Config.RARITIES[Config.rarityOf(spec)]
-					local weight = if tier then tier.weight else 0
-					if weight > 0 then
-						local entry = { kind = kind, key = key, name = spec.name, weight = weight }
-						if SetService.owns(data, kind, key) then
-							-- Weighted the SAME way, so what a finished tab
-							-- pays out tracks what it would have given: a
-							-- shop whose pool is mostly commons pays like
-							-- commons, and the strongroom does not.
-							spareTotal += weight
-							table.insert(spares, entry)
-						else
-							total += weight
-							table.insert(pool, entry)
-						end
-					end
-				end
-			end
-		end
-	end
-
-	if total <= 0 then
-		if spareTotal <= 0 then
-			-- Genuinely nothing on this tab to give or to value. Silent, and
-			-- correctly so: there is no reward to report and no failure
-			-- either.
-			return
-		end
-		local roll, acc = math.random() * spareTotal, 0
-		for _, entry in ipairs(spares) do
-			acc += entry.weight
-			if roll <= acc then
-				local worth = Config.sellValue(entry.kind, entry.key)
-				if worth <= 0 then
-					return
-				end
-				-- ALLOWED TO OVERFLOW CAPACITY, like the delivery it arrives
-				-- beside. Income stops above the cap anyway, so a robbery
-				-- payout that clamped would be destroying coins a thief had
-				-- just earned -- which from their side is indistinguishable
-				-- from theft, and is the exact reason a SALE is refused
-				-- rather than clamped. A drop cannot be refused: there is
-				-- nothing for the player to spend first and nothing they did
-				-- wrong.
-				data.coins += worth
-				local plot = PlotService.getPlot(thief)
-				if plot then
-					PlotService.updatePile(plot, data.coins,
-						Config.getCapacity(data.capacityLevel))
-				end
-				DataService.save(thief)
-				-- Names the item AND says why it turned into money, because
-				-- "you got 50K" on a tab you have finished reads as a
-				-- different feature. The player should be able to tell that
-				-- the collection is complete from the message.
-				notify(thief, ("There was a %s in the vault -- you have one, so you sold it for %s.")
-					:format(entry.name, Config.formatCoins(worth)), "loot")
-				return
-			end
-		end
-		return
-	end
-
-	local roll, acc = math.random() * total, 0
-	for _, entry in ipairs(pool) do
+	if not data or not Config.SHOP_VAULT_DROP.chance[tab] then return end
+	local odds = Config.shopLootOdds(tab, data.robberies, function(kind, key)
+		return SetService.owns(data, kind, key)
+	end)
+	if odds.chance <= 0 or math.random() >= odds.chance then return end
+	local roll, acc = math.random() * odds.total, 0
+	for _, entry in ipairs(odds.pool) do
 		acc += entry.weight
-		if roll <= acc then
-			-- CARRIED HOME, LIKE A STOLEN SKIN AND FOR THE SAME REASON.
-			--
-			-- This granted on the spot, which made a shop's best prize the
-			-- one thing in a robbery that the getaway could not cost you --
-			-- and a shop is deliberately the LOUD target, where the alarm and
-			-- the patrol are most of what you are paying. An item already
-			-- banked is not paying any of it.
-			--
-			-- `victim` is nil, which is what says a lost one is simply gone:
-			-- there is nobody behind a shop to give it back to. See
-			-- `clearCarry`, which reads exactly that field.
-			--
-			-- No carry means the crack banked nothing into one, and then
-			-- `SetService.grant` is the honest fallback -- the same branch
-			-- `rollSkinSteal` takes, and for the same reason.
+		if roll > acc then continue end
+		local mode, worth = "owned", 0
+		if entry.kind == "consumable" then
+			data.consumables = data.consumables or {}
+			data.consumables[entry.key] = (data.consumables[entry.key] or 0) + 1
+			for _, push in ipairs(stockPushers) do push(thief) end
+			DataService.save(thief)
+		elseif odds.resale then
+			worth = Config.sellValue(entry.kind, entry.key)
+			if worth <= 0 then return end
+			mode = "sold"
+			data.coins += worth
+			local plot = PlotService.getPlot(thief)
+			if plot then PlotService.updatePile(plot, data.coins, Config.getCapacity(data.capacityLevel)) end
+			DataService.save(thief)
+		else
 			local carry = carrying[thief]
 			if carry then
-				table.insert(carry.haul, { kind = entry.kind, key = entry.key })
+				mode = "carried"
+				table.insert(carry.haul, {kind=entry.kind,key=entry.key})
 				pushCarryState(thief)
-				notify(thief, ("There was a %s in the vault! Get it home."):format(
-					entry.name), "loot")
-			elseif SetService.grant(thief, entry.kind, entry.key) then
-				notify(thief, ("There was a %s in the vault!"):format(entry.name), "loot")
-			end
-			return
+			elseif not SetService.grant(thief,entry.kind,entry.key) then return end
 		end
+		-- The award/escrow is committed before the cosmetic message. The client
+		-- never rolls, grants, sells or changes the server's chosen winner.
+		Remotes.get("RobberyLoot"):FireClient(thief, {
+			pool=odds.pool,won=entry,tier=entry.tier,mode=mode,coins=worth,
+			chance=odds.chance,odds=entry.odds,shop=tab,
+		})
+		local note = if mode == "carried" then " Get it home."
+			elseif mode == "sold" then (" Sold your duplicate for %s coins."):format(Config.formatCoins(worth)) else ""
+		notify(thief,("There was a %s in the vault!%s"):format(entry.name,note),"loot")
+		return
 	end
 end
 
@@ -2628,6 +2523,15 @@ function endCrack(thief: Player, why: string)
 		elseif why ~= "lost" and why ~= "scared" then
 			notify(thief, ("%d of %d slices. %s coins, worth %s at home. Run!"):format(
 				crack.steps, Config.CRACK.maxSteps, format(total), format(worth)), "loot")
+		end
+
+		-- THE CARRY REMEMBERS A CLEAN RUN, so the delivery can pay the
+		-- pig-crack acorn (Config.crackAcorns) for it. On the record and not
+		-- in a side table, because a hand-off moves the record and the acorn
+		-- goes with the original grabber's claim.
+		local carry = carrying[thief]
+		if why == "done" and carry then
+			carry.clean = true
 		end
 
 		-- A CLEAN RUN ON A SHOP MAY ALSO HAND OVER SOMETHING FROM ITS OWN
@@ -3748,7 +3652,10 @@ local function deliver(thief: Player)
 		grantHaul(thief, data, haul) -- all counters are staged before a grant can save
 		SetService.push(thief)
 		local home = PlotService.getPlot(thief)
-		if home then PlotService.updateAcorns(home, data.loot) end
+		if home then
+			PlotService.updateAcorns(home, data.loot)
+			PlotService.updateRank(home, data.robberies)
+		end
 		notify(thief, ("Deposited %d Acorns; %d added to your crate%s."):format(amount, banked, if original then "" else " (half share)"), "loot")
 		if thief ~= victim then notifyTarget(victim, ("%s got away with %d of your Acorns."):format(thief.DisplayName, amount), "bad") end
 		return
@@ -3763,6 +3670,7 @@ local function deliver(thief: Player)
 	-- `clearCarry` is what destroys the carry record.
 	local haul = carry.haul or {}
 	carry.haul = {}
+	local clean = carry.clean == true
 	clearCarry(thief)
 
 	-- REVENGE. The thief is robbing back somebody who robbed THEM inside the
@@ -3825,6 +3733,18 @@ local function deliver(thief: Player)
 		victimData.totalLost += amount
 	end
 
+	-- THE PIG-CRACK ACORN (section 19.2). One acorn for a clean five-slice
+	-- crack on a PLAYER's pig, two on revenge, MINTED rather than taken:
+	-- the victim's loss is the coins and possibly a skin, never an acorn.
+	-- Residents and shops pay none -- `victimPlayer` is nil for both, since
+	-- a shop's target is the resident seated on it -- and a nabbed carry
+	-- pays none, because the original grabber's claim is what the acorn
+	-- is for. Every gate lives in `Config.crackAcorns`, audited at boot.
+	local acorns = if original then Config.crackAcorns(clean, victimPlayer ~= nil, revenge) else 0
+	if acorns > 0 then
+		data.loot += acorns
+	end
+
 	-- THE VICTIM SHELF, AND IT IS FILLED ON THE DELIVERY RATHER THAN ON
 	-- THE GRAB.
 	--
@@ -3838,8 +3758,12 @@ local function deliver(thief: Player)
 
 	local plot = PlotService.getPlot(thief)
 	if plot then
+		PlotService.updateRank(plot, data.robberies)
 		PlotService.updatePile(plot, data.coins, Config.getCapacity(data.capacityLevel))
 		PlotService.playBank(plot)
+		if acorns > 0 then
+			PlotService.updateAcorns(plot, data.loot)
+		end
 	end
 	-- THE PIG ITSELF, HANDED OVER RATHER THAN HUNTED FOR.
 	--
@@ -3854,9 +3778,6 @@ local function deliver(thief: Player)
 	-- already do with a part it can plainly see, and it is the same part its
 	-- own steal prompts and rob badges are bound to.
 	local bank = if plot and plot.piggy then plot.piggy.body else nil
-
-	-- Piggy deliveries settle coins and carried items only. Acorns belong
-	-- to the tree/shake path, including during revenge and a robbery spree.
 
 	-- AND THE HAUL LANDS HERE, which is the moment it becomes theirs.
 	--
@@ -3884,6 +3805,9 @@ local function deliver(thief: Player)
 	-- the same ordering `runNote` above depends on.
 	TrophyService.recordSpree(thief, runNow)
 	local runNote = if runNow > 1 then (" %dx IN A ROW!"):format(runNow) else ""
+	-- Named in the same line as the coins, for the reason the run is: a
+	-- currency handed over with nothing on screen is one nobody believes.
+	local acornNote = if acorns > 0 then (" +%d Acorn%s."):format(acorns, if acorns == 1 then "" else "s") else ""
 
 	-- THE SUMMARY, FIRED BEFORE THE TOAST so the panel is what the player
 	-- looks at and the toast is the receipt behind it. Both, deliberately:
@@ -3905,15 +3829,16 @@ local function deliver(thief: Player)
 		items = delivered,
 		victim = targetName(victim),
 		bank = bank,
+		acorns = acorns,
 	})
 
 	notify(thief, if not original
 		then ("Kept the haul! Half share: %s coins."):format(format(banked))
 		elseif revenge
-		then ("REVENGE! %s stolen coins, worth %s to you.%s"):format(
-			format(amount), format(banked), runNote)
-		else ("Delivered %s stolen coins, worth %s to you.%s"):format(
-			format(amount), format(banked), runNote),
+		then ("REVENGE! %s stolen coins, worth %s to you.%s%s"):format(
+			format(amount), format(banked), runNote, acornNote)
+		else ("Delivered %s stolen coins, worth %s to you.%s%s"):format(
+			format(amount), format(banked), runNote, acornNote),
 		"money")
 	notifyTarget(victim, ("%s got away with %s of your coins. Get them back for triple!"):format(
 		thief.DisplayName, format(amount)), "bad")
@@ -4091,6 +4016,11 @@ function HeistService.start()
 		player = asPlayer, id = targetId, name = targetName, plot = targetPlot,
 		root = getRoot, humanoid = getHumanoid, notify = notify,
 		pushBalance = SetService.push,
+		-- The acorn-theft window (Harvest Moon). Read lazily so a service
+		-- without the function (an isolated test) simply reads it as closed.
+		theftOpen = function()
+			return EventService.isAcornTheftOpen ~= nil and EventService.isAcornTheftOpen()
+		end,
 		disabled = function(player) return isStunned(player) or inBin[player] == true or rideMultiplier[player] ~= nil end,
 		reason = function(thief, victim)
 			local carry = carrying[thief]
@@ -4109,7 +4039,7 @@ function HeistService.start()
 			dropShield(thief)
 			HeistService.setTiptoe(thief, false)
 			PlotService.playAlarm(plot)
-			notifyTarget(victim, ("%s is taking Acorns from your %s! Get close to stop them."):format(thief.DisplayName, if source == "storage" then "crate" else "tree"), "alarm")
+			notifyTarget(victim, ("%s is shaking your tree! Get close to stop them."):format(thief.DisplayName), "alarm")
 			releaseDog(thief, victim, plot)
 		end,
 		caught = function(thief, victim, receipt)
@@ -4314,16 +4244,8 @@ function HeistService.start()
 			Config.setPromptKind(prompt, "shake")
 			prompt.Parent = plot.acornTree.collider
 			wireEntry(plot, prompt, Config.CRACK.openHold, "Hold to shake the tree.", HeistService.shake)
-			local raid = Instance.new("ProximityPrompt")
-			raid.Name, raid.ActionText, raid.ObjectText = "StorageRaidPrompt", "Raid Crate", "Acorn Storage"
-			raid.KeyboardKeyCode, raid.GamepadKeyCode = Enum.KeyCode.J, Enum.KeyCode.ButtonX -- R belongs to the hotbar
-			raid.HoldDuration = Config.CRACK.openHold
-			raid.MaxActivationDistance, raid.RequiresLineOfSight = Config.STEAL_RANGE, false
-			Config.setPromptKind(raid, "acornRaid")
-			raid.Parent = plot.acornStorage.body
-			wireEntry(plot, raid, Config.CRACK.openHold, "Hold to raid the crate.", function(thief, victim)
-				ShakeService.open(thief, victim, "storage")
-			end)
+			-- NO RAID PROMPT ON THE CRATE (step 2.6): storage is a bank. The
+			-- J key is free again.
 		end
 	end
 

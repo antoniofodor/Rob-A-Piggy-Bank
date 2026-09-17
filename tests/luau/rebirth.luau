@@ -29,7 +29,7 @@ for _, case in {{0,0},{1,1},{2,1},{3,2},{4,2},{5,2},{6,3},{20,3}} do
  old.sinceLegendary=11;old.cosmetics.skin=if case[1]>=6 then "diamond" else "classic"
  old.loot=17;old.coins=123;old.spares={};local migrated=Data.reconcile(old)
  local count=0;for _, key in keys do if migrated.cosmetics.owned[key] then count+=1 end end
- check(count==case[2] and migrated.schema==25, "threshold migration " .. case[1])
+ check(count==case[2] and migrated.schema==26, "threshold migration " .. case[1])
  check(migrated.loot==17 and migrated.coins==123 and next(migrated.spares)==nil, "migration never pays currency/spares")
  check(migrated.sinceLegendary==nil, "pity field retired")
  local again=Data.reconcile(copy(migrated));local countAgain=0
@@ -44,7 +44,7 @@ end
 local legacy = {rebirths=6, cosmetics={skin="goldleaf"}}
 local migrated=Data.reconcile(legacy)
 check(migrated.cosmetics.owned.bronze and migrated.cosmetics.owned.goldleaf and migrated.cosmetics.owned.diamond, "missing schema and owned table migrate")
-check(Data.defaults().schema==25 and not Data.defaults().cosmetics.owned.bronze, "new saves earn no legacy grants")
+check(Data.defaults().schema==26 and not Data.defaults().cosmetics.owned.bronze, "new saves earn no legacy grants")
 local og = Config.chestPool("og")
 for _, key in keys do
  local skin=Config.SKINS[key]

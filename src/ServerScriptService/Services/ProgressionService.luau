@@ -89,7 +89,7 @@ function ProgressionService.rebirth(player: Player)
 	local plot = PlotService.getPlot(player)
 	if plot then
 		PlotService.updateSign(plot, player.DisplayName, data.rebirths,
-			Config.getSkin(data.cosmetics.skin).name, Config.getHouseTier(Config.getShownHouseLevel(data)).name)
+			Config.getSkin(data.cosmetics.skin).name, Config.getShownHouse(data).name)
 		PlotService.updatePile(plot, 0, Config.getCapacity(1))
 		PlotService.buildFence(plot, 0)
 		PlotService.setDogLevel(plot, 0)
@@ -104,7 +104,7 @@ function ProgressionService.rebirth(player: Player)
 	end
 
 	notify(player, ("REBIRTH %d! Your piggy earns +%d%% forever."):format(
-		data.rebirths, math.floor(data.rebirths * Config.REBIRTH_MULTIPLIER * 100)), "good")
+		data.rebirths, Config.rebirthBonusPercent(data.rebirths)), "good")
 
 	-- The standard Legendary Crate, with its normal odds and duplicate spares.
 	-- Once every eligible legendary is owned, pay its price in Acorns instead.

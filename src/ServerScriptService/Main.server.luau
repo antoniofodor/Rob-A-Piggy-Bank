@@ -354,9 +354,9 @@ do
 	end
 end
 
--- Phase 1.9 audits warn without blocking startup. Tree figures are a model
--- of full capture at parity, not observed live earning rates. Resident seed
--- is one-off server stock and is excluded from hourly production.
+-- Phase 1.9 audits warn without blocking startup. The acorn figures are a
+-- ceiling model (step 2.6: own tree plus the pig-crack acorn), not observed
+-- live earning rates. Resident seed is one-off stock and is excluded.
 do
 	for _, audit in ipairs({ { name = "Acorns", run = Config.auditAcorns }, { name = "random-outcome sweep", run = Config.auditRandomOutcomes } }) do
 		local ok, problems = pcall(audit.run)
@@ -370,8 +370,8 @@ do
 		return Config.acornRates(1), Config.acornRates(Config.MAX_PLAYERS)
 	end)
 	if ok then
-		print(("[Main] Acorn new-growth model (full capture, parity; seed/re-raids excluded): solo %.2f/full %.2f per thief-hour; active/passive %.2fx/%.2fx; full-server common %.1f min, legendary %.2f h")
-			:format(solo.perThiefPerHour, full.perThiefPerHour, solo.activeRatio, full.activeRatio, full.commonMinutes, full.legendaryHours))
+		print(("[Main] Acorn faucet model (own tree + pig-crack ceiling; no storage raids, Harvest Moon excluded): solo %.2f/full %.2f per player-hour (%.2f from cracks); active/passive %.2fx/%.2fx; solo common %.0f min, full-server common %.0f min, legendary %.2f h")
+			:format(solo.perThiefPerHour, full.perThiefPerHour, full.crackPerHour, solo.activeRatio, full.activeRatio, solo.commonMinutes, full.commonMinutes, full.legendaryHours))
 	end
 end
 

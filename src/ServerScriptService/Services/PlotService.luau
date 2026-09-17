@@ -79,11 +79,12 @@ export type Plot = {
 	-- what the animal is actually painted -- the same single-writer rule that
 	-- keeps `decorPlaced` honest.
 	skinKey: string?,
-	-- Two rows, not one. A single TextScaled label holding both the name and
+	-- Separate rows. A single TextScaled label holding both the name and
 	-- the boasts shrank the name to fit whatever the boasts happened to be, so
 	-- the most important word on the board was the one that moved.
 	signLabel: TextLabel,
 	signBoast: TextLabel,
+	signRank: TextLabel?, -- residential signs only; shops have no player rank
 	-- THE PAID MARK, HELD ON THE PLOT RATHER THAN PASSED IN.
 	--
 	-- `updateSign` has four callers across four services, so a fifth
@@ -612,17 +613,19 @@ local function buildPlot(index: number): Plot
 	-- Frame and panel are separate parts so the panel can stand proud of the
 	-- frame. Flush would put two faces at the same depth, which is the
 	-- coplanar flicker this codebase has now hit three times.
-	signPart("Sign", Vector3.new(6.2, 4.2, 0.35),
-		signCF * CFrame.new(0, baseY + 6.35, 0), Color3.fromRGB(96, 64, 42), Enum.Material.WoodPlanks)
-	local panel = signPart("SignPanel", Vector3.new(5.5, 3.5, 0.16),
-		signCF * CFrame.new(0, baseY + 6.35, 0.2), Color3.fromRGB(244, 236, 218),
+	-- Extend downward for the rank row, preserving the name's size and the
+	-- board's top edge where its hanging links meet it.
+	signPart("Sign", Vector3.new(6.2, 4.9, 0.35),
+		signCF * CFrame.new(0, baseY + 6, 0), Color3.fromRGB(96, 64, 42), Enum.Material.WoodPlanks)
+	local panel = signPart("SignPanel", Vector3.new(5.5, 4.2, 0.16),
+		signCF * CFrame.new(0, baseY + 6, 0.2), Color3.fromRGB(244, 236, 218),
 		Enum.Material.SmoothPlastic)
 
 	local surface = Instance.new("SurfaceGui")
 	-- Roblox's "Front" face is -Z. The board faces out toward the street on
 	-- +Z, so that's Back.
 	surface.Face = Enum.NormalId.Back
-	surface.CanvasSize = Vector2.new(550, 350)
+	surface.CanvasSize = Vector2.new(550, 420)
 	surface.AlwaysOnTop = false
 	-- Unlit, so the board stays readable at dusk. It is the one thing on the
 	-- plot whose whole job is being read from the pavement.
@@ -631,8 +634,8 @@ local function buildPlot(index: number): Plot
 
 	local label = Instance.new("TextLabel")
 	label.Name = "Owner"
-	label.Size = UDim2.new(1, -30, 0.4, 0)
-	label.Position = UDim2.new(0, 15, 0.05, 0)
+	label.Size = UDim2.new(1, -30, 0, 140)
+	label.Position = UDim2.fromOffset(15, 18)
 	label.BackgroundTransparency = 1
 	label.Font = Enum.Font.FredokaOne
 	-- NEVER write TextWrapped next to TextScaled. Setting TextWrapped = false
@@ -649,18 +652,25 @@ local function buildPlot(index: number): Plot
 	local rule = Instance.new("Frame")
 	rule.Name = "Rule"
 	rule.Size = UDim2.new(0.62, 0, 0, 4)
-	rule.Position = UDim2.new(0.19, 0, 0.5, 0)
+	rule.Position = UDim2.new(0.19, 0, 0, 175)
 	rule.BackgroundColor3 = Color3.fromRGB(178, 150, 112)
 	rule.BorderSizePixel = 0
 	rule.Parent = surface
+
+	local rank = Instance.new("TextLabel")
+	rank.Name = "RobberyRank"
+	rank.Position, rank.Size = UDim2.fromOffset(15, 187), UDim2.new(1, -30, 0, 52)
+	rank.BackgroundTransparency, rank.Font = 1, Enum.Font.GothamBold
+	rank.TextColor3, rank.TextScaled = Color3.fromRGB(150, 104, 44), true
+	rank.Text, rank.Visible, rank.Parent = "", false, surface
 
 	local boast = Instance.new("TextLabel")
 	boast.Name = "Boasts"
 	-- Tall enough for the two lines a full boast list wraps into. At one row's
 	-- height the second line fell off the bottom of the board and a maxed-out
 	-- player's sign read "12*  ·  Neon Tower  ·" with the skin missing.
-	boast.Size = UDim2.new(1, -14, 0.36, 0)
-	boast.Position = UDim2.new(0, 7, 0.545, 0)
+	boast.Size = UDim2.new(1, -14, 0, 126)
+	boast.Position = UDim2.fromOffset(7, 261)
 	boast.BackgroundTransparency = 1
 	boast.Font = Enum.Font.GothamBold
 	boast.TextScaled = true
@@ -887,6 +897,7 @@ local function buildPlot(index: number): Plot
 		decor = nil,
 		signLabel = label,
 		signBoast = boast,
+		signRank = rank,
 		mailFlag = flag,
 		mailPrompt = mailPrompt,
 		crateParts = crateParts,
@@ -2985,6 +2996,15 @@ function PlotService.setCrateOwner(plot: Plot, player: Player?)
 		if player then player.UserId else nil)
 end
 
+function PlotService.updateRank(plot: Plot, robberies: number?)
+	if not plot.signRank then return end
+	local rank = if robberies ~= nil then Config.getRapSheetRank(robberies) else nil
+	plot.model:SetAttribute(Config.PLOT_RAP_RANK_ATTRIBUTE, rank)
+	plot.signRank.Visible = rank ~= nil
+	plot.signRank.Text = if rank == nil then "" elseif rank == 0 then "ROBBER RANK  0"
+		else "ROBBER RANK  " .. string.rep("★", rank)
+end
+
 function PlotService.setSignPass(plot: Plot, word: string?, colour: Color3?)
 	plot.signWord = word
 	plot.signColour = colour
@@ -3095,10 +3115,10 @@ function PlotService.assign(player: Player): Plot?
 
 			PlotService.updateAcorns(plot, 0)
 			PlotService.updateTreeAcorns(plot, 0, 0)
-			plot.model:SetAttribute(Config.PLOT_ACORN_RAID_READY_ATTRIBUTE, nil)
 			plot.owner = player
 			byPlayer[player] = plot
 			plot.model:SetAttribute("OwnerUserId", player.UserId)
+			PlotService.updateRank(plot, 0)
 			-- WHOSE MAILBOX THIS IS, so every OTHER client turns the prompt off
 			-- for itself. The flag stays down until DailyService says there is
 			-- something in it -- naming the owner is not the same question as
@@ -3126,10 +3146,10 @@ function PlotService.release(player: Player)
 
 	PlotService.updateAcorns(plot, 0)
 	PlotService.updateTreeAcorns(plot, 0, 0)
-	plot.model:SetAttribute(Config.PLOT_ACORN_RAID_READY_ATTRIBUTE, nil)
 	plot.owner = nil
 	byPlayer[player] = nil
 	plot.model:SetAttribute("OwnerUserId", nil)
+	PlotService.updateRank(plot, nil)
 	-- BEFORE `updateSign`, or the plot keeps the last owner's mark. Same
 	-- class as the house `release` once forgot: a plot that nobody owns
 	-- advertising the last person who did, with nothing erroring.

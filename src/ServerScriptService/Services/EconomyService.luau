@@ -128,7 +128,7 @@ local function refreshPlot(player: Player)
 	end
 	PlotService.updatePile(plot, data.coins, Config.getCapacity(data.capacityLevel))
 	PlotService.updateSign(plot, player.DisplayName, data.rebirths,
-		Config.getSkin(data.cosmetics.skin).name, Config.getHouseTier(Config.getShownHouseLevel(data)).name)
+		Config.getSkin(data.cosmetics.skin).name, Config.getShownHouse(data).name)
 end
 
 -- Fires the celebration for every milestone the pig has newly crossed.

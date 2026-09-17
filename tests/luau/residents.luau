@@ -48,11 +48,10 @@ check(loose.groundAcorns==0 and loose.acorns==4,"missed ground expires and ripe 
 local paused=M.attach(4,false,0)
 M.tick(paused,100,false);M.suspend(4,100);M.suspend(4,500)
 check(paused.pausedAt==100,"repeated eviction does not reset pause start")
-paused.raidReadyAt=900;paused.acorns+=1 -- old in-flight receipt returns during occupancy
+paused.acorns+=1 -- old in-flight receipt returns during occupancy
 M.tick(paused,10000,true)
 check(paused.treeAcorns==2 and paused.acorns==3,"player occupancy cannot grow a hidden resident tree")
 check(M.attach(4,false,10100)==paused and paused.acorns==3,"reseat retains old stock and delayed refund")
-check(paused.raidReadyAt==900,"raid cooldown elapses in real time during occupancy")
 M.tick(paused,13599,false)
 check(paused.treeAcorns==2,"pause retains partial growth hour without premature catch-up")
 M.tick(paused,13600,false)
@@ -132,12 +131,11 @@ now+=3600;resident.state="out";R.testTick()
 check(home.ripe==3 and home.stored==2 and resident.coins==500,"real tick grows independently of full coin pig while resident is away")
 resident.state="home";R.testTick()
 check(home.ripe==0 and home.stored==5,"real home tick banks ripe crop")
-resident.acornStock.raidReadyAt=now+900
 callbacks.claim(home);home.owner={}
 local oldStock=resident.acornStock
 check(R.get(home)==nil and oldStock.pausedAt==now,"claim evicts and suspends resident supply")
 now+=120;oldStock.acorns+=1
 home.owner=nil;callbacks.release(home)
 check(R.get(home).acornStock==oldStock and home.stored==6,"release resumes same stock including delayed receipt refund")
-check(home.attrs[Config.PLOT_ACORN_RAID_READY_ATTRIBUTE]==oldStock.raidReadyAt,"reseat republishes still-active raid deadline")
+check(oldStock.raidReadyAt==nil,"resident stock carries no raid cadence (storage raids retired)")
 print(("PASS: %d resident checks; seed, growth, harvest, leases, shop exclusion, handovers and actual service integration."):format(checks))

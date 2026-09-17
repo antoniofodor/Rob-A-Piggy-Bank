@@ -18,7 +18,8 @@ modules.ShakeService={finish=noop,isShaking=function() return false end,refund=f
  if victim.player then d.loot+=amount-remaining else d.acorns+=amount-remaining end
 end}
 modules.DataService={get=function(p) return p.data end}
-modules.PlotService={getPlot=function(p) return p.plot end,updateAcorns=function(plot,amount) plot.acorns=amount end}
+modules.PlotService={getPlot=function(p) return p.plot end,updateAcorns=function(plot,amount) plot.acorns=amount end,
+ updateRank=function(plot,count) plot.rank=Config.getRapSheetRank(count) end}
 modules.SetService={push=noop}
 local heat,weekly=0,0
 modules.SocialService={recordSteal=function(_,amount) heat+=amount end,recordWeekly=function(_,amount) weekly+=amount end,

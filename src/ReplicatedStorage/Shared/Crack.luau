@@ -46,6 +46,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local SoundKit = require(ReplicatedStorage.Shared.SoundKit)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local Theme = require(ReplicatedStorage.Shared.Theme)
+local RobberyLoot = require(ReplicatedStorage.Shared.RobberyLoot)
 
 local Crack = {}
 
@@ -79,6 +80,8 @@ local ui: {
 	slice: TextLabel,
 	tap: TextButton,
 	stop: TextButton,
+	odds: TextLabel,
+	tiers: TextLabel,
 }? = nil
 
 local state: any = nil
@@ -101,11 +104,20 @@ local function build(parent: Instance)
 	root.Name = "CrackPanel"
 	root.AnchorPoint = Vector2.new(0.5, 1)
 	root.Position = UDim2.new(0.5, 0, 1, -LIFT)
-	root.Size = UDim2.new(0, WIDTH, 0, 176)
+	root.Size = UDim2.new(0, WIDTH, 0, 228)
 	root.Visible = false
 	root.ZIndex = 6
 	root.Parent = parent
 	Theme.card(root)
+	local panelScale = Instance.new("UIScale")
+	panelScale.Parent = root
+	local function fit()
+		local view = (parent :: ScreenGui).AbsoluteSize
+		panelScale.Scale = math.min(1,math.max(.5,(view.Y-LIFT-8)/228))
+		root.Size = UDim2.fromOffset(math.min(WIDTH,(view.X-24)/panelScale.Scale),228)
+	end
+	parent:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+	fit()
 
 	local pad = Instance.new("UIPadding")
 	pad.PaddingTop = UDim.new(0, 12)
@@ -292,6 +304,14 @@ local function build(parent: Instance)
 	-- edge is the one a panicking nine-year-old reaches for by mistake.
 	local stopBtn = actionButton("Stop", "TAKE IT", Theme.PAPER_DEEP, Theme.INK, 100, -222)
 	local tapBtn = actionButton("Tap", "CRACK!", Theme.GOLD, Theme.INK, 116, -116)
+	local odds = Instance.new("TextLabel")
+	odds.Name,odds.BackgroundTransparency,odds.Text = "LootOdds",1,""
+	odds.Position,odds.Size = UDim2.fromOffset(0,156),UDim2.new(1,0,0,18)
+	odds.Font,odds.TextSize,odds.TextColor3 = Theme.FONT,12,Theme.INK
+	odds.TextScaled,odds.Parent = true,root
+	local tiers=odds:Clone()
+	tiers.Name,tiers.Position,tiers.Size = "RarityOdds",UDim2.fromOffset(0,176),UDim2.new(1,0,0,28)
+	tiers.TextWrapped,tiers.Parent = true,root
 
 	ui = {
 		root = root,
@@ -307,6 +327,8 @@ local function build(parent: Instance)
 		slice = slice,
 		tap = tapBtn,
 		stop = stopBtn,
+		odds = odds,
+		tiers = tiers,
 	}
 
 	dial.Activated:Connect(tap)
@@ -329,6 +351,7 @@ local function render()
 	local remaining = math.max(0, pig - state.banked)
 
 	u.root.Visible = true
+	u.odds.Text,u.tiers.Text = RobberyLoot.describe(state.loot)
 	-- A NAME THAT ALREADY ENDS IN S TAKES A BARE APOSTROPHE, which is the
 	-- ordinary English rule and was not being followed. It went unnoticed
 	-- while every victim was a player or a family -- "THE SNUFFLES'S PIGGY"

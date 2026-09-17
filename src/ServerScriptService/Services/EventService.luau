@@ -148,6 +148,10 @@ local function pushPhase(to: Player?)
 		-- the chest reel avoids by printing ChestService's own live odds
 		-- rather than recomputing them from Config.
 		stealMultiplier = stealMultiplier,
+		-- Whether another player's ripe tree can be shaken right now. The
+		-- client hides the shake prompt on anybody else's tree unless this is
+		-- true; the server refuses it regardless.
+		acornTheft = EventService.isAcornTheftOpen(),
 	}
 	local remote = Remotes.get("EventState")
 	if to then
@@ -644,6 +648,14 @@ end
 -- does not touch it.
 function EventService.isEventLive(): boolean
 	return running ~= nil
+end
+
+-- THE ONLY WINDOW IN WHICH ANOTHER PLAYER'S ACORNS CAN BE TAKEN (MASTER-PLAN
+-- 19.3). True while a roster row carrying `acornTheft = true` is running --
+-- Harvest Moon, step 6.4. No such row exists yet, so this is false.
+function EventService.isAcornTheftOpen(): boolean
+	local spec = running and Config.EVENTS.roster[running]
+	return spec ~= nil and spec.acornTheft == true
 end
 
 -- ============================================================

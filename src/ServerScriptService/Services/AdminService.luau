@@ -156,20 +156,30 @@ commands.upgrade = function(player, key, level)
 	return ("%s set to %d"):format(def.name, data.upgrades[key])
 end
 
-commands.house = function(player, level)
+-- Takes a house ID, or a legacy 0-based rung for the panel's number box
+-- (read through HOUSE_LEGACY_ORDER, so `house 8` is still the castle).
+commands.house = function(player, which)
 	local data = DataService.get(player)
-	if not data or type(level) ~= "number" then
+	if not data then
 		return nil
 	end
-	data.houseLevel = math.clamp(math.floor(level), 0, Config.MAX_HOUSE_LEVEL)
-	-- Moved in, not just unlocked. A dev command that sets the ladder without
-	-- moving the player into it would build nothing, which reads as the
-	-- command having failed.
-	data.houseShown = data.houseLevel
-	-- Full refresh: the sign names the house, so setting the level by hand has
-	-- to reapply the whole plot or the sign goes stale.
+	local id = which
+	if type(which) == "number" then
+		id = Config.HOUSE_LEGACY_ORDER[math.clamp(math.floor(which), 0, #Config.HOUSE_LEGACY_ORDER - 1) + 1]
+	end
+	local tier = Config.getHouseById(id)
+	if not tier then
+		return nil
+	end
+	-- Granted AND moved in. A dev command that grants a house without
+	-- standing it would build nothing, which reads as the command having
+	-- failed. Everything already owned stays owned: this is a shelf.
+	data.houses.owned[tier.id] = true
+	data.houses.shown = tier.id
+	-- Full refresh: the sign names the house, so setting it by hand has to
+	-- reapply the whole plot or the sign goes stale.
 	refresh(player)
-	return ("Moved into the %s"):format(Config.getHouseTier(data.houseLevel).name)
+	return ("Moved into the %s"):format(tier.name)
 end
 
 commands.rebirths = function(player, count)
@@ -227,8 +237,11 @@ commands.unlockall = function(player)
 	for key in pairs(Config.EFFECTS) do
 		data.cosmetics.ownedEffects[key] = true
 	end
-	data.houseLevel = Config.MAX_HOUSE_LEVEL
-	data.houseShown = Config.MAX_HOUSE_LEVEL
+	for _, tier in ipairs(Config.HOUSE_TIERS) do
+		data.houses.owned[tier.id] = true
+	end
+	-- Into the dearest, which is what "unlock everything" reads as on a plot.
+	data.houses.shown = Config.HOUSE_TIERS[#Config.HOUSE_TIERS].id
 	if type(data.accessories) ~= "table" then
 		data.accessories = { owned = {}, worn = {} }
 	end
@@ -907,8 +920,7 @@ commands.reset = function(player)
 	data.incomeLevel = 1
 	data.capacityLevel = 1
 	data.rebirths = 0
-	data.houseLevel = 0
-	data.houseShown = 0
+	data.houses = { owned = { shack = true }, shown = "shack" }
 	for key in pairs(Config.UPGRADES) do
 		data.upgrades[key] = 0
 	end

@@ -11,7 +11,6 @@ local ResidentService = require(script.Parent.ResidentService)
 local ShakeService = {}
 local hooks: any
 local active: { [Player]: any } = {}
-local losses: { [number]: { any } } = {}
 local cooldowns: { [number]: { [number]: number } } = {}
 local serial = 0
 local cooldownReady: { [Player]: number } = {}
@@ -37,7 +36,6 @@ local function publish(victim: any)
 	if plot and data and (plot.owner or ResidentService.get(plot)) == victim then
 		PlotService.updateAcorns(plot, balance(victim, "storage"))
 		PlotService.updateTreeAcorns(plot, data.treeAcorns or 0, data.groundAcorns or 0)
-		if not hooks.player(victim) then plot.model:SetAttribute(Config.PLOT_ACORN_RAID_READY_ATTRIBUTE, data.raidReadyAt) end
 	end
 	if hooks.player(victim) then hooks.pushBalance(victim) end
 end
@@ -49,20 +47,6 @@ local function change(victim: any, source: string, delta: number): boolean
 	else data.acorns = (data.acorns or 0) + delta end
 	publish(victim)
 	return true
-end
-local function ledger(victim: any): { any }
-	local key, now = hooks.id(victim), workspace:GetServerTimeNow()
-	local entries = losses[key] or {}
-	losses[key] = entries
-	for i = #entries, 1, -1 do
-		if now - entries[i].at >= Config.ACORNS.lossWindow or entries[i].amount <= 0 then table.remove(entries, i) end
-	end
-	return entries
-end
-local function allowance(victim: any): number
-	local lost = 0
-	for _, entry in ipairs(ledger(victim)) do lost += entry.amount end
-	return math.max(0, Config.ACORNS.lossCap - lost)
 end
 local function reserved(victim: any, source: string): number
 	local total = 0
@@ -108,19 +92,27 @@ end
 function ShakeService.isShaking(thief: Player): boolean
 	return active[thief] ~= nil
 end
+-- STORAGE IS A BANK AND A TREE BELONGS TO ITS OWNER (MASTER-PLAN 19.3, step
+-- 2.6). Every refusal below names itself, because a prompt that does nothing
+-- is indistinguishable from a broken one. Storage is never a source for
+-- anybody; another occupant's tree is a source only while
+-- `hooks.theftOpen()` says an acorn-theft event (Harvest Moon) is live.
 function ShakeService.open(thief: Player, victim: any, source: string?)
 	source = source or "tree"
 	if source ~= "tree" and source ~= "storage" then return end
 	if active[thief] then return end
-	if source == "storage" and thief == victim then
-		hooks.notify(thief, "Your stored Acorns are already available to spend. Bring a basket here to deposit it.", "info"); return
-	end
-	local data = wallet(victim)
-	if not hooks.player(victim) and data and (data.raidReadyAt or 0) > os.time() then
-		local left = math.ceil(data.raidReadyAt - os.time())
-		hooks.notify(thief, ("This resident is resting. Tree and crate raids reopen in %dm %02ds."):format(math.floor(left / 60), left % 60), "warn")
+	if source == "storage" then
+		if thief == victim then
+			hooks.notify(thief, "Your stored Acorns are already available to spend. Bring a basket here to deposit it.", "info")
+		else
+			hooks.notify(thief, "Stored Acorns are banked. Nobody can take them.", "warn")
+		end
 		return
 	end
+	if thief ~= victim and not (hooks.theftOpen and hooks.theftOpen()) then
+		hooks.notify(thief, "Only the Harvest Moon shakes loose somebody else's tree.", "warn"); return
+	end
+	local data = wallet(victim)
 	local reason = hooks.reason(thief, victim)
 	if reason then hooks.notify(thief, reason, "warn"); return end
 	local plot = hooks.plot(victim)
@@ -149,30 +141,19 @@ function ShakeService.open(thief: Player, victim: any, source: string?)
 	local held = reserved(victim, source)
 	local available = math.max(0, balance(victim, source) - held)
 	local take = math.min(Config.ACORNS.growCap, available)
-	if source == "storage" then
-		local room = allowance(victim) - held
-		if room <= 0 then hooks.notify(thief, "This crate has reached its four-Acorn loss limit. Try after the hour's losses expire.", "warn"); return end
-		-- A small stash still offers one. The quarter-share and hourly cap
-		-- protect storage; they never restrict harvesting a ripe tree.
-		take = math.min(available, math.max(1, math.floor(balance(victim, source) * Config.ACORNS.share)), room)
-	end
-	if take <= 0 then hooks.notify(thief, if source == "tree" then "No loose or ripe Acorns yet." else "This storage crate is empty or being raided.", "warn"); return end
+	if take <= 0 then hooks.notify(thief, "No loose or ripe Acorns yet.", "warn"); return end
 	serial += 1
 	local attempt = { id = serial, victim = victim, plot = plot, source = source, take = take, caught = 0,
 		seen = {}, startedAt = now + Config.ACORNS.startDelay, endsAt = now + Config.ACORNS.startDelay + Config.ACORNS.shakeSeconds }
 	active[thief] = attempt
 	if not hooks.player(victim) then
-		-- Shared across thieves and both sources, stored with the plot stock so
-		-- a departing player/reseated resident cannot reset the quarter-hour.
-		data.raidReadyAt = os.time() + Config.ACORNS.resident.raidSeconds
+		-- A resident does not bank a crop out from under an active round.
 		data.collectingUntil = attempt.endsAt + Config.ACORNS.catchGrace
 		publish(victim)
 	end
-	if source == "tree" then
-		-- Leave enough time for a fresh round started just before ground expiry.
-		data.acornsDroppedAt = math.max(data.acornsDroppedAt or 0,
-			os.time() + math.ceil(Config.ACORNS.shakeSeconds + Config.ACORNS.startDelay + Config.ACORNS.catchGrace) - Config.ACORNS.groundSeconds)
-	end
+	-- Leave enough time for a fresh round started just before ground expiry.
+	data.acornsDroppedAt = math.max(data.acornsDroppedAt or 0,
+		os.time() + math.ceil(Config.ACORNS.shakeSeconds + Config.ACORNS.startDelay + Config.ACORNS.catchGrace) - Config.ACORNS.groundSeconds)
 	if thief ~= victim then
 		byThief[thief.UserId] = now + Config.ACORNS.shakeCooldown
 		pushCooldowns(thief)
@@ -190,12 +171,11 @@ function ShakeService.catch(thief: Player, id: any, index: any)
 	local now = workspace:GetServerTimeNow()
 	if now < attempt.startedAt + Config.ACORNS.catchMinSeconds then return end
 	if now > attempt.endsAt + Config.ACORNS.catchGrace then ShakeService.finish(thief, "done"); return end
-	if balance(attempt.victim, attempt.source) < 1 or (attempt.source == "storage" and allowance(attempt.victim) < 1) then
+	if balance(attempt.victim, attempt.source) < 1 then
 		ShakeService.finish(thief, "empty"); return
 	end
 	attempt.seen[index] = true
 	local receipt = { at = now, amount = 1, source = attempt.source }
-	if attempt.source == "storage" then table.insert(ledger(attempt.victim), receipt) end
 	if not change(attempt.victim, attempt.source, -1) then receipt.amount = 0; ShakeService.finish(thief, "gone"); return end
 	if not hooks.caught(thief, attempt.victim, receipt) then
 		ShakeService.refund(attempt.victim, 1, {receipt})

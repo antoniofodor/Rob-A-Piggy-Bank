@@ -16,3 +16,7 @@ Thumbs.db
 # 21MB acorn is 21MB in every clone this repo ever has.
 assets/**/*.glb
 assets/**/*.fbx
+
+# Python bytecode from tests/sim and asset tooling.
+__pycache__/
+*.pyc

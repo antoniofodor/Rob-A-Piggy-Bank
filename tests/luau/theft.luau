@@ -58,7 +58,7 @@ return {newCarry=newCarry,steal=rollSkinSteal,deliver=deliver,returnHaul=returnH
  carrying=carrying,grudge=grudge,losses=skinLosses,record=recordGrudge,
  cracking=cracking,endCrack=endCrack,isRevenge=isRevenge,
  objectives=HeistService.recoveryState,startObjectives=startObjectives,
- street=HeistService.streetState,coinLosses=losses,allowance=lossAllowance}
+ street=HeistService.streetState,coinLosses=losses,allowance=lossAllowance,lootOdds=robberyOdds,skinChoice=skinLootChoice}
 ]]
 local transformed,n=source:gsub("return HeistService%s*$",tail);assert(n==1)
 local run=assert(loadstring(transformed,"HeistService"));setfenv(run,setmetatable(env,{__index=getfenv()}))
@@ -373,4 +373,55 @@ data[ownerB].cosmetics.owned.goldleaf=true
 check(H.street()[hotRobber.UserId].hotUntil==public.hotUntil-10,"reacquiring one skin leaves other owner's claim")
 data[ownerA].cosmetics.owned.bronze=true
 check(H.street()[hotRobber.UserId].hotUntil==0,"resolved last claim clears public mark")
+-- Displayed player odds use the same eligibility function as the actual theft.
+local viewer,target=player("Odds reader"),player("Odds target","bronze")
+check(H.lootOdds(viewer,target).chance==1,"eligible skin shows guaranteed clean-crack odds")
+data[viewer].cosmetics.owned.bronze=true
+check(H.lootOdds(viewer,target).chance==0,"owned skin advertises no drop")
+data[viewer].cosmetics.owned.bronze=nil
+H.losses[target]={since=now,lost=Config.SKIN_STEAL.cap}
+check(H.lootOdds(viewer,target).chance==0,"capped skin advertises no drop")
+H.losses[target].since=now-Config.SKIN_STEAL.window-1
+check(H.lootOdds(viewer,target).chance==1,"expired limit restores displayed skin odds")
+data[target].cosmetics.skin="classic"
+check(H.lootOdds(viewer,target).chance==0,"ineligible outfit advertises no drop")
+H.record(viewer,target,{key="bronze"})
+check(H.lootOdds(viewer,target).chance==1 and H.lootOdds(viewer,target).name==Config.SKINS.bronze.name,"recovery odds name actual skin despite changed outfit")
+claim(viewer,target,"bronze").reserved=true
+check(H.lootOdds(viewer,target).chance==0,"in-transit recovery cannot promise another skin")
+local resident={plot={}}
+check(H.lootOdds(viewer,resident).chance==0 and H.lootOdds(viewer,resident).reason=="Coins only","resident pig shows honest zero item odds")
+resident.plot.shop="gear";data[viewer].robberies=99
+check(H.lootOdds(viewer,resident).locked and H.lootOdds(viewer,resident).chance==0,"shop preview uses viewer rank")
+data[viewer].robberies=100
+local preview=H.lootOdds(viewer,resident)
+check(preview.chance==.03 and preview.tiers.legendary>0 and preview.pool==nil,"shop preview publishes actual rarity odds without per-tick model pool")
+-- 1.11: THE PIG-CRACK ACORN. Minted on delivery for a clean five-slice
+-- player crack, doubled on revenge, nothing for residents, partial cracks or
+-- a nabbed carry.
+local CRACK,CRACKR=Config.ACORNS.payout.crack,Config.ACORNS.payout.crackRevenge
+local at,av=player("AcornThief"),player("AcornVictim")
+local cc=carry(at,av);cc.clean=true;H.deliver(at)
+check(data[at].loot==13+CRACK and data[av].loot==13,"clean five-slice player crack mints one acorn and takes none")
+check(events[at].HeistDelivered.acorns==CRACK,"delivery summary names the acorn")
+carry(at,av);H.deliver(at)
+check(data[at].loot==13+CRACK,"a partial crack mints none")
+local cr=carry(at,npc);cr.clean=true;H.deliver(at)
+check(data[at].loot==13+CRACK and events[at].HeistDelivered.acorns==0,"a clean crack on a resident mints none")
+H.record(at,av);local rv=carry(at,av);rv.clean=true
+check(H.isRevenge(at,av),"grudge set up");H.deliver(at)
+check(data[at].loot==13+CRACK+CRACKR and events[at].HeistDelivered.revenge==true,"a clean revenge crack mints two")
+local nabber=player("Nabber");local handed=carry(at,av);handed.clean=true;handed.holder=nabber;H.carrying[nabber]=handed;H.carrying[at]=nil
+H.deliver(nabber)
+check(data[nabber].loot==13 and events[nabber].HeistDelivered.acorns==0,"a nabbed carry pays the nabber no acorn")
+-- endCrack is what stamps the flag, on "done" only.
+local et,ev=player("EndThief"),player("EndVictim")
+local function crackFor(p,v,steps) H.cracking[p]={victim=v,plot=nil,sack=0,locks=0,picks=0,steps=steps,banked=5,pig0=100,allowance0=100,stepStart=now,zone=0,width=1,lastTap=now,ending=false} end
+local done=carry(et,ev);crackFor(et,ev,5);H.endCrack(et,"done")
+check(done.clean==true,"endCrack stamps a clean run on the carry")
+H.clear(et)
+local missed=carry(et,ev);crackFor(et,ev,3);H.endCrack(et,"range")
+check(missed.clean==nil,"a crack ended early leaves the carry unstamped")
+H.clear(et)
+check(Config.crackAcorns(true,true,false)==CRACK and Config.crackAcorns(true,true,true)==CRACKR and Config.crackAcorns(false,true,true)==0 and Config.crackAcorns(true,false,true)==0,"crackAcorns gates")
 print(("PASS: %d theft checks; guaranteed clean cracks, per-owner timed stacks, latest taker, outfit independence, recovery/returns, insurance and unchanged payouts. No player saves."):format(checks))

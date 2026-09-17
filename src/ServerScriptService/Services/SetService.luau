@@ -203,6 +203,7 @@ end
 -- Marks one item owned and tells whatever service renders it. Returns false
 -- if they already had it, so callers never double-count a grant.
 function SetService.grant(player: Player, kind: string, key: string): boolean
+	if kind == "effect" then return false end -- retired standalone piggy auras
 	local data = DataService.get(player)
 	if not data then
 		return false
@@ -266,6 +267,7 @@ end
 -- on the wire to forge.
 
 function SetService.buy(player: Player, kind: string, key: string)
+	if kind == "effect" then return end -- refuse before charging Acorns
 	local data = DataService.get(player)
 	local spec = Config.getSetItem(kind, key)
 	if not data or not spec then

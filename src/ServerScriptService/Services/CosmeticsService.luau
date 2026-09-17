@@ -62,62 +62,64 @@ end
 -- purpose: they survive rebirth, they confer nothing, and they belong to the
 -- same "permanent collection" idea as skins. Reusing this channel also keeps
 -- the whole collection in a single snapshot push.
--- Tapping a house tile either buys the next rung or moves back into one
--- already owned.
+-- Tapping a house card either buys that house or moves into one already
+-- owned. EVERY HOUSE IS ITS OWN PURCHASE (schema 26): there is no "next
+-- rung", so the only gates are the price fitting the pig and the coins
+-- being there. "Buy the X first" is not a sentence this function knows.
 --
--- Moving back matters because a house is pure taste. The ladder is priced so
--- the last tiers take a very long time, and a player who liked the Beach
--- Villa's look should not be punished for having outgrown it -- nothing about
--- the game changes with which one is standing. It costs nothing, both ways,
--- so there is no sell-and-rebuy loop to farm.
+-- Moving between owned houses matters because a house is pure taste, and a
+-- player who liked the Villa's look should not be punished for having
+-- bought a Tower -- nothing about the game changes with which one is
+-- standing. It costs nothing, both ways, so there is no sell-and-rebuy loop
+-- to farm.
 function CosmeticsService.buyHouse(player: Player, requested: string)
 	local data = DataService.get(player)
 	if not data then
 		return
 	end
 
-	local level = data.houseLevel or 0
+	-- The client sends the house's stable id. Validated against the
+	-- catalogue here, so a forged or retired id buys nothing and says so.
+	local tier = Config.getHouseById(requested)
+	if not tier then
+		notify(player, "That house is not on the street.", "warn")
+		return
+	end
+	local houses = data.houses
 
-	-- The client sends which tile was tapped. Only the next rung is for sale,
-	-- so tapping the Mansion at Starter level must say so rather than quietly
-	-- selling the Cottage instead.
-	local wanted = tonumber(requested)
-	if wanted and (wanted - 1) ~= level + 1 then
-		local target = wanted - 1
-		if target <= level then
-			if target == Config.getShownHouseLevel(data) then
-				notify(player, "You already live there.", "warn")
-			else
-				data.houseShown = target
-				CosmeticsService.applyToPlot(player)
-				notify(player, ("Moved back into the %s."):format(Config.getHouseTier(target).name), "good")
-				DataService.save(player)
-				CosmeticsService.push(player)
-			end
+	if houses.owned[tier.id] then
+		if Config.getShownHouse(data).id == tier.id then
+			notify(player, "You already live there.", "warn")
 		else
-			notify(player, ("Buy the %s first."):format(Config.getHouseTier(level + 1).name), "warn")
+			houses.shown = tier.id
+			CosmeticsService.applyToPlot(player)
+			notify(player, ("Moved into the %s."):format(tier.name), "good")
+			DataService.save(player)
+			CosmeticsService.push(player)
 		end
 		return
 	end
-	if level >= Config.MAX_HOUSE_LEVEL then
-		notify(player, "You already own the best house on the street.", "warn")
-		return
-	end
 
-	local cost = Config.getHouseUpgradeCost(level)
-	if not cost then
+	local cost = tier.cost or 0
+	-- Two refusals rather than one, because they ask for different things:
+	-- a price the pig cannot HOLD wants more capacity (levels, rebirths),
+	-- not more waiting, and telling a child to save up for a number their
+	-- wallet can never reach is the buy-button-that-never-lights failure
+	-- `auditEconomy` exists to catch at the catalogue end.
+	if cost > Config.getCapacity(data.capacityLevel) then
+		notify(player, ("Your piggy bank can't hold %s yet. Grow it first."):format(Config.formatCoins(cost)), "warn")
 		return
 	end
 	if data.coins < cost then
-		notify(player, ("You need %d coins for that."):format(cost), "warn")
+		notify(player, ("You need %s coins for that."):format(Config.formatCoins(cost)), "warn")
 		return
 	end
 
 	data.coins -= cost
-	data.houseLevel = level + 1
+	houses.owned[tier.id] = true
 	-- You move into what you just bought. Anything else would make the most
 	-- expensive purchase in the game produce no visible change at all.
-	data.houseShown = data.houseLevel
+	houses.shown = tier.id
 
 	-- applyToPlot, not setHouseLevel alone.
 	--
@@ -128,7 +130,7 @@ function CosmeticsService.buyHouse(player: Player, requested: string)
 	-- anything that changes what the plot should look like goes through it.
 	CosmeticsService.applyToPlot(player)
 
-	notify(player, ("Moved into the %s!"):format(Config.getHouseTier(data.houseLevel).name), "good")
+	notify(player, ("Moved into the %s!"):format(tier.name), "good")
 	DataService.save(player)
 	CosmeticsService.push(player)
 end
@@ -426,11 +428,14 @@ function CosmeticsService.applyToPlot(player: Player)
 	-- The house that is STANDING, not the highest one owned -- and the sign
 	-- names the same one. A sign announcing a Sky Castle over a Beach Villa
 	-- would be boasting about a building that is not there.
-	local shown = Config.getShownHouseLevel(data)
+	local shown = Config.getShownHouse(data)
 
 	PlotService.applySkin(plot, skinKey)
-	PlotService.applyEffect(plot, cosmetics.effect)
-	PlotService.setHouseLevel(plot, shown)
+	PlotService.applyEffect(plot, Config.DEFAULT_EFFECT)
+	-- The plot builds by POSITION (residents pick a house that way and
+	-- House.build has always taken a level); a player's house is an id and
+	-- this is the one seam where the two meet.
+	PlotService.setHouseLevel(plot, Config.houseLevelOf(shown.id) or 0)
 	-- BEFORE `setDecor`, AND THAT ORDERING IS THE WHOLE COST OF IT.
 	--
 	-- Four of the lawn ornaments are trophies whose SHAPE is a function of
@@ -506,8 +511,9 @@ function CosmeticsService.applyToPlot(player: Player)
 	end
 	PlotService.setSignPass(plot, word, colour)
 
+	PlotService.updateRank(plot, data.robberies)
 	PlotService.updateSign(plot, player.DisplayName, data.rebirths,
-		Config.getSkin(skinKey).name, Config.getHouseTier(shown).name)
+		Config.getSkin(skinKey).name, shown.name)
 end
 
 -- ============================================================
@@ -559,29 +565,9 @@ function CosmeticsService.buySkin(player: Player, key: string)
 	notify(player, ("%s comes from crates now, not coins."):format(skin.name), "warn")
 end
 
-function CosmeticsService.buyEffect(player: Player, key: string)
-	local effect = Config.EFFECTS[key]
-	local data = DataService.get(player)
-	if not effect or not data then
-		return
-	end
-
-	local cosmetics = data.cosmetics
-	if cosmetics.ownedEffects[key] or (effect.cost or 0) <= 0 then
-		CosmeticsService.equipEffect(player, key)
-		return
-	end
-
-	if data.coins < effect.cost then
-		notify(player, ("Need %d more coins for %s."):format(effect.cost - data.coins, effect.name), "warn")
-		return
-	end
-
-	data.coins -= effect.cost
-	cosmetics.ownedEffects[key] = true
-	notify(player, ("Unlocked %s!"):format(effect.name), "good")
-
-	CosmeticsService.equipEffect(player, key)
+function CosmeticsService.buyEffect(player: Player, _key: string)
+	-- Retired: stale clients cannot spend coins on a standalone piggy aura.
+	notify(player, "Standalone piggy effects are no longer available.", "warn")
 end
 
 -- BUY-OR-EQUIP, THE ONE CONTROL A SKIN AND A DOG COAT ALREADY USE. The
@@ -668,15 +654,10 @@ function CosmeticsService.equipSkin(player: Player, key: string)
 end
 
 function CosmeticsService.equipEffect(player: Player, key: string)
+	-- Permit clearing legacy saves, never reactivating a retired cosmetic.
 	local data = DataService.get(player)
-	local effect = Config.EFFECTS[key]
-	if not data or not effect then
-		return
-	end
-	if (effect.cost or 0) > 0 and not data.cosmetics.ownedEffects[key] then
-		return
-	end
-	data.cosmetics.effect = key
+	if not data or key ~= "none" then return end
+	data.cosmetics.effect = Config.DEFAULT_EFFECT
 	CosmeticsService.applyToPlot(player)
 	CosmeticsService.push(player)
 end
@@ -1101,52 +1082,26 @@ function CosmeticsService.push(player: Player)
 	end
 
 	local effects: { [string]: any } = {}
-	for key, effect in pairs(Config.EFFECTS) do
-		effects[key] = {
-			name = effect.name,
-			order = effect.order,
-			cost = effect.cost or 0,
-			-- Earned-elsewhere before the free-if-costless fallback, exactly
-			-- as Config.isSkinUnlocked does. A set effect is priced in loot
-			-- and a pass effect in Robux, so neither has a `cost`, and
-			-- (nil or 0) <= 0 is TRUE -- so without this the Tractor Beam is
-			-- unlocked for every player in the game from the first second,
-			-- which is a bug this catalogue has actually shipped.
-			unlocked = (not Config.isEarnedElsewhere(effect) and (effect.cost or 0) <= 0)
-				or data.cosmetics.ownedEffects[key] == true,
-			loot = effect.loot,
-			set = effect.set,
-			passName = effect.pass and Config.PASSES[effect.pass]
-				and Config.PASSES[effect.pass].name,
-			equipped = data.cosmetics.effect == key,
-			-- The two ends of the particle gradient, so the shop card can be
-			-- painted in the colours the effect actually throws off. An effect is
-			-- the one cosmetic with nothing to show in a still image, and a row
-			-- of identical grey tiles is what it looked like before. "None" has
-			-- no ColorSequence and gets no swatch, which is correct.
-			swatch = effect.color and effect.color.Keypoints[1].Value,
-			swatch2 = effect.color and effect.color.Keypoints[#effect.color.Keypoints].Value,
-			rarity = Config.rarityOf(effect),
-		}
-	end
+	-- Standalone auras are retired; preserve ownership in saves, omit UI offers.
 
-	-- Houses are bought as a ladder and worn as a shelf: only the next rung is
-	-- for sale, but every rung already bought can be moved back into. So a
-	-- tile carries both states -- `owned` says it can be lived in, `current`
-	-- says it is the one standing right now, and they are no longer the same
-	-- question.
-	local level = data.houseLevel or 0
-	local shown = Config.getShownHouseLevel(data)
+	-- Houses are a shelf, not a ladder (schema 26): every house is for sale
+	-- until it is owned, and every owned house can be moved into. So a card
+	-- carries both states -- `owned` says it can be lived in, `current` says
+	-- it is the one standing right now -- and is KEYED BY ID: the client
+	-- sends `id` back, never a position. The array is in catalogue (price)
+	-- order because the shop lists it that way.
+	local shown = Config.getShownHouse(data)
 	local houses = {}
 	for i, tier in ipairs(Config.HOUSE_TIERS) do
 		houses[i] = {
+			id = tier.id,
 			name = tier.name,
 			order = i,
 			cost = tier.cost or 0,
 			blurb = tier.blurb,
-			owned = (i - 1) <= level,
-			current = (i - 1) == shown,
-			forSale = (i - 1) == level + 1,
+			owned = data.houses.owned[tier.id] == true,
+			current = tier.id == shown.id,
+			forSale = data.houses.owned[tier.id] ~= true,
 			rarity = Config.rarityOf(tier),
 			walls = tier.walls,
 		}
@@ -1453,8 +1408,7 @@ function CosmeticsService.push(player: Player)
 		dogName = (data.dogs and data.dogs.name) or "",
 		dogNameMax = Config.DOG_NAME.maxLength,
 		houses = houses,
-		houseLevel = level,
-		houseShown = shown,
+		houseShown = shown.id,
 		decor = decorItems,
 		accessories = accessories,
 		gear = gearList,

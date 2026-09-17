@@ -65,9 +65,43 @@ Config.CAPACITY_GROWTH_B = 1.19
 Config.INCOME_COST_GROWTH_B = 1.26
 Config.CAPACITY_COST_GROWTH_B = 1.16
 
+-- ---------------------------------------------------------------- BAND C
+--
+-- THE THIRD BAND EXISTS SO A 1B HOUSE CAN FIT IN A PIG, AND NOTHING BELOW
+-- LEVEL 40 MOVED TO MAKE ROOM FOR IT.
+--
+-- The catalogue was asked to reach 1B and the largest pig this game could
+-- produce was 96,904,045. Steepening band B would have got there at level 40
+-- -- and measured, it balloons the fill time to 43 minutes, compresses the
+-- whole climb into today's 17 days, and rewrites every existing level-21-40
+-- save's capacity and income. So the ladder grew instead: levels 41-60, two
+-- per rebirth to rebirth 20, and `banded()` below keeps A and B exactly as
+-- they were -- every value for level <= 40 and rebirth <= 10 is
+-- byte-identical to the day before this landed, which is the whole reason
+-- there is no value migration.
+--
+-- BOTH GROWTH NUMBERS ARE DERIVED, NOT CHOSEN. 1.136 is
+-- (1.25e9 / 96,904,045) ^ (1/20): twenty rungs that put the top pig at
+-- ~1.24B, so a 1B house sits at 80% of it -- the same headroom the Sky
+-- Castle keeps today at 83%. 1.10 is what holds the fill time at the ceiling
+-- inside 12-18 minutes against a rebirth multiplier that keeps climbing; the
+-- 1.033/level gap between capacity and income growth is what stops the top of
+-- the game accelerating. The cost growths are band B's: the affordability
+-- clamp binds on every band-C rung (cost/pig reads 0.80 and 0.55 at 40-60),
+-- so the curve only has to keep outrunning the pig, and 1.16 > 1.136 does.
+--
+-- Every number here is regenerable: `docs/LATE-GAME-ECONOMY-PLAN.md` and
+-- `tests/sim/late-game/`.
+Config.BAND_TOP_2 = 40
+Config.INCOME_GROWTH_C = 1.10
+Config.CAPACITY_GROWTH_C = 1.136
+Config.INCOME_COST_GROWTH_C = 1.26
+Config.CAPACITY_COST_GROWTH_C = 1.16
+
 -- The hard ceiling. What a player can actually reach is `Config.maxLevel`,
 -- which is lower until they have rebirthed enough -- see the note there.
-Config.ABSOLUTE_MAX_LEVEL = 40
+-- 60 puts the top pig at ~1.24B; see BAND C above for the derivation.
+Config.ABSOLUTE_MAX_LEVEL = 60
 
 -- Levels a single rebirth adds to the reachable ceiling.
 Config.LEVELS_PER_REBIRTH = 2
@@ -184,6 +218,18 @@ Config.REBIRTH_CAPACITY_MULTIPLE = 1
 -- unlocked levels are the large half, which is the way round that keeps
 -- rebirthing worth doing at rebirth 9.
 Config.REBIRTH_MULTIPLIER = 0.12
+
+-- AND IT TAPERS PAST REBIRTH 10, because the ladder now runs to rebirth 20.
+--
+-- Linear at 0.12 all the way, the top of the game reaches 3.4x and the fill
+-- time at level 60 drifts to 15.5 minutes; at 0.08 beyond rebirth 10 it is
+-- 3.0x and 17.6, and a regular player's 1B house lands three days later
+-- (day 57.7 against 54.7). The designer chose the slower one. Rebirths 0-10
+-- are untouched -- `rebirthIncomeFactor(10)` is still 2.2 -- so no existing
+-- save's income moves. Read the factor through `Config.rebirthIncomeFactor`,
+-- never by multiplying this constant: three sites used to, and all three
+-- would have printed the wrong bonus at rebirth 11.
+Config.REBIRTH_MULTIPLIER_TAPER = { after = 10, perRebirth = 0.08 }
 
 -- ============================================================
 -- SOCIAL
@@ -3677,6 +3723,10 @@ Config.EVENTS = {
 		-- the event. Neither event pays attendance Acorns.
 		raid = { name = "ALIEN INVASION", weight = 1, seconds = 150, set = "alien" },
 		rush = { name = "RUSH HOUR", weight = 2, seconds = 180 },
+		-- A row carrying `acornTheft = true` is the ONLY window in which
+		-- another player's ripe tree acorns can be shaken (MASTER-PLAN 19.3).
+		-- Harvest Moon (step 6.4) is that row; until it lands, none exists
+		-- and acorn theft is closed.
 	},
 }
 
@@ -3878,7 +3928,6 @@ Config.SETS = {
 		-- migrate, no grant path to unpick.
 		items = {
 			{ kind = "decor", key = "crashedDrone" },
-			{ kind = "effect", key = "tractor" },
 			{ kind = "skin", key = "martian" },
 			{ kind = "ride", key = "hoverdisc" },
 		},
@@ -3894,7 +3943,7 @@ Config.SETS = {
 -- knows -- so anything that has to sweep every catalogue was going to keep
 -- its own copy of this list, and a copy that drifts by one entry is a
 -- catalogue silently skipped rather than an error.
-Config.COSMETIC_KINDS = { "skin", "effect", "accessory", "decor", "ride", "catch" }
+Config.COSMETIC_KINDS = { "skin", "accessory", "decor", "ride", "catch" }
 
 function Config.catalogueFor(kind: string)
 	return (({
@@ -3992,7 +4041,6 @@ Config.PROMPTS = {
 	-- things that are, because `keyText` prints HOLD on both when there is no
 	-- key to name.
 	shake = { glyph = ICON.SMASH, tone = Color3.fromRGB(164, 96, 49), verb = "SHAKE" },
-	acornRaid = { glyph = ICON.SMASH, tone = Color3.fromRGB(164, 96, 49), verb = "RAID" },
 	smash = {
 		glyph = ICON.SMASH, tone = Color3.fromRGB(230, 72, 64),
 		verb = "SMASH",
@@ -4199,7 +4247,6 @@ Config.PLOT_ACORNS_ATTRIBUTE = "AcornAmount" -- banked storage
 Config.PLOT_TREE_ACORNS_ATTRIBUTE = "TreeAcorns"
 Config.PLOT_GROUND_ACORNS_ATTRIBUTE = "GroundAcorns"
 Config.PLOT_SHAKE_ATTRIBUTE = "AcornShakeAt"
-Config.PLOT_ACORN_RAID_READY_ATTRIBUTE = "AcornRaidReadyAt"
 
 -- The plot's Vault Lock tier, published for the same reason the pile is: a
 -- client has to be able to read it without asking. `PlotService.setLockLevel`
@@ -4819,6 +4866,17 @@ function Config.auditSkinSteal(): { string }
 
 	if Config.SKIN_STEAL.chance ~= 1 then
 		table.insert(problems, "clean player cracks must take eligible skins at 100%")
+	end
+	local largestShopChance = 0
+	for tab, chance in pairs(Config.SHOP_VAULT_DROP.chance) do
+		if chance ~= chance or chance < 0 or chance > 1 then
+			table.insert(problems, ("invalid shop drop chance for %s"):format(tab))
+		else
+			largestShopChance = math.max(largestShopChance, chance)
+		end
+	end
+	if Config.SKIN_STEAL.chance <= largestShopChance then
+		table.insert(problems, "player skin theft must be more likely than the largest shop drop chance")
 	end
 
 	for key, skin in pairs(Config.SKINS) do
@@ -6183,6 +6241,8 @@ local SPARK = "rbxasset://textures/particles/sparkles_main.dds"
 local FIRE = "rbxasset://textures/particles/fire_main.dds"
 local SMOKE = "rbxasset://textures/particles/smoke_main.dds"
 
+-- Legacy particle definitions remain for skin-authored visuals and save compatibility.
+-- These are no longer a purchasable/equippable catalogue.
 Config.EFFECTS = {
 	none = { name = "None", order = 1, cost = 0 },
 	-- Deliberately silver-lilac, rising and slow-turning.
@@ -6324,7 +6384,7 @@ end
 -- aura cannot describe a particle system the effects catalogue could not, and
 -- anything learned tuning one is learned for both.
 function Config.skinAura(tier: any)
-	if not tier or type(tier.aura) ~= "string" then
+	if not tier or Config.rarityOf(tier) ~= "legendary" or type(tier.aura) ~= "string" then
 		return nil
 	end
 	return Config.EFFECTS[tier.aura]
@@ -6953,8 +7013,21 @@ Config.SHOPKEEPER = {
 	giveUp = 60,
 }
 
+-- Lifetime completed getaways. Rank is derived, never a second saved counter.
+Config.RAP_SHEET_RANK = { 0, 25, 100, 400, 1600 }
+Config.PLOT_RAP_RANK_ATTRIBUTE = "RobberyRank"
+
+function Config.getRapSheetRank(robberies: number?): number
+	if not robberies or robberies ~= robberies or robberies == math.huge then return 0 end
+	for i = #Config.RAP_SHEET_RANK, 2, -1 do
+		if robberies >= Config.RAP_SHEET_RANK[i] then return i - 1 end
+	end
+	return 0
+end
+
 Config.SHOP_VAULT_DROP = {
-	chance = 0.20,
+	chance = { piggy = 0.10, home = 0.08, gear = 0.03, defend = 0.20 },
+	minRank = { gear = 2 }, -- 100 completed getaways before a ride can drop
 	-- What each unit hands over, by the tab its own door opens. A shop drops
 	-- what it sells.
 	--
@@ -6971,7 +7044,7 @@ Config.SHOP_VAULT_DROP = {
 		-- over an empty grid, which the parked cars' retirement records as
 		-- reading like a catalogue that failed to load rather than like a
 		-- deliberate removal.
-		piggy = { "skin", "effect" },
+		piggy = { "skin" },
 		home = { "decor" },
 		gear = { "ride" },
 	},
@@ -6987,6 +7060,52 @@ Config.SHOP_VAULT_DROP = {
 	-- guard-dog tree out of meaning anything.
 	consumables = { "bone", "steak", "golden", "plunger", "gum", "zapper" },
 }
+
+-- One pool for the server's roll, the displayed odds and the discovery reel.
+-- Ownership changes the eligible pool; completed collections use resale.
+function Config.shopLootOdds(tab: string, robberies: number?, owns: (string, string) -> boolean): any
+	local drop = Config.SHOP_VAULT_DROP
+	local pool, owned = {}, {}
+	local kinds = drop.kinds[tab]
+	if kinds then
+		for _, kind in ipairs(kinds) do
+			for key, spec in pairs(Config.catalogueFor(kind) or {}) do
+				if not Config.isEarnedElsewhere(spec) then
+					local tier = Config.rarityOf(spec)
+					local weight = Config.RARITIES[tier].weight
+					if weight > 0 then
+						table.insert(if owns(kind, key) then owned else pool,
+							{kind=kind,key=key,name=spec.name,tier=tier,weight=weight})
+					end
+				end
+			end
+		end
+	elseif tab == "defend" then
+		for _, key in ipairs(drop.consumables) do
+			local spec = Config.BONES[key] or Config.GADGETS[key]
+			if spec and spec.cost and spec.cost > 0 then
+				table.insert(pool,{kind="consumable",key=key,name=spec.name,
+					tier=Config.rarityOf(spec),weight=1/spec.cost})
+			end
+		end
+	end
+	local resale = #pool == 0 and #owned > 0
+	if resale then pool = owned end
+	table.sort(pool,function(a,b) return a.kind..":"..a.key < b.kind..":"..b.key end)
+	local total, tiers = 0, {common=0,rare=0,epic=0,legendary=0}
+	for _, entry in ipairs(pool) do total += entry.weight end
+	if total > 0 then
+		for _, entry in ipairs(pool) do
+			entry.odds = entry.weight / total
+			tiers[entry.tier] += entry.odds
+		end
+	end
+	local minRank = drop.minRank[tab] or 0
+	local locked = Config.getRapSheetRank(robberies) < minRank
+	return {chance=if locked or total == 0 then 0 else drop.chance[tab] or 0,
+		baseChance=drop.chance[tab] or 0, minRank=minRank, locked=locked,
+		pool=pool,total=total,tiers=tiers,resale=resale,kind="shop"}
+end
 
 -- ============================================================
 -- TAKING A SKIN OFF A PLAYER
@@ -10323,11 +10442,17 @@ Config.ROLL_CURRENCY = {
 -- Phase 1 foundation for the tree's shake payout. Piggy deliveries never
 -- call this. A nil victim rebirth count means a resident; zero is a player.
 Config.ACORNS = {
-	-- Tree growth and banked storage are independent. Only storage raids use the loss cap.
-	growCap = 8, share = 0.25, lossCap = 4, lossWindow = 3600,
+	-- Tree growth and banked storage are independent. STORAGE IS A BANK
+	-- (MASTER-PLAN 19.3, step 2.6): nothing in a crate can be taken by anyone,
+	-- so there is no storage share, no hourly acorn loss cap and no resident
+	-- raid cadence -- `auditAcorns` refuses any of those coming back. The only
+	-- acorns another player can take are RIPE ones shaken off a tree while an
+	-- acorn-theft event is live (a roster row carrying `acornTheft = true`).
+	growCap = 8,
 	shakeSeconds = 5, shakeCooldown = 60, startDelay = 0.35, groundSeconds = 60,
-	-- Four starting Acorns total, split so both resident interactions are available.
-	resident = { seedRipe = 2, seedStored = 2, harvestSeconds = 900, raidSeconds = 900 },
+	-- A resident's starting stock. `harvestSeconds` is how long a new crop
+	-- stays on their tree before they bank it.
+	resident = { seedRipe = 2, seedStored = 2, harvestSeconds = 900 },
 	fallSeconds = 0.4, catchMinSeconds = 0.15, catchGrace = 0.3,
 	-- The imported Blender oak is already at yard size (8.5 studs across).
 	treeScale = 1, slot = "lawnI", treeOffset = Vector3.new(-25, 0, 16),
@@ -10337,8 +10462,30 @@ Config.ACORNS = {
 	treeCollisionOffset = Vector3.new(0, 1.7, 0),
 	-- On the pig side of the oak, within the retired lawnI footprint.
 	storageOffset = Vector3.new(-20, 0, 16), basketScale = 1,
-	payout = { resident = 1, player = 5, perRebirthAbove = 1, revenge = 2 },
+	payout = { resident = 1, player = 5, perRebirthAbove = 1, revenge = 2,
+		-- THE PIG-CRACK ACORN (MASTER-PLAN section 19.2, step 1.11). A
+		-- delivered carry whose crack ran ALL FIVE slices against a PLAYER's
+		-- pig mints `crack` acorns for the thief -- `crackRevenge` inside
+		-- `REVENGE.window`. Residents and shops mint none (the tree is the
+		-- solo faucet; this is the reason to rob a person), and a partial
+		-- crack mints none, so `LOSS_CAP` bounds this faucet too: about two
+		-- per victim per hour, whoever is robbing. MINTED, never taken --
+		-- the victim loses coins and possibly a skin, never an acorn.
+		-- Read through `Config.crackAcorns`, and only there.
+		crack = 1, crackRevenge = 2 },
 }
+
+-- How many acorns a delivered pig carry mints. The three gates are the
+-- whole rule and `auditAcorns` provokes each of them: not clean, not a
+-- player, or handed off (the caller passes `revenge` only for the original
+-- grabber) all pay zero.
+function Config.crackAcorns(clean: boolean, victimIsPlayer: boolean, revenge: boolean): number
+	if not clean or not victimIsPlayer then
+		return 0
+	end
+	local payout = Config.ACORNS.payout
+	return if revenge then payout.crackRevenge else payout.crack
+end
 
 -- Imported Workspace.acorn, archived in assets/acorn/acorn.json/rbxmx.
 -- Nut-centred offsets match the existing basket fill positions at scale 1.
@@ -10397,9 +10544,14 @@ function Config.expireGroundAcorns(data: any, now: number): boolean
 	return false
 end
 
--- Explicit modelling assumptions, not new reward sources: one full basket
--- harvested daily, one passive raid/day, two active hours at parity/no revenge.
-Config.ACORN_AUDIT = { activeHours = 2, passiveRaids = 1, minPopulationRatio = 0.5, minActiveRatio = 3 }
+-- Explicit modelling assumptions, not new reward sources (re-derived for step
+-- 2.6): a passive player harvests one full tree a day and loses nothing; an
+-- active one also plays `activeHours`, harvesting the tree's hourly growth
+-- and cracking other players at the `LOSS_CAP` ceiling. `minPopulationRatio`
+-- keeps a full server from starving anyone relative to solo;
+-- `maxCrackRatio` keeps the pig-crack acorn a SIDE faucet -- it may never
+-- pay more per hour than this multiple of a tree.
+Config.ACORN_AUDIT = { activeHours = 2, minPopulationRatio = 0.5, maxCrackRatio = 2 }
 -- Reserved integration point for the later coin-pack step. No product is sold.
 -- Rebirth still rolls a standard Legendary Crate, per the designer correction.
 Config.COIN_PACK = { productId = 0 }
@@ -10447,8 +10599,16 @@ end
 -- somebody has been playing.
 --
 -- Priced well above the skins so it stays the last thing anyone finishes.
--- Everything is a linear ladder, not a set to pick from: you own tier N and
--- buy tier N+1.
+--
+-- A SET TO PICK FROM, NOT A LADDER (schema 26). Every house is its own
+-- purchase, bought when its price fits the pig; any number may be owned and
+-- exactly one is shown. `id` is the STABLE KEY -- ownership is a set of ids
+-- in `data.houses.owned` -- and it must never change, be reused, or depend on
+-- the row's position. `style` is which BUILDER draws it and may be shared
+-- (a re-themed house keeps its id and changes its style). The rows are still
+-- in price order because the shop lists them that way, and
+-- HOUSE_LEGACY_ORDER below is the frozen numeric ladder that saves written
+-- before schema 26 are read against.
 -- `width` is the MAIN BLOCK, not the footprint. Wings, gables and roof slabs
 -- all overhang it, so the actual extent can be half as wide again -- the Manor
 -- measured 65 studs against what was then a 51.2 fence interior, and its wings
@@ -10463,7 +10623,7 @@ end
 -- how far along someone is -- dirt, then gravel, then brick, and so on.
 Config.HOUSE_TIERS = {
 	{
-		name = "Starter Shack", style = "shack", cost = 0,
+		id = "shack", name = "Starter Shack", style = "shack", cost = 0,
 		drive = { colour = Color3.fromRGB(122, 98, 74), material = Enum.Material.Ground, edge = false },
 		width = 18, depth = 14, storeys = 1,
 		walls = Color3.fromRGB(168, 152, 130), roof = Color3.fromRGB(112, 104, 96),
@@ -10471,7 +10631,7 @@ Config.HOUSE_TIERS = {
 		blurb = "Four walls and a leaky roof. Everyone starts here",
 	},
 	{
-		name = "Cosy Cottage", style = "cottage", cost = 35000,
+		id = "cottage", name = "Cosy Cottage", style = "cottage", cost = 35000,
 		drive = { colour = Color3.fromRGB(158, 154, 146), material = Enum.Material.Pebble, edge = false },
 		width = 26, depth = 20, storeys = 1,
 		walls = Color3.fromRGB(232, 216, 190), roof = Color3.fromRGB(142, 78, 62),
@@ -10479,7 +10639,7 @@ Config.HOUSE_TIERS = {
 		blurb = "Low, wide, and warm. Steep tiled roof and a real chimney",
 	},
 	{
-		name = "Brick Townhouse", style = "townhouse", cost = 120000,
+		id = "townhouse", name = "Brick Townhouse", style = "townhouse", cost = 120000,
 		drive = { colour = Color3.fromRGB(158, 96, 78), material = Enum.Material.Brick, edge = true },
 		width = 20, depth = 16, storeys = 3,
 		walls = Color3.fromRGB(148, 92, 76), roof = Color3.fromRGB(74, 70, 78),
@@ -10487,7 +10647,7 @@ Config.HOUSE_TIERS = {
 		blurb = "Three floors stacked narrow. Bay window and a stoop",
 	},
 	{
-		name = "Suburban Villa", style = "villa", cost = 400000,
+		id = "villa", name = "Suburban Villa", style = "villa", cost = 400000,
 		drive = { colour = Color3.fromRGB(196, 194, 188), material = Enum.Material.Concrete, edge = true },
 		width = 33, depth = 24, storeys = 2,
 		walls = Color3.fromRGB(236, 228, 210), roof = Color3.fromRGB(96, 104, 100),
@@ -10495,7 +10655,7 @@ Config.HOUSE_TIERS = {
 		blurb = "Sprawling, low and wide, with a double garage",
 	},
 	{
-		name = "Stone Manor", style = "manor", cost = 1400000,
+		id = "manor", name = "Stone Manor", style = "manor", cost = 1400000,
 		drive = { colour = Color3.fromRGB(206, 202, 192), material = Enum.Material.Slate, edge = true },
 		width = 34, depth = 28, storeys = 3,
 		walls = Color3.fromRGB(214, 210, 200), roof = Color3.fromRGB(70, 66, 80),
@@ -10503,7 +10663,7 @@ Config.HOUSE_TIERS = {
 		blurb = "Symmetrical wings, stone columns, and far too many windows",
 	},
 	{
-		name = "Midnight Modern", style = "modern", cost = 5000000,
+		id = "modern", name = "Midnight Modern", style = "modern", cost = 5000000,
 		drive = { colour = Color3.fromRGB(32, 33, 38), material = Enum.Material.Asphalt, edge = true, lit = true },
 		width = 44, depth = 32, storeys = 2,
 		walls = Color3.fromRGB(26, 27, 32), roof = Color3.fromRGB(18, 19, 23),
@@ -10529,7 +10689,7 @@ Config.HOUSE_TIERS = {
 	--
 	-- They still confer nothing. Prestige only.
 	{
-		name = "Neon Tower", style = "tower", cost = 15000000,
+		id = "neontower", name = "Neon Tower", style = "tower", cost = 15000000,
 		drive = { colour = Color3.fromRGB(44, 42, 58), material = Enum.Material.Asphalt, edge = true, lit = true },
 		width = 24, depth = 22, storeys = 6,
 		walls = Color3.fromRGB(30, 32, 44), roof = Color3.fromRGB(22, 23, 32),
@@ -10544,7 +10704,7 @@ Config.HOUSE_TIERS = {
 		blurb = "Six floors of glass with lit edges. Visible from the far end of the street",
 	},
 	{
-		name = "Marble Palace", style = "palace", cost = 40000000,
+		id = "palace", name = "Marble Palace", style = "palace", cost = 40000000,
 		drive = { colour = Color3.fromRGB(228, 222, 206), material = Enum.Material.Marble, edge = true, lit = true },
 		width = 46, depth = 30, storeys = 3,
 		walls = Color3.fromRGB(244, 240, 230), roof = Color3.fromRGB(212, 176, 96),
@@ -10586,7 +10746,7 @@ Config.HOUSE_TIERS = {
 		-- and 2.5x, so the top rung got slightly closer rather than the whole
 		-- curve moving. It is still 83% of the largest pig in the game and
 		-- still the last thing anybody finishes.
-		name = "Sky Castle", style = "castle", cost = 80000000,
+		id = "skycastle", name = "Sky Castle", style = "castle", cost = 80000000,
 		drive = { colour = Color3.fromRGB(126, 122, 130), material = Enum.Material.Cobblestone, edge = true, lit = true },
 		width = 40, depth = 34, storeys = 5,
 		walls = Color3.fromRGB(158, 156, 166), roof = Color3.fromRGB(92, 52, 128),
@@ -10606,31 +10766,74 @@ function Config.getHouseTier(level: number)
 	return Config.HOUSE_TIERS[math.clamp(level + 1, 1, #Config.HOUSE_TIERS)]
 end
 
-function Config.getHouseUpgradeCost(level: number): number?
-	local next_ = Config.HOUSE_TIERS[level + 2]
-	return if next_ then next_.cost else nil
+-- THE NINE HOUSES IN THE ORDER THE OLD NUMERIC LADDER COUNTED THEM, FROZEN.
+--
+-- A pre-schema-26 save carries `houseLevel` (highest rung bought) and
+-- `houseShown` (the rung standing), both 0-based indices into this list.
+-- DataService.reconcile reads them through this table exactly once and
+-- deletes both fields. Nothing else may read this: it is a migration key,
+-- not the catalogue's order, and it must never be edited -- a house added
+-- later goes into HOUSE_TIERS and not here, and a house retired later is
+-- still named here so an old save still resolves to the right set.
+Config.HOUSE_LEGACY_ORDER = {
+	"shack", "cottage", "townhouse", "villa", "manor",
+	"modern", "neontower", "palace", "skycastle",
+}
+
+-- id -> row, built once. Keyed lookups are what every reader of an owned
+-- set wants; walking the array on every card render would be the second
+-- copy of the catalogue's order that drifts.
+local houseById: { [string]: any } = {}
+local houseIndexById: { [string]: number } = {}
+for index, tier in ipairs(Config.HOUSE_TIERS) do
+	houseById[tier.id] = tier
+	houseIndexById[tier.id] = index
 end
 
-Config.MAX_HOUSE_LEVEL = #Config.HOUSE_TIERS - 1
+function Config.getHouseById(id: any)
+	return if type(id) == "string" then houseById[id] else nil
+end
 
--- Which house is STANDING, as opposed to which is the highest one bought.
---
--- A house is prestige, and prestige is a matter of taste: someone who liked
--- the look of the Beach Villa should not be forced to live in a Neon Tower
--- forever because they bought one. So the ladder and the display are two
--- different numbers -- `houseLevel` is the rung reached, and decides what is
--- for sale next; `houseShown` is what is actually built on the plot.
---
--- Clamped against the ladder, so a save that somehow carries a shown tier
--- above the owned one builds the owned one rather than a house nobody paid
--- for. Missing means "the newest", which is how every pre-schema-9 save reads.
-function Config.getShownHouseLevel(data: any): number
-	local owned = data.houseLevel or 0
-	local shown = data.houseShown
-	if type(shown) ~= "number" then
+-- The 0-based level House.build and PlotService.setHouseLevel take, which is
+-- the row's POSITION and nothing more. Residents still pick a house by
+-- position off the street level; a player's house is picked by id and
+-- converted here at the one seam that builds geometry.
+function Config.houseLevelOf(id: any): number?
+	local index = if type(id) == "string" then houseIndexById[id] else nil
+	return if index then index - 1 else nil
+end
+
+-- The legacy clamp, kept as a pure function so reconcile and its test agree
+-- on it: a shown rung above the owned one builds the owned one, and a
+-- missing shown rung means "the newest" (how every pre-schema-9 save read).
+function Config.legacyShownHouseLevel(houseLevel: any, houseShown: any): number
+	local owned = math.clamp(math.floor(tonumber(houseLevel) or 0), 0, #Config.HOUSE_LEGACY_ORDER - 1)
+	if type(houseShown) ~= "number" then
 		return owned
 	end
-	return math.clamp(math.floor(shown), 0, owned)
+	return math.clamp(math.floor(houseShown), 0, owned)
+end
+
+-- Which house is STANDING. `data.houses.shown` when it names an owned house
+-- that still exists; otherwise the dearest owned house, never the shack --
+-- the same fallback the numeric clamp made, and the reason a retired or
+-- unowned `shown` cannot evict anybody. Reconcile writes the resolved id
+-- back so the save and the plot agree; this function is what the sign, the
+-- plot and the payload read.
+function Config.getShownHouse(data: any)
+	local houses = type(data) == "table" and type(data.houses) == "table" and data.houses or nil
+	local owned = houses and type(houses.owned) == "table" and houses.owned or {}
+	local shown = houses and Config.getHouseById(houses.shown) or nil
+	if shown and owned[shown.id] then
+		return shown
+	end
+	local best = nil
+	for _, tier in ipairs(Config.HOUSE_TIERS) do
+		if owned[tier.id] and (best == nil or tier.cost >= best.cost) then
+			best = tier
+		end
+	end
+	return best or Config.HOUSE_TIERS[1]
 end
 
 -- ============================================================
@@ -11780,7 +11983,7 @@ Config.PASSES = {
 	vip = {
 		id = 0,
 		name = "VIP",
-		blurb = "A skin, an aura, a catch effect and your name in gold on the street.",
+		blurb = "A skin, a catch effect and your name in gold on the street.",
 		-- Display only. Roblox owns the real price; this is what the shop
 		-- tile prints so the offer can be read before the prompt opens, and
 		-- the two are kept in step BY HAND -- there is no API that makes this
@@ -11841,7 +12044,7 @@ Config.PASSES = {
 	starterPack = {
 		id = 0,
 		name = "Starter Pack",
-		blurb = "A skin, an aura, and a board to get around on if you have none.",
+		blurb = "A skin and a board to get around on if you have none.",
 		robux = 79,
 
 		-- THE SAME FLOOR THE STYLE PACK CARRIES, and for the same reason: a
@@ -12072,7 +12275,7 @@ Config.RIDES = {
 	-- the genre -- stubby frame, knobbly tyres, a slab of battery where an
 	-- engine should be -- and a genre is not property.
 	scrambler = {
-		name = "Volt Scrambler", style = "scrambler", order = 5,
+		name = "Volt Scrambler", style = "scrambler", order = 5, rarity = "legendary",
 		-- The widest pitch range of the five, because this is the only ride
 		-- whose sound is a MOTOR rather than a wheel -- and a motor is the
 		-- thing that rises when you open it up. It idles quietly, since an
@@ -12551,7 +12754,8 @@ Config.DELIVERY = {
 -- needs a real payout, and a payout that runs on every join is a money
 -- printer.
 -- 25: preserve the former rebirth-gated skins as explicit ownership, once.
-Config.SCHEMA_VERSION = 25
+-- 26: houses by stable id (`data.houses`); `houseLevel`/`houseShown` deleted.
+Config.SCHEMA_VERSION = 26
 
 Config.AUTOSAVE_INTERVAL = 60
 
@@ -12583,16 +12787,46 @@ function Config.maxLevel(rebirths: number): number
 		Config.BAND_TOP + Config.LEVELS_PER_REBIRTH * (rebirths or 0))
 end
 
--- Band A below BAND_TOP, band B above it. Both are written as "band A all the
--- way to the top, then band B for the levels beyond" rather than as a branch
--- on two separate formulas, so the two curves cannot develop a step at the
--- seam -- level 21 is exactly level 20 times one band-B multiplier.
-local function banded(base: number, growA: number, growB: number, level: number): number
-	local top = Config.BAND_TOP
+-- How many rebirths it takes to open the whole ladder. DERIVED, so the two
+-- audits that sweep rebirths cannot stop one short of the gates a longer
+-- ladder adds -- both used to carry a pinned 10 and 12, which were right for
+-- a ceiling of 40 and would have silently stopped auditing at rebirth 12 of
+-- 20 the day the ceiling moved.
+function Config.rebirthsToMax(): number
+	return math.ceil((Config.ABSOLUTE_MAX_LEVEL - Config.BAND_TOP) / Config.LEVELS_PER_REBIRTH)
+end
+
+-- Band A below BAND_TOP, band B to BAND_TOP_2, band C above it. Written as
+-- "band A all the way to the top, then band B for the levels beyond, then
+-- band C beyond that" rather than as a branch on three formulas, so no seam
+-- can develop a step -- level 21 is exactly level 20 times one band-B
+-- multiplier, and level 41 is exactly level 40 times one band-C multiplier.
+local function banded(base: number, growA: number, growB: number, growC: number, level: number): number
+	local top, top2 = Config.BAND_TOP, Config.BAND_TOP_2
 	if level <= top then
 		return base * (growA ^ (level - 1))
 	end
-	return base * (growA ^ (top - 1)) * (growB ^ (level - top))
+	if level <= top2 then
+		return base * (growA ^ (top - 1)) * (growB ^ (level - top))
+	end
+	return base * (growA ^ (top - 1)) * (growB ^ (top2 - top)) * (growC ^ (level - top2))
+end
+
+-- The permanent income factor a rebirth count buys: 1 + 0.12 per rebirth to
+-- REBIRTH_MULTIPLIER_TAPER.after, then `perRebirth` for each one beyond. The
+-- ONE place this arithmetic lives; the HUD, the rebirth page and the rebirth
+-- toast all read it from here.
+function Config.rebirthIncomeFactor(rebirths: number): number
+	local rb = math.max(0, math.floor(rebirths or 0))
+	local taper = Config.REBIRTH_MULTIPLIER_TAPER
+	local linear = math.min(rb, taper.after)
+	local tapered = math.max(0, rb - taper.after)
+	return 1 + linear * Config.REBIRTH_MULTIPLIER + tapered * taper.perRebirth
+end
+
+-- The same factor as the whole-percent bonus a player is shown ("+220%").
+function Config.rebirthBonusPercent(rebirths: number): number
+	return math.floor((Config.rebirthIncomeFactor(rebirths) - 1) * 100 + 0.5)
 end
 
 -- `friendBonus` is a 0..0.5 fraction and is deliberately optional: offline
@@ -12600,13 +12834,13 @@ end
 -- you were asleep and paying you for their absence would be a lie.
 function Config.getIncomeRate(incomeLevel: number, rebirths: number, friendBonus: number?): number
 	local base = banded(Config.BASE_INCOME, Config.INCOME_GROWTH,
-		Config.INCOME_GROWTH_B, incomeLevel)
-	return base * (1 + rebirths * Config.REBIRTH_MULTIPLIER) * (1 + (friendBonus or 0))
+		Config.INCOME_GROWTH_B, Config.INCOME_GROWTH_C, incomeLevel)
+	return base * Config.rebirthIncomeFactor(rebirths) * (1 + (friendBonus or 0))
 end
 
 function Config.getCapacity(capacityLevel: number): number
 	return math.floor(banded(Config.BASE_CAPACITY, Config.CAPACITY_GROWTH,
-		Config.CAPACITY_GROWTH_B, capacityLevel))
+		Config.CAPACITY_GROWTH_B, Config.CAPACITY_GROWTH_C, capacityLevel))
 end
 
 -- Costs are indexed by the level you are LEAVING, so they run one behind the
@@ -12624,14 +12858,14 @@ end
 -- upgrade, which is the one the coins have to sit in.
 function Config.getIncomeCost(currentLevel: number): number
 	local curve = banded(Config.INCOME_BASE_COST, Config.INCOME_COST_GROWTH,
-		Config.INCOME_COST_GROWTH_B, currentLevel)
+		Config.INCOME_COST_GROWTH_B, Config.INCOME_COST_GROWTH_C, currentLevel)
 	local ceiling = Config.UPGRADE_COST_CEILING.income * Config.getCapacity(currentLevel)
 	return math.floor(math.min(curve, ceiling))
 end
 
 function Config.getCapacityCost(currentLevel: number): number
 	local curve = banded(Config.CAPACITY_BASE_COST, Config.CAPACITY_COST_GROWTH,
-		Config.CAPACITY_COST_GROWTH_B, currentLevel)
+		Config.CAPACITY_COST_GROWTH_B, Config.CAPACITY_COST_GROWTH_C, currentLevel)
 	local ceiling = Config.UPGRADE_COST_CEILING.capacity * Config.getCapacity(currentLevel)
 	return math.floor(math.min(curve, ceiling))
 end
@@ -12744,6 +12978,25 @@ function Config.auditEconomy(): { string }
 		end
 	end
 
+	-- HOUSE IDS ARE THE OWNERSHIP KEY, so a missing or duplicated one is a
+	-- save that silently owns the wrong building. And every legacy rung has
+	-- to resolve, or a pre-26 save migrates to a house that is not there.
+	local seenHouse = {}
+	for index, tier in ipairs(Config.HOUSE_TIERS) do
+		if type(tier.id) ~= "string" or tier.id == "" then
+			table.insert(problems, ("HOUSE_TIERS[%d] (%s) has no id"):format(index, tostring(tier.name)))
+		elseif seenHouse[tier.id] then
+			table.insert(problems, ("HOUSE_TIERS[%d] repeats the id %q"):format(index, tier.id))
+		else
+			seenHouse[tier.id] = true
+		end
+	end
+	for rung, id in ipairs(Config.HOUSE_LEGACY_ORDER) do
+		if not Config.getHouseById(id) then
+			table.insert(problems, ("HOUSE_LEGACY_ORDER[%d] names %q, which is not in HOUSE_TIERS"):format(rung, id))
+		end
+	end
+
 	-- Crates are outside the coin catalogue, regardless of their price.
 	for key, chest in pairs(Config.CHESTS) do
 		if chest.currency ~= "loot" then
@@ -12753,7 +13006,9 @@ function Config.auditEconomy(): { string }
 
 	-- The rebirth gate, which is a price like any other: it is one full pig at
 	-- the ceiling, so it is reachable exactly while the ceiling is.
-	for rebirths = 0, 12 do
+	-- Two past the last rebirth that opens a level, so the flat tail where
+	-- the gate stops moving is audited as well as the climb.
+	for rebirths = 0, Config.rebirthsToMax() + 2 do
 		local gate = Config.getRebirthThreshold(rebirths)
 		local ceiling = Config.getCapacity(Config.maxLevel(rebirths))
 		if gate > ceiling then
@@ -13106,7 +13361,7 @@ function Config.auditRobbery(): { string }
 	local function sweep(steps: number): (number, string, number, string)
 		local lowest, highest = math.huge, 0
 		local lowestAt, highestAt = "", ""
-		for rebirths = 0, 10 do
+		for rebirths = 0, Config.rebirthsToMax() do
 			for level = 0, Config.maxLevel(rebirths) do
 				local robbing, idling = Config.robberyRates(level, rebirths, steps)
 				local ratio = robbing / idling
@@ -13249,11 +13504,13 @@ function Config.stealCooldownFor(isResident: boolean): number
 end
 
 
--- Phase 1.9: audit the proposed tree economy independently of the coin
--- economy. These are capacity/throughput estimates, not measured play rates.
--- Each raw grown Acorn is assigned to one harvest/delivery, never both.
--- New-growth capture ceilings omit failed catches, expiry and travel time.
--- Existing stored balances can be re-raided; that recirculation is outside this model.
+-- THE ACORN FAUCET MODEL, re-derived for step 2.6 (MASTER-PLAN 19.2-19.3).
+-- Capacity/throughput ceilings, not measured play rates. Outside an
+-- acorn-theft event there are exactly two sources: a player's OWN tree, and
+-- the pig-crack acorn minted for a clean five-slice crack of another
+-- player's pig. Residents are nobody's faucet, storage is a bank, and the
+-- Harvest Moon's shaken acorns are an event bonus left out of the steady
+-- rate on purpose.
 local function finite(value: any): boolean
 	return type(value) == "number" and value == value and math.abs(value) < math.huge
 end
@@ -13261,21 +13518,22 @@ end
 function Config.acornRates(players: number): any
 	local a, model = Config.ACORNS, Config.ACORN_AUDIT
 	local growth = 3600 / a.growSeconds
-	local residents = Config.PLOT_COUNT - players
-	-- With multiple players, this ceiling assigns all player-grown Acorns
-	-- to theft at parity. In solo play, the only player harvests their own.
-	-- The old circuit counted player supply both as own harvest and stolen.
-	local playerPayout = if players > 1 then Config.acornMultiplier(0, 0, false) else 1
-	local server = growth * (players * playerPayout + residents * Config.acornMultiplier(0, nil, false))
-	local hourly = server / players
-	local loss = math.min(a.lossCap, math.floor(a.growCap * a.share)) * model.passiveRaids
-	local passive = a.growCap - loss
+	-- The most clean cracks one victim can suffer in an hour, at a BARE sack
+	-- (the smallest crack, so the most of them fit): LOSS_CAP is per victim,
+	-- so whoever is robbing them shares this.
+	local cleanPerVictim = math.floor(Config.LOSS_CAP.fraction
+		/ Config.getCrackFraction(Config.CRACK.maxSteps, 0) * 3600 / Config.LOSS_CAP.window)
+	-- n players are n victims shared by n thieves, so one thief's ceiling is
+	-- one victim's budget. Solo there is nobody to crack.
+	local crack = if players > 1 then cleanPerVictim * Config.crackAcorns(true, true, false) else 0
+	local hourly = growth + crack
+	local passive = a.growCap
 	local active = a.growCap + model.activeHours * hourly
-	return { players = players, residents = residents, mintedPerHour = Config.PLOT_COUNT * growth,
-		serverPerHour = server, perThiefPerHour = hourly, expectedDailyLoss = loss,
-		ownHarvestPerHour = Config.PLOT_COUNT * growth / players,
-		initialResidentSupply = residents * (a.resident.seedRipe + a.resident.seedStored),
-		passiveDaily = passive, activeDaily = active, activeRatio = active / passive,
+	return { players = players, residents = Config.PLOT_COUNT - players,
+		treePerHour = growth, crackPerHour = crack, cleanPerVictimHour = cleanPerVictim,
+		perThiefPerHour = hourly, passiveDaily = passive, activeDaily = active,
+		activeRatio = active / passive,
+		initialResidentSupply = (Config.PLOT_COUNT - players) * (a.resident.seedRipe + a.resident.seedStored),
 		commonMinutes = Config.CHESTS.og.cost / hourly * 60,
 		legendaryHours = Config.CHESTS.legendarycrate.cost / hourly }
 end
@@ -13287,18 +13545,22 @@ function Config.auditAcorns(): { string }
 	if type(a) ~= "table" or type(model) ~= "table" or type(a.payout) ~= "table" or type(a.resident) ~= "table" then
 		fail("acorn.config", "missing tree/model/payout/resident configuration");return problems
 	end
+	-- STORAGE RAIDS ARE RETIRED (step 2.6). Any of their tunables coming back
+	-- is a raid coming back, with nothing else in the log to say so.
+	for _, key in ipairs({ "share", "lossCap", "lossWindow" }) do
+		if a[key] ~= nil then fail("acorn.retiredRaid", "ACORNS." .. key .. " belonged to storage raids, which are retired") end
+	end
+	if a.resident.raidSeconds ~= nil then
+		fail("acorn.retiredRaid", "ACORNS.resident.raidSeconds belonged to storage raids, which are retired")
+	end
 	local invalid = false
 	for key, value in pairs({ growCap = a.growCap or false, growSeconds = a.growSeconds or false,
-		lossCap = a.lossCap or false, lossWindow = a.lossWindow or false,
 		plots = Config.PLOT_COUNT or false, players = Config.MAX_PLAYERS or false,
 		activeHours = model.activeHours or false, resident = a.payout.resident or false,
 		player = a.payout.player or false, offline = Config.OFFLINE_CAP_SECONDS or false }) do
 		if not finite(value) or value <= 0 then fail("acorn.number", key .. " must be finite and positive");invalid = true end
 	end
-	if not finite(a.share) or a.share <= 0 or a.share > 1 then
-		fail("acorn.share", "share must be in (0, 1]");invalid = true
-	end
-	for _, key in ipairs({ "passiveRaids", "minPopulationRatio", "minActiveRatio" }) do
+	for _, key in ipairs({ "minPopulationRatio", "maxCrackRatio" }) do
 		if not finite(model[key]) or model[key] <= 0 then
 			fail("acorn.model", key .. " must be finite and positive");invalid = true
 		end
@@ -13315,27 +13577,35 @@ function Config.auditAcorns(): { string }
 			fail("acorn.resident", key .. " must be a non-negative whole count"); invalid = true
 		end
 	end
-	for _, key in ipairs({"harvestSeconds", "raidSeconds"}) do
-		if not finite(a.resident[key]) or a.resident[key] <= 0 then
-			fail("acorn.resident", key .. " must be finite and positive"); invalid = true
+	if not finite(a.resident.harvestSeconds) or a.resident.harvestSeconds <= 0 then
+		fail("acorn.resident", "harvestSeconds must be finite and positive"); invalid = true
+	end
+	-- THE PIG-CRACK ACORN: a whole, positive count on a clean player crack,
+	-- at least as much again on revenge, and NOTHING on a resident, a shop
+	-- (its target is a resident) or fewer than five slices.
+	for _, key in ipairs({ "crack", "crackRevenge" }) do
+		local value = a.payout[key]
+		if not finite(value) or value < 1 or value % 1 ~= 0 then
+			fail("acorn.crack", key .. " must be a whole count of at least one"); invalid = true
 		end
 	end
 	if invalid then return problems end
+	if a.payout.crackRevenge < a.payout.crack then
+		fail("acorn.crack", "a revenge crack must mint at least what a plain one does")
+	end
+	if Config.crackAcorns(false, true, false) ~= 0 or Config.crackAcorns(true, false, false) ~= 0
+		or Config.crackAcorns(true, false, true) ~= 0 then
+		fail("acorn.crackGate", "no acorn is credited on a resident, a shop, or fewer than five slices")
+	end
 	if a.resident.seedRipe + a.resident.seedStored > a.growCap then
 		fail("acorn.resident", "initial resident supply must not exceed one full tree")
-	end
-	if a.resident.raidSeconds > a.growSeconds then
-		fail("acorn.resident", "raid cadence must allow at least one collection per growth interval")
 	end
 	if Config.MAX_PLAYERS > Config.PLOT_COUNT or Config.MAX_PLAYERS % 1 ~= 0 or Config.PLOT_COUNT % 1 ~= 0 then
 		fail("acorn.population", "player/plot counts must be whole and players cannot exceed plots");return problems
 	end
-	if a.growCap % 1 ~= 0 or a.lossCap % 1 ~= 0 then fail("acorn.whole", "tree/storage loss caps must be whole Acorns") end
+	if a.growCap % 1 ~= 0 then fail("acorn.whole", "a tree holds a whole number of Acorns") end
 	if math.abs(a.growSeconds * a.growCap - Config.OFFLINE_CAP_SECONDS) > 0.001 then
 		fail("acorn.growth", "a full tree must take one offline window to grow")
-	end
-	if a.lossCap * 3600 / a.lossWindow > a.growCap / 2 then
-		fail("acorn.lossCap", "stored losses in one hour must not exceed half a tree harvest")
 	end
 	for _, key in ipairs({ "og", "legendarycrate" }) do
 		local chest = Config.CHESTS[key]
@@ -13345,21 +13615,18 @@ function Config.auditAcorns(): { string }
 	end
 	local solo, full = Config.acornRates(1), Config.acornRates(Config.MAX_PLAYERS)
 	if full.perThiefPerHour < solo.perThiefPerHour * model.minPopulationRatio then
-		fail("acorn.populationFloor", ("solo %.2f / full %.2f Acorns per thief-hour; full must be at least %.0f%% of solo")
+		fail("acorn.populationFloor", ("solo %.2f / full %.2f Acorns per player-hour; full must be at least %.0f%% of solo")
 			:format(solo.perThiefPerHour, full.perThiefPerHour, model.minPopulationRatio * 100))
 	end
-	if solo.passiveDaily <= 0 then
-		fail("acorn.passive", ("basket %g must exceed expected daily loss %g"):format(a.growCap, solo.expectedDailyLoss))
-	else
-		for _, rate in ipairs({ solo, full }) do
-			if rate.activeRatio < model.minActiveRatio then
-				fail("acorn.activeFloor", ("%d players: active %.2f/day versus passive %.2f/day = %.2fx, below %.2fx")
-					:format(rate.players, rate.activeDaily, rate.passiveDaily, rate.activeRatio, model.minActiveRatio))
-			end
-		end
+	-- THE TREE IS THE SPINE. The pig-crack acorn is the reason to rob a
+	-- person, and it may never out-earn the thing on your own lawn by more
+	-- than `maxCrackRatio`.
+	if full.crackPerHour > full.treePerHour * model.maxCrackRatio then
+		fail("acorn.crackCeiling", ("the pig-crack faucet pays %.2f an hour against a tree's %.2f; the ceiling is %.1fx")
+			:format(full.crackPerHour, full.treePerHour, model.maxCrackRatio))
 	end
 	-- Retired faucets must not be silently reintroduced into configuration.
-	if Config.LOOT ~= nil then fail("acorn.legacyFaucet", "Config.LOOT is retired; events and pig deliveries award no Acorns") end
+	if Config.LOOT ~= nil then fail("acorn.legacyFaucet", "Config.LOOT is retired; events award no Acorns and a pig delivery pays only through Config.crackAcorns") end
 	for _, key in ipairs({ "spree", "boost", "income" }) do
 		if a.payout[key] ~= nil then fail("acorn.coinMultiplier", key .. " must not multiply Acorns") end
 	end

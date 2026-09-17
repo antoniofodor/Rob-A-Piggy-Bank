@@ -34,7 +34,7 @@ end
 local D=server("save-tests-a")
 local fresh=D.defaults()
 check(fresh.robberies==0 and next(fresh.claims)==nil,"new saves start with zero robberies and empty claims")
-check(fresh.schema==25,"new counter needs no schema bump")
+check(fresh.schema==26,"houses by id bumped the schema to 26")
 for _,schema in {24,25} do
  local old=D.defaults();old.schema=schema;old.robberies=nil;old.claims=nil;old.totalStolen=1234567
  local loaded=D.reconcile(old)

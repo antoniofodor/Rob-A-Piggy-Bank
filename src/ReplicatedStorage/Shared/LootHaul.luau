@@ -777,6 +777,12 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 		if (payload.run or 0) > 1 then
 			table.insert(bits, ("%dx IN A ROW"):format(payload.run))
 		end
+		-- The pig-crack acorn, on the card as well as in the toast: the one
+		-- thing a robbery pays that is not coins, and the reason to rob a
+		-- person rather than an empty house.
+		if (payload.acorns or 0) > 0 then
+			table.insert(bits, ("+%d ACORN%s"):format(payload.acorns, if payload.acorns == 1 then "" else "S"))
+		end
 		cardNote.Text = table.concat(bits, "   ")
 
 		cardItems:ClearAllChildren()

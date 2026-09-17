@@ -35,6 +35,9 @@ function Shake.start(parent: Instance)
 	local promptSecond = -1
 	local cooldowns: { [number]: number } = {}
 	local cooldownReceived = false
+	-- Whether an acorn-theft event is live (EventState.acornTheft). Another
+	-- occupant's tree offers its prompt only while it is.
+	local theftOpen = false
 	local closedId = 0
 	local plots: { [Instance]: any } = {}
 	local screen = Instance.new("Frame")
@@ -118,27 +121,31 @@ function Shake.start(parent: Instance)
 			local resident = plot:GetAttribute(Config.PLOT_RESIDENT_ATTRIBUTE)
 			local occupied = owner ~= nil or resident ~= nil
 			local own = owner == player.UserId
-			local readyAt = if owner == nil then plot:GetAttribute(Config.PLOT_ACORN_RAID_READY_ATTRIBUTE) else nil
 			local victimId = owner or plot:GetAttribute(Config.PLOT_RESIDENT_ID_ATTRIBUTE)
-			readyAt = if own then 0 else math.max(if type(readyAt) == "number" then readyAt else 0, cooldowns[victimId] or 0)
+			local readyAt = if own then 0 else (cooldowns[victimId] or 0)
 			local left = math.max(0, math.ceil(readyAt - workspace:GetServerTimeNow()))
-			local resting = if left > 0 then ("RESTING %d:%02d"):format(math.floor(left / 60), left % 60) else nil
 			local cooldownText = if left > 0 then ("Steal ready in %d:%02d"):format(math.floor(left / 60), left % 60) else nil
 			if entry.prompt then
 				entry.prompt:SetAttribute(Config.PROMPT_COOLDOWN_ATTRIBUTE, cooldownText)
-				entry.prompt.Enabled = not state and occupied and (not carrying or (own and ownBasket))
+				-- Your own tree always; anybody else's only under the moon
+				-- (step 2.6). The server refuses it regardless -- this is the
+				-- client not offering a known no.
+				entry.prompt.Enabled = not state and occupied and (own or theftOpen)
+					and (not carrying or (own and ownBasket))
 				local loose = plot:GetAttribute(Config.PLOT_GROUND_ACORNS_ATTRIBUTE) or 0
 				local ripe = plot:GetAttribute(Config.PLOT_TREE_ACORNS_ATTRIBUTE) or 0
 				entry.prompt.ActionText = if loose > 0 then "Collect Acorns" else "Shake Tree"
-				entry.prompt:SetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE, resting or ("%d %s"):format(if loose > 0 then loose else ripe, if loose > 0 then "ON GROUND" else "RIPE"))
-			end
-			if entry.raid then
-				entry.raid:SetAttribute(Config.PROMPT_COOLDOWN_ATTRIBUTE, cooldownText)
-				entry.raid.Enabled = not state and not carrying and occupied and not own
-				entry.raid:SetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE, resting or ("%d STORED"):format(plot:GetAttribute(Config.PLOT_ACORNS_ATTRIBUTE) or 0))
+				entry.prompt:SetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE, ("%d %s"):format(if loose > 0 then loose else ripe, if loose > 0 then "ON GROUND" else "RIPE"))
 			end
 		end
 	end
+	Remotes.get("EventState").OnClientEvent:Connect(function(event)
+		local open = type(event) == "table" and event.acornTheft == true
+		if open ~= theftOpen then
+			theftOpen = open
+			refreshPrompts()
+		end
+	end)
 	local cooldownRemote = Remotes.get("AcornCooldown")
 	cooldownRemote.OnClientEvent:Connect(function(snapshot)
 		cooldowns = snapshot or {}
@@ -258,12 +265,11 @@ function Shake.start(parent: Instance)
 			entry.prompt = collider and collider:FindFirstChild("ShakePrompt")
 			local storage = plot:FindFirstChild("AcornStorage")
 			local body = storage and storage:FindFirstChild("Storage")
-			entry.raid = body and body:FindFirstChild("StorageRaidPrompt")
 			local canopy = tree and tree:FindFirstChild("Canopy")
 			if canopy ~= entry.canopy then entry.canopy = canopy; entry.original = canopy and canopy.CFrame end
 			refreshPrompts()
 		end
-		for _, key in ipairs({"OwnerUserId", Config.PLOT_RESIDENT_ATTRIBUTE, Config.PLOT_ACORNS_ATTRIBUTE, Config.PLOT_TREE_ACORNS_ATTRIBUTE, Config.PLOT_GROUND_ACORNS_ATTRIBUTE, Config.PLOT_ACORN_RAID_READY_ATTRIBUTE}) do
+		for _, key in ipairs({"OwnerUserId", Config.PLOT_RESIDENT_ATTRIBUTE, Config.PLOT_ACORNS_ATTRIBUTE, Config.PLOT_TREE_ACORNS_ATTRIBUTE, Config.PLOT_GROUND_ACORNS_ATTRIBUTE}) do
 			table.insert(entry.connections, plot:GetAttributeChangedSignal(key):Connect(refreshPrompts))
 		end
 		table.insert(entry.connections, plot:GetAttributeChangedSignal(Config.PLOT_SHAKE_ATTRIBUTE):Connect(function()
@@ -271,7 +277,7 @@ function Shake.start(parent: Instance)
 			if not entry.at and entry.canopy and entry.canopy.Parent then entry.canopy.CFrame = entry.original end
 		end))
 		table.insert(entry.connections, plot.DescendantAdded:Connect(function(item)
-			if item.Name == "ShakePrompt" or item.Name == "StorageRaidPrompt" or item.Name == "Canopy" then discover() end
+			if item.Name == "ShakePrompt" or item.Name == "Canopy" then discover() end
 		end))
 		discover()
 	end

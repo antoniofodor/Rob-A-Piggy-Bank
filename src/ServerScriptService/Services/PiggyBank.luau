@@ -1861,64 +1861,14 @@ end
 -- Cosmetic particle aura around the piggy. Reuses one emitter rather than
 -- creating and destroying instances every time someone changes their mind
 -- in the shop.
-function PiggyBank.applyEffect(refs: Refs, effectKey: string)
-	-- A SHOP VAULT WEARS NOTHING, and this is the only place the two kinds
-	-- of thing standing on a plot are told apart. A skin is colour and
-	-- material on a piggy's body; run on a strongroom it would paint the
-	-- carcass pink and hand it a snout it does not have.
-	if refs.vault then
-		return
-	end
-
-	local effect = Config.getEffect(effectKey)
-	local aura = refs.aura
-
-	if not effect.texture then
-		aura.Enabled = false
-		local off = refs.body:FindFirstChild("AuraLight") :: PointLight?
-		if off then
-			off.Enabled = false
-		end
-		refs.model:SetAttribute("LightKind", nil)
-		return
-	end
-
-	aura.Texture = effect.texture
-	aura.Color = effect.color
-	aura.Rate = effect.rate
-	aura.Speed = effect.speed
-	aura.Lifetime = effect.lifetime
-	aura.Drag = effect.drag
-	aura.Acceleration = effect.accel
-	aura.SpreadAngle = Vector2.new(effect.spread, effect.spread)
-	aura.Size = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, effect.size),
-		NumberSequenceKeypoint.new(1, 0),
-	})
-
-	-- Tumble. The coin particles never rotate, so any spin at all reads as
-	-- "this is the other thing" before you've registered the colour.
-	local spin = effect.rotSpeed or 0
-	aura.Rotation = NumberRange.new(0, 360)
-	aura.RotSpeed = NumberRange.new(-spin, spin)
-
-	aura.Enabled = true
-
-	-- The top two effects throw light. Base brightness is set here; the
-	-- flicker is a client concern, driven off the LightKind attribute below.
-	local auraLight = refs.body:FindFirstChild("AuraLight") :: PointLight?
-	if auraLight then
-		if effect.light then
-			auraLight.Color = effect.light.colour
-			auraLight.Brightness = effect.light.brightness
-			auraLight.Range = effect.light.range
-			auraLight.Enabled = true
-			refs.model:SetAttribute("LightKind", effect.light.kind)
-		else
-			auraLight.Enabled = false
-			refs.model:SetAttribute("LightKind", nil)
-		end
-	end
+function PiggyBank.applyEffect(refs: Refs, _effectKey: string)
+	-- Independent piggy auras are retired. Do not touch coin/deposit particles
+	-- or skinAura: Legendary skin visuals are owned by applySkin.
+	if refs.vault then return end
+	refs.aura.Enabled = false
+	local light = refs.body:FindFirstChild("AuraLight") :: PointLight?
+	if light then light.Enabled = false end
+	refs.model:SetAttribute("LightKind", nil)
 end
 
 -- ============================================================

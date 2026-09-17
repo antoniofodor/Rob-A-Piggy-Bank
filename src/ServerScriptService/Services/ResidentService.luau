@@ -596,7 +596,6 @@ local function publishAcorns(resident: Resident)
 	if not stock or plot.owner or residents[plot.index] ~= resident then return end
 	PlotService.updateAcorns(plot, stock.acorns)
 	PlotService.updateTreeAcorns(plot, stock.treeAcorns, stock.groundAcorns)
-	plot.model:SetAttribute(Config.PLOT_ACORN_RAID_READY_ATTRIBUTE, stock.raidReadyAt)
 end
 
 -- Seats a resident on a plot that has just become free (or is free at
@@ -738,7 +737,6 @@ function ResidentService.evict(plot: PlotService.Plot)
 	end
 	ResidentAcorns.suspend(plot.index, os.time())
 	residents[plot.index] = nil
-	plot.model:SetAttribute(Config.PLOT_ACORN_RAID_READY_ATTRIBUTE, nil)
 	plot.model:SetAttribute(Config.PLOT_RESIDENT_ATTRIBUTE, nil)
 	plot.model:SetAttribute(Config.PLOT_RESIDENT_ID_ATTRIBUTE, nil)
 end

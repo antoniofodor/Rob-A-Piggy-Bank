@@ -26,6 +26,7 @@ modules.Remotes={get=function(name) return {FireClient=function(_,p,payload)
 end,OnServerEvent={Connect=function(_,fn) handlers[name]=fn end}} end}
 modules.DataService={get=function(p) return data[p] end,save=function(p) if saveHook then saveHook(p) end;return true end}
 modules.PlotService={getPlot=function(p) return p.plot end,
+	updateRank=function(plot,count) plot.rank=Config.getRapSheetRank(count) end,
  updatePile=function(plot,amount) plot.coins=amount end,playBank=noop,
  updateAcorns=function(plot,amount) plot.acorns=amount end}
 modules.ResidentService={get=function(plot) return plot.resident end,refund=function(r,amount) r.coins+=amount end}
@@ -123,6 +124,18 @@ check(claim(victim,keeper,"bronze") and not claim(victim,thief,"bronze") and eve
 check(H.grudge[keeper][victim].expires>now,"half-share keep does not consume keeper's unrelated revenge bonus")
 H.request(keeper);check(data[keeper].coins==108 and data[keeper].robberies==1,"keep request replay cannot settle twice")
 check(events[keeper].Notify:find("Half share",1,true) and events[victim].Notify:find("Keeper",1,true),"keeper and victim toasts name the settlement")
+-- The actual settlement paths publish each newly earned rank immediately.
+for _,kind in {"pig","basket","skin"} do
+ local t=plot(player("RankThief"),4100);local v=plot(player("RankVictim"),4200)
+ data[t].robberies=99
+ local held=if kind=="basket" then basket(t,v,1) else carry(t,v)
+ if kind=="skin" then held.amount=0;held.haul={{kind="skin",key="bronze"}} end
+ home(t,kind)
+ H.request(t)
+ check(data[t].robberies==100 and t.plot.rank==2,"delivery updates rank at 100: "..kind)
+ H.request(t)
+ check(data[t].robberies==100 and t.plot.rank==2,"replay leaves rank unchanged: "..kind)
+end
 -- An original claimant pays normally after reclaiming; whole-item duplicate
 -- rules still refuse new spares as compensation.
 local r=plot(player("Reclaimer"),400);local owner=plot(player("Owner","goldleaf"),500)
