@@ -94,6 +94,15 @@ is set against those and is re-solved the day there is a number.
 
 ## 3. Acorns are the spine
 
+> **Amended September 16 -- see section 19.** The faucet gains a second source and
+> the theft rule reverses: a **clean five-slice crack on another player's
+> pig mints one acorn** for the thief (residents none), **banked acorns are
+> never stealable**, and shaking somebody else's tree happens **only inside
+> the Harvest Moon event**. Everything below about the tree as the faucet and
+> the shake as the multiplier stands; "the only way one player's acorns
+> become somebody else's" is now "the only way, and only during the moon."
+> Section 19 is the later instruction where the two disagree.
+
 `data.loot` is the second currency already, already earned rather than
 bought. What changes is its name, its scale, where it comes from, and that it
 now has a place in the world -- a tree on every lawn, and a basket under it
@@ -211,6 +220,12 @@ players who play best.
 
 ## 4. The tree, carry basket and storage crate
 
+> **Amended September 16 -- see section 19.** The tree gains a coin-priced
+> ladder (growth rate and cap) and a rebirth bonus on growth while online.
+> The storage crate is a **bank**: nothing in it can be raided. The basket
+> stays the transport prop for own-tree harvests and for Harvest Moon
+> shakes.
+
 **Designer correction, September 2026:** growing stock, carried stock and
 spendable storage are separate. This replaces the earlier wallet-growth,
 stationary-basket and PACKED design. A player can have eight banked Acorns
@@ -259,6 +274,13 @@ refund this retained stock without crediting the new player occupant.
 
 ## 5. Timed harvesting and storage raids
 
+> **Amended September 16 -- see section 19.** **Storage raids are retired**,
+> and with them the four-acorn rolling-hour loss cap, the resident 15-minute
+> raid cadence and the basket-nab acorn settlement. Own-tree collection
+> (hold H, the five-second drag round) is unchanged and is the harvest
+> minigame. Shaking another property's tree is only possible during the
+> Harvest Moon event (section 19.3); outside it the prompt does not exist.
+
 **Tree collection:** hold H (gamepad Y) at a residential trunk for half a
 second. One ripe Acorn is enough; loose leftovers can also be collected.
 Shaking releases ripe stock onto the ground and opens a **five-second drag
@@ -302,6 +324,13 @@ Acorns). Live gesture/carry/visual review remains part of Phase 2.4. Phase 3's
 future claimant/holder transfer design is unchanged.
 
 ## 6. Crates, and the Rebirth Crate
+
+> **Amended September 16 -- see section 19.** Crates stay priced in acorns and
+> acorns stay unbuyable, so nothing here about compliance moves. What moves
+> is the faucet behind the prices -- section 19.5 lists the re-derivation.
+> The **coin pack is dropped** (section 19.1), so the "compliance fork"
+> below resolves to its option 3 and the standard rolled Rebirth Crate is
+> unconditionally fine.
 
 **NO CRATE IS PRICED IN COINS, AND NONE EVER MAY BE.** Every crate, chest,
 roll, spin and combine in this game costs **acorns**. The four coin prices
@@ -619,8 +648,8 @@ spacing; badges remain occluded by the world (`AlwaysOnTop = false`).
 
 ## 10. Shop drops are smaller, and the wheels shop is gated
 
-Today every clean shop crack rolls a 20% drop from that shop's own shelf.
-Three changes, and the first is a deletion.
+Phase 4.2 replaces the former flat 20% shop drop with the per-shop rates below.
+The first change was the removal of shop Acorns.
 
 **A SHOP PAYS NO ACORNS.** Not a lowered rate, not a rarer drop -- none. It
 has no lawn, no tree and no basket, so there is nothing on a forecourt for a
@@ -754,6 +783,9 @@ tier-table check every five weeks. No new art. About a day.
 
 ## 13. Events as structure
 
+> **Amended September 16 -- see section 19.** A third roster row, **Harvest Moon**,
+> is the only window in which acorns can be stolen. Section 19.3.
+
 An event is load-bearing when it is **the sole source of something the season
 needs** and **scheduled so a child can plan to be there**. The first is
 already true; the second is new.
@@ -855,6 +887,32 @@ STYLE and a fence TIER are one object wearing two meanings.
 
 ### 14.2 The shape of the expansion: sideways, never upward
 
+> **Superseded in part, September 16.** "No room above the catalogue" was
+> true of a 96.9M ceiling. `docs/LATE-GAME-ECONOMY-PLAN.md` extends the
+> ladder to level 60 / rebirth 20 (top pig 1.24B) so the eighteen-house
+> catalogue to 1B fits; that file is the later instruction on capacity,
+> house ownership by id, and the Legacy reset. The *sideways* shelves below
+> are unaffected and still wanted.
+
+**New planning target, September 16:** the user requested price coverage up
+to 1B. This reopens the former 96.9M-only scope; it does not itself change
+capacity or approve live prices. `docs/HOUSE-CATALOGUE-PLAN.md` proposes 18
+houses and records the required affordability/ownership decisions. Earlier
+~400M catalogue targets below are historical sizing assumptions pending the
+new price plan. Shared themed trophy rooms are approved as the approach.
+
+**Current priority, September 16:** the user deferred fence expansion and
+requested higher-tier house **exterior** catalogue mockups. Interiors remain
+a future implementation task. The user subsequently approved the direction
+of displaying earned achievements and trophies **inside houses instead of
+in the yard**. A shared themed trophy-room approach is proposed in
+`docs/HOUSE-TROPHY-ROOMS.md`; its architecture/art/visiting rules are not yet
+implemented or approved in detail. Three exterior
+concept sheets and exact prompts are saved under
+`assets/houses/concepts/2026-09-16/`; selection, prices and progression are
+not approved yet. Preserve existing saved house ownership when expanding
+the catalogue; do not silently reorder its numeric levels.
+
 `auditEconomy` refuses any price above `getCapacity(ABSOLUTE_MAX_LEVEL)`,
 which is **96.9M**, and the Sky Castle at 80M is already 83% of the largest
 pig this game can produce. **So there is no room above the catalogue, only
@@ -863,20 +921,20 @@ exist, not a tier above the top.
 
 | shelf | today | add | added value | reuses |
 |---|---|---|---|---|
-| **effects** | 7 authored, **0 obtainable** | put the buy button back, and author an epic (~1.5M) and a legendary (~12M) so the band is complete | **~15M** | the effect system, `makeEffectIcon`, `Config.EFFECTS` |
+| **standalone piggy effects — cancelled September 16** | retired by user direction | do not restore this shop; piggy effects are coin-deposit feedback and Legendary skin visuals only | **0** | legacy definitions retained for skins/save compatibility |
 | **house interiors** | none -- a house is a facade | 8 interior styles, priced per tier band | **~90M** | `LowPoly`, and the room `ShopFront` already builds |
 | **the yard** | 11 garden items | tree and basket styles, **fence styles** (the panel, never the height or the hazard), driveway surfaces, mailboxes, gate and plot-sign styles -- about 28 items | **~45M** | `Decor`, `Config.fenceMesh`, the driveway builder |
 | **the dog** | 15 coats, kennels and toys | 12 more, and a second animal | **~35M** | `GuardDog.applyTier`, the wardrobe/kennel split |
 | **rides** | 6 | 4 more, plus trails and accents that change no speed | **~25M** | `RideModel`, `RidePose`, `RideSound` |
 | **ornaments** | 23 | 15 on the candy-garden direction already set | **~25M** | `Decor.buildOne` |
 
-That is **+235M against 218.6M**, so the shelf roughly doubles to **~455M**,
+With the effects shelf cancelled, the remaining estimate is **+220M against 218.6M**, or **~439M**; re-audit the live catalogue as each shelf lands,
 and houses fall from 65% of it to 31% -- which is the number that actually
 matters, because a catalogue that is two thirds one category is a catalogue
 with one decision in it.
 
-**House interiors are the biggest single item on that list and the one to
-build first**, for a reason that is not the money: the shops acquired an
+**The original plan prioritized house interiors** (now deferred behind
+exterior work), for a reason that is not the money: the shops acquired an
 inside this year and houses did not, so the most expensive object a player
 owns is a facade they cannot walk into. It is also the one shelf where the
 work is already done once -- `Config.shopRoomHolds`, the plinth-is-a-ring
@@ -903,6 +961,14 @@ what stops the *first fortnight* being thin, and the first fortnight is when a
 nine-year-old decides whether to come back.
 
 ## 15. Selling coins without selling a complaint
+
+> **Decided September 16: the coin pack is dropped.** Coins are never
+> purchasable with Robux, which restores `CLAUDE.md`'s standing rule and
+> this section's own *stated disagreement*. Monetisation is a season pass
+> and named cosmetics (stances, pets, rides, the pack skin). The design
+> below is kept as the record of what a pack would have needed; nothing in
+> it is scheduled. `COIN_PACK.productId` stays 0 and the audit keeps
+> refusing a live id.
 
 The decision to sell coins stands; this is how to make it survivable.
 
@@ -942,6 +1008,13 @@ and the reason the pack is worth buying in week one and worth almost nothing
 in month two. Say that on the card rather than discovering it in the reviews.
 
 ## 16. The random-outcome sweep
+
+> **Amended September 16 -- see section 19.** With no coin pack the invariant
+> below is satisfied trivially rather than by construction, and the "honest
+> grey area" grows one entry: coins buy tree levels, tree levels grow
+> acorns, acorns open crates. Recorded, not designed out -- it is the same
+> class as boots making cracks more frequent, and it is the reason the
+> no-pack decision is load-bearing rather than a preference.
 
 The crate invariant: **no random outcome is priced in coins.** The original
 coin-gate rule has one explicit designer correction: rebirth opens a standard
@@ -1414,6 +1487,209 @@ on the design, not on the implementation.
    `Rebirth`, `Crack`, `SpinWheel` and `AdminPanel` already are.
 ---
 
+## 19. The acorn loop, re-centred on the pig (September 16)
+
+**Designer direction, September 16, authoritative where earlier sections
+disagree.** The game is called Rob a Piggy Bank and its daily verb has to be
+robbing piggy banks. Sections 3-5 built a second robbery economy beside the
+first -- a second object to rob, a second minigame, a second carry, a second
+loss cap -- available on every lawn at every moment, and that dilutes the
+core. The acorn system stays, because a timer currency behind the crates is
+the right shape and 2,692 lines of it are built and tested. What changes is
+**where acorns come from, when they can be taken, and what they connect to.**
+
+### 19.1 The coin pack is dropped, and that is what makes the rest cheap
+
+Sections 6, 15 and 16 exist to keep crates legal beside a Robux coin pack.
+The pack never shipped, `COIN_PACK.productId` is 0, the boot audit refuses a
+live id while the Rebirth Crate rolls, and section 15's own last paragraph
+argues a season pass is the cleaner product. **Decided: no coin pack.** Coins
+are never sold; `CLAUDE.md`'s rule that this can only ever be broken once is
+un-broken. Monetisation is named things -- a season pass, stances, pets,
+rides -- as `CLAUDE.md` already prescribes.
+
+Crates therefore stay priced in **acorns**, at 5 / 15 / 40 / 6, and acorns
+stay unbuyable. A price that moved with a player's own income was considered
+for coin-priced crates and **rejected as confusing** -- a price is a number a
+child reads off a card, not a function.
+
+### 19.2 One acorn per clean crack on a player's pig -- minted, never taken
+
+A **clean five-slice crack on another player's pig mints one acorn** for the
+thief, plus one more inside `REVENGE.window`. Residents and shops pay none:
+the pig-crack acorn is the reason to rob *people*, and the tree is the solo
+faucet.
+
+* **Minted, not taken.** The victim loses coins and possibly the skin they
+  are wearing, and nothing else. That is `HEIST_PAYOUT`'s own principle --
+  the thief's reward is never the victim's loss -- and it is what stops a
+  robbery acquiring a third sting.
+* **Clean crack only**, the same rule skin theft uses. A one-slice tap (2% of
+  the pig) may never pay an acorn: it would be twenty-two acorns an hour per
+  victim before the loss cap bit. Clean-only means `LOSS_CAP` bounds the
+  acorn faucet too -- about two per victim per hour, whoever is robbing.
+* **The noun stays honest** with one line of fiction: *the alarm shakes their
+  tree and an acorn drops for the thief.* Nuts still come from trees.
+
+### 19.3 Banked acorns are safe; theft happens only under the Harvest Moon
+
+**Coins are the risk currency; acorns are the timer currency.** That
+asymmetry is deliberate and is the whole of this section.
+
+* **Storage is a bank.** Nothing in the crate on a lawn can be raided, ever.
+  Storage raids, the four-an-hour acorn loss cap, the resident 15-minute
+  raid cadence and the basket-nab acorn settlement **retire**.
+* **A tree cannot be shaken by anyone but its owner** under normal
+  conditions. The everyday street has one thing to rob on it, and it is the
+  pig.
+* **Harvest Moon** is a third `EventService` roster row: two to three
+  minutes, weighted to land roughly once an hour. The street dims -- a
+  `Lighting` **tween for the window only**, never a permanent cycle -- and
+  for that window other players' *ripe* tree acorns can be shaken at the
+  existing x5 and carried home in the basket under the normal getaway rules.
+  Resident trees are shakeable at x1 during the moon so a solo server has
+  something to do in it. Storage stays safe even then.
+
+**Why an event and not a day/night cycle.** `CLAUDE.md` records *there is no
+night in this game* as a load-bearing decision: `ClockTime` is 14.5 once,
+and every neon effect, the bloom threshold, the piggy's readability from the
+pavement and the dog-posture tell are tuned against one sun. A permanent
+night half re-tunes all of that and spends half of every session in worse
+readability for nine-year-olds -- and a cycle in which acorn theft is open
+half the time does not make it rare, it makes it half the game again. A
+window makes it an **occasion**: the countdown chip says the moon is a minute
+out, and *when the moon comes out, empty your tree* is one sentence a child
+learns once -- the same decision shape as banking before a patrol. It reuses
+the shake minigame, the basket, the nab, the banner, the chip and the roster
+weighting, and it is a lever (weight, length) where a cycle is not.
+
+### 19.4 The tree is a progression object
+
+* **A coin-priced ladder** on the tree -- growth rate and cap -- so the two
+  economies connect in the direction the title wants: *rob pigs, spend coins
+  on your tree, grow acorns, open crates.* It is also the repeatable coin
+  sink section 14 says the coin shelf lacks. First pass, to re-solve:
+
+  | level | growth /h |
+  |---|---|
+  | 0 | 1.0 |
+  | 1 | 1.25 |
+  | 2 | 1.5 |
+  | 3 | 2.0 |
+  | 4 | 2.5 |
+
+  The cap column that stood here moved to the HOUSE (19.4a): the ladder
+  sells the rate, the house decides how much the tree holds.
+
+  One tree with levels, never more trees: lawn slots are scarce, and a
+  bigger, fuller oak at level 4 is a tell read from the pavement.
+* **Rebirth boosts growth while online**, a few percent per rebirth. Online
+  only, because the loop is on the street; it is also the one thing rebirth
+  still grows past the ladder's ceiling.
+* **The anticipation layer**, which is not economy: a HUD chip reading *next
+  acorn 43m*, ripe acorns visible on the branches, a **fertiliser** boost as
+  a daily-ladder rung and event drop (the boost pocket already exists for
+  coins), and the tree wobbling when one is ready.
+
+### 19.4a Houses gate and hold; they never generate (September 16)
+
+**Designer direction:** the house you own should matter beyond looks, without
+letting acorns be collected fast. The rule that makes both true: **a house may
+GATE what the tree ladder sells and may decide how much the tree HOLDS; a
+house never adds a tree and never adds acorns per hour.**
+
+* **One tree per plot, always.** More trees was the obvious reading and it
+  is refused: a second tree is 2x the per-hour faucet stacked on the ladder's
+  2.5x, so every price solved against the faucet -- the crates, the season
+  tiers, the buy-back ladder -- would be wrong by a factor that depends on
+  which house somebody bought, and the house would out-sell the tree ladder
+  as an acorn purchase. It also spends lawn slots, which are the scarce
+  thing.
+* **Tree level is gated by house rarity.** The ladder stays coin-priced; its
+  rungs unlock with your home:
+
+  | best house owned | tree levels you may buy |
+  |---|---|
+  | Common | 0-1 |
+  | Rare | up to 2 |
+  | Epic | up to 3 |
+  | Legendary | up to 4 |
+
+  The per-hour ceiling does not move -- 2.5/h at level 4 either way -- the
+  house decides WHEN you may buy it. It also restores something individual
+  ownership removed: with the sequence rule gone, nothing made anybody buy
+  a Rare or an Epic on the way to the house they wanted. *Your tree grows as
+  grand as your house* is one sentence, and the gate is honest because the
+  thing behind it is still bought.
+* **The tree's cap is set by house rarity; its rate by tree level.**
+
+  | best house owned | ripe acorns the tree holds |
+  |---|---|
+  | Common | 8 (today's cap -- nothing moves for anybody here) |
+  | Rare | 12 |
+  | Epic | 16 |
+  | Legendary | 24 |
+
+  An active player earns nothing extra from this -- the rate is untouched.
+  What it moves is **acorns per day for anybody away longer than
+  cap / rate**: a Common owner at level 1 caps in 6.4 hours, a Legendary
+  owner at level 4 comes back from the 8-hour offline window to 20. That is
+  the hatch-timer feel scaled by the house, aimed at the casual half of the
+  audience whose acorn income is what they find when they log in.
+* **"Best house OWNED", never the one shown.** Houses are individually owned
+  (`LATE-GAME-ECONOMY-PLAN.md` §7), and moving into a cheaper-looking house
+  for taste must never cost a player their tree. The gate reads the highest
+  rarity in `data.houses.owned`.
+* **Houses are never lost** except by the deferred Legacy reset, so the gate
+  never drops in play. Whoever builds the Legacy reset resolves the one case
+  where it could (recommended: keep the tree level, re-clamp the cap).
+* **It is a bigger Harvest Moon target, and that is the right way round.** A
+  Legendary tree holds more ripe acorns during the moon, so a rich house is
+  a richer shake. Storage stays safe regardless.
+
+**What a house may also do, none of it a faucet:** a bigger trophy room
+(more `Shelf_N` mounts and a larger `Featured` spot -- display, never
+achievement capacity); one house-matched finish the lawn pig may wear at
+Legendary (pure look). **Refused, recorded:** extra trees, a per-hour
+multiplier, fertiliser that drops more often at higher tiers (a rate
+multiplier wearing a hat), and anything touching spawn, drop-off radius,
+fence, dog, lock, income, capacity or shield -- *houses confer nothing* on
+the getaway or the defence stack, which are the balance.
+
+### 19.5 Numbers to re-derive before any of this ships
+
+The faucet changed, so by section 17's own rule everything solved against it
+re-solves: the season tier table (section 12), the four crate prices, the
+buy-back ladder (section 7), the Harvest Moon weight and length, the tree
+ladder's rates and coin prices, the house-rarity cap table (19.4a -- it is
+the one that moves acorns per DAY), the rebirth growth bonus, and the acorn audit
+scenarios in `tests/luau/audits.luau`. The solo rate falls -- no resident
+tree lap outside the moon -- to roughly a crate every two to four hours from
+an unupgraded tree, which is what a timer economy is meant to feel like and
+is the first number telemetry has to check.
+
+**Re-derived with step 2.6 (September 16), and it came out slower than the
+estimate above.** `Config.acornRates` now models the two steady sources --
+the player's own tree and the pig-crack acorn at the `LOSS_CAP` ceiling (two
+clean bare-sack cracks per victim-hour). Measured at boot: **solo 1.0 acorn
+an hour** (a 5-acorn crate every **5 hours**, legendary crate 40 hours);
+**full server 3.0 an hour** (common crate 100 minutes, legendary 13.3
+hours); active/passive 1.25x solo and 1.75x full. The old 3x active floor
+was a theft-era target and was dropped rather than met; `maxCrackRatio` (2x
+the tree) now keeps the pig-crack acorn a side faucet. The tree ladder
+(2.7), the rebirth growth bonus, the fertiliser and the Harvest Moon are the
+levers that bring the solo rate back toward the "two to four hours" above,
+and the crate prices are the other; both are this section's to re-solve.
+
+### 19.6 What this does to the phases
+
+Phase 2's storage-raid and acorn-loss-cap steps are retired; own-tree
+harvest, storage and the basket stand. Phase 3's basket hand-off survives
+only for Harvest Moon carries. Phase 6 gains the Harvest Moon row. Phase 1.1's
+acorn chip gains the *next acorn* countdown. The late-game house ladder,
+individual house ownership and the Legacy reset are in
+`docs/LATE-GAME-ECONOMY-PLAN.md`.
+
 # PART II -- THE EXECUTION PLAN
 
 Ordered. Nothing in a later phase starts before the earlier one is verified.
@@ -1647,7 +1923,21 @@ reconcile) and `data.robberies` (new lifetime counter). Schema 25 landed for
 Robberies defaults to zero, survives rebirth and records each nonempty
 successful delivery once, ahead of its Phase 4 UI.
 
+1.11 **The pig-crack acorn. [Fable; no visual needed] — DONE September 16**
+(`Config.crackAcorns`, `tests/luau/theft.luau`). Section 19.2. In
+`HeistService.deliver`, a delivered carry whose crack ran all five slices
+against a PLAYER victim mints one acorn (`data.loot += 1`), plus one inside
+`REVENGE.window`; residents and shops mint none; a partial crack mints none.
+The delivery toast names it beside the coins. `auditAcorns` gains the rule
+"no acorn is credited on a resident, a shop, or fewer than five slices."
+*Done when* the isolated theft suite shows a five-slice player crack paying
+1 (2 on revenge), a four-slice one paying 0, and a resident crack paying 0.
+
 ## Phase 2 -- The tree, carry basket, storage crate and timed collection
+
+> **Amended September 16 -- see section 19.** The storage-raid steps and the
+> acorn loss cap in this phase are retired; own-tree harvest, the crate as a
+> bank, the basket and the drag round stand.
 
 2.1 **Props. [IMPLEMENTED; final storage art pending]** Approved imported oak
 and carry basket. A functional open wooden storage crate now replaces the
@@ -1699,7 +1989,29 @@ with neither, plus real-client countdown expiry and ownership handover.
 Section 17's new-growth-only model counts each fresh Acorn once. NPC harvest
 animation and live player gesture/getaway review remain separate visual work.
 
+2.6 **Retire storage raids and the acorn loss cap. [Fable] — DONE September 16**
+(the moon gate is `EventService.isAcornTheftOpen`; `shake`/`shakeui` suites inverted). Section 19.3.
+Remove the J prompt on other properties' crates, the four-an-hour acorn loss
+budget and its receipts, and the resident 15-minute raid cadence; storage is
+a bank. The shake prompt on another player's tree is gated on
+`EventService.isEventLive("harvestmoon")` and does not exist otherwise.
+Own-tree harvest, storage deposit and the basket are untouched. *Done when*
+`basket`, `settlement` and `residents` suites pass with the raid cases
+inverted (a raid attempt is refused by name) and `auditAcorns` is clean.
+
+2.7 **The tree ladder and the rebirth growth bonus. [Fable; visuals B5
+later]** Section 19.4. `Config.TREE_LEVELS` (rate, cap, coin cost per rung,
+first pass in 19.4), `data.tree.level`, a `TreeRequest` remote validated
+server-side, growth read through `Config.treeGrowthPerHour(level, rebirths,
+online)`. Coin prices go through `auditEconomy`. Ships with a placeholder
+scale change on the oak until B5 lands. *Done when* growth at each level
+matches the table over a simulated day, the rebirth bonus applies online and
+not offline, and a cost above the largest pig is refused by the audit.
+
 ## Phase 3 -- The hand-off, and the timers on the street
+
+> **Amended September 16 -- see section 19.** The basket hand-off applies only
+> to Harvest Moon carries; there is no other stolen-acorn carry.
 
 3.1 **The carry's claimant. [IMPLEMENTED]** `Carry.claimant` is written on
 successful crack, smash or basket attachment; `Carry.holder` identifies the
@@ -1754,27 +2066,47 @@ placement. The separate 3.3 multiplayer settlement gate remains pending.
 
 ## Phase 4 -- Shop drops, and the pack
 
-4.1 **The rank.** `data.robberies` already increments in `deliver` as of 1.10;
+4.1 **The rank. [IMPLEMENTED; final visual review pending]** `data.robberies` already increments in `deliver` as of 1.10;
 add `Config.RAP_SHEET_RANK = { 0, 25, 100, 400, 1600 }`; a star row on the plot
 sign. *Done when* a save at 99 shows one star and at 100 shows two.
+The server derives rank from the saved count, updates the sign at join and
+after coin/Acorn deliveries, and clears it on release. Isolated renderer and
+settlement checks pass the 99/100 threshold, including skin-only getaways.
+Studio loaded the rank-zero sign with fitting text; visual review was interrupted.
 
-4.2 **The drop table.** `SHOP_VAULT_DROP.chance` becomes per-shop with the
+4.2 **The drop table. [IMPLEMENTED]** `SHOP_VAULT_DROP.chance` becomes per-shop with the
 `minRank` on `gear`; `rollShopDrop` refuses below the rank silently;
 `auditSkinSteal` compares against the largest chance. *Done when* a rank-1
 thief never draws a ride across two hundred simulated rolls and a rank-2 one
 draws at about three per cent.
+Implemented 10%/8%/3%/20% for piggy/home/gear/defend, with gear requiring
+rank 2 before rolling or paying any reward. Unknown shop keys refuse too.
+The actual drop function passes 45 isolated checks: rank 1 yields no rides
+in 200 attempts; 200 evenly spaced eligible draws yield six rides; a seeded
+10,000-attempt run yields 317 (3.17%). Carry/resale/stock paths and the
+maximum-shop-chance audit are exercised without live saves.
+
+**Approved follow-up: visible odds and discovery presentation.** The crack
+panel now shows overall item odds and conditional rarity odds from the actual
+eligible server pool, plus accurate 0%/100% player-skin and resident states.
+The user chose a compact non-blocking reel on discovery and promoted Volt
+Scrambler to Legendary. The reel cycles eligible models and lands on the
+server-selected item, distinguishing carried items from banked grants/resale.
+The 3% overall ride chance and rank-2 gate remain. Automated checks and native
+phone component previews pass; outstanding Phase 3 gameplay gates remain open.
 
 4.3 **The coin shelf, before the pack. [DESIGN -- Art 11, per shelf]**
-Section 14, in its own order:
-effects get their buy button back and the two missing tiers authored -- the
-smallest job on the list and it closes a live gap, since seven authored
-effects are obtainable by no route at all today; then the yard styles, which
-are `Decor` rows and `fenceMesh` rows; then interiors, which are the long one.
+**September 16 user correction supersedes the earlier effects brief:** no
+standalone piggy effects, no effects shop, no Aurora or Starfall. Piggy
+effects are limited to coin-deposit feedback and Legendary skin visuals.
+**Latest user priority:** defer fences; explore higher-tier house exterior
+appearances first. Exterior mockups are in `assets/houses/concepts/2026-09-16/`.
+Interiors remain future work; entering, visitors and room layout are not yet designed.
 `auditEconomy` runs after every batch, because every price is measured against
 `getCapacity(ABSOLUTE_MAX_LEVEL)` and there is only 16.9M of headroom above the
 Sky Castle. *Done when* the summed spendable coin catalogue clears 400M, the
-new boot check finds no item carrying both a `cost` and a `chest` tag, and all
-seven effects are buyable.
+new boot check finds no item carrying both a `cost` and a `chest` tag.
+The former requirement to make seven piggy effects buyable is cancelled.
 
 4.4 **The pack -- only after Phases 1 and 2 are live, and after 4.3.** A developer product
 whose receipt writes `data.parcel = "pigfill"`; `PlotService.setCrate` draws
@@ -1784,6 +2116,208 @@ card carries the sentence in section 15, and the shelf it buys is 4.3's.
 *Done when* a bought parcel is on
 the doorstep across a rejoin, opens to a full pig, and a second purchase
 while one is unopened is refused before charging.
+
+## Phase 4b -- The late-game ladder, house ids and the Legacy reset (Fable; runs beside 4-6)
+
+Independent of Phases 1-3 and of the art track except where marked; the
+whole of it is `docs/LATE-GAME-ECONOMY-PLAN.md`, which carries the numbers,
+the migration and the tests. Decisions recorded there in §11.
+
+4b.1 **The ladder (L1). [IMPLEMENTED — September 16; Studio Play check pending]** `ABSOLUTE_MAX_LEVEL` 60,
+`BAND_TOP_2` 40, `CAPACITY_GROWTH_C` 1.136, `INCOME_GROWTH_C` 1.10, band-C
+cost growth 1.26/1.16, rebirth multiplier 0.12 to RB10 and **0.08 beyond**
+(A2), audit sweep bounds derived. *Done when* every value for L ≤ 40 /
+rb ≤ 10 is byte-identical to today, `capacity(60) ≥ 1.2e9`, fill time at
+every ceiling sits in 10-18 min, all three audits are clean, and a provoked
+`ABSOLUTE_MAX_LEVEL = 40` with a 1B house fires `auditEconomy`.
+
+Implemented in `Config` (`BAND_TOP_2`, three `*_GROWTH_C`, `ABSOLUTE_MAX_LEVEL`
+60, `REBIRTH_MULTIPLIER_TAPER`, `rebirthsToMax`, `rebirthIncomeFactor`,
+`rebirthBonusPercent`, a three-clause `banded()`, derived audit bounds), plus
+`Rebirth.luau` and `ProgressionService` reading the factor through Config.
+`tests/luau/ladder.luau` (121 checks) pins every pre-change value at L ≤ 40 /
+RB ≤ 10, the 1,241,390,843 top pig, the seams, the taper, fill 10–18 min at
+every ceiling, the clamp binding on 40–59, the flat robbery ratio to L60/RB20,
+both audits clean and the provoked 1B-house refusal. All 21 existing suites
+pass; Rojo builds. Not yet done: one Studio Play to confirm a clean boot.
+
+4b.2 **House ids and schema 26 (L2). [Fable; no visual] — DONE September 16**
+(`tests/luau/houses.luau`, 1,025 checks; dev save migrated live). Stable ids on
+`HOUSE_TIERS`, `HOUSE_LEGACY_ORDER`, `data.houses = { owned, shown }`,
+derive-only reconcile, `houseLevel`/`houseShown` **deleted**, every reader in
+the plan's §8.3 converted, `HouseRequest` by id. *Done when* the migration
+matrix passes twice and a schema-25 save showing a Sky Castle over a Marble
+Palace comes back owning nine and showing the castle.
+
+4b.3 **Individual purchase UI (L3). [needs B1 from GPT]** Every house a card
+with SHOWN / OWNED / AFFORDABLE / TOO DEAR / WON'T FIT; MOVE IN as a toggle;
+no "buy the next one" copy. Fable wires; GPT supplies the card states and
+the section layout at 1040 and 546.
+
+4b.4 **The catalogue (L4). [needs B3 from GPT, per house]** The five houses
+that fit today's pig may land before 4b.1; the 150M-1B four after it. Each is
+one row; the audit admits it automatically.
+
+4b.5 **Trophy rooms (L5). [needs B2 from GPT]** `HOUSE-TROPHY-ROOMS.md`, with
+the named display points in B2. The reason "own all eighteen" is not the
+end of the game (plan §11.1).
+
+4b.6 **Legacy reset. [needs B6 from GPT; last]** Plan §11.2: voluntary at
+RB20 with every house owned; wipes coins, ladders, trees, rebirths and every
+house but the shack; keeps everything that records what the player did;
+`data.legacy += 1`, a sign star and a room plaque. Open decision: skins and
+rides survive (recommended yes).
+
+## Phase 4c -- The robbery rework (Fable for rules and code; GPT for the panel and the props)
+
+**Designer direction, September 16.** The crack, the catch and the kit are
+the game, and they ship in their first shape. This phase makes the minigame
+harder, the panel worth looking at, the catch a set of beats rather than a
+radius, and the kit wider -- and it pins two rules the designer asked to
+verify. Sections 4c.5 and 4c.6 are the verification; the rest is the work.
+
+**What the audit for this phase is.** `auditRobbery` is an UPPER BOUND on
+perfect play and is structurally blind to a defence (`CLAUDE.md`), so nothing
+here may be judged by it alone. Every difficulty change is checked against
+the crack's measured windows and the cycle time it feeds; every catch change
+against `BASE_WALK_SPEED` -- speed is the currency, and nothing in this phase
+makes anybody faster than 16.
+
+4c.1 **The crack gets harder, and the first step is to play it.** [Fable]
+`CLAUDE.md` records that the dial's marker was frozen for the life of the
+feature (a local shadowed the function passed to `Connect`), so the tuned
+windows -- 0.692 down to 0.298 of the dial at lock 1 -- have never been
+played as tuned; the current difficulty is a number nobody has felt. So:
+(a) a one-session play of the crack as it stands, recorded; then (b) the
+ladder, in this order of preference, each a `Config.CRACK` number: a lower
+`windowStart` and steeper `windowDecay`; a `sweepSeconds` that shortens per
+slice so the marker is quicker on the fifth than the first; and a lock-tier
+PATTERN rather than only a width -- tier 3 splits the zone in two, tier 4
+reverses the marker on the last slice -- so a Vault Lock is a thing a thief
+reads, not only a narrower green. **Kept deliberately: there is no clock on a
+step.** The pressure is the dog crossing the lawn, and a per-step timer would
+change what the minigame is about; if the designer wants one it is a
+decision, not a tuning. *Done when* a maxed Lockpicks against a maxed Vault
+Lock is a real contest on the fifth slice, and the cold robbery advantage
+still clears `ROBBERY_ADVANTAGE.min` with the new cycle time.
+
+4c.2 **The crack panel. [DESIGN -- brief B7 to GPT; Art 4 applies]** The
+430 x 176 panel is a dial, a marker, a gauge and a cap line, arrived at by
+repair. It is the one screen a robbery happens on and it has never had a
+look chosen. It now also carries the loot odds row (Phase 4.2) and will carry
+the delivery room (4c.6). GPT designs it at 1040 and at 546; Fable rebuilds
+it as the module it already is.
+
+4c.3 **Catching is beats, not a radius. [Fable; DESIGN for the tells]**
+Today a chase ends by one of: the dog's `catchRadius` on a tick, the owner's
+one-second nab hold, the officer's `catchRadius`, or the thief reaching the
+drop-off; the thief's answers are the dodge's half-second immunity, a bin, a
+ladder, a bone and three gadgets. The catch gets a vocabulary instead of a
+number, every item a TELL the thief can read and answer, none of it a speed:
+
+* **the dog lunges** -- a wound-up leap with a visible crouch, dodgeable,
+  landing a catch if it connects and a stumble (a beat of no movement) if it
+  does not; the lunge replaces the tick-radius catch on tiers 2 and 3;
+* **the officer cuts the corner** -- steers toward where the thief is GOING
+  (the drop-off is known), not where they are, so a straight run home is the
+  worst line and a feint is worth something;
+* **the owner's shove** -- the nab hold gains a shorter, weaker alternative:
+  a bump that knocks the loot loose for a beat without ending the carry, so
+  a defender who cannot hold the tug still has a play;
+* **the street helps** -- a resident on their lawn points and shouts when a
+  carrying thief passes, which is information for defenders and costs the
+  thief nothing but being seen.
+
+*Done when* each beat is measured on a live rig against the getaway (53
+studs, 4.4 s carrying) and the two-player check in 0.2 is repeated with them.
+
+4c.4 **New gadgets. [DESIGN -- brief B8 to GPT for models; Art 1 pipeline
+for the two sequences each]** Three exist (plunger, gum, zapper) beside three
+bones, and every new one is a model, a `GADGETS` row shaped like the
+existing three, a hot-bar slot -- **the number row is full at ten, so each
+takes a letter and there are fewer left than it looks** -- and two uploaded
+animations, throw and use, which no gadget has today. Candidates, each
+checked against the rules a gadget has to survive (no speed above 16, a tag
+never the catch, cost per throw, range falls as power rises, prank cooldown
+on the target):
+
+| gadget | what it does | rule check |
+|---|---|---|
+| **Smoke Bomb** | a cloud that mutes footsteps inside it for a few seconds -- the dog's `notice` hears nothing in the smoke | passes: the dog reads speed, and this is a temporary tiptoe by area, not a stealth flag |
+| **Decoy Piggy** | a wind-up pig that runs a fixed line; a chasing dog or drone takes it for the thief for a beat | passes if it only ever affects NPC chasers, never a player |
+| **Oil Slick** | a patch that slows whoever crosses it, thief included | passes: slower, never faster; it is `applySlow` on a zone |
+| **Snare** | a ground trap that holds a runner for a beat, a defender's tool | passes as a gadget for the DEFENDER; needs the prank cooldown so a player cannot be chain-held |
+| grapple / dash items | move the character | **refused** -- a second way to move, the rule `Config.DODGE` exists to prevent |
+
+*Done when* two new gadgets are live with both animations uploaded and the
+hot-bar letter map in `CLAUDE.md` is updated.
+
+4c.5 **VERIFIED: a player can only rob the same player once per cooldown,
+and back-and-forth robbing cannot climb the board.** Measured in the code:
+
+* `whyCannotSteal` -- shared by crack and smash -- refuses a thief whose
+  `lastGrab[victim][thief]` is under `Config.STEAL_COOLDOWN` (**60 s per
+  thief, per victim**; residents 60 too, `stealCooldownFor`).
+* `LOSS_CAP` refuses once a victim has lost **45% of their pig in a rolling
+  hour, across all thieves** -- checked at attempt open, on every slice, and
+  on a smash. Residents are exempt on purpose.
+* The weekly TOP THIEVES board publishes `currentWeekStolen` -- coins the
+  VICTIM lost, any target. So two friends robbing each other back and forth
+  each add at most **0.45 pig an hour** to their total, while robbing
+  residents cold adds about **6.4 pigs an hour** of victim-loss (half of the
+  3.21x banked rate). Ping-pong is roughly fourteen times worse for the
+  board than playing. Revenge (3x inside ten minutes) does not change that:
+  it multiplies the thief's minted payout, never the victim-loss the board
+  counts, and the loss cap bounds it either way.
+* The rank counter (`data.robberies`) counts any delivery with coins in it,
+  so one-slice ping-pong could count 22 an hour per victim before the cap --
+  against a realistic 45 an hour robbing residents. Not a farm. The
+  pig-crack acorn (1.11) is clean-crack-only, so the cap bounds it to about
+  two per victim per hour.
+
+**Decision offered:** the rule is in place and self-consistent at 60 s. If
+the designer wants "once per X" to read as a rule rather than an arithmetic
+consequence, raise `STEAL_COOLDOWN` for PLAYER victims to **180 s** and leave
+residents at 60. It keeps revenge viable inside its 600 s window, costs the
+resident supply nothing, and makes back-and-forth visibly not a thing. It is
+one constant and `auditRobbery`'s lap check re-runs on it.
+
+4c.6 **DELIVERY IS CAPPED AT THE PIG, AND THE REST IS LOST. [Fable; not in
+place today -- designer direction September 16]** `HeistService.deliver`
+currently banks `amount * payout` with no cap -- its comment reads *"allowed
+to overflow capacity: income stops above the cap anyway, so an overfull pig
+is self-limiting, and it is the juiciest target on the street."* That
+reasoning is reversed by decision: **a pig never holds more than its
+capacity, from any source.** The victim still loses the full amount (that is
+the robbery); the thief banks `min(amount * payout, capacity - coins)`; the
+remainder is minted-and-spilled, never returned.
+
+Why it is better than the dynamic it replaces:
+
+* it closes the newcomer overflow named in `LATE-GAME-ECONOMY-PLAN.md`
+  section 6.2 -- a level-5 player cracking a level-32 resident could bank
+  180x their own capacity in one run; capped, they bank a full pig, which is
+  still the best minute of their session;
+* it gives *spend it or lose it* teeth on the robbery side: robbing with a
+  full pig spills, so a thief empties the pig into the shop first, which is
+  the loop the whole economy runs on;
+* it makes the rebirth gate honest -- "fill your pig" now means AT the
+  ceiling capacity, which the cost clamp guarantees is always affordable.
+
+Rules that ride with it, each because a clamp is silent by default and this
+project refuses silent failure: **the spill is said** -- the delivery toast
+names it (*"Your piggy was full: 1.2M spilled."*); **the preview shows
+room** -- every *"worth X at home"* string (crack clean, crack partial,
+smash, the rob badge's gold figure, the crack panel) prints the capped
+figure, so a thief is never promised coins the pig cannot take; **the same
+rule for dailies and events** -- one sentence, *nothing puts more in a pig
+than it holds*, rather than a robbery exception; **bail, the rap sheet,
+`totalStolen`, the weekly board and the acorn are all measured against what
+the victim lost**, unchanged. `auditRobbery` stays an upper bound (it assumes
+room) and needs no change. *Done when* a delivery into a full pig banks
+zero, spills loudly, still charges the victim, still counts the robbery and
+the acorn, and the crack panel's preview matches the banked figure across a
+full and an empty pig.
 
 ## Phase 5 -- The reputation yard and season one
 
@@ -1805,6 +2339,9 @@ previous page intact, and a tier crossing grants once and never twice.
 
 ## Phase 6 -- Events as structure
 
+> **Amended September 16 -- see section 19.** Add the **Harvest Moon** row: the
+> only acorn-theft window, with a bounded lighting tween. Section 19.3.
+
 **[DESIGN -- Art 8 for the reward reveal and the two new `EVENT_UI` rows.]**
 
 6.1 The weekly scheduled raid and the countdown chip's six-day mode; it pays
@@ -1814,6 +2351,16 @@ a free crate open through `ChestService.grantFree`. 6.2 The Cash Van:
 double COINS. 6.3 Harvest Saturday: one flag doubling `growSeconds` for the
 day. *Done when* a van event runs on a one-player server end to end, and
 `auditAcorns` confirms no event path credits an acorn.
+
+6.4 **Harvest Moon. [Fable for mechanics now; B4 from GPT for the look]**
+Section 19.3. A `Config.EVENTS.roster` row and an `EVENT_UI` row; while
+live, other players' *ripe* tree acorns are shakeable at x5 and resident
+trees at x1, carried in the basket under the normal getaway; storage stays
+safe; a bounded `Lighting` tween on entry and exit, no permanent cycle.
+Weight and length are numbers to re-derive (19.5). *Done when* the event
+runs end to end on a one-player server, the shake prompt on another tree
+exists only while the banner does, the lighting returns to `ClockTime` 14.5
+exactly, and the roster's measured frequencies are recorded.
 
 ## Phase 7 -- Verbs
 
@@ -1848,6 +2395,15 @@ below is the only ordering that actually binds.
 | Art 11, the shelves | **Phase 4.3**, and therefore the pack | section 14 is a content list, and this is the content |
 
 Everything else can run whenever there is a person free.
+
+> **September 16 — the GPT/Fable split.** `docs/DESIGN-SCRIPTING-HANDOFF.md`
+> assigns visual design to GPT and scripting/planning to Fable. The briefs
+> Fable owes GPT for the work above are in `docs/BRIEFS-FOR-GPT.md`: **B1**
+> house catalogue UI (4b.3), **B2** trophy rooms (4b.5), **B3** house
+> exteriors (4b.4) are needed now; **B4** Harvest Moon (6.4), **B5** the tree
+> as a progression object (2.7), **B6** the Legacy reset (4b.6) later. Art 1
+> to Art 11 below are unchanged; Art 11's *Houses* bullet now points at
+> `LATE-GAME-ECONOMY-PLAN.md` for the ceiling.
 
 **Art 1 -- the two empty animation rows.** No design in it, and it is first
 because it is free and because both are live silent failures on the published
@@ -2009,9 +2565,9 @@ guaranteed legendary.
 Section 14 says what to add and what it is worth; this is who makes it. In the
 order 4.3 gives:
 
-* **Effects** -- the buy button back, and an epic and a legendary authored so
-  the price band is complete. Smallest job on the list, and it closes the
-  live gap where seven authored effects are obtainable by no route at all.
+* **Standalone piggy effects — cancelled by the user September 16.** Do not
+  restore the shop or add purchasable auras. Retain coin-deposit feedback
+  and effects belonging to Legendary skins only.
 * **Shop interiors. [DESIGN]** The four units got four silhouettes on the
   outside and kept one room shape on the inside -- the exact complaint that
   was fixed on the frontages, unfixed one wall behind them. Everything
@@ -2020,8 +2576,8 @@ order 4.3 gives:
   chase through a white window.
 * **Houses. [DESIGN]** Breadth at existing prices, never a tier above the
   top: the Sky Castle is 80M against a hard ceiling of 96.9M, and
-  `auditEconomy` refuses anything above it. Interiors are the bigger item and
-  the one to build first.
+  `auditEconomy` refuses anything above it. September 16 priority is exterior
+  catalogue expansion; interiors are deferred.
 * **Fences. [DESIGN]** STYLES, not tiers: the panel changes and the height,
   the hazard and the climb never do. `Config.fenceMesh` already falls back per
   style to the primitive decorator, so these land one at a time.
@@ -2258,6 +2814,26 @@ silently refunds the sack's top rung.
   at nine-year-olds is a decision, and it is made here.
 * **A raised-arm riding stance.** The hand ends up in the player's own hair,
   which is a stud wide on some avatars and a different stud on every one.
+
+**Rejected September 16, from the acorn re-centring (section 19):**
+
+* **A permanent day/night cycle.** Would re-tune every lighting, neon and
+  readability decision made against one sun, and a cycle that opens acorn
+  theft half the time does not make it rare. A bounded lighting tween inside
+  an event gets the fantasy without the cost.
+* **Always-available acorn theft** (tree shakes and storage raids on every
+  lawn at every moment). It made a second everyday robbery beside the pig
+  and diluted the title verb. Theft lives inside Harvest Moon only.
+* **Storage raids** in any form. Banked acorns are the timer currency's
+  bank; the pig is the one wallet a thief opens.
+* **Crates priced in coins, denominated in seconds of income.** Legal once
+  the pack is gone and it keeps a crate a constant time-cost at every level
+  -- and it is a price that moves, which a child cannot read off a card.
+* **The coin pack** (section 15). Never shipped, blocked by its own audit,
+  argued against in its own section. Dropping it is what let crates stay in
+  acorns without inventing anything.
+* **Acorns paid for robbing a resident or a shop.** The pig-crack acorn is
+  the reason to rob a person; the tree is the solo faucet.
 
 ## D. Measurements recorded only in the retired documents
 

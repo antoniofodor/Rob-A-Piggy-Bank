@@ -1,5 +1,13 @@
 # Rob a Piggy Bank — the whole game
 
+
+> **September 16 direction:** standalone piggy auras and their shop are retired.
+> Piggy effects are coin-deposit feedback and Legendary skin visuals only.
+> Existing effect ownership is retained for save compatibility; these items
+> cannot be bought, equipped or newly awarded. Piggy Outfitters drops skins
+> only at its unchanged 10% overall bonus chance. Older effects-shop notes
+> below are historical and must not be used to restore the feature.
+
 **This is the source of truth for WHAT the game is. `CLAUDE.md` is the source of
 truth for WHY it is that way.** They are different documents on purpose and
 neither replaces the other:
@@ -140,7 +148,7 @@ crates and set items. Neither currency is currently sold for Robux.
 
 | | Field | Earned by | Buys | Purchasable with Robux? |
 |---|---|---|---|---|
-| **Coins** | `data.coins` — the piggy bank, all of it stealable | idle accrual (stops at capacity), delivering a robbery (**counts double**, triple on revenge), dailies, events, **selling a chest-duplicate spare** (`Config.SELL`, below) | upgrades, effects, houses, decorations, rides, consumables, **trophy plinths** (§9); crates use Acorns | No current product |
+| **Coins** | `data.coins` — the piggy bank, all of it stealable | idle accrual (stops at capacity), delivering a robbery (**counts double**, triple on revenge), dailies, events, **selling a chest-duplicate spare** (`Config.SELL`, below) | upgrades, houses, decorations, rides, consumables, **trophy plinths** (§9); crates use Acorns | No current product |
 | **Acorns** | `data.loot` (unchanged save field) | approved full-legendary-collection rebirth bonus; tree growth/shakes remain Phase 2. Events and piggy deliveries pay none | set items and every crate in `Config.CHESTS`; the accessory roll is retired along with `ACCESSORIES` (§9) | **never, at any price** |
 
 **Medals and tokens are retired into loot.** `data.medals` and `data.tokens`
@@ -460,10 +468,16 @@ all existing currency totals. Historical `totalStolen` cannot reconstruct a
 robbery count. Reconciliation keeps finite nonnegative whole numbers, and
 rebirth preserves the count alongside seasonal `claims`. Existing autosave
 and final release persist it; no new per-delivery DataStore write is added.
-Master-plan 1.10 is implemented, including the 4.1 delivery increment early;
-rank thresholds and plot-sign stars remain future work. Isolated tests cover
-real load/save/release/rejoin using a copying store double, plus actual theft
-and rebirth paths. Live DataStore persistence remains unverified.
+`Config.RAP_SHEET_RANK` defines ranks 0–4 at 0/25/100/400/1,600 deliveries.
+`getRapSheetRank` derives the rank from this count; no second counter is saved.
+Residential signs show one earned star per rank, or ROBBER RANK 0. The server
+publishes `RobberyRank` on the plot, loads it through CosmeticsService on join,
+refreshes it after coin/Acorn getaways, and clears it on release. The name,
+rank and existing boasts have separate rows; shops/residents show no rank.
+Phase 4.1's isolated renderer check verifies one star at 99 and two at 100;
+settlement tests cover coin, Acorn and skin-only threshold crossings. Native
+Studio rank-zero loading and text bounds pass; final visual review remains open.
+Save/rejoin and rebirth checks use isolated data; live persistence is unverified.
 
 ### Acorn and random-outcome boot audits
 
@@ -532,13 +546,17 @@ and `Config.SELL` (spare sale value).
 
 ### The ladder
 
-Income and capacity are each a purchasable level. Both run on **two bands**:
+Income and capacity are each a purchasable level. Both run on **three bands**:
 
 - **Levels 1–20** keep the original growth untouched — that curve was never the
   problem.
 - **Levels 21–40** are gentler on both sides, because one curve extended to 40
   fails in both directions (too-fast income trivialises the game; too-fast cost
   means nobody buys the top).
+- **Levels 41–60** (`BAND_TOP_2`, `CAPACITY_GROWTH_C` 1.136, `INCOME_GROWTH_C`
+  1.10, band-B cost growth) exist so a 1B house fits a pig: the top pig is
+  ~1.24B and 1B sits at 80% of it. Nothing below level 40 changed. Derivation
+  and pacing in `docs/LATE-GAME-ECONOMY-PLAN.md`; pinned by `tests/luau/ladder.luau`.
 
 `Config.banded()` writes both as *"band A to the top, then band B beyond"*
 rather than branching between two formulas, so the seam is exactly one band-B
@@ -571,10 +589,13 @@ locked one, a button that never lights. `Main` runs it once at startup and
 warns (never throws) once per problem, in Studio as well as live; it currently
 returns none. It caught the Sky Castle: `Config.HOUSE_TIERS`' top tier was
 repriced **100,000,000 → 80,000,000**, because the largest pig the game can
-produce is 96.9M and the old price was not slow, it was impossible.
+produce is 96.9M and the old price was not slow, it was impossible. Since
+schema 26 it also refuses a house row with no `id`, a duplicated `id`, or a
+`Config.HOUSE_LEGACY_ORDER` entry missing from the live catalogue — the
+migration list and the catalogue must never disagree about which ids exist.
 
 **Read the ceiling through `Config.maxLevel(rebirths)`, never from a constant.**
-It is `20 + 2 per rebirth`, capped at 40. `EconomyService` pushes its answer as
+It is `20 + 2 per rebirth`, capped at `ABSOLUTE_MAX_LEVEL` (60, reached at rebirth 20 — `Config.rebirthsToMax()`). `EconomyService` pushes its answer as
 `maxIncome`/`maxCapacity` and the client draws the ladder from those, so both
 ends agree by construction.
 
@@ -593,6 +614,9 @@ skins, effects, houses, decorations, accessories, gear, rides, loot and bones.
   against the real ladder and gate functions — no robbing, no offline accrual,
   no dailies — a pure idler now reaches rebirth 10 / level 40 in about **1.4
   days** of continuous play, roughly 17 days at two hours a day.
+- **The income factor is `Config.rebirthIncomeFactor`**: +0.12 per rebirth through
+  rebirth 10 and +0.08 beyond (`REBIRTH_MULTIPLIER_TAPER`), so the top of the game is
+  3.0× rather than 3.4×. The rebirth page and toast read `rebirthBonusPercent`.
 - **Every rebirth opens a standard free Legendary Crate**, through
   `ChestService.grantFree` and `Config.REBIRTH_CRATE`. Its ordinary rare/legendary
   odds apply, and an owned result pays a spare. It does not select the next
@@ -779,13 +803,13 @@ vault is a resource exactly like a house resident — no loss cap, no revenge
 marker, no board — but the crack, the getaway and the rap sheet are
 identical, and a delivery against one still counts toward Most Wanted (§7).
 
-**A completed crack on a shop vault has a one-in-five chance of also handing
-over an item off that shop's own shelves** (`Config.SHOP_VAULT_DROP`) — per
+**A completed crack on a shop vault can hand over an item off that shop's own
+shelves** (`Config.SHOP_VAULT_DROP`) — per
 *completed* run, never per slice, so bailing early is never rewarded with
 one, and **never on a smash** (above) — a smash's cycle is a fraction of a
 crack's, and rolling it there would make smashing the cheapest drop farm in
 the game. PIGGY OUTFITTERS, HOME & GARDEN and WHEELS & KIT drop an unowned
-skin/effect/accessory, decoration or ride respectively, through
+skin/effect, decoration or ride respectively, through
 `SetService.grant`, weighted on `Config.RARITIES`. LOCK & KEY sells upgrade
 *levels*, which cannot drop, so it drops a **consumable** instead — bones and
 gadgets weighted by the inverse of what they cost, so the plunger and the dog
@@ -793,6 +817,40 @@ bone turn up often and the Golden Bone is a rare prize rather than a faucet.
 `HeistService.registerStockPusher` is a registry `Main` fills with
 `BoneService.push`/`GadgetService.push`, so a dropped consumable reaches the
 hot bar the same push cycle it lands in.
+
+The per-shop chances are **10% Piggy Outfitters, 8% Home & Garden, 3% Wheels
+& Kit, and 20% Lock & Key**. Wheels & Kit also requires robbery rank 2
+(100 completed deliveries). `rollShopDrop` reads the saved count on the server
+and silently refuses ineligible thieves before any random roll or payout,
+including duplicate resale. Unknown shop keys and missing player data refuse
+without awarding anything. `auditSkinSteal` checks that player skin theft is
+more likely than the largest shop drop chance. A new `shopdrops` suite runs
+the real reward function with isolated service doubles, including rank gates,
+all four rates, carried rewards, resale, and stock notifications.
+
+**The crack panel shows the actual bonus odds.** `CrackState.loot` describes
+the current target: overall item chance for shops, plus Common/Rare/Epic/
+Legendary percentages *conditional on an item dropping*. Rank-locked Wheels
+& Kit shows 0% and its unlock requirement. Eligible player skins show 100%
+on clean completion; ineligible/owned/capped/in-transit skins show 0% and a
+reason. Resident piggies are coins-only. Player previews and theft share
+`skinLootChoice`; `Config.shopLootOdds` supplies both shop displays and rolls.
+Ownership changes the unowned pool and thus its rarity percentages.
+
+The designer approved Volt Scrambler as Legendary. With all five shop rides
+unowned, conditional tiers are 76.63% Common, 16.09% Rare, 5.75% Epic and
+1.53% Legendary; the overall ride-drop chance remains 3%. The event-only
+Hoverdisc stays out of this pool.
+
+**Discovery uses a compact reel while the player can keep moving.** The
+server sends `RobberyLoot` only after committing the selected reward or carry
+entry. Its pool and winner drive real shop-model previews, a decelerating
+2.5-second reel and a rarity-coloured result. Carried items say GET IT HOME;
+consumables/direct grants say ADDED TO YOUR INVENTORY; duplicate resale names
+the coin payout. This presentation grants nothing and has no full-screen
+input blocker. `RobberyLoot.luau` owns responsive placement, queued reveals
+and cleanup. Native phone preview fixtures are in `tests/studio` and screenshots
+in `assets/robbery-ui`; full multiplayer getaway verification remains open.
 
 **A drop that would repeat pays coins instead of nothing.** The three item
 tabs roll from an *unowned* pool first, so a drop is real progress for as
@@ -1527,7 +1585,7 @@ particular are pure prestige.
 |---|---|---|---|
 | **Skins** | `SKINS` | **crates**, including a free Legendary Crate on rebirth — a priced skin refuses a coin purchase outright, below | Animated skins are driven **on the client** from a `SkinKey` attribute. 45 skins, all carrying an explicit `rarity` of `common`/`rare`/`legendary` (§3) — 40 also carry a `chest` tag (31 `og`, 9 `animal`); the other 5 are the free default `classic`, Solid Gold, the two pass skins and the alien set's `martian` — none carries a `chest` tag, and `martian` instead reaches the Alien Cache through `set = "alien"` (§8) |
 | **Effects** | `EFFECTS` | coins — **deliberately not moving to a chest** | Shop tiles *simulate* the real particle numbers — a ViewportFrame renders BaseParts and nothing else. The 5 priced tiers (15K–600K) land 3 commons and 2 rares on `Config.RARITY_BANDS` with no epic or legendary, so a chest would have no top end |
-| **Houses** | `HOUSE_TIERS` | coins | Bought as a ladder (`houseLevel`), worn as a shelf (`houseShown`) — move back into any tier free, forever |
+| **Houses** | `HOUSE_TIERS` | coins | A shelf, not a ladder: `CosmeticsService.buyHouse` will sell *any* unowned tier once its price fits the pig — no "buy the cheaper one first" rule. Each row carries a stable `id` (ownership key, saved in `data.houses.owned`) separate from its `style` (builder key); worn tier is `data.houses.shown`. Move back into any owned tier free, forever |
 | **Decorations** | `DECOR_ITEMS` | coins, except four **trophies** — earned only, below | Auto-placed into slots; **slots are scarcer than items** on purpose — the four trophies make that literal, since a trophy on display costs a slot an ornament was using |
 | **Border plants** | `BORDER_PLANTS` | coins | Along the fence line (not a lawn slot — a run of plants down each stretch of fence). Height is clamped to the fence's own visible top (`Config.borderHeight`), below |
 | **Garden paths** | `GARDEN_PATHS` | coins | Gate to piggy, laid flat on the lawn. No fence needed — the one garden item a bare plot can carry |
@@ -2428,6 +2486,19 @@ skin, coins, Acorns and spares are preserved; `sinceLegendary` is removed.
 The historical thresholds live only in the migration. `auditEconomy` reports
 any surviving `unlockRebirths` field anywhere in Config.
 
+**Schema 26** moves houses from a ladder to a shelf keyed by stable id.
+`data.houses = { owned = { [id] = true }, shown = id }` replaces the old
+`houseLevel`/`houseShown` pair (catalogue positions, which shifted whenever a
+tier was inserted). `Config.HOUSE_LEGACY_ORDER` is the frozen nine-id list
+(`shack` … `skycastle`) used **only** by this migration: `reconcile` reads a
+pre-26 save's numeric `houseLevel`/`houseShown` through it once, grants
+`owned` up to that position and sets `shown` to the id at `houseShown`, then
+deletes both old fields — derive-only, it never grants a house nobody had
+already bought. On every save, old and new alike, `reconcile` also prunes
+`owned` against unknown ids, forces `owned.shack = true` (the free starter
+tier every player owns), and rewrites `shown` through
+`Config.getShownHouse` in case the worn id no longer resolves.
+
 **Seasonal buy-back claims** add `claims: { [skinKey]: seasonIndex }` with an
 empty default and generic reconciliation; no schema bump or currency grant.
 Load-time validation removes expired, future, malformed and ineligible keys.
@@ -3185,14 +3256,14 @@ already shipped. Corrected below.
   standing in for one, for the usual reason — nothing about the catch itself
   differs between the two, since `HeistService.shopkeeperCatch` calls the
   same `nab`/`scare` a real dog does.
-- **The shop-vault drop's owned-item fallback (§5) is arithmetic-verified and
-  has never actually fired.** `Config.sellValue` returns the right coin
+- **The shop-vault drop's owned-item fallback (§5) is isolated-test verified;
+  live gameplay verification remains open.** `Config.sellValue` returns the right coin
   figure for a duplicate off each of the three item tabs (2.0K for
   `skin:bubblegum`, 50.0K for `skin:lava`, 22.5K for `ride:bmx`), so the
-  numbers `rollShopDrop` would pay are known to be right. No drop has been
-  observed actually landing on that branch, because it needs a *completed*
-  crack (a 20% roll) on a shop tab a thief has already emptied — a state
-  nobody has driven a session far enough to reach.
+  numbers `rollShopDrop` would pay are known to be right. The real fallback
+  function now also passes an isolated ride-collection payout/save/toast test.
+  Observing it in normal play requires a completed crack, a successful
+  per-shop roll, and a fully owned shop collection.
 - **The spree (§5, §7) is verified as a state machine and never as a real
   delivery.** Driven directly against `SocialService` rather than through a
   robbery: the ladder climbs one step per call and clamps at

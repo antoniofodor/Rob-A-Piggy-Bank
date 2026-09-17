@@ -435,6 +435,87 @@ described a journey nobody could take. If 17 days is too quick the lever is
 `REBIRTH_MULTIPLIER` or the ceiling fractions, and it is now a lever that can
 be pulled without reintroducing a wall.
 
+**THE LADDER GREW A THIRD BAND TO REACH A BILLION, AND NOTHING BELOW LEVEL
+40 MOVED TO MAKE ROOM FOR IT.** The catalogue was asked to run to a 1B house
+against a largest pig of 96,904,045. The obvious lever -- steepen band B so
+level 40 holds 1.25B -- was measured and refused: it balloons the fill time
+at the ceiling to 43 minutes against 12.6, compresses the whole 1B climb into
+today's seventeen days, and rewrites the capacity and income of every
+existing level-21-40 save. So `Config.BAND_TOP_2` is 40 and band C runs 41-60
+at `CAPACITY_GROWTH_C` 1.136 and `INCOME_GROWTH_C` 1.10, two levels per
+rebirth to rebirth 20, and `banded()` gained a third clause rather than a
+branch -- level 41 is exactly level 40 times one band-C multiplier. **Every
+value for level <= 40 and rebirth <= 10 is byte-identical to the day
+before**, which is asserted by `tests/luau/ladder.luau` against the numbers
+dumped from the live file, and is the whole reason there is no value
+migration.
+
+**BOTH GROWTH NUMBERS ARE DERIVED.** 1.136 is `(1.25e9 / 96,904,045)^(1/20)`:
+twenty rungs that land the top pig at 1,241,390,843, so a 1B house sits at
+80% of it -- the same headroom the Sky Castle keeps at 83%. 1.10 is what
+holds the fill time at every reachable ceiling inside 10-18 minutes against a
+rebirth multiplier that keeps climbing; the 1.033-per-level gap between
+capacity and income growth is what stops the top of the game accelerating.
+The band-C cost growths are band B's, because the affordability clamp binds
+on every rung from 40 to 60 (cost/pig reads 0.80 and 0.55 throughout,
+asserted), so the curve only has to keep outrunning the pig.
+
+**AND THE REBIRTH MULTIPLIER TAPERS PAST TEN, WHICH IS THE ONE PLACE THIS
+COULD HAVE PRINTED A LIE.** Linear at 0.12 to rebirth 20 the top reaches
+3.4x; `REBIRTH_MULTIPLIER_TAPER` holds 0.12 through rebirth 10 and 0.08
+beyond, landing at 3.0x and a 17.6-minute fill at level 60 -- the designer's
+choice, three days slower for a regular player. Rebirths 0-10 are untouched.
+Three sites multiplied the constant by hand -- `getIncomeRate`, the rebirth
+page's income tile and the rebirth toast -- and all three would have promised
++12% at rebirth 11 while the server paid +8%. They read
+`Config.rebirthIncomeFactor` and `rebirthBonusPercent` now.
+
+**AND THE HOUSES BECAME A SHELF KEYED BY ID, WHICH TOOK THE LADDER OUT OF
+THE SAVE AS WELL AS OUT OF THE SHOP.** `houseLevel` and `houseShown` were
+two 0-based indices into `HOUSE_TIERS`, so ownership was "every row below
+the top one" and the catalogue's ORDER was load-bearing: inserting a house
+mid-table would have handed every existing save a different building.
+Schema 26 gives every row a stable `id`, stores `data.houses = { owned =
+{ [id] = true }, shown = id }`, and reads the two old numbers exactly once
+in `DataService.reconcile` against `Config.HOUSE_LEGACY_ORDER` -- the nine
+ids in the order the ladder counted them, FROZEN -- before deleting them.
+**Derive-only:** `owned` is the rungs the old level said were bought and
+never one more; the matrix in `tests/luau/houses.luau` runs every level and
+shown pair twice and asserts the exact set.
+
+**`id` IS OWNERSHIP AND `style` IS THE BUILDER, AND THEY ARE TWO FIELDS SO A
+HOUSE CAN BE RE-THEMED WITHOUT ANYBODY LOSING IT.** The tier brief in
+`docs/HOUSE-TIER-BRIEF.md` re-draws the existing nine as fantasy houses one
+at a time; a re-theme changes what a row builds and must not change what a
+save owns.
+
+**THE SEAM THE GREP MISSED WAS THE ONE THAT HAD ALREADY BEEN RENAMED.**
+Every reader of `houseLevel`, `houseShown`, `getShownHouseLevel` and
+`MAX_HOUSE_LEVEL` was found by grepping the literals -- and `applyToPlot`
+went on calling `Config.getHouseTier(shown)` with a `shown` that the line
+above had just turned from a number into a tier, throwing on the first
+join. Nothing named in the grep list was on that line. **A CONVERSION IS
+FINISHED WHEN THE SERVER BOOTS, NOT WHEN THE GREP IS EMPTY**, which is why
+the 4b.1 entry above recording "not done: a Studio Play" was the wrong
+place to stop.
+
+**THE TWO AUDITS CARRIED PINNED SWEEP BOUNDS, 10 AND 12, AND BOTH WOULD HAVE
+GONE QUIET AT EXACTLY THE GATES THIS ADDED.** `auditEconomy` swept rebirth
+gates to 12 and `auditRobbery` to 10 -- right for a ceiling of 40, and the
+day the ceiling moved they would have audited a fifth of the new ladder and
+reported clean. `Config.rebirthsToMax()` derives the bound from the ceiling
+and the levels per rebirth. Same family as the audit that hardcoded
+`PLOT_COUNT - 1` residents and could not see the full-server collapse.
+
+**WHAT IT COSTS, MEASURED (`tests/sim/late-game/`):** a regular player at an
+hour a day owns the 1B house on day 57.7 against the Sky Castle on 21.7; an
+active player at two hours on day 20.8; nothing anybody experiences before
+day 20 moves. A house still costs one pig-fill once it fits -- 9.6 to 14.4
+minutes of idle income at every price from 35K to 1B -- because the wallet is
+bounded, so **the ladder is the pacing and the price never is.** Anything
+that wants a house to feel earned has to lengthen the climb to where it
+fits, not make the number larger.
+
 **A PRICE ABOVE THE LARGEST POSSIBLE PIG IS NOT PACING, IT IS AN IMPOSSIBLE
 PURCHASE, and `Config.auditEconomy` says so at startup.** The two trees hold
 by construction; the CATALOGUES do not and should not -- a house price is a

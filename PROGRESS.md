@@ -1,6 +1,343 @@
 # Session handoff — 2026-09-16
 
-## Resume here — September 16 checkpoint
+## Working agreement — GPT visuals, Fable scripting/planning
+
+User explicitly assigned GPT physical/visual design, UI and buttons, and
+Fable scripting and planning. See `docs/DESIGN-SCRIPTING-HANDOFF.md` for the
+ownership/handoff workflow. GPT should deliver assets/specs and visual QA;
+Fable owns runtime Luau, UI wiring, economy, migrations and functional tests.
+Do not silently resume GPT gameplay scripting under the older master-plan
+execution requests. Fable's new `docs/LATE-GAME-ECONOMY-PLAN.md` §11 records
+the latest choices (individual houses, schema 26 stable IDs, accepted pace,
+Option A2 beyond RB10). Its earlier unresolved recommendations are historical.
+
+## Checkpoint — September 16, committed and pushed
+
+**State:** 4b.1 (level-60 ladder, A2 taper), 4b.2 (houses by stable id,
+schema 26), 1.11 (pig-crack acorn) and 2.6 (storage is a bank, acorn theft
+only under a moon event) are implemented. All 23 isolated suites pass
+(`python tests/run-crates.py --luau <luau> --suite <name>`, including the
+new `ladder` and `houses`); Rojo builds.
+
+**Designer direction for the next step:** the house exterior renders will be
+generated later. Do not wait on them. **Add the revision-2 catalogue to the
+game now with empty placeholder models** — the eighteen ids, names, prices
+and rarities from `docs/HOUSE-TIER-BRIEF.md` §1 (the three re-themes rename
+`villa`, `modern`, `palace` in place; `goldenpig` is earned, not priced), each
+standing as a plain, clearly-temporary block sized to its brief height, so
+buying, moving in, the catalogue cards and the sign all work end to end.
+Then move on to the house INSIDES (trophy rooms, `HOUSE-TROPHY-ROOMS.md`,
+brief B2 — GPT's blockouts are in `assets/design/phase-4b/rooms/`).
+
+**Still open for the designer:** the three re-themes (owners wake up in the
+new house); Golden Piggy as the earned completion house; player robbery
+cooldown 60 s → 180 s (4c.5); order of 4c.6 (delivery capped at the pig).
+
+**Known design flag (from 2.6):** the re-derived acorn faucet is 1.0/hour
+solo — a common crate every 5 hours — slower than §19.5 estimated. Levers:
+the tree ladder (2.7) and the crate prices.
+
+**Not verified live:** a two-player session (Phase 0.2) is still owed; the
+house purchase path is proven at service level, not through the remote.
+
+## Fable handoff — economy and acorn re-centring (September 16)
+
+Planning only; no runtime Config, service or client code changed. Three
+documents carry it:
+
+- `docs/LATE-GAME-ECONOMY-PLAN.md` — audit of the live formulas (regenerable
+  via `tests/sim/late-game/`), the chosen late-game ladder (band C to L60 /
+  RB20, top pig 1.241B, rebirth multiplier 0.12 to RB10 then 0.08),
+  archetype pacing (regular player: 1B house ~week 8), individual house
+  ownership by stable id, schema-26 migration that deletes
+  `houseLevel`/`houseShown`, and §11 (trophy rooms + seasons as the loop
+  after the catalogue; a voluntary Legacy reset).
+- `docs/MASTER-PLAN.md` §19 — the acorn loop re-centred on the pig: coin
+  pack dropped; one acorn minted per clean five-slice crack on a player's
+  pig; banked acorns never stealable; acorn theft only inside a new
+  **Harvest Moon** event (bounded lighting tween, no day/night cycle); a
+  coin-priced tree ladder and rebirth online-growth bonus. Banners on §3-6,
+  13, 14.2, 15, 16 and Phases 2/3/6; six new Part III C rejections. New
+  execution steps 1.11, 2.6, 2.7, 6.4 and **Phase 4b** (ladder, house ids,
+  catalogue UI, rooms, Legacy).
+- `docs/BRIEFS-FOR-GPT.md` — step-1 briefs. **GPT needed now:** B1 house
+  catalogue UI, B2 trophy-room templates (named mount points), B3 exterior
+  constraints. **Later:** B4 Harvest Moon look, B5 tree levels, B6 Legacy.
+- `docs/HOUSE-TIER-BRIEF.md` — the full eighteen-house tier list for GPT:
+  nine new **fantasy** houses (toadstool, treehouse, slime, gingerbread,
+  crystal spire, beached galleon, dragon's roost, sky islands, golden piggy)
+  with stable ids, silhouettes, FX, room families and the yard constraints;
+  the nine existing houses keep id/price with an optional later re-theme.
+  Supersedes the realistic concepts in `HOUSE-CATALOGUE-PLAN.md`.
+
+Fable can start 4b.1 (ladder, Config only), 4b.2 (house ids + migration),
+1.11 (pig-crack acorn) and 2.6 (retire raids) with no visual dependency; 4b.3
+waits on B1. Open decision for the user: do skins and rides survive a Legacy
+reset (recommended yes).
+
+## Fable — Phase 4b.1 implemented: the late-game ladder (September 16)
+
+Config only, plus two readers. `ABSOLUTE_MAX_LEVEL` 40 → 60 with a third
+growth band (`BAND_TOP_2` 40, `CAPACITY_GROWTH_C` 1.136, `INCOME_GROWTH_C`
+1.10, band-B cost growth); `maxLevel` unchanged in form, so rebirth 20 opens
+level 60; rebirth multiplier tapers to 0.08 past rebirth 10
+(`REBIRTH_MULTIPLIER_TAPER`, read through `Config.rebirthIncomeFactor` /
+`rebirthBonusPercent` — `Rebirth.luau` and `ProgressionService` converted);
+both audits derive their rebirth sweep from `Config.rebirthsToMax()`.
+
+- **Every value for L ≤ 40 / RB ≤ 10 is unchanged** — pinned by the new
+  `tests/luau/ladder.luau` (121 checks; `--suite ladder`). Top pig is
+  1,241,390,843; a 1B house is 80.6% of it and passes `auditEconomy`.
+- All 21 existing suites pass unchanged; `rojo build` passes; `Config.luau`
+  executes fully under the Luau CLI (so no load-time throw).
+- `tests/sim/late-game/dump.py` now prints the tapered factor to RB22.
+- `CLAUDE.md` gained the band-C entry (derivations, the taper, the pinned
+  audit bounds); `docs/GAME.md` §4 says three bands and cites the taper.
+- **Not done:** a Studio Play to watch the boot log. Studio was left to
+  whoever holds the active Rojo session per `DESIGN-SCRIPTING-HANDOFF.md`.
+- Uncommitted. Next Fable step: 4b.2 (house ids + schema 26).
+
+## Fable — Phase 4b.2 implemented: houses by stable id, schema 26 (September 16)
+
+`Config.HOUSE_TIERS` rows carry `id` (shack, cottage, townhouse, villa,
+manor, modern, neontower, palace, skycastle); `style` stays the builder key.
+`data.houses = { owned = { [id] = true }, shown = id }` replaces
+`houseLevel`/`houseShown`, which `DataService.reconcile` reads once against
+the frozen `Config.HOUSE_LEGACY_ORDER` (derive-only, never grants) and
+deletes. Houses are a shelf: `CosmeticsService.buyHouse(player, id)` sells
+any unowned house whose price fits the pig (a "grow your pig" refusal above
+capacity, a coins refusal below), and moves into any owned one free. No
+"buy the X first" copy survives. Readers converted: Config (helpers
+`getHouseById`, `houseLevelOf`, `getShownHouse`, `legacyShownHouseLevel`;
+retired `getHouseUpgradeCost`, `MAX_HOUSE_LEVEL`, `getShownHouseLevel`),
+DataService, CosmeticsService (payload entries carry `id`; `houseShown` is
+an id; `houseLevel` gone), AdminService (`house` takes an id or a legacy
+number; `unlockall`, `reset`), EconomyService and ProgressionService sign
+lines, ClientMain's three house sites (cards keyed by `info.id`),
+`growth.luau` fixture. `auditEconomy` refuses a missing/duplicate id and a
+legacy id not in the catalogue. `SCHEMA_VERSION` 26.
+
+- `tests/luau/houses.luau` (`--suite houses`, 1,025 checks): the §8.2
+  matrix twice, prune/fallback, never-grants, and `buyHouse` through the
+  real service (outright purchase, free move-in, refusals never charge, a
+  numeric key is refused, rebirth keeps every house).
+- All 23 suites pass. Studio Play: clean boot, the schema-25 dev save
+  (level 8 / shown 8) came back owning nine and showing the Sky Castle on
+  the sign; one leftover reader (`applyToPlot`'s sign line) was caught by
+  that boot, not by grep, and fixed.
+- **Not verified live:** a purchase through the real `CosmeticRequest`
+  remote — the MCP sandbox cannot fire capability-gated remotes; covered by
+  the service-level test instead.
+- `docs/GAME.md` §9 and §13 updated (game-doc agent). Uncommitted.
+- Next: 1.11 (pig-crack acorn) and 2.6 (retire raids).
+
+## Fable — Step 1.11 implemented: the pig-crack acorn (September 16)
+
+`Config.ACORNS.payout.crack = 1` / `crackRevenge = 2`, read only through
+`Config.crackAcorns(clean, victimIsPlayer, revenge)`. `HeistService.endCrack`
+stamps `carry.clean` on "done"; `deliver` mints the acorns for the ORIGINAL
+grabber on a player victim (residents and shops pay none, a nabbed carry
+pays none, a partial crack pays none), pushes the plot's acorn count, names
+it in the delivery toast and in the `HeistDelivered` payload (`acorns`);
+`LootHaul` shows "+1 ACORN" on the summary card. `auditAcorns` gained
+`acorn.crack` (whole, ≥1, revenge ≥ plain) and `acorn.crackGate` (the three
+zero cases), and its legacy-faucet wording changed.
+
+- `tests/luau/theft.luau` +10 checks, `audits.luau` +5 provocations; all
+  affected suites pass.
+- Not re-derived yet: the acorn rate model printed at boot
+  (`Config.acornRates`) still describes the tree-and-raid faucet; 2.6 and
+  19.5 re-solve it.
+
+## Fable — Step 2.6 implemented: storage raids retired (September 16)
+
+Storage is a bank: `ShakeService.open` refuses "storage" for everyone by
+name; another occupant's tree is refused ("Only the Harvest Moon…") unless
+the new `theftOpen` hook is true, wired to `EventService.isAcornTheftOpen()`
+(true only while a roster row with `acornTheft = true` runs — none exists
+until 6.4, so theft is closed). `EventState` carries `acornTheft`; the client
+shake prompt on anybody else's tree is disabled unless it is set. Removed:
+the crate's raid prompt (J is free), `ACORNS.share/lossCap/lossWindow`,
+`resident.raidSeconds`, resident `raidReadyAt`, the raid-ready plot
+attribute, the `acornRaid` prompt kind and the loss ledger.
+`Config.acornRates` re-derived (own tree + pig-crack ceiling);
+`ACORN_AUDIT` is `activeHours/minPopulationRatio/maxCrackRatio`;
+`auditAcorns` gained `retiredRaid`, `crackCeiling` and dropped the loss-cap,
+passive and 3x active floors. Boot print changed.
+
+- `tests/luau/shake.luau` rewritten (raids inverted to named refusals, moon
+  simulated); `shakeui`, `residents`, `audits` updated;
+  `tests/studio/resident-acorns.luau` deleted (tested the retired
+  countdown). All 23 suites pass.
+- Studio Play: clean boot; zero raid prompts; own tree offered, nine
+  resident trees withheld; the new model line printed.
+- **Design flag:** the re-derived faucet is 1.0 acorn/hour solo (a common
+  crate every 5 h) and 3.0 full-server — slower than §19.5's estimate. See
+  the note added under MASTER-PLAN §19.5; the levers are 2.7 and crate prices.
+- `docs/GAME.md` update running via the game-doc agent. Uncommitted.
+
+## Fable — Phase 4c added: the robbery rework, and two rules verified (September 16)
+
+`MASTER-PLAN.md` Phase 4c: harder crack (measure first — the dial was frozen
+for the life of the feature), the panel redesign (B7), catching as beats
+(dog lunge, officer corner-cut, owner shove, resident shout), new gadgets
+(B8; candidates rule-checked, movement items refused). 4c.5 verifies the
+same-victim cooldown (60 s per thief per victim, plus the 45%/h loss cap;
+friend ping-pong is ~14x worse for the board than robbing residents) with an
+offered decision to raise the player cooldown to 180 s. 4c.6 records that
+**delivery is NOT capped at capacity today** — `deliver` overflows on purpose
+— and plans the reversal: bank `min(amount * payout, room)`, spill said out
+loud, every "worth at home" preview capped, one rule for dailies/events too.
+Briefs B7 and B8 appended to `docs/BRIEFS-FOR-GPT.md`. No code changed.
+
+## Fable — house catalogue revision 2 and houses-gate-trees (September 16)
+
+Planning only. `docs/HOUSE-TIER-BRIEF.md` is now revision 2: dragon → Portal
+House (300M), sky islands → Thundercloud Fortress (600M, storm grey-blue),
+golden piggy → **The Void (1B), the one black house**; Golden Piggy becomes
+an earned, unpriced completion house; re-themes Suburban Villa → Fairy
+Lantern Cottage, Midnight Modern → Fishbowl House, Marble Palace → Ice
+Palace (same ids, prices, owners — **pending designer confirmation**). New
+rules: a house never contains a creature; exactly one black house.
+`MASTER-PLAN.md` §19.4a: houses **gate and hold, never generate** — one tree
+per plot; tree levels unlocked by best-owned house rarity (C 1 / R 2 / E 3 /
+L 4); tree cap by house rarity (8/12/16/24), rate by tree level; reads the
+best house OWNED, not shown. Added to the 19.5 re-derivation list. GPT: use
+revision 2 for the exterior concepts.
+
+## Current task — higher-tier house exterior concepts
+
+Latest: user approved the shared themed trophy-room idea and requested a
+house-count/price plan extending to 1B. `docs/HOUSE-CATALOGUE-PLAN.md` proposes
+18 houses (nine existing prices preserved, nine additions). Assumes 1B is
+the highest single purchase; proposed total is 2,228,455,000 coins. Four
+houses exceed the current 96,904,045 capacity, so capacity progression or
+staged payments must be decided before adding those prices. No pricing,
+rarity, income, capacity or ownership changes were made to runtime Config.
+
+Follow-up direction: user likes enterable showcase rooms and wants earned
+achievements/trophies inside houses instead of in the yard. Proposed shared
+room system and theme mappings are in `docs/HOUSE-TROPHY-ROOMS.md`; existing
+TrophyService progress can be reused. No interior runtime changes yet.
+
+User deferred fence expansion and requested exterior catalogue mockups;
+interiors are a separate future proposal. Built-in image generation produced
+three sheets (each front and three-quarter views): Emerald Chateau, Sunset
+Sky Villa and Royal Observatory. Files, notes and exact prompts are saved in
+`assets/houses/concepts/2026-09-16/`. These are proposals only: no house models,
+prices or progression changes were implemented. MASTER-PLAN priority updated.
+Existing houses use saved numeric levels, so future expansion must preserve
+ownership instead of inserting/reordering the ladder without migration.
+
+## Current direction — standalone piggy effects retired (September 16)
+
+**The user explicitly rejected restoring the effects shop:** effects on a
+piggy should only be coin-deposit feedback and Legendary skin visuals.
+This supersedes the old Phase 4.3 / Art 11 brief. Do not ask to restore the
+shelf again. Aurora, Starfall and the attempted shop UI have been removed.
+
+- Retired direct coin/Acorn purchases, equip requests (except clearing None),
+  event/pass grants and shop robbery drops for standalone piggy effects.
+- Piggy Outfitters now drops skins only; overall 10% chance stays unchanged.
+- The renderer disables the separate aura/light without touching coin or
+  Legendary skin emitters. Non-Legendary skins cannot opt into skin auras.
+- Legacy ownership and particle definitions remain for save compatibility.
+  No player balance/ownership migration or deletion was performed.
+- MASTER-PLAN Phase 4.3 now starts with yard/fence styles, then interiors;
+  the proposed effects design file was removed. Those next shelves still
+  need their design brief. Phase 0 and previous live gameplay checks remain
+  deferred. Changes are uncommitted.
+- Validation: 1,479 isolated checks pass across 21 suites (224 audit checks).
+  All production scripts compile; final Rojo build and diff check pass.
+  Native phone Play verified the effects tab/shortcut are absent, no Aura
+  emitter is enabled, and Drip/Burst/SkinAura instances remain. No new runtime
+  errors; existing unset-pass/MaxPlayers warnings persist. Studio returned
+  to Edit. This does not close the pending multiplayer gameplay checks.
+
+## Resume here — Robbery odds and discovery reel (September 16)
+
+The user requested visible robbery loot odds and a dramatic item reel, then
+approved **a compact non-blocking reveal on discovery** and **making Volt
+Scrambler Legendary** so the shop can actually award a Legendary ride.
+
+- `CrackState.loot` now contains the authoritative bonus-item odds. Shops
+  show the overall clean-crack item chance and conditional rarity chances;
+  locked Wheels & Kit shows 0% and rank 2 / 100 completed robberies. Eligible
+  player skins show 100%; owned/protected/capped/in-transit skins show 0%
+  with a reason. Resident piggies explicitly show 0%, coins only.
+- `Config.shopLootOdds` builds the same eligible weighted pool used for the
+  actual roll, displayed rarity odds and discovery reel. Unowned items are
+  preferred; a completed collection uses the existing coin resale fallback.
+  Event/pass-exclusive items stay excluded. The overall shop rates are unchanged.
+- Fresh ride collection, conditional on a 3% drop: Common 76.63%, Rare 16.09%,
+  Epic 5.75%, Legendary 1.53%. These change with ownership. Volt Scrambler now
+  has explicit Legendary rarity; Hoverdisc stays event-exclusive.
+- `RobberyLoot` draws a 2.5-second compact reel with real item model previews,
+  server-selected winner, rarity colour/pulse, and carried/owned/resale status.
+  No full-screen shade, input-blocking frame or client-side award. It queues
+  discoveries and cleans up cards/models/listeners. Rotation updates the layout.
+- Player skin preview and actual theft share eligibility logic, preserving
+  recovery priorities, insurance and cap rules. Tests cover those conditions.
+- **1,396 isolated checks across 21 suites pass.** Native phone fixtures
+  verified readable odds text, exact Legendary winner, non-active reveal
+  frame, fitting labels and automatic cleanup. Images are in
+  `assets/robbery-ui/`. The fixture sends cosmetic packets only and changes
+  no balances, stock or owned items. Its temporary runtime script was removed.
+  This is component validation, not the still-pending multiplayer gameplay gate.
+- All 103 production scripts compile and match Studio after fixture removal;
+  the final Rojo build and whitespace checks pass. Studio remains in Edit
+  with Rojo connected. No place was published.
+
+The earlier rank/drop implementation and remaining plan work are below.
+
+## Windows Phase 4.2 update (September 16)
+
+The user explicitly approved implementing Phase 4.1 while keeping the older
+multiplayer/mobile checks pending, then requested the next step, Phase 4.2.
+Phase 0 is still deferred. The previous checkpoint below is historical.
+
+- **4.1 implemented:** ranks 0–4 at 0/25/100/400/1,600 lifetime robberies.
+  `Config.getRapSheetRank` derives rank from the existing saved counter.
+  Residential signs show earned stars in a separate row; rank zero is labelled.
+  CosmeticsService loads the rank on join; successful coin/Acorn getaways
+  refresh it immediately; release clears it. No additional saved counter.
+  Names/boasts retain their former dimensions; the board extends downward.
+- **4.2 implemented:** shop drop chances are piggy 10%, home 8%, gear 3%,
+  defend 20%. Gear requires rank 2 before rolling, including resale fallback.
+  Missing data/unknown shops refuse. `auditSkinSteal` compares against the
+  largest configured shop chance and rejects invalid probabilities.
+- Tests exercise 99→100 for coin, Acorn and skin-only getaways and exact
+  star counts. The real shop-drop function gives rank 1 no rides in 200
+  attempts, six eligible rides in 200 evenly spaced draws, and 317/10,000
+  (3.17%) in a seeded random run. Carry, duplicate resale, consumables and
+  audit checks use isolated data, never the user's saved balances.
+- The test runner now reads UTF-8 explicitly for Windows compatibility.
+  This machine's official Luau 0.738 tools are temporarily installed at
+  `%TEMP%/codex-luau-0.738/`; the helper is not a repository dependency.
+- Studio/Rojo reconnect verified all 102 sources against the Mac checkpoint.
+  Phase 4.1 boots successfully; its live rank-zero sign has fitting owner,
+  rank and boast text. Final visual review was stopped by the user with Escape.
+- Live phone hotbar checks passed reorder in both directions and cancel by
+  dropping outside the bar, with unchanged item stock. Original order was
+  restored. This is not a full touch/multiplayer/persistence review.
+- **4.2 verification:** all 45 new shop-drop checks, 133 theft checks and
+  185 audit checks pass. Both changed runtime scripts compile; Rojo builds
+  and `git diff --check` passes. Studio Config/HeistService source hashes
+  match disk; a fresh Play reaches Ready with no new feature errors.
+  Existing unset-pass, MaxPlayers and stale mane-size warnings remain.
+  Studio is left in Edit, connected through Rojo. No place was published.
+
+**Next:** Phase 4.3 starts with the effects coin shelf and has a design gate;
+read MASTER-PLAN §14, §18.2 and Art 11 before building new assets. Keep the
+Phase 3.3 multiplayer exits, 3.4 badge/recovery visual checks, remaining Acorn
+drag/getaway review, full mobile HUD review and rank-sign visual review open.
+Do not claim those gates passed. Phase 4.4 is still blocked on its prerequisites.
+
+This work is local and uncommitted. At the start of 4.2 the working tree also
+contained deletions under `assets/dogs/` from outside this task; they were not
+changed or restored as part of these rank/drop steps.
+
+## Earlier September 16 checkpoint
 
 This checkpoint is intended for `main` on
 `https://github.com/antoniofodor/Rob-A-Piggy-Bank`. The user requested that all
