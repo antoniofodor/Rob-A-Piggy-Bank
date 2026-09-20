@@ -112,14 +112,26 @@ local KEY_SLOTS: { { key: Enum.KeyCode, label: string } } = {
 HotBar.ITEMS = {
 	"bone", "steak", "golden",
 	"plunger", "gum", "zapper",
-	"treat", "sprinkler", "radio",
-	"raincoat",
-	"ladder",
+	-- This list is also the ALLOWLIST a saved arrangement is filtered against,
+	-- so a retired item drops out of a bar somebody had already arranged and
+	-- the rest of their order survives.
+	"treat", "radio",
+	-- "raincoat" and "ladder" were here; both are retired with the thief kit,
+	-- and dropping them is what strips them out of a saved arrangement.
 }
 
 -- Set by ClientMain. The bar knows how to lay itself out and nothing about
 -- whether the player is holding anything or standing inside a wheelie bin.
 HotBar.shouldShow = nil :: (() -> boolean)?
+
+-- WHAT THE SERVER SAYS IS IN THE PLAYER'S HAND, asked rather than kept, for
+-- the same reason `shouldShow` is a function: this file must not hold a second
+-- copy of a state the server owns and ClientMain already watches.
+--
+-- It exists so a press can tell a DRAW from a PUT-AWAY before the server has
+-- answered. Without it the bar names the item at the exact moment it leaves
+-- your hand, which is the opposite of what the hint is for.
+HotBar.heldKey = nil :: (() -> string?)?
 
 -- Fired whenever the ARRANGEMENT changes, which is the only thing that can
 -- move a key.
@@ -172,6 +184,16 @@ local restoreCount: TextLabel
 local hintLabel: TextLabel
 local hintKey: string? = nil
 local hintUntil = 0
+-- A FEW SECONDS AND THEN A FADE, rather than a blink off. The name is read by
+-- somebody who has just pressed a tile and is already looking at the world
+-- again, so it has to survive being glanced back at -- and a label that simply
+-- vanishes reads as a flicker rather than as something that was said.
+local HINT_HOLD = 2.6
+local HINT_FADE = 0.45
+local hintFadeUntil = 0
+-- The label's resting stroke, so the fade has somewhere to return to. Written
+-- once here rather than repeated at the three places that reset it.
+local HINT_STROKE = 0.25
 
 -- What the SERVER says is in this player's hand. Held so `refresh` can repaint
 -- after a tile is shown or hidden, and so nothing here has to ask the
@@ -333,12 +355,17 @@ function HotBar.layoutFor(view: Vector2, touch: boolean, count: number)
 	local compact = view.X < 1100 or view.Y < 620 or touch
 	local portrait = view.Y > view.X
 	local slot = if compact then 52 else SLOT
-	local room = math.max(164, view.X - (if compact and not portrait then 240 else 40))
+	-- A TABLET SCALES THE WHOLE BAR, the same test HUDLayout uses (touch, short
+	-- side over 500). Scaled rather than given bigger slots, so every tile's
+	-- inside -- icon, count, key chip -- grows with it instead of being
+	-- re-laid-out; `room` is divided by it so paging still fits the screen.
+	local barScale = if touch and math.min(view.X, view.Y) > 500 then 1.25 else 1
+	local room = math.max(164, view.X - (if compact and not portrait then 240 else 40)) / barScale
 	local allWidth = count * slot + math.max(0, count - 1) * GAP
 	local limit = if compact then 5 else math.max(1, count)
 	local paged = count > limit or allWidth > room
 	local capacity = if paged then math.clamp(math.floor((room - 96) / (slot + GAP)), 1, limit) else math.max(1, count)
-	return { slot = slot, capacity = capacity, bottom = if portrait then 270 else 22, room = room }
+	return { slot = slot, capacity = capacity, bottom = if portrait then 270 else 22, room = room, scale = barScale }
 end
 
 local function visibleItems(): { TextButton }
@@ -370,6 +397,14 @@ function HotBar.refresh()
 	if not show then
 		pageLabel.Visible = false
 		hintLabel.Visible = false
+		-- The bar going away takes its hint's clocks with it. Left running,
+		-- the fade would go on counting against a hidden label and put a
+		-- half-transparent name back the next time one was shown.
+		hintKey = nil
+		hintUntil = 0
+		hintFadeUntil = 0
+		hintLabel.TextTransparency = 0
+		hintLabel.TextStrokeTransparency = HINT_STROKE
 		return
 	end
 
@@ -401,9 +436,11 @@ function HotBar.refresh()
 		end
 	end
 	frame.Position = UDim2.new(0.5, 0, 1, -fit.bottom)
-	scale.Scale = 1
-	hintLabel.Position = UDim2.new(0.5, 0, 1, -fit.bottom - 65)
-	binZone.Position = UDim2.new(0.5, 0, 1, -fit.bottom - 60 - SHELF_MARGIN)
+	scale.Scale = fit.scale
+	-- Everything that sits ABOVE the bar is measured from its top, which moves
+	-- up with the scale.
+	hintLabel.Position = UDim2.new(0.5, 0, 1, -fit.bottom - 60 * fit.scale - 5)
+	binZone.Position = UDim2.new(0.5, 0, 1, -fit.bottom - 60 * fit.scale - SHELF_MARGIN)
 	pageLabel.Position = UDim2.new(0.5, 0, 1, -fit.bottom + 17)
 	pageLabel.Text = string.format("%d / %d", page, pages)
 	pageLabel.Visible = show and pages > 1
@@ -462,6 +499,10 @@ end
 -- InputObject.Position and AbsolutePosition share CoreUISafeInsets space.
 -- Convert only when placing a child under the ScreenGui, whose origin can
 -- be above the topbar (or shifted by a device cutout).
+local TouchOrigin = require(script.Parent.TouchOrigin)
+-- Touches that slid onto a tile rather than started on it; see `register`.
+local strayTouches: { [InputObject]: boolean } = {}
+
 local function pointer(input: InputObject): Vector2
 	return Vector2.new(input.Position.X, input.Position.Y)
 end
@@ -657,10 +698,26 @@ function HotBar.init(gui: ScreenGui): Frame
 	-- timed one is cleared here. Polled rather than task.delay'd so a second
 	-- press simply extends it instead of the first press's timer blanking a
 	-- name the player has only just been shown.
+	--
+	-- THE FADE IS DRIVEN HERE TOO rather than with a Tween, because this loop
+	-- already exists and a tween would need cancelling from the three places
+	-- that can interrupt it -- a second press, a hover, and the bar hiding.
+	-- An elapsed fraction cannot be left half-applied by any of them.
 	RunService.Heartbeat:Connect(function()
-		if hintUntil > 0 and os.clock() > hintUntil then
+		local now = os.clock()
+		if hintUntil > 0 and now > hintUntil then
 			hintUntil = 0
-			HotBar.hint(nil)
+			hintFadeUntil = now + HINT_FADE
+		end
+		if hintFadeUntil > 0 then
+			local left = hintFadeUntil - now
+			if left <= 0 then
+				HotBar.hint(nil)
+			else
+				local gone = 1 - left / HINT_FADE
+				hintLabel.TextTransparency = gone
+				hintLabel.TextStrokeTransparency = HINT_STROKE + gone * (1 - HINT_STROKE)
+			end
 		end
 	end)
 
@@ -850,6 +907,13 @@ function HotBar.init(gui: ScreenGui): Frame
 	end)
 
 	UserInputService.InputEnded:Connect(function(input)
+		-- The stray touch's lift: suppress the Activated it would fire on
+		-- whatever tile it ended over, exactly as a finished drag does.
+		if strayTouches[input] then
+			strayTouches[input] = nil
+			suppressUntil = os.clock() + 0.25
+			return
+		end
 		if drag.key == nil then
 			return
 		end
@@ -881,7 +945,13 @@ function HotBar.hint(key: string?, sticky: boolean?)
 	local slot = if key then slots[key] else nil
 	hintLabel.Text = if slot then slot.name else ""
 	hintLabel.Visible = slot ~= nil
-	hintUntil = if sticky then os.clock() + 1.6 else 0
+	-- ANY NEW HINT CANCELS A RUNNING FADE AND PUTS THE INK BACK. Without this
+	-- the second press of a key shows a half-faded name, because the label
+	-- keeps whatever transparency the last fade left on it.
+	hintFadeUntil = 0
+	hintLabel.TextTransparency = 0
+	hintLabel.TextStrokeTransparency = HINT_STROKE
+	hintUntil = if sticky then os.clock() + HINT_HOLD else 0
 end
 
 function HotBar.register(button: TextButton, key: string, base: number, name: string?)
@@ -924,6 +994,14 @@ function HotBar.register(button: TextButton, key: string, base: number, name: st
 			return
 		end
 		if drag.key then return end
+		-- A THUMB SLIDING OVER FROM THE STICK IS NOT A PRESS. On a phone a
+		-- finger already down elsewhere can arrive here and be handed to the
+		-- tile, and it used to start a drag and, on lifting, use the item.
+		-- Remembered, so its release is swallowed below as well.
+		if TouchOrigin.beganElsewhere(input, button) then
+			strayTouches[input] = true
+			return
+		end
 		suppressUntil = 0
 		drag.key = key
 		drag.input = input
@@ -941,14 +1019,36 @@ function HotBar.register(button: TextButton, key: string, base: number, name: st
 	-- separate concerns -- and this way the hint arrives for a TAP as well as
 	-- a keypress without four tile builders each remembering to ask for it.
 	button.Activated:Connect(function()
-		if not HotBar.suppress() then HotBar.hint(key, true) end
+		if HotBar.suppress() then
+			return
+		end
+		-- PUTTING IT AWAY SAYS NOTHING, and says it immediately. Pressing the
+		-- key of the item already in hand is a put-away, so the name goes at
+		-- once rather than being shown for two and a half seconds and then
+		-- faded -- a label naming something you have just stopped holding.
+		if HotBar.heldKey and HotBar.heldKey() == key then
+			HotBar.hint(nil)
+		else
+			HotBar.hint(key, true)
+		end
 	end)
 
 	button.MouseEnter:Connect(function()
 		HotBar.hint(key)
 	end)
 	button.MouseLeave:Connect(function()
-		if hintKey == key then
+		-- A TIMED HINT OUTLIVES THE POINTER, and not checking that is what made
+		-- a tap's name vanish the instant it appeared.
+		--
+		-- `Activated` and `MouseLeave` both fire on a release: on a touchscreen
+		-- every tap ends with the pointer leaving, and on a mouse the click
+		-- that fires this often re-renders the bar underneath the cursor. So
+		-- the use-hint set a moment earlier was cleared by the same gesture
+		-- that asked for it, every time.
+		--
+		-- Only a HOVER hint is the pointer's to take away; a hint on the clock
+		-- belongs to the clock.
+		if hintKey == key and hintUntil == 0 and hintFadeUntil == 0 then
 			HotBar.hint(nil)
 		end
 	end)

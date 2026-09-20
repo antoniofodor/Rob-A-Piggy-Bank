@@ -1,0 +1,84 @@
+{
+  "placeId": 135433647855162,
+  "uploadedAt": "2026-09-18",
+  "icons": {
+    "plunger": "rbxassetid://117055159290810",
+    "rides": "rbxassetid://77665616074176",
+    "style": "rbxassetid://123689883262147",
+    "coin-front": "rbxassetid://81713106992402",
+    "capacity": "rbxassetid://87288987634095",
+    "supplies": "rbxassetid://116095837417269",
+    "golden-bone": "rbxassetid://140048411631583",
+    "coin": "rbxassetid://114357581414744",
+    "income": "rbxassetid://84342101453188",
+    "crate-common": "rbxassetid://99509648335802",
+    "crate-legendary": "rbxassetid://95514707965117",
+    "crate-rare": "rbxassetid://136857209566701",
+    "upgrades": "rbxassetid://93469685522357",
+    "bubblegum-bomb": "rbxassetid://133065431028531",
+    "companions": "rbxassetid://99636931382659",
+    "home": "rbxassetid://132806124510472",
+    "locks": "rbxassetid://112442325562665",
+    "fences": "rbxassetid://90879713992858",
+    "lockpicks": "rbxassetid://77326087433511",
+    "sack": "rbxassetid://82505441855242",
+    "boots": "rbxassetid://114479671264679",
+    "tiptoe": "rbxassetid://70950783190764"
+  },
+  "sha256": {
+    "plunger": "cf76aa993ed5d9d4413e91ba5729178c7c4beee603f8c698f1874669f7afff79",
+    "rides": "cad8f5031a25da98ca686f7182ed40a825bc24317d664490cae0b3c4ab8f4906",
+    "style": "8ce58133f56793c02f9699b79c3c0d4d54a3cc3dc5296c53552d02384fd79a98",
+    "coin-front": "23702901002fb821d9a8a34e4a8346f4c841c62cf1718e0d0634bb4e0fc2bb6d",
+    "capacity": "6a9f954b59b17b2ec53d9d3e024bc4eb952274f33d516a0fc969aae5cca0ce23",
+    "supplies": "c02464464961f80a4cf78ee80e97f40b6d146c98c2047dbb92504048e0c0558d",
+    "golden-bone": "fc3452e3c969a96a4f07c116649dfcfad5128e1daf08e7f3ed4e735cf8a08876",
+    "coin": "fe7f32dde5cf53edf4eb134458013b3db74d2f091d3f24d6105d25639fdfe404",
+    "income": "78273daccae797e4afef702cb21be2dbe5a48ac930c393189a8512140a44a012",
+    "crate-common": "9aa9d3b1dc31edd446beea744865d018aac344a16908b5b28d1f9a6e6e35ff5e",
+    "crate-legendary": "59275ad7f4a86d9e74521707befdbf68c3f320c910c25f34513e064d0b96651e",
+    "crate-rare": "f65fe6abbfbb849c382af30756ec8f87c1b2710be07b73d800b9e363fe06c7cc",
+    "upgrades": "9354995f195d1654b4756cb536add0130cc892d15a85da60cd740104d16ac79b",
+    "bubblegum-bomb": "ac1e97cd234d4848c0da831a7bd71d1eeff11455f1ee0e29abe9cd56e550ad5a",
+    "companions": "064d18e9706941d757a4fbd15b152ba50c936a9a52c31c823e2d8314b749e747",
+    "home": "f40ab355f02b4048ec02231ef9900279d82b28772d6062b6c344c89dbcf62cf8",
+    "locks": "298f9db3de7fedf97ef7acdd8133eda2f48bb79d498e461572b2dd82739482e4",
+    "fences": "4738ebd853d09911a3daddf0ad95e91b9f887b287ff1fb6193851c30d650cf5d",
+    "lockpicks": "049707b7a34cef6b5eb0df74a3c2f232af6e2164e2d9cbb719c929d8c6426df4",
+    "sack": "8c6dbc392e34ceb375251d1713f64e59bf74bddb3808e0dd7710311048efa312",
+    "boots": "58ac30b6e7940e9e3adcd31c60ffb41f0050c2bcad0d9624e570b71bd7630532",
+    "tiptoe": "490d6e2ea38a31dc7b5b942e65e73b42ae045d9cc7fcbb44751aa63a7359ff57"
+  },
+  "replaced": [
+    {
+      "key": "coin-front",
+      "assetId": "rbxassetid://118318763589270",
+      "sha256": "657021cc81a783a2f9a59f45131bdf1f75351b4ac854daf6e2d5be3b9b7253da",
+      "reason": "Brighter yellow-gold HUD coin"
+    },
+    {
+      "key": "sack",
+      "assetId": "rbxassetid://87824857371781",
+      "sha256": "101e6edebbde0ba274a2e67b889f37a599988090488c587c118ec3eb0aa8f5f1",
+      "reason": "Removed overlapping coin stack beneath left coin"
+    },
+    {
+      "key": "tiptoe",
+      "assetId": "rbxassetid://100562851245005",
+      "sha256": "f98833f02d48cd5efa86ddb29067ac796cc57664476b2339def7a7b72a6ee138",
+      "reason": "Sneaking thief carrying piggy-snout robbery bag"
+    },
+    {
+      "key": "tiptoe",
+      "assetId": "rbxassetid://93503659777496",
+      "sha256": "46a1d7544f4b9180a76b6d2d57fca3fd4b6859bc18285f87c1e67f6108622e6d",
+      "reason": "Existing resident NPC with connected chain, snout medallion, and original hair cutout"
+    },
+    {
+      "key": "tiptoe",
+      "assetId": "rbxassetid://74448989130447",
+      "sha256": "0dbaf70197efdd5e5e4540de81d7a5f2253dd112b33986c53381e53e2f842bda",
+      "reason": "Fixed discontinuous necklace path at both shoulders; verified close-up renders and mesh spacing"
+    }
+  ]
+}

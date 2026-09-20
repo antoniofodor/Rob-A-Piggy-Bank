@@ -35,11 +35,29 @@ function RobberyLoot.describe(odds: any): (string, string)
 		for _, tier in ipairs(Config.RARITY_ORDER) do
 			table.insert(parts,Config.RARITIES[tier].label .. " " .. RobberyLoot.percent((odds.tiers or {})[tier] or 0))
 		end
-		return "ITEM " .. chance .. " · Finish every slice" .. (if odds.resale then " · Duplicate sells for coins" else ""),
+		return "ITEM " .. chance .. " · Finish every slice" .. (if odds.resale then (" · Duplicate sells for " .. (if odds.acorns then "acorns" else "coins")) else ""),
 			"If item: " .. table.concat(parts," · ")
 	end
 	if odds.chance == 1 then
-		return "SKIN 100% · Finish every slice", (odds.name or "Skin") .. " · " .. Config.RARITIES[odds.tier].label
+		-- A clean crack takes the worn skin or another one they own, half
+		-- and half, and a half with nothing in it gives its share away.
+		local others = odds.others or 0
+		local pick
+		if odds.worn and others > 0 then
+			pick = ("%s 50%% · or 1 of %d others"):format(odds.name or "Worn skin", others)
+		elseif odds.worn or others == 0 then
+			pick = (odds.name or "Skin") .. " · " .. Config.RARITIES[odds.tier].label
+		else
+			pick = ("A random skin · 1 of %d"):format(others)
+		end
+		return "SKIN 100% · Finish every slice", pick
+	end
+	-- A NEIGHBOUR PAYS COINS AND NOTHING ELSE, BY DESIGN, and "0%" read as a
+	-- broken skin roll. Skins and the crack acorn come only from a clean
+	-- crack on a real player (Config.crackAcorns, SKIN_STEAL), so say that
+	-- instead of printing a chance that was never on offer.
+	if odds.kind == "resident" then
+		return "COINS ONLY", "Skins and acorns come from robbing players"
 	end
 	return (if odds.kind == "skin" then "SKIN " else "ITEM ") .. chance, odds.reason or "Coins only"
 end
@@ -132,7 +150,9 @@ function RobberyLoot.start(gui: ScreenGui, iconFor: (string, string, Frame) -> (
 			local outline = root:FindFirstChildOfClass("UIStroke")
 			if outline then outline.Color=tier.colour;outline.Thickness=3 end
 			status.Text = if payload.mode=="carried" then "GET IT HOME · It can still be taken!"
-				elseif payload.mode=="sold" then "DUPLICATE SOLD · +" .. Config.formatCoins(payload.coins) .. " coins"
+				elseif payload.mode=="sold" then "DUPLICATE SOLD · +" .. (if payload.acorns
+					then ("%d %s"):format(payload.coins, Config.lootWord(payload.coins))
+					else Config.formatCoins(payload.coins) .. " coins")
 				else "ADDED TO YOUR INVENTORY"
 			local scale=Instance.new("UIScale")
 			scale.Scale,scale.Parent=.96,root

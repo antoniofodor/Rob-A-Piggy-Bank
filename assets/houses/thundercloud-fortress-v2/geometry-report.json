@@ -1,0 +1,898 @@
+{
+  "id": "thundercloud",
+  "revision": 2,
+  "sourceRevision": 1,
+  "status": "Bare walk-in shell; Studio import and avatar playtest pending",
+  "visualMeshes": 60,
+  "triangles": 8162,
+  "meshes": [
+    {
+      "name": "Foundation_01",
+      "triangles": 112,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseFX_RainBar_1_01",
+      "triangles": 60,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseFX_RainBar_2_01",
+      "triangles": 60,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseFX_RainBar_3_01",
+      "triangles": 60,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseFX_RainBar_4_01",
+      "triangles": 60,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseFX_RainBar_5_01",
+      "triangles": 60,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseFX_RainBar_6_01",
+      "triangles": 60,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Crest_01",
+      "triangles": 8,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkFloor",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkCeiling",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkSideLeftWall",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkSideRightWall",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkRearWall",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkFrontLeft",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkFrontRight",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkLintel",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkPassageLeft",
+      "triangles": 24,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkPassageRight",
+      "triangles": 24,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkPassageCeiling",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkPassageFloor",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach0",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach1",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach2",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach3",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach4",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach5",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach6",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach7",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach8",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach9",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach10",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach11",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach12",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach13",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach14",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach15",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach16",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach17",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkApproach18",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseDoorLeaf_L",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseDoorLeaf_L_Panel",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseDoorLeaf_L_Handle",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseDoorLeaf_R",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseDoorLeaf_R_Panel",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseDoorLeaf_R_Handle",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkEntryJamb-1",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkEntryJamb1",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkEntryHeader",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "CurtainWalls",
+      "triangles": 824,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Approach",
+      "triangles": 1520,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HallWindows",
+      "triangles": 456,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "CloudFoundation",
+      "triangles": 244,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "CentralTower",
+      "triangles": 586,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "SideTower-13",
+      "triangles": 754,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "SideTower13",
+      "triangles": 754,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "StairRails",
+      "triangles": 56,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Lanterns",
+      "triangles": 1152,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "LanternFrames",
+      "triangles": 608,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseFX_CloudLightning_-1",
+      "triangles": 112,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseFX_CloudLightning_1",
+      "triangles": 112,
+      "nonManifoldEdges": 0
+    }
+  ],
+  "boundsBlender": {
+    "min": [
+      -31.336048126220703,
+      -7.863999843597412,
+      -0.020000100135803223
+    ],
+    "max": [
+      30.763504028320312,
+      36.372825622558594,
+      69.44000244140625
+    ],
+    "size": [
+      62.099552154541016,
+      44.236825466156006,
+      69.46000254154205
+    ]
+  },
+  "paletteRGB": {
+    "Cloud": [
+      91,
+      108,
+      143
+    ],
+    "WalkWall": [
+      151,
+      167,
+      191
+    ],
+    "Rain": [
+      67,
+      150,
+      228
+    ],
+    "Trim": [
+      109,
+      133,
+      176
+    ],
+    "WalkFloor": [
+      106,
+      122,
+      149
+    ],
+    "WalkDoor": [
+      70,
+      83,
+      119
+    ],
+    "WalkTrim": [
+      79,
+      93,
+      134
+    ],
+    "Wall": [
+      62,
+      80,
+      113
+    ],
+    "Ink": [
+      29,
+      27,
+      37
+    ],
+    "Amber": [
+      250,
+      177,
+      57
+    ],
+    "CloudLight": [
+      112,
+      129,
+      163
+    ],
+    "Roof": [
+      49,
+      65,
+      96
+    ],
+    "DarkGlass": [
+      31,
+      43,
+      70
+    ],
+    "Timber": [
+      98,
+      68,
+      40
+    ],
+    "Gold": [
+      214,
+      163,
+      65
+    ],
+    "Lightning": [
+      141,
+      109,
+      229
+    ]
+  },
+  "collisionBoxesDraft": [
+    {
+      "name": "WalkFloor",
+      "blenderLocation": [
+        0.0,
+        20.54400062561035,
+        6.388000011444092
+      ],
+      "sizeXYZ": [
+        31.0,
+        18.07200050354004,
+        0.2800000011920929
+      ]
+    },
+    {
+      "name": "WalkCeiling",
+      "blenderLocation": [
+        0.0,
+        20.54400062561035,
+        21.81999969482422
+      ],
+      "sizeXYZ": [
+        31.0,
+        18.07200050354004,
+        0.11999999731779099
+      ]
+    },
+    {
+      "name": "WalkSideLeftWall",
+      "blenderLocation": [
+        -15.420000076293945,
+        20.54400062561035,
+        14.144000053405762
+      ],
+      "sizeXYZ": [
+        0.11999999731779099,
+        17.79199981689453,
+        15.232000350952148
+      ]
+    },
+    {
+      "name": "WalkSideRightWall",
+      "blenderLocation": [
+        15.420000076293945,
+        20.54400062561035,
+        14.144000053405762
+      ],
+      "sizeXYZ": [
+        0.11999999731779099,
+        17.79199981689453,
+        15.232000350952148
+      ]
+    },
+    {
+      "name": "WalkRearWall",
+      "blenderLocation": [
+        0.0,
+        29.5,
+        14.144000053405762
+      ],
+      "sizeXYZ": [
+        30.719999313354492,
+        0.11999999731779099,
+        15.232000350952148
+      ]
+    },
+    {
+      "name": "WalkFrontLeft",
+      "blenderLocation": [
+        -9.600000381469727,
+        11.588000297546387,
+        14.144000053405762
+      ],
+      "sizeXYZ": [
+        11.520000457763672,
+        0.11999999731779099,
+        15.232000350952148
+      ]
+    },
+    {
+      "name": "WalkFrontRight",
+      "blenderLocation": [
+        9.600000381469727,
+        11.588000297546387,
+        14.144000053405762
+      ],
+      "sizeXYZ": [
+        11.520000457763672,
+        0.11999999731779099,
+        15.232000350952148
+      ]
+    },
+    {
+      "name": "WalkLintel",
+      "blenderLocation": [
+        0.0,
+        11.588000297546387,
+        19.583999633789062
+      ],
+      "sizeXYZ": [
+        7.679999828338623,
+        0.11999999731779099,
+        4.3520002365112305
+      ]
+    },
+    {
+      "name": "WalkPassageLeft",
+      "blenderLocation": [
+        -3.940000057220459,
+        8.291999816894531,
+        11.968000411987305
+      ],
+      "sizeXYZ": [
+        0.20000000298023224,
+        6.4720001220703125,
+        10.880000114440918
+      ]
+    },
+    {
+      "name": "WalkPassageRight",
+      "blenderLocation": [
+        3.940000057220459,
+        8.291999816894531,
+        11.968000411987305
+      ],
+      "sizeXYZ": [
+        0.20000000298023224,
+        6.4720001220703125,
+        10.880000114440918
+      ]
+    },
+    {
+      "name": "WalkPassageCeiling",
+      "blenderLocation": [
+        0.0,
+        8.291999816894531,
+        17.507999420166016
+      ],
+      "sizeXYZ": [
+        8.079999923706055,
+        6.4720001220703125,
+        0.20000000298023224
+      ]
+    },
+    {
+      "name": "WalkPassageFloor",
+      "blenderLocation": [
+        0.0,
+        8.281999588012695,
+        6.4029998779296875
+      ],
+      "sizeXYZ": [
+        7.679999828338623,
+        6.452000141143799,
+        0.25
+      ]
+    },
+    {
+      "name": "WalkApproach0",
+      "blenderLocation": [
+        0.0,
+        -7.511499881744385,
+        0.16178947687149048
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        0.3635789453983307
+      ]
+    },
+    {
+      "name": "WalkApproach1",
+      "blenderLocation": [
+        0.0,
+        -6.831500053405762,
+        0.3335789442062378
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        0.7071579098701477
+      ]
+    },
+    {
+      "name": "WalkApproach2",
+      "blenderLocation": [
+        0.0,
+        -6.151500225067139,
+        0.5053684115409851
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        1.0507367849349976
+      ]
+    },
+    {
+      "name": "WalkApproach3",
+      "blenderLocation": [
+        0.0,
+        -5.471499919891357,
+        0.6771578788757324
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        1.3943158388137817
+      ]
+    },
+    {
+      "name": "WalkApproach4",
+      "blenderLocation": [
+        0.0,
+        -4.791500091552734,
+        0.8489473462104797
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        1.7378947734832764
+      ]
+    },
+    {
+      "name": "WalkApproach5",
+      "blenderLocation": [
+        0.0,
+        -4.111499786376953,
+        1.020736813545227
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        2.0814735889434814
+      ]
+    },
+    {
+      "name": "WalkApproach6",
+      "blenderLocation": [
+        0.0,
+        -3.43149995803833,
+        1.1925263404846191
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        2.4250526428222656
+      ]
+    },
+    {
+      "name": "WalkApproach7",
+      "blenderLocation": [
+        0.0,
+        -2.751499891281128,
+        1.3643157482147217
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        2.76863169670105
+      ]
+    },
+    {
+      "name": "WalkApproach8",
+      "blenderLocation": [
+        0.0,
+        -2.071500062942505,
+        1.5361052751541138
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        3.112210512161255
+      ]
+    },
+    {
+      "name": "WalkApproach9",
+      "blenderLocation": [
+        0.0,
+        -1.3914999961853027,
+        1.7078946828842163
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        3.455789566040039
+      ]
+    },
+    {
+      "name": "WalkApproach10",
+      "blenderLocation": [
+        0.0,
+        -0.7114999890327454,
+        1.8796842098236084
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        3.799368381500244
+      ]
+    },
+    {
+      "name": "WalkApproach11",
+      "blenderLocation": [
+        0.0,
+        -0.03150000050663948,
+        2.051473617553711
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        4.142947196960449
+      ]
+    },
+    {
+      "name": "WalkApproach12",
+      "blenderLocation": [
+        0.0,
+        0.6485000252723694,
+        2.2232632637023926
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        4.4865264892578125
+      ]
+    },
+    {
+      "name": "WalkApproach13",
+      "blenderLocation": [
+        0.0,
+        1.3285000324249268,
+        2.395052671432495
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        4.830105304718018
+      ]
+    },
+    {
+      "name": "WalkApproach14",
+      "blenderLocation": [
+        0.0,
+        2.008500099182129,
+        2.5668420791625977
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        5.173684120178223
+      ]
+    },
+    {
+      "name": "WalkApproach15",
+      "blenderLocation": [
+        0.0,
+        2.688499927520752,
+        2.7386314868927
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        5.517262935638428
+      ]
+    },
+    {
+      "name": "WalkApproach16",
+      "blenderLocation": [
+        0.0,
+        3.368499994277954,
+        2.910421133041382
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        5.860842227935791
+      ]
+    },
+    {
+      "name": "WalkApproach17",
+      "blenderLocation": [
+        0.0,
+        4.048500061035156,
+        3.0822105407714844
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        6.204421043395996
+      ]
+    },
+    {
+      "name": "WalkApproach18",
+      "blenderLocation": [
+        0.0,
+        4.728499889373779,
+        3.253999948501587
+      ],
+      "sizeXYZ": [
+        7.920000076293945,
+        0.7049999833106995,
+        6.547999858856201
+      ]
+    }
+  ],
+  "mountsBlender": {
+    "Door_Exit": [
+      0.0,
+      4.056,
+      6.528
+    ],
+    "Wall": [
+      0.0,
+      29.26,
+      10.728
+    ]
+  },
+  "floorHeight": 6.528,
+  "reference": "assets/houses/design/fantasy-v3/thundercloud-fortress.png",
+  "routesBlender": [],
+  "walkIn": {
+    "roomBounds": [
+      -15.36,
+      15.36,
+      11.648,
+      29.44,
+      6.528,
+      21.76
+    ],
+    "entry": [
+      0.0,
+      5.056,
+      6.528,
+      7.68,
+      10.88
+    ],
+    "doors": [
+      {
+        "name": "HouseDoorLeaf_L",
+        "hingeBlender": [
+          -3.84,
+          4.976,
+          6.528
+        ],
+        "openDegrees": -100,
+        "sizeXYZ": [
+          3.7249999046325684,
+          0.20000000298023224,
+          10.720000267028809
+        ],
+        "closedCenterBlender": [
+          -1.9375,
+          4.97599983215332,
+          11.947999954223633
+        ]
+      },
+      {
+        "name": "HouseDoorLeaf_R",
+        "hingeBlender": [
+          3.84,
+          4.976,
+          6.528
+        ],
+        "openDegrees": 100,
+        "sizeXYZ": [
+          3.7249999046325684,
+          0.20000000298023224,
+          10.720000267028809
+        ],
+        "closedCenterBlender": [
+          1.9375,
+          4.97599983215332,
+          11.947999954223633
+        ]
+      }
+    ],
+    "probes": 40,
+    "blocked": [],
+    "furnished": false,
+    "accessibleFloors": 1,
+    "geometryClearance": "1.7-stud body, 5.8-stud height; 25 room-grid and 15 doorway samples",
+    "collision": "Dedicated floors and walls; visual meshes and animated doors must not collide",
+    "bakedExteriorScale": 1.28,
+    "runtimeDisplayScale": 1.0
+  },
+  "mountYawBlender": {
+    "Wall": 180,
+    "Door_Exit": 180
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "id": "dalmatian",
+  "name": "Spotless Dalmatian",
+  "rig": "shepherd",
+  "source": "assets/guards/shepherd/shepherd.blend",
+  "sourceSha256": "4cdcfab5b4ed35a0175a44a0fb7cede0c3366ee0023fb841e2b65badccb4ca1f",
+  "image": "assets/guards/shepherd/shop-cards/dalmatian.png",
+  "sha256": "520410ae42dfd0bc83560bcdf76af98b9203e4383cd376e8b7281b279e10d0da",
+  "tones": {
+    "fur": [
+      232,
+      232,
+      228
+    ],
+    "dark": [
+      46,
+      46,
+      48
+    ],
+    "light": [
+      240.05,
+      240.05,
+      237.45
+    ],
+    "collar": [
+      206,
+      62,
+      78
+    ],
+    "brow": [
+      232,
+      232,
+      228
+    ],
+    "mask": [
+      235.22,
+      235.22,
+      231.77999999999997
+    ],
+    "eye": [
+      18,
+      18,
+      20
+    ],
+    "nose": [
+      29,
+      27,
+      30
+    ],
+    "mouth": [
+      41,
+      24,
+      31
+    ],
+    "teeth": [
+      248,
+      232,
+      189
+    ],
+    "inner": [
+      201,
+      126,
+      112
+    ],
+    "armor": [
+      131,
+      48,
+      78
+    ],
+    "accent": [
+      238,
+      122,
+      64
+    ],
+    "silver": [
+      171,
+      170,
+      182
+    ]
+  },
+  "robloxAssetId": "rbxassetid://94466664729438"
+}

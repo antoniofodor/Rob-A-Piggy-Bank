@@ -39,7 +39,14 @@ modules.CosmeticsService={applyToPlot=noop,push=noop,equipSkin=function(p,key)
  assert(data[p].cosmetics.owned[key]);data[p].cosmetics.skin=key
 end}
 local names=setmetatable({}, {__index=function(_,key) return key end})
-local fakeMath=table.clone(math);fakeMath.random=function() error("skin theft must not roll RNG") end
+-- The 50/50 between the worn skin and another owned one is the only draw.
+-- Controlled rather than banned: `roll` is what math.random() returns (below
+-- 0.5 takes the worn skin), `pickIndex` what math.random(a, b) returns.
+local rng={roll=0,pickIndex=nil::number?}
+local fakeMath=table.clone(math);fakeMath.random=function(a,b)
+ if a then return rng.pickIndex or a end
+ return rng.roll
+end
 local env={game={GetService=function(_,name)
  return if name=="ReplicatedStorage" then {Shared=names} elseif name=="Players" then players else {}
 end}, script={Parent=names},require=function(name) return assert(modules[name],name) end,
@@ -137,6 +144,8 @@ local t,v=player("Timer thief"),player("Timer victim","bronze")
 stealAndDeliver(t,v);local timed=claim(v,t,"bronze");local expiry=timed.expires
 now+=5;H.record(v,t,nil);check(timed.expires==expiry,"coin theft does not extend skin deadline")
 now=expiry;data[t].cosmetics.skin="classic"
+-- The loss cap holds the random half shut, so only the claim is under test.
+H.losses[t]={since=now,lost=Config.SKIN_STEAL.cap}
 local expired=take(v,t)
 check(#expired.haul==0 and owned(t,"bronze") and claim(v,t,"bronze")==nil,"claim expires at exact boundary")
 
@@ -147,6 +156,7 @@ local first,last=player("Earlier victim"),player("Later victim")
 H.record(first,multi,{kind="skin",key="bronze"});local firstUntil=claim(first,multi,"bronze").expires
 now+=30;H.record(last,multi,{kind="skin",key="goldleaf"})
 now=firstUntil
+H.losses[multi]={since=now,lost=Config.SKIN_STEAL.cap}
 check(#take(first,multi).haul==0,"earlier victim deadline expires independently")
 stealAndDeliver(last,multi)
 check(owned(last,"goldleaf") and owned(multi,"bronze"),"later victim still recovers inside own deadline")
@@ -182,8 +192,15 @@ for _,key in {"classic","bullion","martian"} do
  local safe,attacker=player("Safe",key),player("Attacker")
  check(#take(attacker,safe).haul==0,"protected skin "..key)
 end
+-- DUPLICATES ARE ALLOWED, and the thief's extra copy is a SPARE. The victim
+-- still loses the copy they lost, so nothing is minted.
 local dup,dv=player("Duplicate","bronze"),player("Duplicate victim","bronze")
-check(#take(dup,dv).haul==0 and owned(dv,"bronze"),"ordinary duplicate not taken")
+local dupCarry=take(dup,dv)
+check(#dupCarry.haul==1 and dupCarry.haul[1].key=="bronze" and not owned(dv,"bronze"),
+ "a skin the thief already owns is still taken")
+H.deliver(dup)
+check(owned(dup,"bronze") and data[dup].spares["skin:bronze"]==1,
+ "the duplicate lands as a spare rather than silently paying nothing")
 local capped,attacker=player("Capped","bronze"),player("Cap attacker")
 H.losses[capped]={since=now,lost=Config.SKIN_STEAL.cap}
 check(#take(attacker,capped).haul==0,"ordinary cap applies")
@@ -380,14 +397,15 @@ check(H.street()[hotRobber.UserId].hotUntil==0,"resolved last claim clears publi
 local viewer,target=player("Odds reader"),player("Odds target","bronze")
 check(H.lootOdds(viewer,target).chance==1,"eligible skin shows guaranteed clean-crack odds")
 data[viewer].cosmetics.owned.bronze=true
-check(H.lootOdds(viewer,target).chance==0,"owned skin advertises no drop")
+check(H.lootOdds(viewer,target).chance==1,"a skin the thief already owns is still advertised (it lands as a spare)")
 data[viewer].cosmetics.owned.bronze=nil
 H.losses[target]={since=now,lost=Config.SKIN_STEAL.cap}
 check(H.lootOdds(viewer,target).chance==0,"capped skin advertises no drop")
 H.losses[target].since=now-Config.SKIN_STEAL.window-1
 check(H.lootOdds(viewer,target).chance==1,"expired limit restores displayed skin odds")
 data[target].cosmetics.skin="classic"
-check(H.lootOdds(viewer,target).chance==0,"ineligible outfit advertises no drop")
+local unworn=H.lootOdds(viewer,target)
+check(unworn.chance==1 and not unworn.worn and unworn.others==1,"an owned skin not being worn is still on offer")
 H.record(viewer,target,{key="bronze"})
 check(H.lootOdds(viewer,target).chance==1 and H.lootOdds(viewer,target).name==Config.SKINS.bronze.name,"recovery odds name actual skin despite changed outfit")
 claim(viewer,target,"bronze").reserved=true
@@ -493,4 +511,23 @@ check(H.giveBack(rv2,30)==0 and data[rv2].coins==rcap and events[rv2].Notify:fin
 data[rv2].coins=0;events[rv2].Notify=nil
 check(H.giveBack(rv2,30)==30 and data[rv2].coins==30 and events[rv2].Notify==nil,"an empty pig takes the whole refund silently")
 -- Every coin return (nab, dog, patrol, voluntary return) goes through giveBack.
-print(("PASS: %d theft checks; guaranteed clean cracks, per-owner timed stacks, latest taker, outfit independence, recovery/returns, insurance and unchanged payouts. No player saves."):format(checks))
+
+-- THE 50/50: the worn skin or a random other owned one.
+local function coinFlip(roll,wear,extra)
+ local thief,victim=player("Flip thief"),player("Flip victim",wear)
+ for _,key in extra do data[victim].cosmetics.owned[key]=true end
+ rng.roll=roll
+ local c=take(thief,victim);rng.roll=0
+ return c.haul[1] and c.haul[1].key
+end
+check(coinFlip(0.3,"bronze",{"goldleaf"})=="bronze","low roll takes the worn skin")
+check(coinFlip(0.7,"bronze",{"goldleaf"})=="goldleaf","high roll takes another owned skin")
+check(coinFlip(0.7,"bronze",{})=="bronze","nothing else owned: the worn skin takes the whole chance")
+check(coinFlip(0.3,"classic",{"goldleaf"})=="goldleaf","unstealable outfit: a random owned skin takes the whole chance")
+check(coinFlip(0.3,"velvet",{"velvet"})==nil,"a Robux skin is never taken")
+check(coinFlip(0.7,"bronze",{"velvet","firstday"})=="bronze","Robux skins never enter the random half")
+check(not Config.isStealableSkin("velvet") and not Config.isStealableSkin("firstday"),"pass skins are not stealable")
+for key,skin in Config.SKINS do
+ if skin.pass~=nil then check(skin.robux==true,key.." carries the robux tag") end
+end
+print(("PASS: %d theft checks; guaranteed clean cracks, worn/random 50/50, Robux skins never taken, per-owner timed stacks, latest taker, outfit independence, recovery/returns, insurance and unchanged payouts. No player saves."):format(checks))

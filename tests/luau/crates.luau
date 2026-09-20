@@ -47,7 +47,20 @@ local ChestService = run()
 ChestService.registerBalancePusher(function() pushes += 1 end)
 
 -- Tripled September 16 (MASTER-PLAN 19.5).
-local prices = {og=15, animal=15, rarecrate=45, legendarycrate=120, alien=18}
+local prices = {og=15, ograre=45, oglegendary=120, animal=15, animalrare=45, animallegendary=120, alien=18}
+-- The retired mixed crates stay retired, and every section names real crates.
+check(Config.CHESTS.rarecrate==nil and Config.CHESTS.legendarycrate==nil, "mixed tier crates retired")
+for _, section in Config.CRATE_SECTIONS do
+ for _, key in section.chests do check(Config.CHESTS[key] ~= nil, section.name .. " lists " .. key) end
+end
+-- A tier crate draws only from its own collection, never a common.
+for key, shelf in {ograre="og", oglegendary="og", animalrare="animal", animallegendary="animal"} do
+ local pool, total = Config.chestPool(key)
+ check(total > 0 and pool.common == nil and #(pool.rare or {}) > 0 and #(pool.legendary or {}) > 0, key .. " stocks rare and legendary only")
+ for _, list in pool do for _, skin in list do
+  check(Config.SKINS[skin].chest == shelf, key .. " draws only " .. shelf .. " skins")
+ end end
+end
 for key, price in prices do
  check(Config.CHESTS[key].currency == "loot" and Config.CHESTS[key].cost == price, key .. " price")
  reset(price)

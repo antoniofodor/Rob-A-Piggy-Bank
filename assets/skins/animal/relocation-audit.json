@@ -1,0 +1,2402 @@
+{
+  "movedFiles": 472,
+  "allOriginalFileHashesVerifiedBeforeReferenceUpdates": true,
+  "files": [
+    {
+      "source": "blender/pig/skins/bee/asset-v1/bee-asset-report.json",
+      "destination": "assets/skins/animal/common/bee/bee-asset-report.json",
+      "sha256": "4d8e0d22e836cf26bc23ee14789b845d1a242442ef77cdf55b4c6c2b682f80ff"
+    },
+    {
+      "source": "blender/pig/skins/bee/asset-v1/bee-complete.blend",
+      "destination": "assets/skins/animal/common/bee/bee-complete.blend",
+      "sha256": "d5d06e6aff70b555c4752b5bc746a61287446fe75ecdade3a9c176f79e003c6b"
+    },
+    {
+      "source": "blender/pig/skins/bee/asset-v1/bee-complete.fbx",
+      "destination": "assets/skins/animal/common/bee/bee-complete.fbx",
+      "sha256": "f9e8b9ff9dca379181a5a40f4a7d4157670ec2d7feca891548c785021305b790"
+    },
+    {
+      "source": "blender/pig/skins/bee/asset-v1/bee-crown.png",
+      "destination": "assets/skins/animal/common/bee/bee-crown.png",
+      "sha256": "1631af6a51eee23f0ce5ab9f78d25a2f82f8d7fee8209399a01a1d6aef17795b"
+    },
+    {
+      "source": "blender/pig/skins/bee/asset-v1/bee-front.png",
+      "destination": "assets/skins/animal/common/bee/bee-front.png",
+      "sha256": "a1e87888c7154925ba0e2e4588f761b21a19de3e25aa20271ab081c0fa14ef01"
+    },
+    {
+      "source": "blender/pig/skins/bee/asset-v1/bee-hero.png",
+      "destination": "assets/skins/animal/common/bee/bee-hero.png",
+      "sha256": "97b78d09bf9eb2f988c2e35773fb92a5198e815a500d2d55f5abf59e0c535f17"
+    },
+    {
+      "source": "blender/pig/skins/bee/asset-v1/bee-spine.png",
+      "destination": "assets/skins/animal/common/bee/bee-spine.png",
+      "sha256": "85c81294b79466bf184a0fbc7393b33c830f08a9ba68694b5f5210d34351fb4e"
+    },
+    {
+      "source": "blender/pig/skins/bee/asset-v1/bee_body_color.png",
+      "destination": "assets/skins/animal/common/bee/bee_body_color.png",
+      "sha256": "dbe941b2c8d8c92dd9b0d00f1cf0269ed7e524ebb3eb1dd0179cd738afa2162f"
+    },
+    {
+      "source": "blender/pig/skins/bee/asset-v1/bee_trim_color.png",
+      "destination": "assets/skins/animal/common/bee/bee_trim_color.png",
+      "sha256": "c3940937ec788fc2f00f04faf74f4d43768857bff3d15ac0e6a8bc59a5f4d8ce"
+    },
+    {
+      "source": "blender/pig/skins/bee/asset-v1/index.html",
+      "destination": "assets/skins/animal/common/bee/index.html",
+      "sha256": "4ce9a617bdc5d5e60cff8c9b445b73296314cb0a24d06251db85563ea0e369de"
+    },
+    {
+      "source": "blender/pig/skins/bee/asset-v1/README.md",
+      "destination": "assets/skins/animal/common/bee/README.md",
+      "sha256": "48f2f58fef153dc278fef6133da2c8790a43832f2a78cad59f9b8cc32d0f6220"
+    },
+    {
+      "source": "blender/pig/skins/ladybird/asset-v1/index.html",
+      "destination": "assets/skins/animal/common/ladybird/index.html",
+      "sha256": "3d0aac80c86204da9dd5540634af3a7a18690f921c41eb5fcd8bb53b8f7775b0"
+    },
+    {
+      "source": "blender/pig/skins/ladybird/asset-v1/ladybird-asset-report.json",
+      "destination": "assets/skins/animal/common/ladybird/ladybird-asset-report.json",
+      "sha256": "2a3d0c2e74d90ee2894c1480cea28ae0fb4cd7dbf4bb7d0a4dfc63909f1f3a51"
+    },
+    {
+      "source": "blender/pig/skins/ladybird/asset-v1/ladybird-complete.blend",
+      "destination": "assets/skins/animal/common/ladybird/ladybird-complete.blend",
+      "sha256": "e273f200e897aa36e422fce3754e98bca989b01a023408eca314e8ec5f505434"
+    },
+    {
+      "source": "blender/pig/skins/ladybird/asset-v1/ladybird-complete.fbx",
+      "destination": "assets/skins/animal/common/ladybird/ladybird-complete.fbx",
+      "sha256": "0db9ea834a415781f459debab73e8910a3c358ad4b9eff7538c27ed1a55b5f4a"
+    },
+    {
+      "source": "blender/pig/skins/ladybird/asset-v1/ladybird-crown.png",
+      "destination": "assets/skins/animal/common/ladybird/ladybird-crown.png",
+      "sha256": "2865089c2a30f2ed91c5b8fdb6aed3420166e914a420db40ad34874ebbb4a642"
+    },
+    {
+      "source": "blender/pig/skins/ladybird/asset-v1/ladybird-front.png",
+      "destination": "assets/skins/animal/common/ladybird/ladybird-front.png",
+      "sha256": "0744129089027b9c4e2be644c29a0e076ed90908439c6b50dfe65c7d62dbc1b3"
+    },
+    {
+      "source": "blender/pig/skins/ladybird/asset-v1/ladybird-hero.png",
+      "destination": "assets/skins/animal/common/ladybird/ladybird-hero.png",
+      "sha256": "28c297cc6a0c79a07bd15509e04ac4d9513057f1aeb7547067e2266f96b5a90c"
+    },
+    {
+      "source": "blender/pig/skins/ladybird/asset-v1/ladybird-spine.png",
+      "destination": "assets/skins/animal/common/ladybird/ladybird-spine.png",
+      "sha256": "3a4ab51c33d79e2a41647529f6a161a6ee9fbf8ee9bbc2589d935318cc995066"
+    },
+    {
+      "source": "blender/pig/skins/ladybird/asset-v1/ladybird_body_color.png",
+      "destination": "assets/skins/animal/common/ladybird/ladybird_body_color.png",
+      "sha256": "0df22b40565d867d1000c2db3dc693cab22ece2496b138e6472bf7fdde534f18"
+    },
+    {
+      "source": "blender/pig/skins/ladybird/asset-v1/ladybird_trim_color.png",
+      "destination": "assets/skins/animal/common/ladybird/ladybird_trim_color.png",
+      "sha256": "62e5c558c82a2f81a213d3a311b0df1ebf8cf5bf17878264121327621c82b856"
+    },
+    {
+      "source": "blender/pig/skins/ladybird/asset-v1/README.md",
+      "destination": "assets/skins/animal/common/ladybird/README.md",
+      "sha256": "a5fcb59ac5b5f4513825abb95389aa49a43fab16ec1b767adf787e41eaf65f61"
+    },
+    {
+      "source": "blender/pig/skins/cow/asset-v1/cow-asset-report.json",
+      "destination": "assets/skins/animal/common/cow/cow-asset-report.json",
+      "sha256": "db659a07541b95518d7d0c2e3f2e360e710f5498ff380ddc745db6ccfcd7dd98"
+    },
+    {
+      "source": "blender/pig/skins/cow/asset-v1/cow-complete.blend",
+      "destination": "assets/skins/animal/common/cow/cow-complete.blend",
+      "sha256": "3de83460f037f4e9ca3e237aa2e02632cc8eb907ca063797791aa100d8de80b9"
+    },
+    {
+      "source": "blender/pig/skins/cow/asset-v1/cow-complete.fbx",
+      "destination": "assets/skins/animal/common/cow/cow-complete.fbx",
+      "sha256": "98662e3c59a74e67009aa332f113306d66cd8f75a2a884ccc4c8c1d2c3d8cb99"
+    },
+    {
+      "source": "blender/pig/skins/cow/asset-v1/cow-crown.png",
+      "destination": "assets/skins/animal/common/cow/cow-crown.png",
+      "sha256": "0626157d133ef91f5259738f4fb4e6512230879b2fecbbe6cdece9dbbd8b807b"
+    },
+    {
+      "source": "blender/pig/skins/cow/asset-v1/cow-front.png",
+      "destination": "assets/skins/animal/common/cow/cow-front.png",
+      "sha256": "d056a0d00b5f3504a40f1354216b067d17f4e4db225e550dd66a14f1d3f4d4a9"
+    },
+    {
+      "source": "blender/pig/skins/cow/asset-v1/cow-hero.png",
+      "destination": "assets/skins/animal/common/cow/cow-hero.png",
+      "sha256": "7a65a69a1ad9818b5809ec6533cda1d219f965131844331c68ef935bcee12c80"
+    },
+    {
+      "source": "blender/pig/skins/cow/asset-v1/cow-spine.png",
+      "destination": "assets/skins/animal/common/cow/cow-spine.png",
+      "sha256": "fc6839d8aecfda1becf561422f220b844792f6746250cbd74428f6f062c29c9a"
+    },
+    {
+      "source": "blender/pig/skins/cow/asset-v1/cow_body_color.png",
+      "destination": "assets/skins/animal/common/cow/cow_body_color.png",
+      "sha256": "57c5a8a17083f28b486a223e9a3cc9a2e0fdf267f665788c1ef8e4b447f30feb"
+    },
+    {
+      "source": "blender/pig/skins/cow/asset-v1/cow_trim_color.png",
+      "destination": "assets/skins/animal/common/cow/cow_trim_color.png",
+      "sha256": "6b49344f8bb31fa8580353443d7bea32d8edf44a92487c7296e9dae9e0a3ba45"
+    },
+    {
+      "source": "blender/pig/skins/cow/asset-v1/index.html",
+      "destination": "assets/skins/animal/common/cow/index.html",
+      "sha256": "67cdd4f25e29b9db6205a5201988c3428f25b871b50028d98577e575edae610c"
+    },
+    {
+      "source": "blender/pig/skins/cow/asset-v1/README.md",
+      "destination": "assets/skins/animal/common/cow/README.md",
+      "sha256": "619369628a243fae086d9af8f7dbf82813104b517e965d68f9a77d7a2a427b29"
+    },
+    {
+      "source": "blender/pig/skins/zebra/asset-v1/index.html",
+      "destination": "assets/skins/animal/common/zebra/index.html",
+      "sha256": "7b42f6e857826ffb516c1e120b212842637ea14fc3c97711df27e5d615cd4bd9"
+    },
+    {
+      "source": "blender/pig/skins/zebra/asset-v1/README.md",
+      "destination": "assets/skins/animal/common/zebra/README.md",
+      "sha256": "90c69eea571f856a5e038468d6fe9c7982dc0f4ae7dd721a70447a3b94fec9e7"
+    },
+    {
+      "source": "blender/pig/skins/zebra/asset-v1/zebra-asset-report.json",
+      "destination": "assets/skins/animal/common/zebra/zebra-asset-report.json",
+      "sha256": "af08cb37c9b57199e04d3e88821e73a6a5e8491e145d2b600bacf9565d86fdfb"
+    },
+    {
+      "source": "blender/pig/skins/zebra/asset-v1/zebra-complete.blend",
+      "destination": "assets/skins/animal/common/zebra/zebra-complete.blend",
+      "sha256": "c38a87c94cdd1efc372be967aa2367f2b20c6a0f96b2ebc244eb7bd071d577f2"
+    },
+    {
+      "source": "blender/pig/skins/zebra/asset-v1/zebra-complete.fbx",
+      "destination": "assets/skins/animal/common/zebra/zebra-complete.fbx",
+      "sha256": "f9252d0954e12496df875a91aa56ee441245c5a53621c0ccce000b6d2ce6bbe5"
+    },
+    {
+      "source": "blender/pig/skins/zebra/asset-v1/zebra-crown.png",
+      "destination": "assets/skins/animal/common/zebra/zebra-crown.png",
+      "sha256": "cc79956d2a08be88af693d979d35007f2f202a7ae9ffd21b6f8d8ae4708d252e"
+    },
+    {
+      "source": "blender/pig/skins/zebra/asset-v1/zebra-front.png",
+      "destination": "assets/skins/animal/common/zebra/zebra-front.png",
+      "sha256": "8b8732018bd9ec47b38925f5f153b854c5792cb43bd10d288cabd7f216fc9916"
+    },
+    {
+      "source": "blender/pig/skins/zebra/asset-v1/zebra-hero.png",
+      "destination": "assets/skins/animal/common/zebra/zebra-hero.png",
+      "sha256": "c716e8f7e89c60254a3248a2bc4de2a64992118c0a1ea5c12c7232f8ac96902c"
+    },
+    {
+      "source": "blender/pig/skins/zebra/asset-v1/zebra-spine.png",
+      "destination": "assets/skins/animal/common/zebra/zebra-spine.png",
+      "sha256": "8d5007c9beb483afd1cecc5fffe60a02ec8cc196793dd3d975fee0b90025cd30"
+    },
+    {
+      "source": "blender/pig/skins/zebra/asset-v1/zebra_body_color.png",
+      "destination": "assets/skins/animal/common/zebra/zebra_body_color.png",
+      "sha256": "d20c2240060434f3968c937fcaa41a7058908e9d268385dadf2ee8b0ef45de67"
+    },
+    {
+      "source": "blender/pig/skins/zebra/asset-v1/zebra_trim_color.png",
+      "destination": "assets/skins/animal/common/zebra/zebra_trim_color.png",
+      "sha256": "231941b68f1f4cf9e0e2892895c96fc0ff25f758c3427e1acdbe8af3a7d815d4"
+    },
+    {
+      "source": "blender/pig/skins/giraffe/asset-v1/giraffe-asset-report.json",
+      "destination": "assets/skins/animal/common/giraffe/giraffe-asset-report.json",
+      "sha256": "65d09501af1169c4b88a3910f07dce415d2a1da1cd2ba79b80f71d1e0200ed38"
+    },
+    {
+      "source": "blender/pig/skins/giraffe/asset-v1/giraffe-complete.blend",
+      "destination": "assets/skins/animal/common/giraffe/giraffe-complete.blend",
+      "sha256": "7c9c1d9caa523e46155540988bd5a8c6397c9d52e1e28c250fcdac3df082fa2d"
+    },
+    {
+      "source": "blender/pig/skins/giraffe/asset-v1/giraffe-complete.fbx",
+      "destination": "assets/skins/animal/common/giraffe/giraffe-complete.fbx",
+      "sha256": "0249e7d556f3926a8840150278240119ef54b23f90eb08f3d93ab16a590d1fbe"
+    },
+    {
+      "source": "blender/pig/skins/giraffe/asset-v1/giraffe-crown.png",
+      "destination": "assets/skins/animal/common/giraffe/giraffe-crown.png",
+      "sha256": "8ee560f216a8e02cedd35acc5c106698b856c7cd2a66ce49b36403d508ee9c17"
+    },
+    {
+      "source": "blender/pig/skins/giraffe/asset-v1/giraffe-front.png",
+      "destination": "assets/skins/animal/common/giraffe/giraffe-front.png",
+      "sha256": "e18737e8e511bf6b464f004101654288377a37e64a82724d4d9f61ae5bee8903"
+    },
+    {
+      "source": "blender/pig/skins/giraffe/asset-v1/giraffe-hero.png",
+      "destination": "assets/skins/animal/common/giraffe/giraffe-hero.png",
+      "sha256": "019929a13e905595699d4d89ac4d0f626712b2a054af938b3280c3d6a01b1ca5"
+    },
+    {
+      "source": "blender/pig/skins/giraffe/asset-v1/giraffe-spine.png",
+      "destination": "assets/skins/animal/common/giraffe/giraffe-spine.png",
+      "sha256": "99473f8eee55e6faca65b2ca0ea67fd78d7d6ce869a2b6a8f2ab64047f70a5d3"
+    },
+    {
+      "source": "blender/pig/skins/giraffe/asset-v1/giraffe_body_color.png",
+      "destination": "assets/skins/animal/common/giraffe/giraffe_body_color.png",
+      "sha256": "0726f19dcccbfd7e5f55fe11bbcd1f86ae73b5e5f57b42c22d9c54b27bf7165a"
+    },
+    {
+      "source": "blender/pig/skins/giraffe/asset-v1/giraffe_trim_color.png",
+      "destination": "assets/skins/animal/common/giraffe/giraffe_trim_color.png",
+      "sha256": "88ed1e0d92acdb54c75c27ccb6717bdae94a2e161e407555929312c38c6c1a62"
+    },
+    {
+      "source": "blender/pig/skins/giraffe/asset-v1/index.html",
+      "destination": "assets/skins/animal/common/giraffe/index.html",
+      "sha256": "7478b5dd9c540a5af34edf4e5e37938607367ad28fe329e29503fc25d3ef7f00"
+    },
+    {
+      "source": "blender/pig/skins/giraffe/asset-v1/README.md",
+      "destination": "assets/skins/animal/common/giraffe/README.md",
+      "sha256": "5e27a180106efacda1592947d279b2746c1cf0790b2874da202f1cf0983d5739"
+    },
+    {
+      "source": "blender/pig/skins/leopard/asset-v1/index.html",
+      "destination": "assets/skins/animal/common/leopard/index.html",
+      "sha256": "316ff119c03805d66af185ee28b3eca98a4a275a428c7bc49dc3f825fd9776f6"
+    },
+    {
+      "source": "blender/pig/skins/leopard/asset-v1/leopard-asset-report.json",
+      "destination": "assets/skins/animal/common/leopard/leopard-asset-report.json",
+      "sha256": "41f62fdd431582a63774205efc59473c9dfafac3a2516b14ddeb24c98ebac97e"
+    },
+    {
+      "source": "blender/pig/skins/leopard/asset-v1/leopard-complete.blend",
+      "destination": "assets/skins/animal/common/leopard/leopard-complete.blend",
+      "sha256": "5dd7e42497682b8d6eb0488adc56b6b85c0e7334dab0970f02f2a6e4961a6b4c"
+    },
+    {
+      "source": "blender/pig/skins/leopard/asset-v1/leopard-complete.fbx",
+      "destination": "assets/skins/animal/common/leopard/leopard-complete.fbx",
+      "sha256": "f9e0bbb2e1132497786921219b0a7581a6bd09c5689f7ac19bd6c03fdaa53697"
+    },
+    {
+      "source": "blender/pig/skins/leopard/asset-v1/leopard-crown.png",
+      "destination": "assets/skins/animal/common/leopard/leopard-crown.png",
+      "sha256": "118575b8b16e565ed6cd4a1107e849e2ed01bfb47dddbf1bfa3ba3aa09e23e6e"
+    },
+    {
+      "source": "blender/pig/skins/leopard/asset-v1/leopard-front.png",
+      "destination": "assets/skins/animal/common/leopard/leopard-front.png",
+      "sha256": "54a547977711a52eb6a62f3b9876532db457833a9b595f6c88b4636c838828b4"
+    },
+    {
+      "source": "blender/pig/skins/leopard/asset-v1/leopard-hero.png",
+      "destination": "assets/skins/animal/common/leopard/leopard-hero.png",
+      "sha256": "7a95f930658257865ce317e266470df35fc3f4e50cf855612bf07300181ac074"
+    },
+    {
+      "source": "blender/pig/skins/leopard/asset-v1/leopard-spine.png",
+      "destination": "assets/skins/animal/common/leopard/leopard-spine.png",
+      "sha256": "b85b3679549b4a63234b41b8eb87257e10d072de952fafbb1ec586a1228cd59e"
+    },
+    {
+      "source": "blender/pig/skins/leopard/asset-v1/leopard_body_color.png",
+      "destination": "assets/skins/animal/common/leopard/leopard_body_color.png",
+      "sha256": "04f085f3177ce54835063676d302db43702c21760ec4d9d202fdee54bb4153a0"
+    },
+    {
+      "source": "blender/pig/skins/leopard/asset-v1/leopard_trim_color.png",
+      "destination": "assets/skins/animal/common/leopard/leopard_trim_color.png",
+      "sha256": "7dd5800a02c448c16dc137bbaaeb26bc070d6840b6a7379b1e3800b0b5c5ba81"
+    },
+    {
+      "source": "blender/pig/skins/leopard/asset-v1/README.md",
+      "destination": "assets/skins/animal/common/leopard/README.md",
+      "sha256": "c162c432ab32c54df672d1bf32187a0c88f31ffae13ac1f2d41a5ac8fd6d4c81"
+    },
+    {
+      "source": "blender/pig/skins/tiger/asset-v1/index.html",
+      "destination": "assets/skins/animal/common/tiger/index.html",
+      "sha256": "0e1934549b7c9a22566e5d8245527e945bfdbc85f9a3eabf1d8cd873af58c6aa"
+    },
+    {
+      "source": "blender/pig/skins/tiger/asset-v1/README.md",
+      "destination": "assets/skins/animal/common/tiger/README.md",
+      "sha256": "4cc3cfc8ee9a707567acf1b0ad73a5fbf2f586c8c4e88b1773eff099f4907312"
+    },
+    {
+      "source": "blender/pig/skins/tiger/asset-v1/tiger-asset-report.json",
+      "destination": "assets/skins/animal/common/tiger/tiger-asset-report.json",
+      "sha256": "3bf5ea0486cfddb0ede20510f79e29df5daec361ef353b3e58cd0b75c858c5f1"
+    },
+    {
+      "source": "blender/pig/skins/tiger/asset-v1/tiger-complete.blend",
+      "destination": "assets/skins/animal/common/tiger/tiger-complete.blend",
+      "sha256": "882570b9174eba836efc818aa4fdd56a43d7b2d9b54248ec6c2aa53cc301a634"
+    },
+    {
+      "source": "blender/pig/skins/tiger/asset-v1/tiger-complete.fbx",
+      "destination": "assets/skins/animal/common/tiger/tiger-complete.fbx",
+      "sha256": "63fc6017d40e1b861a1834fec0b72866b79b7e669f6ea9f18f9439e9bb1579b3"
+    },
+    {
+      "source": "blender/pig/skins/tiger/asset-v1/tiger-crown.png",
+      "destination": "assets/skins/animal/common/tiger/tiger-crown.png",
+      "sha256": "22b4c3b6765b51e0c591a9d296908db7452aa520b4bfa13611a4ed49f22e3253"
+    },
+    {
+      "source": "blender/pig/skins/tiger/asset-v1/tiger-front.png",
+      "destination": "assets/skins/animal/common/tiger/tiger-front.png",
+      "sha256": "4ba011360dd813c6c29b9c48a2c656757e32cb5b12b326dbef3a74b418b81de7"
+    },
+    {
+      "source": "blender/pig/skins/tiger/asset-v1/tiger-hero.png",
+      "destination": "assets/skins/animal/common/tiger/tiger-hero.png",
+      "sha256": "6d6b4555bc55810650896cb22bc146789ff8aa461c4bd3062c4189c6c1b6e7fd"
+    },
+    {
+      "source": "blender/pig/skins/tiger/asset-v1/tiger-spine.png",
+      "destination": "assets/skins/animal/common/tiger/tiger-spine.png",
+      "sha256": "94982c450485f8615c68f0fee0c58023075b3afa04ce5370f221e6e0b8c408b4"
+    },
+    {
+      "source": "blender/pig/skins/tiger/asset-v1/tiger_body_color.png",
+      "destination": "assets/skins/animal/common/tiger/tiger_body_color.png",
+      "sha256": "ddb782ae6f72c3feaf80f80bf401a9f5a83f002b7e85df89c34a09aac083be6e"
+    },
+    {
+      "source": "blender/pig/skins/tiger/asset-v1/tiger_trim_color.png",
+      "destination": "assets/skins/animal/common/tiger/tiger_trim_color.png",
+      "sha256": "26032b6bbd4bdcb791d404eecf0735f64642bcf8709030a25010636ad9f68e49"
+    },
+    {
+      "source": "blender/pig/skins/snowleopard/asset-v1/index.html",
+      "destination": "assets/skins/animal/common/snowleopard/index.html",
+      "sha256": "3d5f5e246ba867b9130cfb3259b35529e2ed803be6cfe0ce4f6876aabc3bbd99"
+    },
+    {
+      "source": "blender/pig/skins/snowleopard/asset-v1/README.md",
+      "destination": "assets/skins/animal/common/snowleopard/README.md",
+      "sha256": "328a32fb5a9d32a74a8247a28b21f688c0e9b147caf6816a433e181e8fa7514e"
+    },
+    {
+      "source": "blender/pig/skins/snowleopard/asset-v1/snowleopard-asset-report.json",
+      "destination": "assets/skins/animal/common/snowleopard/snowleopard-asset-report.json",
+      "sha256": "c1801804393606d1fbfa7f67672471439e18c71e255b8381bc2e2685e4e10ee2"
+    },
+    {
+      "source": "blender/pig/skins/snowleopard/asset-v1/snowleopard-complete.blend",
+      "destination": "assets/skins/animal/common/snowleopard/snowleopard-complete.blend",
+      "sha256": "96e621a46b76d333cf267cd69aa851f281d9d6d3e8b8bef0a2d8e955da5b4ff7"
+    },
+    {
+      "source": "blender/pig/skins/snowleopard/asset-v1/snowleopard-complete.fbx",
+      "destination": "assets/skins/animal/common/snowleopard/snowleopard-complete.fbx",
+      "sha256": "0445a4ffaf7eee4401d7f3dd376a0aa061455633a6239a8655562bc0c933e5a0"
+    },
+    {
+      "source": "blender/pig/skins/snowleopard/asset-v1/snowleopard-crown.png",
+      "destination": "assets/skins/animal/common/snowleopard/snowleopard-crown.png",
+      "sha256": "5e6d5c99d1133b2475173d4eea792dcef9b5c52558531bc4faeb8933663f01a7"
+    },
+    {
+      "source": "blender/pig/skins/snowleopard/asset-v1/snowleopard-front.png",
+      "destination": "assets/skins/animal/common/snowleopard/snowleopard-front.png",
+      "sha256": "65cfe25d5ae6b0638aac72973623ff3d678e74779c8d4bd2ac6c663dd08e60ef"
+    },
+    {
+      "source": "blender/pig/skins/snowleopard/asset-v1/snowleopard-hero.png",
+      "destination": "assets/skins/animal/common/snowleopard/snowleopard-hero.png",
+      "sha256": "a5ca1abc24b250c07ce8e9b35e277d930616ae5cf40ab84bce355987d34313a6"
+    },
+    {
+      "source": "blender/pig/skins/snowleopard/asset-v1/snowleopard-spine.png",
+      "destination": "assets/skins/animal/common/snowleopard/snowleopard-spine.png",
+      "sha256": "e15062bdf5aca5cb05680e47d1a783ad09e073dfe6fb840229d9e1fef6d050a3"
+    },
+    {
+      "source": "blender/pig/skins/snowleopard/asset-v1/snowleopard_body_color.png",
+      "destination": "assets/skins/animal/common/snowleopard/snowleopard_body_color.png",
+      "sha256": "146242e4c97232a1aee6cf60ead3c94ce0aa55d3416d6dfb5d732d0741a1a233"
+    },
+    {
+      "source": "blender/pig/skins/snowleopard/asset-v1/snowleopard_trim_color.png",
+      "destination": "assets/skins/animal/common/snowleopard/snowleopard_trim_color.png",
+      "sha256": "f5c612ed93e9ce54906968b37b7b110e61025a3515903e12ffb6360f4353c45e"
+    },
+    {
+      "source": "blender/pig/skins/strawberrycow/asset-v1/index.html",
+      "destination": "assets/skins/animal/rare/strawberrycow/index.html",
+      "sha256": "9c015262cb69541737cdc16586f4e109e0937cdafdb328524f901428fa911396"
+    },
+    {
+      "source": "blender/pig/skins/strawberrycow/asset-v1/README.md",
+      "destination": "assets/skins/animal/rare/strawberrycow/README.md",
+      "sha256": "f7e7a78e6f231a241aee78ce967ad0dc03d0d78e618d7b155f5fab35fb34d21a"
+    },
+    {
+      "source": "blender/pig/skins/strawberrycow/asset-v1/strawberrycow-asset-report.json",
+      "destination": "assets/skins/animal/rare/strawberrycow/strawberrycow-asset-report.json",
+      "sha256": "bf0be7db9885470349d001fe782fdc413c287d234eae23936fa884b9120e75fa"
+    },
+    {
+      "source": "blender/pig/skins/strawberrycow/asset-v1/strawberrycow-complete.blend",
+      "destination": "assets/skins/animal/rare/strawberrycow/strawberrycow-complete.blend",
+      "sha256": "c78786e8af3d53b1232da014719d7f75745465061ad81c3025d925b649112db5"
+    },
+    {
+      "source": "blender/pig/skins/strawberrycow/asset-v1/strawberrycow-complete.fbx",
+      "destination": "assets/skins/animal/rare/strawberrycow/strawberrycow-complete.fbx",
+      "sha256": "bbb63648c343236d0af3cde0299290a7a1c2a549d8239246fc91f290785902af"
+    },
+    {
+      "source": "blender/pig/skins/strawberrycow/asset-v1/strawberrycow-crown.png",
+      "destination": "assets/skins/animal/rare/strawberrycow/strawberrycow-crown.png",
+      "sha256": "6087afea2d46cfea1d7150a4fda6ecf55edd7e904585ee6aa5b97605959ef5b1"
+    },
+    {
+      "source": "blender/pig/skins/strawberrycow/asset-v1/strawberrycow-front.png",
+      "destination": "assets/skins/animal/rare/strawberrycow/strawberrycow-front.png",
+      "sha256": "48a9675470f5c72ca1ed90a08fa340ed142a4138777bc20048d76de00513b87b"
+    },
+    {
+      "source": "blender/pig/skins/strawberrycow/asset-v1/strawberrycow-glow.png",
+      "destination": "assets/skins/animal/rare/strawberrycow/strawberrycow-glow.png",
+      "sha256": "888ae0522c455b9dc6a2f50978e8fc5424e6b0000749f04c2ac37334c21e5067"
+    },
+    {
+      "source": "blender/pig/skins/strawberrycow/asset-v1/strawberrycow-hero.png",
+      "destination": "assets/skins/animal/rare/strawberrycow/strawberrycow-hero.png",
+      "sha256": "23e664cb23457eeac194ab5815f9f10b6f3a6ed0e91ad57047735cb477e8ccc9"
+    },
+    {
+      "source": "blender/pig/skins/strawberrycow/asset-v1/strawberrycow-spine.png",
+      "destination": "assets/skins/animal/rare/strawberrycow/strawberrycow-spine.png",
+      "sha256": "019fa72e49feeb4c71e82a378230eadfaae347c4c802d0aa7a7c0ab548da8975"
+    },
+    {
+      "source": "blender/pig/skins/strawberrycow/asset-v1/strawberrycow_body_color.png",
+      "destination": "assets/skins/animal/rare/strawberrycow/strawberrycow_body_color.png",
+      "sha256": "9519efd3baa2e5e091eef5d93735f988d8ef6dcd9681bc9dcf648ed69448029d"
+    },
+    {
+      "source": "blender/pig/skins/strawberrycow/asset-v1/strawberrycow_body_emissive.png",
+      "destination": "assets/skins/animal/rare/strawberrycow/strawberrycow_body_emissive.png",
+      "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a"
+    },
+    {
+      "source": "blender/pig/skins/strawberrycow/asset-v1/strawberrycow_trim_color.png",
+      "destination": "assets/skins/animal/rare/strawberrycow/strawberrycow_trim_color.png",
+      "sha256": "b4cfc13e2a8886855aed4e00596dd48cc03044d85b12111714960b5642f13a33"
+    },
+    {
+      "source": "blender/pig/skins/strawberrycow/asset-v1/strawberrycow_trim_emissive.png",
+      "destination": "assets/skins/animal/rare/strawberrycow/strawberrycow_trim_emissive.png",
+      "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8"
+    },
+    {
+      "source": "blender/pig/skins/cookiescream/asset-v1/cookiescream-asset-report.json",
+      "destination": "assets/skins/animal/rare/cookiescream/cookiescream-asset-report.json",
+      "sha256": "9e2635af72ae0ebd1b7bad92bd31b26ac90e42bd031209a78f41208b314615bb"
+    },
+    {
+      "source": "blender/pig/skins/cookiescream/asset-v1/cookiescream-complete.blend",
+      "destination": "assets/skins/animal/rare/cookiescream/cookiescream-complete.blend",
+      "sha256": "d278689eda7eaf2f7391528c4c93069d72d4705e7223f1d5c9f350f3092cd169"
+    },
+    {
+      "source": "blender/pig/skins/cookiescream/asset-v1/cookiescream-complete.fbx",
+      "destination": "assets/skins/animal/rare/cookiescream/cookiescream-complete.fbx",
+      "sha256": "38c27c5b785cd4ec9694d6c1f38a6278e7341e2f36055cf9bad68429faa18c6c"
+    },
+    {
+      "source": "blender/pig/skins/cookiescream/asset-v1/cookiescream-crown.png",
+      "destination": "assets/skins/animal/rare/cookiescream/cookiescream-crown.png",
+      "sha256": "85d8a60ede26ef4bca6e072b707d4c69d5777bd53e279241035d11256bceab81"
+    },
+    {
+      "source": "blender/pig/skins/cookiescream/asset-v1/cookiescream-front.png",
+      "destination": "assets/skins/animal/rare/cookiescream/cookiescream-front.png",
+      "sha256": "7e805397cdaa02a18d87017fc1ea109b19432163ede44dbee1ffc72311d6e000"
+    },
+    {
+      "source": "blender/pig/skins/cookiescream/asset-v1/cookiescream-glow.png",
+      "destination": "assets/skins/animal/rare/cookiescream/cookiescream-glow.png",
+      "sha256": "bae2f8988ef8f0685f8eacc3cf65e8e0d82f000a989cf3d582878458bb1fe0fb"
+    },
+    {
+      "source": "blender/pig/skins/cookiescream/asset-v1/cookiescream-hero.png",
+      "destination": "assets/skins/animal/rare/cookiescream/cookiescream-hero.png",
+      "sha256": "79765e0828260d1e38321348c6d44ea3c7b57da6d27558b8c8b2d71f88775f81"
+    },
+    {
+      "source": "blender/pig/skins/cookiescream/asset-v1/cookiescream-spine.png",
+      "destination": "assets/skins/animal/rare/cookiescream/cookiescream-spine.png",
+      "sha256": "6c25b5b420cb2faeea2073dd235ff5e2c9068c5318709be688c38e841d7c2cbc"
+    },
+    {
+      "source": "blender/pig/skins/cookiescream/asset-v1/cookiescream_body_color.png",
+      "destination": "assets/skins/animal/rare/cookiescream/cookiescream_body_color.png",
+      "sha256": "0d5437290c036f509bdff28474bd86aa5f9a43295b6a1168ceab5e01d24f2be4"
+    },
+    {
+      "source": "blender/pig/skins/cookiescream/asset-v1/cookiescream_body_emissive.png",
+      "destination": "assets/skins/animal/rare/cookiescream/cookiescream_body_emissive.png",
+      "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a"
+    },
+    {
+      "source": "blender/pig/skins/cookiescream/asset-v1/cookiescream_trim_color.png",
+      "destination": "assets/skins/animal/rare/cookiescream/cookiescream_trim_color.png",
+      "sha256": "0c007188b60aacaa3f2dfa959a666a283a7788c2c879831239871a3150860c00"
+    },
+    {
+      "source": "blender/pig/skins/cookiescream/asset-v1/cookiescream_trim_emissive.png",
+      "destination": "assets/skins/animal/rare/cookiescream/cookiescream_trim_emissive.png",
+      "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8"
+    },
+    {
+      "source": "blender/pig/skins/cookiescream/asset-v1/index.html",
+      "destination": "assets/skins/animal/rare/cookiescream/index.html",
+      "sha256": "ebbf19c191e11d5a91dda59cd3a0f4d35694bb6b261fddd9538d7c42bd8e6b7e"
+    },
+    {
+      "source": "blender/pig/skins/cookiescream/asset-v1/README.md",
+      "destination": "assets/skins/animal/rare/cookiescream/README.md",
+      "sha256": "4e7f4eac28fd977d401b9659ebcae4ccdef2534a19d0a04160ad2b1a4e8096d4"
+    },
+    {
+      "source": "blender/pig/skins/watermelon/asset-v1/index.html",
+      "destination": "assets/skins/animal/rare/watermelon/index.html",
+      "sha256": "941e9ff54e26403be0fff4344463802f441696de040e43cf336059d47c8c8917"
+    },
+    {
+      "source": "blender/pig/skins/watermelon/asset-v1/README.md",
+      "destination": "assets/skins/animal/rare/watermelon/README.md",
+      "sha256": "146bcc4883f0b4fc5d53a4f4a33f0e196cf50576bd704022183f3ed60078b3d9"
+    },
+    {
+      "source": "blender/pig/skins/watermelon/asset-v1/watermelon-asset-report.json",
+      "destination": "assets/skins/animal/rare/watermelon/watermelon-asset-report.json",
+      "sha256": "5882c891cbcafb233bc5ab21ed6ef960a9b05045d998632328d0644313ff8665"
+    },
+    {
+      "source": "blender/pig/skins/watermelon/asset-v1/watermelon-complete.blend",
+      "destination": "assets/skins/animal/rare/watermelon/watermelon-complete.blend",
+      "sha256": "89ca0754caa0e908a3b9628c4e222b5718b774f9376c5cbefb0b1e3925bb5754"
+    },
+    {
+      "source": "blender/pig/skins/watermelon/asset-v1/watermelon-complete.fbx",
+      "destination": "assets/skins/animal/rare/watermelon/watermelon-complete.fbx",
+      "sha256": "7c68725f7b6b489e271d89245b71a07a636a549a0d485cf5e4ee33ad44020486"
+    },
+    {
+      "source": "blender/pig/skins/watermelon/asset-v1/watermelon-crown.png",
+      "destination": "assets/skins/animal/rare/watermelon/watermelon-crown.png",
+      "sha256": "1521709df246b4fd311de2b38a0511c3ea019a424be57d5fb1d3f12ef5fe9d39"
+    },
+    {
+      "source": "blender/pig/skins/watermelon/asset-v1/watermelon-front.png",
+      "destination": "assets/skins/animal/rare/watermelon/watermelon-front.png",
+      "sha256": "9e0d1f487b582133388675fa7b4589338e2ace27a93ba654c31a97b0a019d21c"
+    },
+    {
+      "source": "blender/pig/skins/watermelon/asset-v1/watermelon-glow.png",
+      "destination": "assets/skins/animal/rare/watermelon/watermelon-glow.png",
+      "sha256": "65d7acfe3b046b6ed5e50af9b20a0c365a73508bc48a3bb13e58f9a87e586a60"
+    },
+    {
+      "source": "blender/pig/skins/watermelon/asset-v1/watermelon-hero.png",
+      "destination": "assets/skins/animal/rare/watermelon/watermelon-hero.png",
+      "sha256": "606aa6157e974d9cda816ec2847a7b8a361367dad3cd500023c6f1ae03cd1f9c"
+    },
+    {
+      "source": "blender/pig/skins/watermelon/asset-v1/watermelon-spine.png",
+      "destination": "assets/skins/animal/rare/watermelon/watermelon-spine.png",
+      "sha256": "1207ba23c76e5334719c1b1ac59a29d758b8335192ab2b623300afd6fcd1e5a4"
+    },
+    {
+      "source": "blender/pig/skins/watermelon/asset-v1/watermelon_body_color.png",
+      "destination": "assets/skins/animal/rare/watermelon/watermelon_body_color.png",
+      "sha256": "773991b5da53b9659c1e67a2674bf33730cb415fcecf487309d114bfa65c3522"
+    },
+    {
+      "source": "blender/pig/skins/watermelon/asset-v1/watermelon_body_emissive.png",
+      "destination": "assets/skins/animal/rare/watermelon/watermelon_body_emissive.png",
+      "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a"
+    },
+    {
+      "source": "blender/pig/skins/watermelon/asset-v1/watermelon_trim_color.png",
+      "destination": "assets/skins/animal/rare/watermelon/watermelon_trim_color.png",
+      "sha256": "e2b727e2b10e197b08161bceff4fee03f27349b30627cced29c1a0fc6ee60acd"
+    },
+    {
+      "source": "blender/pig/skins/watermelon/asset-v1/watermelon_trim_emissive.png",
+      "destination": "assets/skins/animal/rare/watermelon/watermelon_trim_emissive.png",
+      "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8"
+    },
+    {
+      "source": "blender/pig/skins/peppermint/asset-v1/index.html",
+      "destination": "assets/skins/animal/rare/peppermint/index.html",
+      "sha256": "d2fc1cce2a4b3e9f694d397b5632a9ea492a0ac20526c5cc17c22ce66ae59be0"
+    },
+    {
+      "source": "blender/pig/skins/peppermint/asset-v1/peppermint-asset-report.json",
+      "destination": "assets/skins/animal/rare/peppermint/peppermint-asset-report.json",
+      "sha256": "766a0b1638c5d9010483ac4049c863beaf76c90fb15ee57aaa0b4338daa47f2e"
+    },
+    {
+      "source": "blender/pig/skins/peppermint/asset-v1/peppermint-complete.blend",
+      "destination": "assets/skins/animal/rare/peppermint/peppermint-complete.blend",
+      "sha256": "e44ebffa22ff154b851c673ae1394e9434a1365233430b2ed5faeb3574cf45c2"
+    },
+    {
+      "source": "blender/pig/skins/peppermint/asset-v1/peppermint-complete.fbx",
+      "destination": "assets/skins/animal/rare/peppermint/peppermint-complete.fbx",
+      "sha256": "49a926ef01d5fd1e17d1c4c104b41c3548d5cb2540483d8ca168d3af98ab2931"
+    },
+    {
+      "source": "blender/pig/skins/peppermint/asset-v1/peppermint-crown.png",
+      "destination": "assets/skins/animal/rare/peppermint/peppermint-crown.png",
+      "sha256": "043f76a56eebc265e22a40f799833cf08a6b36f4b2b0e6f891a7c32147ebf643"
+    },
+    {
+      "source": "blender/pig/skins/peppermint/asset-v1/peppermint-front.png",
+      "destination": "assets/skins/animal/rare/peppermint/peppermint-front.png",
+      "sha256": "e85bc105e4057d7576f07807ac350537a4f470daa44648bb539a2b57665172f0"
+    },
+    {
+      "source": "blender/pig/skins/peppermint/asset-v1/peppermint-glow.png",
+      "destination": "assets/skins/animal/rare/peppermint/peppermint-glow.png",
+      "sha256": "9c65f07733493beb233567058ee133d0fd34b8bbdebb38611724df0cb4336b80"
+    },
+    {
+      "source": "blender/pig/skins/peppermint/asset-v1/peppermint-hero.png",
+      "destination": "assets/skins/animal/rare/peppermint/peppermint-hero.png",
+      "sha256": "37762413582f4f667f7ec704e65d709b92d4cd98faab93a651fb35615572f8e2"
+    },
+    {
+      "source": "blender/pig/skins/peppermint/asset-v1/peppermint-spine.png",
+      "destination": "assets/skins/animal/rare/peppermint/peppermint-spine.png",
+      "sha256": "b609e73a7fd27ba79ace5e740975b06704a3da667b5fdbead84600ffaa4b3986"
+    },
+    {
+      "source": "blender/pig/skins/peppermint/asset-v1/peppermint_body_color.png",
+      "destination": "assets/skins/animal/rare/peppermint/peppermint_body_color.png",
+      "sha256": "7c85cba0032dddc25085dc8188442e00f412296a4bbe92e99c29df3608f021b3"
+    },
+    {
+      "source": "blender/pig/skins/peppermint/asset-v1/peppermint_body_emissive.png",
+      "destination": "assets/skins/animal/rare/peppermint/peppermint_body_emissive.png",
+      "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a"
+    },
+    {
+      "source": "blender/pig/skins/peppermint/asset-v1/peppermint_trim_color.png",
+      "destination": "assets/skins/animal/rare/peppermint/peppermint_trim_color.png",
+      "sha256": "d55fdf3470f8fa6121746349031b057dd439c59c7e843d8e5c86a77d8ae5268f"
+    },
+    {
+      "source": "blender/pig/skins/peppermint/asset-v1/peppermint_trim_emissive.png",
+      "destination": "assets/skins/animal/rare/peppermint/peppermint_trim_emissive.png",
+      "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8"
+    },
+    {
+      "source": "blender/pig/skins/peppermint/asset-v1/README.md",
+      "destination": "assets/skins/animal/rare/peppermint/README.md",
+      "sha256": "9d9644d959771a0b396fabe5a6f29490af7ee416df9f4baeac4c85b4835cabef"
+    },
+    {
+      "source": "blender/pig/skins/glacier/asset-v1/glacier-asset-report.json",
+      "destination": "assets/skins/animal/rare/glacier/glacier-asset-report.json",
+      "sha256": "a3723dd17b988a9078c7679e99574e7c927cb5c2e43ed81487606b007346e79e"
+    },
+    {
+      "source": "blender/pig/skins/glacier/asset-v1/glacier-complete.blend",
+      "destination": "assets/skins/animal/rare/glacier/glacier-complete.blend",
+      "sha256": "cb966ddec5be390bd93fc1590db49148c49485ff90ff2dc1cdb152e9ee1ab8fc"
+    },
+    {
+      "source": "blender/pig/skins/glacier/asset-v1/glacier-complete.fbx",
+      "destination": "assets/skins/animal/rare/glacier/glacier-complete.fbx",
+      "sha256": "dbf78553b0496c2e45f317a8e71b265c0fe14bf24fc9b511b1ad1794a28e0a5a"
+    },
+    {
+      "source": "blender/pig/skins/glacier/asset-v1/glacier-crown.png",
+      "destination": "assets/skins/animal/rare/glacier/glacier-crown.png",
+      "sha256": "55c6d0017e22b8ace3104e2c571b587ea63e1f5fda087938dfcad9ce55c864cc"
+    },
+    {
+      "source": "blender/pig/skins/glacier/asset-v1/glacier-front.png",
+      "destination": "assets/skins/animal/rare/glacier/glacier-front.png",
+      "sha256": "5a107c399713b4b2bede439d05b588a5e54ce96cb621c346144a3e52d02faeb6"
+    },
+    {
+      "source": "blender/pig/skins/glacier/asset-v1/glacier-glow.png",
+      "destination": "assets/skins/animal/rare/glacier/glacier-glow.png",
+      "sha256": "53cfa6fdb559d5197dca85e2b25c35c034cbbd5121e65c74fb695d4c172f2388"
+    },
+    {
+      "source": "blender/pig/skins/glacier/asset-v1/glacier-hero.png",
+      "destination": "assets/skins/animal/rare/glacier/glacier-hero.png",
+      "sha256": "f06dc91356ce307249e29011175b9af8b47a9520f5a0012900a4ab574be4a23c"
+    },
+    {
+      "source": "blender/pig/skins/glacier/asset-v1/glacier-spine.png",
+      "destination": "assets/skins/animal/rare/glacier/glacier-spine.png",
+      "sha256": "707ba403506bc4a16efab5db2678fd8667e87f69ad53dd793bd78f7b88504845"
+    },
+    {
+      "source": "blender/pig/skins/glacier/asset-v1/glacier_body_color.png",
+      "destination": "assets/skins/animal/rare/glacier/glacier_body_color.png",
+      "sha256": "f2afc6861c07f38c0a5ce35d7b79e1f1fd093239e2c6fe0d3a499fd8abd1701b"
+    },
+    {
+      "source": "blender/pig/skins/glacier/asset-v1/glacier_body_emissive.png",
+      "destination": "assets/skins/animal/rare/glacier/glacier_body_emissive.png",
+      "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a"
+    },
+    {
+      "source": "blender/pig/skins/glacier/asset-v1/glacier_trim_color.png",
+      "destination": "assets/skins/animal/rare/glacier/glacier_trim_color.png",
+      "sha256": "680faec6142dcac82801aa457f98e8a19d98bc4fbf31c0c926d605fc5917c5d5"
+    },
+    {
+      "source": "blender/pig/skins/glacier/asset-v1/glacier_trim_emissive.png",
+      "destination": "assets/skins/animal/rare/glacier/glacier_trim_emissive.png",
+      "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8"
+    },
+    {
+      "source": "blender/pig/skins/glacier/asset-v1/index.html",
+      "destination": "assets/skins/animal/rare/glacier/index.html",
+      "sha256": "48e6e791e27ffea759f38d51dde3b65de961dead693f93af868e2be3bd03cc1d"
+    },
+    {
+      "source": "blender/pig/skins/glacier/asset-v1/README.md",
+      "destination": "assets/skins/animal/rare/glacier/README.md",
+      "sha256": "1d7941d479f526c0feb5696121d6535f5a81008c7f1f6742605f86c1c1bae209"
+    },
+    {
+      "source": "blender/pig/skins/bubblegumleopard/asset-v1/bubblegumleopard-asset-report.json",
+      "destination": "assets/skins/animal/rare/bubblegumleopard/bubblegumleopard-asset-report.json",
+      "sha256": "8f9610ef78ccba9e0d0f2dc79c204bbb029fe001bfb1641560a4b8556e5dd665"
+    },
+    {
+      "source": "blender/pig/skins/bubblegumleopard/asset-v1/bubblegumleopard-complete.blend",
+      "destination": "assets/skins/animal/rare/bubblegumleopard/bubblegumleopard-complete.blend",
+      "sha256": "e934503d08d3563f365741e68c7f1000ae8828894e8a28d0650cc9ab50ae982a"
+    },
+    {
+      "source": "blender/pig/skins/bubblegumleopard/asset-v1/bubblegumleopard-complete.fbx",
+      "destination": "assets/skins/animal/rare/bubblegumleopard/bubblegumleopard-complete.fbx",
+      "sha256": "5bc6ba3680acec0508761618222eafc68a052eea89522eb5c4c70c8c98ab8c33"
+    },
+    {
+      "source": "blender/pig/skins/bubblegumleopard/asset-v1/bubblegumleopard-crown.png",
+      "destination": "assets/skins/animal/rare/bubblegumleopard/bubblegumleopard-crown.png",
+      "sha256": "15a3fe8080bf8d940227680356f751270e392f55646d445465fd8cf6336133e5"
+    },
+    {
+      "source": "blender/pig/skins/bubblegumleopard/asset-v1/bubblegumleopard-front.png",
+      "destination": "assets/skins/animal/rare/bubblegumleopard/bubblegumleopard-front.png",
+      "sha256": "a1d6440f9ebce7c75642227fd81c5648f40dd673619b42915ef93b131c2cb548"
+    },
+    {
+      "source": "blender/pig/skins/bubblegumleopard/asset-v1/bubblegumleopard-glow.png",
+      "destination": "assets/skins/animal/rare/bubblegumleopard/bubblegumleopard-glow.png",
+      "sha256": "0a21bb64fa676ca41727f40ae16d3587447260ad12bf8aabbe581959fd579993"
+    },
+    {
+      "source": "blender/pig/skins/bubblegumleopard/asset-v1/bubblegumleopard-hero.png",
+      "destination": "assets/skins/animal/rare/bubblegumleopard/bubblegumleopard-hero.png",
+      "sha256": "92401a9a16c6342f556c7c4bf41dca243e550d514d1daa1dea61c21192aa927d"
+    },
+    {
+      "source": "blender/pig/skins/bubblegumleopard/asset-v1/bubblegumleopard-spine.png",
+      "destination": "assets/skins/animal/rare/bubblegumleopard/bubblegumleopard-spine.png",
+      "sha256": "2bd34722050c43b8c5b1eb2dd485569b3ff677f3c75c24e1bf364bb93e6ac626"
+    },
+    {
+      "source": "blender/pig/skins/bubblegumleopard/asset-v1/bubblegumleopard_body_color.png",
+      "destination": "assets/skins/animal/rare/bubblegumleopard/bubblegumleopard_body_color.png",
+      "sha256": "4fc2edaa3b437b7f82533a820efdddf33dbd6099b88fa61c3c12f0671c23e169"
+    },
+    {
+      "source": "blender/pig/skins/bubblegumleopard/asset-v1/bubblegumleopard_body_emissive.png",
+      "destination": "assets/skins/animal/rare/bubblegumleopard/bubblegumleopard_body_emissive.png",
+      "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a"
+    },
+    {
+      "source": "blender/pig/skins/bubblegumleopard/asset-v1/bubblegumleopard_trim_color.png",
+      "destination": "assets/skins/animal/rare/bubblegumleopard/bubblegumleopard_trim_color.png",
+      "sha256": "e1c254ebf14e42190c6030194272273843d6b882817954775182f26ff477304e"
+    },
+    {
+      "source": "blender/pig/skins/bubblegumleopard/asset-v1/bubblegumleopard_trim_emissive.png",
+      "destination": "assets/skins/animal/rare/bubblegumleopard/bubblegumleopard_trim_emissive.png",
+      "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8"
+    },
+    {
+      "source": "blender/pig/skins/bubblegumleopard/asset-v1/index.html",
+      "destination": "assets/skins/animal/rare/bubblegumleopard/index.html",
+      "sha256": "4878e06290765a644d95b301acbfd805f5cee1107010821ee9ae9462d0d81a3f"
+    },
+    {
+      "source": "blender/pig/skins/bubblegumleopard/asset-v1/README.md",
+      "destination": "assets/skins/animal/rare/bubblegumleopard/README.md",
+      "sha256": "89b8efd57fcb7d2b47dc335c10667e7519f3d8d29972e4b6c79a2fc6a2f241d8"
+    },
+    {
+      "source": "blender/pig/skins/honeycomb/asset-v1/honeycomb-asset-report.json",
+      "destination": "assets/skins/animal/rare/honeycomb/honeycomb-asset-report.json",
+      "sha256": "8523c407a08fe7984031b4b72c3d8ffe51d1b6fc9bc2fad37c57371090bc2060"
+    },
+    {
+      "source": "blender/pig/skins/honeycomb/asset-v1/honeycomb-complete.blend",
+      "destination": "assets/skins/animal/rare/honeycomb/honeycomb-complete.blend",
+      "sha256": "529ec56264024707433f01cc3ece526a973c663d1f9a96f02e416d80a65b8513"
+    },
+    {
+      "source": "blender/pig/skins/honeycomb/asset-v1/honeycomb-complete.fbx",
+      "destination": "assets/skins/animal/rare/honeycomb/honeycomb-complete.fbx",
+      "sha256": "e5b14bec69ef54822d9cfea43f717ae9ba147f96b010e77f53d1ce0b9538af19"
+    },
+    {
+      "source": "blender/pig/skins/honeycomb/asset-v1/honeycomb-crown.png",
+      "destination": "assets/skins/animal/rare/honeycomb/honeycomb-crown.png",
+      "sha256": "91190370d10f7dd5e4c3461db319b5ead2a309102598d0d624473434bf168f05"
+    },
+    {
+      "source": "blender/pig/skins/honeycomb/asset-v1/honeycomb-front.png",
+      "destination": "assets/skins/animal/rare/honeycomb/honeycomb-front.png",
+      "sha256": "5b4286c4f1fac0e30259e2c45f2657b290417517840cb80c96dd54c98f46fc5c"
+    },
+    {
+      "source": "blender/pig/skins/honeycomb/asset-v1/honeycomb-glow.png",
+      "destination": "assets/skins/animal/rare/honeycomb/honeycomb-glow.png",
+      "sha256": "70c1864cb3fc6bdce9d10687751aac7f99b0cee824f334737e2e08ce7a827829"
+    },
+    {
+      "source": "blender/pig/skins/honeycomb/asset-v1/honeycomb-hero.png",
+      "destination": "assets/skins/animal/rare/honeycomb/honeycomb-hero.png",
+      "sha256": "781cfb75820167c528c354ecce6010f99d8501c7edbf83159a36f2f1898ded85"
+    },
+    {
+      "source": "blender/pig/skins/honeycomb/asset-v1/honeycomb-spine.png",
+      "destination": "assets/skins/animal/rare/honeycomb/honeycomb-spine.png",
+      "sha256": "b1fae6c29b3e430228f1d272dcdaaa4fe339d95c76b8b599c7366634f9f4a82c"
+    },
+    {
+      "source": "blender/pig/skins/honeycomb/asset-v1/honeycomb_body_color.png",
+      "destination": "assets/skins/animal/rare/honeycomb/honeycomb_body_color.png",
+      "sha256": "d50dc2818af45ef83196227282bb0994af066654ea0dd3fa2ff9f072b0da43c0"
+    },
+    {
+      "source": "blender/pig/skins/honeycomb/asset-v1/honeycomb_body_emissive.png",
+      "destination": "assets/skins/animal/rare/honeycomb/honeycomb_body_emissive.png",
+      "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a"
+    },
+    {
+      "source": "blender/pig/skins/honeycomb/asset-v1/honeycomb_trim_color.png",
+      "destination": "assets/skins/animal/rare/honeycomb/honeycomb_trim_color.png",
+      "sha256": "93c48e39668782be312d45f1eccd6d62387da873b166d0cf92c3a572b681b462"
+    },
+    {
+      "source": "blender/pig/skins/honeycomb/asset-v1/honeycomb_trim_emissive.png",
+      "destination": "assets/skins/animal/rare/honeycomb/honeycomb_trim_emissive.png",
+      "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8"
+    },
+    {
+      "source": "blender/pig/skins/honeycomb/asset-v1/index.html",
+      "destination": "assets/skins/animal/rare/honeycomb/index.html",
+      "sha256": "3641e57296cbb0c1ecc6aa9780bd3b0b7511727c0d7136619c021454de367174"
+    },
+    {
+      "source": "blender/pig/skins/honeycomb/asset-v1/README.md",
+      "destination": "assets/skins/animal/rare/honeycomb/README.md",
+      "sha256": "58296366d41a498aadd83743ab033a6972fef7de804e3ba8b2b8ad4d1a33c435"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/body-glow-checks.json",
+      "destination": "assets/skins/animal/legendary/stormwolf/body-glow-checks.json",
+      "sha256": "a414a9c026cd3b13304cd63813c4305eee4f67c7860f69799f7141c308a6ad1c"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/index.html",
+      "destination": "assets/skins/animal/legendary/stormwolf/index.html",
+      "sha256": "a656809d935e2109393e08c0187da5dcb5f4971a8ca53e99c97cf6c8d48510e0"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-animation.json",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-animation.json",
+      "sha256": "2be78ad297ddda76dac03a8eec905cffbe5c96ebb1878f3def9a84ba64d4f948"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-preview-checks.json",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-preview-checks.json",
+      "sha256": "df7f4d3b2f4a2e1b10618a30865905ba84c08d4b75fe190a6d512724243e57d9"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-video-check.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-video-check.png",
+      "sha256": "d08778f2605e40c9c7d1c9fdb3171e5539c0eede782902387b0a4f6b37394ca0"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/README.md",
+      "destination": "assets/skins/animal/legendary/stormwolf/README.md",
+      "sha256": "59cb39c565e0e1cc1efce7cd1d2b4efa7e0c8f2d38e4b09149a35cedb9a05b56"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/stormwolf-complete.blend",
+      "destination": "assets/skins/animal/legendary/stormwolf/stormwolf-complete.blend",
+      "sha256": "0f56252ef846d930ac3a1ad1d524e7724a85f4d561197ea7e993708faf30510e"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/stormwolf-complete.fbx",
+      "destination": "assets/skins/animal/legendary/stormwolf/stormwolf-complete.fbx",
+      "sha256": "5c4b2d9cee64a5b1a180a515f354e0e0230f7e2b5932789747cd8ebd62c3ffd5"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/stormwolf-crown.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/stormwolf-crown.png",
+      "sha256": "36a61ca6b20bcc3b7e31c645e5694ca2b9e289d3be091d9d1d4d35a83291e5f4"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/stormwolf-front.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/stormwolf-front.png",
+      "sha256": "65c968c414a234cb421873bf77b964bb4f11b16131f9687505495636a518f5aa"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/stormwolf-hero.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/stormwolf-hero.png",
+      "sha256": "da290ec952b9897fee31a5daee0e5914df87de7009b7a91fe7100c359be2cc27"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/stormwolf-layout-checks.json",
+      "destination": "assets/skins/animal/legendary/stormwolf/stormwolf-layout-checks.json",
+      "sha256": "9950d29c43eca28cb7fec23a72ba6fcc99fdc2871cd68b20c82a717cffde52b1"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/stormwolf-layout.blend",
+      "destination": "assets/skins/animal/legendary/stormwolf/stormwolf-layout.blend",
+      "sha256": "a1536506a24283624bc858b5c3eb62f826c1a28104d493962fcb951485bba5f9"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/stormwolf-lightning-off.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/stormwolf-lightning-off.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/stormwolf-lightning-on.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/stormwolf-lightning-on.png",
+      "sha256": "bd4e7720c9cbab006ad89a46041638b0cc5d8c841d74ac5f915fe0f4b67d5d5e"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/stormwolf-lightning.mp4",
+      "destination": "assets/skins/animal/legendary/stormwolf/stormwolf-lightning.mp4",
+      "sha256": "0d18c1510c18b51e29af35e72c8058b96f651f6589ea791d689702bd1eb175c6"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/stormwolf-rear.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/stormwolf-rear.png",
+      "sha256": "593bbf6fbe1c18a6b5dc3cfb0bc8d1f0e0958310fd1c16d3ed9d0188de001cf6"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/stormwolf-side.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/stormwolf-side.png",
+      "sha256": "5f932bc6611fffdac89bc0ff73550dda3fffed2fb501122f66454f5df9961347"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/stormwolf-vault.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/stormwolf-vault.png",
+      "sha256": "45e71a2526cab9e008662350a44ec2f4a03802f9d2b026b5526f2156f322f1ff"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/StormWolfLightning.luau",
+      "destination": "assets/skins/animal/legendary/stormwolf/StormWolfLightning.luau",
+      "sha256": "9493482b859f2341c7162cd823c55d4da1f61e17b4f3a0f8ac1866db46f65ba4"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/stormwolf_body_color.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/stormwolf_body_color.png",
+      "sha256": "0cdb0d1dafe6ac3fb6205a69fdde69137bb669c80ddda87008cc6416406372ac"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/stormwolf_body_emissive.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/stormwolf_body_emissive.png",
+      "sha256": "e5edafbf31f576d06d007d67d34a8001cd3d996c5200484fd53fc5634b3efc88"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-001.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-001.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-002.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-002.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-003.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-003.png",
+      "sha256": "e37e32126af2837f8a0c23c83001c322c68c91be8c7cd9b65d94b0fa6a306e56"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-004.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-004.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-005.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-005.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-006.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-006.png",
+      "sha256": "7807cfa4d68d590b8b4e8fe2d3c214e79a0c63c4430f28a3d259a5efff5169d1"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-007.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-007.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-008.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-008.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-009.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-009.png",
+      "sha256": "16a3f0181cb5d7210d7d6992210e348d98eb24480d63c85898b8326ba5d01805"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-010.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-010.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-011.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-011.png",
+      "sha256": "bd4e7720c9cbab006ad89a46041638b0cc5d8c841d74ac5f915fe0f4b67d5d5e"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-012.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-012.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-013.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-013.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-014.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-014.png",
+      "sha256": "fa333c7bcfab2e62507f2c37bc5e0776c7309da7b56fefb54d8dbf4021884aed"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-015.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-015.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-016.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-016.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-017.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-017.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-018.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-018.png",
+      "sha256": "fd9f385b2f696153ef3ec67038e1fafad5912ccbc699fbfd22039dca5489d3cb"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-019.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-019.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-020.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-020.png",
+      "sha256": "8f58215f8b32626e91cc955434a534b44647887bce4327b2252c0b4a8734fbee"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-021.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-021.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-022.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-022.png",
+      "sha256": "6d8b380298f251bea6dfb5787bf867fae4240d24b66e80f63d69bd9f496ed36f"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-023.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-023.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-024.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-024.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-025.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-025.png",
+      "sha256": "3e012e896981c92aa8698a15af89d0f9e18e83eaa58347b7f0d8a3af92951d8c"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-026.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-026.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-027.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-027.png",
+      "sha256": "413a200c7564990793fe195ec21404b4ebbdf730d4bd71a5474cb69ad5d52df0"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-028.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-028.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-029.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-029.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-030.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-030.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-031.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-031.png",
+      "sha256": "6a225762e5e6f812cfacb3b07ddd9104e4e6e176a619c719774be0d0082721f8"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-032.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-032.png",
+      "sha256": "b9af2a762637a3c3fccc2eb8b93685ae66d7c5057ea7d61b7bae2ffdbf90db19"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-033.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-033.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-034.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-034.png",
+      "sha256": "e37e32126af2837f8a0c23c83001c322c68c91be8c7cd9b65d94b0fa6a306e56"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-035.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-035.png",
+      "sha256": "175307d3d9d770d36e103f3a17743ce7eccbedbbdd61af97a903616e29eeda6e"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-036.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-036.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-037.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-037.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-038.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-038.png",
+      "sha256": "21002d7aa4959495df2ebeaa02aae409f9ffae2e44c5c084acdaf211907b8681"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-039.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-039.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-040.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-040.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-041.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-041.png",
+      "sha256": "a73004a7a0ba8ed7eff6d02f5508d4c718702d91709b62585f1f77a6cb6bf5f5"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-042.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-042.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-043.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-043.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-044.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-044.png",
+      "sha256": "6d8b380298f251bea6dfb5787bf867fae4240d24b66e80f63d69bd9f496ed36f"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-045.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-045.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-046.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-046.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-047.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-047.png",
+      "sha256": "16a3f0181cb5d7210d7d6992210e348d98eb24480d63c85898b8326ba5d01805"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-048.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-048.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-049.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-049.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-050.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-050.png",
+      "sha256": "fd9f385b2f696153ef3ec67038e1fafad5912ccbc699fbfd22039dca5489d3cb"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-051.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-051.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-052.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-052.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-053.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-053.png",
+      "sha256": "e37e32126af2837f8a0c23c83001c322c68c91be8c7cd9b65d94b0fa6a306e56"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-054.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-054.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-055.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-055.png",
+      "sha256": "6a225762e5e6f812cfacb3b07ddd9104e4e6e176a619c719774be0d0082721f8"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-056.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-056.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-057.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-057.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-058.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-058.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-059.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-059.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/stormwolf/layout-v1/lightning-frames/frame-060.png",
+      "destination": "assets/skins/animal/legendary/stormwolf/lightning-frames/frame-060.png",
+      "sha256": "6cee0af1f226344d08b7663776f2cefc7749da3a26e305236dbf859474b7bf33"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/animation-checks.json",
+      "destination": "assets/skins/animal/legendary/dragon/animation-checks.json",
+      "sha256": "cfed7f62d1d642e521f28bb1b80e237c7e3592b1bdb6e7e10cfcce38353e18e2"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/animation-handoff.json",
+      "destination": "assets/skins/animal/legendary/dragon/animation-handoff.json",
+      "sha256": "c649c6c4c9882b1e55eb7b3406896b4a462fbedf9cc64ed2317ac0f92905eb73"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/dragon-asset-report.json",
+      "destination": "assets/skins/animal/legendary/dragon/dragon-asset-report.json",
+      "sha256": "84eef9f898674885b499b665f826bf5d85732dddbc5428893c88b49dfbb52398"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/dragon-complete.blend",
+      "destination": "assets/skins/animal/legendary/dragon/dragon-complete.blend",
+      "sha256": "00b2e3046ceea0738ba77d51511c6d2899129a9777d8837352601c33dee1aee6"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/dragon-complete.fbx",
+      "destination": "assets/skins/animal/legendary/dragon/dragon-complete.fbx",
+      "sha256": "addcd952eaa70f5f58cd6c21e2b9891c03f268e6dcb721000f5618059bcc4586"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/dragon-crown.png",
+      "destination": "assets/skins/animal/legendary/dragon/dragon-crown.png",
+      "sha256": "3502149176b1652804e9952bb8f9716927d0932b1b0544e323358238f69e423a"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/dragon-front.png",
+      "destination": "assets/skins/animal/legendary/dragon/dragon-front.png",
+      "sha256": "60f9dbb8ba21b38f0ae62bd0ab45e3bc4d578b2b121ac045c87f02e31fdd8dfd"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/dragon-hero.png",
+      "destination": "assets/skins/animal/legendary/dragon/dragon-hero.png",
+      "sha256": "e1d6fee7a628f9901d63377f16bf34287333e780ae992d46c9552cd48185217b"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/dragon-idle.fbx",
+      "destination": "assets/skins/animal/legendary/dragon/dragon-idle.fbx",
+      "sha256": "ed8ae5812bd596bbe6bd5cab301e13e6fe513e311e01b5801db7687b5b669a1e"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/dragon-idle.gif",
+      "destination": "assets/skins/animal/legendary/dragon/dragon-idle.gif",
+      "sha256": "83da14edd92bb660c798c15a40cb523b984695bd5a3a79af24bd925482221522"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/dragon-rear.png",
+      "destination": "assets/skins/animal/legendary/dragon/dragon-rear.png",
+      "sha256": "71a839090b8c17658ec84deb34f2b6dee114bdf620e34f9ac6dcb14050e54086"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/dragon-scales.png",
+      "destination": "assets/skins/animal/legendary/dragon/dragon-scales.png",
+      "sha256": "2f45bc38826cc3758ad1baee17b3db8491124eaa48ce52e2deab315c76e08a32"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/DragonGlow.luau",
+      "destination": "assets/skins/animal/legendary/dragon/DragonGlow.luau",
+      "sha256": "275b30e7d489036609412bbe1d6b03d77f8a295cb8786cdc595a3a67be656d1c"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/dragon_body_color.png",
+      "destination": "assets/skins/animal/legendary/dragon/dragon_body_color.png",
+      "sha256": "60bca9937d06bec32015219469011234b700f9e4b33d3778e147df2d57459431"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/dragon_body_emissive.png",
+      "destination": "assets/skins/animal/legendary/dragon/dragon_body_emissive.png",
+      "sha256": "4ad8e8e4832e239e9900abe390574b453f4aa30ffce70e29f9a6c5f29cf28c5e"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/dragon_trim_color.png",
+      "destination": "assets/skins/animal/legendary/dragon/dragon_trim_color.png",
+      "sha256": "f6e2a81e11db92942e61b4ea4d88728da3cc27fe448fa45a2bc5ceed41322aa1"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/dragon_trim_emissive.png",
+      "destination": "assets/skins/animal/legendary/dragon/dragon_trim_emissive.png",
+      "sha256": "5bcb3491608db21dd71275b9664b5c88ea0e0ec28a2df139a17cfee5679ff15f"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/index.html",
+      "destination": "assets/skins/animal/legendary/dragon/index.html",
+      "sha256": "e72bc3847db81a90eb6dc97fd80c48fd57fd08836fe75a7b113b83cf3e5fdccd"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/README.md",
+      "destination": "assets/skins/animal/legendary/dragon/README.md",
+      "sha256": "b3d99746e4f10d4a47e11acd349b7bd721afd642af95d9ef4370924f91199bd3"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-001.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-001.png",
+      "sha256": "a66ad8a993efdeb37ded75b80f4036d1759d73c10a4afb41f2fdb6d67044cadb"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-004.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-004.png",
+      "sha256": "cd1b08ed4439c0448e5a5ac03cf5c0c20b0286cc8492bbecbef13ec3696ed3fd"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-007.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-007.png",
+      "sha256": "a268878edd963b64854abc338f5f0f2b520195d5d223846fccd0eb1fd4963a91"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-010.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-010.png",
+      "sha256": "67d16a94e89fc6ea79ca33c7ff30839c1eaa3ec1c6f8689645a3afb08cceb2ed"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-013.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-013.png",
+      "sha256": "227afe68c00a4da2fd2eab0b83ea2a26fff8db14d325879b608945fe49219aae"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-016.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-016.png",
+      "sha256": "3aeb1a90bf865002e021cc6956ff2eb1d563ded23f7ec7e1f81fd8b18bbc89b0"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-019.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-019.png",
+      "sha256": "8d0e404a25802a2f81a47bb619fa12dd304eb1645edfd1b6179e38aa6239ef2e"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-022.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-022.png",
+      "sha256": "793f5fa8583c274da512cfbae46518d21fd25b72135d4b5038ddd6bc1c8634a4"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-025.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-025.png",
+      "sha256": "b5b62f99c6062ff3b634f1958ed84990495d6675f61ee495bb83009096002bc0"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-028.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-028.png",
+      "sha256": "4337aa7f3b23609cb5ec368ea0aa25dd30788d967f34989393935abb939d17ad"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-031.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-031.png",
+      "sha256": "2d79823af3b92a24e5eb98be289a9b5c7e0e9dd70dec5ad2604b1e32c07f1b62"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-034.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-034.png",
+      "sha256": "2755645776c7cc45515ee4bffc3fe3d28e7961b80f8acf72475a2c6a32b3aa97"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-037.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-037.png",
+      "sha256": "12f98d048683f190e5c7b32b53fdf834bc4936ff12e5f854e4002726f515096d"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-040.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-040.png",
+      "sha256": "e112347ad605aadc7db2766844b2098a038372862b081d5005627096b81604ed"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-043.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-043.png",
+      "sha256": "86725234b687496fe9d8a03298815d6def267c4069c93f7762dc45f2da040a13"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-046.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-046.png",
+      "sha256": "01bc9db596a54f957c97f2e8873086bfc99b54b025ae39bd941669ff76c2420e"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-049.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-049.png",
+      "sha256": "54aadd1c886fb74ec39615b49284453c6deb884a7e39130debd1d23af6baf6f1"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-052.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-052.png",
+      "sha256": "eb6167c7a7b2bd45bf5c50ced13ba17e994c479eadd41bb45cea56093e2608e9"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-055.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-055.png",
+      "sha256": "4a7a18617ec5b97d72f577128631d915db386b80124d60defc004343166b363b"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-058.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-058.png",
+      "sha256": "95f502daba1ef57a237aa20cef70990be9713f48c04b63a181a4087bd00b62be"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-061.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-061.png",
+      "sha256": "2ff30ae618f232a61e5cab7c2e56c85bd5cfd8b0b7afae63a74314b74fec95b2"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-064.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-064.png",
+      "sha256": "b3b15e1b513d35d1b0c5104a250c3ac20e1deeeda4252097768b2c2fc67c7922"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-067.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-067.png",
+      "sha256": "82596bdb96e2d341bc9e7ff325f233d7b1e25d5c72981ca95909e51ccbf98972"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-070.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-070.png",
+      "sha256": "550c6c0bb5a0b843d1df3e0ca65690f2dbed460141bc5c195bf626b55c1e7fda"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-073.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-073.png",
+      "sha256": "374a7462d122729f451e2519feb077edad351d94a6ec438dff0544d47a861d4b"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-076.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-076.png",
+      "sha256": "612820e3abbdd669e2c70f4827cc2d7cf0c36a431b1584479b59ebd7749b2e2e"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-079.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-079.png",
+      "sha256": "08022897fd653016aac57497f5d04552013bb153e6ad1f8606b4677a9c3b796b"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-082.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-082.png",
+      "sha256": "871e50cb1f712e5c72a9d607227db982f77207405d61a27a7acb7d95384f3c31"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-085.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-085.png",
+      "sha256": "c2e55e5bce9f2b49ef9f8cb88755ff96c6a76dcae15644e0d771ecf40687dc4d"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-088.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-088.png",
+      "sha256": "495acb261f3943b8754047fd6fdfb798d0f7b5631a86e68caa02b5368da02900"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-091.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-091.png",
+      "sha256": "e91679ce97af84b15dfe2a7e6b6c9a07691a4ab2994ebacb5759d8001b10a643"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-094.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-094.png",
+      "sha256": "cabaabb2e9a17e363895cad1092d1a1bd03d401ddfa3abb88b579eb0186e56bf"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-097.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-097.png",
+      "sha256": "e25bad971539cddc9d1df9c1cf5f34545d99cc62c499e3ec6da8ca56d8ec40e2"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-100.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-100.png",
+      "sha256": "7933f322b3130fadb7cd3bacd73468603b9d70964d4bba32f9d687c3df21b019"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-103.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-103.png",
+      "sha256": "c10b35a180e6c7a07298e9155a503317d76164effcd6e527bdccd275ec9511cb"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-106.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-106.png",
+      "sha256": "be53d773d50cfec564dde0bc39ccdab9464e95ae59228bf0bad1e83c6d4be566"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-109.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-109.png",
+      "sha256": "4b79e7b9d2a988e3756cd42b627fb5cba40e314cd93f324f26f56b80a5342d29"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-112.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-112.png",
+      "sha256": "5801671d99c4667cd751d9729f199ef8a9b6dd014f41369a1bdd5cd14347e722"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-115.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-115.png",
+      "sha256": "3deacd9ae657d8abcc3b7a362c3fa0b63639efa1aa34883ce58d6ad2d0115160"
+    },
+    {
+      "source": "blender/pig/skins/dragon/legendary-v1/motion/frame-118.png",
+      "destination": "assets/skins/animal/legendary/dragon/motion/frame-118.png",
+      "sha256": "d8d42c89cb081aa8a01020dcda3d83a8743b936fc46ec0708f1be9e6d20c3531"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/animation-checks.json",
+      "destination": "assets/skins/animal/legendary/phoenix/animation-checks.json",
+      "sha256": "7047fceeb8acfa5357c275e8aee77946253bbcfcd4dab0714ba09318fb8c2eee"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/animation-handoff.json",
+      "destination": "assets/skins/animal/legendary/phoenix/animation-handoff.json",
+      "sha256": "66c6a65a03f09ad6b949cd7c70091e07f251ad7d7206650e028fee1dcae178fd"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/animation-preflight.json",
+      "destination": "assets/skins/animal/legendary/phoenix/animation-preflight.json",
+      "sha256": "7e1a91c149cc67318bf20260f876daa0f6c0eeea888d2bbd812da3506fdd8463"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/index.html",
+      "destination": "assets/skins/animal/legendary/phoenix/index.html",
+      "sha256": "2fecbc8ac864b893500cf7ff9481f167de2f72de110e530dc2a62062343893e8"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/phoenix-asset-report.json",
+      "destination": "assets/skins/animal/legendary/phoenix/phoenix-asset-report.json",
+      "sha256": "cf158c243220a7bf06b2df1211a34315d987cb84cb72d5601a7f3d84880e002e"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/phoenix-complete.blend",
+      "destination": "assets/skins/animal/legendary/phoenix/phoenix-complete.blend",
+      "sha256": "1f006e8c90354643dc45b304960bc5281089e975121ad59cf7ccda209e57d9fe"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/phoenix-complete.fbx",
+      "destination": "assets/skins/animal/legendary/phoenix/phoenix-complete.fbx",
+      "sha256": "c1c6c251d78eb607b41c64fcdad75cb6b943270fc18a63f4461a99e3ed1bd1e4"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/phoenix-crown.png",
+      "destination": "assets/skins/animal/legendary/phoenix/phoenix-crown.png",
+      "sha256": "e3322c6428e94b4a18160dda285039099c9ab7188fcc9febf29f55e53e29c4b9"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/phoenix-detail.png",
+      "destination": "assets/skins/animal/legendary/phoenix/phoenix-detail.png",
+      "sha256": "24e53da0f708b55aab3680e0454af40b9f7b8faaeb338b06a8ad0044dc223a06"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/phoenix-front.png",
+      "destination": "assets/skins/animal/legendary/phoenix/phoenix-front.png",
+      "sha256": "0fa622a76487a1ace0037335d958b7aa517f61c5ab6c1c52b0ab866252a1cea0"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/phoenix-hero.png",
+      "destination": "assets/skins/animal/legendary/phoenix/phoenix-hero.png",
+      "sha256": "883e12db4326cd784c4e3068451bbfba85e0f9e59b698a3d653ae3d8629fcae3"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/phoenix-idle.fbx",
+      "destination": "assets/skins/animal/legendary/phoenix/phoenix-idle.fbx",
+      "sha256": "16c534582df0051b245c315572d73e09c924f5ba9b18c648ecf8244b8135f388"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/phoenix-idle.gif",
+      "destination": "assets/skins/animal/legendary/phoenix/phoenix-idle.gif",
+      "sha256": "b9e601ff0f2983aa18ca612517022b319145dfd998101eff7c5721fde73b4ae7"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/phoenix-rear.png",
+      "destination": "assets/skins/animal/legendary/phoenix/phoenix-rear.png",
+      "sha256": "474223a71cfbb1a43351d33a7a4cac7c35733f6009581d2a9565b85f465a332a"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/phoenix-vault-gold.png",
+      "destination": "assets/skins/animal/legendary/phoenix/phoenix-vault-gold.png",
+      "sha256": "ec3d2dd88c6a6e81882a51530e5df7d0f1b755201ac88bd92c18d78edcb880fb"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/phoenix-vault-iron.png",
+      "destination": "assets/skins/animal/legendary/phoenix/phoenix-vault-iron.png",
+      "sha256": "49d295fb7bf77ed02e736cd0f2e1677cb6c3533d35d1c8bbb2eeb55c2dbe0235"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/PhoenixFrost.luau",
+      "destination": "assets/skins/animal/legendary/phoenix/PhoenixFrost.luau",
+      "sha256": "8dcfac65d6c4f855c322fec9c7eb0565c3f59da745d3d248c43551539e411cce"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/phoenix_color.png",
+      "destination": "assets/skins/animal/legendary/phoenix/phoenix_color.png",
+      "sha256": "14e352534b5a2df1df710cf9b59b9be07f772413ff89e6581edd929c1bde03a2"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/phoenix_emissive.png",
+      "destination": "assets/skins/animal/legendary/phoenix/phoenix_emissive.png",
+      "sha256": "c136a9e7ac6aaca8c1a682523ddd8988e52006494c59073eebce096a64ea4c6b"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/README.md",
+      "destination": "assets/skins/animal/legendary/phoenix/README.md",
+      "sha256": "d71d0a7ec0e0ea4fef5a497fdca750fcc435bc099b28d7b4dd63f092113aa329"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/vault-fit-checks.json",
+      "destination": "assets/skins/animal/legendary/phoenix/vault-fit-checks.json",
+      "sha256": "7884287650a677b74d712a340084f2786af6dde048a32e06da34beea2d0c1e5b"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-001.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-001.png",
+      "sha256": "cb74c1eca79b7b24d74cf3cf8b584a13b25e5f0626580f3fb94bdd39df336d51"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-004.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-004.png",
+      "sha256": "82030f1b90106b89df281eb5b2d9257535cb271ae4728d7be51d2207f8b0edc2"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-007.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-007.png",
+      "sha256": "534e8dd4040b37dc0b63d433fe05d8c3d758c412c6bf5f8d063736e14fbf6a4d"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-010.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-010.png",
+      "sha256": "5b9dbc45e5cb3066640a8f708c5b6ae6833e2d73f9185a551b00c5dc320b7423"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-013.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-013.png",
+      "sha256": "05e0cd13e38e9fdf3316929b90831d26e18ee64de0bb859fb7fb2621f52ece70"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-016.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-016.png",
+      "sha256": "badde18f3d59230339e3390e68175a15b2f49849ffb95144d1c5b83284b64864"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-019.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-019.png",
+      "sha256": "3b044e61e99ddabef3a6514fe283ef5e5fe181a3e9c212c5ca8eade1043fb8c4"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-022.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-022.png",
+      "sha256": "e97f0d55085a9fa67bd2c99e24989df05545cd6389a51cce25e1bf2ad1482ba1"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-025.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-025.png",
+      "sha256": "46cd01de072021340f2b37c7a6c61ec752ae8c0411efab8cef0cd4645d938a35"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-028.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-028.png",
+      "sha256": "28a130f3efed6b534ead3ad1846644cd3293ec6b6e69ccaa7acd41e13c16c3cb"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-031.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-031.png",
+      "sha256": "56d5e970c5a58b1226c4a3719725910171cf322f950d4c5f84112577c21492a3"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-034.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-034.png",
+      "sha256": "e4e41e38ff7194308df6411c106247e7d41d3a31a4d179f6653944f226f383ac"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-037.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-037.png",
+      "sha256": "f905dadf4a382f59fed8072b73ea7953d90e160170ee7d32faf5f4fa292a76d0"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-040.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-040.png",
+      "sha256": "6c442dc0040280fb32edea3d34aed32ec542a754529b91d48ef23f9800d9b615"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-043.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-043.png",
+      "sha256": "e1d57eaffe52e9bf0f0f1a8603e47c6954aabe671cc4e5898ec66cfb967e35e5"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-046.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-046.png",
+      "sha256": "7d0dadbe0b82dcd92b6e2c026e5d4600a695db577ee7ebeb1469427505734cc3"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-049.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-049.png",
+      "sha256": "688123d3a5a9249d0dae3b3c2003bc87a3bcbacdf79d49525708f0a31ee324ee"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-052.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-052.png",
+      "sha256": "d51884a1b19a1e1e73ca0ac48175b7d5eb16ba80046421360ca6013af1cbac8c"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-055.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-055.png",
+      "sha256": "09642d413f88fc5e56b66ed4c9f0f154dfa423928c4e88370331d0ffa60ed8bb"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-058.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-058.png",
+      "sha256": "8441233159e9f0c0fcb3ad73aefb739f5deb4397b24980269e97d5f3ce2b6941"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-061.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-061.png",
+      "sha256": "01a9e24a30cd7befd6b24efe7d2a27c33be91b1a14b92e6ccbd1e03a260af717"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-064.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-064.png",
+      "sha256": "b9c67e019ac00a66488725a27c5e236093ffd3f3cd6683822b45c90ea7f20d9d"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-067.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-067.png",
+      "sha256": "644c1e7329ac419dcc2e42ea91b209695f090c118ebf2c0146ba7eda1e6dede7"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-070.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-070.png",
+      "sha256": "c33242c04efab6b744b5b430e2841a3ca3373daeb08fecbfca20dcaa222765ee"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-073.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-073.png",
+      "sha256": "8d0710933ace35e2656c4d681e629898fa8927db9417d7b7d69410f5ef88523a"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-076.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-076.png",
+      "sha256": "1b60e4689446a8397c061c48def933c01ec138e32458bbc45284aa750f63fc14"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-079.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-079.png",
+      "sha256": "d7d88a0f263490b6c57f98545c55711d0078f96f7d93697c68c920777eb84ea8"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-082.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-082.png",
+      "sha256": "0cd29695385507f3fb2a4bd3505b83e7e1665693c002141c698cd279d07a0fd1"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-085.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-085.png",
+      "sha256": "693d7b42dfabcd890c0a009cf77959637a83e605370cb619d0b596c380507927"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-088.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-088.png",
+      "sha256": "6acbe23fc5646929e3f88eda7f9995572bf7be1009639be2938c8ef5ff99d8b8"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-091.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-091.png",
+      "sha256": "d24869bbd90a1d812baa72257c50a6011f03cbea52c15a95df157930c57e0cac"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-094.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-094.png",
+      "sha256": "d00fc7180a85afdaa384e55cc2dcd2372301f34558068fdff0a12fca04cd7595"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-097.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-097.png",
+      "sha256": "662ee7f6e9391f5aea095957b4f2cd4aaff1c3b2eac700657fae2b79331573b5"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-100.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-100.png",
+      "sha256": "f5231779af89f95abf5cff37ab49b85d63fb29e58f1c06bad475ca3dd8baa19f"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-103.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-103.png",
+      "sha256": "8b125fd3b3c456dec2d32dc935f65c7a802139a130cc2c73dcba8703594638ef"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-106.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-106.png",
+      "sha256": "e065efdaf09f3e194cc9797bcc634849769c0bc1c117f9b4f27a3208588bfa01"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-109.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-109.png",
+      "sha256": "b23fb11dc98df0904a57ae9ec18fdb44ca21e7e06ac1030656c20b7bcfaaf9f2"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-112.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-112.png",
+      "sha256": "406b464c2beb2883f068b9a1510bf63f968d7da12dc35ae7a46967f28f2f3d42"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-115.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-115.png",
+      "sha256": "5b1bfa6a60633868668a180fe0981ce711ba5ed07524e9c6c33dbf8902f2171f"
+    },
+    {
+      "source": "blender/pig/skins/phoenix/legendary-v1/motion/frame-118.png",
+      "destination": "assets/skins/animal/legendary/phoenix/motion/frame-118.png",
+      "sha256": "6001c9c3495c34d2341bbc0ab8e26e162f51629bbde9660be0e777aabaf0233c"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/animation-checks.json",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/animation-checks.json",
+      "sha256": "ac65614268a14179fa47c0d8d8930189fb1b0f08bf425f5215e8ae37ca5188fc"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/animation-handoff.json",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/animation-handoff.json",
+      "sha256": "b20c3f7ae7c246582c87d85ddb60753c085d166c7ca0d770469f3ea5278dcae8"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/beard-flow-color.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/beard-flow-color.png",
+      "sha256": "7fbb431a959ab560555ec76b98d113d514695a8706954b014857084ff99ce62e"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/beard-flow-normal.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/beard-flow-normal.png",
+      "sha256": "cac0d8254847a04025f38df90ddccf602379da53bc5c42a98bb62a96e5e6e9ee"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/beard-root-checks.json",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/beard-root-checks.json",
+      "sha256": "12f32458e36bb71585eb8d831ad98571e06392cf571b51ff28d330bc764e7c0e"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/index.html",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/index.html",
+      "sha256": "65c284c100c9cc06744046735c95a13e788bbb58def1793bdfc2b0d81220105a"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/rainbowtiger-asset-report.json",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/rainbowtiger-asset-report.json",
+      "sha256": "7aa5a1d9629e80cd39834172f4a38a2244a3ccedf60f796d851363bd9ddf8dcb"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/rainbowtiger-beard-fur.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/rainbowtiger-beard-fur.png",
+      "sha256": "71f8555420b02b3fe491377ff92f2c7729bc439dccbf7f31945121c090d5aafe"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/rainbowtiger-charcoal-fur.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/rainbowtiger-charcoal-fur.png",
+      "sha256": "3ed1574300860901cc8d4fb4a7aaad761c2771a69f03ea25d52fc0e93dcc143e"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/rainbowtiger-coat.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/rainbowtiger-coat.png",
+      "sha256": "a3e59d02aaf4f9cc015911917a76fb0396e319298bad94ef3c58b387a0c406de"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/rainbowtiger-complete.blend",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/rainbowtiger-complete.blend",
+      "sha256": "c66a316d56cfe938aa8d98e2065ed237bea519c34b6bcc4ef5e2a6bcd5a8dd76"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/rainbowtiger-complete.fbx",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/rainbowtiger-complete.fbx",
+      "sha256": "8c33b5123189140ee3318edbae5bd3a5509f0e12306923ca0582f7455727f117"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/rainbowtiger-crown.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/rainbowtiger-crown.png",
+      "sha256": "f62f6b3dcf3a57f913dad333128a97c526f3a0b7ff5dd8bd146e79fde3650216"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/rainbowtiger-ear-detail.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/rainbowtiger-ear-detail.png",
+      "sha256": "9ba21beed764cd7cdecae93afd318a04d2f5cd016e50ba7a89c1c56a2dda41ad"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/rainbowtiger-front.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/rainbowtiger-front.png",
+      "sha256": "58b0d44e08195834e4b2b0367ddc8f6ae3a381f854954e05839cd8f646c87be3"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/rainbowtiger-hero.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/rainbowtiger-hero.png",
+      "sha256": "f7556e42c25bf3c3d74560867f951b5bdae60829603229ba79741f22406810ff"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/rainbowtiger-idle.fbx",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/rainbowtiger-idle.fbx",
+      "sha256": "b8f1a59d33ab665dca1255fea5fa2779cd7500d3a0d19852d3be5a8738bdc3c8"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/rainbowtiger-idle.gif",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/rainbowtiger-idle.gif",
+      "sha256": "cef4f6f1c887ecd3490fb31de86830a903ecaa42d49a3bd4bec1c5efe09c0d08"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/rainbowtiger-rear.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/rainbowtiger-rear.png",
+      "sha256": "2897f3a20fb8cb481bc77d375db4d8e40ef28c67bae93ad3bf99a9d9e99e8c54"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/rainbowtiger-side.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/rainbowtiger-side.png",
+      "sha256": "325f11e43a1a9fcbd589efed7ad748577ad5f24fce729a49021bb852d3534887"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/rainbowtiger-stripe-emission.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/rainbowtiger-stripe-emission.png",
+      "sha256": "8d6e49e79bfd030c9450e0fc0286c764c7023d7d3e4ff03772bdbe07797d0cb3"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/rainbowtiger-tail-gradient.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/rainbowtiger-tail-gradient.png",
+      "sha256": "548c3447acc7b18a675c471a01dcc0fd9f1c43687090d91dd789e71892d13ee3"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/README.md",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/README.md",
+      "sha256": "45033d1450ba400a9e197b054676de1c1d76623bcf24ed8dd225223f66485dbf"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-001.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-001.png",
+      "sha256": "ef082db56a5453d60f5d3fc716a6905d0ef811c5137bd1338a5d9d3ad1f20817"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-004.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-004.png",
+      "sha256": "aab10580bbd2b57bfb45500baf4a481ce09853b2d0d97264cb7d34c4c8192e76"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-007.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-007.png",
+      "sha256": "9dc3e6dac1971c37e914c94b92c47016001c70c6b819c7db8886ee1e07a63c89"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-010.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-010.png",
+      "sha256": "ad8127beecce0bd332a5a1c0437b8c0838433c482bfb7ab81fe1f73b5c684ec4"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-013.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-013.png",
+      "sha256": "86f14dc30dc25831d0fdd27dee875510101bbf81ec9e27f77afc1df25371fc2f"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-016.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-016.png",
+      "sha256": "8391da25879c5a6d3bdc69a5e1f88928feaaed798ad823f3870090edad2d4629"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-019.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-019.png",
+      "sha256": "29da29836d1e17968d9f2a3c9cdaefaac3e0db19154f14eda042818ab70cd334"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-022.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-022.png",
+      "sha256": "31e44da8d4d96a922fde35bc6cda848d4d4a00871b27626d8e36f01f588629d7"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-025.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-025.png",
+      "sha256": "bcde2e0cf81b7c8b3df43ccf5ffc5fbc1d0bc473938250c1519f5c386a8917c8"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-028.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-028.png",
+      "sha256": "08a8482c9feb51390bccb74d417755bd7e8ffba445347df4431fd9f4b4ea011b"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-031.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-031.png",
+      "sha256": "622594d1aa56db2714482de6f38a5cc9b00d74704ae58e886d717eff01149ce8"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-034.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-034.png",
+      "sha256": "ceb1351bfbd382fdf38e95e4decfbe97816f34c0e800dcf9407c6c5d7d368ca5"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-037.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-037.png",
+      "sha256": "fbe19c11799b5bdd82606a17ac61e8a03c2e1ae80e16ed22181ca24344774d16"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-040.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-040.png",
+      "sha256": "bba7bac582e32cf6fc36777ca17e9a0dc3051d4af98dbc2fbab6994ce80ff0e5"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-043.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-043.png",
+      "sha256": "3ab3b54be350882c3bb56857cb7f17427d74a9c59e6513daedfe8e2ad5cb2dc6"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-046.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-046.png",
+      "sha256": "2b228fccfbb0a1a7ccaa0e5bffcf0797bf87b8de543c698b08ec1edb1ceaf54e"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-049.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-049.png",
+      "sha256": "504d7b81c7a0d61ff4a9d92f182312e076c040f48ddee795015a0fe26798d0cb"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-052.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-052.png",
+      "sha256": "7d947a958b1e17f80227c5ebbcad5269b9eb8bf6c443cb60acd5b5390a3cf1a4"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-055.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-055.png",
+      "sha256": "bc9550c6133e591dbbc73e575970968264191be2e1a295bdfecdcffc2de56867"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-058.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-058.png",
+      "sha256": "eaa8239c1fbc869aef245d80431413996260a1921f1125ddcfd2cfa8c9808237"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-061.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-061.png",
+      "sha256": "c914ae463f84bdf8ce4d00edd8f59aefbfed6562216ec74288a90f0abbcdad51"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-064.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-064.png",
+      "sha256": "fcb7943198f950b984e9884f9b0fda59584fc6f5f285537bfe91b04119decf48"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-067.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-067.png",
+      "sha256": "5852fd6416ff761fae066ba2d08c3e254daf119afe3aaa1f16b1f3daaf170afd"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-070.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-070.png",
+      "sha256": "2515f3f0b0737014c7b6424b2bc6fcfae6e9afee2ce8f7dc3320962f0bf4f711"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-073.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-073.png",
+      "sha256": "c8693552ce6a43b587f2ec6e7e3b770d1b603e069aafda6de575b8fb67789309"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-076.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-076.png",
+      "sha256": "4f773f820b1640f87855b4c990b92453036a374845aa31c9e040c0f894ea869a"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-079.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-079.png",
+      "sha256": "88b902b14ac288b722e07341ca6e74bd875b0c7a026cb38c93991525c051e676"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-082.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-082.png",
+      "sha256": "56f8cecb65778d485135065878e983e9afdd065795636df2a2a901b8e28d7f38"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-085.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-085.png",
+      "sha256": "ae63cede3b832b7b4927eac032e87b6ca7e7e7d76f59d6352af56afb32f2cb35"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-088.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-088.png",
+      "sha256": "4bfb93a500a95d7a68f48b2c0552414d6e9d352f1b2d1c8f6d601733185ee299"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-091.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-091.png",
+      "sha256": "7c255a4d983a8e3692ac1694901e4dfaab0664be3566a7ccd25fb9c46fc67b11"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-094.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-094.png",
+      "sha256": "2c768634cfca47bbe2f4e8629a2339bdca5ea40b8a7cefe10ce518a188ad7429"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-097.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-097.png",
+      "sha256": "cfb53e18cd725bd54afd88339873e3586734b078c5e857a8f9376370faa36ad7"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-100.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-100.png",
+      "sha256": "f117347ac980f2cc1e73670e06e9e3f3bb10b9cc08b5b286adeabc917908b1f2"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-103.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-103.png",
+      "sha256": "82e521dd837e40058e9a44f261c7383778f1606f7b04035bee2d48f8067fd715"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-106.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-106.png",
+      "sha256": "da00a4c940f3852a29b9bcdf2c2a2e88f3649eea1d3c89137b9bb98d4470325e"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-109.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-109.png",
+      "sha256": "9e5320180d54e6e33481d753cc5342b2e89564af5d5fa96dd363747dc2c7e259"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-112.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-112.png",
+      "sha256": "27ffbb35f41d38917507fb15b88232f2dd8f0ea3585a917617fcdf7900d586a4"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-115.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-115.png",
+      "sha256": "e36fc4d7a9815c22c918eca392398ff0120505262ac67a97b27f546563710228"
+    },
+    {
+      "source": "blender/pig/skins/rainbowtiger/legendary-v2-swept/motion/frame-118.png",
+      "destination": "assets/skins/animal/legendary/rainbowtiger/motion/frame-118.png",
+      "sha256": "98c620d5bfe20ab473afa4b897fa5d2be6f246b0efb604b0e6a00c13370bc2a3"
+    },
+    {
+      "source": "assets/animals/index.html",
+      "destination": "assets/skins/animal/common/index.html",
+      "sha256": "da3633c46274eea20481f7b3049c7b1178ff141dbbee3060f0382117dd702645"
+    },
+    {
+      "source": "assets/animals/manifest.json",
+      "destination": "assets/skins/animal/common/manifest.json",
+      "sha256": "677cb97bc3dcc5e6aed42534642a2a8154ff017f5b08b6b6ff844b740faabc0a"
+    },
+    {
+      "source": "assets/animals/README.md",
+      "destination": "assets/skins/animal/common/README.md",
+      "sha256": "2dbb5d1a64a99fb548757b4f2b90e996b3b7a5a870f38b71bec56a7d9a758f1e"
+    },
+    {
+      "source": "assets/animals/legendary/index.html",
+      "destination": "assets/skins/animal/legendary/index.html",
+      "sha256": "dd6011cf3a48a94b5c66ac9b4e51077cab06a222e0af59eba1bde806d679b2db"
+    },
+    {
+      "source": "assets/animals/legendary/manifest.json",
+      "destination": "assets/skins/animal/legendary/manifest.json",
+      "sha256": "bfd6d44a01942866332f94a3f8737aa4bc19ac4a46598c2408482d999df0b73c"
+    },
+    {
+      "source": "assets/animals/rare/index.html",
+      "destination": "assets/skins/animal/rare/index.html",
+      "sha256": "bae9f05736ca929179cb30e92a074ae3013c646e6fbd72e3f8dc2a728bb493d0"
+    },
+    {
+      "source": "assets/animals/rare/manifest.json",
+      "destination": "assets/skins/animal/rare/manifest.json",
+      "sha256": "b2c09837670d114d731de609c8831ec99b166aa9ff0a9c4b458003ce0ce4b704"
+    },
+    {
+      "source": "assets/animals/rare/README.md",
+      "destination": "assets/skins/animal/rare/README.md",
+      "sha256": "8aaf74d14a0d83f663d497c515b3f0695d7d49940c0648f575a51dcd80567e0c"
+    },
+    {
+      "source": "assets/animals/rare/texture-checks.json",
+      "destination": "assets/skins/animal/rare/texture-checks.json",
+      "sha256": "ac105947fdd0eab72813f4527b133d963d497eaf3efc9f4bc9f69ae2f199ed07"
+    },
+    {
+      "source": "assets/animals/legendary/rainbow-tiger-concept/concept-v1.png",
+      "destination": "assets/skins/animal/legendary/rainbow-tiger-concept/concept-v1.png",
+      "sha256": "80b382da830857a3b309a025567aa00f554300e8b47afe3ca70a604e91cf2736"
+    },
+    {
+      "source": "assets/animals/legendary/rainbow-tiger-concept/concept-v2.png",
+      "destination": "assets/skins/animal/legendary/rainbow-tiger-concept/concept-v2.png",
+      "sha256": "71b6086a1a311f6e5e9f00c23cc840e1c9a1bd34cb2316b4611c4f9d1fdd7cf4"
+    },
+    {
+      "source": "assets/animals/legendary/rainbow-tiger-concept/concept-v3-hairless.png",
+      "destination": "assets/skins/animal/legendary/rainbow-tiger-concept/concept-v3-hairless.png",
+      "sha256": "4ff244d934450e8fb300c0ca474860ca894af4f4f899bb039012171cf194925b"
+    },
+    {
+      "source": "assets/animals/legendary/rainbow-tiger-concept/concept-v4-clean-no-brows.png",
+      "destination": "assets/skins/animal/legendary/rainbow-tiger-concept/concept-v4-clean-no-brows.png",
+      "sha256": "6930462a0e5499410f6d2d0226190926525020d70f830f9445c2445dc1eadd70"
+    },
+    {
+      "source": "assets/animals/legendary/rainbow-tiger-concept/concept-v5-a-minimal-tufts.png",
+      "destination": "assets/skins/animal/legendary/rainbow-tiger-concept/concept-v5-a-minimal-tufts.png",
+      "sha256": "f5ab1d760799b1e73dbfe239a09f52a1cee1e783cb16d1b7610437ba9940fb63"
+    },
+    {
+      "source": "assets/animals/legendary/rainbow-tiger-concept/concept-v5-b-soft-ruff.png",
+      "destination": "assets/skins/animal/legendary/rainbow-tiger-concept/concept-v5-b-soft-ruff.png",
+      "sha256": "6d5f09abfb866e8dc5f2ef74f8a019337a3e7160f4374a296ce089da0ff9ab05"
+    },
+    {
+      "source": "assets/animals/legendary/rainbow-tiger-concept/concept-v5-c-swept-charcoal.png",
+      "destination": "assets/skins/animal/legendary/rainbow-tiger-concept/concept-v5-c-swept-charcoal.png",
+      "sha256": "544ac975a3e06331dd036083678bfae3de703ea9790b146b8fdc07aa3a227e28"
+    },
+    {
+      "source": "assets/animals/legendary/rainbow-tiger-concept/prompt-v2.txt",
+      "destination": "assets/skins/animal/legendary/rainbow-tiger-concept/prompt-v2.txt",
+      "sha256": "6580b6ab79b814e60fc329e9fe2475c3824398a7060c533807e40fa1cb1b11c9"
+    },
+    {
+      "source": "assets/animals/legendary/rainbow-tiger-concept/prompt-v4-clean-no-brows.txt",
+      "destination": "assets/skins/animal/legendary/rainbow-tiger-concept/prompt-v4-clean-no-brows.txt",
+      "sha256": "b41e8d5d0bb60dc870a9f3f6a4e6c11e5b6d4fa7c3c00d90c18f3cee3dfdf86f"
+    },
+    {
+      "source": "assets/animals/legendary/rainbow-tiger-concept/prompt.txt",
+      "destination": "assets/skins/animal/legendary/rainbow-tiger-concept/prompt.txt",
+      "sha256": "385dea610051e03693252b3365a31c563a97dfe3145ac9998bd039cc32161b1e"
+    },
+    {
+      "source": "assets/animals/legendary/rainbow-tiger-concept/prompts-v5-fur-options.json",
+      "destination": "assets/skins/animal/legendary/rainbow-tiger-concept/prompts-v5-fur-options.json",
+      "sha256": "3e941bbbd812d040f7daf0bdba7c37bb7f511e70472febdf3dcdbe8dacb8329f"
+    },
+    {
+      "source": "assets/animals/legendary/rainbow-tiger-concept/README.md",
+      "destination": "assets/skins/animal/legendary/rainbow-tiger-concept/README.md",
+      "sha256": "1c7e35252a8de378dbeb1b356528a986603e3925f05d54fb36ee88fab57e92a8"
+    }
+  ],
+  "updatedTextFiles": [
+    "assets/README.md",
+    "assets/skins/animal/common/index.html",
+    "assets/skins/animal/common/manifest.json",
+    "assets/skins/animal/legendary/index.html",
+    "assets/skins/animal/legendary/manifest.json",
+    "assets/skins/animal/rare/index.html",
+    "assets/skins/animal/rare/manifest.json",
+    "assets/skins/animal/common/bee/index.html",
+    "assets/skins/animal/common/cow/index.html",
+    "assets/skins/animal/common/giraffe/index.html",
+    "assets/skins/animal/common/ladybird/index.html",
+    "assets/skins/animal/common/leopard/index.html",
+    "assets/skins/animal/common/snowleopard/index.html",
+    "assets/skins/animal/common/tiger/index.html",
+    "assets/skins/animal/common/zebra/index.html",
+    "assets/skins/animal/legendary/dragon/index.html",
+    "assets/skins/animal/legendary/phoenix/index.html",
+    "assets/skins/animal/legendary/rainbow-tiger-concept/README.md",
+    "assets/skins/animal/legendary/rainbowtiger/index.html",
+    "assets/skins/animal/legendary/rainbowtiger/README.md",
+    "assets/skins/animal/legendary/stormwolf/index.html",
+    "assets/skins/animal/rare/bubblegumleopard/index.html",
+    "assets/skins/animal/rare/cookiescream/index.html",
+    "assets/skins/animal/rare/glacier/index.html",
+    "assets/skins/animal/rare/honeycomb/index.html",
+    "assets/skins/animal/rare/peppermint/index.html",
+    "assets/skins/animal/rare/strawberrycow/index.html",
+    "assets/skins/animal/rare/watermelon/index.html",
+    "blender/pig/make/build_rainbowtiger_swept_gallery.py",
+    "blender/pig/skins/README.md",
+    "blender/pig/skins/phoenix/concepts-v2/index.html",
+    "blender/pig/skins/rainbowtiger/before-approved-beard/index.html",
+    "blender/pig/skins/rainbowtiger/before-approved-beard/README.md",
+    "blender/pig/skins/rainbowtiger/legendary-v1/index.html"
+  ]
+}

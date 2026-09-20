@@ -119,6 +119,22 @@ Theme.SAND_DEEP = Color3.fromRGB(224, 198, 166)
 
 -- THE CARD. The ground of nearly everything small and readable.
 Theme.PAPER = Color3.fromRGB(255, 247, 232)
+
+-- THE MENU LAYER. Every full-screen menu (shop, bag, rebirth page, daily
+-- board, settings) sits at this ZIndex, so nothing on the HUD draws through
+-- it. The HUD is one `Sibling` ScreenGui: a top-level frame and all of its
+-- children draw above every sibling with a LOWER ZIndex, and the shop and the
+-- bag used to be at 1 -- so the piggy panel, the dodge buttons, the toasts
+-- and the edge flashes all showed on top of an open menu.
+--
+-- Everything on the HUD stays below this. The two things deliberately above
+-- it: the arrest scene (50), which must never hide under a shop someone left
+-- open, and the crate and drop reel (SpinWheel, 60), which opens FROM the
+-- shop. The toast stack sits one above (46) so a purchase refusal is never
+-- hidden behind the shop that caused it -- the screen-edge flashes stay
+-- below. Anything new that must cover a menu goes above 45; anything else
+-- stays under it.
+Theme.MENU_Z = 45
 Theme.PAPER_DEEP = Color3.fromRGB(237, 220, 194)
 
 -- ---- the accents, each of which means one thing -----------------------
@@ -136,7 +152,7 @@ Theme.PAPER_DEEP = Color3.fromRGB(237, 220, 194)
 Theme.GOLD = Color3.fromRGB(255, 203, 61)
 Theme.GOLD_DEEP = Color3.fromRGB(227, 138, 30)
 
--- Acorns: nut brown with a leaf-green cap; gold remains the coin colour.
+-- Acorn UI accents: warm brown and leaf green. Icon artwork uses the 3D model palette.
 Theme.ACORN = Color3.fromRGB(164, 96, 49)
 Theme.ACORN_CAP = Color3.fromRGB(111, 170, 69)
 
@@ -281,6 +297,20 @@ Theme.OUTLINE_THIN = 2
 -- BUILDERS
 -- ============================================================
 
+-- Keep modal dismiss controls above the frame, with a small overhang that
+-- still fits inside the phone's viewport margin. Reapply after responsive sizing.
+function Theme.floatClose(button: TextButton, size: number?, overhang: number?)
+	local edge = overhang or 8
+	button.AnchorPoint = Vector2.new(1, 0)
+	button.Position = UDim2.new(1, edge, 0, -edge)
+	button.Size = UDim2.fromOffset(size or 44, size or 44)
+	local parent = button.Parent
+	if parent and parent:IsA("GuiObject") then
+		parent.ClipsDescendants = false
+		button.ZIndex = math.max(button.ZIndex, parent.ZIndex + 5)
+	end
+end
+
 function Theme.corner(inst: Instance, radius: number): UICorner
 	local existing = inst:FindFirstChildOfClass("UICorner")
 	if existing then
@@ -384,52 +414,16 @@ function Theme.tinted(frame: GuiObject, top: Color3, bottom: Color3, radius: num
 	return frame
 end
 
--- A COIN, DRAWN RATHER THAN TYPESET.
---
--- The coin counter carried a chip with the coin emoji in it at 19px, which is
--- the "unreadable icon" half of the same report -- an emoji renders from the
--- colour font at whatever size the box gives it, ignores `TextColor3`, and at
--- that size is a smudge. Three nested frames are legible at any size, take
--- the palette, and cost no more instances than the chip they replace.
---
--- Returns the outer frame so the caller positions one thing.
+-- Rendered from the same olive nut, chestnut cap and stem as AcornModel.
+-- Keep the Frame contract so every HUD, price and reward caller scales alike.
 function Theme.acorn(parent: Instance, size: number, name: string?): Frame
 	local root = Instance.new("Frame")
 	root.Name = name or "Acorn"
 	root.Size = UDim2.fromOffset(size, size)
 	root.BackgroundTransparency = 1
+	root:SetAttribute("CurrencyIcon", "Acorn")
 	root.Parent = parent
-	local function part(name: string, x: number, y: number, w: number, h: number,
-		colour: Color3, radius: number, z: number, outlined: boolean?): Frame
-		local p = Instance.new("Frame")
-		p.Name = name
-		p.Position = UDim2.fromScale(x, y)
-		p.Size = UDim2.fromScale(w, h)
-		p.BackgroundColor3 = colour
-		p.BorderSizePixel = 0
-		p.ZIndex = z
-		Theme.corner(p, size * radius)
-		if outlined then Theme.outline(p, math.max(1, size * 0.04), Theme.INK) end
-		p.Parent = root
-		return p
-	end
-	part("Tip", 0.42, 0.77, 0.16, 0.16, Theme.ACORN, 0.06, 1, true)
-	local nut = part("Nut", 0.19, 0.30, 0.62, 0.56, Theme.ACORN, 0.26, 2, true)
-	Theme.shade(nut, 0.73)
-	local shine = part("NutShine", 0.28, 0.48, 0.10, 0.23, Theme.PAPER, 0.05, 3)
-	shine.Rotation = -13
-	shine.BackgroundTransparency = 0.52
-	local stem = part("Stem", 0.48, 0.05, 0.13, 0.24, Theme.ACORN, 0.05, 3, true)
-	stem.Rotation = 20
-	local cap = part("Cap", 0.12, 0.24, 0.76, 0.30, Theme.ACORN_CAP, 0.14, 4, true)
-	Theme.shade(cap, 0.78)
-	part("CapRim", 0.18, 0.44, 0.64, 0.06, Theme.ACORN_CAP, 0.03, 5)
-	for i = 0, 2 do
-		local stitch = part("CapDetail" .. i, 0.27 + i * 0.18, 0.32,
-			0.06, 0.07, Theme.PAPER, 0.02, 5)
-		stitch.Rotation = 30
-		stitch.BackgroundTransparency = 0.5
-	end
+	require(game:GetService("ReplicatedStorage").Shared.ShopIcons).mount(root, "acorn")
 	return root
 end
 
@@ -455,6 +449,39 @@ function Theme.acornPrice(label: TextLabel | TextButton, text: string)
 	label.Text = text
 end
 
+-- A COIN ON A PRICE BUTTON, seated against the TEXT rather than the frame, so
+-- the glyph and the words read as one group. `acornPrice` above can left-align
+-- its label instead because every caller it has is a left-aligned line; a
+-- full-width CTA is centred, and a fixed left inset would park the coin out in
+-- the margin with the price floating in the middle of the button.
+--
+-- IT SHOWS ON A DIGIT, which is the honest test for "this text is a price".
+-- The same button also reads MAX LEVEL and REQUESTING..., and a coin beside
+-- either of those is a coin beside something that is not a price.
+function Theme.coinPrice(label: TextLabel | TextButton, text: string)
+	if not label:FindFirstChild("CoinPriceIcon") then
+		-- `Theme.coin` is defined just below and that is safe: it is a TABLE
+		-- FIELD read when this runs rather than a `local` captured when it is
+		-- compiled, so there is no forward reference here of the kind this
+		-- project has been bitten by eleven times.
+		local icon = Theme.coin(label, 24, "CoinPriceIcon")
+		icon.AnchorPoint = Vector2.new(0, 0.5)
+		local function refresh()
+			local active = string.find(label.Text, "%d") ~= nil
+			icon.Visible = active
+			if active then
+				icon.Position = UDim2.new(0.5, -math.ceil(label.TextBounds.X / 2) - 30, 0.5, 0)
+			end
+		end
+		-- Both signals: the text decides WHETHER there is a coin and its
+		-- measured width decides WHERE. Watching only Text seats the glyph
+		-- against the bounds of the previous string.
+		label:GetPropertyChangedSignal("Text"):Connect(refresh)
+		label:GetPropertyChangedSignal("TextBounds"):Connect(refresh)
+	end
+	label.Text = text
+end
+
 function Theme.coin(parent: Instance, size: number, name: string?): Frame
 	local outer = Instance.new("Frame")
 	outer.Name = name or "Coin"
@@ -462,6 +489,13 @@ function Theme.coin(parent: Instance, size: number, name: string?): Frame
 	outer.BackgroundColor3 = Theme.GOLD
 	outer.BorderSizePixel = 0
 	outer.Parent = parent
+	local image = require(game:GetService("ReplicatedStorage").Shared.ShopIcons).mount(outer, "coin-front")
+	if image then
+		outer.BackgroundTransparency = 1
+		image.AnchorPoint = Vector2.new(.5, .5); image.Position = UDim2.fromScale(.5, .5)
+		image.Size = UDim2.fromScale(1.2, 1.2)
+		return outer
+	end
 	Theme.corner(outer, size // 2)
 	Theme.outline(outer, Theme.OUTLINE_THIN)
 	Theme.gloss(outer, Theme.GOLD, Theme.GOLD_DEEP)
@@ -916,4 +950,14 @@ Theme.STOP_INK = Theme.readable(Theme.STOP)
 Theme.GOLD_INK = Theme.readable(Theme.GOLD)
 Theme.COOL_INK = Theme.readable(Theme.COOL)
 
+-- Approved shop category artwork: one saturated backdrop per destination.
+Theme.SHOP_COLOURS = {
+	upgrades = Color3.fromRGB(255, 205, 38), home = Color3.fromRGB(101, 207, 53),
+	companions = Color3.fromRGB(43, 157, 241), rides = Color3.fromRGB(250, 98, 109),
+	supplies = Color3.fromRGB(145, 87, 222), style = Color3.fromRGB(24, 194, 196),
+	-- The Robux tab. Emerald, the colour Roblox itself wraps Robux in, and a
+	-- hue none of the six above uses (home is a yellow-green at ~100 degrees,
+	-- this sits at ~155).
+	premium = Color3.fromRGB(22, 186, 118),
+}
 return Theme

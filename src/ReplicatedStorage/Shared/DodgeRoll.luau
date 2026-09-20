@@ -2,7 +2,7 @@
 --[[
 	DodgeRoll
 
-	The somersault a dodge plays, built entirely in code.
+	The dive roll a dodge plays, built entirely in code.
 
 	No uploaded asset and no third-party animation. `KeyframeSequenceProvider:
 	RegisterKeyframeSequence` takes a KeyframeSequence assembled at runtime and
@@ -59,43 +59,55 @@ local Config = require(game:GetService("ReplicatedStorage").Shared.Config)
 
 local DodgeRoll = {}
 
--- Slow enough to read as a somersault rather than a twitch.
---
--- Longer than the 0.25s speed burst and the 0.5s of immunity on purpose.
--- A roll is a push off, a travel, and a landing, and only the first two
--- cover ground -- so the tail of the animation is the recovery, during
--- which you are moving normally and can be nabbed again. That is the
--- honest reading of it: the part of the roll that is still going when the
--- immunity ends is exactly the part that was never immune.
-DodgeRoll.DURATION = 0.6
+-- A DIVE ROLL, NOT A SOMERSAULT. It used to be one rigid body spun end over
+-- end in the air with the limbs folded at a fixed ratio, which read as stiff:
+-- nothing about it touched the ground. Now the body crouches, pushes off,
+-- dives forward reaching for the ground, plants its hands with the hips high,
+-- tucks its head and rolls across ONE SHOULDER and the back, and comes up
+-- onto its feet in a crouch before standing. `Config.DODGE` owns the timing,
+-- because the server hands out the get-up burst at the moment the feet land.
+DodgeRoll.DURATION = Config.DODGE.rollSeconds
 
--- A full turn, in steps.
+-- `lift` WAS SOLVED, NOT PICKED. Every key's lift is chosen so the lowest
+-- part of the body sits at a set clearance -- hands on the ground at the
+-- plant, the shoulder and back a few tenths off it through the roll, feet at
+-- zero in the crouches -- by forward kinematics on the R15 proportions, with
+-- the in-between poses swept at 400 points so nothing passes through the
+-- floor between two keys (worst: a foot dipping 0.1 stud mid-crouch). The
+-- pelvis traces a real arc: down into the crouch, up and over the planted
+-- hands, down across the back, and up out of the landing crouch.
 --
--- The intermediate frames are not decoration. Rotation between two poses is
--- interpolated the short way round, so a single keyframe at -360 is identical
--- to one at 0 and the character does nothing at all. Each step has to be under
--- half a turn for the roll to go the way it is meant to.
+-- Signs follow RidePose's measured conventions: negative pitch is forward,
+-- positive `hip` lifts the knee, negative `knee` folds the shin back,
+-- positive `armP` raises the arm forward, negative `head` tucks the chin,
+-- and negative `lean` rolls toward the character's right, so the roll goes
+-- over the RIGHT shoulder.
 --
--- `lean` is what makes it a shoulder roll rather than a straight forward flip:
--- it peaks a quarter of the way in and unwinds by the end, so the body goes
--- over one shoulder and lands square.
+-- NO WIND-UP, AND THE BODY IS THROWN AHEAD OF THE ROOT. The first version
+-- opened with a crouch, which read as the player braking to a stop before
+-- the roll -- while the dodge's speed window was already spent crouching. It
+-- goes straight into the push-off now and leaves the ground by 0.08, and
+-- `fwd` carries the body up to 1.6 studs AHEAD of the root in the dive, then
+-- lets it settle back as the fast-moving root catches up. That is still the
+-- body moving relative to the root: the character's own position is only
+-- ever moved by `Config.DODGE`'s multiplier on currentSpeed, and that window
+-- now spans the dive and the roll rather than the first quarter second.
 --
--- `lift` raises the body through the flip. Without it the whole rotation
--- happens about the hip and the head swings down THROUGH the grass at the
--- apex -- measured at 3.66 studs below the root, which is below the floor.
--- It also just looks right: you leave the ground to somersault.
---
--- Lifting is safe where translating the root would not be. This is the
--- body moving relative to the root, so the character itself still does not
--- move an inch -- measured at 0.0 studs travelled across a whole roll.
+-- The intermediate frames are still load-bearing: rotation interpolates the
+-- short way round, so every step has to be under half a turn.
 local FRAMES = {
-	-- time (fraction), pitch (deg), lean (deg), tuck (0-1), lift (studs)
-	{ 0.00, 0, 0, 0.0, 0.0 },
-	{ 0.09, -70, -14, 0.9, 0.9 },
-	{ 0.19, -165, -22, 1.0, 1.7 },
-	{ 0.29, -260, -16, 0.8, 1.2 },
-	{ 0.36, -320, -6, 0.4, 0.5 },
-	{ 1.00, -360, 0, 0.0, 0.0 },
+	-- t,    pitch, lean, lift,  fwd,  curl, head, armP, elbow, hip,  knee
+	{ 0.00,     0,    0,  0.00,  0.0,    0,    0,    0,     0,    0,     0 }, -- standing
+	{ 0.07,   -35,   -2, -0.33, -0.4,   -5,   10,   80,   -15,   20,   -35 }, -- push off
+	{ 0.19,   -68,   -8,  0.35, -1.6,    0,   20,  150,    -5,  -15,    -8 }, -- airborne dive
+	{ 0.31,  -115,  -25,  0.74, -1.3,  -30,  -35,  125,   -85,   45,   -60 }, -- hands plant, hips high
+	{ 0.38,  -150,  -45,  0.55, -1.0,  -40,  -45,  100,   -90,   90,  -110 }, -- onto the shoulder
+	{ 0.46,  -195,  -50, -0.29, -0.7,  -45,  -45,   70,  -100,  120,  -135 }, -- across the back
+	{ 0.54,  -240,  -40, -1.27, -0.5,  -45,  -40,   60,  -100,  125,  -140 },
+	{ 0.62,  -285,  -25, -1.21, -0.3,  -35,  -25,   50,   -80,  120,  -135 }, -- hips over
+	{ 0.72,  -325,  -10, -1.63, -0.1,  -20,  -10,   40,   -60,  105,  -120 }, -- feet down, crouched
+	{ 0.86,  -350,   -3, -0.45,  0.0,   -8,    0,   15,   -25,   50,   -75 }, -- rising
+	{ 1.00,  -360,    0,  0.00,  0.0,    0,    0,    0,     0,    0,     0 }, -- standing
 }
 
 local function pose(name: string, cf: CFrame, parent: Instance): Pose
@@ -119,11 +131,13 @@ local function buildSequence(): KeyframeSequence
 	seq.Name = "DodgeRoll"
 	seq.Loop = false
 	-- Action beats the running animation underneath it. Movement itself is
-	-- unaffected either way -- the character keeps its 2.5x burst throughout.
+	-- unaffected either way -- the character keeps its dodge speed throughout.
 	seq.Priority = Enum.AnimationPriority.Action
 
 	for _, frame in ipairs(FRAMES) do
-		local at, pitch, lean, tuck, lift = frame[1], frame[2], frame[3], frame[4], frame[5]
+		local at, pitch, lean, lift, fwd = frame[1], frame[2], frame[3], frame[4], frame[5]
+		local curl, head, armPitch, elbow, hip, knee =
+			frame[6], frame[7], frame[8], frame[9], frame[10], frame[11]
 
 		local keyframe = Instance.new("Keyframe")
 		keyframe.Time = at * DodgeRoll.DURATION
@@ -132,24 +146,17 @@ local function buildSequence(): KeyframeSequence
 		local root = pose("HumanoidRootPart", CFrame.new(), keyframe)
 
 		local lower = pose("LowerTorso",
-			CFrame.new(0, lift, 0) * CFrame.Angles(math.rad(pitch), 0, math.rad(lean)), root)
-
-		-- Curls up as it goes over and opens out to land, which is the
-		-- difference between a somersault and a plank being spun end over end.
-		local upper = pose("UpperTorso", CFrame.Angles(math.rad(-18 * tuck), 0, 0), lower)
-		passthrough("Head", upper)
+			CFrame.new(0, lift, fwd) * CFrame.Angles(math.rad(pitch), 0, math.rad(lean)), root)
+		local upper = pose("UpperTorso", CFrame.Angles(math.rad(curl), 0, 0), lower)
+		pose("Head", CFrame.Angles(math.rad(head), 0, 0), upper)
 
 		for _, side in ipairs({ "Left", "Right" }) do
-			local arm = pose(side .. "UpperArm",
-				CFrame.Angles(math.rad(-52 * tuck), 0, 0), upper)
-			local lowerArm = pose(side .. "LowerArm",
-				CFrame.Angles(math.rad(-64 * tuck), 0, 0), arm)
+			local arm = pose(side .. "UpperArm", CFrame.Angles(math.rad(armPitch), 0, 0), upper)
+			local lowerArm = pose(side .. "LowerArm", CFrame.Angles(math.rad(elbow), 0, 0), arm)
 			passthrough(side .. "Hand", lowerArm)
 
-			local leg = pose(side .. "UpperLeg",
-				CFrame.Angles(math.rad(-64 * tuck), 0, 0), lower)
-			local lowerLeg = pose(side .. "LowerLeg",
-				CFrame.Angles(math.rad(72 * tuck), 0, 0), leg)
+			local leg = pose(side .. "UpperLeg", CFrame.Angles(math.rad(hip), 0, 0), lower)
+			local lowerLeg = pose(side .. "LowerLeg", CFrame.Angles(math.rad(knee), 0, 0), leg)
 			passthrough(side .. "Foot", lowerLeg)
 		end
 

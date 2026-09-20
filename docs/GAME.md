@@ -49,9 +49,11 @@ shops on the street also hides a **strongroom vault** on its own back wall —
 robbed by walking inside, on a plot nobody can ever claim — so a full server
 never runs out of victims either (§5).
 
-Two upgrade trees compete: **defence** (fence, guard dog, vault lock) buys the
-victim *time*, never immunity; **offence** (lockpicks, bigger sack, speed boots)
-buys the thief speed and volume. Neither can ever close the other out.
+Two upgrade trees compete: **defence** (fence, vault lock) buys the victim
+*time*, never immunity; **offence** (lockpicks, bigger sack, speed boots) buys
+the thief speed and volume. Neither can ever close the other out. Every plot
+also carries the same guard dog (`Config.DOG_LEVEL`) whether it is a player's
+or a resident's — the dog is no longer a rung either tree can buy or skip.
 
 The loop, in one line: **accrue → spend (or get robbed) → rob → rebirth →
 collect cosmetics.**
@@ -113,10 +115,10 @@ src/
 ```
 
 **Geometry the shop renders lives in `Shared`.** That is why `House`, `Decor`,
-`PiggyModel`, `RideModel`, `PigGear` and `PlayerGear` are modules and not
-services: the shop shows the *real* item, built by the same function that puts
-it on a lawn. A second near-identical copy drifts the first time either is
-touched.
+`PiggyModel`, `LegendaryModel`, `RideModel`, `PigGear` and `PlayerGear` are
+modules and not services: the shop shows the *real* item, built by the same
+function that puts it on a lawn. A second near-identical copy drifts the
+first time either is touched.
 
 **`GrassTuft.luau` is also in `Shared`, for a different reason.** Nothing
 renders grass in a shop. It lives there because two *services* plant it —
@@ -136,8 +138,8 @@ where both can reach it. `SneakWalk` is the tiptoe's own gait (§5, §10);
 **`ClientMain` is one chunk and sits near Luau's 200-local ceiling.** A new HUD
 feature goes in a `local function buildX() … end` (a function body gets its own
 register file, so the chunk pays one local instead of twenty) or in its own
-module. `AdminPanel`, `SpinWheel`, `RaidFX`, `HouseFX` and `Rebirth` are modules
-for exactly this reason.
+module. `AdminPanel`, `SpinWheel`, `RaidFX`, `HouseFX`, `LegendaryFX` and
+`Rebirth` are modules for exactly this reason.
 
 ---
 
@@ -336,7 +338,8 @@ surface height. A hidden lower-trunk collider is the sole physical/query
 part; visual roots, branches and foliage do not create a bounding-box barrier.
 Shops use a separate builder and receive no tree. `lawnI` is reserved; existing
 save reconciliation shelves placements there while retaining owned ornaments.
-The remaining eight lawn slots continue to work.
+The remaining lawn slots continue to work — down to four now that the back
+row (`lawnA`–`lawnD`) has also retired, to make room for a shorter yard (§11).
 
 Studio Edit fixtures verified asset loading, grounding, both street-row
 orientations, fence-line clearance and trunk/open-space raycasts. Full in-game
@@ -699,6 +702,15 @@ It is `20 + 2 per rebirth`, capped at `ABSOLUTE_MAX_LEVEL` (60, reached at rebir
 `maxIncome`/`maxCapacity` and the client draws the ladder from those, so both
 ends agree by construction.
 
+**Hitting that ceiling is not always MAXED.** `Config.rebirthOpensMore(maxLevel)`
+is true whenever `maxLevel < Config.ABSOLUTE_MAX_LEVEL` — i.e. whenever one more
+rebirth would open further rungs of income or capacity — and every surface that
+used to print a flat MAX LEVEL there checks it first: the shop's Upgrades tab
+(§14) and `EconomyService`'s own purchase refusal, which says *"Rebirth to
+unlock more levels."* rather than *"Already at max level."* The six other
+upgrade trees have a fixed `max` no rebirth ever lifts, so MAX LEVEL there is
+unconditional and the check never runs for them.
+
 ### Rebirth
 
 Wipes income, capacity and **both upgrade trees**. Keeps everything cosmetic —
@@ -775,12 +787,31 @@ the weekly board and the pig-crack acorn are all measured against that. Coins
 coming **back** obey the same cap: a refund, a returned carry (nab, dog,
 patrol, voluntary return — all through `HeistService.giveBack`, and
 `ResidentService.refund` for a resident) and a drone recovery bank only the
-room left and name the spill. Every street figure is what the reader can
-actually carry home (`Config.homeTake`: a clean crack's take x the event
-multiplier x `HEIST_PAYOUT`, capped at the reader's own room): the rob badge
-(reads **PIG FULL** when there is no room), the steal card and the smash card
-(**FULL**), and the "worth X at home" line that ends a crack or a smash
-(`homeWorthPhrase`, which adds revenge and the spree).
+room left and name the spill.
+
+**The three STREET figures are no longer capped at the reader's own room.**
+The rob badge, the steal card and the smash card used to quote
+`Config.homeTake`, which capped what they printed at *this player's* free
+capacity — so a thief whose own pig was full saw **PIG FULL** hanging over
+every piggy on the street, one fact about the reader printed eight times over
+on other people's plots. `Config.homeWorth(vault, fraction, multiplier)`
+replaces it and `homeTake` is deleted: a clean crack's take (or a smash's)
+times the event multiplier times `HEIST_PAYOUT`, with no reader in it at all
+— so none of those three carries a FULL state any more. Whether *you* have
+room is one fact and it lives in one place, your own `PiggyPanel` (§14): the
+bar turns `Theme.WARN`, prints **FULL · SPEND SOME** (or **FULL** on a
+compact panel) in place of the percentage, and the status line under it reads
+*"Spend some coins to start earning again"* in `Theme.WARN_INK`.
+
+**`HeistService.homeWorthPhrase` IS NOT ONE OF THEM AND DELIBERATELY STILL
+CAPS.** The "worth X at home" line that ends a crack or a smash never read
+`homeTake` — it runs its own `Config.fitInPig` because it also has to fold in
+revenge and the spree — and it keeps its *"but your piggy only has room for
+X"* and *"but your piggy is full, so none of it will fit"* endings. That is
+the right place for a room check and the street readouts were the wrong one:
+this one fires about **your own completed haul**, where the room genuinely
+decides what you bank, while a badge over a neighbour's pig is a price tag on
+their property.
 
 **Where the numbers live:** `Config.BASE_INCOME`, `BASE_CAPACITY`,
 `INCOME_GROWTH`(`_B`), `CAPACITY_GROWTH`(`_B`), the matching `*_COST_GROWTH`,
@@ -799,7 +830,10 @@ a `ResidentService.Resident`: a name (`Config.getResidentName`, indexed by
 plot so a house keeps its identity across an owner arriving and leaving), a
 piggy bank holding `Config.RESIDENTS.pigSeconds` of its own income and accruing
 on the same `Config.getIncomeRate`/`getCapacity` curves a player uses, and
-fence/dog/lock/house levels derived from a level of its own. `ResidentService`
+fence/lock/house levels derived from a level of its own, plus the same guard
+dog every plot has (`Config.DOG_LEVEL` — see §5's defence tree note above;
+there is no `dogPerLevels`, because the dog no longer ladders with anything).
+`ResidentService`
 seats one at startup and whenever a plot is released, and evicts it the
 instant a player claims that plot (`PlotService.onClaim`/`.onRelease` — a
 registry hook rather than a require, the same shape as `registerBounceVeto`).
@@ -876,7 +910,7 @@ a robbable piggy bank standing on a paving apron in front of each shop; now
 carcass, mouth, jamb, a stack of `Config.COIN_COUNT` gold bars and an open
 door with a dial seat — and `PiggyBank.buildVault` wraps it in exactly the
 `Refs` a piggy bank returns, so every reader of `plot.piggy` (the steal
-prompt, the rob badge, the fill, the dial, the plaster, the alarm) runs
+prompt, the rob badge, the fill, the dial, the alarm) runs
 unmodified on a different set of parts; the one new field is `Refs.vault`,
 read only by the three functions that dress a piggy — skin, accessories,
 effect — which return early for it. The door stands **open** rather than
@@ -1007,7 +1041,8 @@ the real one the same street. A richer resident also carries a fuller
 **garden**: a shuffled, per-resident order over every lawn-zone key in
 `Config.DECOR_ITEMS` (`rollGarden`), planted as a growing *prefix* of that
 order as the resident's level climbs (`decorPerLevels`/`decorMax`, the same
-per-level shape as its fence/dog/lock/house ladders) — so a bare lawn reads as
+per-level shape as its fence/lock/house ladders — the dog is fixed and does
+not ladder, above) — so a bare lawn reads as
 the bottom of the street and a crowded one as the best-paying, best-defended
 plot on it, readable before a thief ever crosses the road.
 
@@ -1045,16 +1080,21 @@ whole heist loop reachable by a single player.
    the SNEAK button) to keep footsteps under `notice`: a movement mode, not a
    disguise — `Config.TIPTOE`/`Config.getTiptoeMultiplier` is one more factor
    inside `HeistService.currentSpeed`, buyable up to level 4 by the
-   **Sneakers** offence rung (below — it buys *speed* for the approach, never
+   **Sneak** offence rung (below — it buys *speed* for the approach, never
    stealth; which dogs a given tiptoe still wakes is the dog tier's own
-   `notice`), and refused outright while carrying or climbing (either
-   combined with a tiptoe would let the getaway itself go quiet). It plays as
+   `notice`). **Allowed while carrying now** — `HeistService.setTiptoe` no
+   longer refuses it, reversing the rule that the getaway must always be
+   loud: a tiptoeing carrier still moves under every breed's `notice` (12 x
+   0.35 = 4.2 studs/sec), so the quiet getaway is real, it is just slow —
+   about 12.6s for the 53-stud run home against 4.4s at ordinary carry speed.
+   Still refused outright while **climbing** (two slows multiplied is a trap
+   nobody designed, above). It plays as
    its own gait now, not the ordinary walk cycle slowed down —
    `Shared/SneakWalk.luau`, a looping animation published **per viewer** off
    `Config.SNEAK_ATTRIBUTE` (on the character, not the `TiptoeState` remote,
    which only ever told the sneaker themselves) and rate-driven by the
    character's own measured horizontal speed rather than a clock, so the
-   Sneakers rung, a fence snag and a stun are all inherited with no balance
+   Sneak rung, a fence snag and a stun are all inherited with no balance
    code of its own. The attribute is written in `HeistService.refreshSpeed`
    off the same test `currentSpeed` uses — whether the tiptoe is actually *in
    effect*, not merely asked for — so it also drops correctly the moment a
@@ -1119,8 +1159,17 @@ whole heist loop reachable by a single player.
 4. **Deliver** to your own drop-off, or get **nabbed** — a completed tug
    transfers the intact carry to the winning player (below).
 
-**A dog that has been alerted — woken by footsteps, a missed slice or a smash,
-it is the same release every time (`HeistService.releaseDog`) — branches
+**A dog only ever chases a robbery, never a visit.** `HeistService.watchLawns`
+still wakes for the loudest trespasser's footsteps, but a loud non-owner who
+is neither carrying loot nor mid-crack now gets a **bark only** — no chase, no
+mark, and nothing said to the owner, because nothing has happened to their
+piggy. Walking across somebody's lawn is allowed; robbing it is what the dog
+answers. Each dog barks at most once per `Config.DOG_WATCH.alertSeconds`, so a
+visitor standing there is not barked at ten times a second.
+
+**A dog that has been alerted *while a robbery is under way* — carrying loot
+or mid-crack, woken by footsteps, a missed slice or a smash, it is the same
+release every time (`HeistService.releaseDog`) — branches
 first on whether its owner is home.** Owner home: the dog is the **alarm, not the
 enforcer** — `GuardDog.bark` sounds (the same bark either way it happens, so
 the tell for which one this is stays the dog's *posture*, read before
@@ -1142,6 +1191,36 @@ lock, or a clean run that has already delivered — a thief is
 the cost is `Config.DOG_WATCH.scareStun` seconds held still and the crack
 they were mid-way through, nothing more. Being robbed must stay survivable;
 so must failing to rob.
+
+**The chase itself is a leashed, imperfect pursuit, never an inescapable
+one.** `Config.DOG_CHASE` binds it: the dog gives up the instant its target
+leaves the yard's own fence rectangle extended forward to the end of the
+driveway (`streetMetrics().driveFar`) and never runs past that box in either
+direction — a chase can spill out onto the drive but never onto the street.
+It also turns at a limited rate (`turnRate`) and slows through a sharp turn
+(`turnSlow`), and it only actually catches within `catchCone` of its own
+nose — so a chase can be juked by cutting a corner or breaking its turn
+radius, not merely outrun.
+
+**A dog may cross its own front fence line only through the gate**
+(`GuardDog.setGate`, written by `PlotService.buildFence`), never the sides or
+the back — `pastFence`/`chaseGoal`/`blockAtFence` route both an ordinary
+patrol and a chase toward the gate's opening rather than the wire, and a
+thief the other side of the fence from the dog cannot be caught even inside
+`catchRadius`, because a catch is only judged **on the same side of the
+fence**. This is the same rule a player's own gate already enforces on
+everybody else; the dog just obeys its own fence for the first time.
+
+**A catch made inside the victim's own yard throws the thief back out of
+it.** `HeistService.knockOutOfYard` finds the nearest point on the yard's
+own edge — the front, or a side alley, never the back, which would drop the
+thief deeper into the neighbourhood instead of back toward the street — and
+fires `DogKnockout` with that landing point. The client (`ClientMain`,
+`bindFenceKnockback`) flies the thief there as a limp, tumbling arc, the
+same picture a fence's own electric knockback already uses; the server
+teleports them there directly if they are still inside the yard once
+`knockout.verifyAfter` has passed, so a client that never plays the arc
+cannot leave them standing on the lawn they were just caught robbing.
 
 **An owner arriving home in person can break up a crack that is still open,
 and it costs the thief less than either the dog or a nab.** While an attempt
@@ -1165,8 +1244,9 @@ trade.
 *Orientation only — `Config` is authoritative.* The sum is 27 against a spacing
 of 80, so the shortest getaway is 53 studs, about 4.4 seconds at carry speed. It
 was 37 studs and 3.1 seconds before the plot widened, so the rule holds by a
-wider margin now rather than a narrower one — but a longer run also hands an
-alerted Titan at 17 more time to close. **If robbing ever reads as too hard,
+wider margin now rather than a narrower one — but a longer run also hands the
+alerted dog (fixed at 14.5, above) more time to close. **If robbing ever reads
+as too hard,
 `DROPOFF_RADIUS` is the lever**: it is a fraction of your own plot rather than
 an absolute, so it can grow with the plot.
 
@@ -1300,9 +1380,14 @@ their own first grab (on the grab, not the delivery), so a player chooses the
 moment they become a target rather than waiting one out. There is no lifetime
 per-victim cap — `STEAL_MAX_PER_VICTIM` is retired.
 
-A robbed piggy wears a **plaster** for `Config.ROBBED_MARK_SECONDS`
-(`PiggyBank.setRobbed`, published as `Config.PLOT_ROBBED_ATTRIBUTE`). It is a
-tell and nothing else: visible, temporary, and it costs the victim nothing.
+A robbed piggy used to wear a **plaster** — two crossed strips on its
+forehead for `Config.ROBBED_MARK_SECONDS`, with a matching pair of jemmy scars
+on a shop vault's door. **Retired**, with `ROBBED_MARK_SECONDS`,
+`PLOT_ROBBED_ATTRIBUTE`, `PiggyBank.setRobbed` and `PlotService.setRobbed`. It
+carried no behaviour, so nothing that prices a robbery moved with it. The rule
+it stood for is unchanged and is the half that matters: **a robbery never costs
+permanent progress**, which is why losing a house for being robbed was rejected
+in the first place.
 
 **`RobBadge` (`Shared/RobBadge.luau`) hangs a billboard over every piggy.** It
 used to only ever show a negative — no badge meant robbable — on the argument
@@ -1385,12 +1470,33 @@ shorter run home a strongroom on the back wall costs a thief.
 | | Effect | Ceiling |
 |---|---|---|
 | **Fence** | Slows and hazards a crossing | **Solid — the gate is the only free way across.** `Config.BASE_JUMP_HEIGHT` is **5.5**: tiers 1–2 (Rickety 3.6, White Picket 4.8) are jumpable; tiers 3–5 (Barbed Wire, Electric, Moat — all top 7.0) are not, and there is no built-in way over one. A gate (24 studs wide at tier 1, down to 8 at tier 5) always exists |
-| **Guard Dog** | **Watches the lawn** (`HeistService.watchLawns`) and wakes for footsteps above the breed's `notice` speed, a **missed crack slice**, or any **smash**, always, the instant it lands; asleep-in-kennel vs. patrolling-awake is a visible tell for whether the owner is home. **Owner home: alarm only** — barks and marks the thief, never chases. **Owner away (always true for a resident): the enforcer** — chases and nabs a carrying thief, or scares off an empty-handed one | Beaten by bones, or a tiptoe kept under `notice` — a smash cannot be sneaked past, since it wakes the dog unconditionally rather than on being heard; three breeds with rising `boneResist`. A coat, a kennel skin, toys on the lawn or a name on the collar change none of this — see the wardrobe in §9 |
 | **Vault Lock** | Narrows the crack's target windows (`Config.getCrackWindow`) — a smash (above) bypasses it entirely, there being no lock to pick | Readable from the street as a vault dial — a hatch in the piggy's back, with level 0 an open hole. Readable from *any distance* by a thief with maxed Lockpicks — see **casing**, below |
 
-**A crack and a smash put different weight on these two rungs.** A smash
+**The Guard Dog is not a rung in this tree any more — it retired outright.**
+`Config.UPGRADES.dog` is gone (the defence tree is these two rungs, above,
+and no more), and every plot — a player's and a resident's alike — carries
+the same dog at `Config.DOG_LEVEL` (2, the Shepherd), regardless of anything
+anybody has bought. What used to be five breeds bought in order is now one
+fixed stat and a wardrobe of skins over it (§9): `Config.DOG_TIERS` still
+holds every breed's model, voice, shape and `boneResist`, but only the row at
+`DOG_LEVEL` is ever the *dog*, at speed **14.5** — between a free player's 16
+and a carrying thief's 12, so running away empty-handed works, running with
+the coins does not, and sneaking away (above) does. It still **watches the
+lawn** (`HeistService.watchLawns`) and wakes for footsteps above `notice`, a
+**missed crack slice**, or any **smash**; asleep-in-its-kennel vs.
+patrolling-awake is still the tell for whether the owner is home; and it
+still only ever chases a robbery, never a visit (above). **Owner home: alarm
+only** — barks and marks the thief, never chases. **Owner away (always true
+for a resident): the enforcer** — chases and nabs a carrying thief, or scares
+off an empty-handed one, through its own gate and no other way across its
+own fence (above). Beaten by bones, or a tiptoe kept under `notice` — a smash
+cannot be sneaked past, since it wakes the dog unconditionally rather than on
+being heard. A coat, a kennel skin or a name on the collar change none of
+this — see the wardrobe in §9.
+
+**A crack and a smash put different weight on the lock and the dog.** A smash
 takes no time on the lock at all, so the Vault Lock is worthless against one
-— the Guard Dog is the whole of what a smash has to get past, since a smash
+— the dog is the whole of what a smash has to get past, since a smash
 always sounds the alarm and releases it on landing. A clean crack never
 wakes the dog at all, so the lock is what actually slows *that* down. A
 well-locked, undogged pig is soft to a smash; a well-guarded, unlocked one is
@@ -1441,7 +1547,7 @@ only:* a 7.0-stud fence is about 1.8s free and 2.4s carrying.
 **Lockpicks** (wider crack windows — a smash ignores this rung too, above),
 **Bigger Sack** (bigger takes — scales every step of the crack and a smash's
 fixed share alike, not a single flat take), **Speed Boots** (carry
-speed, **capped at ×1.0** so they never exceed base), **Sneakers** — the
+speed, **capped at ×1.0** so they never exceed base), **Sneak** — the
 fourth and last rung, `Config.UPGRADES.tiptoe` — buys **speed for the
 tiptoe approach, never stealth**: sneak speed climbs `Config.TIPTOE.base` to
 `.max` across 4 levels (`Config.getTiptoeMultiplier`, fed by
@@ -1466,6 +1572,7 @@ own metal used to carry its tier from the street for everybody; casing gives
 that reading back to the one player who bought the right to it.
 
 **Where the numbers live:** `Config.UPGRADES`, `FENCE_TIERS`, `DOG_TIERS`,
+`DOG_LEVEL` (the fixed dog every plot carries, above),
 `CRACK` (`getCrackSlice`/`getCrackFraction`/`getCrackTotal`/`getCrackWindow`),
 `CRACK_ALARM_ON_MISS`, `SMASH` (`steps`/`hold` — `Config.getSmashFraction`,
 the other way in, above), `STEAL_*` (including `STEAL_FRACTION`, the crack's
@@ -1474,8 +1581,7 @@ in person, above), `NAB` (`hold`/`distance`/`tickRate`/`recoverSeconds`/
 `bounty`/`cooldown` — the tug, above; was `TAG_HOLD`/`TAG_DISTANCE`, two
 constants, before it grew into a table),
 `CARRY_SPEED_MULTIPLIER`, `HEIST_PAYOUT`, `LOOT`, `LOSS_CAP`, `REVENGE`,
-`NEW_PLAYER_SHIELD`, `JOIN_SHIELD`, `ROBBED_MARK_SECONDS`,
-`PLOT_ROBBED_ATTRIBUTE`, `BASE_JUMP_HEIGHT`, `LAWN_LIFT`, `CLIMB_SPEED_RATIO`,
+`NEW_PLAYER_SHIELD`, `JOIN_SHIELD`, `BASE_JUMP_HEIGHT`, `LAWN_LIFT`, `CLIMB_SPEED_RATIO`,
 `CLIMB_MULTIPLIER`, `LADDER`, `RESIDENTS`, `PLOT_RESIDENT_ATTRIBUTE`,
 `PLOT_RESIDENT_ID_ATTRIBUTE`, `TIPTOE`, `SNEAK_ATTRIBUTE`,
 `PLAYER_FIRST_JOB_ATTRIBUTE`,
@@ -1719,7 +1825,7 @@ particular are pure prestige.
 
 | Catalogue | Config | Bought with | Notes |
 |---|---|---|---|
-| **Skins** | `SKINS` | **crates**, including a free Legendary Crate on rebirth — a priced skin refuses a coin purchase outright, below | Animated skins are driven **on the client** from a `SkinKey` attribute. 45 skins, all carrying an explicit `rarity` of `common`/`rare`/`legendary` (§3) — 40 also carry a `chest` tag (31 `og`, 9 `animal`); the other 5 are the free default `classic`, Solid Gold, the two pass skins and the alien set's `martian` — none carries a `chest` tag, and `martian` instead reaches the Alien Cache through `set = "alien"` (§8) |
+| **Skins** | `SKINS` | **crates**, including a free Legendary Crate on rebirth — a priced skin refuses a coin purchase outright, below | Animated skins are driven **on the client** from a `SkinKey` attribute — except the legendary tier, which wears a whole model instead of a palette (`skin.legendary`, `Config.LEGENDARIES`, below). 45 skins, all carrying an explicit `rarity` of `common`/`rare`/`legendary` (§3) — 40 also carry a `chest` tag (31 `og`, 9 `animal`); the other 5 are the free default `classic`, Solid Gold, the two pass skins and the alien set's `martian` — none carries a `chest` tag, and `martian` instead reaches the Alien Cache through `set = "alien"` (§8) |
 | **Effects** | `EFFECTS` | coins — **deliberately not moving to a chest** | Shop tiles *simulate* the real particle numbers — a ViewportFrame renders BaseParts and nothing else. The 5 priced tiers (15K–600K) land 3 commons and 2 rares on `Config.RARITY_BANDS` with no epic or legendary, so a chest would have no top end |
 | **Houses** | `HOUSE_TIERS` | coins | A shelf, not a ladder: `CosmeticsService.buyHouse` will sell *any* unowned tier once its price fits the pig — no "buy the cheaper one first" rule. Each row carries a stable `id` (ownership key, saved in `data.houses.owned`) separate from its `style` (builder key); worn tier is `data.houses.shown`. Move back into any owned tier free, forever. Nineteen rows (revision 2): rows flagged `placeholder` stand `House.build`'s construction-band block until their builder lands, and residents only climb built rows (`Config.residentHouseLevel`). `goldenpig` has no `cost` and `earned = "houses"` — never sold, granted by `CosmeticsService.grantEarnedHouses` once every priced house is owned (`Config.earnedHouseProgress`) |
 | **Decorations** | `DECOR_ITEMS` | coins, except the ten **trophies** — earned only, below | Auto-placed into slots; **slots are scarcer than items** on purpose — the trophies make that literal, since a trophy on display costs a slot an ornament was using |
@@ -1732,7 +1838,6 @@ particular are pure prestige.
 | **Stances** | in `RIDES` | **Robux (Style Pack)** | The one cosmetic shaped to be sold directly |
 | **Dog coats** | `DOG_COATS` | coins | Repaints only `fur`/`furDark`/`collar` on a Guard Dog you already own. `scale` and `shape` — what a thief actually reads to price the risk — are structurally off limits; see below |
 | **Dog kennels** | `DOG_KENNELS` | coins | Repaints only `wood`/`trim`. The roof always follows the *coat's* `collar`, never the kennel skin's own, so the two read as one dog's house |
-| **Dog toys** | `DOG_TOYS` | coins | Not worn — placed on the lawn. Changes *where* the dog goes, never how fast, how far it hears, or whether a bone works; see below |
 | **Finishes** | `FINISHES` | **season tiers only** — never sold, never in a crate | An addition over the worn skin (sheen, glowing eyes, a dim light), never a repaint or a particle aura. Worn from the Inventory's Finishes tab; see §3, *The season* |
 | **Catch effects** | `CATCH_EFFECTS` | coins, or granted by the VIP pass (§15) | A one-shot burst that fires on the **thief**, not on you, the moment you nab loot back out of their hands — the third kind of cosmetic, worn by neither a piggy nor a player. Worn tab (§14); see below |
 
@@ -1758,20 +1863,86 @@ exactly that reason. A skin is sold nowhere in the shop now except as a
 Crates-tab chest outcome; the Inventory panel's empty-skins message — *"Open a
 crate to start collecting skins"* — still agrees with that.
 
+### Legendary skins are whole models, not paint
+
+**A legendary skin stands a set of meshes over the pig rather than
+recolouring it, and the ordinary pig stays built underneath, hidden rather
+than removed** — every prompt, the rob badge, the coin pile, the vault dial
+and every other seat on a piggy is solved against the real `Body`, so taking
+it away would mean re-deriving all of them per skin. `Config.LEGENDARIES`
+lists, per legendary key, one row per mesh part: a mesh id, an offset and
+size seated in the same frame `Config.PIGGY_MESH` is written in, and either a
+`Shared/SurfacePacks` template name (`surface`) or a flat `color` — plus
+`neon` to render a part glowing and `hidden` to start it invisible for the
+client helper (below) to reveal. A skin reaches its row through its own
+`legendary` field and `Config.legendary(skinKey)`.
+
+**`Shared/LegendaryModel.luau`** builds and tears it down. `load`/`prewarm`
+fetch every mesh through `CreateMeshPartAsync` once per id and cache the
+template, so a dress is normally synchronous by the time anyone wears one.
+`dress` recovers the seat from the pig's own live `Body` — undoing
+`PIGGY_MESH`'s body offset and turn — so a legendary whose own Body row
+matches the ordinary one lands on it to the stud, and one that does not (the
+Storm Wolf) is placed relative to it instead of guessed; it also hides
+whatever base parts the caller names, stashing each one's transparency on
+itself so `undress` can restore it exactly. Two callers dress and undress it
+on every skin change: `PiggyBank.applySkin` (anchored, for a plot's own pig —
+a shop vault is skipped, since a strongroom has no legendary of its own) and
+`PiggyModel` (welded, for the carried loot and every shop/inventory mini).
+
+**The glow is client-side**, in the same family as the animated skins, the
+moat and `HouseFX` (§11). `Shared/LegendaryFX.luau` — started once from
+`ClientMain` — finds a worn legendary's folder by name in `workspace` and in
+the player's own `PlayerGui`, and starts the matching helper from
+`Shared/Legendary/`: `StormWolfLightning`, `DragonGlow`, `PhoenixFrost`,
+`RainbowTigerGlow`. Each writes its own part colours and emissive strength
+every frame, which is why it runs once per client rather than being
+replicated.
+
+**So is the idle sway.** On the plot's own pig (`dress` with `rig = true`)
+`LegendaryModel` also places an invisible `IdleRig` anchor carrying the rig
+frame and scale, and `LegendaryFX` starts `Shared/Legendary/Idle` beside the
+glow helper on the same phase. It swings whole parts -- the dragon's wings
+and tail, the tiger's cheek ruffs and tail, the phoenix's crest, mantle, ruff
+and tail feathers -- about pivots listed in `Shared/Legendary/Rigs.luau`,
+each on a sine track fitted to the imported idle clips. Minis and carried
+loot do not sway. The Storm Wolf has no rig; its motion is the lightning.
+
+**Four legendaries exist today, all on the Animal Kingdom (`animal`) chest**:
+`stormwolf` (Storm Wolf, lightning), `dragon` (Ember Dragon, wing embers and
+a tail flame), `phoenix` (Ice Phoenix, frost) and `rainbowtiger` (Rainbow
+Tiger, a colour-cycling glow) — all four sharing the wolf's own `sellBasis`,
+without which an unpriced legendary would sell for the flat tier value
+`Config.sellValue` pays a legendary with no basis at all. The Storm Wolf's
+own `anim` field is gone: its lightning is the client helper's job now, not
+the ordinary `SkinKey` palette animator, which paints the (now hidden) Body.
+
 ### The guard dog's wardrobe
 
-**A coat is taste; the Guard Dog tree (§5) is power, and the split is
-structural rather than a promise.** `Config.DOG_TIERS` carries `scale` and
-the breed `shape` (`leg`/`girth`/`head`/`earDroop`) — the numbers a thief
-actually reads to price the risk at the fence — and no coat or kennel entry
-may reach either. `GuardDog.applyTier` is the *only* place any of it is
-painted: a coat supplies `fur`/`furDark`/`collar`, a kennel supplies
+**A coat is taste; the dog's stats (§5) are fixed, and the split is
+structural rather than a promise.** With the Guard Dog rung retired, every
+plot's dog is the same `Config.DOG_LEVEL` Shepherd — so `Config.DOG_TIERS`'
+`scale` and breed `shape` (`leg`/`girth`/`head`/`earDroop`) no longer even
+vary by what a player bought; they are simply what that one tier looks like.
+A coat no longer needs to be *kept off* those fields to stop it being power —
+it never had a rung to unbalance — but the split still holds: `GuardVisual.key`
+lets a coat's `guardModel` render **any** breed's rig over the fixed
+Shepherd stats, so a Cerberus skin is a Shepherd wearing a Cerberus, never a
+faster or tougher one. `GuardDog.applyTier` is the *only* place a coat or
+kennel is painted: a coat supplies `fur`/`furDark`/`collar`, a kennel supplies
 `wood`/`trim`, and an empty `equipped`/`kennel` falls back to the breed's own
 colours or the plain wooden kennel — the same toggle-to-remove convention
 accessories and decorations use. **The kennel's roof always takes the
 *coat's* `collar`, never a kennel skin's own** — so a bought kennel and a
 bought coat read as one dog's house rather than fighting over who owns the
 roof.
+
+**The three creature coats are ordinary purchases now, with no locked
+state.** Gorilla, Raptor and Triceratops used to carry a `requiredTier`
+matching the dog rung that unlocked their rig; with that rung gone the gate
+could only ever have read "requires a tier nobody can buy", so
+`Config.DOG_COATS` drops it and the shop card for all three is a plain coin
+buy like any other coat.
 
 **Guard duty repaints a vest now, not the collar.** With the collar a coat
 colour, the old tell (a neon collar reading ON GUARD) would go unreadable the
@@ -1787,23 +1958,30 @@ only caller of `TextService:FilterStringAsync` /
 moderation call that errors must never fail open. Clearing a name is free and
 skips both the filter and the cooldown; setting one is rate-limited
 (`Config.DOG_NAME.cooldown`, 45s) to bound the call rate against Roblox's own
-API, not to charge for it. The name replaces the tier's placeholder
-("Scruffy"/"Rex"/"Titan") on the nameplate and is painted a second time onto
-a `NameBoard` over the kennel door — but never touches the breed line under
-it, which a thief still reads to price the risk regardless of what the dog
-is called.
+API, not to charge for it. The name replaces the tier's placeholder — since
+`Config.DOG_LEVEL` is fixed, that placeholder is always **"Rex"** now, on
+every plot, whatever coat is worn over it — on the nameplate and is painted a
+second time onto a `NameBoard` over the kennel door — but never touches the
+breed line under it, which a thief still reads to price the risk regardless
+of what the dog is called or which rig its coat is rendering.
 
-**Toys are the only dog cosmetic that changes behaviour, and two things stop
-that mattering.** A `kind = "visit"` toy (Squeaky Ball, Water Bowl) is a
-destination the dog sometimes takes instead of a random patrol point
-(`Config.DOG_TOY_VISIT_CHANCE`, 45%); `kind = "sleep"` (the Dog Bed) is where
-it lies down instead of its kennel doorway. Every one of those destinations —
-patrol, toy visit, sleep — is held inside the fence by `GuardDog.clampToYard`
-(§11), so no toy offset can pull a dog further from its post than an
-ordinary patrol step already does; and a toy is silent, because the bark is
-the "seen me" tell and a squeaking toy would be a bought object faking one.
-What a thief reads from the pavement is unchanged either way — the sleeping
-*posture*, not the location, is the tell.
+**Dog toys are retired.** The ball, water bowl and bed — and the coin
+purchases, shop section and save field that went with them — are gone
+entirely; a dog now only ever patrols or **sleeps inside its own kennel**,
+nose at the doorway, which reverses an earlier build that slept it on the
+lawn in front of the door. That earlier placement was never actually forced
+by the rigs — every breed fits its own kennel at its own scale, measured
+against the real meshes — the real fault had been the kennel's own origin
+sitting half a stud into the lawn. `GuardDog.kennelScale` derives the
+kennel's scale from the rig that has to live in it (`GuardVisual.apply` now
+writes `GuardHalfWidth`/`GuardBack`/`GuardFront` straight off the imported
+mesh, rather than a second, hand-typed guess at a size the geometry already
+knows), and `sleepCFrame` seats the dog on the kennel floor with its nose at
+the opening — buried at the back would read as no dog at all from the
+pavement. What a thief reads is unchanged either way — the sleeping
+*posture*, not which side of the doorway it is on, is the tell. The
+kennel's built-in food bowl is also gone (`Bowl`/`BowlRim`), since nothing
+in the game ever fed the dog from it.
 
 ### The garden
 
@@ -1811,7 +1989,7 @@ Three plot-wide catalogues — `Config.BORDER_PLANTS` (4 rows: Lavender Row
 40K, Box Hedge 120K, Rose Bushes 350K, Sunflowers 900K), `Config.GARDEN_PATHS`
 (4 rows: Gravel Path 25K, Stepping Stones 90K, Herringbone 300K, Marble Walk
 1.2M) and `Config.WINDOW_BOXES` (3 rows: Geraniums 60K, Daisies 160K,
-Trailing Ivy 520K). **None of the three consumes a lawn slot** — the nine
+Trailing Ivy 520K). **None of the three consumes a lawn slot** — the four
 slots in `Config.DECOR_SLOTS` (§11) stay exactly as scarce as they were; a
 border runs the fence line, a path runs the gate to the pig, and a box hangs
 under a window, none of which is a `DECOR_ITEMS` position. All three are
@@ -1923,7 +2101,7 @@ coin-bought ladder of bases, `Config.TROPHY_PLINTHS`. A trophy is an
 what makes it one) — so ownership, the auto-slot, the put-away toggle, the
 plot rebuild, the shop card and the reconcile prune are all `data.decor`
 doing exactly what it already did for the other eighteen. That also makes
-the nine lawn slots (§11) scarce by construction: standing a trophy costs a
+the four lawn slots (§11) scarce by construction: standing a trophy costs a
 slot an ornament was using.
 
 | Trophy | Records | Grows as |
@@ -2060,7 +2238,7 @@ boundary.
 carrying 12 · dogs 12 / 14.5 / 17 · officer 14.5 · fence snags ×0.80 → ×0.30 ·
 electric stun 0 · climbing ×`CLIMB_SPEED_RATIO`×`CLIMB_MULTIPLIER` (§5) ·
 tiptoe ×`Config.getTiptoeMultiplier(level)` — `Config.TIPTOE.base` to `.max`
-across the Sneakers rung, §5 — refused while carrying or climbing.
+across the Sneak rung, §5 — refused while carrying or climbing.
 **Anything that makes a player faster than 16 invalidates several systems at
 once.**
 
@@ -2087,7 +2265,9 @@ always inside the bubble hearing the raw number while everyone else hears
 One street, ten plots in two rows of five (`Config.PLOT_COUNT`,
 `Config.PLOTS_PER_ROW`) — one column more than the eight players a server
 holds, on purpose (below) — a **wide verge** carrying the boards and the
-shops, and a hill with a tunnel through it at both ends.
+shops, and a hill with a tunnel through it at both ends — ringed, beyond the
+valley wall, by four more layers of scenery so the map reads as a valley
+rather than a floating plate from any camera above it (below).
 
 ### The shape, and why it changed
 
@@ -2165,7 +2345,7 @@ number that must not grow:
 
 `STREET_SPACING`'s whole job is that across the road is *a choice* rather than
 *never*. At 208 a cross-street robbery is 17.3 seconds of carrying at 12
-against an alerted Titan at 17 — nobody does it, and half the server stops
+against the fixed guard dog at 14.5 (above) — nobody does it, and half the server stops
 being a target. It also lands the map **longer than the one this set out to
 shrink**. 144 doubles the buildable band and still comes in shorter than the
 twelve-plot map.
@@ -2212,16 +2392,24 @@ This is the same trap `YARD_DEPTH` already records one axis over: **two numbers
 that agree by coincidence are one bug waiting for somebody to change either of
 them.**
 
-`YARD_DEPTH` itself is **unchanged**. A deeper yard was considered and rejected;
-there is still no back garden, and the back fence still sits where the deepest
-house tier needs it.
+`YARD_DEPTH` and `HOUSE_FRONT_LINE` both moved, and neither was picked by
+hand any more. `YARD_DEPTH` is `HOUSE_FRONT_LINE` plus the deepest house in
+the catalogue plus `Config.HOUSE_BACK_GAP`; `PlotService.auditYard()` (below)
+now MEASURES the deepest house at every boot, per part, rather than trusting
+a hand-take of the Sky Castle that had already gone stale by the time the
+fantasy tiers landed. `HOUSE_FRONT_LINE` came forward because the lawn's own
+back row retired (*The lawn is rows, not a ring*, below) and freed the
+rearmost slot it used to clear — both constants shrank together, and the
+audit is what catches the next tier that no longer fits either fence.
 
 **What the widening actually bought is room in the house catalogue.** Every
 tier fitted inside the old fence interior and always had — the widest building
-is the Marble Palace — but it left barely two studs of headroom, so the next
-wide tier had nowhere to go. It now has eighteen. *(The long-standing claim
-that the Sky Castle overhung the fence by 8.3 studs a side was a measurement
-error, not a bug: see the `HouseFX` rule below.)*
+was the Marble Palace when this was last hand-measured — but it left barely
+two studs of headroom, so the next wide tier had nowhere to go. It now has
+eighteen, and which tier is widest no longer needs re-deriving by hand:
+`auditYard()` reports it fresh every boot. *(The long-standing claim that the
+Sky Castle overhung the fence by 8.3 studs a side was a measurement error,
+not a bug: see the `HouseFX` rule below.)*
 
 ### What lives on the verge
 
@@ -2303,14 +2491,17 @@ server (§5).
 
 ### The lawn is rows, not a ring
 
-`Config.DECOR_SLOTS` is a **grid**, plot-local with +Z toward the street: four
-columns across the back row (`lawnA`–`lawnD`), the outer two columns only on
-each of the two middle rows (`lawnE`/`F`, `lawnG`/`H` — the inner pair sits
-inside the piggy bank and the gate walk from the street), and one slot on the
-front row's left (`lawnI`) — the front-right corner is the kennel. That is
-**nine lawn slots**, up from the old ring's seven. Two verge slots
-(`vergeL`/`vergeR`) flank the driveway outside the fence, and they are still
-the only ground out there that stays dry at fence tier 5.
+`Config.DECOR_SLOTS` is a **grid**, plot-local with +Z toward the street, and
+it has shrunk twice from the nine-slot grid it started at. The two middle
+rows keep their outer columns (`lawnE`/`F`, `lawnG`/`H` — the inner pair sits
+inside the piggy bank and the gate walk from the street): that is **four lawn
+slots**. The front row's left slot (`lawnI`) went first, to the acorn oak and
+its storage crate (§3); the four-column back row (`lawnA`–`lawnD`, at z −20)
+went in this pass — the front-right corner was always the kennel, never a
+slot — which is what let `Config.HOUSE_FRONT_LINE` move forward and
+`Config.YARD_DEPTH` shrink with it (above). Two verge slots (`vergeL`/`vergeR`)
+flank the driveway outside the fence, and they are still the only ground out
+there that stays dry at fence tier 5.
 
 **The row spacing is one number covering every pair.** Ornaments are far
 shallower than they are wide, so two slots whose Z differs by more than the
@@ -2325,15 +2516,13 @@ against the gnome when the widest ornament is the Wacky Waving Man, and was
 never re-derived: four of the seven slots put the widest item through a side
 fence and two adjacent pairs overlapped outright.
 
-**What limits the column count is that one ornament, not the plot.** The back
-row already fits four columns at the tube man's width; the middle rows and the
-front row carry fewer only because the piggy bank, the gate walk and the
-kennel already claim those positions, never because of item width. A narrower
-widest ornament — or a wider lawn — is the lever if more are ever wanted.
-Trophies (§9) are lawn items like any other, which is what makes the shelf
-scarce: nine slots against eighteen ornaments and four trophies means
-displaying what you have *done* costs a slot you were using for what you
-*bought*.
+**What limits the column count is that one ornament, not the plot.** Each of
+the two remaining rows fits two columns because the piggy bank, the gate walk
+and the kennel claim the rest of the grid — never because of item width. A
+narrower widest ornament, or a wider lawn, is the lever if more slots are ever
+wanted. Trophies (§9) are lawn items like any other, so they compete for the
+same four slots — displaying what you have *done* still costs a slot you
+would otherwise spend on what you *bought*.
 
 **The kennel moved to the front-right corner** when the plot widened — on the
 old narrow lawn its position was near the edge, and on the wide one the same
@@ -2345,13 +2534,14 @@ is placed by `PlotService.buildPlot`, not by `Config.DECOR_SLOTS`.
 **It stands at plot-local `(KENNEL_X, 0, KENNEL_Z)` — (25, 0, 16) — turned by
 `KENNEL_YAW` (a quarter turn, −90°) so its doorway faces across the lawn
 rather than out at the street.** `GuardDog.clampToYard` then holds every
-destination the dog is ever sent to — a random patrol point, a toy visit, its
+destination an ordinary patrol is ever sent to — a random patrol point, its
 sleep spot (§9) — inside the **fence** rectangle (the same one
 `PlotService.yardContaining` tests for ride and trespass purposes), inset by
-the dog's own reach at its current breed scale. A toy's offset is authored
-kennel-local for the same reason the kennel's own position is: it travels
-with the kennel if the kennel ever moves again, rather than being left
-pointing at wherever it used to stand.
+the dog's own reach at its current breed scale. A **chase is a separate,
+looser leash**: `Config.DOG_CHASE` extends that box forward to the end of the
+driveway (`streetMetrics().driveFar`), so a dog may run a fleeing thief past
+its own fence line and out onto the drive, but never onto the street itself
+— see §5.
 
 Decorations are still **auto-placed and never collide** — every ornament is
 `CanCollide` and `CanQuery` off, so none of it can body-block a defender, a
@@ -2382,17 +2572,21 @@ how the texture looked. If a variant is ever reinstated, note that
 runtime, so it has to ship as a Rojo-synced asset file rather than a script
 assembling it at server start.
 
-The grove behind the plots is **generated tree meshes**, not the original box
-trunk with a ball balanced on it. `Config.TREE_MESH`/`Config.treeMesh()` hold
-a trunk and a canopy mesh id, a texture id for each, and a handful of uniform
-scales; `NeighborhoodService.ensureTreeTemplates` builds the two meshes once
-and clones them per tree, tinting each canopy one of two near-white
-multiplies. **A tree keeps its baked texture**, unlike the piggy mesh (whose
-texture is stripped so forty-plus skins can multiply a flat colour onto it) —
-nothing skins a tree, so there is no multiply-tint system for a painted mesh
-to go muddy against, and the baked shading between leaf clumps is what makes
-the canopy read as clumps at all. A blank id in `Config.TREE_MESH`
-falls back to the original box-and-ball builder rather than to a missing tree.
+The street and grove use two **faceted scenery-tree models** from
+`ServerStorage/SceneryTreeTemplates`: a branching broadleaf and a tiered evergreen.
+`Services/SceneryTrees.luau` caches normalized templates, preserving their painted
+textures, and clones them with deterministic rotations and slight size/tint
+variation. Street trees are broadleaf; one quarter of the grove's candidate seeds
+select evergreens. There are currently 24 street trees and 30 grove trees,
+including eight evergreens. Each uses only two or three noncolliding,
+nonqueryable MeshParts; render fidelity is authored on the templates.
+
+The models fit the existing `Config.TREE_MESH` width, depth and height envelope,
+so NeighborhoodService's planting and clearance calculations remain authoritative.
+The previous mesh loader remains as a fallback if the synced template library is
+missing. These models do not touch `AcornTree`, `ACORN_OAK_MESH`, plot trees,
+tree upgrades, shaking, growth, or baskets. Asset IDs and previews are recorded
+in `assets/scenery-trees/`.
 
 **A canopy's reach is measured by its diagonal, not its depth, because every
 tree carries its own yaw for variety** — `NeighborhoodService.canopyReach` —
@@ -2448,6 +2642,59 @@ tall, none on a driveway slab and none breaking the collide/query/shadow/anchor
 rule. A tier-5 moat against the LAWN grass has not been
 measured — see §17.
 
+**`Config.GROUND_SIZE` and the grove came in together.** The grove's own
+three rows (`NeighborhoodService.GROVE_ROWS`) tightened when the slab did —
+only the front row, which shuts the sightline behind a plot, is pinned to the
+canopy's own reach; the two rows behind it are depth of wood rather than a
+sightline, so they were the cheap half of narrowing the valley.
+
+### The horizon beyond the valley wall
+
+The ground slab and the valley wall around it explain the edge of the map
+perfectly to somebody standing on the street — the grass stops because there
+is rock in the way — and say nothing at all about the view from any camera
+*above* it: a green rectangle with a hard vertical cut and open sky
+underneath, reported, accurately, as *a square floating in the sky*.
+`NeighborhoodService.buildHorizon` — called from `buildHills`, after the
+tunnel hills and the valley wall itself — is what a camera above the street
+sees instead.
+
+It is four rings, nearest first, each one built to bury the edge of the ring
+before it, which is why none of them can be dropped without the ring inside
+it becoming the new visible edge:
+
+| Ring | What it is | Collides |
+|---|---|---|
+| **Apron** | A ragged lowland one small step down (`APRON_LIFT`), tucked back under the slab so the seam between them is buried rather than a joint anybody can see | Yes — it is what somebody who clears the valley wall lands on |
+| **Foothills** | Columns of the valley wall's own rock with turf caps, standing just outside the slab — the skyline seen *over* the wall | Yes |
+| **Shelf** | A second, lower step further out, so the apron's own ragged edge has ground under it rather than sky | No — scenery only |
+| **Range** | Tall, tapered, three-stepped peaks on the shelf's rim, leaning off-axis so the ridge line wanders rather than stacking into a row of pyramids — far enough out and tall enough that no cut edge is visible from anywhere a player's camera can be | No — scenery only |
+
+All four are sized off `Config.GROUND_SIZE`, so a change there moves the whole
+horizon with it, and all four are drawn from one seeded `Random` — the same
+rule the grass scatter and the valley wall already follow — so every server
+builds the identical horizon and a screenshot taken today still describes the
+map tomorrow. `ringWalk` (walks a rectangle's four sides at a spacing it
+derives itself, so segments butt rather than leaving a short last gap that
+overlaps its neighbour), `boxSize`, `landSegment` (one apron or shelf
+segment) and `horizonColumn` (one foothill or one range peak) are the shared
+helpers underneath all four.
+
+*Orientation only — measured live, not a `Config` value:* the apron reaches
+roughly 240–420 studs out and the shelf a further 460–600; the foothills
+stand 44–96 studs tall and the range's peaks 110–210. None of these is a
+named constant — they are the spread each ring's own builder draws from.
+
+**What this does not solve, stated plainly:** from a few hundred studs up it
+is still an island with a flat underside — closing that needs a shell rather
+than rings, which is a view nobody playing the game can actually reach. What
+it buys is the difference between a floating square and a valley in a
+landscape.
+
+`WorldService`'s old ring under the ground slab — a second hard rectangle
+standing beyond the slab's own edge, which is what produced the *floating
+square* report in the first place — is retired; the apron replaces it.
+
 ### Layout rules that still hold
 
 - **A plot is three different floor heights** — lawn (+0.5), driveway (−0.28),
@@ -2465,6 +2712,15 @@ measured — see §17.
   segments. Anything asking *does this fit the plot* has to walk the BaseParts
   and skip the `HouseFX` tag, or it is measuring a light show sixty-seven studs
   in the air.
+- **That measurement runs at every boot now, not once by hand.**
+  `PlotService.auditYard()` builds every `Config.HOUSE_TIERS` entry at
+  startup — pcalled, because a measurement must never stop the server
+  starting — applies the identical per-part, skip-`HouseFX` rule, and prints
+  the deepest and widest tier plus the tightest back-fence and side-fence gap;
+  it warns (never throws) if either gap goes negative. `HOUSE_FRONT_LINE` and
+  `YARD_DEPTH` (above) are sized off whatever this audit currently finds
+  deepest, which is the whole argument for having it rather than a number
+  typed once and never revisited.
 - **The road is a fixed width, never derived.** `Config.streetMetrics()` is the
   single source; multiple files need the tunnel mouths. `Config.ROAD_SURFACE_Y`
   — the tarmac's own height above the world ground, 0.06 proud so the two never
@@ -2474,23 +2730,34 @@ measured — see §17.
   sunkenness is always an illusion: the moat's depth comes from kerbs standing
   *proud*, and the tunnel is a black `Neon` slab, not a bore. (CSG — `UnionAsync`
   / `SubtractAsync` — *does* work at runtime, but it is **server-only**.)
-- **Hills are the only scenery that collides.** Everything else in
-  `NeighborhoodService` is non-colliding so a chase can run through it.
+- **Hills are the only scenery that collides — and that now includes the
+  apron and foothills beyond the valley wall**, not only the two tunnel
+  mounds (*The horizon beyond the valley wall*, above). The outer shelf and
+  the mountain range past them are scenery only, like everything else in
+  `NeighborhoodService`, so a chase can run through any of it.
 - **Wheelie bins are public street furniture**, three a side, owned by nobody.
   Hiding is a *place*, not a costume. A bin buys a breath, never an escape.
-- **Every plot carries its own mailbox, and it is the only way back to the
-  daily board.** The board opens itself once per session, 1.5 seconds after
-  joining, and nothing else in the game reopens it — so closing it without
-  claiming lost the day silently, with a reward still sitting there and
-  nothing on screen to say so. `PlotService.setMail`/`.setMailOwner` raise a
-  foot-hinged flag and enable the `post` prompt (§14) together, on the same
-  push (`DailyService.push`) that fills the board itself (remote `DailyOpen`
-  is what re-opens it — it carries nothing, since the client already holds
-  the whole snapshot and the click only ever means "look at it"), so the flag
-  and the board can never disagree about whether today's claim is waiting.
-  `Config.PROMPT_OWNER_ATTRIBUTE` is what lets every other client refuse
-  somebody else's mailbox on its own screen; the server re-checks the owner
-  on the trigger regardless.
+- **Every plot carries its own mailbox, and it is the ONLY way to the daily
+  board.** The board used to open itself, 1.5 seconds after joining, and
+  closing it without claiming lost the day silently — a reward still sitting
+  there with nothing on screen to say so. **The auto-open is gone.**
+  `PlotService.setMail`/`.setMailOwner` raise a foot-hinged flag and enable
+  the `post` prompt (§14) together, on the same push (`DailyService.push`)
+  that fills the board itself, so the flag and the board can never disagree
+  about whether today's claim is waiting. Pressing the prompt fires
+  `DailyOpen` — it carries nothing, since the client already holds the whole
+  snapshot and the click only ever means "look at it". `Shared/MailCall.luau`
+  builds the advert: a client-side **DAILY REWARD** billboard and a gold
+  sparkle plume over the reader's *own* mailbox only, driven off the same two
+  facts (`Enabled`, `Config.PROMPT_OWNER_ATTRIBUTE`) rather than a third
+  piece of invented state — built server-side, the identical sign and plume
+  would hang over every mailbox on the street for everybody, nine of them
+  over post nobody present can open. `Config.PROMPT_OWNER_ATTRIBUTE` is also
+  what lets every other client refuse somebody else's mailbox on its own
+  screen; the server re-checks the owner on the trigger regardless.
+  `DailyService.onPlayerReady` fires one **good**-toned notify on join,
+  naming the mailbox, when a reward is waiting — the one thing that still
+  happens automatically, and it points rather than opens.
 - **A delivery van drives the street on its own schedule and confers
   nothing.** `TrafficService` runs one van at a time, west to east through
   both tunnels at `Config.DELIVERY.speed`, in the lane opposite the patrol's
@@ -2514,18 +2781,18 @@ measured — see §17.
 |---|---|
 | `DataService` | Session-locked DataStore persistence, the schema, reconcile |
 | `WorldService` | Ground, lighting, `ClockTime` — fixed at the day table (`WorldService.DAY`) except for Midnight Heist's dusk (`setNight`/`restoreDay`, §8), which never goes dark |
-| `NeighborhoodService` | Road, tunnels, verge, shopfronts, trees, street furniture, bins |
-| `PlotService` | Plot pool, fences, ladders, driveways, ownership, signs, the mailbox (`setMail`/`setMailOwner`/`onMailCheck`, §11), the doorstep crate box (`setCrate`/`setCrateOwner`/`onCrateOpen`, §3), the rebirth firework attributes (`fireFireworks`, §4), and the four un-claimable shop-vault plots (`Config.SHOPS`, built on the same frame `ShopFront` builds its walls in) — publishes `onClaim`/`onRelease` hooks; forwards the dog's coat, kennel skin, toys and filtered name to `GuardDog` (`setDogCoat`/`setDogKennel`/`setDogToys`/`setDogName`, §9); holds each plot's trophy state and rebuilds the lawn from it (`setTrophyState`, §9); holds what a plot's owner has planted and puts it up (`setGarden`/`refreshBorder`/`refreshWindowBoxes`, §9), and records a plot's own equipped skin (`applySkin`, `plot.skinKey`) so a topiary knows what to render; the sign's season chip and NEMESIS line (`setSeasonChip`/`setNemesis`) and the worn finish, remembered as `plot.finishKey` and re-applied after every skin repaint (`applyFinish`, §3); the owner's Grow Tree prompt and the tree's level and next-acorn clock (`setTreeOwner`/`setTreeLevel`/`publishTree`, §3) |
+| `NeighborhoodService` | Road, tunnels, verge, shopfronts, trees, street furniture, bins, and the horizon beyond the valley wall (`buildHorizon`, §11) |
+| `PlotService` | Plot pool, fences, ladders, driveways, ownership, signs, the mailbox (`setMail`/`setMailOwner`/`onMailCheck`, §11), the doorstep crate box (`setCrate`/`setCrateOwner`/`onCrateOpen`, §3), the rebirth firework attributes (`fireFireworks`, §4), and the four un-claimable shop-vault plots (`Config.SHOPS`, built on the same frame `ShopFront` builds its walls in) — publishes `onClaim`/`onRelease` hooks; forwards the dog's coat, kennel skin and filtered name to `GuardDog` (`setDogCoat`/`setDogKennel`/`setDogName`, §9); holds each plot's trophy state and rebuilds the lawn from it (`setTrophyState`, §9); holds what a plot's owner has planted and puts it up (`setGarden`/`refreshBorder`/`refreshWindowBoxes`, §9), and records a plot's own equipped skin (`applySkin`, `plot.skinKey`) so a topiary knows what to render; the sign's season chip and NEMESIS line (`setSeasonChip`/`setNemesis`) and the worn finish, remembered as `plot.finishKey` and re-applied after every skin repaint (`applyFinish`, §3); the owner's Grow Tree prompt and the tree's level and next-acorn clock (`setTreeOwner`/`setTreeLevel`/`publishTree`, §3) |
 | `ResidentService` | The NPC neighbour seated on every plot nobody owns — a name, a seeded pig, and defences/garden that track the server's average level plus a fixed, per-resident downward offset (§5). Also seats a permanent shopkeeper on each shop plot, laddering only its Vault Lock, and gives that shopkeeper the shop's guard-dog reaction — `alertShopkeeper` wakes and chases on a fumble or a smash, `registerCatch` is a registry `Main` fills with `HeistService.shopkeeperCatch` (§5) |
-| `PiggyBank` | The piggy model, coin pile, skins, effects, the season finish over a skin (`applyFinish`, §3), vault dial, the robbed plaster, and the shop strongroom (`buildVault`, wrapping the same `Refs` a piggy bank returns, §5) |
+| `PiggyBank` | The piggy model, coin pile, skins — including dressing/undressing a legendary's whole-model overlay on every skin change (`applySkin` → `LegendaryModel.dress`/`.undress`, §9) — effects, the season finish over a skin (`applyFinish`, §3), vault dial, and the shop strongroom (`buildVault`, wrapping the same `Refs` a piggy bank returns, §5) |
 | `GuardVisual` | The imported mesh guard models, rebuilt from their authored bone assignments; required by `GuardDog` |
-| `GuardDog` | Patrol, kennel, guard duty, the off-duty nap, and the awake/asleep posture that tells a thief whether the owner is home. Exposes `isOwnerHome`/`bark` so `HeistService` can drive the alarm-only branch without `GuardDog` knowing anything about players (§5). Also owns the dog's wardrobe — coat, kennel skin, toys and its (pre-filtered) name — repainted through the one function, `applyTier` (§9); `clampToYard` holds every patrol/toy/sleep destination inside the fence (§11) |
+| `GuardDog` | Patrol, kennel, guard duty, the off-duty nap, and the awake/asleep posture that tells a thief whether the owner is home; a **leashed, cone-catch chase** (`Config.DOG_CHASE`) and `knockOutOfYard`'s landing point for a catch made inside the yard (§5). Exposes `isOwnerHome`/`bark` so `HeistService` can drive the alarm-only branch without `GuardDog` knowing anything about players (§5). Every plot's dog is now the fixed `Config.DOG_LEVEL` tier — `Config.UPGRADES.dog` is retired — and a coat's `guardModel` can render any breed's rig over it (§9). `setGate` (written by `PlotService.buildFence`) makes the dog's own front fence a real wall to it: an ordinary patrol and a chase both route through the gate opening and never the sides or back, and a catch is only judged on the same side of the fence (§5). Also owns the dog's wardrobe — coat, kennel skin and its (pre-filtered) name — repainted through the one function, `applyTier` (§9); `kennelScale`/`sleepCFrame` seat the dog on its own kennel floor, nose at the doorway; `clampToYard` holds every patrol/sleep destination inside the fence, and a chase inside the looser driveway-extended box (§11) |
 | `BoneService` | Thrown bones |
 | `EconomyService` | Accrual loop, milestones, the `StateUpdate` push (fires whenever the whole-coin balance changes) |
 | `UpgradeService` | Both upgrade trees |
-| `HeistService` | The crack and the smash (§5), carrying, nabbing (including which catch effect fires and on whom, §9), delivering, the loss cap, coin revenge and per-owner timed skin recovery claims/private recovery objectives, the dodge, tiptoe (`tiptoeInEffect`, the local shared by `currentSpeed` and the `Config.SNEAK_ATTRIBUTE` publish in `refreshSpeed`, §5), and the lawn watch (`watchLawns`) that wakes a guard dog on footsteps or a missed slice — against a `Target` of a player **or** a resident. `releaseDog` is where a wake decides alarm-only (owner home) versus a chase (owner away); `markIntruder`, a `HeistService`-local, marks the alarmed thief with a Highlight — see §5. A delivered robbery, a nab and a dog's catch each report to `TrophyService` (§9) — a clean crack delivered calls `recordClean`, an own-tree basket `recordHarvest`, a new robber rank `recheck`; banked Acorns (a basket, the pig-crack acorn) go to `SeasonService.earn`, a delivery against a player to `SeasonService.recordNemesis` (§3), and a player's nab win, a dog's catch for its owner and a hot skin brought home by its owner to `SocialService.recordDefend` (§14); a completed shop-vault crack also rolls its item drop (`Config.SHOP_VAULT_DROP`, §5) — a duplicate off an owned pool pays coins instead of nothing — pushed to the hot bar through `registerStockPusher` — filled by `Main` with `BoneService.push`/`GadgetService.push`; `shopkeeperCatch` (§5) runs the same `nab`/`scare` a real dog's catch does, with an optional `catcher` name so the toast can say "The shopkeeper" instead |
+| `HeistService` | The crack and the smash (§5), carrying, nabbing (including which catch effect fires and on whom, §9), delivering, the loss cap, coin revenge and per-owner timed skin recovery claims/private recovery objectives, the dodge, tiptoe (`tiptoeInEffect`, the local shared by `currentSpeed` and the `Config.SNEAK_ATTRIBUTE` publish in `refreshSpeed`, §5), and the lawn watch (`watchLawns`) that wakes a guard dog on footsteps or a missed slice — against a `Target` of a player **or** a resident, but only ever **releases** the dog (chase, or the owner-home alarm) for a loudest trespasser who is actually robbing (carrying loot or mid-crack); a loud non-robber gets a rate-limited **bark** and nothing more (§5). `releaseDog` is where a wake decides alarm-only (owner home) versus a chase (owner away); `markIntruder`, a `HeistService`-local, marks the alarmed thief with a Highlight — see §5. A delivered robbery, a nab and a dog's catch each report to `TrophyService` (§9) — a clean crack delivered calls `recordClean`, an own-tree basket `recordHarvest`, a new robber rank `recheck`; banked Acorns (a basket, the pig-crack acorn) go to `SeasonService.earn`, a delivery against a player to `SeasonService.recordNemesis` (§3), and a player's nab win, a dog's catch for its owner and a hot skin brought home by its owner to `SocialService.recordDefend` (§14); a completed shop-vault crack also rolls its item drop (`Config.SHOP_VAULT_DROP`, §5) — a duplicate off an owned pool pays coins instead of nothing — pushed to the hot bar through `registerStockPusher` — filled by `Main` with `BoneService.push`/`GadgetService.push`; `shopkeeperCatch` (§5) runs the same `nab`/`scare` a real dog's catch does, with an optional `catcher` name so the toast can say "The shopkeeper" instead |
 | `TrophyService` | The trophy shelf (§9): what has been earned, the plinth ladder, and the one place a trophy or a plinth is ever granted; the Phase 5 counters (`recordClean`/`recordWanted`/`recordHarvest`) and `recheck` for counts other services own. **A leaf** — requires only `DataService` and `PlotService` — and pushes the shop's repaint through a registry (`registerPusher`) `Main` fills with `CosmeticsService.push` |
-| `CosmeticsService` | Buying and equipping everything cosmetic, including catch effects (§9), wearing an earned season finish (`equipFinish`, the `finishes` push payload, §3) and trophy plinths (routed to `TrophyService`, §9); **the roll**, priced in loot; the dog's coats, kennels and toys, and `nameDog` — the only caller of Roblox's text-filter API anywhere in this game (§9); the garden's three catalogues through one function, `buyGarden` (§9); `grantPassItems`, the one path every Robux pass grants through, hooked to `PassService.Granted` (§15) |
+| `CosmeticsService` | Buying and equipping everything cosmetic, including catch effects (§9), wearing an earned season finish (`equipFinish`, the `finishes` push payload, §3) and trophy plinths (routed to `TrophyService`, §9); **the roll**, priced in loot; the dog's coats and kennels, and `nameDog` — the only caller of Roblox's text-filter API anywhere in this game (§9); the garden's three catalogues through one function, `buyGarden` (§9); `grantPassItems`, the one path every Robux pass grants through, hooked to `PassService.Granted` (§15) |
 | `ProgressionService` | Rebirth reset, free Legendary Crate or completed-collection Acorn payout, immediate save |
 | `SeasonService` | The season (§3): lazy rollover of `data.season`, `earn` (never mints), tier grants once per season through `SetService.grant`, the nemesis ledger (`recordNemesis`/`nemesisOf`), the season board store, `window` rows and the `SeasonState` push, `getTop` for the street board, `refreshSign`, and a server-local dev clock shift (`shiftWeeks`). Requires `DataService`, `PlotService`, `SetService`, `TrophyService` |
 | `SocialService` | Friend bonus, the one street board and the three pages it turns (Top Thieves, Top Defenders — `recordDefend` and a weekly `Config.WEEKLY_DEFEND` store — and the season, §14), Most Wanted board (handing it over calls `TrophyService.recordWanted`), revenge markers, the per-player rap sheet push (`pushWanted`, remote `WantedState`, §14), and the spree — consecutive-delivery payout/pursuit-floor state (`recordSteal`/`breakSpree`), kept in a table separate from the rap sheet on purpose (§5, §7) |
@@ -2537,7 +2804,7 @@ measured — see §17.
 | `ResidentAcorns` | One Acorn stock record per residential plot for the server's life (§3) |
 | `SetService` | Loot, sets, the drop reel, ownership lookups shared with chests (`owns`, `inUse`, `grant`, `revoke`) — which also resolve the season's reward kinds `finish`, `plinth`, `kennel` and `coat` (ownership only; none is in `Config.catalogueFor`) |
 | `ChestService` | Opening chests, seasonal exact-skin Acorn buy-backs, combining per-item spares by tier, selling spares for coins (leaf: requires `DataService`, `SetService`) — opening and combining are on the Crates tab; selling is in the Inventory panel |
-| `DailyService` | The daily ladder and boosts; raises the mailbox flag and re-opens the board (`push`, §11) in the same push that fills it; the chest a day-seven claim owes until it is opened at the doorstep (`openCrate`, §3) |
+| `DailyService` | The daily ladder and boosts; raises the mailbox flag on the same push that fills the board (`push`, §11), fires `DailyOpen` when the mailbox prompt is pressed, and notifies once on join when a reward is waiting (`onPlayerReady`); the chest a day-seven claim owes until it is opened at the doorstep (`openCrate`, §3) |
 | `RideService` | Mount gate, welds, tricks |
 | `StealthService` | Bins, hiding, and the thief kit (Ladder, Raincoat) |
 | `HeldItemService` | What is in a player's hand (**a leaf** — requires only `DataService`) |
@@ -2583,16 +2850,19 @@ nothing was lost — there was no chest UI at any point `shards` existed, so the
 only copies that ever existed came from the admin console.
 
 **Schema 20** adds `data.dogs` — the guard dog's wardrobe (§9): which coats
-and kennel skins are owned, which of each is equipped, the already-filtered
-name and when it was last set, and which toys are owned versus standing out.
-It is a **new top-level table**, so this is the bump that actually needed
-spending; `kennels`, `kennel`, `toys`, `name` and `namedAt` are all keys added
-inside that same table since, and none of *those* needed a further bump — the
-generic one-level-deep fill above already covers a table's own new keys.
-`reconcile` prunes `owned`, `kennels` and both `toys.owned`/`toys.out` against
-their catalogues, and falls the `equipped`/`kennel` fields back to `""` if
-they no longer resolve — the same rule every retired-item prune in this file
-follows: ask the catalogue, never a list of names.
+and kennel skins are owned, which of each is equipped, and the
+already-filtered name and when it was last set. It is a **new top-level
+table**, so this is the bump that actually needed spending; `kennels`,
+`kennel`, `name` and `namedAt` are all keys added inside that same table
+since, and none of *those* needed a further bump — the generic
+one-level-deep fill above already covers a table's own new keys.
+`reconcile` prunes `owned` and `kennels` against their catalogues, and falls
+the `equipped`/`kennel` fields back to `""` if they no longer resolve — the
+same rule every retired-item prune in this file follows: ask the catalogue,
+never a list of names. **Toys — `data.dogs.toys`, `Config.DOG_TOYS` — are
+retired outright**, with no bump of their own: `reconcile` simply deletes the
+`toys` key from every existing save, refunding nothing, because the game is
+in beta.
 
 **Schema 21** adds `data.catch` — catch effects (§9), the third kind of
 cosmetic and the first that lands on somebody else. It is a **new top-level
@@ -2707,8 +2977,12 @@ in `settings` may ever affect an outcome** — no speed, no income, no odds.
   pig medallion, balance/capacity, green income pill and a rounded gold bar.
   `StateUpdate` drives the numbers; the bar tweens to the clamped
   `coins / capacity` ratio, including backwards when spending. An empty pig
-  shows no fill, overflow keeps the real balance with a 100% bar, and the
-  footer reads time to full or **FULL · Spend to earn again**. The 420×128
+  shows no fill, overflow keeps the real balance with a 100% bar, and a full
+  pig turns the bar `Theme.WARN` instead of gold and prints **FULL · SPEND
+  SOME** (or **FULL** on the compact card) inside it in place of a
+  percentage, with the footer reading *"Spend some coins to start earning
+  again"* in warn ink instead of a time-to-full estimate — this panel is now
+  the one place a full pig is ever announced (§4). The 420×128
   card becomes a two-line 252×64 card on short/narrow viewports, keeping the
   balance, capacity, income and fill percentage while hiding the title and
   status footer. This uses about 45% less area than the previous mobile card.
@@ -2750,15 +3024,62 @@ in `settings` may ever affect an outcome** — no speed, no income, no odds.
   effect Alien Cache drops and nothing else now (§8) — the server-side
   guaranteed-purchase path behind that remote is untouched, so restoring a
   storefront for either is one call site rather than a feature. The
-  **Upgrades** tab is the one tab
-  that changes an outcome: a
-  full-width **EARN** band (Earn Faster, Bigger Piggy Bank — the income and
-  capacity purchases) sits above two columns, **DEFEND** and **ROB**, one card
-  per upgrade tree. All eight rows share one card builder (`makeUpgradeCard`);
-  the six tree cards show a pip ladder and the two EARN cards show a
-  continuous bar reading `Lv N / M`, because income and capacity run to
-  `Config.maxLevel` (up to 40) where pips would be unreadable. The **Home**
-  tab leads with **YOUR GUARD DOG** / **ITS KENNEL** / **ITS TOYS** — the
+  **Upgrades** tab is the one tab that changes an outcome, and it is a
+  list-and-detail browser (`Shared/ShopUpgrades.luau`) rather than a grid:
+  three group tabs — **Earn** (Earn Faster, Bigger Piggy Bank), **Defend**,
+  **Rob** — each listing its upgrades as tiles, with the selected one opening
+  a detail panel carrying a rendered 3D preview of the next rung, a scrolling
+  NOW/NEXT stat comparison (`Shared/ShopUpgradeFacts.luau` — coins/second,
+  crack-slice size, fence slow, carrying speed, and so on, read straight off
+  the `Config` formula each tree already runs) and a buy strip. Income and
+  capacity are their own **Earn** group tab now, structurally the same as
+  Defend and Rob, rather than a band sitting above both. **Earn now uses
+  Blender-rendered PNGs registered in `Shared/ShopIcons.luau`:** coins entering
+  a piggy with a clock for income, and a small-to-large piggy for capacity.
+  They stay the same at every rung; the NOW/NEXT comparison carries the actual
+  improvement. Defend and Rob use matching rendered vault, fence, lockpick,
+  coin-sack, speed-boot and crouching-resident icons. Sneak uses the existing
+  resident NPC, including the hair cutout, carrying the snout-emblem robbery
+  bag. The shared figure now wears 32 alternating hollow chain links and a
+  snout medallion with a connecting bail; every resident inherits this necklace.
+  All eight upgrades use the same PNG
+  in cards and details, cropped to measured alpha bounds with 16px clearance.
+  `Shared/UpgradePreview.luau` remains a fallback for future unregistered items.
+  Selected cards have checkmarks and glowing borders; capped Earn
+  cards have purple level pills with locks. `ShopRevamp` uses the six rendered
+  category icons, and `Theme.coin` uses the front-facing snout coin. Supplies
+  uses the plunger, bubblegum bomb and golden bone PNGs; crate cards and their
+  contents summary use distinct common/rare/legendary chest artwork. The source
+  art and upload provenance live in `assets/shop-ui/icon-system-v1/`.
+  Home's 18 house cards use transparent images rendered from their actual
+  authored house models. `Shared/ShopHouseCards.luau` maps stable house IDs to
+  artwork and paints the full card from `Config.RARITIES`; ownership and price
+  states remain in the action pill. Sources, renders and upload records live in
+  `assets/houses/<model-folder>/shop-cards/`, with the index in
+  `assets/shop-ui/house-images/`. New houses without artwork retain a 3D fallback.
+- **Guardians** replaces Companions. Nine static native-model renders use the
+  same full rarity-colored card presentation as houses. PNGs and provenance
+  live beside their original rigs in `assets/guards/<rig>/shop-cards/`;
+  `assets/SHOP-RENDER-INDEX.md` links all house, guardian and acorn images to
+  their source models and Roblox upload IDs. No guardian card has a live 3D viewport.
+- Pets are paused (`Config.PETS_ENABLED = false`): no shop entries, purchases,
+  equipped attribute or follower startup. Existing pet purchases remain saved.
+  Kennel color purchases/equipping are retired; live kennels automatically take
+  the guardian's body/dark palette and collar (or a creature's light accent).
+  Legacy kennel purchases remain saved but inactive. Season tier 4 now grants
+  the Golden Boy guardian instead of the retired Midnight kennel color.
+
+  **Only Earn's two
+  rows can be reopened by a
+  rebirth** (`Config.rebirthOpensMore`, above): a maxed-but-gated row reads
+  **NEEDS REBIRTH** on its tile instead of MAX LEVEL, drops the detail
+  header's arrow (`LEVEL 42`, not `LEVEL 42 → LEVEL 42`), labels its NOW/NEXT
+  comparison **REBIRTH** instead of NEXT and previews the level the *next*
+  rebirth would open, and turns the buy strip into **REBIRTH TO UNLOCK MORE**
+  on `Theme.PRESTIGE` rather than the dead sand a true ceiling gets. The six
+  other trees have a fixed `max` no rebirth lifts, so they always read MAX
+  LEVEL. The **Home**
+  tab leads with **YOUR GUARD DOG** / **ITS KENNEL** — the
   guard dog's wardrobe (§9) — then **ALONG THE FENCE** / **THE PATH TO YOUR
   PIGGY** / **WINDOW BOXES** — the garden's three catalogues (§9) — above its
   own consumable sections (§6), because a coat, a kennel skin or a hedge is
@@ -3273,16 +3594,13 @@ already shipped. Corrected below.
 - **The dog's wardrobe is verified end to end on the owner's own plot, and the
   one thing left is whether a THIEF can read it from the pavement.** Measured
   live (§9): a kennel skin repaints `wood`/`trim` while the roof stays the
-  coat's `collar`; toggling a skin off restores plain wood; all nine toy parts
-  build hidden and show on demand with the water keeping its authored 0.35
-  transparency; the Dog Bed makes a settling dog walk 8.93 studs from its
-  kennel and lie at the bed spot to 0.00 studs, and putting the bed away sends
-  it back to the doorway to 0.00; the ball bounces 1.50 studs and returns to
-  rest with zero drift; the duty vest shows only on the one dog that was given
-  a treat (1 of 14) and survives three full `applyTier` repaints — a coat
-  cleared, a different coat worn and the kennel re-skinned — with the collar
-  never going neon and the plate holding ON GUARD; and a save naming a kennel
-  that has been deleted from `Config` degrades to plain wood without throwing.
+  coat's `collar`; toggling a skin off restores plain wood; the duty vest
+  shows only on the one dog that was given a treat (1 of 14) and survives
+  three full `applyTier` repaints — a coat cleared, a different coat worn and
+  the kennel re-skinned — with the collar never going neon and the plate
+  holding ON GUARD; and a save naming a kennel that has been deleted from
+  `Config` degrades to plain wood without throwing. (Dog toys were retired
+  after this pass and are gone from the wardrobe entirely, §9.)
 
   None of that needed a second player, because none of it is per-client: the
   server builds the parts and the nameplate and the kennel board are ordinary
@@ -3294,6 +3612,17 @@ already shipped. Corrected below.
   aimed during Play, provided the write to `workspace.CurrentCamera` is held
   on `RenderStepped` — it is the tool's own camera arguments that are
   ignored, not the camera. It has simply not been tried yet.
+
+- **The leashed chase, the knockout and the sleep pose are all unverified
+  against a live pursuit.** `Config.DOG_CHASE`'s leash box, turn rate and
+  catch cone, `HeistService.knockOutOfYard`'s front-or-alley landing choice,
+  and the `DogKnockout` client-side arc in `bindFenceKnockback` have only
+  been reasoned about against the geometry, never driven through a real
+  chase — that needs a second player carrying loot for a dog to actually
+  catch. Nor has the new Sleep pose (`GuardAnimation`, the eyes squashed shut
+  by `GuardAnimator.client`) been seen on screen; it is built the same way
+  every other posture in this file was, and none of those were trusted until
+  somebody looked.
 
 - **Opening a chest is reachable now, and so is selling a spare — combining
   has a control too, below.** The shop's **Crates** tab (`Shared/Crates.luau`,
@@ -3370,7 +3699,7 @@ already shipped. Corrected below.
   A single player can now rob a `ResidentService.Resident` end to end: the
   crack against a real Vault Lock, the carry, the guard dog chase and
   nab, the getaway, delivery and ×`HEIST_PAYOUT`, a patrol pursuit, an arrest,
-  bail and the robbed plaster all run against a resident exactly as they would
+  and bail all run against a resident exactly as they would
   against a player, by construction of `HeistService`'s `Target` type. What a
   resident genuinely cannot exercise, because `HeistService` skips it for one
   on purpose: `Config.LOSS_CAP`'s clamp on a fourth grab, `Config.REVENGE`'s
@@ -3412,7 +3741,7 @@ already shipped. Corrected below.
   `UpgradeService.getStealHold`/`.getStealFraction` are retired with it.
   The two gaps this bullet used to record are both closed: the guard dog now
   wakes on footsteps above a breed's `notice` as well as on a missed slice
-  (`HeistService.watchLawns`, §5), and `Config.UPGRADES.tiptoe` (Sneakers)
+  (`HeistService.watchLawns`, §5), and `Config.UPGRADES.tiptoe` (Sneak)
   gives tiptoe its own four upgrade levels, read by `currentSpeed` through
   `UpgradeService.getLevel`. Like the rest of the heist system, the crack has
   not been exercised end to end against a real second player — see the
@@ -3424,8 +3753,10 @@ already shipped. Corrected below.
   are wired end to end. Driven through the real prompt rather than a module
   handle: a smash on a resident took 71 coins at a bare Bigger Sack (4.79% of
   a 1,481-coin pile) and 436.3K at a maxed sack, doubled to the thief's own
-  payout, set the plaster, dropped the shield and released the guard dog on
-  landing — and a Titan caught the carrying thief and recovered the loot.
+  payout, dropped the shield and released the guard dog on
+  landing — and the dog caught the carrying thief and recovered the loot (run
+  before the Guard Dog rung retired; the dog is a fixed `Config.DOG_LEVEL`
+  Shepherd now, above, never a Titan).
   The shop-room rule refused a smash from 5.2 studs outside a vault's back
   wall (*"That vault is inside the shop. Go in."*) and allowed one from 6.4
   studs inside. Rate measured on the live server rather than only reasoned

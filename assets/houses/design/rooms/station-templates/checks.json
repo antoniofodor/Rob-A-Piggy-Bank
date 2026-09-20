@@ -1,0 +1,62 @@
+{
+  "cozy": {
+    "status": "PASS",
+    "furnitureParts": 18,
+    "helperRootParts": 1,
+    "attachments": 13,
+    "displayVolumes": 6,
+    "sampledRoutePositions": 254,
+    "bodyProxy": [
+      2.4,
+      6,
+      2.4
+    ],
+    "step": 0.1,
+    "scope": "Proposed room envelope, display/display overlap, sampled furniture and display clearance. Not actual house fit, continuous physics, camera or runtime grid validation."
+  },
+  "classic": {
+    "status": "PASS",
+    "furnitureParts": 20,
+    "helperRootParts": 1,
+    "attachments": 16,
+    "displayVolumes": 9,
+    "sampledRoutePositions": 294,
+    "bodyProxy": [
+      2.4,
+      6,
+      2.4
+    ],
+    "step": 0.1,
+    "scope": "Proposed room envelope, display/display overlap, sampled furniture and display clearance. Not actual house fit, continuous physics, camera or runtime grid validation."
+  },
+  "modern": {
+    "status": "PASS",
+    "furnitureParts": 24,
+    "helperRootParts": 1,
+    "attachments": 19,
+    "displayVolumes": 12,
+    "sampledRoutePositions": 354,
+    "bodyProxy": [
+      2.4,
+      6,
+      2.4
+    ],
+    "step": 0.1,
+    "scope": "Proposed room envelope, display/display overlap, sampled furniture and display clearance. Not actual house fit, continuous physics, camera or runtime grid validation."
+  },
+  "royal": {
+    "status": "PASS",
+    "furnitureParts": 26,
+    "helperRootParts": 1,
+    "attachments": 24,
+    "displayVolumes": 17,
+    "sampledRoutePositions": 434,
+    "bodyProxy": [
+      2.4,
+      6,
+      2.4
+    ],
+    "step": 0.1,
+    "scope": "Proposed room envelope, display/display overlap, sampled furniture and display clearance. Not actual house fit, continuous physics, camera or runtime grid validation."
+  }
+}

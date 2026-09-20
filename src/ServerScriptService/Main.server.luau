@@ -59,6 +59,9 @@ local AdminService = require(Services.AdminService)
 local TreeService = require(Services.TreeService)
 local SeasonService = require(Services.SeasonService)
 
+-- The legendary skins' meshes start loading now, in the background, so a
+-- player wearing one on join is dressed at once rather than a beat later.
+require(ReplicatedStorage.Shared.LegendaryModel).prewarm()
 DataService.start()
 WorldService.start()
 
@@ -77,6 +80,17 @@ WorldService.start()
 -- (Neighborhood), the victim shelf and the carried loot (Plot, Piggy),
 -- and the residents.
 require(game:GetService("ReplicatedStorage").Shared.PiggyModel).prewarm()
+
+-- The 3D coin that pours into a pig on a delivery. Built once here so the
+-- first delivery clones it rather than waiting on a mesh load; an empty id in
+-- Config.COIN_MESH leaves the drawn coin in its place.
+require(game:GetService("ReplicatedStorage").Shared.CoinModel).prewarm()
+
+-- THE SHOP'S DOG CARDS NEED A RIG ON THE CLIENT, and only the handful a
+-- card can actually ask for. Before the plots, because the first thing a
+-- joining player's shop does is render these -- and a copy that arrives
+-- after the cards are built is a card that already fell back to its swatch.
+require(Services.GuardVisual).publishPreviews()
 
 -- After the ground exists, before the plots: pure scenery, no dependencies.
 NeighborhoodService.start()
@@ -423,6 +437,12 @@ ResidentService.registerGiveBack(HeistService.residentGiveBack)
 -- uses. Registered rather than required, because `HeistService` already
 -- requires `ResidentService` and asking back would be a cycle.
 ResidentService.registerCatch(HeistService.shopkeeperCatch)
+-- A player's nab effect going off on a neighbour they nabbed.
+ResidentService.registerCatchEffect(CosmeticsService.fireCatchEffect)
+-- The neighbour's throw. A registry for the same reason the catch is one:
+-- `GadgetService` requires `ResidentService`, so asking the other way round
+-- would be a cycle.
+ResidentService.registerThrow(GadgetService.neighbourThrow)
 -- Last: it reaches into every service above.
 AdminService.start()
 

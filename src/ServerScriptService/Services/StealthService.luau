@@ -423,7 +423,7 @@ local function wireBin(model: Model)
 	enter.Name = "Enter"
 	enter.ActionText = "HIDE"
 	Config.setPromptKind(enter, "hide")
-	enter.ObjectText = "Wheelie Bin"
+	enter.ObjectText = "Litter Bin"
 	enter.HoldDuration = Config.BINS.enterHold
 	enter.MaxActivationDistance = Config.BINS.range
 	enter.RequiresLineOfSight = false
@@ -433,7 +433,7 @@ local function wireBin(model: Model)
 	open.Name = "Open"
 	open.ActionText = "OPEN"
 	Config.setPromptKind(open, "dig")
-	open.ObjectText = "Wheelie Bin"
+	open.ObjectText = "Litter Bin"
 	open.HoldDuration = Config.BINS.openHold
 	open.MaxActivationDistance = Config.BINS.range
 	open.RequiresLineOfSight = false

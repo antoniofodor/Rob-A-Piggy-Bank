@@ -1,0 +1,11 @@
+{
+  "id": "scooter",
+  "name": "E-Scooter",
+  "parts": 14,
+  "turned": true,
+  "source": "assets/rides/ride-geometry.json",
+  "sourceSha256": "9c1dc94e46d082a53f04d1c12a96d4a4ac76cb0cb74d2c7d75d7b7133515846f",
+  "image": "assets/rides/scooter/shop-cards/scooter.png",
+  "sha256": "b342a66b442b0778a80cfe1aeec4a2e54c7283f8eef01b3b6fe8981345c45bd3",
+  "robloxAssetId": "rbxassetid://74320112276842"
+}

@@ -82,8 +82,16 @@ type Entry = {
 	-- orbit a point out in the panel somewhere.
 	model: Model?,
 	rest: CFrame?,
+	-- `scale` and `sway` need the part's authored SIZE as well as its pose:
+	-- one animates the size itself and the other hinges at the top face,
+	-- which is half a height above the centre. Read once, like the pose --
+	-- re-reading a size this frame that was written last frame accumulates.
+	restSize: Vector3?,
 	amount: number,
 	axis: Vector3,
+	-- `swim` only: the point its whole fish turns about, in the PART'S OWN
+	-- space. See the `swim` branch.
+	centre: Vector3?,
 }
 
 local entries: { Entry } = {}
@@ -123,11 +131,16 @@ local function register(inst: Instance)
 		axis = Vector3.new(num(inst, "AxisX", 0), num(inst, "AxisY", 1), num(inst, "AxisZ", 0)),
 	}
 
-	if fx == "spin" or fx == "orbit" or fx == "bob" then
+	if fx == "swim" then
+		entry.centre = Vector3.new(num(inst, "CentreX", 0), num(inst, "CentreY", 0), num(inst, "CentreZ", 0))
+	end
+
+	if fx == "spin" or fx == "orbit" or fx == "bob" or fx == "sway" or fx == "scale" or fx == "swim" then
 		local model = entry.model
 		if model then
 			entry.rest = model:GetPivot():ToObjectSpace(inst.CFrame)
 		end
+		entry.restSize = inst.Size
 	end
 
 	table.insert(entries, entry)
@@ -199,6 +212,80 @@ local function apply(entry: Entry, clock: number, pivots: { [Model]: CFrame })
 		-- side of the flash guidance.
 		local v = ((math.cos(t * math.pi * 2) + 1) / 2) ^ 3
 		p.Color = Color3.fromHSV(entry.hue, entry.sat, entry.dim + (1 - entry.dim) * v)
+
+	elseif fx == "sway" then
+		-- A PENDULUM, HINGED AT THE TOP. The galleon's sail is authored with a
+		-- hinge point, an axis and an amplitude of two degrees -- it hangs from
+		-- a yard arm, so it swings about its top edge rather than its centre.
+		--
+		-- HINGED AT THE PART'S OWN TOP RATHER THAN THE AUTHORED POINT, which is
+		-- a deliberate approximation and worth the measurement: converting the
+		-- Blender hinge would mean carrying the import's own frame into this
+		-- file, and at two degrees an error of `d` studs in the hinge moves the
+		-- part by `d * sin(2deg)` -- about 0.035 studs per stud of error. On a
+		-- sail a few studs tall that is under a tenth of a stud.
+		local model, rest, size = entry.model, entry.rest, entry.restSize
+		if not model or not rest or not size then
+			return
+		end
+		local pivot = pivots[model]
+		if not pivot then
+			pivot = model:GetPivot()
+			pivots[model] = pivot
+		end
+		local swing = math.sin(t * math.pi * 2) * math.rad(entry.amount)
+		local top = CFrame.new(0, size.Y / 2, 0)
+		p.CFrame = pivot * rest * top * CFrame.fromAxisAngle(entry.axis, swing) * top:Inverse()
+
+	elseif fx == "scale" then
+		-- STRETCHED DOWNWARD FROM ITS TOP, which is the whole of what the Gloop
+		-- House asks for: "only scale hanging goo, anchored at its top". A drip
+		-- that grew about its centre would lift off the roof it hangs from by
+		-- half of whatever it gained.
+		--
+		-- `Amount` is the far end of the authored range (1.045), so the part
+		-- breathes between its own size and that.
+		local model, rest, size = entry.model, entry.rest, entry.restSize
+		if not model or not rest or not size then
+			return
+		end
+		local pivot = pivots[model]
+		if not pivot then
+			pivot = model:GetPivot()
+			pivots[model] = pivot
+		end
+		local v = (math.cos(t * math.pi * 2) + 1) / 2
+		local k = 1 + (entry.amount - 1) * v
+		local grown = Vector3.new(size.X, size.Y * k, size.Z)
+		p.Size = grown
+		-- The top face is where it hangs from, so that point is held and the
+		-- centre drops by half the new height.
+		p.CFrame = pivot * rest * CFrame.new(0, size.Y / 2 - grown.Y / 2, 0)
+
+	elseif fx == "swim" then
+		-- A RIGID ORBIT, which `orbit` is not. `orbit` turns each part about a
+		-- point along its OWN -Z, so two parts of one fish turn about two
+		-- different centres and the fish comes apart as it goes round. Here
+		-- every part of a fish carries the SAME point (stored in its own space,
+		-- so it survives the house being seated or a shop tile re-pivoting it)
+		-- and the same phase and rate, so the whole fish turns as one body
+		-- about the model's up axis through that point, bobbing as it goes.
+		-- A negative `Rate` swims the other way round.
+		local model, rest, centre = entry.model, entry.rest, entry.centre
+		if not model or not rest or not centre then
+			return
+		end
+		local pivot = pivots[model]
+		if not pivot then
+			pivot = model:GetPivot()
+			pivots[model] = pivot
+		end
+		local home = pivot * rest
+		local about = home:PointToWorldSpace(centre)
+		local up = pivot.UpVector
+		local turn = CFrame.new(about) * CFrame.fromAxisAngle(up, t * math.pi * 2) * CFrame.new(-about)
+		-- Four bobs a lap, all parts in step because they share `t`.
+		p.CFrame = (turn * home) + up * (math.sin(t * math.pi * 8) * entry.amount)
 
 	elseif fx == "spin" or fx == "orbit" or fx == "bob" then
 		local model = entry.model

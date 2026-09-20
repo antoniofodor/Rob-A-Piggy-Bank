@@ -93,6 +93,26 @@ local function pushState(player: Player)
 		-- but a dev grant or an old save still can, and it is just as full.
 		full = data.coins >= capacity,
 		rate = Config.getIncomeRate(data.incomeLevel, data.rebirths, SocialService.getFriendBonus(player)),
+		-- THE BOOST TRAVELS BESIDE THE RATE AND DOES NOT MULTIPLY IT, and the
+		-- split is deliberate rather than lazy.
+		--
+		-- `rate` is the BASE rate and several things read it that must not see
+		-- a boost: the upgrade comparison prints "now" against a "next" solved
+		-- from `getIncomeRate`, so a boosted `now` against an unboosted `next`
+		-- would report an upgrade as making you SLOWER. Multiplying here would
+		-- fix one readout by breaking another.
+		--
+		-- What was actually wrong is that nothing carried the boost at all, so
+		-- the HUD said +3.0K/s while the pig filled at 6.0K/s -- a buff nobody
+		-- can see, which is the trap the guard-duty collar already records.
+		-- Sending both lets the one readout that is ABOUT the live drip show
+		-- the real number, and leaves every other reader correct.
+		--
+		-- Both on THIS push, never split across two: the multiplier and the
+		-- number it multiplies have to come from the same frame or a client can
+		-- draw one against the other's.
+		boostMultiplier = DailyService.getMultiplier(player),
+		boostLeft = math.max(0, data.boostUntil - os.time()),
 		friendBonus = SocialService.getFriendBonus(player),
 		incomeLevel = data.incomeLevel,
 		capacityLevel = data.capacityLevel,
@@ -108,6 +128,9 @@ local function pushState(player: Player)
 		-- rebirth button lights up the instant the threshold is crossed.
 		rebirthThreshold = Config.getRebirthThreshold(data.rebirths),
 		rebirthReady = data.coins >= Config.getRebirthThreshold(data.rebirths),
+		-- The rebirth page prints the tree's acorns-per-hour now and after the
+		-- next rebirth, and `treeGrowthPerHour` needs the level to do it.
+		treeLevel = Config.treeLevelOf(data),
 	})
 	lastShown[player] = math.floor(data.coins)
 end
@@ -223,7 +246,14 @@ function EconomyService.purchase(player: Player, track: string)
 	end
 
 	if level >= maxLevel then
-		notify(player, "Already at max level.", "warn")
+		-- "Already at max level" was a lie on these two tracks for anybody
+		-- below rebirth 20: the ladder runs to ABSOLUTE_MAX_LEVEL and a
+		-- rebirth opens LEVELS_PER_REBIRTH more of it. Same predicate the
+		-- shop's own gate reads, so the button and the refusal cannot
+		-- disagree about which ceiling this is.
+		notify(player, if Config.rebirthOpensMore(maxLevel)
+			then "Rebirth to unlock more levels."
+			else "Already at max level.", "warn")
 		return
 	end
 

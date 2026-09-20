@@ -1,0 +1,3099 @@
+<roblox version="4">
+  <Item class="Model" referent="model">
+    <Properties>
+      <string name="Name">modern</string>
+    </Properties>
+    <Item class="MeshPart" referent="p0">
+      <Properties>
+        <string name="Name">Approach_Stone</string>
+        <Content name="MeshId">
+          <url>rbxassetid://89699711122671</url>
+        </Content>
+        <Vector3 name="size">
+          <X>7.859999256131056</X>
+          <Y>1.5719998512262112</Y>
+          <Z>0.6188013060069327</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>318.342</X>
+          <Y>63.6684</Y>
+          <Z>25.0624</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>0.7860023946555993</Y>
+          <Z>23.120095395648953</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">10658992</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p1">
+      <Properties>
+        <string name="Name">AquariumShell_DomeGlass</string>
+        <Content name="MeshId">
+          <url>rbxassetid://123857931741068</url>
+        </Content>
+        <Vector3 name="size">
+          <X>47.94599052431445</X>
+          <Y>23.97300266928471</Y>
+          <Z>47.57264167071735</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>1941.886</X>
+          <Y>970.9433</Y>
+          <Z>1926.7648</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>13.755003636314342</Y>
+          <Z>-2.423176326073702</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">1608599</Color3uint8>
+        <float name="Transparency">0.82</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p2">
+      <Properties>
+        <string name="Name">AquariumShell_WalkWall</string>
+        <Content name="MeshId">
+          <url>rbxassetid://134998902493795</url>
+        </Content>
+        <Vector3 name="size">
+          <X>7.950000793120988</X>
+          <Y>13.143498350877065</Y>
+          <Z>4.283038138107294</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>321.9872</X>
+          <Y>532.3318</Y>
+          <Z>173.4696</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>2.4690424938693276e-06</X>
+          <Y>8.340255180674257</Y>
+          <Z>19.22162544023133</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">15326655</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p3">
+      <Properties>
+        <string name="Name">CoralGarden_CoralOrange</string>
+        <Content name="MeshId">
+          <url>rbxassetid://94338029606500</url>
+        </Content>
+        <Vector3 name="size">
+          <X>11.398507506353843</X>
+          <Y>5.397857735938882</Y>
+          <Z>28.75236526048591</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>461.657</X>
+          <Y>218.6215</Y>
+          <Z>1164.5148</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-15.655376263067627</X>
+          <Y>4.375079104197239</Y>
+          <Z>-3.080383588074225</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">14576169</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p4">
+      <Properties>
+        <string name="Name">CoralGarden_CoralPink</string>
+        <Content name="MeshId">
+          <url>rbxassetid://117194008563290</url>
+        </Content>
+        <Vector3 name="size">
+          <X>8.778507754310159</X>
+          <Y>5.397857735938882</Y>
+          <Z>28.752360322400925</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>355.543</X>
+          <Y>218.6215</Y>
+          <Z>1164.5146</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>17.09462310652094</X>
+          <Y>4.375079104197239</Y>
+          <Z>-3.080383588074225</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">14180236</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p5">
+      <Properties>
+        <string name="Name">CoralGarden_Seaweed</string>
+        <Content name="MeshId">
+          <url>rbxassetid://73157710357172</url>
+        </Content>
+        <Vector3 name="size">
+          <X>43.25619491862425</X>
+          <Y>7.598006688054171</Y>
+          <Z>39.051092106838894</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>1751.9421</X>
+          <Y>307.7309</Y>
+          <Z>1581.629</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>2.4690424938693276e-06</X>
+          <Y>4.716006960806116</Y>
+          <Z>-3.6054526338828468</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">1931611</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p6">
+      <Properties>
+        <string name="Name">CoralGarden_Stone</string>
+        <Content name="MeshId">
+          <url>rbxassetid://119289476606502</url>
+        </Content>
+        <Vector3 name="size">
+          <X>42.42339429253808</X>
+          <Y>3.782820005000406</Y>
+          <Z>30.696797950543964</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>1718.2124</X>
+          <Y>153.21</Y>
+          <Z>1243.2673</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>1.88296587717085</X>
+          <Y>2.6225897776198543</Y>
+          <Z>-4.210898889039936</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">10658992</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p7">
+      <Properties>
+        <string name="Name">DomeRim_DomeRim</string>
+        <Content name="MeshId">
+          <url>rbxassetid://123883784434423</url>
+        </Content>
+        <Vector3 name="size">
+          <X>48.78439587686192</X>
+          <Y>0.499183604301917</Y>
+          <Z>48.67527407479874</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>1975.8427</X>
+          <Y>20.2177</Y>
+          <Z>1971.4231</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>1.8340022954730737</Y>
+          <Z>-2.2910603312642457</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">2401205</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p8">
+      <Properties>
+        <string name="Name">EntranceSleeve_Pod</string>
+        <Content name="MeshId">
+          <url>rbxassetid://99126703955113</url>
+        </Content>
+        <Vector3 name="size">
+          <X>6.877500583635922</X>
+          <Y>0.13850093869884325</Y>
+          <Z>0.19649874688202942</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>278.5493</X>
+          <Y>5.6095</Y>
+          <Z>7.9585</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>1.5757527958170363</Y>
+          <Z>22.601095256290492</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">15326392</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p9">
+      <Properties>
+        <string name="Name">EntranceSleeve_PodTrim</string>
+        <Content name="MeshId">
+          <url>rbxassetid://115335439775555</url>
+        </Content>
+        <Vector3 name="size">
+          <X>7.859999256131056</X>
+          <Y>0.4005009139032118</Y>
+          <Z>11.639350256427445</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>318.342</X>
+          <Y>16.2209</Y>
+          <Z>471.4115</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>1.4447552772573482</Y>
+          <Z>16.879671970560278</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">3571341</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p10">
+      <Properties>
+        <string name="Name">Entrance_Pod</string>
+        <Content name="MeshId">
+          <url>rbxassetid://101105254250145</url>
+        </Content>
+        <Vector3 name="size">
+          <X>4.977999528883003</X>
+          <Y>0.007500951096658987</Y>
+          <Z>0.23580096530092928</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>201.6166</X>
+          <Y>0.3038</Y>
+          <Z>9.5503</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>2.4690424938693276e-06</X>
+          <Y>1.6412515550968831</Y>
+          <Z>23.138195946172196</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">15326392</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p11">
+      <Properties>
+        <string name="Name">Entrance_PodTrim</string>
+        <Content name="MeshId">
+          <url>rbxassetid://128856192049518</url>
+        </Content>
+        <Vector3 name="size">
+          <X>5.8949994420982925</X>
+          <Y>0.23020117692462164</Y>
+          <Z>0.7008500571238105</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>238.7565</X>
+          <Y>9.3235</Y>
+          <Z>28.3855</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>1.529902676704148</Y>
+          <Z>22.905671400260754</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">3571341</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p12">
+      <Properties>
+        <string name="Name">Foundation_Sand</string>
+        <Content name="MeshId">
+          <url>rbxassetid://75903864374037</url>
+        </Content>
+        <Vector3 name="size">
+          <X>48.99399783225941</X>
+          <Y>0.1572088736755994</Y>
+          <Z>48.99399783225941</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>1984.3319</X>
+          <Y>6.3672</Y>
+          <Z>1984.3319</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>1.6244028091180776</Y>
+          <Z>-2.2364994302326564</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">14204812</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p13">
+      <Properties>
+        <string name="Name">Foundation_Stone</string>
+        <Content name="MeshId">
+          <url>rbxassetid://108652551924257</url>
+        </Content>
+        <Vector3 name="size">
+          <X>50.56599027635814</X>
+          <Y>1.7030023078708894</Y>
+          <Z>50.56599027635814</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>2048.0</X>
+          <Y>68.9742</Y>
+          <Z>2048.0</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>0.8514986848929528</Y>
+          <Z>-2.2364994302326564</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">10658992</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p14">
+      <Properties>
+        <string name="Name">HouseDoorLeaf_L_WalkDoor</string>
+        <Content name="MeshId">
+          <url>rbxassetid://86555995161918</url>
+        </Content>
+        <Vector3 name="size">
+          <X>3.8150015048667165</X>
+          <Y>10.319997647438472</Y>
+          <Z>0.20000231818096265</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>154.5134</X>
+          <Y>417.9757</Y>
+          <Z>8.1004</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.9824979181874787</X>
+          <Y>7.185000073919038</Y>
+          <Z>23.51949511659986</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">3639702</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p15">
+      <Properties>
+        <string name="Name">HouseDoorLeaf_L_WalkTrim</string>
+        <Content name="MeshId">
+          <url>rbxassetid://135626674357616</url>
+        </Content>
+        <Vector3 name="size">
+          <X>3.4749995391930755</X>
+          <Y>9.869999838658787</Y>
+          <Z>0.030001335344141983</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>140.7428</X>
+          <Y>399.7501</Y>
+          <Z>1.2151</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.9824979181874787</X>
+          <Y>7.180002731911253</Y>
+          <Z>23.639495519891437</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4102825</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p16">
+      <Properties>
+        <string name="Name">HouseDoorLeaf_L_WalkTrim.001</string>
+        <Content name="MeshId">
+          <url>rbxassetid://72364358835627</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.13000002539212935</X>
+          <Y>0.6500001269606467</Y>
+          <Z>0.12500021434185468</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>5.2652</X>
+          <Y>26.326</Y>
+          <Z>5.0627</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.3149979723372801</X>
+          <Y>6.796404882921717</Y>
+          <Z>23.716996294734436</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4102825</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p17">
+      <Properties>
+        <string name="Name">HouseDoorLeaf_R_WalkDoor</string>
+        <Content name="MeshId">
+          <url>rbxassetid://119008919367042</url>
+        </Content>
+        <Vector3 name="size">
+          <X>3.8150015048667165</X>
+          <Y>10.319997647438472</Y>
+          <Z>0.20000231818096265</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>154.5134</X>
+          <Y>417.9757</Y>
+          <Z>8.1004</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>1.9825003872299722</X>
+          <Y>7.185000073919038</Y>
+          <Z>23.51949511659986</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">3639702</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p18">
+      <Properties>
+        <string name="Name">HouseDoorLeaf_R_WalkTrim</string>
+        <Content name="MeshId">
+          <url>rbxassetid://85797659870442</url>
+        </Content>
+        <Vector3 name="size">
+          <X>3.4749995391930755</X>
+          <Y>9.869999838658787</Y>
+          <Z>0.030001335344141983</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>140.7428</X>
+          <Y>399.7501</Y>
+          <Z>1.2151</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>1.9825003872299722</X>
+          <Y>7.180002731911253</Y>
+          <Z>23.639495519891437</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4102825</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p19">
+      <Properties>
+        <string name="Name">HouseDoorLeaf_R_WalkTrim.001</string>
+        <Content name="MeshId">
+          <url>rbxassetid://84691847370289</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.13000002539212935</X>
+          <Y>0.6500001269606467</Y>
+          <Z>0.12500021434185468</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>5.2652</X>
+          <Y>26.326</Y>
+          <Z>5.0627</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.3150004413797739</X>
+          <Y>6.796404882921717</Y>
+          <Z>23.716996294734436</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4102825</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p20">
+      <Properties>
+        <string name="Name">HouseFX_Bubble_1_BubbleGlass</string>
+        <Content name="MeshId">
+          <url>rbxassetid://139834415320567</url>
+        </Content>
+        <Vector3 name="size">
+          <X>2.0959998016349486</X>
+          <Y>2.0959998016349486</Y>
+          <Z>2.0959998016349486</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>84.8912</X>
+          <Y>84.8912</Y>
+          <Z>84.8912</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-14.529995919241461</X>
+          <Y>13.469996043219625</Y>
+          <Z>7.55349945396393</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">7525854</Color3uint8>
+        <float name="Transparency">0.62</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p21">
+      <Properties>
+        <string name="Name">HouseFX_Bubble_2_BubbleGlass</string>
+        <Content name="MeshId">
+          <url>rbxassetid://96173244081540</url>
+        </Content>
+        <Vector3 name="size">
+          <X>1.3099998760218428</X>
+          <Y>1.3099998760218428</Y>
+          <Z>1.3099998760218428</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>53.057</X>
+          <Y>53.057</Y>
+          <Z>53.057</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-12.969996043219618</X>
+          <Y>16.900000609370135</Y>
+          <Z>5.433497232877749</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">7525854</Color3uint8>
+        <float name="Transparency">0.62</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p22">
+      <Properties>
+        <string name="Name">HouseFX_Bubble_3_BubbleGlass</string>
+        <Content name="MeshId">
+          <url>rbxassetid://84576817053270</url>
+        </Content>
+        <Vector3 name="size">
+          <X>2.6199997520436855</X>
+          <Y>2.6199997520436855</Y>
+          <Z>2.6199997520436855</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>106.114</X>
+          <Y>106.114</Y>
+          <Z>106.114</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>13.969998512262112</X>
+          <Y>15.279993450198976</Y>
+          <Z>4.873499825898403</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">7525854</Color3uint8>
+        <float name="Transparency">0.62</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p23">
+      <Properties>
+        <string name="Name">HouseFX_Bubble_4_BubbleGlass</string>
+        <Content name="MeshId">
+          <url>rbxassetid://118406156864082</url>
+        </Content>
+        <Vector3 name="size">
+          <X>1.1789998884196584</X>
+          <Y>1.1789998884196584</Y>
+          <Z>1.1789998884196584</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>47.7513</X>
+          <Y>47.7513</Y>
+          <Z>47.7513</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>11.349998760218426</X>
+          <Y>19.269995423328837</Y>
+          <Z>2.253497604812223</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">7525854</Color3uint8>
+        <float name="Transparency">0.62</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p24">
+      <Properties>
+        <string name="Name">PodShell_Pod</string>
+        <Content name="MeshId">
+          <url>rbxassetid://83473279640760</url>
+        </Content>
+        <Vector3 name="size">
+          <X>28.81999727248054</X>
+          <Y>20.959998016349484</Y>
+          <Z>26.245635301895263</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>1167.254</X>
+          <Y>848.912</Y>
+          <Z>1062.9884</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>2.4690424938693276e-06</X>
+          <Y>11.003998958583477</Y>
+          <Z>-2.606680502310004</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">15326392</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p25">
+      <Properties>
+        <string name="Name">PodShell_PodTrim</string>
+        <Content name="MeshId">
+          <url>rbxassetid://117399479139876</url>
+        </Content>
+        <Vector3 name="size">
+          <X>19.492796673779523</X>
+          <Y>0.5445596672559653</Y>
+          <Z>19.49279914282202</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>789.4881</X>
+          <Y>22.0555</Y>
+          <Z>789.4882</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>2.4690424938693276e-06</X>
+          <Y>18.601995770467674</Y>
+          <Z>-2.2364994302326564</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">3571341</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p26">
+      <Properties>
+        <string name="Name">PodShell_WalkWall</string>
+        <Content name="MeshId">
+          <url>rbxassetid://129335233619568</url>
+        </Content>
+        <Vector3 name="size">
+          <X>7.950000793120988</X>
+          <Y>13.069552997225372</Y>
+          <Z>6.547638975484984</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>321.9872</X>
+          <Y>529.3369</Y>
+          <Z>265.1894</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>8.377224153936362</Y>
+          <Z>7.242317660895136</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">15326655</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p27">
+      <Properties>
+        <string name="Name">PodWindows_DarkGlass</string>
+        <Content name="MeshId">
+          <url>rbxassetid://131123298362175</url>
+        </Content>
+        <Vector3 name="size">
+          <X>29.173699954953182</X>
+          <Y>5.632999466893924</Y>
+          <Z>12.74231104316053</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>1181.5795</X>
+          <Y>228.1451</Y>
+          <Z>516.0831</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>2.4690424938693276e-06</X>
+          <Y>11.528001378034713</Y>
+          <Z>3.283156171933413</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">2042694</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p28">
+      <Properties>
+        <string name="Name">PodWindows_PodTrim</string>
+        <Content name="MeshId">
+          <url>rbxassetid://79826857382407</url>
+        </Content>
+        <Vector3 name="size">
+          <X>29.73699718569583</X>
+          <Y>6.340399893754218</Y>
+          <Z>13.42995172294164</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>1204.3939</X>
+          <Y>256.7959</Y>
+          <Z>543.9336</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>4.938084987826373e-06</X>
+          <Y>11.528001378034713</Y>
+          <Z>3.273275063872573</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">3571341</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p29">
+      <Properties>
+        <string name="Name">WalkApproach0_WalkFloor</string>
+        <Content name="MeshId">
+          <url>rbxassetid://125730208608245</url>
+        </Content>
+        <Vector3 name="size">
+          <X>8.100000062714217</X>
+          <Y>0.3475004477278063</Y>
+          <Z>0.705000517556162</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>328.0624</X>
+          <Y>14.0743</Y>
+          <Z>28.5536</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>0.15375221418405244</Y>
+          <Z>27.16699677867614</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">13811089</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p30">
+      <Properties>
+        <string name="Name">WalkApproach1_WalkFloor</string>
+        <Content name="MeshId">
+          <url>rbxassetid://85742246057837</url>
+        </Content>
+        <Vector3 name="size">
+          <X>8.100000062714217</X>
+          <Y>0.6750016512545141</Y>
+          <Z>0.705000517556162</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>328.0624</X>
+          <Y>27.3386</Y>
+          <Z>28.5536</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>0.31750405046865354</Y>
+          <Z>26.486995316371353</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">13811089</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p31">
+      <Properties>
+        <string name="Name">WalkApproach2_WalkFloor</string>
+        <Content name="MeshId">
+          <url>rbxassetid://86971899497759</url>
+        </Content>
+        <Vector3 name="size">
+          <X>8.100000062714217</X>
+          <Y>1.0025003857387278</Y>
+          <Z>0.705000517556162</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>328.0624</X>
+          <Y>40.6028</Y>
+          <Z>28.5536</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>0.48125094866826795</Y>
+          <Z>25.806996323109054</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">13811089</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p32">
+      <Properties>
+        <string name="Name">WalkApproach3_WalkFloor</string>
+        <Content name="MeshId">
+          <url>rbxassetid://106394466788890</url>
+        </Content>
+        <Vector3 name="size">
+          <X>8.100000062714217</X>
+          <Y>1.3300015892654353</Y>
+          <Z>0.705000517556162</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>328.0624</X>
+          <Y>53.8671</Y>
+          <Z>28.5536</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>0.6450027849528691</Y>
+          <Z>25.126994860804267</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">13811089</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p33">
+      <Properties>
+        <string name="Name">WalkApproach4_WalkFloor</string>
+        <Content name="MeshId">
+          <url>rbxassetid://71970749037482</url>
+        </Content>
+        <Vector3 name="size">
+          <X>8.100000062714217</X>
+          <Y>1.657500323749649</Y>
+          <Z>0.705000517556162</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>328.0624</X>
+          <Y>67.1313</Y>
+          <Z>28.5536</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>0.8087521521949769</Y>
+          <Z>24.446995867541972</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">13811089</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p34">
+      <Properties>
+        <string name="Name">WalkApproach5_WalkFloor</string>
+        <Content name="MeshId">
+          <url>rbxassetid://123590246960868</url>
+        </Content>
+        <Vector3 name="size">
+          <X>8.100000062714217</X>
+          <Y>1.9850015272763568</Y>
+          <Z>0.705000517556162</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>328.0624</X>
+          <Y>80.3956</Y>
+          <Z>28.5536</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>0.9725015194370846</Y>
+          <Z>23.766996874279677</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">13811089</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p35">
+      <Properties>
+        <string name="Name">WalkCeiling_WalkWall</string>
+        <Content name="MeshId">
+          <url>rbxassetid://78297172335124</url>
+        </Content>
+        <Vector3 name="size">
+          <X>15.999997807247471</X>
+          <Y>0.12000534137656793</Y>
+          <Z>14.689997931225628</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>648.0244</X>
+          <Y>4.8604</Y>
+          <Z>594.9674</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>14.208003800766678</Y>
+          <Z>-2.2364994302326564</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">15326655</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p36">
+      <Properties>
+        <string name="Name">WalkEntryHeader_WalkTrim</string>
+        <Content name="MeshId">
+          <url>rbxassetid://94812657564990</url>
+        </Content>
+        <Vector3 name="size">
+          <X>8.119999306915316</X>
+          <Y>0.25000042868370936</Y>
+          <Z>0.33999949663114737</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>328.8724</X>
+          <Y>10.1254</Y>
+          <Z>13.7705</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>12.570003974634348</Y>
+          <Z>23.53949682984345</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4102825</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p37">
+      <Properties>
+        <string name="Name">WalkEntryJamb-1_WalkTrim</string>
+        <Content name="MeshId">
+          <url>rbxassetid://71217952236163</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.2600000507842587</X>
+          <Y>10.639997899868519</Y>
+          <Z>0.3400019656736413</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>10.5304</X>
+          <Y>430.9362</Y>
+          <Z>13.7706</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-3.929997159023035</X>
+          <Y>7.28500370205201</Y>
+          <Z>23.53949682984345</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4102825</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p38">
+      <Properties>
+        <string name="Name">WalkEntryJamb1_WalkTrim</string>
+        <Content name="MeshId">
+          <url>rbxassetid://97655266741610</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.2600000507842587</X>
+          <Y>10.639997899868519</Y>
+          <Z>0.3400019656736413</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>10.5304</X>
+          <Y>430.9362</Y>
+          <Z>13.7706</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>3.929999628065528</X>
+          <Y>7.28500370205201</Y>
+          <Z>23.53949682984345</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">4102825</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p39">
+      <Properties>
+        <string name="Name">WalkFloor_WalkFloor</string>
+        <Content name="MeshId">
+          <url>rbxassetid://73312937879720</url>
+        </Content>
+        <Vector3 name="size">
+          <X>15.999997807247471</X>
+          <Y>0.2800042330703453</Y>
+          <Z>14.689997931225628</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>648.0244</X>
+          <Y>11.3406</Y>
+          <Z>594.9674</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>4.052002424819713</Y>
+          <Z>-2.2364994302326564</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">13811089</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p40">
+      <Properties>
+        <string name="Name">WalkFrontLeft_WalkWall</string>
+        <Content name="MeshId">
+          <url>rbxassetid://72594062807382</url>
+        </Content>
+        <Vector3 name="size">
+          <X>3.930002097108022</X>
+          <Y>9.955999057766006</Y>
+          <Z>0.12000287233407396</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>159.1711</X>
+          <Y>403.2332</Y>
+          <Z>4.8603</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-5.8949969730557985</X>
+          <Y>9.169999132152903</Y>
+          <Z>5.028497620490776</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">15326655</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p41">
+      <Properties>
+        <string name="Name">WalkFrontRight_WalkWall</string>
+        <Content name="MeshId">
+          <url>rbxassetid://128826006504640</url>
+        </Content>
+        <Vector3 name="size">
+          <X>3.930002097108022</X>
+          <Y>9.955999057766006</Y>
+          <Z>0.12000287233407396</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>159.1711</X>
+          <Y>403.2332</Y>
+          <Z>4.8603</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>5.8950019111407865</X>
+          <Y>9.169999132152903</Y>
+          <Z>5.028497620490776</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">15326655</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p42">
+      <Properties>
+        <string name="Name">WalkInnerStep0_WalkFloor</string>
+        <Content name="MeshId">
+          <url>rbxassetid://77731675383341</url>
+        </Content>
+        <Vector3 name="size">
+          <X>7.859999256131056</X>
+          <Y>0.568143961158298</Y>
+          <Z>0.7999993965538748</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>318.342</X>
+          <Y>23.0107</Y>
+          <Z>32.4012</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>1.9990750694919446</Y>
+          <Z>10.16849843453016</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">13811089</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p43">
+      <Properties>
+        <string name="Name">WalkInnerStep1_WalkFloor</string>
+        <Content name="MeshId">
+          <url>rbxassetid://135500313852506</url>
+        </Content>
+        <Vector3 name="size">
+          <X>7.859999256131056</X>
+          <Y>0.8862874936328867</Y>
+          <Z>0.7999993965538748</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>318.342</X>
+          <Y>35.896</Y>
+          <Z>32.4012</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>2.1581456012079943</Y>
+          <Z>9.368499037976285</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">13811089</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p44">
+      <Properties>
+        <string name="Name">WalkInnerStep2_WalkFloor</string>
+        <Content name="MeshId">
+          <url>rbxassetid://78490814685551</url>
+        </Content>
+        <Vector3 name="size">
+          <X>7.859999256131056</X>
+          <Y>1.2044285570649813</Y>
+          <Z>0.7999993965538748</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>318.342</X>
+          <Y>48.7812</Y>
+          <Z>32.4012</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>2.3172161329240435</Y>
+          <Z>8.568497172379915</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">13811089</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p45">
+      <Properties>
+        <string name="Name">WalkInnerStep3_WalkFloor</string>
+        <Content name="MeshId">
+          <url>rbxassetid://111856247454802</url>
+        </Content>
+        <Vector3 name="size">
+          <X>7.859999256131056</X>
+          <Y>1.52257208953957</Y>
+          <Z>0.7999993965538748</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>318.342</X>
+          <Y>61.6665</Y>
+          <Z>32.4012</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>2.4762866646400874</Y>
+          <Z>7.768497775826041</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">13811089</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p46">
+      <Properties>
+        <string name="Name">WalkInnerStep4_WalkFloor</string>
+        <Content name="MeshId">
+          <url>rbxassetid://89561932707009</url>
+        </Content>
+        <Vector3 name="size">
+          <X>7.859999256131056</X>
+          <Y>1.8407156220141587</Y>
+          <Z>0.7999993965538748</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>318.342</X>
+          <Y>74.5518</Y>
+          <Z>32.4012</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>2.63535966539863</Y>
+          <Z>6.968498379272166</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">13811089</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p47">
+      <Properties>
+        <string name="Name">WalkInnerStep5_WalkFloor</string>
+        <Content name="MeshId">
+          <url>rbxassetid://85411878289259</url>
+        </Content>
+        <Vector3 name="size">
+          <X>7.859999256131056</X>
+          <Y>2.158856685446253</Y>
+          <Z>0.7999993965538748</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>318.342</X>
+          <Y>87.437</Y>
+          <Z>32.4012</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>2.794432666157173</Y>
+          <Z>6.168496513675797</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">13811089</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p48">
+      <Properties>
+        <string name="Name">WalkInnerStep6_WalkFloor</string>
+        <Content name="MeshId">
+          <url>rbxassetid://92183873732793</url>
+        </Content>
+        <Vector3 name="size">
+          <X>7.859999256131056</X>
+          <Y>2.477000217920842</Y>
+          <Z>0.6599997490611961</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>318.342</X>
+          <Y>100.3223</Y>
+          <Z>26.731</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>2.9535031978732165</Y>
+          <Z>5.438496940868262</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">13811089</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p49">
+      <Properties>
+        <string name="Name">WalkPassageCeiling_WalkWall</string>
+        <Content name="MeshId">
+          <url>rbxassetid://76632536334717</url>
+        </Content>
+        <Vector3 name="size">
+          <X>8.259998954407994</X>
+          <Y>0.2000047872234566</Y>
+          <Z>18.350997848616405</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>334.5426</X>
+          <Y>8.1005</Y>
+          <Z>743.2435</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>14.772002239577622</Y>
+          <Z>14.263997980966016</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">15326655</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p50">
+      <Properties>
+        <string name="Name">WalkPassageFloor_WalkFloor</string>
+        <Content name="MeshId">
+          <url>rbxassetid://98514591941915</url>
+        </Content>
+        <Vector3 name="size">
+          <X>7.859999256131056</X>
+          <Y>0.2500028977262033</Y>
+          <Z>12.860997915845322</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>318.342</X>
+          <Y>10.1255</Y>
+          <Z>520.8901</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>1.8400020687334075</Y>
+          <Z>16.99899585620851</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">13811089</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p51">
+      <Properties>
+        <string name="Name">WalkPassageLeft_WalkWall</string>
+        <Content name="MeshId">
+          <url>rbxassetid://114844976884237</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.20000231818096265</X>
+          <Y>12.70700126645437</Y>
+          <Z>18.351000317658897</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>8.1004</X>
+          <Y>514.653</Y>
+          <Z>743.2436</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-4.029998318113516</X>
+          <Y>8.31850044725995</Y>
+          <Z>14.263997980966016</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">15326655</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p52">
+      <Properties>
+        <string name="Name">WalkPassageRight_WalkWall</string>
+        <Content name="MeshId">
+          <url>rbxassetid://124158823108590</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.20000231818096265</X>
+          <Y>12.70700126645437</Y>
+          <Z>18.351000317658897</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>8.1004</X>
+          <Y>514.653</Y>
+          <Z>743.2436</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>4.03000078715601</X>
+          <Y>8.31850044725995</Y>
+          <Z>14.263997980966016</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">15326655</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p53">
+      <Properties>
+        <string name="Name">WalkRearWall_WalkWall</string>
+        <Content name="MeshId">
+          <url>rbxassetid://82004395314416</url>
+        </Content>
+        <Vector3 name="size">
+          <X>15.719998512262112</X>
+          <Y>9.955999057766006</Y>
+          <Z>0.12000040329158</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>636.684</X>
+          <Y>403.2332</Y>
+          <Z>4.8602</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-8.771801041841343e-17</X>
+          <Y>9.169999132152903</Y>
+          <Z>-9.501501419041073</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">15326655</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p54">
+      <Properties>
+        <string name="Name">WalkSideLeftWall_WalkWall</string>
+        <Content name="MeshId">
+          <url>rbxassetid://73613430663107</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.12000040329158</X>
+          <Y>9.956001526808498</Y>
+          <Z>14.410001105282765</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>4.8602</X>
+          <Y>403.2333</Y>
+          <Z>583.6271</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-7.919996988734352</X>
+          <Y>9.169999132152903</Y>
+          <Z>-2.2364994302326564</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">15326655</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="p55">
+      <Properties>
+        <string name="Name">WalkSideRightWall_WalkWall</string>
+        <Content name="MeshId">
+          <url>rbxassetid://74078359548938</url>
+        </Content>
+        <Vector3 name="size">
+          <X>0.12000040329158</X>
+          <Y>9.956001526808498</Y>
+          <Z>14.410001105282765</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>4.8602</X>
+          <Y>403.2333</Y>
+          <Z>583.6271</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>7.919999457776847</X>
+          <Y>9.169999132152903</Y>
+          <Z>-2.2364994302326564</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <Color3uint8 name="Color3uint8">15326655</Color3uint8>
+        <float name="Transparency">0</float>
+        <token name="Material">272</token>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c0">
+      <Properties>
+        <string name="Name">Collide_WalkFloor</string>
+        <Vector3 name="size">
+          <X>16.0</X>
+          <Y>0.2800000011920929</Y>
+          <Z>14.6899995803833</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>4.052000842106432</Y>
+          <Z>-2.236504996712788</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c1">
+      <Properties>
+        <string name="Name">Collide_WalkCeiling</string>
+        <Vector3 name="size">
+          <X>16.0</X>
+          <Y>0.11999999731779099</Y>
+          <Z>14.6899995803833</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>14.208000979435536</Y>
+          <Z>-2.236504996712788</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c2">
+      <Properties>
+        <string name="Name">Collide_WalkSideLeftWall</string>
+        <Vector3 name="size">
+          <X>0.11999999731779099</X>
+          <Y>9.956000328063965</Y>
+          <Z>14.40999984741211</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-7.9200020694625275</X>
+          <Y>9.170000872624012</Y>
+          <Z>-2.236504996712788</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c3">
+      <Properties>
+        <string name="Name">Collide_WalkSideRightWall</string>
+        <Vector3 name="size">
+          <X>0.11999999731779099</X>
+          <Y>9.956000328063965</Y>
+          <Z>14.40999984741211</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>7.919998083125361</X>
+          <Y>9.170000872624012</Y>
+          <Z>-2.236504996712788</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c4">
+      <Properties>
+        <string name="Name">Collide_WalkRearWall</string>
+        <Vector3 name="size">
+          <X>15.720000267028809</X>
+          <Y>9.956000328063965</Y>
+          <Z>0.11999999731779099</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>9.170000872624012</Y>
+          <Z>-9.501506293709856</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c5">
+      <Properties>
+        <string name="Name">Collide_WalkFrontLeft</string>
+        <Vector3 name="size">
+          <X>3.930000066757202</X>
+          <Y>9.956000328063965</Y>
+          <Z>0.11999999731779099</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-5.895001974095097</X>
+          <Y>9.170000872624012</Y>
+          <Z>5.028494392935651</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c6">
+      <Properties>
+        <string name="Name">Collide_WalkFrontRight</string>
+        <Vector3 name="size">
+          <X>3.930000066757202</X>
+          <Y>9.956000328063965</Y>
+          <Z>0.11999999731779099</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>5.894997987757931</X>
+          <Y>9.170000872624012</Y>
+          <Z>5.028494392935651</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c7">
+      <Properties>
+        <string name="Name">Collide_WalkPassageLeft</string>
+        <Vector3 name="size">
+          <X>0.20000000298023224</X>
+          <Y>12.706999778747559</Y>
+          <Z>18.35099983215332</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-4.030002202976933</X>
+          <Y>8.318500361454578</Y>
+          <Z>14.26399472862901</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c8">
+      <Properties>
+        <string name="Name">Collide_WalkPassageRight</string>
+        <Vector3 name="size">
+          <X>0.20000000298023224</X>
+          <Y>12.706999778747559</Y>
+          <Z>18.35099983215332</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>4.0299982166397665</X>
+          <Y>8.318500361454578</Y>
+          <Z>14.26399472862901</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c9">
+      <Properties>
+        <string name="Name">Collide_WalkPassageCeiling</string>
+        <Vector3 name="size">
+          <X>8.260000228881836</X>
+          <Y>0.20000000298023224</Y>
+          <Z>18.35099983215332</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>14.772001109135237</Y>
+          <Z>14.26399472862901</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c10">
+      <Properties>
+        <string name="Name">Collide_WalkPassageFloor</string>
+        <Vector3 name="size">
+          <X>7.860000133514404</X>
+          <Y>0.25</Y>
+          <Z>12.871000289916992</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>1.840000829708662</Y>
+          <Z>17.00399461895646</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c11">
+      <Properties>
+        <string name="Name">Collide_WalkInnerStep0</string>
+        <Vector3 name="size">
+          <X>7.860000133514404</X>
+          <Y>0.568142831325531</Y>
+          <Z>0.800000011920929</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>1.9990722751737495</Y>
+          <Z>10.168494736258406</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c12">
+      <Properties>
+        <string name="Name">Collide_WalkInnerStep1</string>
+        <Vector3 name="size">
+          <X>7.860000133514404</X>
+          <Y>0.8862857222557068</Y>
+          <Z>0.800000011920929</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>2.15814360142955</Y>
+          <Z>9.368494545523541</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c13">
+      <Properties>
+        <string name="Name">Collide_WalkInnerStep2</string>
+        <Vector3 name="size">
+          <X>7.860000133514404</X>
+          <Y>1.2044285535812378</Y>
+          <Z>0.800000011920929</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>2.317215046894638</Y>
+          <Z>8.56849435478868</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c14">
+      <Properties>
+        <string name="Name">Collide_WalkInnerStep3</string>
+        <Vector3 name="size">
+          <X>7.860000133514404</X>
+          <Y>1.5225714445114136</Y>
+          <Z>0.800000011920929</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>2.4762864923597254</Y>
+          <Z>7.768494164053815</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c15">
+      <Properties>
+        <string name="Name">Collide_WalkInnerStep4</string>
+        <Vector3 name="size">
+          <X>7.860000133514404</X>
+          <Y>1.8407143354415894</Y>
+          <Z>0.800000011920929</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>2.635357937824813</Y>
+          <Z>6.968494926993267</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c16">
+      <Properties>
+        <string name="Name">Collide_WalkInnerStep5</string>
+        <Vector3 name="size">
+          <X>7.860000133514404</X>
+          <Y>2.1588571071624756</Y>
+          <Z>0.800000011920929</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>2.7944293832899008</Y>
+          <Z>6.168494736258406</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c17">
+      <Properties>
+        <string name="Name">Collide_WalkInnerStep6</string>
+        <Vector3 name="size">
+          <X>7.860000133514404</X>
+          <Y>2.4769999980926514</Y>
+          <Z>0.6600000262260437</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>2.953500828754988</Y>
+          <Z>5.438494240347761</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c18">
+      <Properties>
+        <string name="Name">Collide_WalkApproach0</string>
+        <Vector3 name="size">
+          <X>8.100000381469727</X>
+          <Y>0.3474999964237213</Y>
+          <Z>0.7049999833106995</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>0.15375079871425112</Y>
+          <Z>27.1669946065587</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c19">
+      <Properties>
+        <string name="Name">Collide_WalkApproach1</string>
+        <Vector3 name="size">
+          <X>8.100000381469727</X>
+          <Y>0.675000011920929</Y>
+          <Z>0.7049999833106995</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>0.317500791561692</Y>
+          <Z>26.486994301382918</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c20">
+      <Properties>
+        <string name="Name">Collide_WalkApproach2</string>
+        <Vector3 name="size">
+          <X>8.100000381469727</X>
+          <Y>1.002500057220459</Y>
+          <Z>0.7049999833106995</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>0.4812507844091329</Y>
+          <Z>25.806994949881457</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c21">
+      <Properties>
+        <string name="Name">Collide_WalkApproach3</string>
+        <Vector3 name="size">
+          <X>8.100000381469727</X>
+          <Y>1.3300000429153442</Y>
+          <Z>0.7049999833106995</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>0.6450007772565793</Y>
+          <Z>25.126994644705672</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c22">
+      <Properties>
+        <string name="Name">Collide_WalkApproach4</string>
+        <Vector3 name="size">
+          <X>8.100000381469727</X>
+          <Y>1.6575000286102295</Y>
+          <Z>0.7049999833106995</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>0.8087507701040202</Y>
+          <Z>24.44699481636705</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="c23">
+      <Properties>
+        <string name="Name">Collide_WalkApproach5</string>
+        <Vector3 name="size">
+          <X>8.100000381469727</X>
+          <Y>1.9850000143051147</Y>
+          <Z>0.7049999833106995</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>0.9725008225561046</Y>
+          <Z>23.766994511191264</Z>
+          <R00>-1.0</R00>
+          <R01>0</R01>
+          <R02>1.2246467991473532e-16</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-1.2246467991473532e-16</R20>
+          <R21>0</R21>
+          <R22>-1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="mDoor_Exit">
+      <Properties>
+        <string name="Name">Mount_Door_Exit</string>
+        <Vector3 name="size">
+          <X>0.2</X>
+          <Y>0.2</Y>
+          <Z>0.2</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>1.9650007963300653</Y>
+          <Z>24.439494621817488</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="mWall">
+      <Properties>
+        <string name="Name">Mount_Wall</string>
+        <Vector3 name="size">
+          <X>0.2</X>
+          <Y>0.2</Y>
+          <Z>0.2</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-1.993168583017855e-06</X>
+          <Y>8.392000796330064</Y>
+          <Z>-9.261505378182513</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="hingeL">
+      <Properties>
+        <string name="Name">HouseDoorHinge_L</string>
+        <Vector3 name="size">
+          <X>0.15</X>
+          <Y>0.15</Y>
+          <Z>0.15</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-3.9300019931685832</X>
+          <Y>1.9650007963300653</Y>
+          <Z>23.519494621817486</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+      <Item class="NumberValue" referent="angleL">
+        <Properties>
+          <string name="Name">OpenDegrees</string>
+          <double name="Value">100</double>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Part" referent="hingeR">
+      <Properties>
+        <string name="Name">HouseDoorHinge_R</string>
+        <Vector3 name="size">
+          <X>0.15</X>
+          <Y>0.15</Y>
+          <Z>0.15</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>3.929998006831417</X>
+          <Y>1.9650007963300653</Y>
+          <Z>23.519494621817486</Z>
+          <R00>-1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>-1</R22>
+        </CoordinateFrame>
+        <float name="Transparency">1</float>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+      </Properties>
+      <Item class="NumberValue" referent="angleR">
+        <Properties>
+          <string name="Name">OpenDegrees</string>
+          <double name="Value">-100</double>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+</roblox>

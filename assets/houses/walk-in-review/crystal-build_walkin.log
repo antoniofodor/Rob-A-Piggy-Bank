@@ -1,0 +1,18 @@
+00:04.359  blend            | Read blend: "C:\Users\anton\robloxGame\assets\houses\crystal-spire-v1\crystal-spire.blend"
+C:\Users\anton\robloxGame\assets\houses\tools\build_walkin.py:44: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(name);m.use_nodes=True
+00:06.750  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_18076_640c249682a9034569fc1b44f95a4f6a.png.png"
+00:20.468  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\crystal-spire-v2\exterior.png'
+00:36.875  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\crystal-spire-v2\interior.png'
+00:48.421  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\crystal-spire-v2\entry.png'
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\crystal-spire-v2\\crystal-spire-visual.fbx'
+export finished in 0.1011 sec.
+Info: File exported successfully
+Info: Saved as "crystal-spire.blend"
+WALKIN_COMPLETE {"id": "crystal", "folder": "crystal-spire-v2", "probes": 40, "triangles": 3372}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+Writing to C:\Users\anton\robloxGame\assets\houses\crystal-spire-v2\crystal-spire-visual.obj
+OBJ export of 'crystal-spire-visual.obj' took 4.21 ms
+
+Blender quit

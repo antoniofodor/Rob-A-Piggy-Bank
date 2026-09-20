@@ -1,0 +1,29 @@
+{
+  "status": "Named mesh groups and timing spec; runtime animation not installed",
+  "effects": [
+    {
+      "section": "HouseFX_MastLanternAccent",
+      "kind": "pulse",
+      "periodSeconds": 7,
+      "phase": 0,
+      "intensity": [
+        0.4,
+        0.75
+      ]
+    },
+    {
+      "section": "HouseFX_SailDecor",
+      "kind": "sway",
+      "periodSeconds": 11,
+      "phase": 0.2,
+      "amplitudeDegrees": 2,
+      "hingeBlender": [
+        -5.56,
+        10.424999999999999,
+        52.81999999999999
+      ],
+      "axisBlender": "X",
+      "optionalForMVP": true
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "id": "skycastle",
+  "doors": [
+    {
+      "name": "HouseDoorLeaf_L",
+      "hingeBlender": [
+        -4.32,
+        -5.588,
+        3.4560000000000004
+      ],
+      "openDegrees": -100,
+      "sizeXYZ": [
+        4.204999923706055,
+        0.20000000298023224,
+        10.640000343322754
+      ],
+      "closedCenterBlender": [
+        -2.177500009536743,
+        -5.5879998207092285,
+        8.836000442504883
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_R",
+      "hingeBlender": [
+        4.32,
+        -5.588,
+        3.4560000000000004
+      ],
+      "openDegrees": 100,
+      "sizeXYZ": [
+        4.204999923706055,
+        0.20000000298023224,
+        10.640000343322754
+      ],
+      "closedCenterBlender": [
+        2.177500009536743,
+        -5.5879998207092285,
+        8.836000442504883
+      ]
+    }
+  ],
+  "automatic": true,
+  "triggerRadiusStuds": 10,
+  "holdOpenSeconds": 1.5,
+  "swingSeconds": 0.35,
+  "CanCollide": false,
+  "runtime": "HouseDoorAnimator.client.luau; prepare-in-studio.luau or build_house_runtime.py creates the pivot markers"
+}

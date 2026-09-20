@@ -1,0 +1,14 @@
+{
+  "assetId": "rbxassetid://86680018585267",
+  "source": "assets/acorn/acorn.blend",
+  "renderScript": "blender/acorn/render_icon.py",
+  "image": "assets/acorn/ui/acorn-model-icon.png",
+  "sha256": "4a5a75e845256131c159d41c685fcb1f5a63f0e99581e59317ab2f5d5d2b36a4",
+  "size": [
+    512,
+    512
+  ],
+  "alpha": true,
+  "description": "Actual acorn geometry: olive green nut, chestnut scaled cap and leaning brown stem.",
+  "sourceSha256": "c9af8a3f645fa73315ccde28db0623ae7600e36dd60bdc7baa075fe35a5ff187"
+}

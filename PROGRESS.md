@@ -1,5 +1,992 @@
 # Session handoff — 2026-09-16
 
+## Latest Storm Wolf scale audit — existing correction verified
+
+User reported Storm Wolf appearing smaller and asked whether Blender needs a
+fix. Found an existing `Config.LEGENDARY_SCALE.stormwolf` correction of 12/10.5,
+applied by `LegendaryModel` to mesh sizes, positions and rig scale about the
+ground/vault pivot. Both running Client and Server have this configuration.
+Temporary unparented Studio models built with the real published meshes verified
+full-size Storm Wolf Body width 12.174743 vs Dragon 12, and miniature widths
+2.434949 vs 2.4. These temporary models were destroyed afterwards.
+
+No additional scale change was made: applying another correction would double
+the existing fix. Raw exported Body width is 10.6529; the FBX/Blender asset
+bypasses runtime correction when viewed directly. No equipped legendary was
+found in Workspace/PlayerGui during inspection. Asked the user whether the
+reported view was in-game/shop or a raw Studio/Blender import; answer pending.
+Details: `assets/skins/animal/legendary/stormwolf/SCALE-NOTES.md`.
+
+## Latest Rainbow Tiger refinement — fuller cheeks and under-snout hair
+
+User clarified that the hair should still run alongside the snout, with roots
+on the cheeks, and that additional hair should grow underneath it. The inner
+cheek patch must be as full as the reference. This supersedes the previous
+blank-edge fit and the blanket rule that every root must be outside nose width.
+
+The main facial layers now sit closer to the snout rim. Added two overlapping
+locks per inner cheek (CheekFill_-1 / CheekFill_1), reusing the approved textured
+study curves. Their roots stay on Body and their tips follow the snout edge.
+Added three downward curved chin locks (BeardFur) anchored to the actual lower
+surface of Snout by upward ray projection. These overlap the beard and follow
+Root; cheek fills follow the existing Ruff_L/R bones. All use the approved
+beard color and normal maps. The separate study remains unchanged.
+
+Current package: `blender/pig/skins/rainbowtiger/legendary-v2-swept/`.
+15 meshes / 82,580 triangles; every mesh remains below 20,000 triangles.
+`beard-root-checks.json` distinguishes cheek and under-snout attachments.
+The previous fit is backed up in `before-full-cheek-fill/` beside the package.
+Final full-resolution front/hero/side views checked. Updated Blender, static
+FBX, idle FBX, five views, ear detail, animation GIF and gallery/import handoff.
+FBX round-trip geometry/UV/color/normal/weight checks passed. All 23 root anchors
+pass their attachment rules; 40 animation states pass cheek-root clearance,
+under-snout attachment, loop and rear-vault checks. The approved study is unchanged.
+Studio integration is still pending.
+
+## Latest Rainbow Tiger build — approved textured beard applied
+
+The user approved the dense layered study, approved its flowing texture strokes,
+and requested applying it to the pig. The full package in
+`blender/pig/skins/rainbowtiger/legendary-v2-swept/` now uses those exact study
+meshes and UVs on both cheeks and under the snout. Individual locks are positioned
+and rotated to preserve their smooth fullness; lower locks overlap at the chin.
+The previous full pig is preserved in `before-approved-beard/` next to the package.
+
+`blender/pig/make/rainbowtiger_fit_beard.py` imports the study, fits its locks,
+preserves UV winding on the mirrored side, and groups each side as CheekFur_-1
+and CheekFur_1. These replace the previous cheek/BeardFur meshes and follow
+Ruff_L/R. Both `beard-flow-color.png` and `beard-flow-normal.png` are included;
+use them as ColorMap/NormalMap with white part tint. The original ears, coat,
+eyes, tail, body, snout and feet remain intact.
+
+Full model: 12 meshes / 66,788 triangles; each beard side is 18,048 triangles.
+All meshes are closed and under 20,000 triangles each. Static FBX reimport checks
+passed for bounds, triangle counts, weights, UVs, color maps and beard normal maps.
+The idle FBX loop and 40 sampled animation states passed, including rear vault
+clearance. Updated five full model renders, the ear close-up, motion GIF and
+local gallery/import handoff. Final front/side views and a moving pose were
+visually checked. The original pig and approved study files retain their hashes.
+The model remains a Blender/FBX art package; Studio integration is pending.
+
+Latest correction: user said the hairs should not stem from the snout.
+Reanchored every lock to the actual Body cheek surface using ray projection;
+all roots lie outside the Snout's full width, with a small buried attachment.
+The longest lower locks now root on the jaw at x=+/-0.68 native, z=-0.45.
+Pulled the beard back from the nose, lowered the bottom locks, and adjusted the
+upper two layers outward so they remain visible on the cheeks. Curves, fullness,
+UV strokes and existing bones are retained. `beard-root-checks.json` records
+and validates all 16 cheek-root anchors. The fitting helper before this correction
+is preserved as `before-approved-beard/fit-before-cheek-root-correction.py`.
+Rebuilt the final Blender and both FBX files, refreshed all review images and
+the local gallery, and passed the existing export/motion checks again. The idle
+check now also verifies every beard root stays outside the snout width throughout
+all 40 sampled states. Front, hero and side renders were visually reviewed.
+
+## Rainbow Tiger study approval history (before fitting)
+
+User clarified that the direction is acceptable, but lower strands look muddled.
+The reference has short tufts branching near the top, followed by a few longer
+curved locks descending along the face. Previous full-mane iterations still
+missed the strand shape. A separate review study is now built in
+`blender/pig/skins/rainbowtiger/beard-shape-study/` using
+`blender/pig/make/build_rainbowtiger_beard_study.py`.
+
+This study shapes the inner and outer outline of each lock directly rather than
+using the active model's swept-tube profile. Seven visible strands layer over a
+root patch; light neutral clay makes their smooth contours easy to judge. The
+package contains a grouped beard render, one isolated-strand render, editable
+Blender file, FBX, and closed-mesh report. It is a geometry review, not a new
+charcoal color choice or a rigged replacement. The active pig exports below have
+not been replaced. User approved the study's shapes ("perfect") and requested
+only thicker strands. The study now has 16% more width and 60% more rounded
+depth, preserving curve centerlines/endpoints and scaling depth spacing with
+thickness to preserve layer order. Both renders were visually checked; all eight
+meshes are closed, with 18,048 triangles total. Approved pre-thickening assets
+are preserved in `beard-shape-study/approved-shape-v1/`.
+Latest follow-up: user requested substantially thicker locks and gap-free
+layering like the reference. The study now uses 2.05x original width and 2.70x
+original depth, bringing the middle/lower layers upward to overlap and filling
+the upper junction with a recessed root patch. Individual visible curve paths
+are retained. The previous thickness pass is saved in `fullness-v2/`.
+User then approved the dense overlapping study and requested textured strokes.
+Added 1024px UV color and tangent normal maps (`beard-flow-color.png` and
+`beard-flow-normal.png`) with fine curved lines following each strand. Packed
+both maps into the Blender study and exported separate PNGs alongside the FBX.
+Geometry/layering unchanged; UV wrap seam corrected. Group and isolated-lock
+renders checked. The approved untextured build is saved in `approved-dense-v3/`.
+Next: fit the accepted shapes to the pig and update its materials/rig/export
+package. The thickness revision has not yet been installed on the full pig.
+
+## Rainbow Tiger active build — approved option C
+
+User approved building the swept-charcoal concept (C). New model package:
+`blender/pig/skins/rainbowtiger/legendary-v2-swept/`.
+Latest requested refinements implemented: the user supplied option A as the
+precise striping reference and allowed flat markings. Replaced all raised stripe
+shells with a clean 2048px UV coat and separate stripe-only emission texture.
+There is one stripe inside and one outside each eye. The current cheek and beard
+locks are widest through the middle and taper softly at both ends.
+Ear roots were moved again after the final placement request: they now start
+at the actual medial ear corner near x=+/-0.075 native units (previously +/-0.42),
+where the ears meet the forehead, and fan up/outward. Final depth refinement:
+lock centerlines are projected onto the actual inner-ear mesh, with shallow
+relief so the fur rests along the ear instead of floating in front of it. Soft brows, bare feet, RGB eyes,
+original pig anatomy and gradient tail remain. Old v1/clean-review preserved.
+September 18 latest beard reference: user explicitly requested banana-shaped
+locks, thickest through the middle, softly tapered at both ends, with a mix of
+single-direction C-curves and double-bending S-curves flowing down the face.
+This supersedes the earlier full-root profile and sideways original cheek fan.
+All six upper cheek locks were rebuilt. Eleven lower locks overlap down the
+face and into the central chin point. Narrow root caps tuck into the coat and
+under neighbouring fuller middles. Stable relief cross-sections and an XZ bend
+radius constraint prevent folded silhouettes at tight turns. Fine, low-contrast
+strand shading replaces the coarse grooves. The charcoal palette is retained.
+BeardFur stays on Root; upper cheek locks retain their Ruff_L/R bones. Model
+awaits user review against the new close-up reference.
+Latest feedback: tips remained too jagged and dramatic. Relaxed the hooked
+centerlines, shortened projecting side tips, and moved the cheek endpoints clear
+of the snout to prevent a cut-off appearance. A gentler taper, denser end sampling,
+and a smooth curvature limit replace the abrupt thinning that created hooked
+points. Width and depth taper together; geometric surface ribs are removed from
+the facial locks while the fine strand color texture remains.
+The user accepted that direction and requested fuller ear hairs. Ear tuft roots
+are now about 53% thicker, with a gradual taper to a fine point and denser curve
+sampling. Their original inner-corner anchors and inner-ear surface projection
+are preserved. User then supplied the close-up reference and requested coverage
+across the whole ear. Each inner ear now has four broad overlapping locks,
+fanning from its medial roots toward the upper tip and lower outside corner.
+Root widths are constrained at the medial rim to prevent forehead spillover.
+The full ear fans and revised downward facial ruff are both in the current build.
+
+
+Builder: `build_rainbowtiger_swept.py`; motion validation/render:
+`render_rainbowtiger_preview.py -- --swept`; gallery:
+`build_rainbowtiger_swept_gallery.py`. All in `blender/pig/make/`.
+Static export checks: 13 meshes, 48,066 triangles, all manifold,
+FBX geometry/weights/UVs/textures round-trip successfully. Coat, charcoal fur and tail color maps are embedded, with a separate stripe
+emission mask supplied for runtime setup. Bone idle,
+RGB eyes and stripe pulse are retained; material animation still needs Fable's
+Roblox implementation. Animation/render validation passed for the softer
+banana-shaped locks: scene/gallery hashes match, static and animated FBX checks
+pass, and rear clearance passes in 40 sampled states.
+A new actual-model ear
+close-up is saved as `rainbowtiger-ear-detail.png`; its renderer is
+`render_rainbowtiger_ear_detail.py`. Studio integration and live checks remain pending.
+No runtime scripts or Studio assets modified during this build.
+
+## Rainbow Tiger latest direction — softer brows and fur concepts
+
+User liked the FIRST clean concept (`concept-v3-hairless.png`) but wants its
+brows less angry. Requested multiple new fur concepts using that same build.
+Generated v5 options in `assets/animals/legendary/rainbow-tiger-concept/`:
+A minimal light cheek/ear tufts; B fuller cream tiger ruff; C compact swept
+charcoal cheek fur. All have relaxed brows and a smooth rainbow tail tip.
+Exact prompts: `prompts-v5-fur-options.json`. B's initial angry expression was
+corrected; the saved B image has the soft expression. Fur selection is pending.
+No model/runtime changes in this concept-only turn. The clean-review-v2 Blender
+base remains available; legendary-v1 preserves the prior tail/model.
+
+## Rainbow Tiger latest review — clean concept, September 17
+
+User rejected protruding eyebrow geometry and all added fur except the tail,
+then explicitly requested deleting all hair and generating a new concept.
+Current concept: `assets/animals/legendary/rainbow-tiger-concept/concept-v4-clean-no-brows.png`.
+Built-in imagegen; prompt saved beside it. Concept v3 still had brow lips and
+was corrected in v4. V4 is hair-free with round glowing eyes, a black piggy body,
+wraparound rainbow stripes, forehead markings and a bare pig tail. Review pending.
+
+Actual Blender cleanup: `blender/pig/skins/rainbowtiger/clean-review-v2/` contains
+`rainbowtiger-clean-review.blend`, matching FBX, actual model render and deletion
+report. All brows and hair were removed from this working copy. Previous
+`legendary-v1` package stays intact, including the tail design the user liked,
+so it can be restored if requested. Unused ruff bones remain in the review rig.
+The new generated concept is not the Blender render; no Studio changes made.
+
+## Rainbow Tiger legendary model — September 17 (uncommitted)
+
+Latest user direction: **black tiger, cool and somewhat aggressive**, superseding
+previous deep plum. User also rejected repeating stripe bands and plate-like fur;
+use the supplied concept's broad tapered stripes, flowing fuller mane, ear fur and
+tail hair. RGB eyes remain required. Current revision keeps the original piggy
+body/snout/feet/openings, uses charcoal coat and lowered brows, silver swept ruff,
+inner-ear tufts, cuffs around all four feet, and a continuous UV-textured
+silver-to-rainbow tail plume (no colored droplet pieces). Added paired tapered
+forehead marks between the eyes. Seven individually outlined mirrored
+rainbow stripe patches are projected onto the body and now extend around the
+rear hemisphere. Foot tufts were revised to connected dark layered ankle cuffs
+with a short silver under-fringe, following the reference. Both eyes cycle RGB.
+This model revision is for review, not yet approved by the user or imported.
+
+Package: `blender/pig/skins/rainbowtiger/legendary-v1/`. Main import is
+`rainbowtiger-complete.fbx`; `rainbowtiger-idle.fbx` is the matching four-second
+bone animation. The Blender scene also previews emission pulses over the stripe
+groups. **Material pulse does not transfer as an FBX animation**; Fable's exact
+group/timing/color handoff is `animation-handoff.json` plus package README.
+No runtime, crate, economy or uploads were changed. Live Studio integration,
+vault seating across lock tiers, daylight glow, held/shop and mobile checks remain.
+
+Rebuild model with `blender/pig/make/build_rainbowtiger_legendary.py`, validate
+and render motion with `render_rainbowtiger_preview.py` (both inside Blender),
+then run `build_rainbowtiger_gallery.py` in Python for the GIF/gallery/handoff.
+Geometry: 41 meshes / 44,326 triangles, all manifold and below 20k per mesh;
+static FBX reimport preserves count, weights, triangles and bounds. Idle checks
+cover the imported four-bone loop, stationary root and moving rear clearance.
+Latest wraparound/cuff revision passes all of these checks. Review gallery,
+40-frame animation GIF, embedded tail gradient and Fable handoff are generated.
+Art review and Studio integration remain pending.
+Old Rainbow Tiger sources/maps and the shared pig master are preserved.
+
+## Walk-in house revisions — September 17 (uncommitted)
+
+All 18 permanent houses now have new Blender revisions with an accessible main
+floor, empty walls/floors/ceilings, separate collision boxes and automatic swing
+door geometry. Treehouse and Gloop are revision 3; the others are revision 2.
+Original revisions are preserved. Seasonal Gingerbread remains excluded.
+Start at [the walk-in gallery](assets/houses/walk-in.html); every package has
+an FBX and `prepare-in-studio.luau` import helper with an Undo recording.
+
+The approved Studio exterior scale factors from `build_house_runtime.py` are
+baked into these new sources. The generator detects `geometry.walkIn` and uses
+display scale 1.0, so room/collider/door dimensions are not multiplied twice.
+This follows [the new interior brief](docs/HOUSE-INTERIOR-BRIEF.md): minimum
+7-stud door, 8-stud ceiling, 12.3-stud display wall, named floor/side colliders,
+and an empty `Wall` mount with explicit facing. Upper exterior storeys are not
+additional accessible rooms in this pass.
+
+Fishbowl glass material overrides now reach the FBX manifest and runtime
+generator: dome transparency 0.82, bubbles 0.62, opaque inner pod. A fresh Studio
+import also needs its package's preparation helper to apply Roblox properties.
+`HouseDoorAnimator.client.luau` opens non-colliding leaves near players, using
+separate pivot markers. The entrance collision always stays open.
+
+Build with `assets/houses/tools/build_walkin_batch.py`; refresh handoffs with
+`build_walkin_handoff.py`. Offline acceptance uses `check_walkin_packages.py`
+(geometry, 40 clearance samples per house, colliders, FBX round trips),
+`tests/check_walkin_runtime.py` (scale/glass/door regression), Luau compilation,
+and a Rojo build. Final visual review corrected overlapping tunnel cut faces.
+Final results: all 18 packages / 720 clearance probes pass, runtime fixture
+passes, client script and 18 Studio helpers compile, Rojo builds, and 820
+house links resolve. All 188 original binary assets remain unchanged.
+
+**Integration pending:** these new meshes have not been uploaded/imported into
+Studio or installed into the live catalogue templates. Import each new FBX,
+record fresh mesh IDs (do not reuse an old revision's `studio-import.json`),
+then regenerate its runtime template. Live avatar/camera, door sweep, plot/fence
+clearance and multiplayer/mobile checks remain pending. Keep Fable's ongoing
+runtime work and approved exterior sizes intact.
+
+## House asset organization — September 17 (uncommitted)
+
+All house art, models, concepts, plans and tools now live under **assets/houses/**.
+Start with [the house index](assets/houses/README.md) or [the full gallery](assets/houses/index.html).
+Model folders and filenames use readable design names: `fishbowl-house-v1/fishbowl-house.blend`
+and `fishbowl-house-roblox.fbx` replace the former `modern` asset names; Gloop,
+Ice Palace and the other houses follow the same pattern. Saved-game IDs and Rojo
+runtime template names remain unchanged. `assets/houses/tools/house_paths.py`
+maps stable IDs to asset names; builder/exporter commands still take stable IDs.
+
+House-specific tools moved to `assets/houses/tools/`, house plans to `assets/houses/docs/`,
+and the phase-4b visual package to `assets/houses/design/`. Updated references,
+relative links, OBJ material-library names and generator paths. FBX files remain
+generated, Git-ignored exports; rebuild them from Blender sources on another machine.
+
+Verified all 18 permanent source/export pairs, all 527 local gallery/document
+links, and unchanged hashes for 188 binary assets. Python syntax checks and the
+house wiring/room audits pass. This is file organization, not additional Studio
+integration. The already-missing Treehouse v1 package was not recreated; its dead
+preview links were removed. Existing unrelated work is preserved.
+
+## Smooth shop-sign joins — September 17 (uncommitted)
+
+Replaced the guessed overlap between the rounded rectangle and rotated square
+with matching 16px radii and coincident corner-arc centres. Compensates the
+square's side length for the rounding lost at 45 degrees. Inner pieces use
+13px radii and a true 3px inset, so the join is tangent and the border does not
+fade. Same sign/icon positioning and category colours. Compilation, Rojo build
+and 209 shop UI checks pass. Verified the smooth shoulders and rounded tip in
+a fresh Studio playtest at 667x375; shop left open for review.
+
+## Consistent shop-sign outline — September 17 (uncommitted)
+
+Fixed the sign's gold fill reaching the outer body's right edge, which erased
+the border around its curved shoulder. Fill now has a true 3px inset on all
+four edges; the rotated tip's inner square also shrinks by exactly 6px in side
+length. Applies to every category colour. Luau compilation, Rojo build and
+209 shop UI checks pass. Confirmed the continuous border live in Studio's
+667x375 phone preview; left the shop open for review.
+
+## Raised shop sign and generated basket — September 17 (uncommitted)
+
+User asked for a smoother sign protruding farther outside the modal and a
+replacement for the Studio-drawn pig. ShopRevamp now raises the sign 12px and
+overhangs left by 8px, rounds the angled tip, and slightly increases its height.
+Generated a transparent pink basket with the built-in image tool, saved source
+and exact prompt in assets/shop-ui/shop-basket-v3.*, imported via Studio as
+image 84889322242631 and connected its ImageLabel in ShopRevamp. No native pig
+fallback. Basket slightly overlaps the sign's top edge. Build and 209 UI checks
+pass. Verified the imported basket, smooth raised sign and Home submenu live
+at 667x375. Increased the panel's top allowance from 40 to 58px so Roblox's
+top-left controls do not cover the basket handle; the panel's bottom stays put.
+Updated the responsive test case to the resulting 627x287 panel. Short upgrade
+details use the group-tab row for stats (Back restores group selection); short
+crate collections hide the scroll hint and tighten odds rows to keep buying
+and scrolling usable. All 209 checks pass at the new size. These two detail
+adjustments are geometry-tested; their final live visual check is pending.
+
+## Angled shop sign and floating close controls — September 17 (uncommitted)
+
+Replaced the shop's rounded header pill with a native outlined sign with an
+angled right end and a small top-left overhang. Keeps the piggy emblem and
+category colours; heading width reserves space for the point. Theme.floatClose
+now places existing X buttons across shop/submenus, bag, settings, daily rewards
+and ride picker over the upper-right edge, with at least 44px tap targets.
+Daily rewards and rides use the shared red/cream close styling. Compilation,
+Rojo build and 209 shop UI checks pass. Restarted Studio in the iPhone 7
+667x375 preview and confirmed the daily-rewards X protrudes without clipping.
+Active user input blocked dismissing that modal; shop sign and other menus
+still need live visual review.
+
+## Compact shop submenus — September 17 (uncommitted)
+
+Applied compact sizing to the catalogues as requested. ShopCatalogueLayout
+reflows Home/Companions/Rides/Supplies/style cards to 144px tall on mobile,
+with more columns and directly repositioned text/preview rows instead of
+shrinking the whole card. Small name-picker chips retain their original height.
+Home & Garden is now Home; empty home section headings and their grids hide
+automatically as stock changes. Upgrade choices and crate collection tiles
+also use 144px mobile cards. Crate purchase cards shrink from 350 to 306px,
+keeping their odds, combine and purchase controls. Short-phone crate contents
+place the odds beside the items, with purchase below the odds. Shared header
+currency icon sizing from the previous change already applies to all submenus.
+Luau compilation, Rojo build and 70 buyback checks pass. See shopui suite for
+responsive geometry and ownership/purchase checks. Fresh Studio visual review
+of all submenus remains pending.
+
+## Clean shop and smaller mobile cards — September 17 (uncommitted)
+
+Latest user correction supersedes the storefront trim below: removed awning,
+side posts and sill entirely. Kept piggy emblem, HUD backpack and removed footer.
+Mobile landscape now uses three columns from 560px panel width, 8px gaps and
+96–150px card heights instead of the old 152px minimum. Compact captions are
+44px with 14px titles/11px descriptions; removed compact card arrow discs.
+Balance icons now scale their entire drawings into padded 22–24px mobile
+holders, with balance text positioned after the icon rather than a fixed 52px
+indent. Desktop icons remain up to 34px. 160 UI checks, compilation and Rojo
+build pass; this revision has not been visually verified in a fresh play test.
+
+## Piggy storefront and HUD backpack — September 17 (uncommitted)
+
+User replaced the shop's basket emblem with a piggy-bank/coin emblem and asked
+for a storefront border. ShopRevamp now has a green/cream striped awning, slim
+green side posts and a lower sill. Removed the Your Bag/Achievements footer and
+the shop achievement view/updates; the category list uses the freed space.
+HUD inventory now uses the former shop backpack, polished with a gold flap,
+open handle, pink pocket and simple highlights, shared through ShopMarks.
+155 revised UI checks, Luau compilation and Rojo build pass. Restarted Studio
+and confirmed the new HUD backpack. Shop visual review is pending: Studio was
+receiving user input and blocked opening the shop, so controls were left alone.
+
+## Boost button placement — September 17 (uncommitted)
+
+HUDWidgets places the 2× boost token as the fourth item in the left rail, below
+Shop, using HUDLayout's menu size/gap at every viewport. Improved readability
+with a flat gold face, 22px multiplier and 10px bold caption (previously 19/8px).
+Stock badge, active countdown and BoostUse behavior remain. Luau compilation
+and Rojo build pass; fresh-play visual check pending.
+
+## Action buttons and compact ride picker — September 17 (uncommitted)
+
+ActionButtons now uses distinct blue dodge, mint scooter and purple stealth-mask
+symbols. RidePicker replaces the old ride tiles with owned-only named cards,
+static 3D previews, speed bonuses, selected/put-away state and integrated styles.
+Existing RideRequest/RideStance requests remain authoritative. Desktop selection
+and phone opening/closing were checked in Studio. The last swipe-preservation
+change still needs a live recheck; the user stopped Computer Use with Escape.
+
+User then said the mobile menu was too large. Compact layout is now 330x138
+(previously 477x189 on the 667x375 phone), about half the panel area. Cards are
+94px wide; styles share the 32px title row and the instruction footer is hidden.
+Desktop sizing stays unchanged. 159 UI checks, Luau compilation and Rojo build
+pass. This smaller revision needs a fresh play session for visual verification.
+
+## The two inert effects written, and everything verified in Play — September 18 (uncommitted)
+
+**`sway` and `scale` now have branches in `HouseFX.step`**, so nothing authored
+is inert any more. Both hinge at the part's TOP rather than its centre, which is
+what each was asked for: the galleon's sail hangs from a yard arm, and the Gloop
+House's handoff says in as many words "only scale hanging goo, anchored at its
+top" -- a drip grown about its centre lifts off the roof by half of what it
+gains. `Entry` gained `restSize`, read once at registration like the pose,
+because a size re-read each frame accumulates the previous frame's growth.
+
+THE SWAY HINGES AT THE PART'S TOP RATHER THAN THE AUTHORED POINT, and that is a
+deliberate approximation with its cost measured: converting the Blender hinge
+would mean carrying the import's frame into this file, and at two degrees an
+error of `d` studs moves the part by `d * sin(2deg)` -- 0.035 studs per stud. On
+a sail a few studs tall, under a tenth of a stud.
+
+VERIFIED IN A REAL PLAY SESSION, and the first measurement was the wrong one.
+Sampling colour across 203 tagged parts reported 77 "still" -- which is what a
+COLOUR test says about effects that animate POSITION. Re-measured per kind over
+one second, every one behaves as designed:
+
+    beacon   2 parts  colour 2                      hue steady
+    bob     55        moved 55
+    chase   31        colour 31                     hue steady
+    cycle   45        colour 45   hue drifted 45     by design: it sweeps
+    orbit   11        moved 11
+    pulse   46        colour 46                      hue steady
+    scale    6        moved 6     resized 6          the new branch
+    sway     8        moved 8                        the new branch
+
+`pulse`, `chase` and `beacon` holding their hue is the half that matters: it is
+what keeps the Ice Palace blue. Only `cycle` sweeps the wheel, which is why three
+parts read as reddish in a single frame -- two mid-sweep and one sail that is
+authored red.
+
+Also confirmed live: 18 templates, no `[House] no ... template` warning, 107 FX
+parts tagged across ten standing houses plus the shops' 16, and the trophy row on
+Plot1 measuring 15.84 wide inside an 18.00 wall with 1.08 clear each side.
+
+A PEER ADDED A STARTUP FIT AUDIT and it agrees with the arithmetic: "deepest
+Fishbowl House at 55.0, widest The Golden Piggy at 62.1; tightest back-fence gap
+5.0, side-fence gap 2.6". That is the check the houses needed and it now runs
+every boot.
+
+STILL NOT SEEN: the Toadstool Cottage's own trophy wall. No plot stands it, and
+the sandbox cannot fire `AdminRequest` to place one, so the octagon fix rests on
+the offline measurement (10.14 of wall, a row that fits exactly). It wants the
+designer to stand that tier once.
+
+Two duplicate templates reappeared when Rojo re-synced the treehouse and slime,
+and were removed the same way. The double Rojo plugin is still installed.
+
+## The FX faults audited across all 18, and a third one found — September 17 (uncommitted)
+
+Asked to make sure the other houses did not carry the two faults from the
+screenshot. Both are clean everywhere -- all 13 spec keys are real tier styles
+with a `HOUSE_TEMPLATE` row, and all 95 rows carried `Hue` and `Sat`, none
+near-grey, none past the flash ceiling. Checking the INVERSE gap is what found
+the third:
+
+**THE GLOOP HOUSE'S HANDOFF USES A DIFFERENT KEY, and reading only one shape
+lost the whole house.** Sixteen handoffs carry `effects`; `gloop-house-v3`
+carries `drips` -- same fields, plus `phaseSeconds` in absolute seconds where
+`effects` uses a 0..1 `phase`. Its three roof meshes were named `HouseFX_*` and
+covered by nothing at all. Now read, converted, and the spec is 98 meshes across
+13 houses.
+
+**AND THE GOO IS AUTHORED AS A SCALE, WHICH THE ANIMATOR CANNOT DO.** The block
+says "only scale hanging goo, anchored at its top" with a `scaleZ` of [1, 1.045]
+-- and `HouseFX.step`'s `pulse` drives BRIGHTNESS. Emitting `pulse` would have
+made the drips GLOW, an effect nobody asked for, so they are emitted as `scale`:
+data carried, no branch, reported every run. Same call `sway` already gets.
+
+`check_house_fx.py` makes all four questions standing, because every one of
+these three faults was silent -- no error, no warning, an effect that never ran.
+It asks: is the spec keyed the way it is READ, does every row carry a colour,
+is every authored FX mesh covered, and does every row name a mesh that exists.
+
+PROVOKED RATHER THAN TRUSTED, which is the half that matters: each of the three
+faults was reintroduced in a throwaway copy and the audit fired on all three --
+keyed by id, a row stripped of its colour, and an uncovered mesh. A clean run on
+a file I had just fixed proves nothing about the check.
+
+Two effects remain inert by design and are printed on every run: the galleon's
+`sway` and the Gloop House's three `scale` drips. Both want a branch in
+`HouseFX.step`, which is a contained addition if the designer wants it.
+
+## Three FX/trophy faults from one screenshot — September 17 (uncommitted)
+
+**THE SPEC WAS KEYED BY ID AND READ BY STYLE, which silently dropped the two
+biggest FX houses.** `build_house_fx.py` emitted `neontower` and `skycastle`;
+`House.buildTemplateHouse` looks up `HouseFXSpec[tier.style]`, which is `tower`
+and `castle`. So the Neon Tower's twenty effects and the Sky Castle's seventeen
+went to nobody -- 37 of 95 -- with no warning, which is exactly the id/style trap
+already written above `Config.HOUSE_TEMPLATE`. The generator now reads id->style
+out of `Config.HOUSE_TIERS` rather than assuming, so it cannot drift again.
+
+**EVERY LIT EFFECT WAS RED, AND THE ART WAS INNOCENT.** Every colour branch in
+`HouseFX.step` builds its colour as `Color3.fromHSV(entry.hue, entry.sat, ...)`
+and ignores the part's own colour -- and `Hue` defaults to 0, which is RED. The
+Ice Palace's blue and the Thundercloud's were being overwritten every frame by a
+default nobody had set. The spec now carries `Hue` and `Sat` derived from each
+mesh's authored `colorRGB`: palace 0.60, thundercloud 0.71 and 0.58, tower 0.52.
+60 of the 95 are blue or cyan and exactly one is genuinely red. NOTHING TO CHANGE
+IN BLENDER -- the colours were right in the source the whole time.
+
+**THE TOADSTOOL'S PANELS WERE MEASURED AGAINST THE WRONG WALLS.** `wallSpan`
+takes the widest pair of colliders matching "side", which describes how wide the
+ROOM is -- the same number as the wall in a rectangular room, which is why this
+held for sixteen of eighteen houses. The Toadstool Cottage is an OCTAGON:
+`SideWall_02` and `_06` sit at x +-12.75 while `Wall_04`, the wall the mount is
+on, is 10.74 wide. The row came out 14.16 and ran a stud and a half past each end
+into the angled segments either side -- the reported clipping, measured.
+
+Clamped to the MINIMUM of the two, never swapped: the treehouse is the case that
+refuses the obvious fix, its rear wall being 17.00 across the outside while its
+side walls leave 15.60 between inner faces. Sixteen houses are unchanged to the
+decimal.
+
+AND `PANEL.min` HAD TO GIVE WAY, because on a wall too narrow the clamp does not
+make a panel readable, it hangs it off the end: four 2.6-wide panels are 11.66
+against the toadstool's 10.14 of usable wall. Below the floor the row is divided
+instead -- 2.22 there, 15% under the preference. `PANEL.max` is a real ceiling
+and stays clamped. Verified across every house at both 3 and 4 panels: all fit.
+
+NOT verified in Play. Studio was in Play throughout, so none of this has been
+seen; the running session was confirmed to hold neither `HouseFXSpec` nor the
+18th template, which is why the earlier fixes appeared to do nothing.
+
+## House names aligned, Gingerbread retired, authored FX finally driven — September 17 (uncommitted)
+
+**The Gingerbread Manor is gone from the shop.** The row is DELETED rather than
+emptied, which is the only shape a house retirement can take: a tier IS its
+catalogue row and `ensureRow` draws a card for every row it finds. Safe because
+candy was never in `HOUSE_LEGACY_ORDER` -- that frozen list is the nine ids the
+pre-schema-26 ladder counted -- and because ownership is keyed by id with
+`DataService.reconcile` pruning against the catalogue, so there is no migration.
+The Candy Cane KENNEL shares the word and stays. The audit reads 18 of 18.
+
+**Four names were describing buildings that no longer exist**, all of them the
+re-themed legacy houses: Starter Shack -> Cardboard Fort, Cosy Cottage -> Beehive
+Cottage, Brick Townhouse -> Wonky Townhouse, Stone Manor -> Haunted Manor. Their
+BLURBS went with them -- a blurb promising "steep tiled roof and a real chimney"
+on a beehive is the copy-outlives-the-thing failure this project already records.
+All 18 now match the art inventory exactly. NOTE: the designer asked for "Funky
+Townhouse" and the art inventory says "Wonky"; Wonky shipped, being the
+alignment target, and it is one word to change.
+
+**THE AUTHORED EFFECTS HAD NEVER RUN, AND THERE WAS NO CODE TO ERROR.** Every
+authored house ships meshes named `HouseFX_*` with a kind, period and phase in
+its `animation-handoff.json` -- 95 of them across 12 houses -- and they sat
+perfectly still, because `HouseFX` finds its work through a CollectionService TAG
+and reads behaviour off ATTRIBUTES, while an .rbxmx carries both only as binary
+blobs. The art named the parts; nothing in the engine reads names.
+
+`assets/houses/tools/build_house_fx.py` turns the handoff files into
+`Shared/HouseFXSpec.luau`, and `buildTemplateHouse` applies it while already
+walking the cloned parts. A period in SECONDS becomes `Rate` in cycles a second
+-- the one conversion here, and the one that would have been silently wrong: a
+9-second pulse written as Rate 9 is nine flashes a second, past the
+three-a-second ceiling `HouseFX.MAX_RATE` exists to hold.
+
+THE TAG IS APPLIED AFTER PARENTING, which is the trap this would otherwise have
+shipped. `House.build` builds into a DETACHED model, and a tag added outside the
+DataModel never fires `GetInstanceAddedSignal` -- so the animator would only have
+caught these inside its ten-second startup rescan, and a house bought by a player
+an hour into a session would have animated nothing. Same fault `Decor.build` and
+the shop doors have both already paid for.
+
+Reported by the generator rather than assumed: `sway` (1 effect, the galleon) has
+NO branch in `HouseFX.step` and is emitted as authored and inert, which is better
+than mapping it onto `bob` and shipping an effect nobody asked for. Two portal
+sections, `HouseFX_RingRim_9` and `_11`, match no mesh in that template and
+animate nothing -- for the artist.
+
+NOT verified in Play: Studio was in Play throughout, so Rojo could not push. The
+treehouse and slime templates are also still absent from the live place for the
+same reason -- both were moved out and back to force a fresh patch, which lands
+on the next stop/start.
+
+**FOLLOW-UP, AND THE SECOND CAUSE OF "NO GLOW" IS A MATERIAL RATHER THAN AN
+ANIMATION.** The art asks for Neon NOWHERE: every mesh in every manifest is
+authored flat, the `*Glow` and `*Light` materials are pale colours rather than
+emission, and the generator writes `SmoothPlastic` on all 1,147. So even with the
+animator driving them, the light effects were changing colour on a MATTE surface,
+which at `Brightness` 2.4 with a bloom threshold of 1.7 is close to invisible.
+
+`Neon` is now set on the LIGHT kinds only -- pulse, cycle, chase, beacon, 65 of
+the 95 -- and never on `bob`, `orbit` or `sway`, because Neon on a floating rock
+is the "first build shipped Neon and the whole house glowed" mistake the
+generator's own comment records. Measured before switching: all 65 sit at or
+below 0.70 relative luminance, so none is the pale Neon that renders as a white
+hole. It is applied as a PROPERTY, not an attribute -- a stray `Neon` attribute
+would have meant nothing to `HouseFX`.
+
+CONFIRMED AGAINST THE RUNNING SESSION, which is the actual answer to "am I
+missing something": the live server has no `HouseFXSpec` module, `House.luau`
+there does not reference one, and it holds 16 templates rather than 18. Rojo
+cannot push while Play is running, so that session predates every fix in this
+entry. It needs a stop and restart, not more code.
+
+## All 18 houses wired, place file groomed — September 17 (uncommitted)
+
+**18 of 19 tiers now stand an authored Blender model.** Only the seasonal
+Gingerbread Manor is still code-built, being the one house with no v2 export.
+Dumped, checksummed, recorded and generated all 18 (v2, and v3 for the treehouse
+and Gloop House); added the `Config.HOUSE_TEMPLATE` rows, keyed by STYLE so
+`neontower` reads `tower = "neontower"` and `skycastle` reads
+`castle = "skycastle"` -- keyed by id those two match nothing and fail silently.
+
+`placeholder = true` came off mushroom, galleon, portal, thundercloud and void
+for the reason crystal and goldenpig already had: `Config.residentHouseLevel`
+reads that flag, so a tier with a real model and the flag still set is a house no
+resident can ever stand. Only candy keeps it, and it is the one that deserves it.
+
+ONE BAD PART IN 1,147, AND IT WOULD HAVE REFUSED A WHOLE HOUSE. The Cardboard
+Fort's `Approach_WalkWall` is authored ZERO-THICKNESS and Roblox clamps it to its
+0.001 floor, which the recorder reads as a resize. The dump now tolerates a
+degenerate axis clamped to the engine floor and nothing else, so a real resize
+still fails loudly. Worth telling the artist: that is a degenerate export.
+
+THE PLACE FILE HAD 34 TEMPLATES WHERE IT SHOULD HAVE 18, and the cause is not
+Rojo misbehaving -- TWO ROJO PLUGIN INSTANCES ARE LOADED (PluginGuiService shows
+every Rojo gui twice), so each sync lands twice. Sixteen were exact duplicates;
+TWO WERE STALE -- the treehouse at 72/55 and the Gloop House at 66/34 against
+disk's 65/52 and 40/18, i.e. last revision's geometry off mesh ids that still
+resolve. A stale sibling is worse than a missing one: `FindFirstChild` stands the
+wrong house with nothing in any log. Removed all 18 wrong ones by MEASURING each
+against the part counts on disk rather than trusting order.
+
+Rojo has not re-added treehouse and slime since, even after rewriting both files,
+so the live place holds 16 of 18. Disk is correct and a fresh `rojo build` carries
+all eighteen (1,493 MeshParts) -- this is a live-sync problem, and the fix is on
+the Studio side: one plugin, then reconnect.
+
+Deleted 18 imported models holding 1,147 MeshParts from Workspace. Safe because
+the templates carry the ids; an import is read exactly once, by the dump, and
+after that it is debris that travels into every session.
+
+GROOMED: 19 superseded asset folders deleted, 134 MB, at the designer's explicit
+choice not to commit first -- so every v1 `.blend` is gone for good. Each was
+removed only after checking that the template which superseded it exists.
+
+169 ORPHANED MESH UPLOADS are recorded in `docs/ORPHANED-UPLOADS.md`, written
+BEFORE the deletion because the ids lived in the `studio-import.json` files inside
+the folders being deleted. `tools/groom_uploads.py` will now report zero orphans,
+which means "no evidence left" rather than "none exist" -- the doc says so. They
+cannot be deleted from here: there is no API in this toolchain that removes an
+upload, and the doc argues for archiving over deleting.
+
+## Tree card's acorn matches the shop's — September 17 (uncommitted)
+
+`TreeClock` drew U+1F330 CHESTNUT in a TextLabel; the shop, the piggy bank panel
+and every acorn price use `Theme.acorn`, a drawn shape. Swapped to
+`Theme.acorn(card, 26)`, the same 26 the piggy panel's chip uses, centred in the
+40-tall card at x 8 -- ending at 34 against a count that starts at 38.
+
+Its own comment had flagged it: "NOT YET render-measured on a card". Measured on
+the live client before the change, the glyph advanced 19.0 in a 26-wide box, and
+an emoji is drawn from the COLOUR font so it ignores `TextColor3` -- it could
+never have been themed. It was also the wrong nut.
+
+NOT verified in Play: Studio is IN Play, and Rojo does not push while it is, so
+the running session still carries the emoji. What was confirmed live is the card
+this replaces -- adorned to `Canopy`, 196x40, glyph/count/timer reading
+"12/24" and "next 2m".
+
+## Trees scaled up — September 17 (uncommitted)
+
+Three different trees, three different ceilings, and two of them fail silently.
+
+**The grove behind the plots** went 1.15/1.30/1.45 to 1.85/2.10/2.35 -- heights
+16.0/18.1/20.1 studs to 25.7/29.2/32.6. The ceiling is `buildTrees`' own startup
+audit: the grove is planted from the back fence outward and `canopyReach` is the
+DIAGONAL, so at 2.5 the outermost canopy reaches |z| 292.0 against a warn line of
+exactly 292.0 -- passing, and touching. 2.35 lands at 290.8. The front row moved
+22 -> 30 for the reason that note already records once: the clamp keeps canopies
+out of the fence, so a row nearer than the canopy's own reach spends its inward
+jitter piling against that clamp and reads as a hedge.
+
+**The verge trees** went 0.75 -> 1.0, and this is the one with a silent cliff at
+1.19. `clear(x)` vetoes a placement whose canopy would reach a driveway or a
+shop, and every candidate sits at the same offset -- so too big a scale produces
+NO VERGE TREES AT ALL rather than smaller ones or a warning. Measured from the
+shipped offset of 21: 21 studs to a gap centre (shop half 11) and 19 to a plot
+column (half a 17-stud driveway plus one), reach 7.986 per unit of scale, so the
+driveway binds first at 1.19 with nothing spare. At 1.0 there are 2.0 studs clear
+of the shop and 1.5 of the driveway -- deliberately most of the old margin spent,
+and well short of the cliff.
+
+**The acorn oak** went 1.0 -> 1.8: an 8.5-stud canopy to 15.3. The cap is the
+SIDE FENCE -- it stands at plot x -25 against a fence interior at -33.6, so 2.0
+puts its edge on -33.50 and 2.2 is 0.75 studs out over the alley.
+
+AND THE CROP WAS MEASURED IN STUDS RATHER THAN IN TREES, which is the bug this
+would have shipped. `AcornFill` hung ripe acorns at a literal radius 1.65 and
+height 3.7 and dropped them at 2.25 -- all solved against the oak at 1.0. Scaling
+the tree alone would have left the crop hanging inside the trunk with the ground
+acorns out from under a canopy that had moved. They take `treeScale` now. The
+ACORN's own size deliberately does not: an acorn is a thing a player catches, not
+part of the tree.
+
+`rojo build` passes and every margin above is arithmetic off the real constants.
+NOT verified in Play: nothing has been looked at, and the two things only a
+picture can answer are whether the grove now walls the street in and whether a
+15-stud canopy sits over the basket and the shake prompt readably.
+
+## Houses resized — September 17 (uncommitted)
+
+Reported as way too small above the basic tier. Measured first, and the sizes do
+not merely run small, THEY DO NOT LADDER: eleven of the eighteen authored models
+are smaller than a tier below them, and the 750K Treehouse (55.7 x 54.9 x 39.9)
+is bigger than everything up to the 80M Sky Castle.
+
+RESIZED IN CODE, NOT IN BLENDER. `build_house_runtime.py` gained a `SCALE` table
+keyed by stable id, applied after the importer's own factor, so the mesh ids are
+untouched -- nothing re-exported, nothing re-uploaded. The designer chose the
+monotonic-by-price option, which holds the bottom three unchanged.
+
+TWO SCALES, AND CONFLATING THEM WOULD HAVE MOVED EVERY COLLIDER. `factor` is the
+importer's, and `blender_to_import` inverts it to map Blender-authored boxes and
+mounts into the import frame; `scale` is that times the display multiplier and is
+what final coordinates and sizes go through. Collision box sizes are in Blender
+units (studs) so they take the display multiplier ALONE -- the generator's own
+comment records a first build that multiplied them by the importer's factor and
+produced a deck 0.6 studs across.
+
+Regenerated: modern 38.6x41.3x19.6 -> 50.6x54.1x25.7, crystal 23.9x24.6x45.0 ->
+37.0x38.2x69.8, goldenpig 45.0x33.0x40.5 -> 62.1x45.5x55.9, shack unchanged.
+Feet still on y 0, and `House.build` front-pins off its own measured bounds so
+the seating followed with no change.
+
+`placeholder = true` came off crystal and goldenpig. Not cosmetic:
+`Config.residentHouseLevel` reads that flag to decide which tiers a NEIGHBOUR may
+stand, so a tier with a real model and the flag still set is a house no resident
+can ever show -- and the audit's own rule is that the two must agree.
+
+THE WALK-IN PAIR IS PINNED AT 1.0 AND MUST STAY THERE WHILE INTERIORS ARE BEING
+DRAWN. A scale multiplies rooms and doorways while a character stays five studs,
+so the treehouse's 10.5-stud cabin is a contract with the rig. Any house getting
+an interior needs its number settled BEFORE the interior is authored.
+
+FOUND, NOT FIXED: the authored FX are inert. crystal ships 3 `HouseFX_*` parts,
+goldenpig 4 and modern 4, each with a `kind`/`period`/`phase` spec in its
+`animation-handoff.json` -- and the generator emits no `HouseFX` tag, which is
+what `HouseFX.register` collects on. Slime has the same gap and predates this.
+Nothing errors; the parts simply sit still.
+
+`rojo build` passes. NOT verified in Play: no plot has stood a scaled house, so
+the footprints are arithmetic -- goldenpig at 62.1 wide leaves 2.55 studs to each
+side fence, which is the tightest thing in the catalogue and wants looking at.
+
+## Four houses wired: Cardboard Fort, Fishbowl, Crystal Spire, Golden Piggy — September 17 (uncommitted)
+
+Studio reconnected, so the blocker cleared. Workspace held FOUR imported models,
+not the three the designer named — `crystal-spire-roblox` was there too — all
+with `bad=0`, meaning identity rotation and `Size == MeshSize` on every part,
+which is the assumption `record_house_import.py` carries and does not check for
+itself.
+
+Recorded and generated: shack 18 meshes at 93.09 imported units per stud,
+modern 24 at 53.06, crystal 21 at 46.33, goldenpig 27 at 45.51 — four different
+importer factors, which is why that number is derived per house rather than
+shared. Footprints come out exactly as the manifest promises (22.0x20.4x13.4,
+38.6x41.3x19.7, 23.9x24.6x45.0, 45.0x33.0x40.5), feet on y 0. Four
+`Config.HOUSE_TEMPLATE` rows added; the audit now reads 6 of 19.
+
+THE TRANSCRIPTION WAS CHECKSUMMED, and the check caught its own false alarm.
+The dump has to cross from Studio into a file by hand, and a single wrong digit
+in a mesh id is a missing mesh nobody would trace back. Counts, id sums and name
+lengths matched exactly; the coordinate sum differed by 1 to 5 ten-thousandths,
+which was MY checksum summing full-precision floats against a dump printed at
+4dp. Re-run with per-component rounding on both sides, all four matched to the
+digit. A checksum that rounds differently from the text it checks reports a
+transcription error that is not there — and would have been believed.
+
+All four are EXTERIORS: zero collision boxes, zero display mounts, so they stand
+as non-colliding scenery exactly as the code-built houses did. Only treehouse and
+slime are walk-in or carry a trophy room.
+
+Still missing: eleven models not yet imported (cottage, townhouse, villa, manor,
+neontower, palace, skycastle, galleon, portal, thundercloud, void), mushroom
+needing a re-export for its colour manifest, and a decision on the seasonal
+Gingerbread Manor. `neontower` and `skycastle` are the two whose rows must be
+keyed `tower` and `castle`.
+
+NOT verified in Play: the templates parse, carry one MeshPart per mesh with
+distinct ids, and `rojo build` passes, but no plot has stood one yet.
+
+## Shop sized for a laptop again — September 17 (uncommitted)
+
+Reported: the shop is too big to click anything on a laptop while reading well
+on a phone. That asymmetry is the diagnosis — both halves come from caps and
+clamps that only bite on a big window.
+
+Two causes, both measured rather than eyeballed:
+
+- `panelSize.MaxSize` had been raised to 1480x920 for "larger desktop cards".
+  The panel is sized in SCALE, so that cap is the only thing deciding how much
+  of a desktop screen it takes, and at 1480 it is essentially the whole window.
+  Now 1200x760, derived from the two layouts it holds: six 156-wide catalogue
+  cards plus the 166 sidebar is 1166, and the landing's six tiles at their
+  authored size is 1037.
+- `ShopRevamp:layout` clamped the landing tile to 96..150 on the compact branch
+  and `math.max(152, available/rows)` on the desktop one — bounded only from
+  BELOW. Measured before: 405x275 tiles on a 1366x768 laptop and 450x309 on a
+  1512x850 one, against artwork drawn for 333x269. That size is derived from the
+  tile's own hardcoded offsets: the constructor authors a 78-tall caption and
+  28px title, and the layout derives them as cellH*.29 and cardW*.084, so
+  78/.29 = 269 and 28/.084 = 333 is where the two agree. Capped there, with the
+  grid centred in whatever is left rather than stretched across it.
+
+Modelled across six viewports: laptops now all land on a 1200-wide panel with
+333x269 tiles and six catalogue cards a row; 1024x640 and 812x375 are
+byte-identical to before, which is what says the phone layout was not touched.
+
+`rojo build` passes. NOT verified in Play — Studio's MCP link is still down, and
+this is a layout change, so it wants a look rather than a measurement: a picture
+is the only thing that can say whether the centred grid reads as deliberate or
+as a panel with gutters.
+
+## House exteriors — integration prepared, blocked on the mesh ids — September 17 (uncommitted)
+
+Sixteen new authored exteriors landed in `houses/` (plus gloop-house-v2
+and treehouse-v2, already wired). Asked to wire them up; the wiring cannot be
+completed offline, because the only route from an FBX to a template runs through
+the UPLOADED MESH IDS, and those exist nowhere but inside the place after an
+import. Studio's MCP link has been down all session.
+
+Prepared instead:
+
+- `assets/houses/tools/dump_house_import.luau` — the Studio dump, previously taken ad hoc.
+  Emits exactly what `record_house_import.py` parses. Measures the model AABB
+  PER PART rather than through `GetBoundingBox`, because that box is oriented by
+  the pivot and the recorder divides those extents by the authored Blender size
+  to derive the import scale — a transposed box would not fail, it would scale
+  the house wrong. Counts rotated or resized parts as `bad=`, which the recorder
+  refuses, rather than trusting the importer.
+- Dry-ran `build_house_runtime.py` against a fabricated import in a scratch
+  mirror (nothing written into the repo) to prove the generator tolerates an
+  EXTERIOR-ONLY report: shack produced a template at "0 collision boxes, 0
+  display mounts", feet on y 0, footprint 22.0 x 20.4. So these stand as
+  non-colliding scenery exactly as the code-built houses do — not walk-in, no
+  trophy room. Only treehouse and slime carry colliders and mounts.
+- Checked all 18 against the plot envelope: every one fits inside the 67.2-stud
+  interior and the 57 studs of depth that `HOUSE_FRONT_LINE` and `YARD_DEPTH`
+  leave. Widest is treehouse at 55.7, deepest treehouse at 54.9, tallest void
+  at 60.0.
+
+Two traps recorded for the wiring itself. `Config.HOUSE_TEMPLATE` is keyed by
+tier STYLE and two ids differ from their style: `neontower` is style `tower` and
+`skycastle` is style `castle`. And `mushroom` cannot be imported yet — it has no
+`*-roblox.fbx` and its `package-report.json` carries no `colorRGB`, so the
+generator would hard-fail on colours; it needs a re-export first.
+
+Audited per tier with the new `assets/houses/tools/audit_house_wiring.py`, after the designer
+reported the void house as wired wrongly: **2 of 19 tiers are wired.** Eight
+stand as the PLACEHOLDER BLOCK -- mushroom, candy, crystal, galleon, portal,
+thundercloud, void, goldenpig -- and nine stand their rebuilt code builder. The
+void report is exactly the block: that tier has never had a builder, so the
+authored model is the first thing it could stand, and importing an FBX in Studio
+changes nothing the game reads. The audit also caught two of its own parse traps
+worth keeping: `Config.HOUSE_MESH` rows are written `= nil`, which is an ABSENT
+key in Luau and read as nine meshed houses by a parser taking the text at face
+value; and `str.index` on a table's NAME lands in the prose above its neighbour,
+returning an empty slice that reads as a table with no rows.
+
+No `Config.HOUSE_TEMPLATE` rows were added. A row whose template is missing
+warns on every build of that tier, and residents stand tiers all over the
+ladder, so sixteen rows ahead of sixteen templates is sixteen warnings a street
+rather than a head start. Rows go in as each template lands.
+
+## Settings menu exclusivity — September 17 (uncommitted)
+
+Reported: opening settings and then the shop drew settings OVER the shop, and
+closing the shop left settings still open. Both halves are one cause — settings
+was the only menu with no exclusivity at all, and every menu sits at
+`Theme.MENU_Z`, so the tie broke on child order and settings is built after the
+shop panel.
+
+Fixed with the instrument the bag and the shop already use: a `SettingsOpen`
+attribute on the ScreenGui is the state and the panel follows it, so the bag —
+built five thousand lines below the settings `do` block and unnameable from
+inside it — can close settings and be closed by it without either reaching into
+the other. Opening any one of the three now closes the other two. Escape closes
+settings as well as the shop, which the documented key map already implied.
+
+Toggling reads the ATTRIBUTE, not `panel.Visible`: attribute-changed signals are
+deferred, so reading the panel would read the state as of the previous press.
+
+`rojo build` passes. NOT verified in Play — Studio's MCP link is still down. The
+six orderings to drive when it is back: settings then shop, shop then settings,
+settings then bag, bag then settings, Escape on each, and the toggle pressed
+twice.
+
+## Gate jam retired — September 17 (uncommitted)
+
+Designer asked for the gate jam to come out of the game for now. Removed the
+whole surface rather than gating it behind a flag, because there is nothing
+left that could read a flag: the gate post and its `JamPrompt` in
+`PlotService.buildFence`, `isGateJammed` / `jamGate` / `onGateJam` /
+`fireGateJam`, the decision handler in `HeistService.start`, and
+`Config.PROMPTS.jam` with `ICON.JAM`. Zero live references remain; the only
+matches for "jam" outside `jamb` are retirement notes and one historical
+post-mortem in `docs/GAME.md` about `setPromptKind`.
+
+Kept deliberately: the REFUSAL the jam was born from — the owner-locked gate,
+and the three reasons it was rejected — now stands where `Config.GATE_JAM` was,
+along with the D9 measurement (0.55 for 1.2s, not 0.35 for 2.0s) so a revival
+does not re-derive a pair that deletes the chase. The fence penalty path it
+borrowed is untouched and still reached through `firePenalty`.
+
+`rojo build` passes. NOT verified in Play: Studio's MCP link was down and no
+Luau CLI is installed here, so `tests/run-crates.py` could not run either — the
+check that matters is one Play boot, because this touched `Config`.
+
+## Menu icon simplification — September 17 (uncommitted)
+
+User requested simpler Settings, Inventory and Shop icons while preserving the
+theme. MenuIcons now draws a cream/gold cog without fasteners or nested machinery,
+a pink closed bag with its original handle and one gold clasp (no protruding
+cloth/pouch, patches or stitches), and a green storefront without the pig sign,
+display coin or fine trim. Transparent backgrounds, hit areas and static behavior
+remain. Luau compilation and Rojo build pass. Studio was actively in use during
+this update; final visual review of these icons is pending the next play restart.
+
+Generated `assets/piggy-hud/piggy-balance-v2.png` with the built-in image tool;
+1254x1254 RGBA with verified transparency. Exact prompt and import instructions
+are beside it. PiggyPanel now supports `ICON_IMAGE`, and the user imported the PNG under the
+experience's owner: it is image `115881888441059`, assigned and live, so the
+card draws the imported icon rather than the drawn pig. The drawn pig is kept as
+the fallback for an emptied or unresolvable id. Not yet seen in Play -- Studio's
+MCP link was down when the id arrived, so the load has not been confirmed.
+
+## Shop visual implementation — September 17 (uncommitted)
+
+**Follow-up:** User said the implementation did not match the approved image.
+Reworked the landing to large illustrated cards across the full panel, cream
+captions, gold SHOP sign/pink basket, green masthead and currency badges. Added
+Bag/Achievements footer links and a read-only trophy-progress screen. User
+explicitly said **no search bar**. New ShopScenes / ShopMarks / ShopAchievements
+modules; category palette lives in Theme.SHOP_COLOURS. 138 isolated UI checks
+pass. User approved Studio takeover; live desktop and iPhone 6 Plus landscape
+emulator checks completed. Fixed category illustration framing/lighting, header
+overlap with Roblox controls, touch scrolling (ScrollingFrame.Active), and shop
+layering above mobile movement controls. Fresh phone session confirmed swipes
+reach the last row and the Bag shortcut opens the existing inventory. Achievements
+shows actual trophy progress. Real-device/controller/multiplayer QA remains pending.
+
+After approving the colourful low-poly shop mockups, the user asked GPT to
+build them. The UI implementation is now in the Rojo source; no economy,
+save schema or server transaction changes were made for this work.
+
+- Six-category home screen and desktop navigation; compact screens use
+  category tiles and a Back control. Companions now has its own catalogue.
+- Upgrades use Earn / Defend / Rob groups, static model previews, current →
+  next stats from Config and existing PurchaseRequest / UpgradeRequest actions.
+- Each crate has VIEW ALL CONTENTS: actual pool, owned/not-owned filters,
+  live ChestState odds, progress and Acorn purchase. Combine and buyback remain
+  on the crate list, and the existing discovery reel remains in use.
+- Shared warm palette and flat surfaces; adaptive catalogue columns retain
+  text size on phones. Existing Home/Rides/Supplies catalogue actions remain.
+- New modules: ShopWidgets, ShopUpgradeFacts, ShopUpgrades, ShopRevamp,
+  CrateContents. Integration edits: Crates and ClientMain. Mockups and prompts:
+  assets/shop-ui/revamp-v2/. See docs/SHOP-UI-REVAMP.md for remaining scope.
+
+Validation: changed UI modules/scripts compile (including ClientMain's
+local/register limit); Rojo builds to ignored ShopRevamp-review.rbxlx.
+138 shop UI state/layout checks + earlier 73 crate checks + 70 buyback checks pass.
+Studio desktop and 736x414 phone-emulator appearance/navigation checked. Portrait
+layout was inspected, but Studio reports portrait is not enabled for this game;
+the orientation setting was left unchanged. Existing Bag UI still has its own
+mobile CoreGui overlap, outside this shop revision.
+
+Rojo responds at 127.0.0.1:34872 for “Rob a Piggy Bank”; a second attempted
+server exited because that port was already occupied. Studio connection and
+play-mode sync are confirmed. Other in-progress Fable edits were kept.
+
 ## Working agreement — GPT visuals, Fable scripting/planning
 
 User explicitly assigned GPT physical/visual design, UI and buttons, and
@@ -22,12 +1009,12 @@ new `ladder` and `houses`); Rojo builds.
 **Designer direction for the next step:** the house exterior renders will be
 generated later. Do not wait on them. **Add the revision-2 catalogue to the
 game now with empty placeholder models** — the eighteen ids, names, prices
-and rarities from `docs/HOUSE-TIER-BRIEF.md` §1 (the three re-themes rename
+and rarities from `assets/houses/docs/HOUSE-TIER-BRIEF.md` §1 (the three re-themes rename
 `villa`, `modern`, `palace` in place; `goldenpig` is earned, not priced), each
 standing as a plain, clearly-temporary block sized to its brief height, so
 buying, moving in, the catalogue cards and the sign all work end to end.
 Then move on to the house INSIDES (trophy rooms, `HOUSE-TROPHY-ROOMS.md`,
-brief B2 — GPT's blockouts are in `assets/design/phase-4b/rooms/`).
+brief B2 — GPT's blockouts are in `assets/houses/design/rooms/`).
 
 **Still open for the designer:** the three re-themes (owners wake up in the
 new house); Golden Piggy as the earned completion house; player robbery
@@ -260,7 +1247,7 @@ reorders. 4b.5 trophy rooms are deferred.
 ## Revision-2 house catalogue landed with placeholders (September 16, later)
 
 The designer direction above is **done**; uncommitted. All nineteen rows from
-`docs/HOUSE-TIER-BRIEF.md` §1 are in `Config.HOUSE_TIERS` in price order
+`assets/houses/docs/HOUSE-TIER-BRIEF.md` §1 are in `Config.HOUSE_TIERS` in price order
 (18 priced, shack to the 1B Void, plus the earned Golden Piggy).
 
 - **New houses** (`mushroom`, `treehouse`, `slime`, `candy`, `crystal`,
@@ -296,7 +1283,7 @@ The designer direction above is **done**; uncommitted. All nineteen rows from
   well is the first thing to look at (brief §2 trap 2).
 
 **Next:** the house INSIDES — 4b.5 trophy rooms (`HOUSE-TROPHY-ROOMS.md`, brief
-B2; GPT's blockouts in `assets/design/phase-4b/rooms/`). Each new house's real
+B2; GPT's blockouts in `assets/houses/design/rooms/`). Each new house's real
 builder can land any time under its `style`, then drop `placeholder`.
 
 ## Fable handoff — economy and acorn re-centring (September 16)
@@ -322,7 +1309,7 @@ documents carry it:
 - `docs/BRIEFS-FOR-GPT.md` — step-1 briefs. **GPT needed now:** B1 house
   catalogue UI, B2 trophy-room templates (named mount points), B3 exterior
   constraints. **Later:** B4 Harvest Moon look, B5 tree levels, B6 Legacy.
-- `docs/HOUSE-TIER-BRIEF.md` — the full eighteen-house tier list for GPT:
+- `assets/houses/docs/HOUSE-TIER-BRIEF.md` — the full eighteen-house tier list for GPT:
   nine new **fantasy** houses (toadstool, treehouse, slime, gingerbread,
   crystal spire, beached galleon, dragon's roost, sky islands, golden piggy)
   with stable ids, silhouettes, FX, room families and the yard constraints;
@@ -451,7 +1438,7 @@ Briefs B7 and B8 appended to `docs/BRIEFS-FOR-GPT.md`. No code changed.
 
 ## Fable — house catalogue revision 2 and houses-gate-trees (September 16)
 
-Planning only. `docs/HOUSE-TIER-BRIEF.md` is now revision 2: dragon → Portal
+Planning only. `assets/houses/docs/HOUSE-TIER-BRIEF.md` is now revision 2: dragon → Portal
 House (300M), sky islands → Thundercloud Fortress (600M, storm grey-blue),
 golden piggy → **The Void (1B), the one black house**; Golden Piggy becomes
 an earned, unpriced completion house; re-themes Suburban Villa → Fairy
@@ -467,7 +1454,7 @@ revision 2 for the exterior concepts.
 ## Current task — higher-tier house exterior concepts
 
 Latest: user approved the shared themed trophy-room idea and requested a
-house-count/price plan extending to 1B. `docs/HOUSE-CATALOGUE-PLAN.md` proposes
+house-count/price plan extending to 1B. `assets/houses/docs/HOUSE-CATALOGUE-PLAN.md` proposes
 18 houses (nine existing prices preserved, nine additions). Assumes 1B is
 the highest single purchase; proposed total is 2,228,455,000 coins. Four
 houses exceed the current 96,904,045 capacity, so capacity progression or
@@ -476,7 +1463,7 @@ rarity, income, capacity or ownership changes were made to runtime Config.
 
 Follow-up direction: user likes enterable showcase rooms and wants earned
 achievements/trophies inside houses instead of in the yard. Proposed shared
-room system and theme mappings are in `docs/HOUSE-TROPHY-ROOMS.md`; existing
+room system and theme mappings are in `assets/houses/docs/HOUSE-TROPHY-ROOMS.md`; existing
 TrophyService progress can be reused. No interior runtime changes yet.
 
 User deferred fence expansion and requested exterior catalogue mockups;

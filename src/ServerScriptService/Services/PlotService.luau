@@ -21,8 +21,14 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local PiggyBank = require(script.Parent.PiggyBank)
 local GuardDog = require(script.Parent.GuardDog)
+-- The trophies displayed INSIDE an authored house. A leaf that requires
+-- Config, Decor and Theme and nothing from this file, so there is no cycle.
+local TrophyRoom = require(script.Parent.TrophyRoom)
 -- Geometry, in Shared because the shop renders these too.
 local House = require(ReplicatedStorage.Shared.House)
+-- For `HouseFX.TAG` alone, so the yard audit can skip the light show rather
+-- than keeping a second copy of that string. House.luau already requires it.
+local HouseFX = require(ReplicatedStorage.Shared.HouseFX)
 local Decor = require(ReplicatedStorage.Shared.Decor)
 local SoundKit = require(ReplicatedStorage.Shared.SoundKit)
 local GrassTuft = require(ReplicatedStorage.Shared.GrassTuft)
@@ -84,9 +90,11 @@ export type Plot = {
 	-- the most important word on the board was the one that moved.
 	signLabel: TextLabel,
 	signBoast: TextLabel,
-	signRank: TextLabel?, -- residential signs only; shops have no player rank
-	-- Phase 5.1, residential signs only: the season tier chip on the rank
-	-- row, and the NEMESIS line under the boasts.
+	-- The sign's parts and rows, for restyling it (`setSignStyle`) and for
+	-- laying its rows out (`layoutSign`). Residential signs only.
+	signKit: any?,
+	-- Phase 5.1, residential signs only: the season tier chip under the
+	-- rule, and the NEMESIS line under the boasts.
 	signChip: Frame?,
 	signNemesis: TextLabel?,
 	finishKey: string?,
@@ -99,9 +107,8 @@ export type Plot = {
 	-- `"LockLevel"` bug: an interface with no compiler behind it.
 	--
 	-- Sticky on the plot instead, so every existing caller repaints it
-	-- correctly for free and only `setSignPass` and `release` can change it.
-	signWord: string?,
-	signColour: Color3?,
+	-- correctly for free and only `setSignStyle` and `release` can change it.
+	signStyle: string?,
 	-- The mailbox flag, and the prompt that opens what is in it. Held by
 	-- REFERENCE from the build rather than looked up by name, because a plot
 	-- is one flat model and `FindFirstChild` on a repeated name returns the
@@ -114,6 +121,7 @@ export type Plot = {
 	-- assumed the narrow one, which is the lesson `Target = Player |
 	-- Resident` already paid for.
 	mailFlag: BasePart?,
+	mailFlagPieces: any,
 	mailPrompt: ProximityPrompt?,
 	-- The owner's "Grow Tree" prompt (step 2.7); TreeService wires it and
 	-- writes what it says. Nil on a shop, which has no tree.
@@ -141,7 +149,7 @@ export type Plot = {
 	--
 	-- Sticky here instead, so every existing caller repaints correctly for
 	-- free and only `setTrophyState` and `release` can change it. That is
-	-- exactly the decision `signWord` records one field up, made a second
+	-- exactly the decision `signStyle` records one field up, made a second
 	-- time and for the same reason -- and it is the shape of the
 	-- `"LockLevel"` bug avoided rather than repeated.
 	trophies: any?,
@@ -330,7 +338,6 @@ local MAIL_BASE = CFrame.new(MAIL_SPOT.X, 0, MAIL_SPOT.Z)
 local MAIL_HINGE = MAIL_BASE
 	* CFrame.new(0, -Config.PLOT_SIZE.Y / 2, 0)
 	* Decor.MAILBOX_FLAG_HINGE
-local MAIL_FLAG_HALF = Decor.MAILBOX_FLAG_HALF
 
 -- WHERE THE DOORSTEP IS, AND IT IS DERIVED FROM THE HOUSE RATHER THAN
 -- TYPED.
@@ -343,27 +350,29 @@ local MAIL_FLAG_HALF = Decor.MAILBOX_FLAG_HALF
 -- is exactly how the grove came to plant full-grown trees on people's
 -- lawns.
 --
--- x 0 IS THE ONE CLEAR COLUMN. The deepest lawn slots are lawnA..lawnD at
--- z -20, and their x offsets are -25, -8.5, 8.5 and 25 -- there is no slot
--- on the centre line, because that is the walk from the gate to the piggy.
--- So the front-centre approach to the door is the only strip of lawn where
+-- x 0 IS THE ONE CLEAR COLUMN. The rearmost lawn slots are lawnE and lawnF
+-- at z -8, and every lawn slot's x offset is -25 or 25 -- there is no slot on
+-- the centre line, because that is the walk from the gate to the piggy. So
+-- the front-centre approach to the door is the only strip of lawn where
 -- nothing else can ever stand.
 --
--- AND THE BAND IS 3.5 STUDS DEEP, WHICH IS THE WHOLE CLEARANCE BUDGET.
--- `HOUSE_FRONT_LINE`'s own note derives it: the deepest ornament that can
--- stand in the z -20 row reaches back to -24.5, and the wall is at -28. A
--- lid, which oversails by 0.17 a side, is what reaches both ends.
+-- THE BAND IS 4.5 STUDS DEEP NOW, AND IT USED TO BE DESCRIBED AS 3.5 WHEN IT
+-- WAS REALLY 2.5. The old note derived it from `HOUSE_FRONT_LINE`'s own
+-- comment, which named the wrong slot row -- "lawnF at z -19" against a real
+-- rearmost row of lawnA to lawnD at -20 -- so the budget this constant was
+-- solved inside was a stud narrower than the paragraph explaining it said.
+-- Both notes are corrected together, because one was reading the other.
 --
--- MEASURED ON THE BUILT PLOT rather than solved on paper, because the two
--- ends of a 3.5-stud band are not both slack: at 1.7 the lid stood 0.03
--- off the house wall and 0.13 off the ornament band, which is inside the
--- noise on the tight side. At 1.55 it SINKS 0.12 into the wall -- this
--- project's coplanar convention, where anything standing on something
--- sinks about a tenth of a stud into it -- and the whole 0.28 of clearance
--- goes to the side that has ornaments on it.
+-- Re-derived against the retired back row: the wall is at -18, the deepest
+-- ornament (the Giant Rubber Duck at 11.0) standing in the z -8 row reaches
+-- -13.5, and the lid oversails by 0.17 a side. At 1.55 the lid spans -18.27
+-- to -14.63, so it SINKS 0.27 into the wall -- this project's coplanar
+-- convention, where anything standing on something sinks about a tenth of a
+-- stud into it -- and leaves 1.13 to the side that has ornaments on it. Both
+-- ends are slack now, where the tight end used to be inside the noise.
 --
--- ANYTHING THAT DEEPENS AN ORNAMENT HAS TO RE-DERIVE BOTH NUMBERS, not
--- just the one `HOUSE_FRONT_LINE`'s own note names.
+-- ANYTHING THAT DEEPENS AN ORNAMENT OR MOVES THE REARMOST ROW HAS TO
+-- RE-DERIVE THIS AND `HOUSE_FRONT_LINE` TOGETHER.
 local CRATE_SPOT = Vector3.new(0, 0, -Config.HOUSE_FRONT_LINE + 1.55)
 local CRATE_W = 3.0
 local CRATE_H = 2.6
@@ -371,9 +380,9 @@ local CRATE_H = 2.6
 -- Up means there is something to collect. One writer, called from the build
 -- and from `setMail`, so the two can never disagree about what down is.
 local function seatMailFlag(plot: any, up: boolean)
-	plot.mailFlag.CFrame = plot.cframe * MAIL_HINGE
-		* CFrame.Angles(0, 0, if up then 0 else math.rad(-82))
-		* CFrame.new(0, MAIL_FLAG_HALF, 0)
+	-- Every piece of the flag -- pole, knob, cloth -- through the one pose
+	-- `Decor` builds it with, so raised and lowered cannot disagree.
+	Decor.poseMailboxFlag(plot.mailFlagPieces, plot.cframe * MAIL_HINGE, up)
 end
 -- ============================================================
 -- CONSTRUCTION
@@ -574,9 +583,11 @@ local function buildPlot(index: number): Plot
 	-- decorations got it wrong the first time.
 	local baseY = -Config.PLOT_SIZE.Y / 2
 
+	local signParts: { Part } = {}
 	local function signPart(name: string, size: Vector3, at: CFrame, colour: Color3,
 		material: Enum.Material): Part
 		local p = Instance.new("Part")
+		table.insert(signParts, p)
 		p.Name = name
 		p.Size = size
 		p.CFrame = at
@@ -621,8 +632,8 @@ local function buildPlot(index: number): Plot
 	-- Frame and panel are separate parts so the panel can stand proud of the
 	-- frame. Flush would put two faces at the same depth, which is the
 	-- coplanar flicker this codebase has now hit three times.
-	-- Extend downward for the rank row, preserving the name's size and the
-	-- board's top edge where its hanging links meet it.
+	-- Tall enough for the season chip and boasts under the name, preserving
+	-- the name's size and the board's top edge where its hanging links meet it.
 	signPart("Sign", Vector3.new(6.2, 4.9, 0.35),
 		signCF * CFrame.new(0, baseY + 6, 0), Color3.fromRGB(96, 64, 42), Enum.Material.WoodPlanks)
 	local panel = signPart("SignPanel", Vector3.new(5.5, 4.2, 0.16),
@@ -665,22 +676,13 @@ local function buildPlot(index: number): Plot
 	rule.BorderSizePixel = 0
 	rule.Parent = surface
 
-	local rank = Instance.new("TextLabel")
-	rank.Name = "RobberyRank"
-	-- Narrowed from the full row to leave the season chip its right-hand
-	-- 190 (Phase 5.1). UNVERIFIED IN STUDIO: the star row at rank 4 is the
-	-- widest string and was not photographed at this width.
-	rank.Position, rank.Size = UDim2.fromOffset(15, 187), UDim2.new(1, -220, 0, 52)
-	rank.BackgroundTransparency, rank.Font = 1, Enum.Font.GothamBold
-	rank.TextColor3, rank.TextScaled = Color3.fromRGB(150, 104, 44), true
-	rank.TextXAlignment = Enum.TextXAlignment.Left
-	rank.Text, rank.Visible, rank.Parent = "", false, surface
-
 	-- THE SEASON CHIP (Phase 5.1): the tier as a coloured pill, drawn from
 	-- `Config.seasonChipText` / `seasonChipColour`. Hidden below tier 1.
 	local chip = Instance.new("Frame")
 	chip.Name = "SeasonChip"
-	chip.Position, chip.Size = UDim2.new(1, -200, 0, 191), UDim2.fromOffset(185, 44)
+	-- Centred under the rule now the robber-rank row beside it is gone.
+	chip.AnchorPoint = Vector2.new(0.5, 0)
+	chip.Position, chip.Size = UDim2.new(0.5, 0, 0, 191), UDim2.fromOffset(185, 44)
 	chip.BackgroundColor3 = Color3.fromRGB(172, 159, 145)
 	chip.BorderSizePixel, chip.Visible = 0, false
 	chip.Parent = surface
@@ -710,6 +712,12 @@ local function buildPlot(index: number): Plot
 	boast.TextColor3 = Color3.fromRGB(150, 104, 44)
 	boast.Text = ""
 	boast.Parent = surface
+	-- The boast box grows into whatever the chip and nemesis rows leave
+	-- (`layoutSign`), so the TEXT is capped rather than the box: a short list
+	-- in a tall box would otherwise print at the size of the name.
+	local boastCap = Instance.new("UITextSizeConstraint")
+	boastCap.MaxTextSize = 46
+	boastCap.Parent = boast
 
 	-- THE NEMESIS LINE (Phase 5.1). When it shows, the boasts give up the
 	-- bottom 44 of their 126 (`setNemesis`). UNVERIFIED IN STUDIO.
@@ -920,7 +928,11 @@ local function buildPlot(index: number): Plot
 	-- the frame `GuardDog` clamps a patrol against, so no radius can put a
 	-- dog through a fence again. See `clampToYard`.
 	local dog = GuardDog.build(
-		cf * CFrame.new(KENNEL_X, 0, KENNEL_Z) * CFrame.Angles(0, KENNEL_YAW, 0),
+		-- ON THE LAWN, NOT IN IT: `cf` is the slab's centre, and every kennel,
+		-- toy and guard offset is authored from the grass, so the origin rides
+		-- up by half the slab -- the same lift the tree and storage below take.
+		-- Without it the whole kennel and dog stood half a stud into the lawn.
+		cf * CFrame.new(KENNEL_X, Config.PLOT_SIZE.Y / 2, KENNEL_Z) * CFrame.Angles(0, KENNEL_YAW, 0),
 		model, cf)
 	-- Build after PivotTo so the ground contact and far-row facing are final.
 	local tree = AcornTree.build(model, cf * CFrame.new(
@@ -966,10 +978,23 @@ local function buildPlot(index: number): Plot
 		decor = nil,
 		signLabel = label,
 		signBoast = boast,
-		signRank = rank,
+		signKit = {
+			parts = signParts,
+			rule = rule,
+			-- Every part's own colour and material, so a sign that loses its
+			-- VIP styling on release goes back to exactly what it was built as.
+			defaults = (function()
+				local out = {}
+				for _, part in ipairs(signParts) do
+					out[part] = { part.Color, part.Material }
+				end
+				return out
+			end)(),
+		},
 		signChip = chip,
 		signNemesis = nemesis,
 		mailFlag = flag,
+		mailFlagPieces = mail.flagPieces,
 		mailPrompt = mailPrompt,
 		growPrompt = growPrompt,
 		crateParts = crateParts,
@@ -1044,8 +1069,8 @@ end
 -- twelve-stud piggy bank on it; what stands here now is a floor, a
 -- strongroom on the back wall and a board over it. Nothing about the plot
 -- record changed, and `PiggyBank.buildVault` returns the same `Refs` the pig
--- did -- so the fill, the dial, the plaster, the alarm and the milestone are
--- the piggy's own functions running on different parts.
+-- did -- so the fill, the dial, the alarm and the milestone are the piggy's
+-- own functions running on different parts.
 --
 -- WHAT IT LEAVES OUT IS THE POINT AS MUCH AS WHAT IT KEEPS. No lawn, no
 -- yard, no house, no garden, no fence and no dog: the vault stands on the
@@ -1119,8 +1144,8 @@ local function buildShopPlot(index: number, spec: any): Plot
 	-- THE VAULT, ON THE BACK WALL, AND IT IS THIS PLOT'S PIGGY BANK IN EVERY
 	-- SENSE THE REST OF THE CODEBASE CARES ABOUT. `PiggyBank.buildVault`
 	-- returns the same `Refs` a piggy does, so the fill, the dial, the
-	-- rattle, the plaster, the alarm, the milestone, the steal prompt and the
-	-- raid drone's anchor all work here with no branch anywhere. See the
+	-- rattle, the alarm, the milestone, the steal prompt and the raid
+	-- drone's anchor all work here with no branch anywhere. See the
 	-- entry over that function for what the alternative would have cost.
 	local piggy = PiggyBank.buildVault(at(u.vaultX, u.floorY, u.vaultZ), model)
 
@@ -1554,6 +1579,13 @@ function PlotService.buildFence(plot: Plot, level: number)
 	plot.fence:ClearAllChildren()
 	plot.fenceLevel = math.max(level, 0)
 	if level <= 0 then
+		-- No fence, so nothing for the dog to walk round. Set here as well as
+		-- below because this is the one place a tier's `gate` is known, and a
+		-- rebirth comes back through this branch -- a dog left holding the old
+		-- opening would refuse to cross a fence that is no longer standing.
+		if plot.dog then
+			GuardDog.setGate(plot.dog, nil)
+		end
 		return
 	end
 
@@ -1574,6 +1606,13 @@ function PlotService.buildFence(plot: Plot, level: number)
 	local half = Config.PLOT_HALF_WIDTH
 	local frontZ = Config.PLOT_FRONT_LINE
 	local gate = tier.gate
+
+	-- The dog is the one thing on a plot that does not collide with this
+	-- fence, so it is told where the opening is and routes through it like a
+	-- player. See `GuardDog.setGate`.
+	if plot.dog then
+		GuardDog.setGate(plot.dog, gate)
+	end
 
 	local climbPenalty = {
 		label = tier.label,
@@ -1749,41 +1788,9 @@ function PlotService.buildFence(plot: Plot, level: number)
 		side(Vector3.new(offset, 0, frontZ), wing, true)
 	end
 
-	-- THE GATE POST THAT CARRIES THE JAM PROMPT.
-	--
-	-- Built with the fence rather than with the plot, so it is rebuilt on every
-	-- tier change and cannot be left standing at a gate that has moved: the
-	-- opening is 24 studs at Rickety and 8 at the Moat, so its own position
-	-- depends on the tier.
-	--
-	-- Invisible and non-colliding like everything else out here. It is an
-	-- anchor for a prompt, not an object: a post a thief could run into at the
-	-- one moment they are sprinting for the street would be the worst possible
-	-- place in this game to put a collision.
-	local jamPost = Instance.new("Part")
-	jamPost.Name = "GatePost"
-	jamPost.Size = Vector3.new(1, 1, 1)
-	jamPost.CFrame = plot.cframe * CFrame.new(0, FENCE_BASE_Y + 3, frontZ)
-	jamPost.Anchored = true
-	jamPost.CanCollide = false
-	jamPost.CanQuery = false
-	jamPost.CastShadow = false
-	jamPost.Transparency = 1
-	jamPost.Parent = plot.fence
-
-	local jamPrompt = Instance.new("ProximityPrompt")
-	jamPrompt.Name = "JamPrompt"
-	jamPrompt.ActionText = "Jam the Gate!"
-	jamPrompt.ObjectText = ("%s coins"):format(Config.formatCoins(Config.GATE_JAM.cost))
-	jamPrompt.HoldDuration = 0.35
-	jamPrompt.MaxActivationDistance = 12
-	jamPrompt.RequiresLineOfSight = false
-	Config.setPromptKind(jamPrompt, "jam")
-	jamPrompt.Parent = jamPost
-
-	jamPrompt.Triggered:Connect(function(player)
-		PlotService.fireGateJam(player, plot)
-	end)
+	-- A GATE POST AND ITS JAM PROMPT STOOD HERE. Retired with the gate jam
+	-- itself -- see the note where `Config.GATE_JAM` was. Nothing else ever
+	-- stood on that post, so the post went with the prompt.
 
 	-- Moat ------------------------------------------------------------
 	--
@@ -2058,137 +2065,24 @@ function PlotService.buildFence(plot: Plot, level: number)
 end
 
 -- ============================================================
--- THE GATE JAM
+-- THE GATE JAM -- RETIRED
 -- ============================================================
 --
--- A thief drops this behind them on the way OUT. See `Config.GATE_JAM` for
--- why it is a snag rather than a wall, and why it is the inversion of the
--- owner-locked gate this design refused.
+-- A thief could drop a jam across a gate on the way out: a snag volume the
+-- owner was exempt from, sized to the tier's own opening, charged 2,500 coins
+-- and gone in 2.5 seconds. It is out of the game for now at the DESIGNER'S
+-- request rather than because anything about it broke.
 --
--- JAMMED ON THE WAY OUT, NEVER ON THE WAY IN. Jamming it on the approach
--- would lock the thief IN with the dog, which is funny once and then just
--- a mechanic nobody presses.
-local jammed: { [number]: number } = {}
-
--- Is this plot's gate jammed right now? Asked by the prompt so it cannot be
--- double-paid, and by the volume so it stops snagging when it lapses.
-function PlotService.isGateJammed(plot: any): boolean
-	return os.clock() < (jammed[plot.index] or 0)
-end
-
--- Stands a jam across the gate mouth for `Config.GATE_JAM.seconds`.
+-- Everything it needed is in git and nothing else used any of it:
+-- `isGateJammed`, `jamGate`, `onGateJam` and `fireGateJam` lived here, the
+-- gate post and its prompt in `buildFence` above, the decision in
+-- `HeistService.start`, and the numbers plus the reasoning in
+-- `Config.GATE_JAM`. The measurement worth keeping is in `docs/MASTER-PLAN.md`
+-- D9: 0.55 for 1.2s, because 0.35 for 2.0s cost a chaser 20.8 studs against
+-- the 17.7 they gain over a whole getaway -- one jam deleted the chase.
 --
--- The gate is the GAP the front barrier leaves: two wings either side of a
--- `tier.gate`-wide opening centred on the plot's own x, at `PLOT_FRONT_LINE`.
--- So the jam is exactly that opening, and it is built from the plot's own
--- numbers rather than a remembered size -- a gate is 24 studs at Rickety and
--- 8 at the Moat, and a jam sized for one would leave a walkable gap at the
--- other.
-function PlotService.jamGate(plot: any): boolean
-	if PlotService.isGateJammed(plot) then
-		return false
-	end
-	-- Indexed the same way `buildFence` does rather than through an accessor
-	-- that does not exist: a level of 0 is a plot with no fence at all, and
-	-- `FENCE_TIERS` is 1-based.
-	local level = plot.fenceLevel or 0
-	local tier = if level > 0
-		then Config.FENCE_TIERS[math.clamp(level, 1, #Config.FENCE_TIERS)]
-		else nil
-	if not tier then
-		-- NOTHING TO JAM ON A PLOT WITH NO FENCE. A bare plot has no gate,
-		-- because it has no barrier for a gate to be a gap in -- so this is a
-		-- refusal rather than an invisible no-op.
-		return false
-	end
-
-	jammed[plot.index] = os.clock() + Config.GATE_JAM.seconds
-
-	local width = tier.gate
-	local height = tier.top
-	local bar = Instance.new("Part")
-	bar.Name = "GateJam"
-	bar.Size = Vector3.new(width, height, 1)
-	bar.CFrame = plot.cframe * CFrame.new(0, FENCE_BASE_Y + height / 2, Config.PLOT_FRONT_LINE)
-	bar.Anchored = true
-	-- NON-COLLIDING, WHICH IS THE WHOLE OWNER EXEMPTION. See Config: a solid
-	-- part cannot tell one player from another, so the gate stays passable
-	-- and passing it is what costs.
-	bar.CanCollide = false
-	bar.CanQuery = false
-	bar.CastShadow = false
-	bar.Color = Color3.fromRGB(214, 176, 72)
-	bar.Material = Enum.Material.SmoothPlastic
-	bar.Transparency = 0.35
-	bar.Parent = plot.fence or plot.model
-
-	local penalty = {
-		label = "Jammed gate",
-		slow = Config.GATE_JAM.slow,
-		duration = Config.GATE_JAM.duration,
-		stun = 0,
-	}
-
-	-- ONE CHARGE PER CROSSING, and this is the fence penalty's own lesson
-	-- rather than a new one. `Touched` re-fires per character part -- measured
-	-- at fourteen on the first contact frame -- so without a stamp the slow
-	-- re-applies faster than it can expire, which is the freeze that once
-	-- shipped on the electric fence.
-	local charged: { [Player]: number } = {}
-	bar.Touched:Connect(function(hit)
-		local character = hit.Parent
-		if not character or not character:FindFirstChildOfClass("Humanoid") then
-			return
-		end
-		local crosser = Players:GetPlayerFromCharacter(character)
-		-- THE OWNER IS NEVER AFFECTED, and the precedent is exact:
-		-- `firePenalty` returns early for the plot's own owner because owners
-		-- cross their own defences freely, they paid for them. Here it is
-		-- stronger than a courtesy -- a jam that could shut a child out of
-		-- their own garden is the griefing case, and this kills it outright
-		-- rather than making it merely unrewarding.
-		if not crosser or crosser == plot.owner then
-			return
-		end
-		if not PlotService.isGateJammed(plot) then
-			return
-		end
-		local now = os.clock()
-		if now < (charged[crosser] or 0) then
-			return
-		end
-		charged[crosser] = now + penalty.duration + Config.FENCE_PENALTY_GRACE
-		for _, callback in ipairs(fencePenaltyHandlers) do
-			task.spawn(callback, crosser, plot, penalty)
-		end
-	end)
-
-	task.delay(Config.GATE_JAM.seconds, function()
-		if bar.Parent then
-			bar:Destroy()
-		end
-	end)
-	return true
-end
--- WHO DECIDES WHETHER A JAM IS ALLOWED, and it is not this file.
---
--- Whether somebody is carrying loot, and whether they can pay, are
--- HeistService's and DataService's questions -- and HeistService already
--- requires PlotService, so asking directly would be a cycle. Same registry
--- shape as `registerBounceVeto` and `SetService.registerPusher`, and for the
--- same reason: it keeps the dependency list at one line and makes the cycle
--- impossible rather than merely absent today.
-local jamHandlers: { (Player, any) -> () } = {}
-
-function PlotService.onGateJam(callback: (Player, any) -> ())
-	table.insert(jamHandlers, callback)
-end
-
-function PlotService.fireGateJam(player: Player, plot: any)
-	for _, callback in ipairs(jamHandlers) do
-		task.spawn(callback, player, plot)
-	end
-end
+-- The penalty path it borrowed is still live and still owned by the fences:
+-- `firePenalty` above, registered through `onFencePenalty` below.
 
 function PlotService.onFencePenalty(callback: (Player, any, any) -> ())
 	table.insert(fencePenaltyHandlers, callback)
@@ -2477,6 +2371,15 @@ function PlotService.setTrophyState(plot: Plot, state: any?)
 	if placed then
 		PlotService.setDecor(plot, placed)
 	end
+	-- AND INSIDE THE HOUSE, from the same state. A trophy stands on the lawn
+	-- AND in the trophy room (`TrophyRoom`), so the one function that means
+	-- "these numbers moved" repaints both. Houses with no display mounts --
+	-- every code-built tier -- are left alone by `fill` itself.
+	-- THE OWNER'S USER ID IS FOR THE WANTED POSTER'S PHOTOGRAPH, and it is
+	-- passed rather than looked up: `TrophyRoom` is handed a house and a
+	-- published state and has no way back to a Player. A resident has no
+	-- Player at all, so the poster is drawn without a face.
+	TrophyRoom.fill(plot.house, state, if plot.owner then plot.owner.UserId else nil)
 end
 
 -- The strip of paving from the gate out to the kerb, surfaced by house tier.
@@ -2782,6 +2685,12 @@ function PlotService.setHouseLevel(plot: Plot, level: number)
 	plot.house = House.build(level, plot.cframe * CFrame.new(0, groundY, 0), plot.model)
 	buildDriveway(plot, Config.getHouseTier(level))
 	PlotService.refreshWindowBoxes(plot)
+	-- The trophies hang off mounts inside the model destroyed above, so they
+	-- go back up against the new one -- the same seam the window boxes take,
+	-- for the same reason: a house tier can be bought with nothing else about
+	-- the plot changing, and a new house would otherwise stand empty until the
+	-- next time a counter happened to move.
+	TrophyRoom.fill(plot.house, plot.trophies, if plot.owner then plot.owner.UserId else nil)
 end
 
 function PlotService.setDogLevel(plot: Plot, level: number)
@@ -2811,19 +2720,12 @@ function PlotService.setDogKennel(plot: Plot, key: string?)
 	GuardDog.setKennel(plot.dog, key)
 end
 
--- Which toys are standing on the lawn. The whole set every time rather than
--- one key, because that is the shape the save has -- see `GuardDog.setToys`.
-function PlotService.setDogToys(plot: Plot, out: { [string]: boolean }?)
-	GuardDog.setToys(plot.dog, out)
-end
-
 -- The dog's name, on the nameplate and painted on its kennel.
 --
--- ALREADY FILTERED before it gets this far -- `CosmeticsService.nameDog` owns
--- the `TextService` call and is the only thing that should ever reach either
--- this or `GuardDog.setName`. Nothing in this file inspects the string, which
--- is correct: a second place that "handles" moderation is how one of them ends
--- up being the one everybody trusts and nobody runs.
+-- ALWAYS ONE OF `Config.DOG_NAMES` before it gets this far --
+-- `CosmeticsService.nameDog` checks the list and is the only thing that should
+-- ever reach either this or `GuardDog.setName`. Naming is a picker rather than
+-- a text box, so there is no player-authored string here to inspect.
 function PlotService.setDogName(plot: Plot, name: string?)
 	GuardDog.setName(plot.dog, name)
 end
@@ -2911,22 +2813,6 @@ function PlotService.updatePile(plot: Plot, vault: number, capacity: number): nu
 	-- Config.PLOT_VAULT_ATTRIBUTE for why a thief is allowed to read it.
 	plot.model:SetAttribute(Config.PLOT_VAULT_ATTRIBUTE, math.floor(vault))
 	return PiggyBank.setFill(plot.piggy, vault, capacity)
-end
-
--- The plaster. Stamped on the plot as Config.PLOT_ROBBED_ATTRIBUTE in server
--- time so a client can read it, and cleared by whichever stamp is latest --
--- a second robbery inside the window extends the mark rather than letting
--- the first timer pull it off early.
-function PlotService.setRobbed(plot: Plot, seconds: number)
-	local until_ = workspace:GetServerTimeNow() + seconds
-	plot.model:SetAttribute(Config.PLOT_ROBBED_ATTRIBUTE, until_)
-	PiggyBank.setRobbed(plot.piggy, true)
-	task.delay(seconds, function()
-		if plot.model:GetAttribute(Config.PLOT_ROBBED_ATTRIBUTE) == until_ then
-			plot.model:SetAttribute(Config.PLOT_ROBBED_ATTRIBUTE, nil)
-			PiggyBank.setRobbed(plot.piggy, false)
-		end
-	end)
 end
 
 function PlotService.playCoinDrop(plot: Plot)
@@ -3106,13 +2992,26 @@ function PlotService.setCrateOwner(plot: Plot, player: Player?)
 		if player then player.UserId else nil)
 end
 
+-- THE RANK IS PUBLISHED BUT NOT PRINTED. The sign's ROBBER RANK row is
+-- gone -- there are no robber ranks to earn yet, so every sign read
+-- "ROBBER RANK 0". The attribute stays, because it is cheap and whatever
+-- shows ranks later will read it.
 function PlotService.updateRank(plot: Plot, robberies: number?)
-	if not plot.signRank then return end
+	if not plot.signKit then return end
 	local rank = if robberies ~= nil then Config.getRapSheetRank(robberies) else nil
 	plot.model:SetAttribute(Config.PLOT_RAP_RANK_ATTRIBUTE, rank)
-	plot.signRank.Visible = rank ~= nil
-	plot.signRank.Text = if rank == nil then "" elseif rank == 0 then "ROBBER RANK  0"
-		else "ROBBER RANK  " .. string.rep("★", rank)
+end
+
+-- THE ROWS UNDER THE RULE, placed from what is showing. The season chip
+-- (when there is one) sits first, the NEMESIS line (when there is one) last,
+-- and the boasts take everything between, centred, so a sign with neither
+-- does not print its boasts halfway down with a hole above them.
+local function layoutSign(plot: Plot)
+	local chip, nemesis = plot.signChip, plot.signNemesis
+	local top = if chip and chip.Visible then 245 else 191
+	local bottom = if nemesis and nemesis.Visible then 347 else 400
+	plot.signBoast.Position = UDim2.fromOffset(7, top)
+	plot.signBoast.Size = UDim2.new(1, -14, 0, bottom - top)
 end
 
 -- The season tier chip (Phase 5.1); nil text hides it.
@@ -3129,6 +3028,7 @@ function PlotService.setSeasonChip(plot: Plot, text: string?, colour: Color3?)
 			label.Text = text
 		end
 	end
+	layoutSign(plot)
 end
 
 -- The NEMESIS line (Phase 5.1); nil name hides it and gives the boasts back
@@ -3141,13 +3041,155 @@ function PlotService.setNemesis(plot: Plot, name: string?, count: number?)
 	local shown = name ~= nil and (count or 0) > 0
 	line.Visible = shown
 	line.Text = if shown then ("NEMESIS: %s (%d)"):format(name :: string, count :: number) else ""
-	plot.signBoast.Size = UDim2.new(1, -14, 0, if shown then 82 else 126)
+	layoutSign(plot)
 end
 
-function PlotService.setSignPass(plot: Plot, word: string?, colour: Color3?)
-	plot.signWord = word
-	plot.signColour = colour
+-- ============================================================
+-- THE VIP SIGNPOST
+-- ============================================================
+--
+-- VIP IS A BETTER SIGN, NOT A WORD ON THE SIGN. It used to print "VIP" at
+-- the front of the boast row and turn the name a flat gold; now the whole
+-- signpost is dressed: lacquered black post, gold cap, finial and links, a
+-- velvet frame ringed with marquee bulbs, a dark velvet panel, and the
+-- owner's name in gold with a travelling shine (`Shared/SignShine` sweeps it
+-- on every client). The same velvet and gold as the Velvet Rope skin, so the
+-- sign and the pig read as one set.
+--
+-- Everything added follows the sign's own rules: anchored, non-colliding,
+-- non-querying, no shadow. The bulbs are a DEEP amber Neon, because a pale
+-- Neon renders as a white hole (the street lamp entry in CLAUDE.md).
+local VIP = {
+	lacquer = Color3.fromRGB(30, 22, 26),
+	gold = Color3.fromRGB(226, 178, 72),
+	velvet = Color3.fromRGB(122, 18, 38),
+	panel = Color3.fromRGB(56, 14, 26),
+	boast = Color3.fromRGB(246, 214, 150),
+	nemesis = Color3.fromRGB(255, 150, 130),
+	bulb = Color3.fromRGB(255, 150, 30),
+}
+local VIP_PART_STYLE: { [string]: { any } } = {
+	SignPlinth = { VIP.lacquer, Enum.Material.SmoothPlastic },
+	SignPost = { VIP.lacquer, Enum.Material.SmoothPlastic },
+	SignArm = { VIP.lacquer, Enum.Material.SmoothPlastic },
+	SignBrace = { VIP.lacquer, Enum.Material.SmoothPlastic },
+	SignCap = { VIP.gold, Enum.Material.SmoothPlastic },
+	SignLink = { VIP.gold, Enum.Material.SmoothPlastic },
+	Sign = { VIP.velvet, Enum.Material.SmoothPlastic },
+	SignPanel = { VIP.panel, Enum.Material.SmoothPlastic },
+}
+-- Gold with a pale band in the middle: `SignShine` slides the band across.
+local NAME_GOLD = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(214, 150, 36)),
+	ColorSequenceKeypoint.new(0.42, Color3.fromRGB(255, 214, 96)),
+	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 248, 214)),
+	ColorSequenceKeypoint.new(0.58, Color3.fromRGB(255, 214, 96)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(214, 150, 36)),
+})
+
+local function vipTrim(plot: Plot, on: boolean)
+	local kit = plot.signKit
+	local frame: Part? = nil
+	local cap: Part? = nil
+	for _, part in ipairs(kit.parts) do
+		if part.Name == "Sign" then frame = part end
+		if part.Name == "SignCap" then cap = part end
+	end
+	if not frame or not cap then return end
+	local old = frame.Parent and frame.Parent:FindFirstChild("VipSignTrim")
+	if old then old:Destroy() end
+	if not on then return end
+
+	local folder = Instance.new("Folder")
+	folder.Name = "VipSignTrim"
+	local function bit(name: string, shape: Enum.PartType, size: Vector3, cf: CFrame,
+		colour: Color3, material: Enum.Material)
+		local p = Instance.new("Part")
+		p.Name, p.Shape, p.Size, p.CFrame = name, shape, size, cf
+		p.Color, p.Material = colour, material
+		p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch, p.CastShadow = true, false, false, false, false
+		p.TopSurface, p.BottomSurface = Enum.SurfaceType.Smooth, Enum.SurfaceType.Smooth
+		p.Parent = folder
+	end
+	-- A gold ball sitting on the post's cap (cap is 0.5 tall).
+	bit("VipFinial", Enum.PartType.Ball, Vector3.new(0.8, 0.8, 0.8),
+		cap.CFrame * CFrame.new(0, 0.55, 0), VIP.gold, Enum.Material.SmoothPlastic)
+	-- MARQUEE BULBS round the frame's front border, which is 0.35 wide
+	-- between the frame (6.2 x 4.9) and the panel (5.5 x 4.2). The frame's
+	-- face is at z +0.175 and the panel's at +0.28, so a 0.24 bulb centred
+	-- at +0.24 stands proud of the frame, and it sits on the BORDER, so it
+	-- never covers a letter.
+	local halfW, halfH, z = 2.93, 2.27, 0.24
+	local frameCF = frame.CFrame
+	local function row(fromV: Vector3, toV: Vector3, count: number)
+		for i = 0, count do
+			bit("VipBulb", Enum.PartType.Ball, Vector3.new(0.24, 0.24, 0.24),
+				frameCF * CFrame.new(fromV:Lerp(toV, i / count)), VIP.bulb, Enum.Material.Neon)
+		end
+	end
+	row(Vector3.new(-halfW, halfH, z), Vector3.new(halfW, halfH, z), 8)
+	row(Vector3.new(-halfW, -halfH, z), Vector3.new(halfW, -halfH, z), 8)
+	row(Vector3.new(-halfW, halfH - 0.5, z), Vector3.new(-halfW, -halfH + 0.5, z), 5)
+	row(Vector3.new(halfW, halfH - 0.5, z), Vector3.new(halfW, -halfH + 0.5, z), 5)
+	folder.Parent = frame.Parent
 end
+
+-- Dresses this plot's sign for a pass style ("vip"), or puts it back with
+-- nil. Sticky on the plot, the way the old pass word was, so every caller of
+-- `updateSign` paints the right colours without passing anything -- and
+-- `release` calls it with nil BEFORE `updateSign`, or an empty plot keeps the
+-- last owner's velvet.
+function PlotService.setSignStyle(plot: Plot, style: string?)
+	plot.signStyle = style
+	local kit = plot.signKit
+	if not kit then return end
+	local vip = style == "vip"
+	for _, part in ipairs(kit.parts) do
+		local look = if vip then VIP_PART_STYLE[part.Name] else nil
+		local base = kit.defaults[part]
+		if look then
+			part.Color, part.Material = look[1], look[2]
+		elseif base then
+			part.Color, part.Material = base[1], base[2]
+		end
+	end
+	vipTrim(plot, vip)
+	kit.rule.BackgroundColor3 = if vip then VIP.gold else Color3.fromRGB(178, 150, 112)
+	plot.signBoast.TextColor3 = if vip then VIP.boast else Color3.fromRGB(150, 104, 44)
+	if plot.signNemesis then
+		plot.signNemesis.TextColor3 = if vip then VIP.nemesis else Color3.fromRGB(168, 48, 40)
+	end
+
+	-- THE NAME: white under a gold gradient (a gradient multiplies the text
+	-- colour), a dark edge so it holds on the velvet, and the `SignShine`
+	-- attribute that tells every client to sweep the highlight across it.
+	local label = plot.signLabel
+	local gradient = label:FindFirstChild("GoldShine") :: UIGradient?
+	local stroke = label:FindFirstChild("GoldEdge") :: UIStroke?
+	if vip then
+		if not gradient then
+			local g = Instance.new("UIGradient")
+			g.Name = "GoldShine"
+			g.Color = NAME_GOLD
+			g.Rotation = 20
+			g.Parent = label
+		end
+		if not stroke then
+			local e = Instance.new("UIStroke")
+			e.Name = "GoldEdge"
+			e.Color = Color3.fromRGB(58, 30, 8)
+			e.Thickness = 3
+			e.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+			e.Parent = label
+		end
+		label:SetAttribute("SignShine", true)
+	else
+		if gradient then gradient:Destroy() end
+		if stroke then stroke:Destroy() end
+		label:SetAttribute("SignShine", nil)
+	end
+end
+
 function PlotService.updateSign(plot: Plot, ownerName: string?, rebirths: number,
 	skinName: string?, houseName: string?)
 	if not ownerName then
@@ -3158,22 +3200,6 @@ function PlotService.updateSign(plot: Plot, ownerName: string?, rebirths: number
 	end
 
 	local boasts: { string } = {}
-	-- FIRST IN THE ROW, AND THAT BREAKS THE ORDERING ON PURPOSE.
-	--
-	-- The boasts are hardest-first: rebirths, then the house, then the skin.
-	-- A purchase has no place on a ladder of things you earned -- putting it
-	-- at the end would rank it below a skin, and putting it in the middle
-	-- would claim it sits between two achievements. It is a different CLASS
-	-- of thing, so it goes in front of the ladder rather than on a rung of
-	-- it.
-	--
-	-- IT IS ALSO THE SHORTEST THING THAT CAN GO THERE, which is not a
-	-- coincidence. This row has clipped before -- a maxed player's sign once
-	-- read "12* . Neon Tower ." with the skin missing off the end -- so a
-	-- fourth boast is only affordable at three characters.
-	if plot.signWord and plot.signWord ~= "" then
-		table.insert(boasts, plot.signWord)
-	end
 	if rebirths > 0 then
 		table.insert(boasts, ("%d*"):format(rebirths))
 	end
@@ -3188,12 +3214,9 @@ function PlotService.updateSign(plot: Plot, ownerName: string?, rebirths: number
 	-- boasts get their own smaller row underneath. Sharing one TextScaled
 	-- label meant buying a house shrank your own name.
 	plot.signLabel.Text = ownerName
-	-- THE SECOND CHANNEL, and it is on the NAME rather than on the word.
-	-- Colour alone separates things only for players who can see the
-	-- difference, which is the rule the rarity borders already follow -- so
-	-- the word carries it at any distance and the gold is what makes it
-	-- read from the pavement, where three characters will not.
-	plot.signLabel.TextColor3 = plot.signColour or SIGN_NAME_COLOUR
+	-- A VIP name is white under the gold gradient `setSignStyle` hung on it;
+	-- everybody else's is the sign's own brown.
+	plot.signLabel.TextColor3 = if plot.signStyle == "vip" then Color3.new(1, 1, 1) else SIGN_NAME_COLOUR
 	plot.signBoast.Text = table.concat(boasts, " · ")
 end
 
@@ -3303,7 +3326,7 @@ function PlotService.release(player: Player)
 	-- BEFORE `updateSign`, or the plot keeps the last owner's mark. Same
 	-- class as the house `release` once forgot: a plot that nobody owns
 	-- advertising the last person who did, with nothing erroring.
-	PlotService.setSignPass(plot, nil, nil)
+	PlotService.setSignStyle(plot, nil)
 	-- THE FLAG COMES DOWN WITH THE OWNER, and this answers the question the
 	-- roadmap asks of this feature: does a raised flag give away that
 	-- somebody is offline? It cannot, because a plot is RELEASED the moment
@@ -3347,8 +3370,6 @@ function PlotService.release(player: Player)
 	PlotService.applySkin(plot, Config.DEFAULT_SKIN)
 	PlotService.applyEffect(plot, Config.DEFAULT_EFFECT)
 	PlotService.updatePile(plot, 0, Config.BASE_CAPACITY)
-	plot.model:SetAttribute(Config.PLOT_ROBBED_ATTRIBUTE, nil)
-	PiggyBank.setRobbed(plot.piggy, false)
 	-- Wipe the previous owner's defences so the next arrival gets a bare
 	-- plot -- and put the house back to the Starter Shack with them. It was
 	-- the one thing release never reset, so a player leaving with a Sky
@@ -3392,6 +3413,114 @@ function PlotService.getOwnerOf(model: Model): Player?
 end
 
 
+-- DOES EVERY HOUSE FIT THE YARD IT IS SEATED IN? MEASURED AT BOOT, BECAUSE
+-- EVERY NUMBER IN THAT QUESTION HAS ALREADY BEEN WRONG ONCE.
+--
+-- `Config.YARD_DEPTH` is `HOUSE_FRONT_LINE` plus the deepest house plus
+-- `HOUSE_BACK_GAP`, and the middle term is a MEASUREMENT of generated geometry
+-- that nothing re-took. Its comment says 56.8 studs for the Sky Castle -- a
+-- figure from before all nine tiers were rebuilt low-poly, before the mesh and
+-- template paths were added ahead of the builders, and before the fantasy
+-- re-theme started moving what a row actually stands. The neighbouring
+-- derivation is already stale in exactly this way: HOUSE_FRONT_LINE's comment
+-- names "lawnF at z -19" as the rearmost lawn slot, and the slot table has
+-- lawnE and lawnF at -8, the back row having been retired.
+--
+-- This is the same argument `Config.auditFences` and `auditEconomy` are built
+-- on. The failure is a NUMBER: nothing errors, nothing looks wrong from a plan
+-- view, and what it produces is a house standing through somebody's back fence
+-- -- which this project has already shipped once, when houses were seated by
+-- the back wall instead of the front.
+--
+-- IT MEASURES PER PART AND SKIPS THE LIGHT SHOW, which is not a detail. A
+-- Model's bounding box is the extent of everything under it, and the top tiers
+-- park orbiting shards sixty-seven studs in the air -- this file's own record
+-- of the Sky Castle being "16.6 studs too wide" for months was that box
+-- measuring the sky. So the structure is what is compared against the fence,
+-- and the box is reported BESIDE it, because `House.build` seats itself on the
+-- box and the gap between the two is a real (pre-existing) skew in where a
+-- front wall actually lands.
+local function auditYard()
+	local scratch = Instance.new("Folder")
+	scratch.Name = "YardAudit"
+	scratch.Parent = workspace
+
+	local deepest, deepestName, widest, widestName = 0, "", 0, ""
+	local worstBack, worstBackName = math.huge, ""
+	local worstSide, worstSideName = math.huge, ""
+	local worstSkew = 0
+
+	-- The catalogue itself, never `getHouseTier` in a loop: that function
+	-- CLAMPS an out-of-range level to the last tier, so a walk that waits for
+	-- nil measures the Sky Castle forever and never terminates.
+	for index = 1, #Config.HOUSE_TIERS do
+		local tier = Config.HOUSE_TIERS[index]
+		local model = House.build(index - 1, CFrame.new(), scratch)
+
+		local minZ, maxZ, minX, maxX = math.huge, -math.huge, math.huge, -math.huge
+		for _, part in ipairs(model:GetDescendants()) do
+			if part:IsA("BasePart") and not CollectionService:HasTag(part, HouseFX.TAG) then
+				local size, cf = part.Size, part.CFrame
+				local hz = math.abs(cf.RightVector.Z) * size.X / 2
+					+ math.abs(cf.UpVector.Z) * size.Y / 2
+					+ math.abs(cf.LookVector.Z) * size.Z / 2
+				local hx = math.abs(cf.RightVector.X) * size.X / 2
+					+ math.abs(cf.UpVector.X) * size.Y / 2
+					+ math.abs(cf.LookVector.X) * size.Z / 2
+				minZ = math.min(minZ, cf.Position.Z - hz)
+				maxZ = math.max(maxZ, cf.Position.Z + hz)
+				minX = math.min(minX, cf.Position.X - hx)
+				maxX = math.max(maxX, cf.Position.X + hx)
+			end
+		end
+
+		if minZ < math.huge then
+			local depth, width = maxZ - minZ, maxX - minX
+			local _, boxSize = model:GetBoundingBox()
+			-- How far the seating's own box overshoots the structure. The
+			-- house is placed so the BOX's front lands on the front line, so
+			-- this is how far back the real front wall ends up.
+			local skew = math.max(0, (boxSize.Z - depth) / 2)
+
+			if depth > deepest then
+				deepest, deepestName = depth, tier.name
+			end
+			if width > widest then
+				widest, widestName = width, tier.name
+			end
+			-- Seated front-first, so the back wall lands this far in.
+			local back = Config.YARD_DEPTH - (Config.HOUSE_FRONT_LINE + skew + depth)
+			if back < worstBack then
+				worstBack, worstBackName = back, tier.name
+			end
+			local side = Config.PLOT_HALF_WIDTH - width / 2
+			if side < worstSide then
+				worstSide, worstSideName = side, tier.name
+			end
+			worstSkew = math.max(worstSkew, skew)
+		end
+		model:Destroy()
+	end
+	scratch:Destroy()
+
+	print(("[PlotService] houses fit the yard: deepest %s at %.1f, widest %s at %.1f;"
+		.. " tightest back-fence gap %.1f (%s), side-fence gap %.1f (%s);"
+		.. " worst FX seating skew %.1f")
+		:format(deepestName, deepest, widestName, widest,
+			worstBack, worstBackName, worstSide, worstSideName, worstSkew))
+
+	if worstBack < 0 then
+		warn(("[PlotService] the %s reaches %.1f studs THROUGH the back fence."
+			.. " Config.YARD_DEPTH must be at least HOUSE_FRONT_LINE + %.1f + HOUSE_BACK_GAP")
+			:format(worstBackName, -worstBack, deepest))
+	end
+	if worstSide < 0 then
+		warn(("[PlotService] the %s reaches %.1f studs through the SIDE fence"
+			.. " -- widen Config.PLOT_SIZE.X or narrow the house")
+			:format(worstSideName, -worstSide))
+	end
+end
+
 function PlotService.start()
 	Players.PlayerRemoving:Connect(function(player)
 		bouncedAt[player] = nil
@@ -3433,6 +3562,14 @@ function PlotService.start()
 	-- server-only, so its template is built here, once, before any plot can
 	-- possibly need it -- a saved lawn reconstructing on join is the one
 	-- moment this would otherwise race a purchase.
+	-- Before the plots, so a number that is wrong is named in the log above
+	-- the geometry it is wrong about. pcalled for the reason `Decor.prewarm`
+	-- is: a measurement may never stop the server starting.
+	local okYard, yardErr = pcall(auditYard)
+	if not okYard then
+		warn("[PlotService] yard audit failed: " .. tostring(yardErr))
+	end
+
 	Decor.prewarm()
 	AcornTree.prewarm()
 	AcornStorage.prewarm()

@@ -1,0 +1,352 @@
+{
+  "inputHashes": {
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\stormwolf\\stormwolf.blend": "2c5fa4dbb4c69ed682ccb3f07933ca8d73edcac2b26ebb360e483fc04a1fe6d3",
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\stormwolf\\stormwolf_body_color.png": "0cdb0d1dafe6ac3fb6205a69fdde69137bb669c80ddda87008cc6416406372ac",
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\pig\\pig_stormwolf_bolts.blend": "04ebf095b273935c3182aa258bca37f4eadc729bd7f0df37c193bde49cbb6b1f",
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\pig\\pig_parts.blend": "b83cbb017c66b54f55dc8c75a079085621440f1c4d2e12e356de712bbf169086"
+  },
+  "source": "Existing painted Storm Wolf and original UVs; chunky branching lightning and masked body glow",
+  "bodyGlow": {
+    "file": "stormwolf_body_emissive.png",
+    "sha256": "e5edafbf31f576d06d007d67d34a8001cd3d996c5200484fd53fc5634b3efc88",
+    "size": [
+      1024,
+      1024
+    ],
+    "coverageAboveTenPercent": 0.007343292236328125,
+    "selection": "Cyan saturation and brightness; neutral mane and dark coat excluded",
+    "idleStrength": 0.35,
+    "peakStrength": 5.0
+  },
+  "layout": {
+    "scaleToStuds": 6.0,
+    "vaultCenterBlender": [
+      0.0,
+      1.0110431909561157,
+      -0.33753421902656555
+    ],
+    "vaultNormalBlender": [
+      0.0,
+      0.9485368728637695,
+      -0.3166666626930237
+    ],
+    "vaultRadiusStuds": 1.43,
+    "coinSlotStuds": [
+      0.7,
+      3.15
+    ]
+  },
+  "vaultBlocked": [],
+  "coinSlot": "Covered by continuous mane, no visible slit or rim, as requested. Deposit anchor retained.",
+  "plateBlocked": [],
+  "meshes": [
+    {
+      "name": "Body",
+      "triangles": 19672,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Tail",
+      "triangles": 2548,
+      "nonManifoldEdges": 0
+    }
+  ],
+  "uv": [
+    {
+      "name": "Body",
+      "retainedSourceLoopsChecked": 51257,
+      "maxUVError": 0.0
+    },
+    {
+      "name": "Tail",
+      "retainedSourceLoopsChecked": 7326,
+      "maxUVError": 0.0
+    }
+  ],
+  "lightning": {
+    "fps": 30,
+    "frames": 60,
+    "loopSeconds": 2,
+    "mainBolts": 8,
+    "forks": 8,
+    "style": "Long, chunky, tapered jagged bolts with substantial branching tips",
+    "mainBoltBaseDiameterStuds": 0.6,
+    "bodyGlow": {
+      "mask": "stormwolf_body_emissive.png",
+      "idleStrength": 0.35,
+      "peakStrength": 5.0,
+      "mode": "Stepped brightness synchronized to strongest active bolt group"
+    },
+    "interpolation": "Instant on/off. Most flashes last one frame (33 ms); double strikes and quiet gaps vary per group.",
+    "groups": [
+      {
+        "name": "Lightning_p0",
+        "events": [
+          {
+            "frame": 3,
+            "strength": 1
+          },
+          {
+            "frame": 4,
+            "strength": 0
+          },
+          {
+            "frame": 6,
+            "strength": 0.55
+          },
+          {
+            "frame": 7,
+            "strength": 0
+          },
+          {
+            "frame": 11,
+            "strength": 1
+          },
+          {
+            "frame": 12,
+            "strength": 0
+          },
+          {
+            "frame": 34,
+            "strength": 1
+          },
+          {
+            "frame": 35,
+            "strength": 0.45
+          },
+          {
+            "frame": 36,
+            "strength": 0
+          },
+          {
+            "frame": 53,
+            "strength": 1
+          },
+          {
+            "frame": 54,
+            "strength": 0
+          }
+        ]
+      },
+      {
+        "name": "Lightning_p1",
+        "events": [
+          {
+            "frame": 11,
+            "strength": 1
+          },
+          {
+            "frame": 12,
+            "strength": 0
+          },
+          {
+            "frame": 14,
+            "strength": 0.7
+          },
+          {
+            "frame": 15,
+            "strength": 0
+          },
+          {
+            "frame": 38,
+            "strength": 1
+          },
+          {
+            "frame": 39,
+            "strength": 0
+          },
+          {
+            "frame": 41,
+            "strength": 0.5
+          },
+          {
+            "frame": 42,
+            "strength": 0
+          }
+        ]
+      },
+      {
+        "name": "Lightning_p2",
+        "events": [
+          {
+            "frame": 11,
+            "strength": 0.85
+          },
+          {
+            "frame": 12,
+            "strength": 0
+          },
+          {
+            "frame": 22,
+            "strength": 1
+          },
+          {
+            "frame": 23,
+            "strength": 0
+          },
+          {
+            "frame": 25,
+            "strength": 0.5
+          },
+          {
+            "frame": 26,
+            "strength": 0
+          },
+          {
+            "frame": 44,
+            "strength": 1
+          },
+          {
+            "frame": 45,
+            "strength": 0
+          }
+        ]
+      },
+      {
+        "name": "Lightning_p3",
+        "events": [
+          {
+            "frame": 6,
+            "strength": 1
+          },
+          {
+            "frame": 7,
+            "strength": 0
+          },
+          {
+            "frame": 11,
+            "strength": 0.8
+          },
+          {
+            "frame": 12,
+            "strength": 0
+          },
+          {
+            "frame": 31,
+            "strength": 1
+          },
+          {
+            "frame": 32,
+            "strength": 0.6
+          },
+          {
+            "frame": 33,
+            "strength": 0
+          },
+          {
+            "frame": 55,
+            "strength": 1
+          },
+          {
+            "frame": 56,
+            "strength": 0
+          }
+        ]
+      },
+      {
+        "name": "Lightning_p4",
+        "events": [
+          {
+            "frame": 9,
+            "strength": 1
+          },
+          {
+            "frame": 10,
+            "strength": 0
+          },
+          {
+            "frame": 11,
+            "strength": 0.65
+          },
+          {
+            "frame": 12,
+            "strength": 0
+          },
+          {
+            "frame": 27,
+            "strength": 0.9
+          },
+          {
+            "frame": 28,
+            "strength": 0
+          },
+          {
+            "frame": 47,
+            "strength": 1
+          },
+          {
+            "frame": 48,
+            "strength": 0
+          }
+        ]
+      },
+      {
+        "name": "Lightning_p5",
+        "events": [
+          {
+            "frame": 11,
+            "strength": 1
+          },
+          {
+            "frame": 12,
+            "strength": 0
+          },
+          {
+            "frame": 18,
+            "strength": 1
+          },
+          {
+            "frame": 19,
+            "strength": 0
+          },
+          {
+            "frame": 20,
+            "strength": 0.4
+          },
+          {
+            "frame": 21,
+            "strength": 0
+          },
+          {
+            "frame": 50,
+            "strength": 1
+          },
+          {
+            "frame": 51,
+            "strength": 0
+          }
+        ]
+      }
+    ]
+  },
+  "tailMountBlender": [
+    0.0,
+    0.9100000262260437,
+    0.07999999821186066
+  ],
+  "tailLiftDegrees": 5,
+  "changes": [
+    "Closed the original four-edge mesh pinhole",
+    "Hollow interior chamber",
+    "Flush rear vault opening, no exterior collar",
+    "Continuous mane conceals the coin deposit location; no visible slot",
+    "Original tail centred just above the opening and projecting rearward",
+    "Removed all six original bolt meshes; eight longer branching bolts in six rapid flicker groups"
+  ],
+  "meshCount": 9,
+  "totalTriangles": 23516,
+  "fbxRoundTripBoundsError": 9.5367431640625e-07,
+  "boundsStuds": {
+    "min": [
+      -7.875307083129883,
+      -8.944202423095703,
+      -6.119999885559082
+    ],
+    "max": [
+      7.872226238250732,
+      13.209993362426758,
+      11.77006721496582
+    ]
+  },
+  "animation": "Six new lightning groups, stepped visibility and emission, 60-frame Blender preview; Studio helper included separately. FBX geometry is static."
+}

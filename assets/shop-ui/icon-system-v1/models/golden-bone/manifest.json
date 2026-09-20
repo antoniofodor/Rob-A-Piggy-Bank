@@ -1,0 +1,38 @@
+{
+  "root": "authored center at (0,0,0)",
+  "runtimeKey": "golden",
+  "boundsBlender": [
+    [
+      -0.582800030708313,
+      -1.3391996622085571,
+      -0.2851998507976532
+    ],
+    [
+      0.582800030708313,
+      1.3391999006271362,
+      0.2852000296115875
+    ]
+  ],
+  "sizeRoblox": [
+    1.165600061416626,
+    0.5703998804092407,
+    2.6783995628356934
+  ],
+  "coordinates": "Blender XYZ to Roblox (x,z,-y); 1 unit = 1 stud",
+  "attachmentsRoblox": {
+    "GlintA": [
+      0,
+      0,
+      0.95
+    ],
+    "GlintB": [
+      0,
+      0,
+      -0.95
+    ]
+  },
+  "triangles": {
+    "GoldenBone": 4800
+  },
+  "effects": "Optional SupplyEffects helper; no particle geometry exported"
+}

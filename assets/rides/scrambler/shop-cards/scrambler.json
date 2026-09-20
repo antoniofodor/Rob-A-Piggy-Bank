@@ -1,0 +1,11 @@
+{
+  "id": "scrambler",
+  "name": "Volt Scrambler",
+  "parts": 71,
+  "turned": true,
+  "source": "assets/rides/ride-geometry.json",
+  "sourceSha256": "7106ab51ea87ce8d5a173aad08f492540e13c5459532f1d004a7c8ed83326740",
+  "image": "assets/rides/scrambler/shop-cards/scrambler.png",
+  "sha256": "467e96aff3525c0a8bb755b50ba5ed599c4fc5f0f1c903d827edb05dbe38b92d",
+  "robloxAssetId": "rbxassetid://129344091194039"
+}

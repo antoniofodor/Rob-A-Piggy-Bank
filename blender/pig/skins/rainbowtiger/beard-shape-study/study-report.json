@@ -1,0 +1,66 @@
+{
+  "status": "Isolated geometry review; not installed on the game model",
+  "width_fullness": 2.05,
+  "depth_fullness": 2.7,
+  "layer_offsets": {
+    "LongOuter": [
+      15,
+      -12
+    ],
+    "MiddleSweep": [
+      12,
+      -30
+    ],
+    "LowerSweep": [
+      -6,
+      -25
+    ],
+    "LongBottom": [
+      -14,
+      -26
+    ]
+  },
+  "meshes": [
+    {
+      "name": "RootPatch",
+      "triangles": 2256,
+      "closed": true
+    },
+    {
+      "name": "LongOuter",
+      "triangles": 2256,
+      "closed": true
+    },
+    {
+      "name": "LongBottom",
+      "triangles": 2256,
+      "closed": true
+    },
+    {
+      "name": "ShortDown",
+      "triangles": 2256,
+      "closed": true
+    },
+    {
+      "name": "ShortOut",
+      "triangles": 2256,
+      "closed": true
+    },
+    {
+      "name": "LowerSweep",
+      "triangles": 2256,
+      "closed": true
+    },
+    {
+      "name": "UpperSweep",
+      "triangles": 2256,
+      "closed": true
+    },
+    {
+      "name": "MiddleSweep",
+      "triangles": 2256,
+      "closed": true
+    }
+  ],
+  "triangles": 18048
+}

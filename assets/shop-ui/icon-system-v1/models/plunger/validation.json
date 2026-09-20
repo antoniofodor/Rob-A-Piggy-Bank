@@ -1,0 +1,25 @@
+{
+  "triangles": {
+    "RubberCup": 9984,
+    "Handle": 3252
+  },
+  "closedManifold": true,
+  "innerCupHitsZ": [
+    -0.40473,
+    -0.46395,
+    -0.46395,
+    -0.46395,
+    -0.46395
+  ],
+  "exports": {
+    "glb": {
+      "boundsError": 0.0,
+      "packedPalette": true
+    },
+    "fbx": {
+      "boundsError": 2.384185791015625e-07,
+      "packedPalette": true
+    }
+  },
+  "sourceSHA256": "27cf8664b7e22feadccc942f710724526a7adeaad62a95fcf843895337034fdf"
+}

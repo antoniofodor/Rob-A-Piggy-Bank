@@ -12,11 +12,17 @@ local cards: { [Instance]: any } = {}
 local cooldown: { [number]: number } = {}
 local recovery: any = nil
 local myPicks, mySack, stealMultiplier = 0, 0, 1
--- The reader's own pig, for the home-take cap (Config.homeTake). nil until
--- the first StateUpdate, and the badge falls back to the pile until then.
-local myCoins: number?, myCapacity: number? = nil, nil
 local REACH = Config.STREET_SPACING + Config.PLOT_SPACING
-local CARD_W, CARD_H, LOCK_ROW, TAG_H = 224, 42, 10, 20
+-- A ROB FIGURE IS READ FROM THE PAVEMENT AND IS NOT THE LOUDEST THING ON
+-- THE STREET. At 224 x 42 with a 29px figure this card was wider than the
+-- pig it hangs over and read as a shop sign rather than as a price tag --
+-- eight of them across a street is a wall of gold type. The card carries the
+-- same four states at 150 x 30; what shrank is the type, not the vocabulary.
+local CARD_W, CARD_H, LOCK_ROW, TAG_H = 150, 30, 8, 16
+-- The figure's ceiling, plain and with an event multiplier running. `big` is
+-- the only thing on this card allowed to grow, because a doubled take is the
+-- one moment the number is the news.
+local TEXT_MAX, TEXT_MAX_BIG = 20, 26
 
 local function clockText(seconds: number): string
 	local left = math.max(0, math.ceil(seconds))
@@ -35,28 +41,26 @@ function RobBadge.describe(facts: any, now: number): any
 	elseif (facts.capped or 0) > now then
 		return { text = "CAPPED", timer = clockText(facts.capped - now), tone = "WARN_INK", glyph = "⌛" }
 	end
-	-- WHAT THE READER CAN CARRY HOME, NOT WHAT IS IN THE PIG (designer
-	-- direction, 4c.6): a clean crack's take, paid out and capped at the room
-	-- in the reader's own pig. A full pig says so instead of a number, because
-	-- "0" reads as an empty target.
+	-- WHAT A CLEAN CRACK CARRIES HOME. Not capped at the reader's own room any
+	-- more, and there is therefore no PIG FULL state on this card -- the cap
+	-- made a badge about THEIR pig report a fact about YOURS, on all eight at
+	-- once. See `Config.homeWorth` for the whole argument; the piggy panel
+	-- carries "you have no room" now.
 	if facts.home ~= nil then
-		if facts.home <= 0 then
-			return { text = "PIG FULL", timer = "", tone = "WARN_INK", glyph = "●" }
-		end
 		return { text = Config.formatCoins(facts.home), timer = "", tone = "GOLD_INK", available = true }
 	end
 	return { text = Config.formatCoins(facts.vault * (facts.multiplier or 1)), timer = "", tone = "GOLD_INK", available = true }
 end
 
--- The figure `describe` prints for an available pig, or nil before the
--- reader's own pig has been pushed.
-function RobBadge.homeFigure(vault: number?, sack: number, multiplier: number?,
-	coins: number?, capacity: number?): number?
-	if coins == nil or capacity == nil then
-		return nil
-	end
-	return (Config.homeTake(vault, Config.getCrackFraction(Config.CRACK.maxSteps, sack),
-		multiplier, coins, capacity))
+-- The figure `describe` prints for an available pig: a clean five-slice crack
+-- at this reader's sack, times any event multiplier, times HEIST_PAYOUT.
+--
+-- It needs nothing about the reader's own balance, which is the point: the
+-- badge is a price tag on somebody else's pig and can be drawn before the
+-- first StateUpdate has ever arrived.
+function RobBadge.homeFigure(vault: number?, sack: number, multiplier: number?): number
+	return Config.homeWorth(vault,
+		Config.getCrackFraction(Config.CRACK.maxSteps, sack), multiplier)
 end
 
 function RobBadge.recoverable(state: any, victimId: number, now: number): boolean
@@ -87,20 +91,20 @@ local function build(body: BasePart): any
 		return text
 	end
 	local glyph = label("Glyph", card)
-	glyph.Size, glyph.Position, glyph.TextSize = UDim2.fromOffset(24, 32), UDim2.fromOffset(9, 4), 22
-	local coin = Theme.coin(card, 22)
-	coin.Position = UDim2.fromOffset(10, 10)
+	glyph.Size, glyph.Position, glyph.TextSize = UDim2.fromOffset(17, 22), UDim2.fromOffset(7, 4), 15
+	local coin = Theme.coin(card, 16)
+	coin.Position = UDim2.fromOffset(8, 7)
 	local text = label("Label", card)
-	text.Position, text.Size = UDim2.fromOffset(40, 4), UDim2.new(1, -50, 0, 32)
+	text.Position, text.Size = UDim2.fromOffset(28, 3), UDim2.new(1, -36, 0, 24)
 	text.TextXAlignment, text.TextScaled = Enum.TextXAlignment.Left, true
 	local limit = Instance.new("UITextSizeConstraint")
-	limit.MinTextSize, limit.MaxTextSize, limit.Parent = 14, 29, text
+	limit.MinTextSize, limit.MaxTextSize, limit.Parent = 10, TEXT_MAX, text
 	local timer = label("Timer", card)
-	timer.Position, timer.Size = UDim2.new(1, -55, 0, 4), UDim2.fromOffset(45, 32)
-	timer.Font, timer.TextSize, timer.TextXAlignment = Enum.Font.GothamBold, 16, Enum.TextXAlignment.Right
+	timer.Position, timer.Size = UDim2.new(1, -38, 0, 3), UDim2.fromOffset(32, 24)
+	timer.Font, timer.TextSize, timer.TextXAlignment = Enum.Font.GothamBold, 12, Enum.TextXAlignment.Right
 	local locks = Instance.new("Frame")
 	locks.Name, locks.BackgroundTransparency = "Locks", 1
-	locks.Position, locks.Size = UDim2.fromOffset(12, CARD_H - 3), UDim2.fromOffset(64, 4)
+	locks.Position, locks.Size = UDim2.fromOffset(9, CARD_H - 3), UDim2.fromOffset(46, 3)
 	locks.Parent = card
 	local def = Config.UPGRADES[Config.CASING.upgrade]
 	for i = 1, if def then def.max else 0 do
@@ -111,9 +115,9 @@ local function build(body: BasePart): any
 		Theme.corner(pip, 2)
 	end
 	local tag = label("RecoveryTag", gui)
-	tag.AnchorPoint, tag.Position = Vector2.new(1, 0), UDim2.new(1, -7, 0, 0)
-	tag.Size, tag.BackgroundTransparency = UDim2.fromOffset(146, TAG_H), 0
-	tag.BackgroundColor3, tag.TextColor3, tag.TextSize = Theme.STOP_INK, Theme.PAPER, 13
+	tag.AnchorPoint, tag.Position = Vector2.new(1, 0), UDim2.new(1, -5, 0, 0)
+	tag.Size, tag.BackgroundTransparency = UDim2.fromOffset(104, TAG_H), 0
+	tag.BackgroundColor3, tag.TextColor3, tag.TextSize = Theme.STOP_INK, Theme.PAPER, 11
 	Theme.corner(tag, 5)
 	return { gui = gui, card = card, label = text, timer = timer, glyph = glyph, coin = coin, locks = locks, tag = tag, limit = limit }
 end
@@ -139,7 +143,7 @@ local function paint()
 			firstJob = owner and owner:GetAttribute(Config.PLAYER_FIRST_JOB_ATTRIBUTE) == true,
 			cooldown = cooldown[victimId], vault = vault,
 			capped = plot:GetAttribute(Config.PLOT_CAPPED_ATTRIBUTE), multiplier = stealMultiplier,
-			home = RobBadge.homeFigure(vault, mySack, stealMultiplier, myCoins, myCapacity),
+			home = RobBadge.homeFigure(vault, mySack, stealMultiplier),
 		}, now)
 		local recover = RobBadge.recoverable(recovery, victimId, now)
 		local hot = (plot:GetAttribute(Config.PLOT_HOT_SKIN_ATTRIBUTE) or 0) > now
@@ -151,14 +155,14 @@ local function paint()
 		local showLocks = spec.available and Config.canCase(myPicks)
 		badge.locks.Visible = showLocks == true
 		local big = spec.available and stealMultiplier > 1
-		local width, height = if big then 244 else CARD_W, if big then 54 else CARD_H
+		local width, height = if big then 166 else CARD_W, if big then 38 else CARD_H
 		local tagHeight = if recover or hot then TAG_H else 0
 		local lockHeight = if showLocks then LOCK_ROW else 0
 		badge.gui.Size = UDim2.fromOffset(width, height + lockHeight + tagHeight)
 		badge.card.Position, badge.card.Size = UDim2.fromOffset(0, tagHeight), UDim2.new(1, 0, 0, height + lockHeight)
-		badge.label.Size = UDim2.new(1, if spec.timer ~= "" then -98 else -50, 0, height - 8)
-		badge.limit.MaxTextSize = if big then 38 else 29
-		badge.locks.Position = UDim2.fromOffset(12, height - 3)
+		badge.label.Size = UDim2.new(1, if spec.timer ~= "" then -68 else -36, 0, height - 6)
+		badge.limit.MaxTextSize = if big then TEXT_MAX_BIG else TEXT_MAX
+		badge.locks.Position = UDim2.fromOffset(9, height - 3)
 		if showLocks then
 			local level = plot:GetAttribute(Config.PLOT_LOCK_ATTRIBUTE) or 0
 			for _, pip in ipairs(badge.locks:GetChildren()) do
@@ -177,11 +181,6 @@ function RobBadge.start(player: Player)
 		myPicks = (row and row.level) or 0
 		local sack = state and state.sack
 		mySack = (sack and sack.level) or 0
-	end)
-	Remotes.get("StateUpdate").OnClientEvent:Connect(function(state)
-		if type(state) == "table" and type(state.coins) == "number" and type(state.capacity) == "number" then
-			myCoins, myCapacity = state.coins, state.capacity
-		end
 	end)
 	Remotes.get("StealCooldown").OnClientEvent:Connect(function(id, deadline) cooldown[id] = deadline end)
 	Remotes.get("RecoveryObjective").OnClientEvent:Connect(function(state) recovery = state end)

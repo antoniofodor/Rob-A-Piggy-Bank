@@ -1,0 +1,74 @@
+{
+  "size": [
+    768,
+    512
+  ],
+  "rides": [
+    {
+      "id": "skateboard",
+      "name": "Skateboard",
+      "parts": 22,
+      "turned": true,
+      "source": "assets/rides/ride-geometry.json",
+      "sourceSha256": "81dd39e3e1787d0218ad2329ec481d0f238ba19fba978ea345670f7a7aa01cda",
+      "image": "assets/rides/skateboard/shop-cards/skateboard.png",
+      "sha256": "07b7f890a77a1edba7149ad94ea9cb680d70498787b10ec1dcbf4c5e6090bd68",
+      "robloxAssetId": "rbxassetid://82240531668741"
+    },
+    {
+      "id": "bmx",
+      "name": "BMX Bike",
+      "parts": 22,
+      "turned": true,
+      "source": "assets/rides/ride-geometry.json",
+      "sourceSha256": "7cf9ac0766e128b71adf3107cb7b50584c85ba85adfb8941ef311f599fd2bf53",
+      "image": "assets/rides/bmx/shop-cards/bmx.png",
+      "sha256": "36f05423c7b184e54d3a0f371414a8d107d5c5540bf7d1ea379dd836a07b30f5",
+      "robloxAssetId": "rbxassetid://121211067763511"
+    },
+    {
+      "id": "scooter",
+      "name": "E-Scooter",
+      "parts": 14,
+      "turned": true,
+      "source": "assets/rides/ride-geometry.json",
+      "sourceSha256": "9c1dc94e46d082a53f04d1c12a96d4a4ac76cb0cb74d2c7d75d7b7133515846f",
+      "image": "assets/rides/scooter/shop-cards/scooter.png",
+      "sha256": "b342a66b442b0778a80cfe1aeec4a2e54c7283f8eef01b3b6fe8981345c45bd3",
+      "robloxAssetId": "rbxassetid://74320112276842"
+    },
+    {
+      "id": "hoverboard",
+      "name": "Hoverboard",
+      "parts": 38,
+      "turned": true,
+      "source": "assets/rides/ride-geometry.json",
+      "sourceSha256": "bf1c16759fe1302ced934a0d5b82c4a4fcda596e4e4c7c5654f03aa6b2b7842d",
+      "image": "assets/rides/hoverboard/shop-cards/hoverboard.png",
+      "sha256": "59ddc724d2cfac5148f879aab2a3613faf647badb72f0de04169cafbaceac12c",
+      "robloxAssetId": "rbxassetid://105930834977872"
+    },
+    {
+      "id": "scrambler",
+      "name": "Volt Scrambler",
+      "parts": 71,
+      "turned": true,
+      "source": "assets/rides/ride-geometry.json",
+      "sourceSha256": "7106ab51ea87ce8d5a173aad08f492540e13c5459532f1d004a7c8ed83326740",
+      "image": "assets/rides/scrambler/shop-cards/scrambler.png",
+      "sha256": "467e96aff3525c0a8bb755b50ba5ed599c4fc5f0f1c903d827edb05dbe38b92d",
+      "robloxAssetId": "rbxassetid://129344091194039"
+    },
+    {
+      "id": "hoverdisc",
+      "name": "Hoverdisc",
+      "parts": 19,
+      "turned": false,
+      "source": "assets/rides/ride-geometry.json",
+      "sourceSha256": "abc49323fe0c61987aca07c7c62684a73613d6f3986c846dc4cf877c082f3bdf",
+      "image": "assets/rides/hoverdisc/shop-cards/hoverdisc.png",
+      "sha256": "63f74dd089747a750378e7cf37a9c398bfb487c9e0f6048c043c31cc584779dd",
+      "robloxAssetId": "rbxassetid://123613429519195"
+    }
+  ]
+}

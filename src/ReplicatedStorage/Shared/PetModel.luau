@@ -266,6 +266,11 @@ function PetModel.build(key: string, at: CFrame?): Model?
 	local primary = model:FindFirstChild("Body") or model:FindFirstChild("Shell")
 	if primary and primary:IsA("BasePart") then
 		model.PrimaryPart = primary :: BasePart
+		-- THE PIVOT IS THE FEET, NOT THE BODY. Every builder authors y 0 at
+		-- the ground (a hovering pet is simply built higher), so the pivot
+		-- belongs at the model origin. Left on the body's centre, `PivotTo`
+		-- a ground point sank or floated a pet by its own body height.
+		;(primary :: BasePart).PivotOffset = (primary :: BasePart).CFrame:Inverse()
 	end
 	model:PivotTo(at or CFrame.new())
 	return model

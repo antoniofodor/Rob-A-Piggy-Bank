@@ -1,0 +1,499 @@
+{
+  "export": "beehive-cottage-roblox.fbx",
+  "meshCount": 40,
+  "triangles": 14160,
+  "singleMaterialPerMesh": true,
+  "fbxRoundTripMaxBoundsError": 3.296881914138794e-07,
+  "meshes": [
+    {
+      "name": "Foundation_Grass",
+      "section": "Foundation",
+      "material": "Grass",
+      "colorRGB": [
+        91,
+        121,
+        61
+      ],
+      "triangles": 112,
+      "roblox": {}
+    },
+    {
+      "name": "EntrancePod_WaxLight",
+      "section": "EntrancePod",
+      "material": "WaxLight",
+      "colorRGB": [
+        222,
+        171,
+        71
+      ],
+      "triangles": 96,
+      "roblox": {}
+    },
+    {
+      "name": "Approach_WalkWall",
+      "section": "Approach",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        191,
+        102
+      ],
+      "triangles": 51,
+      "roblox": {}
+    },
+    {
+      "name": "HoneycombWindows_Amber",
+      "section": "HoneycombWindows",
+      "material": "Amber",
+      "colorRGB": [
+        250,
+        177,
+        57
+      ],
+      "triangles": 60,
+      "roblox": {}
+    },
+    {
+      "name": "Approach_WaxLight",
+      "section": "Approach",
+      "material": "WaxLight",
+      "colorRGB": [
+        222,
+        171,
+        71
+      ],
+      "triangles": 337,
+      "roblox": {}
+    },
+    {
+      "name": "HoneycombWindows_WaxDark",
+      "section": "HoneycombWindows",
+      "material": "WaxDark",
+      "colorRGB": [
+        125,
+        77,
+        29
+      ],
+      "triangles": 312,
+      "roblox": {}
+    },
+    {
+      "name": "BeehiveShell_WaxLight",
+      "section": "BeehiveShell",
+      "material": "WaxLight",
+      "colorRGB": [
+        222,
+        171,
+        71
+      ],
+      "triangles": 675,
+      "roblox": {}
+    },
+    {
+      "name": "HoneyDrips_Honey",
+      "section": "HoneyDrips",
+      "material": "Honey",
+      "colorRGB": [
+        236,
+        151,
+        24
+      ],
+      "triangles": 4176,
+      "roblox": {}
+    },
+    {
+      "name": "WaxChimney_Ink",
+      "section": "WaxChimney",
+      "material": "Ink",
+      "colorRGB": [
+        29,
+        27,
+        37
+      ],
+      "triangles": 20,
+      "roblox": {}
+    },
+    {
+      "name": "Garden_WaxDark",
+      "section": "Garden",
+      "material": "WaxDark",
+      "colorRGB": [
+        125,
+        77,
+        29
+      ],
+      "triangles": 80,
+      "roblox": {}
+    },
+    {
+      "name": "WalkFloor_WalkFloor",
+      "section": "WalkFloor",
+      "material": "WalkFloor",
+      "colorRGB": [
+        177,
+        128,
+        63
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkCeiling_WalkWall",
+      "section": "WalkCeiling",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        191,
+        102
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkSideLeftWall_WalkWall",
+      "section": "WalkSideLeftWall",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        191,
+        102
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkSideRightWall_WalkWall",
+      "section": "WalkSideRightWall",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        191,
+        102
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkRearWall_WalkWall",
+      "section": "WalkRearWall",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        191,
+        102
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkFrontLeft_WalkWall",
+      "section": "WalkFrontLeft",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        191,
+        102
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkFrontRight_WalkWall",
+      "section": "WalkFrontRight",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        191,
+        102
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkLintel_WalkWall",
+      "section": "WalkLintel",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        191,
+        102
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageLeft_WalkWall",
+      "section": "WalkPassageLeft",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        191,
+        102
+      ],
+      "triangles": 24,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageRight_WalkWall",
+      "section": "WalkPassageRight",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        191,
+        102
+      ],
+      "triangles": 24,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageCeiling_WalkWall",
+      "section": "WalkPassageCeiling",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        191,
+        102
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageFloor_WalkFloor",
+      "section": "WalkPassageFloor",
+      "material": "WalkFloor",
+      "colorRGB": [
+        177,
+        128,
+        63
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach0_WalkFloor",
+      "section": "WalkApproach0",
+      "material": "WalkFloor",
+      "colorRGB": [
+        177,
+        128,
+        63
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach1_WalkFloor",
+      "section": "WalkApproach1",
+      "material": "WalkFloor",
+      "colorRGB": [
+        177,
+        128,
+        63
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach2_WalkFloor",
+      "section": "WalkApproach2",
+      "material": "WalkFloor",
+      "colorRGB": [
+        177,
+        128,
+        63
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkDoor",
+      "section": "HouseDoorLeaf_L",
+      "material": "WalkDoor",
+      "colorRGB": [
+        53,
+        117,
+        111
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim",
+      "section": "HouseDoorLeaf_L",
+      "material": "WalkTrim",
+      "colorRGB": [
+        59,
+        132,
+        125
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim.001",
+      "section": "HouseDoorLeaf_L",
+      "material": "WalkTrim",
+      "colorRGB": [
+        59,
+        132,
+        125
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkDoor",
+      "section": "HouseDoorLeaf_R",
+      "material": "WalkDoor",
+      "colorRGB": [
+        53,
+        117,
+        111
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim",
+      "section": "HouseDoorLeaf_R",
+      "material": "WalkTrim",
+      "colorRGB": [
+        59,
+        132,
+        125
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim.001",
+      "section": "HouseDoorLeaf_R",
+      "material": "WalkTrim",
+      "colorRGB": [
+        59,
+        132,
+        125
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkEntryJamb-1_WalkTrim",
+      "section": "WalkEntryJamb-1",
+      "material": "WalkTrim",
+      "colorRGB": [
+        59,
+        132,
+        125
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkEntryJamb1_WalkTrim",
+      "section": "WalkEntryJamb1",
+      "material": "WalkTrim",
+      "colorRGB": [
+        59,
+        132,
+        125
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkEntryHeader_WalkTrim",
+      "section": "WalkEntryHeader",
+      "material": "WalkTrim",
+      "colorRGB": [
+        59,
+        132,
+        125
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "BeehiveShell_Wax",
+      "section": "BeehiveShell",
+      "material": "Wax",
+      "colorRGB": [
+        190,
+        133,
+        40
+      ],
+      "triangles": 841,
+      "roblox": {}
+    },
+    {
+      "name": "BeehiveShell_WalkWall",
+      "section": "BeehiveShell",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        191,
+        102
+      ],
+      "triangles": 184,
+      "roblox": {}
+    },
+    {
+      "name": "BeehiveShell_WaxDark",
+      "section": "BeehiveShell",
+      "material": "WaxDark",
+      "colorRGB": [
+        125,
+        77,
+        29
+      ],
+      "triangles": 3408,
+      "roblox": {}
+    },
+    {
+      "name": "WaxChimney_WaxDark",
+      "section": "WaxChimney",
+      "material": "WaxDark",
+      "colorRGB": [
+        125,
+        77,
+        29
+      ],
+      "triangles": 20,
+      "roblox": {}
+    },
+    {
+      "name": "WaxChimney_WaxLight",
+      "section": "WaxChimney",
+      "material": "WaxLight",
+      "colorRGB": [
+        222,
+        171,
+        71
+      ],
+      "triangles": 20,
+      "roblox": {}
+    },
+    {
+      "name": "Garden_Leaf",
+      "section": "Garden",
+      "material": "Leaf",
+      "colorRGB": [
+        61,
+        107,
+        61
+      ],
+      "triangles": 3456,
+      "roblox": {}
+    }
+  ],
+  "collisionPartsDraft": 15,
+  "attachments": 2,
+  "basePartsWithCompanion": 56,
+  "routes": {
+    "samples": 0,
+    "blocked": [],
+    "method": "five vertical rays and two body cross-rays at three heights, 1.6-unit footprint; floor sampled below each centre; unmodeled outside ground assumed at zero"
+  },
+  "studioChecks": "not performed; actual avatar collision, camera, material colours and scale pending",
+  "notes": "Preview awards and presentation objects excluded. No runtime menus or animations included. Companion is a draft, not certified collision."
+}

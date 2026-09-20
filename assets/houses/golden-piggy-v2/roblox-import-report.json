@@ -1,0 +1,667 @@
+{
+  "export": "golden-piggy-roblox.fbx",
+  "meshCount": 54,
+  "triangles": 6324,
+  "singleMaterialPerMesh": true,
+  "fbxRoundTripMaxBoundsError": 3.814697265625e-06,
+  "meshes": [
+    {
+      "name": "Foundation_PigShade",
+      "section": "Foundation",
+      "material": "PigShade",
+      "colorRGB": [
+        183,
+        125,
+        30
+      ],
+      "triangles": 80,
+      "roblox": {}
+    },
+    {
+      "name": "Ears_EarPink",
+      "section": "Ears",
+      "material": "EarPink",
+      "colorRGB": [
+        205,
+        100,
+        105
+      ],
+      "triangles": 24,
+      "roblox": {}
+    },
+    {
+      "name": "Snout_PigShade",
+      "section": "Snout",
+      "material": "PigShade",
+      "colorRGB": [
+        183,
+        125,
+        30
+      ],
+      "triangles": 120,
+      "roblox": {}
+    },
+    {
+      "name": "BellyEntrance_WalkWall",
+      "section": "BellyEntrance",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        201,
+        112
+      ],
+      "triangles": 35,
+      "roblox": {}
+    },
+    {
+      "name": "Approach_WalkWall",
+      "section": "Approach",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        201,
+        112
+      ],
+      "triangles": 31,
+      "roblox": {}
+    },
+    {
+      "name": "EarBalconies_Timber",
+      "section": "EarBalconies",
+      "material": "Timber",
+      "colorRGB": [
+        98,
+        68,
+        40
+      ],
+      "triangles": 600,
+      "roblox": {}
+    },
+    {
+      "name": "CoinSlot_Ink",
+      "section": "CoinSlot",
+      "material": "Ink",
+      "colorRGB": [
+        29,
+        27,
+        37
+      ],
+      "triangles": 60,
+      "roblox": {}
+    },
+    {
+      "name": "Ears_PigLight",
+      "section": "Ears",
+      "material": "PigLight",
+      "colorRGB": [
+        247,
+        202,
+        84
+      ],
+      "triangles": 24,
+      "roblox": {}
+    },
+    {
+      "name": "Snout_Snout",
+      "section": "Snout",
+      "material": "Snout",
+      "colorRGB": [
+        225,
+        119,
+        145
+      ],
+      "triangles": 92,
+      "roblox": {}
+    },
+    {
+      "name": "Snout_Ink",
+      "section": "Snout",
+      "material": "Ink",
+      "colorRGB": [
+        29,
+        27,
+        37
+      ],
+      "triangles": 184,
+      "roblox": {}
+    },
+    {
+      "name": "Snout_Amber",
+      "section": "Snout",
+      "material": "Amber",
+      "colorRGB": [
+        250,
+        177,
+        57
+      ],
+      "triangles": 184,
+      "roblox": {}
+    },
+    {
+      "name": "BellyEntrance_PigGold",
+      "section": "BellyEntrance",
+      "material": "PigGold",
+      "colorRGB": [
+        231,
+        179,
+        57
+      ],
+      "triangles": 117,
+      "roblox": {}
+    },
+    {
+      "name": "Approach_PigLight",
+      "section": "Approach",
+      "material": "PigLight",
+      "colorRGB": [
+        247,
+        202,
+        84
+      ],
+      "triangles": 701,
+      "roblox": {}
+    },
+    {
+      "name": "EarBalconies_PigShade",
+      "section": "EarBalconies",
+      "material": "PigShade",
+      "colorRGB": [
+        183,
+        125,
+        30
+      ],
+      "triangles": 240,
+      "roblox": {}
+    },
+    {
+      "name": "CoinSlot_PigShade",
+      "section": "CoinSlot",
+      "material": "PigShade",
+      "colorRGB": [
+        183,
+        125,
+        30
+      ],
+      "triangles": 60,
+      "roblox": {}
+    },
+    {
+      "name": "PigBody_PigShade",
+      "section": "PigBody",
+      "material": "PigShade",
+      "colorRGB": [
+        183,
+        125,
+        30
+      ],
+      "triangles": 294,
+      "roblox": {}
+    },
+    {
+      "name": "RoundWindows_PigShade",
+      "section": "RoundWindows",
+      "material": "PigShade",
+      "colorRGB": [
+        183,
+        125,
+        30
+      ],
+      "triangles": 1184,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_SlotCoin_PigShade",
+      "section": "HouseFX_SlotCoin",
+      "material": "PigShade",
+      "colorRGB": [
+        183,
+        125,
+        30
+      ],
+      "triangles": 288,
+      "roblox": {}
+    },
+    {
+      "name": "TailChimney_PigGold",
+      "section": "TailChimney",
+      "material": "PigGold",
+      "colorRGB": [
+        231,
+        179,
+        57
+      ],
+      "triangles": 28,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_FlankAccent_1_PigLight",
+      "section": "HouseFX_FlankAccent_1",
+      "material": "PigLight",
+      "colorRGB": [
+        247,
+        202,
+        84
+      ],
+      "triangles": 288,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_FlankAccent_2_PigLight",
+      "section": "HouseFX_FlankAccent_2",
+      "material": "PigLight",
+      "colorRGB": [
+        247,
+        202,
+        84
+      ],
+      "triangles": 288,
+      "roblox": {}
+    },
+    {
+      "name": "WalkFloor_WalkFloor",
+      "section": "WalkFloor",
+      "material": "WalkFloor",
+      "colorRGB": [
+        194,
+        146,
+        50
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkCeiling_WalkWall",
+      "section": "WalkCeiling",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        201,
+        112
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkSideLeftWall_WalkWall",
+      "section": "WalkSideLeftWall",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        201,
+        112
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkSideRightWall_WalkWall",
+      "section": "WalkSideRightWall",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        201,
+        112
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkRearWall_WalkWall",
+      "section": "WalkRearWall",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        201,
+        112
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkFrontLeft_WalkWall",
+      "section": "WalkFrontLeft",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        201,
+        112
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkFrontRight_WalkWall",
+      "section": "WalkFrontRight",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        201,
+        112
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkLintel_WalkWall",
+      "section": "WalkLintel",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        201,
+        112
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageLeft_WalkWall",
+      "section": "WalkPassageLeft",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        201,
+        112
+      ],
+      "triangles": 24,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageRight_WalkWall",
+      "section": "WalkPassageRight",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        201,
+        112
+      ],
+      "triangles": 24,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageCeiling_WalkWall",
+      "section": "WalkPassageCeiling",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        201,
+        112
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageFloor_WalkFloor",
+      "section": "WalkPassageFloor",
+      "material": "WalkFloor",
+      "colorRGB": [
+        194,
+        146,
+        50
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach0_WalkFloor",
+      "section": "WalkApproach0",
+      "material": "WalkFloor",
+      "colorRGB": [
+        194,
+        146,
+        50
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach1_WalkFloor",
+      "section": "WalkApproach1",
+      "material": "WalkFloor",
+      "colorRGB": [
+        194,
+        146,
+        50
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach2_WalkFloor",
+      "section": "WalkApproach2",
+      "material": "WalkFloor",
+      "colorRGB": [
+        194,
+        146,
+        50
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach3_WalkFloor",
+      "section": "WalkApproach3",
+      "material": "WalkFloor",
+      "colorRGB": [
+        194,
+        146,
+        50
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach4_WalkFloor",
+      "section": "WalkApproach4",
+      "material": "WalkFloor",
+      "colorRGB": [
+        194,
+        146,
+        50
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach5_WalkFloor",
+      "section": "WalkApproach5",
+      "material": "WalkFloor",
+      "colorRGB": [
+        194,
+        146,
+        50
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach6_WalkFloor",
+      "section": "WalkApproach6",
+      "material": "WalkFloor",
+      "colorRGB": [
+        194,
+        146,
+        50
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkDoor",
+      "section": "HouseDoorLeaf_L",
+      "material": "WalkDoor",
+      "colorRGB": [
+        147,
+        100,
+        35
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim",
+      "section": "HouseDoorLeaf_L",
+      "material": "WalkTrim",
+      "colorRGB": [
+        166,
+        112,
+        39
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim.001",
+      "section": "HouseDoorLeaf_L",
+      "material": "WalkTrim",
+      "colorRGB": [
+        166,
+        112,
+        39
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkDoor",
+      "section": "HouseDoorLeaf_R",
+      "material": "WalkDoor",
+      "colorRGB": [
+        147,
+        100,
+        35
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim",
+      "section": "HouseDoorLeaf_R",
+      "material": "WalkTrim",
+      "colorRGB": [
+        166,
+        112,
+        39
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim.001",
+      "section": "HouseDoorLeaf_R",
+      "material": "WalkTrim",
+      "colorRGB": [
+        166,
+        112,
+        39
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkEntryJamb-1_WalkTrim",
+      "section": "WalkEntryJamb-1",
+      "material": "WalkTrim",
+      "colorRGB": [
+        166,
+        112,
+        39
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkEntryJamb1_WalkTrim",
+      "section": "WalkEntryJamb1",
+      "material": "WalkTrim",
+      "colorRGB": [
+        166,
+        112,
+        39
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkEntryHeader_WalkTrim",
+      "section": "WalkEntryHeader",
+      "material": "WalkTrim",
+      "colorRGB": [
+        166,
+        112,
+        39
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "PigBody_PigGold",
+      "section": "PigBody",
+      "material": "PigGold",
+      "colorRGB": [
+        231,
+        179,
+        57
+      ],
+      "triangles": 393,
+      "roblox": {}
+    },
+    {
+      "name": "PigBody_WalkWall",
+      "section": "PigBody",
+      "material": "WalkWall",
+      "colorRGB": [
+        232,
+        201,
+        112
+      ],
+      "triangles": 13,
+      "roblox": {}
+    },
+    {
+      "name": "RoundWindows_Amber",
+      "section": "RoundWindows",
+      "material": "Amber",
+      "colorRGB": [
+        250,
+        177,
+        57
+      ],
+      "triangles": 304,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_SlotCoin_PigLight",
+      "section": "HouseFX_SlotCoin",
+      "material": "PigLight",
+      "colorRGB": [
+        247,
+        202,
+        84
+      ],
+      "triangles": 92,
+      "roblox": {}
+    },
+    {
+      "name": "TailChimney_PigShade",
+      "section": "TailChimney",
+      "material": "PigShade",
+      "colorRGB": [
+        183,
+        125,
+        30
+      ],
+      "triangles": 240,
+      "roblox": {}
+    }
+  ],
+  "collisionPartsDraft": 19,
+  "attachments": 2,
+  "basePartsWithCompanion": 74,
+  "routes": {
+    "samples": 0,
+    "blocked": [],
+    "method": "five vertical rays and two body cross-rays at three heights, 1.6-unit footprint; floor sampled below each centre; unmodeled outside ground assumed at zero"
+  },
+  "studioChecks": "not performed; actual avatar collision, camera, material colours and scale pending",
+  "notes": "Preview awards and presentation objects excluded. No runtime menus or animations included. Companion is a draft, not certified collision."
+}

@@ -1,0 +1,333 @@
+{
+  "permanentModelCount": 18,
+  "seasonalExcluded": [
+    "candy"
+  ],
+  "status": "Blender coverage complete; see per-house integration status",
+  "models": [
+    {
+      "id": "shack",
+      "name": "Cardboard Fort",
+      "revision": 1,
+      "folder": "cardboard-fort-v1",
+      "blend": "cardboard-fort-v1/cardboard-fort.blend",
+      "fbx": "cardboard-fort-v1/cardboard-fort-roblox.fbx",
+      "boundsWDH": [
+        22.0,
+        20.44999933242798,
+        13.40000057220459
+      ],
+      "meshes": 18,
+      "triangles": 3932,
+      "batch": "new legacy rebuild",
+      "report": "cardboard-fort-v1/roblox-import-report.json",
+      "integration": "See per-house handoff; model existence is not live deployment"
+    },
+    {
+      "id": "cottage",
+      "name": "Beehive Cottage",
+      "revision": 1,
+      "folder": "beehive-cottage-v1",
+      "blend": "beehive-cottage-v1/beehive-cottage.blend",
+      "fbx": "beehive-cottage-v1/beehive-cottage-roblox.fbx",
+      "boundsWDH": [
+        28.0,
+        30.12999963760376,
+        22.360000617802143
+      ],
+      "meshes": 18,
+      "triangles": 13432,
+      "batch": "new legacy rebuild",
+      "report": "beehive-cottage-v1/roblox-import-report.json",
+      "integration": "See per-house handoff; model existence is not live deployment"
+    },
+    {
+      "id": "townhouse",
+      "name": "Wonky Townhouse",
+      "revision": 1,
+      "folder": "wonky-townhouse-v1",
+      "blend": "wonky-townhouse-v1/wonky-townhouse.blend",
+      "fbx": "wonky-townhouse-v1/wonky-townhouse-roblox.fbx",
+      "boundsWDH": [
+        29.0,
+        27.0,
+        35.76600646972656
+      ],
+      "meshes": 30,
+      "triangles": 10480,
+      "batch": "new legacy rebuild",
+      "report": "wonky-townhouse-v1/roblox-import-report.json",
+      "integration": "See per-house handoff; model existence is not live deployment"
+    },
+    {
+      "id": "mushroom",
+      "name": "Toadstool Cottage",
+      "revision": 1,
+      "folder": "toadstool-cottage-v1",
+      "blend": "toadstool-cottage-v1/toadstool-cottage.blend",
+      "fbx": "toadstool-cottage-v1/toadstool-cottage-visual.fbx",
+      "boundsWDH": [
+        25.200000762939453,
+        27.003118991851807,
+        14.399999618530273
+      ],
+      "meshes": 86,
+      "triangles": 5280,
+      "batch": "earlier model",
+      "report": "toadstool-cottage-v1/package-report.json",
+      "integration": "See per-house handoff; model existence is not live deployment"
+    },
+    {
+      "id": "villa",
+      "name": "Fairy Lantern Cottage",
+      "revision": 1,
+      "folder": "fairy-lantern-cottage-v1",
+      "blend": "fairy-lantern-cottage-v1/fairy-lantern-cottage.blend",
+      "fbx": "fairy-lantern-cottage-v1/fairy-lantern-cottage-roblox.fbx",
+      "boundsWDH": [
+        30.0,
+        26.34399938583374,
+        18.15999984741211
+      ],
+      "meshes": 30,
+      "triangles": 12364,
+      "batch": "earlier model",
+      "report": "fairy-lantern-cottage-v1/roblox-import-report.json",
+      "integration": "See per-house handoff; model existence is not live deployment"
+    },
+    {
+      "id": "treehouse",
+      "name": "The Treehouse",
+      "revision": 2,
+      "folder": "treehouse-v2",
+      "blend": "treehouse-v2/treehouse.blend",
+      "fbx": "treehouse-v2/treehouse-roblox.fbx",
+      "boundsWDH": [
+        55.72744941711426,
+        54.919240951538086,
+        39.89376974105835
+      ],
+      "meshes": 63,
+      "triangles": 29688,
+      "batch": "earlier model",
+      "report": "treehouse-v2/roblox-import-report.json",
+      "integration": "See per-house handoff; model existence is not live deployment"
+    },
+    {
+      "id": "manor",
+      "name": "Haunted Manor",
+      "revision": 1,
+      "folder": "haunted-manor-v1",
+      "blend": "haunted-manor-v1/haunted-manor.blend",
+      "fbx": "haunted-manor-v1/haunted-manor-roblox.fbx",
+      "boundsWDH": [
+        43.0,
+        33.00500011444092,
+        37.68750002980232
+      ],
+      "meshes": 44,
+      "triangles": 17386,
+      "batch": "new legacy rebuild",
+      "report": "haunted-manor-v1/roblox-import-report.json",
+      "integration": "See per-house handoff; model existence is not live deployment"
+    },
+    {
+      "id": "slime",
+      "name": "Gloop House",
+      "revision": 2,
+      "folder": "gloop-house-v2",
+      "blend": "gloop-house-v2/gloop-house.blend",
+      "fbx": "gloop-house-v2/gloop-house-roblox.fbx",
+      "boundsWDH": [
+        31.48243236541748,
+        33.201435565948486,
+        23.623006850481033
+      ],
+      "meshes": 17,
+      "triangles": 34980,
+      "batch": "earlier model",
+      "report": "gloop-house-v2/roblox-import-report.json",
+      "integration": "See per-house handoff; model existence is not live deployment"
+    },
+    {
+      "id": "modern",
+      "name": "Fishbowl House",
+      "revision": 1,
+      "folder": "fishbowl-house-v1",
+      "blend": "fishbowl-house-v1/fishbowl-house.blend",
+      "fbx": "fishbowl-house-v1/fishbowl-house-roblox.fbx",
+      "boundsWDH": [
+        38.599998474121094,
+        41.27999925613403,
+        19.649999618530273
+      ],
+      "meshes": 24,
+      "triangles": 18392,
+      "batch": "earlier model",
+      "report": "fishbowl-house-v1/roblox-import-report.json",
+      "integration": "See per-house handoff; model existence is not live deployment"
+    },
+    {
+      "id": "neontower",
+      "name": "Neon Tower",
+      "revision": 1,
+      "folder": "neon-tower-v1",
+      "blend": "neon-tower-v1/neon-tower.blend",
+      "fbx": "neon-tower-v1/neon-tower-roblox.fbx",
+      "boundsWDH": [
+        33.0,
+        34.86999988555908,
+        54.00000001490116
+      ],
+      "meshes": 50,
+      "triangles": 14356,
+      "batch": "new legacy rebuild",
+      "report": "neon-tower-v1/roblox-import-report.json",
+      "integration": "See per-house handoff; model existence is not live deployment"
+    },
+    {
+      "id": "crystal",
+      "name": "Crystal Spire",
+      "revision": 1,
+      "folder": "crystal-spire-v1",
+      "blend": "crystal-spire-v1/crystal-spire.blend",
+      "fbx": "crystal-spire-v1/crystal-spire-roblox.fbx",
+      "boundsWDH": [
+        23.871435165405273,
+        24.639999628067017,
+        45.0
+      ],
+      "meshes": 21,
+      "triangles": 2752,
+      "batch": "earlier model",
+      "report": "crystal-spire-v1/roblox-import-report.json",
+      "integration": "See per-house handoff; model existence is not live deployment"
+    },
+    {
+      "id": "palace",
+      "name": "Ice Palace",
+      "revision": 1,
+      "folder": "ice-palace-v1",
+      "blend": "ice-palace-v1/ice-palace.blend",
+      "fbx": "ice-palace-v1/ice-palace-roblox.fbx",
+      "boundsWDH": [
+        48.0,
+        35.829999923706055,
+        37.00000002980232
+      ],
+      "meshes": 34,
+      "triangles": 5904,
+      "batch": "earlier model",
+      "report": "ice-palace-v1/roblox-import-report.json",
+      "integration": "See per-house handoff; model existence is not live deployment"
+    },
+    {
+      "id": "skycastle",
+      "name": "Sky Castle",
+      "revision": 1,
+      "folder": "sky-castle-v1",
+      "blend": "sky-castle-v1/sky-castle.blend",
+      "fbx": "sky-castle-v1/sky-castle-roblox.fbx",
+      "boundsWDH": [
+        51.0,
+        46.93000030517578,
+        46.65000157058239
+      ],
+      "meshes": 55,
+      "triangles": 8280,
+      "batch": "new legacy rebuild",
+      "report": "sky-castle-v1/roblox-import-report.json",
+      "integration": "See per-house handoff; model existence is not live deployment"
+    },
+    {
+      "id": "galleon",
+      "name": "The Beached Galleon",
+      "revision": 1,
+      "folder": "beached-galleon-v1",
+      "blend": "beached-galleon-v1/beached-galleon.blend",
+      "fbx": "beached-galleon-v1/beached-galleon-roblox.fbx",
+      "boundsWDH": [
+        44.624868392944336,
+        24.75999927520752,
+        49.400001525878906
+      ],
+      "meshes": 37,
+      "triangles": 14276,
+      "batch": "earlier model",
+      "report": "beached-galleon-v1/roblox-import-report.json",
+      "integration": "See per-house handoff; model existence is not live deployment"
+    },
+    {
+      "id": "portal",
+      "name": "Portal House",
+      "revision": 1,
+      "folder": "portal-house-v1",
+      "blend": "portal-house-v1/portal-house.blend",
+      "fbx": "portal-house-v1/portal-house-roblox.fbx",
+      "boundsWDH": [
+        43.35000038146973,
+        40.5,
+        40.79999923706055
+      ],
+      "meshes": 56,
+      "triangles": 13748,
+      "batch": "earlier model",
+      "report": "portal-house-v1/roblox-import-report.json",
+      "integration": "See per-house handoff; model existence is not live deployment"
+    },
+    {
+      "id": "thundercloud",
+      "name": "Thundercloud Fortress",
+      "revision": 1,
+      "folder": "thundercloud-fortress-v1",
+      "blend": "thundercloud-fortress-v1/thundercloud-fortress.blend",
+      "fbx": "thundercloud-fortress-v1/thundercloud-fortress-roblox.fbx",
+      "boundsWDH": [
+        48.51527786254883,
+        34.42827129364014,
+        54.25000011920929
+      ],
+      "meshes": 44,
+      "triangles": 6942,
+      "batch": "earlier model",
+      "report": "thundercloud-fortress-v1/roblox-import-report.json",
+      "integration": "See per-house handoff; model existence is not live deployment"
+    },
+    {
+      "id": "void",
+      "name": "The Void",
+      "revision": 1,
+      "folder": "the-void-v1",
+      "blend": "the-void-v1/the-void.blend",
+      "fbx": "the-void-v1/the-void-roblox.fbx",
+      "boundsWDH": [
+        49.111005783081055,
+        45.75670528411865,
+        60.00000002980232
+      ],
+      "meshes": 52,
+      "triangles": 18362,
+      "batch": "earlier model",
+      "report": "the-void-v1/roblox-import-report.json",
+      "integration": "See per-house handoff; model existence is not live deployment"
+    },
+    {
+      "id": "goldenpig",
+      "name": "The Golden Piggy",
+      "revision": 1,
+      "folder": "golden-piggy-v1",
+      "blend": "golden-piggy-v1/golden-piggy.blend",
+      "fbx": "golden-piggy-v1/golden-piggy-roblox.fbx",
+      "boundsWDH": [
+        45.0,
+        33.0,
+        40.50000002980232
+      ],
+      "meshes": 27,
+      "triangles": 5512,
+      "batch": "earlier model",
+      "report": "golden-piggy-v1/roblox-import-report.json",
+      "integration": "See per-house handoff; model existence is not live deployment"
+    }
+  ]
+}

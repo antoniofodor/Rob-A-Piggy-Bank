@@ -1,0 +1,750 @@
+{
+  "id": "royal",
+  "title": "Stepped gallery / Legendary",
+  "status": "Draft furniture study; not integrated",
+  "clearInterior": [
+    26,
+    13,
+    20
+  ],
+  "minimumDoor": [
+    4,
+    7
+  ],
+  "parts": [
+    {
+      "name": "CollectionShelf_1",
+      "position": [
+        0,
+        1.62,
+        18.1
+      ],
+      "size": [
+        19.4,
+        0.36,
+        3
+      ],
+      "token": "PRESTIGE"
+    },
+    {
+      "name": "ShelfLip_1",
+      "position": [
+        0,
+        1.6,
+        16.580000000000002
+      ],
+      "size": [
+        19.4,
+        0.22,
+        0.12
+      ],
+      "token": "GOLD_DEEP"
+    },
+    {
+      "name": "CollectionShelf_2",
+      "position": [
+        0,
+        5.0200000000000005,
+        18.1
+      ],
+      "size": [
+        19.4,
+        0.36,
+        3
+      ],
+      "token": "PRESTIGE"
+    },
+    {
+      "name": "ShelfLip_2",
+      "position": [
+        0,
+        5.0,
+        16.580000000000002
+      ],
+      "size": [
+        19.4,
+        0.22,
+        0.12
+      ],
+      "token": "GOLD_DEEP"
+    },
+    {
+      "name": "CabinetUpright",
+      "position": [
+        -9.899999999999999,
+        4.15,
+        19.05
+      ],
+      "size": [
+        0.3,
+        8.3,
+        0.45
+      ],
+      "token": "GOLD_DEEP"
+    },
+    {
+      "name": "CabinetUpright",
+      "position": [
+        9.899999999999999,
+        4.15,
+        19.05
+      ],
+      "size": [
+        0.3,
+        8.3,
+        0.45
+      ],
+      "token": "GOLD_DEEP"
+    },
+    {
+      "name": "CabinetBack",
+      "position": [
+        0,
+        4.15,
+        19.76
+      ],
+      "size": [
+        20.099999999999998,
+        8.3,
+        0.22
+      ],
+      "token": "PRESTIGE"
+    },
+    {
+      "name": "AchievementFrame_1",
+      "position": [
+        -6.0,
+        9.7,
+        19.49
+      ],
+      "size": [
+        3.7,
+        2.8,
+        0.25
+      ],
+      "token": "GOLD_DEEP"
+    },
+    {
+      "name": "AchievementInset_1",
+      "position": [
+        -6.0,
+        9.7,
+        19.3
+      ],
+      "size": [
+        3.4,
+        2.5,
+        0.1
+      ],
+      "token": "PAPER"
+    },
+    {
+      "name": "AchievementFrame_2",
+      "position": [
+        -2.0,
+        9.7,
+        19.49
+      ],
+      "size": [
+        3.7,
+        2.8,
+        0.25
+      ],
+      "token": "GOLD_DEEP"
+    },
+    {
+      "name": "AchievementInset_2",
+      "position": [
+        -2.0,
+        9.7,
+        19.3
+      ],
+      "size": [
+        3.4,
+        2.5,
+        0.1
+      ],
+      "token": "PAPER"
+    },
+    {
+      "name": "AchievementFrame_3",
+      "position": [
+        2.0,
+        9.7,
+        19.49
+      ],
+      "size": [
+        3.7,
+        2.8,
+        0.25
+      ],
+      "token": "GOLD_DEEP"
+    },
+    {
+      "name": "AchievementInset_3",
+      "position": [
+        2.0,
+        9.7,
+        19.3
+      ],
+      "size": [
+        3.4,
+        2.5,
+        0.1
+      ],
+      "token": "PAPER"
+    },
+    {
+      "name": "AchievementFrame_4",
+      "position": [
+        6.0,
+        9.7,
+        19.49
+      ],
+      "size": [
+        3.7,
+        2.8,
+        0.25
+      ],
+      "token": "GOLD_DEEP"
+    },
+    {
+      "name": "AchievementInset_4",
+      "position": [
+        6.0,
+        9.7,
+        19.3
+      ],
+      "size": [
+        3.4,
+        2.5,
+        0.1
+      ],
+      "token": "PAPER"
+    },
+    {
+      "name": "FeaturedFoot",
+      "position": [
+        -10.4,
+        0.25,
+        3
+      ],
+      "size": [
+        4.4,
+        0.5,
+        4.4
+      ],
+      "token": "GOLD_DEEP"
+    },
+    {
+      "name": "FeaturedBase",
+      "position": [
+        -10.4,
+        1.1,
+        3
+      ],
+      "size": [
+        3.5,
+        1.2,
+        3.5
+      ],
+      "token": "PRESTIGE"
+    },
+    {
+      "name": "FeaturedTop",
+      "position": [
+        -10.4,
+        1.85,
+        3
+      ],
+      "size": [
+        4.4,
+        0.3,
+        4.4
+      ],
+      "token": "GOLD_DEEP"
+    },
+    {
+      "name": "RecordsDesk",
+      "position": [
+        10.4,
+        2.5,
+        3
+      ],
+      "size": [
+        4.2,
+        0.35,
+        2.6
+      ],
+      "token": "PRESTIGE"
+    },
+    {
+      "name": "DeskLeg",
+      "position": [
+        8.75,
+        1.15,
+        3.6
+      ],
+      "size": [
+        0.3,
+        2.3,
+        0.35
+      ],
+      "token": "GOLD_DEEP"
+    },
+    {
+      "name": "DeskLeg",
+      "position": [
+        12.05,
+        1.15,
+        3.6
+      ],
+      "size": [
+        0.3,
+        2.3,
+        0.35
+      ],
+      "token": "GOLD_DEEP"
+    },
+    {
+      "name": "BookCover",
+      "position": [
+        10.4,
+        2.76,
+        3
+      ],
+      "size": [
+        2.7,
+        0.14,
+        1.9
+      ],
+      "token": "GOLD_DEEP"
+    },
+    {
+      "name": "BookPages",
+      "position": [
+        10.4,
+        2.9,
+        3
+      ],
+      "size": [
+        2.5,
+        0.14,
+        1.75
+      ],
+      "token": "PAPER"
+    },
+    {
+      "name": "BookSpine",
+      "position": [
+        10.4,
+        3,
+        3
+      ],
+      "size": [
+        0.1,
+        0.08,
+        1.8
+      ],
+      "token": "PRESTIGE"
+    },
+    {
+      "name": "LegacyFrame",
+      "position": [
+        12.77,
+        4.1,
+        7
+      ],
+      "size": [
+        0.25,
+        3.5,
+        3.2
+      ],
+      "token": "GOLD_DEEP"
+    },
+    {
+      "name": "LegacyFace",
+      "position": [
+        12.57,
+        4.1,
+        7
+      ],
+      "size": [
+        0.1,
+        3.1,
+        2.8
+      ],
+      "token": "PAPER"
+    }
+  ],
+  "mounts": [
+    {
+      "name": "Shelf_1",
+      "position": [
+        -8.0,
+        1.8,
+        18.1
+      ],
+      "usableSize": [
+        2.8,
+        2.8,
+        2.8
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Shelf_2",
+      "position": [
+        -4.0,
+        1.8,
+        18.1
+      ],
+      "usableSize": [
+        2.8,
+        2.8,
+        2.8
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Shelf_3",
+      "position": [
+        0.0,
+        1.8,
+        18.1
+      ],
+      "usableSize": [
+        2.8,
+        2.8,
+        2.8
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Shelf_4",
+      "position": [
+        4.0,
+        1.8,
+        18.1
+      ],
+      "usableSize": [
+        2.8,
+        2.8,
+        2.8
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Shelf_5",
+      "position": [
+        8.0,
+        1.8,
+        18.1
+      ],
+      "usableSize": [
+        2.8,
+        2.8,
+        2.8
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Shelf_6",
+      "position": [
+        -8.0,
+        5.2,
+        18.1
+      ],
+      "usableSize": [
+        2.8,
+        2.8,
+        2.8
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Shelf_7",
+      "position": [
+        -4.0,
+        5.2,
+        18.1
+      ],
+      "usableSize": [
+        2.8,
+        2.8,
+        2.8
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Shelf_8",
+      "position": [
+        0.0,
+        5.2,
+        18.1
+      ],
+      "usableSize": [
+        2.8,
+        2.8,
+        2.8
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Shelf_9",
+      "position": [
+        4.0,
+        5.2,
+        18.1
+      ],
+      "usableSize": [
+        2.8,
+        2.8,
+        2.8
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Shelf_10",
+      "position": [
+        8.0,
+        5.2,
+        18.1
+      ],
+      "usableSize": [
+        2.8,
+        2.8,
+        2.8
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Wall",
+      "position": [
+        -6.0,
+        8.45,
+        18.98
+      ],
+      "usableSize": [
+        3.4,
+        2.5,
+        0.4
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Wall_2",
+      "position": [
+        -2.0,
+        8.45,
+        18.98
+      ],
+      "usableSize": [
+        3.4,
+        2.5,
+        0.4
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Wall_3",
+      "position": [
+        2.0,
+        8.45,
+        18.98
+      ],
+      "usableSize": [
+        3.4,
+        2.5,
+        0.4
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Wall_4",
+      "position": [
+        6.0,
+        8.45,
+        18.98
+      ],
+      "usableSize": [
+        3.4,
+        2.5,
+        0.4
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Featured",
+      "position": [
+        -10.4,
+        2,
+        3
+      ],
+      "usableSize": [
+        4.2,
+        4.2,
+        4.2
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Record",
+      "position": [
+        10.4,
+        2.68,
+        3
+      ],
+      "usableSize": [
+        4,
+        2.3,
+        2.2
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Plaque_Legacy",
+      "position": [
+        12.2,
+        2.55,
+        7
+      ],
+      "usableSize": [
+        2.8,
+        3.1,
+        0.4
+      ],
+      "yawDegrees": -90,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Interact_Achievements",
+      "position": [
+        0,
+        3,
+        16.4
+      ],
+      "usableSize": null,
+      "yawDegrees": 180,
+      "purpose": "interaction",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Stand_Achievements",
+      "position": [
+        0,
+        0,
+        14.5
+      ],
+      "usableSize": null,
+      "yawDegrees": 180,
+      "purpose": "standing",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Interact_Records",
+      "position": [
+        10.4,
+        3,
+        4
+      ],
+      "usableSize": null,
+      "yawDegrees": 180,
+      "purpose": "interaction",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Stand_Records",
+      "position": [
+        10.4,
+        0,
+        5.5
+      ],
+      "usableSize": null,
+      "yawDegrees": 180,
+      "purpose": "standing",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Interact_Legacy",
+      "position": [
+        12.0,
+        4,
+        7
+      ],
+      "usableSize": null,
+      "yawDegrees": 180,
+      "purpose": "interaction",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Stand_Legacy",
+      "position": [
+        9.2,
+        0,
+        7
+      ],
+      "usableSize": null,
+      "yawDegrees": 180,
+      "purpose": "standing",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Door_Exit",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "usableSize": null,
+      "yawDegrees": 180,
+      "purpose": "doorstep",
+      "facing": "local +Z faces viewer"
+    }
+  ],
+  "palette": {
+    "body": "PRESTIGE",
+    "trim": "GOLD_DEEP",
+    "inset": "PAPER"
+  },
+  "targetCounts": {
+    "featured": 1,
+    "collection": 10,
+    "wall": 4,
+    "records": 1,
+    "legacy": 1
+  }
+}

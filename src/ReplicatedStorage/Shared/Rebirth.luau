@@ -2,118 +2,88 @@
 --[[
 	Rebirth
 
-	The rebirth button, and the page that explains the trade before a player
-	makes it for the first time.
+	The rebirth button, and the decision page it opens. Built to
+	docs/REBIRTH-UI-REDESIGN.md with the art in assets/ui/rebirth-icons-v1.
 
 	A module for the reason `HouseFX`, `SpinWheel`, `AdminPanel` and `HotBar`
-	are: `ClientMain` is one chunk against Luau's 200-local ceiling. Moving the
-	button in here with the page hands two registers back rather than costing
-	one.
+	are: `ClientMain` is one chunk against Luau's 200-local ceiling.
 
 	----------------------------------------------------------------------
 
-	THE PAGE COMES BEFORE THE REBIRTH, NOT AFTER IT.
+	THE HUD BUTTON ALWAYS OPENS THE PAGE. It used to open it on the FIRST
+	rebirth only (`FIRST_TIME_ONLY`, keyed on `rebirths == 0`) and fire the
+	remote straight from the HUD on every one after, on the argument that a
+	confirmation everybody taps through is worse than none. What that shipped
+	was a button that, from rebirth two onward, silently reset a player's
+	coins and upgrades on ONE tap with nothing on screen first -- reported as
+	the page having "stopped showing". Only the page's own REBIRTH TO N sends
+	the request now, every time.
 
-	"Here is what you kept and what you lost" shown after the button is a
-	RECEIPT. Everything on it is already true and there is nothing the player
-	can do about any of it, which for a nine-year-old who did not understand
-	what they were pressing is the worst possible moment to explain. Shown
-	first it is a DECISION: the same words, the same two columns, and a way
-	out at the bottom.
-
-	It is also why the confirm is worded NOT YET rather than CANCEL. Nothing
-	here is a mistake to be undone; they are deciding whether they are ready.
-
-	----------------------------------------------------------------------
-
-	IT SHOWS ON THE FIRST REBIRTH ONLY, and that is `rebirths == 0` rather
-	than a saved flag.
-
-	The question the page answers is "what does this button do", and that is
-	asked once. A veteran on their ninth reset who has to clear a confirmation
-	every time learns to tap through it without reading, which is worse than
-	no page at all -- the dialogue everyone dismisses reflexively is the one
-	that fails when it finally matters.
-
-	`rebirths` is already pushed, already authoritative and already persisted,
-	so there is no new save field and no way for the flag to disagree with
-	reality. `FIRST_TIME_ONLY` below is the one line to change if it should
-	ever ask every time.
+	The tap-through argument is answered by what the page SAYS rather than by
+	skipping it: it leads with what the next rebirth BUYS (current -> next,
+	from the same Config helpers the server pays with), so a veteran reads a
+	new number every time rather than the same warning.
 
 	----------------------------------------------------------------------
 
-	THE NUMBERS ARE REAL, WHICH IS THE ENTIRE POINT.
+	THE NUMBERS ARE REAL. Every value comes from a Config helper the server
+	also reads (`rebirthBonusPercent`, `maxLevel`, `treeRebirthFactor`,
+	`getRebirthThreshold`, `rebirthCratesOpen`, `rebirthCrateBonus`) or from a
+	push (`StateUpdate`, `UpgradeState`, `CosmeticState`, `ChestState`). The
+	crate odds are `ChestState`'s -- what `liveOdds` actually rolls with -- and
+	are simply not printed until that push has arrived, because a drawn
+	probability the server did not use is worse than none.
 
-	A page reading "you will lose your upgrades" is a definition. One reading
-	"Fence Lv 4, Guard Dog Lv 2, Speed Boots Lv 3" is somebody's actual
-	afternoon, and the difference decides whether they understand the trade or
-	merely read about it. Everything here comes from the same pushes the HUD
-	is already drawing, so nothing is computed twice and nothing can drift.
+	Only levels ABOVE the start are listed as resets. An upgrade never bought
+	is not a loss, and the dog is not one at all: rebirth never touches it.
 
-	Only levels ABOVE ZERO are listed on the LOSE side. An upgrade never
-	bought is not a loss, and padding the scary column with things the player
-	does not own would overstate the cost of the one decision this game most
-	wants them to make.
+	----------------------------------------------------------------------
+
+	THE PAGE STAYS OPEN THROUGH A STATE CHANGE. Coins dropping under the
+	requirement while somebody reads (a robbery, a purchase) used to CLOSE it;
+	now the requirement row repaints and the confirm disables, so the page
+	never vanishes from under a reader. A confirm is sent ONCE, the button
+	reads "Rebirthing..." until the server answers, and the page closes only
+	when the rebirth count actually rises. A refusal leaves the page up with
+	its values refreshed -- the server's own toast says why.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Theme = require(ReplicatedStorage.Shared.Theme)
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
+local Theme = require(ReplicatedStorage.Shared.Theme)
 local Config = require(ReplicatedStorage.Shared.Config)
 
 local Rebirth = {}
 
--- Change to false and the page asks every time. See the note above for why it
--- does not: a confirmation nobody reads is worse than none.
-local FIRST_TIME_ONLY = true
-
--- A FOURTH PALETTE, AND IT WAS THE OLD ONE. Six locals here, eight in
--- AdminPanel, five in ClientMain and a whole table in ShopStyle: four files
--- each deciding what a near-black is. They are names for `Theme` now.
-local GOLD = Theme.GOLD
-local INK = Theme.INK
-local PANEL = Theme.PAPER
--- Printed as TEXT on paper rather than used as a fill, so these are the
--- darkened forms. Measured before: the KEEP green read 1.86 against the
--- card and the LOSE red 3.51, on the two columns the whole page is.
-local KEEP = Theme.GOOD_INK
-local LOSE = Theme.STOP_INK
--- REBIRTH HAS ITS OWN COLOUR NOW. This was `Theme.HUE.effects` -- the
--- shop's particle-effects tab -- so the loudest button on the HUD wore a
--- colour whose only job was to say 'this tab'. See `Theme.PRESTIGE`.
 local PLUM = Theme.PRESTIGE
+local PLUM_LIGHT = PLUM:Lerp(Theme.PAPER, 0.18)
+local ICONS = Config.UI_ICONS or {}
 
-local STAR = utf8.char(0x2605)
-local SPARK = utf8.char(0x2728)
--- MEASURED, NOT CHOSEN. Half the obvious dingbats are simply absent from
--- Roblox's Gotham and render as a tofu box -- U+2718, U+2715 and U+2717 all
--- do, and all three measured an identical 20.0 wide, which is the fallback
--- width rather than a glyph. Worse, the one that IS present in the heavy
--- weight, U+2714, is an EMOJI-presentation glyph: it draws in its own grey
--- and ignores TextColor3 entirely, the same trap the notification chips hit.
--- These two are text-presentation, present, and take the colour they are
--- given. Anything added here gets rendered and looked at before it is used.
+-- Measured present in both fonts before use; see CLAUDE.md on tofu glyphs.
+local ARROW = utf8.char(0x2192)
 local TICK = utf8.char(0x2713)
 local CROSS = utf8.char(0x00D7)
+local CHEVRON = utf8.char(0x203A)
+local DOT = utf8.char(0x2022)
+local ELLIPSIS = utf8.char(0x2026)
 
-local button: TextButton
-local starChip: TextLabel
-local page: Frame
-local keepList: ScrollingFrame
-local loseList: ScrollingFrame
-local unlockList: Frame
-local pageTitle: TextLabel
-local confirmButton: TextButton
+local function hex(c: Color3): string
+	return ("#%02X%02X%02X"):format(
+		math.floor(c.R * 255 + 0.5), math.floor(c.G * 255 + 0.5), math.floor(c.B * 255 + 0.5))
+end
 
--- Set by ClientMain: the button is a HUD overlay pinned near the top of the
--- screen, which is exactly where the shop panel's header sits.
+local PLUM_HEX = hex(PLUM)
+local GOLD_HEX = hex(Theme.GOLD)
+local MUTED_HEX = hex(Theme.MUTED)
+
+-- Set by ClientMain: the button is a HUD overlay near the top of the screen,
+-- which is exactly where the shop panel's header sits.
 Rebirth.canShow = nil :: (() -> boolean)?
 local onConfirm: (() -> ())? = nil
 
--- Whatever the HUD last knew. The page is built from these when it opens
--- rather than kept in step every frame -- it is a page somebody reads once,
--- not a readout.
 local seen = {
 	coins = 0,
 	incomeLevel = 1,
@@ -123,600 +93,692 @@ local seen = {
 	upgrades = nil :: any,
 	cosmetics = nil :: any,
 	rides = nil :: any,
+	chests = nil :: any,
+	treeLevel = nil :: number?,
 }
 
--- ZINDEX IS NOT INHERITED UNDER `ZIndexBehavior.Global`, where it orders every
--- GuiObject in the ScreenGui against every other one -- so a page lifted above
--- the HUD by ZIndex draws over its OWN CHILDREN and renders as an empty
--- rectangle. The game's HUD is `Sibling`, where a child always draws above its
--- parent and none of this matters, which is exactly what makes it dangerous:
--- it works until somebody parents this page somewhere else, and then it fails
--- silently and completely. Caught on a probe ScreenGui that defaulted to
--- Global. Depth decides the layering here, explicitly, so it renders the same
--- under either behaviour.
+-- The confirm is in flight. `from` is the rebirth count it was sent at, so
+-- success is "the count rose" rather than a guess at a timer.
+local pending = { active = false, from = 0, token = 0 }
+local expanded = { crate = false, upgrades = false }
+
+local ui = {} :: any
+
+-- ============================================================
+-- SMALL BUILDERS
+-- ============================================================
+
+-- Depth decides the layering, explicitly, so the page renders the same under
+-- `Sibling` or `Global` ZIndexBehavior. `ZBoost` lifts a subtree (the floating
+-- header and the X) over siblings that were built after it.
 local function layer(root: Instance, z: number)
 	for _, child in ipairs(root:GetChildren()) do
 		if child:IsA("GuiObject") then
-			child.ZIndex = z
-			layer(child, z + 1)
+			local lifted = z + ((child:GetAttribute("ZBoost") :: number?) or 0)
+			child.ZIndex = lifted
+			layer(child, lifted + 1)
 		end
 	end
 end
 
-local function corner(parent: Instance, radius: number)
-	local c = Instance.new("UICorner")
-	c.CornerRadius = UDim.new(0, radius)
-	c.Parent = parent
+local function frame(parent: Instance, name: string, colour: Color3?): Frame
+	local f = Instance.new("Frame")
+	f.Name = name
+	f.BorderSizePixel = 0
+	if colour then
+		f.BackgroundColor3 = colour
+	else
+		f.BackgroundTransparency = 1
+	end
+	f.Parent = parent
+	return f
+end
+
+local function text(parent: Instance, name: string, value: string, size: number,
+	colour: Color3?, font: Enum.Font?): TextLabel
+	local t = Instance.new("TextLabel")
+	t.Name = name
+	t.BackgroundTransparency = 1
+	t.Font = font or Theme.FONT
+	t.TextSize = size
+	t.TextColor3 = colour or Theme.INK
+	t.TextXAlignment = Enum.TextXAlignment.Left
+	t.RichText = true
+	t.Text = value
+	t.Parent = parent
+	return t
+end
+
+-- Cream type with a dark line round each GLYPH. Contextual, not Border:
+-- `Theme.outline` strokes the label's invisible rectangle.
+local function inked(label: TextLabel, thickness: number)
+	local s = Instance.new("UIStroke")
+	s.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+	s.Color = Theme.INK
+	s.Thickness = thickness
+	s.Parent = label
+end
+
+local function image(parent: Instance, name: string, id: string?, scale: number): ImageLabel?
+	if not id or id == "" then
+		return nil
+	end
+	local img = Instance.new("ImageLabel")
+	img.Name = name
+	img.BackgroundTransparency = 1
+	img.Image = id
+	img.ScaleType = Enum.ScaleType.Fit
+	img.AnchorPoint = Vector2.new(0.5, 0.5)
+	img.Position = UDim2.fromScale(0.5, 0.5)
+	img.Size = UDim2.fromScale(scale, scale)
+	img.Parent = parent
+	return img
+end
+
+-- Every arrow ring that turns. One Heartbeat drives them all, and only while
+-- the thing they sit on is on screen.
+local spinners: { ImageLabel } = {}
+-- Degrees a second: a slow, steady turn that says "cycle" without pulling
+-- the eye the way a fast spinner would.
+local SPIN_RATE = 70
+
+-- The gold piggy-and-arrows emblem. `layered` builds it as two images so the
+-- ring turns while the piggy stays upright; otherwise it is the single
+-- combined emblem. With no uploaded art it falls back to a drawn coin, never
+-- to an empty square.
+local function emblem(parent: Instance, size: number, layered: boolean,
+	disc: boolean?): (Frame, ImageLabel?)
+	local root = frame(parent, "Emblem")
+	root.Size = UDim2.fromOffset(size, size)
+	-- A round card behind the art, so an emblem hanging off a button's edge
+	-- reads as a medal set on it rather than as art floating over the seam.
+	if disc then
+		local back = frame(root, "Disc", PLUM:Lerp(Theme.INK, 0.25))
+		back.AnchorPoint = Vector2.new(0.5, 0.5)
+		back.Position = UDim2.fromScale(0.5, 0.5)
+		back.Size = UDim2.fromScale(0.84, 0.84)
+		local round = Instance.new("UICorner")
+		round.CornerRadius = UDim.new(0.5, 0)
+		round.Parent = back
+		Theme.outline(back)
+		Theme.gloss(back, PLUM_LIGHT, PLUM:Lerp(Theme.INK, 0.35))
+	end
+	local arrows: ImageLabel? = nil
+	if layered and ICONS.rebirthArrows and ICONS.rebirthArrows ~= "" then
+		arrows = image(root, "Arrows", ICONS.rebirthArrows, 1)
+		image(root, "Piggy", ICONS.piggy, 0.62)
+		table.insert(spinners, arrows :: ImageLabel)
+	elseif not image(root, "Art", ICONS.rebirthEmblem, 1) then
+		local coin = Theme.coin(root, math.floor(size * 0.8))
+		coin.AnchorPoint = Vector2.new(0.5, 0.5)
+		coin.Position = UDim2.fromScale(0.5, 0.5)
+	end
+	return root, arrows
+end
+
+local function button(parent: Instance, name: string, fill: Color3): TextButton
+	local b = Instance.new("TextButton")
+	b.Name = name
+	b.Text = ""
+	b.AutoButtonColor = true
+	b.BackgroundColor3 = fill
+	b.BorderSizePixel = 0
+	b.Parent = parent
+	Theme.corner(b, 12)
+	Theme.outline(b)
+	Theme.shade(b, 0.88)
+	return b
 end
 
 local function format(value: number): string
-	local suffixes = { "", "K", "M", "B", "T" }
-	local n = math.floor(value)
-	local i = 1
-	while n >= 1000 and i < #suffixes do
-		n //= 1000
-		i += 1
-	end
-	if i == 1 then
-		return tostring(math.floor(value))
-	end
-	return ("%.1f%s"):format(math.floor(value) / (1000 ^ (i - 1)), suffixes[i])
+	return Config.formatCoins(value)
 end
 
 -- ============================================================
--- THE BUTTON
+-- THE HUD BUTTON
 -- ============================================================
 
+-- THE PAGE'S OWN TITLE PLATE, on the HUD: the same dark plum gloss, the
+-- spinning emblem on a disc hanging off its left edge, and "REBIRTH N" on one
+-- line with the number in gold. Tapping it opens a page whose header is the
+-- very thing you tapped, which is what makes the two read as one object.
 local function buildButton(gui: ScreenGui)
-	button = Instance.new("TextButton")
-	button.Name = "RebirthButton"
-	button.Size = UDim2.new(0, 232, 0, 54)
-	button.Position = UDim2.new(0.5, 0, 0, 96)
-	button.AnchorPoint = Vector2.new(0.5, 0)
-	button.BackgroundColor3 = PLUM
-	button.BorderSizePixel = 0
-	button.AutoButtonColor = true
-	button.Text = ""
-	button.Visible = false
-	button.Parent = gui
-	corner(button, 12)
+	local b = button(gui, "RebirthButton", PLUM)
+	Theme.corner(b, 16)
+	Theme.gloss(b, PLUM_LIGHT, PLUM)
+	b.AnchorPoint = Vector2.new(0.5, 0)
+	b.Visible = false
+	b.ZIndex = 2
+	ui.button = b
 
-	-- THE ONE SURFACE IN THIS GAME THAT NEVER GOT THE INK OUTLINE, and it is
-	-- the loudest control on the HUD. `Theme` calls that line "the whole
-	-- trick" -- it is what makes a card read as drawn rather than as a
-	-- rectangle, and it is what gives a pale surface an edge against bright
-	-- grass. This button had a 2px violet stroke at 0.55 transparency
-	-- instead: a glow, which worked on the old dark HUD and against cream
-	-- cards in full sun is not an edge at all.
-	Theme.outline(button)
-	Theme.shade(button, 0.88)
+	-- The press moves the face down, emblem and text together.
+	local press = Instance.new("UIPadding")
+	press.Parent = b
+	-- One brief pop when rebirth first becomes available. The only standing
+	-- motion is the emblem's arrow ring turning (designer's call, over the
+	-- guide's "keep it still"); the plate itself does not pulse or bounce.
+	local pop = Instance.new("UIScale")
+	pop.Parent = b
+	ui.pop = pop
 
-	-- SO THE PULSE MOVED BEHIND IT, because a GuiObject takes exactly ONE
-	-- UIStroke and the ink line is not negotiable. A halo is a separate frame
-	-- sitting a few pixels proud of the button on every side, which is the
-	-- only way to have a drawn edge AND something that breathes.
-	--
-	-- BREATHING, NOT BLINKING. The standard treats more than three flashes a
-	-- second as unsafe and this audience is nine, so the same ceiling
-	-- `HouseFX` works to applies here: one continuous curve at about 0.45
-	-- cycles a second. It draws the eye to a control that only exists when it
-	-- is worth pressing.
-	-- A SIBLING, NOT A CHILD, AND THAT IS THE WHOLE OF WHY. Under
-	-- `ZIndexBehavior.Sibling` -- which this HUD uses -- a child always draws
-	-- ABOVE its parent whatever its ZIndex, so a halo parented to the button
-	-- covers the button, its gloss and, worst of all, the 3px ink line it was
-	-- added to sit behind. Measured as a 0.62-transparent violet wash over
-	-- the one thing on this control that must stay hard and dark.
-	--
-	-- As a sibling with a lower ZIndex it draws underneath, which is what a
-	-- halo is. The cost is that it no longer inherits the button's `Visible`,
-	-- so that is mirrored below rather than set in the two places that toggle
-	-- the button -- a watcher cannot drift out of step with what it watches.
-	button.ZIndex = 2
-	local halo = Instance.new("Frame")
-	halo.Name = "RebirthHalo"
-	halo.AnchorPoint = button.AnchorPoint
-	-- The button anchors at its TOP (0.5, 0), so a halo 14 studs taller has
-	-- to come up by half of that or it hangs off the bottom instead of
-	-- ringing the button. Derived from the same 14 rather than written twice.
-	halo.Position = button.Position - UDim2.fromOffset(0, 7)
-	halo.Size = UDim2.new(0, button.Size.X.Offset + 14, 0, button.Size.Y.Offset + 14)
-	-- LIGHTER THAN THE BUTTON, or it is a shadow rather than a glow. The fill
-	-- went deep, and a deep halo washed over grass reads as something spilt
-	-- behind the button; lifted toward paper it reads as light coming off it.
-	halo.BackgroundColor3 = PLUM:Lerp(Theme.PAPER, 0.45)
-	halo.BackgroundTransparency = 0.62
-	halo.BorderSizePixel = 0
-	halo.ZIndex = 1
-	halo.Visible = false
-	halo.Parent = gui
-	corner(halo, 17)
-	button:GetPropertyChangedSignal("Visible"):Connect(function()
-		halo.Visible = button.Visible
-	end)
-	TweenService:Create(halo,
-		TweenInfo.new(1.1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
-		{ BackgroundTransparency = 0.9 }):Play()
+	local mark, arrows = emblem(b, 72, true, true)
+	mark.AnchorPoint = Vector2.new(0, 0.5)
+	ui.buttonEmblem = mark
+	ui.buttonArrows = arrows
 
-	local glyph = Instance.new("TextLabel")
-	glyph.Name = "Icon"
-	glyph.Size = UDim2.new(0, 30, 1, 0)
-	glyph.Position = UDim2.new(0, 10, 0, 0)
-	glyph.BackgroundTransparency = 1
-	glyph.Font = Enum.Font.GothamBold
-	glyph.TextSize = 24
-	-- Never set before, so it sat on Roblox's default (27, 42, 53) -- a cold
-	-- navy, and the last one in the project. The glyph is an emoji and
-	-- ignores this, which is exactly why it survived: an uninitialised
-	-- colour is invisible until the day something stops being an emoji.
-	glyph.TextColor3 = Theme.PAPER
-	glyph.Text = SPARK
-	glyph.ZIndex = 3
-	glyph.Parent = button
+	local label = text(b, "Label", "REBIRTH", 22, Theme.PAPER)
+	inked(label, 2)
+	label.TextXAlignment = Enum.TextXAlignment.Center
+	ui.buttonLabel = label
 
-	local label = Instance.new("TextLabel")
-	label.Name = "Label"
-	label.Size = UDim2.new(1, -96, 1, 0)
-	label.Position = UDim2.new(0, 44, 0, 0)
-	label.BackgroundTransparency = 1
-	label.Font = Enum.Font.FredokaOne
-	label.TextSize = 22
-	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.TextColor3 = Theme.PAPER
-	label.Text = "REBIRTH"
-	label.ZIndex = 3
-	label.Parent = button
-
-	-- The star you would BECOME, not the one you are. It is the reward the
-	-- whole button is selling, so it is the one number on it.
-	--
-	-- NOT the keyboard-gated chip the action buttons carry: that one is a
-	-- keybind and hides itself on a tablet, and a tablet player still needs
-	-- to see what they are about to earn.
-	starChip = Instance.new("TextLabel")
-	starChip.Name = "Star"
-	starChip.Size = UDim2.new(0, 44, 0, 26)
-	starChip.Position = UDim2.new(1, -10, 0.5, 0)
-	starChip.AnchorPoint = Vector2.new(1, 0.5)
-	-- GOLD GROUND, INK NUMERAL -- the inverse of what it was. An ink chip on
-	-- the old light violet worked; on a deep plum it is 2.08 and vanishes.
-	-- Gold on plum is 5.48 and ink on gold 10.53, so both halves of the one
-	-- thing naming the reward finally read.
-	starChip.BackgroundColor3 = Theme.GOLD
-	starChip.BackgroundTransparency = 0
-	starChip.BorderSizePixel = 0
-	starChip.Font = Enum.Font.GothamBold
-	starChip.TextSize = 14
-	starChip.TextColor3 = Theme.INK
-	starChip.Text = "1" .. STAR
-	starChip.ZIndex = 3
-	starChip.Parent = button
-	corner(starChip, 6)
-
-	-- Keep the rebirth action below the Roblox controls on small screens.
-	-- Update its sibling halo from the same geometry so it cannot drift.
 	local function fit()
+		local m = require(script.Parent.HUDLayout).metrics(gui.AbsoluteSize)
+		local w, h = if m.compact then 190 else 250, if m.compact then 44 else 54
+		local e = h + 22
+		local over = math.floor(e * 0.3)
+		b.Size = UDim2.fromOffset(w, h)
+		-- The same slots the old button used, which HUDLayout's neighbours are
+		-- already clear of; shifted right by the emblem's overhang so the whole
+		-- footprint, overhang included, stays centred on them.
+		-- NEVER UNDER THE PIGGY PANEL. Centred on the screen, a 1180-wide
+		-- tablet put this button straight across the panel's coin balance
+		-- (the panel is scaled 1.3 there). So the centre is pulled left until
+		-- the button's right edge clears the panel's drawn left edge by 12.
 		local view = gui.AbsoluteSize
-		local m = require(script.Parent.HUDLayout).metrics(view)
-		button.AnchorPoint = Vector2.new(0.5, 0)
-		button.Size = UDim2.fromOffset(if m.compact then 146 else 232, if m.compact then 44 else 54)
-		button.Position = if m.compact
-			then UDim2.new(0.5, -56, 0, if m.portrait then 150 else 12)
-			else UDim2.new(0.5, 0, 0, 96)
-		label.TextSize = if m.compact then 14 else 22
-		label.Position = UDim2.fromOffset(if m.compact then 27 else 44, 0)
-		label.Size = UDim2.new(1, if m.compact then -62 else -96, 1, 0)
-		glyph.Size = UDim2.new(0, if m.compact then 22 else 30, 1, 0)
-		glyph.Position = UDim2.fromOffset(if m.compact then 7 else 10, 0)
-		glyph.TextSize = if m.compact then 19 else 24
-		starChip.Size = UDim2.fromOffset(if m.compact then 30 else 44, 24)
-		starChip.Position = UDim2.new(1, if m.compact then -6 else -10, 0.5, 0)
-		halo.AnchorPoint = button.AnchorPoint
-		halo.Position = button.Position - UDim2.fromOffset(0, 7)
-		halo.Size = button.Size + UDim2.fromOffset(14, 14)
+		local centre = view.X / 2 + (if m.compact then -56 + over else over)
+		local panelLeft = view.X - 14 - m.bankWidth * m.bankScale
+		if not m.portrait then
+			centre = math.min(centre, panelLeft - 12 - w / 2)
+		end
+		b.Position = UDim2.fromOffset(centre, if m.compact
+			then (if m.portrait then 150 else 12)
+			else 96)
+		mark.Size = UDim2.fromOffset(e, e)
+		mark.Position = UDim2.new(0, -over, 0.5, 0)
+		local left = math.floor(e * 0.72)
+		label.TextSize = if m.compact then 19 else 24
+		label.Position = UDim2.fromOffset(left, 0)
+		label.Size = UDim2.new(1, -left - 8, 1, 0)
 	end
 	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
 	fit()
 
-	button.Activated:Connect(function()
-		if FIRST_TIME_ONLY and seen.rebirths > 0 then
-			if onConfirm then
-				onConfirm()
-			end
-			return
-		end
+	b.MouseButton1Down:Connect(function() press.PaddingTop = UDim.new(0, 2) end)
+	b.MouseButton1Up:Connect(function() press.PaddingTop = UDim.new(0, 0) end)
+	b.MouseLeave:Connect(function() press.PaddingTop = UDim.new(0, 0) end)
+
+	b.Activated:Connect(function()
+		press.PaddingTop = UDim.new(0, 0)
 		Rebirth.open()
 	end)
+end
+
+local function emphasise()
+	if not ui.pop then
+		return
+	end
+	ui.pop.Scale = 1
+	TweenService:Create(ui.pop, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.Out,
+		0, true), { Scale = 1.1 }):Play()
 end
 
 -- ============================================================
 -- THE PAGE
 -- ============================================================
 
-local function makeRow(parent: Instance, order: number, mark: string,
-	tint: Color3, text: string, note: string?)
+-- A benefit card: an art well, a title, a current -> next line and a helper.
+local function benefitCard(parent: Instance, order: number, name: string, wellTint: Color3)
+	local card = frame(parent, name)
+	card.LayoutOrder = order
+	Theme.card(card, 16)
+	Theme.outline(card, Theme.OUTLINE_THIN)
 
-	local row = Instance.new("Frame")
-	row.Name = "Row"
-	row.Size = UDim2.new(1, -6, 0, 24)
-	row.LayoutOrder = order
-	row.BackgroundTransparency = 1
-	row.Parent = parent
+	local well = frame(card, "Well", wellTint)
+	well.AnchorPoint = Vector2.new(0, 0.5)
+	Theme.corner(well, 14)
+	Theme.gloss(well, wellTint, wellTint:Lerp(Theme.INK, 0.12))
 
-	local glyph = Instance.new("TextLabel")
-	glyph.Size = UDim2.new(0, 18, 1, 0)
-	glyph.BackgroundTransparency = 1
-	glyph.Font = Enum.Font.GothamBold
-	glyph.TextSize = 13
-	glyph.TextColor3 = tint
-	glyph.Text = mark
-	glyph.Parent = row
-
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(1, -22, 1, 0)
-	label.Position = UDim2.new(0, 22, 0, 0)
-	label.BackgroundTransparency = 1
-	label.Font = Enum.Font.Gotham
-	label.TextSize = 14
-	label.TextXAlignment = Enum.TextXAlignment.Left
-	-- INK, NOT MUTED. `makeRow` serves three lists and one of them -- YOU
-	-- UNLOCK -- sits on a SAND_DEEP band rather than on a PAPER card, where
-	-- faded ink measured 4.30 against a floor of 4.5. These are the three
-	-- most consequential sentences on the page; none of them is secondary
-	-- text, and the tick, cross or star beside each already carries the tone.
-	label.TextColor3 = Theme.INK
-	label.Text = text
-	label.Parent = row
-
-	return row
+	local title = text(card, "Title", "", 16)
+	local value = text(card, "Value", "", 24)
+	local helper = text(card, "Helper", "", 14, Theme.MUTED, Enum.Font.GothamMedium)
+	helper.TextWrapped = true
+	helper.TextYAlignment = Enum.TextYAlignment.Top
+	return { card = card, well = well, title = title, value = value, helper = helper }
 end
 
--- A TILE, NOT A SENTENCE.
---
--- "The Bronze skin, yours to wear" is a thing you READ; a Bronze piggy is a
--- thing you WANT, and this page exists to make somebody want to press the
--- button. It is the same argument the shop already settled -- nineteen lawn
--- ornaments were identical grey squares until the cards rendered the real
--- item -- arriving on the one screen where the decision is largest.
---
--- The well is PAPER rather than the shop's dark SUNK: this band is already a
--- warm tan, and a near-black hole punched into it reads as damage. A small
--- light card on a tan band reads as something laid on top.
-local function unlockTile(order: number, caption: string,
-	fillWell: (Frame) -> (), badge: string?)
+-- A summary card: a coloured head band with a title and a one-line promise,
+-- then rows. Built as the concept's RESETS / YOU KEEP pair: the band says
+-- which side of the trade you are reading before a word of it is read.
+local function sectionCard(parent: Instance, name: string, fill: Color3, edge: Color3,
+	heading: string, sub: string?, band: Color3)
+	local card = frame(parent, name, fill)
+	card.AutomaticSize = Enum.AutomaticSize.Y
+	Theme.corner(card, 14)
+	Theme.outline(card, Theme.OUTLINE_THIN, edge)
+	local pad = Instance.new("UIPadding")
+	pad.PaddingBottom = UDim.new(0, 12)
+	pad.Parent = card
+	local list = Instance.new("UIListLayout")
+	list.Padding = UDim.new(0, 6)
+	list.SortOrder = Enum.SortOrder.LayoutOrder
+	list.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	list.Parent = card
 
-	local tile = Instance.new("Frame")
-	tile.Name = "Gain" .. order
-	tile.Size = UDim2.new(0, 128, 0, 120)
-	tile.LayoutOrder = order
-	tile.BackgroundTransparency = 1
-	tile.Parent = unlockList
-
-	local well = Instance.new("Frame")
-	well.Name = "Well"
-	well.Size = UDim2.new(0, 76, 0, 76)
-	well.Position = UDim2.new(0.5, 0, 0, 0)
-	well.AnchorPoint = Vector2.new(0.5, 0)
-	well.BackgroundColor3 = Theme.PAPER
-	well.BorderSizePixel = 0
-	well.Parent = tile
-	corner(well, 14)
-	Theme.outline(well, Theme.OUTLINE_THIN)
-
-	fillWell(well)
-
-	-- AFTER the well is filled, never before. `layer` re-stamps every ZIndex
-	-- by DEPTH once the page is built, so a badge and a viewport that are
-	-- siblings end up on the same level and child ORDER is what decides which
-	-- is on top. Built second, the badge wins; built first it would be behind
-	-- the picture it is labelling.
-	if badge then
-		local chip = Instance.new("TextLabel")
-		chip.Name = "Badge"
-		chip.Size = UDim2.new(0, 26, 0, 26)
-		chip.Position = UDim2.new(1, 3, 0, -3)
-		chip.AnchorPoint = Vector2.new(1, 0)
-		chip.BackgroundColor3 = Theme.GOLD
-		chip.BorderSizePixel = 0
-		chip.Font = Theme.FONT
-		chip.TextSize = 16
-		chip.TextColor3 = Theme.INK
-		chip.Text = badge
-		chip.Parent = well
-		corner(chip, 13)
-		Theme.outline(chip, Theme.OUTLINE_THIN)
+	local head = frame(card, "Heading", band)
+	head.LayoutOrder = 0
+	head.Size = UDim2.new(1, 0, 0, if sub then 50 else 36)
+	Theme.corner(head, 14)
+	-- Squares off the band's lower corners so it reads as the card's top
+	-- rather than as a pill sitting inside it.
+	local foot = frame(head, "Square", band)
+	foot.AnchorPoint = Vector2.new(0, 1)
+	foot.Position = UDim2.fromScale(0, 1)
+	foot.Size = UDim2.new(1, 0, 0, 14)
+	local title = text(head, "Title", heading, 20, Theme.PAPER)
+	inked(title, 1.5)
+	title.TextXAlignment = Enum.TextXAlignment.Center
+	title.Position = UDim2.fromOffset(0, 4)
+	title.Size = UDim2.new(1, 0, 0, 24)
+	if sub then
+		local line = text(head, "Sub", sub, 13, Theme.PAPER, Enum.Font.GothamBold)
+		line.TextXAlignment = Enum.TextXAlignment.Center
+		line.Position = UDim2.fromOffset(0, 27)
+		line.Size = UDim2.new(1, 0, 0, 18)
 	end
-
-	local cap = Instance.new("TextLabel")
-	cap.Name = "Caption"
-	cap.Size = UDim2.new(1, -2, 0, 40)
-	cap.Position = UDim2.new(0, 1, 0, 80)
-	cap.BackgroundTransparency = 1
-	cap.Font = Theme.FONT
-	cap.TextSize = 13
-	cap.TextColor3 = Theme.INK
-	cap.TextWrapped = true
-	cap.TextYAlignment = Enum.TextYAlignment.Top
-	cap.Text = caption
-	cap.Parent = tile
+	return card
 end
 
-local function makeColumn(parent: Instance, order: number, title: string, tint: Color3): ScrollingFrame
-	local holder = Instance.new("Frame")
-	holder.Name = title
-	holder.Size = UDim2.new(0.5, -5, 1, 0)
-	holder.LayoutOrder = order
-	holder.BackgroundColor3 = PANEL
-	holder.BackgroundTransparency = 0.25
-	holder.BorderSizePixel = 0
-	holder.Parent = parent
-	corner(holder, 10)
+-- A small rounded chip holding a drawn icon.
+local function iconChip(parent: Instance, tint: Color3, size: number, draw: (Frame) -> ()): Frame
+	local chip = frame(parent, "Icon", tint)
+	chip.Size = UDim2.fromOffset(size, size)
+	Theme.corner(chip, 10)
+	Theme.outline(chip, 1.5)
+	draw(chip)
+	return chip
+end
 
-	local head = Instance.new("TextLabel")
-	head.Size = UDim2.new(1, -20, 0, 26)
-	head.Position = UDim2.new(0, 12, 0, 8)
-	head.BackgroundTransparency = 1
-	head.Font = Enum.Font.FredokaOne
-	head.TextSize = 16
-	head.TextXAlignment = Enum.TextXAlignment.Left
-	head.TextColor3 = tint
-	head.Text = title
-	head.Parent = holder
+local function centred(inst: GuiObject, x: number?, y: number?)
+	inst.AnchorPoint = Vector2.new(0.5, 0.5)
+	inst.Position = UDim2.fromScale(x or 0.5, y or 0.5)
+end
 
-	-- A SCROLLING FRAME RATHER THAN A PLAIN ONE, because a UIListLayout does
-	-- not clip and does not error -- it just keeps drawing past the edge. The
-	-- LOSE column is as long as the player's afternoon was, so its length is
-	-- not something this file gets to know in advance. Same trap the shop's
-	-- tab rail already shipped once.
-	local list = Instance.new("ScrollingFrame")
-	list.Name = "List"
-	list.Size = UDim2.new(1, -16, 1, -44)
-	list.Position = UDim2.new(0, 8, 0, 36)
-	list.BackgroundTransparency = 1
-	list.BorderSizePixel = 0
-	list.ScrollBarThickness = 3
-	list.ScrollBarImageColor3 = tint
-	list.CanvasSize = UDim2.new()
-	list.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	list.Parent = holder
+-- One line of a summary card: an icon chip, a name with an optional note under
+-- it, and an optional value pill on the right.
+local function summaryRow(parent: Instance, order: number, tint: Color3?, draw: ((Frame) -> ())?,
+	name: string, note: string?, value: string?, pillTint: Color3?): (Frame, TextLabel?)
+	local row = frame(parent, "Row" .. order)
+	row.LayoutOrder = order
+	local h = if note then 44 else 36
+	row.Size = UDim2.new(1, -24, 0, h)
+	if draw and tint then
+		local chip = iconChip(row, tint, 36, draw)
+		chip.AnchorPoint = Vector2.new(0, 0.5)
+		chip.Position = UDim2.new(0, 0, 0.5, 0)
+	end
+	local x = 46
+	local valueW = if value then 124 else 0
+	local label = text(row, "Name", name, 16, Theme.INK, Theme.FONT)
+	label.Position = UDim2.fromOffset(x, if note then 3 else 0)
+	label.Size = UDim2.new(1, -(x + valueW + 6), 0, if note then 20 else h)
+	label.TextTruncate = Enum.TextTruncate.AtEnd
+	if note then
+		local n = text(row, "Note", note, 13, Theme.MUTED, Enum.Font.GothamMedium)
+		n.Position = UDim2.fromOffset(x, 23)
+		n.Size = UDim2.new(1, -(x + valueW + 6), 0, 18)
+		n.TextTruncate = Enum.TextTruncate.AtEnd
+	end
+	local v: TextLabel? = nil
+	if value then
+		v = text(row, "Value", value, 15, Theme.INK, Theme.FONT)
+		v.AnchorPoint = Vector2.new(1, 0.5)
+		v.Position = UDim2.new(1, 0, 0.5, 0)
+		v.Size = UDim2.fromOffset(valueW, 28)
+		v.TextXAlignment = Enum.TextXAlignment.Center
+		v.BackgroundTransparency = 0
+		v.BackgroundColor3 = pillTint or Theme.PAPER
+		Theme.corner(v, 14)
+		Theme.outline(v, 1.5, Theme.MUTED_LIGHT)
+	end
+	return row, v
+end
 
-	local layout = Instance.new("UIListLayout")
-	layout.Padding = UDim.new(0, 2)
-	layout.SortOrder = Enum.SortOrder.LayoutOrder
-	layout.Parent = list
-
-	return list
+local function linkButton(parent: Instance, name: string, order: number, label: string,
+	onPress: () -> ()): TextButton
+	local b = Instance.new("TextButton")
+	b.Name = name
+	b.LayoutOrder = order
+	b.BackgroundColor3 = Theme.PAPER_DEEP
+	b.BorderSizePixel = 0
+	b.AutoButtonColor = true
+	b.Font = Theme.FONT_BODY
+	b.TextSize = 14
+	b.TextColor3 = PLUM
+	b.Text = label
+	b.Size = UDim2.new(0, 190, 0, 30)
+	b.Parent = parent
+	Theme.corner(b, 10)
+	b.Activated:Connect(onPress)
+	return b
 end
 
 local function buildPage(gui: ScreenGui)
-	page = Instance.new("Frame")
-	page.Name = "RebirthPage"
-	-- Scaled with a maximum, the same way the shop panel is sized: a flat
-	-- pixel size runs off the top of a phone held sideways, which is a lot of
-	-- this audience.
-	page.Size = UDim2.new(0.94, 0, 0.9, 0)
-	page.Position = UDim2.fromScale(0.5, 0.5)
-	page.AnchorPoint = Vector2.new(0.5, 0.5)
-	page.BackgroundColor3 = Theme.SAND
-	page.BorderSizePixel = 0
+	local page = frame(gui, "RebirthPage")
+	page.Size = UDim2.fromScale(1, 1)
 	page.Visible = false
-	page.ZIndex = 30
-	page.Parent = gui
-	corner(page, 16)
+	page.ZIndex = Theme.MENU_Z
+	ui.page = page
 
-	local cap = Instance.new("UISizeConstraint")
-	cap.MaxSize = Vector2.new(860, 540)
-	cap.Parent = page
+	-- Blocks the HUD underneath and dims the world, so the decision is the
+	-- only thing on screen. Tapping it does NOT close the page: a stray tap
+	-- beside a card should not throw the reader out mid-sentence.
+	local scrim = Instance.new("TextButton")
+	scrim.Name = "Scrim"
+	scrim.Text = ""
+	scrim.AutoButtonColor = false
+	scrim.Size = UDim2.fromScale(1, 1)
+	scrim.BackgroundColor3 = Theme.SLAB_DEEP
+	scrim.BackgroundTransparency = 0.45
+	scrim.BorderSizePixel = 0
+	scrim.Parent = page
 
-	local edge = Instance.new("UIStroke")
-	edge.Color = Theme.INK
-	edge.Thickness = Theme.OUTLINE
-	edge.Transparency = 0
-	edge.Parent = page
+	local shell = frame(page, "Shell", Theme.SAND)
+	shell.AnchorPoint = Vector2.new(0.5, 0.5)
+	shell.ClipsDescendants = false
+	Theme.corner(shell, 20)
+	Theme.outline(shell)
+	ui.shell = shell
+	local settle = Instance.new("UIScale")
+	settle.Parent = shell
+	ui.settle = settle
 
-	local pad = Instance.new("UIPadding")
-	pad.PaddingTop = UDim.new(0, 14)
-	pad.PaddingBottom = UDim.new(0, 14)
-	pad.PaddingLeft = UDim.new(0, 16)
-	pad.PaddingRight = UDim.new(0, 16)
-	pad.Parent = page
+	-- ---------- fixed header ----------
+	local subtitle = text(shell, "Subtitle", "A stronger fresh start", 16, Theme.MUTED, Theme.FONT)
+	subtitle.TextXAlignment = Enum.TextXAlignment.Center
+	ui.subtitle = subtitle
 
-	local stack = Instance.new("UIListLayout")
-	stack.Padding = UDim.new(0, 10)
-	stack.SortOrder = Enum.SortOrder.LayoutOrder
-	stack.Parent = page
+	-- The floating plum tab. Lifted over everything built after it.
+	local tab = frame(shell, "TitleTab", PLUM)
+	tab:SetAttribute("ZBoost", 6)
+	tab.AnchorPoint = Vector2.new(0.5, 0)
+	Theme.corner(tab, 16)
+	Theme.outline(tab)
+	Theme.gloss(tab, PLUM_LIGHT, PLUM)
+	ui.tab = tab
+	local tabMark = emblem(tab, 58, true, true)
+	tabMark.AnchorPoint = Vector2.new(0, 0.5)
+	ui.tabMark = tabMark
+	local title = text(tab, "Title", "REBIRTH", 30, Theme.PAPER)
+	inked(title, 2.5)
+	title.TextXAlignment = Enum.TextXAlignment.Center
+	ui.title = title
 
-	-- ---------- header ----------
-	local header = Instance.new("Frame")
-	header.Size = UDim2.new(1, 0, 0, 56)
-	header.LayoutOrder = 1
-	header.BackgroundTransparency = 1
-	header.Parent = page
+	local close = Instance.new("TextButton")
+	close.Name = "Close"
+	close:SetAttribute("ZBoost", 8)
+	close.Text = CROSS
+	close.Font = Theme.FONT
+	close.TextSize = 30
+	close.TextColor3 = Theme.PAPER
+	close.BackgroundColor3 = Theme.STOP
+	close.BorderSizePixel = 0
+	close.Parent = shell
+	Theme.corner(close, 12)
+	Theme.outline(close)
+	Theme.shade(close, 0.85)
+	Theme.floatClose(close, 44, 10)
+	close.Activated:Connect(function() Rebirth.close() end)
 
-	pageTitle = Instance.new("TextLabel")
-	pageTitle.Size = UDim2.new(1, 0, 0, 28)
-	pageTitle.BackgroundTransparency = 1
-	pageTitle.Font = Enum.Font.FredokaOne
-	pageTitle.TextSize = 24
-	pageTitle.TextXAlignment = Enum.TextXAlignment.Left
-	pageTitle.TextColor3 = Theme.INK
-	pageTitle.Text = SPARK .. "  REBIRTH"
-	pageTitle.Parent = header
+	-- ---------- scrolling body ----------
+	local body = Instance.new("ScrollingFrame")
+	body.Name = "Body"
+	body.BackgroundTransparency = 1
+	body.BorderSizePixel = 0
+	body.ScrollBarThickness = 6
+	body.ScrollBarImageColor3 = PLUM
+	body.CanvasSize = UDim2.new()
+	body.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	body.ScrollingDirection = Enum.ScrollingDirection.Y
+	body.Parent = shell
+	ui.body = body
+	local bodyPad = Instance.new("UIPadding")
+	bodyPad.PaddingTop = UDim.new(0, 4)
+	bodyPad.PaddingBottom = UDim.new(0, 8)
+	bodyPad.PaddingLeft = UDim.new(0, 4)
+	bodyPad.PaddingRight = UDim.new(0, 12)
+	bodyPad.Parent = body
+	local bodyList = Instance.new("UIListLayout")
+	bodyList.Padding = UDim.new(0, 12)
+	bodyList.SortOrder = Enum.SortOrder.LayoutOrder
+	bodyList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	bodyList.Parent = body
 
-	local blurb = Instance.new("TextLabel")
-	blurb.Size = UDim2.new(1, 0, 0, 24)
-	blurb.Position = UDim2.new(0, 0, 0, 30)
-	blurb.BackgroundTransparency = 1
-	blurb.Font = Enum.Font.Gotham
-	blurb.TextSize = 14
-	blurb.TextXAlignment = Enum.TextXAlignment.Left
-	blurb.TextColor3 = Theme.MUTED
-	blurb.Text = "Start your upgrades again, and your piggy earns more forever."
-	blurb.Parent = header
+	-- A. the four benefit cards
+	local grid = frame(body, "Benefits")
+	grid.LayoutOrder = 1
+	local gridLayout = Instance.new("UIGridLayout")
+	gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	gridLayout.CellPadding = UDim2.fromOffset(12, 12)
+	gridLayout.Parent = grid
+	ui.grid = grid
+	ui.gridLayout = gridLayout
 
-	-- ---------- the two columns ----------
-	local columns = Instance.new("Frame")
-	columns.Name = "Columns"
-	-- Grown by 40 when the unlock band did. The KEEP column got shorter at
-	-- the same time, so this costs nothing readable.
-	columns.Size = UDim2.new(1, 0, 1, -290)
-	columns.LayoutOrder = 2
-	columns.BackgroundTransparency = 1
-	columns.Parent = page
+	ui.coinCard = benefitCard(grid, 1, "CoinBonus", Theme.GOLD:Lerp(Theme.PAPER, 0.35))
+	ui.limitCard = benefitCard(grid, 2, "UpgradeLimit", Theme.COOL:Lerp(Theme.GOOD, 0.5):Lerp(Theme.PAPER, 0.55))
+	ui.crateCard = benefitCard(grid, 3, "FreeCrate", PLUM:Lerp(Theme.PAPER, 0.55))
+	ui.acornCard = benefitCard(grid, 4, "AcornGrowth", Theme.GOOD:Lerp(Theme.PAPER, 0.25))
 
-	local across = Instance.new("UIListLayout")
-	across.FillDirection = Enum.FillDirection.Horizontal
-	across.Padding = UDim.new(0, 10)
-	across.SortOrder = Enum.SortOrder.LayoutOrder
-	across.Parent = columns
+	-- B. crate details, expanded in place -- never the shop over this page.
+	local crateDetails = sectionCard(body, "CrateDetails", Theme.PAPER, Theme.MUTED_LIGHT,
+		"POSSIBLE REWARDS", nil, PLUM)
+	crateDetails.LayoutOrder = 2
+	crateDetails.Visible = false
+	ui.crateDetails = crateDetails
 
-	keepList = makeColumn(columns, 1, "YOU KEEP", KEEP)
-	loseList = makeColumn(columns, 2, "YOU LOSE", LOSE)
+	-- C. what changes
+	local changes = frame(body, "Changes")
+	changes.LayoutOrder = 3
+	changes.AutomaticSize = Enum.AutomaticSize.Y
+	local changesLayout = Instance.new("UIListLayout")
+	changesLayout.Padding = UDim.new(0, 12)
+	changesLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	changesLayout.Parent = changes
+	ui.changes = changes
+	ui.changesLayout = changesLayout
+	ui.resets = sectionCard(changes, "Resets", Theme.STOP:Lerp(Theme.PAPER, 0.86),
+		Theme.STOP:Lerp(Theme.PAPER, 0.4), "RESETS", "Goes back to the start", Theme.STOP_INK)
+	ui.resets.LayoutOrder = 1
+	ui.keep = sectionCard(changes, "YouKeep", Theme.GOOD:Lerp(Theme.PAPER, 0.84),
+		Theme.GOOD:Lerp(Theme.PAPER, 0.35), "YOU KEEP", "Stays with you forever", Theme.GOOD_INK)
+	ui.keep.LayoutOrder = 2
 
-	-- ---------- what it buys ----------
-	local unlock = Instance.new("Frame")
-	unlock.Name = "Unlock"
-	-- Tall enough for a row of PICTURES rather than three sentences: a
-	-- 64-stud well plus a two-line caption under it.
-	unlock.Size = UDim2.new(1, 0, 0, 158)
-	unlock.LayoutOrder = 3
-	-- A BAND, NOT A BLOCK OF GOLD. At full gold the heading printed on it
-	-- was gold on gold -- measured at 1.00, the worst pairing possible.
-	unlock.BackgroundColor3 = Theme.SAND_DEEP
-	unlock.BackgroundTransparency = 0.15
-	unlock.BorderSizePixel = 0
-	unlock.Parent = page
-	corner(unlock, 10)
+	-- D. the requirement
+	local req = frame(body, "Requirement", Theme.PAPER)
+	req.LayoutOrder = 4
+	req.Size = UDim2.new(1, 0, 0, 58)
+	Theme.corner(req, 14)
+	Theme.outline(req, Theme.OUTLINE_THIN, Theme.MUTED_LIGHT)
+	local reqName = text(req, "Name", "Piggy coins", 15, Theme.INK, Theme.FONT)
+	reqName.Position = UDim2.fromOffset(14, 6)
+	reqName.Size = UDim2.new(0.5, -14, 0, 22)
+	local reqAmount = text(req, "Amount", "", 15, Theme.INK, Theme.FONT_BODY)
+	reqAmount.AnchorPoint = Vector2.new(1, 0)
+	reqAmount.Position = UDim2.new(1, -118, 0, 6)
+	reqAmount.Size = UDim2.new(0.5, -118, 0, 22)
+	reqAmount.TextXAlignment = Enum.TextXAlignment.Right
+	local track = frame(req, "Track", Theme.PAPER_DEEP)
+	track.Position = UDim2.fromOffset(14, 34)
+	track.Size = UDim2.new(1, -146, 0, 12)
+	Theme.corner(track, 6)
+	Theme.outline(track, 1.5)
+	local fill = frame(track, "Fill", Theme.GOLD)
+	fill.Size = UDim2.fromScale(0, 1)
+	Theme.corner(fill, 6)
+	local status = text(req, "Status", "", 14, Theme.PAPER, Theme.FONT)
+	status.AnchorPoint = Vector2.new(1, 0.5)
+	status.Position = UDim2.new(1, -12, 0.5, 0)
+	status.Size = UDim2.fromOffset(98, 32)
+	status.TextXAlignment = Enum.TextXAlignment.Center
+	status.TextWrapped = true
+	status.BackgroundTransparency = 0
+	Theme.corner(status, 16)
+	ui.reqAmount, ui.reqFill, ui.reqStatus = reqAmount, fill, status
 
-	local unlockEdge = Instance.new("UIStroke")
-	unlockEdge.Color = GOLD
-	unlockEdge.Thickness = 1.5
-	unlockEdge.Transparency = 0.55
-	unlockEdge.Parent = unlock
+	-- ---------- fixed footer ----------
+	local footer = frame(shell, "Footer")
+	footer.AnchorPoint = Vector2.new(0, 1)
+	ui.footer = footer
+	local rule = frame(footer, "Rule", Theme.MUTED_LIGHT)
+	rule.Size = UDim2.new(1, 0, 0, 2)
+	local reminder = text(footer, "Reminder",
+		"Your piggy coins and bought upgrades reset. Your collection stays.", 14,
+		Theme.MUTED, Enum.Font.GothamMedium)
+	reminder.TextXAlignment = Enum.TextXAlignment.Center
+	reminder.TextWrapped = true
+	ui.reminder = reminder
 
-	local unlockHead = Instance.new("TextLabel")
-	unlockHead.Size = UDim2.new(1, -20, 0, 24)
-	unlockHead.Position = UDim2.new(0, 12, 0, 6)
-	unlockHead.BackgroundTransparency = 1
-	unlockHead.Font = Enum.Font.FredokaOne
-	unlockHead.TextSize = 16
-	unlockHead.TextXAlignment = Enum.TextXAlignment.Left
-	unlockHead.TextColor3 = Theme.readable(Theme.GOLD, Theme.SAND_DEEP)
-	unlockHead.Text = "YOU UNLOCK"
-	unlockHead.Parent = unlock
+	local back = button(footer, "NotYet", Theme.PAPER)
+	local backLabel = text(back, "Label", "NOT YET", 18)
+	backLabel.Size = UDim2.fromScale(1, 1)
+	backLabel.TextXAlignment = Enum.TextXAlignment.Center
+	back.Activated:Connect(function() Rebirth.close() end)
+	ui.back = back
 
-	unlockList = Instance.new("Frame")
-	unlockList.Name = "List"
-	unlockList.Size = UDim2.new(1, -20, 1, -36)
-	unlockList.Position = UDim2.new(0, 10, 0, 30)
-	unlockList.BackgroundTransparency = 1
-	unlockList.Parent = unlock
-
-	-- ACROSS AND LEFT-ALIGNED, under the heading rather than centred in the
-	-- band. Centring looked right in the abstract and measured wrong: three
-	-- 108-wide tiles in a 1140-wide band leave nearly four hundred pixels
-	-- either side, so the row floated in the middle with YOU UNLOCK stranded
-	-- in an empty left third. Starting where the heading starts ties the two
-	-- together, and reads the same whether there are two tiles or three.
-	local unlockLayout = Instance.new("UIListLayout")
-	unlockLayout.FillDirection = Enum.FillDirection.Horizontal
-	unlockLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-	unlockLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-	unlockLayout.Padding = UDim.new(0, 14)
-	unlockLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	unlockLayout.Parent = unlockList
-
-	-- ---------- the decision ----------
-	local footer = Instance.new("Frame")
-	footer.Size = UDim2.new(1, 0, 0, 52)
-	footer.LayoutOrder = 4
-	footer.BackgroundTransparency = 1
-	footer.Parent = page
-
-	local footerRow = Instance.new("UIListLayout")
-	footerRow.FillDirection = Enum.FillDirection.Horizontal
-	footerRow.HorizontalAlignment = Enum.HorizontalAlignment.Right
-	footerRow.VerticalAlignment = Enum.VerticalAlignment.Center
-	footerRow.Padding = UDim.new(0, 10)
-	footerRow.SortOrder = Enum.SortOrder.LayoutOrder
-	footerRow.Parent = footer
-
-	-- NOT YET rather than CANCEL. Nothing here is a mistake being undone --
-	-- the player is deciding whether they are ready, and the wording should
-	-- not tell them they have done something wrong by looking.
-	local back = Instance.new("TextButton")
-	back.Name = "NotYet"
-	back.Size = UDim2.new(0, 132, 0, 44)
-	back.LayoutOrder = 1
-	back.BackgroundColor3 = PANEL
-	back.BorderSizePixel = 0
-	back.AutoButtonColor = true
-	back.Font = Enum.Font.FredokaOne
-	back.TextSize = 17
-	back.TextColor3 = Theme.MUTED
-	back.Text = "NOT YET"
-	back.Parent = footer
-	-- The same radius and the same line as its neighbour. The hierarchy
-	-- between the two is carried by the FILL -- paper against plum -- rather
-	-- than by one of them being drawn more faintly than the other.
-	corner(back, 12)
-	Theme.outline(back)
-	back.Activated:Connect(function()
-		Rebirth.close()
+	local confirm = button(footer, "Confirm", PLUM)
+	local confirmMark = emblem(confirm, 38, true, true)
+	confirmMark.AnchorPoint = Vector2.new(0, 0.5)
+	confirmMark.Position = UDim2.new(0, 10, 0.5, 0)
+	local confirmLabel = text(confirm, "Label", "REBIRTH", 18, Theme.PAPER)
+	inked(confirmLabel, 1.5)
+	confirmLabel.Position = UDim2.fromOffset(52, 0)
+	confirmLabel.Size = UDim2.new(1, -60, 1, 0)
+	confirmLabel.TextXAlignment = Enum.TextXAlignment.Center
+	confirmLabel.TextWrapped = true
+	ui.confirm, ui.confirmLabel = confirm, confirmLabel
+	confirm.Activated:Connect(function()
+		-- One deliberate press, sent once. Refused client-side when the
+		-- server's own `rebirthReady` says no, or when one is already out.
+		if pending.active or not seen.ready or not onConfirm then
+			return
+		end
+		pending.active = true
+		pending.from = seen.rebirths
+		pending.token += 1
+		local token = pending.token
+		Rebirth.paintLive()
+		onConfirm()
+		-- No answer (the server refused, and its toast says why) -> give the
+		-- page back with fresh values. Success closes it from `onEconomy`.
+		task.delay(5, function()
+			if pending.active and pending.token == token then
+				pending.active = false
+				Rebirth.paintLive()
+			end
+		end)
 	end)
 
-	confirmButton = Instance.new("TextButton")
-	confirmButton.Name = "Confirm"
-	confirmButton.Size = UDim2.new(0, 190, 0, 44)
-	confirmButton.LayoutOrder = 2
-	-- The button players actually press. Same treatment as the HUD one, for
-	-- the same reason: it is the single most consequential control in the
-	-- game and it was the only one on this page without a drawn edge.
-	confirmButton.BackgroundColor3 = PLUM
-	Theme.shade(confirmButton, 0.88)
-	confirmButton.BorderSizePixel = 0
-	confirmButton.AutoButtonColor = true
-	confirmButton.Font = Enum.Font.FredokaOne
-	confirmButton.TextSize = 18
-	confirmButton.TextColor3 = Theme.PAPER
-	confirmButton.Text = ""
-	confirmButton.Parent = footer
-	-- MATCHED TO THE HUD BUTTON PIECE BY PIECE, because they are the same
-	-- control in two places and were built five hundred lines apart: same
-	-- corner radius (12, not 10), the same full-weight ink outline (3px and
-	-- opaque, not 1.5 at 0.4 transparency), and the same sparkle beside the
-	-- word. Only the halo is left off -- that one pulses to catch an eye that
-	-- is looking at the world, and on this page nothing else is competing.
-	corner(confirmButton, 12)
-	Theme.outline(confirmButton)
+	-- ---------- responsive layout ----------
+	local function fit()
+		local view = gui.AbsoluteSize
+		local narrow = view.X < 560
+		local short = view.Y < 520
+		local tabOver = if short then 22 else 30
+		local w = math.min(780, view.X - 24)
+		local h = math.min(640, view.Y - 24 - tabOver)
+		shell.Size = UDim2.fromOffset(w, h)
+		shell.Position = UDim2.new(0.5, 0, 0.5, math.floor(tabOver / 2))
 
-	local confirmGlyph = Instance.new("TextLabel")
-	confirmGlyph.Name = "Icon"
-	confirmGlyph.Size = UDim2.new(0, 26, 1, 0)
-	confirmGlyph.Position = UDim2.new(0, 14, 0, 0)
-	confirmGlyph.BackgroundTransparency = 1
-	confirmGlyph.Font = Enum.Font.GothamBold
-	confirmGlyph.TextSize = 20
-	confirmGlyph.TextColor3 = Theme.PAPER
-	confirmGlyph.Text = SPARK
-	confirmGlyph.Parent = confirmButton
+		local tabH = if short then 50 else 62
+		local tabW = math.min(w - 110, if short then 300 else 380)
+		tab.Size = UDim2.fromOffset(tabW, tabH)
+		tab.Position = UDim2.new(0.5, 0, 0, -tabOver)
+		local markSize = tabH + (if short then 32 else 46)
+		tabMark.Size = UDim2.fromOffset(markSize, markSize)
+		tabMark.Position = UDim2.new(0, -math.floor(markSize * 0.42), 0.5, 0)
+		title.TextSize = if short then 24 else 32
+		local titleX = math.floor(markSize * 0.6)
+		title.Position = UDim2.fromOffset(titleX, 0)
+		title.Size = UDim2.new(1, -titleX - 8, 1, 0)
 
-	local confirmLabel = Instance.new("TextLabel")
-	confirmLabel.Name = "Label"
-	confirmLabel.Size = UDim2.new(1, -48, 1, 0)
-	confirmLabel.Position = UDim2.new(0, 42, 0, 0)
-	confirmLabel.BackgroundTransparency = 1
-	confirmLabel.Font = Enum.Font.FredokaOne
-	confirmLabel.TextSize = 18
-	confirmLabel.TextXAlignment = Enum.TextXAlignment.Left
-	confirmLabel.TextColor3 = Theme.PAPER
-	confirmLabel.Text = "REBIRTH!"
-	confirmLabel.Parent = confirmButton
+		local subH = if short then 0 else 24
+		subtitle.Visible = not short
+		subtitle.Position = UDim2.fromOffset(0, tabH - tabOver + 4)
+		subtitle.Size = UDim2.new(1, 0, 0, subH)
+		local top = tabH - tabOver + 8 + subH
 
-	confirmButton.Activated:Connect(function()
-		Rebirth.close()
-		if onConfirm then
-			onConfirm()
+		local buttonsH = if short then 44 else 50
+		local reminderH = if narrow then 36 else 20
+		local footH = 10 + reminderH + 8 + buttonsH + 12
+		footer.Size = UDim2.new(1, -28, 0, footH)
+		footer.Position = UDim2.new(0, 14, 1, 0)
+		reminder.Position = UDim2.fromOffset(0, 10)
+		reminder.Size = UDim2.new(1, 0, 0, reminderH)
+		local by = 10 + reminderH + 8
+		local backW = if narrow then 110 else 170
+		local confirmW = math.min(if narrow then 200 else 300, w - 28 - backW - 34)
+		local gap = 12 + math.floor((buttonsH + 22) * 0.3)
+		local rowW = backW + gap + confirmW
+		local x0 = math.floor((w - 28 - rowW) / 2)
+		back.Size = UDim2.fromOffset(backW, buttonsH)
+		back.Position = UDim2.fromOffset(x0, by)
+		confirm.Size = UDim2.fromOffset(confirmW, buttonsH)
+		confirm.Position = UDim2.fromOffset(x0 + backW + gap, by)
+		-- Bigger than the button and hanging off its left edge.
+		local cm = buttonsH + 22
+		confirmMark.Size = UDim2.fromOffset(cm, cm)
+		confirmMark.Position = UDim2.new(0, -math.floor(cm * 0.3), 0.5, 0)
+		local labelX = math.floor(cm * 0.72)
+		confirmLabel.Position = UDim2.fromOffset(labelX, 0)
+		confirmLabel.Size = UDim2.new(1, -labelX - 8, 1, 0)
+		confirmLabel.TextSize = if narrow then 16 else 19
+
+		body.Position = UDim2.fromOffset(12, top)
+		body.Size = UDim2.new(1, -24, 0, h - top - footH)
+
+		-- One column on a narrow screen, two otherwise; cards are sized from
+		-- the width actually available, so they never force a sideways scroll.
+		local inner = w - 24 - 16
+		local cols = if narrow then 1 else 2
+		local cellH = if short then 96 else 112
+		local cellW = math.floor((inner - (cols - 1) * 12) / cols)
+		gridLayout.CellSize = UDim2.fromOffset(cellW, cellH)
+		local rows = math.ceil(4 / cols)
+		grid.Size = UDim2.new(1, 0, 0, rows * cellH + (rows - 1) * 12)
+		for _, c in ipairs({ ui.coinCard, ui.limitCard, ui.crateCard, ui.acornCard }) do
+			local wellSize = if short then 62 else 74
+			c.well.Size = UDim2.fromOffset(wellSize, wellSize)
+			c.well.Position = UDim2.new(0, 12, 0.5, 0)
+			local tx = 12 + wellSize + 12
+			c.title.Position = UDim2.fromOffset(tx, if short then 8 else 12)
+			c.title.Size = UDim2.new(1, -tx - 10, 0, 22)
+			c.title.TextSize = if short then 15 else 17
+			c.value.Position = UDim2.fromOffset(tx, if short then 30 else 36)
+			c.value.Size = UDim2.new(1, -tx - 10, 0, if short then 26 else 30)
+			c.value.TextSize = if short then 22 else 26
+			c.helper.Position = UDim2.fromOffset(tx, if short then 58 else 68)
+			c.helper.Size = UDim2.new(1, -tx - 10, 0, cellH - (if short then 60 else 72))
+		end
+
+		-- Resets above You keep when narrow; side by side otherwise.
+		changesLayout.FillDirection = if narrow then Enum.FillDirection.Vertical
+			else Enum.FillDirection.Horizontal
+		changes.Size = UDim2.new(1, 0, 0, 0)
+		local half = if narrow then UDim2.new(1, 0, 0, 0) else UDim2.new(0.5, -6, 0, 0)
+		ui.resets.Size = half
+		ui.keep.Size = half
+		ui.crateDetails.Size = UDim2.new(1, 0, 0, 0)
+	end
+	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+	fit()
+
+	-- Escape or a gamepad B closes the page before a request; nothing on the
+	-- keyboard confirms it.
+	UserInputService.InputBegan:Connect(function(input)
+		if not page.Visible then
+			return
+		end
+		if input.KeyCode == Enum.KeyCode.Escape or input.KeyCode == Enum.KeyCode.ButtonB then
+			Rebirth.close()
 		end
 	end)
 
@@ -727,150 +789,445 @@ end
 -- FILLING IT IN
 -- ============================================================
 
-local function fill()
-	local next_ = seen.rebirths + 1
-	pageTitle.Text = ("%s  REBIRTH %d"):format(SPARK, next_)
-
-	for _, list in ipairs({ keepList, loseList, unlockList }) do
-		for _, child in ipairs(list:GetChildren()) do
-			if child:IsA("Frame") then
-				child:Destroy()
-			end
+local function clear(parent: Instance, keep: { [string]: boolean })
+	for _, child in ipairs(parent:GetChildren()) do
+		if child:IsA("GuiObject") and not keep[child.Name] then
+			child:Destroy()
 		end
 	end
+end
 
-	-- ---------- keep ----------
-	--
-	-- A RULE, NOT AN INVENTORY. This used to itemise: "Your 2 skins", "Your 5
-	-- lawn decorations", "Your 1 piece of gear" -- nine rows counted off the
-	-- pushed catalogues. Every line was true and the column was a stocktake,
-	-- which is the wrong shape for the reassuring half of a scary page. A
-	-- nine-year-old deciding whether to press this needs to know that NOTHING
-	-- THEY COLLECTED GOES, and counting it back at them makes them audit the
-	-- list instead.
-	--
-	-- It is also more honest. `Rebirth wipes power but never cosmetics` is a
-	-- rule about the game rather than about today's inventory, so stating the
-	-- rule cannot disagree with what the server does -- where a count read
-	-- from a stale push can. The LOSE column keeps its real numbers, and that
-	-- asymmetry is deliberate: a loss is somebody's actual afternoon and has
-	-- to be specific, while a thing you keep is a promise and has to be total.
-	local order = 0
-	local function keep(text: string)
-		order += 1
-		makeRow(keepList, order, TICK, KEEP, text)
+local function resetWell(card: any)
+	for _, child in ipairs(card.well:GetChildren()) do
+		if child:IsA("GuiObject") then
+			child:Destroy()
+		end
 	end
+end
 
-	keep("All your skins and trail effects")
-	keep("Your house, and everything on your lawn")
-	keep("Everything you wear, and every ride")
-	keep("Every bone and gadget you are holding")
-	if seen.rebirths > 0 then
-		keep(("Your %d%s so far, plus the new one"):format(seen.rebirths, STAR))
+-- "+128% -> +136%": the current value muted, the next in plum.
+local function compare(now: string, after: string): string
+	return ("%s <font color=\"%s\">%s</font> <font color=\"%s\">%s</font>"):format(
+		now, MUTED_HEX, ARROW, PLUM_HEX, after)
+end
+
+local function ownedSkins(): { [string]: boolean }
+	local owned = {}
+	for key, skin in pairs((seen.cosmetics and seen.cosmetics.skins) or {}) do
+		owned[key] = skin.unlocked == true
+	end
+	return owned
+end
+
+-- The odds line for a crate, from ChestState. nil until that push arrives.
+local function oddsLine(chestKey: string): string?
+	local state = seen.chests and seen.chests[chestKey]
+	local odds = state and state.odds
+	if not odds then
+		return nil
+	end
+	local parts = {}
+	for _, tier in ipairs(Config.RARITY_ORDER) do
+		local pct = odds[tier]
+		if pct and pct > 0 then
+			local rarity = Config.RARITIES[tier]
+			table.insert(parts, ("<font color=\"%s\">%s %d%%</font>"):format(
+				hex(Theme.readable(rarity.colour, Theme.PAPER)), rarity.label, math.floor(pct + 0.5)))
+		end
+	end
+	return table.concat(parts, (" %s "):format(DOT))
+end
+
+local function drawCoinIcon(chip: Frame)
+	centred(Theme.coin(chip, 24))
+end
+
+local function drawBarsIcon(chip: Frame)
+	for i, hgt in ipairs({ 0.32, 0.5, 0.7 }) do
+		local bar = frame(chip, "Bar" .. i, Theme.GOOD)
+		bar.AnchorPoint = Vector2.new(0, 1)
+		bar.Position = UDim2.fromScale(0.16 + (i - 1) * 0.24, 0.84)
+		bar.Size = UDim2.fromScale(0.18, hgt)
+		Theme.corner(bar, 2)
+		Theme.outline(bar, 1)
+	end
+end
+
+local function drawPigIcon(chip: Frame)
+	if not image(chip, "Piggy", ICONS.piggy, 0.95) then
+		centred(Theme.snout(chip, 22))
+	end
+end
+
+local function drawGearIcon(chip: Frame)
+	centred(Theme.gear(chip, 24))
+end
+
+local function drawAcornIcon(chip: Frame)
+	centred(Theme.acorn(chip, 24))
+end
+
+local function drawBagIcon(chip: Frame)
+	centred(Theme.satchel(chip, 24))
+end
+
+local function drawEmblemIcon(chip: Frame)
+	if not image(chip, "Art", ICONS.rebirthEmblem, 1) then
+		drawCoinIcon(chip)
+	end
+end
+
+-- A little house: a roof square turned 45 degrees behind a body, so only its
+-- top half shows as a gable.
+local function drawHouseIcon(chip: Frame)
+	local roof = frame(chip, "Roof", Theme.STOP)
+	centred(roof, 0.5, 0.44)
+	roof.Size = UDim2.fromScale(0.46, 0.46)
+	roof.Rotation = 45
+	Theme.outline(roof, 1.5)
+	local body = frame(chip, "Body", Theme.PAPER)
+	body.AnchorPoint = Vector2.new(0.5, 1)
+	body.Position = UDim2.fromScale(0.5, 0.84)
+	body.Size = UDim2.fromScale(0.5, 0.36)
+	Theme.outline(body, 1.5)
+	local door = frame(body, "Door", Theme.ACORN)
+	door.AnchorPoint = Vector2.new(0.5, 1)
+	door.Position = UDim2.fromScale(0.5, 1)
+	door.Size = UDim2.fromScale(0.3, 0.62)
+end
+
+-- The default Classic Pink piggy with its reward around it: a gold coin
+-- stack at its feet and a green "+%" badge, which is the permanent bonus.
+local function drawCoinBonus(well: Frame)
+	local piggy = image(well, "Piggy", ICONS.piggy, 0.74)
+	if piggy then
+		piggy.Position = UDim2.fromScale(0.42, 0.5)
 	else
-		keep(("Your %s: they only ever go up"):format(STAR))
+		centred(Theme.snout(well, 34), 0.42, 0.5)
+	end
+	for i, spot in ipairs({ { 0.7, 0.84 }, { 0.86, 0.84 }, { 0.78, 0.7 } }) do
+		centred(Theme.coin(well, 20, "Coin" .. i), spot[1], spot[2])
+	end
+	local badge = text(well, "Plus", "+%", 13, Theme.PAPER, Theme.FONT)
+	badge.TextXAlignment = Enum.TextXAlignment.Center
+	badge.BackgroundTransparency = 0
+	badge.BackgroundColor3 = Theme.GOOD_INK
+	badge.AnchorPoint = Vector2.new(1, 0)
+	badge.Position = UDim2.new(1, 6, 0, -6)
+	badge.Size = UDim2.fromOffset(32, 22)
+	Theme.corner(badge, 11)
+	Theme.outline(badge, 2)
+end
+
+-- Acorns an hour, trimmed: "1.36", "2", "2.5".
+local function perHour(value: number): string
+	local out = ("%.2f"):format(value)
+	out = out:gsub("0+$", "")
+	out = out:gsub("%.$", "")
+	return out
+end
+
+local function drawCrate(well: Frame, colour: Color3)
+	local box = frame(well, "Crate", Theme.SAND_DEEP)
+	box.AnchorPoint = Vector2.new(0.5, 0.5)
+	box.Position = UDim2.fromScale(0.5, 0.55)
+	box.Size = UDim2.fromScale(0.72, 0.58)
+	Theme.corner(box, 6)
+	Theme.outline(box, Theme.OUTLINE_THIN)
+	local lid = frame(well, "Lid", Theme.PAPER_DEEP)
+	lid.AnchorPoint = Vector2.new(0.5, 1)
+	lid.Position = UDim2.fromScale(0.5, 0.3)
+	lid.Size = UDim2.fromScale(0.8, 0.16)
+	Theme.corner(lid, 5)
+	Theme.outline(lid, Theme.OUTLINE_THIN)
+	for _, x in ipairs({ 0.18, 0.7 }) do
+		local band = frame(box, "Band", colour)
+		band.Position = UDim2.fromScale(x, 0)
+		band.Size = UDim2.fromScale(0.12, 1)
+	end
+	local star = text(box, "Mark", "?", 22, Theme.INK, Theme.FONT)
+	star.TextXAlignment = Enum.TextXAlignment.Center
+	star.Size = UDim2.fromScale(1, 1)
+end
+
+-- A rising staircase of bars BEHIND a piggy: "your ladder goes higher". The
+-- bars are built first so the piggy stands in front of them rather than
+-- having them pasted over its side; each is outlined in ink so it reads
+-- against the teal well rather than merging with it.
+local function drawLimit(well: Frame)
+	for i, hgt in ipairs({ 0.3, 0.48, 0.66 }) do
+		local bar = frame(well, "Bar" .. i, Theme.GOOD)
+		bar.AnchorPoint = Vector2.new(0, 1)
+		bar.Position = UDim2.fromScale(0.5 + (i - 1) * 0.155, 0.84)
+		bar.Size = UDim2.fromScale(0.12, hgt)
+		Theme.corner(bar, 4)
+		Theme.outline(bar, 2)
+		Theme.gloss(bar, Theme.GOOD:Lerp(Theme.PAPER, 0.25), Theme.GOOD:Lerp(Theme.INK, 0.15))
+	end
+	local piggy = image(well, "Piggy", ICONS.piggy, 0.6)
+	if piggy then
+		piggy.Position = UDim2.fromScale(0.3, 0.64)
+	else
+		local s = Theme.snout(well, 36)
+		s.AnchorPoint = Vector2.new(0.5, 0.5)
+		s.Position = UDim2.fromScale(0.36, 0.6)
+	end
+end
+
+local function fill()
+	if not ui.page then
+		return
+	end
+	local r = seen.rebirths
+	local nextR = r + 1
+	ui.title.Text = ("REBIRTH <font color=\"%s\">%d</font>"):format(GOLD_HEX, nextR)
+
+	-- ---------- A. benefits ----------
+	local c = ui.coinCard
+	c.title.Text = "Permanent coin bonus"
+	c.value.Text = compare(("+%d%%"):format(Config.rebirthBonusPercent(r)),
+		("+%d%%"):format(Config.rebirthBonusPercent(nextR)))
+	c.helper.Text = "Applies at every income level"
+	resetWell(c)
+	drawCoinBonus(c.well)
+
+	local l = ui.limitCard
+	local capNow, capNext = Config.maxLevel(r), Config.maxLevel(nextR)
+	l.title.Text = "Higher upgrade limit"
+	if capNext > capNow then
+		l.value.Text = compare(("Lv %d"):format(capNow), ("Lv %d"):format(capNext))
+		l.helper.Text = "Earn Faster + Bigger Piggy Bank"
+	else
+		l.value.Text = ("Lv %d"):format(capNow)
+		l.helper.Text = "All upgrade levels unlocked"
+	end
+	resetWell(l)
+	drawLimit(l.well)
+
+	local owned = ownedSkins()
+	local open = Config.rebirthCratesOpen(owned)
+	local k = ui.crateCard
+	resetWell(k)
+	clear(k.card, { Well = true, Title = true, Value = true, Helper = true })
+	if #open == 0 then
+		-- Nothing left to open: the page says the Acorns, never a crate.
+		local bonus = Config.rebirthCrateBonus()
+		k.title.Text = "Collections complete"
+		k.value.Text = ("%d %s"):format(bonus, Config.lootWord(bonus))
+		k.helper.Text = "Every Legendary collected, so you get Acorns instead"
+		local acorn = Theme.acorn(k.well, 48)
+		acorn.AnchorPoint = Vector2.new(0.5, 0.5)
+		acorn.Position = UDim2.fromScale(0.5, 0.5)
+		expanded.crate = false
+	else
+		local first = Config.CHESTS[open[1]]
+		k.title.Text = "Free crate opening"
+		k.value.Text = if #open == 1 then first.name else "Legendary crate"
+		k.value.TextTruncate = Enum.TextTruncate.AtEnd
+		-- Identical odds across the eligible crates print once; different
+		-- ones defer to the detail list rather than picking one to show.
+		local line = oddsLine(open[1])
+		for i = 2, #open do
+			if oddsLine(open[i]) ~= line then
+				line = "Odds vary by crate"
+			end
+		end
+		k.helper.Text = line or ("Random pick %s not a set skin"):format(DOT)
+		drawCrate(k.well, first.colour)
+		local link = Instance.new("TextButton")
+		link.Name = "ViewRewards"
+		link.BackgroundTransparency = 1
+		link.Font = Theme.FONT_BODY
+		link.TextSize = 14
+		link.TextColor3 = PLUM
+		link.TextXAlignment = Enum.TextXAlignment.Right
+		link.Text = (if expanded.crate then "Hide rewards %s" else "View rewards %s"):format(CHEVRON)
+		link.AnchorPoint = Vector2.new(1, 0)
+		link.Position = UDim2.new(1, -10, 0, 12)
+		link.Size = UDim2.fromOffset(130, 22)
+		link.Parent = k.card
+		link.Activated:Connect(function()
+			expanded.crate = not expanded.crate
+			fill()
+		end)
+		k.title.Size = UDim2.new(1, -(k.title.Position.X.Offset + 146), 0, 22)
 	end
 
-	-- ---------- lose ----------
-	order = 0
-	local function lose(text: string)
-		order += 1
-		makeRow(loseList, order, CROSS, LOSE, text)
+	local a = ui.acornCard
+	local treeNow = math.floor((Config.treeRebirthFactor(r, true) - 1) * 100 + 0.5)
+	local treeNext = math.floor((Config.treeRebirthFactor(nextR, true) - 1) * 100 + 0.5)
+	a.title.Text = "Online Acorn growth"
+	-- Acorns an hour from `treeGrowthPerHour` -- the one function the
+	-- server's live tick grows the tree with -- at this tree's level.
+	local rateLine = "While you're playing"
+	if seen.treeLevel then
+		local now = Config.treeGrowthPerHour(seen.treeLevel, r, true)
+		local after = Config.treeGrowthPerHour(seen.treeLevel, nextR, true)
+		rateLine = if after > now
+			then ("%s %s <font color=\"%s\"><b>%s</b></font> acorns an hour"):format(
+				perHour(now), ARROW, PLUM_HEX, perHour(after))
+			else ("%s acorns an hour"):format(perHour(now))
+	end
+	if treeNext > treeNow then
+		a.value.Text = compare(("+%d%%"):format(treeNow), ("+%d%%"):format(treeNext))
+		a.helper.Text = rateLine
+	else
+		a.value.Text = ("+%d%%"):format(treeNow)
+		a.helper.Text = rateLine .. " (max bonus)"
+	end
+	resetWell(a)
+	if not image(a.well, "Art", ICONS.acornTree, 0.95) then
+		local acorn = Theme.acorn(a.well, 48)
+		acorn.AnchorPoint = Vector2.new(0.5, 0.5)
+		acorn.Position = UDim2.fromScale(0.5, 0.5)
 	end
 
-	lose(("%s coins in your piggy bank"):format(format(seen.coins)))
+	-- ---------- B. crate details ----------
+	local details = ui.crateDetails
+	clear(details, { Heading = true })
+	details.Visible = expanded.crate and #open > 0
+	if details.Visible then
+		local order = 0
+		local function line(value: string, colour: Color3?, size: number?)
+			order += 1
+			local t = text(details, "Line" .. order, value, size or 14, colour or Theme.INK,
+				Enum.Font.GothamMedium)
+			t.LayoutOrder = order
+			t.TextWrapped = true
+			t.AutomaticSize = Enum.AutomaticSize.Y
+			t.Size = UDim2.new(1, -24, 0, 20)
+		end
+		-- The pick among eligible crates is uniform on the server
+		-- (`open[math.random(#open)]`), so the share is derived from the count.
+		local share = math.floor(100 / #open + 0.5)
+		for _, key in ipairs(open) do
+			local chest = Config.CHESTS[key]
+			local pool = Config.chestPool(key)
+			local legendaries = pool.legendary or {}
+			local have = 0
+			for _, skin in ipairs(legendaries) do
+				if owned[skin] then have += 1 end
+			end
+			local head = if #open > 1
+				then ("<b>%s</b>  %s %d%% chance of this crate"):format(chest.name, DOT, share)
+				else ("<b>%s</b>"):format(chest.name)
+			line(head, Theme.INK, 16)
+			local odds = oddsLine(key)
+			if odds then
+				line(odds)
+			end
+			line(("Legendaries owned: %d / %d"):format(have, #legendaries), Theme.MUTED)
+		end
+		line("One free opening. A new skin isn't guaranteed: a copy you already own "
+			.. "becomes a spare you can sell or combine.", Theme.MUTED)
+	end
+
+	-- ---------- C. what changes ----------
+	local resets = ui.resets
+	clear(resets, { Heading = true })
+	local pill = Theme.STOP:Lerp(Theme.PAPER, 0.92)
+	local _, coinsValue = summaryRow(resets, 1, Theme.GOLD:Lerp(Theme.PAPER, 0.35), drawCoinIcon,
+		"Piggy coins", "Even past the goal",
+		("%s %s 0"):format(format(seen.coins), ARROW), pill)
+	ui.coinsValue = coinsValue
+	local order = 1
 	if seen.incomeLevel > 1 then
-		lose(("Earn Faster, Lv %d"):format(seen.incomeLevel))
+		order += 1
+		summaryRow(resets, order, Theme.GOOD:Lerp(Theme.PAPER, 0.45), drawBarsIcon,
+			"Earn Faster", nil, ("Lv %d %s 1"):format(seen.incomeLevel, ARROW), pill)
 	end
 	if seen.capacityLevel > 1 then
-		lose(("Bigger Piggy Bank, Lv %d"):format(seen.capacityLevel))
+		order += 1
+		summaryRow(resets, order, Theme.PIG:Lerp(Theme.PAPER, 0.35), drawPigIcon,
+			"Bigger Piggy Bank", nil, ("Lv %d %s 1"):format(seen.capacityLevel, ARROW), pill)
 	end
-
-	-- Only what they actually bought. An upgrade at zero is not a loss, and
-	-- listing it would make the scary column longer than the truth.
 	local trees = {}
 	for _, info in pairs(seen.upgrades or {}) do
 		if (info.level or 0) > 0 then
 			table.insert(trees, info)
 		end
 	end
-	-- Defence then offence, each in its own order: the same arrangement the
-	-- shop shows both trees in. A list sorted by table key instead came out
-	-- boots, dog, lockpicks, locks, sack -- alphabetical order over the
-	-- INTERNAL names, which is an arrangement the player has never seen.
-	table.sort(trees, function(a, b)
-		if a.tree ~= b.tree then
-			return a.tree == "defense"
+	-- Defence then offence, each in the shop's own order.
+	table.sort(trees, function(x, y)
+		if x.tree ~= y.tree then
+			return x.tree == "defense"
 		end
-		return (a.order or 99) < (b.order or 99)
+		return (x.order or 99) < (y.order or 99)
 	end)
-	for _, t in ipairs(trees) do
-		lose(("%s, Lv %d"):format(t.name, t.level))
-	end
-
-	-- ---------- unlock ----------
-	--
-	-- PICTURES. See `unlockTile` for why.
-	order = 0
-	-- Through Config rather than by multiplying the constant: the multiplier
-	-- tapers past rebirth 10, and a page that printed 0.12 for the eleventh
-	-- would be promising a bonus the server does not pay.
-	local total = Config.rebirthBonusPercent(next_)
-	local step = total - Config.rebirthBonusPercent(next_ - 1)
-
-	-- The income tile is the one reward that is not an object, so it gets the
-	-- drawn coin the HUD already uses rather than a stand-in model. Gold means
-	-- money everywhere else in this game; it means it here too.
-	order += 1
-	unlockTile(order,
-		if next_ > 1
-			then ("+%d%% income, now +%d%% in all"):format(step, total)
-			else ("+%d%% income, forever"):format(step),
-		function(well)
-			local coin = Theme.coin(well, 54)
-			coin.Position = UDim2.new(0.5, 0, 0.5, 0)
-			coin.AnchorPoint = Vector2.new(0.5, 0.5)
-		end)
-
-	-- This is the standard crate, not a promised skin or a guaranteed rarity.
-	local owned = {}
-	for key, skin in pairs((seen.cosmetics and seen.cosmetics.skins) or {}) do
-		owned[key] = skin.unlocked == true
-	end
-	local chest = Config.CHESTS[Config.REBIRTH_CRATE]
-	order += 1
-	if Config.rebirthCrateComplete(owned) then
-		unlockTile(order, ("%d %s\nCollection complete"):format(chest.cost, Config.lootWord(chest.cost)),
-			function(well)
-				local acorn = Theme.acorn(well, 54)
-				acorn.Position = UDim2.new(0.5, 0, 0.5, 0)
-				acorn.AnchorPoint = Vector2.new(0.5, 0.5)
+	if #trees > 0 then
+		order += 1
+		summaryRow(resets, order, Theme.SAND_DEEP, drawGearIcon,
+			"Bought upgrades", "Your Defend and Rob trees",
+			("%d %s 0"):format(#trees, ARROW), pill)
+		if expanded.upgrades then
+			for _, t in ipairs(trees) do
+				order += 1
+				local row = summaryRow(resets, order, nil, nil, t.name, nil,
+					("Lv %d %s 0"):format(t.level, ARROW), pill)
+				row.Size = UDim2.new(1, -24, 0, 30)
+			end
+		end
+		order += 1
+		linkButton(resets, "ViewUpgrades", order,
+			(if expanded.upgrades then "Hide upgrades %s" else "View upgrades %s"):format(CHEVRON),
+			function()
+				expanded.upgrades = not expanded.upgrades
+				fill()
 			end)
-	else
-		unlockTile(order, "Free " .. chest.name,
-			function(well)
-				local box = Instance.new("Frame")
-				box.Size = UDim2.fromOffset(52, 42)
-				box.Position = UDim2.new(0.5, -26, 0.5, -19)
-				box.BackgroundColor3 = Theme.SAND_DEEP
-				box.BorderSizePixel = 0
-				box.Parent = well
-				corner(box, 5)
-				Theme.outline(box, Theme.OUTLINE_THIN)
-				for _, x in ipairs({ 8, 36 }) do
-					local band = Instance.new("Frame")
-					band.Size = UDim2.fromOffset(8, 42)
-					band.Position = UDim2.fromOffset(x, 0)
-					band.BackgroundColor3 = chest.colour
-					band.BorderSizePixel = 0
-					band.Parent = box
-				end
-			end, "?")
 	end
 
-	-- Every row above was built after the page was, so it has not been
-	-- layered yet. See `layer`.
-	layer(page, page.ZIndex + 1)
+	-- A rule, not an inventory: "nothing you collected goes" is total, where a
+	-- count read off a stale push could disagree with the server.
+	local keep = ui.keep
+	clear(keep, { Heading = true })
+	for i, row in ipairs({
+		{ Theme.PIG:Lerp(Theme.PAPER, 0.35), drawPigIcon, "Skins and collection", "Every skin, trophy and set item" },
+		{ Theme.STOP:Lerp(Theme.PAPER, 0.65), drawHouseIcon, "Home and lawn", "Houses, garden and decorations" },
+		{ Theme.COOL:Lerp(Theme.PAPER, 0.5), drawBagIcon, "Rides and items", "Wearables, bones and gadgets" },
+		{ Theme.ACORN_CAP:Lerp(Theme.PAPER, 0.45), drawAcornIcon, "Acorns and guard dog", "Your acorns, tree and dog" },
+		{ PLUM:Lerp(Theme.PAPER, 0.5), drawEmblemIcon, "Rebirths and records",
+			("All %d rebirths and your stats"):format(nextR) },
+	}) do
+		summaryRow(keep, i, row[1], row[2], row[3], row[4])
+	end
+
+	Rebirth.paintLive()
+	layer(ui.page, ui.page.ZIndex + 1)
+end
+
+-- The parts that move with every coin: the requirement, the coin reset row
+-- and the confirm. Cheap, so it runs on every economy push.
+function Rebirth.paintLive()
+	if not ui.page then
+		return
+	end
+	local threshold = Config.getRebirthThreshold(seen.rebirths)
+	local ratio = if threshold > 0 then math.clamp(seen.coins / threshold, 0, 1) else 1
+	ui.reqAmount.Text = ("%s / %s"):format(format(seen.coins), format(threshold))
+	ui.reqFill.Size = UDim2.fromScale(ratio, 1)
+	ui.reqFill.BackgroundColor3 = if seen.ready then Theme.GOOD else Theme.GOLD
+	if seen.ready then
+		ui.reqStatus.Text = "READY"
+		ui.reqStatus.TextSize = 15
+		ui.reqStatus.BackgroundColor3 = Theme.GOOD_INK
+		ui.reqStatus.TextColor3 = Theme.PAPER
+	else
+		ui.reqStatus.Text = ("%s more"):format(format(math.max(0, threshold - seen.coins)))
+		ui.reqStatus.TextSize = 13
+		ui.reqStatus.BackgroundColor3 = Theme.WARN:Lerp(Theme.PAPER, 0.7)
+		ui.reqStatus.TextColor3 = Theme.INK
+	end
+	if ui.coinsValue then
+		ui.coinsValue.Text = ("%s %s 0"):format(format(seen.coins), ARROW)
+	end
+
+	local usable = seen.ready and not pending.active
+	ui.confirm.AutoButtonColor = usable
+	ui.confirm.BackgroundColor3 = if usable then PLUM else PLUM:Lerp(Theme.MUTED_LIGHT, 0.55)
+	ui.confirmLabel.Text = if pending.active
+		then "Rebirthing" .. ELLIPSIS
+		elseif seen.ready then ("REBIRTH TO <font color=\"%s\">%d</font>"):format(GOLD_HEX, seen.rebirths + 1)
+		else "NOT READY YET"
 end
 
 -- ============================================================
@@ -878,52 +1235,87 @@ end
 -- ============================================================
 
 function Rebirth.open()
-	if not page then
+	if not ui.page then
 		return
 	end
+	expanded.crate = false
+	expanded.upgrades = false
 	fill()
-	page.Visible = true
+	ui.body.CanvasPosition = Vector2.zero
+	ui.page.Visible = true
+	ui.settle.Scale = 0.96
+	TweenService:Create(ui.settle, TweenInfo.new(0.16, Enum.EasingStyle.Quad,
+		Enum.EasingDirection.Out), { Scale = 1 }):Play()
 	Rebirth.sync()
 end
 
 function Rebirth.close()
-	if page then
-		page.Visible = false
+	if ui.page then
+		ui.page.Visible = false
 	end
 	Rebirth.sync()
 end
 
 function Rebirth.isOpen(): boolean
-	return page ~= nil and page.Visible
+	return ui.page ~= nil and ui.page.Visible
 end
 
 function Rebirth.sync()
-	if not button then
+	if not ui.button then
 		return
 	end
 	local allowed = if Rebirth.canShow then Rebirth.canShow() else true
-	button.Visible = seen.ready and allowed and not Rebirth.isOpen()
+	local show = seen.ready and allowed and not Rebirth.isOpen()
+	local was = ui.button.Visible
+	ui.button.Visible = show
+	if show and not was and ui.emphasiseNext then
+		ui.emphasiseNext = false
+		emphasise()
+	end
 end
 
 function Rebirth.onEconomy(state: any)
+	local before = seen.rebirths
+	local wasReady = seen.ready
 	seen.coins = state.coins or 0
 	seen.incomeLevel = state.incomeLevel or 1
 	seen.capacityLevel = state.capacityLevel or 1
 	seen.rebirths = state.rebirths or 0
 	seen.ready = state.rebirthReady == true
-	if starChip then
-		starChip.Text = ("%d%s"):format(seen.rebirths + 1, STAR)
+	local treeBefore = seen.treeLevel
+	seen.treeLevel = state.treeLevel
+	if ui.buttonLabel then
+		ui.buttonLabel.Text = ("REBIRTH <font color=\"%s\">%d</font>"):format(GOLD_HEX, seen.rebirths + 1)
 	end
-	-- A page left open through a rebirth would be describing a trade that has
-	-- already happened, which is the receipt this file exists to avoid.
-	if Rebirth.isOpen() and not seen.ready then
-		Rebirth.close()
+	-- One pop the first time readiness turns on, whenever the button is next
+	-- actually on screen to be seen doing it.
+	if seen.ready and not wasReady then
+		ui.emphasiseNext = true
 	end
+
+	if seen.rebirths > before then
+		-- The rebirth happened. A page left open would describe a trade that
+		-- is already made -- the receipt this file exists to avoid.
+		pending.active = false
+		if Rebirth.isOpen() then
+			Rebirth.close()
+		end
+	elseif Rebirth.isOpen() then
+		if seen.treeLevel ~= treeBefore
+			or seen.incomeLevel ~= (ui.lastIncome or seen.incomeLevel)
+			or seen.capacityLevel ~= (ui.lastCapacity or seen.capacityLevel) then
+			fill()
+		else
+			Rebirth.paintLive()
+		end
+	end
+	ui.lastIncome, ui.lastCapacity = seen.incomeLevel, seen.capacityLevel
 	Rebirth.sync()
 end
 
 function Rebirth.onUpgrades(list: any)
 	seen.upgrades = list
+	if Rebirth.isOpen() then fill() end
 end
 
 function Rebirth.onCosmetics(c: any)
@@ -935,12 +1327,26 @@ function Rebirth.onRides(list: any)
 	seen.rides = list
 end
 
--- Keep the existing injection signature; rewards now use drawn crate/Acorn icons.
+function Rebirth.onChest(payload: any)
+	seen.chests = payload and payload.chests
+	if Rebirth.isOpen() then fill() end
+end
+
+-- Keeps the existing injection signature; the page draws its own art now.
 function Rebirth.init(gui: ScreenGui, confirm: () -> (),
 	_icon: ((GuiObject, Model, UDim2, UDim2, boolean) -> Instance)?)
 	onConfirm = confirm
 	buildButton(gui)
 	buildPage(gui)
+	RunService.Heartbeat:Connect(function()
+		if not (ui.button.Visible or ui.page.Visible) then
+			return
+		end
+		local angle = (os.clock() * SPIN_RATE) % 360
+		for _, ring in ipairs(spinners) do
+			ring.Rotation = angle
+		end
+	end)
 end
 
 return Rebirth

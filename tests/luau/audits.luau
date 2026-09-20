@@ -68,24 +68,37 @@ check(protected~=nil,"catalogue has real protected pass skin")
 local originalStealable=Config.isStealableSkin
 provoke(Config,"isStealableSkin",function(key) return key==protected or originalStealable(key) end,R,"random.passTheft")
 provoke(Config.SKIN_STEAL,"chance",.5,R,"random.theft")
-provoke(Config,"REBIRTH_CRATE","missing",R,"random.rebirthCrate")
+provoke(Config,"REBIRTH_CRATES",{"missing"},R,"random.rebirthCrate")
+provoke(Config,"CRATE_SECTIONS",{{key="x",name="X",chests={"missing"}}},R,"random.crateSection")
 provoke(Config.COIN_PACK,"productId",-1,R,"random.coinPackId")
 provoke(Config.COIN_PACK,"productId",123456,R,"random.paidRebirth")
 -- Cycles/shared references cannot trap the recursive tag/gate sweep.
 local cycle={};cycle.self=cycle;Config._auditFixture=cycle
 check(#R()==0,"recursive sweep handles cycles");Config._auditFixture=nil
 -- Removing historical coin prices must preserve every resale amount and tier.
-local sales={galaxy=40000,vaporwave=95238,stormwolf=125000,hotwire=18750,
- bubblegum=2000,ultraviolet=95238,plasma=95238,bee=40000,giraffe=40000,ladybird=6250,
- pearl=40000,mint=5000,sunset=11250,hyperdrive=1000000,midnight=22500,lava=40000,
- synthwave=95238,cow=8750,neonmint=10000,zebra=40000,cyberlime=3000,laserdream=55000,
- leopard=40000,gridrunner=95238}
-for key,value in sales do
- check(Config.sellValue("skin",key)==value and Config.isSellable("skin",key),key.." resale unchanged")
+local sales={galaxy=40000,stormwolf=125000,
+ bubblegum=2000,bee=40000,giraffe=40000,ladybird=6250,
+ pearl=40000,mint=5000,sunset=11250,midnight=22500,lava=40000,
+ cow=8750,neonmint=10000,zebra=40000,cyberlime=3000,
+ leopard=40000}
+-- Skins sell for ACORNS now (Config.SKIN_SELL_ACORNS, a flat value per tier);
+-- the coin figures above are kept as the record of what they used to pay.
+for key in sales do
+ local acorns=Config.SKIN_SELL_ACORNS[Config.rarityOf(Config.SKINS[key])]
+ check(acorns and Config.sellValue("skin",key)==acorns and Config.isSellable("skin",key),key.." sells for its tier's acorns")
  check(Config.SKINS[key].cost==nil and Config.SKINS[key].sellBasis>0 and Config.SKINS[key].rarity~=nil,key.." resale metadata separate from coin price")
  check(not Config.isSkinUnlocked(key,{},100),key.." not made free by removing price")
 end
-check(Config.COIN_PACK.productId==0 and Config.CHESTS[Config.REBIRTH_CRATE].odds.rare==65,"standard random rebirth crate retained; pack disabled")
+-- No skin crate may pay for itself in spares: a crate full of duplicates,
+-- sold, must return less than it cost (see Config.SKIN_SELL_ACORNS).
+for chestKey,chest in Config.CHESTS do
+ if chest.kind=="skin" and chest.cost and chest.cost>0 then
+  local back=0
+  for tier,weight in chest.odds do back+=weight/100*(Config.SKIN_SELL_ACORNS[tier] or 0) end
+  check(back<chest.cost*0.5,chestKey.." spares return under half its price")
+ end
+end
+check(Config.COIN_PACK.productId==0 and Config.CHESTS[Config.REBIRTH_CRATES[1]].odds.rare==65,"standard random rebirth crate retained; pack disabled")
 
 local function load(name,env,source)
  local run=assert(loadstring(source or sources[name],name));setfenv(run,setmetatable(env,{__index=getfenv()}));return run()
@@ -138,6 +151,41 @@ for key in sales do
  check(data.coins==17 and data.loot==23 and not data.cosmetics.owned[key] and saves==0,
   key.." direct coin request cannot grant a now-unpriced crate skin")
 end
+-- Paused pets and retired kennel skins cannot be bought or reactivated by old clients.
+check(Config.PETS_ENABLED == false, "pets are disabled")
+for key in Config.PETS do
+ reset(false);data.coins=96000000
+ local before=data.pets.equipped
+ Cosmetics.buyPet(player,key)
+ check(data.coins==96000000 and not data.pets.owned[key] and data.pets.equipped==before,
+  key.." paused pet purchase cannot charge or equip")
+ data.pets.owned[key]=true;data.pets.equipped=key
+ Cosmetics.buyPet(player,key)
+ check(data.pets.owned[key] and data.pets.equipped==key and saves==0,
+  key.." paused pet request preserves dormant purchases")
+end
+for key in Config.DOG_KENNELS do
+ reset(false);data.coins=96000000
+ Cosmetics.buyDogKennel(player,key)
+ check(data.coins==96000000 and not data.dogs.kennels[key],key.." retired kennel purchase cannot charge")
+ data.dogs.kennels[key]=true;data.dogs.kennel=key
+ Cosmetics.equipDogKennel(player,key)
+ check(data.dogs.kennels[key] and data.dogs.kennel==key and saves==0,
+  key.." old equip request leaves dormant ownership intact")
+ check(not modules.SetService.inUse(data,"kennel",key),key.." legacy kennel skin is never active")
+end
+reset(false)
+local attributes={PetKey="piglet"}
+player.SetAttribute=function(_,key,value) attributes[key]=value end
+modules.PlotService.getPlot=function() return nil end
+data.pets.owned.piglet=true;data.pets.equipped="piglet"
+Cosmetics.applyToPlot(player)
+check(attributes.PetKey=="" and data.pets.equipped=="piglet", "pet publication is cleared while saved selection survives")
+reset(false)
+local reward=Config.SEASON.tiers[4].reward
+check(reward.kind=="coat" and reward.key=="goldenboy", "season replaces retired kennel reward with Golden Boy")
+check(modules.SetService.grant(player,reward.kind,reward.key) and data.dogs.owned.goldenboy,
+ "replacement guardian reward grants successfully")
 -- Retired piggy effects cannot charge, equip or grant through stale clients.
 local applied,pushed=0,0
 Cosmetics.applyToPlot=function() applied+=1 end

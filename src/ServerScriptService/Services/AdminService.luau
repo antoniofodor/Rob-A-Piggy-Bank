@@ -286,31 +286,21 @@ commands.unlockall = function(player)
 	for key in pairs(Config.RIDES) do
 		data.rides.owned[key] = true
 	end
-	-- THE DOG'S THREE CATALOGUES, which this command claimed to cover and did
-	-- not. It has said "every ... unlocked" since it was written, and coats,
-	-- kennels and toys each landed after it -- so a dev opening the shop to
+	-- THE DOG'S CATALOGUES, which this command claimed to cover and did
+	-- not. It has said "every ... unlocked" since it was written, and coats
+	-- and kennels each landed after it -- so a dev opening the shop to
 	-- look at a card found it locked and had no reason to suspect the TOOL
 	-- rather than the feature. The same silent-omission shape this project
 	-- keeps recording, on the thing used to look for it.
 	if type(data.dogs) ~= "table" then
-		data.dogs = { owned = {}, equipped = "", name = "", namedAt = 0,
-			kennels = {}, kennel = "", toys = { owned = {}, out = {} } }
-	end
-	if type(data.dogs.toys) ~= "table" then
-		data.dogs.toys = { owned = {}, out = {} }
+		data.dogs = { owned = {}, equipped = "", name = "",
+			kennels = {}, kennel = "" }
 	end
 	for key in pairs(Config.DOG_COATS) do
 		data.dogs.owned[key] = true
 	end
 	for key in pairs(Config.DOG_KENNELS) do
 		data.dogs.kennels[key] = true
-	end
-	-- OWNED, NOT OUT. Putting all three toys on the lawn would be this command
-	-- making a placement decision on somebody's behalf; the point of it is to
-	-- unlock what is buyable, and what is standing where is the next thing a
-	-- dev wants to try for themselves.
-	for key in pairs(Config.DOG_TOYS) do
-		data.dogs.toys.owned[key] = true
 	end
 	-- The catch effects, added in the same change as the catalogue rather
 	-- than the session after it -- which is the entry directly above this
@@ -321,13 +311,19 @@ commands.unlockall = function(player)
 	for key in pairs(Config.CATCH_EFFECTS) do
 		data.catch.owned[key] = true
 	end
+	if type(data.pets) ~= "table" then
+		data.pets = { owned = {}, equipped = "" }
+	end
+	for key in pairs(Config.PETS) do
+		data.pets.owned[key] = true
+	end
 
 	RideService.push(player)
 	-- applyToPlot rather than setHouseLevel: the sign names the house, so
 	-- building it alone leaves the board announcing the old one.
 	CosmeticsService.applyToPlot(player)
 	CosmeticsService.push(player)
-	return "Every skin, effect, house, ride, coat, kennel, toy and catch effect unlocked"
+	return "Every skin, effect, house, ride, coat, kennel, pet and catch effect unlocked"
 end
 
 -- Empties the accessory collection without touching anything else.
@@ -355,13 +351,16 @@ end
 commands.catchfx = function(player)
 	local key = CosmeticsService.catchEffectOf(player)
 	if key == Config.DEFAULT_CATCH then
-		return "No catch effect equipped -- buy one on the Worn tab first"
+		return "No catch effect equipped -- buy one on the Guardians tab first"
 	end
 	local character = player.Character
 	if not character then
 		return nil
 	end
 	character:SetAttribute(Config.CATCH_ATTRIBUTE, key)
+	-- You are the catcher as well as the caught, so a camera effect raises
+	-- the camera in your own hands and flashes you.
+	character:SetAttribute(Config.CATCH_BY_ATTRIBUTE, player.UserId)
 	character:SetAttribute(Config.CATCH_COUNT_ATTRIBUTE,
 		(character:GetAttribute(Config.CATCH_COUNT_ATTRIBUTE) or 0) + 1)
 	return ("Fired %s on you"):format(Config.CATCH_EFFECTS[key].name)
@@ -419,16 +418,6 @@ commands.dogstate = function(player)
 	-- question this command gets asked is "why does the dog look like that"
 	-- as often as "why is it asleep", and the answer to the first one used to
 	-- be nowhere at all.
-	local function dogToysOut(d: any): string
-		local out = {}
-		for key in pairs(Config.DOG_TOYS) do
-			if d.toysOut and d.toysOut[key] then
-				table.insert(out, key)
-			end
-		end
-		table.sort(out)
-		return if #out > 0 then table.concat(out, ",") else "none"
-	end
 	return ("lvl %d | nap %+.1fs | busy %+.1fs | guard %+.1fs | chasing=%s lured=%s sleeping=%s distracted=%s | offDuty=%s ready=%s | plate=%q"):format(
 		dog.level,
 		dog.napUntil - now, dog.busyUntil - now, dog.guardUntil - now,
@@ -436,8 +425,8 @@ commands.dogstate = function(player)
 		tostring(dog.distracted),
 		tostring(GuardDog.isOffDuty(dog)), tostring(GuardDog.isReady(dog)),
 		dog.breedLabel.Text)
-		.. (" | coat=%q kennel=%q name=%q | toys out: %s"):format(
-			dog.coat, dog.kennel, dog.name, dogToysOut(dog))
+		.. (" | coat=%q kennel=%q name=%q"):format(
+			dog.coat, dog.kennel, dog.name)
 end
 
 -- Calls a patrol immediately instead of waiting out the eight-minute cycle.
@@ -532,6 +521,8 @@ commands.animdump = function(player)
 	local DodgeRoll = require(game:GetService("ReplicatedStorage").Shared.DodgeRoll)
 	local SneakWalk = require(game:GetService("ReplicatedStorage").Shared.SneakWalk)
 	local CarryPose = require(game:GetService("ReplicatedStorage").Shared.CarryPose)
+	local ThrowPose = require(game:GetService("ReplicatedStorage").Shared.ThrowPose)
+	local CameraPose = require(game:GetService("ReplicatedStorage").Shared.CameraPose)
 
 	local existing = ReplicatedStorage:FindFirstChild("AnimationDump")
 	if existing then
@@ -573,6 +564,8 @@ commands.animdump = function(player)
 		dodgeRoll = DodgeRoll.buildSequence,
 		sneak = SneakWalk.buildSequence,
 		carry = CarryPose.buildSequence,
+		throw = ThrowPose.buildSequence,
+		cameraSnap = CameraPose.buildSequence,
 	}
 	-- WALKED RATHER THAN LISTED A SECOND TIME, which is what the paragraph
 	-- above actually promises. There used to be a hardcoded `{"dodgeRoll",
@@ -1008,7 +1001,8 @@ commands.reset = function(player)
 	local plot = PlotService.getPlot(player)
 	if plot then
 		PlotService.buildFence(plot, 0)
-		PlotService.setDogLevel(plot, 0)
+		-- Not 0: see the rebirth teardown in ProgressionService.
+		PlotService.setDogLevel(plot, Config.DOG_LEVEL)
 		PlotService.setLockLevel(plot, 0)
 		PlotService.setDecor(plot, data.decor.placed)
 		PlotService.applyAccessories(plot, data.accessories.worn)

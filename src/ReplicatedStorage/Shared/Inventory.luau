@@ -39,15 +39,15 @@
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TextService = game:GetService("TextService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local ShopStyle = require(ReplicatedStorage.Shared.ShopStyle)
 local Theme = require(ReplicatedStorage.Shared.Theme)
+local SkinCards = require(ReplicatedStorage.Shared.ShopSkinCards)
+local W = require(ReplicatedStorage.Shared.ShopWidgets)
 
 local Inventory = {}
 
-local DOT = utf8.char(0x00B7)
 
 -- A card is the shop's own size, because the two tabs sit one tap apart and a
 -- collection whose tiles were a different shape would read as a different
@@ -86,20 +86,51 @@ local SECTIONS = {
 	-- finishing is seeing the holes in it, and a missing card here names the
 	-- crate that fills it and opens the shop at it.
 	{ kind = "skin", from = "skins", tab = "Skins", icon = utf8.char(0x1F437),
-		hue = "piggy", owned = "unlocked", worn = "equipped", wire = "skin",
+		hue = "style", art = "style", owned = "unlocked", worn = "equipped", wire = "skin",
 		collection = true,
 		empty = "Open a crate. Skins come from nowhere else." },
-	{ kind = "decor", from = "decor", tab = "Lawn", icon = utf8.char(0x1F3E0),
-		hue = "home", owned = "owned", worn = "placed", wire = "decor",
-		empty = "Lawn ornaments are bought in the shop." },
+	-- THE LAWN TAB WENT WITH THE LAWN. `Config.DECOR_ITEMS` is empty, so this
+	-- was a tab that could only ever show its own empty state -- and a rail
+	-- slot opening a blank page is what took the Piggy tab and the Trophies
+	-- tab before it.
+	-- THE TROPHIES TAB IS GONE WITH THE TROPHIES. It was a collection log over
+	-- `Config.TROPHIES`, which is empty now -- see the note there for why the
+	-- ten went and what replaced them. AN EMPTY TAB IS NOT AN OPTION: a rail
+	-- slot that opens a blank page reads as a shop that failed to load, which
+	-- is the argument that removed the Piggy tab rather than leaving it holding
+	-- one section.
+	--
+	-- What a player can still see of that progress is the three stat panels on
+	-- their own wall, which is where an MVP wants it.
+	--
+	-- AND THE `log` BRANCHES WENT WITH IT, which the first pass left behind on
+	-- the claim that "it is the same branch the Skins tab needs". IT IS NOT:
+	-- Skins is `collection = true` and walks `Config.skinCollections()`, and
+	-- `log` was only ever this section's. Three unreachable branches behind a
+	-- comment asserting they were load-bearing is the shape this project keeps
+	-- paying for -- so they are gone, and a trophy ladder coming back brings
+	-- its own back with it.
 	{ kind = "ride", from = "rides", tab = "Rides", icon = utf8.char(0x1F6F9),
-		hue = "gear", owned = "owned", worn = "equipped", wire = "ride",
+		hue = "rides", art = "rides", owned = "owned", worn = "equipped", wire = "ride",
 		empty = "Boards and bikes are bought in the shop." },
-	-- FINISHES (Phase 5.4) are season rewards: the server sends only the
-	-- owned ones, so there is never a gap to draw here, and none is sellable.
-	{ kind = "finish", from = "finishes", tab = "Finishes", icon = utf8.char(0x1F31F),
-		hue = "effects", owned = "owned", worn = "equipped", wire = "finish",
-		empty = "Finishes come from season tiers. Grow acorns while a season runs." },
+	-- MOST WANTED GEAR is earned by escaping a wanted pursuit and never
+	-- bought, so it lives here and not in the shop. The push is a LIST, not a
+	-- keyed table -- `sourceFor` keys it -- and only unlocked pieces show.
+	{ kind = "gear", from = "gear", tab = "Outfit", icon = utf8.char(0x1F3AD),
+		hue = "supplies", model = "facemask", owned = "unlocked", worn = "equipped", wire = "gear",
+		empty = "Top the Most Wanted board, then outrun the patrol to earn one." },
+	-- NAB EFFECTS took the tab FINISHES had. What goes off on a thief you nab
+	-- is something a player chooses and changes, which is exactly what this
+	-- panel is for -- and until now the only place to switch one was the
+	-- Guardians shelf in the shop. `catches` carries every effect with an
+	-- `unlocked` flag, so only owned ones show; "None" is free and owned by
+	-- everybody, and wearing it is how an effect is switched off. The server
+	-- equips on an owned key rather than toggling, so there is no second
+	-- press to take one off -- None is that press.
+	{ kind = "catch", from = "catches", tab = "Nab Effects", icon = utf8.char(0x1F389),
+		hue = "companions", model = "partypopper",
+		owned = "unlocked", worn = "equipped", wire = "catch",
+		empty = "Nab effects are in the shop, on the Guardians shelf." },
 }
 
 -- ---- state -----------------------------------------------------------------
@@ -111,6 +142,8 @@ local SECTIONS = {
 
 local deps: any = nil
 local rail: ScrollingFrame? = nil
+-- The shop's own furniture, built by `buildChrome`: masthead, sign, balances.
+local chrome: any = nil
 local content: Frame? = nil
 local scroll: ScrollingFrame? = nil
 local tabs: { [string]: any } = {}
@@ -122,9 +155,17 @@ local chosen = false
 local rows: { [string]: any } = {}
 local cards: { [string]: any } = {}
 -- THE SHORT-SCREEN REFIT, and it is here because the SHOP had one and this
--- panel did not. `refitCards` in ClientMain has shrunk the shop's cards on a
--- short viewport since the cards were built; the bag was the same size of
--- card in the same size of panel with nothing watching. Measured on a phone
+-- panel did not.
+--
+-- NOTE THE SHOP'S HAS SINCE BEEN LOST, which is why this says "had". HEAD
+-- carries a `refitCards` in ClientMain that shrank the shop's cards on a short
+-- viewport; the working copy has none, and `cardFit.scale` is left with seven
+-- readers and no writer, so it sits at 1 forever. This panel's own refit below
+-- is unaffected -- it is self-contained -- but the two are meant to agree, so
+-- restoring that one is what makes the threshold below true again. Reported to
+-- the session holding the shop files rather than fixed here.
+--
+-- Measured on a phone
 -- held sideways -- the shortest thing that has to work, 546 tall -- the bag
 -- showed 1.4 rows of card against a desktop's 2.3, and the collection log's
 -- group headings cost another 28 apiece on top.
@@ -179,9 +220,26 @@ end
 -- The source table for a section, whichever push it arrived on. Rides come in
 -- on `RideState` and everything else on `CosmeticState`; asking here keeps
 -- every caller from branching.
+-- The decor/trophy split that used to live here went with the Trophies tab:
+-- no row in `Config.DECOR_ITEMS` carries a `trophy` key any more, so there is
+-- one catalogue and one tab reading it.
 local function sourceFor(section: any): any?
 	if section.kind == "ride" then
 		return rideList
+	end
+	if section.kind == "gear" then
+		local list = cosmetics and cosmetics.gear
+		if type(list) ~= "table" then
+			return nil
+		end
+		local byKey = {}
+		for i, info in ipairs(list) do
+			if type(info) == "table" and info.key then
+				info.order = info.order or i
+				byKey[info.key] = info
+			end
+		end
+		return byKey
 	end
 	return cosmetics and cosmetics[section.from]
 end
@@ -261,9 +319,27 @@ local function buildCard(section: any, key: string, info: any): any
 	well.BorderSizePixel = 0
 	well.Parent = button
 	ShopStyle.round(well, 10)
+	-- THE WHOLE CARD WEARS THE TIER, so the well is cleared before the icon
+	-- goes in -- `iconFor` would otherwise lay a second ground inside it.
+	local palette = SkinCards.dressCard(button, tier, { well })
+	local deep = if palette then palette.deep else ShopStyle.INK
 	if deps.iconFor then
 		deps.iconFor(section.kind, key, well)
 	end
+
+	-- NOT OWNED DIMS THE WHOLE CARD, above the tier ground and below
+	-- everything printed on it, so a missing skin still says which tier it is
+	-- and reads as the same card with the lights down.
+	local dim = Instance.new("Frame")
+	dim.Name = "MissingDim"
+	dim.Size = UDim2.new(1, 0, 1, 0)
+	dim.BackgroundColor3 = Theme.INK
+	dim.BackgroundTransparency = 0.5
+	dim.BorderSizePixel = 0
+	dim.ZIndex = 0
+	dim.Visible = false
+	dim.Parent = button
+	ShopStyle.round(dim, 14)
 
 	-- WHAT A MISSING SKIN LOOKS LIKE, and it is a DIM rather than a
 	-- silhouette. The shop greys its locked previews by walking the model and
@@ -297,6 +373,7 @@ local function buildCard(section: any, key: string, info: any): any
 	local title = label(button, info.name or key, UDim2.new(1, -16, 0, 18),
 		UDim2.new(0, 8, 0, WELL_H + 12), Enum.Font.FredokaOne, 13, ShopStyle.TEXT)
 	title.Name = "Title"
+	SkinCards.onTierText(title)
 	title.TextTruncate = Enum.TextTruncate.AtEnd
 
 	local wear = Instance.new("TextButton")
@@ -347,7 +424,14 @@ local function buildCard(section: any, key: string, info: any): any
 			-- No crate hands this one over. The label already names what does.
 			return
 		end
-		if deps.equip then
+		-- A SECTION WITH NO `wire` HAS NOTHING TO EQUIP, and the guard is the
+		-- section's own field rather than its kind. Trophies are the first:
+		-- which ones are displayed is decided by the house template's mounts,
+		-- so a WEAR press has nothing to ask for -- and `deps.equip(nil, key)`
+		-- would fire a remote naming no catalogue, which the server can only
+		-- refuse silently. The label reads ON SHOW rather than WEAR, so the
+		-- card is not offering an action in the first place.
+		if deps.equip and section.wire then
 			deps.equip(section.wire, key)
 		end
 	end)
@@ -362,8 +446,12 @@ local function buildCard(section: any, key: string, info: any): any
 		end
 	end)
 
+	for _, control in ipairs({ wear, sell }) do
+		local edge = control:FindFirstChildOfClass("UIStroke")
+		if edge then edge.Color = deep end
+	end
 	local card = { button = button, title = title, spare = spare,
-		wear = wear, sell = sell, shade = shade,
+		wear = wear, sell = sell, shade = shade, dim = dim, deep = deep,
 		-- Set by `paintCard` every repaint. `locked` is "you do not own it";
 		-- `crate` is the chest key that would fix that, or nil where no crate
 		-- can -- the rebirth drops, the pass skins and the set skin.
@@ -393,9 +481,9 @@ local function paintCard(section: any, key: string, info: any)
 		card.locked = true
 		card.crate = crate
 		card.shade.Visible = true
+		card.dim.Visible = true
 		card.spare.Visible = false
-		card.button.BackgroundColor3 = ShopStyle.LOCKED
-		card.title.TextColor3 = ShopStyle.MUTED
+		card.title.TextTransparency = 0.25
 		card.sell.Visible = false
 
 		card.wear.Visible = true
@@ -405,16 +493,16 @@ local function paintCard(section: any, key: string, info: any)
 			-- CLASSICS" is about 140px at 13px FredokaOne in a 140px button,
 			-- which is the silent-shrink trap this project keeps paying for.
 			card.wear.Text = "OPEN CRATE"
-			card.wear.BackgroundColor3 = ShopStyle.BUY
-			card.wear.TextColor3 = ShopStyle.INK
+			card.wear.BackgroundColor3 = Theme.PAPER
+			card.wear.TextColor3 = card.deep
 			card.wear.AutoButtonColor = true
 		else
 			-- Nothing to open. Naming the source is the whole content of the
 			-- card in this state, and a dead button that says REBIRTH 3 is a
 			-- better answer than a live one that goes somewhere useless.
 			card.wear.Text = string.upper(where)
-			card.wear.BackgroundColor3 = ShopStyle.DEAR
-			card.wear.TextColor3 = ShopStyle.MUTED
+			card.wear.BackgroundColor3 = card.deep
+			card.wear.TextColor3 = Theme.PAPER
 			card.wear.AutoButtonColor = false
 		end
 		return
@@ -423,8 +511,8 @@ local function paintCard(section: any, key: string, info: any)
 	card.locked = false
 	card.crate = nil
 	card.shade.Visible = false
-	card.button.BackgroundColor3 = ShopStyle.CARD
-	card.title.TextColor3 = ShopStyle.TEXT
+	card.dim.Visible = false
+	card.title.TextTransparency = 0
 	card.wear.Visible = true
 
 	local record = spares[entryKey(section.kind, key)]
@@ -442,8 +530,9 @@ local function paintCard(section: any, key: string, info: any)
 		worn = record.inUse == true or worn
 	end
 	card.wear.Text = if worn then "WEARING" else "WEAR"
-	card.wear.BackgroundColor3 = if worn then ShopStyle.OWNED else ShopStyle.BUY
-	card.wear.TextColor3 = ShopStyle.INK
+	-- Worn is the solid pill in the tier's deep shade; not worn the hollow one.
+	card.wear.BackgroundColor3 = if worn then card.deep else Theme.PAPER
+	card.wear.TextColor3 = if worn then Theme.PAPER else card.deep
 
 	local count, why = sellable(section.kind, key, worn)
 	if count <= 0 then
@@ -453,17 +542,22 @@ local function paintCard(section: any, key: string, info: any)
 		-- standing rule is that a refusal nobody can see is indistinguishable
 		-- from a broken feature.
 		card.sell.Text = why or ""
-		card.sell.BackgroundColor3 = ShopStyle.LOCKED
-		card.sell.TextColor3 = ShopStyle.MUTED
+		card.sell.BackgroundColor3 = Theme.PAPER
+		card.sell.BackgroundTransparency = 0.45
+		card.sell.TextColor3 = card.deep
 		card.sell.AutoButtonColor = false
 		return
 	end
 
 	card.sell.Visible = true
 	card.sell.AutoButtonColor = true
+	card.sell.BackgroundTransparency = 0
 	card.sell.BackgroundColor3 = ShopStyle.DEAR
 	card.sell.TextColor3 = Theme.GOLD_INK
-	card.sell.Text = "SELL " .. deps.format(valueOf(section.kind, key))
+	-- A skin sells for acorns, everything else for coins (`Config.sellsForAcorns`).
+	local value = valueOf(section.kind, key)
+	card.sell.Text = "SELL " .. (if Config.sellsForAcorns(section.kind)
+		then Config.formatSellValue(section.kind, value) else deps.format(value))
 end
 
 -- ---- the rail --------------------------------------------------------------
@@ -479,6 +573,12 @@ end
 -- winner, so nothing answers "where am I" -- the only question a rail exists
 -- to answer.
 
+local function hueOf(section: any): Color3
+	return W.colours[section.hue] or ShopStyle.CARD
+end
+
+local layout: () -> ()
+
 local function selectKind(kind: string, byPlayer: boolean?)
 	active = kind
 	if byPlayer then
@@ -486,71 +586,83 @@ local function selectKind(kind: string, byPlayer: boolean?)
 	end
 	for key, tab in pairs(tabs) do
 		local on = key == kind
-		local hue = Theme.HUE[tab.section.hue] or ShopStyle.CARD
-		tab.button.BackgroundColor3 = if on then hue else Theme.PAPER
-		tab.label.TextColor3 = ShopStyle.INK
-		-- The active tab stands taller as well as brighter. Colour alone
-		-- separates a selection only for players who can see the difference
-		-- between two hues, which is the same two-channel argument the
-		-- rarity borders make.
-		tab.button.Size = UDim2.new(0, tab.width, 0, if on then 40 else 34)
+		local hue = hueOf(tab.section)
+		-- The shop sidebar's own two channels: the active entry wears its
+		-- colour at full strength AND protrudes, the rest sit pale and in line.
+		tab.button.BackgroundColor3 = if on then hue else hue:Lerp(Theme.PAPER, 0.65)
+		tab.button.Size = if on then UDim2.new(1, -4, 0, 52) else UDim2.new(1, -14, 0, 48)
+		if on and chrome then
+			-- THE SIGN WEARS THE OPEN TAB'S COLOUR, as the shop's does, so the
+			-- sign and the sidebar entry are one colour rather than two.
+			chrome.signFill.BackgroundColor3 = hue
+			chrome.signTip.BackgroundColor3 = hue
+		end
 	end
 	for key, row in pairs(rows) do
 		row.holder.Visible = key == kind
 	end
 end
 
+-- A SIDEBAR ENTRY IS THE SHOP'S: an icon, a label and a pale tint of its
+-- category colour. The count chip is the bag's own addition -- it says how
+-- much is behind a door you have not opened.
 local function ensureTab(section: any, order: number): any
 	local tab = tabs[section.kind]
 	if tab then
 		return tab
 	end
 
-	-- MEASURED PER LABEL, NEVER A FLAT WIDTH. The shop's rail shipped eight
-	-- tabs at a flat 102 and overflowed its band; sized to their own words
-	-- they fit with room to spare. "Skins" and "Accessories" are 34 and 79
-	-- pixels at 13px FredokaOne, so a flat width is wrong for both.
-	--
-	-- The COUNT is a fixed-width chip rather than part of the measured
-	-- string, so a tab does not change width the moment you gain an item.
-	local width = 77 + math.ceil(TextService:GetTextSize(
-		section.tab, 13, Enum.Font.FredokaOne, Vector2.new(9999, 100)).X)
-
-	local button = Instance.new("TextButton")
-	button.Name = "Tab_" .. section.kind
-	button.Size = UDim2.new(0, width, 0, 34)
-	button.BackgroundColor3 = Theme.PAPER
-	button.BorderSizePixel = 0
-	button.AutoButtonColor = true
+	local hue = hueOf(section)
+	local button = W.button(rail, "Tab_" .. section.kind, "", hue:Lerp(Theme.PAPER, 0.65), function()
+		selectKind(section.kind, true)
+	end)
+	button.Size = UDim2.new(1, -14, 0, 48)
 	button.LayoutOrder = order
-	button.Text = ""
-	button.Parent = rail
-	ShopStyle.round(button, 10)
-	ShopStyle.outline(button, 3)
 
-	local glyph = label(button, section.icon, UDim2.new(0, 22, 1, 0),
-		UDim2.new(0, 8, 0, 0), Enum.Font.FredokaOne, 15, ShopStyle.INK)
-	glyph.Name = "Glyph"
+	local icon = W.frame(button, "Icon")
+	icon.BackgroundTransparency = 1
+	icon.Position = UDim2.fromOffset(7, 5)
+	icon.Size = UDim2.fromOffset(38, 38)
 
-	local text = label(button, section.tab, UDim2.new(1, -68, 1, 0),
-		UDim2.new(0, 32, 0, 0), Enum.Font.FredokaOne, 13, ShopStyle.INK)
-	text.Name = "Label"
+	local text = W.text(button, "Label", section.tab, 15)
+	text.Position = UDim2.fromOffset(52, 0)
+	text.Size = UDim2.new(1, -92, 1, 0)
+	text.TextWrapped = true
+	text.TextTruncate = Enum.TextTruncate.None
+	-- White with an ink line round each letter, as the shop's sidebar labels.
+	ShopStyle.popText(text)
 
-	-- A COUNT ON THE TAB IS THE WHOLE REASON A TAB BEATS A SECTION HEADING
-	-- HERE: it says how much is behind a door you have not opened, so an
-	-- empty category is legible without visiting it.
 	local count = ShopStyle.chip(button, ShopStyle.SUNK, Theme.MUTED_LIGHT)
 	count.Name = "Count"
 	count.Size = UDim2.new(0, 30, 0, 20)
 	count.Position = UDim2.new(1, -36, 0.5, -10)
 	count.Text = "0"
 
-	button.Activated:Connect(function()
-		selectKind(section.kind, true)
+	-- THE ICON IS THE SHOP'S ART where the shop has some for this category,
+	-- and otherwise the real item, unframed. The glyph is the last resort,
+	-- so a failed model costs a picture rather than the tab.
+	task.defer(function()
+		if section.art and W.icon(icon, section.art) then
+			return
+		end
+		local ok, model = pcall(function(): Model?
+			if section.kind == "catch" then
+				return require(ReplicatedStorage.Shared.CatchIcons).build(section.model)
+			elseif section.kind == "gear" then
+				return require(ReplicatedStorage.Shared.PlayerGear).build(section.model)
+			end
+			return nil
+		end)
+		if ok and model then
+			W.preview(icon, model)
+		else
+			local glyph = W.text(icon, "Glyph", section.icon, 24)
+			glyph.Size = UDim2.fromScale(1, 1)
+			glyph.TextXAlignment = Enum.TextXAlignment.Center
+		end
 	end)
 
-	tab = { button = button, label = text, count = count,
-		width = width, section = section }
+	tab = { button = button, label = text, count = count, icon = icon, section = section }
 	tabs[section.kind] = tab
 	return tab
 end
@@ -699,9 +811,10 @@ end
 --[[
 	One design at two sizes, driven by the panel's own height.
 
-	THE THRESHOLD IS THE SHOP'S, DELIBERATELY. `refitCards` in ClientMain
-	shrinks as soon as two full rows will not fit, and a player moving between
-	the shop and the bag on one device should not meet two different card
+	THE THRESHOLD IS THE SHOP'S, DELIBERATELY. The shop's `refitCards` shrank
+	as soon as two full rows would not fit -- see the note above, it is in HEAD
+	and absent from the working copy -- and a player moving between the shop
+	and the bag on one device should not meet two different card
 	sizes -- so the rule is copied rather than re-derived, and 0.78 is the same
 	floor for the same reason: it takes the 13px name to 10, which is the
 	smallest a nine-year-old should be asked to read.
@@ -716,10 +829,9 @@ local function refit()
 	if not v then
 		return
 	end
-	-- The rail and the two header lines come off the top before any card can
-	-- be laid out, which is what makes this the panel's height rather than
-	-- the viewport's.
-	local room = v.AbsoluteSize.Y - 102
+	-- The list's own height: the masthead is already off it.
+	local list = scroll
+	local room = if list then list.AbsoluteSize.Y else v.AbsoluteSize.Y - 102
 	local want = if room < 2 * (CARD_H + 10) then 0.78 else 1
 	if want == cardScale then
 		return
@@ -916,89 +1028,174 @@ function Inventory.setChest(state: any)
 	Inventory.render()
 end
 
+-- THE SHOP'S MASTHEAD, rebuilt here rather than shared, because the shop's
+-- lives inside `ShopRevamp`'s shell with its landing grid and back button,
+-- none of which a bag has. Every piece is the same widget with the same
+-- numbers -- green band, pointed gold-edged sign, coin and acorn badges --
+-- so the two panels one tap apart read as one game.
+local function buildChrome(view: Frame)
+	local c: any = {}
+	c.header = W.frame(view, "Header")
+	c.header.BackgroundTransparency = 1
+	c.masthead = W.frame(c.header, "Masthead", W.colours.home:Lerp(Theme.INK, 0.18))
+	W.round(c.masthead, 16, false)
+	c.banner = W.frame(c.masthead, "BagSign")
+	c.banner.BackgroundTransparency = 1
+	c.signEdge = W.frame(c.banner, "SignOutline", Theme.INK); W.round(c.signEdge, 16, false)
+	c.signTipEdge = W.frame(c.banner, "PointOutline", Theme.INK); c.signTipEdge.Rotation = 45
+	W.round(c.signTipEdge, 16, false)
+	c.signFill = W.frame(c.banner, "SignFace", W.colours.style); W.round(c.signFill, 13, false)
+	c.signTip = W.frame(c.banner, "PointFace", W.colours.style); c.signTip.Rotation = 45
+	W.round(c.signTip, 13, false)
+	c.title = W.text(c.banner, "BagHeading", "YOUR BAG", 42)
+	c.title.TextTruncate = Enum.TextTruncate.None
+	-- White with an ink line round each letter, as the shop's own sign.
+	ShopStyle.popText(c.title)
+
+	c.coinBadge = W.frame(c.masthead, "CoinBadge", Theme.PAPER); W.round(c.coinBadge, 15)
+	c.acornBadge = W.frame(c.masthead, "AcornBadge", Theme.PAPER); W.round(c.acornBadge, 15)
+	c.coinBadge:FindFirstChildOfClass("UIStroke").Thickness = 3
+	c.acornBadge:FindFirstChildOfClass("UIStroke").Thickness = 3
+	c.coinIcon = W.frame(c.coinBadge, "CoinIcon"); c.coinIcon.BackgroundTransparency = 1
+	c.acornIcon = W.frame(c.acornBadge, "AcornIcon"); c.acornIcon.BackgroundTransparency = 1
+	c.coinScale = Instance.new("UIScale"); c.coinScale.Parent = Theme.coin(c.coinIcon, 34, "Coin")
+	c.acornScale = Instance.new("UIScale"); c.acornScale.Parent = Theme.acorn(c.acornIcon, 37, "Acorn")
+	c.coins = W.text(c.coinBadge, "Coins", "0", 30)
+	c.acorns = W.text(c.acornBadge, "Acorns", "0", 30)
+	return c
+end
+
+-- THE SHOP'S LAYOUT, on the numbers `ShopRevamp:layout` uses for a category
+-- page: the same masthead height, sign width, badge sizes and sidebar width,
+-- so a player moving between the two sees nothing jump. On a compact screen
+-- the shop hides its sidebar and navigates from the landing grid; the bag has
+-- no landing, so it keeps the sidebar and drops it to icons instead.
+layout = function()
+	local view = panelView
+	local c = chrome
+	if not view or not c then
+		return
+	end
+	local width, height = view.AbsoluteSize.X, view.AbsoluteSize.Y
+	if width <= 0 then
+		return
+	end
+	local narrow = width < 560
+	local compact = width < 950 or height < 500
+	local mastH = if narrow then 100 elseif height < 420 then 54 else math.clamp(height * 0.105, 70, 98)
+	c.header.Position = UDim2.fromOffset(0, 0)
+	c.header.Size = UDim2.new(1, 0, 0, mastH)
+	c.masthead.Size = UDim2.fromScale(1, 1)
+
+	local close = deps.close
+	local closeSize = if narrow or height < 420 then 44 else math.min(64, mastH - 12)
+	if close then
+		Theme.floatClose(close, closeSize)
+		close.TextSize = math.floor(closeSize * 0.72)
+		close.ZIndex = 4
+	end
+
+	local signH = if narrow then 54 else mastH + 6
+	local signW = if narrow then width - closeSize - 18 else width * 0.43
+	c.banner.Size = UDim2.fromOffset(signW, signH)
+	c.banner.Position = UDim2.fromOffset(-8, -12)
+	local radius, border = 16, 3
+	local shoulderX = signW - signH / 2
+	local bodyWidth = shoulderX + radius
+	c.signEdge.Size = UDim2.fromOffset(bodyWidth, signH)
+	c.signFill.Position = UDim2.fromOffset(3, 3)
+	c.signFill.Size = UDim2.fromOffset(bodyWidth - 2 * border, signH - 2 * border)
+	local tipSide = (signH + 2 * radius * (math.sqrt(2) - 1)) / math.sqrt(2)
+	for _, spec in { { c.signTipEdge, tipSide }, { c.signTip, tipSide - 2 * border } } do
+		local tip, side = spec[1], spec[2]
+		tip.AnchorPoint = Vector2.new(0.5, 0.5)
+		tip.Position = UDim2.fromOffset(shoulderX, signH / 2)
+		tip.Size = UDim2.fromOffset(side, side)
+	end
+	local titleX = 24
+	c.title.Position = UDim2.fromOffset(titleX, 0)
+	c.title.Size = UDim2.new(1, -titleX - signH / 2, 1, 0)
+	c.title.TextSize = if narrow then 30 else math.floor(mastH * 0.56)
+
+	if narrow then
+		c.coinBadge.Position = UDim2.fromOffset(10, 53); c.coinBadge.Size = UDim2.new(0.5, -16, 0, 40)
+		c.acornBadge.Position = UDim2.new(0.5, 5, 0, 53); c.acornBadge.Size = UDim2.new(0.5, -16, 0, 40)
+	else
+		local badgeW = math.floor((width * 0.54 - closeSize - 26) / 2)
+		c.coinBadge.Size = UDim2.fromOffset(badgeW, mastH - 18); c.acornBadge.Size = c.coinBadge.Size
+		c.acornBadge.Position = UDim2.new(1, -closeSize - 20 - badgeW, 0, 9)
+		c.coinBadge.Position = UDim2.new(1, -closeSize - 32 - badgeW * 2, 0, 9)
+	end
+	c.coins.TextSize = if width < 900 or height < 420 then 20 else math.floor(mastH * 0.40)
+	c.acorns.TextSize = c.coins.TextSize
+	local badgeH = c.coinBadge.AbsoluteSize.Y
+	if badgeH <= 0 then badgeH = if narrow then 40 else mastH - 18 end
+	local currencySize = math.min(if compact then 24 else 34, badgeH - 14)
+	c.coinScale.Scale = currencySize / 34
+	c.acornScale.Scale = currencySize / 37
+	for _, icon in { c.coinIcon, c.acornIcon } do
+		icon.Size = UDim2.fromOffset(currencySize, currencySize)
+		icon.Position = UDim2.new(0, 8, 0.5, -currencySize / 2)
+	end
+	local balanceX = currencySize + 16
+	for _, lbl in { c.coins, c.acorns } do
+		lbl.Position = UDim2.fromOffset(balanceX, 0)
+		lbl.Size = UDim2.new(1, -balanceX - 8, 1, 0)
+	end
+
+	local top = mastH + 10
+	local side = if compact then 70 else 166
+	local bar = rail
+	if bar then
+		bar.Position = UDim2.fromOffset(12, top)
+		bar.Size = UDim2.new(0, side, 1, -top - 12)
+	end
+	for _, tab in pairs(tabs) do
+		tab.label.Visible = not compact
+		tab.count.Visible = not compact
+		tab.icon.Position = if compact then UDim2.new(0.5, -19, 0, 5) else UDim2.fromOffset(7, 5)
+	end
+	local left = side + 24
+	local list = scroll
+	if list then
+		list.Position = UDim2.fromOffset(left, top)
+		list.Size = UDim2.new(1, -left - 16, 1, -top - 12)
+	end
+end
+
+-- The two balances, from the pushes that already feed the shop's badges.
+function Inventory.setBalances(coins: number, acorns: number?)
+	if not chrome then
+		return
+	end
+	chrome.coins.Text = Config.formatCoins(coins)
+	chrome.acorns.Text = Config.formatCoins(math.floor(acorns or 0))
+end
+
 function Inventory.init(view: Frame, injected: any)
 	deps = injected
-	-- Held for `refit`, which runs long after this returns. Assigned to the
-	-- module local rather than captured, so there is one answer to "which
-	-- panel" rather than one per closure.
+	-- Held for `refit` and `layout`, which run long after this returns.
 	panelView = view
-	view:GetPropertyChangedSignal("AbsoluteSize"):Connect(refit)
 
-	label(view, "Everything you own.", UDim2.new(1, -8, 0, 22),
-		UDim2.new(0, 4, 0, 0), Enum.Font.FredokaOne, 17, ShopStyle.TEXT)
-	label(view, "Tap to wear it. A spare is a second copy " .. DOT
-		.. " sell one for coins you can spend.",
-		UDim2.new(1, -8, 0, 18), UDim2.new(0, 4, 0, 22), Enum.Font.Gotham, 12,
-		ShopStyle.MUTED)
+	chrome = buildChrome(view)
 
-	-- A SCROLLING RAIL, for the reason the shop's is one: a UIListLayout does
-	-- not clip and does not error, it keeps drawing past the edge -- which is
-	-- how two shop tabs were once eaten whole with nothing on screen to say
-	-- they existed. Five tabs fit today; a sixth cannot bring that bug back.
-	local bar = Instance.new("ScrollingFrame")
-	bar.Name = "InventoryRail"
-	-- 54 RATHER THAN 44, AND THE EXTRA TEN IS THE STROKE'S. A tab's outline
-	-- is `ApplyStrokeMode.Border`, so it draws OUTSIDE the button -- 3 studs
-	-- above and 3 below -- and a ScrollingFrame clips exactly that region.
-	-- Measured before the fix: the selected tab stood 40 tall flush against
-	-- the rail's bottom edge at y 153.5, so its outline wanted 156.5 and the
-	-- bottom 3 pixels were cut off, in the one place a player would read it
-	-- as the item grid slicing the tabs off.
-	--
-	-- Sized for the SELECTED tab, which is the tall one at 40: 40 + 6 of
-	-- stroke + 10 of padding is 56. Sizing against the 34-tall resting state
-	-- is the version that looks right until somebody presses something.
-	--
-	-- 56 AND NOT 54, because 54 left ONE PIXEL under the bottom stroke.
-	-- Measured, it cleared -- and a one-pixel margin is the same class of
-	-- number as a label that reports `TextFits` true while touching its own
-	-- frame edge. It clears by 3 now, top and bottom, so a stroke that ever
-	-- goes to 4 does not put this bug straight back.
-	--
-	-- Same class as the shop's own first tab losing its left border, and the
-	-- first column of cosmetic cards losing theirs. THE RULE IS THE ONE THIS
-	-- FILE KEEPS RELEARNING: an outside stroke needs clearance from every
-	-- clipping ancestor, and the clip is at the frame's bounds rather than
-	-- inside its padding.
-	bar.Size = UDim2.new(1, 0, 0, 56)
-	bar.Position = UDim2.new(0, 0, 0, 46)
-	bar.BackgroundTransparency = 1
-	bar.BorderSizePixel = 0
-	bar.ScrollBarThickness = 0
-	bar.ScrollingDirection = Enum.ScrollingDirection.X
-	bar.CanvasSize = UDim2.new()
-	bar.AutomaticCanvasSize = Enum.AutomaticSize.X
-	bar.Parent = view
+	-- THE SIDEBAR, the shop's own: a vertical scroll of category buttons down
+	-- the left. Still named `InventoryRail` so a probe that knew the old one
+	-- finds this. It scrolls for the reason the old rail did -- a list that
+	-- does not clip keeps drawing past the edge.
+	local bar = W.scroll(view, "InventoryRail")
+	local barList = Instance.new("UIListLayout")
+	barList.Padding = UDim.new(0, 10)
+	barList.SortOrder = Enum.SortOrder.LayoutOrder
+	barList.Parent = bar
 	rail = bar
-
-	local railLayout = Instance.new("UIListLayout")
-	railLayout.FillDirection = Enum.FillDirection.Horizontal
-	railLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
-	railLayout.Padding = UDim.new(0, 8)
-	railLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	railLayout.Parent = bar
-
-	-- Four pixels of clearance, because a `Border` stroke draws OUTSIDE its
-	-- frame and a ScrollingFrame clips exactly that -- which is what cut the
-	-- left edge off the shop's own first tab.
-	local railPad = Instance.new("UIPadding")
-	railPad.PaddingLeft = UDim.new(0, 4)
-	railPad.PaddingRight = UDim.new(0, 4)
-	-- Vertical clearance for the same stroke. The tabs are bottom-aligned, so
-	-- the bottom pad is what actually lifts the outline back inside the clip;
-	-- the top pad keeps a pressed tab's own outline off the ceiling.
-	railPad.PaddingTop = UDim.new(0, 4)
-	railPad.PaddingBottom = UDim.new(0, 6)
-	railPad.Parent = bar
 
 	local list = Instance.new("ScrollingFrame")
 	list.Name = "InventoryList"
-	-- Follows the rail down by the ten it grew, keeping the same 6-pixel gap.
-	list.Size = UDim2.new(1, 0, 1, -108)
-	list.Position = UDim2.new(0, 0, 0, 108)
 	list.BackgroundTransparency = 1
 	list.BorderSizePixel = 0
-	list.ScrollBarThickness = 6
+	list.ScrollBarThickness = 5
+	list.ScrollBarImageColor3 = Theme.MUTED
 	list.CanvasSize = UDim2.new()
 	list.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	list.Parent = view
@@ -1006,19 +1203,26 @@ function Inventory.init(view: Frame, injected: any)
 	-- A `Border` STROKE DRAWS OUTSIDE THE PART, and a ScrollingFrame clips
 	-- exactly that region -- which is how the shop's first column and its
 	-- first tab both lost an edge. Every card in here carries a rarity stroke,
-	-- so the leftmost column of every row needs the clearance.
+	-- so the leftmost column and the top row need the clearance.
 	local pad = Instance.new("UIPadding")
-	pad.PaddingLeft = UDim.new(0, 4)
-	pad.PaddingRight = UDim.new(0, 4)
+	pad.PaddingLeft = UDim.new(0, 6)
+	pad.PaddingRight = UDim.new(0, 10)
+	pad.PaddingTop = UDim.new(0, 6)
+	pad.PaddingBottom = UDim.new(0, 8)
 	pad.Parent = list
 
-	local layout = Instance.new("UIListLayout")
-	layout.Padding = UDim.new(0, 18)
-	layout.SortOrder = Enum.SortOrder.LayoutOrder
-	layout.Parent = list
+	local stack = Instance.new("UIListLayout")
+	stack.Padding = UDim.new(0, 18)
+	stack.SortOrder = Enum.SortOrder.LayoutOrder
+	stack.Parent = list
 
 	scroll = list
+	view:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+		layout()
+		refit()
+	end)
 	Inventory.render()
+	layout()
 	selectKind(active)
 end
 

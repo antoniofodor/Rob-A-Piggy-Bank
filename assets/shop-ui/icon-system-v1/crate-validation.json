@@ -1,0 +1,62 @@
+{
+  "common": {
+    "triangles": {
+      "Body": 9144,
+      "Lid": 1128
+    },
+    "closedManifold": true,
+    "exportChecks": {
+      "glb": {
+        "boundsMaxError": 0.0,
+        "meshes": 2,
+        "packedPalette": true
+      },
+      "fbx": {
+        "boundsMaxError": 3.5762786865234375e-07,
+        "meshes": 2,
+        "packedPalette": true
+      }
+    },
+    "sourceSHA256": "ced2459f578acecdb91ac71cdce1448424eb5f5b99e64cb055c8768bf70bb178"
+  },
+  "rare": {
+    "triangles": {
+      "Body": 7384,
+      "Lid": 1036
+    },
+    "closedManifold": true,
+    "exportChecks": {
+      "glb": {
+        "boundsMaxError": 0.0,
+        "meshes": 2,
+        "packedPalette": true
+      },
+      "fbx": {
+        "boundsMaxError": 3.5762786865234375e-07,
+        "meshes": 2,
+        "packedPalette": true
+      }
+    },
+    "sourceSHA256": "7d0450def2a9efa75edf0d0d4cbc92f8e3792aee5406b54f01f69c49d5e83385"
+  },
+  "legendary": {
+    "triangles": {
+      "Body": 7696,
+      "Lid": 1556
+    },
+    "closedManifold": true,
+    "exportChecks": {
+      "glb": {
+        "boundsMaxError": 0.0,
+        "meshes": 2,
+        "packedPalette": true
+      },
+      "fbx": {
+        "boundsMaxError": 3.5762786865234375e-07,
+        "meshes": 2,
+        "packedPalette": true
+      }
+    },
+    "sourceSHA256": "a0a79efc7822c4fbdfafeffcbf50652fc9269472afcc6527f80b2af6e14aa106"
+  }
+}

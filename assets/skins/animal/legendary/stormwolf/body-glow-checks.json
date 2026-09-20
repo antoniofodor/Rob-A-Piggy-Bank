@@ -1,0 +1,12 @@
+{
+  "file": "stormwolf_body_emissive.png",
+  "sha256": "e5edafbf31f576d06d007d67d34a8001cd3d996c5200484fd53fc5634b3efc88",
+  "size": [
+    1024,
+    1024
+  ],
+  "coverageAboveTenPercent": 0.007343292236328125,
+  "selection": "Cyan saturation and brightness; neutral mane and dark coat excluded",
+  "idleStrength": 0.35,
+  "peakStrength": 5.0
+}

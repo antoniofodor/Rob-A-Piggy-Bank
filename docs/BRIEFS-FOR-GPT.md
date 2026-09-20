@@ -70,14 +70,17 @@ past ~3.
 
 ## B2 — Trophy-room templates — NEEDED NOW (long lead)
 
-**What it is.** A shared room every house opens into, themed per exterior
-family, displaying the player's earned achievements. `HOUSE-TROPHY-ROOMS.md`
-is the approved direction; this brief adds what the code needs.
+**What it is.** Physical walk-in interiors inside each house in the existing
+world. The September 17 update to `HOUSE-TROPHY-ROOMS.md` is authoritative:
+three stations (achievement cabinet, records book, Legacy plaque), five
+display functions and more display positions in bigger homes. All houses
+retain full achievement menu access. Exact capacities are proposed art
+targets pending fit checks, not implemented runtime values.
 
 **Themes.** Four templates — cozy (shack/cottage), classic
 (townhouse/villa/manor), modern (modern/neontower), royal (palace/castle/
-chateau/observatory) — plus the rule that a house with no mapping falls back
-to a named default. GPT chooses which of the new nine map where.
+chateau/observatory) — furniture/material families within the walk-in shell,
+not separate destination rooms. GPT supplies themed variants.
 
 **Named display points every template must carry, by these exact names**,
 because the code mounts to them: `Featured` (one trophy), `Shelf_1..Shelf_N`
@@ -86,23 +89,27 @@ counters: victims, stolen, caught, escapes), `Plaque_Legacy` (Legacy stars,
 §11.2), `Door_Exit`. Positions and counts per template are GPT's; names are
 Fable's.
 
-**Constraints.** Built on demand in a reserved map region; must not collide
-with the street; visitors allowed, editing not; no entry while carrying loot
-or in a pursuit (server-enforced, so the door needs a *closed* look). Room
-must fit the shop-interior lesson: light masonry / dark joinery, plinth as a
-ring not a raft, zero coplanar pairs, `LowPoly` vocabulary, flat colour.
+**Constraints.** Fit within the actual house/plot. Essential stations stay on
+the entrance floor; extra galleries can be upstairs. Visitors inspect the
+owner's records but cannot edit. Approaching reveals a prompt; deliberate
+input opens the menu. No automatic proximity menus or teleport/safe-zone
+behavior. Validate pursuit/loot rules. Follow the house's visual theme,
+avoid coplanar surfaces and keep walking routes clear. Interaction/standing
+markers and proposed extra wall mounts are in `HOUSE-TROPHY-ROOMS.md`.
 
 **Budget.** Pending — target well under the palace's 186 parts per room since
 several may exist at once; state the count in the handoff.
 
-**Integration.** `TrophyService` (award logic, reused), `Decor` trophy
-builders (re-mounted, not rebuilt), a new room service Fable writes.
+**Integration.** Fable owns `TrophyService` reuse, `Decor` fitting, prompts,
+menus, permissions, saved selections and migration. GPT owns furniture,
+mounts and approach space. Follow the staged checks and ownership rules in
+`HOUSE-TROPHY-ROOMS.md`.
 
 ---
 
 ## B3 — New house exteriors — RE-BRIEFED September 16, see `HOUSE-TIER-BRIEF.md`
 
-**The full brief is `docs/HOUSE-TIER-BRIEF.md`**: nine fantasy houses with
+**The full brief is `assets/houses/docs/HOUSE-TIER-BRIEF.md`**: nine fantasy houses with
 stable ids (`mushroom, treehouse, slime, candy, crystal, galleon, dragon,
 skyisland, goldenpig`) at the prices in `HOUSE-CATALOGUE-PLAN.md`, a
 silhouette ladder, FX and trophy-room family per house, and an optional

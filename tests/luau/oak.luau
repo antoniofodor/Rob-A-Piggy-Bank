@@ -95,10 +95,10 @@ local Data=run();local data=Data.defaults()
 local item
 for key,spec in Config.DECOR_ITEMS do if spec.zone=="lawn" then item=key;break end end
 assert(item,"fixture requires existing lawn ornament")
-data.decor.owned[item]=true;data.decor.placed.lawnI=item;data.decor.placed.lawnA=item;data.coins=321;data.loot=19
+data.decor.owned[item]=true;data.decor.placed.lawnI=item;data.decor.placed.lawnE=item;data.coins=321;data.loot=19
 local reconciled=Data.reconcile(copy(data))
 check(reconciled.decor.placed.lawnI==nil and reconciled.decor.owned[item]==true,"retired slot shelves ornament without taking ownership")
-check(reconciled.decor.placed.lawnA==item and reconciled.coins==321 and reconciled.loot==19,"other placements and balances preserved")
+check(reconciled.decor.placed.lawnE==item and reconciled.coins==321 and reconciled.loot==19,"other placements and balances preserved")
 check(Data.reconcile(copy(reconciled)).decor.owned[item]==true,"rejoin never deletes shelved ornament")
 local lawns=0
 for _,slot in Config.DECOR_SLOTS do

@@ -1,0 +1,352 @@
+{
+  "version": 1,
+  "units": "Layer dimensions and positions are fractions of the displayed housing, after its display rect is applied.",
+  "generation": "Built-in image_gen; original PNG alpha preserved; no pixel editing.",
+  "assets": {
+    "lock-housing": {
+      "file": "sprites/lock-housing.png",
+      "sourceSize": [
+        1536,
+        1024
+      ],
+      "displayRectPixels": [
+        33,
+        105,
+        1470,
+        799
+      ],
+      "displayRectNormalized": [
+        0.0214844,
+        0.1025391,
+        0.9570312,
+        0.7802734
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "transparentPixelFraction": 0.269
+    },
+    "pin-active": {
+      "file": "sprites/pin-active.png",
+      "sourceSize": [
+        1024,
+        1536
+      ],
+      "displayRectPixels": [
+        268,
+        72,
+        491,
+        1405
+      ],
+      "displayRectNormalized": [
+        0.2617188,
+        0.046875,
+        0.4794922,
+        0.9147135
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "transparentPixelFraction": 0.692
+    },
+    "pin-idle": {
+      "file": "sprites/pin-idle.png",
+      "sourceSize": [
+        1024,
+        1536
+      ],
+      "displayRectPixels": [
+        268,
+        72,
+        491,
+        1405
+      ],
+      "displayRectNormalized": [
+        0.2617188,
+        0.046875,
+        0.4794922,
+        0.9147135
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "transparentPixelFraction": 0.6916
+    },
+    "pin-set": {
+      "file": "sprites/pin-set.png",
+      "sourceSize": [
+        1024,
+        1536
+      ],
+      "displayRectPixels": [
+        268,
+        72,
+        491,
+        1405
+      ],
+      "displayRectNormalized": [
+        0.2617188,
+        0.046875,
+        0.4794922,
+        0.9147135
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "transparentPixelFraction": 0.6897
+    },
+    "spring": {
+      "file": "sprites/spring.png",
+      "sourceSize": [
+        1024,
+        1536
+      ],
+      "displayRectPixels": [
+        254,
+        109,
+        517,
+        1319
+      ],
+      "displayRectNormalized": [
+        0.2480469,
+        0.0709635,
+        0.5048828,
+        0.858724
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "transparentPixelFraction": 0.6543
+    },
+    "top-cap": {
+      "file": "sprites/top-cap.png",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "displayRectPixels": [
+        92,
+        296,
+        1065,
+        685
+      ],
+      "displayRectNormalized": [
+        0.0733652,
+        0.2360447,
+        0.8492823,
+        0.546252
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "transparentPixelFraction": 0.6237
+    },
+    "target-notch": {
+      "file": "sprites/target-notch.png",
+      "sourceSize": [
+        1536,
+        1024
+      ],
+      "displayRectPixels": [
+        31,
+        330,
+        1474,
+        361
+      ],
+      "displayRectNormalized": [
+        0.0201823,
+        0.3222656,
+        0.9596354,
+        0.3525391
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "transparentPixelFraction": 0.8311
+    },
+    "success-check": {
+      "file": "sprites/success-check.png",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "displayRectPixels": [
+        188,
+        202,
+        878,
+        849
+      ],
+      "displayRectNormalized": [
+        0.1499203,
+        0.1610845,
+        0.7001595,
+        0.6770335
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "transparentPixelFraction": 0.5579
+    },
+    "button-primary": {
+      "file": "sprites/button-primary.png",
+      "sourceSize": [
+        1536,
+        1024
+      ],
+      "displayRectPixels": [
+        31,
+        259,
+        1474,
+        487
+      ],
+      "displayRectNormalized": [
+        0.0201823,
+        0.2529297,
+        0.9596354,
+        0.4755859
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "transparentPixelFraction": 0.5756
+    },
+    "button-primary-pressed": {
+      "file": "sprites/button-primary-pressed.png",
+      "sourceSize": [
+        1536,
+        1024
+      ],
+      "displayRectPixels": [
+        31,
+        259,
+        1474,
+        487
+      ],
+      "displayRectNormalized": [
+        0.0201823,
+        0.2529297,
+        0.9596354,
+        0.4755859
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "transparentPixelFraction": 0.6146
+    },
+    "button-secondary": {
+      "file": "sprites/button-secondary.png",
+      "sourceSize": [
+        1536,
+        1024
+      ],
+      "displayRectPixels": [
+        41,
+        272,
+        1455,
+        455
+      ],
+      "displayRectNormalized": [
+        0.0266927,
+        0.265625,
+        0.9472656,
+        0.4443359
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "transparentPixelFraction": 0.5979
+    },
+    "button-secondary-pressed": {
+      "file": "sprites/button-secondary-pressed.png",
+      "sourceSize": [
+        1536,
+        1024
+      ],
+      "displayRectPixels": [
+        41,
+        272,
+        1455,
+        455
+      ],
+      "displayRectNormalized": [
+        0.0266927,
+        0.265625,
+        0.9472656,
+        0.4443359
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "transparentPixelFraction": 0.5958
+    }
+  },
+  "layout": {
+    "housingAspectRatio": 1.8397997496871088,
+    "channelCentersX": [
+      0.145,
+      0.322,
+      0.499,
+      0.676,
+      0.853
+    ],
+    "channelVisibleY": [
+      0.16,
+      0.8
+    ],
+    "cap": {
+      "width": 0.068,
+      "height": 0.08,
+      "top": 0.17,
+      "z": 4
+    },
+    "pin": {
+      "width": 0.06,
+      "height": 0.316,
+      "topRange": [
+        0.3,
+        0.48
+      ],
+      "collarCenterYWithinPin": 0.5,
+      "z": 5
+    },
+    "spring": {
+      "width": 0.039,
+      "top": 0.234,
+      "bottom": "pin.top + 0.006",
+      "z": 3
+    },
+    "notch": {
+      "width": 0.106,
+      "height": 0.062,
+      "centerY": 0.55,
+      "z": 2
+    },
+    "success": {
+      "width": 0.049,
+      "height": 0.088,
+      "centerY": "pin.top + pin.height * 0.50",
+      "z": 6
+    },
+    "numberCenterY": 0.905,
+    "samplePinTops": [
+      0.392,
+      0.392,
+      0.35,
+      0.48,
+      0.48
+    ]
+  },
+  "integrationStatus": "Art only. Not uploaded to Roblox. No asset IDs, runtime wiring, or in-game validation."
+}

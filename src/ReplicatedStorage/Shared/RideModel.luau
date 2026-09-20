@@ -316,7 +316,34 @@ builders.scooter = function(spec, add)
 	-- stretch. See RidePose.
 	local GRIP_X, GRIP_Y, GRIP_Z = 1.69, 3.47, 1.36
 
-	post(add, 0.34, 3.0, CFrame.new(0, 2.0, STEM_Z + 0.02) * CFrame.Angles(math.rad(-9), 0, 0),
+	-- THE STEM IS SOLVED FROM THE AXLE TO THE BAR RATHER THAN PINNED, and
+	-- that is the fix for handlebars floating in front of the scooter.
+	--
+	-- MEASURED: the tube's top face ended 0.136 studs of CLEAR AIR short of
+	-- the bar it is supposed to be holding up. The comment above already
+	-- described this exact fault as something that had been FIXED -- "left a
+	-- gap between the top of the stem and the bars" -- and it came straight
+	-- back, because the two ends of one tube were described in two places and
+	-- only one of them moved: `GRIP_Z` was re-measured onto the posed rider's
+	-- hands at 1.36 while the stem kept the centre, length and lean that had
+	-- reached the OLD bar position at 2.0. Nothing errored, and from the
+	-- saddle it reads as a scooter steered by a disconnected bar.
+	--
+	-- MOVE THE MACHINE TO THE HAND, NEVER THE HAND TO THE MACHINE. The grips
+	-- are `RidePose`'s measurement of where a real rider's hands land and may
+	-- not be nudged to meet the geometry, so the geometry is derived from them:
+	-- both ends of the stem are now named points, and a tube between two points
+	-- cannot come apart when one of them moves.
+	--
+	-- IT ENDS AT THE BAR'S OWN CENTRE, not at its surface, so the tube
+	-- finishes buried half a bar deep inside what it holds. That is the
+	-- coplanar rule as much as a joinery one -- two faces at one depth are
+	-- what flicker -- and it is why there is no clearance constant here to get
+	-- wrong later.
+	local STEM_BASE = Vector3.new(0, WHEEL_R, STEM_Z)
+	local STEM_RUN = Vector3.new(0, GRIP_Y, GRIP_Z) - STEM_BASE
+	post(add, 0.34, STEM_RUN.Magnitude,
+		CFrame.new(STEM_BASE + STEM_RUN / 2) * CFrame.Angles(math.atan2(STEM_RUN.Z, STEM_RUN.Y), 0, 0),
 		STEEL, Enum.Material.Metal)
 	add("Bars", Vector3.new(GRIP_X * 2, 0.24, 0.24), CFrame.new(0, GRIP_Y, GRIP_Z),
 		STEEL, Enum.Material.Metal)
@@ -326,9 +353,17 @@ builders.scooter = function(spec, add)
 	add("Display", Vector3.new(0.9, 0.44, 0.16), CFrame.new(0, GRIP_Y - 0.34, GRIP_Z - 0.1), spec.accent,
 		Enum.Material.Neon)
 
-	-- Rear fender over the back wheel, and a headlight at the top of the stem.
+	-- Rear fender over the back wheel, and a headlight on the stem.
 	add("Fender", Vector3.new(0.7, 0.16, 1.5), CFrame.new(0, WHEEL_R + 0.62, -2.0), spec.colour)
-	add("Light", Vector3.new(0.5, 0.4, 0.22), CFrame.new(0, 2.75, STEM_Z + 0.05),
+	-- RIDDEN ALONG THE STEM RATHER THAN PARKED AT A HEIGHT. Pinned to a fixed
+	-- z it happened to land inside the old tube and would have drifted off the
+	-- new one, which is the same two-descriptions-of-one-thing fault as the
+	-- bars above, one part along. A fraction of the run cannot come off the
+	-- tube however the lean changes; the nudge is what stands it proud of the
+	-- front face instead of inside the metal.
+	local lightAt = STEM_BASE + STEM_RUN * 0.75
+	add("Light", Vector3.new(0.5, 0.4, 0.22),
+		CFrame.new(lightAt.X, lightAt.Y, lightAt.Z + 0.17),
 		Color3.fromRGB(255, 246, 214), Enum.Material.Neon)
 end
 
@@ -514,7 +549,13 @@ builders.scrambler = function(spec, add)
 	-- The three contacts, named because eleven other parts hang off them.
 	local SEAT_TOP, SEAT_Z = 2.225, -0.38
 	local GRIP_X, GRIP_Y, GRIP_Z = 1.83, 2.705, 0.87
-	local PEG_X, PEG_TOP, PEG_Z = 0.35, 0.477, 0.65
+	-- THE PEGS ARE OUTBOARD OF THE FRAME, where a straddling rider's feet
+	-- land. They were at x 0.35, inside the frame rails, so the only way to
+	-- reach them was with the legs running through the middle of the bike --
+	-- measured at half of each thigh inside the battery box. The pose now
+	-- straddles (knees out 14 degrees, solved against a live R15 rig so no
+	-- limb enters the frame) and the pegs moved to the feet it put down.
+	local PEG_X, PEG_TOP, PEG_Z = 0.78, 0.47, 0.56
 
 	local BODY = spec.colour      -- purple: fenders, shrouds, side panel
 	local FRAME = spec.accent     -- lime: perimeter frame, fork lowers, swingarm
@@ -596,20 +637,26 @@ builders.scrambler = function(spec, add)
 	-- The battery box: the visual mass, and the finned face is what says
 	-- electric rather than four-stroke. Vertical slats, because that is the
 	-- one detail the eye actually reads on the reference at any distance.
-	add("Battery", Vector3.new(0.92, 1.35, 1.9), CFrame.new(0, 1.5, 0.15), Color3.fromRGB(30, 30, 36))
+	--
+	-- SLIM AND LOW, because it sits between the rider's knees. It was 0.92
+	-- wide and reached up to the seat, which left nowhere for a leg to go.
+	-- 0.52 wide with its top at 1.78 lets the thighs pass over the tank cover
+	-- and down either side of the box.
+	add("Battery", Vector3.new(0.52, 0.95, 1.9), CFrame.new(0, 1.3, 0.15), Color3.fromRGB(30, 30, 36))
 	for i = -3, 3 do
-		add("Fin", Vector3.new(0.98, 1.1, 0.12), CFrame.new(0, 1.5, 0.15 + i * 0.26), FRAME)
+		add("Fin", Vector3.new(0.58, 0.8, 0.12), CFrame.new(0, 1.3, 0.15 + i * 0.26), FRAME)
 	end
 	-- Motor, low and behind the box, and the bash plate under it.
-	local motor = add("Motor", Vector3.new(0.8, 0.75, 0.75),
+	local motor = add("Motor", Vector3.new(0.56, 0.75, 0.75),
 		CFrame.new(0, WHEEL_R - 0.15, -0.55), Color3.fromRGB(36, 36, 42), Enum.Material.Metal)
 	motor.Shape = Enum.PartType.Cylinder
-	add("BashPlate", Vector3.new(0.9, 0.14, 1.5),
+	add("BashPlate", Vector3.new(0.56, 0.14, 1.5),
 		CFrame.new(0, 0.5, -0.1) * CFrame.Angles(math.rad(-6), 0, 0), FRAME)
 
 	-- ---------- perimeter frame ----------
-	-- The lime rails that wrap the battery, top and bottom, each side.
-	for _, sx in ipairs({ 0.5, -0.5 }) do
+	-- The lime rails that wrap the battery, top and bottom, each side --
+	-- pulled in with the slimmer box, so they still hug it.
+	for _, sx in ipairs({ 0.3, -0.3 }) do
 		add("RailTop", Vector3.new(0.13, 0.2, 2.3),
 			CFrame.new(sx, 1.88, 0.1) * CFrame.Angles(math.rad(4), 0, 0), FRAME, Enum.Material.Metal)
 		add("RailDown", Vector3.new(0.13, 1.5, 0.2),
@@ -630,7 +677,7 @@ builders.scrambler = function(spec, add)
 	-- The tank cover, filling the step between the battery box and the seat.
 	-- Without it the seat floated over a gap and the frame rails showed
 	-- through where a fuel tank would be on a petrol bike.
-	add("TankCover", Vector3.new(0.78, 0.5, 1.15),
+	add("TankCover", Vector3.new(0.5, 0.5, 1.15),
 		CFrame.new(0, 2.0, 0.62) * CFrame.Angles(math.rad(-7), 0, 0), BODY)
 	-- The tail rises behind the seat, as the reference's does.
 	add("Tail", Vector3.new(0.68, 0.16, 1.45),

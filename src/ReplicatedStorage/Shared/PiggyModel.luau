@@ -21,6 +21,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local LegendaryModel = require(ReplicatedStorage.Shared.LegendaryModel)
+local SkinFX = require(ReplicatedStorage.Shared.SkinFX)
 
 local PiggyModel = {}
 
@@ -954,6 +956,23 @@ function PiggyModel.prewarm(): boolean
 		+ (MINI_CENTRE - after.Position)
 	meshPatternR = face.patternRadius * scale
 
+	-- THE LEGENDARIES LOAD HERE TOO, AND THIS WAITS FOR THEM, because every
+	-- caller of `prewarm` rebuilds its icons the moment it returns and a
+	-- card built before a legendary's meshes land keeps the swatch pig for
+	-- the session. Loaded in parallel, so the wait is the slowest mesh.
+	local pending = 0
+	for key in pairs(Config.LEGENDARIES) do
+		pending += 1
+		task.spawn(function()
+			LegendaryModel.load(key)
+			pending -= 1
+		end)
+	end
+	local waited = 0
+	while pending > 0 and waited < 30 do
+		waited += task.wait(0.1)
+	end
+
 	meshTemplate = made
 	return true
 end
@@ -987,7 +1006,7 @@ function PiggyModel.build(skinKey: string): Model
 					d.Material = Enum.Material.SmoothPlastic
 				elseif d:GetAttribute("Trim") == true then
 					d.Color = skin.trim
-					d.Material = skin.material
+					d.Material = skin.trimMaterial or skin.material
 				else
 					d.Color = skin.body
 					d.Material = skin.material
@@ -1019,7 +1038,22 @@ function PiggyModel.build(skinKey: string): Model
 				material = skin.material,
 				transparency = 0,
 			})
-			mesh.PrimaryPart = body
+			-- The skin's shape geometry, welded and still: see `Shared/SkinFX`.
+			SkinFX.apply(mesh, body, skinKey, false)
+			-- See the note above `PiggyModel.bodyOf`: an identity-rotation
+			-- pivot at the seat the primitives pig uses, and no PrimaryPart.
+			-- A LEGENDARY STANDS OVER THE MINI exactly as it does over the plot's
+			-- pig, welded rather than anchored because this one is carried.
+			if Config.legendary(skinKey) then
+				local hide: { BasePart } = {}
+				for _, child in ipairs(mesh:GetDescendants()) do
+					if child:IsA("BasePart") then
+						table.insert(hide, child)
+					end
+				end
+				LegendaryModel.dress(mesh, body, skinKey, { anchored = false, hide = hide })
+			end
+			mesh.WorldPivot = CFrame.new(MINI_CENTRE)
 			return mesh
 		end
 		-- No body part in the template is not a state worth guessing at, so
@@ -1101,8 +1135,56 @@ function PiggyModel.build(skinKey: string): Model
 		transparency = 0,
 	})
 
-	model.PrimaryPart = body
+	-- The same contract the mesh branch above presents, and stated rather than
+	-- inherited: this body happens to be unrotated, so a PrimaryPart here
+	-- would be harmless today and would be the difference between the two
+	-- branches tomorrow.
+	model.WorldPivot = CFrame.new(MINI_CENTRE)
 	return model
+end
+
+-- WHY THIS MODEL HAS NO PRIMARYPART, WHICH IS THE WHOLE OF WHY IT USED TO
+-- FACE BACKWARDS.
+--
+-- `Model:PivotTo` aims the PRIMARYPART when there is one, and it SETS that
+-- part's CFrame outright -- rotation included. The mesh body is the one part
+-- here that has to carry a rotation: the importer mirrors Z, so
+-- `Config.PIGGY_MESH` turns every mesh a half turn to put the snout back at
+-- +Z and the vault at -Z. Making that same part the pivot meant the first
+-- `PivotTo` REPLACED the half turn with whatever the caller passed, and the
+-- correction was gone -- eyes in the rump, dial on the face.
+--
+-- IT HIT EVERY CONSUMER AT ONCE, because they all pivot: `makeModelIcon`
+-- (every crate and skin tile), `HeistService.attachLoot` and `handCarryTo`
+-- (the pig a thief carries), `ResidentService` (a neighbour's mini) and
+-- `Decor` (the victim shelf). The primitives pig below was immune, because
+-- its body is a Ball with no rotation -- which is exactly why this appeared
+-- when the mesh ids landed and why the LAWN pig was never affected: that one
+-- is placed part by part and never pivoted.
+--
+-- THIS PROJECT HAS PAID FOR IT ONCE ALREADY, on the alien saucer: "a
+-- PrimaryPart that is itself rotated loses its rotation on the first
+-- PivotTo... No PrimaryPart and an explicit identity WorldPivot at the centre
+-- moves everything rigidly and every relative rotation survives." Same fix.
+--
+-- `makeModelIcon` was ALREADY DOING THE RIGHT THING and being ignored -- it
+-- sets `model.WorldPivot = CFrame.new()` before it pivots, and WorldPivot is
+-- not consulted while a PrimaryPart exists.
+--
+-- BOTH BRANCHES DROP IT, not just the mesh one. The primitives pig does not
+-- need the fix and would present a different contract without it, and two
+-- branches of one builder disagreeing about how they are positioned is how
+-- this comes back the next time a mesh id is empty.
+--
+-- What still needs the body part is the WELDING and the loot label, so
+-- `PiggyModel.bodyOf` is how a caller asks for it.
+function PiggyModel.bodyOf(model: Model): BasePart?
+	-- PrimaryPart FIRST, because the acorn basket is built elsewhere, does set
+	-- one, and goes through the same carry code. Then the name, which is
+	-- "Body" on both of this file's branches -- and is unique within a mini,
+	-- unlike the castle's four `Finial`s or the wheelie bin's pair of `Lid`s.
+	local part = model.PrimaryPart or model:FindFirstChild("Body")
+	return if part and part:IsA("BasePart") then part else nil
 end
 
 

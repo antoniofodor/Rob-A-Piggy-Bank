@@ -1,0 +1,737 @@
+<?xml version='1.0' encoding='utf-8'?>
+<roblox version="4">
+  <Item class="Model" referent="house">
+    <Properties>
+      <string name="Name">skycastle_DraftCollisionAndDisplayMounts</string>
+      <Ref name="PrimaryPart">origin</Ref>
+    </Properties>
+    <Item class="Part" referent="origin">
+      <Properties>
+        <string name="Name">Root</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanQuery">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>1</X>
+          <Y>1</Y>
+          <Z>1</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>0</Y>
+          <Z>0</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>-0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+      <Item class="Attachment" referent="Door_Exit">
+        <Properties>
+          <string name="Name">Door_Exit</string>
+          <CoordinateFrame name="CFrame">
+            <X>-0.0</X>
+            <Y>3.4560000000000004</Y>
+            <Z>-6.508</Z>
+            <R00>1.0</R00>
+            <R01>0</R01>
+            <R02>0.0</R02>
+            <R10>0</R10>
+            <R11>1</R11>
+            <R12>0</R12>
+            <R20>-0.0</R20>
+            <R21>0</R21>
+            <R22>1.0</R22>
+          </CoordinateFrame>
+        </Properties>
+      </Item>
+      <Item class="Attachment" referent="Wall">
+        <Properties>
+          <string name="Name">Wall</string>
+          <CoordinateFrame name="CFrame">
+            <X>-0.0</X>
+            <Y>7.656000000000001</Y>
+            <Z>29.520000000000003</Z>
+            <R00>1.0</R00>
+            <R01>0</R01>
+            <R02>0.0</R02>
+            <R10>0</R10>
+            <R11>1</R11>
+            <R12>0</R12>
+            <R20>-0.0</R20>
+            <R21>0</R21>
+            <R22>1.0</R22>
+          </CoordinateFrame>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Part" referent="collision_0">
+      <Properties>
+        <string name="Name">WalkFloor</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>32.68000030517578</X>
+          <Y>0.2800000011920929</Y>
+          <Z>27.711999893188477</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.0</X>
+          <Y>3.315999984741211</Y>
+          <Z>15.984000205993652</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_1">
+      <Properties>
+        <string name="Name">WalkCeiling</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>32.68000030517578</X>
+          <Y>0.11999999731779099</Y>
+          <Z>27.711999893188477</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.0</X>
+          <Y>17.34000015258789</Y>
+          <Z>15.984000205993652</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_2">
+      <Properties>
+        <string name="Name">WalkSideLeftWall</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>0.11999999731779099</X>
+          <Y>13.824000358581543</Y>
+          <Z>27.43199920654297</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>16.260000228881836</X>
+          <Y>10.368000030517578</Y>
+          <Z>15.984000205993652</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_3">
+      <Properties>
+        <string name="Name">WalkSideRightWall</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>0.11999999731779099</X>
+          <Y>13.824000358581543</Y>
+          <Z>27.43199920654297</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-16.260000228881836</X>
+          <Y>10.368000030517578</Y>
+          <Z>15.984000205993652</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_4">
+      <Properties>
+        <string name="Name">WalkRearWall</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>32.400001525878906</X>
+          <Y>13.824000358581543</Y>
+          <Z>0.11999999731779099</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.0</X>
+          <Y>10.368000030517578</Y>
+          <Z>29.760000228881836</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_5">
+      <Properties>
+        <string name="Name">WalkFrontLeft</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>11.880000114440918</X>
+          <Y>13.824000358581543</Y>
+          <Z>0.11999999731779099</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>10.260000228881836</X>
+          <Y>10.368000030517578</Y>
+          <Z>2.2079999446868896</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_6">
+      <Properties>
+        <string name="Name">WalkFrontRight</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>11.880000114440918</X>
+          <Y>13.824000358581543</Y>
+          <Z>0.11999999731779099</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-10.260000228881836</X>
+          <Y>10.368000030517578</Y>
+          <Z>2.2079999446868896</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_7">
+      <Properties>
+        <string name="Name">WalkLintel</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>8.640000343322754</X>
+          <Y>3.0239999294281006</Y>
+          <Z>0.11999999731779099</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.0</X>
+          <Y>15.767999649047852</Y>
+          <Z>2.2079999446868896</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_8">
+      <Properties>
+        <string name="Name">WalkPassageLeft</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>0.20000000298023224</X>
+          <Y>10.800000190734863</Y>
+          <Z>7.656000137329102</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>4.420000076293945</X>
+          <Y>8.855999946594238</Y>
+          <Z>-1.6799999475479126</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_9">
+      <Properties>
+        <string name="Name">WalkPassageRight</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>0.20000000298023224</X>
+          <Y>10.800000190734863</Y>
+          <Z>7.656000137329102</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-4.420000076293945</X>
+          <Y>8.855999946594238</Y>
+          <Z>-1.6799999475479126</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_10">
+      <Properties>
+        <string name="Name">WalkPassageCeiling</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>9.039999961853027</X>
+          <Y>0.20000000298023224</Y>
+          <Z>7.656000137329102</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.0</X>
+          <Y>14.355999946594238</Y>
+          <Z>-1.6799999475479126</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_11">
+      <Properties>
+        <string name="Name">WalkPassageFloor</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>8.640000343322754</X>
+          <Y>0.25</Y>
+          <Z>7.636000156402588</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.0</X>
+          <Y>3.3310000896453857</Y>
+          <Z>-1.690000057220459</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_12">
+      <Properties>
+        <string name="Name">WalkApproach0</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>8.880000114440918</X>
+          <Y>0.36559998989105225</Y>
+          <Z>0.7049999833106995</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.0</X>
+          <Y>0.16279999911785126</Y>
+          <Z>-11.955499649047852</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_13">
+      <Properties>
+        <string name="Name">WalkApproach1</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>8.880000114440918</X>
+          <Y>0.7111999988555908</Y>
+          <Z>0.7049999833106995</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.0</X>
+          <Y>0.33559998869895935</Y>
+          <Z>-11.275500297546387</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_14">
+      <Properties>
+        <string name="Name">WalkApproach2</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>8.880000114440918</X>
+          <Y>1.0568000078201294</Y>
+          <Z>0.7049999833106995</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.0</X>
+          <Y>0.508400022983551</Y>
+          <Z>-10.595499992370605</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_15">
+      <Properties>
+        <string name="Name">WalkApproach3</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>8.880000114440918</X>
+          <Y>1.402400016784668</Y>
+          <Z>0.7049999833106995</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.0</X>
+          <Y>0.6812000274658203</Y>
+          <Z>-9.915499687194824</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_16">
+      <Properties>
+        <string name="Name">WalkApproach4</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>8.880000114440918</X>
+          <Y>1.7480000257492065</Y>
+          <Z>0.7049999833106995</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.0</X>
+          <Y>0.8539999723434448</Y>
+          <Z>-9.23550033569336</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_17">
+      <Properties>
+        <string name="Name">WalkApproach5</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>8.880000114440918</X>
+          <Y>2.093600034713745</Y>
+          <Z>0.7049999833106995</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.0</X>
+          <Y>1.0268000364303589</Y>
+          <Z>-8.555500030517578</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_18">
+      <Properties>
+        <string name="Name">WalkApproach6</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>8.880000114440918</X>
+          <Y>2.439199924468994</Y>
+          <Z>0.7049999833106995</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.0</X>
+          <Y>1.1995999813079834</Y>
+          <Z>-7.875500202178955</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_19">
+      <Properties>
+        <string name="Name">WalkApproach7</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>8.880000114440918</X>
+          <Y>2.7848000526428223</Y>
+          <Z>0.7049999833106995</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.0</X>
+          <Y>1.3724000453948975</Y>
+          <Z>-7.195499897003174</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_20">
+      <Properties>
+        <string name="Name">WalkApproach8</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>8.880000114440918</X>
+          <Y>3.1303999423980713</Y>
+          <Z>0.7049999833106995</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.0</X>
+          <Y>1.545199990272522</Y>
+          <Z>-6.515500068664551</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+    <Item class="Part" referent="collision_21">
+      <Properties>
+        <string name="Name">WalkApproach9</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CastShadow">false</bool>
+        <float name="Transparency">1</float>
+        <Vector3 name="size">
+          <X>8.880000114440918</X>
+          <Y>3.4760000705718994</Y>
+          <Z>0.7049999833106995</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.0</X>
+          <Y>1.718000054359436</Y>
+          <Z>-5.8354997634887695</Z>
+          <R00>1.0</R00>
+          <R01>0</R01>
+          <R02>-0.0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0.0</R20>
+          <R21>0</R21>
+          <R22>1.0</R22>
+        </CoordinateFrame>
+      </Properties>
+    </Item>
+  </Item>
+</roblox>

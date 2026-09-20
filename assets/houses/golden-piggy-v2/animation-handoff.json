@@ -1,0 +1,26 @@
+{
+  "status": "Named mesh groups and timing spec; runtime animation not installed",
+  "effects": [
+    {
+      "section": "HouseFX_SlotCoin",
+      "kind": "bob",
+      "periodSeconds": 7,
+      "phase": 0,
+      "amplitudeStuds": 0.48299999999999993
+    },
+    {
+      "section": "HouseFX_FlankAccent_1",
+      "kind": "pulse",
+      "periodSeconds": 12,
+      "phase": 0.3333333333333333,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_FlankAccent_2",
+      "kind": "pulse",
+      "periodSeconds": 12,
+      "phase": 0.6666666666666666,
+      "fixedGeometry": true
+    }
+  ]
+}

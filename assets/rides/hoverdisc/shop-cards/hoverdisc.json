@@ -1,0 +1,11 @@
+{
+  "id": "hoverdisc",
+  "name": "Hoverdisc",
+  "parts": 19,
+  "turned": false,
+  "source": "assets/rides/ride-geometry.json",
+  "sourceSha256": "abc49323fe0c61987aca07c7c62684a73613d6f3986c846dc4cf877c082f3bdf",
+  "image": "assets/rides/hoverdisc/shop-cards/hoverdisc.png",
+  "sha256": "63f74dd089747a750378e7cf37a9c398bfb487c9e0f6048c043c31cc584779dd",
+  "robloxAssetId": "rbxassetid://123613429519195"
+}

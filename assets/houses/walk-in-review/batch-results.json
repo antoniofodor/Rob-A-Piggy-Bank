@@ -1,0 +1,57 @@
+[
+  {
+    "id": "shack",
+    "success": true,
+    "folder": "cardboard-fort-v2"
+  },
+  {
+    "id": "townhouse",
+    "success": true,
+    "folder": "wonky-townhouse-v2"
+  },
+  {
+    "id": "villa",
+    "success": true,
+    "folder": "fairy-lantern-cottage-v2"
+  },
+  {
+    "id": "manor",
+    "success": true,
+    "folder": "haunted-manor-v2"
+  },
+  {
+    "id": "slime",
+    "success": true,
+    "folder": "gloop-house-v3"
+  },
+  {
+    "id": "modern",
+    "success": true,
+    "folder": "fishbowl-house-v2"
+  },
+  {
+    "id": "neontower",
+    "success": true,
+    "folder": "neon-tower-v2"
+  },
+  {
+    "id": "crystal",
+    "success": true,
+    "folder": "crystal-spire-v2"
+  },
+  {
+    "id": "palace",
+    "success": true,
+    "folder": "ice-palace-v2"
+  },
+  {
+    "id": "skycastle",
+    "success": true,
+    "folder": "sky-castle-v2"
+  },
+  {
+    "id": "galleon",
+    "success": true,
+    "folder": "beached-galleon-v2"
+  }
+]

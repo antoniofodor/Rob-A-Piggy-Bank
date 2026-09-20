@@ -1,0 +1,75 @@
+{
+  "mode": "built-in image_gen",
+  "style": "Use case: game UI sprite. Style reference: the provided approved Pop the Pins concept, specifically its toy-like gold lock mechanism, thick dark cocoa outlines, soft rounded bevels, restrained highlights, yellow-gold, ivory and turquoise palette. Make a polished production PNG sprite, orthographic straight-on FRONT view, perfectly symmetrical where appropriate, simple readable silhouette for small mobile HUD display. Genuine transparent alpha background, NO opaque backdrop, NO checkerboard baked into image, NO scene, NO text, NO numbers, NO watermark, NO external shadow. Internal shading is allowed. One isolated asset only. Keep a small even transparent margin around the complete shape.",
+  "reference": "../../lock-cracking-concepts/a-pop-the-pins.png",
+  "assets": [
+    {
+      "id": "lock-housing",
+      "desc": "Generate only the stationary BRASS LOCK HOUSING. Wide horizontal rounded rectangle, 1536x1024 canvas. Housing fills 94% width and 90% height. Exactly FIVE identical empty vertical recessed rounded slots arranged evenly across the middle; deep dark honey-brown interiors. Each slot occupies approximately 14% canvas width, 63% canvas height, with centers at x=18%,34%,50%,66%,82% and y=49%. Clean thick cocoa silhouette, thick gold rim, subtle gold bevel. Generous uninterrupted blank gold margin at top and bottom. NO springs, NO caps inside slots, NO pins, NO buttons, NO labels, NO checks, NO turquoise target marks. No side extensions. It is a reusable empty mechanism into which the developer will layer animated sprites.",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-36132f91-05af-4a9a-a12e-0172e93abd44.png"
+    },
+    {
+      "id": "pin-active",
+      "desc": "Generate only ONE movable golden lock PIN. Portrait 1024x1536 canvas. One simple vertical plunger: a long smooth gold capsule shaft with rounded ends; a wider rounded rectangular gold collar centered 55% down its height. Entire pin fills 48% canvas width and 86% canvas height, centered. Collar width 48% canvas; shaft width 33% canvas. Crisp cocoa outline, warm gold fill, restrained golden highlights, simple toy-like faceted shading. No spring, no cap separate from pin, no housing, no target, no checkmark.",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-11345dd0-1022-45c9-97f6-eeaa25926d5e.png"
+    },
+    {
+      "id": "spring",
+      "desc": "Generate only ONE vertical compression SPRING, isolated. Portrait 1024x1536 canvas. Six evenly spaced broad clean loops of a pale turquoise metal coil, centered, taking 60% canvas width and 86% canvas height. Chunky tubular spring wire with soft cocoa edge, readable as a toy spring, restrained ivory highlights, consistent width from top to bottom, clearly transparent gaps between loops. Top and bottom have horizontal flat short attachment ends. No pin, no cap, no housing, no stand. Front orthographic view.",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-97c992b5-ba48-41e6-aea6-505ae7de7ac6.png"
+    },
+    {
+      "id": "top-cap",
+      "desc": "Generate only ONE stationary golden spring anchor CAP. Square canvas. Shape is a compact rounded dome with a flat horizontal bottom edge, like a semicircular gold arch filled solid, wider than tall, width 82% canvas and height 52%, centered. Thick cocoa outline, gold front, subtle gold bevel with warm ivory highlight at top left. No letters, no keyhole, no spring, no pin. A clean standalone top cap for the pin channel.",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-a60f1a08-c593-498a-a692-e6e502f5073f.png"
+    },
+    {
+      "id": "target-notch",
+      "desc": "ONE target alignment NOTCH BRACKET for the pin timing minigame. Landscape 1536x1024 canvas. A thin wide turquoise rounded rectangular outline, width 90% canvas, height 25%, centered. Empty TRANSPARENT interior, transparent outside. Thick cocoa outer edge, thin ivory highlight along upper rim. Hollow cyan frame; later the gold pin collar will line up inside it. No glowing halo whatsoever, no stripes, no arrow, no text, no pin, no background.",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-17ab8eab-1cf5-47e8-afbf-645b4b236160.png"
+    },
+    {
+      "id": "success-check",
+      "desc": "ONE simple success CHECK BADGE. Square canvas. Turquoise softly beveled rounded square centered at 80% canvas width and height, thick dark cocoa outline and one thick ivory checkmark centered inside. Very clean bold small-mobile readable game icon, restrained highlight. No surrounding glow whatsoever.",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-1f7f69fc-6c6e-4f56-bd13-0c1659a9a869.png"
+    },
+    {
+      "id": "button-primary",
+      "desc": "ONE empty primary ACTION BUTTON background. Landscape 1536x1024 canvas. Wide rounded rectangle, width 92% canvas and height 44% canvas, centered. Yellow gold toy-like fill, thick smooth cocoa border, rounded corners with radius 22% of button height, subtle warm orange bottom bevel, small ivory edge highlight top left. Large clean blank flat center, NO label, NO icon, NO key. No external glow, no external shadow, transparent outside button.",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-0410b2d8-e955-4dda-8da2-a8ef56b7d215.png"
+    },
+    {
+      "id": "button-secondary",
+      "desc": "ONE empty secondary ACTION BUTTON background. Landscape 1536x1024 canvas. Wide rounded rectangle, width 92% canvas and height 44% canvas, centered. Warm ivory cream fill, thick smooth cocoa border, rounded corners radius 22% of button height, subtle tan bottom bevel, small soft ivory edge highlight. Large clean blank flat center, NO label, NO icon, NO key. No external glow, no external shadow, transparent outside button.",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-578a29b0-f945-4645-8e51-50f5480184b4.png"
+    },
+    {
+      "id": "pin-idle",
+      "src": "pin-active",
+      "desc": "Change only gold metal COLOR to warm pale ivory / muted silver with cocoa outlines. The result is the idle pin state. KEEP EXACT OUTER SILHOUETTE, collar position, shaft length, all proportions and padding. Keep canvas 1024x1536. No icon. Opaque inside pin, truly transparent outside.",
+      "path": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-11345dd0-1022-45c9-97f6-eeaa25926d5e.png",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-c4209ea4-e74e-48d3-b3d8-8f0b319ccdb9.png"
+    },
+    {
+      "id": "pin-set",
+      "src": "pin-active",
+      "desc": "Change only gold metal COLOR to bright turquoise teal with cocoa outlines. The result is the completed pin state. KEEP EXACT OUTER SILHOUETTE, collar position, shaft length, all proportions and padding. Keep canvas 1024x1536. No checkmark or icon (supplied separately). Opaque inside pin, truly transparent outside.",
+      "path": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-11345dd0-1022-45c9-97f6-eeaa25926d5e.png",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-2180558d-0494-4616-bed4-3d115f1af99e.png"
+    },
+    {
+      "id": "button-primary-pressed",
+      "src": "button-primary",
+      "desc": "Make PRESSED DOWN state of this exact blank gold UI button. KEEP EXACT OUTER SILHOUETTE, dimensions, position and padding, 1536x1024 canvas. Only shading changes: flatten bottom raised bevel, subtly darken gold fill, add a narrow inner shadow along the top edge, reduce highlight. No text or icon. Genuine transparent outside, no glow or external shadow.",
+      "path": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-0410b2d8-e955-4dda-8da2-a8ef56b7d215.png",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-eb012595-5957-4759-b7d3-4754247d6462.png"
+    },
+    {
+      "id": "button-secondary-pressed",
+      "src": "button-secondary",
+      "desc": "Make PRESSED DOWN state of this exact blank cream UI button. KEEP EXACT OUTER SILHOUETTE, dimensions, position and padding, 1536x1024 canvas. Only shading changes: flatten bottom raised bevel, subtly darken warm ivory fill to pale tan, add narrow inner shadow along top edge, reduce highlight. No text or icon. Genuine transparent outside, no glow or external shadow.",
+      "path": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-578a29b0-f945-4645-8e51-50f5480184b4.png",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-981b4e46-2759-4760-a0b5-02a8c398cffe.png"
+    }
+  ]
+}

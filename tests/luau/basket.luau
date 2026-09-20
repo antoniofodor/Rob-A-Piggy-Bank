@@ -40,7 +40,7 @@ getRoot=function(p) return p.root end
 getHumanoid=function(p) return {Health=p.health or 100} end
 clearCarry=function(p) local c=carrying[p];carrying[p]=nil;return c end
 HeistService.isDodgeImmune=function(p) return p.dodge==true end
-return {newCarry=newCarry,deliver=deliver,request=deliverRequest,carrying=carrying,grudge=grudge,near=carryNearHome,
+return {newCarry=newCarry,deliver=deliver,request=settleOnArrival,carrying=carrying,grudge=grudge,near=carryNearHome,
  refund=returnCarryAmount,confiscate=HeistService.confiscate,tugs=tugs,tick=tugTick}
 ]]
 local modified,n=source:gsub("return HeistService%s*$",tail);assert(n==1)

@@ -1,0 +1,34 @@
+{
+  "root": "authored center at (0,0,0)",
+  "runtimeKey": "gum",
+  "boundsBlender": [
+    [
+      -0.9399991035461426,
+      -0.7799994349479675,
+      -0.8600000143051147
+    ],
+    [
+      0.9399996995925903,
+      0.7799999713897705,
+      1.5618549585342407
+    ]
+  ],
+  "sizeRoblox": [
+    1.879998803138733,
+    2.4218549728393555,
+    1.559999406337738
+  ],
+  "coordinates": "Blender XYZ to Roblox (x,z,-y); 1 unit = 1 stud",
+  "attachmentsRoblox": {
+    "FuseTip": [
+      0.62,
+      1.38,
+      0.05
+    ]
+  },
+  "triangles": {
+    "GumBody": 3840,
+    "Fuse": 3224
+  },
+  "effects": "Optional SupplyEffects helper; no particle geometry exported"
+}

@@ -88,8 +88,11 @@ local MENU: { Group } = {
 	{
 		name = "Guard dog",
 		rows = {
-			{ label = "Titan (Lv3)", cmd = "upgrade", a = "dog", b = 3 },
-			{ label = "No dog (Lv0)", cmd = "upgrade", a = "dog", b = 0 },
+			-- NO TIER BUTTONS. The Guard rung is retired: every plot has the
+			-- same dog (`Config.DOG_LEVEL`) and a skin is what varies, so a
+			-- row setting `upgrade dog 3` would be a dev button that does
+			-- nothing when pressed -- which this project treats as worse than
+			-- an absent one.
 			{ label = "Send to bed (20s)", cmd = "dognap", a = 20 },
 			{ label = "Dog status", cmd = "dogstate" },
 		},
@@ -140,11 +143,11 @@ local MENU: { Group } = {
 			{ label = "Raise the mailbox flag (unclaimed daily)", cmd = "post" },
 			{ label = "Claim daily day 7 (free crate)", cmd = "daily", a = 7 },
 			{ label = "Claim daily day 6 (golden bone)", cmd = "daily", a = 6 },
-			{ label = "Open Piggy Originals x5", cmd = "chest", a = "og", b = 5 },
+			{ label = "Open OG Piggy Common x5", cmd = "chest", a = "og", b = 5 },
 			{ label = "Open Alien Cache x3", cmd = "chest", a = "alien", b = 3 },
 			{ label = "+3 spares of each tier", cmd = "spares", a = 3 },
 			{ label = "Dump animations for upload", cmd = "animdump" },
-			{ label = "Combine 5 common -> Originals", cmd = "combine", a = "common", b = "og" },
+			{ label = "Combine 5 common -> OG Piggy", cmd = "combine", a = "common", b = "og" },
 			-- THE TROPHY SHELF. Four rows because the two pictures worth
 			-- looking at are the FIRST grade of each ladder and a full one,
 			-- and because an empty case is what every new player sees and had

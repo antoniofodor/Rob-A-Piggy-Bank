@@ -42,7 +42,7 @@ for rung,id in ipairs(ORDER) do
  lastLegacy=Config.houseLevelOf(id)
 end
 
--- ---- REVISION 2 (docs/HOUSE-TIER-BRIEF.md section 1) ------------------------
+-- ---- REVISION 2 (assets/houses/docs/HOUSE-TIER-BRIEF.md section 1) ------------------------
 local BRIEF={
  {"shack",0,"common"},{"cottage",35000,"common"},{"townhouse",120000,"rare"},
  {"mushroom",250000,"rare"},{"villa",400000,"rare"},{"treehouse",750000,"rare"},

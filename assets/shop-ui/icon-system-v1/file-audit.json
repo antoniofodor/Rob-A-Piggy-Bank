@@ -1,0 +1,877 @@
+{
+  "models": 7,
+  "icons": 19,
+  "allFilesInsideAssets": true,
+  "files": [
+    {
+      "path": "CrateDefinitions.luau",
+      "bytes": 735,
+      "sha256": "16e7b688f700ec34ff963ce4ab02cbc3a1c11b6210ed8b76ab5f703cd6e12c01"
+    },
+    {
+      "path": "CratePresentation.luau",
+      "bytes": 5621,
+      "sha256": "828fb64aa691891d757ee135390699063bae1ac3e42e7277b6912ecacdd7fa3e"
+    },
+    {
+      "path": "README.md",
+      "bytes": 6068,
+      "sha256": "ca22a325d2715474c8805bac9d90df6d34238714c6559c564938f299ff0e1cf8"
+    },
+    {
+      "path": "ShopIcons.luau",
+      "bytes": 2828,
+      "sha256": "c96cff480d01b229fd292e53a14a01ff8bf47d2b4ea488c844ff557e5318f12d"
+    },
+    {
+      "path": "boots.png",
+      "bytes": 306340,
+      "sha256": "58ac30b6e7940e9e3adcd31c60ffb41f0050c2bcad0d9624e570b71bd7630532"
+    },
+    {
+      "path": "capacity.png",
+      "bytes": 332610,
+      "sha256": "6a9f954b59b17b2ec53d9d3e024bc4eb952274f33d516a0fc969aae5cca0ce23"
+    },
+    {
+      "path": "coin-front.png",
+      "bytes": 478848,
+      "sha256": "23702901002fb821d9a8a34e4a8346f4c841c62cf1718e0d0634bb4e0fc2bb6d"
+    },
+    {
+      "path": "coin.png",
+      "bytes": 455189,
+      "sha256": "fe7f32dde5cf53edf4eb134458013b3db74d2f091d3f24d6105d25639fdfe404"
+    },
+    {
+      "path": "companions.png",
+      "bytes": 365836,
+      "sha256": "064d18e9706941d757a4fbd15b152ba50c936a9a52c31c823e2d8314b749e747"
+    },
+    {
+      "path": "contact-sheet.png",
+      "bytes": 577383,
+      "sha256": "83c89fb5d097c8ae26da9cf920b4384d9cedd8ddddb2b11f0f5a460e9f4fb3ff"
+    },
+    {
+      "path": "crate-common.png",
+      "bytes": 467209,
+      "sha256": "9aa9d3b1dc31edd446beea744865d018aac344a16908b5b28d1f9a6e6e35ff5e"
+    },
+    {
+      "path": "crate-legendary.png",
+      "bytes": 444342,
+      "sha256": "59275ad7f4a86d9e74521707befdbf68c3f320c910c25f34513e064d0b96651e"
+    },
+    {
+      "path": "crate-rare.png",
+      "bytes": 386493,
+      "sha256": "f65fe6abbfbb849c382af30756ec8f87c1b2710be07b73d800b9e363fe06c7cc"
+    },
+    {
+      "path": "crates/common/common.fbx",
+      "bytes": 216412,
+      "sha256": "f63764ef235d991584ee230f213f6c072b384b00b50fadf97a23fc554c87a09d"
+    },
+    {
+      "path": "crates/common/common.glb",
+      "bytes": 256000,
+      "sha256": "6becf814fd4e63349ed5f699816351507414d68557ae80501208d73673796a8e"
+    },
+    {
+      "path": "crates/common/manifest.json",
+      "bytes": 834,
+      "sha256": "5eb4d9ea9a28ade2bca4c47447367c96f1125bf6aa4d8a7a02a4b612d1cbfd05"
+    },
+    {
+      "path": "crates/common/palette.png",
+      "bytes": 2171,
+      "sha256": "ce235d3a92418ef31898463c98f8829d293d058ca88280235f375604522eb3f3"
+    },
+    {
+      "path": "crates/legendary/legendary.fbx",
+      "bytes": 209388,
+      "sha256": "a1e588ce0dde1496187266bdffc9fbd5bdcad9f722130559783967d84fc38f77"
+    },
+    {
+      "path": "crates/legendary/legendary.glb",
+      "bytes": 236884,
+      "sha256": "d4963e9fa9d48e5ee53f5a26230ed26c0f837e96889817485dd06fa0aafb16c6"
+    },
+    {
+      "path": "crates/legendary/manifest.json",
+      "bytes": 817,
+      "sha256": "54c2ab646ce6339637dbee2e324fa3955ac918d66c35d279c833e6647bc5bf78"
+    },
+    {
+      "path": "crates/legendary/palette.png",
+      "bytes": 2171,
+      "sha256": "ce235d3a92418ef31898463c98f8829d293d058ca88280235f375604522eb3f3"
+    },
+    {
+      "path": "crates/rare/manifest.json",
+      "bytes": 835,
+      "sha256": "cce65f532bebdbbd64b469d315f2897d3b51acbdbfa2bb1858ed011644e0fa6e"
+    },
+    {
+      "path": "crates/rare/palette.png",
+      "bytes": 2171,
+      "sha256": "ce235d3a92418ef31898463c98f8829d293d058ca88280235f375604522eb3f3"
+    },
+    {
+      "path": "crates/rare/rare.fbx",
+      "bytes": 191852,
+      "sha256": "bfe1b227fe1ccedd7317596936999641a52ba3c4a2df8f46ac4f4f651858e175"
+    },
+    {
+      "path": "crates/rare/rare.glb",
+      "bytes": 218320,
+      "sha256": "e2b876e23b64b212b8d3d64ad26f4dff597bfdd718d8920e68c47c7ba33216e8"
+    },
+    {
+      "path": "defend-rob-sheet.png",
+      "bytes": 300038,
+      "sha256": "9d2df48921cb2ece8a121fc75b34f4ca9c23c5e471e15ea4de15bc628519b593"
+    },
+    {
+      "path": "fences.png",
+      "bytes": 404765,
+      "sha256": "4738ebd853d09911a3daddf0ad95e91b9f887b287ff1fb6193851c30d650cf5d"
+    },
+    {
+      "path": "home.png",
+      "bytes": 426110,
+      "sha256": "f40ab355f02b4048ec02231ef9900279d82b28772d6062b6c344c89dbcf62cf8"
+    },
+    {
+      "path": "income.png",
+      "bytes": 399957,
+      "sha256": "78273daccae797e4afef702cb21be2dbe5a48ac930c393189a8512140a44a012"
+    },
+    {
+      "path": "index.html",
+      "bytes": 23381,
+      "sha256": "cf726f2bf6b88a79d75bff7f0aa2d29dbacb614a6ced9ed000d7c521a3952d4e"
+    },
+    {
+      "path": "lockpicks.png",
+      "bytes": 328615,
+      "sha256": "049707b7a34cef6b5eb0df74a3c2f232af6e2164e2d9cbb719c929d8c6426df4"
+    },
+    {
+      "path": "locks.png",
+      "bytes": 415925,
+      "sha256": "298f9db3de7fedf97ef7acdd8133eda2f48bb79d498e461572b2dd82739482e4"
+    },
+    {
+      "path": "models/SupplyDefinitions.luau",
+      "bytes": 287,
+      "sha256": "dcc2435439f7808cc6d4bc58e8b4e8ff0133ef299f6d5868e9bab0f8d43a47cc"
+    },
+    {
+      "path": "models/SupplyEffects.luau",
+      "bytes": 2668,
+      "sha256": "748472d6f6811cd684272f37ccfce677651d5a86899433ca0c05505af4d3d3e5"
+    },
+    {
+      "path": "models/bubblegum-bomb/bubblegum-bomb.fbx",
+      "bytes": 154908,
+      "sha256": "b7fe369ada436e4a7ea475b44a09f1736a1fa40acb550615de2831fbfe8119c6"
+    },
+    {
+      "path": "models/bubblegum-bomb/bubblegum-bomb.glb",
+      "bytes": 161480,
+      "sha256": "98a2cc4f9bb726331a95b38e879dfa605d004c6dddab0743f30862c37392fc03"
+    },
+    {
+      "path": "models/bubblegum-bomb/manifest.json",
+      "bytes": 691,
+      "sha256": "822aea2fb02a6313926845797e9a3f0fb7193258c0f4b3b28dcd70b296950176"
+    },
+    {
+      "path": "models/bubblegum-bomb/palette.png",
+      "bytes": 2223,
+      "sha256": "ed940af9ae03a40e5d9d7e1441b90ac10e04c1c390058ae1034f777ddc271665"
+    },
+    {
+      "path": "models/coin/coin.fbx",
+      "bytes": 134892,
+      "sha256": "7f4ef61700e0bc0a4637656bce2e8acd76c6abf1e562fede9adc4c352b3c2770"
+    },
+    {
+      "path": "models/coin/coin.glb",
+      "bytes": 155944,
+      "sha256": "27009dbb9552e8ac9898088d2e4f50b2a0da53f8351e1d8ba144187d8ee16985"
+    },
+    {
+      "path": "models/coin/manifest.json",
+      "bytes": 252,
+      "sha256": "fc58d18c1822ba07609ab075912aafc39f2fb7748499118a0e1c7c23632ea19b"
+    },
+    {
+      "path": "models/coin/palette.png",
+      "bytes": 2223,
+      "sha256": "ed940af9ae03a40e5d9d7e1441b90ac10e04c1c390058ae1034f777ddc271665"
+    },
+    {
+      "path": "models/golden-bone/golden-bone.fbx",
+      "bytes": 107708,
+      "sha256": "aca0d11b07409cc83fce668fe15b59f5245e7da83787dd6de9f9d8c3775b4dac"
+    },
+    {
+      "path": "models/golden-bone/golden-bone.glb",
+      "bytes": 109772,
+      "sha256": "13b6bfe65af1b2b1095e2d7f30314a4c22281d1499f6cbeaaaecc84e3b5ebb43"
+    },
+    {
+      "path": "models/golden-bone/manifest.json",
+      "bytes": 728,
+      "sha256": "aa8ddbfc2b1a149f16dca80f3984903cc17bba528da98da2e73b7448f9538dea"
+    },
+    {
+      "path": "models/golden-bone/palette.png",
+      "bytes": 2223,
+      "sha256": "ed940af9ae03a40e5d9d7e1441b90ac10e04c1c390058ae1034f777ddc271665"
+    },
+    {
+      "path": "models/plunger/manifest.json",
+      "bytes": 556,
+      "sha256": "224ea96920d2a5ac16b1273545c7989498adc0a9de547b1228420057a511f0cc"
+    },
+    {
+      "path": "models/plunger/palette.png",
+      "bytes": 2223,
+      "sha256": "ed940af9ae03a40e5d9d7e1441b90ac10e04c1c390058ae1034f777ddc271665"
+    },
+    {
+      "path": "models/plunger/plunger.fbx",
+      "bytes": 243324,
+      "sha256": "c7746962c4dc366053344868fc22cba998d7621b9998ec82fa2edad64e23a435"
+    },
+    {
+      "path": "models/plunger/plunger.glb",
+      "bytes": 296244,
+      "sha256": "df801ca8cfa754da8c9d0bf8b7d539e5b4535bdb82de87bfe4b2f6576da9a5c9"
+    },
+    {
+      "path": "rides.png",
+      "bytes": 315475,
+      "sha256": "cad8f5031a25da98ca686f7182ed40a825bc24317d664490cae0b3c4ab8f4906"
+    },
+    {
+      "path": "roblox-uploads.json",
+      "bytes": 4329,
+      "sha256": "8e694e985230d753018c297c89aa4e4f26d1911d4b3c919967ab82cd3a8faa50"
+    },
+    {
+      "path": "sack.png",
+      "bytes": 407482,
+      "sha256": "8c6dbc392e34ceb375251d1713f64e59bf74bddb3808e0dd7710311048efa312"
+    },
+    {
+      "path": "small/boots-128.png",
+      "bytes": 10323,
+      "sha256": "4e14e5a1876a84199474940ce7c2e30b1b5273d74d4ecf59fcf59861ee0a9de1"
+    },
+    {
+      "path": "small/boots-256.png",
+      "bytes": 28745,
+      "sha256": "7ee869e190bf1b6ae93521ba0aaf63f0cfb46423650b587b8cc3b39ccbc64abf"
+    },
+    {
+      "path": "small/boots-32.png",
+      "bytes": 1373,
+      "sha256": "a621c3f7bceb26436b6e56f3e6578509b61b1b458c4a5f922b46baf92b772f8f"
+    },
+    {
+      "path": "small/boots-48.png",
+      "bytes": 2517,
+      "sha256": "04d11a943b3b6712bef6365b97b6832efbe17c6019400d7f7745178993f18ac8"
+    },
+    {
+      "path": "small/boots-64.png",
+      "bytes": 3723,
+      "sha256": "5fbe069c29141dcee2604e30834f256894928a40d335f46c44976815a32b2768"
+    },
+    {
+      "path": "small/capacity-128.png",
+      "bytes": 11505,
+      "sha256": "ad94a3ed514dc627d7852a9579c54219148ef544c85566c11c406438b707e384"
+    },
+    {
+      "path": "small/capacity-256.png",
+      "bytes": 31865,
+      "sha256": "2a86b645f258c5d4de0c5885585df614e5b3a51251ebfcdb82946ee1233ccf48"
+    },
+    {
+      "path": "small/capacity-32.png",
+      "bytes": 1608,
+      "sha256": "b846330c055ef822ab01d293f0cc3339fc7322d22c3fe9cbf38d0d4dd3fe99e0"
+    },
+    {
+      "path": "small/capacity-48.png",
+      "bytes": 2785,
+      "sha256": "0f5e5d1235225f422fae3438f9b0c99fa2b81855574c6d82ba36c116f55bc368"
+    },
+    {
+      "path": "small/capacity-64.png",
+      "bytes": 4269,
+      "sha256": "efda74859c2c09a59d78a4a815c37291f18aa888981bbbc479afecfa592577e9"
+    },
+    {
+      "path": "small/coin-128.png",
+      "bytes": 16016,
+      "sha256": "ee4310254b501a425e3e25c740fcf4435fbb009f722efc171b45d8541afcbffe"
+    },
+    {
+      "path": "small/coin-256.png",
+      "bytes": 46207,
+      "sha256": "de87f02358b397ae63789d35b605ab64121e07a69dbcd4608c0d181cc145a341"
+    },
+    {
+      "path": "small/coin-32.png",
+      "bytes": 2196,
+      "sha256": "2e4f51747b72df46a7279a5c121405d899590806c0b8e3460be5a314dddb8d4e"
+    },
+    {
+      "path": "small/coin-48.png",
+      "bytes": 3947,
+      "sha256": "9fee82bbc0ed0a40ca2c05c63f7f275a4f669c7aae653309d4fef94b52561e46"
+    },
+    {
+      "path": "small/coin-64.png",
+      "bytes": 5872,
+      "sha256": "0a379368ddf28a9b554fc9dd5a5585312bff4a36c3d369893d4eecafda42dc7b"
+    },
+    {
+      "path": "small/coin-front-128.png",
+      "bytes": 17046,
+      "sha256": "b6ff7ab492079356536c15d1191fd17a34277c005bb34e29d7930346842294c6"
+    },
+    {
+      "path": "small/coin-front-256.png",
+      "bytes": 48749,
+      "sha256": "325d03585e9da7c047ff86544b9dc44b6b023d5f0f42c627cb114032ee9b04a1"
+    },
+    {
+      "path": "small/coin-front-32.png",
+      "bytes": 2254,
+      "sha256": "dd98ffb4a18c511384e27c1f57a9164c0ed816328faaaa080909a192930932ae"
+    },
+    {
+      "path": "small/coin-front-48.png",
+      "bytes": 4060,
+      "sha256": "3491d1f381612aad3ab1cd96ddf51323ec51dd1acc8af71fae454ebccf2d6f0c"
+    },
+    {
+      "path": "small/coin-front-64.png",
+      "bytes": 6223,
+      "sha256": "12c6470f6fdfd63100c012d917c0c8216776e2df0a32957beac35c7a04e79a4d"
+    },
+    {
+      "path": "small/companions-128.png",
+      "bytes": 12229,
+      "sha256": "2db2d20018831d4f9e8e2540e9997b41ca93bcf1163d2c8f38aa13628a0c0b29"
+    },
+    {
+      "path": "small/companions-256.png",
+      "bytes": 35391,
+      "sha256": "a6aea64bd647f2e1a34016fca89bc6c7b056fcc8a12b019090608a4f5a6972a5"
+    },
+    {
+      "path": "small/companions-32.png",
+      "bytes": 1640,
+      "sha256": "c8d464a0d33965d0cfc8ef18d5b16056b1f966d2759d911840f6d8e20eea789b"
+    },
+    {
+      "path": "small/companions-48.png",
+      "bytes": 2937,
+      "sha256": "bdde6ded9e1641b03361242381993c03e1f886b91b3adacaeb441047e8986ed0"
+    },
+    {
+      "path": "small/companions-64.png",
+      "bytes": 4475,
+      "sha256": "58d382686d1e0334b2ef3319838c66cbd50a11b489f863665cad790d3639f907"
+    },
+    {
+      "path": "small/crate-common-128.png",
+      "bytes": 15379,
+      "sha256": "8568e682df926acecaa4ff8ffb89e6b980043a5ccc87a363683c9210c3cbb3fb"
+    },
+    {
+      "path": "small/crate-common-256.png",
+      "bytes": 45797,
+      "sha256": "55e8d67c016ab599142602e26f77ad5fb00ac982876ca920e3cd085e68bedade"
+    },
+    {
+      "path": "small/crate-common-32.png",
+      "bytes": 1908,
+      "sha256": "5ca3aa4d835cb15ceb333405c704b05a3e5976f734a44cb0b8afe389489c74d4"
+    },
+    {
+      "path": "small/crate-common-48.png",
+      "bytes": 3511,
+      "sha256": "1f16b74c8d0dbf6293570d3e8f0179ed19d4bdb595a3aa5678eaa211ee4278c6"
+    },
+    {
+      "path": "small/crate-common-64.png",
+      "bytes": 5334,
+      "sha256": "7c89edbb0c3aa391f3d588cf73fa47ac7fbb7cbac0acbc1aa04558fcc53f6b93"
+    },
+    {
+      "path": "small/crate-legendary-128.png",
+      "bytes": 15131,
+      "sha256": "793803db24827f4175a7498664db09e6cf59ad3d8a71894b85bbd68659766d49"
+    },
+    {
+      "path": "small/crate-legendary-256.png",
+      "bytes": 45201,
+      "sha256": "d6e51725d9e077dc41f221c8ddb7bfced06b06264bfe34c572820a7289962980"
+    },
+    {
+      "path": "small/crate-legendary-32.png",
+      "bytes": 1772,
+      "sha256": "d4a43ce52e1b9919bedbebf796d242e39eead46b7cdff1795fc7ac2de8f9d230"
+    },
+    {
+      "path": "small/crate-legendary-48.png",
+      "bytes": 3238,
+      "sha256": "95aa6d7228329a6a3f2d1e814cf2a31c4e36576112af9d6f6a0fe75495d7d897"
+    },
+    {
+      "path": "small/crate-legendary-64.png",
+      "bytes": 5142,
+      "sha256": "ff061ab6423970173b9e8ecd1e7d5a0f5e365cba0ae8bbfd293df06ef870ccd6"
+    },
+    {
+      "path": "small/crate-rare-128.png",
+      "bytes": 12429,
+      "sha256": "6a410522a6445d90bf4e31f65167d62d0cd5d8fffb497ffffadb9e358c222932"
+    },
+    {
+      "path": "small/crate-rare-256.png",
+      "bytes": 36638,
+      "sha256": "07c9cd40ca59af74cdd898df4bca7e637a2beb725b248605150ee6f2fde00fbb"
+    },
+    {
+      "path": "small/crate-rare-32.png",
+      "bytes": 1649,
+      "sha256": "6352acfd7c2ce13aec40fc0b6338257fa2210368bceef181638a301a94a5e35e"
+    },
+    {
+      "path": "small/crate-rare-48.png",
+      "bytes": 2938,
+      "sha256": "5a5c0123dc67687fc459b8bd1185477a134ea50e4185a5566e4ddf6344b2aaa7"
+    },
+    {
+      "path": "small/crate-rare-64.png",
+      "bytes": 4411,
+      "sha256": "92679dc865fa7bf1ddb2441bcdcbfa53c817694a43996a96d740b010fe88fc72"
+    },
+    {
+      "path": "small/fences-128.png",
+      "bytes": 14162,
+      "sha256": "e2edd633f9c3284b5aba76221f74aea5d20afa62d07fdc4f9b31954d89c65431"
+    },
+    {
+      "path": "small/fences-256.png",
+      "bytes": 39768,
+      "sha256": "ee3e2c7f751df36fd3fda03a04dc42cac4fd186bb0feea5ead2afb6f0dc88e81"
+    },
+    {
+      "path": "small/fences-32.png",
+      "bytes": 1820,
+      "sha256": "0618025e030eb0441e9296aade75e0d32694d419ac672b26132f1969439800ee"
+    },
+    {
+      "path": "small/fences-48.png",
+      "bytes": 3308,
+      "sha256": "09b874eafa515992f892510d83d89474937cd0b87f5d682bc84661906a2ed260"
+    },
+    {
+      "path": "small/fences-64.png",
+      "bytes": 5054,
+      "sha256": "318cba4d1e0cc48144a2d48655a89c7018eea7263526ffdd5f22b6266667e2ab"
+    },
+    {
+      "path": "small/home-128.png",
+      "bytes": 13464,
+      "sha256": "426f5cdc5c10e834abb67569351d6789fb5e32069866f181765e3e338b130a7d"
+    },
+    {
+      "path": "small/home-256.png",
+      "bytes": 39035,
+      "sha256": "aa2d2ac26f937d949812c4e50b222614802c702698662eab8eaa678ab5e1d707"
+    },
+    {
+      "path": "small/home-32.png",
+      "bytes": 2039,
+      "sha256": "98bd0cc7dddeac8044a2d2e0f1eee353a9302fceb685254a2111d86ef2316558"
+    },
+    {
+      "path": "small/home-48.png",
+      "bytes": 3382,
+      "sha256": "e3f535bbda039e0ede962fe8c3a42c47733e78dbf20b9551c966499bccef2db4"
+    },
+    {
+      "path": "small/home-64.png",
+      "bytes": 5031,
+      "sha256": "6133b5cd2874a7812931f01008314d74fbac8f6a40bc16244a97b22bd50f6aea"
+    },
+    {
+      "path": "small/income-128.png",
+      "bytes": 14415,
+      "sha256": "6cc4cb6cbb43fbe13e2ce7768f35fdec2b40ddefcd25e97115366f68d856b4f0"
+    },
+    {
+      "path": "small/income-256.png",
+      "bytes": 40773,
+      "sha256": "7f6583bc7f517919ec0096859bf88dde0d9ebd55f821d139a9e3030564c0ba60"
+    },
+    {
+      "path": "small/income-32.png",
+      "bytes": 1887,
+      "sha256": "e0f05dd76e528153ecb742ebd5ccb232f4d6bc3335100e1922bfe8740c8e7052"
+    },
+    {
+      "path": "small/income-48.png",
+      "bytes": 3407,
+      "sha256": "a49c30eb01a3770b9ef4c6cd318438bfb5acca519cd1e425c690ca4938dd7d69"
+    },
+    {
+      "path": "small/income-64.png",
+      "bytes": 5124,
+      "sha256": "93d458ceb7c36ad8fc2a1a2a9672afa671db5ca3997cc67e4eff1f0d2200fc80"
+    },
+    {
+      "path": "small/lockpicks-128.png",
+      "bytes": 10876,
+      "sha256": "8fd179903cc70a898a1722842c9758f2658c2cda309b347577217646d60bf6d9"
+    },
+    {
+      "path": "small/lockpicks-256.png",
+      "bytes": 29797,
+      "sha256": "c2afac82529c8c7a23624e75c455700280c4b5b5f351db1bed0cd251c16018b1"
+    },
+    {
+      "path": "small/lockpicks-32.png",
+      "bytes": 1525,
+      "sha256": "657b0b37d556f4042fb5572b27c3b5385c0d7cde0d73dde1d7d5ac598e6c1185"
+    },
+    {
+      "path": "small/lockpicks-48.png",
+      "bytes": 2661,
+      "sha256": "9f5eb9661bde6a18a2fdafa9e1d5686a5f22be8e6ab20be56081729651ecf8d7"
+    },
+    {
+      "path": "small/lockpicks-64.png",
+      "bytes": 3958,
+      "sha256": "9d897d0472ba68539ed26bc0efd924a2098c64c1d7758aab3e084b70a5eb133f"
+    },
+    {
+      "path": "small/locks-128.png",
+      "bytes": 13632,
+      "sha256": "137e379e46d9ca3bc909cf2ae34f5904b3ef29667261206c3ce1fd9991ec7c38"
+    },
+    {
+      "path": "small/locks-256.png",
+      "bytes": 40243,
+      "sha256": "35a50f525b4b185e937c040f888831398c0b97813ba9b14bd5577b0c8807565e"
+    },
+    {
+      "path": "small/locks-32.png",
+      "bytes": 1792,
+      "sha256": "23e0009e6b02267b27f10d816597b81413bc97ce86708f754579ea3a3c0b7520"
+    },
+    {
+      "path": "small/locks-48.png",
+      "bytes": 3184,
+      "sha256": "92f8a06a15c62252be76aa399dfcd139cdce557db4a7142d1c800590eda2e059"
+    },
+    {
+      "path": "small/locks-64.png",
+      "bytes": 4837,
+      "sha256": "793da78517c2b3626251f5d2f151ec49c6181b592be26b4ef7e343d7829d03ee"
+    },
+    {
+      "path": "small/rides-128.png",
+      "bytes": 9904,
+      "sha256": "df1b1a33d89c6e226a250a080a8c20adf9a78261064b12769946e50541cf5ffd"
+    },
+    {
+      "path": "small/rides-256.png",
+      "bytes": 26881,
+      "sha256": "06fb829c3538a5da87cfcb22371d625074a678306f428642b060b8eef7313894"
+    },
+    {
+      "path": "small/rides-32.png",
+      "bytes": 1487,
+      "sha256": "90733a20c2994c03e92da2704cf25d110c0b4838d1e1caff357ea34f8e24690d"
+    },
+    {
+      "path": "small/rides-48.png",
+      "bytes": 2547,
+      "sha256": "8982367baab51570470843df8b3dceabe5890e5750f67071450e5c692a6c6d5e"
+    },
+    {
+      "path": "small/rides-64.png",
+      "bytes": 3736,
+      "sha256": "3fe4613c5020b4c6f1e07f05489320f18782b42361c648a903dc32193985761e"
+    },
+    {
+      "path": "small/sack-128.png",
+      "bytes": 14073,
+      "sha256": "e5a755bd0f94540c572387b4210da6a61cd1539a8090536f0d7c3f49a53f820f"
+    },
+    {
+      "path": "small/sack-256.png",
+      "bytes": 41100,
+      "sha256": "e17ce2f38ccc84fd1937ef49419cbd5c33f0e72a66031a472c7827132be6dc0e"
+    },
+    {
+      "path": "small/sack-32.png",
+      "bytes": 1803,
+      "sha256": "9502cb601ab82611b625f8593473b927dde8a47979af6b6f104c8c22ff130db0"
+    },
+    {
+      "path": "small/sack-48.png",
+      "bytes": 3129,
+      "sha256": "52a999b2f4a59d4591b45e61f73f10678f866f0c3cd95e0b2098dc39ff1d00f4"
+    },
+    {
+      "path": "small/sack-64.png",
+      "bytes": 4873,
+      "sha256": "5e71bd06ef7608701574a89e1d9cbc1ff36d4376f249bc226d50bd91bcdb2afc"
+    },
+    {
+      "path": "small/style-128.png",
+      "bytes": 15890,
+      "sha256": "f61405d0c3b8cba8715c2d3ad55719b5b94180f7bdf4bcedb710c42463b574a8"
+    },
+    {
+      "path": "small/style-256.png",
+      "bytes": 47162,
+      "sha256": "39fe35ce728abfe0058ac95aa3ec2451ea8c9c47b656698d95094ca8c9735f9c"
+    },
+    {
+      "path": "small/style-32.png",
+      "bytes": 1938,
+      "sha256": "5b78ff393e6ace66827f4ed06e851fdba2719178a840387c2d3521712b992b4e"
+    },
+    {
+      "path": "small/style-48.png",
+      "bytes": 3628,
+      "sha256": "b9781486537cf6e476e32ae41df58f4bb66a0fd982fbbdb3ef78fa6cc5451939"
+    },
+    {
+      "path": "small/style-64.png",
+      "bytes": 5450,
+      "sha256": "cb52939b47400007029dd17d6dbe12ee184f990d9fc0d75d5bf6d30c934a4656"
+    },
+    {
+      "path": "small/supplies-128.png",
+      "bytes": 11211,
+      "sha256": "526a696d962ff3f27f66882e4f5aae14620e6c01214af6e7e675e916359aa50f"
+    },
+    {
+      "path": "small/supplies-256.png",
+      "bytes": 31125,
+      "sha256": "4e89d4091c36ca95842e4e76c524d02319072ef6521fdba137a1f280ab1cb843"
+    },
+    {
+      "path": "small/supplies-32.png",
+      "bytes": 1625,
+      "sha256": "6417b7056a2658c4c9577f768c8d2cb7603e0217f3c5be7af16fe2a118f779db"
+    },
+    {
+      "path": "small/supplies-48.png",
+      "bytes": 2780,
+      "sha256": "a11e81a69c11a86c9a931b10666268660cd042d47035a0b598df37fdb36ebbf7"
+    },
+    {
+      "path": "small/supplies-64.png",
+      "bytes": 4195,
+      "sha256": "128ab7901fb2ab5590b98c1c36aa38f884daf5bb69632d0131be8c93ded7e7be"
+    },
+    {
+      "path": "small/tiptoe-128.png",
+      "bytes": 14252,
+      "sha256": "60ee8e4fb3a97a5930f519b721469ae97f40fcf61acb975c06073b254a08adf3"
+    },
+    {
+      "path": "small/tiptoe-256.png",
+      "bytes": 40744,
+      "sha256": "f2a587fef99af6402153ef9e594999cab8a85746455e5b0b17ae5c28ec3b37ef"
+    },
+    {
+      "path": "small/tiptoe-32.png",
+      "bytes": 1853,
+      "sha256": "086c5dbdc6938cd1080d080dac5fe45a2cb25d64d8435379be9e6150b8727486"
+    },
+    {
+      "path": "small/tiptoe-48.png",
+      "bytes": 3348,
+      "sha256": "89df5009ce2d8eed8ed156e6bf8bce0f0037074acf46f36cc567d810a6210880"
+    },
+    {
+      "path": "small/tiptoe-64.png",
+      "bytes": 5021,
+      "sha256": "8b2eea9902f239d88f96b9cd539cb875b0a4cf5cf6303617ee7bdef710533935"
+    },
+    {
+      "path": "small/upgrades-128.png",
+      "bytes": 12423,
+      "sha256": "df7c8f58b47a22bea361631e5ea62a0862aa14410dff0b7e82cb15dd63f49d92"
+    },
+    {
+      "path": "small/upgrades-256.png",
+      "bytes": 36134,
+      "sha256": "b0c5f0db959f1e6b54219d64dfab571f7a500c024bc0d6d0894d2cf463b4f4e5"
+    },
+    {
+      "path": "small/upgrades-32.png",
+      "bytes": 1642,
+      "sha256": "cf6ddb53fd696c0db87dfcab0df1a3cb4da88de506b594e752f9620ca3723a42"
+    },
+    {
+      "path": "small/upgrades-48.png",
+      "bytes": 2842,
+      "sha256": "5bde1a2e96d87e220100bf537f9bbc6aeb3a0e051fa24fc3fe8db3eea3dfe85a"
+    },
+    {
+      "path": "small/upgrades-64.png",
+      "bytes": 4359,
+      "sha256": "2ad65a1695e4a6ae80350bf030be1181d32cff97e539d229bb47b42b688ddcd9"
+    },
+    {
+      "path": "sources/boots.blend",
+      "bytes": 170909,
+      "sha256": "91d1072b5123bb31e1f7ec7b50dfd45a67568bf03f964d6cabf28ded082b5f19"
+    },
+    {
+      "path": "sources/bubblegum-bomb.blend",
+      "bytes": 186658,
+      "sha256": "8363809dc258a175d772579771799cc6f0d56194caf475cbf0237b55e0d5afc9"
+    },
+    {
+      "path": "sources/capacity.blend",
+      "bytes": 625342,
+      "sha256": "fdfc796bf2566d218f8a526be56936959d7563a544848ca0660c853d67f5cedd"
+    },
+    {
+      "path": "sources/coin-front.blend",
+      "bytes": 163620,
+      "sha256": "a9aec9752e86a9a111c20dc1ef6a6ada928708db4538ba3a234ff51398d8d0b7"
+    },
+    {
+      "path": "sources/coin.blend",
+      "bytes": 169677,
+      "sha256": "7647edea9272f187b2c502fade8e99c7a9b39231bea842823560ad045e04f786"
+    },
+    {
+      "path": "sources/companions.blend",
+      "bytes": 230048,
+      "sha256": "fda1a735ced0989d4941c454100a2270c6bb9ce264d692d58393d99e6edb2086"
+    },
+    {
+      "path": "sources/crate-common.blend",
+      "bytes": 212460,
+      "sha256": "ced2459f578acecdb91ac71cdce1448424eb5f5b99e64cb055c8768bf70bb178"
+    },
+    {
+      "path": "sources/crate-legendary.blend",
+      "bytes": 209009,
+      "sha256": "a0a79efc7822c4fbdfafeffcbf50652fc9269472afcc6527f80b2af6e14aa106"
+    },
+    {
+      "path": "sources/crate-rare.blend",
+      "bytes": 195788,
+      "sha256": "7d0450def2a9efa75edf0d0d4cbc92f8e3792aee5406b54f01f69c49d5e83385"
+    },
+    {
+      "path": "sources/fences.blend",
+      "bytes": 187319,
+      "sha256": "2532b639bf80cfc71f31dc6bd02666a6b825d51515c990d6200f00770b1f88f5"
+    },
+    {
+      "path": "sources/golden-bone.blend",
+      "bytes": 160804,
+      "sha256": "c7495d0a3cf628ef4288ced6d950a6de4da5c649b97ef8acccc4df9b7764652f"
+    },
+    {
+      "path": "sources/home.blend",
+      "bytes": 140095,
+      "sha256": "54366136538d6e26903361cb8d00beccca5389f97ec815f2736b85d902efbe66"
+    },
+    {
+      "path": "sources/income.blend",
+      "bytes": 726901,
+      "sha256": "a51eaefb607c3c6adf477fb14b881f3aebb270b8f10e85a8c5d0ab3d9c1bdb11"
+    },
+    {
+      "path": "sources/lockpicks.blend",
+      "bytes": 158944,
+      "sha256": "47d0435134ac1cdb5bb8008a043f6a0efa7724ba90897ef8429c27a0f5b1563e"
+    },
+    {
+      "path": "sources/locks.blend",
+      "bytes": 275881,
+      "sha256": "88d0ace3c43559715998591aaca4bf9ffb903da7952102ce7780c9fc95e06f7b"
+    },
+    {
+      "path": "sources/plunger.blend",
+      "bytes": 272576,
+      "sha256": "27cf8664b7e22feadccc942f710724526a7adeaad62a95fcf843895337034fdf"
+    },
+    {
+      "path": "sources/rides.blend",
+      "bytes": 152488,
+      "sha256": "24b64fb276f91f0ff968082c905b799c4ee301b46df00bf34815af38fac94afe"
+    },
+    {
+      "path": "sources/sack.blend",
+      "bytes": 820378,
+      "sha256": "40adf5865d7da61354329c6f09a85e6bafe2fdf51f677d7c00a6927c6aa9fc25"
+    },
+    {
+      "path": "sources/style.blend",
+      "bytes": 195643,
+      "sha256": "bb90089a04922a1685380c6f1ec274f26c188a84b34feb1dedb2c1b23a9d51d6"
+    },
+    {
+      "path": "sources/supplies.blend",
+      "bytes": 374740,
+      "sha256": "2bc87752dc7a72bc4522b0427b055111845bb1783f8f70f0abcac5116b409d50"
+    },
+    {
+      "path": "sources/tiptoe.blend",
+      "bytes": 3244137,
+      "sha256": "1b25d794b46d85cddb94d95e87ec31364e61483daf3f034294037dc3575c4361"
+    },
+    {
+      "path": "sources/upgrades.blend",
+      "bytes": 751455,
+      "sha256": "952a63cb4c52772ed5cba85c77469c277b36262be816f11d63e169f2db41dcfd"
+    },
+    {
+      "path": "style.png",
+      "bytes": 480982,
+      "sha256": "8ce58133f56793c02f9699b79c3c0d4d54a3cc3dc5296c53552d02384fd79a98"
+    },
+    {
+      "path": "supplies.png",
+      "bytes": 328289,
+      "sha256": "c02464464961f80a4cf78ee80e97f40b6d146c98c2047dbb92504048e0c0558d"
+    },
+    {
+      "path": "tiptoe.png",
+      "bytes": 395505,
+      "sha256": "490d6e2ea38a31dc7b5b942e65e73b42ae045d9cc7fcbb44751aa63a7359ff57"
+    },
+    {
+      "path": "upgrades.png",
+      "bytes": 378326,
+      "sha256": "9354995f195d1654b4756cb536add0130cc892d15a85da60cd740104d16ac79b"
+    }
+  ]
+}

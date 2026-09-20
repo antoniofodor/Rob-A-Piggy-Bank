@@ -1,0 +1,18 @@
+00:04.125  blend            | Read blend: "C:\Users\anton\robloxGame\assets\houses\treehouse-v2\treehouse.blend"
+C:\Users\anton\robloxGame\assets\houses\tools\build_walkin.py:40: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(name);m.use_nodes=True
+00:12.109  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_15188_c41436aeb194b75aad52c514863831ba.png.png"
+00:29.219  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\treehouse-v3\exterior.png'
+00:59.000  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\treehouse-v3\interior.png'
+01:22.781  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\treehouse-v3\entry.png'
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\treehouse-v3\\treehouse-visual.fbx'
+export finished in 0.0941 sec.
+Info: File exported successfully
+Info: Saved as "treehouse.blend"
+WALKIN_COMPLETE {"id": "treehouse", "folder": "treehouse-v3", "probes": 40, "triangles": 29832}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+Writing to C:\Users\anton\robloxGame\assets\houses\treehouse-v3\treehouse-visual.obj
+OBJ export of 'treehouse-visual.obj' took 27.54 ms
+
+Blender quit

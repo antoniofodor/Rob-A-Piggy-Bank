@@ -1,0 +1,65 @@
+{
+  "results": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 1040,
+      "horizontalOverflow": false,
+      "brokenImages": 0,
+      "plans": 4,
+      "links": [
+        "cozy.rbxmx",
+        "cozy.json",
+        "classic.rbxmx",
+        "classic.json",
+        "fishbowl-house.rbxmx",
+        "fishbowl-house.json",
+        "royal.rbxmx",
+        "royal.json",
+        "HANDOFF.md",
+        "checks.json"
+      ]
+    },
+    {
+      "name": "phone",
+      "width": 1180,
+      "height": 546,
+      "horizontalOverflow": false,
+      "brokenImages": 0,
+      "plans": 4,
+      "links": [
+        "cozy.rbxmx",
+        "cozy.json",
+        "classic.rbxmx",
+        "classic.json",
+        "fishbowl-house.rbxmx",
+        "fishbowl-house.json",
+        "royal.rbxmx",
+        "royal.json",
+        "HANDOFF.md",
+        "checks.json"
+      ]
+    },
+    {
+      "name": "portrait",
+      "width": 390,
+      "height": 844,
+      "horizontalOverflow": false,
+      "brokenImages": 0,
+      "plans": 4,
+      "links": [
+        "cozy.rbxmx",
+        "cozy.json",
+        "classic.rbxmx",
+        "classic.json",
+        "fishbowl-house.rbxmx",
+        "fishbowl-house.json",
+        "royal.rbxmx",
+        "royal.json",
+        "HANDOFF.md",
+        "checks.json"
+      ]
+    }
+  ],
+  "errors": []
+}

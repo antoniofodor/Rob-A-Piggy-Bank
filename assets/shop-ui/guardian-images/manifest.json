@@ -1,0 +1,1074 @@
+{
+  "size": [
+    768,
+    512
+  ],
+  "guardians": [
+    {
+      "id": "chocolate",
+      "name": "Chocolate",
+      "rig": "shepherd",
+      "source": "assets/guards/shepherd/shepherd.blend",
+      "sourceSha256": "4cdcfab5b4ed35a0175a44a0fb7cede0c3366ee0023fb841e2b65badccb4ca1f",
+      "image": "assets/guards/shepherd/shop-cards/chocolate.png",
+      "sha256": "29ec9316bb54721fc2f88b4c769d4b81c43fffb603a7beebd2ab769627365225",
+      "tones": {
+        "fur": [
+          104,
+          68,
+          46
+        ],
+        "dark": [
+          68,
+          42,
+          28
+        ],
+        "light": [
+          156.85,
+          133.45,
+          119.14999999999999
+        ],
+        "collar": [
+          214,
+          138,
+          62
+        ],
+        "brow": [
+          104,
+          68,
+          46
+        ],
+        "mask": [
+          125.14,
+          94.17999999999999,
+          75.25999999999999
+        ],
+        "eye": [
+          18,
+          18,
+          20
+        ],
+        "nose": [
+          29,
+          27,
+          30
+        ],
+        "mouth": [
+          41,
+          24,
+          31
+        ],
+        "teeth": [
+          248,
+          232,
+          189
+        ],
+        "inner": [
+          201,
+          126,
+          112
+        ],
+        "armor": [
+          131,
+          48,
+          78
+        ],
+        "accent": [
+          238,
+          122,
+          64
+        ],
+        "silver": [
+          171,
+          170,
+          182
+        ]
+      },
+      "robloxAssetId": "rbxassetid://96443703819078"
+    },
+    {
+      "id": "husky",
+      "name": "Husky",
+      "rig": "shepherd",
+      "source": "assets/guards/shepherd/shepherd.blend",
+      "sourceSha256": "4cdcfab5b4ed35a0175a44a0fb7cede0c3366ee0023fb841e2b65badccb4ca1f",
+      "image": "assets/guards/shepherd/shop-cards/husky.png",
+      "sha256": "d766c4b7950b5ab9d3dee1446b5ca6a2fedeb33495ce7ee44dd5e265380aa87f",
+      "tones": {
+        "fur": [
+          196,
+          202,
+          210
+        ],
+        "dark": [
+          78,
+          86,
+          98
+        ],
+        "light": [
+          216.65,
+          220.55,
+          225.75
+        ],
+        "collar": [
+          96,
+          158,
+          206
+        ],
+        "brow": [
+          196,
+          202,
+          210
+        ],
+        "mask": [
+          204.26,
+          209.42000000000002,
+          216.3
+        ],
+        "eye": [
+          18,
+          18,
+          20
+        ],
+        "nose": [
+          29,
+          27,
+          30
+        ],
+        "mouth": [
+          41,
+          24,
+          31
+        ],
+        "teeth": [
+          248,
+          232,
+          189
+        ],
+        "inner": [
+          201,
+          126,
+          112
+        ],
+        "armor": [
+          131,
+          48,
+          78
+        ],
+        "accent": [
+          238,
+          122,
+          64
+        ],
+        "silver": [
+          171,
+          170,
+          182
+        ]
+      },
+      "robloxAssetId": "rbxassetid://117441561046801"
+    },
+    {
+      "id": "goldenboy",
+      "name": "Golden Boy",
+      "rig": "shepherd",
+      "source": "assets/guards/shepherd/shepherd.blend",
+      "sourceSha256": "4cdcfab5b4ed35a0175a44a0fb7cede0c3366ee0023fb841e2b65badccb4ca1f",
+      "image": "assets/guards/shepherd/shop-cards/goldenboy.png",
+      "sha256": "bbbcd4780cbe814b45f6c0070456b79834c5631d70bb091bba03b00054ad56f0",
+      "tones": {
+        "fur": [
+          226,
+          174,
+          96
+        ],
+        "dark": [
+          166,
+          116,
+          54
+        ],
+        "light": [
+          236.15,
+          202.35,
+          151.65
+        ],
+        "collar": [
+          206,
+          62,
+          78
+        ],
+        "brow": [
+          226,
+          174,
+          96
+        ],
+        "mask": [
+          230.06,
+          185.33999999999997,
+          118.25999999999999
+        ],
+        "eye": [
+          18,
+          18,
+          20
+        ],
+        "nose": [
+          29,
+          27,
+          30
+        ],
+        "mouth": [
+          41,
+          24,
+          31
+        ],
+        "teeth": [
+          248,
+          232,
+          189
+        ],
+        "inner": [
+          201,
+          126,
+          112
+        ],
+        "armor": [
+          131,
+          48,
+          78
+        ],
+        "accent": [
+          238,
+          122,
+          64
+        ],
+        "silver": [
+          171,
+          170,
+          182
+        ]
+      },
+      "robloxAssetId": "rbxassetid://70909885384363"
+    },
+    {
+      "id": "dalmatian",
+      "name": "Spotless Dalmatian",
+      "rig": "shepherd",
+      "source": "assets/guards/shepherd/shepherd.blend",
+      "sourceSha256": "4cdcfab5b4ed35a0175a44a0fb7cede0c3366ee0023fb841e2b65badccb4ca1f",
+      "image": "assets/guards/shepherd/shop-cards/dalmatian.png",
+      "sha256": "520410ae42dfd0bc83560bcdf76af98b9203e4383cd376e8b7281b279e10d0da",
+      "tones": {
+        "fur": [
+          232,
+          232,
+          228
+        ],
+        "dark": [
+          46,
+          46,
+          48
+        ],
+        "light": [
+          240.05,
+          240.05,
+          237.45
+        ],
+        "collar": [
+          206,
+          62,
+          78
+        ],
+        "brow": [
+          232,
+          232,
+          228
+        ],
+        "mask": [
+          235.22,
+          235.22,
+          231.77999999999997
+        ],
+        "eye": [
+          18,
+          18,
+          20
+        ],
+        "nose": [
+          29,
+          27,
+          30
+        ],
+        "mouth": [
+          41,
+          24,
+          31
+        ],
+        "teeth": [
+          248,
+          232,
+          189
+        ],
+        "inner": [
+          201,
+          126,
+          112
+        ],
+        "armor": [
+          131,
+          48,
+          78
+        ],
+        "accent": [
+          238,
+          122,
+          64
+        ],
+        "silver": [
+          171,
+          170,
+          182
+        ]
+      },
+      "robloxAssetId": "rbxassetid://94466664729438"
+    },
+    {
+      "id": "shadow",
+      "name": "Shadow",
+      "rig": "shepherd",
+      "source": "assets/guards/shepherd/shepherd.blend",
+      "sourceSha256": "4cdcfab5b4ed35a0175a44a0fb7cede0c3366ee0023fb841e2b65badccb4ca1f",
+      "image": "assets/guards/shepherd/shop-cards/shadow.png",
+      "sha256": "10f23a9df50a30b33a611b38d8594d656ba6bd5c766d041030ddd97ad9b5922b",
+      "tones": {
+        "fur": [
+          52,
+          52,
+          60
+        ],
+        "dark": [
+          28,
+          28,
+          34
+        ],
+        "light": [
+          123.05,
+          123.05,
+          128.25
+        ],
+        "collar": [
+          198,
+          54,
+          62
+        ],
+        "brow": [
+          52,
+          52,
+          60
+        ],
+        "mask": [
+          80.42,
+          80.42,
+          87.30000000000001
+        ],
+        "eye": [
+          18,
+          18,
+          20
+        ],
+        "nose": [
+          29,
+          27,
+          30
+        ],
+        "mouth": [
+          41,
+          24,
+          31
+        ],
+        "teeth": [
+          248,
+          232,
+          189
+        ],
+        "inner": [
+          201,
+          126,
+          112
+        ],
+        "armor": [
+          131,
+          48,
+          78
+        ],
+        "accent": [
+          238,
+          122,
+          64
+        ],
+        "silver": [
+          171,
+          170,
+          182
+        ]
+      },
+      "robloxAssetId": "rbxassetid://127154832312483"
+    },
+    {
+      "id": "glacier",
+      "name": "Glacier",
+      "rig": "shepherd",
+      "source": "assets/guards/shepherd/shepherd.blend",
+      "sourceSha256": "4cdcfab5b4ed35a0175a44a0fb7cede0c3366ee0023fb841e2b65badccb4ca1f",
+      "image": "assets/guards/shepherd/shop-cards/glacier.png",
+      "sha256": "7c8759f9241d2e2cd71291364c25a66cc3769a0d79fc1c57ef8124f6427a5eeb",
+      "tones": {
+        "fur": [
+          214,
+          232,
+          244
+        ],
+        "dark": [
+          122,
+          168,
+          200
+        ],
+        "light": [
+          228.35,
+          240.05,
+          247.85
+        ],
+        "collar": [
+          96,
+          214,
+          226
+        ],
+        "brow": [
+          214,
+          232,
+          244
+        ],
+        "mask": [
+          219.74,
+          235.22,
+          245.54000000000002
+        ],
+        "eye": [
+          18,
+          18,
+          20
+        ],
+        "nose": [
+          29,
+          27,
+          30
+        ],
+        "mouth": [
+          41,
+          24,
+          31
+        ],
+        "teeth": [
+          248,
+          232,
+          189
+        ],
+        "inner": [
+          201,
+          126,
+          112
+        ],
+        "armor": [
+          131,
+          48,
+          78
+        ],
+        "accent": [
+          238,
+          122,
+          64
+        ],
+        "silver": [
+          171,
+          170,
+          182
+        ]
+      },
+      "robloxAssetId": "rbxassetid://137516871818892"
+    },
+    {
+      "id": "gorilla",
+      "name": "Gorilla",
+      "rig": "gorilla",
+      "source": "assets/guards/gorilla/gorilla.blend",
+      "sourceSha256": "c2bf9f1b8b5ae1137f444b471deaa3c031ae7ba80e4b5d99fa7c4b0f6b59d0ec",
+      "image": "assets/guards/gorilla/shop-cards/gorilla.png",
+      "sha256": "5abb48b8214520dbe3edca85b5ac0f79a0a7af133f29f864e6796123e1556a5b",
+      "tones": {
+        "fur": [
+          91,
+          83,
+          79
+        ],
+        "dark": [
+          62,
+          58,
+          57
+        ],
+        "light": [
+          178,
+          159,
+          129
+        ],
+        "collar": [
+          223,
+          177,
+          44
+        ],
+        "brow": [
+          91,
+          83,
+          79
+        ],
+        "mask": [
+          125.80000000000001,
+          113.4,
+          99.0
+        ],
+        "eye": [
+          18,
+          18,
+          20
+        ],
+        "nose": [
+          29,
+          27,
+          30
+        ],
+        "mouth": [
+          41,
+          24,
+          31
+        ],
+        "teeth": [
+          248,
+          232,
+          189
+        ],
+        "inner": [
+          201,
+          126,
+          112
+        ],
+        "armor": [
+          131,
+          48,
+          78
+        ],
+        "accent": [
+          238,
+          122,
+          64
+        ],
+        "silver": [
+          171,
+          170,
+          182
+        ]
+      },
+      "robloxAssetId": "rbxassetid://75445866786877"
+    },
+    {
+      "id": "raptor",
+      "name": "Raptor",
+      "rig": "raptor",
+      "source": "assets/guards/raptor/raptor.blend",
+      "sourceSha256": "7f8ba4b1a76e5ac54695f2ec8ee5b98395a144baa71a3005518ebbc927c7bffa",
+      "image": "assets/guards/raptor/shop-cards/raptor.png",
+      "sha256": "91f65648221f81739b60e3d9a8f3a6a3492ebd39436118990ad2115e659a0d08",
+      "tones": {
+        "fur": [
+          102,
+          185,
+          69
+        ],
+        "dark": [
+          50,
+          115,
+          43
+        ],
+        "light": [
+          226,
+          214,
+          149
+        ],
+        "collar": [
+          223,
+          177,
+          44
+        ],
+        "brow": [
+          102,
+          185,
+          69
+        ],
+        "mask": [
+          151.6,
+          196.60000000000002,
+          101.0
+        ],
+        "eye": [
+          18,
+          18,
+          20
+        ],
+        "nose": [
+          29,
+          27,
+          30
+        ],
+        "mouth": [
+          41,
+          24,
+          31
+        ],
+        "teeth": [
+          248,
+          232,
+          189
+        ],
+        "inner": [
+          201,
+          126,
+          112
+        ],
+        "armor": [
+          131,
+          48,
+          78
+        ],
+        "accent": [
+          238,
+          122,
+          64
+        ],
+        "silver": [
+          171,
+          170,
+          182
+        ]
+      },
+      "robloxAssetId": "rbxassetid://139324732339969"
+    },
+    {
+      "id": "triceratops",
+      "name": "Triceratops",
+      "rig": "triceratops",
+      "source": "assets/guards/triceratops/triceratops.blend",
+      "sourceSha256": "6da19f2c568c963801fc3c70a2d58a37f5c1dc5ee369229e6d320ca1ac53c345",
+      "image": "assets/guards/triceratops/shop-cards/triceratops.png",
+      "sha256": "7619ba55dd378e26fb6fee9d49be109d123dfb2db315efb2f406c9706aaa1d6e",
+      "tones": {
+        "fur": [
+          55,
+          177,
+          184
+        ],
+        "dark": [
+          35,
+          122,
+          139
+        ],
+        "light": [
+          239,
+          220,
+          165
+        ],
+        "collar": [
+          223,
+          177,
+          44
+        ],
+        "brow": [
+          55,
+          177,
+          184
+        ],
+        "mask": [
+          128.60000000000002,
+          194.2,
+          176.39999999999998
+        ],
+        "eye": [
+          18,
+          18,
+          20
+        ],
+        "nose": [
+          29,
+          27,
+          30
+        ],
+        "mouth": [
+          41,
+          24,
+          31
+        ],
+        "teeth": [
+          248,
+          232,
+          189
+        ],
+        "inner": [
+          201,
+          126,
+          112
+        ],
+        "armor": [
+          131,
+          48,
+          78
+        ],
+        "accent": [
+          238,
+          122,
+          64
+        ],
+        "silver": [
+          171,
+          170,
+          182
+        ]
+      },
+      "robloxAssetId": "rbxassetid://109345948759219"
+    },
+    {
+      "id": "terrier",
+      "name": "Terrier",
+      "rig": "terrier",
+      "source": "assets/guards/terrier/terrier.blend",
+      "sourceSha256": "fb1947f099a3c4ac312e1cc06192056245c9789b214253ef511cb131265c6d7e",
+      "image": "assets/guards/terrier/shop-cards/terrier.png",
+      "sha256": "28d9011fc6e3ca3b91cb6f58e7559651fa9daaa3b7ab471a61212fa48d0b8264",
+      "tones": {
+        "fur": [
+          227,
+          173,
+          91
+        ],
+        "dark": [
+          172,
+          112,
+          53
+        ],
+        "light": [
+          247,
+          207,
+          142
+        ],
+        "collar": [
+          210,
+          54,
+          42
+        ],
+        "brow": [
+          227,
+          173,
+          91
+        ],
+        "mask": [
+          235.0,
+          186.60000000000002,
+          111.4
+        ],
+        "eye": [
+          18,
+          18,
+          20
+        ],
+        "nose": [
+          29,
+          27,
+          30
+        ],
+        "mouth": [
+          41,
+          24,
+          31
+        ],
+        "teeth": [
+          248,
+          232,
+          189
+        ],
+        "inner": [
+          201,
+          126,
+          112
+        ],
+        "armor": [
+          131,
+          48,
+          78
+        ],
+        "accent": [
+          238,
+          122,
+          64
+        ],
+        "silver": [
+          171,
+          170,
+          182
+        ]
+      },
+      "robloxAssetId": "rbxassetid://126143860962341"
+    },
+    {
+      "id": "mastiff",
+      "name": "Mastiff",
+      "rig": "mastiff",
+      "source": "assets/guards/mastiff/mastiff.blend",
+      "sourceSha256": "235f86ac24e4ae1ed836309b1aeaee8cc660c9a2b92bffdf030b66be02cffc53",
+      "image": "assets/guards/mastiff/shop-cards/mastiff.png",
+      "sha256": "bfc069f77f5af30f12f163b5a5513f47ff04592f3c3c54380a2efcc918d34c9e",
+      "tones": {
+        "fur": [
+          78,
+          73,
+          82
+        ],
+        "dark": [
+          49,
+          46,
+          54
+        ],
+        "light": [
+          120,
+          111,
+          114
+        ],
+        "collar": [
+          244,
+          189,
+          35
+        ],
+        "brow": [
+          78,
+          73,
+          82
+        ],
+        "mask": [
+          94.8,
+          88.2,
+          94.8
+        ],
+        "eye": [
+          18,
+          18,
+          20
+        ],
+        "nose": [
+          29,
+          27,
+          30
+        ],
+        "mouth": [
+          41,
+          24,
+          31
+        ],
+        "teeth": [
+          248,
+          232,
+          189
+        ],
+        "inner": [
+          201,
+          126,
+          112
+        ],
+        "armor": [
+          131,
+          48,
+          78
+        ],
+        "accent": [
+          238,
+          122,
+          64
+        ],
+        "silver": [
+          171,
+          170,
+          182
+        ]
+      },
+      "robloxAssetId": "rbxassetid://79883493152667"
+    },
+    {
+      "id": "direwolf",
+      "name": "Dire Wolf",
+      "rig": "direwolf",
+      "source": "assets/guards/direwolf/direwolf.blend",
+      "sourceSha256": "45a4ff9c1f515475f73faaa8a85bd95e42fc7b1e91564d250a128438ac1b1748",
+      "image": "assets/guards/direwolf/shop-cards/direwolf.png",
+      "sha256": "cfb0ecae3e1ac87167d8b5b265997ad0c078804578acce142aa9defaa2ecad16",
+      "tones": {
+        "fur": [
+          119,
+          134,
+          154
+        ],
+        "dark": [
+          73,
+          91,
+          119
+        ],
+        "light": [
+          221,
+          222,
+          212
+        ],
+        "collar": [
+          223,
+          177,
+          44
+        ],
+        "brow": [
+          119,
+          134,
+          154
+        ],
+        "mask": [
+          159.8,
+          169.2,
+          177.2
+        ],
+        "eye": [
+          18,
+          18,
+          20
+        ],
+        "nose": [
+          29,
+          27,
+          30
+        ],
+        "mouth": [
+          41,
+          24,
+          31
+        ],
+        "teeth": [
+          248,
+          232,
+          189
+        ],
+        "inner": [
+          201,
+          126,
+          112
+        ],
+        "armor": [
+          131,
+          48,
+          78
+        ],
+        "accent": [
+          238,
+          122,
+          64
+        ],
+        "silver": [
+          171,
+          170,
+          182
+        ]
+      },
+      "robloxAssetId": "rbxassetid://110670035166700"
+    },
+    {
+      "id": "cerberus",
+      "name": "Cerberus",
+      "rig": "cerberus",
+      "source": "assets/guards/cerberus/cerberus.blend",
+      "sourceSha256": "4d8e8fd94ad3675b236fc5febbc80e630523d8baf5fa5314ea9bd227ba59b22c",
+      "image": "assets/guards/cerberus/shop-cards/cerberus.png",
+      "sha256": "04bbe17ef0a4cb800edf5ae272b1a15d83459983e9e75915edbc39644dec9d6e",
+      "tones": {
+        "fur": [
+          86,
+          60,
+          70
+        ],
+        "dark": [
+          49,
+          33,
+          45
+        ],
+        "light": [
+          151,
+          113,
+          119
+        ],
+        "collar": [
+          235,
+          169,
+          46
+        ],
+        "brow": [
+          86,
+          60,
+          70
+        ],
+        "mask": [
+          112.0,
+          81.2,
+          89.6
+        ],
+        "eye": [
+          18,
+          18,
+          20
+        ],
+        "nose": [
+          29,
+          27,
+          30
+        ],
+        "mouth": [
+          41,
+          24,
+          31
+        ],
+        "teeth": [
+          248,
+          232,
+          189
+        ],
+        "inner": [
+          201,
+          126,
+          112
+        ],
+        "armor": [
+          131,
+          48,
+          78
+        ],
+        "accent": [
+          238,
+          122,
+          64
+        ],
+        "silver": [
+          171,
+          170,
+          182
+        ]
+      },
+      "robloxAssetId": "rbxassetid://112271849554979"
+    }
+  ]
+}

@@ -3,7 +3,8 @@
 	Crates charge earned Acorns only; there is no coin fallback.
 	Duplicates become per-item spares. Config.COMBINE.need spares of one
 	tier can roll into a regular crate; event-set crates cannot be combined
-	into. Selling spares still pays coins through Config.sellValue.
+	into. Selling spares pays through Config.sellValue: acorns for a skin,
+	coins for anything else.
 	Free daily crates share the reveal and grant path without charging.
 ]]
 
@@ -565,6 +566,9 @@ function ChestService.sell(player: Player, kind: string, key: string, count: num
 	if payout <= 0 then
 		return
 	end
+	-- A SKIN PAYS ACORNS, which have no pig to fit into, so none of the
+	-- capacity refusals below apply to it.
+	local acorns = Config.sellsForAcorns(kind)
 
 	-- A SALE THAT WOULD OVERFLOW THE PIG IS REFUSED, NEVER CLAMPED.
 	--
@@ -582,7 +586,7 @@ function ChestService.sell(player: Player, kind: string, key: string, count: num
 	-- WHOLE ORDER, NEVER PARTIAL. Selling four spares and being handed two is
 	-- the same silent clamp one level up.
 	local capacity = Config.getCapacity(data.capacityLevel)
-	local room = capacity - data.coins
+	local room = if acorns then math.huge else capacity - data.coins
 	if room <= 0 then
 		notify(player, "Your piggy bank is full. Spend some coins before you sell.", "warn")
 		return
@@ -603,7 +607,11 @@ function ChestService.sell(player: Player, kind: string, key: string, count: num
 		-- actually mind getting wrong is written immediately.
 		SetService.revoke(player, kind, key)
 	end
-	data.coins += payout
+	if acorns then
+		data.loot = math.floor((data.loot or 0) + payout)
+	else
+		data.coins += payout
+	end
 
 	ChestService.push(player)
 	pushBalances(player)
@@ -611,7 +619,8 @@ function ChestService.sell(player: Player, kind: string, key: string, count: num
 	local catalogue = Config.catalogueFor(kind)
 	local spec = catalogue and catalogue[key]
 	notify(player, ("Sold %d %s for %s."):format(
-		wanted, (spec and spec.name) or key, Config.formatCoins(payout)), "money")
+		wanted, (spec and spec.name) or key, Config.formatSellValue(kind, payout)),
+		if acorns then "loot" else "money")
 	return payout
 end
 

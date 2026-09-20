@@ -1,0 +1,10 @@
+00:04.562  blend            | Read blend: "C:\Users\anton\robloxGame\assets\houses\gloop-house-v3\gloop-house.blend"
+ROUTES {"samples": 0, "blocked": 0, "firstFindings": []}
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\gloop-house-v3\\gloop-house-roblox.fbx'
+export finished in 0.0836 sec.
+FBX version: 7400
+IMPORT_REPORT {"meshCount": 40, "triangles": 34534, "basePartsWithCompanion": 55, "fbxRoundTripMaxBoundsError": 1.1026859283447266e-06}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

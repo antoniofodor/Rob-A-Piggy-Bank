@@ -40,7 +40,7 @@
 	     is false" -- a boolean the pet has to check is a second piece of
 	     state that can disagree with what is actually on screen, which is the
 	     argument the guard dog's watcher already makes when it reads measured
-	     SPEED rather than a stealth flag. `hideCharacter` sets the root's
+	     SPEED rather than a stealth flag. `hideCharacter` sets every part's
 	     Transparency to 1 and that replicates, so the character's own
 	     visibility IS the signal. Anything added later that hides a player
 	     the same way is handled with no new code.
@@ -169,7 +169,13 @@ local function step(dt: number)
 
 		-- RULE 1: visible exactly when its owner is. Read off the character
 		-- rather than off a flag, so it cannot disagree with the screen.
-		local hidden = hrp.Transparency >= 1
+		--
+		-- THE HEAD, NEVER THE ROOT. HumanoidRootPart is Transparency 1 on every
+		-- character all the time, so reading it made every pet permanently
+		-- "hidden": invisible, and parked at hip height behind its owner. The
+		-- wheelie bin hides EVERY part, so the head answers the same question.
+		local head = (character :: Model):FindFirstChild("Head")
+		local hidden = head ~= nil and head:IsA("BasePart") and head.Transparency >= 1
 		for _, d in ipairs(entry.model:GetDescendants()) do
 			if d:IsA("BasePart") then
 				local base = d:GetAttribute("PetTransparency")
@@ -193,12 +199,25 @@ local function step(dt: number)
 		local goal = ownerCF * CFrame.new(FOLLOW_SIDE, 0, FOLLOW_BACK)
 		local target = goal.Position
 
-		-- The pet's own footing. A hovering pet rides above the owner's root
-		-- and bobs; a walking one sits below it, because the root is at hip
-		-- height on an R15 rig and a four-stud animal standing at hip height
-		-- is a four-stud animal floating.
-		local lift = if entry.hover then 1.6 + math.sin(now * 2.4) * 0.28 else -1.6
-		target = Vector3.new(target.X, ownerCF.Position.Y + lift, target.Z)
+		-- THE PET STANDS ON ITS OWNER'S GROUND. The model's pivot is its feet
+		-- (PetModel), and the ground is derived from the root the way
+		-- RideService does: root centre, less half the root, less HipHeight.
+		-- A mounted rider's HipHeight is raised by the ride's `stand`, so that
+		-- is taken back off, or the pet would walk at deck height. Queries are
+		-- no use here: the driveways and kerbs are CanQuery false. A hovering
+		-- pet is built higher already, so all it adds is the bob.
+		local humanoid = (character :: Model):FindFirstChildOfClass("Humanoid")
+		local hip = if humanoid then humanoid.HipHeight else 2
+		for _, child in ipairs((character :: Model):GetChildren()) do
+			if child:IsA("Model") and child.Name:sub(1, 5) == "Ride_" then
+				local ride = Config.RIDES[child.Name:sub(6)]
+				hip -= (ride and ride.stand) or 0
+				break
+			end
+		end
+		local ground = ownerCF.Position.Y - hrp.Size.Y / 2 - hip
+		local lift = if entry.hover then math.sin(now * 2.4) * 0.28 else 0
+		target = Vector3.new(target.X, ground + lift, target.Z)
 
 		local current = entry.at
 		local nextPos: Vector3
@@ -241,6 +260,7 @@ local function step(dt: number)
 end
 
 function Pets.start(_localPlayer: Player)
+	if not Config.PETS_ENABLED then return end
 	if root then
 		return
 	end

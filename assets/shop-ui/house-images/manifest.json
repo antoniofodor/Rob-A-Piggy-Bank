@@ -1,0 +1,170 @@
+{
+  "size": [
+    768,
+    512
+  ],
+  "houses": [
+    {
+      "id": "shack",
+      "name": "Cardboard Fort",
+      "source": "assets/houses/cardboard-fort-v2/cardboard-fort.blend",
+      "sourceSha256": "f57eff55b2750496fcf091097c22645673c18c56e51a7df6232a8f448a496480",
+      "image": "assets/houses/cardboard-fort-v2/shop-cards/shack.png",
+      "sha256": "b8bf5ed1f389e77566f1774637d01b51d8ae7803a0d0c4fe336e7a87b1b6e16c",
+      "robloxAssetId": "rbxassetid://113174635536569"
+    },
+    {
+      "id": "cottage",
+      "name": "Beehive Cottage",
+      "source": "assets/houses/beehive-cottage-v2/beehive-cottage.blend",
+      "sourceSha256": "870f31a6627b63f0037fc7afe9b10867643cb4d190a998870f04d2d5580b00c1",
+      "image": "assets/houses/beehive-cottage-v2/shop-cards/cottage.png",
+      "sha256": "9606325788bf3d9f8173d8543be6ee575765a9fda855da7b2cd7a025127fcf7a",
+      "robloxAssetId": "rbxassetid://106753868152741"
+    },
+    {
+      "id": "townhouse",
+      "name": "Wonky Townhouse",
+      "source": "assets/houses/wonky-townhouse-v2/wonky-townhouse.blend",
+      "sourceSha256": "33577497f64310fc8607f8a1d19a6d9808b483d6dd508ca34f725a6e300bdb1f",
+      "image": "assets/houses/wonky-townhouse-v2/shop-cards/townhouse.png",
+      "sha256": "8be6ed5174089e139eed958251179bad19d5f09dcaa9a46a1c7e961865b99c72",
+      "robloxAssetId": "rbxassetid://78339309144437"
+    },
+    {
+      "id": "mushroom",
+      "name": "Toadstool Cottage",
+      "source": "assets/houses/toadstool-cottage-v2/toadstool-cottage.blend",
+      "sourceSha256": "d930f5e5ed9ba86c275b6c2bf6cd58ad37e151f50e4139a233b1942190e6cb1f",
+      "image": "assets/houses/toadstool-cottage-v2/shop-cards/mushroom.png",
+      "sha256": "735bf6d1a8600cc9979eb5b3c1bb810d3ff9b8a4efdb95ced2355541d9256137",
+      "robloxAssetId": "rbxassetid://130500543862535"
+    },
+    {
+      "id": "villa",
+      "name": "Fairy Lantern Cottage",
+      "source": "assets/houses/fairy-lantern-cottage-v2/fairy-lantern-cottage.blend",
+      "sourceSha256": "aab88525aca40d2d6f2feaef3c0fe94b4701f07f3b6bba811a4f5482d20f5952",
+      "image": "assets/houses/fairy-lantern-cottage-v2/shop-cards/villa.png",
+      "sha256": "b2d476b3d1c29de5405accc23a4a1d302a8278399235822b59ce18324b7156e6",
+      "robloxAssetId": "rbxassetid://102026091853191"
+    },
+    {
+      "id": "treehouse",
+      "name": "Treehouse",
+      "source": "assets/houses/treehouse-v3/treehouse.blend",
+      "sourceSha256": "e6a93ce0af72306e6f5e0e1f55e945f832bfc032ad640737e5725d8fa2ae4083",
+      "image": "assets/houses/treehouse-v3/shop-cards/treehouse.png",
+      "sha256": "ff46b17475d6adcf311ced8208861d7d31254d6efac28aa3a082daac932bc717",
+      "robloxAssetId": "rbxassetid://91807335475451"
+    },
+    {
+      "id": "manor",
+      "name": "Haunted Manor",
+      "source": "assets/houses/haunted-manor-v2/haunted-manor.blend",
+      "sourceSha256": "e7dbe0c0d88a8695a627c8eca9d5c5792ba9a7977a29ba114a48f8b4113a1d6b",
+      "image": "assets/houses/haunted-manor-v2/shop-cards/manor.png",
+      "sha256": "6445d06008d8d74c4c093aebbb7f7f4328781a0a86a9bc6d030c433ddfec9e05",
+      "robloxAssetId": "rbxassetid://109401304165023"
+    },
+    {
+      "id": "slime",
+      "name": "Gloop House",
+      "source": "assets/houses/gloop-house-v3/gloop-house.blend",
+      "sourceSha256": "0124877413ebe5098bbd1af102e418ee6427b4296669225be6057ec14dcb937c",
+      "image": "assets/houses/gloop-house-v3/shop-cards/slime.png",
+      "sha256": "390fbceb35a7517d8a576584d62406152c3638eeacb9157cbe0913a4afd35008",
+      "robloxAssetId": "rbxassetid://96955097964634"
+    },
+    {
+      "id": "modern",
+      "name": "Fishbowl House",
+      "source": "assets/houses/fishbowl-house-v2/fishbowl-house.blend",
+      "sourceSha256": "8b778026fc836a31676e1b720a874e70e2c6519941adc04e4c01d2f5a5638ce9",
+      "image": "assets/houses/fishbowl-house-v2/shop-cards/modern.png",
+      "sha256": "0a64e4b9f6f0b60873ab5e52663eae32747721cd8f76307e84f4bfdfc3a89946",
+      "robloxAssetId": "rbxassetid://139306301644896"
+    },
+    {
+      "id": "neontower",
+      "name": "Neon Tower",
+      "source": "assets/houses/neon-tower-v2/neon-tower.blend",
+      "sourceSha256": "8fdb979f6ff766349d1ca175f57a9dde508c00c3594604c2f8cde9c56dfd1c24",
+      "image": "assets/houses/neon-tower-v2/shop-cards/neontower.png",
+      "sha256": "6088ddbcb6d118dd4cd3eafeb80e982ece7cdd994586257d3b988a0d2ee8c093",
+      "robloxAssetId": "rbxassetid://106398419714312"
+    },
+    {
+      "id": "crystal",
+      "name": "Crystal Spire",
+      "source": "assets/houses/crystal-spire-v2/crystal-spire.blend",
+      "sourceSha256": "c1b5e097860eacea6de5ad228bc7b42183abaa0cb0e340b818b577e9033ce8fe",
+      "image": "assets/houses/crystal-spire-v2/shop-cards/crystal.png",
+      "sha256": "7502c30099b048a6d9ef19b9f0dbb9bb7d49e79b4268ee9bbb595feb780e890d",
+      "robloxAssetId": "rbxassetid://116973739617551"
+    },
+    {
+      "id": "palace",
+      "name": "Ice Palace",
+      "source": "assets/houses/ice-palace-v2/ice-palace.blend",
+      "sourceSha256": "bd67fcbbda5b8474cbe25c315963c5b6ee894efa1d74963c81c800afc48caa55",
+      "image": "assets/houses/ice-palace-v2/shop-cards/palace.png",
+      "sha256": "036e93c0bd020b5e987e5f39d1951cf7e82bd24220d8619e5b2417ff9afcdce3",
+      "robloxAssetId": "rbxassetid://132549088501298"
+    },
+    {
+      "id": "skycastle",
+      "name": "Sky Castle",
+      "source": "assets/houses/sky-castle-v2/sky-castle.blend",
+      "sourceSha256": "ad3dacfa1c2f62f28cd66d37e05d19f07af51101f64d1a17954045c014ea7226",
+      "image": "assets/houses/sky-castle-v2/shop-cards/skycastle.png",
+      "sha256": "986181b7aafa6e0918be1ae8841da415c4cb63d6842a565ceb07b96807803771",
+      "robloxAssetId": "rbxassetid://80739296348772"
+    },
+    {
+      "id": "galleon",
+      "name": "Beached Galleon",
+      "source": "assets/houses/beached-galleon-v2/beached-galleon.blend",
+      "sourceSha256": "60ec00e290f504d02e95b3d9714e00a522b67c611a67fa323fc10e1d4b655a53",
+      "image": "assets/houses/beached-galleon-v2/shop-cards/galleon.png",
+      "sha256": "620d07d74a9fd262dac2249a794c7ae25f60ae6bac9d4d4de0df5fc4184a65cd",
+      "robloxAssetId": "rbxassetid://83653158520840"
+    },
+    {
+      "id": "portal",
+      "name": "Portal House",
+      "source": "assets/houses/portal-house-v2/portal-house.blend",
+      "sourceSha256": "4b77783e31e030c77c2056aa2abd35e01ffaf33e6aaffff2ec4094898d482295",
+      "image": "assets/houses/portal-house-v2/shop-cards/portal.png",
+      "sha256": "44e3155f16082e36d312a879c25acf3407979c727bc52ad4c163f5cd200f2ee3",
+      "robloxAssetId": "rbxassetid://108117661847706"
+    },
+    {
+      "id": "thundercloud",
+      "name": "Thundercloud Fortress",
+      "source": "assets/houses/thundercloud-fortress-v2/thundercloud-fortress.blend",
+      "sourceSha256": "dc94741b77a3bc83577a793e0b678d2bb9d3ba800e444246fa89dc84137543f0",
+      "image": "assets/houses/thundercloud-fortress-v2/shop-cards/thundercloud.png",
+      "sha256": "a3ab99da30581e76897ed57205089cdbeabc9b982c59034b09294a0958a6acb6",
+      "robloxAssetId": "rbxassetid://94755671019382"
+    },
+    {
+      "id": "void",
+      "name": "The Void",
+      "source": "assets/houses/the-void-v2/the-void.blend",
+      "sourceSha256": "62647a583e43d24edccf7729f42ebffa6ae4581fb51e85239cbd35e2648c248c",
+      "image": "assets/houses/the-void-v2/shop-cards/void.png",
+      "sha256": "99add11198a2280e28b09a5f5a935f7687deec6a064654fb6dc4091e7377fe96",
+      "robloxAssetId": "rbxassetid://129272397314290"
+    },
+    {
+      "id": "goldenpig",
+      "name": "Golden Piggy",
+      "source": "assets/houses/golden-piggy-v2/golden-piggy.blend",
+      "sourceSha256": "e8e383f615b9c8e0d596f7239d3bf9a074c5ae1437af1c6a458f0cb7a9453121",
+      "image": "assets/houses/golden-piggy-v2/shop-cards/goldenpig.png",
+      "sha256": "03799c4d704139b91eb47c3fd79ddd2e4037fecfe71fb5c2f4a9176ca5ffe539",
+      "robloxAssetId": "rbxassetid://98340251094000"
+    }
+  ]
+}

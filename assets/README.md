@@ -1,5 +1,24 @@
 # `assets/` -- source art that is uploaded rather than generated in code
 
+## Model renders and shop card images
+
+See [the render reference index](SHOP-RENDER-INDEX.md) for every house, guardian and acorn image beside its original 3D model, including Roblox upload IDs.
+
+## Shop icons and reusable game models
+
+The generated shop set is in [`shop-ui/icon-system-v1/`](shop-ui/icon-system-v1).
+Use its [file index](shop-ui/icon-system-v1/FILES.md) to find the snout coin,
+plunger, bubblegum bomb, golden bone, three crate tiers, transparent UI icons,
+Blender sources, textures and optional effect helpers. The game models have
+GLB and FBX exports; the UI icons have PNGs in several sizes. These files are
+local import deliverables, not automatic runtime uploads.
+
+The shop builder lives in `blender/shop/`; all its deliverables live here in
+`assets/`. This is an additional Blender output package alongside the tree and
+guard packages below, and does not change the pig pipeline's existing paths.
+
+---
+
 This game is built in code. Nothing in this folder is synced by Rojo and
 nothing here is read at run time: these are the SOURCE files behind assets
 that had to be uploaded to Roblox and are referenced by id from `Config`.

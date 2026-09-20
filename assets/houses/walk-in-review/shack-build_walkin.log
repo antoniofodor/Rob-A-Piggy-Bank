@@ -1,0 +1,18 @@
+00:03.734  blend            | Read blend: "C:\Users\anton\robloxGame\assets\houses\cardboard-fort-v1\cardboard-fort.blend"
+C:\Users\anton\robloxGame\assets\houses\tools\build_walkin.py:44: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(name);m.use_nodes=True
+00:05.891  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_15444_02cbd4cbd7542f77fd44ea4e30bba05e.png.png"
+00:19.375  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\cardboard-fort-v2\exterior.png'
+00:35.359  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\cardboard-fort-v2\interior.png'
+00:52.656  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\cardboard-fort-v2\entry.png'
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\cardboard-fort-v2\\cardboard-fort-visual.fbx'
+export finished in 0.0902 sec.
+Info: File exported successfully
+Info: Saved as "cardboard-fort.blend"
+WALKIN_COMPLETE {"id": "shack", "folder": "cardboard-fort-v2", "probes": 40, "triangles": 4078}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+Writing to C:\Users\anton\robloxGame\assets\houses\cardboard-fort-v2\cardboard-fort-visual.obj
+OBJ export of 'cardboard-fort-visual.obj' took 6.46 ms
+
+Blender quit

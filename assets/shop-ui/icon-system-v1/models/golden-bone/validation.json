@@ -1,0 +1,19 @@
+{
+  "triangles": {
+    "GoldenBone": 4800
+  },
+  "closedManifold": true,
+  "exportChecks": {
+    "glb": {
+      "boundsMaxError": 0.0,
+      "embeddedPalette": true,
+      "meshCount": 1
+    },
+    "fbx": {
+      "boundsMaxError": 1.4901161193847656e-07,
+      "embeddedPalette": true,
+      "meshCount": 1
+    }
+  },
+  "sourceSHA256": "c7495d0a3cf628ef4288ced6d950a6de4da5c649b97ef8acccc4df9b7764652f"
+}

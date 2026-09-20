@@ -67,7 +67,7 @@ end}
 local services={Players={LocalPlayer={UserId=123}},RunService={RenderStepped=render},UserInputService=input,GuiService={}}
 local names=setmetatable({}, {__index=function(_,k) return k end})
 local enum=setmetatable({}, {__index=function(_,k) return setmetatable({}, {__index=function(_,v) return v end}) end})
-local environment={script={Parent=names},require=function(name) return if name=="Config" then Config elseif name=="Theme" then theme else Remotes end,
+local environment={script={Parent=names},require=function(name) return if name=="Config" then Config elseif name=="Theme" then theme elseif name=="TouchOrigin" then {beganElsewhere=function() return false end} else Remotes end,
  game={GetService=function(_,name) return services[name] end},workspace=workspace,Instance={new=instance},UDim2=UDim2,
  Vector2={new=vector},Enum=enum,Color3={fromRGB=function(...) return {...} end}}
 local run=assert(loadstring(source,"Shake"));setfenv(run,setmetatable(environment,{__index=getfenv()}));local UI=run();UI.start(gui)

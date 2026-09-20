@@ -98,7 +98,11 @@ function UpgradeService.applyToPlot(player: Player)
 		return
 	end
 	PlotService.buildFence(plot, UpgradeService.getLevel(player, "fences"))
-	PlotService.setDogLevel(plot, UpgradeService.getLevel(player, "dog"))
+	-- EVERY PLOT GETS THE SAME DOG. The Guard rung is retired and a skin is
+	-- what varies -- see `Config.DOG_LEVEL`. Still set from here, because
+	-- this is the one function whose job is making a plot match its owner,
+	-- and a plot rebuilt without it would stand an empty kennel.
+	PlotService.setDogLevel(plot, Config.DOG_LEVEL)
 	PlotService.setLockLevel(plot, UpgradeService.getLevel(player, "locks"))
 end
 
@@ -122,30 +126,26 @@ function UpgradeService.buildSnapshot(player: Player): { [string]: any }
 			blurb = def.blurb,
 		}
 
-		-- LOCKPICKS IS THE ONE RUNG THAT HANDS OVER A VERB, so its row has to
-		-- say so -- an ability nobody was told about is an ability nobody
-		-- uses, and the whole point of this rung is that it changes which pig
-		-- you walk to. Same shape as the dog's row below, which names the
-		-- breed rather than repeating a description that never changes.
-		if key == Config.CASING.upgrade then
-			snapshot[key].blurb = if Config.canCase(level)
-				then "You can read any lock from the pavement"
-				elseif level + 1 >= def.max then "Next: read any lock from the pavement"
-				else def.blurb
-		end
+		-- THE CASING BLURB IS GONE FROM THIS CARD, BY DESIGNER DECISION, and
+		-- what it cost is recorded rather than quietly lost.
+		--
+		-- It used to overwrite the blurb with "You can read any lock from the
+		-- pavement" at max and "Next: read any lock from the pavement" one
+		-- rung below, on the argument that LOCKPICKS IS THE ONE RUNG THAT
+		-- HANDS OVER A VERB and an ability nobody was told about is an ability
+		-- nobody uses. That argument is intact and is now unanswered: asked
+		-- what this rung is worth, the card talked about reading locks from a
+		-- pavement instead of about cracking, which is what a player reads it
+		-- for. It says "Spare picks forgive a missed pin" and the stat rows
+		-- underneath it count the spares (`Config.LOCKPICK_PERKS`).
+		--
+		-- SO `Config.CASING` IS ADVERTISED NOWHERE NOW. The pip ladder still
+		-- appears on the rob badge at max (`RobBadge` asks `Config.canCase`),
+		-- so the verb still arrives -- it simply arrives unannounced, and a
+		-- player who never reaches the top of this tree will not learn it
+		-- exists. If it should be sold again, the honest home is a line of its
+		-- own at max rather than the blurb this card needs for its own job.
 
-		-- The dog is the one upgrade where each level is a different thing
-		-- rather than a bigger number, so its row names the breed instead of
-		-- repeating a description that never changes.
-		if key == "dog" then
-			local current = Config.getDogTier(level)
-			local upcoming = Config.getDogTier(level + 1)
-			if level >= def.max and current then
-				snapshot[key].blurb = ("%s the %s is on duty"):format(current.name, current.breed)
-			elseif upcoming then
-				snapshot[key].blurb = ("Next: %s the %s"):format(upcoming.name, upcoming.breed)
-			end
-		end
 	end
 	return snapshot
 end
@@ -166,8 +166,6 @@ function UpgradeService.start()
 		end
 		if key == "fences" then
 			PlotService.buildFence(plot, level)
-		elseif key == "dog" then
-			PlotService.setDogLevel(plot, level)
 		elseif key == "locks" then
 			PlotService.setLockLevel(plot, level)
 		end

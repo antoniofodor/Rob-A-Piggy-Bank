@@ -27,23 +27,26 @@ check(state.available and state.text==Config.formatCoins(12345), "exact expiry r
 facts.multiplier=2
 check(B.describe(facts,2500).text==Config.formatCoins(24690), "rush worth preserved")
 check(not B.describe({vault=0.9},100).available, "fractional sub-coin balance is empty like server")
--- 4c.6: the figure is what the READER can carry home, capped at their own pig.
+-- THE FIGURE IS ABOUT THE TARGET AND HAS NO READER IN IT. It was capped at
+-- the room in the reader's own pig (4c.6) and said PIG FULL when there was
+-- none, which printed one fact about YOUR pig over every pig on the street.
 local clean=Config.getCrackFraction(Config.CRACK.maxSteps,0)
 local full=math.floor(math.floor(100000*clean)*Config.HEIST_PAYOUT)
-check(B.homeFigure(100000,0,1,0,1e9)==full,"an empty reader pig gets the whole clean-crack payout")
-check(B.homeFigure(100000,0,1,1e9-50,1e9)==50,"a nearly full reader pig shows only its room")
-check(B.homeFigure(100000,0,1,1e9,1e9)==0,"a full reader pig shows zero")
-check(B.homeFigure(100000,0,1,nil,nil)==nil,"no pushed pig yet falls back to the pile")
-check(B.homeFigure(100000,0,2,0,1e9)==math.floor(math.floor(100000*clean*2)*Config.HEIST_PAYOUT),"the rush multiplier is in the take")
+check(B.homeFigure(100000,0,1)==full,"the badge quotes a whole clean-crack payout")
+check(B.homeFigure(100000,0,2)==math.floor(math.floor(100000*clean*2)*Config.HEIST_PAYOUT),"the rush multiplier is in the take")
 local sack=Config.UPGRADES.sack.max
-check(B.homeFigure(100000,sack,1,0,1e9)>full,"a bigger sack shows a bigger take")
+check(B.homeFigure(100000,sack,1)>full,"a bigger sack shows a bigger take")
+check(B.homeFigure(0,0,1)==0,"an empty target is worth nothing")
+-- One expression, two callers: the badge and the two prompt cards.
+check(B.homeFigure(100000,0,1)==Config.homeWorth(100000,clean,1),"badge and prompt cards read one function")
+check(Config.homeWorth(100000,clean,1)==math.floor(100000*clean)*Config.HEIST_PAYOUT,"homeWorth is the take, paid out, uncapped")
+-- The reader's own balance can no longer change what hangs over a neighbour.
 local home={vault=100000,home=50}
-check(B.describe(home,100).text==Config.formatCoins(50) and B.describe(home,100).available,"badge prints the capped home figure")
+check(B.describe(home,100).text==Config.formatCoins(50) and B.describe(home,100).available,"badge prints the home figure")
 home.home=0
-local fullSpec=B.describe(home,100)
-check(fullSpec.text=="PIG FULL" and not fullSpec.available,"a full reader pig reads PIG FULL, not a number")
+check(B.describe(home,100).text==Config.formatCoins(0),"a zero take is still a figure, never PIG FULL")
 home.vault=0
-check(B.describe(home,100).text=="EMPTY","an empty target still reads EMPTY before PIG FULL")
+check(B.describe(home,100).text=="EMPTY","an empty target reads EMPTY")
 local claims={claims={{key="bronze",robberId=12,stage="recover",expiresAt=200},
  {key="goldleaf",robberId=12,stage="recover",expiresAt=300}}}
 check(B.recoverable(claims,12,100), "owner sees recovery tag for actual target")

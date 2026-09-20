@@ -55,7 +55,7 @@
 	quiet server had NOTHING TO ROB. The mirror of that is a quiet server with
 	NOBODY TO DEFEND AGAINST, and it is just as real: every rung of the
 	defence tree -- the Vault Lock, the Fence, the Guard Dog, the Guard Duty
-	Treat, the Sprinkler -- protects against other players, so in a solo
+	Treat -- protects against other players, so in a solo
 	session half the shop is inert and a child who spends an afternoon buying
 	a Mastiff has bought something that will never once be used.
 
@@ -99,6 +99,10 @@ export type Resident = {
 	chasing: Player?,
 	chaseUntil: number?,
 	chaseFrom: number?,
+	-- When this resident may next lob something. A house resident throws on an
+	-- interval while chasing; a shopkeeper never throws and leaves it nil,
+	-- which is `chaseSpec`'s decision rather than a flag kept here.
+	nextThrow: number?,
 	-- WHERE THEY STAND WHEN THEY ARE MINDING THE SHOP. Captured once at
 	-- `seat` and never recomputed, so a shopkeeper who has chased somebody
 	-- into the street has somewhere exact to walk back to. Without it
@@ -141,6 +145,7 @@ export type Resident = {
 	--
 	-- `state` is one of:
 	--   "home"     standing on their own lawn, waiting for `nextTrip`
+	--   "roam"     pottering about that same lawn, waiting to stand again
 	--   "out"      walking to somebody else's piggy bank
 	--   "cracking" standing at it, taking their time
 	--   "carrying" walking home with the loot
@@ -165,6 +170,12 @@ export type Resident = {
 	lootModel: Model?,
 	-- os.clock() stamps.
 	nextTrip: number,
+	-- When they may next stroll. A SECOND CLOCK AND NOT A SHORTER `nextTrip`:
+	-- going out and pottering about are different events with different
+	-- cadences, and one field carrying both is the `busyUntil`/`napUntil` bug
+	-- this project already records -- two readers disagreeing about one
+	-- number in opposite directions.
+	nextRoam: number,
 	waitUntil: number,
 	-- When this neighbour may next say something, and when the line they are
 	-- saying now comes down. `quietAt` is 0 when nothing is up, which is what
@@ -172,6 +183,20 @@ export type Resident = {
 	-- a flag that has to be cleared on four different exits.
 	nextLine: number,
 	quietAt: number,
+
+	-- WHAT A GADGET IS DOING TO THEM, and it is the SAME set of effects a
+	-- player takes (see `ResidentService.applyGadget`). All os.clock() stamps,
+	-- all optional so a freshly seated neighbour carries none.
+	--   fxSlow / fxSlowUntil   a speed multiplier and when it wears off
+	--   fxStunUntil            frozen in place -- no walk, no crack, no catch
+	--   fxKnockUntil/fxKnockAxis  lying flat, tipped about this axis
+	--   fxRestUntil            when an empty-handed neighbour may be hit again
+	fxSlow: number?,
+	fxSlowUntil: number?,
+	fxStunUntil: number?,
+	fxKnockUntil: number?,
+	fxKnockAxis: Vector3?,
+	fxRestUntil: number?,
 }
 
 local ResidentService = {}
@@ -326,14 +351,49 @@ local function pigSize(level: number, plot: PlotService.Plot?): number
 	return seconds * Config.getIncomeRate(level, 0)
 end
 
--- WHERE A NEIGHBOUR STANDS, in plot-local studs.
+-- THE PATCH OF LAWN A NEIGHBOUR LIVES ON, in plot-local studs: where they
+-- stand, and the box they may potter about inside.
 --
 -- Behind the piggy and in front of the house. The piggy holds the centre at
--- 0, the house front line is at -28, and the walk from the gate takes the
--- whole middle of the plot in FRONT of the piggy -- plot-local +Z is the
--- street on both rows -- so -20 is out of everybody's way. Offset sideways
--- so they are not standing dead in front of their own front door.
-local STAND_AT = Vector3.new(12, 0, -20)
+-- 0, the walk from the gate takes the whole middle of the plot in FRONT of
+-- it -- plot-local +Z is the street on both rows -- and the front door and
+-- its doorstep crate hold the x 0 column, so this is off to one side and out
+-- of everybody's way.
+--
+-- IT WAS z -20 AGAINST A HOUSE WALL AT -18, SO EVERY NEIGHBOUR ON THE STREET
+-- HAD BEEN STANDING TWO STUDS INSIDE THEIR OWN FRONT ROOM. The comment this
+-- replaces said "the house front line is at -28", which is what it was until
+-- the map came in and `HOUSE_FRONT_LINE` went 28 -> 18 in separate work. A
+-- number solved against a measurement that then moved, with nothing erroring
+-- because a house does not collide and a figure standing in one throws
+-- nothing -- the same failure as the grove that planted full-grown trees on
+-- people's lawns the day `YARD_DEPTH` stopped being what it had been, and
+-- the reason `HOUSE_FRONT_LINE`'s own note ends by saying anything solved
+-- against it has to be re-derived with it.
+--
+-- THE BACK EDGE IS DERIVED FROM THE WALL RATHER THAN TYPED, so it follows
+-- the house: the doorstep crate sinks 0.27 into the wall and its front face
+-- reaches `HOUSE_FRONT_LINE - 3.37`, and five studs clears that by 1.63 --
+-- enough that a neighbour stands in front of their own crate rather than in
+-- it. The front edge stops well short of the piggy, because a neighbour
+-- planted beside it is standing in the one spot a thief has to reach, which
+-- is a defence nobody bought -- the same argument that gave a returning
+-- neighbour a second leg away from their own pig after banking.
+--
+-- THE SIDES ARE THE ORNAMENT COLUMN. Every lawn slot's x offset is -25 or
+-- 25 and the widest ornament in the catalogue measures 13.70, so one
+-- standing in the near column reaches x 18.15. 18 is under that, and 9 keeps
+-- clear of a piggy bank 12 studs across. (`Config.DECOR_ITEMS` is empty
+-- today, so nothing can actually stand there -- deriving against an empty
+-- catalogue is the stale-measurement trap running backwards, and this file
+-- already refuses it once over `YARD_DEPTH`.)
+local ROAM_MIN = Vector3.new(9, 0, -Config.HOUSE_FRONT_LINE + 5)
+local ROAM_MAX = Vector3.new(18, 0, -3)
+
+-- The middle of that box, so a stroll is symmetric about where they stand
+-- rather than always heading the same way out of a corner.
+local STAND_AT = Vector3.new(
+	(ROAM_MIN.X + ROAM_MAX.X) / 2, 0, (ROAM_MIN.Z + ROAM_MAX.Z) / 2)
 
 -- WHERE A SHOPKEEPER STANDS: BEHIND THE COUNTER, which is the whole reason
 -- there is a counter.
@@ -445,7 +505,10 @@ local function applyLevel(resident: Resident)
 		return
 	end
 
-	PlotService.setDogLevel(plot, math.clamp(math.floor(level / R.dogPerLevels), 0, #Config.DOG_TIERS))
+	-- The same dog every real plot has: the Guard rung is retired, so a
+	-- neighbour's dog no longer laddered with the street either. See
+	-- `Config.DOG_LEVEL`.
+	PlotService.setDogLevel(plot, Config.DOG_LEVEL)
 	PlotService.buildFence(plot, math.clamp(math.floor(level / R.fencePerLevels), 0, #Config.FENCE_TIERS))
 	PlotService.setLockLevel(plot, math.clamp(math.floor(level / R.lockPerLevels), 0,
 		Config.UPGRADES.locks.max))
@@ -656,6 +719,10 @@ function ResidentService.seat(plot: PlotService.Plot)
 		-- same time. `outCount` caps how many are OUT; this is what stops
 		-- them queueing behind that cap in lockstep.
 		nextTrip = os.clock() + math.random() * Config.RESIDENTS.walk.restMax,
+		-- Staggered for the same reason and against its own, much shorter
+		-- ceiling: ten neighbours seeded on one clock all shuffle in the same
+		-- frame, which reads as a mechanism rather than as ten people.
+		nextRoam = os.clock() + math.random() * Config.RESIDENTS.walk.roam.restMax,
 		waitUntil = 0,
 		-- Staggered for the same reason `nextTrip` is: eight neighbours seeded
 		-- on one clock speak in chorus, which reads as a mechanism rather than
@@ -760,7 +827,7 @@ end
 -- a quiet server had NOTHING TO ROB; the mirror of that is a quiet server
 -- with NOBODY TO DEFEND AGAINST, and it is just as real. Every rung of the
 -- defence tree -- the Vault Lock, the Fence, the Guard Dog, the Guard Duty
--- Treat, the Sprinkler -- protects against other players, so in a solo
+-- Treat -- protects against other players, so in a solo
 -- session half the shop is inert and a child who spends their afternoon
 -- buying a Mastiff has bought a thing that will never once be used.
 --
@@ -787,17 +854,50 @@ end
 -- It is also why a resident is never given a ride, a dodge or a burst. Those
 -- exist to make a PLAYER's getaway a contest; a neighbour's getaway is meant
 -- to be losable.
-local function walkSpeed(resident: Resident): number
-	-- A CHASING SHOPKEEPER IS THE ONE RESIDENT THAT IS NOT STROLLING, and
-	-- 14.5 is the officer's own number rather than a new one -- see
-	-- `Config.SHOPKEEPER`. It sits between a carrying thief's 12 and a free
-	-- player's 16, so the loot is what makes you catchable and delivering is
-	-- the answer.
+-- WHICH DEFENCE THIS RESIDENT IS, and the two are not the same object.
+--
+-- A SHOP has one defence and a twelve-stud room, so its keeper runs the
+-- officer's 14.5 and CATCHES. A HOUSE already has a tier-2 Shepherd that
+-- chases, catches, nabs and knocks a thief out of the yard -- so its neighbour
+-- is a RELAY rather than a second defence: it picks the thief up where the
+-- dog's own leash makes it stop, runs slower than a carrying thief so the gap
+-- opens as they run, and throws instead of catching.
+-- `Config.NEIGHBOUR_CHASE` carries the whole argument.
+--
+-- Declared above `baseSpeed` because that is its first reader -- the forward
+-- reference this project has been bitten by eleven times.
+local function chaseSpec(resident: Resident): any
+	return if resident.plot.shop then Config.SHOPKEEPER else Config.NEIGHBOUR_CHASE
+end
+
+local function baseSpeed(resident: Resident): number
+	-- A CHASING RESIDENT IS THE ONE THAT IS NOT STROLLING. A shopkeeper takes
+	-- the officer's own 14.5, which sits between a carrying thief's 12 and a
+	-- free player's 16, so the loot is what makes you catchable. A neighbour
+	-- takes 11 and is meant to fall behind.
 	if resident.state == "chasing" then
-		return Config.SHOPKEEPER.speed
+		return chaseSpec(resident).speed
 	end
 	local walk = Config.RESIDENTS.walk
-	return if resident.state == "carrying" then walk.carrySpeed else walk.speed
+	if resident.state == "carrying" then
+		return walk.carrySpeed
+	elseif resident.state == "roam" then
+		return walk.roam.speed
+	end
+	return walk.speed
+end
+
+-- The speed they actually walk at: the base, under whatever a gadget is
+-- doing to them. A multiplier on the one number, exactly as `currentSpeed`
+-- is for a player, so a slowed shopkeeper chases slower and a slowed thief
+-- carries slower with nothing else to know.
+local function walkSpeed(resident: Resident): number
+	local now = os.clock()
+	if now < (resident.fxStunUntil or 0) then
+		return 0
+	end
+	local slow = if now < (resident.fxSlowUntil or 0) then (resident.fxSlow or 1) else 1
+	return baseSpeed(resident) * slow
 end
 
 -- The lawn, and the ground outside the fence. A plot is three different floor
@@ -861,6 +961,30 @@ local function homeStand(resident: Resident): Vector3
 	return Vector3.new(p.X, lawnY(resident.plot), p.Z)
 end
 
+-- WHERE A NEIGHBOUR POTTERS TO, in world space.
+--
+-- A point drawn in the disc of `walk.roam.radius` around the stand spot and
+-- then CLAMPED into `ROAM_MIN`..`ROAM_MAX`, rather than drawn inside the box
+-- directly. The disc is what keeps a short move short; the box is the hard
+-- guarantee that no radius anybody types later can put a neighbour inside
+-- their own house, their own piggy bank or the walk up from their own gate.
+-- Two jobs, and a single rectangle would do the second one and not the
+-- first.
+--
+-- The distance is `sqrt` of a uniform draw, which is what spreads points
+-- evenly over a disc -- a raw uniform distance bunches them near the middle,
+-- and a neighbour shuffling back to almost the same spot every time reads as
+-- a twitch rather than as somebody moving about.
+local function roamTarget(resident: Resident): Vector3
+	local roam = Config.RESIDENTS.walk.roam
+	local angle = math.random() * math.pi * 2
+	local dist = roam.radius * math.sqrt(math.random())
+	local x = math.clamp(STAND_AT.X + math.cos(angle) * dist, ROAM_MIN.X, ROAM_MAX.X)
+	local z = math.clamp(STAND_AT.Z + math.sin(angle) * dist, ROAM_MIN.Z, ROAM_MAX.Z)
+	local p = (resident.plot.cframe * CFrame.new(x, 0, z)).Position
+	return Vector3.new(p.X, lawnY(resident.plot), p.Z)
+end
+
 -- WHO IS WORTH GOING OUT FOR.
 --
 -- Every plot but their own is a candidate, players included. A resident does
@@ -891,6 +1015,17 @@ local function pickVictim(resident: Resident): PlotService.Plot?
 	return options[math.random(#options)]
 end
 
+-- IN, WHICH IS TWO STATES RATHER THAN ONE. A neighbour pottering about their
+-- own garden is at home in every sense that anything asks about: they can be
+-- alerted by a robbery on their own lawn, their tree still gets harvested,
+-- and they are not away from home robbing anybody. Asked in one place because
+-- the alternative is `state == "home" or state == "roam"` written at four
+-- call sites and the fifth one added later being the bug -- silently, because
+-- every one of those failures is a neighbour who simply does nothing.
+local function isIn(resident: Resident): boolean
+	return resident.state == "home" or resident.state == "roam"
+end
+
 -- How many are out at once, counted rather than tracked.
 --
 -- A counter kept alongside would be a second piece of state that can
@@ -900,7 +1035,13 @@ end
 local function outCount(): number
 	local n = 0
 	for _, r in pairs(residents) do
-		if r.state ~= "home" then
+		-- A DEFENDER IS NOT AN ERRAND, and counting one as an errand costs the
+		-- whole street. `walk.maxOut` is 2 and limits how many neighbours are
+		-- away from home ROBBING at once; a resident chasing a thief off their
+		-- own lawn, or walking back from one, is not out shopping. Counted,
+		-- two simultaneous chases freeze every NPC robbery on the street until
+		-- both of them finish.
+		if not (isIn(r) or r.state == "chasing" or r.state == "returning") then
 			n += 1
 		end
 	end
@@ -948,8 +1089,28 @@ end
 -- the cycle impossible rather than merely absent today.
 local catchThief: ((Resident, Player) -> ())? = nil
 
+-- AND THE NAB EFFECT, THE OTHER WAY ROUND: a player nabbing a neighbour.
+-- Filled in by `Main` with `CosmeticsService.fireCatchEffect`, a registry for
+-- the same reason as the rest -- this file sits under half the services.
+local catchEffect: ((Model?, Player) -> ())? = nil
+
+function ResidentService.registerCatchEffect(fn: (Model?, Player) -> ())
+	catchEffect = fn
+end
+
 function ResidentService.registerCatch(fn: (Resident, Player) -> ())
 	catchThief = fn
+end
+
+-- THE THROW GOES OUT THROUGH A REGISTRY FOR THE SAME REASON THE CATCH DOES,
+-- and it lands in `GadgetService` rather than here: that file owns every
+-- flight in this game, the curve both ends step, and the remote the clients
+-- draw one with. A second flight loop in this file would be the near-identical
+-- copy that drifts the first time either is touched.
+local throwAt: ((Resident, Player) -> ())? = nil
+
+function ResidentService.registerThrow(fn: (Resident, Player) -> ())
+	throwAt = fn
 end
 
 -- A SHOPKEEPER COMES OUT FROM BEHIND THE COUNTER.
@@ -957,6 +1118,62 @@ end
 -- Called from `releaseDog` when the plot has no dog to let off, which on a
 -- shop is always -- see `Config.SHOPKEEPER` for what wakes them and why it is
 -- only ever the loud paths.
+-- A NEIGHBOUR COMES OUT AFTER THE DOG HAS HAD TO STOP.
+--
+-- The house counterpart of `alertShopkeeper`, and deliberately a SECOND named
+-- entry rather than a boolean on the first: they read differently at the call
+-- site and `releaseDog` reaches them on different branches for different
+-- reasons. It refuses a shop, which mirrors the refusal below, so neither path
+-- can quietly serve the other's ground.
+function ResidentService.alertNeighbour(plot: PlotService.Plot, thief: Player): boolean
+	local resident = ResidentService.get(plot)
+	if not resident or plot.shop or not resident.model then
+		return false
+	end
+	-- ALREADY BUSY IS ALREADY ANSWERED, the same rule the shopkeeper keeps: a
+	-- neighbour out robbing somebody else does not abandon the trip to come
+	-- home, and one already chasing is already chasing.
+	--
+	-- POTTERING IS NOT BUSY. A neighbour standing in their own garden who
+	-- ignored somebody cracking the pig behind them would be the worst
+	-- possible reading of a stroll -- and it would be intermittent, which is
+	-- worse than never: the same alarm on the same lawn would work or not
+	-- depending on whether they happened to be mid-step.
+	if not isIn(resident) then
+		return false
+	end
+	local spec = Config.NEIGHBOUR_CHASE
+	resident.state = "chasing"
+	resident.chasing = thief
+	local now = os.clock()
+	resident.chaseFrom = now + spec.noticeDelay
+	resident.chaseUntil = resident.chaseFrom + spec.maxChase
+	-- The first throw waits out the notice beat too, so nothing is in the air
+	-- before the `!` has had time to be read.
+	resident.nextThrow = resident.chaseFrom + spec.throw.interval
+	resident.route = {}
+	-- THE `!`, AND IT IS THE SPEECH BUBBLE RATHER THAN A SECOND BILLBOARD.
+	--
+	-- A neighbour already has one on their head, with its own `MaxDistance` so
+	-- a street of them is not a wall of text, and its own clock that takes it
+	-- down. Building an alert badge beside it would be two billboards saying
+	-- two things from one head, and a second thing to keep in step.
+	--
+	-- WHAT IT BUYS IS THE HALF A CLEAN CRACK COULD NOT HAVE. The alarm fires
+	-- on a fumble and never on a clean robbery, and that stays true: nobody is
+	-- TOLD, no notification goes out, no mark is put on anybody. What this adds
+	-- is that the robbery is visible IN THE WORLD to whoever is looking -- the
+	-- difference between stealth of the alarm and stealth of the getaway, which
+	-- this game already draws.
+	--
+	-- It is also the BEAT. It goes up at the notice and the chase starts at
+	-- `chaseFrom`, so a thief sees it and chooses whether to finish the crack
+	-- or run -- rather than finding out afterwards what a dice roll decided.
+	ResidentModel.say(resident.model, "!")
+	resident.quietAt = resident.chaseFrom + 0.6
+	return true
+end
+
 function ResidentService.alertShopkeeper(plot: PlotService.Plot, thief: Player): boolean
 	-- Through the accessor rather than the table: `residents` is keyed by
 	-- `plot.index` and not by the plot, which is exactly the sort of thing
@@ -970,7 +1187,7 @@ function ResidentService.alertShopkeeper(plot: PlotService.Plot, thief: Player):
 	-- or continuous noise would postpone the give-up indefinitely -- which is
 	-- precisely backwards, and is the bug `wakeDelay` was written to avoid on
 	-- the dog.
-	if resident.state ~= "home" then
+	if not isIn(resident) then
 		return false
 	end
 	resident.state = "chasing"
@@ -1077,7 +1294,11 @@ local function attachLoot(resident: Resident, victim: PlotService.Plot, amount: 
 	-- It sits on the LOOT rather than on the neighbour, which is what makes
 	-- it self-clearing -- no loot, no prompt, and there is no state anywhere
 	-- that can disagree about whether somebody is worth tagging.
-	local body = mini.PrimaryPart or mini:FindFirstChildWhichIsA("BasePart", true)
+	-- ASKED FOR BY NAME RATHER THAN TAKEN AS "the first BasePart". A mini has
+	-- no PrimaryPart on purpose (see `PiggyModel.bodyOf`), and the fallback
+	-- here returned whichever part the builder happened to make first --
+	-- which IS the body today, and is a coincidence rather than a contract.
+	local body = PiggyModel.bodyOf(mini)
 	if body then
 		-- Re-enabled for the prompt alone: the rest of the figure stays
 		-- CanQuery off so it can never eat a raycast meant for a piggy.
@@ -1131,12 +1352,24 @@ end
 -- THE TRIP
 -- ============================================================
 
+-- When this neighbour may next potter, drawn fresh.
+--
+-- Called from BOTH ends -- a stroll finishing and a trip finishing -- because
+-- somebody who has just walked the length of the street should stand for a
+-- moment on arrival rather than setting off round the garden as they land.
+local function restRoam(resident: Resident)
+	local roam = Config.RESIDENTS.walk.roam
+	resident.nextRoam = os.clock() + roam.restMin
+		+ math.random() * math.max(0, roam.restMax - roam.restMin)
+end
+
 local function goHome(resident: Resident)
 	resident.state = "home"
 	resident.route = {}
 	local walk = Config.RESIDENTS.walk
 	resident.nextTrip = os.clock() + walk.restMin
 		+ math.random() * math.max(0, walk.restMax - walk.restMin)
+	restRoam(resident)
 end
 
 -- BACK TO THE COUNTER, AND IT NEEDS A STATE OF ITS OWN.
@@ -1300,24 +1533,112 @@ function ResidentService.recoverFrom(resident: Resident, taker: Player): number
 		return 0
 	end
 	ResidentService.nabbed(resident)
+	-- The nabber's nab effect goes off on the neighbour, as it would on a
+	-- player thief. On a solo server this is the only nab there is.
+	if catchEffect then
+		catchEffect(resident.model, taker)
+	end
 	Remotes.get("Notify"):FireClient(taker,
 		("Nice nab! You took %s back off %s."):format(
 			Config.formatCoins(amount), resident.name), "good")
 	return amount
 end
 
+-- WHERE A NEIGHBOUR'S BODY IS, as opposed to their feet. `at` is the ground
+-- they stand on, and a thrown gadget flies at chest height, so measuring a
+-- hit against the feet put every neighbour about three studs further away
+-- than the same throw at a player. Half the figure's height, derived.
+function ResidentService.bodyAt(resident: Resident): Vector3
+	return resident.at + Vector3.new(0, 2.8, 0)
+end
+
 -- Whichever resident is carrying and closest, for the tag to find.
 function ResidentService.nearestCarrier(from: Vector3, range: number): (Resident?, number)
 	local best, bestDist = nil, range
 	for _, r in pairs(residents) do
-		if r.loot > 0 then
-			local d = (r.at - from).Magnitude
+		if r.loot > 0 and r.model then
+			local d = (ResidentService.bodyAt(r) - from).Magnitude
 			if d <= bestDist then
 				best, bestDist = r, d
 			end
 		end
 	end
 	return best, bestDist
+end
+
+-- ============================================================
+-- GADGETS ON A NEIGHBOUR
+-- ============================================================
+--
+-- A NEIGHBOUR TAKES A GADGET THE WAY A PLAYER DOES (designer direction,
+-- September 17). It used to be that a carrying neighbour hit by a gadget
+-- simply handed the coins back -- a tag at range -- and an empty-handed one
+-- could not be hit at all, because a resident has no Humanoid and the whole
+-- speed system a gadget is written in did not reach it. The effect now lives
+-- here, on the resident record, and the walker reads it: slowed, frozen, or
+-- knocked flat for exactly the numbers a player gets, and the loot stays in
+-- their arms until somebody NABS it, which is also what a player thief has
+-- to have done to them.
+--
+-- The REST is the same too: an empty-handed neighbour is left alone for
+-- `Config.gadgetRest` after a hit, so a quiet street cannot be turned into a
+-- row of neighbours frozen on a loop. A carrying one can be hit again as
+-- fast as anybody can throw, as a carrying player can.
+
+function ResidentService.canHit(resident: Resident): boolean
+	return os.clock() >= (resident.fxRestUntil or 0)
+end
+
+-- The nearest neighbour holding NOTHING who is open to a gadget. Second
+-- choice after a carrier, as a bystander player is.
+function ResidentService.nearestIdle(from: Vector3, range: number): (Resident?, number)
+	local best, bestDist = nil, range
+	for _, r in pairs(residents) do
+		if r.loot <= 0 and r.model and ResidentService.canHit(r) then
+			local d = (ResidentService.bodyAt(r) - from).Magnitude
+			if d <= bestDist then
+				best, bestDist = r, d
+			end
+		end
+	end
+	return best, bestDist
+end
+
+-- Applies a gadget. Returns whether it landed. `from` is where it came from,
+-- so a knockdown tips them away from whoever threw it.
+function ResidentService.applyGadget(resident: Resident, spec: any, from: Vector3): boolean
+	if not resident.model then
+		return false
+	end
+	local now = os.clock()
+	if resident.loot <= 0 then
+		if not ResidentService.canHit(resident) then
+			return false
+		end
+		resident.fxRestUntil = now + Config.gadgetRest(spec.duration)
+	end
+
+	-- "TAKE THE WORST", the same three rules `applySlow` keeps: the lower
+	-- multiplier, the later stun, and the later end.
+	local slowActive = now < (resident.fxSlowUntil or 0)
+	resident.fxSlow = if slowActive then math.min(resident.fxSlow or 1, spec.slow) else spec.slow
+	resident.fxSlowUntil = math.max(resident.fxSlowUntil or 0, now + spec.duration)
+	if (spec.stun or 0) > 0 then
+		resident.fxStunUntil = math.max(resident.fxStunUntil or 0, now + spec.stun)
+	end
+
+	if spec.knock then
+		local away = ResidentService.bodyAt(resident) - from
+		local flat = Vector3.new(away.X, 0, away.Z)
+		if flat.Magnitude < 1e-3 then
+			flat = -resident.facing
+		end
+		-- Rotating UP about (up x away) swings the head toward `away`: the
+		-- neighbour falls AWAY from the thrower, as a player does.
+		resident.fxKnockAxis = Vector3.yAxis:Cross(flat.Unit).Unit
+		resident.fxKnockUntil = now + (spec.stun or 1)
+	end
+	return true
 end
 
 -- ============================================================
@@ -1367,6 +1688,13 @@ local function stepChatter(resident: Resident, now: number)
 	if not (model and model.Parent) or #chat.lines == 0 then
 		return
 	end
+	-- NOT WHILE THEY ARE CHASING SOMEBODY. The bubble is one surface, and a
+	-- neighbour who has just put an `!` over their head does not follow it with
+	-- a line about the weather -- the chatter would overwrite the one thing on
+	-- that head anybody needs to read.
+	if resident.state == "chasing" then
+		return
+	end
 	if not someoneNear(model:GetPivot().Position, chat.range) then
 		return
 	end
@@ -1394,6 +1722,40 @@ local function stepResident(resident: Resident, dt: number)
 		resident.quietAt = 0
 	end
 
+	-- A GADGET HAS THEM. Frozen or flat, nothing else happens this tick:
+	-- no walk, no crack finishing, no shopkeeper catch. The timers they are
+	-- waiting on are pushed back by the same tick, so a freeze costs them
+	-- the time it lasted rather than only the walk.
+	if now < (resident.fxStunUntil or 0) then
+		resident.waitUntil += dt
+		if resident.chaseUntil then
+			resident.chaseUntil += dt
+		end
+		if resident.chaseFrom then
+			resident.chaseFrom += dt
+		end
+		local knockUntil = resident.fxKnockUntil
+		local axis = resident.fxKnockAxis
+		if knockUntil and axis and now < knockUntil then
+			-- LYING FLAT. The pose is the walk pose at a standstill, tipped
+			-- about the feet, and lifted a little so a body lying on the
+			-- lawn is not half inside it.
+			local tip = CFrame.fromAxisAngle(axis, math.rad(78))
+			local lying = CFrame.new(resident.at + Vector3.new(0, 0.7, 0))
+				* tip * facingCF(Vector3.zero, resident.facing)
+			ResidentModel.poseWalk(model, rig, lying, resident.stride, resident.loot > 0)
+		end
+		return
+	end
+	if resident.fxKnockUntil then
+		-- UP AGAIN, and posed upright once here, because the home branch
+		-- below returns before it poses anything.
+		resident.fxKnockUntil = nil
+		resident.fxKnockAxis = nil
+		ResidentModel.poseWalk(model, rig, facingCF(resident.at, resident.facing),
+			resident.stride, resident.loot > 0)
+	end
+
 	if resident.state == "home" then
 		-- BEFORE THE TRIP CHECK, because the idle branch below RETURNS -- the
 		-- early-out that makes a neighbour at home cost nothing is the same
@@ -1411,6 +1773,28 @@ local function stepResident(resident: Resident, dt: number)
 			and now >= resident.nextTrip
 			and outCount() < Config.RESIDENTS.walk.maxOut then
 			beginTrip(resident)
+		elseif not resident.plot.shop and now >= resident.nextRoam then
+			-- A STROLL ROUND THE GARDEN, CHECKED AFTER THE TRIP so that a
+			-- neighbour who is due to go out goes out. The two clocks run
+			-- independently, so in the tick where both come due the other
+			-- ordering would hold the trip back until the stroll finished --
+			-- rarely, and therefore rarely enough to be missed.
+			--
+			-- NOT A SHOPKEEPER, for the reason `SHOP_STAND_AT` exists: the
+			-- pocket behind a counter is three studs deep and `ROAM_MIN` is a
+			-- front lawn, so one pottering would walk out through their own
+			-- back wall. They are also the one figure on this street whose
+			-- standing still is the point -- an unattended shop is the target
+			-- that is always meant to have somebody in it.
+			--
+			-- No `maxOut` here and none wanted: that cap is on how many
+			-- houses are EMPTY at once, and a neighbour in their own garden
+			-- is not one of them. What bounds the cost instead is the rest
+			-- clock -- a stroll is about a second of walking in every
+			-- fourteen, so the street averages well under one figure moving
+			-- at a time on top of the two who are genuinely out.
+			resident.state = "roam"
+			resident.route = { roamTarget(resident) }
 		else
 			-- STILL IN, AND THEREFORE FREE. Posing a figure that has not
 			-- moved writes the same CFrame to every limb again -- identical
@@ -1433,7 +1817,7 @@ local function stepResident(resident: Resident, dt: number)
 		local thief = resident.chasing
 		local character = thief and thief.Character
 		local hrp = character and character:FindFirstChild("HumanoidRootPart")
-		local spec = Config.SHOPKEEPER
+		local spec = chaseSpec(resident)
 
 		-- STILL GETTING UP. Nothing moves and nothing catches until the beat
 		-- has passed -- see `Config.SHOPKEEPER.wakeDelay` for why gating only
@@ -1451,37 +1835,71 @@ local function stepResident(resident: Resident, dt: number)
 			returnToCounter(resident)
 		else
 			local to = (hrp :: BasePart).Position
-			-- Measured FLAT. A shopkeeper on the forecourt and a thief up on
-			-- a plot slab are a stud apart vertically, and counting that
-			-- would make the catch radius mean something different on every
-			-- piece of ground -- the trap the prompt ranges already record,
-			-- where a reach measured to a centre is really a question about
-			-- the floor.
+			-- Measured FLAT. A resident on the pavement and a thief up on a plot
+			-- slab are a stud apart vertically, and counting that would make every
+			-- radius here mean something different on every piece of ground -- the
+			-- trap the prompt ranges already record, where a reach measured to a
+			-- centre is really a question about the floor.
 			local flat = Vector3.new(to.X - resident.at.X, 0, to.Z - resident.at.Z)
 			local gap = flat.Magnitude
-			if gap <= spec.catchRadius then
+			if spec.catchRadius and gap <= spec.catchRadius then
+				-- SHOPS ONLY, AND THE ABSENCE ON A HOUSE IS THE DESIGN. A neighbour
+				-- never takes the haul: the dog, a nab and the patrol stay the only
+				-- three ways to lose one, and this costs a thief time and a slowed
+				-- getaway instead. Defence buys time, never immunity.
 				resident.chasing = nil
 				resident.chaseUntil = nil
+				resident.nextThrow = nil
 				if catchThief then
 					catchThief(resident, thief :: Player)
 				end
 				returnToCounter(resident)
 			elseif gap > spec.giveUp then
-				-- A LEASH IN STUDS AS WELL AS A CLOCK. The street is 350
-				-- studs long and a chase with only a timer on it ends with a
-				-- shopkeeper stranded outside somebody's house at the far
-				-- end of it, which is a shop standing unattended -- the exact
-				-- thing that pins a shopkeeper behind the counter in the
-				-- first place.
+				-- A LEASH IN STUDS AS WELL AS A CLOCK. The street is 350 studs long,
+				-- and a chase with only a timer on it ends with somebody stranded
+				-- outside a house at the far end of it.
 				resident.chasing = nil
 				resident.chaseUntil = nil
+				resident.nextThrow = nil
 				returnToCounter(resident)
+			elseif not spec.catchRadius and PlotService.yardContaining(to) == resident.plot then
+				-- THE DOG OWNS THE YARD, AND THIS IS THE WHOLE RELAY.
+				--
+				-- While the thief is still inside the fence the Shepherd is on them,
+				-- and a neighbour walking in as well would be the second independent
+				-- hard-stop on one lawn that `releaseDog`'s owner-home branch exists
+				-- to refuse: "two things that can both hard-stop one thief on one
+				-- lawn is how a plot becomes a wall". So they stand at their own door
+				-- and watch, and pick the chase up at the moment the dog's own leash
+				-- makes it break off.
+				--
+				-- Facing them while they wait, because a neighbour staring at their
+				-- own front door while somebody robs the pig behind it reads as
+				-- scenery rather than as a witness.
+				resident.route = {}
+				if gap > 0.01 then
+					resident.facing = flat.Unit
+				end
 			else
-				-- One waypoint, replaced every tick. Y comes from where the
-				-- shopkeeper already is rather than from the thief, so
-				-- chasing somebody who has climbed a fence does not drag a
-				-- shopkeeper into the air.
-				resident.route = { Vector3.new(to.X, resident.at.Y, to.Z) }
+				-- LEAVE BY THE GATE. A resident is CanCollide off, so a straight line
+				-- at a thief on the pavement walks out through their own fence --
+				-- which is the ghost the trip routing one function up already refuses
+				-- to be. Once they are off their own plot the pursuit is direct.
+				local aim = to
+				if not spec.catchRadius and PlotService.yardContaining(resident.at) == resident.plot then
+					local gate = (resident.plot.cframe * CFrame.new(0, 0, GATE_Z)).Position
+					aim = Vector3.new(gate.X, resident.at.Y, gate.Z)
+				end
+				-- ON AN INTERVAL AND NEVER PER TICK: this branch runs at the resident
+				-- tick rate, so an ungated throw would be a stream rather than a lob.
+				if spec.throw and throwAt and now >= (resident.nextThrow or 0) then
+					resident.nextThrow = now + spec.throw.interval
+					throwAt(resident, thief :: Player)
+				end
+				-- One waypoint, replaced every tick. Y comes from where the resident
+				-- already is rather than from the thief, so chasing somebody who has
+				-- climbed a fence does not drag them into the air.
+				resident.route = { Vector3.new(aim.X, resident.at.Y, aim.Z) }
 			end
 		end
 	end
@@ -1518,6 +1936,14 @@ local function stepResident(resident: Resident, dt: number)
 				-- to reach, which is a defence nobody bought.
 				resident.state = "returning"
 				resident.route = { homeStand(resident) }
+			elseif resident.state == "roam" then
+				-- Nothing to put back. A stroll ends facing wherever it was
+				-- walked, which is what somebody who has just stopped looks
+				-- like; `returning` below snaps the facing back to the street
+				-- because a shopkeeper has ONE angle they are ever seen from,
+				-- and a neighbour standing about on their own lawn has not.
+				resident.state = "home"
+				restRoam(resident)
 			elseif resident.state == "returning" then
 				-- Facing put back explicitly. The walker points a resident
 				-- along their direction of travel, so a shopkeeper who has
@@ -1665,7 +2091,7 @@ local function tick()
 		end
 
 		local stock = resident.acornStock
-		if stock and ResidentAcorns.tick(stock, os.time(), resident.state == "home") then
+		if stock and ResidentAcorns.tick(stock, os.time(), isIn(resident)) then
 			publishAcorns(resident)
 		end
 

@@ -229,7 +229,7 @@ end
 local function rewardName(reward: any): string
 	local catalogue = ({
 		finish = Config.FINISHES, plinth = Config.TROPHY_PLINTHS,
-		kennel = Config.DOG_KENNELS, catch = Config.CATCH_EFFECTS,
+		coat = Config.DOG_COATS, catch = Config.CATCH_EFFECTS,
 	} :: any)[reward.kind]
 	local spec = catalogue and catalogue[reward.key]
 	return (spec and spec.name) or reward.key

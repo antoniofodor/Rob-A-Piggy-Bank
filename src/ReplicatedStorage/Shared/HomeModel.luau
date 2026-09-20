@@ -2,14 +2,13 @@
 --[[
 	HomeModel
 
-	The things a defender buys and keeps: the dog's guard-duty treat, the
-	garden sprinkler and the patrol radio. Shared for the same reason every
+	The things a defender buys and keeps: the dog's guard-duty treat and the
+	patrol radio. Shared for the same reason every
 	other model here is -- the shop tile, the hotbar slot and the object in the
 	world all come from one builder, so the picture cannot drift from the thing.
 
-	Built around the ORIGIN. The sprinkler is authored with y = 0 at the
-	ground, since it stands on a lawn; the treat and the radio have no world
-	placement at all and are only ever icons, so they are simply centred.
+	Built around the ORIGIN. The treat and the radio have no world placement
+	at all and are only ever icons, so they are simply centred.
 
 	AUTHORED FOR THE ANGLE THE ICON IS SEEN FROM. `makeModelIcon` puts its
 	camera out along +X and +Z, so every face worth reading has to be on one
@@ -50,34 +49,6 @@ builders.treat = function(spec, add)
 	add("Icing", Vector3.new(1.5, 0.16, 0.74), CFrame.new(0, 0.34, 0), ICING)
 	add("Heart", Vector3.new(0.42, 0.42, 0.8), CFrame.new(0, 0.42, 0)
 		* CFrame.Angles(0, 0, math.rad(45)), Color3.fromRGB(226, 96, 118))
-end
-
-builders.sprinkler = function(spec, add)
-	local METAL = Color3.fromRGB(148, 154, 164)
-	local GREEN = Color3.fromRGB(74, 132, 72)
-
-	-- Stands on the lawn: y = 0 is the base plate.
-	local base = add("Base", Vector3.new(0.4, 2.6, 2.6), CFrame.new(0, 0.2, 0) * UPRIGHT, GREEN)
-	base.Shape = Enum.PartType.Cylinder
-
-	local post = add("Post", Vector3.new(2.0, 0.5, 0.5), CFrame.new(0, 1.4, 0) * UPRIGHT, METAL,
-		Enum.Material.Metal)
-	post.Shape = Enum.PartType.Cylinder
-
-	-- The spinning head, and three arms for it to fling water off. Static
-	-- here; the service animates the one it puts on the lawn.
-	local head = add("Head", Vector3.new(0.7, 1.1, 1.1), CFrame.new(0, 2.5, 0) * UPRIGHT, METAL,
-		Enum.Material.Metal)
-	head.Shape = Enum.PartType.Cylinder
-
-	for i = 0, 2 do
-		local a = (i / 3) * math.pi * 2
-		add("Arm", Vector3.new(1.5, 0.18, 0.18),
-			CFrame.new(math.sin(a) * 0.75, 2.5, math.cos(a) * 0.75) * CFrame.Angles(0, -a, 0),
-			METAL, Enum.Material.Metal)
-	end
-	add("Nozzle", Vector3.new(0.3, 0.3, 0.3), CFrame.new(0, 2.95, 0),
-		Color3.fromRGB(120, 200, 240), Enum.Material.Neon)
 end
 
 builders.radio = function(spec, add)
@@ -168,9 +139,9 @@ function HomeModel.build(key: string): Model
 	assert(build, ("Home item '%s' has no builder for style '%s'"):format(key, tostring(spec.style)))
 	build(spec, add)
 
-	-- Authored origin, never the bounding-box centre: the sprinkler is placed
-	-- by its feet on a lawn. No PrimaryPart -- several parts are rotated, and
-	-- a PrimaryPart pivot REPLACES that rotation on the first PivotTo.
+	-- Authored origin, never the bounding-box centre. No PrimaryPart --
+	-- several parts are rotated, and a PrimaryPart pivot REPLACES that
+	-- rotation on the first PivotTo.
 	model.WorldPivot = CFrame.new()
 
 	return model

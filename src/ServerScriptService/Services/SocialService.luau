@@ -1041,7 +1041,11 @@ local function refreshMostWanted()
 		-- most once a session, or two friends trading the lead would farm it.
 		if not wantedCounted[best] then
 			wantedCounted[best] = true
-			TrophyService.recordWanted(best)
+			-- THE SAME ARITHMETIC THE POSTER OUTSIDE PRINTS, handed over rather
+			-- than recomputed: `heat` lives here and dies with the session, so
+			-- the house's own poster cannot derive it later.
+			TrophyService.recordWanted(best,
+				math.floor((heat[best] or 0) * Config.POLICE.bailMultiple))
 		end
 	end
 end

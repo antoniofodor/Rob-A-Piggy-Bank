@@ -1,0 +1,179 @@
+{
+  "id": "candy",
+  "revision": 1,
+  "visualMeshes": 10,
+  "triangles": 13144,
+  "meshes": [
+    {
+      "name": "Foundation_01",
+      "triangles": 60,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "GingerbreadShell_01",
+      "triangles": 60,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Sweet tiled roof_01",
+      "triangles": 3548,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "IcingTrim_01",
+      "triangles": 5132,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Entrance_01",
+      "triangles": 268,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Windows_01",
+      "triangles": 912,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Porch_01",
+      "triangles": 852,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "SweetGarden_01",
+      "triangles": 1728,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Lollipop_01",
+      "triangles": 344,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Approach_01",
+      "triangles": 240,
+      "nonManifoldEdges": 0
+    }
+  ],
+  "boundsBlender": {
+    "min": [
+      -16.5,
+      -4.599999904632568,
+      0.0
+    ],
+    "max": [
+      16.5,
+      25.200000762939453,
+      28.5
+    ],
+    "size": [
+      33.0,
+      29.80000066757202,
+      28.5
+    ]
+  },
+  "paletteRGB": {
+    "Ink": [
+      29,
+      27,
+      37
+    ],
+    "Stone": [
+      162,
+      164,
+      176
+    ],
+    "Cream": [
+      235,
+      218,
+      181
+    ],
+    "Timber": [
+      98,
+      68,
+      40
+    ],
+    "Gold": [
+      214,
+      163,
+      65
+    ],
+    "Amber": [
+      250,
+      177,
+      57
+    ],
+    "DarkGlass": [
+      31,
+      43,
+      70
+    ],
+    "Leaf": [
+      61,
+      107,
+      61
+    ],
+    "Violet": [
+      96,
+      38,
+      163
+    ],
+    "Teal": [
+      33,
+      113,
+      130
+    ],
+    "Pink": [
+      207,
+      70,
+      118
+    ],
+    "Blue": [
+      57,
+      113,
+      191
+    ],
+    "Biscuit": [
+      164,
+      95,
+      46
+    ],
+    "BiscuitEdge": [
+      122,
+      65,
+      31
+    ],
+    "Icing": [
+      249,
+      233,
+      205
+    ],
+    "CandyRed": [
+      202,
+      54,
+      69
+    ],
+    "CandyPink": [
+      218,
+      89,
+      132
+    ],
+    "CandyGreen": [
+      76,
+      155,
+      91
+    ]
+  },
+  "collisionBoxesDraft": [],
+  "mountsBlender": {},
+  "mountYawBlender": {},
+  "reference": "assets/houses/design/fantasy-v2/fantasy-lineup.png",
+  "status": "MVP exterior asset draft; no interior or Studio integration",
+  "authoredObjectsBeforeMerge": 148,
+  "routesBlender": [],
+  "coordinateMapping": "Blender (x,y,z) -> Roblox FBX/OBJ (-x,z,y)",
+  "frontWallBlenderY": 0,
+  "interiors": "explicitly deferred; door is closed decorative geometry",
+  "collision": "No collision draft supplied; integrator must choose exterior collision and validate plot fit",
+  "fx": []
+}

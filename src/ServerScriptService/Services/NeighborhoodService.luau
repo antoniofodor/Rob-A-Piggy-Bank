@@ -10,9 +10,13 @@
 	as a place rather than twelve lawns in a field, and it must never get in
 	the way of a chase or eat a raycast meant for a piggy.
 
-	The one exception is the road surface, which players walk on. It sits a
-	few hundredths of a stud proud of the grass rather than flush with it --
-	see the LIFT_ constants for why flush is not an option.
+	Three things here are exceptions and all three are deliberate. The road
+	surface is walked on, and sits a few hundredths of a stud proud of the
+	grass rather than flush with it -- see the LIFT_ constants for why flush
+	is not an option. The VALLEY WALL is solid because a hill you can walk
+	through is a hole in the map. And the LOWLAND APRON out past it is solid
+	so that anybody who somehow gets over the wall lands on ground rather
+	than falling out of the world.
 
 	Everything is positioned off Config, so moving the plots moves the suburb
 	with them. Nothing here hardcodes a plot coordinate.
@@ -29,6 +33,7 @@ local PiggyModel = require(ReplicatedStorage.Shared.PiggyModel)
 local RideModel = require(ReplicatedStorage.Shared.RideModel)
 local BoneModel = require(ReplicatedStorage.Shared.BoneModel)
 local GrassTuft = require(ReplicatedStorage.Shared.GrassTuft)
+local SceneryTrees = require(script.Parent.SceneryTrees)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 
 local NeighborhoodService = {}
@@ -292,6 +297,11 @@ local function buildBoxTree(x: number, z: number, seed: number)
 end
 
 local function buildTree(x: number, z: number, seed: number, scaleOverride: number?)
+	-- New scenery models fit the existing clearance envelope. The old tree is
+	-- retained only as a fallback for places missing the synced model library.
+	if SceneryTrees.build(x, z, seed, scaleOverride or treeScale(Config.TREE_MESH, seed), GROUND_Y, folder) then
+		return
+	end
 	local spec = Config.treeMesh()
 	local templates = spec and ensureTreeTemplates()
 	if not (spec and templates) then
@@ -333,12 +343,11 @@ local function buildTree(x: number, z: number, seed: number, scaleOverride: numb
 	end
 end
 
--- How far a mailbox reaches ACROSS the drive it stands beside. The body is
--- 1.9 wide and 2.7 long and the whole thing is turned twelve degrees, so its
--- X extent is 1.9*cos12 + 2.7*sin12 = 2.42 studs, and 1.3 covers the half of
--- that with a little in hand. Anything that widens the box has to move this
--- with it or the mailbox walks back onto the tarmac.
-local MAILBOX_HALF = 1.3
+-- `MAILBOX_HALF` went with the kerbside mailbox it placed: the street has no
+-- mailbox of its own any more, so nothing out here has to clear a driveway.
+-- The derivation is worth keeping in mind if anything else is ever stood
+-- beside a drive -- the box's own reach at the yaw it is built with, never a
+-- flat offset, which is what once left all ten of them standing on tarmac.
 
 local function buildStreetFurniture(m: any)
 	for _, side in ipairs({ -1, 1 }) do
@@ -427,41 +436,28 @@ local function buildStreetFurniture(m: any)
 			end
 		end
 
-		-- A mailbox on the GRASS beside each driveway.
+		-- NO MAILBOX OUT HERE. There is exactly one per house and it is the
+		-- PLOT'S OWN, which PlotService stands beside the driveway at plot-local
+		-- (-12, 36) -- the one carrying the daily-reward prompt and the flag that
+		-- says there is something in it.
 		--
-		-- IT STOOD IN THE DRIVE, AND ONLY MEASURING SAID SO. The offset was a
-		-- flat `+ 7` against a `Config.DRIVEWAY_WIDTH` of 17, so the box
-		-- spanned x 6.2 to 7.8 on a drive whose edge is at 8.5 -- measured on
-		-- the built street, all ten of them standing bodily on their own
-		-- owner's tarmac. Nothing errored and nothing looked broken enough to
-		-- check, because a mailbox beside a drive and a mailbox in one differ
-		-- by a stud and a half.
+		-- This used to stand a second one at the kerb on the other side of the
+		-- same drive, as street furniture. That was defensible while the two were
+		-- different objects -- a red box on a stick out here, a five-part white
+		-- box on the plot -- and it stopped being defensible the moment they were
+		-- unified onto one builder so the street would have ONE KIND of mailbox
+		-- on it. What it actually produced was one kind and TWO OF THEM, ten
+		-- studs apart, of which only one could be opened.
 		--
-		-- IT IS DERIVED FROM THE DRIVEWAY NOW rather than typed, which is the
-		-- half that stops it coming back: a wider drive carries the mailbox
-		-- out with it instead of swallowing it. `MAILBOX_HALF` is the box's
-		-- own reach ACROSS the drive at the yaw it is built with -- 1.9 wide
-		-- and 2.7 long turned twelve degrees is 2.42 across, so 1.3 covers it
-		-- -- and the extra stud is grass anybody can see between the tarmac
-		-- and the post.
+		-- The one that went is the SCENERY one, because the other carries a
+		-- prompt, a flag, the van's delivery and `PlotService.setMail`. The rule
+		-- underneath: where a real interactive object and a decorative lookalike
+		-- end up beside each other, the decoration goes -- a player who cannot
+		-- tell which of two identical things is the one that works has been given
+		-- a puzzle nobody meant to set.
 		--
-		-- AND IT IS THE REAL MAILBOX RATHER THAN A RED BOX ON A STICK. What
-		-- stood here was two parts in `Material.Metal`, which SHADES a colour
-		-- by the environment rather than rendering it -- the trophies already
-		-- paid for that one, where the same gold came out olive two studs from
-		-- itself. `Decor.buildMailbox` is the same five parts every plot's own
-		-- mailbox is built from, in flat `SmoothPlastic`, so the street has
-		-- one kind of mailbox on it instead of two.
-		for col = 0, m.perRow - 1 do
-			local x = columnX(m, col) + Config.DRIVEWAY_WIDTH / 2 + MAILBOX_HALF + 1
-			-- Facing the road, and the far row is turned through 180 degrees
-			-- exactly as the wheelie bins are -- the correction the old
-			-- disguise never made. The extra twelve degrees is the plot's own
-			-- mailbox yaw: a box square to the street presents its side to
-			-- everybody walking past it.
-			local yaw = (if side < 0 then 0 else math.pi) + math.rad(-12)
-			Decor.buildMailbox(CFrame.new(x, GROUND_Y, z) * CFrame.Angles(0, yaw, 0), folder)
-		end
+		-- `Decor.buildMailbox` stays shared. It has one caller now, and the
+		-- geometry belongs in Shared anyway for the reason its own header gives.
 	end
 end
 
@@ -492,9 +488,21 @@ local GROVE_ROWS = {
 	-- trees are bigger, so the same amount of green stands in front of the
 	-- same amount of sky, and the row keeps its full inward jitter rather
 	-- than half of it piling up against the clamp below.
-	{ depth = 22, shift = -0.5, reach = 0, step = 1 },
-	{ depth = 76, shift = 0.1, reach = 1, step = 1 },
-	{ depth = 102, shift = -0.4, reach = 2, step = 2 },
+	-- 22 -> 30 WITH THE CANOPY, which is the same move this note already
+	-- records once: the clamp below keeps a canopy out of the fence, so a front
+	-- row nearer than the canopy's own reach spends its inward jitter piling up
+	-- against that clamp on one line, which reads as a hedge rather than as a
+	-- treeline. The reach went 11.58 -> 19.96 with the new scales, so the row
+	-- moved back by the difference.
+	-- 76 -> 62 AND 102 -> 84 WHEN THE MAP CAME IN. The front row did not move:
+	-- it is the one that shuts the sightline behind a plot, and its 30 is
+	-- solved against the canopy's own reach (see the note above it). The two
+	-- behind it are depth of WOOD rather than a sightline, so they are the
+	-- cheap half of making the valley narrower -- three rows still read as a
+	-- wood, and the wall's inner face comes in 30 studs with them.
+	{ depth = 30, shift = -0.5, reach = 0, step = 1 },
+	{ depth = 62, shift = 0.1, reach = 1, step = 1 },
+	{ depth = 84, shift = -0.4, reach = 2, step = 2 },
 }
 
 -- Deterministic scatter, so the grove looks unplanted but every server builds
@@ -578,7 +586,24 @@ end
 -- waiting for the next spacing edit. At 0.75 the reach is 5.99 and there are
 -- four studs clear either side.
 local STREET_TREE = {
-	scale = 0.75,
+	-- BIGGER, AND THIS ONE HAS A HARD CEILING THAT FAILS SILENTLY AT 1.19.
+	--
+	-- `clear(x)` vetoes a placement whose canopy would reach a driveway or a
+	-- shop, and every candidate sits at the same `offset` -- so a scale that
+	-- fails the test does not produce smaller trees or a warning, it produces
+	-- NO VERGE TREES AT ALL. Measured from the shipped offset of 21: the tree
+	-- is 21 studs from a gap centre (shop half-width 11) and 19 from a plot
+	-- column (half a 17-stud driveway, plus one), and `canopyReach` is the
+	-- diagonal at 7.986 per unit of scale. So the driveway binds first and the
+	-- last scale that clears it is 1.19, with nothing left over.
+	--
+	-- 1.0 is 8.0 of reach with 2.0 clear of the shop and 1.5 of the driveway.
+	-- It stood at 0.75 for a measured reason -- the note above records 4 studs
+	-- clear and calls a 2-stud margin "not a fit, a coincidence" -- so this
+	-- deliberately spends most of that margin and stops well short of the
+	-- ceiling. The grove behind the plots is where the big trees are; these are
+	-- on a verge with a road on one side and a fence on the other.
+	scale = 1.0,
 	-- Verge depth. The lamp posts and bins stand on the 1.8 line at |z| 9.8
 	-- and the boards are at `boardZ`; this sits between them.
 	z = 19,
@@ -784,19 +809,105 @@ local function solid(name: string, size: Vector3, cf: CFrame, colour: Color3, ma
 	return p
 end
 
--- One dome. Buried to `sink` of its own radius so only the cap shows, which is
--- what makes a sphere read as a hill rather than as a ball on a lawn.
-local function mound(x: number, z: number, radius: number, sink: number, seed: number)
-	local p = solid("Hill", Vector3.new(radius * 2, radius * 2, radius * 2),
-		CFrame.new(x, GROUND_Y - radius * sink, z),
-		if seed % 2 == 0 then HILL_ROCK else HILL_ROCK_2, Enum.Material.Grass)
-	p.Shape = Enum.PartType.Ball
-	-- A hill is ground, so it wears what the ground wears. Without this the
-	-- surface stops dead at the foot of the mounds and the ends of the street
-	-- read as a different material from the middle of it.
-	p.Material = Config.GRASS_MATERIAL.material
-	p.MaterialVariant = LAWN_VARIANT
-	return p
+-- ONE CLIFF COLUMN: a block of rock with a cap of turf on top.
+--
+-- THE HILLS USED TO BE HALF-BURIED SPHERES, and they stood only at the two
+-- ends of the street. Two things were wrong with that. A sunken sphere is
+-- ROUND, which is the one shape this world has no other example of -- every
+-- building, fence and ornament here is flat-shaded hard-edged geometry, so the
+-- hills were the only soft thing on the map. And a map walled at two ends is a
+-- CORRIDOR: the two long sides ran out to open ground and simply stopped.
+--
+-- A column is TWO parts and that pair is the whole trick. The rock is what
+-- makes it a cliff; the turf cap is what makes it the same ground the street
+-- stands on, carried up and broken off. Without the cap a wall of stone reads
+-- as something built around the map rather than as the map being a floor in a
+-- valley.
+--
+-- YAWED SLIGHTLY AND NEVER SQUARE. A run of axis-aligned boxes is a fence; the
+-- same boxes turned a few degrees each read as rock that cracked. A FEW
+-- degrees rather than many, because the columns have to go on overlapping
+-- their neighbours: a gap in a valley wall is a hole in the map, and these are
+-- the only parts in this file that collide.
+local CLIFF_ROCK = Color3.fromRGB(196, 142, 112)
+local CLIFF_ROCK_2 = Color3.fromRGB(176, 124, 98)
+local CLIFF_CAP = 2.2 -- how thick the turf on top is
+local function cliffColumn(x: number, z: number, width: number, depth: number,
+	height: number, yaw: number, seed: number)
+	local at = CFrame.new(x, GROUND_Y, z) * CFrame.Angles(0, yaw, 0)
+
+	-- Buried a stud, so no face of the rock sits ON the grass -- the coplanar
+	-- flicker this project has recorded five times, on parts big enough to be
+	-- seen flickering from the far end of the street.
+	local rock = solid("Cliff", Vector3.new(width, height + 1, depth),
+		at * CFrame.new(0, (height + 1) / 2 - 1, 0),
+		if seed % 2 == 0 then CLIFF_ROCK else CLIFF_ROCK_2,
+		Enum.Material.SmoothPlastic)
+
+	-- The cap oversails the rock by a few tenths on every side, so the turf
+	-- reads as an overhang the rock was cut from under rather than as a lid
+	-- resting flush on a box.
+	local cap = solid("CliffCap", Vector3.new(width + 0.7, CLIFF_CAP, depth + 0.7),
+		at * CFrame.new(0, height + CLIFF_CAP / 2 - 0.2, 0),
+		if seed % 2 == 0 then HILL_ROCK else HILL_ROCK_2,
+		Enum.Material.SmoothPlastic)
+	-- A hill is ground, so its top wears what the ground wears. Without this
+	-- the turf stops being the same surface as the lawn it grew out of.
+	cap.Material = Config.GRASS_MATERIAL.material
+	cap.MaterialVariant = LAWN_VARIANT
+	return rock, cap
+end
+
+-- A RUN OF CLIFF ALONG ONE EDGE, from one point to another.
+--
+-- `inward` is the direction the map is in, and it is what the boulders at the
+-- foot are offset along: a plain wall meets the grass along a single hard
+-- line, and a few blocks spilled in front of it is what the reference art
+-- does to break that line up. They are part of the wall rather than scattered
+-- decoration -- being solid, they also stop anybody standing in the seam
+-- between two columns.
+--
+-- DETERMINISTIC, from a seeded `Random`, for the reason the grass scatter is
+-- seeded: every server builds the identical valley, so a screenshot taken
+-- today describes the map somebody joins tomorrow.
+local function cliffRun(fromX: number, fromZ: number, toX: number, toZ: number,
+	inward: Vector2, rng: Random)
+	local spanX, spanZ = toX - fromX, toZ - fromZ
+	local length = math.sqrt(spanX * spanX + spanZ * spanZ)
+	if length < 1 then
+		return
+	end
+	local ux, uz = spanX / length, spanZ / length
+
+	-- Stepped SHORTER than a column is wide, so consecutive columns always
+	-- overlap however they are yawed. This is the number that makes the wall
+	-- continuous, and it is the one to re-check if the yaw is ever widened.
+	local step = 15
+	local count = math.max(1, math.ceil(length / step))
+	for i = 0, count do
+		local t = math.min(i * step, length)
+		local x, z = fromX + ux * t, fromZ + uz * t
+		local width = 20 + rng:NextNumber() * 8
+		local depth = 16 + rng:NextNumber() * 14
+		local height = 20 + rng:NextNumber() * 16
+		local yaw = math.rad((rng:NextNumber() - 0.5) * 16)
+		-- Pushed OUT of the map by half its own depth, so the wall's inner
+		-- face lands on the line it was asked for rather than the middle of
+		-- the rock.
+		cliffColumn(x - inward.X * depth / 2, z - inward.Y * depth / 2,
+			width, depth, height, yaw, i)
+
+		-- A boulder at the foot, on most columns rather than on all of them.
+		if rng:NextNumber() < 0.55 then
+			local size = 7 + rng:NextNumber() * 6
+			local along = (rng:NextNumber() - 0.5) * step
+			cliffColumn(
+				x + inward.X * (size / 2 - 1) + ux * along,
+				z + inward.Y * (size / 2 - 1) + uz * along,
+				size, size, size * (0.5 + rng:NextNumber() * 0.4),
+				math.rad(rng:NextNumber() * 90), i + 1)
+		end
+	end
 end
 
 -- The mouth: a bore lined in black, driven through a bank of earth, with a
@@ -932,35 +1043,484 @@ end
 -- sphere is widest at ground level, so a dome that clears the mouth at head
 -- height can still be standing in the road -- which is also why the earth over
 -- the bore is a block and not a dome.
-local function buildHill(m: any, mouthX: number, outward: number, clear: number)
+local function buildHill(m: any, mouthX: number, outward: number)
 	buildTunnel(m, mouthX, outward)
 
-	local half = m.tunnelHalfWidth
-	local backX = mouthX + outward * 54
-
-	-- The shoulders stand hard against the portal, which is what makes the
-	-- hill and the tunnel one object rather than two. How far out they sit is
-	-- DERIVED from what has to stay open in front of the mouth: a lane's worth
-	-- of carriageway at the open end, the whole plaza at the closed one.
-	local shoulderZ = math.max(clear + 26, half + 28)
-
-	for _, side in ipairs({ -1, 1 }) do
-		mound(mouthX + outward * 14, side * shoulderZ, 26, 0.30, 1)
-		mound(mouthX + outward * 44, side * 54, 46, 0.34, 2)
-		mound(backX + outward * 14, side * 116, 66, 0.40, 3)
-		mound(backX - outward * 2, side * 178, 58, 0.45, 4)
-	end
 	-- The mass behind the bore, as far forward as the bore allows: any closer
-	-- and its own belly is inside the tunnel.
-	mound(backX + outward * 46, 0, 72, 0.38, 5)
+	-- and it is standing inside the tunnel. This is the only cliff here that
+	-- is not part of a run -- the END WALLS in `buildValley` are what part
+	-- around the mouth -- and what it stops is the void reading as a notch in
+	-- the skyline when the road is looked at from the side.
+	local backX = mouthX + outward * 62
+	cliffColumn(backX, 0, m.tunnelHalfWidth * 2 + 40, 44, 40, 0, 2)
+end
+
+-- THE VALLEY: rock the whole way round the map, parting only for the tunnels.
+--
+-- The map is a floor between hillsides now rather than a street with a hill at
+-- each end, and what that buys is the thing a border is FOR: the edge of the
+-- world explains itself, so nobody walks to the end of the grass and finds out
+-- that it simply stops.
+--
+-- EVERY WALL STANDS INSIDE THE GROUND SLAB, and the REASON for that changed
+-- when the horizon shipped while the rule did not. It used to be that the
+-- ground is one Part (`Config.GROUND_SIZE`, built by WorldService) and a wall
+-- on its edge would have its outer half hanging over nothing. There is land
+-- out there now. What keeps the wall inside the slab is simpler and is what
+-- the boulders at the foot are offset INTO the map for: this wall is the inner
+-- face of the valley, so it belongs on the ground the STREET stands on, and
+-- everything on the far side of it is `buildHorizon`'s.
+--
+-- THE TUNNELS ARE THE ONLY GAPS, and they are gaps in the END walls alone.
+-- The two long sides are unbroken: a hole in one of those is a way out of the
+-- map on foot, where a tunnel is a hole nobody can use, since the void at the
+-- back of the bore is solid.
+--
+-- IMPASSABLE IS MEASURED RATHER THAN ASSERTED. `Config.jumpReach` is 6.14
+-- studs -- the collision hull's own apex, not the feet, which is the number
+-- every fence tier in this game is checked against -- and the SHORTEST column
+-- here is 20 studs of rock under a 2.2 cap. Nothing can be jumped, the columns
+-- collide (`solid`, unlike the rest of this file), and there is no truss or
+-- climbable surface anywhere on them, so the ladder cannot be used on one
+-- either.
+local function buildValley(m: any)
+	-- Inside the slab by a margin wide enough for the deepest column.
+	local edgeZ = Config.GROUND_SIZE.Y / 2 - 30
+
+	-- THE LONG SIDES RUN BETWEEN THE TWO END WALLS rather than out to the
+	-- corners of the slab. The end walls stand on the tunnel mouths, 252
+	-- studs out, and the slab runs to 390 -- so a long side carried to the
+	-- corner would be 140 studs of rock built in ground nobody can reach,
+	-- behind a wall that already closed the map. About 150 parts for a view
+	-- that does not exist.
+	local wallWestX, wallEastX = m.tunnelWestX, m.tunnelEastX
+
+	-- Clear of the bore, so the end walls part around the tunnel rather than
+	-- filling it in. Derived from the tunnel's own half-width plus a column's
+	-- worth of overlap.
+	local gap = m.tunnelHalfWidth + 12
+
+	-- THE TREELINE HAS TO FIT INSIDE THE WALL, AND THIS IS THE CHECK THAT
+	-- SAYS SO OUT LOUD.
+	--
+	-- The grove is planted from the back fence outward -- `rear` plus a row
+	-- depth, plus jitter, plus whatever the canopy clamp adds -- and it
+	-- already reached |z| 276 against a slab that ended at 280. That is what
+	-- made the map DEEPER rather than the wall closer in. Both numbers can
+	-- move independently (a row depth here, `GROUND_SIZE` over there), and
+	-- the failure is silent: trees buried to the canopy in rock, which is the
+	-- exact fault the hill veto in `buildTrees` already records once. Same
+	-- argument as `Config.auditFences` -- the failure is a number, so the
+	-- moment to hear about it is while somebody is typing one.
+	local deepest = 0
+	for _, row in ipairs(GROVE_ROWS) do
+		deepest = math.max(deepest, row.depth)
+	end
+	local treeSpec = Config.treeMesh()
+	local treeOuter = m.rowZ + Config.YARD_DEPTH + deepest + 8
+		+ (if treeSpec then canopyReach(treeSpec, treeSpec.scales[#treeSpec.scales]) else 8)
+	if treeOuter > edgeZ - 8 then
+		warn(("[Neighbourhood] the grove reaches |z| %.0f against a valley wall at %.0f"
+			.. " -- widen Config.GROUND_SIZE or pull the back grove row in")
+			:format(treeOuter, edgeZ))
+	end
+
+	local rng = Random.new(20260917)
+
+	-- The two long sides, end wall to end wall, unbroken.
+	cliffRun(wallWestX, edgeZ, wallEastX, edgeZ, Vector2.new(0, -1), rng)
+	cliffRun(wallWestX, -edgeZ, wallEastX, -edgeZ, Vector2.new(0, 1), rng)
+
+	-- The two ends, in two runs each: corner to the gap, then the gap to the
+	-- far corner. The wall stands ON the tunnel mouth's own line, which is
+	-- what makes the portal read as driven THROUGH the hillside rather than
+	-- as parked in front of it.
+	for _, side in ipairs({
+		{ x = m.tunnelEastX, inward = -1 },
+		{ x = m.tunnelWestX, inward = 1 },
+	}) do
+		local inward = Vector2.new(side.inward, 0)
+		cliffRun(side.x, edgeZ, side.x, gap, inward, rng)
+		cliffRun(side.x, -gap, side.x, -edgeZ, inward, rng)
+	end
+end
+
+-- ==========================================================================
+-- THE HORIZON: what the map sits IN, rather than what it stops at.
+--
+-- REPORTED AS "A SQUARE FLOATING IN THE SKY", which was a literal description.
+-- `Config.GROUND_SIZE` is one 780 x 660 Part eight studs thick with a 920 x
+-- 800 ring under it, and nothing else: a rectangular green plate with a
+-- vertical cut edge and open sky beneath it.
+--
+-- THE VALLEY WALL ABOVE ONLY FIXED THAT FROM INSIDE, WHICH IS WHY IT DID NOT
+-- READ AS FIXED. It explains the edge perfectly to somebody standing on the
+-- street -- the grass stops because there is rock in the way -- and says
+-- nothing whatever about the view from any camera ABOVE the rock. That is the
+-- view this map is looked at from every time anybody is not playing it, and
+-- it is the only view in which the shape of the world is visible at all.
+--
+-- FOUR RINGS, NEAREST FIRST, AND EACH ONE EXISTS TO BURY THE EDGE OF THE ONE
+-- BEFORE IT. That is the whole structure, and it is why none of them can be
+-- dropped without the ring inside it becoming the new visible edge:
+--
+--   APRON      one small step down, ragged, reaching 240 to 420 studs out.
+--              It buries the slab's own cut edge and is what the foothills
+--              stand on.
+--   FOOTHILLS  44 to 96 studs of the valley wall's own rock, just outside
+--              the slab. This is the skyline a player sees OVER the wall,
+--              and it is the ring that does the most for the least.
+--   SHELF      a second step down and a long way out, so the apron's ragged
+--              edge has ground under it rather than sky.
+--   RANGE      150 to 300 studs of cool grey rock on the shelf's rim. Tall
+--              enough that a sightline clearing its tops also clears the
+--              shelf behind it, so there is no cut edge left in view from
+--              anywhere a player's camera can be.
+--
+-- RAGGED IS THE POINT, NOT A FLOURISH. A rectangle of any size is still a
+-- rectangle from above, so making the map bigger would have bought nothing at
+-- all: each segment of both land rings reaches its own distance, and the
+-- outline that results is the one thing that stops this reading as a plate.
+--
+-- WHAT IS NOT SOLVED, STATED PLAINLY: from a few hundred studs up it is still
+-- an island, and the undersides are flat. A camera at that altitude sees the
+-- shelf's outer edge and sky past it. Closing that means a shell rather than
+-- rings -- Part size is clamped to 2048 studs, so a ground plane wide enough
+-- to fog out is about 36 parts on its own -- and it is a view nobody in the
+-- game can reach. What it buys is the difference between a floating square
+-- and a valley in a landscape, which is what was actually being asked for.
+
+-- DISTANCE IS COOLER AND LIGHTER, NEVER MERELY SMALLER. The one thing that
+-- separates a far mountain from a big near one is that air has got in the way,
+-- and `Atmosphere` at Density 0.14 is too thin to do all of that by itself
+-- over a thousand studs -- it is tuned not to bleach a 350-stud street, which
+-- is the right call and leaves this to do. So the range is pre-shifted toward
+-- the sky's own blue and the foothills are deliberately NOT: two rings in one
+-- colour read as one ring however far apart they are.
+--
+-- SO THEY ARE AUTHORED WARM AND THE WORLD COOLS THEM, WHICH IS THE OPPOSITE
+-- OF WHAT THE PARAGRAPH ABOVE FIRST PRESCRIBED. Two passes got this wrong in
+-- the same direction. At (124, 138, 152) -- a modest blue-grey by its own RGB
+-- -- they photographed as saturated blue slabs; pulled to a near-neutral
+-- (140, 144, 146) they still read as ICE rather than as rock.
+--
+-- The cool is not coming from the colour at all. `WorldService` lights this
+-- world with a deliberately BLUE ambient (OutdoorAmbient 88, 100, 132) under
+-- a cream sun, and then grades the whole picture at Saturation 0.38 -- so a
+-- big grey mass takes blue on every face the sun is not on, and the grade
+-- multiplies what it takes. Authoring MORE blue into it is adding to a sum
+-- that was already finished.
+--
+-- Warm mid-brown arrives on screen as the grey-brown these are meant to be,
+-- and it ties the range to the foothills in front of it, which wear the
+-- valley wall's own tan. Same lesson the lawn learned when its texture came
+-- off and the literal value turned out to be an acid pastel: THE NUMBER IN
+-- THE SOURCE IS NOT THE COLOUR ON THE SCREEN, and only a capture closes that
+-- gap.
+local FAR_ROCK = Color3.fromRGB(134, 116, 102)
+local FAR_ROCK_2 = Color3.fromRGB(120, 103, 92)
+
+-- The lowland: earth under a rougher turf than the mown street wears. That
+-- material choice is INHERITED rather than invented. WorldService's apron ring
+-- was deliberately LeafyGrass rather than the painted lawn variant, so that
+-- the ground beyond the gardens reads as rough -- and this replaced that ring,
+-- so it keeps its argument along with its job.
+-- NUDGED TOWARD THE STREET'S OWN GRASS AFTER LOOKING AT IT. Against
+-- WorldService's GRASS at (82, 114, 60) these were dark enough that the map
+-- read as a bright green plateau sitting ON the lowland rather than as the
+-- same ground one step lower, which is the whole illusion. A step in VALUE is
+-- a step in what kind of thing it is.
+local LOWLAND_EARTH = Color3.fromRGB(112, 88, 66)
+local LOWLAND_TURF = Color3.fromRGB(78, 108, 58)
+local LOWLAND_TURF_2 = Color3.fromRGB(70, 98, 54)
+
+local SLAB_X = Config.GROUND_SIZE.X / 2
+local SLAB_Z = Config.GROUND_SIZE.Y / 2
+
+-- ONE SMALL STEP DOWN RATHER THAN A CLIFF, and this number is load-bearing in
+-- a way it does not look. THE EXPOSED HEIGHT OF THE SLAB'S OWN CUT EDGE IS
+-- THIS PLUS THE SEGMENT'S OWN SINK -- so at five studs there would be a
+-- five-stud green wall running round the map wherever a foothill does not
+-- happen to stand, which is the fault being fixed, smaller. At 0.5 against a
+-- sink of up to 1.2 the worst case is 1.7 studs, and the lowland reads as the
+-- same ground one step lower rather than as a plate on a plinth.
+local APRON_LIFT = 0.5
+
+-- Walks the four sides of a rectangle, handing each stop its position, the
+-- unit vector ALONG that side, the one pointing OUT of the map, and THE ACTUAL
+-- SPACING that run settled on.
+--
+-- `step` IS A CEILING AND THE SPACING IS DERIVED FROM IT, which is not a
+-- refinement -- it is what makes a butt joint possible at all. Stepping by a
+-- fixed amount and clamping the last stop to the end of the run leaves ONE
+-- gap per run that is shorter than all the others, so the last two segments
+-- overlap by the remainder: measured, 90 studs of overlap between two apron
+-- lids and 130 between two shelf segments, which is a coplanar top-face pair
+-- that the sink jitter can only fix by luck. Dividing the run into equal
+-- spans instead means every gap is the same and a segment sized to the
+-- spacing butts its neighbour everywhere, by construction.
+--
+-- THE TWO Z SIDES CARRY THE CORNERS. They run the full width including
+-- whatever the X sides reach out to; the X sides then stop at the rectangle
+-- itself. Cornering the other way round leaves a notch at each corner, and a
+-- notch in a horizon is a hole with the sky behind it.
+local function ringWalk(halfX: number, halfZ: number, reach: number, step: number,
+	visit: (number, number, Vector2, Vector2, number, number) -> ())
+	local index = 0
+	local function run(ax: number, az: number, bx: number, bz: number, out: Vector2)
+		local dx, dz = bx - ax, bz - az
+		local length = math.sqrt(dx * dx + dz * dz)
+		if length < 1 then
+			return
+		end
+		local ux, uz = dx / length, dz / length
+		local count = math.max(1, math.ceil(length / step))
+		local spacing = length / count
+		for k = 0, count do
+			local t = k * spacing
+			index += 1
+			visit(ax + ux * t, az + uz * t, Vector2.new(ux, uz), out, index, spacing)
+		end
+	end
+	local far = halfX + reach
+	run(-far, halfZ, far, halfZ, Vector2.new(0, 1))
+	run(-far, -halfZ, far, -halfZ, Vector2.new(0, -1))
+	run(halfX, -halfZ, halfX, halfZ, Vector2.new(1, 0))
+	run(-halfX, -halfZ, -halfX, halfZ, Vector2.new(-1, 0))
+end
+
+-- A box sized ALONG a side and OUT of the map. Both vectors are unit vectors
+-- on X or Z, so one component of each is always zero and this is the same
+-- expression on all four sides rather than a branch per side -- which is what
+-- the two land rings and the two rock rings all share.
+local function boxSize(along: Vector2, out: Vector2,
+	length: number, depth: number, height: number): Vector3
+	return Vector3.new(
+		math.abs(along.X) * length + math.abs(out.X) * depth,
+		height,
+		math.abs(along.Y) * length + math.abs(out.Y) * depth)
+end
+
+-- ONE SEGMENT OF LAND, reaching out from `line` to whatever distance this
+-- segment happens to want, and tucked `under` studs back under the ring inside
+-- it so its inner face is buried rather than standing as a wall.
+local function landSegment(x: number, z: number, along: Vector2, out: Vector2,
+	length: number, under: number, reach: number, topY: number, drop: number,
+	sink: number, seed: number, capped: boolean)
+	local depth = under + reach
+	local offset = depth / 2 - under
+	local ox, oz = x + out.X * offset, z + out.Y * offset
+	-- A RING OF GROUND IS ONE PLANE BY DEFINITION, WHICH IS THE COPLANAR RULE
+	-- ARRIVING ON THE BIGGEST PARTS IN THE GAME. Left to itself every lid here
+	-- sits at exactly `topY` and overlaps its neighbour by nine studs -- same
+	-- facing, real overlap, which is the flicker this file has recorded five
+	-- times, this time across the whole width of the world.
+	--
+	-- TWO THINGS FIX IT AND NEITHER IS ENOUGH ALONE, which took three passes
+	-- and an audit to establish.
+	--
+	-- THE LIDS BUTT rather than overlap: each is exactly the spacing `ringWalk`
+	-- derived, so two tops that share a plane touch along a LINE and have no
+	-- overlapping AREA, which is what the coplanar test actually asks about. A
+	-- butt joint between their side faces is two faces pointing at each other
+	-- and is safe. The earth underneath still overlaps generously, so a
+	-- float-width seam between two lids shows more earth rather than sky.
+	--
+	-- THE SINK is what covers the pairs butting cannot reach: a Z-side lid and
+	-- an X-side lid genuinely overlap at each corner, and there is no way to
+	-- corner a ring without that. It was 0.14 studs first and the audit came
+	-- back with 170 pairs -- two draws from a range that small land inside a
+	-- coplanar tolerance of each other about a quarter of the time, so jitter
+	-- alone is a coin flip repeated eighty times. At 1.2 it is real undulation
+	-- on a lowland, invisible to walk on, and leaves about four corner pairs
+	-- with a one-in-sixty chance each.
+	topY -= sink
+
+	if not capped then
+		-- The outer shelf gets no separate lid. Its top is nearly all of what
+		-- is ever seen of it and the range stands on its rim hiding the rest,
+		-- so a second part per segment would be thirty-two parts for nothing.
+		scenery("Lowland", boxSize(along, out, length, depth, drop),
+			CFrame.new(ox, topY - drop / 2, oz),
+			if seed % 2 == 0 then LOWLAND_TURF else LOWLAND_TURF_2,
+			Enum.Material.LeafyGrass)
+		return
+	end
+
+	-- The earth is the one part here that MAY overlap its neighbour, because
+	-- its top is six tenths under the lid and never seen.
+	scenery("Lowland", boxSize(along, out, length + 10, depth, drop),
+		CFrame.new(ox, topY - 0.6 - drop / 2, oz),
+		LOWLAND_EARTH, Enum.Material.SmoothPlastic)
+
+	-- The lid OVERSAILS the earth and is SUNK into it. Two boxes sharing a
+	-- face plane z-fight, and these are the largest parts in the game, so a
+	-- flush lid would flicker across the whole width of the map. Same pair of
+	-- tenths every cliff cap in this file already carries.
+	--
+	-- Solid, unlike the earth under it: this is the ground somebody who gets
+	-- over the valley wall lands on instead of falling out of the world.
+	-- OVERSAILING IN THE OUT DIRECTION ONLY. Along the run it is exactly
+	-- `length`, so consecutive lids butt; across it, the four tenths are what
+	-- keep the lid's own side faces off the planes of the earth under it.
+	solid("LowlandTurf", boxSize(along, out, length, depth + 0.8, 2.6),
+		CFrame.new(ox, topY - 1.3, oz),
+		if seed % 2 == 0 then LOWLAND_TURF else LOWLAND_TURF_2,
+		Enum.Material.LeafyGrass)
+end
+
+-- A ROCK MASS AT ANY DEPTH. `cliffColumn` above does the same job and could
+-- not do this one: it is pinned to GROUND_Y and to the valley wall's palette,
+-- which is right for the wall, because the wall IS the ground the street
+-- stands on carried up and broken off. The horizon stands on the lowland, a
+-- stud and a bit lower, and its far ring has to be a different colour or it
+-- reads as the near one.
+--
+-- `far` is one flag rather than four arguments because there are exactly two
+-- kinds of thing here and every difference between them follows from which:
+-- a foothill is the valley wall's own rock with turf on top and it collides,
+-- a peak is grey, bare, tapered, and out past anything that can be reached.
+local function horizonColumn(x: number, z: number, width: number, depth: number,
+	height: number, baseY: number, yaw: number, seed: number, far: boolean)
+	local at = CFrame.new(x, baseY, z) * CFrame.Angles(0, yaw, 0)
+	local even = seed % 2 == 0
+
+	if far then
+		-- A PEAK TAPERS OR IT IS A SLAB, AND ONLY A PICTURE SAID SO. The first
+		-- build was ONE box per peak, which measured exactly as designed --
+		-- right height, right width, sealed against its neighbours -- and
+		-- photographed from an orbiting camera as a ring of enormous
+		-- flat-topped boxes standing round the map. A flat top at this scale
+		-- is the one shape that cannot read as a mountain, and no amount of
+		-- height or colour fixes it, because the fault is the silhouette.
+		--
+		-- THREE STEPS RATHER THAN TWO. Two is a plinth with a block on it and
+		-- still reads as built; three is where the eye stops counting and
+		-- starts seeing a slope. Each step keeps 0.62 of the one under it and
+		-- they lean off the axis, so the ridge line wanders instead of
+		-- stacking into a pyramid -- deterministic from `seed`, like every
+		-- other scatter out here, so the skyline is the same on every server.
+		local shares = { 0.46, 0.32, 0.22 }
+		local rise = 0
+		local w, d = width, depth
+		for step, share in ipairs(shares) do
+			local tall = height * share
+			-- Leans by up to a fifth of the step's own width, drawn off the
+			-- seed so two neighbours never lean the same way.
+			local lean = math.sin((seed * 7 + step) * 12.9898) * 43758.5453
+			lean = (lean - math.floor(lean) - 0.5) * 0.4
+			local sway = math.sin((seed * 13 + step) * 78.233) * 43758.5453
+			sway = (sway - math.floor(sway) - 0.5) * 0.4
+			scenery("Peak", Vector3.new(w, tall + 2, d),
+				at * CFrame.new(w * lean, rise + (tall + 2) / 2 - 2, d * sway),
+				if (seed + step) % 2 == 0 then FAR_ROCK else FAR_ROCK_2,
+				Enum.Material.SmoothPlastic)
+			rise += tall
+			w, d = w * 0.62, d * 0.62
+		end
+		return
+	end
+
+	-- Buried a couple of studs so no face of the rock sits ON the turf it
+	-- stands in.
+	solid("Foothill", Vector3.new(width, height + 2, depth),
+		at * CFrame.new(0, (height + 2) / 2 - 2, 0),
+		if even then CLIFF_ROCK else CLIFF_ROCK_2, Enum.Material.SmoothPlastic)
+	solid("FoothillCap", Vector3.new(width + 0.7, CLIFF_CAP, depth + 0.7),
+		at * CFrame.new(0, height + CLIFF_CAP / 2 - 0.2, 0),
+		if even then HILL_ROCK else HILL_ROCK_2, Enum.Material.LeafyGrass)
+end
+
+-- ONE SEEDED SOURCE FOR ALL FOUR RINGS, drawn in a fixed order, for the reason
+-- the grass scatter and the valley wall are both seeded: every server builds
+-- the identical horizon, so a screenshot taken today describes the map
+-- somebody joins tomorrow.
+local function buildHorizon()
+	local rng = Random.new(20260918)
+	local apronTop = GROUND_Y - APRON_LIFT
+	local shelfTop = GROUND_Y - 27
+
+	-- 1. THE APRON, tucked sixty studs back under the slab so the seam
+	-- between them is buried rather than being a joint anybody can see.
+	ringWalk(SLAB_X, SLAB_Z, 420, 150, function(x, z, along, out, i, spacing)
+		landSegment(x, z, along, out, spacing, 60, 240 + rng:NextNumber() * 180,
+			apronTop, 180, rng:NextNumber() * 1.2, i, true)
+	end)
+
+	-- 2. THE FOOTHILLS, standing on the apron four studs outside the slab and
+	-- PUSHED OUT by half their own depth, so the inner face lands on that line
+	-- rather than the middle of the rock.
+	--
+	-- On the two LONG sides that is the constraint rather than a nicety. The
+	-- valley wall's deepest column already reaches the slab edge there
+	-- (`edgeZ` is GROUND_SIZE.Y / 2 - 30, and a column is up to 30 deep), so
+	-- there is no room at all between the wall and the edge -- a foothill
+	-- centred on this line would stand THROUGH the wall and be visible from
+	-- the street as a mass in front of it.
+	ringWalk(SLAB_X + 4, SLAB_Z + 4, 130, 120, function(x, z, along, out, i, _spacing)
+		local depth = 60 + rng:NextNumber() * 60
+		horizonColumn(x + out.X * depth / 2, z + out.Y * depth / 2,
+			150 + rng:NextNumber() * 70, depth, 44 + rng:NextNumber() * 52,
+			apronTop, math.rad((rng:NextNumber() - 0.5) * 20), i, false)
+
+		-- A low mound further out on about half of them. Without these the
+		-- apron is a flat green ring, which from above is the fault this whole
+		-- block is about, one ring along and two shades greener.
+		if rng:NextNumber() < 0.5 then
+			local size = 50 + rng:NextNumber() * 70
+			local away = 150 + rng:NextNumber() * 190
+			local sideways = (rng:NextNumber() - 0.5) * 120
+			horizonColumn(
+				x + out.X * away + along.X * sideways,
+				z + out.Y * away + along.Y * sideways,
+				size, size * (0.7 + rng:NextNumber() * 0.6),
+				12 + rng:NextNumber() * 26, apronTop,
+				math.rad(rng:NextNumber() * 90), i + 1, false)
+		end
+	end)
+
+	-- 3. THE OUTER SHELF. `under` is 160 rather than an average, because it
+	-- has to be buried beneath the apron at the apron's SHORTEST reach: the
+	-- gap would otherwise open exactly where the raggedness was most
+	-- interesting, which is the one place anybody would be looking.
+	-- REACHING 460 TO 600 RATHER THAN 400 TO 540, because the range stands on
+	-- this and its deepest column reaches 1075: at 400 the shallowest shelf
+	-- segment ended at exactly 1090, so a peak's outer face could land on the
+	-- shelf's own outer face -- two same-facing planes, both enormous, on the
+	-- one silhouette the whole ring exists to draw. 1150 leaves 75 studs.
+	ringWalk(SLAB_X + 300, SLAB_Z + 300, 600, 300, function(x, z, along, out, i, spacing)
+		landSegment(x, z, along, out, spacing, 160, 460 + rng:NextNumber() * 140,
+			shelfTop, 300, rng:NextNumber() * 1.2, i, false)
+	end)
+
+	-- 4. THE RANGE, on the shelf's rim. Stepped 200 against widths of 300 to
+	-- 430, so every column overlaps its neighbour by at least a hundred studs
+	-- -- unlike the foothills, a gap here is a hole with the sky behind it,
+	-- because there is nothing beyond this ring to back one.
+	-- The DEPTH is 150 to 250 rather than wider for the same reason the shelf
+	-- got longer: a column is centred on the ring line, so its faces have to
+	-- clear the shelf's outer edge on one side and the apron's on the other,
+	-- and 125 either way is what fits between 810 and 1150.
+	--
+	-- THE HEIGHTS CAME DOWN FROM 150..300 AFTER LOOKING AT IT. Against a map
+	-- 720 studs across, peaks of 300 standing 920 out filled most of the frame
+	-- from any orbiting camera -- the world read as a ring of mountains with a
+	-- village lost in the middle rather than as a valley. At 110..210 they are
+	-- a skyline. Note this is only ever judged from OUTSIDE: measured from the
+	-- street, the houses, shops and treeline shut the sightline long before
+	-- the horizon, so none of this ring is visible from inside the map at all.
+	ringWalk(SLAB_X + 560, SLAB_Z + 560, 0, 200, function(x, z, along, out, i, _spacing)
+		horizonColumn(x, z, 300 + rng:NextNumber() * 130,
+			150 + rng:NextNumber() * 100, 110 + rng:NextNumber() * 100,
+			shelfTop, math.rad((rng:NextNumber() - 0.5) * 24), i, true)
+	end)
 end
 
 local function buildHills(m: any)
-	buildHill(m, m.tunnelEastX, 1, m.roadHalfWidth + 4)
-	-- Both ends are open carriageway now that the square has moved to the
-	-- middle, so the west hill gets the same clearance as the east one rather
-	-- than the whole width of a bulb it is no longer standing behind.
-	buildHill(m, m.tunnelWestX, -1, m.roadHalfWidth + 8)
+	buildHill(m, m.tunnelEastX, 1)
+	buildHill(m, m.tunnelWestX, -1)
+	buildValley(m)
+	buildHorizon()
 end
 
 -- THE VERGE IS GRASS, AND THERE IS NO PAVING ON IT.

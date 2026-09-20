@@ -1,0 +1,11 @@
+{
+  "id": "bmx",
+  "name": "BMX Bike",
+  "parts": 22,
+  "turned": true,
+  "source": "assets/rides/ride-geometry.json",
+  "sourceSha256": "7cf9ac0766e128b71adf3107cb7b50584c85ba85adfb8941ef311f599fd2bf53",
+  "image": "assets/rides/bmx/shop-cards/bmx.png",
+  "sha256": "36f05423c7b184e54d3a0f371414a8d107d5c5540bf7d1ea379dd836a07b30f5",
+  "robloxAssetId": "rbxassetid://121211067763511"
+}

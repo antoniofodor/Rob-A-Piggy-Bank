@@ -1,0 +1,9 @@
+{
+  "id": "zebra",
+  "name": "Zebra",
+  "source": "assets/skins/animal/common/zebra/zebra-complete.blend",
+  "sourceSha256": "c38a87c94cdd1efc372be967aa2367f2b20c6a0f96b2ebc244eb7bd071d577f2",
+  "image": "assets/skins/animal/common/zebra/shop-cards/zebra.png",
+  "sha256": "a2ecda495364f5a27da4867eb3bea6da1f671224b03009dd8d97ac283a208757",
+  "robloxAssetId": "rbxassetid://134406442403226"
+}

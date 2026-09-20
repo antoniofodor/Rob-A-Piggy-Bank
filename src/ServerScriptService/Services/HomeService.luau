@@ -24,12 +24,6 @@
 	defender gets peace of mind, the robber loses seconds rather than coins,
 	and nobody burns a Golden Bone finding out.
 
-	THE SPRINKLER is a joke and is meant to stay one. It nudges trespassers
-	toward the gate and soaks them. No damage, no stun, no slow; they can walk
-	straight back in. Anything with teeth would be a fourth defence stacking on
-	the fence, the dog and the locks -- and it would bite during a steal
-	attempt, because a thief cracking a lock is stood still on that very lawn.
-
 	THE PATROL RADIO is the one thing here that is not about your own plot,
 	and it is the reason this file's title changed. It calls a police patrol
 	onto the street early, for 75,000 coins, and it does not survive being
@@ -68,9 +62,6 @@ local StealthService = require(script.Parent.StealthService)
 
 local HomeService = {}
 
--- Plots with a sprinkler running, and when it stops.
-local sprinkling: { [any]: number } = {}
-
 local function notify(player: Player, message: string, kind: string)
 	Remotes.get("Notify"):FireClient(player, message, kind)
 end
@@ -84,170 +75,6 @@ local function stock(data: any): { [string]: number }
 		data.consumables = {}
 	end
 	return data.consumables
-end
-
--- ============================================================
--- THE SPRINKLER
--- ============================================================
-
-local function buildSprinkler(plot: any): Model
-	local model = HomeModel.build("sprinkler")
-	-- On the lawn between the gate and the piggy, off to one side so it never
-	-- sits under the collect or steal prompt.
-	model:PivotTo(plot.cframe * CFrame.new(9, Config.PLOT_SIZE.Y / 2, 12))
-	model.Name = "Sprinkler"
-	model.Parent = plot.model
-
-	local head = model:FindFirstChild("Nozzle") :: BasePart?
-	if head then
-		local spray = Instance.new("ParticleEmitter")
-		spray.Name = "Spray"
-		spray.Texture = "rbxasset://textures/particles/sparkles_main.dds"
-		spray.Color = ColorSequence.new(Color3.fromRGB(210, 240, 255), Color3.fromRGB(120, 190, 235))
-		spray.Size = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, 0.6),
-			NumberSequenceKeypoint.new(1, 0),
-		})
-		spray.Transparency = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, 0.2),
-			NumberSequenceKeypoint.new(1, 1),
-		})
-		spray.Lifetime = NumberRange.new(1.0, 1.6)
-		spray.Rate = 90
-		spray.Speed = NumberRange.new(18, 26)
-		spray.SpreadAngle = Vector2.new(70, 180)
-		spray.Acceleration = Vector3.new(0, -30, 0)
-		spray.LightEmission = 0.4
-		spray.Parent = head
-	end
-
-	return model
-end
-
--- Everyone standing inside this plot's fence who is not its owner.
---
--- The fence rectangle, not the plot slab -- the same shape PlotService puts
--- its barriers around. Measuring from the slab would leave the whole back
--- garden outside the sprinkler's reach.
-local function trespassers(plot: any): { Player }
-	-- The fence rectangle is 64 x 48 now, so its width and its front line are
-	-- two different numbers -- see Config.PLOT_HALF_WIDTH.
-	local halfWidth = Config.PLOT_HALF_WIDTH
-	local frontZ = Config.PLOT_FRONT_LINE
-	local found = {}
-
-	for _, player in ipairs(Players:GetPlayers()) do
-		if player ~= plot.owner then
-			local character = player.Character
-			local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
-			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-			if root and humanoid and humanoid.Health > 0 then
-				local at = plot.cframe:PointToObjectSpace(root.Position)
-				if math.abs(at.X) <= halfWidth and at.Z <= frontZ and at.Z >= -Config.YARD_DEPTH then
-					table.insert(found, player)
-				end
-			end
-		end
-	end
-	return found
-end
-
-local function soak(player: Player)
-	local character = player.Character
-	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
-	if not root then
-		return
-	end
-
-	if not root:FindFirstChild("Soaked") then
-		local drip = Instance.new("ParticleEmitter")
-		drip.Name = "Soaked"
-		drip.Texture = "rbxasset://textures/particles/sparkles_main.dds"
-		drip.Color = ColorSequence.new(Color3.fromRGB(180, 220, 245))
-		drip.Size = NumberSequence.new(0.5, 0)
-		drip.Transparency = NumberSequence.new(0.3, 1)
-		drip.Lifetime = NumberRange.new(0.5, 0.9)
-		drip.Rate = 22
-		drip.Speed = NumberRange.new(1, 3)
-		drip.Acceleration = Vector3.new(0, -22, 0)
-		drip.Parent = root
-		task.delay(3, function()
-			if drip.Parent then
-				drip:Destroy()
-			end
-		end)
-	end
-end
-
--- A shove toward the gate, and nothing else.
---
--- Deliberately weak. Anything strong enough to actually clear a lawn would be
--- a defence rather than a joke, and at this plot spacing it would throw people
--- into the road -- which is somebody else's front garden.
---
--- Written as a velocity rather than a CFrame nudge because the client owns its
--- own character: a position write fights the player's own movement and rubber
--- bands, where an impulse reads as being shoved.
-local function shove(plot: any, player: Player)
-	local character = player.Character
-	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
-	if not root then
-		return
-	end
-
-	-- Out toward the street, which is plot-local +Z.
-	local out = plot.cframe.LookVector * -1
-	local flat = Vector3.new(out.X, 0, out.Z)
-	local dir = if flat.Magnitude > 0.01 then flat.Unit else Vector3.new(0, 0, 1)
-
-	root.AssemblyLinearVelocity = dir * Config.SPRINKLER_PUSH
-		+ Vector3.new(0, Config.SPRINKLER_LIFT, 0)
-end
-
-function HomeService.useSprinkler(player: Player, spec: any): boolean
-	local plot = PlotService.getPlot(player)
-	if not plot then
-		notify(player, "You need a plot first.", "warn")
-		return false
-	end
-
-	if sprinkling[plot] and os.clock() < sprinkling[plot] then
-		notify(player, "Your sprinkler is already running.", "warn")
-		return false
-	end
-
-	sprinkling[plot] = os.clock() + spec.duration
-	local model = buildSprinkler(plot)
-
-	task.spawn(function()
-		local spin = 0
-		local nextShove = 0
-		local base = model:GetPivot()
-
-		while sprinkling[plot] and os.clock() < sprinkling[plot] and model.Parent do
-			-- Spins every frame, shoves on a slower beat. A shove per frame
-			-- would be a launcher rather than a nudge.
-			spin += 0.08
-			model:PivotTo(base * CFrame.Angles(0, spin, 0))
-
-			if os.clock() >= nextShove then
-				nextShove = os.clock() + Config.SPRINKLER_TICK
-				for _, victim in ipairs(trespassers(plot)) do
-					shove(plot, victim)
-					soak(victim)
-				end
-			end
-			RunService.Heartbeat:Wait()
-		end
-
-		sprinkling[plot] = nil
-		if model.Parent then
-			model:Destroy()
-		end
-	end)
-
-	notify(player, ("Sprinkler on for %d seconds."):format(spec.duration), "good")
-	return true
 end
 
 -- ============================================================
@@ -365,8 +192,6 @@ function HomeService.use(player: Player, key: string)
 	local used = false
 	if spec.style == "treat" then
 		used = HomeService.useTreat(player, spec)
-	elseif spec.style == "sprinkler" then
-		used = HomeService.useSprinkler(player, spec)
 	elseif spec.style == "radio" then
 		used = HomeService.useRadio(player, spec)
 	end

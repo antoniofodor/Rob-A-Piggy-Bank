@@ -1,0 +1,166 @@
+{
+  "count": 7,
+  "models": [
+    {
+      "skin": "strawberrycow",
+      "name": "Strawberry Cow",
+      "rarity": "rare",
+      "parent": "cow",
+      "package": "assets/skins/animal/rare/strawberrycow",
+      "triangles": 20670,
+      "emissiveTextures": [
+        {
+          "group": "body",
+          "file": "strawberrycow_body_emissive.png",
+          "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a",
+          "strengthPreview": 0.800000011920929
+        },
+        {
+          "group": "trim",
+          "file": "strawberrycow_trim_emissive.png",
+          "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8",
+          "strengthPreview": 0.800000011920929
+        }
+      ],
+      "status": "First art pass; Studio integration pending"
+    },
+    {
+      "skin": "cookiescream",
+      "name": "Cookies & Cream",
+      "rarity": "rare",
+      "parent": "cow",
+      "package": "assets/skins/animal/rare/cookiescream",
+      "triangles": 20670,
+      "emissiveTextures": [
+        {
+          "group": "body",
+          "file": "cookiescream_body_emissive.png",
+          "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a",
+          "strengthPreview": 0.800000011920929
+        },
+        {
+          "group": "trim",
+          "file": "cookiescream_trim_emissive.png",
+          "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8",
+          "strengthPreview": 0.800000011920929
+        }
+      ],
+      "status": "First art pass; Studio integration pending"
+    },
+    {
+      "skin": "watermelon",
+      "name": "Watermelon",
+      "rarity": "rare",
+      "parent": "ladybird",
+      "package": "assets/skins/animal/rare/watermelon",
+      "triangles": 20670,
+      "emissiveTextures": [
+        {
+          "group": "body",
+          "file": "watermelon_body_emissive.png",
+          "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a",
+          "strengthPreview": 0.800000011920929
+        },
+        {
+          "group": "trim",
+          "file": "watermelon_trim_emissive.png",
+          "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8",
+          "strengthPreview": 0.800000011920929
+        }
+      ],
+      "status": "First art pass; Studio integration pending"
+    },
+    {
+      "skin": "peppermint",
+      "name": "Peppermint",
+      "rarity": "rare",
+      "parent": "tiger",
+      "package": "assets/skins/animal/rare/peppermint",
+      "triangles": 20670,
+      "emissiveTextures": [
+        {
+          "group": "body",
+          "file": "peppermint_body_emissive.png",
+          "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a",
+          "strengthPreview": 0.800000011920929
+        },
+        {
+          "group": "trim",
+          "file": "peppermint_trim_emissive.png",
+          "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8",
+          "strengthPreview": 0.800000011920929
+        }
+      ],
+      "status": "First art pass; Studio integration pending"
+    },
+    {
+      "skin": "glacier",
+      "name": "Glacier",
+      "rarity": "rare",
+      "parent": "tiger",
+      "package": "assets/skins/animal/rare/glacier",
+      "triangles": 20670,
+      "emissiveTextures": [
+        {
+          "group": "body",
+          "file": "glacier_body_emissive.png",
+          "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a",
+          "strengthPreview": 0.800000011920929
+        },
+        {
+          "group": "trim",
+          "file": "glacier_trim_emissive.png",
+          "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8",
+          "strengthPreview": 0.800000011920929
+        }
+      ],
+      "status": "First art pass; Studio integration pending"
+    },
+    {
+      "skin": "bubblegumleopard",
+      "name": "Bubblegum Leopard",
+      "rarity": "rare",
+      "parent": "leopard",
+      "package": "assets/skins/animal/rare/bubblegumleopard",
+      "triangles": 20670,
+      "emissiveTextures": [
+        {
+          "group": "body",
+          "file": "bubblegumleopard_body_emissive.png",
+          "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a",
+          "strengthPreview": 0.800000011920929
+        },
+        {
+          "group": "trim",
+          "file": "bubblegumleopard_trim_emissive.png",
+          "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8",
+          "strengthPreview": 0.800000011920929
+        }
+      ],
+      "status": "First art pass; Studio integration pending"
+    },
+    {
+      "skin": "honeycomb",
+      "name": "Honeycomb",
+      "rarity": "rare",
+      "parent": "giraffe",
+      "package": "assets/skins/animal/rare/honeycomb",
+      "triangles": 20670,
+      "emissiveTextures": [
+        {
+          "group": "body",
+          "file": "honeycomb_body_emissive.png",
+          "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a",
+          "strengthPreview": 0.800000011920929
+        },
+        {
+          "group": "trim",
+          "file": "honeycomb_trim_emissive.png",
+          "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8",
+          "strengthPreview": 0.800000011920929
+        }
+      ],
+      "status": "First art pass; Studio integration pending"
+    }
+  ]
+}

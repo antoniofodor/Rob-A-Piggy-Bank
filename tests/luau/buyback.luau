@@ -144,7 +144,9 @@ local function event()
  fire=function(_,...) for _,fn in callbacks do fn(...) end end}
 end
 local function instance(class)
- local object={ClassName=class,Activated=event(),Destroy=function(self) self.destroyed=true end}
+ local object={ClassName=class,Activated=event(),AbsoluteSize={X=1000,Y=600},
+ GetPropertyChangedSignal=function() return event() end,
+ Destroy=function(self) self.destroyed=true end}
  table.insert(objects,object);return object
 end
 local function find(name)
@@ -155,8 +157,15 @@ local function child(parent,class)
 end
 local heartbeat=event()
 local frames=0
-local style={round=noop,outline=noop}
-local uiModules={Config=Config,ShopStyle=style,SpinWheel={},Theme={acornPrice=function(button,text) button.Text=text end}}
+-- Colours are inert here; the crates tab only mixes and passes them along.
+local colour=setmetatable({},{__index=function() return function(c) return c end end})
+local style={round=noop,outline=noop,gloss=noop,deepen=function(c) return c end,
+ chip=function(parent) local c=instance("TextLabel");c.Parent=parent;return c end}
+local uiModules={Config=Config,ShopStyle=style,SpinWheel={},ShopIcons={mount=function() end},
+ ShopWidgets={button=function(parent,name) local b=instance("TextButton");b.Name=name;b.Parent=parent;return b end},
+ Theme={acornPrice=function(button,text) button.Text=text end,PAPER=colour,INK=colour,MUTED=colour,HUE={crates=colour}}}
+uiModules.CrateContents={new=function() return {update=noop,close=noop,loadVisible=noop} end}
+uiModules.ShopCatalogueLayout={bindCard=noop} -- Geometry is covered by shopui.
 local uiNow=boundary-10
 local function val(...) return {...} end
 local UI=load("Crates",{game={GetService=function(_,name)

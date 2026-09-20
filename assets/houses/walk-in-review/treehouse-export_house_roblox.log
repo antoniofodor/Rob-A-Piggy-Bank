@@ -1,0 +1,10 @@
+00:06.875  blend            | Read blend: "C:\Users\anton\robloxGame\assets\houses\treehouse-v3\treehouse.blend"
+ROUTES {"samples": 0, "blocked": 0, "firstFindings": []}
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\treehouse-v3\\treehouse-roblox.fbx'
+export finished in 0.3904 sec.
+FBX version: 7400
+IMPORT_REPORT {"meshCount": 65, "triangles": 29832, "basePartsWithCompanion": 114, "fbxRoundTripMaxBoundsError": 1.6689300537109375e-06}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

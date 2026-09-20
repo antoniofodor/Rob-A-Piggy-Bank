@@ -1,0 +1,807 @@
+{
+  "id": "mushroom",
+  "revision": 2,
+  "sourceRevision": 1,
+  "status": "Bare walk-in shell; Studio import and avatar playtest pending",
+  "visualMeshes": 80,
+  "triangles": 5088,
+  "meshes": [
+    {
+      "name": "DoorFrame",
+      "triangles": 116,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "MushroomCap",
+      "triangles": 236,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "ChimneyCap",
+      "triangles": 236,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "BabyCap_0",
+      "triangles": 236,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "BabyCap_1",
+      "triangles": 236,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Floor",
+      "triangles": 28,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Wall_00",
+      "triangles": 72,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Plinth_0_-1",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Plinth_0_1",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "TopBeam_0",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "CornerPost_0",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Wall_01",
+      "triangles": 96,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowGlass_1",
+      "triangles": 76,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowFrame_1_-1",
+      "triangles": 192,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowFrame_1_1",
+      "triangles": 192,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowCrossH_1",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowCrossV_1",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Plinth_1_0",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "TopBeam_1",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "CornerPost_1",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Wall_02",
+      "triangles": 96,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowGlass_2",
+      "triangles": 76,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowFrame_2_-1",
+      "triangles": 192,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowFrame_2_1",
+      "triangles": 192,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowCrossH_2",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowCrossV_2",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Plinth_2_0",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "TopBeam_2",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "CornerPost_2",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Wall_03",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Plinth_3_0",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "TopBeam_3",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "CornerPost_3",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Wall_04",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Plinth_4_0",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "TopBeam_4",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "CornerPost_4",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Wall_05",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Plinth_5_0",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "TopBeam_5",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "CornerPost_5",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Wall_06",
+      "triangles": 96,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowGlass_6",
+      "triangles": 76,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowFrame_6_-1",
+      "triangles": 192,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowFrame_6_1",
+      "triangles": 192,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowCrossH_6",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowCrossV_6",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Plinth_6_0",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "TopBeam_6",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "CornerPost_6",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Wall_07",
+      "triangles": 96,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowGlass_7",
+      "triangles": 76,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowFrame_7_-1",
+      "triangles": 192,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowFrame_7_1",
+      "triangles": 192,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowCrossH_7",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WindowCrossV_7",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Plinth_7_0",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "TopBeam_7",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "CornerPost_7",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "EntryStep_0",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "EntryStep_1",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "EntryStep_2",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "CapUnderside",
+      "triangles": 92,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "RaisedSpot_0",
+      "triangles": 120,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "RaisedSpot_1",
+      "triangles": 120,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "RaisedSpot_2",
+      "triangles": 120,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "RaisedSpot_3",
+      "triangles": 120,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "RaisedSpot_4",
+      "triangles": 120,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "RaisedSpot_5",
+      "triangles": 120,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "RaisedSpot_6",
+      "triangles": 120,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "ChimneyStem",
+      "triangles": 36,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "BabyStem_0",
+      "triangles": 36,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "BabyStem_1",
+      "triangles": 36,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "WalkThreshold",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseDoorLeaf_L",
+      "triangles": 40,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseDoorLeaf_L_Panel",
+      "triangles": 40,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseDoorLeaf_L_Handle",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseDoorLeaf_R",
+      "triangles": 40,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseDoorLeaf_R_Panel",
+      "triangles": 40,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseDoorLeaf_R_Handle",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    }
+  ],
+  "boundsBlender": {
+    "min": [
+      -18.900001525878906,
+      -6.149999618530273,
+      0.0
+    ],
+    "max": [
+      18.900001525878906,
+      31.650001525878906,
+      21.599998474121094
+    ],
+    "size": [
+      37.80000305175781,
+      37.80000114440918,
+      21.599998474121094
+    ]
+  },
+  "paletteRGB": {
+    "Trim": [
+      62,
+      43,
+      31
+    ],
+    "WalkWall": [
+      236,
+      216,
+      179
+    ],
+    "Cap": [
+      151,
+      46,
+      60
+    ],
+    "Timber": [
+      100,
+      65,
+      40
+    ],
+    "Cream": [
+      237,
+      218,
+      179
+    ],
+    "Stone": [
+      170,
+      151,
+      119
+    ],
+    "Glass": [
+      228,
+      172,
+      64
+    ],
+    "Spot": [
+      255,
+      239,
+      201
+    ],
+    "WalkFloor": [
+      124,
+      84,
+      49
+    ],
+    "WalkDoor": [
+      103,
+      64,
+      39
+    ],
+    "WalkTrim": [
+      116,
+      72,
+      44
+    ]
+  },
+  "collisionBoxesDraft": [
+    {
+      "name": "FloorCentral",
+      "blenderLocation": [
+        0.0,
+        12.75,
+        0.26249999999999996
+      ],
+      "sizeXYZ": [
+        18.0,
+        25.5,
+        0.5249999999999999
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "FloorRight",
+      "blenderLocation": [
+        10.8,
+        12.75,
+        0.26249999999999996
+      ],
+      "sizeXYZ": [
+        3.5999999999999996,
+        18.0,
+        0.5249999999999999
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "FloorLeft",
+      "blenderLocation": [
+        -10.8,
+        12.75,
+        0.26249999999999996
+      ],
+      "sizeXYZ": [
+        3.5999999999999996,
+        18.0,
+        0.5249999999999999
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "DoorJamb-1",
+      "blenderLocation": [
+        -4.7856114601284805,
+        0.0,
+        7.6499999999999995
+      ],
+      "sizeXYZ": [
+        1.171222920256962,
+        1.0499999999999998,
+        14.25
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "DoorJamb1",
+      "blenderLocation": [
+        4.7856114601284805,
+        0.0,
+        7.6499999999999995
+      ],
+      "sizeXYZ": [
+        1.171222920256962,
+        1.0499999999999998,
+        14.25
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "DoorLintel",
+      "blenderLocation": [
+        0.0,
+        0.0,
+        13.875
+      ],
+      "sizeXYZ": [
+        8.399999999999999,
+        1.0499999999999998,
+        1.7999999999999998
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Wall_01",
+      "blenderLocation": [
+        9.015611460128483,
+        3.734388539871518,
+        7.6499999999999995
+      ],
+      "sizeXYZ": [
+        10.742445840513923,
+        1.0499999999999998,
+        14.25
+      ],
+      "rotationZ": 0.7853981633974483
+    },
+    {
+      "name": "SideWall_02",
+      "blenderLocation": [
+        12.75,
+        12.75,
+        7.6499999999999995
+      ],
+      "sizeXYZ": [
+        10.742445840513923,
+        1.0499999999999998,
+        14.25
+      ],
+      "rotationZ": 1.5707963267948966
+    },
+    {
+      "name": "Wall_03",
+      "blenderLocation": [
+        9.015611460128483,
+        21.765611460128483,
+        7.6499999999999995
+      ],
+      "sizeXYZ": [
+        10.742445840513923,
+        1.0499999999999998,
+        14.25
+      ],
+      "rotationZ": 2.356194490192345
+    },
+    {
+      "name": "Wall_04",
+      "blenderLocation": [
+        7.807123344564376e-16,
+        25.5,
+        7.6499999999999995
+      ],
+      "sizeXYZ": [
+        10.742445840513923,
+        1.0499999999999998,
+        14.25
+      ],
+      "rotationZ": 3.141592653589793
+    },
+    {
+      "name": "Wall_05",
+      "blenderLocation": [
+        -9.015611460128481,
+        21.765611460128483,
+        7.6499999999999995
+      ],
+      "sizeXYZ": [
+        10.742445840513923,
+        1.0499999999999998,
+        14.25
+      ],
+      "rotationZ": 3.9269908169872414
+    },
+    {
+      "name": "SideWall_06",
+      "blenderLocation": [
+        -12.75,
+        12.750000000000004,
+        7.6499999999999995
+      ],
+      "sizeXYZ": [
+        10.742445840513923,
+        1.0499999999999998,
+        14.25
+      ],
+      "rotationZ": 4.71238898038469
+    },
+    {
+      "name": "Wall_07",
+      "blenderLocation": [
+        -9.015611460128483,
+        3.7343885398715195,
+        7.6499999999999995
+      ],
+      "sizeXYZ": [
+        10.742445840513923,
+        1.0499999999999998,
+        14.25
+      ],
+      "rotationZ": 5.497787143782138
+    },
+    {
+      "name": "EntryStep_0",
+      "blenderLocation": [
+        0.0,
+        -1.5,
+        0.3450000062584877
+      ],
+      "sizeXYZ": [
+        8.549999713897705,
+        1.2900000214576721,
+        0.6000000089406967
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "EntryStep_1",
+      "blenderLocation": [
+        0.0,
+        -2.6999999284744263,
+        0.26249999552965164
+      ],
+      "sizeXYZ": [
+        8.549999713897705,
+        1.2900000214576721,
+        0.4349999874830246
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "EntryStep_2",
+      "blenderLocation": [
+        0.0,
+        -3.8999998569488525,
+        0.17999999597668648
+      ],
+      "sizeXYZ": [
+        8.549999713897705,
+        1.2900000214576721,
+        0.27000001072883606
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "WalkThreshold",
+      "blenderLocation": [
+        0.0,
+        1.875,
+        0.47999998927116394
+      ],
+      "sizeXYZ": [
+        8.175000190734863,
+        6.050000190734863,
+        0.20999999344348907
+      ]
+    }
+  ],
+  "mountsBlender": {
+    "Door_Exit": [
+      0.0,
+      -1.9,
+      0.5249999999999999
+    ],
+    "Wall": [
+      0.0,
+      24.900000000000002,
+      4.725
+    ]
+  },
+  "floorHeight": 0.5249999999999999,
+  "reference": "assets/houses/docs/HOUSE-TIER-BRIEF.md",
+  "routesBlender": [],
+  "walkIn": {
+    "roomBounds": [
+      -8.25,
+      8.25,
+      4.5,
+      21.75,
+      0.5249999999999999,
+      14.100000000000001
+    ],
+    "entry": [
+      0.0,
+      -0.8999999999999999,
+      0.5249999999999999,
+      8.175,
+      10.5
+    ],
+    "doors": [
+      {
+        "name": "HouseDoorLeaf_L",
+        "hingeBlender": [
+          -4.0875,
+          -0.9799999999999999,
+          0.5249999999999999
+        ],
+        "openDegrees": -100,
+        "sizeXYZ": [
+          3.9725000858306885,
+          0.20000004768371582,
+          10.34000015258789
+        ],
+        "closedCenterBlender": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "name": "HouseDoorLeaf_R",
+        "hingeBlender": [
+          4.0875,
+          -0.9799999999999999,
+          0.5249999999999999
+        ],
+        "openDegrees": 100,
+        "sizeXYZ": [
+          3.9725000858306885,
+          0.20000004768371582,
+          10.34000015258789
+        ],
+        "closedCenterBlender": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "probes": 40,
+    "blocked": [],
+    "furnished": false,
+    "accessibleFloors": 1,
+    "geometryClearance": "1.7-stud body, 5.8-stud height; 25 room-grid and 15 doorway samples",
+    "collision": "Dedicated floors and walls; visual meshes and animated doors must not collide",
+    "bakedExteriorScale": 1.5,
+    "runtimeDisplayScale": 1.0
+  },
+  "mountYawBlender": {
+    "Wall": 180,
+    "Door_Exit": 180
+  }
+}

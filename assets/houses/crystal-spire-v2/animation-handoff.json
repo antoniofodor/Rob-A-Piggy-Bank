@@ -1,0 +1,38 @@
+{
+  "status": "Named mesh groups and timing spec; runtime animation not installed",
+  "effects": [
+    {
+      "section": "HouseFX_CrystalAccent_1",
+      "kind": "pulse",
+      "periodSeconds": 9,
+      "phase": 0.0,
+      "intensity": [
+        0.45,
+        0.8
+      ],
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_CrystalAccent_2",
+      "kind": "pulse",
+      "periodSeconds": 9,
+      "phase": 0.3333333333333333,
+      "intensity": [
+        0.45,
+        0.8
+      ],
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_CrystalAccent_3",
+      "kind": "pulse",
+      "periodSeconds": 9,
+      "phase": 0.6666666666666666,
+      "intensity": [
+        0.45,
+        0.8
+      ],
+      "fixedGeometry": true
+    }
+  ]
+}

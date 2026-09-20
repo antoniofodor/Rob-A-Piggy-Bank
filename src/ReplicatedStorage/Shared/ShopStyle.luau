@@ -163,6 +163,70 @@ end
 -- A DARKER, DESATURATED RELATIVE OF A HUE, for the well an icon sits in. It
 -- is derived rather than listed so a new category needs one colour and not
 -- three, and so the two can never drift apart.
+-- EVERY WORD IN THE SHOP IS WHITE WITH A BLACK STROKE. Ink on cream reads,
+-- and it also reads as a form; white type with a hard outline is what makes
+-- a word POP off whatever it is sitting on, which is the one look every other
+-- surface in this cartoon already has. One rule rather than a colour per
+-- label, so a card, a header, a price and a tab all read as one set.
+--
+-- A GUIOBJECT TAKES ONE UISTROKE, and a button or a pill already spends its
+-- own on the BORDER. Those get the legacy text stroke instead, which draws on
+-- the glyphs and ignores the UIStroke entirely.
+--
+-- THE WHITE IS HELD, not set once. Plenty of render code repaints a label's
+-- colour every push (affordable, too dear, muted); left alone, the next push
+-- would undo this one label at a time. A label that must keep its own colour
+-- carries the `KeepColour` attribute.
+ShopStyle.POP_TEXT = Color3.new(1, 1, 1)
+
+function ShopStyle.popText(label: Instance)
+	if not (label:IsA("TextLabel") or label:IsA("TextButton")) then
+		return
+	end
+	local l = label :: TextLabel
+	if l:GetAttribute("Popped") or l:GetAttribute("KeepColour") then
+		return
+	end
+	l:SetAttribute("Popped", true)
+	l.TextColor3 = ShopStyle.POP_TEXT
+	local thick = if l.TextScaled then 2 else math.clamp(l.TextSize / 8, 1.5, 3)
+	local own = l:FindFirstChildOfClass("UIStroke")
+	if own and own.ApplyStrokeMode == Enum.ApplyStrokeMode.Border then
+		l.TextStrokeColor3 = ShopStyle.INK
+		l.TextStrokeTransparency = 0
+	else
+		local s = own or Instance.new("UIStroke")
+		s.Name = "Pop"
+		s.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+		s.Color = ShopStyle.INK
+		s.Thickness = math.max(if own then own.Thickness else 0, thick)
+		s.Transparency = l.TextTransparency
+		s.Parent = l
+		-- A label that fades must take its outline with it.
+		l:GetPropertyChangedSignal("TextTransparency"):Connect(function()
+			s.Transparency = l.TextTransparency
+		end)
+	end
+	l:GetPropertyChangedSignal("TextColor3"):Connect(function()
+		if l.TextColor3 ~= ShopStyle.POP_TEXT then
+			l.TextColor3 = ShopStyle.POP_TEXT
+		end
+	end)
+end
+
+-- Every label under `root`, now and as they are built. Deferred, because the
+-- shop's builders parent a label first and give it its outline after.
+function ShopStyle.popTree(root: Instance)
+	for _, d in ipairs(root:GetDescendants()) do
+		ShopStyle.popText(d)
+	end
+	root.DescendantAdded:Connect(function(d)
+		if d:IsA("TextLabel") or d:IsA("TextButton") then
+			task.defer(ShopStyle.popText, d)
+		end
+	end)
+end
+
 function ShopStyle.deepen(hue: Color3, amount: number?): Color3
 	return hue:Lerp(ShopStyle.SUNK, amount or 0.72)
 end

@@ -1,0 +1,82 @@
+{
+  "id": "goldenboy",
+  "name": "Golden Boy",
+  "rig": "shepherd",
+  "source": "assets/guards/shepherd/shepherd.blend",
+  "sourceSha256": "4cdcfab5b4ed35a0175a44a0fb7cede0c3366ee0023fb841e2b65badccb4ca1f",
+  "image": "assets/guards/shepherd/shop-cards/goldenboy.png",
+  "sha256": "bbbcd4780cbe814b45f6c0070456b79834c5631d70bb091bba03b00054ad56f0",
+  "tones": {
+    "fur": [
+      226,
+      174,
+      96
+    ],
+    "dark": [
+      166,
+      116,
+      54
+    ],
+    "light": [
+      236.15,
+      202.35,
+      151.65
+    ],
+    "collar": [
+      206,
+      62,
+      78
+    ],
+    "brow": [
+      226,
+      174,
+      96
+    ],
+    "mask": [
+      230.06,
+      185.33999999999997,
+      118.25999999999999
+    ],
+    "eye": [
+      18,
+      18,
+      20
+    ],
+    "nose": [
+      29,
+      27,
+      30
+    ],
+    "mouth": [
+      41,
+      24,
+      31
+    ],
+    "teeth": [
+      248,
+      232,
+      189
+    ],
+    "inner": [
+      201,
+      126,
+      112
+    ],
+    "armor": [
+      131,
+      48,
+      78
+    ],
+    "accent": [
+      238,
+      122,
+      64
+    ],
+    "silver": [
+      171,
+      170,
+      182
+    ]
+  },
+  "robloxAssetId": "rbxassetid://70909885384363"
+}

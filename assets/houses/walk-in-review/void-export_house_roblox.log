@@ -1,0 +1,10 @@
+00:04.156  blend            | Read blend: "C:\Users\anton\robloxGame\assets\houses\the-void-v2\the-void.blend"
+ROUTES {"samples": 0, "blocked": 0, "firstFindings": []}
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\the-void-v2\\the-void-roblox.fbx'
+export finished in 0.2903 sec.
+FBX version: 7400
+IMPORT_REPORT {"meshCount": 79, "triangles": 19174, "basePartsWithCompanion": 98, "fbxRoundTripMaxBoundsError": 7.62939453125e-06}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

@@ -1,0 +1,82 @@
+{
+  "id": "shadow",
+  "name": "Shadow",
+  "rig": "shepherd",
+  "source": "assets/guards/shepherd/shepherd.blend",
+  "sourceSha256": "4cdcfab5b4ed35a0175a44a0fb7cede0c3366ee0023fb841e2b65badccb4ca1f",
+  "image": "assets/guards/shepherd/shop-cards/shadow.png",
+  "sha256": "10f23a9df50a30b33a611b38d8594d656ba6bd5c766d041030ddd97ad9b5922b",
+  "tones": {
+    "fur": [
+      52,
+      52,
+      60
+    ],
+    "dark": [
+      28,
+      28,
+      34
+    ],
+    "light": [
+      123.05,
+      123.05,
+      128.25
+    ],
+    "collar": [
+      198,
+      54,
+      62
+    ],
+    "brow": [
+      52,
+      52,
+      60
+    ],
+    "mask": [
+      80.42,
+      80.42,
+      87.30000000000001
+    ],
+    "eye": [
+      18,
+      18,
+      20
+    ],
+    "nose": [
+      29,
+      27,
+      30
+    ],
+    "mouth": [
+      41,
+      24,
+      31
+    ],
+    "teeth": [
+      248,
+      232,
+      189
+    ],
+    "inner": [
+      201,
+      126,
+      112
+    ],
+    "armor": [
+      131,
+      48,
+      78
+    ],
+    "accent": [
+      238,
+      122,
+      64
+    ],
+    "silver": [
+      171,
+      170,
+      182
+    ]
+  },
+  "robloxAssetId": "rbxassetid://127154832312483"
+}

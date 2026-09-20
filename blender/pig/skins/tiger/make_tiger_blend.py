@@ -751,6 +751,10 @@ bpy.ops.wm.open_mainfile(filepath=paths.find(SRC, "blend"))
 body_mat = coat("tiger_body")
 trim_mat = coat("tiger_trim")
 ear_mat = flat("tiger_ear_inner", EAR_PINK)
+# The entire muzzle, including its recessed nostril walls, is orange.
+# The shared coat field let a clipped stripe survive on the rear bevel and
+# painted the deeper dimple surfaces cream as they crossed its Y threshold.
+snout_mat = flat("tiger_snout", ORANGE)
 
 # THE EARS KEEP THEIR TWO SLOTS AND THE ORDER THEY ARE IN. Face assignment
 # lives on the polygons as a `material_index`, so replacing slot 0 with slot 0
@@ -758,7 +762,7 @@ ear_mat = flat("tiger_ear_inner", EAR_PINK)
 # the list and append in the wrong order and the inner ear paints the outside
 # with nothing to say so.
 ASSIGN = [("Body", [body_mat]),
-          ("Snout", [trim_mat]),
+          ("Snout", [snout_mat]),
           ("Legs", [trim_mat]),
           ("Tail", [trim_mat]),
           ("Ears", [trim_mat, ear_mat])]

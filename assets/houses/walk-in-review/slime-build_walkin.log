@@ -1,0 +1,18 @@
+00:03.531  blend            | Read blend: "C:\Users\anton\robloxGame\assets\houses\gloop-house-v2\gloop-house.blend"
+C:\Users\anton\robloxGame\assets\houses\tools\build_walkin.py:44: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(name);m.use_nodes=True
+00:06.109  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_14528_a150219a96cf8aa4e23e06a7f76e151f.png.png"
+00:20.250  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\gloop-house-v3\exterior.png'
+00:41.859  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\gloop-house-v3\interior.png'
+01:02.718  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\gloop-house-v3\entry.png'
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\gloop-house-v3\\gloop-house-visual.fbx'
+export finished in 0.0930 sec.
+Info: File exported successfully
+Info: Saved as "gloop-house.blend"
+WALKIN_COMPLETE {"id": "slime", "folder": "gloop-house-v3", "probes": 40, "triangles": 34534}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+Writing to C:\Users\anton\robloxGame\assets\houses\gloop-house-v3\gloop-house-visual.obj
+OBJ export of 'gloop-house-visual.obj' took 25.08 ms
+
+Blender quit

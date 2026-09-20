@@ -85,6 +85,20 @@ def skin_blend(key):
     return os.path.join(skin_dir(key), key + ".blend")
 
 
+ANIMAL_RARITIES = {
+    **dict.fromkeys(('bee', 'ladybird', 'cow', 'zebra', 'giraffe', 'leopard', 'tiger', 'snowleopard'), 'common'),
+    **dict.fromkeys(('strawberrycow', 'cookiescream', 'watermelon', 'peppermint', 'glacier', 'bubblegumleopard', 'honeycomb'), 'rare'),
+    **dict.fromkeys(('stormwolf', 'dragon', 'phoenix', 'rainbowtiger'), 'legendary'),
+}
+
+
+def animal_package(key):
+    """Current game-import package; procedural sources stay in skin_dir."""
+    d = os.path.abspath(os.path.join(HERE, '..', '..', 'assets', 'skins', 'animal', ANIMAL_RARITIES[key], key))
+    os.makedirs(d, exist_ok=True)
+    return d
+
+
 def skin_map(key, group):
     """`skins/<key>/<key>_<group>_color.png`, for group `body` or `trim`.
 

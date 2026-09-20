@@ -1,0 +1,35 @@
+{
+  "name": "Cookies & Cream",
+  "parent": "cow",
+  "base": [
+    255,
+    238,
+    205
+  ],
+  "ink": [
+    68,
+    39,
+    28
+  ],
+  "nose": [
+    163,
+    108,
+    80
+  ],
+  "ear": [
+    231,
+    181,
+    141
+  ],
+  "pale": [
+    255,
+    247,
+    228
+  ],
+  "skin": "cookiescream",
+  "rarity": "rare",
+  "parentScene": "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\cow\\cow.blend",
+  "parentSceneSha256": "593a5a80e7ca604f587d203cc4dc2ea23762db055a5355fe67dcdee150e492e0",
+  "emissiveStrength": 0.8,
+  "glow": "Static sparse highlights; no animation or extra geometry"
+}

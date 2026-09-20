@@ -1,0 +1,33 @@
+{
+  "status": "Named mesh groups and timing spec; runtime animation not installed",
+  "effects": [
+    {
+      "section": "HouseFX_Bubble_1",
+      "kind": "bob",
+      "periodSeconds": 7,
+      "phase": 0.25,
+      "amplitudeStuds": 0.393
+    },
+    {
+      "section": "HouseFX_Bubble_2",
+      "kind": "bob",
+      "periodSeconds": 7,
+      "phase": 0.5,
+      "amplitudeStuds": 0.393
+    },
+    {
+      "section": "HouseFX_Bubble_3",
+      "kind": "bob",
+      "periodSeconds": 7,
+      "phase": 0.75,
+      "amplitudeStuds": 0.393
+    },
+    {
+      "section": "HouseFX_Bubble_4",
+      "kind": "bob",
+      "periodSeconds": 7,
+      "phase": 1.0,
+      "amplitudeStuds": 0.393
+    }
+  ]
+}

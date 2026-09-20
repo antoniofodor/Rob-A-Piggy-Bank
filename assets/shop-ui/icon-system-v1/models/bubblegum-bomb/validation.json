@@ -1,0 +1,20 @@
+{
+  "triangles": {
+    "GumBody": 3840,
+    "Fuse": 3224
+  },
+  "closedManifold": true,
+  "exportChecks": {
+    "glb": {
+      "boundsMaxError": 0.0,
+      "embeddedPalette": true,
+      "meshCount": 2
+    },
+    "fbx": {
+      "boundsMaxError": 0.0,
+      "embeddedPalette": true,
+      "meshCount": 2
+    }
+  },
+  "sourceSHA256": "8363809dc258a175d772579771799cc6f0d56194caf475cbf0237b55e0d5afc9"
+}

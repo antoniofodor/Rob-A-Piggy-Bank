@@ -1,0 +1,803 @@
+{
+  "source": "workspace/modern-roblox, imported from fishbowl-house-roblox.fbx",
+  "note": "Dumped from Studio by assets/houses/tools/record_house_import.py. Every imported part carries identity rotation and Size equal to MeshSize, both checked at dump time, so only a position and the mesh size are needed.",
+  "groundY": 1859.2123,
+  "bounds": {
+    "lo": [
+      -1014.6157,
+      1858.4023,
+      -313.3705
+    ],
+    "hi": [
+      1033.3843,
+      2901.7827,
+      1915.7928
+    ]
+  },
+  "parts": [
+    {
+      "name": "Approach_Stone",
+      "mesh": "rbxassetid://89699711122671",
+      "meshSize": [
+        318.342,
+        63.6684,
+        25.0624
+      ],
+      "position": [
+        9.3843,
+        1891.0466,
+        -135.1881
+      ]
+    },
+    {
+      "name": "AquariumShell_DomeGlass",
+      "mesh": "rbxassetid://123857931741068",
+      "meshSize": [
+        1941.886,
+        970.9433,
+        1926.7648
+      ],
+      "position": [
+        9.3843,
+        2416.311,
+        899.3535
+      ]
+    },
+    {
+      "name": "AquariumShell_WalkWall",
+      "mesh": "rbxassetid://134998902493795",
+      "meshSize": [
+        321.9872,
+        532.3318,
+        173.4696
+      ],
+      "position": [
+        9.3842,
+        2197.0054,
+        22.7059
+      ]
+    },
+    {
+      "name": "CoralGarden_CoralOrange",
+      "mesh": "rbxassetid://94338029606500",
+      "meshSize": [
+        461.657,
+        218.6215,
+        1164.5148
+      ],
+      "position": [
+        643.451,
+        2036.4097,
+        925.9714
+      ]
+    },
+    {
+      "name": "CoralGarden_CoralPink",
+      "mesh": "rbxassetid://117194008563290",
+      "meshSize": [
+        355.543,
+        218.6215,
+        1164.5146
+      ],
+      "position": [
+        -682.9741,
+        2036.4097,
+        925.9714
+      ]
+    },
+    {
+      "name": "CoralGarden_Seaweed",
+      "mesh": "rbxassetid://73157710357172",
+      "meshSize": [
+        1751.9421,
+        307.7309,
+        1581.629
+      ],
+      "position": [
+        9.3842,
+        2050.2178,
+        947.2375
+      ]
+    },
+    {
+      "name": "CoralGarden_Stone",
+      "mesh": "rbxassetid://119289476606502",
+      "meshSize": [
+        1718.2124,
+        153.21,
+        1243.2673
+      ],
+      "position": [
+        -66.8787,
+        1965.4312,
+        971.759
+      ]
+    },
+    {
+      "name": "DomeRim_DomeRim",
+      "mesh": "rbxassetid://123883784434423",
+      "meshSize": [
+        1975.8427,
+        20.2177,
+        1971.4231
+      ],
+      "position": [
+        9.3843,
+        1933.4922,
+        894.0026
+      ]
+    },
+    {
+      "name": "EntranceSleeve_Pod",
+      "mesh": "rbxassetid://99126703955113",
+      "meshSize": [
+        278.5493,
+        5.6095,
+        7.9585
+      ],
+      "position": [
+        9.3843,
+        1923.0327,
+        -114.1678
+      ]
+    },
+    {
+      "name": "EntranceSleeve_PodTrim",
+      "mesh": "rbxassetid://115335439775555",
+      "meshSize": [
+        318.342,
+        16.2209,
+        471.4115
+      ],
+      "position": [
+        9.3843,
+        1917.7271,
+        117.5586
+      ]
+    },
+    {
+      "name": "Entrance_Pod",
+      "mesh": "rbxassetid://101105254250145",
+      "meshSize": [
+        201.6166,
+        0.3038,
+        9.5503
+      ],
+      "position": [
+        9.3842,
+        1925.6855,
+        -135.9212
+      ]
+    },
+    {
+      "name": "Entrance_PodTrim",
+      "mesh": "rbxassetid://128856192049518",
+      "meshSize": [
+        238.7565,
+        9.3235,
+        28.3855
+      ],
+      "position": [
+        9.3843,
+        1921.1757,
+        -126.5036
+      ]
+    },
+    {
+      "name": "Foundation_Sand",
+      "mesh": "rbxassetid://75903864374037",
+      "meshSize": [
+        1984.3319,
+        6.3672,
+        1984.3319
+      ],
+      "position": [
+        9.3843,
+        1925.0031,
+        891.7928
+      ]
+    },
+    {
+      "name": "Foundation_Stone",
+      "mesh": "rbxassetid://108652551924257",
+      "meshSize": [
+        2048.0,
+        68.9742,
+        2048.0
+      ],
+      "position": [
+        9.3843,
+        1893.6993,
+        891.7928
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkDoor",
+      "mesh": "rbxassetid://86555995161918",
+      "meshSize": [
+        154.5134,
+        417.9757,
+        8.1004
+      ],
+      "position": [
+        89.6785,
+        2150.2158,
+        -151.3644
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim",
+      "mesh": "rbxassetid://135626674357616",
+      "meshSize": [
+        140.7428,
+        399.7501,
+        1.2151
+      ],
+      "position": [
+        89.6785,
+        2150.0134,
+        -156.2246
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim.001",
+      "mesh": "rbxassetid://72364358835627",
+      "meshSize": [
+        5.2652,
+        26.326,
+        5.0627
+      ],
+      "position": [
+        22.1422,
+        2134.4771,
+        -159.3635
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkDoor",
+      "mesh": "rbxassetid://119008919367042",
+      "meshSize": [
+        154.5134,
+        417.9757,
+        8.1004
+      ],
+      "position": [
+        -70.91,
+        2150.2158,
+        -151.3644
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim",
+      "mesh": "rbxassetid://85797659870442",
+      "meshSize": [
+        140.7428,
+        399.7501,
+        1.2151
+      ],
+      "position": [
+        -70.91,
+        2150.0134,
+        -156.2246
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim.001",
+      "mesh": "rbxassetid://84691847370289",
+      "meshSize": [
+        5.2652,
+        26.326,
+        5.0627
+      ],
+      "position": [
+        -3.3737,
+        2134.4771,
+        -159.3635
+      ]
+    },
+    {
+      "name": "HouseFX_Bubble_1_BubbleGlass",
+      "mesh": "rbxassetid://139834415320567",
+      "meshSize": [
+        84.8912,
+        84.8912,
+        84.8912
+      ],
+      "position": [
+        699.1252,
+        2495.8962,
+        414.2798
+      ]
+    },
+    {
+      "name": "HouseFX_Bubble_2_BubbleGlass",
+      "mesh": "rbxassetid://96173244081540",
+      "meshSize": [
+        53.057,
+        53.057,
+        53.057
+      ],
+      "position": [
+        646.0682,
+        2655.0674,
+        520.3939
+      ]
+    },
+    {
+      "name": "HouseFX_Bubble_3_BubbleGlass",
+      "mesh": "rbxassetid://84576817053270",
+      "meshSize": [
+        106.114,
+        106.114,
+        106.114
+      ],
+      "position": [
+        -627.2997,
+        2548.9531,
+        573.4508
+      ]
+    },
+    {
+      "name": "HouseFX_Bubble_4_BubbleGlass",
+      "mesh": "rbxassetid://118406156864082",
+      "meshSize": [
+        47.7513,
+        47.7513,
+        47.7513
+      ],
+      "position": [
+        -521.1857,
+        2761.1812,
+        679.5649
+      ]
+    },
+    {
+      "name": "PodShell_Pod",
+      "mesh": "rbxassetid://83473279640760",
+      "meshSize": [
+        1167.254,
+        848.912,
+        1062.9884
+      ],
+      "position": [
+        9.3842,
+        2304.8911,
+        906.7857
+      ]
+    },
+    {
+      "name": "PodShell_PodTrim",
+      "mesh": "rbxassetid://117399479139876",
+      "meshSize": [
+        789.4881,
+        22.0555,
+        789.4882
+      ],
+      "position": [
+        9.3842,
+        2612.6216,
+        891.7928
+      ]
+    },
+    {
+      "name": "PodShell_WalkWall",
+      "mesh": "rbxassetid://129335233619568",
+      "meshSize": [
+        321.9872,
+        529.3369,
+        265.1894
+      ],
+      "position": [
+        9.3843,
+        2198.5027,
+        507.8862
+      ]
+    },
+    {
+      "name": "PodWindows_DarkGlass",
+      "mesh": "rbxassetid://131123298362175",
+      "meshSize": [
+        1181.5795,
+        228.1451,
+        516.0831
+      ],
+      "position": [
+        9.3842,
+        2326.114,
+        668.2383
+      ]
+    },
+    {
+      "name": "PodWindows_PodTrim",
+      "mesh": "rbxassetid://79826857382407",
+      "meshSize": [
+        1204.3939,
+        256.7959,
+        543.9336
+      ],
+      "position": [
+        9.3841,
+        2326.114,
+        668.6385
+      ]
+    },
+    {
+      "name": "WalkApproach0_WalkFloor",
+      "mesh": "rbxassetid://125730208608245",
+      "meshSize": [
+        328.0624,
+        14.0743,
+        28.5536
+      ],
+      "position": [
+        9.3843,
+        1865.4395,
+        -299.0938
+      ]
+    },
+    {
+      "name": "WalkApproach1_WalkFloor",
+      "mesh": "rbxassetid://85742246057837",
+      "meshSize": [
+        328.0624,
+        27.3386,
+        28.5536
+      ],
+      "position": [
+        9.3843,
+        1872.0717,
+        -271.5527
+      ]
+    },
+    {
+      "name": "WalkApproach2_WalkFloor",
+      "mesh": "rbxassetid://86971899497759",
+      "meshSize": [
+        328.0624,
+        40.6028,
+        28.5536
+      ],
+      "position": [
+        9.3843,
+        1878.7037,
+        -244.0117
+      ]
+    },
+    {
+      "name": "WalkApproach3_WalkFloor",
+      "mesh": "rbxassetid://106394466788890",
+      "meshSize": [
+        328.0624,
+        53.8671,
+        28.5536
+      ],
+      "position": [
+        9.3843,
+        1885.3359,
+        -216.4706
+      ]
+    },
+    {
+      "name": "WalkApproach4_WalkFloor",
+      "mesh": "rbxassetid://71970749037482",
+      "meshSize": [
+        328.0624,
+        67.1313,
+        28.5536
+      ],
+      "position": [
+        9.3843,
+        1891.968,
+        -188.9296
+      ]
+    },
+    {
+      "name": "WalkApproach5_WalkFloor",
+      "mesh": "rbxassetid://123590246960868",
+      "meshSize": [
+        328.0624,
+        80.3956,
+        28.5536
+      ],
+      "position": [
+        9.3843,
+        1898.6001,
+        -161.3886
+      ]
+    },
+    {
+      "name": "WalkCeiling_WalkWall",
+      "mesh": "rbxassetid://78297172335124",
+      "meshSize": [
+        648.0244,
+        4.8604,
+        594.9674
+      ],
+      "position": [
+        9.3843,
+        2434.6582,
+        891.7928
+      ]
+    },
+    {
+      "name": "WalkEntryHeader_WalkTrim",
+      "mesh": "rbxassetid://94812657564990",
+      "meshSize": [
+        328.8724,
+        10.1254,
+        13.7705
+      ],
+      "position": [
+        9.3843,
+        2368.3167,
+        -152.1745
+      ]
+    },
+    {
+      "name": "WalkEntryJamb-1_WalkTrim",
+      "mesh": "rbxassetid://71217952236163",
+      "meshSize": [
+        10.5304,
+        430.9362,
+        13.7706
+      ],
+      "position": [
+        168.5552,
+        2154.2661,
+        -152.1745
+      ]
+    },
+    {
+      "name": "WalkEntryJamb1_WalkTrim",
+      "mesh": "rbxassetid://97655266741610",
+      "meshSize": [
+        10.5304,
+        430.9362,
+        13.7706
+      ],
+      "position": [
+        -149.7867,
+        2154.2661,
+        -152.1745
+      ]
+    },
+    {
+      "name": "WalkFloor_WalkFloor",
+      "mesh": "rbxassetid://73312937879720",
+      "meshSize": [
+        648.0244,
+        11.3406,
+        594.9674
+      ],
+      "position": [
+        9.3843,
+        2023.3246,
+        891.7928
+      ]
+    },
+    {
+      "name": "WalkFrontLeft_WalkWall",
+      "mesh": "rbxassetid://72594062807382",
+      "meshSize": [
+        159.1711,
+        403.2332,
+        4.8603
+      ],
+      "position": [
+        248.1407,
+        2230.6113,
+        597.5493
+      ]
+    },
+    {
+      "name": "WalkFrontRight_WalkWall",
+      "mesh": "rbxassetid://128826006504640",
+      "meshSize": [
+        159.1711,
+        403.2332,
+        4.8603
+      ],
+      "position": [
+        -229.3723,
+        2230.6113,
+        597.5493
+      ]
+    },
+    {
+      "name": "WalkInnerStep0_WalkFloor",
+      "mesh": "rbxassetid://77731675383341",
+      "meshSize": [
+        318.342,
+        23.0107,
+        32.4012
+      ],
+      "position": [
+        9.3843,
+        1940.1779,
+        389.3714
+      ]
+    },
+    {
+      "name": "WalkInnerStep1_WalkFloor",
+      "mesh": "rbxassetid://135500313852506",
+      "meshSize": [
+        318.342,
+        35.896,
+        32.4012
+      ],
+      "position": [
+        9.3843,
+        1946.6205,
+        421.7726
+      ]
+    },
+    {
+      "name": "WalkInnerStep2_WalkFloor",
+      "mesh": "rbxassetid://78490814685551",
+      "meshSize": [
+        318.342,
+        48.7812,
+        32.4012
+      ],
+      "position": [
+        9.3843,
+        1953.0631,
+        454.1739
+      ]
+    },
+    {
+      "name": "WalkInnerStep3_WalkFloor",
+      "mesh": "rbxassetid://111856247454802",
+      "meshSize": [
+        318.342,
+        61.6665,
+        32.4012
+      ],
+      "position": [
+        9.3843,
+        1959.5057,
+        486.5751
+      ]
+    },
+    {
+      "name": "WalkInnerStep4_WalkFloor",
+      "mesh": "rbxassetid://89561932707009",
+      "meshSize": [
+        318.342,
+        74.5518,
+        32.4012
+      ],
+      "position": [
+        9.3843,
+        1965.9484,
+        518.9763
+      ]
+    },
+    {
+      "name": "WalkInnerStep5_WalkFloor",
+      "mesh": "rbxassetid://85411878289259",
+      "meshSize": [
+        318.342,
+        87.437,
+        32.4012
+      ],
+      "position": [
+        9.3843,
+        1972.3911,
+        551.3776
+      ]
+    },
+    {
+      "name": "WalkInnerStep6_WalkFloor",
+      "mesh": "rbxassetid://92183873732793",
+      "meshSize": [
+        318.342,
+        100.3223,
+        26.731
+      ],
+      "position": [
+        9.3843,
+        1978.8337,
+        580.9437
+      ]
+    },
+    {
+      "name": "WalkPassageCeiling_WalkWall",
+      "mesh": "rbxassetid://76632536334717",
+      "meshSize": [
+        334.5426,
+        8.1005,
+        743.2435
+      ],
+      "position": [
+        9.3843,
+        2457.501,
+        223.4974
+      ]
+    },
+    {
+      "name": "WalkPassageFloor_WalkFloor",
+      "mesh": "rbxassetid://98514591941915",
+      "meshSize": [
+        318.342,
+        10.1255,
+        520.8901
+      ],
+      "position": [
+        9.3843,
+        1933.7352,
+        112.7258
+      ]
+    },
+    {
+      "name": "WalkPassageLeft_WalkWall",
+      "mesh": "rbxassetid://114844976884237",
+      "meshSize": [
+        8.1004,
+        514.653,
+        743.2436
+      ],
+      "position": [
+        172.6054,
+        2196.1243,
+        223.4974
+      ]
+    },
+    {
+      "name": "WalkPassageRight_WalkWall",
+      "mesh": "rbxassetid://124158823108590",
+      "meshSize": [
+        8.1004,
+        514.653,
+        743.2436
+      ],
+      "position": [
+        -153.8369,
+        2196.1243,
+        223.4974
+      ]
+    },
+    {
+      "name": "WalkRearWall_WalkWall",
+      "mesh": "rbxassetid://82004395314416",
+      "meshSize": [
+        636.684,
+        403.2332,
+        4.8602
+      ],
+      "position": [
+        9.3843,
+        2230.6113,
+        1186.0365
+      ]
+    },
+    {
+      "name": "WalkSideLeftWall_WalkWall",
+      "mesh": "rbxassetid://73613430663107",
+      "meshSize": [
+        4.8602,
+        403.2333,
+        583.6271
+      ],
+      "position": [
+        330.1563,
+        2230.6113,
+        891.7928
+      ]
+    },
+    {
+      "name": "WalkSideRightWall_WalkWall",
+      "mesh": "rbxassetid://74078359548938",
+      "meshSize": [
+        4.8602,
+        403.2333,
+        583.6271
+      ],
+      "position": [
+        -311.3878,
+        2230.6113,
+        891.7928
+      ]
+    }
+  ]
+}

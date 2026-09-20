@@ -1,0 +1,82 @@
+{
+  "id": "husky",
+  "name": "Husky",
+  "rig": "shepherd",
+  "source": "assets/guards/shepherd/shepherd.blend",
+  "sourceSha256": "4cdcfab5b4ed35a0175a44a0fb7cede0c3366ee0023fb841e2b65badccb4ca1f",
+  "image": "assets/guards/shepherd/shop-cards/husky.png",
+  "sha256": "d766c4b7950b5ab9d3dee1446b5ca6a2fedeb33495ce7ee44dd5e265380aa87f",
+  "tones": {
+    "fur": [
+      196,
+      202,
+      210
+    ],
+    "dark": [
+      78,
+      86,
+      98
+    ],
+    "light": [
+      216.65,
+      220.55,
+      225.75
+    ],
+    "collar": [
+      96,
+      158,
+      206
+    ],
+    "brow": [
+      196,
+      202,
+      210
+    ],
+    "mask": [
+      204.26,
+      209.42000000000002,
+      216.3
+    ],
+    "eye": [
+      18,
+      18,
+      20
+    ],
+    "nose": [
+      29,
+      27,
+      30
+    ],
+    "mouth": [
+      41,
+      24,
+      31
+    ],
+    "teeth": [
+      248,
+      232,
+      189
+    ],
+    "inner": [
+      201,
+      126,
+      112
+    ],
+    "armor": [
+      131,
+      48,
+      78
+    ],
+    "accent": [
+      238,
+      122,
+      64
+    ],
+    "silver": [
+      171,
+      170,
+      182
+    ]
+  },
+  "robloxAssetId": "rbxassetid://117441561046801"
+}

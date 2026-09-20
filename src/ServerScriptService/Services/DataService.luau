@@ -117,6 +117,9 @@ export type PlayerData = {
 		clean: number,
 		wanted: number,
 		harvested: number,
+		-- The highest bounty ever on this player's head; the wanted poster in
+		-- their house prints it, and session heat cannot supply it.
+		bestBounty: number,
 		plinths: { [string]: boolean },
 		plinth: string,
 	},
@@ -204,25 +207,21 @@ export type PlayerData = {
 	-- nothing new.
 	--
 	-- A COAT IS PURE TASTE AND IS NEVER WIPED BY REBIRTH, which is the bracket
-	-- every cosmetic in this game sits in. What it must never touch is the
-	-- Guard Dog UPGRADE level: that is power, it lives in `upgrades`, and
-	-- rebirth takes it. A thief reads the dog to price the risk, so a coat
-	-- that could imply a tier would be a defence upgrade sold for money --
-	-- see the header on `Config.DOG_COATS` for the measurement that says the
-	-- tier read survives on shape alone.
+	-- every cosmetic in this game sits in. It cannot imply a tier that has
+	-- not been bought either, which used to be a rule about what a coat may
+	-- reach and is now true by construction: the Guard rung is retired, every
+	-- plot has the same dog, and a coat picks what that dog LOOKS like. See
+	-- `Config.DOG_LEVEL`.
 	dogs: {
 		owned: { [string]: boolean },
 		equipped: string,
-		-- The name the owner gave it, ALREADY FILTERED, or "" for the breed's
-		-- own label. What is stored is what came back from
-		-- `TextService:FilterStringAsync`, never what the client typed -- so a
-		-- save can never be a delivery mechanism for unfiltered text, and a
-		-- name written before a filter rule changed is re-filtered on its next
-		-- rename rather than being trusted forever.
+		-- The name the owner picked, which is always one of
+		-- `Config.DOG_NAMES`, or "" for the breed's own label. Naming used to
+		-- be free text put through the moderation filter; it is a fixed list
+		-- now, so a save cannot carry player-authored text at all. Reconcile
+		-- drops anything that is not on the list, which is what clears the
+		-- typed names written while the text box existed.
 		name: string,
-		-- `os.time()` of the last rename, for the rate limit on the filter
-		-- call. Absolute rather than a countdown so it survives a rejoin.
-		namedAt: number,
 		-- Which kennel skins are owned, and which one is standing. A SECOND
 		-- pair rather than a shared one: a coat and a kennel are bought
 		-- separately, worn together, and neither may reach the other's
@@ -231,12 +230,10 @@ export type PlayerData = {
 		-- cost no schema bump.
 		kennels: { [string]: boolean },
 		kennel: string,
-		-- The toys: bought, and out. TWO tables, the same pair `data.decor`
-		-- already keeps, and for the same reason -- one table would make
-		-- "put it away" mean "sell it", and nothing in this game refunds
-		-- anything.
-		toys: { owned: { [string]: boolean }, out: { [string]: boolean } },
 	},
+	-- The pets: owned, and the one out ("" for none). A new top-level table,
+	-- which `reconcile` fills in on every existing save with no schema bump.
+	pets: { owned: { [string]: boolean }, equipped: string },
 	cosmetics: {
 		owned: { [string]: boolean },
 		ownedEffects: { [string]: boolean },
@@ -301,6 +298,11 @@ local function defaultData(): PlayerData
 		nemesis = { index = 0, rows = {} },
 		defend = { index = 0, count = 0 },
 		trophies = { victims = {}, caught = 0, bestSpree = 0, clean = 0, wanted = 0, harvested = 0,
+			-- The highest bounty ever on this player's head, for the wanted
+			-- poster in their own house. A FIELD ADD rather than a schema bump:
+			-- `reconcile` descends one level into `trophies`, so a save written
+			-- before this simply gains a zero.
+			bestBounty = 0,
 			plinths = {}, plinth = "" },
 		upgrades = upgrades,
 		houses = { owned = { shack = true }, shown = "shack" },
@@ -337,9 +339,9 @@ local function defaultData(): PlayerData
 		-- That is the same ride a seventh entry in `upgrades` takes, and the
 		-- reason this file's comment there says adding one "must fill in just
 		-- that key on every existing save".
-		dogs = { owned = {}, equipped = "", name = "", namedAt = 0,
-			kennels = {}, kennel = "",
-			toys = { owned = {}, out = {} } },
+		dogs = { owned = {}, equipped = "", name = "",
+			kennels = {}, kennel = "" },
+		pets = { owned = {}, equipped = "" },
 		-- Bone stock, by key. Counts only; missing keys read as zero, so a
 		-- bone added later needs no migration.
 		--
@@ -561,7 +563,16 @@ local function reconcile(data: any): PlayerData
 				realSlot[slot.id] = true
 			end
 			for slot, key in pairs(data.decor.placed) do
-				if not realSlot[slot] or not Config.DECOR_ITEMS[key] then
+				local item = Config.DECOR_ITEMS[key]
+				-- A TROPHY IS CLEARED OFF THE LAWN, AND ITS OWNERSHIP IS NOT
+				-- TOUCHED. Trophies are displayed inside the house now
+				-- (`TrophyRoom`), so a save written before that still has one
+				-- standing on the grass and holding a slot a bought ornament
+				-- could use. Pruned here rather than migrated, the same call
+				-- the retired bins and cars take -- and `decor.owned` above
+				-- keeps every earned trophy, which is the one thing
+				-- `assets/houses/docs/HOUSE-TROPHY-ROOMS.md` says never to disturb.
+				if not realSlot[slot] or not item or item.trophy ~= nil then
 					data.decor.placed[slot] = nil
 				end
 			end
@@ -595,6 +606,32 @@ local function reconcile(data: any): PlayerData
 			data.dogs.equipped = ""
 		end
 
+		-- THE NAME, AGAINST THE LIST -- and this one is a SAFETY prune rather
+		-- than a tidy-up like the rest of them.
+		--
+		-- Naming was free text put through the platform filter until the list
+		-- replaced it, so saves written before that carry whatever a player
+		-- typed. The filter does not run in Studio at all (measured), so a
+		-- dev-built save can hold anything, and a live one holds whatever the
+		-- classifier let through. Either way it is text nobody approved
+		-- standing over a kennel, so it goes: an unknown name falls back to
+		-- the breed, exactly as an unknown coat does.
+		local named = data.dogs.name
+		if type(named) ~= "string" or named ~= "" then
+			local ok = false
+			for _, candidate in ipairs(Config.DOG_NAMES) do
+				if candidate == named then
+					ok = true
+					break
+				end
+			end
+			if not ok then
+				data.dogs.name = ""
+			end
+		end
+		-- The rate limit went with the filter call it bounded.
+		data.dogs.namedAt = nil
+
 		-- The same two guards for the kennel, against its own catalogue.
 		-- Written out rather than folded into a loop over the pair: the two
 		-- tables have different names in the save and a helper taking four
@@ -612,22 +649,25 @@ local function reconcile(data: any): PlayerData
 			data.dogs.kennel = ""
 		end
 
-		-- And the toys, against their own catalogue. BOTH tables, because a
-		-- retired toy left in `out` would be asked for by `GuardDog.setToys`
-		-- on every join and quietly do nothing -- the silent failure this
-		-- prune exists to prevent, one table along from where anybody would
-		-- look for it.
-		if type(data.dogs.toys) == "table" then
-			for _, field in ipairs({ "owned", "out" }) do
-				local held = data.dogs.toys[field]
-				if type(held) == "table" then
-					for key in pairs(held) do
-						if not Config.DOG_TOYS[key] then
-							held[key] = nil
-						end
-					end
+		-- Dog toys (ball, water bowl, bed) were removed from the game during
+		-- the beta; whatever a save still holds of them is dropped, with no
+		-- refund.
+		(data.dogs :: any).toys = nil
+	end
+
+	-- Pets against their catalogue: a retired pet left `equipped` would be
+	-- published as an attribute every client then fails to build.
+	if type(data.pets) == "table" then
+		if type(data.pets.owned) == "table" then
+			for key in pairs(data.pets.owned) do
+				if not Config.PETS[key] then
+					data.pets.owned[key] = nil
 				end
 			end
+		end
+		local out = data.pets.equipped
+		if type(out) ~= "string" or (out ~= "" and not Config.PETS[out]) then
+			data.pets.equipped = ""
 		end
 	end
 
@@ -703,8 +743,8 @@ local function reconcile(data: any): PlayerData
 	--
 	-- Written as a loop over the three PAIRS rather than nine lines, which is
 	-- the opposite call the dog coats made one block up. The difference is
-	-- real: those three tables have unrelated names in the save (`owned`,
-	-- `kennels`, `toys.out`) and unrelated shapes, where these are three
+	-- real: those tables have unrelated names in the save (`owned`,
+	-- `kennels`) and unrelated shapes, where these are three
 	-- copies of one shape that were designed together. A helper reaching
 	-- across genuinely different tables is indirection; a loop over identical
 	-- ones is what stops the fourth garden catalogue being pruned in two

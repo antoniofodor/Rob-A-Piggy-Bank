@@ -1,0 +1,47 @@
+{
+  "mode": "built-in image_gen",
+  "note": "Classic reference rendered from existing model. Old NostrilPreview helpers excluded from corrected reference; all final piggy illustrations have clean nostrils.",
+  "assets": [
+    {
+      "id": "acorn-tree",
+      "prompt": "Use case: game UI sprite. Generate ONE reusable ACORN TREE icon for the Roblox game Rob A Piggy Bank. Image 1 is the actual in-game oak tree silhouette/style reference; image 2 is the actual in-game Acorn color and shape reference. Condense the oak into a compact friendly tree with a thick brown trunk, a few broad branches, three to five clean chunky low-poly green foliage clusters, and THREE large clearly visible acorns hanging in front of the foliage. Acorns should match the actual reference: pale olive-green nut with brown cap and short brown stem. Simplify their caps for readability. Style: polished low-poly cartoon 3D icon, clear silhouette, restrained facets, modest dark cocoa edge definition, soft directional light, rich cheerful greens. Avoid many tiny leaves, noisy bark, grass, soil pedestal, coins, arrows, labels, numbers, text, background tiles, glow, and particles. Three-quarter front view, centered, entire canopy and trunk visible, occupy 85% of a square 1024x1024 canvas, even padding. Genuine transparent alpha outside the tree, NO opaque background and no baked checkerboard. No external ground shadow. This is a standalone usable sprite, not a mockup.",
+      "refs": [
+        "C:/Users/anton/robloxGame/assets/tree/tree-oak-render-v2.png",
+        "C:/Users/anton/robloxGame/assets/acorn/acorn-three-quarter.png"
+      ],
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-19975e86-0257-4c1b-ae0a-5af41c5b3600.png"
+    },
+    {
+      "id": "classic-piggy",
+      "prompt": "Use case: game UI sprite, faithful stylization. Input image is a freshly rendered reference of the game's ACTUAL Classic Pink piggy bank model. Create ONE reusable polished transparent UI illustration of THIS SAME piggy. Preserve its unusually round upright body, thick tall rounded triangular ears, large prominent round projecting snout with two deep oval nostrils, tiny separate black bead eyes, short rounded stubby legs, little curled tail visible at rear left, and SAME three-quarter front camera angle facing right. Keep Classic Pink colors: body RGB244,168,194; darker rose trim RGB214,122,148. Clean up the small accidental dark square artifacts inside the two nostrils: nostrils should be clean shaded oval recesses. Art style: clean softly rounded low-poly Roblox toy model with subtle faceting and a modest dark cocoa silhouette outline, soft controlled highlights, no glossy neon. The model silhouette is the source of truth; do NOT replace with a generic long-bodied pig, an animal with a separate head, a smiling pig face, or a flat coin. No fur, no clothes, no gold, no coins or arrows, no effects, no words, no background badge. Entire pig visible at 84% square canvas with even padding. 1024x1024 square, genuine transparent alpha background, no ground shadow, no opaque backdrop, no baked checkerboard. Render only one piggy.",
+      "refs": [
+        "C:/Users/anton/robloxGame/assets/ui/rebirth-icons-v1/references/classic-piggy-model.png"
+      ],
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-ca854d98-0c9b-42ef-b8c4-8554ec109a38.png"
+    },
+    {
+      "id": "classic-piggy-coins",
+      "refs": [
+        "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-ca854d98-0c9b-42ef-b8c4-8554ec109a38.png"
+      ],
+      "prompt": "Use case: precise-object-edit. Input is the clean reusable Classic Pink piggy UI sprite, EDIT TARGET. Keep THIS EXACT piggy: same round upright body, ear shapes, big round snout, tiny black eyes, curled tail, proportions, pink colors, clean EMPTY oval nostrils with NO black blocks inside them, same camera angle, same soft 3D style. Create the money/earning variant by adding a small tidy stack of THREE chunky golden coins beside its lower left foot, and ONE gold coin hovering immediately above its back as if being deposited. Pig is main subject, coins secondary. Coin faces use a simple circular embossing, no dollar sign or text. Do not cover the eyes, nose or ears. Center entire combined silhouette with even 7% padding on a square 1024x1024 canvas. No frame, no background tile, no arrow, no rays, no sparkles, no text. Genuine transparent alpha background, no ground shadow, no baked checkerboard. One standalone reusable game UI icon.",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-6561dc8b-4d61-46f6-be23-b164964ea2a6.png"
+    },
+    {
+      "id": "rebirth-piggy-emblem",
+      "refs": [
+        "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-ca854d98-0c9b-42ef-b8c4-8554ec109a38.png"
+      ],
+      "prompt": "Use case: game UI sprite based on reference. Input is the exact Classic Pink piggy identity reference. Make ONE compact rebirth emblem: this same PINK round piggy, same ears, bead eyes, projecting circular snout with TWO CLEAN EMPTY oval nostrils and short feet, facing front-right in same angle, centered INSIDE TWO thick curved GOLD arrows chasing clockwise in a circular loop. Pig occupies inner ~48% canvas width and height; ring's outer diameter ~88% canvas. Clear transparent gap separates all pig silhouette from arrow ring so each reads cleanly. Arrows are broad smooth continuous curved shafts ending in modest rounded triangular tips, evenly spaced, same clockwise direction; no extra arrow segments. Gold and warm orange bevels, thin dark cocoa outlines; pink pig retains source palette and soft shading. Front-on ring, circular rather than elliptical. Center of ring exactly center of square canvas. No letters, no numbers, no text, no sparkle, no glow, no backdrop or badge behind pig. 1024x1024 square PNG, actual transparent alpha exterior AND negative space between pig and arrows. Full silhouette entirely visible with even padding. Deliver one standalone UI emblem.",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-f91c36c0-f807-4586-9f8e-fa578b3d501b.png"
+    },
+    {
+      "id": "rebirth-arrows",
+      "refs": [
+        "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-f91c36c0-f807-4586-9f8e-fa578b3d501b.png"
+      ],
+      "prompt": "Use case: precise-object-edit / background-extraction. Input image is EDIT TARGET. Remove ONLY the pink pig from the center of this image and make that entire central area genuinely transparent alpha. Keep the TWO GOLD ARROWS absolutely unchanged: their exact geometry, positions, color, shading, outline, thickness, direction, scale, spacing and canvas padding. Preserve original square canvas size. Do not reposition, zoom, recenter or alter the ring. This is the separate spinning arrow layer for the existing rebirth emblem; the developer will layer the pig separately. Transparent alpha background AND transparent empty center, NO pig, no other shape in center, NO circular disc, NO text, no opaque background, no ground shadow, no glow, no checkerboard.",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0a6df-5ce9-73f1-99f3-5666a290b54d\\exec-63d604b5-7ba5-4204-ac29-3242e42e4951.png"
+    }
+  ]
+}

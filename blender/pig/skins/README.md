@@ -1,5 +1,101 @@
 # skins/
 
+Current import packages have moved to [assets/skins/animal](../../../assets/skins/animal/README.md):
+**8 common, 7 rare, 4 legendary**. That folder is the current source for FBXs,
+assembled Blender files, textures, previews, animation exports and effect helpers.
+The current package builders now write there. This directory retains procedural
+coat sources, concepts, masters and previous revisions. Version names mentioned
+below describe the revision history; use the new package index for imports.
+
+
+## Legendary animal layout revisions
+
+Ice Phoenix has a separate `phoenix/legendary-v1` package: an ivory face,
+495 closely layered ice-blue feathers, including 120 leg feathers, a seven-feather
+crown and a fuller tail fan. Glowing frost veins run through the plumage;
+branching face markings and a forehead motif follow the selected Crystal Crown concept.
+A nine-bone rig pins the feather roots while their tips move. The body feathers
+follow the skin's contour, with coverts filling the back and snout sides.
+The cyan tips have a stronger pulse; masked emission shimmers
+in staggered groups over four seconds. The original pig parts, flush vault
+opening and clear coin slot remain. Build with
+`../make/build_phoenix_legendary.py`, validate/render with
+`../make/check_phoenix_vault_fit.py` and `../make/render_phoenix_legendary.py`, then package with
+`../make/build_phoenix_legendary_gallery.py`. Original warm Phoenix sources
+are preserved. Art approved with the feather edge verified against all four
+runtime-sized vault plates, with no measured bare gap. Studio integration remains pending.
+
+Dragon has a separate `dragon/legendary-v1` package: shallow beveled green
+scale plates, curved horns, compact scalloped wings, and a tail fin. The old
+belly/glow bands are replaced by continuous ember seams projected from the
+actual scale borders. A four-bone rig supplies a slow wing/tail idle; separate
+emissive masks and `DragonGlow.luau` supply breathing glow across the scaled coat. The original pig silhouette,
+coin slot and flush vault bore remain. Build with `../make/build_dragon_legendary.py`,
+validate/render with `../make/render_dragon_preview.py`, then run
+`../make/build_dragon_gallery.py`. Raised-scale revision; Studio integration pending.
+
+Rainbow Tiger's active package is **`rainbowtiger/legendary-v2-swept`**, built
+from approved option C: compact charcoal cheek locks, inner-corner ear tufts,
+relaxed brows, clean painted wraparound stripes, one inner/outer stripe per eye,
+bare feet and a smooth rainbow tail. The coat, fur and tail color maps are embedded in
+the FBX. Build with `../make/build_rainbowtiger_swept.py`, validate/render with
+`../make/render_rainbowtiger_preview.py -- --swept`, then publish via
+`../make/build_rainbowtiger_swept_gallery.py`. Previous v1 and clean-review scenes
+remain preserved. Studio import and material animation integration are pending.
+
+Storm Wolf's mohawk. Individually outlined broad rainbow stripes
+carry a gentle four-second emission pulse; both eyes smoothly cycle RGB with
+steady glow. Inner-forehead markings, four foot cuffs and a continuous textured
+silver-to-rainbow tail plume complete the latest detail pass. A four-bone rig supplies small tail/ruff
+motion. The old painted skin is preserved. Build with
+`../make/build_rainbowtiger_legendary.py`, render/validate motion with
+`../make/render_rainbowtiger_preview.py`, then publish its handoff with
+`../make/build_rainbowtiger_gallery.py`. Fresh Studio imports and Fable's runtime
+integration remain pending; the FBX carries bone motion, not material animation.
+
+Storm Wolf's existing painted model has a separate `stormwolf/layout-v1`
+revision and [review gallery](../../../assets/skins/animal/legendary/index.html).
+It adds a hollow interior and flush rear vault opening, with the original
+tail centered just above it and projecting outward with a low lift. User review explicitly rejected a protruding vault
+collar and a side-mounted tail. The mane must stay continuous over the coin
+deposit location: no visible coin slot or raised rim. Rebuild using
+`../make/build_stormwolf_layout.py`, then `../make/build_legendary_gallery.py`.
+Original source files are preserved; Studio integration remains pending.
+
+All of the old blue bolt plates are replaced by long, chunky branching lightning.
+`../make/stormwolf_lightning.py` authors six independent groups with rapid
+stepped flashes; `../make/render_stormwolf_lightning.py` renders the motion
+preview before rebuilding the gallery. The package includes an uninstalled
+Studio playback helper generated from the same timing data. The cyan lightning
+painted on the coat has its own emissive mask and synchronized brightness pulses,
+authored by `../make/stormwolf_body_glow.py`. Follow the package import notes to
+assign the mask and enable the helper's body glow in Studio.
+
+## Rare animal coats
+
+Seven first-pass rare designs live in `strawberrycow`, `cookiescream`,
+`watermelon`, `peppermint`, `glacier`, `bubblegumleopard` and `honeycomb`.
+Their palettes are in `../rare_coats.py`; `../make/build_rare_coat.py` derives
+the coats from the common procedural scenes without saving the parents.
+Each has a local generator entry point and a complete `asset-v1` package.
+[Rare review gallery](../../../assets/skins/animal/rare/index.html).
+
+These coats use separate `_emissive.png` masks for small static glow accents.
+The colour maps stay opaque. Roblox now supports emissive masks on
+SurfaceAppearance; follow the package import notes, since the older notes
+below predate that feature. The crate pool and runtime are unchanged.
+
+## Complete animal asset packages
+
+The eight existing animal coats now have standalone Blender/FBX packages in
+`<skin>/asset-v1/`: bee, ladybird, cow, zebra, giraffe, leopard, tiger and
+snowleopard. [Open the review gallery](../../../assets/skins/animal/common/index.html) for
+four views per animal, model downloads and import notes. Original coat scenes
+and maps are preserved. These packages have not been installed in Roblox.
+Regenerate them with `../make/package_animal.py`; `../WORKFLOW.md` remains the
+current coat-authoring guide. The older cylindrical-UV notes below describe
+the legacy mask pipeline, not the current baked-coat unwrap.
+
 Everything in here is a texture that gets **uploaded to Roblox**. Nothing else
 in `blender/pig/` is: the `.obj` files are meshes, the `.blend` files are
 disposable, and `renders/` is pictures. `.gitignore` refuses every `*.png` in

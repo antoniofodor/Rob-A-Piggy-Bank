@@ -1,0 +1,1139 @@
+{
+  "source": "workspace/mushroom-roblox, imported from toadstool-cottage-roblox.fbx",
+  "note": "Dumped from Studio by assets/houses/tools/record_house_import.py. Every imported part carries identity rotation and Size equal to MeshSize, both checked at dump time, so only a position and the mesh size are needed.",
+  "groundY": 1859.2123,
+  "bounds": {
+    "lo": [
+      -1014.6158,
+      1859.2123,
+      -237.2686
+    ],
+    "hi": [
+      1033.3842,
+      3029.498,
+      1810.7314
+    ]
+  },
+  "parts": [
+    {
+      "name": "BabyCap_0_Cap",
+      "mesh": "rbxassetid://77863130838067",
+      "meshSize": [
+        211.3016,
+        116.2159,
+        211.3016
+      ],
+      "position": [
+        -640.7745,
+        1998.5901,
+        71.5569
+      ]
+    },
+    {
+      "name": "BabyCap_1_Cap",
+      "mesh": "rbxassetid://109771125643438",
+      "meshSize": [
+        130.0318,
+        71.5175,
+        130.0318
+      ],
+      "position": [
+        -787.0602,
+        1976.241,
+        234.0966
+      ]
+    },
+    {
+      "name": "BabyStem_0_Cream",
+      "mesh": "rbxassetid://93805514205957",
+      "meshSize": [
+        70.336,
+        89.3968,
+        73.9556
+      ],
+      "position": [
+        -640.7745,
+        1903.9109,
+        71.5569
+      ]
+    },
+    {
+      "name": "BabyStem_1_Cream",
+      "mesh": "rbxassetid://117717366949538",
+      "meshSize": [
+        43.2836,
+        89.3968,
+        45.5111
+      ],
+      "position": [
+        -787.0602,
+        1903.9109,
+        234.0966
+      ]
+    },
+    {
+      "name": "CapUnderside_Cream",
+      "mesh": "rbxassetid://78423659385949",
+      "meshSize": [
+        2023.619,
+        19.5052,
+        2023.619
+      ],
+      "position": [
+        9.3843,
+        2637.7773,
+        786.7315
+      ]
+    },
+    {
+      "name": "ChimneyCap_Cap",
+      "mesh": "rbxassetid://79140628348399",
+      "meshSize": [
+        292.5715,
+        81.2699,
+        292.5715
+      ],
+      "position": [
+        -478.2349,
+        2988.863,
+        1030.5409
+      ]
+    },
+    {
+      "name": "ChimneyStem_Cream",
+      "mesh": "rbxassetid://126266976286341",
+      "meshSize": [
+        100.4799,
+        243.8095,
+        105.6508
+      ],
+      "position": [
+        -478.2348,
+        2834.4504,
+        1030.5411
+      ]
+    },
+    {
+      "name": "CornerPost_0_Timber",
+      "mesh": "rbxassetid://108566488491993",
+      "meshSize": [
+        39.0096,
+        780.1906,
+        39.0097
+      ],
+      "position": [
+        -276.7519,
+        2265.5615,
+        95.9379
+      ]
+    },
+    {
+      "name": "CornerPost_1_Timber",
+      "mesh": "rbxassetid://134522729516116",
+      "meshSize": [
+        55.1679,
+        780.1905,
+        55.1679
+      ],
+      "position": [
+        -681.4094,
+        2265.5615,
+        500.5954
+      ]
+    },
+    {
+      "name": "CornerPost_2_Timber",
+      "mesh": "rbxassetid://108295196963983",
+      "meshSize": [
+        39.0095,
+        780.1905,
+        39.0095
+      ],
+      "position": [
+        -681.4094,
+        2265.5615,
+        1072.8677
+      ]
+    },
+    {
+      "name": "CornerPost_3_Timber",
+      "mesh": "rbxassetid://104965788855285",
+      "meshSize": [
+        55.1679,
+        780.1906,
+        55.168
+      ],
+      "position": [
+        -276.7519,
+        2265.5615,
+        1477.5251
+      ]
+    },
+    {
+      "name": "CornerPost_4_Timber",
+      "mesh": "rbxassetid://86782382123078",
+      "meshSize": [
+        39.0095,
+        780.1906,
+        39.0095
+      ],
+      "position": [
+        295.5204,
+        2265.5615,
+        1477.5251
+      ]
+    },
+    {
+      "name": "CornerPost_5_Timber",
+      "mesh": "rbxassetid://105304768995802",
+      "meshSize": [
+        55.1679,
+        780.1906,
+        55.1679
+      ],
+      "position": [
+        700.1779,
+        2265.5615,
+        1072.8677
+      ]
+    },
+    {
+      "name": "CornerPost_6_Timber",
+      "mesh": "rbxassetid://102969458993100",
+      "meshSize": [
+        39.0095,
+        780.1905,
+        39.0095
+      ],
+      "position": [
+        700.1779,
+        2265.5615,
+        500.5954
+      ]
+    },
+    {
+      "name": "CornerPost_7_Timber",
+      "mesh": "rbxassetid://95890214268224",
+      "meshSize": [
+        55.1679,
+        780.1906,
+        55.1679
+      ],
+      "position": [
+        295.5204,
+        2265.5615,
+        95.9379
+      ]
+    },
+    {
+      "name": "DoorFrame_Trim",
+      "mesh": "rbxassetid://74225402473704",
+      "meshSize": [
+        503.873,
+        662.3492,
+        28.4446
+      ],
+      "position": [
+        9.3842,
+        2214.7681,
+        59.3664
+      ]
+    },
+    {
+      "name": "EntryStep_0_Stone",
+      "mesh": "rbxassetid://107531267918696",
+      "meshSize": [
+        463.2381,
+        32.508,
+        69.8921
+      ],
+      "position": [
+        9.3843,
+        1877.9045,
+        14.668
+      ]
+    },
+    {
+      "name": "EntryStep_1_Stone",
+      "mesh": "rbxassetid://97813166735300",
+      "meshSize": [
+        463.2381,
+        23.5683,
+        69.8921
+      ],
+      "position": [
+        9.3843,
+        1873.4346,
+        -50.3478
+      ]
+    },
+    {
+      "name": "EntryStep_2_Stone",
+      "mesh": "rbxassetid://136078554502306",
+      "meshSize": [
+        463.2381,
+        14.6286,
+        69.8921
+      ],
+      "position": [
+        9.3843,
+        1868.9648,
+        -115.3637
+      ]
+    },
+    {
+      "name": "Floor_Timber",
+      "mesh": "rbxassetid://125640113697328",
+      "meshSize": [
+        1387.5941,
+        28.4445,
+        1387.594
+      ],
+      "position": [
+        9.3843,
+        1873.4346,
+        786.7315
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkDoor",
+      "mesh": "rbxassetid://107341198301819",
+      "meshSize": [
+        215.2297,
+        560.2201,
+        10.8361
+      ],
+      "position": [
+        121.0625,
+        2171.0176,
+        42.8415
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim",
+      "mesh": "rbxassetid://76143768410438",
+      "meshSize": [
+        196.8085,
+        535.8392,
+        1.6255
+      ],
+      "position": [
+        121.0625,
+        2170.7468,
+        36.3399
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim.001",
+      "mesh": "rbxassetid://79360658899463",
+      "meshSize": [
+        7.0434,
+        35.2169,
+        6.7725
+      ],
+      "position": [
+        26.4509,
+        2149.8877,
+        32.141
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkDoor",
+      "mesh": "rbxassetid://103532627172082",
+      "meshSize": [
+        215.2297,
+        560.2201,
+        10.8361
+      ],
+      "position": [
+        -102.2941,
+        2171.0176,
+        42.8415
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim",
+      "mesh": "rbxassetid://96856830616174",
+      "meshSize": [
+        196.8085,
+        535.8392,
+        1.6255
+      ],
+      "position": [
+        -102.2941,
+        2170.7468,
+        36.3399
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim.001",
+      "mesh": "rbxassetid://80484833997757",
+      "meshSize": [
+        7.0434,
+        35.2169,
+        6.7725
+      ],
+      "position": [
+        -7.6824,
+        2149.8877,
+        32.141
+      ]
+    },
+    {
+      "name": "MushroomCap_Cap",
+      "mesh": "rbxassetid://78292487787841",
+      "meshSize": [
+        2048.0,
+        337.2701,
+        2048.0
+      ],
+      "position": [
+        9.3842,
+        2812.1011,
+        786.7314
+      ]
+    },
+    {
+      "name": "Plinth_0_-1_Stone",
+      "mesh": "rbxassetid://73360798570280",
+      "meshSize": [
+        55.3298,
+        60.9524,
+        77.2064
+      ],
+      "position": [
+        272.7317,
+        1916.1013,
+        95.9379
+      ]
+    },
+    {
+      "name": "Plinth_0_1_Stone",
+      "mesh": "rbxassetid://112105812503718",
+      "meshSize": [
+        55.3298,
+        60.9524,
+        77.2064
+      ],
+      "position": [
+        -253.9632,
+        1916.1013,
+        95.9379
+      ]
+    },
+    {
+      "name": "Plinth_1_0_Stone",
+      "mesh": "rbxassetid://98979870379014",
+      "meshSize": [
+        466.1466,
+        60.9524,
+        466.1466
+      ],
+      "position": [
+        -479.0806,
+        1916.1013,
+        298.2666
+      ]
+    },
+    {
+      "name": "Plinth_2_0_Stone",
+      "mesh": "rbxassetid://106299214772912",
+      "meshSize": [
+        77.2064,
+        60.9524,
+        582.0246
+      ],
+      "position": [
+        -681.4094,
+        1916.1013,
+        786.7315
+      ]
+    },
+    {
+      "name": "Plinth_3_0_Stone",
+      "mesh": "rbxassetid://120729105901816",
+      "meshSize": [
+        466.1466,
+        60.9524,
+        466.1466
+      ],
+      "position": [
+        -479.0806,
+        1916.1013,
+        1275.1965
+      ]
+    },
+    {
+      "name": "Plinth_4_0_Stone",
+      "mesh": "rbxassetid://98739218592067",
+      "meshSize": [
+        582.0246,
+        60.9524,
+        77.2064
+      ],
+      "position": [
+        9.3843,
+        1916.1013,
+        1477.5251
+      ]
+    },
+    {
+      "name": "Plinth_5_0_Stone",
+      "mesh": "rbxassetid://92301233840932",
+      "meshSize": [
+        466.1466,
+        60.9524,
+        466.1466
+      ],
+      "position": [
+        497.8491,
+        1916.1013,
+        1275.1965
+      ]
+    },
+    {
+      "name": "Plinth_6_0_Stone",
+      "mesh": "rbxassetid://102368600640869",
+      "meshSize": [
+        77.2064,
+        60.9524,
+        582.0246
+      ],
+      "position": [
+        700.1779,
+        1916.1013,
+        786.7315
+      ]
+    },
+    {
+      "name": "Plinth_7_0_Stone",
+      "mesh": "rbxassetid://126375099902272",
+      "meshSize": [
+        466.1467,
+        60.9524,
+        466.1467
+      ],
+      "position": [
+        497.8491,
+        1916.1013,
+        298.2666
+      ]
+    },
+    {
+      "name": "RaisedSpot_0_Spot",
+      "mesh": "rbxassetid://86372391662971",
+      "meshSize": [
+        240.262,
+        95.4138,
+        222.1696
+      ],
+      "position": [
+        -121.8412,
+        2844.7241,
+        25.9018
+      ]
+    },
+    {
+      "name": "RaisedSpot_1_Spot",
+      "mesh": "rbxassetid://109395717599681",
+      "meshSize": [
+        183.9804,
+        79.337,
+        190.332
+      ],
+      "position": [
+        -486.97,
+        2914.9885,
+        447.1573
+      ]
+    },
+    {
+      "name": "RaisedSpot_2_Spot",
+      "mesh": "rbxassetid://80805286987338",
+      "meshSize": [
+        269.727,
+        47.0171,
+        269.0037
+      ],
+      "position": [
+        334.2731,
+        2940.5559,
+        423.1115
+      ]
+    },
+    {
+      "name": "RaisedSpot_3_Spot",
+      "mesh": "rbxassetid://104089505866129",
+      "meshSize": [
+        229.9755,
+        95.4138,
+        237.915
+      ],
+      "position": [
+        -627.8272,
+        2844.7241,
+        1222.6714
+      ]
+    },
+    {
+      "name": "RaisedSpot_4_Spot",
+      "mesh": "rbxassetid://115056067373066",
+      "meshSize": [
+        254.8309,
+        100.7728,
+        243.4841
+      ],
+      "position": [
+        279.9457,
+        2894.9131,
+        1377.9192
+      ]
+    },
+    {
+      "name": "RaisedSpot_5_Spot",
+      "mesh": "rbxassetid://122039251340478",
+      "meshSize": [
+        175.122,
+        79.337,
+        189.3831
+      ],
+      "position": [
+        798.4805,
+        2827.9946,
+        981.169
+      ]
+    },
+    {
+      "name": "RaisedSpot_6_Spot",
+      "mesh": "rbxassetid://133592051451540",
+      "meshSize": [
+        225.6506,
+        42.6085,
+        227.5556
+      ],
+      "position": [
+        -153.1554,
+        2982.886,
+        786.7315
+      ]
+    },
+    {
+      "name": "TopBeam_0_Timber",
+      "mesh": "rbxassetid://75516414104521",
+      "meshSize": [
+        582.0246,
+        32.5079,
+        69.0794
+      ],
+      "position": [
+        9.3843,
+        2643.4663,
+        95.9379
+      ]
+    },
+    {
+      "name": "TopBeam_1_Timber",
+      "mesh": "rbxassetid://128100904085462",
+      "meshSize": [
+        460.4,
+        32.5079,
+        460.4
+      ],
+      "position": [
+        -479.0806,
+        2643.4663,
+        298.2666
+      ]
+    },
+    {
+      "name": "TopBeam_2_Timber",
+      "mesh": "rbxassetid://131171651009434",
+      "meshSize": [
+        69.0794,
+        32.5079,
+        582.0246
+      ],
+      "position": [
+        -681.4094,
+        2643.4663,
+        786.7315
+      ]
+    },
+    {
+      "name": "TopBeam_3_Timber",
+      "mesh": "rbxassetid://116539382105242",
+      "meshSize": [
+        460.4,
+        32.5079,
+        460.4
+      ],
+      "position": [
+        -479.0806,
+        2643.4663,
+        1275.1965
+      ]
+    },
+    {
+      "name": "TopBeam_4_Timber",
+      "mesh": "rbxassetid://71073849650201",
+      "meshSize": [
+        582.0246,
+        32.5079,
+        69.0794
+      ],
+      "position": [
+        9.3843,
+        2643.4663,
+        1477.5251
+      ]
+    },
+    {
+      "name": "TopBeam_5_Timber",
+      "mesh": "rbxassetid://123982654301350",
+      "meshSize": [
+        460.4,
+        32.5079,
+        460.4
+      ],
+      "position": [
+        497.8491,
+        2643.4663,
+        1275.1965
+      ]
+    },
+    {
+      "name": "TopBeam_6_Timber",
+      "mesh": "rbxassetid://92167928072628",
+      "meshSize": [
+        69.0794,
+        32.5079,
+        582.0246
+      ],
+      "position": [
+        700.1779,
+        2643.4663,
+        786.7315
+      ]
+    },
+    {
+      "name": "TopBeam_7_Timber",
+      "mesh": "rbxassetid://79239072351044",
+      "meshSize": [
+        460.4001,
+        32.5079,
+        460.4001
+      ],
+      "position": [
+        497.8491,
+        2643.4663,
+        298.2666
+      ]
+    },
+    {
+      "name": "WalkThreshold_WalkFloor",
+      "mesh": "rbxassetid://131138075906483",
+      "meshSize": [
+        442.9207,
+        11.3779,
+        327.7884
+      ],
+      "position": [
+        9.3843,
+        1885.2188,
+        197.5252
+      ]
+    },
+    {
+      "name": "Wall_00_Cream",
+      "mesh": "rbxassetid://98735193538969",
+      "meshSize": [
+        582.0247,
+        772.0636,
+        56.889
+      ],
+      "position": [
+        9.3843,
+        2273.6885,
+        95.9379
+      ]
+    },
+    {
+      "name": "Wall_01_Cream",
+      "mesh": "rbxassetid://113564713323178",
+      "meshSize": [
+        451.78,
+        772.0635,
+        451.78
+      ],
+      "position": [
+        -479.0806,
+        2273.6885,
+        298.2666
+      ]
+    },
+    {
+      "name": "Wall_02_Cream",
+      "mesh": "rbxassetid://70679702498219",
+      "meshSize": [
+        56.889,
+        772.0635,
+        582.0246
+      ],
+      "position": [
+        -681.4094,
+        2273.6885,
+        786.7315
+      ]
+    },
+    {
+      "name": "Wall_03_Cream",
+      "mesh": "rbxassetid://126486966005958",
+      "meshSize": [
+        451.7801,
+        772.0635,
+        451.7802
+      ],
+      "position": [
+        -479.0806,
+        2273.6885,
+        1275.1965
+      ]
+    },
+    {
+      "name": "Wall_04_Cream",
+      "mesh": "rbxassetid://122813818057312",
+      "meshSize": [
+        582.0246,
+        772.0635,
+        56.8892
+      ],
+      "position": [
+        9.3843,
+        2273.6885,
+        1477.5251
+      ]
+    },
+    {
+      "name": "Wall_05_Cream",
+      "mesh": "rbxassetid://91843877426508",
+      "meshSize": [
+        451.7801,
+        772.0635,
+        451.7802
+      ],
+      "position": [
+        497.8491,
+        2273.6885,
+        1275.1965
+      ]
+    },
+    {
+      "name": "Wall_06_Cream",
+      "mesh": "rbxassetid://84816539860970",
+      "meshSize": [
+        56.889,
+        772.0635,
+        582.0246
+      ],
+      "position": [
+        700.1779,
+        2273.6885,
+        786.7315
+      ]
+    },
+    {
+      "name": "Wall_07_Cream",
+      "mesh": "rbxassetid://118925627391176",
+      "meshSize": [
+        451.7802,
+        772.0635,
+        451.7802
+      ],
+      "position": [
+        497.8491,
+        2273.6885,
+        298.2666
+      ]
+    },
+    {
+      "name": "WindowCrossH_1_Timber",
+      "mesh": "rbxassetid://82928174154754",
+      "meshSize": [
+        187.3406,
+        13.8159,
+        187.3406
+      ],
+      "position": [
+        -505.5152,
+        2298.0696,
+        271.8321
+      ]
+    },
+    {
+      "name": "WindowCrossH_2_Timber",
+      "mesh": "rbxassetid://134075506671900",
+      "meshSize": [
+        13.0032,
+        13.8159,
+        251.9365
+      ],
+      "position": [
+        -718.7935,
+        2298.0696,
+        786.7315
+      ]
+    },
+    {
+      "name": "WindowCrossH_6_Timber",
+      "mesh": "rbxassetid://80710334533415",
+      "meshSize": [
+        13.0032,
+        13.8159,
+        251.9365
+      ],
+      "position": [
+        737.5621,
+        2298.0696,
+        786.7315
+      ]
+    },
+    {
+      "name": "WindowCrossH_7_Timber",
+      "mesh": "rbxassetid://112414933207032",
+      "meshSize": [
+        187.3407,
+        13.8159,
+        187.3407
+      ],
+      "position": [
+        524.2838,
+        2298.0696,
+        271.8321
+      ]
+    },
+    {
+      "name": "WindowCrossV_1_Timber",
+      "mesh": "rbxassetid://118063708031742",
+      "meshSize": [
+        18.964,
+        251.9365,
+        18.964
+      ],
+      "position": [
+        -505.5152,
+        2298.0696,
+        271.8321
+      ]
+    },
+    {
+      "name": "WindowCrossV_2_Timber",
+      "mesh": "rbxassetid://100350814023126",
+      "meshSize": [
+        13.0032,
+        251.9365,
+        13.8159
+      ],
+      "position": [
+        -718.7935,
+        2298.0696,
+        786.7315
+      ]
+    },
+    {
+      "name": "WindowCrossV_6_Timber",
+      "mesh": "rbxassetid://88453973349501",
+      "meshSize": [
+        13.0032,
+        251.9365,
+        13.8159
+      ],
+      "position": [
+        737.5621,
+        2298.0696,
+        786.7315
+      ]
+    },
+    {
+      "name": "WindowCrossV_7_Timber",
+      "mesh": "rbxassetid://72053008230385",
+      "meshSize": [
+        18.964,
+        251.9365,
+        18.964
+      ],
+      "position": [
+        524.2838,
+        2298.0696,
+        271.8321
+      ]
+    },
+    {
+      "name": "WindowFrame_1_-1_Trim",
+      "mesh": "rbxassetid://104304039112065",
+      "meshSize": [
+        217.1709,
+        295.8222,
+        217.1709
+      ],
+      "position": [
+        -454.3701,
+        2298.0696,
+        322.9772
+      ]
+    },
+    {
+      "name": "WindowFrame_1_1_Trim",
+      "mesh": "rbxassetid://131188568844421",
+      "meshSize": [
+        217.1709,
+        295.8222,
+        217.1709
+      ],
+      "position": [
+        -503.7912,
+        2298.0696,
+        273.5561
+      ]
+    },
+    {
+      "name": "WindowFrame_2_-1_Trim",
+      "mesh": "rbxassetid://136148919083865",
+      "meshSize": [
+        26.7451,
+        295.8222,
+        295.8222
+      ],
+      "position": [
+        -646.4634,
+        2298.0696,
+        786.7315
+      ]
+    },
+    {
+      "name": "WindowFrame_2_1_Trim",
+      "mesh": "rbxassetid://134871786482267",
+      "meshSize": [
+        26.7451,
+        295.8222,
+        295.8222
+      ],
+      "position": [
+        -716.3554,
+        2298.0696,
+        786.7315
+      ]
+    },
+    {
+      "name": "WindowFrame_6_-1_Trim",
+      "mesh": "rbxassetid://74024206663985",
+      "meshSize": [
+        26.7451,
+        295.8222,
+        295.8222
+      ],
+      "position": [
+        665.2319,
+        2298.0696,
+        786.7315
+      ]
+    },
+    {
+      "name": "WindowFrame_6_1_Trim",
+      "mesh": "rbxassetid://100583491917084",
+      "meshSize": [
+        26.7451,
+        295.8222,
+        295.8222
+      ],
+      "position": [
+        735.124,
+        2298.0696,
+        786.7315
+      ]
+    },
+    {
+      "name": "WindowFrame_7_-1_Trim",
+      "mesh": "rbxassetid://81496028578372",
+      "meshSize": [
+        217.1709,
+        295.8222,
+        217.1709
+      ],
+      "position": [
+        473.1385,
+        2298.0696,
+        322.9772
+      ]
+    },
+    {
+      "name": "WindowFrame_7_1_Trim",
+      "mesh": "rbxassetid://124640233476058",
+      "meshSize": [
+        217.1709,
+        295.8222,
+        217.1709
+      ],
+      "position": [
+        522.5597,
+        2298.0696,
+        273.5561
+      ]
+    },
+    {
+      "name": "WindowGlass_1_Glass",
+      "mesh": "rbxassetid://114529959167185",
+      "meshSize": [
+        179.2954,
+        243.8096,
+        179.2953
+      ],
+      "position": [
+        -479.0806,
+        2298.0696,
+        298.2666
+      ]
+    },
+    {
+      "name": "WindowGlass_2_Glass",
+      "mesh": "rbxassetid://96214864322506",
+      "meshSize": [
+        9.7524,
+        243.8096,
+        243.8095
+      ],
+      "position": [
+        -681.4094,
+        2298.0696,
+        786.7315
+      ]
+    },
+    {
+      "name": "WindowGlass_6_Glass",
+      "mesh": "rbxassetid://86816290825949",
+      "meshSize": [
+        9.7524,
+        243.8096,
+        243.8095
+      ],
+      "position": [
+        700.1779,
+        2298.0696,
+        786.7315
+      ]
+    },
+    {
+      "name": "WindowGlass_7_Glass",
+      "mesh": "rbxassetid://98348992838373",
+      "meshSize": [
+        179.2954,
+        243.8096,
+        179.2953
+      ],
+      "position": [
+        497.8491,
+        2298.0696,
+        298.2666
+      ]
+    }
+  ]
+}

@@ -18,23 +18,18 @@
 	file, so the whole thing costs that chunk one local. Same reason HotBar,
 	AdminPanel, Rebirth, HouseFX and SpinWheel are modules.
 
-	THE CARD SHOWS WHAT IS INSIDE, WHICH IS THE ONLY THING A PLAYER WANTS TO
-	KNOW. The first instinct is a crate icon per chest, and this project has
-	already learned exactly where that ends: the four shops on the street were
-	"four identical boxes" with a different accent colour, and the shop's own
-	cards were "nineteen identical grey squares" until they rendered the real
-	item. A crate is a container, so its card is the three best things in it,
-	built by the same builders the rest of the shop uses.
+	THE TAB IS COLLECTIONS, AND A COLLECTION IS A ROW OF LARGE CRATES. OG Piggy
+	and Animal Kingdom each offer Common / Rare / Legendary; the Alien Cache
+	offers one (`Config.CRATE_SECTIONS`). The card used to preview the three
+	best items and draw an odds bar; the design asked for the crates alone, so
+	those moved one tap deeper -- tapping a crate opens `CrateContents`, which
+	shows the whole pool and prints the odds.
 
-	THE ODDS ARE ON THE CARD, DRAWN RATHER THAN WRITTEN. Crates cost earned
-	Acorns. The stacked bar shows the server's actual odds before opening;
-	the gold sliver being thin is information a child can read at a glance.
-
-	AND THEY ARE THE SERVER'S OWN NUMBERS. `ChestState` carries the odds
+	THE ODDS ARE STILL THE SERVER'S OWN NUMBERS. `ChestState` carries the odds
 	`ChestService.liveOdds` actually rolled with, renormalised over the tiers
-	that have stock. Computing them here from `Config.CHESTS[key].odds` would
-	print a player numbers the server did not use, which is the one way a
-	drawn probability can be worse than no probability at all.
+	that have stock, and the contents page and the reveal both read those.
+	Computing them from `Config.CHESTS[key].odds` would print a player numbers
+	the server did not use, which is worse than printing none.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -44,6 +39,21 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local ShopStyle = require(ReplicatedStorage.Shared.ShopStyle)
 local SpinWheel = require(ReplicatedStorage.Shared.SpinWheel)
 local Theme = require(ReplicatedStorage.Shared.Theme)
+local Icons = require(ReplicatedStorage.Shared.ShopIcons)
+
+-- The crate art is per TIER (`Config.CHESTS[key].tier`). A crate with no tier
+-- -- the Alien Cache -- has no art of its own yet, so it wears the legendary
+-- crate washed toward its own colour: distinct from OG Legendary at a glance,
+-- and one row in `ShopIcons` away from real art.
+local function crateIcon(holder: GuiObject, chestKey: string)
+	local chest = Config.CHESTS[chestKey]
+	local tier = chest and chest.tier
+	local image = Icons.mount(holder, "crate-" .. (tier or "legendary"))
+	if image and chest and not tier and chest.colour then
+		image.ImageColor3 = Color3.new(1, 1, 1):Lerp(chest.colour, 0.55)
+	end
+	return image
+end
 
 local Crates = {}
 
@@ -55,19 +65,8 @@ local Crates = {}
 local TIERS = Config.RARITY_ORDER
 local DOT = utf8.char(0x00B7)
 
--- Card geometry. Three across the 1020-wide content area at the panel's cap,
--- which is what the scale cell below works out to.
--- 246 UNTIL THE COMBINE ROW, AND THE OLD NUMBER IS WHY IT HAD TO GROW.
--- The card was packed: name at 10, the stock strip at 42, the odds bar
--- under it, the blurb under that, and OPEN pinned 50 from the bottom --
--- which left exactly TWELVE pixels of free band between the blurb and the
--- button. A 34-pixel row does not fit in 12, so the card grew rather than
--- the row being squeezed into a space that would have clipped it.
--- Two blurb lines fit the Acorn shortfall and earning hint above combining.
-local CARD_H = 298
-local COMBINE_H = 26
-local WELL_H = 86
-local BAR_H = 20
+-- A buy-back card's height; the crate tiles size themselves (see ROW_H).
+local CARD_H = 300
 
 -- SHARED STATE ABOVE ITS READERS. A `local` declared after a function that
 -- reads it silently becomes a nil GLOBAL in Luau -- it does not error, it dies
@@ -78,6 +77,9 @@ local cards: { [string]: any } = {}
 local buybackCards: { [string]: any } = {}
 local latest: any = nil
 local loot = 0
+local explorer: any = nil
+local cosmetics: any = nil
+local rides: any = nil
 
 local function tierColour(tier: string): Color3
 	local r = Config.RARITIES[tier]
@@ -91,7 +93,7 @@ end
 -- likely outcome and sells nothing; leading with the legendaries says what
 -- the chest is FOR. Nothing here claims they are likely -- the odds bar
 -- directly underneath is drawn to scale and says the opposite.
-local function stockOf(chestKey: string): { { kind: string, key: string, name: string, tier: string } }
+local function stockOf(chestKey: string): { { kind: string, key: string, name: string, tier: string, tint: Color3? } }
 	local pool = Config.chestPool(chestKey)
 	local out = {}
 	for i = #TIERS, 1, -1 do
@@ -101,7 +103,20 @@ local function stockOf(chestKey: string): { { kind: string, key: string, name: s
 			local catalogue = Config.catalogueFor(kind)
 			local spec = catalogue and catalogue[key]
 			if spec then
-				table.insert(out, { kind = kind, key = key, name = spec.name or key, tier = tier })
+				-- THE ITEM'S OWN COLOUR, carried out of the catalogue by the one
+				-- function that already reads it. The contents grid used to tint
+				-- every tile by RARITY, which over a pool of thirty says the same
+				-- thing thirty times -- and it was saying it twice, since the
+				-- tier is also printed on the tile. Tinted by the skin it is
+				-- showing, the grid reads as a shelf of pigs, and the rarity
+				-- moves to the tile's EDGE, which is the vocabulary the shop
+				-- card and the bag card already use for exactly this.
+				--
+				-- `body` is a skin, `walls` a house, `swatch` the rest: the same
+				-- fallback chain the shop card's own icon well picks from, rather
+				-- than a second opinion about where an item keeps its colour.
+				table.insert(out, { kind = kind, key = key, name = spec.name or key, tier = tier,
+					tint = spec.body or spec.walls or spec.swatch })
 			end
 		end
 	end
@@ -124,337 +139,278 @@ local function label(parent: Instance, text: string, size: UDim2, pos: UDim2,
 	return l
 end
 
--- ONE CARD PER CHEST, BUILT ONCE AND REPAINTED FOREVER.
+-- ONE CARD PER COLLECTION, AND INSIDE IT ONE LARGE CRATE PER TIER.
 --
--- Balance updates arrive frequently while a player is earning. Rebuilding
--- the card on every update would rebuild three ViewportFrames per chest. Everything below the previews is a property write on an instance that
--- already exists. Same rule the upgrade ladder follows: rebuild only when the
--- SHAPE changes, which for a chest is never.
-local function buildCard(chestKey: string, info: any): any
+-- The tab used to be a grid of per-crate cards, each carrying a preview
+-- strip, an odds bar, a blurb and a combine row. It is three sections now --
+-- OG Piggy, Animal Kingdom, Alien Cache (`Config.CRATE_SECTIONS`) -- and a
+-- crate is shown as what it is: a big crate, its tier, and the button that
+-- opens it. The odds and the full pool did not go anywhere: tapping a crate
+-- (or its ?) opens the contents page, which prints the server's own odds.
+--
+-- BUILT ONCE FROM CONFIG, REPAINTED FROM STATE. The shape of the tab is a
+-- function of `CRATE_SECTIONS` alone, so nothing rebuilds when a balance
+-- arrives -- every update is a property write on something that exists.
+local sections: { [string]: any } = {}
+local TIER_WORD = { common = "COMMON", rare = "RARE", epic = "EPIC", legendary = "LEGENDARY" }
+local ROW_H, ROW_H_COMPACT = 250, 186
+local TIER_H, BUTTON_H = 26, 40
+
+local function sectionFor(collection: string?): any
+	for _, def in ipairs(Config.CRATE_SECTIONS) do
+		if def.key == collection then
+			return sections[def.key]
+		end
+	end
+	return nil
+end
+
+local function buildTile(parent: Instance, chestKey: string, index: number): any
 	local chest = Config.CHESTS[chestKey]
-	local hue = chest.colour or Theme.HUE.crates
+	local hue = if chest.tier then tierColour(chest.tier) else (chest.colour or Theme.HUE.crates)
 
-	local card = Instance.new("Frame")
-	card.Name = "Crate_" .. chestKey
-	card.BackgroundColor3 = ShopStyle.CARD
-	card.BorderSizePixel = 0
-	card.LayoutOrder = (chest.order or 50) * 1000
-	card.Parent = grid
-	ShopStyle.round(card, 14)
-	-- The chest's OWN colour is the edge, which is what makes five cards read
-	-- as five different things rather than as one card five times. The tab's
-	-- hue belongs to the tab; a card's belongs to what is in it.
-	ShopStyle.outline(card, 3, hue)
-	ShopStyle.gloss(card)
+	local tile = Instance.new("Frame")
+	tile.Name = "Crate_" .. chestKey
+	tile.LayoutOrder = index
+	-- A third of the row less its share of the two 12px gaps, so three tiles
+	-- fill the row exactly and a section with one (the Alien Cache) keeps the
+	-- same size rather than stretching into a banner.
+	tile.Size = UDim2.new(1 / 3, -8, 1, 0)
+	tile.BackgroundColor3 = hue:Lerp(Theme.PAPER, 0.78)
+	tile.BorderSizePixel = 0
+	tile.Parent = parent
+	ShopStyle.round(tile, 14)
+	ShopStyle.outline(tile, if chest.tier == "legendary" then 5 else 3, hue)
+	ShopStyle.gloss(tile)
 
-	local name = label(card, chest.name or chestKey, UDim2.new(1, -104, 0, 26),
-		UDim2.new(0, 12, 0, 10), Enum.Font.FredokaOne, 19, ShopStyle.TEXT)
-	name.TextScaled = true
-	local nameSize = Instance.new("UITextSizeConstraint")
-	nameSize.MinTextSize = 12
-	nameSize.MaxTextSize = 19
-	nameSize.Parent = name
+	-- THE CRATE IS THE BUTTON THAT SHOWS WHAT IS INSIDE. Big enough to be the
+	-- whole card, which is what "a crate" means to somebody choosing one.
+	local icon = Instance.new("ImageButton")
+	icon.Name = "Icon"
+	icon.BackgroundTransparency = 1
+	icon.Image = ""
+	icon.Size = UDim2.new(1, -16, 1, -(TIER_H + BUTTON_H + 24))
+	icon.Position = UDim2.new(0, 8, 0, 8)
+	icon.Parent = tile
+	crateIcon(icon, chestKey)
+	icon.Activated:Connect(function()
+		if explorer then explorer:show(chestKey) end
+	end)
 
-	-- Owned of total, which is the one number that says "keep going".
-	local progress = ShopStyle.chip(card, ShopStyle.deepen(hue, 0.5), Theme.PAPER)
-	progress.Name = "Progress"
-	progress.Size = UDim2.new(0, 78, 0, 24)
-	progress.Position = UDim2.new(1, -90, 0, 11)
+	local peek = require(ReplicatedStorage.Shared.ShopWidgets).button(tile, "Peek", "?", Theme.PAPER, function()
+		if explorer then explorer:show(chestKey) end
+	end)
+	peek.Size = UDim2.fromOffset(28, 28)
+	peek.Position = UDim2.new(1, -36, 0, 8)
+	peek.TextSize = 16
+	ShopStyle.outline(peek, 2)
 
-	-- ---- what is inside ------------------------------------------------
-	local strip = Instance.new("Frame")
-	strip.Name = "Stock"
-	strip.BackgroundTransparency = 1
-	strip.Size = UDim2.new(1, -24, 0, WELL_H)
-	strip.Position = UDim2.new(0, 12, 0, 42)
-	strip.Parent = card
+	local word = TIER_WORD[chest.tier or ""] or string.upper(chest.name or chestKey)
+	local tier = label(tile, word, UDim2.new(1, -16, 0, TIER_H),
+		UDim2.new(0, 8, 1, -(BUTTON_H + 8 + TIER_H + 2)), Enum.Font.FredokaOne, 20, ShopStyle.TEXT)
+	tier.Name = "Tier"
+	tier.TextXAlignment = Enum.TextXAlignment.Center
 
-	local layout = Instance.new("UIListLayout")
-	layout.FillDirection = Enum.FillDirection.Horizontal
-	layout.Padding = UDim.new(0, 8)
-	layout.SortOrder = Enum.SortOrder.LayoutOrder
-	layout.Parent = strip
-
-	local stock = stockOf(chestKey)
-	for i = 1, 3 do
-		local entry = stock[i]
-		local well = Instance.new("Frame")
-		well.Name = "Well" .. i
-		well.LayoutOrder = i
-		-- A third of the strip less the two 8px gaps between three of them.
-		well.Size = UDim2.new(1 / 3, -16 / 3, 1, 0)
-		well.BackgroundColor3 = ShopStyle.SUNK
-		well.BorderSizePixel = 0
-		well.ClipsDescendants = true
-		well.Parent = strip
-		ShopStyle.round(well, 10)
-		-- The RARITY is the well's edge, so the strip reads as a ladder even
-		-- before anybody looks at what is standing in it.
-		ShopStyle.outline(well, 2, if entry then tierColour(entry.tier) else ShopStyle.SUNK)
-		if entry and deps.iconFor then
-			deps.iconFor(entry.kind, entry.key, well)
-		end
-	end
-
-	-- ---- the odds, to scale ---------------------------------------------
-	local bar = Instance.new("Frame")
-	bar.Name = "Odds"
-	bar.BackgroundColor3 = ShopStyle.SUNK
-	bar.BorderSizePixel = 0
-	bar.Size = UDim2.new(1, -24, 0, BAR_H)
-	bar.Position = UDim2.new(0, 12, 0, 42 + WELL_H + 10)
-	bar.ClipsDescendants = true
-	bar.Parent = card
-	ShopStyle.round(bar, 999)
-	ShopStyle.outline(bar, 2)
-
-	local segments: { [string]: TextLabel } = {}
-	for _, tier in ipairs(TIERS) do
-		local seg = Instance.new("TextLabel")
-		seg.Name = "Seg_" .. tier
-		seg.BackgroundColor3 = tierColour(tier)
-		seg.BorderSizePixel = 0
-		seg.Font = Enum.Font.GothamBold
-		seg.TextSize = 11
-		-- Ink on every tier, because all four rarity colours are bright by
-		-- design -- they were chosen to read against a dark card edge.
-		seg.TextColor3 = Theme.INK
-		seg.Text = ""
-		seg.Size = UDim2.new(0, 0, 1, 0)
-		seg.Parent = bar
-		segments[tier] = seg
-	end
-
-	local blurb = label(card, chest.blurb or "", UDim2.new(1, -24, 0, 36),
-		UDim2.new(0, 12, 0, 42 + WELL_H + 10 + BAR_H + 8), Enum.Font.Gotham, 12,
-		ShopStyle.MUTED)
-	blurb.TextWrapped = true
-
-	-- ---- combining spares ------------------------------------------------
-	--
-	-- THREE CHIPS RATHER THAN ONE BUTTON, and the reason is that the tier is
-	-- a real choice rather than a default worth hiding. A single COMBINE
-	-- button would have to pick a tier for the player -- the lowest they can
-	-- afford, presumably -- and that quietly removes the only decision in
-	-- the mechanic: three commons buy a rare roll, three epics buy a
-	-- legendary outright, and which of those you spend is the whole
-	-- question.
-	--
-	-- THEY ALSO SHOW PROGRESS TOWARD THE NEXT ONE, which a button cannot.
-	-- `2/3` is a reason to open another crate; a greyed button is a reason
-	-- to stop looking. Same argument the upgrade pips already make against
-	-- printing "Lv 3/4".
-	--
-	-- LEGENDARY IS ABSENT RATHER THAN GREYED. It is the top tier, so
-	-- `ChestService.combine` refuses it outright -- "Legendary is the top
-	-- tier. Nothing to combine up to." A fourth chip that can never light
-	-- would be a control that does nothing when pressed, which this file
-	-- treats as worse than an absent one.
-	local combineRow = Instance.new("Frame")
-	combineRow.Name = "Combine"
-	combineRow.BackgroundTransparency = 1
-	combineRow.Size = UDim2.new(1, -24, 0, COMBINE_H)
-	combineRow.Position = UDim2.new(0, 12, 0, 42 + WELL_H + 10 + BAR_H + 8 + 38)
-	combineRow.Parent = card
-
-	local combineLayout = Instance.new("UIListLayout")
-	combineLayout.FillDirection = Enum.FillDirection.Horizontal
-	combineLayout.Padding = UDim.new(0, 6)
-	combineLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	combineLayout.Parent = combineRow
-
-	-- WHICH TIERS THIS CRATE CAN CLIMB OUT OF, ASKED OF ITS OWN POOL.
-	--
-	-- The rule below has not changed -- a chip that can never light is worse
-	-- than an absent one -- only what it is measured against. It used to test
-	-- `tier ~= "legendary"`, which is the top of the GLOBAL ladder and was the
-	-- right test while every chest carried all four tiers.
-	--
-	-- A skin is one of three tiers now, so a skin crate has no epic in it at
-	-- all and an epic chip on one is a control that does nothing when pressed.
-	-- The alien cache is the other way round: it has no COMMON, so a common
-	-- chip there is equally dead. Asking the chest's own stock answers both,
-	-- and answers the next chest without anybody remembering to come back.
-	local pool = Config.chestPool(chestKey)
-	local climbable = {}
-	for _, tier in ipairs(TIERS) do
-		if pool[tier] and #pool[tier] > 0 then
-			table.insert(climbable, tier)
-		end
-	end
-	-- The highest stocked tier is what everything else combines UP TO, so it
-	-- is never something you combine FROM.
-	if #climbable > 0 then
-		table.remove(climbable)
-	end
-
-	local combines: { [string]: TextButton } = {}
-	for i, tier in ipairs(climbable) do
-		local chip = Instance.new("TextButton")
-		chip.Name = "Combine_" .. tier
-		chip.LayoutOrder = i
-		-- The chips SHARE the row, however many there are. It was a hardcoded
-		-- third back when every crate showed three; a skin crate shows two now
-		-- and a fixed third would leave a ragged gap rather than filling it.
-		local share = 1 / math.max(#climbable, 1)
-		chip.Size = UDim2.new(share, -6 * (#climbable - 1) * share, 1, 0)
-		chip.BackgroundColor3 = ShopStyle.SUNK
-		chip.BorderSizePixel = 0
-		chip.AutoButtonColor = false
-		chip.Font = Enum.Font.GothamBold
-		chip.TextSize = 11
-		chip.TextColor3 = ShopStyle.MUTED
-		chip.Text = ""
-		chip.Parent = combineRow
-		ShopStyle.round(chip, 8)
-		ShopStyle.outline(chip, 2, tierColour(tier))
-
-		-- THE CLIENT DECLINES TO ASK FOR A KNOWN NO, which is the same
-		-- split the OPEN button above makes and the number row makes for an
-		-- item you do not hold. The server re-counts the spares, re-picks
-		-- them and refuses out loud if they are not there; this only stops
-		-- a chip that is visibly not ready from firing anyway.
-		chip.Activated:Connect(function()
-			local ui = cards[chestKey]
-			if ui and ui.ready[tier] and deps.combine then
-				-- NO ENTRY LIST. `ChestCombine` takes an optional pick and
-				-- `autoPick` consumes the CHEAPEST spares first when none is
-				-- named -- which is the honest default, because every spare at
-				-- a tier combines identically, so the only thing the choice
-				-- can affect is what is left behind.
-				deps.combine(tier, chestKey)
-			end
-		end)
-		combines[tier] = chip
-	end
-	-- ---- the button ------------------------------------------------------
 	local open = Instance.new("TextButton")
 	open.Name = "Open"
-	open.Size = UDim2.new(1, -24, 0, 38)
-	open.Position = UDim2.new(0, 12, 1, -50)
+	open.Size = UDim2.new(1, -16, 0, BUTTON_H)
+	open.Position = UDim2.new(0, 8, 1, -(BUTTON_H + 8))
 	open.BackgroundColor3 = ShopStyle.BUY
 	open.BorderSizePixel = 0
 	open.AutoButtonColor = true
 	open.Font = Enum.Font.FredokaOne
-	open.TextSize = 17
+	open.TextSize = 16
 	open.TextColor3 = ShopStyle.TEXT
 	open.Text = ""
-	open.Parent = card
+	open.Parent = tile
 	ShopStyle.round(open, 12)
 	ShopStyle.outline(open, 3)
 	ShopStyle.gloss(open)
-
 	-- A short balance still gets the server's refusal and earning hint.
-	-- Only a valid Acorn-priced card sends an open request.
+	-- Only a valid Acorn-priced crate sends an open request.
 	open.Activated:Connect(function()
 		if cards[chestKey] and cards[chestKey].canOpen and deps.open then
 			deps.open(chestKey)
 		end
 	end)
 
-	local _ = info
-	return { card = card, name = name, progress = progress, segments = segments,
-		open = open, blurb = blurb, affordable = false, canOpen = false,
-		combines = combines, combineRow = combineRow, ready = {} }
+	return { card = tile, icon = icon, open = open, tier = tier, affordable = false, canOpen = false }
 end
 
--- Repaint one card from the server's own numbers.
+local function buildSection(def: any, order: number): any
+	local base = Config.CHESTS[def.chests[1]]
+	local hue = (base and base.colour) or Theme.HUE.crates
+
+	local frame = Instance.new("Frame")
+	frame.Name = "Section_" .. def.key
+	frame.LayoutOrder = order
+	frame.Size = UDim2.new(1, 0, 0, 0)
+	frame.AutomaticSize = Enum.AutomaticSize.Y
+	frame.BackgroundColor3 = ShopStyle.CARD
+	frame.BorderSizePixel = 0
+	frame.Parent = grid
+	ShopStyle.round(frame, 16)
+	-- The collection's own colour is the edge; the tiers inside wear theirs.
+	ShopStyle.outline(frame, 3, hue)
+
+	local pad = Instance.new("UIPadding")
+	pad.PaddingLeft = UDim.new(0, 12)
+	pad.PaddingRight = UDim.new(0, 12)
+	pad.PaddingTop = UDim.new(0, 12)
+	pad.PaddingBottom = UDim.new(0, 12)
+	pad.Parent = frame
+	local list = Instance.new("UIListLayout")
+	list.Padding = UDim.new(0, 10)
+	list.SortOrder = Enum.SortOrder.LayoutOrder
+	list.Parent = frame
+
+	local head = Instance.new("Frame")
+	head.Name = "Header"
+	head.LayoutOrder = 1
+	head.BackgroundTransparency = 1
+	head.Size = UDim2.new(1, 0, 0, 30)
+	head.Parent = frame
+	local title = label(head, def.name, UDim2.new(1, -100, 1, 0), UDim2.new(), Enum.Font.FredokaOne, 24, ShopStyle.TEXT)
+	title.Name = "Title"
+	-- Owned of total across the collection, the one number that says "keep going".
+	local progress = ShopStyle.chip(head, ShopStyle.deepen(hue, 0.5), Theme.PAPER)
+	progress.Name = "Progress"
+	progress.Size = UDim2.new(0, 84, 0, 26)
+	progress.Position = UDim2.new(1, -84, 0, 2)
+
+	local row = Instance.new("Frame")
+	row.Name = "Crates"
+	row.LayoutOrder = 2
+	row.BackgroundTransparency = 1
+	row.Size = UDim2.new(1, 0, 0, ROW_H)
+	row.Parent = frame
+	local rowList = Instance.new("UIListLayout")
+	rowList.FillDirection = Enum.FillDirection.Horizontal
+	rowList.Padding = UDim.new(0, 12)
+	rowList.SortOrder = Enum.SortOrder.LayoutOrder
+	rowList.Parent = row
+	for i, chestKey in ipairs(def.chests) do
+		if Config.CHESTS[chestKey] then
+			cards[chestKey] = buildTile(row, chestKey, i)
+		end
+	end
+
+	-- ---- combining spares ------------------------------------------------
+	--
+	-- One slim row per collection, landing in its COMMON crate's pool: five
+	-- commons buy a rare roll from this shelf, and so on up. The counts are
+	-- the server's and global per tier, so the same fuel shows on every
+	-- section -- the section is where the roll lands. A chip only exists for
+	-- a tier this shelf can climb OUT of; the top stocked tier is what the
+	-- rest combine up to, and a chip that can never light is worse than none.
+	local combineRow = Instance.new("Frame")
+	combineRow.Name = "Combine"
+	combineRow.LayoutOrder = 3
+	combineRow.BackgroundTransparency = 1
+	combineRow.Size = UDim2.new(1, 0, 0, 30)
+	combineRow.Visible = Config.canCombineChest(def.chests[1])
+	combineRow.Parent = frame
+	local combineList = Instance.new("UIListLayout")
+	combineList.FillDirection = Enum.FillDirection.Horizontal
+	combineList.Padding = UDim.new(0, 8)
+	combineList.VerticalAlignment = Enum.VerticalAlignment.Center
+	combineList.SortOrder = Enum.SortOrder.LayoutOrder
+	combineList.Parent = combineRow
+	local cap = label(combineRow, "COMBINE SPARES", UDim2.new(0, 124, 1, 0), UDim2.new(),
+		Enum.Font.GothamBold, 12, ShopStyle.MUTED)
+	cap.LayoutOrder = 0
+
+	local pool = Config.chestPool(def.chests[1])
+	local climbable = {}
+	for _, tier in ipairs(TIERS) do
+		if pool[tier] and #pool[tier] > 0 then
+			table.insert(climbable, tier)
+		end
+	end
+	if #climbable > 0 then
+		table.remove(climbable)
+	end
+	local combines: { [string]: TextButton } = {}
+	local ready: { [string]: boolean } = {}
+	for i, tier in ipairs(climbable) do
+		local chip = Instance.new("TextButton")
+		chip.Name = "Combine_" .. tier
+		chip.LayoutOrder = i
+		chip.Size = UDim2.new(0, 110, 1, -2)
+		chip.BackgroundColor3 = ShopStyle.SUNK
+		chip.BorderSizePixel = 0
+		chip.AutoButtonColor = false
+		chip.Font = Enum.Font.GothamBold
+		chip.TextSize = 12
+		chip.TextColor3 = ShopStyle.MUTED
+		chip.Text = ""
+		chip.Parent = combineRow
+		ShopStyle.round(chip, 8)
+		ShopStyle.outline(chip, 2, tierColour(tier))
+		-- The client declines to ask for a known no; the server re-counts,
+		-- re-picks and refuses out loud regardless.
+		chip.Activated:Connect(function()
+			if ready[tier] and deps.combine then
+				deps.combine(tier, def.chests[1])
+			end
+		end)
+		combines[tier] = chip
+	end
+
+	-- Buy-back offers for this collection's skins sit inside it.
+	local buybacks = Instance.new("Frame")
+	buybacks.Name = "BuyBacks"
+	buybacks.LayoutOrder = 4
+	buybacks.BackgroundTransparency = 1
+	buybacks.Size = UDim2.new(1, 0, 0, 0)
+	buybacks.AutomaticSize = Enum.AutomaticSize.Y
+	buybacks.Visible = false
+	buybacks.Parent = frame
+	local cells = Instance.new("UIGridLayout")
+	cells.CellSize = UDim2.new(1 / 3, -8, 0, CARD_H)
+	cells.CellPadding = UDim2.new(0, 12, 0, 12)
+	cells.SortOrder = Enum.SortOrder.LayoutOrder
+	cells.Parent = buybacks
+
+	return { def = def, frame = frame, row = row, progress = progress,
+		combines = combines, combineRow = combineRow, ready = ready, buybacks = buybacks }
+end
+
+-- Repaint one crate tile from the server's own numbers.
 local function paint(chestKey: string, info: any)
 	local ui = cards[chestKey]
 	if not ui then
 		return
 	end
-	local chest = Config.CHESTS[chestKey]
-	local currency = info.currency
-
-	ui.progress.Text = ("%d/%d"):format(info.owned or 0, info.total or 0)
-
-	-- THE SEGMENTS ARE LAID OUT BY HAND RATHER THAN BY A UILISTLAYOUT, because
-	-- a tier with no stock has to take NO WIDTH and a layout with padding
-	-- would still leave its gap. Walked in TIERS order so the bar always runs
-	-- common to legendary whatever order `pairs` felt like.
-	local at = 0
-	for _, tier in ipairs(TIERS) do
-		local pct = (info.odds or {})[tier]
-		local seg = ui.segments[tier]
-		if pct and pct > 0 then
-			local w = pct / 100
-			seg.Position = UDim2.new(at, 0, 0, 0)
-			seg.Size = UDim2.new(w, 0, 1, 0)
-			-- The number goes IN the segment, and only where it fits. A 4%
-			-- legendary sliver is about twelve pixels wide on this card, and
-			-- "4%" typeset across it is a smear that makes the bar harder to
-			-- read rather than easier. The sliver being thin is the message.
-			seg.Text = if w >= 0.16 then ("%d%%"):format(math.floor(pct + 0.5)) else ""
-			seg.Visible = true
-			at += w
-		else
-			seg.Visible = false
-		end
-	end
-
 	local held = math.floor(loot)
 	local cost = info.cost or 0
-	ui.canOpen = currency == "loot"
+	ui.canOpen = info.currency == "loot"
 	ui.affordable = ui.canOpen and held >= cost
-	local complete = (info.owned or 0) >= (info.total or 0) and (info.total or 0) > 0
-
-	if currency == "loot" then
+	if ui.canOpen then
 		Theme.acornPrice(ui.open, ("OPEN %s %d %s"):format(DOT, cost, Config.lootWord(cost)))
 	else
 		ui.open.Text = "UNAVAILABLE"
 	end
 	ui.open.BackgroundColor3 = if ui.affordable then ShopStyle.BUY else ShopStyle.DEAR
 	ui.open.TextColor3 = if ui.affordable then ShopStyle.TEXT else ShopStyle.MUTED
+end
 
-	-- A FINISHED CHEST STILL OPENS, and saying so is the point of the line.
-	-- Every roll from here is a duplicate, which is not a dead outcome -- it
-	-- is a spare, and a spare sells or combines. A button that went dead at
-	-- 12/12 would be telling a player their collection had stopped paying,
-	-- which is the exact thing the spare system exists to make untrue.
-	ui.blurb.Text = if ui.canOpen and not ui.affordable
-		then Config.acornShortfall(held, cost)
-		elseif complete
-		then "You have them all. Opens now pay spares."
-		else (chest.blurb or "")
-
-	-- ---- the combine chips ----------------------------------------------
-	--
-	-- THE COUNTS ARE THE SERVER'S AND ARE GLOBAL PER TIER, WHICH IS WHY THE
-	-- SAME THREE NUMBERS APPEAR ON EVERY CARD. That reads like a bug and is
-	-- the mechanic: `perTier` is how many spares you hold at each rarity
-	-- across the WHOLE collection, and the card is where the roll LANDS. So
-	-- the chips are your fuel and the card is the target, and the same fuel
-	-- can be spent into any of them.
-	--
-	-- SUMMED ON THE SERVER RATHER THAN HERE, deliberately. Counting spares
-	-- per tier needs the rarity rules, and re-deriving those on the client
-	-- would be a second copy of `Config.rarityOf` that can disagree with the
-	-- one that will actually be charged.
+-- Repaint a collection's progress and combine chips.
+local function paintSection(ui: any)
+	local chests = (latest and latest.chests) or {}
+	local base = chests[ui.def.chests[1]]
+	if base then
+		ui.progress.Text = ("%d/%d"):format(base.owned or 0, base.total or 0)
+	end
 	local perTier = (latest and latest.perTier) or {}
 	local need = (latest and latest.need) or Config.COMBINE.need
-
-	-- The server distinguishes regular crates from event sets explicitly;
-	-- currency no longer separates them now that every crate costs Acorns.
-	local canCombine = info.canCombine == true
-	ui.combineRow.Visible = canCombine
-
+	local canCombine = base ~= nil and base.canCombine == true
+	ui.combineRow.Visible = canCombine and next(ui.combines) ~= nil
 	for tier, chip in pairs(ui.combines) do
 		local have = perTier[tier] or 0
 		local ready = canCombine and have >= need
 		ui.ready[tier] = ready
-
-		-- SHORTENED TO FIT RATHER THAN SCALED. A third of a card this wide is
-		-- about 96 pixels, and "LEGENDARY 3/3" does not go in it -- but
-		-- legendary is not here, and the three that are fit as four letters
-		-- plus a count. `TextScaled` would have made it "fit" by shrinking,
-		-- which this project already records as a guarantee that means
-		-- nothing.
 		chip.Text = ("%s %d/%d"):format(tier:sub(1, 4):upper(), math.min(have, need), need)
-
-		-- READY IS THE TIER'S OWN COLOUR AND NOT-READY IS THE WELL, which is
-		-- the same two-state language the preview wells above already speak:
-		-- a rarity colour means there is something there.
 		chip.BackgroundColor3 = if ready then tierColour(tier) else ShopStyle.SUNK
 		chip.TextColor3 = if ready then Theme.INK else ShopStyle.MUTED
 	end
@@ -514,7 +470,9 @@ function Crates.reveal(payload: any)
 
 	local note = nil
 	if payload.duplicate then
-		note = ("Spare %s sells for %s"):format(DOT, deps.format(payload.value or 0))
+		local value = payload.value or 0
+		note = ("Spare %s sells for %s"):format(DOT, if Config.sellsForAcorns(payload.kind)
+			then Config.formatSellValue(payload.kind, value) else deps.format(value))
 	end
 
 	-- THE TIER GOES THROUGH RATHER THAN ONLY ITS COLOUR, and that is what
@@ -547,7 +505,8 @@ local function buildBuybackCard(key: string, info: any): any
 	card.Name = "Buyback_" .. key
 	card.BackgroundColor3 = ShopStyle.CARD
 	card.BorderSizePixel = 0
-	card.Parent = grid
+	local home = sectionFor(info.chest) or sections[Config.CRATE_SECTIONS[1].key]
+	card.Parent = home.buybacks
 	ShopStyle.round(card, 14)
 	ShopStyle.outline(card, 3, tierColour(info.tier))
 	local name = label(card, info.name, UDim2.new(1, -24, 0, 26),
@@ -592,6 +551,7 @@ local function buildBuybackCard(key: string, info: any): any
 			deps.buyback(key)
 		end
 	end)
+	require(ReplicatedStorage.Shared.ShopCatalogueLayout).bindCard(card,CARD_H)
 	return { card = card, buy = buy, hint = hint }
 end
 
@@ -608,7 +568,7 @@ local function paintBuybacks()
 				ui = buildBuybackCard(key, info)
 				buybackCards[key] = ui
 			end
-			ui.card.LayoutOrder = (Config.CHESTS[info.chest].order or 50) * 1000 + (info.order or 0) + 1
+			ui.card.LayoutOrder = (info.order or 0) + 1
 			local held = math.floor(loot)
 			local affordable = held >= info.cost
 			Theme.acornPrice(ui.buy, ("BUY BACK\n%d %s"):format(info.cost, Config.lootWord(info.cost)))
@@ -617,6 +577,15 @@ local function paintBuybacks()
 			ui.hint.Text = if affordable then "This season only. Get this exact skin back."
 				else Config.acornShortfall(held, info.cost)
 		end
+	end
+	-- A collection's buy-back row shows only while it holds a card, counted
+	-- from our own table rather than by asking the instance tree.
+	for _, section in pairs(sections) do
+		local any = false
+		for _, ui in pairs(buybackCards) do
+			if ui.card.Parent == section.buybacks then any = true break end
+		end
+		section.buybacks.Visible = any
 	end
 end
 
@@ -631,18 +600,20 @@ function Crates.render(state: any?)
 	end
 	for chestKey, info in pairs(latest.chests or {}) do
 		if Config.CHESTS[chestKey] then
-			if not cards[chestKey] then
-				cards[chestKey] = buildCard(chestKey, info)
-			end
 			paint(chestKey, info)
 		end
 	end
+	for _, section in pairs(sections) do
+		paintSection(section)
+	end
 	paintBuybacks()
+	if explorer then explorer:update(latest, loot, cosmetics, rides) end
 end
 
 -- Opened from the recovery objective. Wait for the newly visible grid to
 -- lay out before scrolling, and re-read positions while it settles.
 function Crates.focusBuyback(key: string)
+	if explorer then explorer:close() end
 	task.spawn(function()
 		for _ = 1, 8 do
 			RunService.RenderStepped:Wait()
@@ -678,17 +649,17 @@ function Crates.init(view: Frame, injected: any)
 	-- tab sells a thing you can see; this one sells a chance, and the two
 	-- facts that make that fair -- the odds are real, and a repeat is not a
 	-- loss -- are exactly what a nine-year-old cannot infer from a grid.
-	label(view, "Open a crate and see what is inside.", UDim2.new(1, -8, 0, 22),
-		UDim2.new(0, 4, 0, 0), Enum.Font.FredokaOne, 17, ShopStyle.TEXT)
-	label(view, "The chances are real, and they are printed on every crate. "
-		.. "Something you already own comes back as a SPARE, never as nothing.",
-		UDim2.new(1, -8, 0, 18), UDim2.new(0, 4, 0, 22), Enum.Font.Gotham, 12,
-		ShopStyle.MUTED)
+	-- ONE LINE, AT A SIZE THAT READS. There used to be a second, 12px grey
+	-- line under this one, which at shop distance was a smudge; the fact it
+	-- carried (a repeat comes back as a spare) is said again inside a crate.
+	label(view, "Tap a crate to see what is inside and your real chances.",
+		UDim2.new(1, -8, 0, 28), UDim2.new(0, 4, 0, 0), Enum.Font.FredokaOne, 20,
+		ShopStyle.TEXT)
 
 	local scroll = Instance.new("ScrollingFrame")
 	scroll.Name = "CrateGrid"
-	scroll.Size = UDim2.new(1, 0, 1, -46)
-	scroll.Position = UDim2.new(0, 0, 0, 46)
+	scroll.Size = UDim2.new(1, 0, 1, -34)
+	scroll.Position = UDim2.new(0, 0, 0, 34)
 	scroll.BackgroundTransparency = 1
 	scroll.BorderSizePixel = 0
 	scroll.ScrollBarThickness = 6
@@ -707,15 +678,36 @@ function Crates.init(view: Frame, injected: any)
 	pad.PaddingTop = UDim.new(0, 4)
 	pad.Parent = scroll
 
-	local cell = Instance.new("UIGridLayout")
-	-- IN SCALE, NOT PIXELS, for the reason the front page's shelf is: three
-	-- cells of (1/3 - 8) plus two 12-pixel gaps come to exactly the parent
-	-- width at EVERY panel size, so this fits a desktop and a phone held
-	-- sideways with no resize handler and nothing to keep in step.
-	cell.CellSize = UDim2.new(1 / 3, -8, 0, CARD_H)
-	cell.CellPadding = UDim2.new(0, 12, 0, 12)
-	cell.SortOrder = Enum.SortOrder.LayoutOrder
-	cell.Parent = scroll
+	local stack = Instance.new("UIListLayout")
+	stack.Padding = UDim.new(0, 14)
+	stack.SortOrder = Enum.SortOrder.LayoutOrder
+	stack.Parent = scroll
+	for i, def in ipairs(Config.CRATE_SECTIONS) do
+		sections[def.key] = buildSection(def, i)
+	end
+	-- A phone held sideways gets shorter rows rather than a second layout:
+	-- the crate shrinks, the tier word and the button stay full size.
+	local function fit()
+		local compact = scroll.AbsoluteSize.X < 740 or scroll.AbsoluteSize.Y < 430
+		for _, section in pairs(sections) do
+			section.row.Size = UDim2.new(1, 0, 0, if compact then ROW_H_COMPACT else ROW_H)
+		end
+	end
+	scroll:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+	fit()
+	explorer = require(ReplicatedStorage.Shared.CrateContents).new(view, {
+		stockOf = stockOf, iconFor = deps.iconFor, open = deps.open,
+		-- Tier artwork is shared by the card and its collection summary.
+		crateIcon = crateIcon,
+		showList = function(visible: boolean)
+			for _, child in ipairs(view:GetChildren()) do
+				if child:IsA("GuiObject") and child.Name ~= "CrateContents" then child.Visible = visible end
+			end
+		end,
+	})
+	view:GetPropertyChangedSignal("Visible"):Connect(function()
+		if view.Visible then explorer:loadVisible() end
+	end)
 
 	-- Expire visible offers locally at the boundary; the server independently
 	-- rechecks every request and clears saved claims during its rollover pass.
@@ -729,6 +721,23 @@ function Crates.init(view: Frame, injected: any)
 		end
 	end)
 	Crates.render()
+end
+
+function Crates.setCosmetics(snapshot: any)
+	cosmetics = snapshot
+	if explorer then explorer:update(latest, loot, cosmetics, rides) end
+end
+
+function Crates.setRides(snapshot: any)
+	rides = snapshot
+	if explorer then explorer:update(latest, loot, cosmetics, rides) end
+end
+
+function Crates.rebuildIcons()
+	if explorer then explorer:rebuildIcons() end
+	for key, ui in pairs(cards) do
+		crateIcon(ui.icon, key)
+	end
 end
 
 return Crates

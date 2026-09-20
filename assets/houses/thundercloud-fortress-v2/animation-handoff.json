@@ -1,0 +1,67 @@
+{
+  "status": "Named mesh groups and timing spec; runtime animation not installed",
+  "effects": [
+    {
+      "section": "HouseFX_CloudLightning_-1",
+      "kind": "beacon",
+      "periodSeconds": 10,
+      "phase": 0,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_CloudLightning_1",
+      "kind": "beacon",
+      "periodSeconds": 10,
+      "phase": 0.5,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_RainBar_1",
+      "kind": "cycle",
+      "periodSeconds": 3,
+      "phase": 0.16666666666666666,
+      "travelStuds": 1.92,
+      "constraint": "Fade before reset; never flash"
+    },
+    {
+      "section": "HouseFX_RainBar_2",
+      "kind": "cycle",
+      "periodSeconds": 3,
+      "phase": 0.3333333333333333,
+      "travelStuds": 1.92,
+      "constraint": "Fade before reset; never flash"
+    },
+    {
+      "section": "HouseFX_RainBar_3",
+      "kind": "cycle",
+      "periodSeconds": 3,
+      "phase": 0.5,
+      "travelStuds": 1.92,
+      "constraint": "Fade before reset; never flash"
+    },
+    {
+      "section": "HouseFX_RainBar_4",
+      "kind": "cycle",
+      "periodSeconds": 3,
+      "phase": 0.6666666666666666,
+      "travelStuds": 1.92,
+      "constraint": "Fade before reset; never flash"
+    },
+    {
+      "section": "HouseFX_RainBar_5",
+      "kind": "cycle",
+      "periodSeconds": 3,
+      "phase": 0.8333333333333334,
+      "travelStuds": 1.92,
+      "constraint": "Fade before reset; never flash"
+    },
+    {
+      "section": "HouseFX_RainBar_6",
+      "kind": "cycle",
+      "periodSeconds": 3,
+      "phase": 1.0,
+      "travelStuds": 1.92,
+      "constraint": "Fade before reset; never flash"
+    }
+  ]
+}

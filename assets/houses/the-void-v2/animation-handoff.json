@@ -1,0 +1,93 @@
+{
+  "status": "Named mesh groups and timing spec; runtime animation not installed",
+  "effects": [
+    {
+      "section": "HouseFX_EdgeTrace_1",
+      "kind": "pulse",
+      "periodSeconds": 12,
+      "phase": 0.0,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_EdgeTrace_2",
+      "kind": "pulse",
+      "periodSeconds": 12,
+      "phase": 0.25,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_EdgeTrace_3",
+      "kind": "pulse",
+      "periodSeconds": 12,
+      "phase": 0.5,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_EdgeTrace_4",
+      "kind": "pulse",
+      "periodSeconds": 12,
+      "phase": 0.75,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_StarInset_1",
+      "kind": "cycle",
+      "periodSeconds": 15,
+      "phase": 0.0,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_StarInset_2",
+      "kind": "cycle",
+      "periodSeconds": 15,
+      "phase": 0.3333333333333333,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_StarInset_3",
+      "kind": "cycle",
+      "periodSeconds": 15,
+      "phase": 0.6666666666666666,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Planet_1",
+      "kind": "orbit",
+      "periodSeconds": 36,
+      "centerBlender": [
+        0.0,
+        14.16,
+        50.739999999999995
+      ],
+      "radius": 24.779999999999998,
+      "phase": 0.5,
+      "height": 50.739999999999995
+    },
+    {
+      "section": "HouseFX_Planet_2",
+      "kind": "orbit",
+      "periodSeconds": 48,
+      "centerBlender": [
+        0.0,
+        14.16,
+        43.66
+      ],
+      "radius": 24.779999999999998,
+      "phase": 0,
+      "height": 43.66
+    },
+    {
+      "section": "HouseFX_Comet",
+      "kind": "orbit",
+      "periodSeconds": 60,
+      "centerBlender": [
+        0.0,
+        14.16,
+        59.0
+      ],
+      "radius": 21.24,
+      "phase": 0,
+      "tailEnvelope": 6.726
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "className": "SurfaceAppearance",
+  "properties": {
+    "AlphaMode": "Overlay",
+    "MetalnessMap": "",
+    "RoughnessMap": "",
+    "NormalMap": "",
+    "ColorMap": "rbxassetid://125946536265422",
+    "EmissiveMaskContent": "rbxassetid://113205026319092",
+    "EmissiveStrength": 1.1
+  },
+  "attributes": {
+    "PhoenixFrostGlow": true
+  }
+}

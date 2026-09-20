@@ -73,7 +73,7 @@ clearCarry = function(p)
  if carry then returnHaul(carry) end
  return carry
 end
-return {request=deliverRequest,returnCarry=returnCarry,options=carryOptions,action=dropAction,newCarry=newCarry,steal=rollSkinSteal,deliver=deliver,returnHaul=returnHaul,clear=clearCarry,
+return {request=settleOnArrival,returnCarry=returnCarry,options=carryOptions,action=dropAction,newCarry=newCarry,steal=rollSkinSteal,deliver=deliver,returnHaul=returnHaul,clear=clearCarry,
  carrying=carrying,grudge=grudge,losses=skinLosses,record=recordGrudge,
  cracking=cracking,endCrack=endCrack,isRevenge=isRevenge,
  objectives=HeistService.recoveryState,startObjectives=startObjectives}
@@ -146,7 +146,7 @@ local cc=take(r,owner);transfer(cc,r,keeper);transfer(cc,keeper,r)
 H.request(r)
 check(data[r].coins==100+10*Config.HEIST_PAYOUT and owned(r,"goldleaf"),"reclaimed haul settles at full original rate")
 -- Third-party return, owner recovery and voluntary undo.
-for _,who in {"helper","owner","claimant"} do
+for _,who in {"helper","owner"} do
  local t=plot(player("T"),600);local v=plot(player("V","bronze"),700);local h=plot(player("H"),800)
  local carried=take(t,v);carried.amount=17
  local recipient=if who=="owner" then v elseif who=="claimant" then t else h
@@ -161,6 +161,13 @@ for _,who in {"helper","owner","claimant"} do
  check(H.carrying[recipient]==nil and not owned(h,"bronze"),"return consumes haul without granting helper the skin: "..who)
  H.request(recipient);H.returnCarry(recipient)
  check(data[v].coins==117+(if recipient==v then 4 else 0),"repeated return cannot refund twice: "..who)
+end
+-- Arriving is the delivery, so a robber still standing at the pig they
+-- just robbed must NOT hand the haul back by walking: no voluntary undo.
+do
+ local t=plot(player("T"),600);local v=plot(player("V","bronze"),700)
+ local carried=take(t,v);moveTo(t,v);H.request(t)
+ check(H.carrying[t]==carried and H.options(t,carried).returnRing==nil,"robber at the robbed pig keeps the haul and sees no return ring")
 end
 -- Raw Acorn halves bypass rebirth/revenge multipliers and floor odd counts.
 for _,amount in {1,3,8,17} do

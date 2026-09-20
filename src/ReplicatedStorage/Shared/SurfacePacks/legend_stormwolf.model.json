@@ -1,0 +1,15 @@
+{
+  "className": "SurfaceAppearance",
+  "properties": {
+    "AlphaMode": "Overlay",
+    "MetalnessMap": "",
+    "RoughnessMap": "",
+    "NormalMap": "",
+    "ColorMap": "rbxassetid://137463257069203",
+    "EmissiveMaskContent": "rbxassetid://80272858542206",
+    "EmissiveStrength": 0.35
+  },
+  "attributes": {
+    "StormWolfBodyGlow": true
+  }
+}

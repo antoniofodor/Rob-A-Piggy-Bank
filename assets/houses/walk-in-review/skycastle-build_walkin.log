@@ -1,0 +1,18 @@
+00:03.062  blend            | Read blend: "C:\Users\anton\robloxGame\assets\houses\sky-castle-v1\sky-castle.blend"
+C:\Users\anton\robloxGame\assets\houses\tools\build_walkin.py:44: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(name);m.use_nodes=True
+00:06.015  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_16964_42c25dc293e1a22f4c6c65f4bd0da879.png.png"
+00:14.484  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\sky-castle-v2\exterior.png'
+00:26.390  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\sky-castle-v2\interior.png'
+00:37.094  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\sky-castle-v2\entry.png'
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\sky-castle-v2\\sky-castle-visual.fbx'
+export finished in 0.0738 sec.
+Info: File exported successfully
+Info: Saved as "sky-castle.blend"
+WALKIN_COMPLETE {"id": "skycastle", "folder": "sky-castle-v2", "probes": 40, "triangles": 9530}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+Writing to C:\Users\anton\robloxGame\assets\houses\sky-castle-v2\sky-castle-visual.obj
+OBJ export of 'sky-castle-visual.obj' took 5.27 ms
+
+Blender quit

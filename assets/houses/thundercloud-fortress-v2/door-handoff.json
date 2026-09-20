@@ -1,0 +1,49 @@
+{
+  "id": "thundercloud",
+  "doors": [
+    {
+      "name": "HouseDoorLeaf_L",
+      "hingeBlender": [
+        -3.84,
+        4.976,
+        6.528
+      ],
+      "openDegrees": -100,
+      "sizeXYZ": [
+        3.7249999046325684,
+        0.20000000298023224,
+        10.720000267028809
+      ],
+      "closedCenterBlender": [
+        -1.9375,
+        4.97599983215332,
+        11.947999954223633
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_R",
+      "hingeBlender": [
+        3.84,
+        4.976,
+        6.528
+      ],
+      "openDegrees": 100,
+      "sizeXYZ": [
+        3.7249999046325684,
+        0.20000000298023224,
+        10.720000267028809
+      ],
+      "closedCenterBlender": [
+        1.9375,
+        4.97599983215332,
+        11.947999954223633
+      ]
+    }
+  ],
+  "automatic": true,
+  "triggerRadiusStuds": 10,
+  "holdOpenSeconds": 1.5,
+  "swingSeconds": 0.35,
+  "CanCollide": false,
+  "runtime": "HouseDoorAnimator.client.luau; prepare-in-studio.luau or build_house_runtime.py creates the pivot markers"
+}

@@ -1,0 +1,40 @@
+{
+  "status": "Named mesh groups and timing spec; runtime animation not installed",
+  "effects": [
+    {
+      "section": "HouseFX_Lantern_1",
+      "kind": "pulse",
+      "periodSeconds": 8,
+      "phase": 0.0,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Lantern_2",
+      "kind": "pulse",
+      "periodSeconds": 8,
+      "phase": 0.2,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Lantern_3",
+      "kind": "pulse",
+      "periodSeconds": 8,
+      "phase": 0.4,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Lantern_4",
+      "kind": "pulse",
+      "periodSeconds": 8,
+      "phase": 0.6,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Lantern_5",
+      "kind": "pulse",
+      "periodSeconds": 8,
+      "phase": 0.8,
+      "fixedGeometry": true
+    }
+  ]
+}

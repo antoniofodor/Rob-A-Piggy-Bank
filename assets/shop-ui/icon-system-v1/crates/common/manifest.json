@@ -1,0 +1,56 @@
+{
+  "width": 3.2,
+  "depth": 2.3,
+  "height": 1.8,
+  "hinge": [
+    0,
+    1.15,
+    1.9000000000000001
+  ],
+  "attachments": {
+    "Aura": [
+      0,
+      0,
+      0.18
+    ],
+    "Seal": [
+      0,
+      -1.5699999999999998,
+      1.02
+    ],
+    "LidSpark": [
+      0,
+      0,
+      2.45
+    ]
+  },
+  "effect": "Warm gold motes; short opening sparkle",
+  "triangles": {
+    "Body": 9144,
+    "Lid": 1128
+  },
+  "root": "bottom center",
+  "coordinates": "Blender XYZ; glTF/Roblox = (x,z,-y), 1 unit = 1 stud",
+  "robloxHinge": [
+    0,
+    1.9000000000000001,
+    -1.15
+  ],
+  "robloxAttachments": {
+    "Aura": [
+      0,
+      0.18,
+      0
+    ],
+    "Seal": [
+      0,
+      1.02,
+      1.5699999999999998
+    ],
+    "LidSpark": [
+      0,
+      2.45,
+      0
+    ]
+  }
+}

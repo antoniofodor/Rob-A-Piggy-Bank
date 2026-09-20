@@ -453,7 +453,7 @@ local function mount(player: Player, key: string)
 		motor = motor,
 		motorBase = motor.C0,
 	}
-	HeistService.setRideMultiplier(player, spec.multiplier)
+	HeistService.setRideMultiplier(player, Config.rideMultiplier(spec))
 	RideService.push(player)
 end
 
@@ -767,7 +767,7 @@ function RideService.push(player: Player)
 			-- Shown as a percentage rather than a multiplier: "+35% on the
 			-- street" is a sentence a nine year old reads once, where "x1.35"
 			-- is one they have to work out.
-			boost = math.floor((spec.multiplier - 1) * 100 + 0.5),
+			boost = math.floor((Config.rideMultiplier(spec) - 1) * 100 + 0.5),
 			-- Rides are collected and kept, so they carry a tier like the skins
 			-- and the decorations. Bones and gadgets deliberately do not: a tier
 			-- on something you rebuy every time you throw it describes a purchase

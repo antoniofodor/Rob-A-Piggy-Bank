@@ -33,7 +33,21 @@ check(Config.seasonTier(0) == 0 and Config.seasonTier(9) == 0 and Config.seasonT
 check(Config.seasonChipText(nil, 5) == nil and Config.seasonChipText(1, 0) == nil, "no chip before a tier or a season")
 check(Config.seasonChipText(1, 3) == "S1 TIER 3" and Config.seasonChipText(2, 9) == "S2 STAR"
 	and Config.seasonChipText(1, 10) == "S1 CHAMPION", "chip words")
-check(Config.seasonReward(9, 1) == nil and Config.seasonReward(6, 1) == nil, "sign and trophy tiers grant no item")
+-- The SIGN tier grants no item: a sign word is shown on the plot sign, not
+-- given through SetService. Tier 6 was `trophy:seasoncup` and granted nothing
+-- for the same reason; it is a finish now, since the plinth, kennel and trophy
+-- catalogues were retired, so it DOES grant.
+check(Config.seasonReward(9, 1) == nil, "a sign tier grants no item")
+check(Config.seasonReward(6, 1).kind == "finish", "a retargeted tier grants its finish")
+-- KNOWN DEFECT, ASSERTED AS IT STANDS RATHER THAN AS IT SHOULD BE: tier 6
+-- grants `midnightstar`, which is also `SEASON.finishes[1]` -- so a Season 1
+-- player reaches tier 10 already owning its prize, the grant is said and
+-- skipped, and the top of the ladder pays nothing. There is no spare finish to
+-- move tier 6 onto (all five are spoken for), so fixing it is a design choice:
+-- author a sixth finish, or pay tier 6 in an unused catch effect. Flip this to
+-- `~=` the moment the ladder changes.
+check(Config.seasonReward(6, 1).key == Config.SEASON.finishes[1],
+	"tier 6 still collides with the season exclusive")
 check(Config.seasonReward(10, 1).key == "midnightstar" and Config.seasonReward(10, 2) == nil,
 	"the season finish resolves per season and never falls back")
 
@@ -183,7 +197,7 @@ check(chips[#chips] == "S1 TIER 1" and saves > 0, "the sign chip updates and the
 S.earn(player, 10)
 check(data.season.tier == 2 and data.trophies.plinths.marble, "tier 2 grants the marble plinth")
 S.earn(player, 55)
-check(data.season.tier == 4 and data.cosmetics.ownedFinishes.polished and data.dogs.kennels.midnight,
+check(data.season.tier == 4 and data.cosmetics.ownedFinishes.polished and data.dogs.owned.goldenboy,
 	"crossing two tiers at once grants both")
 data.cosmetics.ownedFinishes.lanternglow = true
 local before = #notes

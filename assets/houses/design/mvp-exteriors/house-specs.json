@@ -1,0 +1,36 @@
+{
+  "status": "Concepts for selection, not approved or measured models",
+  "interiors": "Deferred beyond MVP by current user direction",
+  "units": "studs",
+  "coordinateConvention": "Origin at structural front-wall ground plane, front -Z; hull broadside is Galleon's front",
+  "houses": [
+    {
+      "id": "crystal", "name": "Crystal Spire", "cost": 25000000, "rarity": "legendary",
+      "concept": "crystal-spire-concept.png", "proposedEnvelopeWDH": [24, 24, 45],
+      "configStoreys": 4, "storeysMeaning": "Visible exterior height bands only; no interior work",
+      "assetRoute": "Blender flat-colour mesh groups with an RBXMX placement/FX companion; Fable integrates",
+      "paletteProposals": {"HOUSE.CRYSTAL_ROCK": [64, 63, 74], "HOUSE.CRYSTAL_BODY": [78, 35, 128], "HOUSE.CRYSTAL_GLOW": [104, 38, 195], "HOUSE.CRYSTAL_TRIM": [132, 117, 155]},
+      "wallToken": "HOUSE.CRYSTAL_ROCK", "roofToken": "HOUSE.CRYSTAL_BODY", "trimToken": "HOUSE.CRYSTAL_TRIM",
+      "drive": {"material": "SmoothPlastic", "width": 5, "frontProjection": 4, "surface": "Theme.MUTED", "edge": "HOUSE.CRYSTAL_BODY", "description": "Fixed shallow slabs, no floating steps"},
+      "blurb": "A little home. A towering ambition.",
+      "fx": [{"names": ["CrystalAccent_1", "CrystalAccent_2", "CrystalAccent_3"], "kind": "pulse", "periodSeconds": 9, "phases": [0, 0.333333, 0.666667], "normalizedIntensity": [0.45, 0.8], "motion": "Colour intensity only; crystals remain fixed"}],
+      "budgetTarget": {"basePartsIncludingDraftCollisionAndFX": 80, "triangles": 20000},
+      "measuredPartCount": null, "measuredBounds": null,
+      "modelCorrections": ["Reduce small crystal rubble", "Preserve saturated violet under bloom", "No upper lit windows", "Keep main spire safely below full export frame edge"]
+    },
+    {
+      "id": "galleon", "name": "The Beached Galleon", "cost": 150000000, "rarity": "legendary",
+      "concept": "beached-galleon-concept.png", "proposedEnvelopeWDH": [42, 24, 50],
+      "configStoreys": 3, "storeysMeaning": "Hull/deck/cabin exterior bands only; no interior work",
+      "assetRoute": "Blender flat-colour mesh groups; separately named sail and lantern groups; Fable integrates",
+      "paletteProposals": {"HOUSE.GALLEON_HULL": [96, 64, 42], "HOUSE.GALLEON_SAIL_RED": [170, 52, 46], "HOUSE.GALLEON_SAIL_CREAM": [238, 222, 187], "HOUSE.GALLEON_TRIM": [212, 168, 84]},
+      "wallToken": "HOUSE.GALLEON_HULL", "roofToken": "HOUSE.GALLEON_SAIL_RED", "trimToken": "HOUSE.GALLEON_TRIM",
+      "drive": {"material": "SmoothPlastic", "width": 5, "frontProjection": 4, "surface": "HOUSE.GALLEON_HULL", "edge": "HOUSE.GALLEON_TRIM", "description": "Fixed broadside gangplank; short rise, no moving entry surface"},
+      "blurb": "A shore thing. Your very own ship-shaped home.",
+      "fx": [{"names": ["MastLanternAccent"], "kind": "pulse", "periodSeconds": 7, "phases": [0], "normalizedIntensity": [0.4, 0.75]}, {"names": ["SailDecor"], "kind": "sway", "periodSeconds": 11, "phases": [0.2], "amplitudeDegrees": 2, "optionalForMVP": true}],
+      "budgetTarget": {"basePartsIncludingDraftCollisionAndFX": 120, "triangles": 30000},
+      "measuredPartCount": null, "measuredBounds": null,
+      "modelCorrections": ["Remove generated grain and cloth textures", "Reduce rail posts and trim curls", "Only ground windows lit", "Count bowsprit, rigging, sail sweep and gangplank inside full bounds"]
+    }
+  ]
+}

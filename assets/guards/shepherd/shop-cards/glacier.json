@@ -1,0 +1,82 @@
+{
+  "id": "glacier",
+  "name": "Glacier",
+  "rig": "shepherd",
+  "source": "assets/guards/shepherd/shepherd.blend",
+  "sourceSha256": "4cdcfab5b4ed35a0175a44a0fb7cede0c3366ee0023fb841e2b65badccb4ca1f",
+  "image": "assets/guards/shepherd/shop-cards/glacier.png",
+  "sha256": "7c8759f9241d2e2cd71291364c25a66cc3769a0d79fc1c57ef8124f6427a5eeb",
+  "tones": {
+    "fur": [
+      214,
+      232,
+      244
+    ],
+    "dark": [
+      122,
+      168,
+      200
+    ],
+    "light": [
+      228.35,
+      240.05,
+      247.85
+    ],
+    "collar": [
+      96,
+      214,
+      226
+    ],
+    "brow": [
+      214,
+      232,
+      244
+    ],
+    "mask": [
+      219.74,
+      235.22,
+      245.54000000000002
+    ],
+    "eye": [
+      18,
+      18,
+      20
+    ],
+    "nose": [
+      29,
+      27,
+      30
+    ],
+    "mouth": [
+      41,
+      24,
+      31
+    ],
+    "teeth": [
+      248,
+      232,
+      189
+    ],
+    "inner": [
+      201,
+      126,
+      112
+    ],
+    "armor": [
+      131,
+      48,
+      78
+    ],
+    "accent": [
+      238,
+      122,
+      64
+    ],
+    "silver": [
+      171,
+      170,
+      182
+    ]
+  },
+  "robloxAssetId": "rbxassetid://137516871818892"
+}

@@ -1,0 +1,18 @@
+00:04.531  blend            | Read blend: "C:\Users\anton\robloxGame\assets\houses\neon-tower-v1\neon-tower.blend"
+C:\Users\anton\robloxGame\assets\houses\tools\build_walkin.py:44: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(name);m.use_nodes=True
+00:09.437  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_15892_102e50707c21368ad372005b75962ed3.png.png"
+00:21.109  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\neon-tower-v2\exterior.png'
+00:37.828  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\neon-tower-v2\interior.png'
+00:49.312  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\neon-tower-v2\entry.png'
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\neon-tower-v2\\neon-tower-visual.fbx'
+export finished in 0.1001 sec.
+Info: File exported successfully
+Info: Saved as "neon-tower.blend"
+WALKIN_COMPLETE {"id": "neontower", "folder": "neon-tower-v2", "probes": 40, "triangles": 15112}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+Writing to C:\Users\anton\robloxGame\assets\houses\neon-tower-v2\neon-tower-visual.obj
+OBJ export of 'neon-tower-visual.obj' took 20.53 ms
+
+Blender quit

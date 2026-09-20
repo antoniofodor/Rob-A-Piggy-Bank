@@ -586,18 +586,48 @@ builders.jellycube = function(item, at)
 	cherry.Reflectance = 0.2
 end
 
+-- A PUBLIC LITTER BIN, AND IT USED TO BE TWO HOUSEHOLD WHEELIE BINS.
+--
+-- The pair was wrong for where it stands. These sit on the VERGE, beside the
+-- lamp posts, on ground that belongs to no plot -- and two domestic wheelie
+-- bins parked in the middle of it read as somebody's bin day rather than as
+-- street furniture, which is exactly how it was reported. A council bin on a
+-- pavement is a thing nobody has to explain.
+--
+-- ONE BIN RATHER THAN TWO also settles a smaller oddity: only one of the pair
+-- was ever hideable (the prompt hangs off a single `Hatch` that
+-- NeighborhoodService seats on the prop's own centre line), so the second bin
+-- was scenery that looked identical to the one thing on the street a thief
+-- can climb into.
+--
+-- ROUND, ON A PLINTH, WITH A DOMED LID. A cylinder's own axis is X, so every
+-- piece here is sized (LENGTH, diameter, diameter) and stood up with a
+-- quarter turn about Z -- the mistake this project has now made five times
+-- and which `cylinderY` exists to avoid making again.
+--
+-- The LID keeps its name and its shape: `StealthService` walks the model for
+-- parts called "Lid" and hinges each one about its own local -Z edge, so a
+-- disc tips open at the front exactly as the old flat lid did.
 builders.bins = function(item, at)
-	for i, spec in ipairs({
-		{ x = -1.6, colour = Color3.fromRGB(72, 128, 88) },
-		{ x = 1.6, colour = Color3.fromRGB(64, 92, 142) },
-	}) do
-		part("Bin", Vector3.new(2.4, 3.4, 2.2), at * CFrame.new(spec.x, 1.7, 0),
-			spec.colour, Enum.Material.SmoothPlastic)
-		part("Lid", Vector3.new(2.6, 0.35, 2.4), at * CFrame.new(spec.x, 3.5, 0),
-			spec.colour, Enum.Material.SmoothPlastic)
-		part("BinWheel", Vector3.new(0.4, 0.5, 0.5), at * CFrame.new(spec.x, 0.25, -0.9),
-			Color3.fromRGB(34, 34, 38), Enum.Material.SmoothPlastic)
+	local BODY = Color3.fromRGB(58, 84, 66)
+	local METAL = Color3.fromRGB(96, 102, 104)
+	local DARK = Color3.fromRGB(34, 36, 38)
+
+	-- The foot, wider than the body so the bin reads as standing on the
+	-- pavement rather than growing out of it.
+	cylinderY("BinFoot", 0.45, 2.9, at * CFrame.new(0, 0.22, 0), DARK, Enum.Material.SmoothPlastic)
+	cylinderY("Bin", 3.0, 2.6, at * CFrame.new(0, 1.9, 0), BODY, Enum.Material.SmoothPlastic)
+	-- Two hoops, 0.06 proud of the body: flush they would be a coplanar pair,
+	-- and on a curved surface the only way to be seen at all is to stand off
+	-- it. Same rule the squeaky ball's stripe followed.
+	for _, y in ipairs({ 1.0, 2.7 }) do
+		cylinderY("BinHoop", 0.22, 2.72, at * CFrame.new(0, y, 0), METAL, Enum.Material.SmoothPlastic)
 	end
+	-- The mouth: a dark ring under the lid, so the lid reads as a lid rather
+	-- than as the top of the body.
+	cylinderY("BinMouth", 0.3, 2.5, at * CFrame.new(0, 3.42, 0), DARK, Enum.Material.SmoothPlastic)
+	part("Lid", Vector3.new(2.9, 0.3, 2.9), at * CFrame.new(0, 3.68, 0), METAL, Enum.Material.SmoothPlastic)
+	ball("LidKnob", 0.5, at * CFrame.new(0, 3.9, 0), METAL, Enum.Material.SmoothPlastic)
 end
 
 builders.gnome = function(item, at)
@@ -1361,6 +1391,87 @@ local function dripHairTemplate(): BasePart?
 	return cut
 end
 
+-- One hollow oval link, cached for every resident. Alternating link planes
+-- interlock around the neck; the pendant hangs from its own connecting bail.
+local function dripChainTemplate(): BasePart?
+	local dest = decorTemplateFolder()
+	if not dest then return nil end
+	local ready = dest:FindFirstChild("dripChainLink")
+		or (if RunService:IsServer() then nil else dest:WaitForChild("dripChainLink", 10))
+	if ready and ready:IsA("BasePart") then return ready end
+	if not RunService:IsServer() then return nil end
+	local scratch = Instance.new("Folder")
+	scratch.Parent = workspace
+	local outer = Instance.new("Part")
+	outer.Shape = Enum.PartType.Ball
+	-- Boolean a full-sized round ring, then squash the result into an oval.
+	-- Roblox CSG can erase a small nonuniform Ball before subtracting its bore.
+	outer.Size = Vector3.new(4, 4, 4)
+	outer.Anchored = true
+	outer.CFrame = CFrame.new()
+	outer.Parent = scratch
+	local bore = Instance.new("Part")
+	bore.Shape = Enum.PartType.Cylinder
+	bore.Size = Vector3.new(8, 2.5, 2.5)
+	bore.CFrame = CFrame.Angles(0, math.pi / 2, 0)
+	bore.Anchored = true
+	bore.Parent = scratch
+	local ok, link = pcall(function() return outer:SubtractAsync({bore}) end)
+	scratch:Destroy()
+	if not ok or not link then
+		warn("[Decor] Could not build resident chain link: " .. tostring(link))
+		return nil
+	end
+	link.Name = "dripChainLink"
+	link.Size = Vector3.new(0.34, 0.56, 0.15)
+	link.UsePartColor = true
+	link.Color = GOLD
+	link.Material = Enum.Material.Metal
+	link.Anchored = true
+	link.CanCollide = false
+	link.CanQuery = false
+	link.CanTouch = false
+	link.CastShadow = false
+	link.Parent = dest
+	return link
+end
+
+local function dripNecklace(at: CFrame)
+	local template = dripChainTemplate()
+	local function linkAt(cf: CFrame, name: string)
+		if not template then return end
+		local link = template:Clone()
+		link.Name = name
+		link.CFrame = at * cf * template.CFrame
+		link.Parent = folder
+	end
+	local function point(t: number): Vector3
+		-- Keep the shoulder offset on BOTH halves of the loop. Restricting it
+		-- to cos(t) > 0 jumps 0.6 studs at each side and breaks the necklace.
+		return Vector3.new(1.52 * math.sin(t), 12.92 - 0.77 * math.max(0, math.cos(t)) ^ 1.8,
+			0.15 + 1.16 * math.cos(t) + 0.60 * math.sin(t) ^ 2)
+	end
+	for i = 0, 31 do
+		local t = i * math.pi * 2 / 32
+		local tangent = (point(t + 0.001) - point(t - 0.001)).Unit
+		local outward = Vector3.new(math.sin(t), 0, math.cos(t))
+		local right = tangent:Cross(outward).Unit
+		linkAt(CFrame.fromMatrix(point(t), right, tangent)
+			* CFrame.Angles(0, if i % 2 == 0 then 0 else math.rad(65), 0), "ChainLink")
+	end
+	linkAt(CFrame.new(0, 11.99, 1.40) * CFrame.Angles(0, math.rad(65), 0), "PendantBail")
+	cylinderZ("Pendant", 0.18, 1.05, at * CFrame.new(0, 11.57, 1.40), GOLD, Enum.Material.Metal)
+	cylinderZ("PendantFace", 0.04, 0.85, at * CFrame.new(0, 11.57, 1.51),
+		Color3.fromRGB(196, 133, 31), Enum.Material.Metal)
+	local seal = ball("PendantSnout", 1, at * CFrame.new(0, 11.57, 1.56), GOLD, Enum.Material.Metal)
+	seal.Size = Vector3.new(0.53, 0.34, 0.12)
+	for _, x in ipairs({-0.105, 0.105}) do
+		local nostril = ball("PendantNostril", 1, at * CFrame.new(x, 11.57, 1.619),
+			Color3.fromRGB(109, 68, 21), Enum.Material.Metal)
+		nostril.Size = Vector3.new(0.075, 0.14, 0.025)
+	end
+end
+
 builders.dripstatue = function(item, at)
 	local TEE = Color3.fromRGB(28, 28, 32)
 	local DENIM = Color3.fromRGB(102, 134, 186)
@@ -1403,10 +1514,7 @@ builders.dripstatue = function(item, at)
 	-- size, and a decal would need an upload and a moderation pass.
 	teeGraphic(at * CFrame.new(0, 10.2, 1.16))
 
-	for i = -3, 3 do
-		ball("Chain", 0.42, at * CFrame.new(i * 0.52, 12.15 + 0.13 * i * i, 1.24), GOLD, Enum.Material.Metal)
-	end
-	ball("Pendant", 0.95, at * CFrame.new(0, 11.75, 1.36), GOLD, Enum.Material.Metal)
+	dripNecklace(at)
 
 	cylinderY("Neck", 1.0, 1.3, at * CFrame.new(0, 13.1, 0), SKIN, SMOOTH)
 	-- A BIGGER SKULL BUYS FACE, NOT A BIGGER FACE. 4.3 -> 4.7 across, centre
@@ -2118,6 +2226,34 @@ end
 -- it out on the next one somebody writes.
 local trophyState: any = nil
 
+-- HOW BIG A TROPHY IS AUTHORED, AND IT IS NOT A SCALE FACTOR.
+--
+-- These were garden monuments: 5.8 to 8.2 studs, drawn to be read from a
+-- pavement. `TrophyService.check` stopped claiming a lawn slot when they moved
+-- indoors, so NOTHING IS EVER DISPLAYED AT THE SIZE IT WAS DRAWN FOR any more
+-- -- and `TrophyRoom` was compensating with `ScaleTo`, measured at between a
+-- sixth and a ninth. At that factor a flame tier, a dial ring, a rank star and
+-- a rosette are all authored around 0.85 and land at a TENTH OF A STUD: the
+-- shape survives and everything that says which grade it is does not.
+--
+-- A SHRUNK MONUMENT IS NOT A KEEPSAKE, which is the whole reason this is a
+-- size and not a multiplier. Three things change that no uniform scale can:
+-- the PLINTH goes (a keepsake stands on the shelf, and its engraving was
+-- 0.06 studs tall), the tall pieces are RE-PROPORTIONED (a 7.6-stud lamp post
+-- shrunk to fit a shelf is a wire, so it becomes a stubby bollard), and
+-- anything that GROWS WITH ITS GRADE is pinned (a grade-10 cup is 8.2 studs
+-- and a keepsake may not be twice the size of its neighbour).
+--
+-- `monument` is the geometry as it always was, and it is what the Featured
+-- mount and the Drip Statue's eventual place on the map still want -- which
+-- is why this is a size rather than a rewrite. See `docs/TROPHY-DISPLAY-
+-- PROPOSAL.md` for the measurements.
+local trophySize: string = "monument"
+
+local function keepsake(): boolean
+	return trophySize == "keepsake"
+end
+
 -- What a trophy is a picture of when nobody has said -- see `showroom`
 -- further down, which is what fills it for a shop card.
 --
@@ -2167,6 +2303,25 @@ local TROPHY_GOLD = Color3.fromRGB(226, 186, 86)
 -- two of them can ever share a plane.
 local function trophyPlinth(at: CFrame, width: number, depth: number,
 	label: string): number
+	-- A KEEPSAKE STANDS ON THE SHELF, AND THE SHELF IS THE PLINTH.
+	--
+	-- Suppressed rather than scaled, for two reasons that are both
+	-- measurements. It is 1.16 studs of a 5.8-to-8.2-stud object, so on a
+	-- shelf it was eating a SIXTH of the thing it was holding up. And the one
+	-- job it does that the shelf cannot -- the engraved plate -- is a
+	-- `SurfaceGui` 0.5 studs tall authored for a lawn, which landed at 0.06:
+	-- text nobody can read, occupying the room a keepsake needs.
+	--
+	-- THE PURCHASE IS NOT LOST, WHICH IS WHY THIS IS SAFE. The bought finish
+	-- (`Config.TROPHY_PLINTHS`) is the only part of a trophy coins can reach,
+	-- so it has to stay visible somewhere: the FEATURED mount builds at
+	-- `monument` size and keeps its plinth, engraving and uplights, on the one
+	-- object in the room a visitor actually walks up to. That is a better home
+	-- for it than four shelf copies at a tenth of a stud.
+	if keepsake() then
+		return 0
+	end
+
 	local plinth = Config.trophyPlinth(trophyState and trophyState.plinth)
 
 	local baseH, capH = 0.9, 0.26
@@ -2258,6 +2413,21 @@ end
 local SHELF_COLS, SHELF_ROWS = 3, 3
 local SHELF_PITCH_X, SHELF_PITCH_Y = 3.0, 2.75
 
+-- FOUR PIGS IN A WALL CASE RATHER THAN NINE, AND THE MENU IS WHY THAT IS NOT
+-- A LOSS. A nine-slot case is 10.4 by 8.75 studs -- a lawn object -- and hung
+-- in a room at a third of that the pigs inside it are smears. Two by two at
+-- the same pitch keeps each mini piggy READABLE, which is the whole point of a
+-- case that shows somebody else's skin, and the full collection log lives in
+-- the bag where every skin is a card. The physical case is the boast; the menu
+-- is the record. That is the brief's own split (`assets/houses/docs/HOUSE-TROPHY-ROOMS.md`:
+-- display capacity may grow with the house, ACHIEVEMENT capacity never does).
+local function shelfGrid(): (number, number)
+	if keepsake() then
+		return 2, 2
+	end
+	return SHELF_COLS, SHELF_ROWS
+end
+
 -- Rank a skin the way the shop borders it, so the case and the card can
 -- never disagree about which of two pigs is the better trophy.
 local RARITY_RANK = { common = 1, rare = 2, epic = 3, legendary = 4 }
@@ -2286,14 +2456,16 @@ local function shelfPicks(): { string }
 		return a < b
 	end)
 
-	while #keys > SHELF_COLS * SHELF_ROWS do
+	local cols, rows = shelfGrid()
+	while #keys > cols * rows do
 		table.remove(keys)
 	end
 	return keys
 end
 
 builders.victimshelf = function(_item, at)
-	local width = SHELF_COLS * SHELF_PITCH_X + 1.4
+	local cols, rows = shelfGrid()
+	local width = cols * SHELF_PITCH_X + 1.4
 	local depth = 3.4
 	local picks = shelfPicks()
 	local total = (trophyState and trophyState.skinTotal) or 0
@@ -2301,8 +2473,8 @@ builders.victimshelf = function(_item, at)
 	local top = trophyPlinth(at, width, depth,
 		("%d OF %d SKINS"):format(held, total))
 
-	local inner = SHELF_COLS * SHELF_PITCH_X
-	local caseH = SHELF_ROWS * SHELF_PITCH_Y + 0.5
+	local inner = cols * SHELF_PITCH_X
+	local caseH = rows * SHELF_PITCH_Y + 0.5
 
 	-- The back panel and the two uprights. Everything is authored from the
 	-- plinth top up, so a taller plinth carries the whole case with it.
@@ -2326,21 +2498,21 @@ builders.victimshelf = function(_item, at)
 	-- The boards, and the pigs standing on them. A shelf's TOP face is
 	-- where a pig's feet go, so the seat is derived from the board rather
 	-- than from the loop index -- move the pitch and the pigs follow.
-	for row = 0, SHELF_ROWS - 1 do
+	for row = 0, rows - 1 do
 		local boardY = top + row * SHELF_PITCH_Y
 		part("ShelfBoard", Vector3.new(inner + 0.5, 0.22, depth - 0.9),
 			at * CFrame.new(0, boardY + 0.11, 0.1),
 			TROPHY_WOOD, Enum.Material.SmoothPlastic)
 
-		for col = 0, SHELF_COLS - 1 do
+		for col = 0, cols - 1 do
 			-- Filled from the TOP shelf down, so the best of the collection
 			-- is at eye height and a half-full case fills downward rather
 			-- than leaving a gap where the good ones will go.
-			local index = (SHELF_ROWS - 1 - row) * SHELF_COLS + col + 1
+			local index = (rows - 1 - row) * cols + col + 1
 			local key = picks[index]
 			if key then
 				local seat = at * CFrame.new(
-					(col - (SHELF_COLS - 1) / 2) * SHELF_PITCH_X,
+					(col - (cols - 1) / 2) * SHELF_PITCH_X,
 					boardY + 0.22, 0.1)
 				local mini = PiggyModel.build(key)
 				-- A BUILDER'S ANCHORING IS A FACT ABOUT WHERE IT WAS DESIGNED
@@ -2493,22 +2665,35 @@ builders.medalboard = function(_item, at)
 	local top = trophyPlinth(at, width, depth, ("%d CAUGHT"):format(caught))
 
 	local boardW, boardH = 6.4, 3.9
-	local boardY = top + 1.5 + boardH / 2
+	-- HUNG ON A WALL RATHER THAN STOOD ON POSTS, WHICH IS WHY THIS ONE NEVER
+	-- BELONGED ON A SHELF.
+	--
+	-- A board on posts is SIGNAGE: 7.4 studs wide, drawn to be read across a
+	-- lawn. Signage does not shrink -- at a shelf's budget the rosettes pinned
+	-- to it land at a tenth of a stud and all that survives is the outline, a
+	-- small rectangle on a stick, which is exactly the "cards with words"
+	-- complaint. So indoors this goes on the `Wall` mount, flat, at very
+	-- nearly the size it was drawn at: the posts and the ground lift go, and
+	-- what is left is the board and everything pinned to it.
+	local lift = if keepsake() then 0 else 1.5
+	local boardY = top + lift + boardH / 2
 	-- The posts overlap the board's own edge rather than standing clear of
 	-- it: a board floating a tenth of a stud off the things holding it up
 	-- is the same fault as a fence panel that does not reach its post.
-	for _, side in ipairs({ -1, 1 }) do
-		part("BoardPost", Vector3.new(0.42, 1.5 + boardH + 0.5, 0.42),
-			at * CFrame.new(side * (boardW / 2 + 0.1),
-				top + (1.5 + boardH + 0.5) / 2, -0.1),
-			TROPHY_WOOD_DARK, Enum.Material.SmoothPlastic)
+	if not keepsake() then
+		for _, side in ipairs({ -1, 1 }) do
+			part("BoardPost", Vector3.new(0.42, lift + boardH + 0.5, 0.42),
+				at * CFrame.new(side * (boardW / 2 + 0.1),
+					top + (lift + boardH + 0.5) / 2, -0.1),
+				TROPHY_WOOD_DARK, Enum.Material.SmoothPlastic)
+		end
 	end
 	part("MedalBoard", Vector3.new(boardW, boardH, 0.36),
 		at * CFrame.new(0, boardY, -0.1), TROPHY_WOOD, Enum.Material.SmoothPlastic)
 	-- Sitting ON the board rather than floating above it: a butt joint,
 	-- which is a meeting rather than a fight.
 	part("BoardRail", Vector3.new(boardW + 1.2, 0.34, 0.6),
-		at * CFrame.new(0, top + 1.5 + boardH + 0.17, -0.1),
+		at * CFrame.new(0, top + lift + boardH + 0.17, -0.1),
 		TROPHY_WOOD_DARK, Enum.Material.SmoothPlastic)
 
 	-- A rosette is a disc with two tails, and the tails are what stop three
@@ -2551,7 +2736,17 @@ builders.sirenpost = function(_item, at)
 	local top = trophyPlinth(at, width, width,
 		("%d ESCAPED"):format(escapes))
 
-	local postH = 6.4
+	-- RE-PROPORTIONED ON A SHELF RATHER THAN SHRUNK, AND THIS IS THE ONE THAT
+	-- NEEDED IT MOST. A 7.6-stud lamp post scaled to a shelf budget is a
+	-- 0.1-stud-thick WIRE with beads on it: the silhouette that says "street
+	-- lamp" on a lawn says "nothing" at a third of the size, because what
+	-- reads at a distance is the post's HEIGHT against its width. A stubby
+	-- bollard lamp is the same object honestly authored small, and the lamps
+	-- still climb it -- the pitch comes down with the post so a full one is
+	-- still a ladder rather than a stripe.
+	local postH = if keepsake() then 2.6 else 6.4
+	local lampFrom = if keepsake() then 0.55 else 1.5
+	local lampPitch = if keepsake() then 0.62 else 1.0
 	cylinderY("SirenPost", postH, 0.78,
 		at * CFrame.new(0, top + postH / 2, 0), TROPHY_DARK, Enum.Material.Metal)
 
@@ -2560,7 +2755,7 @@ builders.sirenpost = function(_item, at)
 	-- looking glued to the pole.
 	for i = 1, lamps do
 		local side = if i % 2 == 1 then 1 else -1
-		local y = top + 1.5 + (i - 1) * 1.0
+		local y = top + lampFrom + (i - 1) * lampPitch
 		-- A BOX RATHER THAN A CYLINDER, because `cylinderZ` already carries a
 		-- quarter turn and a second one to point it sideways is two rotations
 		-- doing the work of none. A Roblox cylinder's axis is its X in the
@@ -2596,7 +2791,11 @@ builders.hotstreak = function(_item, at)
 	local best = (trophyState and trophyState.bestSpree) or 0
 	local grade = Config.trophyGrade("hotstreak", best)
 	local top = trophyPlinth(at, 3.4, 3.4, ("BEST RUN %d"):format(best))
-	local stemH = 2.2
+	-- A shorter stem on a shelf: the bowl and its flames are what this trophy
+	-- IS, and on a lawn the stem is what lifts them to eye height. Indoors the
+	-- shelf already did that, so the stem was spending a third of the budget
+	-- holding the interesting part further away.
+	local stemH = if keepsake() then 0.9 else 2.2
 	cylinderY("BrazierStem", stemH, 0.7, at * CFrame.new(0, top + stemH / 2, 0),
 		TROPHY_DARK, Enum.Material.SmoothPlastic)
 	local bowlY = top + stemH + 0.35
@@ -2618,11 +2817,16 @@ builders.oldhand = function(_item, at)
 	local stars = Config.trophyGrade("oldhand", rank)
 	local top = trophyPlinth(at, width, depth, ("RANK %d"):format(rank))
 	local boardW, boardH = 5.6, 2.4
-	local boardY = top + 1.2 + boardH / 2
-	for _, side in ipairs({ -1, 1 }) do
-		part("OldHandPost", Vector3.new(0.4, 1.2 + boardH + 0.3, 0.4),
-			at * CFrame.new(side * (boardW / 2 + 0.1), top + (1.2 + boardH + 0.3) / 2, -0.1),
-			TROPHY_WOOD_DARK, Enum.Material.SmoothPlastic)
+	-- Signage, so it hangs on the `Wall` mount indoors rather than standing on
+	-- a shelf -- see `medalboard` above for the measurement.
+	local lift = if keepsake() then 0 else 1.2
+	local boardY = top + lift + boardH / 2
+	if not keepsake() then
+		for _, side in ipairs({ -1, 1 }) do
+			part("OldHandPost", Vector3.new(0.4, lift + boardH + 0.3, 0.4),
+				at * CFrame.new(side * (boardW / 2 + 0.1), top + (lift + boardH + 0.3) / 2, -0.1),
+				TROPHY_WOOD_DARK, Enum.Material.SmoothPlastic)
+		end
 	end
 	part("OldHandBoard", Vector3.new(boardW, boardH, 0.34),
 		at * CFrame.new(0, boardY, -0.1), TROPHY_WOOD, Enum.Material.SmoothPlastic)
@@ -2643,10 +2847,12 @@ builders.cleansheet = function(_item, at)
 	local clean = (trophyState and trophyState.clean) or 0
 	local rings = Config.trophyGrade("cleansheet", clean)
 	local top = trophyPlinth(at, 3.6, 2.6, ("%d CLEAN"):format(clean))
-	local standH = 1.6
+	-- The dial IS the trophy and the stand only lifts it; on a shelf the shelf
+	-- has already done the lifting.
+	local standH = if keepsake() then 0.7 else 1.6
 	part("DialStand", Vector3.new(0.6, standH, 0.6),
 		at * CFrame.new(0, top + standH / 2, 0), TROPHY_DARK, Enum.Material.SmoothPlastic)
-	local dialY = top + standH + 1.5
+	local dialY = top + standH + (if keepsake() then 0.95 else 1.5)
 	cylinderZ("DialFace", 0.4, 3.0, at * CFrame.new(0, dialY, 0),
 		TROPHY_STEEL, Enum.Material.SmoothPlastic)
 	-- Rings stack forward off the face, each smaller, so a full dial reads
@@ -2666,7 +2872,12 @@ builders.seasoncup = function(_item, at)
 	local grade = Config.trophyGrade("seasoncup", best)
 	local top = trophyPlinth(at, 3.4, 3.4, ("BEST TIER %d"):format(best))
 	-- The cup grows with the grade: tier 6 is a cup, tier 10 is a big one.
-	local s = 0.8 + 0.15 * math.max(grade, 1)
+	--
+	-- PINNED ON A SHELF, because a keepsake may not be twice the size of the
+	-- one beside it. At grade 10 this reaches 8.2 studs, which on a shelf
+	-- budget means the whole row is scaled to the luckiest object on it and
+	-- every other trophy shrinks to pay for this one. The gems still count up.
+	local s = if keepsake() then 1.0 else 0.8 + 0.15 * math.max(grade, 1)
 	cylinderY("CupFoot", 0.3 * s, 1.8 * s, at * CFrame.new(0, top + 0.15 * s, 0),
 		TROPHY_GOLD, Enum.Material.SmoothPlastic)
 	cylinderY("CupStem", 1.0 * s, 0.5 * s, at * CFrame.new(0, top + 0.3 * s + 0.5 * s - 0.05, 0),
@@ -2693,11 +2904,15 @@ builders.wantedposter = function(_item, at)
 	local posters = Config.trophyGrade("wantedposter", times)
 	local top = trophyPlinth(at, width, depth, ("WANTED x%d"):format(times))
 	local boardW, boardH = 5.6, 3.2
-	local boardY = top + 1.2 + boardH / 2
-	for _, side in ipairs({ -1, 1 }) do
-		part("PosterPost", Vector3.new(0.4, 1.2 + boardH + 0.3, 0.4),
-			at * CFrame.new(side * (boardW / 2 + 0.1), top + (1.2 + boardH + 0.3) / 2, -0.1),
-			TROPHY_WOOD_DARK, Enum.Material.SmoothPlastic)
+	-- Signage, so it hangs on the `Wall` mount indoors -- see `medalboard`.
+	local lift = if keepsake() then 0 else 1.2
+	local boardY = top + lift + boardH / 2
+	if not keepsake() then
+		for _, side in ipairs({ -1, 1 }) do
+			part("PosterPost", Vector3.new(0.4, lift + boardH + 0.3, 0.4),
+				at * CFrame.new(side * (boardW / 2 + 0.1), top + (lift + boardH + 0.3) / 2, -0.1),
+				TROPHY_WOOD_DARK, Enum.Material.SmoothPlastic)
+		end
 	end
 	part("PosterBoard", Vector3.new(boardW, boardH, 0.34),
 		at * CFrame.new(0, boardY, -0.1), TROPHY_WOOD, Enum.Material.SmoothPlastic)
@@ -2718,7 +2933,9 @@ builders.goodharvest = function(_item, at)
 	local harvested = (trophyState and trophyState.harvested) or 0
 	local fill = Config.trophyGrade("goodharvest", harvested)
 	local top = trophyPlinth(at, 3.6, 3.6, ("%d HARVESTED"):format(harvested))
-	local barrelH, barrelD = 3.0, 2.6
+	-- A squatter barrel on a shelf: the heaped acorns over the rim are the
+	-- grade, and a tall barrel spends the budget on staves nobody counts.
+	local barrelH, barrelD = (if keepsake() then 2.0 else 3.0), 2.6
 	cylinderY("Barrel", barrelH, barrelD, at * CFrame.new(0, top + barrelH / 2, 0),
 		TROPHY_WOOD, Enum.Material.SmoothPlastic)
 	for _, y in ipairs({ 0.5, barrelH - 0.5 }) do
@@ -2759,6 +2976,7 @@ function Decor.prewarm()
 		["drip statue eyelid"] = dripEyelidTemplate,
 		["drip statue hair"] = dripHairTemplate,
 		["drip statue eye outline"] = dripEyeOutlineTemplate,
+		["resident chain link"] = dripChainTemplate,
 	}) do
 		local ok, err = pcall(build)
 		if not ok then
@@ -2766,6 +2984,41 @@ function Decor.prewarm()
 				:format(name, tostring(err)))
 		end
 	end
+end
+
+-- THE STANDING FIGURE, which is what every RESIDENT is built from and is no
+-- longer a decoration at all.
+--
+-- `ResidentModel` used to reach it as `Decor.buildOne("dripstatue")`, and the
+-- Drip Statue was retired from the lawn catalogue -- so that call would have
+-- started returning nil and EVERY NEIGHBOUR ON THE STREET would have
+-- disappeared behind `ResidentModel`'s own pcall, with the failure looking
+-- exactly like a plot simply being vacant. That is the most expensive bug
+-- this project has already had once, and it is the reason a retired item's
+-- BUILDER is kept while its catalogue row goes.
+--
+-- Same shape and same reasoning as `buildStreetBin` below: reaching the
+-- builder directly is honest about what this is -- shared geometry, not a
+-- shared item.
+function Decor.buildFigure(at: CFrame, parent: Instance): Model?
+	local build = builders.dripstatue
+	if not build then
+		return nil
+	end
+	local model = Instance.new("Model")
+	model.Name = "Prop_figure"
+	folder = model
+	-- NEITHER `trophyState` NOR `skinKey` IS SET, and that is not laziness:
+	-- the figure builder reads neither (it is not a trophy and it wears no
+	-- piggy skin), and `showroom` -- which `buildOne` calls to default the
+	-- state -- is declared 230 lines BELOW this. Calling it here read as a nil
+	-- global and took every resident on the street down behind
+	-- `ResidentService`'s own guard: "could not build a resident figure",
+	-- fourteen times, which is the twelfth forward reference in this project
+	-- and the second time it has emptied the neighbourhood.
+	build({}, at)
+	model.Parent = parent
+	return model
 end
 
 -- THE PUBLIC WHEELIE BIN, which is street furniture rather than a decoration
@@ -2834,10 +3087,64 @@ Decor.MAILBOX_FLAG = Color3.fromRGB(206, 62, 58)
 -- never moving. Exported because `PlotService` raises and lowers it every
 -- time the daily state changes, and two descriptions of one hinge is how the
 -- flag and the box it is bolted to came to disagree in the first place.
-Decor.MAILBOX_FLAG_HINGE = CFrame.new(-1.05, 4.6, 0)
-Decor.MAILBOX_FLAG_HALF = 0.75
+--
+-- IT TURNS ABOUT THE BOX'S SIDEWAYS AXIS (X), the way a real mailbox flag
+-- does: up is a pole standing on the side of the box, down lies along the
+-- box's length toward the back. It used to turn about Z, which swung a
+-- single thin slab ACROSS the lid -- one straight bar either way, reported
+-- as exactly that. The hinge sits forward of centre so the lowered pole
+-- ends at the box's back edge rather than hanging off it.
+Decor.MAILBOX_FLAG_HINGE = CFrame.new(-1.08, 4.6, 1.0)
+-- Lowered, the pole lies 88 degrees back: not quite flat, so it reads as
+-- folded down rather than as a stripe painted on the box.
+Decor.MAILBOX_FLAG_DOWN = math.rad(-88)
 
-function Decor.buildMailbox(base: CFrame, parent: Instance): { [string]: BasePart }
+-- WHERE EVERY PIECE OF THE FLAG SITS, IN THE HINGE'S OWN FRAME (up = +Y
+-- along the pole, +Z toward the road). One table, read by the builder and
+-- by `poseMailboxFlag`, so raising it cannot leave a piece behind.
+--
+-- A POLE AND A PENNANT, NOT A BAR. The pole is thin; the flag proper is a
+-- broad panel at its top, sticking out toward the ROAD so it is the first
+-- thing a player walking along the pavement sees. The panel is two halves
+-- kinked a few degrees against each other, so it reads as cloth rather than
+-- a sign board -- and 2.0 x 1.25 against the old 0.75-wide slab, so it reads
+-- from across the street.
+--
+-- CLEARANCES, MEASURED AGAINST `buildMailbox`: everything sits at x -1.08
+-- or further out, against a body 0.95 and a lid 0.91 wide, so no piece can
+-- enter the box at any angle. Raised, the cloth flies forward past the
+-- door toward the road. Lowered, the pole ends 0.25 behind the box's back
+-- face and the cloth stands up beside the side face.
+local FLAG_POLE = 2.6
+local FLAG_W, FLAG_H = 2.0, 1.25
+Decor.MAILBOX_FLAG_PIECES = {
+	{ name = "MailFlag", size = Vector3.new(0.14, FLAG_POLE, 0.18),
+		offset = CFrame.new(0, FLAG_POLE / 2, 0), colour = "post" },
+	{ name = "MailFlagKnob", size = Vector3.new(0.22, 0.22, 0.22),
+		offset = CFrame.new(0, FLAG_POLE + 0.06, 0), colour = "gold", ball = true },
+	{ name = "MailFlagCloth", size = Vector3.new(0.1, FLAG_H, FLAG_W / 2 + 0.04),
+		offset = CFrame.new(0, FLAG_POLE - FLAG_H / 2 - 0.08, FLAG_W / 4 + 0.05)
+			* CFrame.Angles(0, math.rad(-6), 0), colour = "flag" },
+	{ name = "MailFlagTail", size = Vector3.new(0.1, FLAG_H * 0.86, FLAG_W / 2),
+		offset = CFrame.new(-0.1, FLAG_POLE - FLAG_H / 2 - 0.12, FLAG_W * 0.75 + 0.03)
+			* CFrame.Angles(0, math.rad(4), 0), colour = "flag" },
+	-- A white band across the cloth: the one detail that makes a red
+	-- rectangle read as a FLAG from forty studs, not a red tile.
+	{ name = "MailFlagStripe", size = Vector3.new(0.12, FLAG_H * 0.2, FLAG_W / 2 + 0.02),
+		offset = CFrame.new(0, FLAG_POLE - FLAG_H / 2 - 0.08, FLAG_W / 4 + 0.05)
+			* CFrame.Angles(0, math.rad(-6), 0), colour = "stripe" },
+}
+
+-- Puts every flag piece where the hinge says. `hinge` is the hinge in
+-- WORLD space, unrotated; `up` raises it.
+function Decor.poseMailboxFlag(pieces: { any }, hinge: CFrame, up: boolean)
+	local turned = hinge * CFrame.Angles(if up then 0 else Decor.MAILBOX_FLAG_DOWN, 0, 0)
+	for _, piece in ipairs(pieces) do
+		piece.part.CFrame = turned * piece.offset
+	end
+end
+
+function Decor.buildMailbox(base: CFrame, parent: Instance): { [string]: any }
 	local function piece(name: string, size: Vector3, cf: CFrame, colour: Color3,
 		material: Enum.Material): Part
 		local p = Instance.new("Part")
@@ -2908,13 +3215,23 @@ function Decor.buildMailbox(base: CFrame, parent: Instance): { [string]: BasePar
 	-- raises it; a caller with nothing to say -- the street furniture at the
 	-- kerb, which has no daily reward behind it -- leaves it exactly here,
 	-- which is the honest picture of an empty postbox.
-	local flag = piece("MailFlag", Vector3.new(0.14, 1.5, 0.75),
-		base * Decor.MAILBOX_FLAG_HINGE
-			* CFrame.Angles(0, 0, math.rad(-82))
-			* CFrame.new(0, Decor.MAILBOX_FLAG_HALF, 0),
-		Decor.MAILBOX_FLAG, Enum.Material.SmoothPlastic)
+	local colours = {
+		post = Color3.fromRGB(70, 66, 62), gold = Color3.fromRGB(232, 184, 72),
+		flag = Decor.MAILBOX_FLAG, stripe = Color3.fromRGB(246, 238, 222),
+	}
+	local flagPieces = {}
+	for _, spec in ipairs(Decor.MAILBOX_FLAG_PIECES) do
+		local part = piece(spec.name, spec.size, CFrame.new(), colours[spec.colour],
+			Enum.Material.SmoothPlastic)
+		if spec.ball then
+			part.Shape = Enum.PartType.Ball
+		end
+		table.insert(flagPieces, { part = part, offset = spec.offset })
+	end
+	Decor.poseMailboxFlag(flagPieces, base * Decor.MAILBOX_FLAG_HINGE, false)
 
-	return { post = post, body = body, lid = lid, door = door, flag = flag }
+	return { post = post, body = body, lid = lid, door = door,
+		flag = flagPieces[1].part, flagPieces = flagPieces :: any }
 end
 
 -- One catalogue ornament, standing where you put it, outside the slot system
@@ -3341,7 +3658,11 @@ function Decor.buildWindowBoxes(spec: any, house: Instance, parent: Instance): M
 	return model
 end
 
-function Decor.buildOne(key: string, at: CFrame, parent: Instance, state: any?): Model?
+-- `size` is "monument" (the default, and the geometry this has always built)
+-- or "keepsake" -- see `trophySize` at the top for what the difference is and
+-- why it is a size rather than a scale factor. Only the trophies read it.
+function Decor.buildOne(key: string, at: CFrame, parent: Instance, state: any?,
+	size: string?): Model?
 	local item = Config.DECOR_ITEMS[key]
 	local build = item and builders[item.style]
 	if not build then
@@ -3352,6 +3673,7 @@ function Decor.buildOne(key: string, at: CFrame, parent: Instance, state: any?):
 	model.Name = "Prop_" .. key
 	folder = model
 	trophyState = state or showroom()
+	trophySize = size or "monument"
 	-- A shop card has no owner, so the topiary on one is clipped in the skin
 	-- every save starts with rather than in nobody's.
 	skinKey = Config.DEFAULT_SKIN
@@ -3377,6 +3699,11 @@ function Decor.build(placed: { [string]: string }, originCF: CFrame,
 	model.Name = "Decor"
 	folder = model
 	trophyState = state or showroom()
+	-- SET RATHER THAN LEFT, for the reason `skinKey` below is: these are
+	-- upvalues, so whatever the LAST caller asked for is what this one gets if
+	-- it does not say. A shop card rendering a lawn ornament after a trophy
+	-- room had been filled would otherwise draw a plinthless keepsake.
+	trophySize = "monument"
 	-- A SIXTH ARGUMENT HERE AND DELIBERATELY NOT A SIXTH ONE ON `setDecor`.
 	-- That function has five callers across four services and this file's
 	-- parent records the decision not to grow its signature: a missed

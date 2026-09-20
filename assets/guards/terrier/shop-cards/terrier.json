@@ -1,0 +1,82 @@
+{
+  "id": "terrier",
+  "name": "Terrier",
+  "rig": "terrier",
+  "source": "assets/guards/terrier/terrier.blend",
+  "sourceSha256": "fb1947f099a3c4ac312e1cc06192056245c9789b214253ef511cb131265c6d7e",
+  "image": "assets/guards/terrier/shop-cards/terrier.png",
+  "sha256": "28d9011fc6e3ca3b91cb6f58e7559651fa9daaa3b7ab471a61212fa48d0b8264",
+  "tones": {
+    "fur": [
+      227,
+      173,
+      91
+    ],
+    "dark": [
+      172,
+      112,
+      53
+    ],
+    "light": [
+      247,
+      207,
+      142
+    ],
+    "collar": [
+      210,
+      54,
+      42
+    ],
+    "brow": [
+      227,
+      173,
+      91
+    ],
+    "mask": [
+      235.0,
+      186.60000000000002,
+      111.4
+    ],
+    "eye": [
+      18,
+      18,
+      20
+    ],
+    "nose": [
+      29,
+      27,
+      30
+    ],
+    "mouth": [
+      41,
+      24,
+      31
+    ],
+    "teeth": [
+      248,
+      232,
+      189
+    ],
+    "inner": [
+      201,
+      126,
+      112
+    ],
+    "armor": [
+      131,
+      48,
+      78
+    ],
+    "accent": [
+      238,
+      122,
+      64
+    ],
+    "silver": [
+      171,
+      170,
+      182
+    ]
+  },
+  "robloxAssetId": "rbxassetid://126143860962341"
+}

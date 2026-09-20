@@ -1,0 +1,11 @@
+{
+  "id": "hoverboard",
+  "name": "Hoverboard",
+  "parts": 38,
+  "turned": true,
+  "source": "assets/rides/ride-geometry.json",
+  "sourceSha256": "bf1c16759fe1302ced934a0d5b82c4a4fcda596e4e4c7c5654f03aa6b2b7842d",
+  "image": "assets/rides/hoverboard/shop-cards/hoverboard.png",
+  "sha256": "59ddc724d2cfac5148f879aab2a3613faf647badb72f0de04169cafbaceac12c",
+  "robloxAssetId": "rbxassetid://105930834977872"
+}

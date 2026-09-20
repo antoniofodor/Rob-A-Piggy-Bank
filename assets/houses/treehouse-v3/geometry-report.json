@@ -1,0 +1,1006 @@
+{
+  "id": "treehouse",
+  "revision": 3,
+  "sourceRevision": 2,
+  "status": "Bare walk-in shell; Studio import and avatar playtest pending",
+  "visualMeshes": 19,
+  "triangles": 29832,
+  "meshes": [
+    {
+      "name": "WalkThreshold",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseDoorLeaf_L",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseDoorLeaf_L_Panel",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseDoorLeaf_L_Handle",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseDoorLeaf_R",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseDoorLeaf_R_Panel",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "HouseDoorLeaf_R_Handle",
+      "triangles": 12,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Oak",
+      "triangles": 686,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Deck",
+      "triangles": 1584,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Cabin",
+      "triangles": 2272,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Roof",
+      "triangles": 3244,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Stairs",
+      "triangles": 6448,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Railings",
+      "triangles": 4928,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Bridge",
+      "triangles": 2208,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Lookout",
+      "triangles": 3694,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Interior",
+      "triangles": 2020,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Ladder",
+      "triangles": 464,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "Canopy",
+      "triangles": 1120,
+      "nonManifoldEdges": 0
+    },
+    {
+      "name": "GroundDetails",
+      "triangles": 1080,
+      "nonManifoldEdges": 0
+    }
+  ],
+  "boundsBlender": {
+    "min": [
+      -23.527658462524414,
+      -28.1678524017334,
+      -1.0999999046325684
+    ],
+    "max": [
+      32.199790954589844,
+      26.751388549804688,
+      38.79376983642578
+    ],
+    "size": [
+      55.72744941711426,
+      54.919240951538086,
+      39.89376974105835
+    ]
+  },
+  "paletteRGB": {
+    "WalkFloor": [
+      141,
+      98,
+      57
+    ],
+    "WalkDoor": [
+      101,
+      66,
+      39
+    ],
+    "WalkTrim": [
+      114,
+      74,
+      44
+    ],
+    "Bark": [
+      115,
+      70,
+      34
+    ],
+    "BarkLight": [
+      148,
+      91,
+      43
+    ],
+    "BarkDark": [
+      90,
+      54,
+      28
+    ],
+    "WalkWall": [
+      214,
+      193,
+      148
+    ],
+    "Wood": [
+      169,
+      110,
+      58
+    ],
+    "WoodShade": [
+      145,
+      89,
+      44
+    ],
+    "WoodLight": [
+      190,
+      134,
+      76
+    ],
+    "Timber": [
+      123,
+      76,
+      39
+    ],
+    "Plaster": [
+      217,
+      178,
+      122
+    ],
+    "Amber": [
+      255,
+      192,
+      63
+    ],
+    "PlasterLight": [
+      235,
+      200,
+      145
+    ],
+    "WindowBlue": [
+      49,
+      113,
+      146
+    ],
+    "RoofDark": [
+      53,
+      106,
+      43
+    ],
+    "Roof": [
+      62,
+      119,
+      47
+    ],
+    "RoofLight": [
+      75,
+      134,
+      49
+    ],
+    "Iron": [
+      69,
+      65,
+      43
+    ],
+    "Rope": [
+      184,
+      139,
+      76
+    ],
+    "LeafLight": [
+      106,
+      155,
+      57
+    ],
+    "Leaf": [
+      74,
+      132,
+      48
+    ],
+    "LeafDark": [
+      45,
+      99,
+      47
+    ],
+    "Stone": [
+      125,
+      133,
+      117
+    ],
+    "StoneLight": [
+      155,
+      156,
+      133
+    ]
+  },
+  "collisionBoxesDraft": [
+    {
+      "name": "Main deck",
+      "blenderLocation": [
+        0,
+        5,
+        14.15
+      ],
+      "sizeXYZ": [
+        24,
+        20,
+        0.7
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Cabin side -1",
+      "blenderLocation": [
+        -8.15,
+        6.6,
+        19.75
+      ],
+      "sizeXYZ": [
+        0.7,
+        12.5,
+        10.5
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Cabin side 1",
+      "blenderLocation": [
+        8.15,
+        6.6,
+        19.75
+      ],
+      "sizeXYZ": [
+        0.7,
+        12.5,
+        10.5
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Cabin rear",
+      "blenderLocation": [
+        0,
+        13.15,
+        19.75
+      ],
+      "sizeXYZ": [
+        17,
+        0.65,
+        10.5
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Front jamb",
+      "blenderLocation": [
+        -5.7,
+        0,
+        19.75
+      ],
+      "sizeXYZ": [
+        5.4,
+        0.65,
+        10.5
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Front jamb",
+      "blenderLocation": [
+        5.7,
+        0,
+        19.75
+      ],
+      "sizeXYZ": [
+        5.4,
+        0.65,
+        10.5
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Door lintel",
+      "blenderLocation": [
+        0,
+        0,
+        24.1
+      ],
+      "sizeXYZ": [
+        5.8,
+        0.65,
+        1.8
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Lower stairs step 0",
+      "blenderLocation": [
+        -6.0,
+        -25.615385055541992,
+        0.33769230769230774
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.7692307692307693,
+        0.44
+      ],
+      "rotationZ": -0.0
+    },
+    {
+      "name": "Lower stairs step 1",
+      "blenderLocation": [
+        -6.0,
+        -24.846153259277344,
+        0.8953846153846154
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.7692307692307693,
+        0.44
+      ],
+      "rotationZ": -0.0
+    },
+    {
+      "name": "Lower stairs step 2",
+      "blenderLocation": [
+        -6.0,
+        -24.076923370361328,
+        1.4530769230769232
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.7692307692307693,
+        0.44
+      ],
+      "rotationZ": -0.0
+    },
+    {
+      "name": "Lower stairs step 3",
+      "blenderLocation": [
+        -6.0,
+        -23.30769157409668,
+        2.0107692307692306
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.7692307692307693,
+        0.44
+      ],
+      "rotationZ": -0.0
+    },
+    {
+      "name": "Lower stairs step 4",
+      "blenderLocation": [
+        -6.0,
+        -22.538461685180664,
+        2.568461538461538
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.7692307692307693,
+        0.44
+      ],
+      "rotationZ": -0.0
+    },
+    {
+      "name": "Lower stairs step 5",
+      "blenderLocation": [
+        -6.0,
+        -21.769229888916016,
+        3.126153846153846
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.7692307692307693,
+        0.44
+      ],
+      "rotationZ": -0.0
+    },
+    {
+      "name": "Lower stairs step 6",
+      "blenderLocation": [
+        -6.0,
+        -21.0,
+        3.6838461538461535
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.7692307692307693,
+        0.44
+      ],
+      "rotationZ": -0.0
+    },
+    {
+      "name": "Lower stairs step 7",
+      "blenderLocation": [
+        -6.0,
+        -20.230770111083984,
+        4.241538461538462
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.7692307692307693,
+        0.44
+      ],
+      "rotationZ": -0.0
+    },
+    {
+      "name": "Lower stairs step 8",
+      "blenderLocation": [
+        -6.0,
+        -19.461538314819336,
+        4.799230769230769
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.7692307692307693,
+        0.44
+      ],
+      "rotationZ": -0.0
+    },
+    {
+      "name": "Lower stairs step 9",
+      "blenderLocation": [
+        -6.0,
+        -18.69230842590332,
+        5.356923076923077
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.7692307692307693,
+        0.44
+      ],
+      "rotationZ": -0.0
+    },
+    {
+      "name": "Lower stairs step 10",
+      "blenderLocation": [
+        -6.0,
+        -17.923076629638672,
+        5.914615384615385
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.7692307692307693,
+        0.44
+      ],
+      "rotationZ": -0.0
+    },
+    {
+      "name": "Lower stairs step 11",
+      "blenderLocation": [
+        -6.0,
+        -17.153846740722656,
+        6.472307692307693
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.7692307692307693,
+        0.44
+      ],
+      "rotationZ": -0.0
+    },
+    {
+      "name": "Lower stairs step 12",
+      "blenderLocation": [
+        -6.0,
+        -16.38461685180664,
+        7.03
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.7692307692307693,
+        0.44
+      ],
+      "rotationZ": -0.0
+    },
+    {
+      "name": "Stair landing",
+      "blenderLocation": [
+        -6,
+        -13.75,
+        7
+      ],
+      "sizeXYZ": [
+        7,
+        4.2,
+        0.5
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Upper stairs step 0",
+      "blenderLocation": [
+        -5.769230842590332,
+        -11.442307472229004,
+        7.587692307692308
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.6918374282089087,
+        0.44
+      ],
+      "rotationZ": -0.730335788568222
+    },
+    {
+      "name": "Upper stairs step 1",
+      "blenderLocation": [
+        -5.307692527770996,
+        -10.926922798156738,
+        8.145384615384614
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.6918374282089087,
+        0.44
+      ],
+      "rotationZ": -0.730335788568222
+    },
+    {
+      "name": "Upper stairs step 2",
+      "blenderLocation": [
+        -4.846153736114502,
+        -10.411538124084473,
+        8.703076923076923
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.6918374282089087,
+        0.44
+      ],
+      "rotationZ": -0.730335788568222
+    },
+    {
+      "name": "Upper stairs step 3",
+      "blenderLocation": [
+        -4.384615421295166,
+        -9.896153450012207,
+        9.26076923076923
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.6918374282089087,
+        0.44
+      ],
+      "rotationZ": -0.730335788568222
+    },
+    {
+      "name": "Upper stairs step 4",
+      "blenderLocation": [
+        -3.923076868057251,
+        -9.380768775939941,
+        9.818461538461538
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.6918374282089087,
+        0.44
+      ],
+      "rotationZ": -0.730335788568222
+    },
+    {
+      "name": "Upper stairs step 5",
+      "blenderLocation": [
+        -3.461538314819336,
+        -8.865385055541992,
+        10.376153846153846
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.6918374282089087,
+        0.44
+      ],
+      "rotationZ": -0.730335788568222
+    },
+    {
+      "name": "Upper stairs step 6",
+      "blenderLocation": [
+        -3.0,
+        -8.350000381469727,
+        10.933846153846153
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.6918374282089087,
+        0.44
+      ],
+      "rotationZ": -0.730335788568222
+    },
+    {
+      "name": "Upper stairs step 7",
+      "blenderLocation": [
+        -2.538461685180664,
+        -7.834615230560303,
+        11.491538461538461
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.6918374282089087,
+        0.44
+      ],
+      "rotationZ": -0.730335788568222
+    },
+    {
+      "name": "Upper stairs step 8",
+      "blenderLocation": [
+        -2.076923131942749,
+        -7.319230556488037,
+        12.04923076923077
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.6918374282089087,
+        0.44
+      ],
+      "rotationZ": -0.730335788568222
+    },
+    {
+      "name": "Upper stairs step 9",
+      "blenderLocation": [
+        -1.615384578704834,
+        -6.80384635925293,
+        12.606923076923076
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.6918374282089087,
+        0.44
+      ],
+      "rotationZ": -0.730335788568222
+    },
+    {
+      "name": "Upper stairs step 10",
+      "blenderLocation": [
+        -1.153846263885498,
+        -6.288461685180664,
+        13.164615384615384
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.6918374282089087,
+        0.44
+      ],
+      "rotationZ": -0.730335788568222
+    },
+    {
+      "name": "Upper stairs step 11",
+      "blenderLocation": [
+        -0.6923079490661621,
+        -5.773077011108398,
+        13.722307692307693
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.6918374282089087,
+        0.44
+      ],
+      "rotationZ": -0.730335788568222
+    },
+    {
+      "name": "Upper stairs step 12",
+      "blenderLocation": [
+        -0.23076915740966797,
+        -5.257692337036133,
+        14.34
+      ],
+      "sizeXYZ": [
+        5.2,
+        0.6918374282089087,
+        0.44
+      ],
+      "rotationZ": -0.730335788568222
+    },
+    {
+      "name": "Bridge plank 0",
+      "blenderLocation": [
+        12.36875,
+        4,
+        14.242105355834962
+      ],
+      "sizeXYZ": [
+        0.7374999999999999,
+        4.3,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Bridge plank 1",
+      "blenderLocation": [
+        13.10625,
+        4,
+        14.052987425726183
+      ],
+      "sizeXYZ": [
+        0.7374999999999999,
+        4.3,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Bridge plank 2",
+      "blenderLocation": [
+        13.84375,
+        4,
+        13.88342892824346
+      ],
+      "sizeXYZ": [
+        0.7374999999999999,
+        4.3,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Bridge plank 3",
+      "blenderLocation": [
+        14.58125,
+        4,
+        13.744984994781573
+      ],
+      "sizeXYZ": [
+        0.7374999999999999,
+        4.3,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Bridge plank 4",
+      "blenderLocation": [
+        15.31875,
+        4,
+        13.647090350616535
+      ],
+      "sizeXYZ": [
+        0.7374999999999999,
+        4.3,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Bridge plank 5",
+      "blenderLocation": [
+        16.05625,
+        4,
+        13.596416353969643
+      ],
+      "sizeXYZ": [
+        0.7374999999999999,
+        4.3,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Bridge plank 6",
+      "blenderLocation": [
+        16.79375,
+        4,
+        13.596416353969643
+      ],
+      "sizeXYZ": [
+        0.7374999999999999,
+        4.3,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Bridge plank 7",
+      "blenderLocation": [
+        17.53125,
+        4,
+        13.647090350616535
+      ],
+      "sizeXYZ": [
+        0.7374999999999999,
+        4.3,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Bridge plank 8",
+      "blenderLocation": [
+        18.26875,
+        4,
+        13.744984994781573
+      ],
+      "sizeXYZ": [
+        0.7374999999999999,
+        4.3,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Bridge plank 9",
+      "blenderLocation": [
+        19.00625,
+        4,
+        13.88342892824346
+      ],
+      "sizeXYZ": [
+        0.7374999999999999,
+        4.3,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Bridge plank 10",
+      "blenderLocation": [
+        19.74375,
+        4,
+        14.052987425726181
+      ],
+      "sizeXYZ": [
+        0.7374999999999999,
+        4.3,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Bridge plank 11",
+      "blenderLocation": [
+        20.48125,
+        4,
+        14.24210535583496
+      ],
+      "sizeXYZ": [
+        0.7374999999999999,
+        4.3,
+        0.32
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "Lookout floor",
+      "blenderLocation": [
+        25.05,
+        3.85,
+        14.22
+      ],
+      "sizeXYZ": [
+        8.4,
+        8,
+        0.55
+      ],
+      "rotationZ": 0
+    },
+    {
+      "name": "WalkThreshold",
+      "blenderLocation": [
+        0.0,
+        0.0,
+        14.454999923706055
+      ],
+      "sizeXYZ": [
+        5.699999809265137,
+        1.7999999523162842,
+        0.20999999344348907
+      ]
+    }
+  ],
+  "mountsBlender": {
+    "Door_Exit": [
+      0,
+      -1.65,
+      14.5
+    ],
+    "Wall": [
+      0.0,
+      12.620000000000001,
+      18.7
+    ]
+  },
+  "floorHeight": 14.5,
+  "reference": "assets/houses/design/fantasy-v2/treehouse-concept.png",
+  "routesBlender": [],
+  "walkIn": {
+    "roomBounds": [
+      -7.8,
+      7.8,
+      0.5,
+      12.8,
+      14.5,
+      24.8
+    ],
+    "entry": [
+      0,
+      -0.65,
+      14.5,
+      5.7,
+      8.5
+    ],
+    "doors": [
+      {
+        "name": "HouseDoorLeaf_L",
+        "hingeBlender": [
+          -2.85,
+          -0.73,
+          14.5
+        ],
+        "openDegrees": -100,
+        "sizeXYZ": [
+          2.734999895095825,
+          0.20000000298023224,
+          8.34000015258789
+        ],
+        "closedCenterBlender": [
+          -1.4424999952316284,
+          -0.7300000190734863,
+          18.729999542236328
+        ]
+      },
+      {
+        "name": "HouseDoorLeaf_R",
+        "hingeBlender": [
+          2.85,
+          -0.73,
+          14.5
+        ],
+        "openDegrees": 100,
+        "sizeXYZ": [
+          2.734999895095825,
+          0.20000000298023224,
+          8.34000015258789
+        ],
+        "closedCenterBlender": [
+          1.4424999952316284,
+          -0.7300000190734863,
+          18.729999542236328
+        ]
+      }
+    ],
+    "probes": 40,
+    "blocked": [],
+    "furnished": false,
+    "accessibleFloors": 1,
+    "geometryClearance": "1.7-stud body, 5.8-stud height; 25 room-grid and 15 doorway samples",
+    "collision": "Dedicated floors and walls; visual meshes and animated doors must not collide",
+    "bakedExteriorScale": 1,
+    "runtimeDisplayScale": 1.0
+  },
+  "mountYawBlender": {
+    "Wall": 180,
+    "Door_Exit": 180
+  }
+}

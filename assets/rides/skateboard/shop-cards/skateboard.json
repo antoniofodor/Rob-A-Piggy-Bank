@@ -1,0 +1,11 @@
+{
+  "id": "skateboard",
+  "name": "Skateboard",
+  "parts": 22,
+  "turned": true,
+  "source": "assets/rides/ride-geometry.json",
+  "sourceSha256": "81dd39e3e1787d0218ad2329ec481d0f238ba19fba978ea345670f7a7aa01cda",
+  "image": "assets/rides/skateboard/shop-cards/skateboard.png",
+  "sha256": "07b7f890a77a1edba7149ad94ea9cb680d70498787b10ec1dcbf4c5e6090bd68",
+  "robloxAssetId": "rbxassetid://82240531668741"
+}

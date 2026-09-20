@@ -1,0 +1,13 @@
+{
+  "DomeGlass": {
+    "RobloxTransparency": 0.82,
+    "Material": "SmoothPlastic",
+    "CanCollide": false
+  },
+  "BubbleGlass": {
+    "RobloxTransparency": 0.62,
+    "Material": "SmoothPlastic",
+    "CanCollide": false
+  },
+  "note": "Apply after import; flat RGB alone does not reproduce the transparent shell."
+}

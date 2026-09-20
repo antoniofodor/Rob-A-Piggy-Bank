@@ -18,9 +18,10 @@
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
--- For the dog's name, which is the only player-authored TEXT this game shows
--- to anybody. See `CosmeticsService.nameDog`.
-local TextService = game:GetService("TextService")
+-- NO `TextService`. The dog's name was the only player-authored text this
+-- game showed to anybody, and it is picked from `Config.DOG_NAMES` now, so
+-- there is nothing left here to filter. Anything that brings free text back
+-- brings the filter call back with it -- see `CosmeticsService.nameDog`.
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
@@ -217,9 +218,18 @@ function CosmeticsService.buyDecor(player: Player, key: string)
 	--
 	-- A rejection nobody can see is indistinguishable from a broken
 	-- feature, so it says the sentence rather than going quiet.
-	if item.trophy and not decor.owned[key] then
-		notify(player, ("%s is earned, not bought. %s."):format(
-			item.name, Config.trophyRequirement(item.trophy)), "warn")
+	if item.trophy then
+		if decor.owned[key] then
+			-- OWNED, AND NOT A LAWN ORNAMENT ANY MORE. Trophies are displayed
+			-- inside the house (`TrophyRoom`), so the toggle below would put
+			-- one back on the grass and hold a slot a bought ornament could
+			-- use. Said out loud rather than ignored: a card that does nothing
+			-- when pressed is the silent failure this project refuses.
+			notify(player, ("%s is on show in your house."):format(item.name), "good")
+		else
+			notify(player, ("%s is earned, not bought. %s."):format(
+				item.name, Config.trophyRequirement(item.trophy)), "warn")
+		end
 		return
 	end
 
@@ -466,6 +476,16 @@ end
 
 function CosmeticsService.applyToPlot(player: Player)
 	local data = DataService.get(player)
+	-- The pet is a fact about the PLAYER, not the plot, so it is published
+	-- before the plot check: every client builds and walks it from this one
+	-- attribute (Shared/Pets).
+	if Config.PETS_ENABLED and data and type(data.pets) == "table" then
+		local out = data.pets.equipped
+		player:SetAttribute(Config.PET_ATTRIBUTE,
+			if type(out) == "string" and Config.PETS[out] then out else "")
+	else
+		player:SetAttribute(Config.PET_ATTRIBUTE, "")
+	end
 	local plot = PlotService.getPlot(player)
 	if not data or not plot then
 		return
@@ -529,25 +549,10 @@ function CosmeticsService.applyToPlot(player: Player)
 	end
 	PlotService.setDogCoat(plot, coat)
 
-	-- And the kennel it lives in, on the same pass and with the same
-	-- retired-key fallback. Two fields rather than one because the two are
-	-- bought separately: a kennel repaints the walls and the trim, the coat
-	-- still owns the roof, and neither can overwrite the other.
-	local den = (data.dogs and data.dogs.kennel) or ""
-	if den ~= "" and not Config.DOG_KENNELS[den] then
-		den = ""
-		if data.dogs then
-			data.dogs.kennel = ""
-		end
-	end
-	PlotService.setDogKennel(plot, den)
+	-- The guardian coat also paints its kennel; saved kennel skins remain dormant.
 
-	-- And whatever toys are out. `GuardDog` takes the set whole and works out
-	-- what is actually visible, so a plot with no dog on it hides them without
-	-- anything here having to ask what tier it is.
-	PlotService.setDogToys(plot, (data.dogs and data.dogs.toys and data.dogs.toys.out) or {})
-	-- Already filtered when it was stored: what lives in the save is what
-	-- `TextService` handed back, never what the client typed. See `nameDog`.
+	-- Always one of `Config.DOG_NAMES` or "": the save cannot hold a name
+	-- nobody approved, and reconcile drops any that predate the list.
 	PlotService.setDogName(plot, (data.dogs and data.dogs.name) or "")
 
 	-- THE PAID MARK ON THE SIGN, set before the sign is written.
@@ -559,17 +564,17 @@ function CosmeticsService.applyToPlot(player: Player)
 	-- correct, where writing items into every save would be permanent.
 	--
 	-- FIRST MATCH WINS AND THE ORDER IS `pairs`, which is fine only while
-	-- exactly one pass carries a `signWord` -- and today only VIP does. A
+	-- exactly one pass carries a `signStyle` -- and today only VIP does. A
 	-- second one needs a rule about which outranks which rather than a
 	-- hash deciding it, and this is where that rule would go.
-	local word: string?, colour: Color3? = nil, nil
+	local style: string? = nil
 	for passKey, pass in pairs(Config.PASSES or {}) do
-		if pass.signWord and PassService.unlocked(player, passKey) then
-			word, colour = pass.signWord, pass.signColour
+		if pass.signStyle and PassService.unlocked(player, passKey) then
+			style = pass.signStyle
 			break
 		end
 	end
-	PlotService.setSignPass(plot, word, colour)
+	PlotService.setSignStyle(plot, style)
 
 	PlotService.updateRank(plot, data.robberies)
 	PlotService.updateSign(plot, player.DisplayName, data.rebirths,
@@ -718,6 +723,26 @@ function CosmeticsService.catchEffectOf(player: Player): string
 	end
 	return key
 end
+
+-- SETS OFF `nabber`'s NAB EFFECT ON `target`, which is the body of whoever
+-- was nabbed: a player's character, or a neighbour's figure. ONE WRITER for
+-- both, because they are one event -- the neighbour case lived nowhere for
+-- the life of the catalogue, so every nab a solo player could ever make went
+-- off with nothing on it. The key first and the counter last; `CatchFX`
+-- watches the counter and reads the key, so a repeat still fires.
+function CosmeticsService.fireCatchEffect(target: Model?, nabber: Player)
+	if not target or not target.Parent then
+		return
+	end
+	local key = CosmeticsService.catchEffectOf(nabber)
+	if key == Config.DEFAULT_CATCH then
+		return
+	end
+	target:SetAttribute(Config.CATCH_ATTRIBUTE, key)
+	target:SetAttribute(Config.CATCH_BY_ATTRIBUTE, nabber.UserId)
+	target:SetAttribute(Config.CATCH_COUNT_ATTRIBUTE,
+		(target:GetAttribute(Config.CATCH_COUNT_ATTRIBUTE) or 0) + 1)
+end
 function CosmeticsService.equipSkin(player: Player, key: string)
 	local data = DataService.get(player)
 	if not data then
@@ -759,11 +784,6 @@ function CosmeticsService.equipDogCoat(player: Player, key: string)
 		return
 	end
 
-	if coat.requiredTier and (data.upgrades.dog or 0) ~= coat.requiredTier then
-		notify(player, ("This guard skin requires tier %d."):format(coat.requiredTier), "warn")
-		return
-	end
-
 	if not data.dogs.owned[key] then
 		notify(player, ("%s isn't unlocked yet."):format(coat.name), "warn")
 		return
@@ -792,11 +812,6 @@ function CosmeticsService.buyDogCoat(player: Player, key: string)
 		return
 	end
 
-	if coat.requiredTier and (data.upgrades.dog or 0) ~= coat.requiredTier then
-		notify(player, ("This guard skin requires tier %d."):format(coat.requiredTier), "warn")
-		return
-	end
-
 	if data.dogs.owned[key] then
 		CosmeticsService.equipDogCoat(player, key)
 		return
@@ -818,37 +833,11 @@ end
 
 -- WEAR A KENNEL, OR PUT THE PLAIN WOODEN ONE BACK BY ASKING TWICE.
 --
--- The coat functions' twin, and deliberately a SEPARATE pair rather than one
--- parameterised by catalogue. Two catalogues that happen to have the same
--- shape today are not one catalogue: a kennel already differs in what it
--- paints (`wood`/`trim` against `fur`/`furDark`/`collar`), and the first time
--- either grows a field the shared version becomes a branch inside a helper
--- rather than two honest functions.
-function CosmeticsService.equipDogKennel(player: Player, key: string)
-	local data = DataService.get(player)
-	local den = Config.DOG_KENNELS[key]
-	if not data or not den or type(data.dogs) ~= "table" then
-		return
-	end
-
-	if not (data.dogs.kennels and data.dogs.kennels[key]) then
-		notify(player, ("%s isn't unlocked yet."):format(den.name), "warn")
-		return
-	end
-
-	data.dogs.kennel = if data.dogs.kennel == key then "" else key
-	CosmeticsService.applyToPlot(player)
-	CosmeticsService.push(player)
+-- Compatibility endpoint for old clients; kennel colors now follow the guardian.
+function CosmeticsService.equipDogKennel(_player: Player, _key: string)
+	-- Legacy requests cannot change the guardian's automatically matched kennel.
 end
 
--- Buy a kennel, or stand one already owned. Same buy-or-equip shape as a skin
--- and a coat: one control, and the card never has to decide which verb it is.
---
--- A KENNEL CONFERS NOTHING, which is the line that lets it be bought with
--- coins at all. It changes two colours on a model that has never had any
--- behaviour attached to it -- the dog's tier still decides speed, hearing and
--- catch radius, and the roof still carries the coat, so no amount of money
--- spent here changes what a thief reads off the lawn.
 -- THE GARDEN'S THREE CATALOGUES, DESCRIBED ONCE.
 --
 -- A border, a path and a window box are the same transaction three times --
@@ -860,12 +849,10 @@ end
 -- within the hour, and the mini piggy, `Decor.buildOne` and the coin
 -- formatter are three more.
 --
--- The place this is NOT done is the dog's three, one function up, and the
--- difference is worth stating so the next person does not "tidy" them
--- together: a coat, a kennel and a toy have unrelated shapes in the save
--- (`owned`/`equipped`, `kennels`/`kennel`, `toys.owned`/`toys.out`) and a toy
--- is a SET rather than a single choice. These three were designed as one
--- shape on the same afternoon.
+-- The place this is NOT done is the dog's coat and kennel, one function up:
+-- they have unrelated shapes in the save (`owned`/`equipped` against
+-- `kennels`/`kennel`). These three were designed as one shape on the same
+-- afternoon.
 local GARDEN_KINDS: { [string]: any } = {
 	border = { catalogue = Config.BORDER_PLANTS, owned = "borders", worn = "border" },
 	path = { catalogue = Config.GARDEN_PATHS, owned = "paths", worn = "path" },
@@ -920,143 +907,80 @@ function CosmeticsService.buyGarden(player: Player, kind: string, key: string)
 	CosmeticsService.push(player)
 end
 
-function CosmeticsService.buyDogKennel(player: Player, key: string)
-	local den = Config.DOG_KENNELS[key]
-	local data = DataService.get(player)
-	if not den or not data or type(data.dogs) ~= "table" then
-		return
-	end
-
-	if type(data.dogs.kennels) ~= "table" then
-		data.dogs.kennels = {}
-	end
-
-	if data.dogs.kennels[key] then
-		CosmeticsService.equipDogKennel(player, key)
-		return
-	end
-
-	local cost = den.cost or 0
-	if data.coins < cost then
-		notify(player, ("Need %s more coins for %s."):format(
-			Config.formatCoins(cost - data.coins), den.name), "warn")
-		return
-	end
-
-	data.coins -= cost
-	data.dogs.kennels[key] = true
-	notify(player, ("Unlocked %s!"):format(den.name), "good")
-
-	CosmeticsService.equipDogKennel(player, key)
+function CosmeticsService.buyDogKennel(_player: Player, _key: string)
+	-- Retired: reject old clients without charging or changing saved purchases.
 end
 
--- PUT A TOY OUT, OR TAKE IT IN.
---
--- The third of the dog's three catalogues and the only one that is not a
--- WARDROBE: a coat and a kennel are worn by things, a toy is a place on the
--- lawn. Which is why it keeps two tables where those keep one string -- you
--- may have all three out at once, so there is nothing for a single `equipped`
--- to hold.
---
--- A TOY CHANGES WHERE THE DOG WALKS AND NOTHING ELSE, which is what lets it
--- be sold for coins beside the coats. It cannot make the dog faster, louder,
--- quicker to notice or harder to bribe -- see `Config.DOG_TOYS` for the two
--- things that enforce that rather than promising it.
-function CosmeticsService.toggleDogToy(player: Player, key: string)
+-- BUY A PET, OR PUT ONE OUT. One pet at a time; asking for the one already
+-- out puts it away, which is the only way to walk alone without a second
+-- control. Same buy-or-equip shape as the kennel.
+local function petsSave(data: any): any
+	if type(data.pets) ~= "table" then
+		data.pets = { owned = {}, equipped = "" }
+	end
+	if type(data.pets.owned) ~= "table" then data.pets.owned = {} end
+	if type(data.pets.equipped) ~= "string" then data.pets.equipped = "" end
+	return data.pets
+end
+
+function CosmeticsService.buyPet(player: Player, key: string)
+	if not Config.PETS_ENABLED then return end
+	local pet = Config.PETS[key]
 	local data = DataService.get(player)
-	local toy = Config.DOG_TOYS[key]
-	if not data or not toy or type(data.dogs) ~= "table" then
+	if not pet or not data then
 		return
 	end
+	local pets = petsSave(data)
 
-	local toys = data.dogs.toys
-	if type(toys) ~= "table" or type(toys.owned) ~= "table" or type(toys.out) ~= "table" then
-		return
+	if not pets.owned[key] then
+		local cost = pet.cost or 0
+		if data.coins < cost then
+			notify(player, ("Need %s more coins for %s."):format(
+				Config.formatCoins(cost - data.coins), pet.name), "warn")
+			return
+		end
+		data.coins -= cost
+		pets.owned[key] = true
+		pets.equipped = key
+		notify(player, ("%s is following you!"):format(pet.name), "good")
+	elseif pets.equipped == key then
+		pets.equipped = ""
+		notify(player, ("%s went home."):format(pet.name), "good")
+	else
+		pets.equipped = key
+		notify(player, ("%s is following you."):format(pet.name), "good")
 	end
 
-	if not toys.owned[key] then
-		notify(player, ("%s isn't unlocked yet."):format(toy.name), "warn")
-		return
-	end
-
-	toys.out[key] = if toys.out[key] then nil else true
 	CosmeticsService.applyToPlot(player)
 	CosmeticsService.push(player)
 end
 
--- Buy a toy, or put one already owned in or out. Same buy-or-toggle shape as
--- everything else on this tab.
-function CosmeticsService.buyDogToy(player: Player, key: string)
-	local toy = Config.DOG_TOYS[key]
-	local data = DataService.get(player)
-	if not toy or not data or type(data.dogs) ~= "table" then
-		return
-	end
-
-	if type(data.dogs.toys) ~= "table" then
-		data.dogs.toys = { owned = {}, out = {} }
-	end
-	local toys = data.dogs.toys
-	if type(toys.owned) ~= "table" then toys.owned = {} end
-	if type(toys.out) ~= "table" then toys.out = {} end
-
-	if toys.owned[key] then
-		CosmeticsService.toggleDogToy(player, key)
-		return
-	end
-
-	local cost = toy.cost or 0
-	if data.coins < cost then
-		notify(player, ("Need %s more coins for %s."):format(
-			Config.formatCoins(cost - data.coins), toy.name), "warn")
-		return
-	end
-
-	data.coins -= cost
-	toys.owned[key] = true
-	notify(player, ("Unlocked %s!"):format(toy.name), "good")
-
-	-- Straight out onto the lawn. A toy bought and left in a cupboard is a
-	-- purchase with nothing on screen to show for it, which is the failure
-	-- this project refuses above all others -- and the toggle is right there
-	-- if somebody wants a bare lawn afterwards.
-	toys.out[key] = true
-	CosmeticsService.applyToPlot(player)
-	CosmeticsService.push(player)
-end
-
--- NAME THE DOG. The only place in this game that shows one player's typed
--- text to another player, and therefore the only place that filters.
+-- NAME THE DOG, FROM THE LIST IN `Config.DOG_NAMES`.
 --
--- **THE FILTER IS NOT OPTIONAL AND IT LIVES HERE ALONE.** A name a child types
--- and other players read is user-generated content, which on this platform
--- means `TextService:FilterStringAsync` on the SERVER, followed by
--- `GetNonChatStringForBroadcastAsync` -- broadcast rather than the per-viewer
--- variant, because the kennel board is read by whoever walks past it rather
--- than by one recipient. `GuardDog` and `PlotService` both take the string
--- without inspecting it, deliberately: two places that "handle" moderation is
--- how one of them ends up trusted and skipped.
+-- **NOTHING A PLAYER TYPES IS SHOWN TO ANYBODY ANY MORE.** This used to take
+-- free text and filter it -- correctly, and it is gone anyway; see the header
+-- on `Config.DOG_NAMES` for why a classifier that mostly works is not good
+-- enough for a name standing over a kennel in a game for nine-year-olds.
 --
--- **IT FAILS CLOSED.** The call yields and can throw, so it is pcalled -- and
--- a failure REFUSES rather than storing the raw text. A moderation call that
--- errors open is worse than one that never ran, because it looks like it
--- worked.
+-- THE WIRE STILL CARRIES THE NAME RATHER THAN AN INDEX, and the allowlist is
+-- checked HERE. An index would have to be resolved against the same table
+-- anyway, and it would make a stale client silently name somebody's dog the
+-- wrong thing instead of being refused. So the client sends a string, this
+-- refuses anything that is not in the catalogue, and what is stored is the
+-- catalogue's OWN string rather than the one that arrived -- which is what
+-- keeps a lookalike (trailing spaces, a homoglyph) from reaching a kennel
+-- board.
 --
--- The refusals all name what happened and none of them spends anything, which
--- is the same rule the bone and treat refusals follow: something consumed for
--- nothing is indistinguishable from something broken.
-function CosmeticsService.nameDog(player: Player, raw: string)
+-- No filter call, so no rate limit and no `namedAt`: the cooldown existed to
+-- bound calls to somebody else's moderation service and there are none left to
+-- bound. Clearing is still free and still means "go by the breed".
+function CosmeticsService.nameDog(player: Player, wanted: string)
 	local data = DataService.get(player)
 	if not data or type(data.dogs) ~= "table" then
 		return
 	end
 
-	local name = raw:match("^%s*(.-)%s*$") or ""
-
-	-- CLEARING IS ALWAYS FREE AND SKIPS BOTH GATES. An empty name is not text
-	-- to moderate and not a call to rate-limit, and a child who typed
-	-- something they regret must never be held on a cooldown while it stands
-	-- over their kennel.
+	local name = wanted:match("^%s*(.-)%s*$") or ""
 	if name == "" then
 		data.dogs.name = ""
 		CosmeticsService.applyToPlot(player)
@@ -1065,66 +989,29 @@ function CosmeticsService.nameDog(player: Player, raw: string)
 		return
 	end
 
-	-- Bounded THIS side of somebody else's API: a 10,000-character name is a
-	-- refusal we can make ourselves, and `utf8.len` returns nil on malformed
-	-- input rather than throwing, which is the check that keeps a bad byte
-	-- sequence out of the filter call entirely.
-	local runes = utf8.len(name)
-	if not runes then
-		notify(player, "That name has letters the game cannot show.", "warn")
-		return
-	end
-	if runes > Config.DOG_NAME.maxLength then
-		notify(player, ("Dog names are up to %d letters."):format(Config.DOG_NAME.maxLength), "warn")
-		return
-	end
-
-	-- The rate limit. The first name is instant (`namedAt` is 0 on a fresh
-	-- save); every one after it waits. See `Config.DOG_NAME` for why this is
-	-- about the filter call rather than about charging for anything.
-	--
-	-- **IT GATES ON `namedAt`, NOT ON WHETHER A NAME IS CURRENTLY SET, AND
-	-- THAT DISTINCTION IS A HOLE I SHIPPED FOR ABOUT TEN MINUTES.** Testing
-	-- clear-then-rename went straight through: clearing is free and left
-	-- `data.dogs.name` empty, so the old condition (`name ~= "" and ...`) was
-	-- false and the cooldown never applied. Two taps bypassed the limit
-	-- entirely, which on a rate limit protecting somebody else's moderation
-	-- API is the whole of it. Clearing still costs nothing and still does not
-	-- stamp `namedAt` -- it is the FILTER CALL being bounded, and clearing
-	-- makes none.
-	local now = os.time()
-	local last = data.dogs.namedAt or 0
-	local left = Config.DOG_NAME.cooldown - (now - last)
-	if last > 0 and left > 0 then
-		notify(player, ("You can rename your dog in %ds."):format(math.ceil(left)), "warn")
-		return
-	end
-
-	local ok, result = pcall(function()
-		return TextService:FilterStringAsync(name, player.UserId)
-	end)
-	local shown
-	if ok and result then
-		local ok2, broadcast = pcall(function()
-			return result:GetNonChatStringForBroadcastAsync()
-		end)
-		if ok2 then
-			shown = broadcast
+	-- The catalogue's own string, found by exact match. Not `table.find` on a
+	-- lowered copy: two entries that differ only in case would then both
+	-- resolve to whichever came first, and the list has no such pair today
+	-- precisely because nothing here tries to be clever about near-misses.
+	local approved: string? = nil
+	for _, candidate in ipairs(Config.DOG_NAMES) do
+		if candidate == name then
+			approved = candidate
+			break
 		end
 	end
-	if type(shown) ~= "string" or shown == "" then
-		notify(player, "Could not check that name just now. Try again in a moment.", "warn")
+	if not approved then
+		-- A client that sends something off the list is either stale or
+		-- forged, and neither is the player's doing -- so this says what the
+		-- rule is rather than accusing anybody.
+		notify(player, "Pick one of the names on the list.", "warn")
 		return
 	end
 
-	data.dogs.name = shown
-	data.dogs.namedAt = now
+	data.dogs.name = approved
 	CosmeticsService.applyToPlot(player)
 	CosmeticsService.push(player)
-	-- The FILTERED string is echoed back, never the raw one. A player who
-	-- typed something blocked sees what everybody else will see, which is the
-	-- honest answer and also the one that teaches them it was filtered.
-	notify(player, ("Your dog is called %s now."):format(shown), "good")
+	notify(player, ("Your dog is called %s now."):format(approved), "good")
 end
 
 -- ============================================================
@@ -1314,8 +1201,6 @@ function CosmeticsService.push(player: Player)
 	local dogCoats: { [string]: any } = {}
 	for key, coat in pairs(Config.DOG_COATS) do
 		dogCoats[key] = {
-			requiredTier = coat.requiredTier,
-			available = not coat.requiredTier or (data.upgrades.dog or 0) == coat.requiredTier,
 			name = coat.name,
 			order = coat.order,
 			cost = coat.cost or 0,
@@ -1331,26 +1216,8 @@ function CosmeticsService.push(player: Player)
 		}
 	end
 
-	-- AND THE KENNEL, whose swatch shows the two colours it actually paints.
-	-- `body` is the walls and `trim` is the woodwork, which is the same pair
-	-- name a skin and a coat send -- so the card builder needs nothing new.
-	-- The ROOF is deliberately not on here: it follows the coat, and putting
-	-- it on a kennel card would advertise a colour this purchase cannot set.
-	local densOwned = (data.dogs and data.dogs.kennels) or {}
-	local denStanding = (data.dogs and data.dogs.kennel) or ""
+	-- Empty legacy catalogue keeps older clients from selling retired skins.
 	local dogKennels: { [string]: any } = {}
-	for key, den in pairs(Config.DOG_KENNELS) do
-		dogKennels[key] = {
-			name = den.name,
-			order = den.order,
-			cost = den.cost or 0,
-			owned = densOwned[key] == true,
-			equipped = denStanding == key,
-			body = den.wood,
-			trim = den.trim,
-			rarity = Config.rarityOf(den),
-		}
-	end
 
 	-- THE TROPHY FRAMES. The bought half of the shelf, and the only half:
 	-- what stands ON a plinth is earned, and nothing in this payload can
@@ -1376,23 +1243,19 @@ function CosmeticsService.push(player: Player)
 		}
 	end
 
-	-- THE TOYS. `out` rather than `equipped`, because all three can be out at
-	-- once and there is no single thing being worn -- so the card's three
-	-- states are locked, owned-and-in, and owned-and-out.
-	local toysSave = (data.dogs and data.dogs.toys) or {}
-	local toysOwned = toysSave.owned or {}
-	local toysOut = toysSave.out or {}
-	local dogToys: { [string]: any } = {}
-	for key, toy in pairs(Config.DOG_TOYS) do
-		dogToys[key] = {
-			name = toy.name,
-			order = toy.order,
-			cost = toy.cost or 0,
-			owned = toysOwned[key] == true,
-			out = toysOut[key] == true,
-			body = toy.body,
-			trim = toy.trim,
-			rarity = Config.rarityOf(toy),
+	local petsData = (type(data.pets) == "table" and data.pets) or {}
+	local petsOwned = petsData.owned or {}
+	local pets: { [string]: any } = {}
+	for key, pet in pairs(if Config.PETS_ENABLED then Config.PETS else {}) do
+		pets[key] = {
+			name = pet.name,
+			order = pet.order,
+			cost = pet.cost or 0,
+			owned = petsOwned[key] == true,
+			equipped = petsData.equipped == key,
+			body = pet.body,
+			trim = pet.trim,
+			rarity = Config.rarityOf(pet),
 		}
 	end
 
@@ -1505,13 +1368,13 @@ function CosmeticsService.push(player: Player)
 		catches = catches,
 		dogCoats = dogCoats,
 		dogKennels = dogKennels,
-		dogToys = dogToys,
+		pets = pets,
 		trophyPlinths = trophyPlinths,
 		-- The dog's name as it is actually shown -- the FILTERED string, so
 		-- the shop's text box reads back what the street sees rather than what
 		-- was typed. "" means it goes by its breed.
 		dogName = (data.dogs and data.dogs.name) or "",
-		dogNameMax = Config.DOG_NAME.maxLength,
+		dogNames = Config.DOG_NAMES,
 		houses = houses,
 		houseShown = shown.id,
 		decor = decorItems,
@@ -1637,8 +1500,8 @@ function CosmeticsService.start()
 			CosmeticsService.buyDogCoat(player, key)
 		elseif kind == "dogkennel" then
 			CosmeticsService.buyDogKennel(player, key)
-		elseif kind == "dogtoy" then
-			CosmeticsService.buyDogToy(player, key)
+		elseif kind == "pet" then
+			CosmeticsService.buyPet(player, key)
 		elseif kind == "plinth" then
 			-- Buy-or-equip, routed to the service that owns the shelf rather
 			-- than duplicated here. This file only knows which remote a card
@@ -1646,13 +1509,10 @@ function CosmeticsService.start()
 			-- TrophyService's business.
 			TrophyService.buyPlinth(player, key)
 		elseif kind == "dogname" then
-			-- THE ONE KIND WHERE `key` IS NOT A CATALOGUE KEY. It carries the
-			-- name the player typed, which makes this the only free text a
-			-- client sends this game -- filtered, bounded and rate-limited
-			-- server-side in `nameDog` before it is stored or shown to
-			-- anybody. The `type(key) ~= "string"` guard at the top of this
-			-- handler is doing real work for this branch rather than being
-			-- defensive habit.
+			-- `key` is a name from `Config.DOG_NAMES`, or "" to go back to the
+			-- breed. Checked against that list in `nameDog`: this is no longer
+			-- free text, and nothing a client sends here reaches a kennel
+			-- board unless the catalogue already contained it.
 			CosmeticsService.nameDog(player, key)
 		end
 	end)

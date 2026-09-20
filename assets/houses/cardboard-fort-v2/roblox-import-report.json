@@ -1,0 +1,511 @@
+{
+  "export": "cardboard-fort-roblox.fbx",
+  "meshCount": 41,
+  "triangles": 4078,
+  "singleMaterialPerMesh": true,
+  "fbxRoundTripMaxBoundsError": 1.9073486328125e-06,
+  "meshes": [
+    {
+      "name": "Foundation_WalkWall",
+      "section": "Foundation",
+      "material": "WalkWall",
+      "colorRGB": [
+        183,
+        145,
+        100
+      ],
+      "triangles": 14,
+      "roblox": {}
+    },
+    {
+      "name": "MainBox_Tape",
+      "section": "MainBox",
+      "material": "Tape",
+      "colorRGB": [
+        217,
+        188,
+        135
+      ],
+      "triangles": 354,
+      "roblox": {}
+    },
+    {
+      "name": "BoxFlaps_CardDark",
+      "section": "BoxFlaps",
+      "material": "CardDark",
+      "colorRGB": [
+        116,
+        78,
+        42
+      ],
+      "triangles": 1080,
+      "roblox": {}
+    },
+    {
+      "name": "BoxWindows_CardLight",
+      "section": "BoxWindows",
+      "material": "CardLight",
+      "colorRGB": [
+        187,
+        143,
+        91
+      ],
+      "triangles": 120,
+      "roblox": {}
+    },
+    {
+      "name": "Patches_CardDark",
+      "section": "Patches",
+      "material": "CardDark",
+      "colorRGB": [
+        116,
+        78,
+        42
+      ],
+      "triangles": 60,
+      "roblox": {}
+    },
+    {
+      "name": "Approach_WalkWall",
+      "section": "Approach",
+      "material": "WalkWall",
+      "colorRGB": [
+        183,
+        145,
+        100
+      ],
+      "triangles": 22,
+      "roblox": {}
+    },
+    {
+      "name": "Foundation_CardDark",
+      "section": "Foundation",
+      "material": "CardDark",
+      "colorRGB": [
+        116,
+        78,
+        42
+      ],
+      "triangles": 86,
+      "roblox": {}
+    },
+    {
+      "name": "MainBox_Card",
+      "section": "MainBox",
+      "material": "Card",
+      "colorRGB": [
+        161,
+        113,
+        67
+      ],
+      "triangles": 145,
+      "roblox": {}
+    },
+    {
+      "name": "MainBox_WalkWall",
+      "section": "MainBox",
+      "material": "WalkWall",
+      "colorRGB": [
+        183,
+        145,
+        100
+      ],
+      "triangles": 22,
+      "roblox": {}
+    },
+    {
+      "name": "MainBox_CardLight",
+      "section": "MainBox",
+      "material": "CardLight",
+      "colorRGB": [
+        187,
+        143,
+        91
+      ],
+      "triangles": 133,
+      "roblox": {}
+    },
+    {
+      "name": "BoxFlaps_CardLight",
+      "section": "BoxFlaps",
+      "material": "CardLight",
+      "colorRGB": [
+        187,
+        143,
+        91
+      ],
+      "triangles": 120,
+      "roblox": {}
+    },
+    {
+      "name": "BoxWindows_Ink",
+      "section": "BoxWindows",
+      "material": "Ink",
+      "colorRGB": [
+        29,
+        27,
+        37
+      ],
+      "triangles": 120,
+      "roblox": {}
+    },
+    {
+      "name": "BoxWindows_DarkGlass",
+      "section": "BoxWindows",
+      "material": "DarkGlass",
+      "colorRGB": [
+        31,
+        43,
+        70
+      ],
+      "triangles": 120,
+      "roblox": {}
+    },
+    {
+      "name": "BoxWindows_Tape",
+      "section": "BoxWindows",
+      "material": "Tape",
+      "colorRGB": [
+        217,
+        188,
+        135
+      ],
+      "triangles": 720,
+      "roblox": {}
+    },
+    {
+      "name": "Patches_CardLight",
+      "section": "Patches",
+      "material": "CardLight",
+      "colorRGB": [
+        187,
+        143,
+        91
+      ],
+      "triangles": 60,
+      "roblox": {}
+    },
+    {
+      "name": "Patches_Tape",
+      "section": "Patches",
+      "material": "Tape",
+      "colorRGB": [
+        217,
+        188,
+        135
+      ],
+      "triangles": 180,
+      "roblox": {}
+    },
+    {
+      "name": "Approach_CardLight",
+      "section": "Approach",
+      "material": "CardLight",
+      "colorRGB": [
+        187,
+        143,
+        91
+      ],
+      "triangles": 54,
+      "roblox": {}
+    },
+    {
+      "name": "Doodles_RedPencil",
+      "section": "Doodles",
+      "material": "RedPencil",
+      "colorRGB": [
+        166,
+        61,
+        49
+      ],
+      "triangles": 368,
+      "roblox": {}
+    },
+    {
+      "name": "WalkFloor_WalkFloor",
+      "section": "WalkFloor",
+      "material": "WalkFloor",
+      "colorRGB": [
+        144,
+        106,
+        68
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkCeiling_WalkWall",
+      "section": "WalkCeiling",
+      "material": "WalkWall",
+      "colorRGB": [
+        183,
+        145,
+        100
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkSideLeftWall_WalkWall",
+      "section": "WalkSideLeftWall",
+      "material": "WalkWall",
+      "colorRGB": [
+        183,
+        145,
+        100
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkSideRightWall_WalkWall",
+      "section": "WalkSideRightWall",
+      "material": "WalkWall",
+      "colorRGB": [
+        183,
+        145,
+        100
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkRearWall_WalkWall",
+      "section": "WalkRearWall",
+      "material": "WalkWall",
+      "colorRGB": [
+        183,
+        145,
+        100
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkFrontLeft_WalkWall",
+      "section": "WalkFrontLeft",
+      "material": "WalkWall",
+      "colorRGB": [
+        183,
+        145,
+        100
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkFrontRight_WalkWall",
+      "section": "WalkFrontRight",
+      "material": "WalkWall",
+      "colorRGB": [
+        183,
+        145,
+        100
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkLintel_WalkWall",
+      "section": "WalkLintel",
+      "material": "WalkWall",
+      "colorRGB": [
+        183,
+        145,
+        100
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageLeft_WalkWall",
+      "section": "WalkPassageLeft",
+      "material": "WalkWall",
+      "colorRGB": [
+        183,
+        145,
+        100
+      ],
+      "triangles": 24,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageRight_WalkWall",
+      "section": "WalkPassageRight",
+      "material": "WalkWall",
+      "colorRGB": [
+        183,
+        145,
+        100
+      ],
+      "triangles": 24,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageCeiling_WalkWall",
+      "section": "WalkPassageCeiling",
+      "material": "WalkWall",
+      "colorRGB": [
+        183,
+        145,
+        100
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageFloor_WalkFloor",
+      "section": "WalkPassageFloor",
+      "material": "WalkFloor",
+      "colorRGB": [
+        144,
+        106,
+        68
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach0_WalkFloor",
+      "section": "WalkApproach0",
+      "material": "WalkFloor",
+      "colorRGB": [
+        144,
+        106,
+        68
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach1_WalkFloor",
+      "section": "WalkApproach1",
+      "material": "WalkFloor",
+      "colorRGB": [
+        144,
+        106,
+        68
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkDoor",
+      "section": "HouseDoorLeaf_L",
+      "material": "WalkDoor",
+      "colorRGB": [
+        128,
+        90,
+        53
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim",
+      "section": "HouseDoorLeaf_L",
+      "material": "WalkTrim",
+      "colorRGB": [
+        144,
+        101,
+        59
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim.001",
+      "section": "HouseDoorLeaf_L",
+      "material": "WalkTrim",
+      "colorRGB": [
+        144,
+        101,
+        59
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkDoor",
+      "section": "HouseDoorLeaf_R",
+      "material": "WalkDoor",
+      "colorRGB": [
+        128,
+        90,
+        53
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim",
+      "section": "HouseDoorLeaf_R",
+      "material": "WalkTrim",
+      "colorRGB": [
+        144,
+        101,
+        59
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim.001",
+      "section": "HouseDoorLeaf_R",
+      "material": "WalkTrim",
+      "colorRGB": [
+        144,
+        101,
+        59
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkEntryJamb-1_WalkTrim",
+      "section": "WalkEntryJamb-1",
+      "material": "WalkTrim",
+      "colorRGB": [
+        144,
+        101,
+        59
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkEntryJamb1_WalkTrim",
+      "section": "WalkEntryJamb1",
+      "material": "WalkTrim",
+      "colorRGB": [
+        144,
+        101,
+        59
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkEntryHeader_WalkTrim",
+      "section": "WalkEntryHeader",
+      "material": "WalkTrim",
+      "colorRGB": [
+        144,
+        101,
+        59
+      ],
+      "triangles": 12,
+      "roblox": {}
+    }
+  ],
+  "collisionPartsDraft": 14,
+  "attachments": 2,
+  "basePartsWithCompanion": 56,
+  "routes": {
+    "samples": 0,
+    "blocked": [],
+    "method": "five vertical rays and two body cross-rays at three heights, 1.6-unit footprint; floor sampled below each centre; unmodeled outside ground assumed at zero"
+  },
+  "studioChecks": "not performed; actual avatar collision, camera, material colours and scale pending",
+  "notes": "Preview awards and presentation objects excluded. No runtime menus or animations included. Companion is a draft, not certified collision."
+}

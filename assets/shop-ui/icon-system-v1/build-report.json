@@ -1,0 +1,134 @@
+{
+  "crate-common": {
+    "parts": 2,
+    "triangles": 10272,
+    "source": "sources/crate-common.blend",
+    "image": "crate-common.png"
+  },
+  "crate-rare": {
+    "parts": 2,
+    "triangles": 8420,
+    "source": "sources/crate-rare.blend",
+    "image": "crate-rare.png"
+  },
+  "crate-legendary": {
+    "parts": 2,
+    "triangles": 9252,
+    "source": "sources/crate-legendary.blend",
+    "image": "crate-legendary.png"
+  },
+  "coin": {
+    "parts": 1,
+    "triangles": 5760,
+    "source": "sources/coin.blend",
+    "image": "coin.png"
+  },
+  "income": {
+    "parts": 47,
+    "triangles": 46802,
+    "source": "sources/income.blend",
+    "image": "income.png"
+  },
+  "capacity": {
+    "parts": 19,
+    "triangles": 47240,
+    "source": "sources/capacity.blend",
+    "image": "capacity.png"
+  },
+  "upgrades": {
+    "parts": 18,
+    "triangles": 45632,
+    "source": "sources/upgrades.blend",
+    "image": "upgrades.png"
+  },
+  "home": {
+    "parts": 14,
+    "triangles": 3356,
+    "source": "sources/home.blend",
+    "image": "home.png"
+  },
+  "companions": {
+    "parts": 19,
+    "triangles": 17468,
+    "source": "sources/companions.blend",
+    "image": "companions.png"
+  },
+  "rides": {
+    "parts": 10,
+    "triangles": 6104,
+    "source": "sources/rides.blend",
+    "image": "rides.png"
+  },
+  "supplies": {
+    "parts": 26,
+    "triangles": 27760,
+    "source": "sources/supplies.blend",
+    "image": "supplies.png"
+  },
+  "style": {
+    "parts": 30,
+    "triangles": 10272,
+    "source": "sources/style.blend",
+    "image": "style.png"
+  },
+  "plunger": {
+    "parts": 2,
+    "triangles": 13236,
+    "source": "sources/plunger.blend",
+    "image": "plunger.png"
+  },
+  "bubblegum-bomb": {
+    "parts": 2,
+    "triangles": 7064,
+    "source": "sources/bubblegum-bomb.blend",
+    "image": "bubblegum-bomb.png"
+  },
+  "golden-bone": {
+    "parts": 1,
+    "triangles": 4800,
+    "source": "sources/golden-bone.blend",
+    "image": "golden-bone.png"
+  },
+  "coin-front": {
+    "parts": 6,
+    "triangles": 5760,
+    "source": "sources/coin-front.blend",
+    "image": "coin-front.png"
+  },
+  "locks": {
+    "parts": 18,
+    "triangles": 12820,
+    "source": "sources/locks.blend",
+    "image": "locks.png"
+  },
+  "fences": {
+    "parts": 25,
+    "triangles": 14640,
+    "source": "sources/fences.blend",
+    "image": "fences.png"
+  },
+  "lockpicks": {
+    "parts": 10,
+    "triangles": 4772,
+    "source": "sources/lockpicks.blend",
+    "image": "lockpicks.png"
+  },
+  "sack": {
+    "parts": 25,
+    "triangles": 51724,
+    "source": "sources/sack.blend",
+    "image": "sack.png"
+  },
+  "boots": {
+    "parts": 21,
+    "triangles": 8448,
+    "source": "sources/boots.blend",
+    "image": "boots.png"
+  },
+  "tiptoe": {
+    "parts": 97,
+    "triangles": 329875,
+    "source": "sources/tiptoe.blend",
+    "image": "tiptoe.png"
+  }
+}

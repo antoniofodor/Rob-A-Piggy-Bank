@@ -28,6 +28,15 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
 
 local GuardVisual = require(script.Parent.GuardVisual)
+-- ABOVE `KENNEL`, which reads it at MODULE SCOPE. A local declared after
+-- its reader is a nil global to that reader and Luau says nothing until the
+-- index throws -- this project has paid for that eleven times, twice by
+-- taking the whole server down at load.
+local KennelModel = require(ReplicatedStorage.Shared.KennelModel)
+-- WHAT TO CALL THE THING ON THE LAWN. `tier.breed` is the TIER's breed and
+-- knows nothing about the coat, so a creature coat wore its own rig under the
+-- wrong species -- a raptor labelled SHEPHERD. See `GuardRig.species`.
+local GuardRig = require(ReplicatedStorage.Shared.GuardRig)
 
 local GuardDog = {}
 
@@ -90,20 +99,17 @@ export type Dog = {
 	-- because the roof is the surface that says whose dog lives here. Same
 	-- retired-key fallback as `coat` above.
 	kennel: string,
-	-- The toys standing on the lawn: every one in `Config.DOG_TOYS` is BUILT
-	-- at boot and hidden, and putting one out is a Transparency write rather
-	-- than a construction. Same call the duty vest makes, for the same reason:
-	-- a plot's toys change whenever an owner taps a card, and rebuilding parts
-	-- on a tap is work done in front of somebody.
-	toys: { [string]: { Part } },
-	-- Which of them are OUT. Read by the patrol, so it has to be a fact this
-	-- module holds rather than one it asks `DataService` for -- `GuardDog`
-	-- requires nothing and must go on requiring nothing.
-	toysOut: { [string]: boolean },
-	-- The owner's name for it, or "" for the breed's own label. ALREADY
-	-- FILTERED by the time it reaches here: this module never sees what a
-	-- player typed, only what `TextService` handed back -- see
-	-- `CosmeticsService.nameDog`, which is the one place that call is made.
+	-- HOW WIDE THE FRONT FENCE'S GATE IS, or math.huge while there is no
+	-- fence. A dog is not a player and its walk is CFrame writes rather than
+	-- physics, so nothing stops it walking through its owner's fence -- which
+	-- it did, chasing thieves straight through the pickets. Written by
+	-- `PlotService.buildFence`, which is the one place a tier's `gate` is
+	-- known, and read only by the chase.
+	gate: number,
+	-- The owner's name for it, or "" for the breed's own label. Always one of
+	-- `Config.DOG_NAMES`: naming is a picker rather than a text box, so this
+	-- module never sees a player's own words at all -- see
+	-- `CosmeticsService.nameDog`, which is where the list is checked.
 	name: string,
 	-- The dog's OWN cooldown, earned by finishing a chase. Guard duty
 	-- suppresses this one: it is exactly what the owner paid to buy off.
@@ -186,163 +192,14 @@ local REST_OFFSET = Vector3.new(0, 0, 5.5)
 local TORSO_Y = 1.9
 local LEG_TOP = 1.725
 
--- Kennel geometry remains separate from the imported guard rig.
-local KENNEL: { any } = {
-	{ name = "Base", size = Vector3.new(6.20, 0.50, 6.60), offset = Vector3.new(0, 0.25, 0), tone = "trim" },
-	{ name = "Floor", size = Vector3.new(5.30, 0.40, 5.44), offset = Vector3.new(0, 0.66, 0), tone = "wood" },
-	-- NO TWO OF THESE SHARE A FACE PLANE, and every one of the differences is
-	-- deliberate rather than spare. Sized to match -- which is the obvious way
-	-- to build a box -- the floor, the back wall and both side walls agree on
-	-- their side planes and their tops, which is four coplanar pairs on an
-	-- object twelve plots carry.
-	{ name = "BackWall", size = Vector3.new(5.50, 3.90, 0.46), offset = Vector3.new(0, 2.72, -2.58), tone = "wood" },
-	{ name = "SideWall", size = Vector3.new(0.44, 3.80, 5.74), offset = Vector3.new(-2.60, 2.72, 0), tone = "wood" },
-	{ name = "SideWall", size = Vector3.new(0.44, 3.80, 5.74), offset = Vector3.new(2.60, 2.72, 0), tone = "wood" },
-	{ name = "DoorPost", size = Vector3.new(0.70, 3.30, 0.70), offset = Vector3.new(-2.40, 2.52, 2.60), tone = "trim" },
-	{ name = "DoorPost", size = Vector3.new(0.70, 3.30, 0.70), offset = Vector3.new(2.40, 2.52, 2.60), tone = "trim" },
-	{ name = "Lintel", size = Vector3.new(6.00, 1.00, 0.50), offset = Vector3.new(0, 4.15, 2.76), tone = "trim" },
-	-- THE NAME BOARD, over the door. A dog with its name painted on its own
-	-- house is a dog somebody OWNS, and that is the cheapest way to say so
-	-- from the pavement -- the nameplate is a `MaxDistance` 90 billboard and
-	-- small at that range, so the board is the half that carries.
-	--
-	-- SET INTO THE LINTEL RATHER THAN LAID ON IT. The board's back face sits
-	-- at z 2.97 against a lintel front at 3.01, so it is embedded by four
-	-- hundredths and shares no plane with anything. A board sized to sit
-	-- exactly on that face is the coplanar flicker the comment at the top of
-	-- this table already lists four instances of.
-	--
-	-- `wood` rather than `trim`, so it reads as a separate plaque against the
-	-- darker lintel behind it -- and NOT `roof`, which follows the coat: a
-	-- board that took the coat colour would put white text on the Shadow
-	-- coat's near-black and lose the one thing it exists to show.
-	{ name = "NameBoard", size = Vector3.new(4.20, 0.90, 0.18), offset = Vector3.new(0, 4.15, 3.06), tone = "wood" },
-	{
-		name = "RoofPanel", size = Vector3.new(3.70, 0.40, 7.10), offset = Vector3.new(-1.50, 5.30, 0),
-		tone = "roof", rot = CFrame.Angles(0, 0, math.rad(28)),
-	},
-	{
-		name = "RoofPanel", size = Vector3.new(3.70, 0.40, 7.10), offset = Vector3.new(1.50, 5.30, 0),
-		tone = "roof", rot = CFrame.Angles(0, 0, math.rad(-28)),
-	},
-	-- ONE part called Ridge, and the sleep puff hangs off it. The old emitter
-	-- was parented to `FindFirstChild("Roof")` against TWO parts named Roof,
-	-- so it hung off the left panel -- the castle-finial bug, in miniature,
-	-- sitting in this file the whole time.
-	{ name = "Ridge", size = Vector3.new(0.95, 0.55, 7.30), offset = Vector3.new(0, 6.02, 0), tone = "trim" },
-	{ name = "Eave", size = Vector3.new(0.45, 0.55, 7.20), offset = Vector3.new(-3.36, 4.42, 0), tone = "trim" },
-	{ name = "Eave", size = Vector3.new(0.45, 0.55, 7.20), offset = Vector3.new(3.36, 4.42, 0), tone = "trim" },
-	-- A bowl. Two parts, and it is what turns a box on the grass into somewhere
-	-- an animal lives.
-	-- Size is (LENGTH, diameter, diameter): a Roblox cylinder's axis is its X
-	-- axis, and the quarter turn about Z is what stands it up. Written the
-	-- other way round this is a wide disc laid flat, which is the mistake this
-	-- project has now made five times.
-	{ name = "Bowl", size = Vector3.new(0.55, 1.70, 1.70), offset = Vector3.new(3.90, 0.30, 2.20), tone = "trim", rot = CFrame.Angles(0, 0, math.rad(90)), shape = Enum.PartType.Cylinder },
-	{ name = "BowlRim", size = Vector3.new(0.28, 2.00, 2.00), offset = Vector3.new(3.90, 0.60, 2.20), tone = "roof", rot = CFrame.Angles(0, 0, math.rad(90)), shape = Enum.PartType.Cylinder },
-}
-
--- THE TOYS. Three small objects that stand beside the kennel and give the dog
--- somewhere to go -- see `Config.DOG_TOYS` for what they are for and why none
--- of them may change an outcome.
---
--- EVERY OFFSET IS FROM THE TOY'S OWN `spot`, NOT FROM THE KENNEL, so a toy is
--- one shape that can be seated anywhere: the kennel-local placement lives in
--- Config where it can be measured against the decor grid, and the geometry
--- here does not know where it stands. That also means these ride along for
--- free if the kennel is ever moved or turned.
---
--- BUILT AT SCALE 1 AND NEVER SCALED. A toy belongs to the PLOT rather than to
--- the animal, so a Mastiff does not get a bigger ball -- the tier is carried
--- by the dog's own size and a toy that grew with it would be one more channel
--- saying which tier was bought. The bed is sized for the LARGEST breed, since
--- a Titan lying in a Scruffy-sized bed is the failure that would show.
---
--- EVERYTHING SINKS ABOUT 0.05 INTO THE LAWN. A part whose bottom face lands
--- exactly on the grass is coplanar with it, which is the flicker this project
--- has now recorded five times -- and the fix is a convention rather than a
--- list of numbers: anything standing on something sinks slightly into it.
-local TOYS: { [string]: { any } } = {
-	ball = {
-		{ name = "Ball", size = Vector3.new(1.60, 1.60, 1.60), offset = Vector3.new(0, 0.74, 0),
-			tone = "body", shape = Enum.PartType.Ball },
-		-- A band round the equator, 0.03 proud of the sphere. Sunk flush it
-		-- would flicker; that is the coplanar rule this project has recorded
-		-- five times, and on a curved surface the only way to be seen at all
-		-- is to stand proud of it.
-		--
-		-- Cylinders take their length on X, so a disc lying flat is sized
-		-- (thickness, diameter, diameter) and turned a quarter about Z. The
-		-- other way round it is a wide disc standing on edge, which is the
-		-- mistake this project has made five times and which the kennel's own
-		-- food bowl already carries a note about.
-		{ name = "BallStripe", size = Vector3.new(0.50, 1.66, 1.66), offset = Vector3.new(0, 0.74, 0),
-			tone = "trim", shape = Enum.PartType.Cylinder,
-			rot = CFrame.Angles(0, 0, math.rad(90)) },
-	},
-	bowl = {
-		-- **THE LIP GOES UNDER THE WATER, NOT OVER IT**, and the first build
-		-- had it the other way round -- copied from the kennel's own food
-		-- bowl, where a wider disc sitting ON TOP is exactly right because
-		-- that bowl is empty scenery.
-		--
-		-- A Roblox cylinder is SOLID. There is no annulus primitive, so a rim
-		-- placed above the body is not a ring you look through, it is a
-		-- 2.60-wide plate laid over the whole bowl -- and measured, it spanned
-		-- y 0.500 to 0.820 against water at 0.690 to 0.790, so it contained
-		-- the water completely. A 25,000-coin Water Bowl with no water in it,
-		-- and nothing would have errored.
-		--
-		-- So the lip is a wide, shallow disc LOW on the body, which is what a
-		-- moulded plastic bowl actually has, and the water is the highest
-		-- thing here. Same rule as the moat's kerbs from the other end: the
-		-- eye takes the highest line as the surface, so the surface has to be
-		-- the water.
-		{ name = "BowlRim", size = Vector3.new(0.25, 2.60, 2.60), offset = Vector3.new(0, 0.42, 0),
-			tone = "trim", shape = Enum.PartType.Cylinder,
-			rot = CFrame.Angles(0, 0, math.rad(90)) },
-		{ name = "BowlBody", size = Vector3.new(0.68, 2.30, 2.30), offset = Vector3.new(0, 0.30, 0),
-			tone = "body", shape = Enum.PartType.Cylinder,
-			rot = CFrame.Angles(0, 0, math.rad(90)) },
-		-- Seated INTO the body and standing 0.08 proud of it. Flush with the
-		-- body's top face would be the coplanar flicker this project has
-		-- recorded five times; below it, the opaque body hides it.
-		{ name = "Water", size = Vector3.new(0.12, 2.06, 2.06), offset = Vector3.new(0, 0.66, 0),
-			tone = "accent", shape = Enum.PartType.Cylinder,
-			rot = CFrame.Angles(0, 0, math.rad(90)), transparency = 0.35 },
-	},
-	bed = {
-		-- OPEN AT THE FRONT (+Z), so a dog lying in it is seen rather than
-		-- walled in. The whole point of the bed is that the sleeping posture
-		-- still reads from the pavement -- that posture is half of the "this
-		-- plot is unguarded" tell, and a bed with four sides would hide it.
-		--
-		-- Sized for a Titan: torso 3.00 x 1.3 scale is 3.9 long and about 3.4
-		-- across at girth 1.2, against an interior of 5.0 by 3.9.
-		{ name = "BedBase", size = Vector3.new(5.40, 0.45, 4.20), offset = Vector3.new(0, 0.17, 0),
-			tone = "body" },
-		-- No two of these four share a face plane, which is checked rather
-		-- than assumed: the rims are narrower and shallower than the base, and
-		-- the SIDE rims differ from the BACK rim in height (0.10-0.70 against
-		-- 0.145-0.695) precisely because they overlap it at the corners, where
-		-- matching heights would have been a coplanar pair on both faces.
-		{ name = "BedRim", size = Vector3.new(5.20, 0.55, 0.45), offset = Vector3.new(0, 0.42, -2.12),
-			tone = "trim" },
-		{ name = "BedRim", size = Vector3.new(0.45, 0.60, 4.00), offset = Vector3.new(-2.72, 0.40, 0),
-			tone = "trim" },
-		{ name = "BedRim", size = Vector3.new(0.45, 0.60, 4.00), offset = Vector3.new(2.72, 0.40, 0),
-			tone = "trim" },
-	},
-}
-
--- How high a dog lies when it sleeps on the bed rather than on the grass: the
--- cushion's own top face. Derived from the geometry above rather than typed,
--- so a thicker cushion carries the dog up with it.
-local BED_TOP = 0.17 + 0.45 / 2
+-- THE KENNEL'S GEOMETRY LIVES IN `Shared/KennelModel` SO THE SHOP CAN DRAW
+-- ONE. Only the bone table moved; everything this file does with it -- the
+-- scale to fit whatever rig is standing in it, the seating on the plot, the
+-- weld into the dog's model and the repaint on every coat change -- stayed,
+-- because none of that belongs on a client. See that module's header.
+local KENNEL: { any } = KennelModel.BONES
 
 local EYE_DULL = Color3.fromRGB(24, 20, 18)
-local KENNEL_WOOD = Color3.fromRGB(146, 106, 70)
-local KENNEL_TRIM = Color3.fromRGB(94, 66, 42)
 
 -- ============================================================
 -- MOVEMENT
@@ -368,6 +225,84 @@ local function facing(pos: Vector3, heading: Vector3): CFrame
 	return CFrame.lookAt(pos, pos + heading) * CFrame.Angles(0, math.pi, 0)
 end
 
+-- HOW FAR A DOG REACHES PAST THE POINT IT IS WALKING TO, at scale 1.
+--
+-- `walkTo` drives the TORSO, and the Mastiff is 9.9 studs nose to tail at its
+-- own 1.3 scale -- so a dog whose torso is standing on the fence line has
+-- half its body through the fence. Measuring the destination and forgetting
+-- the animal standing on it is the same mistake as a prompt that measures to
+-- a part's centre and forgets where a thief can put their feet.
+local BODY_HALF = 3.81
+
+-- And ACROSS, which is a different number and is what has to fit through a
+-- gate. The widest rig that ships is the Cerberus coat at 5.40 across, so 2.7
+-- at its own scale -- comfortably inside the narrowest gate in the game
+-- (8 studs at the Moat).
+local BODY_HALF_WIDTH = 1.35
+
+-- THE FENCE, FOR THE ONE THING IN THIS GAME THAT DOES NOT COLLIDE WITH IT.
+--
+-- Everything below works in the yard's own frame, where +Z is the street and
+-- the front fence stands on `PLOT_FRONT_LINE` with an opening `dog.gate` wide
+-- on the centre line. A dog may cross that line only through the opening and
+-- may never cross the sides or the back at all (`clampToLeash` holds those),
+-- so the only way out of a yard is the way a player has: the gate.
+
+-- Is this point on the street side of the front fence?
+local function pastFence(dog: Dog, position: Vector3): boolean
+	local yard = dog.yard
+	if not yard then
+		return false
+	end
+	return yard:PointToObjectSpace(position).Z > Config.PLOT_FRONT_LINE
+end
+
+-- WHERE THE CHASE IS ACTUALLY HEADED. The thief, unless they are on the other
+-- side of the fence, in which case the mouth of the gate on the dog's own
+-- side -- so the dog runs for the opening rather than at the wire. Once it is
+-- IN the opening the target takes over again, or it would stall on the
+-- waypoint and never step through.
+local function chaseGoal(dog: Dog, from: Vector3, target: Vector3): Vector3
+	local yard = dog.yard
+	if not yard or dog.gate == math.huge then
+		return target
+	end
+	if pastFence(dog, from) == pastFence(dog, target) then
+		return target
+	end
+	local here = yard:PointToObjectSpace(from)
+	local line = Config.PLOT_FRONT_LINE
+	if math.abs(here.X) <= dog.gate * 0.25 and math.abs(here.Z - line) <= 4 then
+		return target
+	end
+	local side = if here.Z > line then 1.5 else -1.5
+	return yard * Vector3.new(0, here.Y, line + side)
+end
+
+-- The fence as a wall the walker cannot pass except at the gate. `reach` is
+-- how far the animal's body stands out sideways, so it cannot wear a gate
+-- post while nominally inside the opening.
+local function blockAtFence(dog: Dog, from: Vector3, to: Vector3, reach: number): Vector3
+	local yard = dog.yard
+	if not yard or dog.gate == math.huge then
+		return to
+	end
+	local a, b = yard:PointToObjectSpace(from), yard:PointToObjectSpace(to)
+	local line = Config.PLOT_FRONT_LINE
+	if (a.Z <= line) == (b.Z <= line) then
+		return to
+	end
+	if math.abs(b.X) <= math.max(dog.gate / 2 - reach, 0) then
+		return to
+	end
+	-- Into the fence: it keeps its sideways movement and stops at the line,
+	-- which reads as a dog working along the wire toward the gate rather than
+	-- as one frozen in mid-stride.
+	local stop = if a.Z <= line then line - 0.1 else line + 0.1
+	local blocked = yard * Vector3.new(b.X, b.Y, stop)
+	return Vector3.new(blocked.X, to.Y, blocked.Z)
+end
+
 -- Lerps the model toward `target` across the ground plane, facing where it's
 -- going. Returns true if it arrived. `abort` is polled every frame so a
 -- patrol can drop everything the moment an alarm fires.
@@ -386,9 +321,18 @@ local function walkTo(dog: Dog, target: Vector3, speed: number, timeout: number,
 		end
 
 		local from = dog.body.Position
-		local to = Vector3.new(target.X, from.Y, target.Z)
+		-- ARRIVAL IS JUDGED AGAINST THE TARGET and travel against the GOAL,
+		-- which are the same point unless the fence is in the way: a dog on
+		-- the driveway walking home routes through its own gate rather than
+		-- back through the pickets.
+		if Vector3.new(target.X - from.X, 0, target.Z - from.Z).Magnitude < 0.6 then
+			finished()
+			return true
+		end
+		local goal = chaseGoal(dog, from, target)
+		local to = Vector3.new(goal.X, from.Y, goal.Z)
 		local delta = to - from
-		if delta.Magnitude < 0.6 then
+		if delta.Magnitude < 0.05 then
 			finished()
 			return true
 		end
@@ -397,6 +341,7 @@ local function walkTo(dog: Dog, target: Vector3, speed: number, timeout: number,
 		-- that landed exactly on the target would make CFrame.lookAt degenerate.
 		local heading = delta.Unit
 		local moved = from + heading * math.min(speed * dt, delta.Magnitude)
+		moved = blockAtFence(dog, from, moved, BODY_HALF_WIDTH)
 		dog.model:PivotTo(facing(moved, heading))
 	end
 	finished()
@@ -428,25 +373,6 @@ local function restCFrame(dog: Dog, tier: any): CFrame
 		* CFrame.new(REST_OFFSET * ((tier and tier.scale) or 1) + Vector3.new(0, torsoY(tier), 0))
 end
 
--- WHERE A TOY STANDS, IN THE WORLD. Kennel-local in Config, so this is the
--- one place the two frames meet.
-local function toySpot(dog: Dog, key: string): Vector3?
-	local toy = Config.DOG_TOYS[key]
-	if not toy or not dog.toysOut[key] then
-		return nil
-	end
-	return (dog.originCF * CFrame.new(toy.spot)).Position
-end
-
--- HOW FAR A DOG REACHES PAST THE POINT IT IS WALKING TO, at scale 1.
---
--- `walkTo` drives the TORSO, and the Mastiff is 9.9 studs nose to tail at its
--- own 1.3 scale -- so a dog whose torso is standing on the fence line has
--- half its body through the fence. Measuring the destination and forgetting
--- the animal standing on it is the same mistake as a prompt that measures to
--- a part's centre and forgets where a thief can put their feet.
-local BODY_HALF = 3.81
-
 -- Hold a patrol destination inside the fence.
 --
 -- THE RECTANGLE IS THE FENCE'S, not the plot slab's, and it is the same one
@@ -455,9 +381,8 @@ local BODY_HALF = 3.81
 -- dog's own reach, because the thing that has to stay inside is the animal
 -- rather than the point it is aiming at.
 --
--- A CLAMP AND NOT A SHORTER RADIUS, because a toy is a fixed destination
--- rather than a distance along a ray -- shortening only works for the random
--- branch, and this has to cover every branch or it covers none.
+-- A CLAMP AND NOT A SHORTER RADIUS, so it covers every destination this
+-- file hands the walker rather than only the random wander.
 local function clampToYard(dog: Dog, target: Vector3, tier: any): Vector3
 	local yard = dog.yard
 	if not yard then
@@ -474,48 +399,113 @@ local function clampToYard(dog: Dog, target: Vector3, tier: any): Vector3
 		math.clamp(p.Z, math.min(back, front), front)).Position
 end
 
-local function sleepCFrame(dog: Dog, tier: any): CFrame
-	local scale = tier.scale
+-- THE CHASE LEASH: the fence rectangle, extended forward to the end of the
+-- driveway. See `Config.DOG_CHASE`. `pad` grows (positive) or shrinks
+-- (negative) the box; a dog with no yard (a shop's) has no leash.
+local function leashBox(pad: number): (number, number, number)
+	local front = Config.streetMetrics().driveFar
+	return Config.PLOT_HALF_WIDTH + pad, -Config.YARD_DEPTH - pad, front + pad
+end
 
-	-- ON THE BED IF THERE IS ONE, and this is the only thing in `Config.DOG_TOYS`
-	-- that changes where the dog ENDS UP rather than where it walks.
-	--
-	-- It survives the rule that a cosmetic may never move a tell because the
-	-- tell was never the kennel: what a thief reads is the sleeping POSTURE,
-	-- the puff and OFF DUTY on the nameplate, and all three follow the dog. It
-	-- has never been hidden inside the kennel either -- it settles at the
-	-- DOORWAY, in plain sight -- so a bed a few studs away is the same picture
-	-- somewhere else on the same lawn.
-	local bed = Config.DOG_TOYS.bed
-	if bed and bed.kind == "sleep" and dog.toysOut.bed then
-		-- Lying ON the cushion rather than through it. `BED_TOP` is derived
-		-- from the bed's own geometry, so a thicker cushion carries the dog up
-		-- with it instead of leaving a Mastiff sunk into its own bed.
-		--
-		-- Facing out of the kennel, not into the bed: the orientation comes
-		-- from `originCF` exactly as the doorway version does, which keeps a
-		-- sleeping dog pointed the way a passer-by is looking.
-		local at = dog.originCF
-			* CFrame.new(bed.spot + Vector3.new(0, torsoY(tier) - 0.55 * scale + BED_TOP, 0))
-
-		-- CLAMPED HERE RATHER THAN IN `settle`, which is the whole reason
-		-- this returns a CFrame rather than being inlined at the call site.
-		-- Settling down never goes through `patrolTarget`, so the guarantee
-		-- that no toy offset can put a dog through a fence would otherwise
-		-- have covered every destination except the one it walks to most
-		-- deliberately -- and clamping in `settle` instead would be worse than
-		-- not clamping at all: the dog would walk to the clamped point and
-		-- then lie down at the unclamped one, which is the two-copies-of-one-
-		-- position bug this function exists to avoid.
-		--
-		-- The bed's own spot is measured well inside the yard, so this changes
-		-- nothing today. It is the invariant rather than a fix.
-		return CFrame.new(clampToYard(dog, at.Position, tier)) * dog.originCF.Rotation
+local function inLeash(dog: Dog, position: Vector3, pad: number): boolean
+	local yard = dog.yard
+	if not yard then
+		return true
 	end
+	local halfX, back, front = leashBox(pad)
+	local p = yard:PointToObjectSpace(position)
+	return math.abs(p.X) <= halfX and p.Z >= back and p.Z <= front
+end
 
-	-- Just inside the doorway, settled onto the floor, still facing out so a
-	-- passer-by can see it is asleep rather than missing.
-	return dog.originCF * CFrame.new(0, torsoY(tier) - 0.55 * scale, 0.4 * scale)
+local function clampToLeash(dog: Dog, position: Vector3, reach: number): Vector3
+	local yard = dog.yard
+	if not yard then
+		return position
+	end
+	local halfX, back, front = leashBox(-reach)
+	local p = yard:PointToObjectSpace(position)
+	local clamped = yard * Vector3.new(
+		math.clamp(p.X, -math.max(halfX, 0), math.max(halfX, 0)),
+		p.Y,
+		math.clamp(p.Z, math.min(back, front), front))
+	return Vector3.new(clamped.X, position.Y, clamped.Z)
+end
+
+-- THE KENNEL'S INSIDE, at scale 1, taken off the KENNEL table above: the
+-- walls' inner faces, the floor's top, the gap between the door posts and the
+-- height of the opening under the lintel.
+local KENNEL_IN_HALF_W = 2.38
+local KENNEL_IN_BACK = -2.35
+local KENNEL_IN_FRONT = 2.60
+local KENNEL_DOOR_HALF_W = 2.05
+local KENNEL_DOOR_HEIGHT = 3.65
+local KENNEL_FLOOR_TOP = 0.66 + 0.40 / 2
+
+-- HOW BIG THIS DOG IS, from what GuardVisual measured off the real mesh.
+-- Falls back to proportions of the breed's height before a visual exists.
+local function guardDims(dog: Dog): (number, number, number, number)
+	local visual = dog.model:FindFirstChild("Visual")
+	local height = dog.model:GetAttribute("GuardHeight") or 2.5
+	local function read(name: string, fallback: number): number
+		local v = visual and visual:GetAttribute(name)
+		return if typeof(v) == "number" then v else fallback
+	end
+	return read("GuardHalfWidth", 0.35 * height), read("GuardBack", 0.7 * height),
+		read("GuardFront", 0.7 * height), height
+end
+
+-- HOW BIG THE KENNEL HAS TO BE FOR THIS DOG TO LIVE IN IT, which is the
+-- breed's own scale unless the animal does not fit.
+--
+-- A dog sleeps INSIDE its kennel, so the house has to hold it: wide enough,
+-- deep enough, and with a doorway it can walk through without wearing the
+-- lintel. Every breed that ships today fits at its own `tier.scale` --
+-- measured on the real rigs, the tightest being the Triceratops coat at 6.98
+-- long against a 7.43 interior -- so this changes nothing now. It is here
+-- because the alternative is a number that is right until somebody
+-- regenerates a rig, and the failure that produces is a dog clipping through
+-- its own roof, which is exactly what was reported once already.
+local function kennelScale(dog: Dog, tier: any): number
+	local halfW, back, front, height = guardDims(dog)
+	local scale = (tier and tier.scale) or 1
+	return math.min(2.4, math.max(
+		scale,
+		-- Half a stud of air either side, front and back.
+		(2 * halfW + 1.0) / (2 * KENNEL_IN_HALF_W),
+		(back + front + 1.0) / (KENNEL_IN_FRONT - KENNEL_IN_BACK),
+		(2 * halfW + 0.6) / (2 * KENNEL_DOOR_HALF_W),
+		-- Walking in, so the STANDING height has to clear the opening.
+		(height + 0.25) / KENNEL_DOOR_HEIGHT))
+end
+
+local function sleepCFrame(dog: Dog, tier: any): CFrame
+	local scale = kennelScale(dog, tier)
+
+	-- INSIDE THE KENNEL, on its floor, facing out, with its NOSE AT THE
+	-- DOORWAY.
+	--
+	-- For one session it slept on the lawn in front of the door, on the claim
+	-- that the rigs were too big for the house. That claim was never
+	-- measured and is false: every breed fits its own kennel at its own scale,
+	-- and what had actually been wrong was the kennel origin sitting half a
+	-- stud into the lawn. `kennelScale` now derives the fit from the mesh, so
+	-- this is a guarantee rather than a hope.
+	--
+	-- Seated by its FRONT rather than centred, so the head and shoulders sit
+	-- in the opening: a dog buried at the back of its kennel cannot be read
+	-- from the pavement, and the sleeping posture is half of the "this plot is
+	-- unguarded" tell. Clamped so a long rig cannot be pushed through the back
+	-- wall by it.
+	--
+	-- STANDING HEIGHT PLUS THE FLOOR. The lying-down drop is the animation's
+	-- job (GuardAnimation's Sleep pose lowers the Body joint), so the pivot
+	-- stays at standing height with the feet on the kennel floor.
+	local _, back, front = guardDims(dog)
+	local nose = KENNEL_IN_FRONT * scale - 0.3 - front
+	local heel = KENNEL_IN_BACK * scale + 0.3 + back
+	local z = math.max(nose, heel)
+	local at = dog.originCF * CFrame.new(0, torsoY(tier) + KENNEL_FLOOR_TOP * scale, z)
+	return CFrame.new(clampToYard(dog, at.Position, tier)) * dog.originCF.Rotation
 end
 
 -- On guard duty right now?
@@ -607,15 +597,25 @@ function GuardDog.alert(dog: Dog)
 	dog.alertUntil = now + Config.DOG_WATCH.alertSeconds
 end
 
--- The speed above which this breed hears a footstep, or nil where there is no
--- dog at all -- which is how every caller checks "is there one".
+-- IS THIS DOG AWAKE, as far as noticing a sneak goes. A sleeping dog is only
+-- woken by NOISE -- a walk, a fumbled slice, a smash -- and a tiptoe is never
+-- noise. An awake one sees anybody who moves, sneaking or not, so the whole
+-- rule for a thief is "don't wake it".
 --
--- Exported so the watcher never has to reach into `dog.level` and look a tier
--- up for itself. Which tier a dog is, and what that tier can hear, is this
--- file's business; WHO is making the noise is the caller's.
-function GuardDog.noticeSpeed(dog: Dog): number?
-	local tier = Config.getDogTier(dog.level)
-	return if tier then tier.notice else nil
+-- This replaced a per-tier `notice` speed. There are no dog tiers any more
+-- (`Config.DOG_LEVEL`), and a speed threshold measured off position deltas
+-- sat 0.6 studs/sec above a maxed carry-sneak, which network jitter could
+-- cross on its own.
+--
+-- Awake is the owner being home, guard duty, or an alert running -- counted
+-- from the disturbance rather than from `stirAt`, because a dog that has just
+-- heard something is looking round even before it gets up. False where there
+-- is no dog at all.
+function GuardDog.isAwake(dog: Dog): boolean
+	if dog.level <= 0 or dog.lured then
+		return false
+	end
+	return onGuardDuty(dog) or dog.ownerHome or os.clock() < dog.alertUntil
 end
 
 -- Is the dog up and able to come for somebody? Public because the watcher
@@ -639,15 +639,11 @@ function GuardDog.isOwnerHome(dog: Dog): boolean
 end
 
 local function settle(dog: Dog, tier: any)
-	-- Walk to whatever it is about to lie on. Taken from `sleepCFrame` rather
-	-- than computed a second time, so the bed can never be somewhere the dog
-	-- walks to and not somewhere it lies down -- two copies of one position is
-	-- how a dog comes to snap five studs sideways as it falls asleep.
-	-- `sleepCFrame` is already clamped to the yard, so the walk and the
-	-- lie-down cannot disagree about where the bed is.
-	local mouth = if dog.toysOut.bed
-		then sleepCFrame(dog, tier).Position
-		else (dog.originCF * CFrame.new(0, 0, 2.4 * tier.scale)).Position
+	-- Walk to the doorstep spot it is about to lie on. Taken from
+	-- `sleepCFrame` rather than computed a second time, so the walk and the
+	-- lie-down can never disagree and the dog does not snap sideways as it
+	-- falls asleep.
+	local mouth = sleepCFrame(dog, tier).Position
 	walkTo(dog, mouth, tier.speed * Config.DOG_PATROL_SPEED * 2.2, 6, function()
 		return dog.chasing or dog.lured or dog.level <= 0
 	end)
@@ -670,7 +666,8 @@ local function rouse(dog: Dog, tier: any)
 	-- Keeps the guard-duty tell if that is still running. Waking up from an
 	-- interrupted chase must not quietly relabel a dog its owner has paid to
 	-- advertise as unbribeable.
-	dog.breedLabel.Text = if onGuardDuty(dog) then "ON GUARD" else string.upper(tier.breed)
+	dog.breedLabel.Text = if onGuardDuty(dog) then "ON GUARD"
+		else string.upper(GuardRig.species(dog.coat, dog.level))
 
 	-- Stand back up at the rest spot. Orientation comes from originCF, so the
 	-- dog ends up facing out of its own doorway.
@@ -711,99 +708,21 @@ end
 -- THE ONE PLACE A PATROL DESTINATION IS DECIDED, and that is the point of it
 -- being a function rather than four lines inside the loop.
 --
--- A toy does not add a behaviour: the dog already walked to a random point
--- inside `DOG_PATROL_RADIUS` every few seconds, and a toy REPLACES where that
--- step goes. Under half the time, so a dog with three toys still spends most
--- of its patrol pacing the lawn rather than commuting between objects -- see
--- `Config.DOG_TOY_VISIT_CHANCE`.
---
 -- **ANY CLAMP ON WHERE A GUARD DOG MAY WALK BELONGS HERE**, because every
 -- branch returns through this one point. That matters more than it looks:
 -- the wander is a radius around `home`, `home` is offset out of the kennel
 -- doorway, and the kennel stands in a corner of the plot -- so the radius and
--- the fence are two numbers nothing currently multiplies together. A clamp
--- added here covers the toys for free; one added at the call site would not.
+-- the fence are two numbers nothing currently multiplies together.
 --
 -- `clampToYard` is what fills that in, and note `settle` has to call it too:
 -- lying down is a destination this function never sees.
---
--- Returns the point and, when it is a toy, which one -- because arriving at a
--- BALL is the one destination that does something on arrival.
-local function patrolTarget(dog: Dog): (Vector3, string?)
+local function patrolTarget(dog: Dog): Vector3
 	local tier = Config.getDogTier(dog.level)
-	local out: { string } = {}
-	for key, toy in pairs(Config.DOG_TOYS) do
-		-- `visit` only. The bed is a place the dog SLEEPS, and walking over to
-		-- stand next to a bed it is not lying in is the uncanny version of
-		-- this feature.
-		if toy.kind == "visit" and dog.toysOut[key] then
-			table.insert(out, key)
-		end
-	end
-
-	if #out > 0 and math.random() < Config.DOG_TOY_VISIT_CHANCE then
-		local key = out[math.random(#out)]
-		local spot = toySpot(dog, key)
-		if spot then
-			-- STAND BESIDE IT, NEVER ON IT. `walkTo` drives the torso to the
-			-- point it is given, so aiming at the toy itself puts a 3.9-stud
-			-- Mastiff through a water bowl. Approached from wherever the dog
-			-- happens to be, so the dog ends up on the near side and the toy
-			-- stays visible between it and whoever is watching.
-			local from = dog.body.Position
-			local away = Vector3.new(from.X - spot.X, 0, from.Z - spot.Z)
-			local dir = if away.Magnitude > 0.1 then away.Unit else Vector3.new(0, 0, 1)
-			return clampToYard(dog, spot + dir * 1.9, tier), key
-		end
-	end
-
 	local angle = math.random() * math.pi * 2
 	local dist = math.random() * Config.DOG_PATROL_RADIUS
 	return clampToYard(dog,
 		dog.home + Vector3.new(math.cos(angle) * dist, 0, math.sin(angle) * dist),
-		tier), nil
-end
-
--- A BOUNCE, AND DELIBERATELY NOT A SOUND.
---
--- The bark is the "a dog has seen me" signal a thief reads from the pavement,
--- and this game has exactly one of those on purpose -- giving the alarm-only
--- case its own noise is already recorded here as something that would teach
--- the street to tell "somebody is home" from "nobody is" by ear. A ball that
--- squeaked would be a bought object making that same noise for no reason at
--- all, which is worse: it would train players to ignore it.
---
--- So the ball moves and says nothing. Driven with plain CFrame writes rather
--- than a TweenService require, because it is nine lines and this module
--- currently requires exactly one thing.
-local function nudgeBall(dog: Dog)
-	local parts = dog.toys.ball
-	if not parts or not parts[1] then
-		return
-	end
-	local ball = parts[1]
-	local rest = ball.CFrame
-	task.spawn(function()
-		-- Two hops, the second smaller, over about a second. Anything longer
-		-- and the dog has walked away from its own ball before it stops
-		-- moving.
-		for _, height in ipairs({ 1.5, 0.7 }) do
-			local started = os.clock()
-			while true do
-				local t = (os.clock() - started) / 0.42
-				if t >= 1 or ball.Parent == nil then
-					break
-				end
-				-- A parabola, so it leaves and lands at the grass rather than
-				-- easing to a halt in mid-air.
-				ball.CFrame = rest + Vector3.new(0, height * 4 * t * (1 - t), 0)
-				RunService.Heartbeat:Wait()
-			end
-		end
-		if ball.Parent then
-			ball.CFrame = rest
-		end
-	end)
+		tier)
 end
 
 -- The dog's whole life outside a chase: asleep while on cooldown, wandering
@@ -852,13 +771,9 @@ local function behaviour(dog: Dog)
 
 			tier = Config.getDogTier(dog.level)
 			if tier and not dog.chasing and not onCooldown(dog) then
-				local target, visiting = patrolTarget(dog)
-				local arrived = walkTo(dog, target, tier.speed * Config.DOG_PATROL_SPEED, 8, function()
+				walkTo(dog, patrolTarget(dog), tier.speed * Config.DOG_PATROL_SPEED, 8, function()
 					return dog.chasing or dog.lured or dog.level <= 0 or onCooldown(dog)
 				end)
-				if arrived and visiting == "ball" then
-					nudgeBall(dog)
-				end
 			end
 		end
 	end
@@ -910,7 +825,7 @@ local function showGuardDuty(dog: Dog, on: boolean)
 	if on then
 		dog.breedLabel.Text = "ON GUARD"
 	elseif not dog.sleeping then
-		dog.breedLabel.Text = string.upper(tier.breed)
+		dog.breedLabel.Text = string.upper(GuardRig.species(dog.coat, dog.level))
 	end
 end
 
@@ -999,44 +914,26 @@ end
 
 -- Scale the kennel and place the authored guard at ground level.
 local function layout(dog: Dog, tier: any)
-	local scale = tier.scale
+	-- THE VISUAL FIRST, because it is what MEASURES the dog: `kennelScale`
+	-- reads the attributes `GuardVisual.apply` writes, so sizing the house
+	-- before the animal exists would fall back to a guess and leave the
+	-- kennel one tier-change behind the rig inside it.
+	dog.model:PivotTo(restCFrame(dog, tier))
+	dog.home = dog.body.Position
+	GuardVisual.apply(dog, tier, torsoY(tier))
+
+	-- The KENNEL's scale, which is the breed's unless the animal needs a
+	-- bigger house to sleep in -- see `kennelScale`. The dog's own size is
+	-- authored into its mesh and is not scaled here.
+	local scale = kennelScale(dog, tier)
 	for _, piece in ipairs(dog.kennelPieces) do
 		piece.part.Size = piece.size * scale
 		piece.part.CFrame = dog.originCF * CFrame.new(piece.offset * scale) * (piece.rot or CFrame.identity)
 	end
-	dog.model:PivotTo(restCFrame(dog, tier))
-	dog.home = dog.body.Position
-	GuardVisual.apply(dog, tier, torsoY(tier))
 	local height = dog.model:GetAttribute("GuardHeight") or 2.5
 	local head = dog.plate.Parent :: BasePart
 	head.CFrame = dog.body.CFrame * CFrame.new(0, height - torsoY(tier), 0)
 	dog.plate.StudsOffsetWorldSpace = Vector3.new(0, 0.65, 0)
-end
-
--- WHAT IS ACTUALLY VISIBLE ON THE LAWN, which is not the same question as
--- what the owner asked for.
---
--- `toysOut` is the OWNER'S choice and is kept whatever happens to the dog;
--- what shows is that choice AND a dog existing to use it. A level-0 plot has
--- no animal, and a ball on a lawn with nothing to fetch it is an object with
--- no explanation -- so toys hide with the DOG rather than with the kennel,
--- which deliberately stays standing at level 0 because an empty kennel is what
--- the upgrade is sold against.
---
--- Keeping the choice rather than clearing it is what makes a rebirth
--- survivable: the dog level goes to zero, the toys go away, and every one of
--- them comes back with the first tier bought -- exactly as the name does.
-local function refreshToys(dog: Dog)
-	local live = Config.getDogTier(dog.level) ~= nil
-	for key, parts in pairs(dog.toys) do
-		local show = live and dog.toysOut[key] == true
-		for _, part in ipairs(parts) do
-			-- The AUTHORED transparency, never zero: the water in the bowl is
-			-- translucent, and reading it back off the part would hand back
-			-- whatever hiding it last wrote.
-			part.Transparency = if show then (part:GetAttribute("ToyTransparency") or 0) else 1
-		end
-	end
 end
 
 -- Put a coat on, or take one off by passing nil or "".
@@ -1070,34 +967,28 @@ function GuardDog.setKennel(dog: Dog, key: string?)
 	GuardDog.applyTier(dog, dog.level)
 end
 
--- PUT TOYS OUT, OR TAKE THEM IN. Takes the whole set rather than one key,
--- because that is the shape the save has and the shape the push sends -- and
--- a per-key setter would need the caller to remember which ones it had NOT
--- mentioned, which is how a toy comes to be left out on a plot somebody
--- moved out of.
+-- HOW WIDE THE GATE IN THE FRONT FENCE IS, or nil for no fence at all.
 --
--- Does NOT go through `applyTier`, which is the one setter here that does
--- not. `applyTier` repaints the ANIMAL and its house from the tier and the
--- coat; a toy belongs to the plot, is painted once at build and never takes a
--- tier colour. Routing it through there would mean every coat change also
--- rewrote every toy's transparency for nothing.
-function GuardDog.setToys(dog: Dog, out: { [string]: boolean }?)
-	table.clear(dog.toysOut)
-	for key in pairs(dog.toys) do
-		dog.toysOut[key] = (out and out[key]) == true
-	end
-	refreshToys(dog)
+-- A dog moves by `PivotTo` and therefore collides with nothing, so its own
+-- owner's fence is invisible to it: chases went straight through the pickets,
+-- which makes the one defence a thief is meant to be able to plan around
+-- irrelevant to the thing doing the chasing. The chase now leaves the yard
+-- through the gate like a player. Not `applyTier`'s business -- a fence tier
+-- and a dog tier are bought separately -- so it is its own setter, the same
+-- call `setKennel` makes for the same reason.
+function GuardDog.setGate(dog: Dog, width: number?)
+	dog.gate = width or math.huge
 end
 
 -- Name the dog, or clear the name with nil or "".
 --
--- **WHAT ARRIVES HERE IS ALREADY FILTERED AND THIS FUNCTION DOES NOT CHECK.**
--- That is deliberate and it is the whole reason the filtering lives in exactly
--- one place: `CosmeticsService.nameDog` makes the `TextService` call and is
--- the only caller. A second filter here would look like defence and would
--- actually be the opposite -- two places that both "handle" moderation is how
--- one of them ends up trusted and skipped. If this ever grows a second caller,
--- the filter moves down here rather than being duplicated up there.
+-- **WHAT ARRIVES HERE IS ALREADY OFF THE APPROVED LIST AND THIS FUNCTION
+-- DOES NOT CHECK.** `CosmeticsService.nameDog` matches the name against
+-- `Config.DOG_NAMES` and is the only caller, so there is no player-authored
+-- text in this game to inspect. A second check here would look like defence
+-- and be the opposite -- two places that both "handle" this is how one of
+-- them ends up trusted and skipped. If naming ever takes free text again,
+-- the filter belongs where the list check is, not here as well.
 --
 -- Repaints through `applyTier` for the same reason `setCoat` does: that is the
 -- one function that decides what a dog looks like, and it also restores the
@@ -1108,7 +999,7 @@ function GuardDog.setName(dog: Dog, name: string?)
 end
 
 -- Repaints and resizes the dog and its kennel into the breed for `level`.
--- Level 0 hides both the animal and its toys; the KENNEL stays standing,
+-- Level 0 hides the animal; the KENNEL stays standing,
 -- because an empty kennel is what the Guard Dog upgrade is sold against.
 function GuardDog.applyTier(dog: Dog, level: number)
 	dog.level = math.clamp(level, 0, #Config.DOG_TIERS)
@@ -1131,13 +1022,8 @@ function GuardDog.applyTier(dog: Dog, level: number)
 		-- on it. The name itself is KEPT in `dog.name` and comes back with the
 		-- first tier that is bought.
 		dog.boardLabel.Text = ""
-		-- The toys go with the animal, not with its house. The owner's CHOICE
-		-- is kept in `toysOut` and comes back with the first tier bought.
-		refreshToys(dog)
 		return
 	end
-
-	refreshToys(dog)
 
 	layout(dog, tier)
 
@@ -1157,11 +1043,7 @@ function GuardDog.applyTier(dog: Dog, level: number)
 	-- would be a Scruffy wearing a Titan's signal, which is the one thing
 	-- `Config.DOG_COATS` forbids.
 	local coat = Config.DOG_COATS[dog.coat or ""]
-	-- An unknown key is the plain wooden kennel, never an error: a skin
-	-- retired from the catalogue leaves every save that owned one still
-	-- rendering a house. `DataService.reconcile` prunes the save on load, so
-	-- this is the second of two guards rather than the only one.
-	local den = Config.DOG_KENNELS[dog.kennel or ""]
+	local kennelTones = KennelModel.tones(dog.coat, dog.level)
 	local fur = if coat then coat.fur else tier.fur
 	local furDark = if coat then coat.furDark else tier.furDark
 	local collar = if coat then coat.collar else tier.collar
@@ -1192,18 +1074,11 @@ function GuardDog.applyTier(dog: Dog, level: number)
 			-- SmoothPlastic, not WoodPlanks. A textured material is the single
 			-- biggest thing that makes something in this game read as old Roblox,
 			-- and the kennel and its roof were the last two carrying one.
-			p.Color, p.Material = (if den then den.wood else KENNEL_WOOD), Enum.Material.SmoothPlastic
+			p.Color, p.Material = kennelTones.wood, Enum.Material.SmoothPlastic
 		elseif piece.tone == "trim" then
-			p.Color, p.Material = (if den then den.trim else KENNEL_TRIM), Enum.Material.SmoothPlastic
+			p.Color, p.Material = kennelTones.trim, Enum.Material.SmoothPlastic
 		elseif piece.tone == "roof" then
-			-- AND A KENNEL SKIN DELIBERATELY DOES NOT REACH THIS BRANCH.
-			-- Kennel roof takes the collar colour, so the kennel reads as
-			-- belonging to this DOG from as far away as the dog does -- which
-			-- is why it follows the coat rather than the breed now that those
-			-- are two different things. A kennel that stayed on the tier
-			-- colour while its occupant changed would read as the wrong dog's
-			-- house.
-			p.Color, p.Material = collar, Enum.Material.SmoothPlastic
+			p.Color, p.Material = kennelTones.roof, Enum.Material.SmoothPlastic
 		else
 			-- Only the top breed's eyes light up. The cheapest possible
 			-- "this one is different" read from across the plot. The coat says
@@ -1247,9 +1122,11 @@ function GuardDog.applyTier(dog: Dog, level: number)
 	-- The same fact on the kennel, which is the half that reads from the
 	-- pavement -- the plate is a MaxDistance 90 billboard and small out there.
 	dog.boardLabel.Text = shown
+	dog.boardLabel.TextColor3 = if kennelTones.wood.R * 0.299 + kennelTones.wood.G * 0.587 + kennelTones.wood.B * 0.114 > 0.55
+		then Color3.fromRGB(39, 35, 31) else Color3.fromRGB(240, 236, 226)
 	dog.breedLabel.Text = if onGuardDuty(dog) then "ON GUARD"
 		elseif dog.sleeping then "OFF DUTY"
-		else string.upper(tier.breed)
+		else string.upper(GuardRig.species(dog.coat, dog.level))
 
 	dog.zzz.Enabled = dog.sleeping
 	GuardVisual.state(dog, if dog.sleeping then "Sleep" elseif dog.chasing then "Chase" else "Idle")
@@ -1318,52 +1195,6 @@ function GuardDog.build(originCF: CFrame, parent: Instance, yardCF: CFrame?): Do
 		table.insert(kennelPieces, {
 			part = p, size = bone.size, offset = bone.offset, tone = bone.tone, rot = bone.rot,
 		})
-	end
-
-	-- THE TOYS, BUILT HIDDEN AND PARENTED TO THE KENNEL MODEL.
-	--
-	-- The kennel is the one model here that is never pivoted -- the dog's own
-	-- model is moved every patrol step, and anything the dog WALKS TO has to
-	-- sit outside the thing that moves or it flees at exactly the dog's speed.
-	-- That is the bug this file already records for the kennel itself, and a
-	-- ball parented to the dog would reproduce it exactly.
-	--
-	-- All of them are built whether or not they are owned, for the reason the
-	-- duty vest is: putting a toy out is then a Transparency write on a part
-	-- that already exists, and the alternative is constructing geometry inside
-	-- a shop tap.
-	local toyParts: { [string]: { Part } } = {}
-	for key, toy in pairs(Config.DOG_TOYS) do
-		local parts: { Part } = {}
-		for _, bone in ipairs(TOYS[key] or {}) do
-			local p = Instance.new("Part")
-			p.Name = "Toy_" .. key
-			p.Size = bone.size
-			p.CFrame = originCF * CFrame.new(toy.spot + bone.offset) * (bone.rot or CFrame.new())
-			p.Anchored = true
-			p.CanCollide = false
-			p.CanQuery = false
-			p.CastShadow = false
-			-- The colour comes from `Config.DOG_TOYS`, not from the geometry
-			-- table: the SHOP has to draw a swatch for these and cannot
-			-- require this file, so one table feeds both or the two drift.
-			p.Color = toy[bone.tone] or toy.body
-			p.Material = Enum.Material.SmoothPlastic
-			p.TopSurface = Enum.SurfaceType.Smooth
-			p.BottomSurface = Enum.SurfaceType.Smooth
-			if bone.shape then
-				p.Shape = bone.shape
-			end
-			-- Stashed rather than read back off `Transparency`, because
-			-- hiding a toy overwrites that: without this the water in the
-			-- bowl would come back opaque the first time it was put away and
-			-- taken out again.
-			p:SetAttribute("ToyTransparency", bone.transparency or 0)
-			p.Transparency = 1
-			p.Parent = kennelModel
-			table.insert(parts, p)
-		end
-		toyParts[key] = parts
 	end
 
 	local pieces: { Piece } = {}
@@ -1509,8 +1340,8 @@ function GuardDog.build(originCF: CFrame, parent: Instance, yardCF: CFrame?): Do
 		-- The plain wooden kennel until an owner buys another. Never nil, for
 		-- the same reason as `coat`.
 		kennel = "",
-		toys = toyParts,
-		toysOut = {},
+		-- No fence until one is built, so nothing to walk round.
+		gate = math.huge,
 		-- The breed's own label until an owner names it. Never nil: `applyTier`
 		-- tests it directly.
 		name = "",
@@ -1559,7 +1390,11 @@ end
 --
 -- The target is fetched fresh each frame rather than captured, so a thief who
 -- dies or drops the loot mid-chase cleanly ends it.
-function GuardDog.chase(dog: Dog, getTargetRoot: () -> BasePart?, onCatch: () -> ())
+-- `onCatch` RETURNS FALSE WHEN THE CATCH DID NOT LAND -- today, a thief who
+-- was dodging at the moment the dog arrived. The chase then CARRIES ON rather
+-- than ending, and the dog lunges again shortly after. Anything else makes a
+-- half-second immunity worth the entire chase plus the dog's cooldown.
+function GuardDog.chase(dog: Dog, getTargetRoot: () -> BasePart?, onCatch: () -> boolean?)
 	local tier = Config.getDogTier(dog.level)
 	if not tier or not GuardDog.isReady(dog) then
 		return
@@ -1582,6 +1417,15 @@ function GuardDog.chase(dog: Dog, getTargetRoot: () -> BasePart?, onCatch: () ->
 
 		local deadline = os.clock() + tier.maxChase
 		local caught = false
+		-- When the dog may lunge again after one that missed.
+		local pounceAt = 0
+		local chaseCfg = Config.DOG_CHASE
+		local reach = BODY_HALF * (tier.scale or 1)
+		-- Heading as an angle on the ground plane, turned at a limited rate
+		-- so a sharp cut makes the dog overshoot. Seeded from where it is
+		-- facing now; the model's +Z is its nose (see `facing`).
+		local look = -dog.body.CFrame.LookVector
+		local angle = math.atan2(look.X, look.Z)
 
 		-- `dog.lured` ends the chase early: that is a Golden Bone landing
 		-- mid-run, the one bone a dog will break off for.
@@ -1591,27 +1435,85 @@ function GuardDog.chase(dog: Dog, getTargetRoot: () -> BasePart?, onCatch: () ->
 			if not root then
 				break
 			end
-
-			local from = dog.body.Position
-			local to = Vector3.new(root.Position.X, from.Y, root.Position.Z)
-			local delta = to - from
-
-			if delta.Magnitude <= tier.catchRadius then
-				caught = true
+			-- Off the leash: out the back, over a side fence, or past the end
+			-- of the driveway. The dog gives up and goes home.
+			if not inLeash(dog, root.Position, 0) then
 				break
 			end
 
-			local heading = delta.Unit
-			local moved = from + heading * math.min(tier.speed * dt, delta.Magnitude)
+			local from = dog.body.Position
+			-- Steered at the GATE when the thief is the other side of the
+			-- fence, and at the thief otherwise.
+			local goal = chaseGoal(dog, from, root.Position)
+			local to = Vector3.new(goal.X, from.Y, goal.Z)
+			local delta = to - from
+			local distance = delta.Magnitude
+			-- The catch is judged against the THIEF, never the waypoint.
+			local reachDelta = Vector3.new(root.Position.X - from.X, 0, root.Position.Z - from.Z)
+
+			local want = math.atan2(delta.X, delta.Z)
+			local diff = (want - angle + math.pi) % (2 * math.pi) - math.pi
+			local turn = chaseCfg.turnRate * dt
+			angle += math.clamp(diff, -turn, turn)
+			local heading = Vector3.new(math.sin(angle), 0, math.cos(angle))
+
+			-- Only what is in front of the nose can be caught, and only
+			-- across the same side of the fence: a thief standing on the
+			-- pavement is not caught through the pickets.
+			local sameSide = pastFence(dog, from) == pastFence(dog, root.Position)
+			if sameSide and reachDelta.Magnitude <= tier.catchRadius
+				and math.abs(diff) <= chaseCfg.catchCone
+				and os.clock() >= pounceAt then
+				-- A snarl rather than a bark, so being caught sounds different
+				-- from being chased: the chase already had its own noise. It
+				-- plays on a lunge whether or not the lunge lands, because a
+				-- dog that went for somebody and missed has still gone for
+				-- them -- and a silent miss would read as the dog ignoring a
+				-- thief it was standing on top of.
+				play(dog, "Snarl")
+				GuardVisual.state(dog, "Attack")
+				-- A DODGE BEATS THE POUNCE AND MAY NOT BEAT THE CHASE.
+				--
+				-- This used to set `caught` and break before anything had
+				-- asked whether the catch landed, so a thief who rolled as
+				-- the dog arrived kept the piggy, was still knocked out of
+				-- the yard by the caller, and left the dog walking home on
+				-- its full cooldown. One dodge, one whole robbery -- against
+				-- `Config.DODGE`'s own rule that a dodge buys a moment and
+				-- never an escape, and against the line that says a defender
+				-- who eats one starts their hold again. A dog had no way to
+				-- start again, because the chase was already over.
+				if onCatch() ~= false then
+					caught = true
+					break
+				end
+				GuardVisual.state(dog, "Chase")
+				-- DERIVED FROM THE DODGE RATHER THAN PINNED, and that is what
+				-- makes one dodge worth exactly one missed lunge: the immunity
+				-- is `DODGE.immunity` and a second dodge cannot arrive for
+				-- `DODGE.cooldown`, which is an order of magnitude longer, so
+				-- the next lunge is guaranteed to land on anybody who simply
+				-- keeps running. A delay is also what stops the miss becoming
+				-- its own bug -- with none, the pounce re-fires every frame
+				-- for the whole immunity window and says "Dodged!" to the
+				-- thief thirty times.
+				pounceAt = os.clock() + Config.DODGE.immunity
+			end
+
+			local speed = tier.speed * (1 - chaseCfg.turnSlow * math.abs(diff) / math.pi)
+			local moved = from + heading * math.min(speed * dt, distance)
+			-- The dog never leaves its own leash box, whatever it is chasing,
+			-- and leaves its own yard only through the gate.
+			moved = clampToLeash(dog, moved, reach)
+			moved = blockAtFence(dog, from, moved, BODY_HALF_WIDTH * (tier.scale or 1))
 			dog.model:PivotTo(facing(moved, heading))
 		end
 
+		-- The snarl, the Attack pose and the catch itself all happen at the
+		-- lunge, inside the loop, because a lunge that MISSES has to be able
+		-- to leave the chase running. What is left here is the beat the dog
+		-- stands over somebody before it trots off.
 		if caught then
-			-- A snarl rather than a bark, so being caught sounds different from
-			-- being chased. The chase already had its own noise.
-			play(dog, "Snarl")
-			GuardVisual.state(dog, "Attack")
-			onCatch()
 			task.wait(0.45)
 		end
 

@@ -236,7 +236,7 @@ function RideSound.update(character: Instance?, dt: number)
 		speed = Vector3.new(v.X, 0, v.Z).Magnitude
 	end
 
-	local top = Config.BASE_WALK_SPEED * (ride.multiplier or 1)
+	local top = Config.BASE_WALK_SPEED * Config.rideMultiplier(ride)
 	local f = math.clamp(speed / math.max(top, 1), 0, 1)
 
 	-- `idle` is what the machine makes standing still: nothing for the three

@@ -20,12 +20,43 @@ local Theme = require(ReplicatedStorage.Shared.Theme)
 
 local SeasonBoard = {}
 
-local ROW_H, ROWS = 36, Config.SEASON_BOARD.above + Config.SEASON_BOARD.below + 1
+-- THE SHEET, AND EVERY BAND ON IT, DERIVED SO A ROW CANNOT LAND ON THE
+-- FOOTER.
+--
+-- `ROW_H` was pinned at 36 and the row count is `above + below + 1` from
+-- Config -- two numbers nobody multiplied together. At 3 above and 4 below
+-- that is EIGHT rows from y 70, which reach y 354 against a footer whose top
+-- is 334: the last row sat on TWENTY of the footer's twenty-six pixels, so
+-- the line under the table was covered by the table.
+--
+-- Deriving the row pitch from the space that is actually free means the two
+-- can never disagree again: change `SEASON_BOARD.above` or `.below` and the
+-- rows get thinner rather than growing off the sheet. Same argument as
+-- `Config.auditFences` -- the failure is a number, nothing errors, and what
+-- it produces is text nobody can read.
+-- Plain numbers rather than a Vector2: `SeasonBoard.footer` is exercised by
+-- tests/luau/season.luau through a stubbed `game` and `require`, so anything
+-- this file touches AT MODULE SCOPE has to exist in that harness too.
+local CANVAS_X, CANVAS_Y = 600, 400
+local SHEET_INSET = 16
+local SHEET_H = CANVAS_Y - SHEET_INSET * 2
+local ROWS = Config.SEASON_BOARD.above + Config.SEASON_BOARD.below + 1
+local ROWS_TOP = 70 -- under the title band, which ends at 66
+local FOOT_H = 26
+local FOOT_TOP = SHEET_H - 34
+local ROW_GAP = 8 -- clear air between the last row and the footer
+local ROW_H = math.floor((FOOT_TOP - ROW_GAP - ROWS_TOP) / math.max(1, ROWS))
 
 -- The footer line for a state. Pure, so the test can read it.
 function SeasonBoard.footer(state: any): string
 	if type(state) ~= "table" or not state.number then
-		return "Season 1 starts soon. Grow acorns to be ready!"
+		-- NO "GROW ACORNS TO BE READY". `SeasonService.earn` counts acorns
+		-- banked DURING a live season and nothing else -- a refund, a crate, a
+		-- gift and anything banked beforehand are all deliberately not earned
+		-- -- so a stockpile grown in advance is worth exactly zero tiers. The
+		-- line told a nine-year-old to spend the week before a season doing
+		-- something with no effect, which is worse than saying nothing.
+		return "Season 1 starts soon."
 	end
 	if not state.active then
 		return ("Season %d is over: you reached tier %d."):format(state.number, state.tier or 0)
@@ -47,7 +78,7 @@ local function build(panel: BasePart): any
 	local surface = Instance.new("SurfaceGui")
 	surface.Name = "SeasonLocal"
 	surface.Face = Enum.NormalId.Front
-	surface.CanvasSize = Vector2.new(600, 400)
+	surface.CanvasSize = Vector2.new(CANVAS_X, CANVAS_Y)
 	surface.LightInfluence = 0
 	surface.Enabled = false
 
@@ -66,7 +97,8 @@ local function build(panel: BasePart): any
 	local rows = {}
 	for i = 1, ROWS do
 		local row = Instance.new("Frame")
-		row.Size, row.Position = UDim2.new(1, -40, 0, ROW_H - 4), UDim2.fromOffset(20, 70 + (i - 1) * ROW_H)
+		row.Size, row.Position = UDim2.new(1, -40, 0, ROW_H - 4),
+			UDim2.fromOffset(20, ROWS_TOP + (i - 1) * ROW_H)
 		row.BackgroundColor3 = Theme.SAND_DEEP
 		row.BackgroundTransparency = if i % 2 == 0 then 0.78 else 0.5
 		row.BorderSizePixel, row.Visible = 0, false
@@ -87,7 +119,7 @@ local function build(panel: BasePart): any
 	end
 
 	local foot = Instance.new("TextLabel")
-	foot.Size, foot.Position = UDim2.new(1, -40, 0, 26), UDim2.new(0, 20, 1, -34)
+	foot.Size, foot.Position = UDim2.new(1, -40, 0, FOOT_H), UDim2.fromOffset(20, FOOT_TOP)
 	foot.BackgroundTransparency, foot.TextScaled = 1, true
 	Theme.body(foot, 24, Theme.MUTED)
 	foot.Parent = sheet

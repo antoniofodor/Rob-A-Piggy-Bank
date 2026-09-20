@@ -137,6 +137,12 @@ end
 
 -- Seconds left rather than a deadline, for the reason PoliceState does the
 -- same: os.clock() is not the same number on the server and on any client.
+-- The event the scheduler has already rolled for the end of this quiet
+-- stretch, or nil once it has started. Declared above `pushPhase` because
+-- that reads it -- a local declared below its reader is a nil global, which
+-- this project has paid for ten times.
+local upcoming: string? = nil
+
 local function pushPhase(to: Player?)
 	local payload = {
 		phase = phase,
@@ -153,6 +159,19 @@ local function pushPhase(to: Player?)
 		-- client hides the shake prompt on anybody else's tree unless this is
 		-- true; the server refuses it regardless.
 		acornTheft = EventService.isAcornTheftOpen(),
+		-- WHICH EVENT IS COMING, published through the quiet stretch.
+		--
+		-- This reverses a rule CLAUDE.md states outright: the standing
+		-- countdown drew an hourglass "because which event is not known yet
+		-- -- the roster is rolled when the quiet ends". It is rolled at the
+		-- START of the quiet now, on the designer's call, so the countdown
+		-- can show the thing it is counting down to. What that spends is the
+		-- surprise; what it buys is a chip that says why anybody should
+		-- care, which the hourglass never did.
+		--
+		-- It is nil outside the quiet, because during the warning and the
+		-- run `event` above already names what is happening.
+		nextEvent = upcoming,
 	}
 	local remote = Remotes.get("EventState")
 	if to then
@@ -765,13 +784,22 @@ function EventService.start()
 			-- The quiet stretch, polled a few times a second so the admin
 			-- trigger is noticed within a frame rather than in fifteen
 			-- minutes. Same reason the patrol's quiet is polled.
+			-- ROLLED BEFORE THE QUIET IS PUBLISHED, not after it runs out, so
+			-- the payload that starts the countdown already names its event.
+			-- `pick()` damps whatever `lastPicked` holds, which at this point
+			-- is still the event that has only just finished -- the same
+			-- input the roll used to get one stretch later.
+			upcoming = pick()
 			setPhase("quiet", "", math.max(1, events.period - events.warning))
 			while os.clock() < phaseEnds and not pending do
 				task.wait(0.25)
 			end
 
-			local chosen = pending or pick()
+			-- An admin trigger still overrides it, which is the whole point
+			-- of `pending`: the dev panel names the event it wants to test.
+			local chosen = pending or upcoming or pick()
 			pending = nil
+			upcoming = nil
 			lastPicked = chosen
 			local spec = events.roster[chosen]
 

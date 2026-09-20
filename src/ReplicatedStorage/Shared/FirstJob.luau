@@ -97,10 +97,14 @@ local function build(parent: ScreenGui): any
 		if skin ~= nil then skinTask = skin end
 		local view = parent.AbsoluteSize
 		local m = HUDLayout.metrics(view)
-		local width, x, y = math.min(470, view.X - 2 * m.bankWidth - 44), view.X / 2, 50
+		-- y 88 rather than 50: the standing event countdown sits at the top of
+		-- this column and its icon reaches 82. Free because this card and the
+		-- rebirth button below it are mutually exclusive in practice -- a
+		-- player in their first session cannot afford a rebirth.
+		local width, x, y = math.min(470, view.X - 2 * m.bankWidth * m.bankScale - 44), view.X / 2, 88
 		if m.compact and not m.portrait then
 			-- Between the left boost/menu and the bank on landscape phones.
-			local left, right = 172, view.X - m.bankWidth - 22
+			local left, right = 172, view.X - m.bankWidth * m.bankScale - 22
 			width = math.max(180, math.min(470, right - left))
 			x, y = right - width / 2, 62
 		elseif m.portrait then

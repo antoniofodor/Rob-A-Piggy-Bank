@@ -17,6 +17,22 @@ Thumbs.db
 assets/**/*.glb
 assets/**/*.fbx
 
+# Current animal skin import packages live beside their maps and handoffs.
+!assets/skins/animal/**/*.fbx
+!assets/skins/animal/**/*.glb
+assets/skins/animal/**/*.blend1
+
+# Approved shop icon pack includes the actual game-import deliverables.
+!assets/shop-ui/icon-system-v1/models/**/*.glb
+!assets/shop-ui/icon-system-v1/models/**/*.fbx
+!assets/shop-ui/icon-system-v1/crates/**/*.glb
+!assets/shop-ui/icon-system-v1/crates/**/*.fbx
+assets/shop-ui/icon-system-v1/sources/*.blend1
+
 # Python bytecode from tests/sim and asset tooling.
 __pycache__/
 *.pyc
+
+# Staged copies for Studio bulk upload. Rebuilt on demand from
+# assets/skins/animal/**; never a source of truth, never committed.
+import/

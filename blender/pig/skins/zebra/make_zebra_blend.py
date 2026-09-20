@@ -125,35 +125,10 @@ BANDS = dict(
     # thinner than the gap beside it. 0.40 nominal, thinned further wherever
     # the width noise dips, comes out white-dominant like the reference.
     width=0.52,
-    # WHERE THE FIRST BAND STARTS, in degrees from the pole. Inside this the
-    # face is clean, which is the ring of white round the muzzle.
-    #
-    # `start_soft` IS NARROW BECAUSE A SOFT MASK OVER A HARD STROKE IS GREY.
-    # The stroke mask is a threshold, so it is 0 or 1 and nothing between; this
-    # one MULTIPLIES it, so a half-open edge does not draw half as many strokes,
-    # it draws every stroke at half strength. Nine degrees of that put a haze
-    # round the whole muzzle that read as a lighting fault rather than as a
-    # marking -- which is `WORKFLOW.md`'s own "hard edges, not ramps" rule being
-    # broken by the mask instead of by the pattern. Wide enough not to
-    # stair-step, narrow enough that nothing is drawn grey.
-    #
-    # IT ALSO KEEPS THE MERIDIANS OFF THE PART OF THE FACE THEY CANNOT DRAW.
-    # Radial strokes converge at the pole, so their spacing collapses there:
-    # measured on the real surface, 0.013 studs apart at the chin and 0.044 at
-    # the nose tip against a delivered texel of about 0.006. Below roughly 25
-    # degrees they alias into a grey smear rather than resolving as strokes,
-    # and a grey smear on a snout reads as a lighting fault. 27 is past that.
-    #
-    # IT WAS 49, WHICH IS CONFIG'S OWN ARITHMETIC AND WAS TOO FAR BACK BY THE
-    # WIDTH OF A FACE. Config clears the snout's 16.4-degree disc by 32.3, and
-    # those add to 48.7 -- correct for the PART-BUILT pattern, where a band is
-    # a plate that has to physically miss the snout mesh. A baked map has no
-    # such constraint: it runs onto the snout and simply stops being drawn
-    # where the mask says. Measured on the first render, 49 plus the soft edge
-    # put full ink at 60 degrees, and the forehead sits at 58 -- so the whole
-    # face came out white. At 33 the bands cross the cheek and the brow, which
-    # is what the animal has.
-    start=27.0, start_soft=2.5,
+    # Stripes meet the black muzzle without a blank white collar. The old
+    # 27-degree exclusion left a circular gap under the nose. Keep only a
+    # half-degree exclusion at the angular singularity, hidden by the nose.
+    start=0.0, start_soft=0.5,
     # THE WOBBLE. Deliberately half the tiger's: a zebra band is a BAND, and
     # the thing being avoided here is nine identical bars at identical
     # intervals, which Config's own comment calls a barcode.
@@ -542,17 +517,20 @@ def coat(name):
     # SWITCHED, NOT BLENDED. See `FACE`: two phase fields with different
     # topology cannot be mixed without the local stripe spacing going through
     # whatever the difference between them happens to be, so the crossover is
-    # eight degrees wide and the two fields simply meet at an angle -- which is
-    # what a zebra's shoulder does.
+    # two fields simply meet at an angle. Threshold the region selector
+    # BEFORE choosing a phase: interpolating unwrapped phases created the
+    # dense pinstripe strip around the ears, despite this switch's intent.
     face_w = rng(-1040, 60, "in front of the ears?",
                  FACE['y_lo'], FACE['y_hi'], 1.0, 0.0)
     link(Y, face_w.inputs['Value'])
+    face_region = math('GREATER_THAN', -860, 60, "face or body, never interpolated", b=0.5)
+    link(face_w.outputs['Result'], face_region.inputs[0])
     diff = math('SUBTRACT', -860, -1100, "face - body")
     link(face_phase.outputs[0], diff.inputs[0])
     link(body_phase.outputs[0], diff.inputs[1])
     picked = math('MULTIPLY_ADD', -700, -240, "whichever this point is in")
     link(diff.outputs[0], picked.inputs[0])
-    link(face_w.outputs['Result'], picked.inputs[1])
+    link(face_region.outputs[0], picked.inputs[1])
     link(body_phase.outputs[0], picked.inputs[2])
 
     phase = math('ADD', -860, -140, "BAND PHASE")
@@ -589,8 +567,8 @@ def coat(name):
     link(kill.outputs[0], width.inputs[1])
 
     # ---- what is NOT banded -------------------------------------------
-    # The white muzzle ring: no ink inside `start` degrees of the pole.
-    face = rng(-680, 240, "white round the muzzle",
+    # Exclude only the singularity at the pole; no visible muzzle collar.
+    face = rng(-680, 240, "pole singularity only",
                START_LO, START_HI, 0.0, 1.0)
     link(theta.outputs[0], face.inputs['Value'])
 

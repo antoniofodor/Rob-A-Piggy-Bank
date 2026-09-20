@@ -2,6 +2,9 @@ local CollectionService = game:GetService("CollectionService")
 local RunService = game:GetService("RunService")
 local Animation = require(game:GetService("ReplicatedStorage").Shared.GuardAnimation)
 local active = {}
+-- Each eye's authored size, remembered locally so a squashed (sleeping) eye
+-- can be opened again.
+local eyeSize = setmetatable({}, { __mode = "k" })
 local function add(model)
 	if active[model] then return end
 	local record = { joints = {}, faces = {}, connection = nil }
@@ -37,6 +40,19 @@ RunService.PreSimulation:Connect(function(dt)
 			local eye = mesh:GetAttribute("GuardTone") == "eye"
 			mesh.Color = if hostile then (if eye then Color3.fromRGB(245,23,32) else mesh:GetAttribute("AngryBrowColor")) else mesh:GetAttribute("CalmColor")
 			mesh.Material = if hostile and eye then Enum.Material.Neon else Enum.Material.SmoothPlastic
+			if eye then
+				-- Eyes shut while asleep: the eyeball squashed flat reads as a
+				-- closed lid line.
+				local open = eyeSize[mesh]
+				if not open then
+					open = mesh.Size
+					eyeSize[mesh] = open
+				end
+				local want = if state == "Sleep" then Vector3.new(open.X, open.Y * 0.15, open.Z) else open
+				if mesh.Size ~= want then
+					mesh.Size = want
+				end
+			end
 		end
 	end
 end)

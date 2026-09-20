@@ -1,0 +1,14 @@
+{
+  "root": "center of coin rim, (0,0,0)",
+  "coordinates": "Front is Roblox +Z, up is +Y; 1 unit = 1 stud",
+  "sizeRoblox": [
+    2.0,
+    2.0,
+    0.5589998960494995
+  ],
+  "triangles": {
+    "Coin": 10852
+  },
+  "icon": "../../coin.png",
+  "note": "Double-sided: the snout face is mirrored onto the back (Roblox -Z)."
+}

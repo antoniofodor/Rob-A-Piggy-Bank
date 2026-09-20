@@ -1,0 +1,10 @@
+00:04.031  blend            | Read blend: "C:\Users\anton\robloxGame\assets\houses\cardboard-fort-v2\cardboard-fort.blend"
+ROUTES {"samples": 0, "blocked": 0, "firstFindings": []}
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\cardboard-fort-v2\\cardboard-fort-roblox.fbx'
+export finished in 0.1589 sec.
+FBX version: 7400
+IMPORT_REPORT {"meshCount": 41, "triangles": 4078, "basePartsWithCompanion": 56, "fbxRoundTripMaxBoundsError": 1.9073486328125e-06}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

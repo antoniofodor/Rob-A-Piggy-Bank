@@ -136,7 +136,7 @@ function SetService.inUse(data: any, kind: string, key: string): boolean
 	elseif kind == "plinth" then
 		return (data.trophies and data.trophies.plinth) == key
 	elseif kind == "kennel" then
-		return (data.dogs and data.dogs.kennel) == key
+		return false -- Legacy ownership remains, but kennel colors follow the guardian.
 	elseif kind == "coat" then
 		return (data.dogs and data.dogs.equipped) == key
 	elseif kind == "accessory" then

@@ -1,0 +1,453 @@
+{
+  "count": 19,
+  "counts": {
+    "common": 8,
+    "rare": 7,
+    "legendary": 4
+  },
+  "status": "Files organized for Studio import; this move does not upload or install skins.",
+  "models": [
+    {
+      "skin": "bee",
+      "name": "Bumblebee",
+      "package": "assets/skins/animal/common/bee",
+      "meshes": 6,
+      "triangles": 20670,
+      "bodyWidthStuds": 12,
+      "textures": [
+        {
+          "group": "body",
+          "file": "bee_body_color.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "dbe941b2c8d8c92dd9b0d00f1cf0269ed7e524ebb3eb1dd0179cd738afa2162f"
+        },
+        {
+          "group": "trim",
+          "file": "bee_trim_color.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "c3940937ec788fc2f00f04faf74f4d43768857bff3d15ac0e6a8bc59a5f4d8ce"
+        }
+      ],
+      "fbxBoundsError": 4.76837158203125e-07,
+      "status": "Complete static package; existing coat preserved; runtime integration unchanged",
+      "rarity": "common"
+    },
+    {
+      "skin": "ladybird",
+      "name": "Ladybird",
+      "package": "assets/skins/animal/common/ladybird",
+      "meshes": 6,
+      "triangles": 20670,
+      "bodyWidthStuds": 12,
+      "textures": [
+        {
+          "group": "body",
+          "file": "ladybird_body_color.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "0df22b40565d867d1000c2db3dc693cab22ece2496b138e6472bf7fdde534f18"
+        },
+        {
+          "group": "trim",
+          "file": "ladybird_trim_color.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "62e5c558c82a2f81a213d3a311b0df1ebf8cf5bf17878264121327621c82b856"
+        }
+      ],
+      "fbxBoundsError": 4.76837158203125e-07,
+      "status": "Complete static package; existing coat preserved; runtime integration unchanged",
+      "rarity": "common"
+    },
+    {
+      "skin": "cow",
+      "name": "Dairy Cow",
+      "package": "assets/skins/animal/common/cow",
+      "meshes": 6,
+      "triangles": 20670,
+      "bodyWidthStuds": 12,
+      "textures": [
+        {
+          "group": "body",
+          "file": "cow_body_color.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "57c5a8a17083f28b486a223e9a3cc9a2e0fdf267f665788c1ef8e4b447f30feb"
+        },
+        {
+          "group": "trim",
+          "file": "cow_trim_color.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "6b49344f8bb31fa8580353443d7bea32d8edf44a92487c7296e9dae9e0a3ba45"
+        }
+      ],
+      "fbxBoundsError": 4.76837158203125e-07,
+      "status": "Complete static package; existing coat preserved; runtime integration unchanged",
+      "rarity": "common"
+    },
+    {
+      "skin": "zebra",
+      "name": "Zebra",
+      "package": "assets/skins/animal/common/zebra",
+      "meshes": 6,
+      "triangles": 20670,
+      "bodyWidthStuds": 12,
+      "textures": [
+        {
+          "group": "body",
+          "file": "zebra_body_color.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "d20c2240060434f3968c937fcaa41a7058908e9d268385dadf2ee8b0ef45de67"
+        },
+        {
+          "group": "trim",
+          "file": "zebra_trim_color.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "231941b68f1f4cf9e0e2892895c96fc0ff25f758c3427e1acdbe8af3a7d815d4"
+        }
+      ],
+      "fbxBoundsError": 4.76837158203125e-07,
+      "status": "Complete static package; existing coat preserved; runtime integration unchanged",
+      "rarity": "common"
+    },
+    {
+      "skin": "giraffe",
+      "name": "Giraffe",
+      "package": "assets/skins/animal/common/giraffe",
+      "meshes": 6,
+      "triangles": 20670,
+      "bodyWidthStuds": 12,
+      "textures": [
+        {
+          "group": "body",
+          "file": "giraffe_body_color.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "0726f19dcccbfd7e5f55fe11bbcd1f86ae73b5e5f57b42c22d9c54b27bf7165a"
+        },
+        {
+          "group": "trim",
+          "file": "giraffe_trim_color.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "88ed1e0d92acdb54c75c27ccb6717bdae94a2e161e407555929312c38c6c1a62"
+        }
+      ],
+      "fbxBoundsError": 4.76837158203125e-07,
+      "status": "Complete static package; existing coat preserved; runtime integration unchanged",
+      "rarity": "common"
+    },
+    {
+      "skin": "leopard",
+      "name": "Leopard",
+      "package": "assets/skins/animal/common/leopard",
+      "meshes": 6,
+      "triangles": 20670,
+      "bodyWidthStuds": 12,
+      "textures": [
+        {
+          "group": "body",
+          "file": "leopard_body_color.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "04f085f3177ce54835063676d302db43702c21760ec4d9d202fdee54bb4153a0"
+        },
+        {
+          "group": "trim",
+          "file": "leopard_trim_color.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "7dd5800a02c448c16dc137bbaaeb26bc070d6840b6a7379b1e3800b0b5c5ba81"
+        }
+      ],
+      "fbxBoundsError": 4.76837158203125e-07,
+      "status": "Complete static package; existing coat preserved; runtime integration unchanged",
+      "rarity": "common"
+    },
+    {
+      "skin": "tiger",
+      "name": "Bengal Tiger",
+      "package": "assets/skins/animal/common/tiger",
+      "meshes": 6,
+      "triangles": 20670,
+      "bodyWidthStuds": 12,
+      "textures": [
+        {
+          "group": "body",
+          "file": "tiger_body_color.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "ddb782ae6f72c3feaf80f80bf401a9f5a83f002b7e85df89c34a09aac083be6e"
+        },
+        {
+          "group": "trim",
+          "file": "tiger_trim_color.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "26032b6bbd4bdcb791d404eecf0735f64642bcf8709030a25010636ad9f68e49"
+        }
+      ],
+      "fbxBoundsError": 4.76837158203125e-07,
+      "status": "Complete static package; existing coat preserved; runtime integration unchanged",
+      "rarity": "common"
+    },
+    {
+      "skin": "snowleopard",
+      "name": "Snow Leopard",
+      "package": "assets/skins/animal/common/snowleopard",
+      "meshes": 6,
+      "triangles": 20670,
+      "bodyWidthStuds": 12,
+      "textures": [
+        {
+          "group": "body",
+          "file": "snowleopard_body_color.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "146242e4c97232a1aee6cf60ead3c94ce0aa55d3416d6dfb5d732d0741a1a233"
+        },
+        {
+          "group": "trim",
+          "file": "snowleopard_trim_color.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "f5c612ed93e9ce54906968b37b7b110e61025a3515903e12ffb6360f4353c45e"
+        }
+      ],
+      "fbxBoundsError": 4.76837158203125e-07,
+      "status": "Complete static package; existing coat preserved; runtime integration unchanged",
+      "rarity": "common"
+    },
+    {
+      "skin": "strawberrycow",
+      "name": "Strawberry Cow",
+      "rarity": "rare",
+      "parent": "cow",
+      "package": "assets/skins/animal/rare/strawberrycow",
+      "triangles": 20670,
+      "emissiveTextures": [
+        {
+          "group": "body",
+          "file": "strawberrycow_body_emissive.png",
+          "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a",
+          "strengthPreview": 0.800000011920929
+        },
+        {
+          "group": "trim",
+          "file": "strawberrycow_trim_emissive.png",
+          "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8",
+          "strengthPreview": 0.800000011920929
+        }
+      ],
+      "status": "First art pass; Studio integration pending"
+    },
+    {
+      "skin": "cookiescream",
+      "name": "Cookies & Cream",
+      "rarity": "rare",
+      "parent": "cow",
+      "package": "assets/skins/animal/rare/cookiescream",
+      "triangles": 20670,
+      "emissiveTextures": [
+        {
+          "group": "body",
+          "file": "cookiescream_body_emissive.png",
+          "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a",
+          "strengthPreview": 0.800000011920929
+        },
+        {
+          "group": "trim",
+          "file": "cookiescream_trim_emissive.png",
+          "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8",
+          "strengthPreview": 0.800000011920929
+        }
+      ],
+      "status": "First art pass; Studio integration pending"
+    },
+    {
+      "skin": "watermelon",
+      "name": "Watermelon",
+      "rarity": "rare",
+      "parent": "ladybird",
+      "package": "assets/skins/animal/rare/watermelon",
+      "triangles": 20670,
+      "emissiveTextures": [
+        {
+          "group": "body",
+          "file": "watermelon_body_emissive.png",
+          "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a",
+          "strengthPreview": 0.800000011920929
+        },
+        {
+          "group": "trim",
+          "file": "watermelon_trim_emissive.png",
+          "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8",
+          "strengthPreview": 0.800000011920929
+        }
+      ],
+      "status": "First art pass; Studio integration pending"
+    },
+    {
+      "skin": "peppermint",
+      "name": "Peppermint",
+      "rarity": "rare",
+      "parent": "tiger",
+      "package": "assets/skins/animal/rare/peppermint",
+      "triangles": 20670,
+      "emissiveTextures": [
+        {
+          "group": "body",
+          "file": "peppermint_body_emissive.png",
+          "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a",
+          "strengthPreview": 0.800000011920929
+        },
+        {
+          "group": "trim",
+          "file": "peppermint_trim_emissive.png",
+          "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8",
+          "strengthPreview": 0.800000011920929
+        }
+      ],
+      "status": "First art pass; Studio integration pending"
+    },
+    {
+      "skin": "glacier",
+      "name": "Glacier",
+      "rarity": "rare",
+      "parent": "tiger",
+      "package": "assets/skins/animal/rare/glacier",
+      "triangles": 20670,
+      "emissiveTextures": [
+        {
+          "group": "body",
+          "file": "glacier_body_emissive.png",
+          "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a",
+          "strengthPreview": 0.800000011920929
+        },
+        {
+          "group": "trim",
+          "file": "glacier_trim_emissive.png",
+          "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8",
+          "strengthPreview": 0.800000011920929
+        }
+      ],
+      "status": "First art pass; Studio integration pending"
+    },
+    {
+      "skin": "bubblegumleopard",
+      "name": "Bubblegum Leopard",
+      "rarity": "rare",
+      "parent": "leopard",
+      "package": "assets/skins/animal/rare/bubblegumleopard",
+      "triangles": 20670,
+      "emissiveTextures": [
+        {
+          "group": "body",
+          "file": "bubblegumleopard_body_emissive.png",
+          "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a",
+          "strengthPreview": 0.800000011920929
+        },
+        {
+          "group": "trim",
+          "file": "bubblegumleopard_trim_emissive.png",
+          "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8",
+          "strengthPreview": 0.800000011920929
+        }
+      ],
+      "status": "First art pass; Studio integration pending"
+    },
+    {
+      "skin": "honeycomb",
+      "name": "Honeycomb",
+      "rarity": "rare",
+      "parent": "giraffe",
+      "package": "assets/skins/animal/rare/honeycomb",
+      "triangles": 20670,
+      "emissiveTextures": [
+        {
+          "group": "body",
+          "file": "honeycomb_body_emissive.png",
+          "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a",
+          "strengthPreview": 0.800000011920929
+        },
+        {
+          "group": "trim",
+          "file": "honeycomb_trim_emissive.png",
+          "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8",
+          "strengthPreview": 0.800000011920929
+        }
+      ],
+      "status": "First art pass; Studio integration pending"
+    },
+    {
+      "skin": "stormwolf",
+      "package": "assets/skins/animal/legendary/stormwolf",
+      "meshCount": 9,
+      "triangles": 23516,
+      "status": "Layout revision for review; Studio integration pending",
+      "rarity": "legendary"
+    },
+    {
+      "skin": "dragon",
+      "package": "assets/skins/animal/legendary/dragon",
+      "meshCount": 24,
+      "triangles": 40426,
+      "status": "Raised-scale revision with continuous breathing glow; Studio integration pending",
+      "rarity": "legendary"
+    },
+    {
+      "skin": "phoenix",
+      "displayName": "Ice Phoenix",
+      "package": "assets/skins/animal/legendary/phoenix",
+      "meshCount": 22,
+      "triangles": 106800,
+      "status": "Art approved with vault fit verified; Studio integration pending",
+      "rarity": "legendary"
+    },
+    {
+      "skin": "rainbowtiger",
+      "package": "assets/skins/animal/legendary/rainbowtiger",
+      "meshCount": 15,
+      "triangles": 82580,
+      "status": "Option C built with requested refinements; Studio integration pending",
+      "rarity": "legendary"
+    }
+  ]
+}

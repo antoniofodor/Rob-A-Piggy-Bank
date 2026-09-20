@@ -1,0 +1,49 @@
+{
+  "id": "modern",
+  "doors": [
+    {
+      "name": "HouseDoorLeaf_L",
+      "hingeBlender": [
+        -3.93,
+        -6.106,
+        1.965
+      ],
+      "openDegrees": -100,
+      "sizeXYZ": [
+        3.815000057220459,
+        0.20000000298023224,
+        10.319999694824219
+      ],
+      "closedCenterBlender": [
+        -1.9824999570846558,
+        -6.105999946594238,
+        7.184999942779541
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_R",
+      "hingeBlender": [
+        3.93,
+        -6.106,
+        1.965
+      ],
+      "openDegrees": 100,
+      "sizeXYZ": [
+        3.815000057220459,
+        0.20000000298023224,
+        10.319999694824219
+      ],
+      "closedCenterBlender": [
+        1.9824999570846558,
+        -6.105999946594238,
+        7.184999942779541
+      ]
+    }
+  ],
+  "automatic": true,
+  "triggerRadiusStuds": 10,
+  "holdOpenSeconds": 1.5,
+  "swingSeconds": 0.35,
+  "CanCollide": false,
+  "runtime": "HouseDoorAnimator.client.luau; prepare-in-studio.luau or build_house_runtime.py creates the pivot markers"
+}

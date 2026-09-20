@@ -1,0 +1,199 @@
+{
+  "status": "Named mesh groups and timing spec; runtime animation not installed",
+  "effects": [
+    {
+      "section": "HouseFX_FloorBand_1",
+      "kind": "cycle",
+      "periodSeconds": 12,
+      "phase": 0.0,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Riser_1",
+      "kind": "chase",
+      "periodSeconds": 10,
+      "phase": 0.0,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_FloorBand_2",
+      "kind": "cycle",
+      "periodSeconds": 12,
+      "phase": 0.16666666666666666,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Riser_2",
+      "kind": "chase",
+      "periodSeconds": 10,
+      "phase": 0.16666666666666666,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_FloorBand_3",
+      "kind": "cycle",
+      "periodSeconds": 12,
+      "phase": 0.3333333333333333,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Riser_3",
+      "kind": "chase",
+      "periodSeconds": 10,
+      "phase": 0.3333333333333333,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_FloorBand_4",
+      "kind": "cycle",
+      "periodSeconds": 12,
+      "phase": 0.5,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Riser_4",
+      "kind": "chase",
+      "periodSeconds": 10,
+      "phase": 0.5,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_FloorBand_5",
+      "kind": "cycle",
+      "periodSeconds": 12,
+      "phase": 0.6666666666666666,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Riser_5",
+      "kind": "chase",
+      "periodSeconds": 10,
+      "phase": 0.6666666666666666,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_FloorBand_6",
+      "kind": "cycle",
+      "periodSeconds": 12,
+      "phase": 0.8333333333333334,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Riser_6",
+      "kind": "chase",
+      "periodSeconds": 10,
+      "phase": 0.8333333333333334,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Beacon",
+      "kind": "pulse",
+      "periodSeconds": 9,
+      "phase": 0,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_CrownHalo_1",
+      "kind": "orbit",
+      "periodSeconds": 24,
+      "phase": 0.0,
+      "centerBlender": [
+        0.0,
+        12.100000000000001,
+        54.45
+      ],
+      "axisBlender": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "section": "HouseFX_CrownHalo_2",
+      "kind": "orbit",
+      "periodSeconds": 24,
+      "phase": 0.16666666666666666,
+      "centerBlender": [
+        0.0,
+        12.100000000000001,
+        54.45
+      ],
+      "axisBlender": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "section": "HouseFX_CrownHalo_3",
+      "kind": "orbit",
+      "periodSeconds": 24,
+      "phase": 0.3333333333333333,
+      "centerBlender": [
+        0.0,
+        12.100000000000001,
+        54.45
+      ],
+      "axisBlender": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "section": "HouseFX_CrownHalo_4",
+      "kind": "orbit",
+      "periodSeconds": 24,
+      "phase": 0.5,
+      "centerBlender": [
+        0.0,
+        12.100000000000001,
+        54.45
+      ],
+      "axisBlender": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "section": "HouseFX_CrownHalo_5",
+      "kind": "orbit",
+      "periodSeconds": 24,
+      "phase": 0.6666666666666666,
+      "centerBlender": [
+        0.0,
+        12.100000000000001,
+        54.45
+      ],
+      "axisBlender": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "section": "HouseFX_CrownHalo_6",
+      "kind": "orbit",
+      "periodSeconds": 24,
+      "phase": 0.8333333333333334,
+      "centerBlender": [
+        0.0,
+        12.100000000000001,
+        54.45
+      ],
+      "axisBlender": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "section": "HouseFX_Entrance",
+      "kind": "pulse",
+      "periodSeconds": 12,
+      "phase": 0.4,
+      "fixedGeometry": true
+    }
+  ]
+}

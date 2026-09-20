@@ -533,7 +533,10 @@ function ResidentModel.build(plotIndex: number, name: string, at: CFrame, ground
 	-- the very first call can still yield -- so a model assembled straight
 	-- into the world could be seen at the origin for a frame.
 	local staging = Instance.new("Folder")
-	local model = Decor.buildOne("dripstatue", CFrame.new(), staging)
+	-- `buildFigure` rather than `buildOne("dripstatue")`: the Drip Statue is
+	-- retired from the lawn catalogue, and a key lookup would return nil and
+	-- empty the whole street behind the guard below.
+	local model = Decor.buildFigure(CFrame.new(), staging)
 	if not model then
 		staging:Destroy()
 		return nil, nil

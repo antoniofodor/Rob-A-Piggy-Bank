@@ -1,0 +1,82 @@
+{
+  "id": "raptor",
+  "name": "Raptor",
+  "rig": "raptor",
+  "source": "assets/guards/raptor/raptor.blend",
+  "sourceSha256": "7f8ba4b1a76e5ac54695f2ec8ee5b98395a144baa71a3005518ebbc927c7bffa",
+  "image": "assets/guards/raptor/shop-cards/raptor.png",
+  "sha256": "91f65648221f81739b60e3d9a8f3a6a3492ebd39436118990ad2115e659a0d08",
+  "tones": {
+    "fur": [
+      102,
+      185,
+      69
+    ],
+    "dark": [
+      50,
+      115,
+      43
+    ],
+    "light": [
+      226,
+      214,
+      149
+    ],
+    "collar": [
+      223,
+      177,
+      44
+    ],
+    "brow": [
+      102,
+      185,
+      69
+    ],
+    "mask": [
+      151.6,
+      196.60000000000002,
+      101.0
+    ],
+    "eye": [
+      18,
+      18,
+      20
+    ],
+    "nose": [
+      29,
+      27,
+      30
+    ],
+    "mouth": [
+      41,
+      24,
+      31
+    ],
+    "teeth": [
+      248,
+      232,
+      189
+    ],
+    "inner": [
+      201,
+      126,
+      112
+    ],
+    "armor": [
+      131,
+      48,
+      78
+    ],
+    "accent": [
+      238,
+      122,
+      64
+    ],
+    "silver": [
+      171,
+      170,
+      182
+    ]
+  },
+  "robloxAssetId": "rbxassetid://139324732339969"
+}

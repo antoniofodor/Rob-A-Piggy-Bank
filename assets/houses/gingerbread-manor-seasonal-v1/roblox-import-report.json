@@ -1,0 +1,261 @@
+{
+  "export": "gingerbread-manor-seasonal-roblox.fbx",
+  "meshCount": 22,
+  "triangles": 13144,
+  "singleMaterialPerMesh": true,
+  "fbxRoundTripMaxBoundsError": 3.743491561181145e-06,
+  "meshes": [
+    {
+      "name": "Foundation_BiscuitEdge",
+      "section": "Foundation",
+      "material": "BiscuitEdge",
+      "colorRGB": [
+        122,
+        65,
+        31
+      ],
+      "triangles": 60
+    },
+    {
+      "name": "GingerbreadShell_Biscuit",
+      "section": "GingerbreadShell",
+      "material": "Biscuit",
+      "colorRGB": [
+        164,
+        95,
+        46
+      ],
+      "triangles": 60
+    },
+    {
+      "name": "Sweet tiled roof_Icing",
+      "section": "Sweet tiled roof",
+      "material": "Icing",
+      "colorRGB": [
+        249,
+        233,
+        205
+      ],
+      "triangles": 172
+    },
+    {
+      "name": "Entrance_Ink",
+      "section": "Entrance",
+      "material": "Ink",
+      "colorRGB": [
+        29,
+        27,
+        37
+      ],
+      "triangles": 36
+    },
+    {
+      "name": "Windows_DarkGlass",
+      "section": "Windows",
+      "material": "DarkGlass",
+      "colorRGB": [
+        31,
+        43,
+        70
+      ],
+      "triangles": 32
+    },
+    {
+      "name": "Porch_CandyRed",
+      "section": "Porch",
+      "material": "CandyRed",
+      "colorRGB": [
+        202,
+        54,
+        69
+      ],
+      "triangles": 704
+    },
+    {
+      "name": "Approach_Icing",
+      "section": "Approach",
+      "material": "Icing",
+      "colorRGB": [
+        249,
+        233,
+        205
+      ],
+      "triangles": 240
+    },
+    {
+      "name": "Sweet tiled roof_CandyPink",
+      "section": "Sweet tiled roof",
+      "material": "CandyPink",
+      "colorRGB": [
+        218,
+        89,
+        132
+      ],
+      "triangles": 3376
+    },
+    {
+      "name": "Entrance_Icing",
+      "section": "Entrance",
+      "material": "Icing",
+      "colorRGB": [
+        249,
+        233,
+        205
+      ],
+      "triangles": 56
+    },
+    {
+      "name": "Entrance_Gold",
+      "section": "Entrance",
+      "material": "Gold",
+      "colorRGB": [
+        214,
+        163,
+        65
+      ],
+      "triangles": 120
+    },
+    {
+      "name": "Entrance_BiscuitEdge",
+      "section": "Entrance",
+      "material": "BiscuitEdge",
+      "colorRGB": [
+        122,
+        65,
+        31
+      ],
+      "triangles": 56
+    },
+    {
+      "name": "Windows_Ink",
+      "section": "Windows",
+      "material": "Ink",
+      "colorRGB": [
+        29,
+        27,
+        37
+      ],
+      "triangles": 64
+    },
+    {
+      "name": "Windows_Icing",
+      "section": "Windows",
+      "material": "Icing",
+      "colorRGB": [
+        249,
+        233,
+        205
+      ],
+      "triangles": 784
+    },
+    {
+      "name": "Windows_Amber",
+      "section": "Windows",
+      "material": "Amber",
+      "colorRGB": [
+        250,
+        177,
+        57
+      ],
+      "triangles": 32
+    },
+    {
+      "name": "Porch_BiscuitEdge",
+      "section": "Porch",
+      "material": "BiscuitEdge",
+      "colorRGB": [
+        122,
+        65,
+        31
+      ],
+      "triangles": 60
+    },
+    {
+      "name": "Porch_Icing",
+      "section": "Porch",
+      "material": "Icing",
+      "colorRGB": [
+        249,
+        233,
+        205
+      ],
+      "triangles": 88
+    },
+    {
+      "name": "IcingTrim_Icing",
+      "section": "IcingTrim",
+      "material": "Icing",
+      "colorRGB": [
+        249,
+        233,
+        205
+      ],
+      "triangles": 5132
+    },
+    {
+      "name": "SweetGarden_CandyRed",
+      "section": "SweetGarden",
+      "material": "CandyRed",
+      "colorRGB": [
+        202,
+        54,
+        69
+      ],
+      "triangles": 576
+    },
+    {
+      "name": "Lollipop_CandyRed",
+      "section": "Lollipop",
+      "material": "CandyRed",
+      "colorRGB": [
+        202,
+        54,
+        69
+      ],
+      "triangles": 76
+    },
+    {
+      "name": "SweetGarden_CandyPink",
+      "section": "SweetGarden",
+      "material": "CandyPink",
+      "colorRGB": [
+        218,
+        89,
+        132
+      ],
+      "triangles": 576
+    },
+    {
+      "name": "SweetGarden_CandyGreen",
+      "section": "SweetGarden",
+      "material": "CandyGreen",
+      "colorRGB": [
+        76,
+        155,
+        91
+      ],
+      "triangles": 576
+    },
+    {
+      "name": "Lollipop_Icing",
+      "section": "Lollipop",
+      "material": "Icing",
+      "colorRGB": [
+        249,
+        233,
+        205
+      ],
+      "triangles": 268
+    }
+  ],
+  "collisionPartsDraft": 0,
+  "attachments": 0,
+  "basePartsWithCompanion": 23,
+  "routes": {
+    "samples": 0,
+    "blocked": [],
+    "method": "five vertical rays and two body cross-rays at three heights, 1.6-unit footprint; floor sampled below each centre; unmodeled outside ground assumed at zero"
+  },
+  "studioChecks": "not performed; actual avatar collision, camera, material colours and scale pending",
+  "notes": "Preview awards and presentation objects excluded. No runtime menus or animations included. Companion is a draft, not certified collision."
+}

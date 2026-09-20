@@ -96,7 +96,13 @@ local Progression=loadModule("ProgressionService",env)
 local function reset()
  data=Data.defaults();player={DisplayName="Test"};messages={};saves=0;grants=0;randomCalls=0;now+=3
 end
-local pool=Config.chestPool(Config.REBIRTH_CRATE)
+-- Rebirth picks among the collections' Legendary crates; `pool.legendary` is
+-- every legendary across them, `pool.rare` the OG crate's rares.
+local pool={legendary={},rare=Config.chestPool("oglegendary").rare}
+for _,crate in Config.REBIRTH_CRATES do
+ for _,key in Config.chestPool(crate).legendary do table.insert(pool.legendary,key) end
+end
+check(#Config.REBIRTH_CRATES==2 and table.find(Config.REBIRTH_CRATES,"oglegendary") and table.find(Config.REBIRTH_CRATES,"animallegendary"), "rebirth draws from both collections")
 check(#pool.legendary>1 and table.find(pool.legendary,"diamond")~=nil, "legendary stock includes Diamond")
 for _, key in pool.legendary do
  local spec=Config.SKINS[key]
@@ -107,17 +113,19 @@ local complete={};for _,key in pool.legendary do complete[key]=true end
 check(Config.rebirthCrateComplete(complete), "all eligible legendaries completes collection")
 complete[pool.legendary[1]]=nil
 check(not Config.rebirthCrateComplete(complete), "losing one legendary restores crate reward")
+local open=Config.rebirthCratesOpen(complete)
+check(#open==1 and Config.chestPool(open[1]).legendary and table.find(Config.chestPool(open[1]).legendary,pool.legendary[1]), "only the unfinished collection stays in the draw")
 
 -- Free Legendary Crates use the exact shop odds, including rare outcomes.
 for _,case in {{0,"rare"},{0.999,"legendary"}} do
  reset();data.loot=7;data.coins=19;randomValue=case[1]
- local tier,kind,key=modules.ChestService.grantFree(player,Config.REBIRTH_CRATE)
+ local tier,kind,key=modules.ChestService.grantFree(player,"oglegendary")
  check(tier==case[2] and kind=="skin" and key~=nil, "standard free crate can roll " .. case[2])
  check(data.loot==7 and data.coins==19 and grants==1 and randomCalls>0, "free crate rolls without charging")
- check(messages.ChestResult.chest=="legendarycrate" and messages.ChestResult.odds.rare==65 and messages.ChestResult.odds.legendary==35, "normal crate reveal reports actual odds")
+ check(messages.ChestResult.chest=="oglegendary" and messages.ChestResult.odds.rare==65 and messages.ChestResult.odds.legendary==35, "normal crate reveal reports actual odds")
 end
 reset();randomValue=0;data.cosmetics.owned[pool.rare[1]]=true
-modules.ChestService.grantFree(player,Config.REBIRTH_CRATE)
+modules.ChestService.grantFree(player,"oglegendary")
 check(grants==0 and data.spares["skin:"..pool.rare[1]]==1 and messages.ChestResult.duplicate, "rebirth crate duplicate pays a normal spare")
 reset();modules.ChestService.grantFree(player,"og")
 check(randomCalls>0 and grants==1 and data.loot==0, "ordinary daily crate remains random and free")
@@ -134,13 +142,13 @@ check(data.rebirths==1 and data.coins==0 and data.incomeLevel==1 and data.capaci
 check(data.robberies==99 and data.claims.bronze==Config.seasonIndex(), "rebirth preserves lifetime robberies and seasonal claims")
 for _,value in data.upgrades do check(value==0,"upgrade reset preserved") end
 check(grants==1 and data.loot==11 and randomCalls>0 and data.cosmetics.skin=="classic", "fresh rebirth opens crate without charging or changing worn skin")
-check(saves==1 and messages.ChestResult.chest=="legendarycrate" and messages.ChestResult.tier=="rare", "rebirth persists and uses standard crate reveal")
+check(saves==1 and table.find(Config.REBIRTH_CRATES,messages.ChestResult.chest)~=nil and messages.ChestResult.tier=="rare", "rebirth persists and uses standard crate reveal")
 Progression.rebirth(player)
 check(grants==1 and saves==1 and data.rebirths==1, "repeat request cannot duplicate reward")
 reset();data.coins=Config.getRebirthThreshold(0);data.loot=3
 for _,key in pool.legendary do data.cosmetics.owned[key]=true end
 Progression.rebirth(player)
-check(data.coins==0 and data.loot==3+Config.CHESTS.legendarycrate.cost and data.rebirths==1 and grants==0 and saves==1, "complete collection rebirth pays Acorns only and saves")
-check(randomCalls==0 and messages.Notify:find(("%d acorns"):format(Config.CHESTS.legendarycrate.cost),1,true)~=nil and messages.ChestResult==nil, "completed collection fallback does not roll a spare")
+check(data.coins==0 and data.loot==3+Config.rebirthCrateBonus() and data.rebirths==1 and grants==0 and saves==1, "complete collection rebirth pays Acorns only and saves")
+check(randomCalls==0 and messages.Notify:find(("%d acorns"):format(Config.rebirthCrateBonus()),1,true)~=nil and messages.ChestResult==nil, "completed collection fallback does not roll a spare")
 check(#Config.auditEconomy()==0, "audit restored after mutation tests")
 print(("PASS: %d rebirth checks; migration thresholds, rejoin/idempotence, ownership, audit, standard crate rewards, fallback and progression. No player saves."):format(checks))

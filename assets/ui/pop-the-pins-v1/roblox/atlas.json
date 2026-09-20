@@ -1,0 +1,98 @@
+{
+ "housing": {
+  "size": [
+   1024,
+   557
+  ],
+  "sprites": {
+   "lock-housing": [
+    0,
+    0,
+    1024,
+    557
+   ]
+  }
+ },
+ "parts": {
+  "size": [
+   1021,
+   1008
+  ],
+  "sprites": {
+   "pin-idle": [
+    0,
+    0,
+    295,
+    843
+   ],
+   "pin-active": [
+    299,
+    0,
+    295,
+    843
+   ],
+   "pin-set": [
+    598,
+    0,
+    295,
+    843
+   ],
+   "spring": [
+    897,
+    0,
+    124,
+    317
+   ],
+   "top-cap": [
+    0,
+    847,
+    250,
+    161
+   ],
+   "target-notch": [
+    254,
+    847,
+    582,
+    143
+   ],
+   "success-check": [
+    840,
+    847,
+    162,
+    157
+   ]
+  }
+ },
+ "buttons": {
+  "size": [
+   1006,
+   325
+  ],
+  "sprites": {
+   "button-primary": [
+    0,
+    0,
+    501,
+    166
+   ],
+   "button-primary-pressed": [
+    505,
+    0,
+    501,
+    166
+   ],
+   "button-secondary": [
+    0,
+    170,
+    495,
+    155
+   ],
+   "button-secondary-pressed": [
+    499,
+    170,
+    495,
+    155
+   ]
+  }
+ }
+}

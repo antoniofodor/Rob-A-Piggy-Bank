@@ -1,0 +1,1003 @@
+{
+  "export": "thundercloud-fortress-roblox.fbx",
+  "meshCount": 82,
+  "triangles": 8162,
+  "singleMaterialPerMesh": true,
+  "fbxRoundTripMaxBoundsError": 4.76837158203125e-07,
+  "meshes": [
+    {
+      "name": "Foundation_Cloud",
+      "section": "Foundation",
+      "material": "Cloud",
+      "colorRGB": [
+        91,
+        108,
+        143
+      ],
+      "triangles": 112,
+      "roblox": {}
+    },
+    {
+      "name": "CurtainWalls_Trim",
+      "section": "CurtainWalls",
+      "material": "Trim",
+      "colorRGB": [
+        109,
+        133,
+        176
+      ],
+      "triangles": 720,
+      "roblox": {}
+    },
+    {
+      "name": "Approach_WalkWall",
+      "section": "Approach",
+      "material": "WalkWall",
+      "colorRGB": [
+        151,
+        167,
+        191
+      ],
+      "triangles": 31,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_RainBar_1_Rain",
+      "section": "HouseFX_RainBar_1",
+      "material": "Rain",
+      "colorRGB": [
+        67,
+        150,
+        228
+      ],
+      "triangles": 60,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_RainBar_2_Rain",
+      "section": "HouseFX_RainBar_2",
+      "material": "Rain",
+      "colorRGB": [
+        67,
+        150,
+        228
+      ],
+      "triangles": 60,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_RainBar_3_Rain",
+      "section": "HouseFX_RainBar_3",
+      "material": "Rain",
+      "colorRGB": [
+        67,
+        150,
+        228
+      ],
+      "triangles": 60,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_RainBar_4_Rain",
+      "section": "HouseFX_RainBar_4",
+      "material": "Rain",
+      "colorRGB": [
+        67,
+        150,
+        228
+      ],
+      "triangles": 60,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_RainBar_5_Rain",
+      "section": "HouseFX_RainBar_5",
+      "material": "Rain",
+      "colorRGB": [
+        67,
+        150,
+        228
+      ],
+      "triangles": 60,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_RainBar_6_Rain",
+      "section": "HouseFX_RainBar_6",
+      "material": "Rain",
+      "colorRGB": [
+        67,
+        150,
+        228
+      ],
+      "triangles": 60,
+      "roblox": {}
+    },
+    {
+      "name": "Crest_Trim",
+      "section": "Crest",
+      "material": "Trim",
+      "colorRGB": [
+        109,
+        133,
+        176
+      ],
+      "triangles": 8,
+      "roblox": {}
+    },
+    {
+      "name": "HallWindows_Amber",
+      "section": "HallWindows",
+      "material": "Amber",
+      "colorRGB": [
+        250,
+        177,
+        57
+      ],
+      "triangles": 32,
+      "roblox": {}
+    },
+    {
+      "name": "CurtainWalls_Wall",
+      "section": "CurtainWalls",
+      "material": "Wall",
+      "colorRGB": [
+        62,
+        80,
+        113
+      ],
+      "triangles": 88,
+      "roblox": {}
+    },
+    {
+      "name": "CurtainWalls_WalkWall",
+      "section": "CurtainWalls",
+      "material": "WalkWall",
+      "colorRGB": [
+        151,
+        167,
+        191
+      ],
+      "triangles": 16,
+      "roblox": {}
+    },
+    {
+      "name": "Approach_Trim",
+      "section": "Approach",
+      "material": "Trim",
+      "colorRGB": [
+        109,
+        133,
+        176
+      ],
+      "triangles": 1489,
+      "roblox": {}
+    },
+    {
+      "name": "HallWindows_Ink",
+      "section": "HallWindows",
+      "material": "Ink",
+      "colorRGB": [
+        29,
+        27,
+        37
+      ],
+      "triangles": 32,
+      "roblox": {}
+    },
+    {
+      "name": "HallWindows_Trim",
+      "section": "HallWindows",
+      "material": "Trim",
+      "colorRGB": [
+        109,
+        133,
+        176
+      ],
+      "triangles": 392,
+      "roblox": {}
+    },
+    {
+      "name": "CloudFoundation_CloudLight",
+      "section": "CloudFoundation",
+      "material": "CloudLight",
+      "colorRGB": [
+        112,
+        129,
+        163
+      ],
+      "triangles": 92,
+      "roblox": {}
+    },
+    {
+      "name": "CentralTower_DarkGlass",
+      "section": "CentralTower",
+      "material": "DarkGlass",
+      "colorRGB": [
+        31,
+        43,
+        70
+      ],
+      "triangles": 16,
+      "roblox": {}
+    },
+    {
+      "name": "SideTower-13_Amber",
+      "section": "SideTower-13",
+      "material": "Amber",
+      "colorRGB": [
+        250,
+        177,
+        57
+      ],
+      "triangles": 16,
+      "roblox": {}
+    },
+    {
+      "name": "SideTower13_Amber",
+      "section": "SideTower13",
+      "material": "Amber",
+      "colorRGB": [
+        250,
+        177,
+        57
+      ],
+      "triangles": 16,
+      "roblox": {}
+    },
+    {
+      "name": "StairRails_Trim",
+      "section": "StairRails",
+      "material": "Trim",
+      "colorRGB": [
+        109,
+        133,
+        176
+      ],
+      "triangles": 56,
+      "roblox": {}
+    },
+    {
+      "name": "Lanterns_Amber",
+      "section": "Lanterns",
+      "material": "Amber",
+      "colorRGB": [
+        250,
+        177,
+        57
+      ],
+      "triangles": 1152,
+      "roblox": {}
+    },
+    {
+      "name": "LanternFrames_Gold",
+      "section": "LanternFrames",
+      "material": "Gold",
+      "colorRGB": [
+        214,
+        163,
+        65
+      ],
+      "triangles": 448,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_CloudLightning_-1_Lightning",
+      "section": "HouseFX_CloudLightning_-1",
+      "material": "Lightning",
+      "colorRGB": [
+        141,
+        109,
+        229
+      ],
+      "triangles": 112,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_CloudLightning_1_Lightning",
+      "section": "HouseFX_CloudLightning_1",
+      "material": "Lightning",
+      "colorRGB": [
+        141,
+        109,
+        229
+      ],
+      "triangles": 112,
+      "roblox": {}
+    },
+    {
+      "name": "WalkFloor_WalkFloor",
+      "section": "WalkFloor",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkCeiling_WalkWall",
+      "section": "WalkCeiling",
+      "material": "WalkWall",
+      "colorRGB": [
+        151,
+        167,
+        191
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkSideLeftWall_WalkWall",
+      "section": "WalkSideLeftWall",
+      "material": "WalkWall",
+      "colorRGB": [
+        151,
+        167,
+        191
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkSideRightWall_WalkWall",
+      "section": "WalkSideRightWall",
+      "material": "WalkWall",
+      "colorRGB": [
+        151,
+        167,
+        191
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkRearWall_WalkWall",
+      "section": "WalkRearWall",
+      "material": "WalkWall",
+      "colorRGB": [
+        151,
+        167,
+        191
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkFrontLeft_WalkWall",
+      "section": "WalkFrontLeft",
+      "material": "WalkWall",
+      "colorRGB": [
+        151,
+        167,
+        191
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkFrontRight_WalkWall",
+      "section": "WalkFrontRight",
+      "material": "WalkWall",
+      "colorRGB": [
+        151,
+        167,
+        191
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkLintel_WalkWall",
+      "section": "WalkLintel",
+      "material": "WalkWall",
+      "colorRGB": [
+        151,
+        167,
+        191
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageLeft_WalkWall",
+      "section": "WalkPassageLeft",
+      "material": "WalkWall",
+      "colorRGB": [
+        151,
+        167,
+        191
+      ],
+      "triangles": 24,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageRight_WalkWall",
+      "section": "WalkPassageRight",
+      "material": "WalkWall",
+      "colorRGB": [
+        151,
+        167,
+        191
+      ],
+      "triangles": 24,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageCeiling_WalkWall",
+      "section": "WalkPassageCeiling",
+      "material": "WalkWall",
+      "colorRGB": [
+        151,
+        167,
+        191
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageFloor_WalkFloor",
+      "section": "WalkPassageFloor",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach0_WalkFloor",
+      "section": "WalkApproach0",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach1_WalkFloor",
+      "section": "WalkApproach1",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach2_WalkFloor",
+      "section": "WalkApproach2",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach3_WalkFloor",
+      "section": "WalkApproach3",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach4_WalkFloor",
+      "section": "WalkApproach4",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach5_WalkFloor",
+      "section": "WalkApproach5",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach6_WalkFloor",
+      "section": "WalkApproach6",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach7_WalkFloor",
+      "section": "WalkApproach7",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach8_WalkFloor",
+      "section": "WalkApproach8",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach9_WalkFloor",
+      "section": "WalkApproach9",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach10_WalkFloor",
+      "section": "WalkApproach10",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach11_WalkFloor",
+      "section": "WalkApproach11",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach12_WalkFloor",
+      "section": "WalkApproach12",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach13_WalkFloor",
+      "section": "WalkApproach13",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach14_WalkFloor",
+      "section": "WalkApproach14",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach15_WalkFloor",
+      "section": "WalkApproach15",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach16_WalkFloor",
+      "section": "WalkApproach16",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach17_WalkFloor",
+      "section": "WalkApproach17",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach18_WalkFloor",
+      "section": "WalkApproach18",
+      "material": "WalkFloor",
+      "colorRGB": [
+        106,
+        122,
+        149
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkDoor",
+      "section": "HouseDoorLeaf_L",
+      "material": "WalkDoor",
+      "colorRGB": [
+        70,
+        83,
+        119
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim",
+      "section": "HouseDoorLeaf_L",
+      "material": "WalkTrim",
+      "colorRGB": [
+        79,
+        93,
+        134
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim.001",
+      "section": "HouseDoorLeaf_L",
+      "material": "WalkTrim",
+      "colorRGB": [
+        79,
+        93,
+        134
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkDoor",
+      "section": "HouseDoorLeaf_R",
+      "material": "WalkDoor",
+      "colorRGB": [
+        70,
+        83,
+        119
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim",
+      "section": "HouseDoorLeaf_R",
+      "material": "WalkTrim",
+      "colorRGB": [
+        79,
+        93,
+        134
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim.001",
+      "section": "HouseDoorLeaf_R",
+      "material": "WalkTrim",
+      "colorRGB": [
+        79,
+        93,
+        134
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkEntryJamb-1_WalkTrim",
+      "section": "WalkEntryJamb-1",
+      "material": "WalkTrim",
+      "colorRGB": [
+        79,
+        93,
+        134
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkEntryJamb1_WalkTrim",
+      "section": "WalkEntryJamb1",
+      "material": "WalkTrim",
+      "colorRGB": [
+        79,
+        93,
+        134
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkEntryHeader_WalkTrim",
+      "section": "WalkEntryHeader",
+      "material": "WalkTrim",
+      "colorRGB": [
+        79,
+        93,
+        134
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "CloudFoundation_Cloud",
+      "section": "CloudFoundation",
+      "material": "Cloud",
+      "colorRGB": [
+        91,
+        108,
+        143
+      ],
+      "triangles": 152,
+      "roblox": {}
+    },
+    {
+      "name": "CentralTower_Wall",
+      "section": "CentralTower",
+      "material": "Wall",
+      "colorRGB": [
+        62,
+        80,
+        113
+      ],
+      "triangles": 94,
+      "roblox": {}
+    },
+    {
+      "name": "CentralTower_WalkWall",
+      "section": "CentralTower",
+      "material": "WalkWall",
+      "colorRGB": [
+        151,
+        167,
+        191
+      ],
+      "triangles": 18,
+      "roblox": {}
+    },
+    {
+      "name": "CentralTower_Trim",
+      "section": "CentralTower",
+      "material": "Trim",
+      "colorRGB": [
+        109,
+        133,
+        176
+      ],
+      "triangles": 414,
+      "roblox": {}
+    },
+    {
+      "name": "CentralTower_Roof",
+      "section": "CentralTower",
+      "material": "Roof",
+      "colorRGB": [
+        49,
+        65,
+        96
+      ],
+      "triangles": 28,
+      "roblox": {}
+    },
+    {
+      "name": "CentralTower_Ink",
+      "section": "CentralTower",
+      "material": "Ink",
+      "colorRGB": [
+        29,
+        27,
+        37
+      ],
+      "triangles": 16,
+      "roblox": {}
+    },
+    {
+      "name": "SideTower-13_Wall",
+      "section": "SideTower-13",
+      "material": "Wall",
+      "colorRGB": [
+        62,
+        80,
+        113
+      ],
+      "triangles": 52,
+      "roblox": {}
+    },
+    {
+      "name": "SideTower-13_Trim",
+      "section": "SideTower-13",
+      "material": "Trim",
+      "colorRGB": [
+        109,
+        133,
+        176
+      ],
+      "triangles": 610,
+      "roblox": {}
+    },
+    {
+      "name": "SideTower-13_Roof",
+      "section": "SideTower-13",
+      "material": "Roof",
+      "colorRGB": [
+        49,
+        65,
+        96
+      ],
+      "triangles": 28,
+      "roblox": {}
+    },
+    {
+      "name": "SideTower-13_Ink",
+      "section": "SideTower-13",
+      "material": "Ink",
+      "colorRGB": [
+        29,
+        27,
+        37
+      ],
+      "triangles": 32,
+      "roblox": {}
+    },
+    {
+      "name": "SideTower-13_DarkGlass",
+      "section": "SideTower-13",
+      "material": "DarkGlass",
+      "colorRGB": [
+        31,
+        43,
+        70
+      ],
+      "triangles": 16,
+      "roblox": {}
+    },
+    {
+      "name": "SideTower13_Wall",
+      "section": "SideTower13",
+      "material": "Wall",
+      "colorRGB": [
+        62,
+        80,
+        113
+      ],
+      "triangles": 52,
+      "roblox": {}
+    },
+    {
+      "name": "SideTower13_Trim",
+      "section": "SideTower13",
+      "material": "Trim",
+      "colorRGB": [
+        109,
+        133,
+        176
+      ],
+      "triangles": 610,
+      "roblox": {}
+    },
+    {
+      "name": "SideTower13_Roof",
+      "section": "SideTower13",
+      "material": "Roof",
+      "colorRGB": [
+        49,
+        65,
+        96
+      ],
+      "triangles": 28,
+      "roblox": {}
+    },
+    {
+      "name": "SideTower13_Ink",
+      "section": "SideTower13",
+      "material": "Ink",
+      "colorRGB": [
+        29,
+        27,
+        37
+      ],
+      "triangles": 32,
+      "roblox": {}
+    },
+    {
+      "name": "SideTower13_DarkGlass",
+      "section": "SideTower13",
+      "material": "DarkGlass",
+      "colorRGB": [
+        31,
+        43,
+        70
+      ],
+      "triangles": 16,
+      "roblox": {}
+    },
+    {
+      "name": "LanternFrames_Timber",
+      "section": "LanternFrames",
+      "material": "Timber",
+      "colorRGB": [
+        98,
+        68,
+        40
+      ],
+      "triangles": 160,
+      "roblox": {}
+    }
+  ],
+  "collisionPartsDraft": 31,
+  "attachments": 2,
+  "basePartsWithCompanion": 114,
+  "routes": {
+    "samples": 0,
+    "blocked": [],
+    "method": "five vertical rays and two body cross-rays at three heights, 1.6-unit footprint; floor sampled below each centre; unmodeled outside ground assumed at zero"
+  },
+  "studioChecks": "not performed; actual avatar collision, camera, material colours and scale pending",
+  "notes": "Preview awards and presentation objects excluded. No runtime menus or animations included. Companion is a draft, not certified collision."
+}

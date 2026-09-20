@@ -20,14 +20,14 @@ def literal(text):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--luau", default="luau")
-    parser.add_argument("--suite", choices=("crates", "rebirth", "theft", "buyback", "objective", "audits", "saves", "oak", "growth", "fill", "shake", "basket", "shakeui", "residents", "handoff", "settlement", "deliveryui", "badges", "ranks", "shopdrops", "robberyui", "ladder", "houses", "tree", "midnight", "season"), default="crates")
+    parser.add_argument("--suite", choices=("crates", "rebirth", "theft", "buyback", "objective", "audits", "saves", "oak", "growth", "fill", "shake", "basket", "shakeui", "residents", "handoff", "settlement", "deliveryui", "badges", "ranks", "shopdrops", "robberyui", "ladder", "assets/houses", "tree", "midnight", "season", "shopui", "guardians"), default="crates")
     args = parser.parse_args()
     prelude = r'''
-local valueMeta = {__mul = function(a, b) return a end}
+local valueMeta = {__mul = function(a, b) return a end, __index = {Lerp = function(a) return a end}}
 local function value(...) return setmetatable({...}, valueMeta) end
 local function vector(x, y, z) return {X=x, Y=y, Z=z} end
 local env = setmetatable({
- Color3 = {fromRGB = value}, Vector3 = {new = vector},
+ Color3 = {fromRGB = value}, Vector3 = {new = vector}, Vector2 = {new = vector},
  CFrame = {new = value, Angles = value},
  ColorSequence = {new = value}, ColorSequenceKeypoint = {new = value},
  NumberRange = {new = value},
@@ -45,6 +45,10 @@ end
     bundle = prelude + "\nlocal Config = loadConfig(" + literal(config) + ")\n"
     if args.suite == "crates":
         inputs = literal(service)
+    elif args.suite == "guardians":
+        inputs = "{" + ",".join(name + "=" + literal((ROOT / "src/ReplicatedStorage/Shared" / (name + ".luau")).read_text(encoding="utf-8")) for name in ("GuardCatalog", "GuardRig", "KennelModel", "Pets")) + "}"
+    elif args.suite == "shopui":
+        inputs = "{" + ",".join(name + "=" + literal((ROOT / "src/ReplicatedStorage/Shared" / (name + ".luau")).read_text(encoding="utf-8")) for name in ("Theme", "ShopIcons", "ShopWidgets", "ShopUpgradeFacts", "ShopUpgrades", "ShopMarks", "ShopAchievements", "ShopRevamp", "CrateContents", "RidePicker", "HUDLayout", "ShopCatalogueLayout")) + "}"
     elif args.suite == "ladder":
         inputs = "{}"
     elif args.suite in ("theft", "basket", "handoff", "settlement", "shopdrops"):

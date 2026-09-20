@@ -94,6 +94,9 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local SoundKit = require(ReplicatedStorage.Shared.SoundKit)
 
 local SpinWheel = {}
+local ShopStyle = require(ReplicatedStorage.Shared.ShopStyle)
+local SkinCards = require(ReplicatedStorage.Shared.ShopSkinCards)
+local FlyToBag = require(ReplicatedStorage.Shared.FlyToBag)
 
 local TILE_W, TILE_H = 132, 132
 local GAP = 8
@@ -101,66 +104,60 @@ local STRIDE = TILE_W + GAP
 
 local PAD = 22
 local CARD_W = 604
--- THE WINDOW'S WIDTH IS A CONSTANT, AND IT USED TO BE READ OFF
--- `AbsoluteSize.X` ON THE FRAME THE WINDOW WAS BUILT.
---
--- WHICH WORKED, AND THIS IS RECORDED BECAUSE THE OPPOSITE WAS ASSUMED. The
--- landing offset is solved from half the window's width, and reading geometry
--- off a frame that has not been laid out is a real trap in this project -- the
--- shop's jump-to-section landed at the top of the wrong tab the first time a
--- tab was ever opened, for exactly that reason. So this looked like the same
--- bug and was written up as one.
---
--- Measured instead: a frame sized `UDim2.new(1, -40, 0, 140)` inside a
--- 604-wide parent reads `AbsoluteSize.X` of **564 on the frame it is
--- created**, and 564 a tick later. An offset-and-scale size against a parent
--- whose own size is already known resolves immediately; what the shop hit was
--- a descendant of a frame that was not VISIBLE yet, which is a different
--- state.
---
--- The constant stays, because a landing offset that cannot depend on layout
--- timing at all is worth more than the line it saves -- but it is a
--- ROBUSTNESS change and not a fix, and calling it a fix would have put a bug
--- in this file's history that never happened.
+-- THE WINDOW'S WIDTH IS A CONSTANT rather than read off `AbsoluteSize`, so the
+-- landing offset cannot depend on layout timing at all.
 local WINDOW_W = CARD_W - PAD * 2
 local WINDOW_H = TILE_H + 8
 
--- How many copies of the pool scroll past before it settles. Enough that the
--- reel is moving fast at the start and clearly slowing at the end; fewer and
--- it reads as a jump cut rather than a spin.
-local LOOPS = 7
-local SPIN_SECONDS = 4.0
+-- ---- the spin ------------------------------------------------------------
+--
+-- THE PLAYER SPINS IT, AND MAY HOLD FOR MORE. The reel opens at
+-- rest with a SPIN button; a tap spins it, and the longer it is held (up to `HOLD_MAX`)
+-- the faster the reel runs out of the gate and the longer it takes to coast
+-- to a stop. Letting go -- or reaching the cap -- starts the coast.
+--
+-- NONE OF THAT CHANGES WHAT IS WON. The server rolled before this opened; the
+-- hold only decides how long the road to the answer is. The coast is solved
+-- backwards from the winner, so the tile under the pointer at the end is the
+-- server's by construction, whatever the player did with the button.
+--
+-- THE COAST IS A POWER CURVE FROM THE REEL'S OWN SPEED, NOT A FIXED TWEEN.
+-- x(t) = D * (1 - (1 - t/T)^p) starts at exactly speed p*D/T, so the reel
+-- leaves the hold at the speed it was doing -- no jump -- and eases down
+-- through a long, readable crawl past the last few tiles. The old quint tween
+-- started from a standstill and was nearly stopped within a second, which
+-- read as rolling straight onto the answer.
+local HOLD_MAX = 5
+local SPEED_MIN = 1500
+local SPEED_MAX = 5200
+local COAST_MIN = 3.6
+local COAST_MAX = 6.5
+-- A press shorter than this is held for this long anyway, so a tap gets a
+-- real spin rather than a nudge.
+local TAP_EQUIV = 0.6
+-- An untouched reel spins itself. An event drop can arrive mid-raid, and a
+-- reward nobody claims is a modal sitting over the game.
+local AUTO_AFTER = 8
+local IDLE_SPEED = 45
 
--- WHAT EACH TIER'S CELEBRATION IS MADE OF.
---
--- `rays` and `coins` are counts, `flash` is how opaque the single sheet over
--- the reel goes, `pitch` plays the same sting higher for a better tier, and
--- `hold` is how long the reveal stays up before closing itself.
---
--- COMMON GETS NO RAYS AND NO COINS ON PURPOSE. See the header: the variance
--- IS the mechanic, so the bottom of the ladder has to be visibly quieter than
--- the top or the top stops meaning anything. It still gets the flash, the
--- nameplate and the sting, so it never reads as a failed open -- which is the
--- line this project draws everywhere else too: a duplicate is never a dead
--- outcome, and neither is a common.
+-- WHAT EACH TIER'S CELEBRATION IS MADE OF. `rays` and `coins` are counts,
+-- `flash` is how opaque the single sheet over the reel goes, `pitch` plays
+-- the sting higher for a better tier, `hold` is how long the reveal stays.
+-- COMMON GETS NO RAYS AND NO COINS ON PURPOSE: the variance is the mechanic,
+-- so the bottom of the ladder has to be quieter than the top.
 local DRAMA: { [string]: { rays: number, coins: number, flash: number, pitch: number, hold: number } } = {
-	common    = { rays = 0,  coins = 0,  flash = 0.10, pitch = 0.94, hold = 1.9 },
-	rare      = { rays = 8,  coins = 6,  flash = 0.20, pitch = 1.06, hold = 2.4 },
-	epic      = { rays = 12, coins = 12, flash = 0.28, pitch = 1.16, hold = 2.8 },
-	legendary = { rays = 16, coins = 20, flash = 0.36, pitch = 1.30, hold = 3.4 },
+	common    = { rays = 0,  coins = 0,  flash = 0.10, pitch = 0.94, hold = 2.2 },
+	rare      = { rays = 8,  coins = 6,  flash = 0.20, pitch = 1.06, hold = 2.6 },
+	epic      = { rays = 12, coins = 12, flash = 0.28, pitch = 1.16, hold = 3.0 },
+	legendary = { rays = 16, coins = 20, flash = 0.36, pitch = 1.30, hold = 3.6 },
 }
--- AN EVENT DROP CARRIES NO TIER, AND IT IS NOT A COMMON.
---
--- A set item is earned by turning up to an event and is the rarest thing in
--- the game by construction -- `SetService` sends a flat pool with no tier in
--- it, because there is no tier to send. Defaulting to `common` would give the
--- one drop that cannot be bought the quietest celebration in the file, so it
--- takes the epic treatment instead. Named rather than inferred, so the next
--- caller that sends no tier gets a deliberate answer.
+-- An event drop carries no tier and is not a common: a set item is the
+-- rarest thing in the game, so it takes the epic treatment.
 local NO_TIER_DRAMA = "epic"
 
 local RAY_LEN = 640
 local RAY_W = 26
+local DOT = utf8.char(0x00B7)
 
 local function tierColour(tier: string?): Color3?
 	local r = if tier then Config.RARITIES[tier] else nil
@@ -181,8 +178,27 @@ local function label(parent: Instance, text: string, size: UDim2, pos: UDim2,
 	return l
 end
 
--- `payload` is the EventDrop or ChestResult table. `iconFor(kind, key, holder)`
--- is optional and fills a frame with a preview of that item.
+-- The chest's odds line as chips. Crates hands over "65% rare . 35%
+-- legendary"; read back into parts it can be drawn at a size a nine-year-old
+-- reads from across the room, each in its own tier colour. Anything that is
+-- not that shape (an event drop, a combine) comes back nil and is printed as
+-- the plain line it is.
+local function oddsParts(text: any): { { pct: string, tier: string } }?
+	if type(text) ~= "string" then
+		return nil
+	end
+	local parts = {}
+	for pct, tier in text:gmatch("(%d+%%)%s+(%a+)") do
+		if not Config.RARITIES[tier] then
+			return nil
+		end
+		table.insert(parts, { pct = pct, tier = tier })
+	end
+	return if #parts > 0 then parts else nil
+end
+
+-- `payload` is the EventDrop or ChestResult-derived table. `iconFor(kind, key,
+-- holder)` is optional and fills a frame with a preview of that item.
 function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string, Frame) -> ())?)
 	local pool = payload.pool or {}
 	if #pool == 0 then
@@ -190,16 +206,60 @@ function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string,
 	end
 
 	local wonEntry = payload.won or pool[1]
-	-- The tier drives every part of the celebration, so it is resolved once
-	-- and from the winner's own entry where the caller did not say -- a chest
-	-- sends it, an event drop has none, and the pool entries carry it.
 	local tier: string? = payload.tier or wonEntry.tier
 	local tone = tierColour(tier) or payload.tone or Theme.GOOD
 	local drama = DRAMA[tier or ""] or DRAMA[NO_TIER_DRAMA]
-	local pct = math.floor((payload.odds or (1 / #pool)) * 100 + 0.5)
+	local flatOdds = if type(payload.odds) == "number" then payload.odds else 1 / #pool
+	local pct = math.floor(flatOdds * 100 + 0.5)
+
+	-- THE LOOP IS THE POOL, WITH THE WINNER IN IT. The reel repeats the pool
+	-- end to end and wraps, so landing is "stop on any copy of the winner's
+	-- slot". A winner that is not in the pool (a fallback entry) joins it.
+	-- MIXED, NOT BEST-FIRST. The pool arrives sorted best tier first, which
+	-- is right for a crate card and wrong for a reel: every legendary sat in
+	-- one gold block, so the strip read as two bands rather than a river of
+	-- chances. Dealt at random, preferring a different tier from the tile
+	-- before, so the gold ones are scattered through the loop.
+	local loop = {}
+	do
+		local left = table.clone(pool)
+		while #left > 0 do
+			local prev = loop[#loop]
+			local choices = {}
+			for i, e in ipairs(left) do
+				if not prev or e.tier ~= prev.tier or e.tier == nil then
+					table.insert(choices, i)
+				end
+			end
+			if #choices == 0 then
+				for i = 1, #left do
+					table.insert(choices, i)
+				end
+			end
+			table.insert(loop, table.remove(left, choices[math.random(#choices)]))
+		end
+	end
+	local winSlot = 0
+	for i, e in ipairs(loop) do
+		if e == wonEntry or (e.kind == wonEntry.kind and e.key == wonEntry.key) then
+			winSlot = i
+			break
+		end
+	end
+	if winSlot == 0 then
+		table.insert(loop, wonEntry)
+		winSlot = #loop
+	end
+	local n = #loop
+	local LOOP_W = n * STRIDE
+	-- Enough copies that the window never sees the end of the track at any
+	-- wrap offset.
+	local copies = math.ceil((WINDOW_W + STRIDE) / LOOP_W) + 1
+	-- The strip offset that puts slot 0's centre under the pointer.
+	local K = 4 + TILE_W / 2 - WINDOW_W / 2
 
 	local hasNote = type(payload.note) == "string" and payload.note ~= ""
-	local cardH = if hasNote then 356 else 332
+	local cardH = if hasNote then 372 else 344
 
 	local shade = Instance.new("Frame")
 	shade.Name = "DropWheel"
@@ -208,18 +268,16 @@ function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string,
 	shade.BackgroundTransparency = 1
 	shade.BorderSizePixel = 0
 	shade.ZIndex = 60
+	shade.Active = true
 	shade.Parent = gui
 	TweenService:Create(shade, TweenInfo.new(0.35), { BackgroundTransparency = 0.3 }):Play()
 
 	-- ---- the burst, behind the card -------------------------------------
 	--
-	-- SIBLINGS OF THE CARD AT A LOWER ZINDEX, NEVER CHILDREN OF IT. This HUD
-	-- runs `ZIndexBehavior.Sibling`, where a CHILD ALWAYS DRAWS ABOVE ITS
-	-- PARENT whatever its ZIndex -- the trap the rebirth button's halo had to
-	-- be moved out of its own button to solve. Parented to the card these
-	-- would wash over the reel and the nameplate instead of standing behind
-	-- them. They are also outside the card's bounds by design, which is what
-	-- makes a burst read as a burst.
+	-- Siblings of the card at a lower ZIndex, never children: under
+	-- `ZIndexBehavior.Sibling` a child always draws above its parent. Each bar
+	-- is a PAIR of opposite rays centred on the middle, because Rotation turns
+	-- a frame about its own centre and not about its AnchorPoint.
 	local bloom = Instance.new("Frame")
 	bloom.Name = "Bloom"
 	bloom.Size = UDim2.fromOffset(560, 560)
@@ -241,32 +299,6 @@ function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string,
 	rays.ZIndex = 60
 	rays.Parent = shade
 
-	-- EACH BAR IS A PAIR OF OPPOSITE RAYS, AND IT HAS TO BE, BECAUSE
-	-- `GuiObject.Rotation` TURNS A FRAME ABOUT ITS OWN CENTRE AND NOT ABOUT
-	-- ITS ANCHORPOINT.
-	--
-	-- The first build was one-sided rays: each anchored at its BOTTOM centre,
-	-- placed on the container's centre, extending upward, and turned to its
-	-- own angle -- which reads as obviously correct and is wrong. Rotation
-	-- ignores the anchor, so every ray pivoted about its own waist instead,
-	-- 320 studs up the frame, and all twelve of them swept about a point HALF
-	-- A RAY LENGTH ABOVE THE CARD. The burst hung in the sky over the panel.
-	--
-	-- IT MEASURED PERFECTLY WHILE LOOKING WRONG, which is why this is written
-	-- down. The container, the bloom and the card all reported the same
-	-- centre to the pixel -- (700, 338) on all three -- because the CONTAINER
-	-- was right and the children inside it were not. What settled it was
-	-- putting a bright marker on the container's centre and photographing it
-	-- next to the rays: the marker sat in the reel window and the rays
-	-- converged three hundred pixels above it. Same lesson as the fence
-	-- border clamped against the wrong tier -- every probe agreed with itself
-	-- and only a picture disagreed.
-	--
-	-- A bar centred on the middle cannot have the problem: its own centre IS
-	-- the burst centre, so rotating about the centre is rotating about the
-	-- right point. It also costs half the instances for the same number of
-	-- visible rays -- one bar is two rays -- so `drama.rays` still means what
-	-- it says and the loop runs half as many times.
 	local rayList: { Frame } = {}
 	local bars = math.floor(drama.rays / 2)
 	for i = 1, bars do
@@ -275,19 +307,12 @@ function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string,
 		ray.AnchorPoint = Vector2.new(0.5, 0.5)
 		ray.Position = UDim2.fromScale(0.5, 0.5)
 		ray.Size = UDim2.fromOffset(RAY_W, RAY_LEN * 2)
-		-- 180 degrees rather than 360: a bar already points both ways, so
-		-- spreading them over a full turn would build every ray twice and
-		-- leave half the wheel empty.
 		ray.Rotation = (i - 1) * (180 / bars)
 		ray.BackgroundColor3 = tone
 		ray.BackgroundTransparency = 1
 		ray.BorderSizePixel = 0
 		ray.ZIndex = 60
 		ray.Parent = rays
-		-- Brightest at the middle and gone at both tips, which is what a
-		-- starburst is. A UIGradient's transparency MULTIPLIES the frame's
-		-- own, so the fade-in below stays one tween per bar rather than a
-		-- rewritten NumberSequence every frame.
 		local grad = Instance.new("UIGradient")
 		grad.Rotation = 90
 		grad.Transparency = NumberSequence.new({
@@ -302,185 +327,157 @@ function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string,
 	end
 
 	-- ---- the card --------------------------------------------------------
+	--
+	-- THE SHOP'S OWN VOCABULARY: a cream panel with a heavy ink outline, a
+	-- gold header band with white popped type, and tiles dressed exactly like
+	-- the crate and bag cards (tier ground, spotlight, deep edge). The pink
+	-- band with the drawn snout is gone -- it was the one surface here that
+	-- looked like no other part of the shop.
 	local card = Instance.new("Frame")
+	card.Name = "Card"
 	card.Size = UDim2.fromOffset(CARD_W, cardH)
 	card.Position = UDim2.fromScale(0.5, 0.5)
 	card.AnchorPoint = Vector2.new(0.5, 0.5)
-	card.BackgroundColor3 = Theme.SAND
+	card.BackgroundColor3 = Theme.PAPER
 	card.BorderSizePixel = 0
 	card.ZIndex = 61
 	card.Parent = shade
-	Theme.corner(card, 18)
-	-- `shade` RATHER THAN `gloss`, AND SHALLOW, BECAUSE THE GLOSS COST THE
-	-- TWO SECONDARY LABELS THEIR CONTRAST.
-	--
-	-- A UIGradient MULTIPLIES the fill -- `Theme.shade`'s own header says so
-	-- -- so `gloss(SAND, SAND_DEEP)` over a SAND card is not a ramp from SAND
-	-- to SAND_DEEP, it is SAND*SAND down to SAND_DEEP*SAND, and both ends are
-	-- darker than the colours named. Measured on the live reveal, that took
-	-- the odds line to 4.41 and the note to 3.55 against a body floor of 4.5
-	-- -- neither of which was true of the flat SAND card this replaced.
-	--
-	-- A neutral multiply at 0.94 leaves the TOP of the card at exactly SAND
-	-- and darkens the bottom by six per cent, which still reads as a moulded
-	-- surface and costs the labels almost nothing. This is the entry in
-	-- `Theme` about which of the two to reach for, arriving as a bill.
-	Theme.shade(card, 0.94)
+	Theme.corner(card, 20)
+	-- The edge starts INK and takes the tier colour only when the reel lands:
+	-- painted up front it would be a spoiler.
+	local stroke = Theme.outline(card, 4, Theme.INK)
 
-	-- THE TIER COLOUR DOES NOT APPEAR UNTIL THE REEL HAS LANDED, AND THIS IS
-	-- THE HALF THAT MATTERS MOST IN THE FILE.
-	--
-	-- The server sends the tier with the payload, so every tier-coloured thing
-	-- here COULD be painted the moment the reveal opens -- and the version
-	-- this replaces did exactly that, with the pointer, the title and the
-	-- card's edge all in the winning colour from the first frame. That reads
-	-- as decoration and is actually a SPOILER: a player who has seen four
-	-- opens knows that a gold edge means a legendary before the strip has
-	-- moved, and from then on the spin is a formality they sit through.
-	--
-	-- So the edge, the pointer, its glow and the chevrons all start NEUTRAL --
-	-- `Theme.INK`, which is the edge every other card in this game wears --
-	-- and take the tier's colour in `finish`. What is tier-coloured from the
-	-- start is each TILE, which is honest: a tile's colour is a fact about
-	-- that item's own rarity and says nothing about which one the pointer will
-	-- stop on.
-	local stroke = Theme.outline(card, 3, Theme.INK)
-
-	-- IT ARRIVES RATHER THAN APPEARING. A modal that is simply there on one
-	-- frame has no moment in it, and this is the one screen in the game a
-	-- player opened a crate to see. Back easing overshoots by 4% and settles,
-	-- which is the difference between a card appearing and a card landing.
 	local pop = Instance.new("UIScale")
 	pop.Scale = 0.82
 	pop.Parent = card
 	TweenService:Create(pop, TweenInfo.new(0.34, Enum.EasingStyle.Back,
 		Enum.EasingDirection.Out), { Scale = 1 }):Play()
 
-	-- THE HEADER IS PINK AND THE PRIZE IS THE TIER, which is this game's own
-	-- colour rule doing the work: pink means the pig and gold means money, so
-	-- pink says whose crate this is and the tier colour is left free to say
-	-- what came out of it. An inset plate rather than a full-width band,
-	-- because a `UICorner` rounds all four corners and a square-bottomed band
-	-- on a rounded card needs a second frame to hide the join.
 	local head = Instance.new("Frame")
 	head.Name = "Head"
-	head.Size = UDim2.new(1, -PAD * 2, 0, 44)
+	head.Size = UDim2.new(1, -PAD * 2, 0, 50)
 	head.Position = UDim2.fromOffset(PAD, 14)
-	-- DEEPER THAN `PIG_DEEP` AND SHADED RATHER THAN GLOSSED, BOTH FOR THE
-	-- SAME REASON: the title is PAPER type and it has to be readable on every
-	-- pixel of what is behind it.
-	--
-	-- `Theme.gloss` runs a gradient FROM the colour it is given, so a gloss
-	-- from `PIG` put light pink at the top of the band -- measured, PAPER on
-	-- PIG is 1.76:1 and PAPER on the band's own mid-point is 2.70:1, against
-	-- a floor of 3.0 for large type. `Theme.shade` only ever MULTIPLIES, so
-	-- it can only darken downward from the fill, which is the right direction
-	-- for light type; and the fill itself goes a fifth of the way to ink,
-	-- which takes the top of the band -- the worst pixel -- to 5.5:1.
-	--
-	-- This is the note in `Theme` about `gloss` against `shade` arriving on a
-	-- new surface, pointed the other way: that one is about DARK type on a
-	-- saturated fill, and the rule underneath is the same either way -- a
-	-- gradient that moves toward the text colour is a gradient that eats the
-	-- contrast somewhere along it.
-	head.BackgroundColor3 = Theme.PIG_DEEP:Lerp(Theme.INK, 0.18)
+	head.BackgroundColor3 = Theme.GOLD
 	head.BorderSizePixel = 0
 	head.ZIndex = 62
 	head.Parent = card
-	Theme.corner(head, 12)
-	Theme.shade(head, 0.84)
-
-	-- The snout is DRAWN, for the reason the coin badge is: an emoji renders
-	-- from the colour font, ignores `TextColor3`, and is a smudge at this
-	-- size. It is also the cheapest possible way to say "piggy bank" on a
-	-- screen that is otherwise about rarity colours.
-	local snout = Theme.snout(head, 30, "Snout")
-	snout.Position = UDim2.new(0, 12, 0.5, 0)
-	snout.AnchorPoint = Vector2.new(0, 0.5)
-	snout.ZIndex = 63
+	Theme.corner(head, 14)
+	Theme.outline(head, 3, Theme.INK)
+	Theme.shade(head, 0.86)
 
 	local title = label(head,
 		payload.title or ("%s DROP"):format(string.upper(payload.setName or "SET")),
-		UDim2.new(1, -60, 1, 0), UDim2.fromOffset(52, 0),
-		Theme.FONT, 24, Theme.PAPER)
+		UDim2.new(1, -170, 1, -8), UDim2.fromOffset(16, 4),
+		Theme.FONT, 26, Theme.PAPER)
+	title.Name = "Title"
 	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.TextScaled = true
 	title.ZIndex = 63
+	local titleCap = Instance.new("UITextSizeConstraint")
+	titleCap.MaxTextSize = 26
+	titleCap.MinTextSize = 14
+	titleCap.Parent = title
+	ShopStyle.popText(title)
 
-	-- The odds, stated plainly. This is the sentence that makes the reel
-	-- honest, so it is on screen before the spin rather than after it.
-	--
-	-- The event drop's own line is the fallback rather than the only option,
-	-- because it is only TRUE of an event drop: a flat pool of unowned things
-	-- really is "N items left, X% each", and a chest's tiered odds are not
-	-- that shape at all. A caller printing the wrong sentence honestly would
-	-- be worse than printing none.
-	-- `Theme.readable` AGAINST THE DARKEST PIXEL IT CAN SIT ON, which is the
-	-- bottom of the card's own shading rather than the SAND at the top. That
-	-- is the instrument this project already has for exactly this -- a tone
-	-- darkened until it clears 4.5 against a named ground -- and naming the
-	-- WORST ground rather than the nominal one is what stops a label that
-	-- passes at the top of a gradient failing halfway down it.
-	local quiet = Theme.readable(Theme.MUTED, Theme.SAND_DEEP)
-	local odds = label(card, payload.subtitle
-			or ("%d items left %s %d%% each"):format(#pool, utf8.char(0x00B7), pct),
-		UDim2.new(1, -PAD * 2, 0, 16), UDim2.fromOffset(PAD, 62),
-		Enum.Font.Gotham, 13, quiet)
-	odds.ZIndex = 62
+	-- The tier chip lives at the header's right end and appears with the
+	-- prize: before the landing it would be the answer.
+	local tierChip: TextLabel? = nil
+	if tier and Config.RARITIES[tier] then
+		local chip = label(head, string.upper(Config.RARITIES[tier].label or tier),
+			UDim2.fromOffset(140, 32), UDim2.new(1, -9, 0.5, 0), Theme.FONT, 18, Theme.PAPER)
+		chip.Name = "TierChip"
+		chip.AnchorPoint = Vector2.new(1, 0.5)
+		chip.BackgroundColor3 = tone
+		chip.BackgroundTransparency = 0
+		chip.ZIndex = 64
+		chip.Visible = false
+		Theme.corner(chip, 999)
+		Theme.outline(chip, 2, Theme.INK)
+		ShopStyle.popText(chip)
+		tierChip = chip
+	end
+
+	-- THE ODDS, BIG. Chips in each tier's own colour for a chest; a plain
+	-- line for anything else. On screen before the spin, because this is the
+	-- sentence that makes the reel honest.
+	local oddsRow = Instance.new("Frame")
+	oddsRow.Name = "Odds"
+	oddsRow.BackgroundTransparency = 1
+	oddsRow.Size = UDim2.new(1, -PAD * 2, 0, 34)
+	oddsRow.Position = UDim2.fromOffset(PAD, 74)
+	oddsRow.ZIndex = 62
+	oddsRow.Parent = card
+	local parts = oddsParts(payload.subtitle)
+	if parts then
+		local row = Instance.new("UIListLayout")
+		row.FillDirection = Enum.FillDirection.Horizontal
+		row.HorizontalAlignment = Enum.HorizontalAlignment.Center
+		row.VerticalAlignment = Enum.VerticalAlignment.Center
+		row.SortOrder = Enum.SortOrder.LayoutOrder
+		row.Padding = UDim.new(0, 10)
+		row.Parent = oddsRow
+		for i, part in ipairs(parts) do
+			local r = Config.RARITIES[part.tier]
+			local chip = label(oddsRow, ("%s  %s"):format(part.pct, string.upper(r.label or part.tier)),
+				UDim2.fromOffset(0, 32), UDim2.new(), Theme.FONT, 20, Theme.PAPER)
+			chip.Name = "Odds_" .. part.tier
+			chip.LayoutOrder = i
+			chip.AutomaticSize = Enum.AutomaticSize.X
+			chip.BackgroundColor3 = r.colour
+			chip.BackgroundTransparency = 0
+			chip.ZIndex = 63
+			Theme.corner(chip, 999)
+			Theme.outline(chip, 2, Theme.INK)
+			local padding = Instance.new("UIPadding")
+			padding.PaddingLeft = UDim.new(0, 14)
+			padding.PaddingRight = UDim.new(0, 14)
+			padding.Parent = chip
+			ShopStyle.popText(chip)
+		end
+	else
+		local line = label(oddsRow, payload.subtitle
+				or ("%d items left %s %d%% each"):format(#pool, DOT, pct),
+			UDim2.fromScale(1, 1), UDim2.new(), Theme.FONT, 20, Theme.INK)
+		line.ZIndex = 63
+	end
 
 	-- ---- the reel window -------------------------------------------------
 	local window = Instance.new("Frame")
 	window.Name = "Window"
 	window.Size = UDim2.fromOffset(WINDOW_W, WINDOW_H)
-	window.Position = UDim2.fromOffset(PAD, 84)
+	window.Position = UDim2.fromOffset(PAD, 118)
 	window.BackgroundColor3 = Theme.SLAB_DEEP
 	window.BorderSizePixel = 0
 	window.ClipsDescendants = true
 	window.ZIndex = 62
 	window.Parent = card
-	Theme.corner(window, 12)
+	Theme.corner(window, 14)
+	Theme.outline(window, 3, Theme.INK)
 
 	local strip = Instance.new("Frame")
 	strip.Name = "Strip"
 	strip.BackgroundTransparency = 1
-	strip.Size = UDim2.new(0, 20000, 1, 0)
-	strip.Position = UDim2.fromOffset(0, 0)
+	strip.Size = UDim2.new(0, n * copies * STRIDE + 8, 1, 0)
 	strip.ZIndex = 62
 	strip.Parent = window
 
-	-- Build the reel: LOOPS copies of the pool, then the winner placed once
-	-- more at the end. Landing is therefore a fixed offset rather than a
-	-- search, and the tile under the pointer is the server's answer by
-	-- construction rather than by coincidence.
-	local function addTile(entry: any, index: number): Frame
-		local hue = tierColour(entry.tier) or tone
-
+	-- EVERY TILE IS DRESSED LIKE A SHOP CARD, so the river of colour going
+	-- past the pointer is the same ladder the crate page showed a moment ago.
+	local tiles: { [number]: Frame } = {}
+	local function addTile(entry: any, index: number)
 		local t = Instance.new("Frame")
 		t.Name = "Tile"
 		t.Size = UDim2.fromOffset(TILE_W, TILE_H)
-		-- CENTRED ON ITS OWN ANCHOR, so the winner's pop grows out of the
-		-- middle of the tile instead of down and to the right of it. A
-		-- `UIScale` scales about its object's AnchorPoint, and at the default
-		-- (0, 0) a 12% pop on a 132-pixel tile walks it sixteen pixels off the
-		-- pointer at the exact moment the pointer is what everybody is looking
-		-- at. Every tile takes the same anchor rather than only the winner:
-		-- the tile under the pointer has to be the same shape as the ones
-		-- beside it, which is the rule that put the winner through `addTile`
-		-- in the first place.
+		-- Centred on its own anchor, so the winner's pop grows out of the
+		-- middle rather than walking off the pointer.
 		t.AnchorPoint = Vector2.new(0.5, 0.5)
 		t.Position = UDim2.fromOffset(index * STRIDE + 4 + TILE_W / 2, 4 + TILE_H / 2)
-		-- EVERY TILE WEARS ITS OWN TIER, WHICH IS INFORMATION RATHER THAN
-		-- PAINT. Twenty cream squares tell a player nothing while they scroll
-		-- past; a river of colour with a gold one in it is the whole reason to
-		-- watch the reel at all -- you can SEE the legendary go by. An event
-		-- drop's pool carries no tier, so those all take the set's own tone
-		-- and the strip still reads as one family.
-		t.BackgroundColor3 = hue:Lerp(Theme.PAPER, 0.78)
+		t.BackgroundColor3 = (tierColour(entry.tier) or tone):Lerp(Theme.PAPER, 0.35)
 		t.BorderSizePixel = 0
 		t.ZIndex = 62
 		t.Parent = strip
-		Theme.corner(t, 10)
-		local edge = Theme.outline(t, Theme.OUTLINE_THIN, hue)
-		edge.Transparency = 0.25
+		Theme.corner(t, 12)
+		Theme.outline(t, 3, Theme.INK)
 
 		local holder = Instance.new("Frame")
 		holder.Name = "Icon"
@@ -489,36 +486,28 @@ function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string,
 		holder.BackgroundTransparency = 1
 		holder.ZIndex = 63
 		holder.Parent = t
+		if entry.tier and Config.RARITIES[entry.tier] then
+			SkinCards.dressCard(t, entry.tier, { holder })
+		end
 		if iconFor then
 			iconFor(entry.kind, entry.key, holder)
 		end
 
-		local name = label(t, entry.name or entry.key, UDim2.new(1, -8, 0, 26),
-			UDim2.new(0, 4, 1, -28), Theme.FONT_BODY, 12, Theme.INK)
+		local name = label(t, entry.name or entry.key, UDim2.new(1, -10, 0, 24),
+			UDim2.new(0, 5, 1, -28), Theme.FONT, 15, Theme.PAPER)
 		name.TextScaled = true
 		name.ZIndex = 63
-		return t
+		local cap = Instance.new("UITextSizeConstraint")
+		cap.MaxTextSize = 15
+		cap.Parent = name
+		ShopStyle.popText(name)
+		tiles[index] = t
+	end
+	for index = 0, n * copies - 1 do
+		addTile(loop[(index % n) + 1], index)
 	end
 
-	local index = 0
-	for _ = 1, LOOPS do
-		for _, entry in ipairs(pool) do
-			addTile(entry, index)
-			index += 1
-		end
-	end
-	local winIndex = index
-	local winTile = addTile(wonEntry, winIndex)
-	-- A few more after it, so the reel does not visibly run out of track.
-	for i = 1, #pool do
-		addTile(pool[((i - 1) % #pool) + 1], winIndex + i)
-	end
-
-	-- THE EDGES GO DARK, WHICH IS WHAT MAKES TILES ARRIVE RATHER THAN SLIDE.
-	-- One frame with a gradient that is opaque at both ends and clear in the
-	-- middle, so the strip emerges out of shadow into the light under the
-	-- pointer and falls back into it. Cheaper than any other way of saying
-	-- "the thing in the middle is the one that matters".
+	-- The edges go dark, so tiles arrive out of shadow rather than slide.
 	local vignette = Instance.new("Frame")
 	vignette.Name = "Vignette"
 	vignette.Size = UDim2.fromScale(1, 1)
@@ -535,14 +524,8 @@ function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string,
 	})
 	vg.Parent = vignette
 
-	-- THE SMEAR IS A FUNCTION OF THE REEL'S OWN SPEED, not of a clock.
-	--
-	-- A pale sheet over the window whose opacity tracks how fast the strip is
-	-- actually moving, so it reads as motion blur and clears itself as the
-	-- reel slows -- with nothing to keep in step. That is the officer's
-	-- stride rule on a new object: an animation cannot desync from the thing
-	-- it depicts when it IS the thing it depicts, and a timed fade would drift
-	-- the first time anybody retuned the easing.
+	-- The smear tracks the reel's own speed, so it is motion blur by
+	-- construction and clears itself as the reel slows.
 	local smear = Instance.new("Frame")
 	smear.Name = "Smear"
 	smear.Size = UDim2.fromScale(1, 1)
@@ -553,10 +536,6 @@ function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string,
 	smear.Parent = window
 
 	-- ---- the pointer -----------------------------------------------------
-	--
-	-- A three-pixel line was doing this job. It is a marker now: a glow, a
-	-- bright blade and a chevron top and bottom, so the thing the whole
-	-- animation is aimed at is the loudest object in the window.
 	local glow = Instance.new("Frame")
 	glow.Name = "PointerGlow"
 	glow.Size = UDim2.new(0, 40, 1, 0)
@@ -580,7 +559,7 @@ function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string,
 	for _, at in ipairs({ 0, 1 }) do
 		local chev = Instance.new("Frame")
 		chev.Name = "Chevron"
-		chev.Size = UDim2.fromOffset(14, 14)
+		chev.Size = UDim2.fromOffset(16, 16)
 		chev.Position = UDim2.new(0.5, 0, at, 0)
 		chev.AnchorPoint = Vector2.new(0.5, at)
 		chev.Rotation = 45
@@ -592,213 +571,197 @@ function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string,
 		table.insert(chevrons, chev)
 	end
 
-	-- ---- the prize block -------------------------------------------------
+	-- ---- the spin button, which becomes the nameplate --------------------
 	--
-	-- BOTTOM ANCHORED, so the one layout serves both the chest (which has a
-	-- note under the prize) and the event drop (which does not) without a
-	-- second set of offsets to keep in step.
-	local tierChip: TextLabel? = nil
-	local chipRing: UIStroke? = nil
-	if tier then
-		local r = Config.RARITIES[tier]
-		local chip = label(card, string.upper(r and r.label or tier),
-			UDim2.fromOffset(150, 24),
-			UDim2.new(0.5, -75, 1, if hasNote then -126 else -102),
-			Theme.FONT, 15, tone)
-		Theme.chip(chip, 24, tone)
-		-- `Theme.chip` grounds on `SLAB` and this needs `SLAB_DEEP`, for a
-		-- reason worth the line: the chip prints a RARITY COLOUR at body size,
-		-- and rare is the darkest of the four -- measured, that blue on SLAB
-		-- is 4.20 against a floor of 4.5, so the one tier a player sees most
-		-- often after common would have been the one that failed. On
-		-- `SLAB_DEEP` it is 5.6, and it also matches the nameplate directly
-		-- below, so the tier and the prize read as one object rather than as
-		-- two dark pills of slightly different darkness.
-		chip.BackgroundColor3 = Theme.SLAB_DEEP
-		chip.ZIndex = 62
-		chip.TextTransparency = 1
-		chip.BackgroundTransparency = 1
-		-- AND ITS OUTLINE TOO, WHICH IS THE LAST PLACE THE TIER LEAKED.
-		--
-		-- `Theme.chip` rings a pill in the tone it is given, and with the text
-		-- and the fill both transparent that ring was the only part of the
-		-- chip still drawing -- so mid-spin the card carried an empty pale
-		-- purple pill where the word EPIC was going to go. Caught in a
-		-- photograph after the same fault had already been fixed on the edge,
-		-- the pointer and the chevrons: a probe reading text and background
-		-- transparency finds a chip that is properly hidden, because a stroke
-		-- is neither.
-		local ring = chip:FindFirstChildOfClass("UIStroke")
-		if ring then
-			ring.Transparency = 1
-			chipRing = ring
-		end
-		tierChip = chip
-	end
-
-	-- THE NAMEPLATE IS DARK AND THE NAME IS THE TIER'S OWN COLOUR, which is
-	-- the only arrangement that works. A rarity colour is a bright saturated
-	-- hue and this card is cream: gold on paper measures 1.42:1, which is a
-	-- label you can see is there and cannot read. `Theme.readable` would fix
-	-- that by darkening the gold until it is brown, and the whole point of a
-	-- legendary is that it is GOLD. So the plate goes dark instead and the
-	-- colour is kept intact on top of it.
-	local plate = Instance.new("Frame")
-	plate.Name = "Plate"
-	plate.Size = UDim2.new(1, -PAD * 2, 0, 54)
-	-- Centre-anchored for the same reason the tiles are: the pop below is a
-	-- `UIScale`, which scales about the AnchorPoint, and a plate growing out
-	-- of its own top-left corner reads as a panel sliding rather than as a
-	-- prize landing.
+	-- ONE OBJECT, THREE STATES: a green SPIN button with a gold power
+	-- bar filling as it is held; a dark plate reading SPINNING while the reel
+	-- coasts; the same plate carrying the prize in the tier's colour when it
+	-- lands. The reveal then CHANGES something the player was already looking
+	-- at rather than appearing from nothing.
+	local plate = Instance.new("TextButton")
+	plate.Name = "SpinButton"
+	plate.Text = ""
+	plate.AutoButtonColor = false
+	plate.Size = UDim2.new(1, -PAD * 2, 0, 58)
 	plate.AnchorPoint = Vector2.new(0.5, 0.5)
-	plate.Position = UDim2.new(0.5, 0, 1, if hasNote then -71 else -47)
-	plate.BackgroundColor3 = Theme.SLAB_DEEP
-	-- ON SCREEN FROM THE START, READING "OPENING", AND THAT IS A LAYOUT FIX AS
-	-- WELL AS A BEAT.
-	--
-	-- Hidden until the landing, the bottom third of the card was 120 pixels of
-	-- empty cream for the whole four-second spin -- which is most of the time
-	-- anybody spends looking at this. A plate that is already there and says
-	-- what is happening fills it, and it gives the reveal something to CHANGE
-	-- rather than something to reveal from nothing: the same plate, the same
-	-- pop, and the word swaps for the prize.
-	plate.BackgroundTransparency = 0.25
+	plate.Position = UDim2.fromOffset(CARD_W / 2, 272 + 29)
+	plate.BackgroundColor3 = Theme.GOOD
 	plate.BorderSizePixel = 0
 	plate.ZIndex = 62
 	plate.Parent = card
-	Theme.corner(plate, 12)
+	Theme.corner(plate, 14)
+	Theme.outline(plate, 3, Theme.INK)
 
-	local prize = label(plate, "OPENING" .. utf8.char(0x2026),
-		UDim2.fromScale(1, 1), UDim2.fromScale(0, 0),
-		Theme.FONT, 28, Theme.MUTED_LIGHT)
+	local power = Instance.new("Frame")
+	power.Name = "Power"
+	power.Size = UDim2.new(0, 0, 1, 0)
+	power.BackgroundColor3 = Theme.GOLD
+	power.BorderSizePixel = 0
+	power.ZIndex = 62
+	power.Parent = plate
+	Theme.corner(power, 14)
+
+	-- JUST "SPIN". Holding is there for anybody who finds it -- the power bar
+	-- fills under their thumb -- and a plain tap is an equally good spin, so
+	-- the button does not tell anybody how to press it.
+	local prize = label(plate, "SPIN", UDim2.fromScale(1, 1), UDim2.new(),
+		Theme.FONT, 28, Theme.PAPER)
+	prize.Name = "Prize"
 	prize.ZIndex = 63
+	-- ITS OWN OUTLINE, NOT `ShopStyle.popText`: that helper pins a label to
+	-- white for good, and this one has to turn the tier's colour on landing.
+	local prizeEdge = Instance.new("UIStroke")
+	prizeEdge.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+	prizeEdge.Color = Theme.INK
+	prizeEdge.Thickness = 3
+	prizeEdge.Parent = prize
 
-	-- Starts near its full size rather than at 0.7, because it is already
-	-- visible: what lands is a 10% punch on something the player has been
-	-- looking at, which reads harder than a panel growing out of nothing.
 	local prizePop = Instance.new("UIScale")
 	prizePop.Parent = plate
 
-	-- A DUPLICATE IS NEVER A DEAD OUTCOME, and this line is where a chest
-	-- says so. It appears with the prize rather than before it: what it has
-	-- to report is a fact about the item that just landed, and printing it
-	-- while the reel is still moving would be telling the player the answer
-	-- before the spin has given it to them.
+	-- A duplicate is never a dead outcome; the note says what the spare is
+	-- worth, and appears with the prize rather than before it.
 	local note: TextLabel? = nil
 	if hasNote then
-		local n = label(card, payload.note, UDim2.new(1, -PAD * 2, 0, 20),
-			UDim2.new(0, PAD, 1, -34), Theme.FONT_BODY, 14, quiet)
-		n.ZIndex = 62
-		n.TextTransparency = 1
-		note = n
+		local line = label(card, payload.note, UDim2.new(1, -PAD * 2, 0, 22),
+			UDim2.new(0, PAD, 1, -38), Theme.FONT_BODY, 16,
+			Theme.readable(Theme.MUTED, Theme.PAPER))
+		line.ZIndex = 62
+		line.TextTransparency = 1
+		note = line
 	end
 
-	-- ---- the spin --------------------------------------------------------
-	--
-	-- Land so the winning tile's CENTRE sits under the pointer. Derived from
-	-- `WINDOW_W` rather than measured -- see the note on that constant.
-	local target = -(winIndex * STRIDE + 4 + TILE_W / 2) + WINDOW_W / 2
-	local distance = math.abs(target - strip.Position.X.Offset)
-	local tween = TweenService:Create(strip,
-		TweenInfo.new(SPIN_SECONDS, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-		{ Position = UDim2.fromOffset(target, 0) })
-	tween:Play()
+	-- ---- the motion ------------------------------------------------------
+	local phase = "ready" -- ready | holding | coast | landed
+	local startSlot = math.random(0, n - 1)
+	if n > 1 and startSlot == winSlot - 1 then
+		startSlot = (startSlot + 1) % n
+	end
+	local x = (startSlot * STRIDE + K) % LOOP_W
+	local v = IDLE_SPEED
+	local born = os.clock()
+	local pressStart = 0
+	local releaseAt: number? = nil
+	local heldFor = 0
+	local coastFrom, coastD, coastT, coastP, coastT0 = 0, 0, 1, 3, 0
+	local winTile: Frame? = nil
 
-	-- THE REEL TICKS PER TILE, AND THE TWEEN'S OWN EASING IS WHAT MAKES IT
-	-- SATISFYING. Quint-out means the strip covers most of its distance
-	-- early, so counting whole STRIDEs past the pointer produces a rattle
-	-- that slows to single clicks as it lands -- the ratchet a physical reel
-	-- makes, for free, because it is a function of the movement rather than
-	-- a rhythm anybody typed.
-	--
-	-- COUNTED FROM POSITION RATHER THAN CLOCKED. A timer would drift out of
-	-- step with the tween the moment either was retuned, which is the failure
-	-- the officer's stride already avoids by being a function of distance
-	-- travelled.
-	--
-	-- The same loop drives the smear, the pointer's breath and the card's
-	-- edge, because all four are functions of where the strip is or of the
-	-- wall clock and one connection is cheaper than four.
-	--
-	-- DECLARED HERE AND WRITTEN IN `finish` BELOW, because the loop READS it
-	-- and a local declared after its reader is a nil global to that reader --
-	-- the forward-reference trap this project has now recorded eleven times,
-	-- and the one that is silent in Luau until the line actually runs.
-	local landed = false
-	do
-		-- Peak speed for a quint-out is 5 * distance / duration, at t=0. The
-		-- smear saturates at half of that so it is fully on for the opening
-		-- rattle rather than only in the first few frames -- derived, so a
-		-- pool of six and a pool of forty both read the same.
-		local smearFull = math.max(5 * distance / SPIN_SECONDS * 0.5, 1)
-		local lastX = strip.Position.X.Offset
-		local lastTile: number? = nil
-		local born = os.clock()
-		local ticker: RBXScriptConnection? = nil
-		ticker = RunService.Heartbeat:Connect(function(dt)
-			-- The strip dies with the card when the reveal closes, and a
-			-- Heartbeat left running against a destroyed instance is the leak
-			-- this check exists to stop.
-			if not strip.Parent then
-				if ticker then
-					ticker:Disconnect()
-					ticker = nil
-				end
-				return
-			end
+	local function beginCoast()
+		if phase == "coast" or phase == "landed" then
+			return
+		end
+		phase = "coast"
+		local h = math.clamp(heldFor / HOLD_MAX, 0, 1)
+		local T = COAST_MIN + (COAST_MAX - COAST_MIN) * h
+		local v0 = math.max(v, SPEED_MIN * 0.5)
+		-- The landing residue: any x congruent to this puts a copy of the
+		-- winner's slot under the pointer.
+		local r = ((winSlot - 1) * STRIDE + K) % LOOP_W
+		local ideal = v0 * T / 3
+		-- The first winner copy at least most of the ideal distance away, never
+		-- a nearer one: a short road forces a sharp curve and a one-second
+		-- stop, which is the rolled-straight-onto-it read this exists to fix.
+		-- Measured over 20,000 random pools and holds, the coast runs 3.6s to
+		-- about 9s (a forty-item pool on a full hold) and always lands.
+		local k = math.ceil((x + ideal * 0.85 - r) / LOOP_W)
+		local best = r + k * LOOP_W - x
+		-- Solve the curve so it starts at exactly v0; if that makes it too
+		-- sharp or too flat, clamp the shape and let the duration give.
+		local p = math.clamp(v0 * T / best, 2, 5)
+		coastFrom, coastD, coastP, coastT0 = x, best, p, os.clock()
+		coastT = p * best / v0
+		plate.BackgroundColor3 = Theme.SLAB_DEEP
+		power.Visible = false
+		prize.Text = "SPINNING" .. utf8.char(0x2026)
+		prize.TextColor3 = Theme.MUTED_LIGHT
+	end
 
-			local x = strip.Position.X.Offset
-			local speed = math.abs(x - lastX) / math.max(dt, 1 / 240)
-			lastX = x
-			smear.BackgroundTransparency = 1 - math.clamp(speed / smearFull, 0, 1) * 0.22
+	local function press()
+		if phase ~= "ready" then
+			return
+		end
+		phase = "holding"
+		pressStart = os.clock()
+		releaseAt = nil
+		SoundKit.ui(Config.SOUNDS.CLICK, { name = "ReelStart", volume = 0.25, pitch = 0.9 })
+	end
+	local function release()
+		if phase ~= "holding" or releaseAt then
+			return
+		end
+		releaseAt = math.max(os.clock(), pressStart + TAP_EQUIV)
+	end
 
-			-- 1.4Hz on the pointer and 1.2Hz on the edge, both continuous
-			-- rather than flashing, and both well inside the three-a-second
-			-- ceiling this game holds itself to.
-			local t = os.clock() - born
-			-- Held off once the landing has repainted the glow, or this would
-			-- fight the tween that gives it the tier's colour.
-			if not landed then
-				glow.BackgroundTransparency = 0.72 - 0.16 * (0.5 + 0.5 * math.sin(t * 8.8))
-			end
-			stroke.Thickness = 3 + 1.2 * (0.5 + 0.5 * math.sin(t * 7.5))
+	local connections: { RBXScriptConnection } = {}
+	local function isPointer(input: InputObject): boolean
+		return input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch
+	end
+	local function isKey(input: InputObject): boolean
+		return input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.Return
+			or input.KeyCode == Enum.KeyCode.ButtonA
+	end
+	table.insert(connections, plate.InputBegan:Connect(function(input)
+		if isPointer(input) then
+			press()
+		end
+	end))
+	-- The button's own down/up as well: some input paths (and Studio's
+	-- synthetic mouse) raise these without a GuiObject.InputBegan. Both
+	-- routes are idempotent, so a press seen twice is still one press.
+	table.insert(connections, plate.MouseButton1Down:Connect(press))
+	table.insert(connections, plate.MouseButton1Up:Connect(release))
+	table.insert(connections, UserInputService.InputBegan:Connect(function(input, processed)
+		if not processed and isKey(input) then
+			press()
+		end
+	end))
+	-- Released ANYWHERE, not only over the button: a thumb that slides off
+	-- the button while holding must still let go.
+	table.insert(connections, UserInputService.InputEnded:Connect(function(input)
+		if isPointer(input) or isKey(input) then
+			release()
+		end
+	end))
 
-			local tile = math.floor(-x / STRIDE)
-			if tile ~= lastTile then
-				-- The FIRST sample is skipped rather than clicked: the strip
-				-- starts wherever it starts, and a tick for arriving where it
-				-- already was is a click for nothing having moved.
-				if lastTile ~= nil then
-					SoundKit.ui(Config.SOUNDS.CLICK,
-						{ name = "ReelTick", volume = 0.16, pitch = 1.35 })
-				end
-				lastTile = tile
-			end
-		end)
-		tween.Completed:Once(function()
-			if ticker then
-				ticker:Disconnect()
-				ticker = nil
-			end
-			smear.BackgroundTransparency = 1
-			stroke.Thickness = 3
+	local done = false
+	local closing = false
+	local lastTile: number? = nil
+	local lastTick = 0
+
+	local function close()
+		if closing then
+			return
+		end
+		closing = true
+		for _, c in ipairs(connections) do
+			c:Disconnect()
+		end
+		-- THE PRIZE GOES INTO THE BAG, exactly as a robbed skin does at the end
+		-- of its reveal (`LootHaul`). A crate that faded out instead left the
+		-- one question a new player has -- where did it go? -- unanswered.
+		local wt = winTile
+		if done and wt and wt.Parent and wonEntry.kind then
+			FlyToBag.fly(gui, wt)
+			wt.Visible = false
+		end
+		TweenService:Create(shade, TweenInfo.new(0.3), { BackgroundTransparency = 1 }):Play()
+		TweenService:Create(card, TweenInfo.new(0.3), { BackgroundTransparency = 1 }):Play()
+		TweenService:Create(pop, TweenInfo.new(0.3), { Scale = 0.9 }):Play()
+		task.delay(0.32, function()
+			shade:Destroy()
 		end)
 	end
 
 	-- ---- the landing -----------------------------------------------------
-	local done = false
 	local function finish()
 		if done then
 			return
 		end
 		done = true
-		-- Stops the breath loop above fighting the tween that gives the glow
-		-- its tier colour.
-		landed = true
 
-		-- THE ONE FLASH IN THE FILE. A single sheet over the reel, fading out
-		-- rather than blinking, which is what keeps this inside the
-		-- three-flashes-a-second rule with nothing to count.
+		-- THE ONE FLASH IN THE FILE, fading rather than blinking, which keeps
+		-- this inside the three-flashes-a-second rule with nothing to count.
 		local flash = Instance.new("Frame")
 		flash.Name = "Flash"
 		flash.Size = UDim2.fromScale(1, 1)
@@ -809,43 +772,34 @@ function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string,
 		flash.Parent = window
 		TweenService:Create(flash, TweenInfo.new(0.45), { BackgroundTransparency = 1 }):Play()
 
-		-- The winner: brighter ground, a full-weight edge in its tier, and a
-		-- pop. Lerped only half way to paper so the tier colour is unmistakable
-		-- while the name printed on it stays ink-readable.
-		winTile.BackgroundColor3 = tone:Lerp(Theme.PAPER, 0.5)
-		local winEdge = Theme.outline(winTile, 4, tone)
-		winEdge.Transparency = 0
-		local tilePop = Instance.new("UIScale")
-		tilePop.Parent = winTile
-		TweenService:Create(tilePop, TweenInfo.new(0.18, Enum.EasingStyle.Back,
-			Enum.EasingDirection.Out), { Scale = 1.12 }):Play()
-		task.delay(0.2, function()
-			if tilePop.Parent then
-				TweenService:Create(tilePop, TweenInfo.new(0.22), { Scale = 1 }):Play()
+		local wt = winTile
+		if wt then
+			local winEdge = wt:FindFirstChildOfClass("UIStroke")
+			if winEdge then
+				winEdge.Color = tone
+				winEdge.Thickness = 5
 			end
-		end)
+			local tilePop = Instance.new("UIScale")
+			tilePop.Parent = wt
+			TweenService:Create(tilePop, TweenInfo.new(0.18, Enum.EasingStyle.Back,
+				Enum.EasingDirection.Out), { Scale = 1.12 }):Play()
+			task.delay(0.2, function()
+				if tilePop.Parent then
+					TweenService:Create(tilePop, TweenInfo.new(0.22), { Scale = 1 }):Play()
+				end
+			end)
+		end
 
-		-- The burst. The rays fade in and turn; the bloom is a soft ground
-		-- under them. Both are no-ops at `rays = 0`, which is what a common
-		-- gets.
 		if drama.rays > 0 then
 			TweenService:Create(bloom, TweenInfo.new(0.5), { BackgroundTransparency = 0.82 }):Play()
 			for _, ray in ipairs(rayList) do
 				TweenService:Create(ray, TweenInfo.new(0.4), { BackgroundTransparency = 0 }):Play()
 			end
-			-- Slow and continuous. A fast spin reads as a hazard stripe and a
-			-- stepped one reads as a strobe; this is about a fifth of a turn
-			-- a second, which the eye follows.
 			TweenService:Create(rays, TweenInfo.new(drama.hold + 1.2,
 				Enum.EasingStyle.Linear), { Rotation = 70 }):Play()
 		end
 
-		-- THE COLOUR ARRIVES HERE, which is the whole point of it having been
-		-- withheld. Everything neutral becomes the tier at once -- the card's
-		-- edge, the pointer, its glow, both chevrons -- so the moment the reel
-		-- stops the entire panel changes colour to tell the player what they
-		-- got. That is one event rather than four, because they all take the
-		-- same tween length.
+		-- The colour arrives here, all at once: edge, pointer, glow, chevrons.
 		TweenService:Create(stroke, TweenInfo.new(0.3), { Color = tone }):Play()
 		TweenService:Create(glow, TweenInfo.new(0.3),
 			{ BackgroundColor3 = tone, BackgroundTransparency = 0.5 }):Play()
@@ -853,12 +807,8 @@ function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string,
 			TweenService:Create(chev, TweenInfo.new(0.3), { BackgroundColor3 = tone }):Play()
 		end
 
-		-- The nameplate and the tier, together, because they are one sentence.
-		TweenService:Create(plate, TweenInfo.new(0.25), { BackgroundTransparency = 0.05 }):Play()
 		prize.Text = ("%s!"):format(wonEntry.name or wonEntry.key)
 		prize.TextColor3 = tone
-		-- A punch rather than a grow: out to 1.1 and back, on a plate that was
-		-- already on screen.
 		TweenService:Create(prizePop, TweenInfo.new(0.16, Enum.EasingStyle.Back,
 			Enum.EasingDirection.Out), { Scale = 1.1 }):Play()
 		task.delay(0.18, function()
@@ -866,42 +816,33 @@ function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string,
 				TweenService:Create(prizePop, TweenInfo.new(0.22), { Scale = 1 }):Play()
 			end
 		end)
-		if tierChip then
-			local chip = tierChip :: TextLabel
-			TweenService:Create(chip, TweenInfo.new(0.3),
-				{ TextTransparency = 0, BackgroundTransparency = 0 }):Play()
-		end
-		if chipRing then
-			TweenService:Create(chipRing :: UIStroke, TweenInfo.new(0.3),
-				{ Transparency = 0 }):Play()
+		local chip = tierChip
+		if chip then
+			chip.Visible = true
+			local chipPop = Instance.new("UIScale")
+			chipPop.Scale = 0.6
+			chipPop.Parent = chip
+			TweenService:Create(chipPop, TweenInfo.new(0.25, Enum.EasingStyle.Back,
+				Enum.EasingDirection.Out), { Scale = 1 }):Play()
 		end
 		if note then
 			TweenService:Create(note, TweenInfo.new(0.3), { TextTransparency = 0 }):Play()
 		end
 
-		-- COIN CONFETTI, WHICH IS THE PIGGY-THEMED HALF OF THE BURST.
-		--
-		-- `Theme.coin` is the same drawn gold disc the balance badge wears, so
-		-- what comes out of a crate in this game is money-shaped rather than
-		-- generic sparkle. They fly from the nameplate and fall, and they
-		-- SHRINK rather than fade: transparency does not inherit in Roblox UI,
-		-- so fading one would mean tweening each of its three parts, and a
-		-- coin tumbling away to nothing reads the same for a third of the
-		-- work.
+		-- Coin confetti: the drawn gold disc the balance badge wears, flying
+		-- from the nameplate and shrinking away rather than fading.
 		for i = 1, drama.coins do
 			local size = math.random(14, 24)
 			local coin = Theme.coin(shade, size, "Confetti")
-			coin.Position = UDim2.new(0.5, math.random(-120, 120), 0.5, 90)
+			coin.Position = UDim2.new(0.5, math.random(-120, 120), 0.5, 110)
 			coin.AnchorPoint = Vector2.new(0.5, 0.5)
 			coin.ZIndex = 66
 			coin.Rotation = math.random(0, 359)
 			local outX = math.random(-330, 330)
 			local upY = -math.random(90, 250)
-			-- Out and up, then down past the bottom: two tweens, because one
-			-- cannot arc.
 			TweenService:Create(coin, TweenInfo.new(0.42, Enum.EasingStyle.Quad,
 				Enum.EasingDirection.Out), {
-				Position = UDim2.new(0.5, outX, 0.5, 90 + upY),
+				Position = UDim2.new(0.5, outX, 0.5, 110 + upY),
 				Rotation = coin.Rotation + math.random(-220, 220),
 			}):Play()
 			task.delay(0.42, function()
@@ -910,7 +851,7 @@ function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string,
 				end
 				TweenService:Create(coin, TweenInfo.new(0.75, Enum.EasingStyle.Quad,
 					Enum.EasingDirection.In), {
-					Position = UDim2.new(0.5, outX * 1.25, 0.5, 420),
+					Position = UDim2.new(0.5, outX * 1.25, 0.5, 440),
 					Size = UDim2.fromOffset(0, 0),
 					Rotation = coin.Rotation + 200,
 				}):Play()
@@ -920,58 +861,103 @@ function SpinWheel.play(gui: ScreenGui, payload: any, iconFor: ((string, string,
 					coin:Destroy()
 				end
 			end)
-			-- One chime for the handful rather than one per coin, which would
-			-- be twenty overlapping copies of the same sound.
 			if i == 1 then
 				SoundKit.ui(Config.SOUNDS.COIN_DROP,
 					{ name = "CrateCoins", volume = 0.3, pitch = 1.15 })
 			end
 		end
 
-		-- The sting, pitched by tier. `MILESTONE` is the celebration chime the
-		-- pig already uses at a fill milestone, which is the right register --
-		-- and it is an id already shipped rather than a new asset to source,
-		-- since the Creator Store's free stings are overwhelmingly ripped from
-		-- games and a strike would moderate this one away mid-season.
 		SoundKit.ui(Config.SOUNDS.MILESTONE,
 			{ name = "CrateWin", volume = 0.36, pitch = drama.pitch })
-	end
 
-	tween.Completed:Connect(finish)
-
-	-- Dismissable, and it closes itself. A modal a child has to find a button
-	-- on is a modal that sits over the game while a raid is still ending.
-	local closing = false
-	local function close()
-		if closing then
-			return
-		end
-		closing = true
-		finish()
-		TweenService:Create(shade, TweenInfo.new(0.3), { BackgroundTransparency = 1 }):Play()
-		TweenService:Create(card, TweenInfo.new(0.3), { BackgroundTransparency = 1 }):Play()
-		TweenService:Create(pop, TweenInfo.new(0.3), { Scale = 0.9 }):Play()
-		task.delay(0.32, function()
-			shade:Destroy()
+		-- It closes itself, and any input after the landing skips the wait --
+		-- armed a beat late so the release that ended the spin cannot count.
+		task.delay(drama.hold, close)
+		task.delay(0.4, function()
+			if closing then
+				return
+			end
+			table.insert(connections, UserInputService.InputBegan:Connect(function(_, processed)
+				if not processed then
+					close()
+				end
+			end))
+			table.insert(connections, plate.Activated:Connect(close))
 		end)
 	end
 
-	task.delay(SPIN_SECONDS + drama.hold, close)
+	table.insert(connections, RunService.Heartbeat:Connect(function(dt)
+		if not strip.Parent then
+			return
+		end
+		local now = os.clock()
 
-	-- Any input after the reel has landed skips the wait, the same courtesy
-	-- the arrest scene gives somebody who has seen it forty times.
-	local conn: RBXScriptConnection
-	conn = UserInputService.InputBegan:Connect(function(_, processed)
-		if not processed and done then
-			conn:Disconnect()
-			close()
+		if phase == "ready" then
+			v = IDLE_SPEED
+			x += v * dt
+			-- The button breathes so it reads as the thing to press.
+			prizePop.Scale = 1 + 0.03 * math.sin((now - born) * 5)
+			if now - born > AUTO_AFTER then
+				press()
+				release()
+			end
+		elseif phase == "holding" then
+			heldFor = math.min(now - pressStart, HOLD_MAX)
+			local h = heldFor / HOLD_MAX
+			local target = SPEED_MIN + (SPEED_MAX - SPEED_MIN) * h
+			v += (target - v) * math.min(1, dt * 5)
+			x += v * dt
+			power.Size = UDim2.new(h, 0, 1, 0)
+			prizePop.Scale = 1 + 0.04 * h
+			if heldFor >= HOLD_MAX and not releaseAt then
+				releaseAt = now
+			end
+			if releaseAt and now >= releaseAt then
+				prizePop.Scale = 1
+				beginCoast()
+			end
+		elseif phase == "coast" then
+			local u = math.clamp((now - coastT0) / coastT, 0, 1)
+			local left = 1 - u
+			x = coastFrom + coastD * (1 - left ^ coastP)
+			v = coastP * coastD / coastT * left ^ (coastP - 1)
+			if u >= 1 then
+				x = coastFrom + coastD
+				v = 0
+				phase = "landed"
+			end
 		end
-	end)
-	task.delay(SPIN_SECONDS + drama.hold + 0.6, function()
-		if conn.Connected then
-			conn:Disconnect()
+
+		strip.Position = UDim2.fromOffset(-(x % LOOP_W), 0)
+
+		-- Motion blur off the reel's own speed.
+		smear.BackgroundTransparency = 1 - math.clamp(v / (SPEED_MAX * 0.6), 0, 1) * 0.22
+		if not done then
+			glow.BackgroundTransparency = 0.72 - 0.16 * (0.5 + 0.5 * math.sin((now - born) * 8.8))
 		end
-	end)
+
+		-- A tick per tile past the pointer, counted from position: a rattle at
+		-- speed that slows to single clicks as it lands. Throttled so a full
+		-- hold is a buzz rather than forty overlapping sounds a second.
+		local tile = math.floor((x - K) / STRIDE)
+		if tile ~= lastTile then
+			if lastTile ~= nil and phase ~= "ready" and now - lastTick > 0.045 then
+				lastTick = now
+				SoundKit.ui(Config.SOUNDS.CLICK,
+					{ name = "ReelTick", volume = 0.16, pitch = 1.25 + math.min(v / SPEED_MAX, 1) * 0.3 })
+			end
+			lastTile = tile
+		end
+
+		if phase == "landed" and not done then
+			smear.BackgroundTransparency = 1
+			-- The tile under the pointer is a copy of the winner's slot by
+			-- construction; find which copy to light up.
+			local s = x % LOOP_W
+			winTile = tiles[math.floor((s - K) / STRIDE + 0.5)]
+			finish()
+		end
+	end))
 end
 
 return SpinWheel

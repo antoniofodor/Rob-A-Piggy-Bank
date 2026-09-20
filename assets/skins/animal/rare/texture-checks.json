@@ -1,0 +1,86 @@
+[
+  {
+    "skin": "strawberrycow",
+    "group": "body",
+    "broadFadePercent": 0.0,
+    "emissiveSheetPercent": 0.74
+  },
+  {
+    "skin": "strawberrycow",
+    "group": "trim",
+    "broadFadePercent": 0.0,
+    "emissiveSheetPercent": 0.467
+  },
+  {
+    "skin": "cookiescream",
+    "group": "body",
+    "broadFadePercent": 0.0,
+    "emissiveSheetPercent": 0.74
+  },
+  {
+    "skin": "cookiescream",
+    "group": "trim",
+    "broadFadePercent": 0.0,
+    "emissiveSheetPercent": 0.467
+  },
+  {
+    "skin": "watermelon",
+    "group": "body",
+    "broadFadePercent": 0.0,
+    "emissiveSheetPercent": 0.74
+  },
+  {
+    "skin": "watermelon",
+    "group": "trim",
+    "broadFadePercent": 0.0,
+    "emissiveSheetPercent": 0.467
+  },
+  {
+    "skin": "peppermint",
+    "group": "body",
+    "broadFadePercent": 0.0,
+    "emissiveSheetPercent": 0.74
+  },
+  {
+    "skin": "peppermint",
+    "group": "trim",
+    "broadFadePercent": 0.0,
+    "emissiveSheetPercent": 0.467
+  },
+  {
+    "skin": "glacier",
+    "group": "body",
+    "broadFadePercent": 0.0,
+    "emissiveSheetPercent": 0.74
+  },
+  {
+    "skin": "glacier",
+    "group": "trim",
+    "broadFadePercent": 0.0,
+    "emissiveSheetPercent": 0.467
+  },
+  {
+    "skin": "bubblegumleopard",
+    "group": "body",
+    "broadFadePercent": 0.0,
+    "emissiveSheetPercent": 0.74
+  },
+  {
+    "skin": "bubblegumleopard",
+    "group": "trim",
+    "broadFadePercent": 0.0,
+    "emissiveSheetPercent": 0.467
+  },
+  {
+    "skin": "honeycomb",
+    "group": "body",
+    "broadFadePercent": 0.0,
+    "emissiveSheetPercent": 0.74
+  },
+  {
+    "skin": "honeycomb",
+    "group": "trim",
+    "broadFadePercent": 0.0,
+    "emissiveSheetPercent": 0.467
+  }
+]

@@ -1,0 +1,49 @@
+{
+  "id": "galleon",
+  "doors": [
+    {
+      "name": "HouseDoorLeaf_L",
+      "hingeBlender": [
+        -4.17,
+        -1.6784999999999999,
+        4.4479999999999995
+      ],
+      "openDegrees": -100,
+      "sizeXYZ": [
+        4.054999828338623,
+        0.20000000298023224,
+        11.654999732971191
+      ],
+      "closedCenterBlender": [
+        -2.1024999618530273,
+        -1.6785000562667847,
+        10.33549976348877
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_R",
+      "hingeBlender": [
+        4.17,
+        -1.6784999999999999,
+        4.4479999999999995
+      ],
+      "openDegrees": 100,
+      "sizeXYZ": [
+        4.054999828338623,
+        0.20000000298023224,
+        11.654999732971191
+      ],
+      "closedCenterBlender": [
+        2.1024999618530273,
+        -1.6785000562667847,
+        10.33549976348877
+      ]
+    }
+  ],
+  "automatic": true,
+  "triggerRadiusStuds": 10,
+  "holdOpenSeconds": 1.5,
+  "swingSeconds": 0.35,
+  "CanCollide": false,
+  "runtime": "HouseDoorAnimator.client.luau; prepare-in-studio.luau or build_house_runtime.py creates the pivot markers"
+}

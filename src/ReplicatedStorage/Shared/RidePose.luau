@@ -193,10 +193,17 @@ local POSES: { [string]: any } = {
 	-- higher and further back, so the rider is not folded over them: 16
 	-- degrees of lean against the BMX's 28, and the knees stay higher because
 	-- the pegs sit further forward than a bottom bracket does.
+	-- THE LEGS STRADDLE THE BIKE. They were hipFlex 52 / knee -54 with no
+	-- roll, which put both feet at x 0.35 on pegs inside the frame and ran
+	-- half of each thigh through the battery box. Solved by forward
+	-- kinematics against a live R15 rig, sweeping roll, flex, knee and ankle
+	-- against every part of the bike: knees 14 degrees out lands the feet at
+	-- x 0.78, where the pegs now are, with the thighs resting on the tank
+	-- cover by 0.06 -- gripping it rather than passing through it.
 	scrambler = {
 		hipBack = 0.4, torso = -16, head = 12,
-		left = { armPitch = 64, armRoll = -14, elbow = -16, hipFlex = 52, knee = -54, ankle = 12 },
-		right = { armPitch = 64, armRoll = 14, elbow = -16, hipFlex = 52, knee = -54, ankle = 12 },
+		left = { armPitch = 64, armRoll = -14, elbow = -16, hipFlex = 47, legRoll = -14, knee = -48, ankle = 24 },
+		right = { armPitch = 64, armRoll = 14, elbow = -16, hipFlex = 47, legRoll = 14, knee = -48, ankle = 24 },
 		-- Same wheelie, same 0.80, same reason: the elbow reaches its stop
 		-- (-16 to 0) and stops the lean there. Residual 0.048 at the grip.
 		trick = {
@@ -268,96 +275,118 @@ POSES.hoverdisc = POSES.hoverboard
 --
 -- `name` and `order` are label and running order; neither reaches the pose.
 local STANCES: { [string]: { [string]: any } } = {
-	-- ONE HAND ON THE BAR, the other hanging.
+	-- LAID BACK: NO HANDS, ARMS HANGING DOWN AND BACK, SLOUCHED BACK.
 	--
-	-- The right hand keeps its grip and the torso keeps its 28-degree lean,
-	-- which is what makes this legal: the contact still being made is made by
-	-- the same limb at the same angle as the pose the bar was built for. Only
-	-- the left arm is told anything at all.
+	-- Both hands come off the bars, so the base pose's 28-degree lean toward
+	-- them has nothing left to do: the torso sits back past upright instead,
+	-- and the head drops forward a little so the back reads as a slouch
+	-- rather than a straight-backed lean. Only the upper body is named, so the
+	-- feet stay on the pedals the base pose was measured against.
+	--
+	-- The key stays `onehand` so a style already picked still resolves; only
+	-- the label changed.
+	--
+	-- THE WHEELIE IS THE SAME POSE, TIPPED. `lean = 1` makes the rider turn
+	-- rigidly with the bike, and every limb correction in the base trick is
+	-- zeroed -- those exist to keep hands on grips this rider is not holding.
 	bmx = {
 		onehand = {
-			name = "One Hand", order = 1,
-			left = { armPitch = -8, armRoll = -13, elbow = -9 },
+			name = "Laid Back", order = 1,
+			torso = 12, head = -8,
+			-- Measured shoulder-to-hand: 0.12 out, 1.91 down, 0.62 behind --
+			-- straight arms hanging just behind the body. The roll is INWARD
+			-- (+ on the left): at zero a seated rig's arm already hangs 0.8
+			-- out from the shoulder.
+			left = { armPitch = -38, armYaw = 0, armRoll = 15, elbow = 0, wrist = 0 },
+			right = { armPitch = -38, armYaw = 0, armRoll = -15, elbow = 0, wrist = 0 },
+			trick = {
+				lean = 1,
+				left = { armPitch = 0, armYaw = 0, armRoll = 0, elbow = 0, wrist = 0, hipFlex = 0, knee = 0, ankle = 0 },
+				right = { armPitch = 0, armYaw = 0, armRoll = 0, elbow = 0, wrist = 0, hipFlex = 0, knee = 0, ankle = 0 },
+			},
 		},
 	},
 
-	-- HANDS DOWN, cruising: RELAXED, SLIGHTLY BEHIND, CLOSE TO THE BODY.
+	-- THE COFFIN: LYING FLAT ON YOUR BACK ALONG THE BOARD, FEET TO THE NOSE,
+	-- ARMS CROSSED ON THE CHEST.
 	--
-	-- The first version reasoned about this instead of measuring it, on the
-	-- theory that landing back on dead-straight arms would look like the pose
-	-- had failed to load. It reasoned wrong -- with the whole body's own
-	-- cruise lean in play (torsoYaw -14, torsoRoll -8, hipRoll 8), the rig's
-	-- OWN rest orientation (every arm field at zero) already sits nowhere
-	-- near vertical: measured shoulder-to-hand at (dx -0.53, dy -1.18,
-	-- dz -0.37) for the left arm, meaning it hangs 0.53 studs out from the
-	-- body and 0.37 forward before a single degree of pose is added. So there
-	-- was never a real risk of this reading as unanimated, and the old
-	-- values (left -12/-14/-6, right -16/12/-5) did not reach the target
-	-- anyway: measured, the left hand still sat 0.87 studs OUT from the
-	-- shoulder and 0.15 studs FORWARD of it -- swung away from the body and
-	-- not yet behind it at all, which is what "only brings the arms down
-	-- slightly" was actually describing.
+	-- It replaces a Cruise stance (arms down, front foot in); the key stays
+	-- `cruise` so a style already picked still resolves.
 	--
-	-- Retuned by sweeping each arm axis in isolation on a live rig (pitch,
-	-- roll, elbow each alone, at a wide angle, to read the sign and rate of
-	-- every field before combining them) and then converging on a combined
-	-- value. Left and right are NOT mirrors of each other: the skateboard's
-	-- own asymmetric lean (torsoYaw, hipRoll) puts each shoulder at a
-	-- different starting orientation, so the same "close and slightly
-	-- behind" target needs a different roll on each side to reach it.
+	-- THE FLIP IS TWO QUARTER TURNS ON THE LOWERTORSO. The board lies along
+	-- the root's X with the nose at +X (see the base pose), so lying on your
+	-- back feet-first means the body's up axis goes to -X and its face to +Y.
+	-- `hipPitch 90, hipRoll 90` is exactly that rotation -- worked out as a
+	-- matrix and checked, not tuned. `hipLift` then drops the body onto the
+	-- deck and `hipSide` slides it along the board so the hips sit on it and
+	-- the head, not the feet, hangs off the tail. Both are measured.
 	--
-	-- Measured result, shoulder to hand: left (dx -0.16, dy -1.34, dz +0.20),
-	-- right (dx +0.20, dy -1.32, dz +0.29) -- both arms within 0.2 studs of
-	-- hanging straight down from their own shoulder, and both a few tenths of
-	-- a stud BEHIND it rather than in front, against the old -0.87/+0.82 out
-	-- and -0.15/+0.28 (still forward on the left) this replaced.
+	-- EVERY BASE FIELD IS RESTATED, because the base pose is a standing skater
+	-- -- twisted torso, rolled hips, one leg out to the tail -- and a lying
+	-- body wants none of it. The legs are straight and together.
 	--
-	-- THE FRONT FOOT COMES IN TOO, for the same "chilling" read the arms are
-	-- going for. `legRoll` is the only field that moves it: at the base
-	-- pose's +10 it is the small extra abduction that sends the front foot
-	-- out toward the nose. Zeroing it -- not flipping its sign, just letting
-	-- go of that outward roll -- pulls the front foot in.
-	--
-	-- MEASURED ON THE LIVE MOUNTED RIDER, not on a throwaway rig off to the
-	-- side. A first pass built a standalone KeyframeSequence with the same
-	-- numbers to search for the right value without needing a Play restart
-	-- per guess, the same shape as the arm sweep above -- and its predictions
-	-- did not hold up against the real thing: it forecast legRoll=-15 landing
-	-- the gap at 1.86, and the ACTUAL mounted rider at that value measured
-	-- 1.44, a stance closing in on the back foot rather than a slight step
-	-- toward it. Something about a standalone sequence played over a fresh
-	-- LoadAnimation does not compose identically to the two blended tracks
-	-- (base pose plus the near-zero-weight trick) the real mount always has
-	-- running -- worth another look some time, not chased down here. The
-	-- number that shipped is the one read off the actual rider: legRoll=0
-	-- puts the front foot at 1.94 studs from the back one, against 2.26
-	-- before -- a slight step in, not a stance collapsed to nothing.
-	--
-	-- The back foot is left alone: it is already the one riding the tail,
-	-- and closing on it FROM THE FRONT is what was asked for. hipFlex, knee
-	-- and ankle are also untouched -- only the roll was ever the outward
-	-- push, so it is the only field this stance needs to name.
+	-- THE MANUAL TIPS THE COFFIN RIGIDLY. The base trick's corrections are
+	-- for feet planted on a deck the rider is now lying on, so they are
+	-- zeroed and `lean` is 1.
 	skateboard = {
 		cruise = {
-			name = "Cruise", order = 1,
-			torso = -2,
-			left = { armPitch = -18, armRoll = 23, elbow = -7 },
-			right = { armPitch = -18, armRoll = -17, elbow = -7, legRoll = 0 },
+			name = "Coffin", order = 1,
+			-- Measured on a rig: back on the deck at 1.02 (deck top about
+			-- 1.0), face straight up, head at -2.19 and feet at +2.09 along a
+			-- board that runs +-2.48 -- the whole body on the board.
+			hipPitch = 90, hipYaw = 0, hipRoll = 90, hipLift = -1.46, hipSide = 0.4,
+			torso = 0, torsoYaw = 0, torsoRoll = 0, head = 0, headYaw = 0,
+			-- ARMS CROSSED HIGH ON THE CHEST, each hand on the opposite
+			-- shoulder. Yaw carries the arm across the body; on this rig a
+			-- POSITIVE elbow folds the forearm forward. The two pitches differ
+			-- (65 and 50) so one forearm lies over the other rather than
+			-- through it. Measured, in the upper torso's frame: hands at
+			-- x +-0.42 (across the midline), 0.3 to 0.45 up the chest, on its
+			-- front face; forearms sink about 0.1 into it, which is as close
+			-- as a blocky forearm gets to a real crossed arm.
+			left = { armPitch = 65, armYaw = -112, armRoll = 28, elbow = 95, wrist = 0,
+				hipFlex = 0, legYaw = 0, legRoll = 0, knee = 0, ankle = 0 },
+			right = { armPitch = 50, armYaw = 112, armRoll = -28, elbow = 95, wrist = 0,
+				hipFlex = 0, legYaw = 0, legRoll = 0, knee = 0, ankle = 0 },
+			trick = {
+				lean = 1,
+				left = { armPitch = 0, armYaw = 0, armRoll = 0, elbow = 0, wrist = 0,
+					hipFlex = 0, legYaw = 0, legRoll = 0, knee = 0, ankle = 0 },
+				right = { armPitch = 0, armYaw = 0, armRoll = 0, elbow = 0, wrist = 0,
+					hipFlex = 0, legYaw = 0, legRoll = 0, knee = 0, ankle = 0 },
+			},
 		},
 	},
 
-	-- BOTH HANDS OFF, arms out.
+	-- T-POSE: STANDING STRAIGHT, FEET TOGETHER, ARMS STRAIGHT OUT.
 	--
-	-- The scooter is the one bar-holding ride where letting go of both reads,
-	-- because the rider stands square along the deck and the whole silhouette
-	-- opens up. Standing up out of the 14-degree lean is part of it: nobody
-	-- stays folded over bars they are not holding.
+	-- The loudest silhouette a scooter can make, and a joke every player on
+	-- the platform gets. The key stays `nohands` so a style already picked
+	-- still resolves; only the label changed.
+	--
+	-- FEET TOGETHER, LEGS DEAD STRAIGHT. A straight leg reaches a little
+	-- further than the base pose's soft knees; measured on a live rig the
+	-- soles land at deck y 0.80 against a deck top of 0.87 -- 0.07 in, the
+	-- same "sink a detail slightly into what it stands on" convention the
+	-- rest of the game uses. Bending the knees to lift them bought almost
+	-- nothing (0.84 at hip 12 / knee -24) and cost the T.
+	--
+	-- THE ARMS ARE LEVEL AT A ROLL OF 73, NOT 90. Swept on a live rig:
+	-- shoulder-to-hand height -0.40 at 60, -0.06 at 70, +0.29 at 80, +0.63
+	-- at 90. `armYaw` 9 squares them front to back -- pitch cannot, because
+	-- it turns an arm that is already out sideways about its own length.
+	-- Measured: hands 2.02 out from the shoulder, 0.05 above it, 0.01 fore.
+	--
+	-- The wheelie tips this rigidly with the deck: the scooter's base pose has
+	-- no `trick` block, so `lean` defaults to 1 and nothing needs zeroing.
 	scooter = {
 		nohands = {
-			name = "No Hands", order = 1,
-			torso = -2, head = 4,
-			left = { armPitch = 8, armRoll = -36, elbow = -12 },
-			right = { armPitch = 8, armRoll = 36, elbow = -12 },
+			name = "T-Pose", order = 1,
+			torso = 0, head = 0,
+			left = { armPitch = 0, armYaw = 9, armRoll = -73, elbow = 0, wrist = 0,
+				hipFlex = 0, legRoll = 0, knee = 0, ankle = 0 },
+			right = { armPitch = 0, armYaw = -9, armRoll = 73, elbow = 0, wrist = 0,
+				hipFlex = 0, legRoll = 0, knee = 0, ankle = 0 },
 		},
 	},
 
@@ -450,6 +479,70 @@ local STANCES: { [string]: { [string]: any } } = {
 		},
 	},
 
+	-- ZERO-G: THE ALIEN SET'S RIDE, AND THE RIDER IS NOT STANDING ON IT.
+	--
+	-- The Hoverdisc's own classic pose is the hoverboard's (see the alias
+	-- above), so this is the first stance keyed on `hoverdisc` itself. The
+	-- body floats about a stud clear of the deck -- `hipLift` moves the body
+	-- and never the root, so the humanoid, the disc and the collision all
+	-- stay exactly where they were -- loosely spread, knees and elbows soft.
+	--
+	-- IT MOVES, WHICH NO OTHER POSE IN THIS FILE DOES. `float` is sampled into
+	-- a looping sequence by `buildSequence`: each named field drifts on a slow
+	-- sine, `amp` degrees (studs for `hipLift`) either side of the pose, with
+	-- its own phase so the four limbs never move in step -- in step reads as
+	-- a dance, out of step reads as drifting. One full cycle is `period`
+	-- seconds, and the last keyframe equals the first, so the loop has no
+	-- seam. Slow on purpose: nothing about weightlessness is quick.
+	hoverdisc = {
+		zerog = {
+			name = "Zero-G", order = 1,
+			hipLift = 1.1, hipPitch = 8, torso = 6, head = 10,
+			left = { armPitch = 14, armYaw = 0, armRoll = -25, elbow = 10, wrist = 0,
+				hipFlex = 18, legYaw = 0, legRoll = -12, knee = -30, ankle = -12 },
+			right = { armPitch = 14, armYaw = 0, armRoll = 25, elbow = 10, wrist = 0,
+				hipFlex = 8, legYaw = 0, legRoll = 10, knee = -22, ankle = -10 },
+			float = {
+				period = 6,
+				body = {
+					hipLift = { amp = 0.22, phase = 0 },
+					hipRoll = { amp = 5, phase = 0.9 },
+					hipPitch = { amp = 4, phase = 2.1 },
+					head = { amp = 6, phase = 1.4 },
+				},
+				-- THE HANDS TRACE LOOPS, like somebody trying to balance. Two
+				-- axes a QUARTER CYCLE apart make a circle: the roll swings the
+				-- arm in and out, and the pitch and yaw carry it forward and
+				-- back a quarter turn later. The elbow folds in step with the
+				-- roll, so the hand comes in close as the arm comes in.
+				--
+				-- The roll is centred at 25 and swings 50, PAST zero, because on
+				-- this rig a zero roll still hangs the hand 1.5 studs out from
+				-- the chest. Measured on a rig, left hand in the torso's frame:
+				-- 0.98 to 2.36 out from the centre line, 1.0 down to 0.6 up, and
+				-- from 1.2 in front of the chest to 0.4 behind it -- a loop, where
+				-- the first version drifted along a line and never came in
+				-- closer than 2.26.
+				--
+				-- The right arm mirrors the left, 0.6 rad later, so the two are
+				-- close to symmetrical without moving in perfect lockstep.
+				left = {
+					armRoll = { amp = 50, phase = 0 }, armPitch = { amp = 35, phase = math.pi / 2 },
+					elbow = { amp = 35, phase = 0 }, armYaw = { amp = 20, phase = math.pi / 2 },
+					hipFlex = { amp = 14, phase = 3.1 }, knee = { amp = 12, phase = 3.9 },
+				},
+				right = {
+					-- Roll and yaw are mirrored between the arms, so their phase
+					-- or sign flips; pitch and elbow mean the same on both
+					-- sides, so they keep the left arm's phase (plus the 0.6).
+					armRoll = { amp = 50, phase = math.pi + 0.6 }, armPitch = { amp = 35, phase = math.pi / 2 + 0.6 },
+					elbow = { amp = 35, phase = 0.6 }, armYaw = { amp = -20, phase = math.pi / 2 + 0.6 },
+					hipFlex = { amp = 14, phase = 0.4 }, knee = { amp = 12, phase = 1.3 },
+				},
+			},
+		},
+	},
+
 	-- ONE ARM UP.
 	--
 	-- The scrambler is the loudest ride in the game and the only one whose
@@ -476,7 +569,13 @@ local STANCES: { [string]: { [string]: any } } = {
 	scrambler = {
 		onehand = {
 			name = "One Hand", order = 1,
-			left = { armPitch = -8, armRoll = -13, elbow = -9 },
+			-- The free arm hangs DOWN AND BACK, close to the body, rather than
+			-- out to the side. The torso leans 16 degrees forward, so an arm
+			-- that is straight down in the WORLD is -16 in the body; the rest
+			-- is the "back". Measured, not reasoned: -40 swung it 50 degrees
+			-- back, so it is -16, which hangs it 1.82 down and 0.88 behind the
+			-- shoulder, 0.22 out.
+			left = { armPitch = -16, armYaw = 0, armRoll = 14, elbow = -6, wrist = 0 },
 			trick = {
 				-- Only the left LEG. `lean`, the right arm and the right leg
 				-- all fall through from the base trick, which is what keeps
@@ -497,7 +596,18 @@ local STANCES: { [string]: { [string]: any } } = {
 				-- wheelie, so a leg square to the torso would point down and
 				-- FORWARD in the world. `legRoll` swings it clear of the
 				-- engine on the way past.
-				left = { hipFlex = -72, knee = 46, legRoll = -16, ankle = -10 },
+				--
+				-- A BIG HANG (2026-09-19): the leg kicks straight and well out
+				-- from the bike instead of trailing just off the peg. Measured
+				-- foot: 2.01 out from centre against the old 1.45. It rides a
+				-- little higher (1.23 against 0.81), because swinging a leg
+				-- out lifts it -- the same abduction note as the skateboard.
+				--
+				-- The hanging arm keeps hanging: the base trick's arm
+				-- corrections are for a hand on a grip, so they are replaced,
+				-- and -10 holds it 0.54 behind the shoulder mid-wheelie.
+				left = { hipFlex = -80, knee = 48, legRoll = -34, ankle = -24,
+					armPitch = -10, armYaw = 0, armRoll = 0, elbow = 0, wrist = 0 },
 			},
 		},
 	},
@@ -534,6 +644,9 @@ local function merged(base: any, over: any): any
 	for key, value in pairs(over) do
 		if key == "name" or key == "order" then
 			-- Label, not geometry.
+		elseif key == "float" then
+			-- Only ever on a stance, and read whole by `buildSequence`.
+			out[key] = value
 		elseif key == "trick" then
 			-- A stance may change what the TRICK looks like too, and the block
 			-- it changes has the same shape as a pose -- `lean`, `left`,
@@ -810,7 +923,10 @@ local function addKeyframe(seq: KeyframeSequence, spec: any, at: number, drift: 
 	-- p the result is R*p + t, so `t` is unrotated. That is the half that
 	-- makes the number readable -- 1.71 means 1.71 studs up the street, not
 	-- 1.71 studs along whatever axis the body happens to be pointing.
-	local hips = CFrame.new(0, spec.hipLift or 0, spec.hipBack or 0)
+	-- `hipSide` slides the body along the root's X, which on the skateboard is
+	-- along the board; it exists for the Coffin stance, which lies the rider
+	-- down lengthways. Same body-not-root rule as `hipLift`.
+	local hips = CFrame.new(spec.hipSide or 0, spec.hipLift or 0, spec.hipBack or 0)
 		* angles(spec.hipPitch, spec.hipYaw, spec.hipRoll)
 	local lower = pose("LowerTorso", if delta then delta * hips else hips, root)
 
@@ -845,6 +961,38 @@ local function buildSequence(style: string, spec: any, delta: CFrame?, adjust: a
 	-- disables the Animate script on mount -- but a stray emote or a tool
 	-- animation must not be able to stand the rider up on a moving bike.
 	seq.Priority = Enum.AnimationPriority.Action
+
+	local float = spec.float
+	if float then
+		-- A drifting pose: STEPS keyframes over one period, each a copy of the
+		-- spec with every `float` field nudged along its own sine. Sampled
+		-- rather than eased because a sine through twelve linear segments is
+		-- smooth at this speed, and the last sample lands back on the first.
+		local STEPS = 12
+		local period = float.period or 6
+		for i = 0, STEPS do
+			local turn = (i / STEPS) * math.pi * 2
+			local frame: any = {}
+			for k, v in pairs(spec) do
+				frame[k] = v
+			end
+			for field, w in pairs(float.body or {}) do
+				frame[field] = (spec[field] or 0) + w.amp * math.sin(turn + (w.phase or 0))
+			end
+			for _, side in ipairs({ "left", "right" }) do
+				local limb = {}
+				for k, v in pairs(spec[side] or {}) do
+					limb[k] = v
+				end
+				for field, w in pairs((float[side] or {}) :: any) do
+					limb[field] = (limb[field] or 0) + w.amp * math.sin(turn + (w.phase or 0))
+				end
+				frame[side] = limb
+			end
+			addKeyframe(seq, frame, (i / STEPS) * period, 0, delta, adjust)
+		end
+		return seq
+	end
 
 	addKeyframe(seq, spec, 0, 0, delta, adjust)
 	addKeyframe(seq, spec, BREATHE, 1, delta, adjust)
@@ -1092,8 +1240,8 @@ end
 -- setPhase put the rider at any point between them, which is what it takes to
 -- follow a machine that is part way through rotating.
 --
--- A ride with no trick gets the plain pose alone: the scooter and the
--- hoverboard have no manual to do, and holding the button on one of them
+-- A ride with no trick gets the plain pose alone: the hoverboard and the
+-- hoverdisc have no manual to do, and holding the button on one of them
 -- should leave the rider standing there, not standing up.
 function RidePose.apply(animator: Animator, style: string?)
 	local wanted: { [string]: boolean } = {}

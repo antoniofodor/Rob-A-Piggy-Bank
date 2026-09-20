@@ -31,8 +31,8 @@
 	drain, the drop-off and the rap sheet -- so this file builds GEOMETRY and
 	`PiggyBank.buildVault` wraps it in exactly the `Refs` a piggy bank
 	returns. Not one reader of `plot.piggy` changed, and the dial, the fill,
-	the alarm, the plaster and the milestone squash are the piggy's own
-	functions running unmodified on different parts.
+	the alarm and the milestone squash are the piggy's own functions running
+	unmodified on different parts.
 
 	----------------------------------------------------------------------
 
@@ -207,7 +207,6 @@ export type Pieces = {
 	-- leaf's outward normal, because the dial plate is a cylinder whose axis
 	-- is the seat's own X.
 	dialSeat: CFrame,
-	plasters: { Part },
 }
 
 local function part(parent: Instance, name: string, size: Vector3, cf: CFrame,
@@ -358,27 +357,10 @@ function VaultModel.build(cf: CFrame, parent: Instance): Pieces
 		* CFrame.Angles(0, math.rad(-90), 0)
 		* CFrame.new(DOOR_T / 2 + 0.2, 0, 0)
 
-	-- ---------- the plaster ----------
-	--
-	-- Two crossed jemmy scars across the door leaf, hidden until somebody
-	-- gets in. `PiggyBank.setRobbed` finds them by NAME among the model's
-	-- direct children, exactly as it finds the pig's, so the tell is one
-	-- function serving two objects rather than two implementations of it.
-	--
-	-- ON THE DOOR AND NOT ON THE CARCASS, because there is nowhere on the
-	-- carcass to put them: the jamb reaches to 2.8 of a 3.0 half-width, so
-	-- the bare steel either side of the opening is two tenths of a stud. The
-	-- door leaf is the widest clear surface this object has, and a crowbar
-	-- mark on the door is the honest picture anyway.
-	local plasters: { Part } = {}
-	for i, spin in ipairs({ 38, -38 }) do
-		local scar = part(model, "Plaster", Vector3.new(2.6, 0.45, 0.2),
-			leafCF * CFrame.new(0.4, 0.6, DOOR_T / 2 + 0.15 + (i - 1) * 0.02)
-				* CFrame.Angles(0, 0, math.rad(spin)),
-			Color3.fromRGB(206, 176, 120), Enum.Material.SmoothPlastic)
-		scar.Transparency = 1
-		table.insert(plasters, scar)
-	end
+	-- NO JEMMY SCARS ON THE DOOR. Two crossed marks stood here, hidden until
+	-- somebody got in, mirroring the plaster on a piggy's forehead -- both are
+	-- retired together, on the designer's call. See Config, where the constants
+	-- were.
 
 	model.PrimaryPart = body
 	model.Parent = parent
@@ -391,7 +373,6 @@ function VaultModel.build(cf: CFrame, parent: Instance): Pieces
 		pile = pile,
 		door = door,
 		dialSeat = dialSeat,
-		plasters = plasters,
 	}
 end
 

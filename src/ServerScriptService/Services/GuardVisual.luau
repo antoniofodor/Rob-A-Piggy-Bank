@@ -4,14 +4,26 @@ local CollectionService = game:GetService("CollectionService")
 local Shared = game:GetService("ReplicatedStorage").Shared
 local Catalog = require(Shared.GuardCatalog)
 local Config = require(Shared.Config)
+-- WHICH RIG AND WHAT COLOUR MOVED TO `Shared` SO THE SHOP CAN ASK THE SAME
+-- QUESTIONS. Both are pure functions of Config and the catalogue, so they
+-- carry nothing server-side with them -- see the header on GuardRig for why
+-- copying them to the client instead would have been the wrong half of the
+-- trade. This file keeps everything that makes a dog ALIVE.
+local GuardRig = require(Shared.GuardRig)
 local Visual = {}
-local defaults = { "terrier", "shepherd", "mastiff", "direwolf", "cerberus" }
+-- Tier -> imported breed comes from `Config.DOG_TIERS[level].model`.
+--
+-- THE TEMPLATES ARE SERVER-SIDE ONLY, and were briefly copied into
+-- ReplicatedStorage so the shop's Guard tier cards could render a real dog.
+-- The Guard RUNG is retired (`Config.DOG_LEVEL`), so nothing on a client draws
+-- a dog any more and eight rigs are no longer replicated to every player for
+-- nothing. Anything that wants one again -- a dog-coat card rendering the
+-- creature rig it names, say -- needs that copy back.
 
 local function point(v)
 	-- Blender +Z up/-Y forward -> game +Y up/+Z forward.
 	return Vector3.new(v[1], v[3], -v[2])
 end
-local function color(v) return Color3.fromRGB(v[1], v[2], v[3]) end
 local function invisible(name, at, parent)
 	local p = Instance.new("Part")
 	p.Name, p.Size, p.CFrame = name, Vector3.new(0.1, 0.1, 0.1), at
@@ -25,11 +37,58 @@ local function weld(a, b)
 	w.Part0, w.Part1, w.Parent = a, b, b
 end
 
+-- Kept as a name this file's callers already use; the rule itself, and the
+-- reasoning for it, are in `GuardRig`.
 function Visual.key(level, coatKey)
-	local coat = Config.DOG_COATS[coatKey or ""]
-	local key = coat and coat.guardModel
-	if key and Catalog[key] and Catalog[key].tier == level then return key end
-	return defaults[level]
+	return GuardRig.key(level, coatKey)
+end
+
+-- THE COPY THE SHOP DRAWS FROM, AND THIS FILE'S OWN NOTE ASKED FOR IT BACK.
+--
+-- The comment at the top of this file has said since the Guard rung was
+-- retired that the templates were briefly copied into ReplicatedStorage for
+-- the shop, that nothing on a client drew a dog any more, and that "anything
+-- that wants one again -- a dog-coat card rendering the creature rig it names,
+-- say -- needs that copy back". A dog-coat card rendering its rig is exactly
+-- what this is for.
+--
+-- FOUR RIGS RATHER THAN EIGHT, DERIVED. `GuardRig.previewKeys` walks the coat
+-- catalogue for the rigs a card can actually ask for -- the plot's own tier
+-- plus the three creature coats -- so the other four never leave the server.
+-- That is the objection in this file's note answered rather than ignored:
+-- what it objects to is eight rigs replicated for nothing, not one replicated
+-- for something.
+--
+-- A MISSING TEMPLATE WARNS AND CARRIES ON. The shop degrades to the two-tone
+-- swatch every one of these cards had until now, which is a card that looks
+-- plainer rather than a game that fails to start -- the same call
+-- `Decor.prewarm` makes about a lawn ornament never stopping the server.
+function Visual.publishPreviews()
+	local source = Storage:FindFirstChild("GuardTemplates")
+	if not source then
+		warn("[GuardVisual] no GuardTemplates to publish; shop dog cards will show their swatch")
+		return
+	end
+	local folder = game:GetService("ReplicatedStorage"):FindFirstChild(GuardRig.PREVIEW_FOLDER)
+	if folder then
+		folder:Destroy()
+	end
+	folder = Instance.new("Folder")
+	folder.Name = GuardRig.PREVIEW_FOLDER
+	local published = 0
+	for _, key in ipairs(GuardRig.previewKeys()) do
+		local template = source:FindFirstChild(key)
+		if template then
+			local copy = template:Clone()
+			copy.Name = key
+			copy.Parent = folder
+			published += 1
+		else
+			warn(("[GuardVisual] no imported guard '%s'; its coat card will show its swatch"):format(key))
+		end
+	end
+	folder.Parent = game:GetService("ReplicatedStorage")
+	return published
 end
 
 function Visual.apply(dog, tier, pivotHeight)
@@ -61,7 +120,18 @@ function Visual.apply(dog, tier, pivotHeight)
 		end
 		local meshFolder = Instance.new("Folder")
 		meshFolder.Name, meshFolder.Parent = "Meshes", model
-		local sourcePivot = template:GetAttribute("ImportPivot") or CFrame.identity
+		-- The templates are authored AT THE ORIGIN, feet on y 0, by
+		-- blender/guards/build_runtime_assets.py -- the same frame the bone heads
+		-- in GuardCatalog use. An `ImportPivot` attribute used to be read here; the
+		-- generator never writes one, and the copy left on the place-file templates
+		-- was stale (up to 26 studs up and 115 across), which is what floated every
+		-- guard dog above the map. Never trust a pivot the repo does not write.
+		local sourcePivot = CFrame.identity
+		local bbox, bsize = template:GetBoundingBox()
+		if math.abs(bbox.Y - bsize.Y / 2) > 0.5 or Vector2.new(bbox.X, bbox.Z).Magnitude > 1 then
+			warn(("[GuardVisual] template %s is not seated at the origin (%s); the guard will be offset")
+				:format(key, tostring(bbox.Position)))
+		end
 		for _, source in template:GetDescendants() do
 			if source:IsA("MeshPart") then
 				local role = assert(spec.parts[source.Name], "Unknown guard mesh " .. source.Name)
@@ -88,29 +158,50 @@ function Visual.apply(dog, tier, pivotHeight)
 		weld(bones.Body, vest)
 		model.PrimaryPart = bones.Root
 		model:PivotTo(dog.body.CFrame * CFrame.new(0, -pivotHeight, 0))
+		-- HOW BIG THIS DOG ACTUALLY IS, measured per part in the root's own
+		-- frame rather than off a bounding box (which is oriented by the
+		-- model's pivot and transposes extents). GuardDog sizes the kennel
+		-- from these and seats a sleeping dog inside it, so a rig that is
+		-- regenerated larger grows its own doghouse instead of clipping
+		-- through the walls.
+		local rootCF = bones.Root.CFrame
+		local width, back, front = 0, 0, 0
+		for _, mesh in meshFolder:GetChildren() do
+			local rel = rootCF:ToObjectSpace(mesh.CFrame)
+			local half = mesh.Size / 2
+			local reachX = math.abs(rel.RightVector.X) * half.X
+				+ math.abs(rel.UpVector.X) * half.Y
+				+ math.abs(rel.LookVector.X) * half.Z
+			local reachZ = math.abs(rel.RightVector.Z) * half.X
+				+ math.abs(rel.UpVector.Z) * half.Y
+				+ math.abs(rel.LookVector.Z) * half.Z
+			width = math.max(width, math.abs(rel.Position.X) + reachX)
+			back = math.max(back, -(rel.Position.Z - reachZ))
+			front = math.max(front, rel.Position.Z + reachZ)
+		end
+		-- The Sleep pose stretches the back legs out behind the hips, which on
+		-- some rigs reaches further than the tail does.
+		local hip = spec.bones.BackL
+		if hip then
+			local h = point(hip.head)
+			back = math.max(back, -h.Z + h.Y + 0.2)
+		end
+		model:SetAttribute("GuardHalfWidth", width)
+		model:SetAttribute("GuardBack", back)
+		model:SetAttribute("GuardFront", front)
 		weld(dog.body, bones.Root)
 		model.Parent = dog.model
 		CollectionService:AddTag(model, "AnimatedGuard")
 	end
-	local palette = spec.palette
-	local coat = Config.DOG_COATS[dog.coat or ""]
-	-- Creature skins retain their authored palette; ordinary coats recolor any creature.
-	if coat and coat.guardModel then coat = nil end
-	local fur = if coat then coat.fur else color(palette.fur)
-	local dark = if coat then coat.furDark else color(palette.dark)
-	local light = if coat then fur:Lerp(Color3.new(1, 1, 1), 0.35) else color(palette.light)
-	local tones = {
-		fur = fur, dark = dark, light = light, brow = fur, mask = fur:Lerp(light, 0.4),
-		collar = if coat then coat.collar else color(palette.collar or {223,177,44}),
-		eye = Color3.fromRGB(18,18,20), nose = Color3.fromRGB(29,27,30),
-		mouth = Color3.fromRGB(41,24,31), teeth = Color3.fromRGB(248,232,189),
-		inner = Color3.fromRGB(201,126,112), armor = Color3.fromRGB(131,48,78),
-		accent = Color3.fromRGB(238,122,64), silver = Color3.fromRGB(171,170,182),
-	}
+	-- ONE PALETTE, SHARED WITH THE SHOP. Creature skins retaining their own
+	-- palette while ordinary coats recolour anything is the interesting half
+	-- and it lives in `GuardRig.tones` now, so a card cannot disagree with the
+	-- dog it is selling.
+	local tones = GuardRig.tones(key, dog.coat)
 	for _, mesh in model.Meshes:GetChildren() do
 		mesh.Color = assert(tones[mesh:GetAttribute("GuardTone")], mesh.Name)
 		mesh:SetAttribute("CalmColor", mesh.Color)
-		mesh:SetAttribute("AngryBrowColor", dark)
+		mesh:SetAttribute("AngryBrowColor", tones.dark)
 	end
 	dog.model:SetAttribute("GuardHeight", spec.height)
 end

@@ -48,6 +48,12 @@ for _,case in {{37,37},{37.9,37},{-4,0},{"12",0},{false,0},{{},0},{math.huge,0},
  check(loaded.robberies==case[2],"counter reconciles to a finite nonnegative integer")
  check(D.reconcile(copy(loaded)).robberies==case[2],"normalized counter is stable on rejoin")
 end
+local dormant=D.defaults()
+dormant.pets.owned.piglet=true;dormant.pets.equipped="piglet"
+dormant.dogs.kennels.midnight=true;dormant.dogs.kennel="midnight"
+local kept=D.reconcile(copy(dormant))
+check(kept.pets.owned.piglet and kept.pets.equipped=="piglet", "paused pet purchases survive reconciliation")
+check(kept.dogs.kennels.midnight and kept.dogs.kennel=="midnight", "retired kennel purchases survive reconciliation")
 local at=os.time()
 check(math.abs(fresh.acornsGrownAt-at)<=1,"new saves start the Acorn clock now")
 local oldGrowth=D.defaults();oldGrowth.acornsGrownAt=nil;oldGrowth.lastSave=at-Config.OFFLINE_CAP_SECONDS;oldGrowth.loot=0

@@ -12,7 +12,7 @@
 
 	WHY THERE WAS NO ANIMATION AT ALL, WHICH IS THE FAULT THIS FIXES.
 
-	Sneakers is the fourth rung of the offence tree and Config.TIPTOE has been
+	Sneak is the fourth rung of the offence tree and Config.TIPTOE has been
 	live for a long time, but a tiptoe was ONLY EVER A NUMBER: currentSpeed
 	multiplied the walk down and the character went on playing the ordinary
 	walk cycle, slower. So the one mechanic in this game whose whole point is
@@ -45,7 +45,7 @@
 	The officer's stride is a function of distance travelled and cannot
 	desync from the movement it depicts, because it IS the movement. A tiptoe
 	wants the same treatment for a sharper reason: the sneak speed is not one
-	number. Config.TIPTOE runs from base to max across the Sneakers rung, and
+	number. Config.TIPTOE runs from base to max across the Sneak rung, and
 	every other slow in the game multiplies underneath it. A fixed playback
 	rate would have a maxed sneaker skating and a snagged one marching on the
 	spot.
@@ -72,7 +72,7 @@ SneakWalk.DURATION = 1.15
 --
 -- The cycle is authored to look right at roughly the BASE tiptoe, so a fully
 -- upgraded sneaker plays it faster rather than covering more ground per step
--- -- which is what that rung actually buys. Sneakers is written up as
+-- -- which is what that rung actually buys. Sneak is written up as
 -- "crossing the same lawn in less time", never as a longer stride.
 local REFERENCE_SPEED = Config.TIPTOE.base * Config.BASE_WALK_SPEED
 

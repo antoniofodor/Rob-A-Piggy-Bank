@@ -1,0 +1,66 @@
+-- Select ONLY the newly imported FBX model in Studio, then run this file
+-- in the Command Bar. It validates before editing; use Undo to reverse it.
+local Selection = game:GetService("Selection")
+local HttpService = game:GetService("HttpService")
+local ChangeHistoryService = game:GetService("ChangeHistoryService")
+local data = HttpService:JSONDecode([==[{"name": "neon-tower", "bounds": {"min": [-18.149999618530273, -7.006999969482422, -0.02000001072883606], "max": [18.149999618530273, 31.350000381469727, 59.400001525878906], "size": [36.29999923706055, 38.35700035095215, 59.42000153660774]}, "meshCount": 78, "meshes": {"Foundation_WalkWall": {"colorRGB": [145, 166, 181], "transparency": 0}, "TowerStructure_Metal": {"colorRGB": [134, 151, 174], "transparency": 0}, "Floor1_Metal": {"colorRGB": [134, 151, 174], "transparency": 0}, "HouseFX_FloorBand_1_Cyan": {"colorRGB": [27, 168, 189], "transparency": 0}, "HouseFX_Riser_1_Cyan": {"colorRGB": [27, 168, 189], "transparency": 0}, "Floor2_Metal": {"colorRGB": [134, 151, 174], "transparency": 0}, "HouseFX_FloorBand_2_BlueNeon": {"colorRGB": [48, 83, 186], "transparency": 0}, "HouseFX_Riser_2_Cyan": {"colorRGB": [27, 168, 189], "transparency": 0}, "Floor3_Metal": {"colorRGB": [134, 151, 174], "transparency": 0}, "HouseFX_FloorBand_3_Magenta": {"colorRGB": [152, 42, 160], "transparency": 0}, "HouseFX_Riser_3_Cyan": {"colorRGB": [27, 168, 189], "transparency": 0}, "Floor4_Metal": {"colorRGB": [134, 151, 174], "transparency": 0}, "HouseFX_FloorBand_4_Cyan": {"colorRGB": [27, 168, 189], "transparency": 0}, "HouseFX_Riser_4_Cyan": {"colorRGB": [27, 168, 189], "transparency": 0}, "Floor5_Metal": {"colorRGB": [134, 151, 174], "transparency": 0}, "HouseFX_FloorBand_5_BlueNeon": {"colorRGB": [48, 83, 186], "transparency": 0}, "HouseFX_Riser_5_Cyan": {"colorRGB": [27, 168, 189], "transparency": 0}, "Floor6_Metal": {"colorRGB": [134, 151, 174], "transparency": 0}, "HouseFX_FloorBand_6_Magenta": {"colorRGB": [152, 42, 160], "transparency": 0}, "HouseFX_Riser_6_Cyan": {"colorRGB": [27, 168, 189], "transparency": 0}, "Crown_Metal": {"colorRGB": [134, 151, 174], "transparency": 0}, "HouseFX_Beacon_Cyan": {"colorRGB": [27, 168, 189], "transparency": 0}, "EntryLobby_Frame": {"colorRGB": [32, 42, 64], "transparency": 0}, "HouseFX_Entrance_Cyan": {"colorRGB": [27, 168, 189], "transparency": 0}, "Approach_WalkWall": {"colorRGB": [145, 166, 181], "transparency": 0}, "Foundation_Frame": {"colorRGB": [32, 42, 64], "transparency": 0}, "TowerStructure_Core": {"colorRGB": [44, 57, 81], "transparency": 0}, "TowerStructure_WalkWall": {"colorRGB": [145, 166, 181], "transparency": 0}, "TowerStructure_Frame": {"colorRGB": [32, 42, 64], "transparency": 0}, "Floor1_Frame": {"colorRGB": [32, 42, 64], "transparency": 0}, "Floor1_WalkWall": {"colorRGB": [145, 166, 181], "transparency": 0}, "Floor1_Glass": {"colorRGB": [36, 79, 100], "transparency": 0}, "Floor2_Frame": {"colorRGB": [32, 42, 64], "transparency": 0}, "Floor2_WalkWall": {"colorRGB": [145, 166, 181], "transparency": 0}, "Floor2_Glass": {"colorRGB": [36, 79, 100], "transparency": 0}, "Floor3_Frame": {"colorRGB": [32, 42, 64], "transparency": 0}, "Floor3_Glass": {"colorRGB": [36, 79, 100], "transparency": 0}, "Floor4_Frame": {"colorRGB": [32, 42, 64], "transparency": 0}, "Floor4_Glass": {"colorRGB": [36, 79, 100], "transparency": 0}, "Floor5_Frame": {"colorRGB": [32, 42, 64], "transparency": 0}, "Floor5_Glass": {"colorRGB": [36, 79, 100], "transparency": 0}, "Floor6_Frame": {"colorRGB": [32, 42, 64], "transparency": 0}, "Floor6_Glass": {"colorRGB": [36, 79, 100], "transparency": 0}, "Crown_Frame": {"colorRGB": [32, 42, 64], "transparency": 0}, "EntryLobby_Core": {"colorRGB": [44, 57, 81], "transparency": 0}, "EntryLobby_Metal": {"colorRGB": [134, 151, 174], "transparency": 0}, "Approach_Metal": {"colorRGB": [134, 151, 174], "transparency": 0}, "HouseFX_CrownHalo_1_Cyan": {"colorRGB": [27, 168, 189], "transparency": 0}, "HouseFX_CrownHalo_2_Cyan": {"colorRGB": [27, 168, 189], "transparency": 0}, "HouseFX_CrownHalo_3_Cyan": {"colorRGB": [27, 168, 189], "transparency": 0}, "HouseFX_CrownHalo_4_Cyan": {"colorRGB": [27, 168, 189], "transparency": 0}, "HouseFX_CrownHalo_5_Cyan": {"colorRGB": [27, 168, 189], "transparency": 0}, "HouseFX_CrownHalo_6_Cyan": {"colorRGB": [27, 168, 189], "transparency": 0}, "WalkFloor_WalkFloor": {"colorRGB": [77, 93, 112], "transparency": 0}, "WalkCeiling_WalkWall": {"colorRGB": [145, 166, 181], "transparency": 0}, "WalkSideLeftWall_WalkWall": {"colorRGB": [145, 166, 181], "transparency": 0}, "WalkSideRightWall_WalkWall": {"colorRGB": [145, 166, 181], "transparency": 0}, "WalkRearWall_WalkWall": {"colorRGB": [145, 166, 181], "transparency": 0}, "WalkFrontLeft_WalkWall": {"colorRGB": [145, 166, 181], "transparency": 0}, "WalkFrontRight_WalkWall": {"colorRGB": [145, 166, 181], "transparency": 0}, "WalkLintel_WalkWall": {"colorRGB": [145, 166, 181], "transparency": 0}, "WalkPassageLeft_WalkWall": {"colorRGB": [145, 166, 181], "transparency": 0}, "WalkPassageRight_WalkWall": {"colorRGB": [145, 166, 181], "transparency": 0}, "WalkPassageCeiling_WalkWall": {"colorRGB": [145, 166, 181], "transparency": 0}, "WalkPassageFloor_WalkFloor": {"colorRGB": [77, 93, 112], "transparency": 0}, "WalkApproach0_WalkFloor": {"colorRGB": [77, 93, 112], "transparency": 0}, "WalkApproach1_WalkFloor": {"colorRGB": [77, 93, 112], "transparency": 0}, "WalkApproach2_WalkFloor": {"colorRGB": [77, 93, 112], "transparency": 0}, "WalkApproach3_WalkFloor": {"colorRGB": [77, 93, 112], "transparency": 0}, "HouseDoorLeaf_L_WalkDoor": {"colorRGB": [35, 100, 121], "transparency": 0}, "HouseDoorLeaf_L_WalkTrim": {"colorRGB": [39, 112, 136], "transparency": 0}, "HouseDoorLeaf_L_WalkTrim.001": {"colorRGB": [39, 112, 136], "transparency": 0}, "HouseDoorLeaf_R_WalkDoor": {"colorRGB": [35, 100, 121], "transparency": 0}, "HouseDoorLeaf_R_WalkTrim": {"colorRGB": [39, 112, 136], "transparency": 0}, "HouseDoorLeaf_R_WalkTrim.001": {"colorRGB": [39, 112, 136], "transparency": 0}, "WalkEntryJamb-1_WalkTrim": {"colorRGB": [39, 112, 136], "transparency": 0}, "WalkEntryJamb1_WalkTrim": {"colorRGB": [39, 112, 136], "transparency": 0}, "WalkEntryHeader_WalkTrim": {"colorRGB": [39, 112, 136], "transparency": 0}}, "collisions": [{"name": "WalkFloor", "blenderLocation": [0.0, 12.100000381469727, 1.125], "sizeXYZ": [23.3799991607666, 22.280000686645508, 0.2800000011920929]}, {"name": "WalkCeiling", "blenderLocation": [0.0, 12.100000381469727, 13.260000228881836], "sizeXYZ": [23.3799991607666, 22.280000686645508, 0.11999999731779099]}, {"name": "WalkSideLeftWall", "blenderLocation": [-11.609999656677246, 12.100000381469727, 7.232500076293945], "sizeXYZ": [0.11999999731779099, 22.0, 11.9350004196167]}, {"name": "WalkSideRightWall", "blenderLocation": [11.609999656677246, 12.100000381469727, 7.232500076293945], "sizeXYZ": [0.11999999731779099, 22.0, 11.9350004196167]}, {"name": "WalkRearWall", "blenderLocation": [0.0, 23.15999984741211, 7.232500076293945], "sizeXYZ": [23.100000381469727, 0.11999999731779099, 11.9350004196167]}, {"name": "WalkFrontLeft", "blenderLocation": [-7.699999809265137, 1.0399999618530273, 7.232500076293945], "sizeXYZ": [7.699999809265137, 0.11999999731779099, 11.9350004196167]}, {"name": "WalkFrontRight", "blenderLocation": [7.699999809265137, 1.0399999618530273, 7.232500076293945], "sizeXYZ": [7.699999809265137, 0.11999999731779099, 11.9350004196167]}, {"name": "WalkLintel", "blenderLocation": [0.0, 1.0399999618530273, 11.962499618530273], "sizeXYZ": [7.699999809265137, 0.11999999731779099, 2.4749999046325684]}, {"name": "WalkPassageLeft", "blenderLocation": [-3.950000047683716, -0.7200000286102295, 5.994999885559082], "sizeXYZ": [0.20000000298023224, 3.4000000953674316, 9.460000038146973]}, {"name": "WalkPassageRight", "blenderLocation": [3.950000047683716, -0.7200000286102295, 5.994999885559082], "sizeXYZ": [0.20000000298023224, 3.4000000953674316, 9.460000038146973]}, {"name": "WalkPassageCeiling", "blenderLocation": [0.0, -0.7200000286102295, 10.824999809265137], "sizeXYZ": [8.100000381469727, 3.4000000953674316, 0.20000000298023224]}, {"name": "WalkPassageFloor", "blenderLocation": [0.0, -0.7300000190734863, 1.1399999856948853], "sizeXYZ": [7.699999809265137, 3.380000114440918, 0.25]}, {"name": "WalkApproach0", "blenderLocation": [0.0, -4.787499904632568, 0.14812499284744263], "sizeXYZ": [7.940000057220459, 0.7049999833106995, 0.3362500071525574]}, {"name": "WalkApproach1", "blenderLocation": [0.0, -4.107500076293945, 0.3062500059604645], "sizeXYZ": [7.940000057220459, 0.7049999833106995, 0.6524999737739563]}, {"name": "WalkApproach2", "blenderLocation": [0.0, -3.427500009536743, 0.46437498927116394], "sizeXYZ": [7.940000057220459, 0.7049999833106995, 0.96875]}, {"name": "WalkApproach3", "blenderLocation": [0.0, -2.747499942779541, 0.6225000023841858], "sizeXYZ": [7.940000057220459, 0.7049999833106995, 1.284999966621399]}], "doors": [{"name": "HouseDoorLeaf_L", "hingeBlender": [-3.8500000000000005, -2.5000000000000004, 1.265], "openDegrees": -100, "sizeXYZ": [3.734999895095825, 0.20000000298023224, 9.300000190734863], "closedCenterBlender": [-1.9424999952316284, -2.5, 5.974999904632568]}, {"name": "HouseDoorLeaf_R", "hingeBlender": [3.8500000000000005, -2.5000000000000004, 1.265], "openDegrees": 100, "sizeXYZ": [3.734999895095825, 0.20000000298023224, 9.300000190734863], "closedCenterBlender": [1.9424999952316284, -2.5, 5.974999904632568]}], "mounts": {"Door_Exit": [0.0, -3.4200000000000004, 1.265], "Wall": [0.0, 22.92, 5.465]}, "mountYaws": {"Wall": 180, "Door_Exit": 180}}]==])
+local selected = Selection:Get()
+assert(#selected == 1 and selected[1]:IsA("Model"), "Select one freshly imported house model")
+local model = selected[1]
+assert(not model:FindFirstChild("HouseDoorHinge_L", true), "This model is already prepared")
+local meshes = {}
+local lo, hi = Vector3.new(math.huge,math.huge,math.huge), Vector3.new(-math.huge,-math.huge,-math.huge)
+for _, part in model:GetDescendants() do
+    if part:IsA("MeshPart") then
+        local name = part.Name
+        local row = data.meshes[name] or data.meshes[name:match("^[^.]+")]
+        assert(row, "Mesh not in this house's manifest: "..name)
+        assert((part.Size-part.MeshSize).Magnitude < 0.05, "Use a fresh, unscaled import")
+        local _,_,_,r00,r01,r02,r10,r11,r12,r20,r21,r22 = part.CFrame:GetComponents()
+        assert(math.abs(r00-1)+math.abs(r11-1)+math.abs(r22-1)+math.abs(r01)+math.abs(r02)+math.abs(r10)+math.abs(r12)+math.abs(r20)+math.abs(r21)<0.001, "Use an unrotated import")
+        lo=lo:Min(part.Position-part.Size/2);hi=hi:Max(part.Position+part.Size/2)
+        table.insert(meshes,{part=part,row=row})
+    end
+end
+assert(#meshes == data.meshCount, "Select the complete exported model")
+local b = data.bounds
+local expected = Vector3.new(b.size[1],b.size[3],b.size[2])
+local actual = hi-lo
+local ratios = {actual.X/expected.X,actual.Y/expected.Y,actual.Z/expected.Z}
+assert(math.max(table.unpack(ratios))-math.min(table.unpack(ratios))<0.05,"Import scale differs between axes")
+local scale = 3/(ratios[1]+ratios[2]+ratios[3])
+local origin = Vector3.new(-b.max[1],b.min[3],b.min[2])
+local function fromBlender(v) return Vector3.new(-v[1],v[3],v[2]) end
+local record = ChangeHistoryService:TryBeginRecording("PrepareWalkInHouse")
+assert(record, "Studio cannot record this edit right now; stop Play and retry")
+for _, item in meshes do
+    local p,row=item.part,item.row
+    p.CFrame=CFrame.new((p.Position-lo)*scale+origin)
+    p.Size*=scale
+    p.Color=Color3.fromRGB(table.unpack(row.colorRGB))
+    p.Material=Enum.Material.SmoothPlastic
+    p.Transparency=row.transparency
+    p.Anchored=true;p.CanCollide=false;p.CanQuery=false;p.CanTouch=false;p.CastShadow=false
+end
+for i, box in data.collisions do
+    local p=Instance.new("Part");p.Name="Collide_"..box.name
+    p.Size=Vector3.new(box.sizeXYZ[1],box.sizeXYZ[3],box.sizeXYZ[2])
+    p.CFrame=CFrame.new(fromBlender(box.blenderLocation))*CFrame.Angles(0,-(box.rotationZ or 0),0)
+    p.Transparency=1;p.Anchored=true;p.CanCollide=true;p.CanQuery=false;p.CanTouch=false;p.CastShadow=false;p.Parent=model
+end
+for _, door in data.doors do
+    local side=door.name:sub(-1)
+    local p=Instance.new("Part");p.Name="HouseDoorHinge_"..side
+    p.Size=Vector3.new(.15,.15,.15);p.CFrame=CFrame.new(fromBlender(door.hingeBlender))
+    p.Transparency=1;p.Anchored=true;p.CanCollide=false;p.CanQuery=false;p.CanTouch=false;p.CastShadow=false
+    local angle=Instance.new("NumberValue");angle.Name="OpenDegrees";angle.Value=-door.openDegrees;angle.Parent=p;p.Parent=model
+end
+for name, position in data.mounts do
+    local p=Instance.new("Part");p.Name="Mount_"..name
+    p.Size=Vector3.new(.2,.2,.2)
+    p.CFrame=CFrame.new(fromBlender(position))*CFrame.Angles(0,-math.rad(data.mountYaws[name] or 0),0)
+    p.Transparency=1;p.Anchored=true;p.CanCollide=false;p.CanQuery=false;p.CanTouch=false;p.CastShadow=false;p.Parent=model
+end
+model.Name=data.name.."_WalkIn"
+ChangeHistoryService:FinishRecording(record,Enum.FinishRecordingOperation.Commit)
+print("Prepared "..model.Name..": scale, flat colours, transparency, collision and automatic door pivots. Place it in Workspace to playtest. Runtime catalogue integration still needs its imported mesh IDs.")

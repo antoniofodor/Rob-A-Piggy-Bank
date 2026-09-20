@@ -1,0 +1,54 @@
+{
+  "status": "decorative motion specification only; no runtime animation installed",
+  "drips": [
+    {
+      "object": "HouseFX_Pulse_1",
+      "pivotBlender": [
+        -11.199999809265137,
+        -2.0,
+        14.228569030761719
+      ],
+      "kind": "pulse",
+      "scaleZ": [
+        1,
+        1.045
+      ],
+      "periodSeconds": 5.9,
+      "phaseSeconds": 0.8,
+      "collision": false
+    },
+    {
+      "object": "HouseFX_Pulse_2",
+      "pivotBlender": [
+        12.899999618530273,
+        5.0,
+        13.251688957214355
+      ],
+      "kind": "pulse",
+      "scaleZ": [
+        1,
+        1.045
+      ],
+      "periodSeconds": 6.3,
+      "phaseSeconds": 1.6,
+      "collision": false
+    },
+    {
+      "object": "HouseFX_Pulse_3",
+      "pivotBlender": [
+        9.0,
+        23.600000381469727,
+        14.793176651000977
+      ],
+      "kind": "pulse",
+      "scaleZ": [
+        1,
+        1.045
+      ],
+      "periodSeconds": 6.7,
+      "phaseSeconds": 2.4000000000000004,
+      "collision": false
+    }
+  ],
+  "constraints": "Only scale hanging goo, anchored at its top. Keep wall, doorway, floor and collision static."
+}

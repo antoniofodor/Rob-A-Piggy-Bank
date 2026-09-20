@@ -16,9 +16,20 @@ local Theme = require(ReplicatedStorage.Shared.Theme)
 local TreeClock = {}
 
 local CARD_W, CARD_H = 196, 40
--- U+1F330 CHESTNUT: the nearest thing Unicode has to an acorn. Four-byte, so
--- it has no monochrome text form. NOT YET render-measured on a card.
-local GLYPH = utf8.char(0x1F330)
+-- THE DRAWN ACORN, THE SAME ONE THE SHOP USES, AND THE EMOJI IT REPLACES WAS
+-- NEVER GOING TO WORK HERE.
+--
+-- This was U+1F330 CHESTNUT -- "the nearest thing Unicode has to an acorn" --
+-- with its own note admitting it had never been render-measured on a card. Two
+-- things are wrong with it and both are already written down in this project.
+-- An emoji is drawn from the COLOUR font, so it ignores `TextColor3` and cannot
+-- be themed at all; and it is a smudge at chip size, which is exactly why
+-- `Theme.coin` and `Theme.acorn` are drawn shapes rather than characters. It
+-- was also the wrong nut.
+--
+-- 26 to match the piggy bank panel's own acorn chip, centred in the 40-tall
+-- card. Nothing else read the label it replaces.
+local ICON = 26
 
 -- "42m" above a minute, "0:42" under one -- the rob badge's clock, so the two
 -- cards on a lawn count down in the same voice.
@@ -59,8 +70,8 @@ local function build(canopy: BasePart): any
 		text.Parent = card
 		return text
 	end
-	local glyph = label("Glyph")
-	glyph.Size, glyph.Position, glyph.TextSize, glyph.Text = UDim2.fromOffset(26, 32), UDim2.fromOffset(8, 4), 20, GLYPH
+	local acorn = Theme.acorn(card, ICON, "Acorn")
+	acorn.Position = UDim2.fromOffset(8, (CARD_H - ICON) // 2)
 	local count = label("Count")
 	count.Position, count.Size, count.TextSize = UDim2.fromOffset(38, 4), UDim2.fromOffset(62, 32), 22
 	count.TextXAlignment = Enum.TextXAlignment.Left

@@ -1,0 +1,20 @@
+{
+  "triangles": {
+    "Coin": 10852
+  },
+  "closedManifold": true,
+  "exportChecks": {
+    "glb": {
+      "boundsMaxError": 0.0,
+      "embeddedPalette": true,
+      "meshCount": 1
+    },
+    "fbx": {
+      "boundsMaxError": 1.564621925354004e-07,
+      "embeddedPalette": true,
+      "meshCount": 1
+    }
+  },
+  "sourceSHA256": "7647edea9272f187b2c502fade8e99c7a9b39231bea842823560ad045e04f786",
+  "note": "Back mirrored from the front by hand in sources/coin.blend; closed manifold re-checked (0 open edges)."
+}

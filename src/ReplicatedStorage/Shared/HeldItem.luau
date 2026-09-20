@@ -144,7 +144,6 @@ local GRIP: { [string]: Grip } = {
 	-- The two bulky ones. Both are nearly as wide as they are long, so
 	-- matching the LONGEST side would have made them enormous; the span is
 	-- cut rather than the grip nudged, because the fault is size not place.
-	sprinkler = { cf = CFrame.new(0, -0.34, -0.14), span = 1.45 },
 
 	-- A WIDE PROP IS TURNED FORE-AFT, NOT PUSHED OUTWARD, and that is the one
 	-- clearance on this bar that had to be solved rather than eyeballed.

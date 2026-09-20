@@ -1,0 +1,538 @@
+{
+  "id": "classic",
+  "title": "Framed timber / Rare",
+  "status": "Draft furniture study; not integrated",
+  "clearInterior": [
+    18,
+    11,
+    14
+  ],
+  "minimumDoor": [
+    4,
+    7
+  ],
+  "parts": [
+    {
+      "name": "CollectionShelf_1",
+      "position": [
+        0,
+        3.02,
+        12.1
+      ],
+      "size": [
+        15.4,
+        0.36,
+        3
+      ],
+      "token": "SLAB"
+    },
+    {
+      "name": "ShelfLip_1",
+      "position": [
+        0,
+        3.0,
+        10.58
+      ],
+      "size": [
+        15.4,
+        0.22,
+        0.12
+      ],
+      "token": "ACORN"
+    },
+    {
+      "name": "CabinetUpright",
+      "position": [
+        -7.9,
+        3.15,
+        13.049999999999999
+      ],
+      "size": [
+        0.3,
+        6.3,
+        0.45
+      ],
+      "token": "ACORN"
+    },
+    {
+      "name": "CabinetUpright",
+      "position": [
+        7.9,
+        3.15,
+        13.049999999999999
+      ],
+      "size": [
+        0.3,
+        6.3,
+        0.45
+      ],
+      "token": "ACORN"
+    },
+    {
+      "name": "CabinetBack",
+      "position": [
+        0,
+        3.15,
+        13.76
+      ],
+      "size": [
+        16.1,
+        6.3,
+        0.22
+      ],
+      "token": "SLAB"
+    },
+    {
+      "name": "AchievementFrame_1",
+      "position": [
+        -2.0,
+        7.8,
+        13.49
+      ],
+      "size": [
+        3.7,
+        2.8,
+        0.25
+      ],
+      "token": "ACORN"
+    },
+    {
+      "name": "AchievementInset_1",
+      "position": [
+        -2.0,
+        7.8,
+        13.3
+      ],
+      "size": [
+        3.4,
+        2.5,
+        0.1
+      ],
+      "token": "SAND"
+    },
+    {
+      "name": "AchievementFrame_2",
+      "position": [
+        2.0,
+        7.8,
+        13.49
+      ],
+      "size": [
+        3.7,
+        2.8,
+        0.25
+      ],
+      "token": "ACORN"
+    },
+    {
+      "name": "AchievementInset_2",
+      "position": [
+        2.0,
+        7.8,
+        13.3
+      ],
+      "size": [
+        3.4,
+        2.5,
+        0.1
+      ],
+      "token": "SAND"
+    },
+    {
+      "name": "FeaturedFoot",
+      "position": [
+        -6.4,
+        0.25,
+        3
+      ],
+      "size": [
+        4.4,
+        0.5,
+        4.4
+      ],
+      "token": "ACORN"
+    },
+    {
+      "name": "FeaturedBase",
+      "position": [
+        -6.4,
+        1.1,
+        3
+      ],
+      "size": [
+        3.5,
+        1.2,
+        3.5
+      ],
+      "token": "SLAB"
+    },
+    {
+      "name": "FeaturedTop",
+      "position": [
+        -6.4,
+        1.85,
+        3
+      ],
+      "size": [
+        4.4,
+        0.3,
+        4.4
+      ],
+      "token": "ACORN"
+    },
+    {
+      "name": "RecordsDesk",
+      "position": [
+        6.4,
+        2.5,
+        3
+      ],
+      "size": [
+        4.2,
+        0.35,
+        2.6
+      ],
+      "token": "SLAB"
+    },
+    {
+      "name": "DeskLeg",
+      "position": [
+        4.75,
+        1.15,
+        3.6
+      ],
+      "size": [
+        0.3,
+        2.3,
+        0.35
+      ],
+      "token": "ACORN"
+    },
+    {
+      "name": "DeskLeg",
+      "position": [
+        8.05,
+        1.15,
+        3.6
+      ],
+      "size": [
+        0.3,
+        2.3,
+        0.35
+      ],
+      "token": "ACORN"
+    },
+    {
+      "name": "BookCover",
+      "position": [
+        6.4,
+        2.76,
+        3
+      ],
+      "size": [
+        2.7,
+        0.14,
+        1.9
+      ],
+      "token": "ACORN"
+    },
+    {
+      "name": "BookPages",
+      "position": [
+        6.4,
+        2.9,
+        3
+      ],
+      "size": [
+        2.5,
+        0.14,
+        1.75
+      ],
+      "token": "SAND"
+    },
+    {
+      "name": "BookSpine",
+      "position": [
+        6.4,
+        3,
+        3
+      ],
+      "size": [
+        0.1,
+        0.08,
+        1.8
+      ],
+      "token": "SLAB"
+    },
+    {
+      "name": "LegacyFrame",
+      "position": [
+        8.77,
+        4.1,
+        7
+      ],
+      "size": [
+        0.25,
+        3.5,
+        3.2
+      ],
+      "token": "ACORN"
+    },
+    {
+      "name": "LegacyFace",
+      "position": [
+        8.57,
+        4.1,
+        7
+      ],
+      "size": [
+        0.1,
+        3.1,
+        2.8
+      ],
+      "token": "SAND"
+    }
+  ],
+  "mounts": [
+    {
+      "name": "Shelf_1",
+      "position": [
+        -6.0,
+        3.2,
+        12.1
+      ],
+      "usableSize": [
+        2.8,
+        2.8,
+        2.8
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Shelf_2",
+      "position": [
+        -2.0,
+        3.2,
+        12.1
+      ],
+      "usableSize": [
+        2.8,
+        2.8,
+        2.8
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Shelf_3",
+      "position": [
+        2.0,
+        3.2,
+        12.1
+      ],
+      "usableSize": [
+        2.8,
+        2.8,
+        2.8
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Shelf_4",
+      "position": [
+        6.0,
+        3.2,
+        12.1
+      ],
+      "usableSize": [
+        2.8,
+        2.8,
+        2.8
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Wall",
+      "position": [
+        -2.0,
+        6.55,
+        12.98
+      ],
+      "usableSize": [
+        3.4,
+        2.5,
+        0.4
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Wall_2",
+      "position": [
+        2.0,
+        6.55,
+        12.98
+      ],
+      "usableSize": [
+        3.4,
+        2.5,
+        0.4
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Featured",
+      "position": [
+        -6.4,
+        2,
+        3
+      ],
+      "usableSize": [
+        4.2,
+        4.2,
+        4.2
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Record",
+      "position": [
+        6.4,
+        2.68,
+        3
+      ],
+      "usableSize": [
+        4,
+        2.3,
+        2.2
+      ],
+      "yawDegrees": 180,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Plaque_Legacy",
+      "position": [
+        8.2,
+        2.55,
+        7
+      ],
+      "usableSize": [
+        2.8,
+        3.1,
+        0.4
+      ],
+      "yawDegrees": -90,
+      "purpose": "display",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Interact_Achievements",
+      "position": [
+        0,
+        3,
+        10.4
+      ],
+      "usableSize": null,
+      "yawDegrees": 180,
+      "purpose": "interaction",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Stand_Achievements",
+      "position": [
+        0,
+        0,
+        8.5
+      ],
+      "usableSize": null,
+      "yawDegrees": 180,
+      "purpose": "standing",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Interact_Records",
+      "position": [
+        6.4,
+        3,
+        4
+      ],
+      "usableSize": null,
+      "yawDegrees": 180,
+      "purpose": "interaction",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Stand_Records",
+      "position": [
+        6.4,
+        0,
+        5.5
+      ],
+      "usableSize": null,
+      "yawDegrees": 180,
+      "purpose": "standing",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Interact_Legacy",
+      "position": [
+        8.0,
+        4,
+        7
+      ],
+      "usableSize": null,
+      "yawDegrees": 180,
+      "purpose": "interaction",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Stand_Legacy",
+      "position": [
+        5.2,
+        0,
+        7
+      ],
+      "usableSize": null,
+      "yawDegrees": 180,
+      "purpose": "standing",
+      "facing": "local +Z faces viewer"
+    },
+    {
+      "name": "Door_Exit",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "usableSize": null,
+      "yawDegrees": 180,
+      "purpose": "doorstep",
+      "facing": "local +Z faces viewer"
+    }
+  ],
+  "palette": {
+    "body": "SLAB",
+    "trim": "ACORN",
+    "inset": "SAND"
+  },
+  "targetCounts": {
+    "featured": 1,
+    "collection": 4,
+    "wall": 2,
+    "records": 1,
+    "legacy": 1
+  }
+}

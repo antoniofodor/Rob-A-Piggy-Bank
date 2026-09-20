@@ -1,0 +1,9 @@
+{
+  "id": "cow",
+  "name": "Dairy Cow",
+  "source": "assets/skins/animal/common/cow/cow-complete.blend",
+  "sourceSha256": "3de83460f037f4e9ca3e237aa2e02632cc8eb907ca063797791aa100d8de80b9",
+  "image": "assets/skins/animal/common/cow/shop-cards/cow.png",
+  "sha256": "d74ffc3b533731a3318c3bdcfdfce91903f0282382899fd1c7b2143f578f8a7f",
+  "robloxAssetId": "rbxassetid://118214168454938"
+}

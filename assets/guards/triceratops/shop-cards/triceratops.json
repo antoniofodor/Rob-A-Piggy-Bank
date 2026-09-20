@@ -1,0 +1,82 @@
+{
+  "id": "triceratops",
+  "name": "Triceratops",
+  "rig": "triceratops",
+  "source": "assets/guards/triceratops/triceratops.blend",
+  "sourceSha256": "6da19f2c568c963801fc3c70a2d58a37f5c1dc5ee369229e6d320ca1ac53c345",
+  "image": "assets/guards/triceratops/shop-cards/triceratops.png",
+  "sha256": "7619ba55dd378e26fb6fee9d49be109d123dfb2db315efb2f406c9706aaa1d6e",
+  "tones": {
+    "fur": [
+      55,
+      177,
+      184
+    ],
+    "dark": [
+      35,
+      122,
+      139
+    ],
+    "light": [
+      239,
+      220,
+      165
+    ],
+    "collar": [
+      223,
+      177,
+      44
+    ],
+    "brow": [
+      55,
+      177,
+      184
+    ],
+    "mask": [
+      128.60000000000002,
+      194.2,
+      176.39999999999998
+    ],
+    "eye": [
+      18,
+      18,
+      20
+    ],
+    "nose": [
+      29,
+      27,
+      30
+    ],
+    "mouth": [
+      41,
+      24,
+      31
+    ],
+    "teeth": [
+      248,
+      232,
+      189
+    ],
+    "inner": [
+      201,
+      126,
+      112
+    ],
+    "armor": [
+      131,
+      48,
+      78
+    ],
+    "accent": [
+      238,
+      122,
+      64
+    ],
+    "silver": [
+      171,
+      170,
+      182
+    ]
+  },
+  "robloxAssetId": "rbxassetid://109345948759219"
+}

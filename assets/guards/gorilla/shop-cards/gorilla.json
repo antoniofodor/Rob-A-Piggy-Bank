@@ -1,0 +1,82 @@
+{
+  "id": "gorilla",
+  "name": "Gorilla",
+  "rig": "gorilla",
+  "source": "assets/guards/gorilla/gorilla.blend",
+  "sourceSha256": "c2bf9f1b8b5ae1137f444b471deaa3c031ae7ba80e4b5d99fa7c4b0f6b59d0ec",
+  "image": "assets/guards/gorilla/shop-cards/gorilla.png",
+  "sha256": "5abb48b8214520dbe3edca85b5ac0f79a0a7af133f29f864e6796123e1556a5b",
+  "tones": {
+    "fur": [
+      91,
+      83,
+      79
+    ],
+    "dark": [
+      62,
+      58,
+      57
+    ],
+    "light": [
+      178,
+      159,
+      129
+    ],
+    "collar": [
+      223,
+      177,
+      44
+    ],
+    "brow": [
+      91,
+      83,
+      79
+    ],
+    "mask": [
+      125.80000000000001,
+      113.4,
+      99.0
+    ],
+    "eye": [
+      18,
+      18,
+      20
+    ],
+    "nose": [
+      29,
+      27,
+      30
+    ],
+    "mouth": [
+      41,
+      24,
+      31
+    ],
+    "teeth": [
+      248,
+      232,
+      189
+    ],
+    "inner": [
+      201,
+      126,
+      112
+    ],
+    "armor": [
+      131,
+      48,
+      78
+    ],
+    "accent": [
+      238,
+      122,
+      64
+    ],
+    "silver": [
+      171,
+      170,
+      182
+    ]
+  },
+  "robloxAssetId": "rbxassetid://75445866786877"
+}

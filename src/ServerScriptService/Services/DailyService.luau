@@ -56,6 +56,16 @@ local function pending(data: any): (number, boolean)
 	return 1, true
 end
 
+-- What one reward is worth to THIS player, right now.
+--
+-- Coin rewards are seconds of their own income, so the ladder keeps its value
+-- from the first day to the thousandth. The floor is what stops a brand new
+-- player being handed 3,000 coins for a week of turning up.
+local function coinValue(data: any, reward: any): number
+	local rate = Config.getIncomeRate(data.incomeLevel, data.rebirths, 0)
+	return math.max(reward.floor, math.floor(rate * reward.seconds))
+end
+
 function DailyService.push(player: Player)
 	local data = DataService.get(player)
 	if not data then
@@ -64,6 +74,13 @@ function DailyService.push(player: Player)
 
 	local streak, claimable = pending(data)
 	local _, day = Config.dailyReward(streak)
+	local values: { [string]: number } = {}
+	for i, rung in ipairs(Config.DAILY_CYCLE) do
+		if rung.seconds then
+			-- String keys: a remote drops the gaps in a sparse array.
+			values[tostring(i)] = coinValue(data, rung)
+		end
+	end
 
 	-- THE FLAG RIDES THE SAME PUSH THE BOARD DOES, which is what makes them
 	-- impossible to disagree.
@@ -96,21 +113,16 @@ function DailyService.push(player: Player)
 		nextStreak = streak,
 		day = day,
 		lifetime = data.daily.lifetime,
+		-- WHAT EACH COIN RUNG IS WORTH TO THIS PLAYER, so the board can print
+		-- "+12.4K" rather than the word COINS. Computed by the same
+		-- `coinValue` the claim pays with, so the card and the payout cannot
+		-- disagree; a rung with no coins has no entry.
+		values = values,
 		boosts = data.boosts,
 		-- Seconds left rather than an absolute time: the client's clock is not
 		-- the server's, and a countdown is the only thing the HUD does with it.
 		boostLeft = math.max(0, data.boostUntil - os.time()),
 	})
-end
-
--- What one reward is worth to THIS player, right now.
---
--- Coin rewards are seconds of their own income, so the ladder keeps its value
--- from the first day to the thousandth. The floor is what stops a brand new
--- player being handed 3,000 coins for a week of turning up.
-local function coinValue(data: any, reward: any): number
-	local rate = Config.getIncomeRate(data.incomeLevel, data.rebirths, 0)
-	return math.max(reward.floor, math.floor(rate * reward.seconds))
 end
 
 -- Nothing puts more in a pig than it holds (MASTER-PLAN 4c.6), the daily
@@ -289,17 +301,45 @@ function DailyService.onPlayerReady(player: Player)
 		data.boostMult = 1
 	end
 	DailyService.push(player)
+
+	-- AND ONE LINE POINTING AT THE MAILBOX, because the board stopped opening
+	-- itself and something has to say the post is there.
+	--
+	-- The flag, the sign and the sparkles are the real announcement and they
+	-- are in the WORLD, which is the whole point -- but a player who spawns
+	-- facing their own front door is looking away from the verge, and a reward
+	-- nobody is told about is the silent-failure rule wearing a delivery. It
+	-- names the place rather than the prize: the box is what they have to walk
+	-- to, and what is in it is on the board when they get there.
+	--
+	-- HERE RATHER THAN IN `push`, WHICH IS WHAT KEEPS IT TO ONE. That function
+	-- runs at every moment the streak can change -- a claim, a crate open, a
+	-- dev command, a lapse -- so a notify inside it would fire several times a
+	-- session, and the "come back tomorrow" refusal already covers the rest.
+	-- This is the join, once, by construction and with no session flag to keep.
+	if data then
+		local _, claimable = pending(data)
+		if claimable then
+			notify(player, "Your daily reward is in the post. The flag is up on your mailbox.", "good")
+		end
+	end
 end
 
 function DailyService.start()
-	-- THE MAILBOX IS THE WAY BACK TO THE BOARD, and until now there was not
-	-- one.
+	-- THE MAILBOX IS THE ONLY WAY TO THE BOARD.
 	--
-	-- The board opens itself 1.5 seconds after joining, once per session, and
-	-- nothing else in the game opened it -- so a player who closed it without
-	-- claiming had lost the day, with a reward still sitting there and
-	-- nothing on screen to say so. That is the silent-failure rule broken by
-	-- an absence rather than by a refusal.
+	-- It started as the way BACK to it: the board opened itself 1.5 seconds
+	-- after joining, once per session, and nothing else in the game opened it
+	-- -- so a player who closed it without claiming had lost the day, with a
+	-- reward still sitting there and nothing on screen to say so. That is the
+	-- silent-failure rule broken by an absence rather than by a refusal.
+	--
+	-- THE AUTO-OPEN IS GONE NOW and this is the whole route in. What that
+	-- buys is that the reward is somewhere you GO: the flag is up, the box
+	-- sparkles and carries a DAILY REWARD card (`Shared/MailCall`), and the
+	-- claim is a walk and a press rather than a modal that arrives before the
+	-- player has done anything. The delivery fiction was already built; the
+	-- board was standing in front of it.
 	--
 	-- IT SENDS NOTHING. The client already holds the whole snapshot from
 	-- `DailyState`; this says "look at it", which is the same shape as every

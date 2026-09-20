@@ -1,0 +1,82 @@
+{
+  "id": "chocolate",
+  "name": "Chocolate",
+  "rig": "shepherd",
+  "source": "assets/guards/shepherd/shepherd.blend",
+  "sourceSha256": "4cdcfab5b4ed35a0175a44a0fb7cede0c3366ee0023fb841e2b65badccb4ca1f",
+  "image": "assets/guards/shepherd/shop-cards/chocolate.png",
+  "sha256": "29ec9316bb54721fc2f88b4c769d4b81c43fffb603a7beebd2ab769627365225",
+  "tones": {
+    "fur": [
+      104,
+      68,
+      46
+    ],
+    "dark": [
+      68,
+      42,
+      28
+    ],
+    "light": [
+      156.85,
+      133.45,
+      119.14999999999999
+    ],
+    "collar": [
+      214,
+      138,
+      62
+    ],
+    "brow": [
+      104,
+      68,
+      46
+    ],
+    "mask": [
+      125.14,
+      94.17999999999999,
+      75.25999999999999
+    ],
+    "eye": [
+      18,
+      18,
+      20
+    ],
+    "nose": [
+      29,
+      27,
+      30
+    ],
+    "mouth": [
+      41,
+      24,
+      31
+    ],
+    "teeth": [
+      248,
+      232,
+      189
+    ],
+    "inner": [
+      201,
+      126,
+      112
+    ],
+    "armor": [
+      131,
+      48,
+      78
+    ],
+    "accent": [
+      238,
+      122,
+      64
+    ],
+    "silver": [
+      171,
+      170,
+      182
+    ]
+  },
+  "robloxAssetId": "rbxassetid://96443703819078"
+}

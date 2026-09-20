@@ -1,0 +1,711 @@
+{
+  "export": "fishbowl-house-roblox.fbx",
+  "meshCount": 56,
+  "triangles": 18250,
+  "singleMaterialPerMesh": true,
+  "fbxRoundTripMaxBoundsError": 3.814697265625e-06,
+  "meshes": [
+    {
+      "name": "AquariumShell_WalkWall",
+      "section": "AquariumShell",
+      "material": "WalkWall",
+      "colorRGB": [
+        233,
+        221,
+        191
+      ],
+      "triangles": 63,
+      "roblox": {}
+    },
+    {
+      "name": "EntranceSleeve_Pod",
+      "section": "EntranceSleeve",
+      "material": "Pod",
+      "colorRGB": [
+        233,
+        220,
+        184
+      ],
+      "triangles": 14,
+      "roblox": {}
+    },
+    {
+      "name": "Entrance_Pod",
+      "section": "Entrance",
+      "material": "Pod",
+      "colorRGB": [
+        233,
+        220,
+        184
+      ],
+      "triangles": 14,
+      "roblox": {}
+    },
+    {
+      "name": "Approach_Stone",
+      "section": "Approach",
+      "material": "Stone",
+      "colorRGB": [
+        162,
+        164,
+        176
+      ],
+      "triangles": 76,
+      "roblox": {}
+    },
+    {
+      "name": "AquariumShell_DomeGlass",
+      "section": "AquariumShell",
+      "material": "DomeGlass",
+      "colorRGB": [
+        24,
+        139,
+        151
+      ],
+      "triangles": 3067,
+      "roblox": {
+        "RobloxTransparency": 0.82,
+        "Material": "SmoothPlastic",
+        "CanCollide": false
+      }
+    },
+    {
+      "name": "EntranceSleeve_PodTrim",
+      "section": "EntranceSleeve",
+      "material": "PodTrim",
+      "colorRGB": [
+        54,
+        126,
+        141
+      ],
+      "triangles": 26,
+      "roblox": {}
+    },
+    {
+      "name": "Entrance_PodTrim",
+      "section": "Entrance",
+      "material": "PodTrim",
+      "colorRGB": [
+        54,
+        126,
+        141
+      ],
+      "triangles": 26,
+      "roblox": {}
+    },
+    {
+      "name": "Foundation_Sand",
+      "section": "Foundation",
+      "material": "Sand",
+      "colorRGB": [
+        216,
+        191,
+        140
+      ],
+      "triangles": 172,
+      "roblox": {}
+    },
+    {
+      "name": "PodShell_PodTrim",
+      "section": "PodShell",
+      "material": "PodTrim",
+      "colorRGB": [
+        54,
+        126,
+        141
+      ],
+      "triangles": 384,
+      "roblox": {}
+    },
+    {
+      "name": "PodWindows_PodTrim",
+      "section": "PodWindows",
+      "material": "PodTrim",
+      "colorRGB": [
+        54,
+        126,
+        141
+      ],
+      "triangles": 1184,
+      "roblox": {}
+    },
+    {
+      "name": "DomeRim_DomeRim",
+      "section": "DomeRim",
+      "material": "DomeRim",
+      "colorRGB": [
+        36,
+        163,
+        181
+      ],
+      "triangles": 620,
+      "roblox": {}
+    },
+    {
+      "name": "CoralGarden_Seaweed",
+      "section": "CoralGarden",
+      "material": "Seaweed",
+      "colorRGB": [
+        29,
+        121,
+        91
+      ],
+      "triangles": 9504,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_Bubble_1_BubbleGlass",
+      "section": "HouseFX_Bubble_1",
+      "material": "BubbleGlass",
+      "colorRGB": [
+        114,
+        213,
+        222
+      ],
+      "triangles": 288,
+      "roblox": {
+        "RobloxTransparency": 0.62,
+        "Material": "SmoothPlastic",
+        "CanCollide": false
+      }
+    },
+    {
+      "name": "HouseFX_Bubble_2_BubbleGlass",
+      "section": "HouseFX_Bubble_2",
+      "material": "BubbleGlass",
+      "colorRGB": [
+        114,
+        213,
+        222
+      ],
+      "triangles": 288,
+      "roblox": {
+        "RobloxTransparency": 0.62,
+        "Material": "SmoothPlastic",
+        "CanCollide": false
+      }
+    },
+    {
+      "name": "HouseFX_Bubble_3_BubbleGlass",
+      "section": "HouseFX_Bubble_3",
+      "material": "BubbleGlass",
+      "colorRGB": [
+        114,
+        213,
+        222
+      ],
+      "triangles": 288,
+      "roblox": {
+        "RobloxTransparency": 0.62,
+        "Material": "SmoothPlastic",
+        "CanCollide": false
+      }
+    },
+    {
+      "name": "HouseFX_Bubble_4_BubbleGlass",
+      "section": "HouseFX_Bubble_4",
+      "material": "BubbleGlass",
+      "colorRGB": [
+        114,
+        213,
+        222
+      ],
+      "triangles": 288,
+      "roblox": {
+        "RobloxTransparency": 0.62,
+        "Material": "SmoothPlastic",
+        "CanCollide": false
+      }
+    },
+    {
+      "name": "WalkFloor_WalkFloor",
+      "section": "WalkFloor",
+      "material": "WalkFloor",
+      "colorRGB": [
+        210,
+        189,
+        145
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkCeiling_WalkWall",
+      "section": "WalkCeiling",
+      "material": "WalkWall",
+      "colorRGB": [
+        233,
+        221,
+        191
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkSideLeftWall_WalkWall",
+      "section": "WalkSideLeftWall",
+      "material": "WalkWall",
+      "colorRGB": [
+        233,
+        221,
+        191
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkSideRightWall_WalkWall",
+      "section": "WalkSideRightWall",
+      "material": "WalkWall",
+      "colorRGB": [
+        233,
+        221,
+        191
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkRearWall_WalkWall",
+      "section": "WalkRearWall",
+      "material": "WalkWall",
+      "colorRGB": [
+        233,
+        221,
+        191
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkFrontLeft_WalkWall",
+      "section": "WalkFrontLeft",
+      "material": "WalkWall",
+      "colorRGB": [
+        233,
+        221,
+        191
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkFrontRight_WalkWall",
+      "section": "WalkFrontRight",
+      "material": "WalkWall",
+      "colorRGB": [
+        233,
+        221,
+        191
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageLeft_WalkWall",
+      "section": "WalkPassageLeft",
+      "material": "WalkWall",
+      "colorRGB": [
+        233,
+        221,
+        191
+      ],
+      "triangles": 24,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageRight_WalkWall",
+      "section": "WalkPassageRight",
+      "material": "WalkWall",
+      "colorRGB": [
+        233,
+        221,
+        191
+      ],
+      "triangles": 24,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageCeiling_WalkWall",
+      "section": "WalkPassageCeiling",
+      "material": "WalkWall",
+      "colorRGB": [
+        233,
+        221,
+        191
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageFloor_WalkFloor",
+      "section": "WalkPassageFloor",
+      "material": "WalkFloor",
+      "colorRGB": [
+        210,
+        189,
+        145
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkInnerStep0_WalkFloor",
+      "section": "WalkInnerStep0",
+      "material": "WalkFloor",
+      "colorRGB": [
+        210,
+        189,
+        145
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkInnerStep1_WalkFloor",
+      "section": "WalkInnerStep1",
+      "material": "WalkFloor",
+      "colorRGB": [
+        210,
+        189,
+        145
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkInnerStep2_WalkFloor",
+      "section": "WalkInnerStep2",
+      "material": "WalkFloor",
+      "colorRGB": [
+        210,
+        189,
+        145
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkInnerStep3_WalkFloor",
+      "section": "WalkInnerStep3",
+      "material": "WalkFloor",
+      "colorRGB": [
+        210,
+        189,
+        145
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkInnerStep4_WalkFloor",
+      "section": "WalkInnerStep4",
+      "material": "WalkFloor",
+      "colorRGB": [
+        210,
+        189,
+        145
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkInnerStep5_WalkFloor",
+      "section": "WalkInnerStep5",
+      "material": "WalkFloor",
+      "colorRGB": [
+        210,
+        189,
+        145
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkInnerStep6_WalkFloor",
+      "section": "WalkInnerStep6",
+      "material": "WalkFloor",
+      "colorRGB": [
+        210,
+        189,
+        145
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach0_WalkFloor",
+      "section": "WalkApproach0",
+      "material": "WalkFloor",
+      "colorRGB": [
+        210,
+        189,
+        145
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach1_WalkFloor",
+      "section": "WalkApproach1",
+      "material": "WalkFloor",
+      "colorRGB": [
+        210,
+        189,
+        145
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach2_WalkFloor",
+      "section": "WalkApproach2",
+      "material": "WalkFloor",
+      "colorRGB": [
+        210,
+        189,
+        145
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach3_WalkFloor",
+      "section": "WalkApproach3",
+      "material": "WalkFloor",
+      "colorRGB": [
+        210,
+        189,
+        145
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach4_WalkFloor",
+      "section": "WalkApproach4",
+      "material": "WalkFloor",
+      "colorRGB": [
+        210,
+        189,
+        145
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach5_WalkFloor",
+      "section": "WalkApproach5",
+      "material": "WalkFloor",
+      "colorRGB": [
+        210,
+        189,
+        145
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkDoor",
+      "section": "HouseDoorLeaf_L",
+      "material": "WalkDoor",
+      "colorRGB": [
+        55,
+        137,
+        150
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim",
+      "section": "HouseDoorLeaf_L",
+      "material": "WalkTrim",
+      "colorRGB": [
+        62,
+        154,
+        169
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim.001",
+      "section": "HouseDoorLeaf_L",
+      "material": "WalkTrim",
+      "colorRGB": [
+        62,
+        154,
+        169
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkDoor",
+      "section": "HouseDoorLeaf_R",
+      "material": "WalkDoor",
+      "colorRGB": [
+        55,
+        137,
+        150
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim",
+      "section": "HouseDoorLeaf_R",
+      "material": "WalkTrim",
+      "colorRGB": [
+        62,
+        154,
+        169
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim.001",
+      "section": "HouseDoorLeaf_R",
+      "material": "WalkTrim",
+      "colorRGB": [
+        62,
+        154,
+        169
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkEntryJamb-1_WalkTrim",
+      "section": "WalkEntryJamb-1",
+      "material": "WalkTrim",
+      "colorRGB": [
+        62,
+        154,
+        169
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkEntryJamb1_WalkTrim",
+      "section": "WalkEntryJamb1",
+      "material": "WalkTrim",
+      "colorRGB": [
+        62,
+        154,
+        169
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkEntryHeader_WalkTrim",
+      "section": "WalkEntryHeader",
+      "material": "WalkTrim",
+      "colorRGB": [
+        62,
+        154,
+        169
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "Foundation_Stone",
+      "section": "Foundation",
+      "material": "Stone",
+      "colorRGB": [
+        162,
+        164,
+        176
+      ],
+      "triangles": 178,
+      "roblox": {}
+    },
+    {
+      "name": "PodShell_Pod",
+      "section": "PodShell",
+      "material": "Pod",
+      "colorRGB": [
+        233,
+        220,
+        184
+      ],
+      "triangles": 378,
+      "roblox": {}
+    },
+    {
+      "name": "PodShell_WalkWall",
+      "section": "PodShell",
+      "material": "WalkWall",
+      "colorRGB": [
+        233,
+        221,
+        191
+      ],
+      "triangles": 44,
+      "roblox": {}
+    },
+    {
+      "name": "PodWindows_DarkGlass",
+      "section": "PodWindows",
+      "material": "DarkGlass",
+      "colorRGB": [
+        31,
+        43,
+        70
+      ],
+      "triangles": 304,
+      "roblox": {}
+    },
+    {
+      "name": "CoralGarden_CoralOrange",
+      "section": "CoralGarden",
+      "material": "CoralOrange",
+      "colorRGB": [
+        222,
+        106,
+        41
+      ],
+      "triangles": 252,
+      "roblox": {}
+    },
+    {
+      "name": "CoralGarden_Stone",
+      "section": "CoralGarden",
+      "material": "Stone",
+      "colorRGB": [
+        162,
+        164,
+        176
+      ],
+      "triangles": 120,
+      "roblox": {}
+    },
+    {
+      "name": "CoralGarden_CoralPink",
+      "section": "CoralGarden",
+      "material": "CoralPink",
+      "colorRGB": [
+        216,
+        95,
+        140
+      ],
+      "triangles": 252,
+      "roblox": {}
+    }
+  ],
+  "collisionPartsDraft": 24,
+  "attachments": 2,
+  "basePartsWithCompanion": 81,
+  "routes": {
+    "samples": 0,
+    "blocked": [],
+    "method": "five vertical rays and two body cross-rays at three heights, 1.6-unit footprint; floor sampled below each centre; unmodeled outside ground assumed at zero"
+  },
+  "studioChecks": "not performed; actual avatar collision, camera, material colours and scale pending",
+  "notes": "Preview awards and presentation objects excluded. No runtime menus or animations included. Companion is a draft, not certified collision."
+}

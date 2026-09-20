@@ -1,0 +1,541 @@
+{
+  "version": 1,
+  "status": "icons integrated in shop source; world models provided separately",
+  "renderStyle": "Smooth beveled 3D models; transparent PNG; no baked particles or outer glow",
+  "icons": {
+    "coin": {
+      "name": "Standard coin",
+      "image": "coin.png",
+      "source": "sources/coin.blend",
+      "assetId": "rbxassetid://114357581414744",
+      "alphaBounds": [
+        86,
+        90,
+        682,
+        677
+      ],
+      "sha256": "fe7f32dde5cf53edf4eb134458013b3db74d2f091d3f24d6105d25639fdfe404"
+    },
+    "income": {
+      "name": "Earn Faster",
+      "image": "income.png",
+      "source": "sources/income.blend",
+      "assetId": "rbxassetid://84342101453188",
+      "alphaBounds": [
+        101,
+        73,
+        666,
+        670
+      ],
+      "sha256": "78273daccae797e4afef702cb21be2dbe5a48ac930c393189a8512140a44a012"
+    },
+    "capacity": {
+      "name": "Bigger Piggy Bank",
+      "image": "capacity.png",
+      "source": "sources/capacity.blend",
+      "assetId": "rbxassetid://87288987634095",
+      "alphaBounds": [
+        97,
+        182,
+        645,
+        591
+      ],
+      "sha256": "6a9f954b59b17b2ec53d9d3e024bc4eb952274f33d516a0fc969aae5cca0ce23"
+    },
+    "upgrades": {
+      "name": "Upgrades",
+      "image": "upgrades.png",
+      "source": "sources/upgrades.blend",
+      "assetId": "rbxassetid://93469685522357",
+      "alphaBounds": [
+        207,
+        90,
+        585,
+        686
+      ],
+      "sha256": "9354995f195d1654b4756cb536add0130cc892d15a85da60cd740104d16ac79b"
+    },
+    "home": {
+      "name": "Home",
+      "image": "home.png",
+      "source": "sources/home.blend",
+      "assetId": "rbxassetid://132806124510472",
+      "alphaBounds": [
+        101,
+        81,
+        667,
+        692
+      ],
+      "sha256": "f40ab355f02b4048ec02231ef9900279d82b28772d6062b6c344c89dbcf62cf8"
+    },
+    "companions": {
+      "name": "Companions",
+      "image": "companions.png",
+      "source": "sources/companions.blend",
+      "assetId": "rbxassetid://99636931382659",
+      "alphaBounds": [
+        150,
+        132,
+        618,
+        641
+      ],
+      "sha256": "064d18e9706941d757a4fbd15b152ba50c936a9a52c31c823e2d8314b749e747"
+    },
+    "rides": {
+      "name": "Rides",
+      "image": "rides.png",
+      "source": "sources/rides.blend",
+      "assetId": "rbxassetid://77665616074176",
+      "alphaBounds": [
+        102,
+        89,
+        666,
+        682
+      ],
+      "sha256": "cad8f5031a25da98ca686f7182ed40a825bc24317d664490cae0b3c4ab8f4906"
+    },
+    "supplies": {
+      "name": "Supplies",
+      "image": "supplies.png",
+      "source": "sources/supplies.blend",
+      "assetId": "rbxassetid://116095837417269",
+      "alphaBounds": [
+        145,
+        95,
+        695,
+        643
+      ],
+      "sha256": "c02464464961f80a4cf78ee80e97f40b6d146c98c2047dbb92504048e0c0558d"
+    },
+    "style": {
+      "name": "Style & Crates",
+      "image": "style.png",
+      "source": "sources/style.blend",
+      "assetId": "rbxassetid://123689883262147",
+      "alphaBounds": [
+        76,
+        122,
+        692,
+        645
+      ],
+      "sha256": "8ce58133f56793c02f9699b79c3c0d4d54a3cc3dc5296c53552d02384fd79a98"
+    },
+    "crate-common": {
+      "name": "Common crate",
+      "image": "crate-common.png",
+      "source": "sources/crate-common.blend",
+      "assetId": "rbxassetid://99509648335802",
+      "alphaBounds": [
+        87,
+        129,
+        692,
+        641
+      ],
+      "sha256": "9aa9d3b1dc31edd446beea744865d018aac344a16908b5b28d1f9a6e6e35ff5e"
+    },
+    "crate-rare": {
+      "name": "Rare crate",
+      "image": "crate-rare.png",
+      "source": "sources/crate-rare.blend",
+      "assetId": "rbxassetid://136857209566701",
+      "alphaBounds": [
+        133,
+        185,
+        649,
+        637
+      ],
+      "sha256": "f65fe6abbfbb849c382af30756ec8f87c1b2710be07b73d800b9e363fe06c7cc"
+    },
+    "crate-legendary": {
+      "name": "Legendary crate",
+      "image": "crate-legendary.png",
+      "source": "sources/crate-legendary.blend",
+      "assetId": "rbxassetid://95514707965117",
+      "alphaBounds": [
+        130,
+        170,
+        651,
+        660
+      ],
+      "sha256": "59275ad7f4a86d9e74521707befdbf68c3f320c910c25f34513e064d0b96651e"
+    },
+    "coin-front": {
+      "name": "Currency coin \u2014 front view",
+      "image": "coin-front.png",
+      "source": "sources/coin-front.blend",
+      "assetId": "rbxassetid://81713106992402",
+      "alphaBounds": [
+        70,
+        70,
+        697,
+        698
+      ],
+      "sha256": "23702901002fb821d9a8a34e4a8346f4c841c62cf1718e0d0634bb4e0fc2bb6d"
+    },
+    "locks": {
+      "name": "Vault Lock",
+      "image": "locks.png",
+      "source": "sources/locks.blend",
+      "assetId": "rbxassetid://112442325562665",
+      "alphaBounds": [
+        166,
+        93,
+        597,
+        681
+      ],
+      "sha256": "298f9db3de7fedf97ef7acdd8133eda2f48bb79d498e461572b2dd82739482e4"
+    },
+    "fences": {
+      "name": "Fence",
+      "image": "fences.png",
+      "source": "sources/fences.blend",
+      "assetId": "rbxassetid://90879713992858",
+      "alphaBounds": [
+        84,
+        139,
+        684,
+        638
+      ],
+      "sha256": "4738ebd853d09911a3daddf0ad95e91b9f887b287ff1fb6193851c30d650cf5d"
+    },
+    "lockpicks": {
+      "name": "Lockpicks",
+      "image": "lockpicks.png",
+      "source": "sources/lockpicks.blend",
+      "assetId": "rbxassetid://77326087433511",
+      "alphaBounds": [
+        143,
+        98,
+        635,
+        684
+      ],
+      "sha256": "049707b7a34cef6b5eb0df74a3c2f232af6e2164e2d9cbb719c929d8c6426df4"
+    },
+    "sack": {
+      "name": "Bigger Sack",
+      "image": "sack.png",
+      "source": "sources/sack.blend",
+      "assetId": "rbxassetid://82505441855242",
+      "alphaBounds": [
+        143,
+        93,
+        606,
+        687
+      ],
+      "sha256": "8c6dbc392e34ceb375251d1713f64e59bf74bddb3808e0dd7710311048efa312"
+    },
+    "boots": {
+      "name": "Speed Boots",
+      "image": "boots.png",
+      "source": "sources/boots.blend",
+      "assetId": "rbxassetid://114479671264679",
+      "alphaBounds": [
+        103,
+        195,
+        697,
+        543
+      ],
+      "sha256": "58ac30b6e7940e9e3adcd31c60ffb41f0050c2bcad0d9624e570b71bd7630532"
+    },
+    "tiptoe": {
+      "name": "Sneak",
+      "image": "tiptoe.png",
+      "source": "sources/tiptoe.blend",
+      "assetId": "rbxassetid://70950783190764",
+      "alphaBounds": [
+        131,
+        103,
+        623,
+        696
+      ],
+      "sha256": "490d6e2ea38a31dc7b5b942e65e73b42ae045d9cc7fcbb44751aa63a7359ff57"
+    }
+  },
+  "crates": {
+    "common": {
+      "width": 3.2,
+      "depth": 2.3,
+      "height": 1.8,
+      "hinge": [
+        0,
+        1.15,
+        1.9000000000000001
+      ],
+      "attachments": {
+        "Aura": [
+          0,
+          0,
+          0.18
+        ],
+        "Seal": [
+          0,
+          -1.5699999999999998,
+          1.02
+        ],
+        "LidSpark": [
+          0,
+          0,
+          2.45
+        ]
+      },
+      "effect": "Warm gold motes; short opening sparkle",
+      "triangles": {
+        "Body": 9144,
+        "Lid": 1128
+      },
+      "root": "bottom center",
+      "coordinates": "Blender XYZ; glTF/Roblox = (x,z,-y), 1 unit = 1 stud",
+      "robloxHinge": [
+        0,
+        1.9000000000000001,
+        -1.15
+      ],
+      "robloxAttachments": {
+        "Aura": [
+          0,
+          0.18,
+          0
+        ],
+        "Seal": [
+          0,
+          1.02,
+          1.5699999999999998
+        ],
+        "LidSpark": [
+          0,
+          2.45,
+          0
+        ]
+      }
+    },
+    "rare": {
+      "width": 3.4,
+      "depth": 2.3,
+      "height": 1.85,
+      "hinge": [
+        0,
+        1.15,
+        1.9500000000000002
+      ],
+      "attachments": {
+        "Aura": [
+          0,
+          0,
+          0.18
+        ],
+        "Seal": [
+          0,
+          -1.5699999999999998,
+          1.23
+        ],
+        "LidSpark": [
+          0,
+          0,
+          3.33
+        ]
+      },
+      "effect": "Cyan crystal motes and cool seal light",
+      "triangles": {
+        "Body": 7384,
+        "Lid": 1036
+      },
+      "root": "bottom center",
+      "coordinates": "Blender XYZ; glTF/Roblox = (x,z,-y), 1 unit = 1 stud",
+      "robloxHinge": [
+        0,
+        1.9500000000000002,
+        -1.15
+      ],
+      "robloxAttachments": {
+        "Aura": [
+          0,
+          0.18,
+          0
+        ],
+        "Seal": [
+          0,
+          1.23,
+          1.5699999999999998
+        ],
+        "LidSpark": [
+          0,
+          3.33,
+          0
+        ]
+      }
+    },
+    "legendary": {
+      "width": 3.65,
+      "depth": 2.3,
+      "height": 2.05,
+      "hinge": [
+        0,
+        1.15,
+        2.15
+      ],
+      "attachments": {
+        "Aura": [
+          0,
+          0,
+          0.18
+        ],
+        "Seal": [
+          0,
+          -1.5699999999999998,
+          1.23
+        ],
+        "LidSpark": [
+          0,
+          0,
+          3.9
+        ]
+      },
+      "effect": "Violet wisps, gold star sparks and a pulsing aura",
+      "triangles": {
+        "Body": 7696,
+        "Lid": 1556
+      },
+      "root": "bottom center",
+      "coordinates": "Blender XYZ; glTF/Roblox = (x,z,-y), 1 unit = 1 stud",
+      "robloxHinge": [
+        0,
+        2.15,
+        -1.15
+      ],
+      "robloxAttachments": {
+        "Aura": [
+          0,
+          0.18,
+          0
+        ],
+        "Seal": [
+          0,
+          1.23,
+          1.5699999999999998
+        ],
+        "LidSpark": [
+          0,
+          3.9,
+          0
+        ]
+      }
+    }
+  },
+  "models": {
+    "plunger": {
+      "root": "authored origin matching GadgetModel, not bounding-box center",
+      "coordinates": "Blender Z-up; Roblox +Y handle and -Y suction cup. 1 unit = 1 stud.",
+      "gripRoblox": [
+        0,
+        1.3,
+        0
+      ],
+      "tipRoblox": [
+        0,
+        -1.32,
+        0
+      ],
+      "boundsBlender": [
+        [
+          -1.1050000190734863,
+          -1.1050000190734863,
+          -1.336458683013916
+        ],
+        [
+          1.1050000190734863,
+          1.1050000190734863,
+          2.4800000190734863
+        ]
+      ],
+      "triangles": {
+        "RubberCup": 9984,
+        "Handle": 3252
+      }
+    },
+    "coin": {
+      "root": "center of coin rim, (0,0,0)",
+      "coordinates": "Front is Roblox +Z, up is +Y; 1 unit = 1 stud",
+      "sizeRoblox": [
+        2.0,
+        2.0,
+        0.3895000219345093
+      ],
+      "triangles": {
+        "Coin": 5760
+      },
+      "icon": "../../coin.png"
+    },
+    "bubblegum-bomb": {
+      "root": "authored center at (0,0,0)",
+      "runtimeKey": "gum",
+      "boundsBlender": [
+        [
+          -0.9399991035461426,
+          -0.7799994349479675,
+          -0.8600000143051147
+        ],
+        [
+          0.9399996995925903,
+          0.7799999713897705,
+          1.5618549585342407
+        ]
+      ],
+      "sizeRoblox": [
+        1.879998803138733,
+        2.4218549728393555,
+        1.559999406337738
+      ],
+      "coordinates": "Blender XYZ to Roblox (x,z,-y); 1 unit = 1 stud",
+      "attachmentsRoblox": {
+        "FuseTip": [
+          0.62,
+          1.38,
+          0.05
+        ]
+      },
+      "triangles": {
+        "GumBody": 3840,
+        "Fuse": 3224
+      },
+      "effects": "Optional SupplyEffects helper; no particle geometry exported"
+    },
+    "golden-bone": {
+      "root": "authored center at (0,0,0)",
+      "runtimeKey": "golden",
+      "boundsBlender": [
+        [
+          -0.582800030708313,
+          -1.3391996622085571,
+          -0.2851998507976532
+        ],
+        [
+          0.582800030708313,
+          1.3391999006271362,
+          0.2852000296115875
+        ]
+      ],
+      "sizeRoblox": [
+        1.165600061416626,
+        0.5703998804092407,
+        2.6783995628356934
+      ],
+      "coordinates": "Blender XYZ to Roblox (x,z,-y); 1 unit = 1 stud",
+      "attachmentsRoblox": {
+        "GlintA": [
+          0,
+          0,
+          0.95
+        ],
+        "GlintB": [
+          0,
+          0,
+          -0.95
+        ]
+      },
+      "triangles": {
+        "GoldenBone": 4800
+      },
+      "effects": "Optional SupplyEffects helper; no particle geometry exported"
+    }
+  }
+}

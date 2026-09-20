@@ -1,6 +1,6 @@
 --!strict
 -- Presentation for the server's two destinations. No client-side settlement
--- or distance calculation: pressing the button still sends an empty request.
+-- or distance calculation: arriving inside a ring settles it on the server.
 local CarryDelivery = {}
 function CarryDelivery.describe(amount: number, haul: any, kind: string?, options: any?): any
 	local items = if type(haul) == "table" then #haul else 0
@@ -19,8 +19,8 @@ function CarryDelivery.describe(amount: number, haul: any, kind: string?, option
 	local button = if action == "return" then "RETURN" else "KEEP"
 	local banner = if action == "return" then "RETURN THE HAUL!"
 		elseif action == "keep" then "DEPOSIT THE HAUL!"
-		elseif info.canKeep == false then "TAKE YOUR HAUL HOME!"
-		elseif info.canReturn then "CHOOSE A DROP-OFF!" else "TAKE THE HAUL HOME!"
+		elseif info.canKeep == false then "WALK INTO YOUR PIGGY'S RING!"
+		elseif info.canReturn then "WALK INTO A GLOWING RING!" else "WALK INTO YOUR PIGGY'S RING!"
 	return {visible=visible, home=home, returning=returning, button=button,
 		banner=banner, showHome=info.canKeep ~= false, showReturn=info.canReturn == true,
 		canPress=visible and (action == "keep" or action == "return")}

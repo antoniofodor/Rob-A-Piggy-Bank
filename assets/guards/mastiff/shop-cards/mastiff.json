@@ -1,0 +1,82 @@
+{
+  "id": "mastiff",
+  "name": "Mastiff",
+  "rig": "mastiff",
+  "source": "assets/guards/mastiff/mastiff.blend",
+  "sourceSha256": "235f86ac24e4ae1ed836309b1aeaee8cc660c9a2b92bffdf030b66be02cffc53",
+  "image": "assets/guards/mastiff/shop-cards/mastiff.png",
+  "sha256": "bfc069f77f5af30f12f163b5a5513f47ff04592f3c3c54380a2efcc918d34c9e",
+  "tones": {
+    "fur": [
+      78,
+      73,
+      82
+    ],
+    "dark": [
+      49,
+      46,
+      54
+    ],
+    "light": [
+      120,
+      111,
+      114
+    ],
+    "collar": [
+      244,
+      189,
+      35
+    ],
+    "brow": [
+      78,
+      73,
+      82
+    ],
+    "mask": [
+      94.8,
+      88.2,
+      94.8
+    ],
+    "eye": [
+      18,
+      18,
+      20
+    ],
+    "nose": [
+      29,
+      27,
+      30
+    ],
+    "mouth": [
+      41,
+      24,
+      31
+    ],
+    "teeth": [
+      248,
+      232,
+      189
+    ],
+    "inner": [
+      201,
+      126,
+      112
+    ],
+    "armor": [
+      131,
+      48,
+      78
+    ],
+    "accent": [
+      238,
+      122,
+      64
+    ],
+    "silver": [
+      171,
+      170,
+      182
+    ]
+  },
+  "robloxAssetId": "rbxassetid://79883493152667"
+}

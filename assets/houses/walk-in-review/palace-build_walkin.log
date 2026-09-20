@@ -1,0 +1,18 @@
+00:04.453  blend            | Read blend: "C:\Users\anton\robloxGame\assets\houses\ice-palace-v1\ice-palace.blend"
+C:\Users\anton\robloxGame\assets\houses\tools\build_walkin.py:44: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(name);m.use_nodes=True
+00:09.375  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_4628_79d415cdc77acd603e071492065b32d9.png.png"
+00:24.078  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\ice-palace-v2\exterior.png'
+00:45.312  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\ice-palace-v2\interior.png'
+00:59.734  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\ice-palace-v2\entry.png'
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\ice-palace-v2\\ice-palace-visual.fbx'
+export finished in 0.0940 sec.
+Info: File exported successfully
+Info: Saved as "ice-palace.blend"
+WALKIN_COMPLETE {"id": "palace", "folder": "ice-palace-v2", "probes": 40, "triangles": 7500}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+Writing to C:\Users\anton\robloxGame\assets\houses\ice-palace-v2\ice-palace-visual.obj
+OBJ export of 'ice-palace-visual.obj' took 13.10 ms
+
+Blender quit

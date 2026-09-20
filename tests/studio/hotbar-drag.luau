@@ -27,8 +27,8 @@ local ok, result = pcall(function()
 	assert(not rules.owns(nil,move,false))
 	assert(rules.contains(Vector2.new(10,-30),Vector2.new(0,-58),Vector2.new(50,44)))
 	assert(not rules.contains(Vector2.new(60,-30),Vector2.new(0,-58),Vector2.new(50,44)))
-	assert(table.find(require(shared.HotBar).ITEMS,"ladder"), "ladder persists in arrangement")
-	return "PASS: neighbour moves, page boundaries, empty stock, no-op drops, touch ownership, mouse input, safe-area bounds and ladder save list."
+	assert(not table.find(require(shared.HotBar).ITEMS,"ladder"), "retired ladder is out of the arrangement")
+	return "PASS: neighbour moves, page boundaries, empty stock, no-op drops, touch ownership, mouse input, safe-area bounds and retired-item save list."
 end)
 copy:Destroy()
 assert(ok,result)

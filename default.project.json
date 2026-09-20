@@ -37,6 +37,9 @@
       "GuardTemplates": {
         "$path": "src/ServerStorage/GuardTemplates"
       },
+      "SceneryTreeTemplates": {
+        "$path": "src/ServerStorage/SceneryTreeTemplates"
+      },
       "$ignoreUnknownInstances": true
     }
   }

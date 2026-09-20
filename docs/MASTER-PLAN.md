@@ -896,7 +896,7 @@ STYLE and a fence TIER are one object wearing two meanings.
 
 **New planning target, September 16:** the user requested price coverage up
 to 1B. This reopens the former 96.9M-only scope; it does not itself change
-capacity or approve live prices. `docs/HOUSE-CATALOGUE-PLAN.md` proposes 18
+capacity or approve live prices. `assets/houses/docs/HOUSE-CATALOGUE-PLAN.md` proposes 18
 houses and records the required affordability/ownership decisions. Earlier
 ~400M catalogue targets below are historical sizing assumptions pending the
 new price plan. Shared themed trophy rooms are approved as the approach.
@@ -906,7 +906,7 @@ requested higher-tier house **exterior** catalogue mockups. Interiors remain
 a future implementation task. The user subsequently approved the direction
 of displaying earned achievements and trophies **inside houses instead of
 in the yard**. A shared themed trophy-room approach is proposed in
-`docs/HOUSE-TROPHY-ROOMS.md`; its architecture/art/visiting rules are not yet
+`assets/houses/docs/HOUSE-TROPHY-ROOMS.md`; its architecture/art/visiting rules are not yet
 implemented or approved in detail. Three exterior
 concept sheets and exact prompts are saved under
 `assets/houses/concepts/2026-09-16/`; selection, prices and progression are

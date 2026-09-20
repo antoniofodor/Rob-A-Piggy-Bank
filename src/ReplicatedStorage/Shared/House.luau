@@ -31,7 +31,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local HouseFX = require(ReplicatedStorage.Shared.HouseFX)
+-- GENERATED from every house's `animation-handoff.json` by
+-- assets/houses/tools/build_house_fx.py. See `buildTemplateHouse`.
+local HouseFXSpec = require(ReplicatedStorage.Shared.HouseFXSpec)
 local LowPoly = require(ReplicatedStorage.Shared.LowPoly)
+local CoinModel = require(ReplicatedStorage.Shared.CoinModel)
 
 local House = {}
 
@@ -2168,6 +2172,251 @@ local function buildPlaceholder(tier, at: CFrame)
 	end
 end
 
+-- ============================================================
+-- THE AUTHORED HOUSE (a template of many meshes)
+-- ============================================================
+--
+-- The meshed path above is ONE generated mesh for a whole house. An AUTHORED
+-- house is a Blender model split by material -- the treehouse is 68 meshes
+-- carrying their own colours -- so it arrives as a template rather than as an
+-- id, built by assets/houses/tools/build_treehouse_runtime.py and synced into
+-- `ReplicatedStorage.Shared.HouseTemplates`.
+--
+-- IN `Shared` RATHER THAN `ServerStorage`, because both ends draw a house: the
+-- server stands it on a plot and the client renders it on a shop card. The
+-- guard dogs pay a copy step at startup for exactly this reason; a template
+-- that is already replicated needs none.
+--
+-- THE TEMPLATE IS ALREADY THE RIGHT SIZE AND THE RIGHT WAY ROUND. Its feet
+-- are on y 0 and its front faces +Z (the street), so this seats it with one
+-- multiply and never rescales -- the scale and the half turn are the
+-- generator's job, where they are recorded and reproducible rather than being
+-- numbers somebody nudged in a place file.
+-- AN AUTHORED COIN BECOMES THE GAME'S OWN COIN. The Golden Piggy was drawn
+-- with a plain two-tone disc bobbing over its slot, from before the snout coin
+-- existed as a mesh; every other coin in the game is `CoinModel` now, so a
+-- flat disc on the one house that is a monument to coins read as a stand-in.
+-- `replace` is the mesh whose place, size and bob the coin takes; `drop` is
+-- the rest of that disc. With no coin mesh loaded (`Config.COIN_MESH` empty,
+-- or the client asking before the server has parked the template) the
+-- authored disc stands instead -- a disc is a far smaller fault than a hole.
+local COIN_SWAP = {
+	goldenpig = {
+		replace = "HouseFX_SlotCoin_PigLight",
+		drop = { HouseFX_SlotCoin_PigShade = true },
+	},
+}
+
+-- FISH IN THE FISHBOWL. Code-built rather than meshed: a fish this size is a
+-- stretched ball, a diamond tail and a fin, and a generated mesh would be an
+-- upload under the developer's own account for three shapes primitives make.
+--
+-- Every number here is a CLEARANCE, measured against the dome and the pod in
+-- assets/houses/fishbowl-house-v2/fishbowl-house-visual.obj, in the template's
+-- own frame (the dome's centre is at x 0, z -2.42, glass radius about 23.9):
+--   * the mid ring at y 16.6 and radius 13.3 clears the pod by 0.6, bubbles 2
+--     and 3 by 0.65, and sits above the entrance tunnel's roof at 14.9 --
+--     lower down, any ring round the pod swims through that tunnel;
+--   * the top ring at y 22.4 and radius 7.5 rides over the pod's crown and
+--     stays inside the glass with its bob.
+-- `angle` is where round the ring a fish starts; `rate` is laps a second, and
+-- a negative one swims the other way.
+local HOUSE_FISH = {
+	modern = {
+		axis = { x = 0, z = -2.42 },
+		fish = {
+			{ y = 16.6, radius = 13.3, angle = 0, rate = 0.05, length = 2.8,
+				body = Color3.fromRGB(255, 138, 44), fin = Color3.fromRGB(255, 236, 214) },
+			{ y = 16.6, radius = 13.3, angle = math.pi, rate = 0.05, length = 2.6,
+				body = Color3.fromRGB(255, 206, 60), fin = Color3.fromRGB(70, 150, 235) },
+			{ y = 22.4, radius = 7.5, angle = math.pi / 2, rate = -0.07, length = 2.0,
+				body = Color3.fromRGB(70, 150, 235), fin = Color3.fromRGB(255, 206, 60) },
+		},
+	},
+}
+
+local function addFish(style: string, seat: CFrame)
+	local spec = HOUSE_FISH[style]
+	if not spec then
+		return
+	end
+	for _, f in ipairs(spec.fish) do
+		local axisPoint = Vector3.new(spec.axis.x, f.y, spec.axis.z)
+		local out = Vector3.new(math.cos(f.angle), 0, math.sin(f.angle))
+		-- A positive turn about +Y carries a point at `out` towards
+		-- `up x out`, so that is the way the nose has to point.
+		local ahead = Vector3.yAxis:Cross(out) * (if f.rate < 0 then -1 else 1)
+		local frame = CFrame.fromMatrix(axisPoint + out * f.radius, ahead, Vector3.yAxis)
+		local L = f.length
+		local H, W = L * 0.5, L * 0.36
+
+		local function piece(name: string, size: Vector3, cf: CFrame, colour: Color3, shape: Enum.PartType?)
+			local p = Instance.new("Part")
+			p.Name = "HouseFX_Fish_" .. name
+			if shape then
+				p.Shape = shape
+			end
+			p.Size = size
+			p.Color = colour
+			p.Material = Enum.Material.SmoothPlastic
+			p.TopSurface, p.BottomSurface = Enum.SurfaceType.Smooth, Enum.SurfaceType.Smooth
+			p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch, p.CastShadow = true, false, false, false, false
+			local localCF = frame * cf
+			p.CFrame = seat * localCF
+			-- Same kind, rate and phase on every piece of one fish, and the
+			-- same axis point, so `swim` turns them as one body.
+			p:SetAttribute("FX", "swim")
+			p:SetAttribute("Rate", f.rate)
+			p:SetAttribute("Phase", 0)
+			p:SetAttribute("Amount", 0.25)
+			local c = localCF:PointToObjectSpace(axisPoint)
+			p:SetAttribute("CentreX", c.X)
+			p:SetAttribute("CentreY", c.Y)
+			p:SetAttribute("CentreZ", c.Z)
+			p.Parent = folder
+			return p
+		end
+
+		-- A ball Part ignores a non-uniform size, so the body is a stretched
+		-- sphere mesh: the cheap escape this file's drip statue already uses.
+		local body = piece("Body", Vector3.new(L, H, W), CFrame.new(), f.body)
+		local mesh = Instance.new("SpecialMesh")
+		mesh.MeshType = Enum.MeshType.Sphere
+		mesh.Parent = body
+		-- A FORKED TAIL: two thin blades splayed 35 degrees either side,
+		-- their front ends meeting just inside the back of the body. A single
+		-- diamond was tried first and read as a second fin rather than a tail.
+		local blade = L * 0.42
+		for _, side in { -1, 1 } do
+			local a = math.rad(35) * side
+			piece("Tail", Vector3.new(blade, H * 0.28, 0.12),
+				CFrame.new(-L / 2 + L * 0.06, 0, 0) * CFrame.Angles(0, 0, a)
+					* CFrame.new(-blade / 2, 0, 0), f.fin)
+		end
+		piece("Fin", Vector3.new(L * 0.3, L * 0.3, 0.1),
+			CFrame.new(-L * 0.05, H * 0.36, 0) * CFrame.Angles(0, 0, math.rad(45)), f.fin)
+		for _, side in { -1, 1 } do
+			piece("Eye", Vector3.new(0.2, 0.2, 0.2) * (L / 2.4),
+				CFrame.new(L * 0.3, H * 0.1, side * W * 0.36), Color3.fromRGB(28, 22, 26), Enum.PartType.Ball)
+		end
+	end
+end
+
+local function buildTemplateHouse(tier, at: CFrame): boolean
+	local key = Config.HOUSE_TEMPLATE[tier.style]
+	if not key then
+		return false
+	end
+	local templates = ReplicatedStorage.Shared:FindFirstChild("HouseTemplates")
+	local template = templates and templates:FindFirstChild(key)
+	if not template then
+		-- The primitive builder or the placeholder block stands instead, which
+		-- is a house rather than an empty lawn. Loud, because a missing model
+		-- otherwise reads as the tier simply being ugly.
+		warn(("[House] no %s template in ReplicatedStorage.Shared.HouseTemplates, "
+			.. "so the built-in house is standing instead"):format(key))
+		return false
+	end
+
+	-- ON THE GRASS, NOT IN IT. `at` is the WORLD GROUND, and the code-built
+	-- houses are authored from there -- the yard grass then covers their
+	-- bottom stud, which is invisible on a walled building standing on a
+	-- plinth. An authored house has roots, rocks and plants at its base that
+	-- are meant to be SEEN, so it rides up by the lawn's own lift. Measured
+	-- before: the tree base sat a stud under the grass and the ground details
+	-- 1.85 under it.
+	local seat = at * CFrame.new(0, Config.LAWN_LIFT, 0)
+	local built = false
+	-- THE AUTHORED EFFECTS, AND WITHOUT THIS THEY WERE DEAD GEOMETRY.
+	--
+	-- Every authored house ships meshes named `HouseFX_*` carrying a kind, a
+	-- period and a phase in its `animation-handoff.json` -- and they sat
+	-- perfectly still, because `HouseFX` finds its work through a
+	-- CollectionService TAG and reads its behaviour off ATTRIBUTES, and an
+	-- .rbxmx can carry neither without a binary blob. So the art named 95
+	-- effect meshes and nothing in the engine was reading names. Nothing
+	-- errored, because there was no code to error: the quietest failure shape
+	-- there is, and the one this project keeps recording.
+	--
+	-- Applied HERE rather than in the generator because this loop is already
+	-- walking every cloned part, so the whole feature is a table lookup.
+	local fx = HouseFXSpec[tier.style]
+	local swap = COIN_SWAP[tier.style]
+	local swapTo = swap and template:FindFirstChild(swap.replace)
+	local coin = swapTo and swapTo:IsA("BasePart") and CoinModel.clone(swapTo.Size.X) or nil
+	for _, source in ipairs(template:GetChildren()) do
+		if coin and swap and swap.drop[source.Name] then
+			continue
+		end
+		if source:IsA("BasePart") then
+			local p: BasePart = source:Clone()
+			if coin and swap and source.Name == swap.replace then
+				-- Named as the part it stands in for, so the effect spec below
+				-- finds it and it bobs exactly as the authored disc did.
+				coin.Name = source.Name
+				coin.CFrame = source.CFrame
+				coin.CanCollide, coin.CanQuery, coin.CanTouch = false, false, false
+				p:Destroy()
+				p = coin
+			end
+			p.CFrame = seat * p.CFrame
+			p.Anchored = true
+			p.CastShadow = false
+			local spec = fx and fx[source.Name]
+			if spec then
+				for key, value in pairs(spec) do
+					-- `Neon` IS A MATERIAL, NOT AN ATTRIBUTE, and it is the other
+					-- half of why nothing glowed. The generator paints every mesh
+					-- `SmoothPlastic` -- correctly, it is the whole look of this
+					-- street -- so the light effects were animating a colour on a
+					-- MATTE surface, which at this exposure is nearly invisible.
+					-- Neon is the one material that ignores the scene, which is
+					-- why every emissive thing in this game is one.
+					--
+					-- Set on the light kinds only (`pulse`, `cycle`, `chase`,
+					-- `beacon`), never on the movers: Neon on a floating rock is
+					-- the "first build shipped Neon and the whole house glowed"
+					-- mistake the generator already records.
+					if key == "Neon" then
+						if value == true then
+							p.Material = Enum.Material.Neon
+						end
+					else
+						p:SetAttribute(key, value)
+					end
+				end
+			end
+			-- THE TAG IS NOT APPLIED HERE, AND THAT IS THE WHOLE TRAP. This model
+			-- is DETACHED until `House.build` parents it at the end, and a tag
+			-- added to an instance outside the DataModel never fires
+			-- `GetInstanceAddedSignal` -- so `HouseFX` would only ever see these
+			-- through its ten-second startup rescan, and a house bought by a
+			-- player an hour in would animate nothing. See `tagAuthoredFX`.
+			-- COLLISION IS THE TEMPLATE'S OWN CALL, which is the one place an
+			-- authored house differs from every other house in this game.
+			--
+			-- The code-built houses are solid masses with no inside, so they
+			-- are `CanCollide` false throughout: pure scenery that can never
+			-- block a chase. An authored house has a deck, a doorway, a room
+			-- and stairs, and the whole point of it is that you can go up and
+			-- in -- so its template ships invisible collision boxes (see
+			-- assets/houses/tools/build_treehouse_runtime.py) and this respects
+			-- what it was given rather than overriding it.
+			--
+			-- `CanQuery` is respected the same way, and the template leaves it
+			-- OFF: a house has never answered a spatial query, which is what
+			-- keeps a gum splat and a thrown gadget behaving as they always
+			-- have.
+			p.Parent = folder
+			built = true
+		end
+	end
+	if built then
+		addFish(tier.style, seat)
+	end
+	return built
+end
+
 function House.build(level: number, at: CFrame, parent: Instance): Model
 	local tier = Config.getHouseTier(level)
 
@@ -2179,7 +2428,10 @@ function House.build(level: number, at: CFrame, parent: Instance): Model
 	-- whenever `Config.HOUSE_MESH` has no row for it. That is what lets the
 	-- nine tiers be meshed one at a time -- and what keeps every house this
 	-- game already ships standing while the catalogue is only half done.
-	if not buildMeshHouse(tier, at) then
+	-- The authored template first, then the single generated mesh, then the
+	-- builders. Each falls through to the next, so a tier can be authored,
+	-- meshed or built in code and the other eight are untouched.
+	if not buildTemplateHouse(tier, at) and not buildMeshHouse(tier, at) then
 		-- The rebuilt low-poly builder when this style opts in, else the
 		-- original. Both sets are kept: `Config.HOUSE_REBUILD` names the
 		-- styles that have been redrawn, and every other tier stands exactly
@@ -2195,6 +2447,17 @@ function House.build(level: number, at: CFrame, parent: Instance): Model
 		build(tier, at)
 	end
 	model.Parent = parent
+	-- AFTER PARENTING, NEVER BEFORE. `Decor.build` and the shop doors have both
+	-- paid for this: a tag added while the model is detached is invisible to
+	-- `GetInstanceAddedSignal`, so the animator would only pick these up inside
+	-- its startup rescan window and a house bought later would sit still
+	-- forever. The parts carry their `FX` attribute already, so this walk needs
+	-- no lookup -- an authored effect is any part that was given a kind.
+	for _, part in ipairs(model:GetChildren()) do
+		if part:IsA("BasePart") and part:GetAttribute("FX") ~= nil then
+			CollectionService:AddTag(part, HouseFX.TAG)
+		end
+	end
 
 	local box, size = model:GetBoundingBox()
 	local localCentre = at:PointToObjectSpace(box.Position)

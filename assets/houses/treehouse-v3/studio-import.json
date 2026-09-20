@@ -1,0 +1,929 @@
+{
+  "source": "workspace/treehouse-roblox, imported from treehouse-roblox.fbx",
+  "note": "Dumped from Studio by assets/houses/tools/record_house_import.py. Every imported part carries identity rotation and Size equal to MeshSize, both checked at dump time, so only a position and the mesh size are needed.",
+  "groundY": 1859.2123,
+  "bounds": {
+    "lo": [
+      -1290.1256,
+      1814.8188,
+      -1040.8523
+    ],
+    "hi": [
+      958.9068,
+      3424.8403,
+      1175.5627
+    ]
+  },
+  "parts": [
+    {
+      "name": "Bridge_Rope",
+      "mesh": "rbxassetid://71282217075987",
+      "meshSize": [
+        366.6434,
+        133.8951,
+        190.892
+      ],
+      "position": [
+        -660.5538,
+        2494.7671,
+        257.3687
+      ]
+    },
+    {
+      "name": "Bridge_Wood",
+      "mesh": "rbxassetid://103834745184290",
+      "meshSize": [
+        326.393,
+        36.9279,
+        173.5382
+      ],
+      "position": [
+        -638.6093,
+        2421.9846,
+        257.3687
+      ]
+    },
+    {
+      "name": "Bridge_WoodLight",
+      "mesh": "rbxassetid://109715612099872",
+      "meshSize": [
+        266.8654,
+        38.973,
+        173.5382
+      ],
+      "position": [
+        -698.1369,
+        2420.9619,
+        257.3687
+      ]
+    },
+    {
+      "name": "Cabin_Amber",
+      "mesh": "rbxassetid://70785218501942",
+      "meshSize": [
+        608.7961,
+        128.3375,
+        452.41
+      ],
+      "position": [
+        -17.9581,
+        2642.1519,
+        319.3178
+      ]
+    },
+    {
+      "name": "Cabin_Plaster",
+      "mesh": "rbxassetid://91822743468501",
+      "meshSize": [
+        686.0812,
+        423.7562,
+        578.1243
+      ],
+      "position": [
+        9.3843,
+        2656.2773,
+        350.696
+      ]
+    },
+    {
+      "name": "Cabin_Timber",
+      "mesh": "rbxassetid://92999355719238",
+      "meshSize": [
+        726.4389,
+        439.8992,
+        605.3658
+      ],
+      "position": [
+        9.3843,
+        2658.2949,
+        358.263
+      ]
+    },
+    {
+      "name": "Cabin_Wood",
+      "mesh": "rbxassetid://78052305842874",
+      "meshSize": [
+        666.9113,
+        9.8877,
+        510.5251
+      ],
+      "position": [
+        -30.469,
+        2567.9946,
+        306.8069
+      ]
+    },
+    {
+      "name": "Cabin_WoodShade",
+      "mesh": "rbxassetid://121498101043807",
+      "meshSize": [
+        633.8179,
+        379.3625,
+        482.2748
+      ],
+      "position": [
+        -28.0475,
+        2634.0806,
+        306.8069
+      ]
+    },
+    {
+      "name": "Canopy_Leaf",
+      "mesh": "rbxassetid://113914795565279",
+      "meshSize": [
+        1776.3523,
+        1210.6506,
+        944.1694
+      ],
+      "position": [
+        46.8829,
+        2819.5149,
+        700.7597
+      ]
+    },
+    {
+      "name": "Canopy_LeafDark",
+      "mesh": "rbxassetid://74076219438419",
+      "meshSize": [
+        2047.9999,
+        822.2048,
+        816.6805
+      ],
+      "position": [
+        -266.1257,
+        2987.7852,
+        650.4977
+      ]
+    },
+    {
+      "name": "Canopy_LeafLight",
+      "mesh": "rbxassetid://140553424209098",
+      "meshSize": [
+        1576.1045,
+        1073.3976,
+        1083.5101
+      ],
+      "position": [
+        170.8546,
+        2885.0933,
+        633.8077
+      ]
+    },
+    {
+      "name": "Deck_Timber",
+      "mesh": "rbxassetid://119123575959601",
+      "meshSize": [
+        838.0987,
+        228.9769,
+        807.1543
+      ],
+      "position": [
+        9.3843,
+        2303.1475,
+        297.7265
+      ]
+    },
+    {
+      "name": "Deck_Wood",
+      "mesh": "rbxassetid://98941954134905",
+      "meshSize": [
+        968.5851,
+        24.2148,
+        805.9436
+      ],
+      "position": [
+        9.3843,
+        2432.292,
+        297.7265
+      ]
+    },
+    {
+      "name": "Deck_WoodLight",
+      "mesh": "rbxassetid://112553696664908",
+      "meshSize": [
+        968.5851,
+        24.2148,
+        579.9404
+      ],
+      "position": [
+        9.3843,
+        2432.292,
+        378.4419
+      ]
+    },
+    {
+      "name": "Deck_WoodShade",
+      "mesh": "rbxassetid://79473571664668",
+      "meshSize": [
+        994.8177,
+        41.3669,
+        833.3868
+      ],
+      "position": [
+        9.3843,
+        2423.7161,
+        297.7264
+      ]
+    },
+    {
+      "name": "GroundDetails_Leaf",
+      "mesh": "rbxassetid://97849107232418",
+      "meshSize": [
+        1685.525,
+        114.629,
+        1112.8217
+      ],
+      "position": [
+        -348.1682,
+        1903.2024,
+        47.6581
+      ]
+    },
+    {
+      "name": "GroundDetails_LeafLight",
+      "mesh": "rbxassetid://96239252861521",
+      "meshSize": [
+        1696.26,
+        114.0003,
+        1119.9603
+      ],
+      "position": [
+        -348.6329,
+        1903.2023,
+        26.67
+      ]
+    },
+    {
+      "name": "GroundDetails_Stone",
+      "mesh": "rbxassetid://111614558173642",
+      "meshSize": [
+        1623.1846,
+        169.5024,
+        1226.1396
+      ],
+      "position": [
+        -300.518,
+        1899.5701,
+        99.3708
+      ]
+    },
+    {
+      "name": "GroundDetails_StoneLight",
+      "mesh": "rbxassetid://135057498141930",
+      "meshSize": [
+        93.9816,
+        12.9145,
+        70.049
+      ],
+      "position": [
+        250.8049,
+        1863.248,
+        -1005.8278
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkDoor",
+      "mesh": "rbxassetid://109617655551908",
+      "meshSize": [
+        110.3784,
+        336.5833,
+        8.0716
+      ],
+      "position": [
+        67.6003,
+        2615.1123,
+        66.4767
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim",
+      "mesh": "rbxassetid://78287693508716",
+      "meshSize": [
+        96.6568,
+        318.4224,
+        1.2108
+      ],
+      "position": [
+        67.6003,
+        2614.9106,
+        61.6338
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim.001",
+      "mesh": "rbxassetid://140308676322001",
+      "meshSize": [
+        5.2465,
+        26.2325,
+        5.0447
+      ],
+      "position": [
+        22.0969,
+        2605.0229,
+        58.5061
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkDoor",
+      "mesh": "rbxassetid://136718755898227",
+      "meshSize": [
+        110.3784,
+        336.5833,
+        8.0716
+      ],
+      "position": [
+        -48.8318,
+        2615.1123,
+        66.4767
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim",
+      "mesh": "rbxassetid://90599579456202",
+      "meshSize": [
+        96.6568,
+        318.4224,
+        1.2108
+      ],
+      "position": [
+        -48.8318,
+        2614.9106,
+        61.6338
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim.001",
+      "mesh": "rbxassetid://89341234571210",
+      "meshSize": [
+        5.2465,
+        26.2325,
+        5.0447
+      ],
+      "position": [
+        -3.3284,
+        2605.0229,
+        58.5061
+      ]
+    },
+    {
+      "name": "Interior_Amber",
+      "mesh": "rbxassetid://113967718047428",
+      "meshSize": [
+        325.0814,
+        28.8558,
+        18.3628
+      ],
+      "position": [
+        9.3842,
+        2755.2744,
+        55.5801
+      ]
+    },
+    {
+      "name": "Interior_Iron",
+      "mesh": "rbxassetid://126372731079917",
+      "meshSize": [
+        338.1977,
+        73.9959,
+        56.0972
+      ],
+      "position": [
+        9.3842,
+        2773.6475,
+        67.8892
+      ]
+    },
+    {
+      "name": "Interior_Leaf",
+      "mesh": "rbxassetid://76429390467659",
+      "meshSize": [
+        557.6294,
+        38.2097,
+        12.5527
+      ],
+      "position": [
+        9.9269,
+        2518.2539,
+        50.1993
+      ]
+    },
+    {
+      "name": "Interior_LeafLight",
+      "mesh": "rbxassetid://80468756489807",
+      "meshSize": [
+        563.3915,
+        38.0001,
+        19.4231
+      ],
+      "position": [
+        9.3086,
+        2518.2539,
+        37.2629
+      ]
+    },
+    {
+      "name": "Interior_Wood",
+      "mesh": "rbxassetid://129159409658890",
+      "meshSize": [
+        633.6161,
+        3.2288,
+        470.9745
+      ],
+      "position": [
+        9.3843,
+        2446.2153,
+        336.4698
+      ]
+    },
+    {
+      "name": "Interior_WoodLight",
+      "mesh": "rbxassetid://132986929980211",
+      "meshSize": [
+        633.6161,
+        3.2287,
+        439.4955
+      ],
+      "position": [
+        9.3843,
+        2446.2153,
+        383.6884
+      ]
+    },
+    {
+      "name": "Interior_WoodShade",
+      "mesh": "rbxassetid://133887830804528",
+      "meshSize": [
+        560.9722,
+        60.5366,
+        56.5008
+      ],
+      "position": [
+        9.3843,
+        2476.6853,
+        43.4728
+      ]
+    },
+    {
+      "name": "Ladder_Rope",
+      "mesh": "rbxassetid://127537109681230",
+      "meshSize": [
+        84.7512,
+        363.2194,
+        4.0359
+      ],
+      "position": [
+        -386.1214,
+        2242.6108,
+        681.1248
+      ]
+    },
+    {
+      "name": "Ladder_Wood",
+      "mesh": "rbxassetid://128188416279853",
+      "meshSize": [
+        88.7869,
+        369.6767,
+        6.4573
+      ],
+      "position": [
+        -386.1213,
+        2242.6108,
+        681.1248
+      ]
+    },
+    {
+      "name": "Lookout_Bark",
+      "mesh": "rbxassetid://116928949916504",
+      "meshSize": [
+        165.0286,
+        928.2275,
+        287.0793
+      ],
+      "position": [
+        -1042.2915,
+        2323.3262,
+        377.164
+      ]
+    },
+    {
+      "name": "Lookout_BarkDark",
+      "mesh": "rbxassetid://80575857093052",
+      "meshSize": [
+        165.0286,
+        928.2274,
+        276.645
+      ],
+      "position": [
+        -1042.2915,
+        2323.3262,
+        371.9468
+      ]
+    },
+    {
+      "name": "Lookout_BarkLight",
+      "mesh": "rbxassetid://79424858044336",
+      "meshSize": [
+        146.2721,
+        928.2275,
+        287.0793
+      ],
+      "position": [
+        -1043.46,
+        2323.3262,
+        377.164
+      ]
+    },
+    {
+      "name": "Lookout_Iron",
+      "mesh": "rbxassetid://112154905852308",
+      "meshSize": [
+        57.7115,
+        37.5327,
+        57.7115
+      ],
+      "position": [
+        -858.3066,
+        2200.2351,
+        136.2956
+      ]
+    },
+    {
+      "name": "Lookout_Roof",
+      "mesh": "rbxassetid://108156128017383",
+      "meshSize": [
+        282.4011,
+        59.8269,
+        189.6813
+      ],
+      "position": [
+        -1007.6301,
+        2674.4382,
+        301.7622
+      ]
+    },
+    {
+      "name": "Lookout_Rope",
+      "mesh": "rbxassetid://94296438062859",
+      "meshSize": [
+        5.2465,
+        407.6129,
+        5.2465
+      ],
+      "position": [
+        -858.3066,
+        2426.2383,
+        136.2956
+      ]
+    },
+    {
+      "name": "Lookout_Timber",
+      "mesh": "rbxassetid://70766189297097",
+      "meshSize": [
+        317.7461,
+        413.4521,
+        262.0996
+      ],
+      "position": [
+        -1011.0573,
+        2462.6675,
+        258.2622
+      ]
+    },
+    {
+      "name": "Lookout_Wood",
+      "mesh": "rbxassetid://120237576618670",
+      "meshSize": [
+        347.8836,
+        377.7483,
+        327.7047
+      ],
+      "position": [
+        -1001.5765,
+        2368.9304,
+        253.3329
+      ]
+    },
+    {
+      "name": "Lookout_WoodLight",
+      "mesh": "rbxassetid://118641533401816",
+      "meshSize": [
+        359.1838,
+        9.6859,
+        343.0406
+      ],
+      "position": [
+        -1003.5944,
+        2572.7368,
+        253.3329
+      ]
+    },
+    {
+      "name": "Lookout_WoodShade",
+      "mesh": "rbxassetid://98975354715994",
+      "meshSize": [
+        356.1569,
+        254.2537,
+        336.9869
+      ],
+      "position": [
+        -1002.0809,
+        2531.1682,
+        253.3329
+      ]
+    },
+    {
+      "name": "Oak_Bark",
+      "mesh": "rbxassetid://72076580239039",
+      "meshSize": [
+        1375.3854,
+        1412.5203,
+        1011.9637
+      ],
+      "position": [
+        69.2802,
+        2565.4724,
+        468.1552
+      ]
+    },
+    {
+      "name": "Oak_BarkDark",
+      "mesh": "rbxassetid://116488026743939",
+      "meshSize": [
+        1218.3484,
+        1412.5203,
+        844.4767
+      ],
+      "position": [
+        11.7479,
+        2565.4724,
+        503.943
+      ]
+    },
+    {
+      "name": "Oak_BarkLight",
+      "mesh": "rbxassetid://109735280530362",
+      "meshSize": [
+        1348.1499,
+        1412.5203,
+        1011.9637
+      ],
+      "position": [
+        72.2516,
+        2565.4724,
+        468.1552
+      ]
+    },
+    {
+      "name": "Railings_Wood",
+      "mesh": "rbxassetid://115744778377614",
+      "meshSize": [
+        981.4996,
+        92.0158,
+        820.0688
+      ],
+      "position": [
+        9.3843,
+        2511.7964,
+        297.7264
+      ]
+    },
+    {
+      "name": "Railings_WoodLight",
+      "mesh": "rbxassetid://78754900690861",
+      "meshSize": [
+        996.8356,
+        9.6861,
+        835.4047
+      ],
+      "position": [
+        9.3843,
+        2572.7368,
+        297.7264
+      ]
+    },
+    {
+      "name": "Railings_WoodShade",
+      "mesh": "rbxassetid://108062405261872",
+      "meshSize": [
+        990.7819,
+        125.1092,
+        829.351
+      ],
+      "position": [
+        9.3843,
+        2506.9536,
+        297.7264
+      ]
+    },
+    {
+      "name": "Roof_PlasterLight",
+      "mesh": "rbxassetid://99871794684339",
+      "meshSize": [
+        686.0812,
+        338.1977,
+        556.533
+      ],
+      "position": [
+        9.3842,
+        3013.0391,
+        361.2897
+      ]
+    },
+    {
+      "name": "Roof_Roof",
+      "mesh": "rbxassetid://89615306312642",
+      "meshSize": [
+        842.6691,
+        320.6021,
+        643.7056
+      ],
+      "position": [
+        9.3842,
+        3038.7874,
+        365.3254
+      ]
+    },
+    {
+      "name": "Roof_RoofDark",
+      "mesh": "rbxassetid://132885695276482",
+      "meshSize": [
+        842.6691,
+        354.9462,
+        678.0096
+      ],
+      "position": [
+        9.3842,
+        3027.467,
+        362.2986
+      ]
+    },
+    {
+      "name": "Roof_RoofLight",
+      "mesh": "rbxassetid://130755900449228",
+      "meshSize": [
+        842.6691,
+        320.4275,
+        643.7056
+      ],
+      "position": [
+        9.3842,
+        3038.8745,
+        365.3254
+      ]
+    },
+    {
+      "name": "Roof_Timber",
+      "mesh": "rbxassetid://110350558369812",
+      "meshSize": [
+        841.1848,
+        345.3162,
+        669.9381
+      ],
+      "position": [
+        9.3842,
+        3019.9888,
+        363.3075
+      ]
+    },
+    {
+      "name": "Roof_WindowBlue",
+      "mesh": "rbxassetid://118183249484875",
+      "meshSize": [
+        89.9977,
+        102.1049,
+        5.6501
+      ],
+      "position": [
+        9.3842,
+        2991.2461,
+        95.9377
+      ]
+    },
+    {
+      "name": "Roof_Wood",
+      "mesh": "rbxassetid://127765361936653",
+      "meshSize": [
+        123.091,
+        8.8788,
+        32.2862
+      ],
+      "position": [
+        9.3842,
+        2929.7002,
+        67.6873
+      ]
+    },
+    {
+      "name": "Roof_WoodShade",
+      "mesh": "rbxassetid://111578671470670",
+      "meshSize": [
+        94.8406,
+        289.5668,
+        50.8508
+      ],
+      "position": [
+        9.3842,
+        3082.5554,
+        50.737
+      ]
+    },
+    {
+      "name": "Stairs_Amber",
+      "mesh": "rbxassetid://115398170013742",
+      "meshSize": [
+        529.8968,
+        633.2126,
+        856.7943
+      ],
+      "position": [
+        136.511,
+        2303.4702,
+        -521.5353
+      ]
+    },
+    {
+      "name": "Stairs_Iron",
+      "mesh": "rbxassetid://110361710607662",
+      "meshSize": [
+        548.0577,
+        665.5392,
+        874.9551
+      ],
+      "position": [
+        136.511,
+        2313.8218,
+        -521.5353
+      ]
+    },
+    {
+      "name": "Stairs_Timber",
+      "mesh": "rbxassetid://76094557468315",
+      "meshSize": [
+        207.8423,
+        282.504,
+        26.2325
+      ],
+      "position": [
+        241.4411,
+        2000.4645,
+        -469.0702
+      ]
+    },
+    {
+      "name": "Stairs_Wood",
+      "mesh": "rbxassetid://85571148361721",
+      "meshSize": [
+        473.4124,
+        699.2419,
+        930.5209
+      ],
+      "position": [
+        158.4977,
+        2213.583,
+        -492.2479
+      ]
+    },
+    {
+      "name": "Stairs_WoodLight",
+      "mesh": "rbxassetid://109563382058560",
+      "meshSize": [
+        487.2838,
+        623.589,
+        947.1094
+      ],
+      "position": [
+        159.23,
+        2265.7854,
+        -493.9332
+      ]
+    },
+    {
+      "name": "Stairs_WoodShade",
+      "mesh": "rbxassetid://70533254373271",
+      "meshSize": [
+        484.2035,
+        737.5558,
+        944.0085
+      ],
+      "position": [
+        157.7434,
+        2200.7305,
+        -492.4568
+      ]
+    },
+    {
+      "name": "WalkThreshold_WalkFloor",
+      "mesh": "rbxassetid://115294209421150",
+      "meshSize": [
+        230.039,
+        8.4751,
+        72.6439
+      ],
+      "position": [
+        9.3843,
+        2442.5833,
+        95.9379
+      ]
+    }
+  ]
+}

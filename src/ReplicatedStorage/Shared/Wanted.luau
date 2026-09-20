@@ -38,11 +38,14 @@ local Theme = require(ReplicatedStorage.Shared.Theme)
 
 local Wanted = {}
 
--- DIRECTLY UNDER THE EVENT CHIP, AND EVERY NUMBER HERE IS ITS NEIGHBOUR'S.
--- The event chip is 176 x 34 at y 154, so it ends at 188 and this starts at
--- 196 -- the same 8px gap that chip leaves under the piggy bank panel. Sharing
--- the width is what makes the two read as a column rather than as two things
--- that happen to be near each other.
+-- DIRECTLY UNDER THE ACORN CHIP, AND EVERY NUMBER HERE IS ITS NEIGHBOUR'S.
+-- The acorn chip is 176 x 34, so this starts 8px under it -- the same gap
+-- that chip leaves under the piggy bank panel. Sharing the width is what
+-- makes the two read as a column rather than as two things that happen to be
+-- near each other; `PiggyPanel.CHIP_W` is the same number from the other end,
+-- and moving one without the other breaks the only thing holding the column
+-- together. (The event countdown was the neighbour above until it moved into
+-- the left menu rail; PiggyPanel still drives this chip's position.)
 local WIDTH = 176
 local ROW = 34
 -- 224 rather than 196: the piggy panel above grew to a 92-tall card with a

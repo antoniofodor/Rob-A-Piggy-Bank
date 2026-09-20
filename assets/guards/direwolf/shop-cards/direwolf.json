@@ -1,0 +1,82 @@
+{
+  "id": "direwolf",
+  "name": "Dire Wolf",
+  "rig": "direwolf",
+  "source": "assets/guards/direwolf/direwolf.blend",
+  "sourceSha256": "45a4ff9c1f515475f73faaa8a85bd95e42fc7b1e91564d250a128438ac1b1748",
+  "image": "assets/guards/direwolf/shop-cards/direwolf.png",
+  "sha256": "cfb0ecae3e1ac87167d8b5b265997ad0c078804578acce142aa9defaa2ecad16",
+  "tones": {
+    "fur": [
+      119,
+      134,
+      154
+    ],
+    "dark": [
+      73,
+      91,
+      119
+    ],
+    "light": [
+      221,
+      222,
+      212
+    ],
+    "collar": [
+      223,
+      177,
+      44
+    ],
+    "brow": [
+      119,
+      134,
+      154
+    ],
+    "mask": [
+      159.8,
+      169.2,
+      177.2
+    ],
+    "eye": [
+      18,
+      18,
+      20
+    ],
+    "nose": [
+      29,
+      27,
+      30
+    ],
+    "mouth": [
+      41,
+      24,
+      31
+    ],
+    "teeth": [
+      248,
+      232,
+      189
+    ],
+    "inner": [
+      201,
+      126,
+      112
+    ],
+    "armor": [
+      131,
+      48,
+      78
+    ],
+    "accent": [
+      238,
+      122,
+      64
+    ],
+    "silver": [
+      171,
+      170,
+      182
+    ]
+  },
+  "robloxAssetId": "rbxassetid://110670035166700"
+}

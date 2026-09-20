@@ -1,0 +1,100 @@
+{
+  "status": "Named mesh groups and timing spec; runtime animation not installed",
+  "effects": [
+    {
+      "section": "HouseFX_Finial_1",
+      "kind": "pulse",
+      "periodSeconds": 12,
+      "phase": 0.25,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Finial_2",
+      "kind": "pulse",
+      "periodSeconds": 12,
+      "phase": 0.5,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Finial_3",
+      "kind": "pulse",
+      "periodSeconds": 12,
+      "phase": 0.75,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Finial_4",
+      "kind": "pulse",
+      "periodSeconds": 12,
+      "phase": 1.0,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Rune_1",
+      "kind": "chase",
+      "periodSeconds": 13,
+      "phase": 0.0,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Rune_2",
+      "kind": "chase",
+      "periodSeconds": 13,
+      "phase": 0.2,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Rune_3",
+      "kind": "chase",
+      "periodSeconds": 13,
+      "phase": 0.4,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Rune_4",
+      "kind": "chase",
+      "periodSeconds": 13,
+      "phase": 0.6,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_Rune_5",
+      "kind": "chase",
+      "periodSeconds": 13,
+      "phase": 0.8,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_FloatingShard_1",
+      "kind": "bob",
+      "periodSeconds": 11,
+      "phase": 0.25,
+      "amplitudeStuds": 0.43200000000000005,
+      "note": "Use constrained bob for MVP; full orbital sweep is not validated."
+    },
+    {
+      "section": "HouseFX_FloatingShard_2",
+      "kind": "bob",
+      "periodSeconds": 11,
+      "phase": 0.5,
+      "amplitudeStuds": 0.43200000000000005,
+      "note": "Use constrained bob for MVP; full orbital sweep is not validated."
+    },
+    {
+      "section": "HouseFX_FloatingShard_3",
+      "kind": "bob",
+      "periodSeconds": 11,
+      "phase": 0.75,
+      "amplitudeStuds": 0.43200000000000005,
+      "note": "Use constrained bob for MVP; full orbital sweep is not validated."
+    },
+    {
+      "section": "HouseFX_FloatingShard_4",
+      "kind": "bob",
+      "periodSeconds": 11,
+      "phase": 1.0,
+      "amplitudeStuds": 0.43200000000000005,
+      "note": "Use constrained bob for MVP; full orbital sweep is not validated."
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "id": "goldenpig",
+  "doors": [
+    {
+      "name": "HouseDoorLeaf_L",
+      "hingeBlender": [
+        -4.14,
+        -0.9769999999999999,
+        2.2079999999999997
+      ],
+      "openDegrees": -100,
+      "sizeXYZ": [
+        4.025000095367432,
+        0.20000000298023224,
+        11.569999694824219
+      ],
+      "closedCenterBlender": [
+        -2.0875000953674316,
+        -0.9769999980926514,
+        8.053000450134277
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_R",
+      "hingeBlender": [
+        4.14,
+        -0.9769999999999999,
+        2.2079999999999997
+      ],
+      "openDegrees": 100,
+      "sizeXYZ": [
+        4.025000095367432,
+        0.20000000298023224,
+        11.569999694824219
+      ],
+      "closedCenterBlender": [
+        2.0875000953674316,
+        -0.9769999980926514,
+        8.053000450134277
+      ]
+    }
+  ],
+  "automatic": true,
+  "triggerRadiusStuds": 10,
+  "holdOpenSeconds": 1.5,
+  "swingSeconds": 0.35,
+  "CanCollide": false,
+  "runtime": "HouseDoorAnimator.client.luau; prepare-in-studio.luau or build_house_runtime.py creates the pivot markers"
+}

@@ -1,0 +1,100 @@
+{
+  "assets": {
+    "acorn-tree": {
+      "file": "icons/acorn-tree.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "transparentPixels": 765770,
+      "visibleBoundsAlpha128": [
+        47,
+        31,
+        1222,
+        1215
+      ]
+    },
+    "classic-piggy-coins": {
+      "file": "icons/classic-piggy-coins.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "transparentPixels": 739469,
+      "visibleBoundsAlpha128": [
+        143,
+        26,
+        1133,
+        1203
+      ]
+    },
+    "classic-piggy": {
+      "file": "icons/classic-piggy.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "transparentPixels": 799709,
+      "visibleBoundsAlpha128": [
+        165,
+        112,
+        1129,
+        1169
+      ]
+    },
+    "rebirth-arrows": {
+      "file": "icons/rebirth-arrows.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "transparentPixels": 1145870,
+      "visibleBoundsAlpha128": [
+        63,
+        60,
+        1197,
+        1206
+      ]
+    },
+    "rebirth-piggy-emblem": {
+      "file": "icons/rebirth-piggy-emblem.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "transparentPixels": 752224,
+      "visibleBoundsAlpha128": [
+        62,
+        62,
+        1197,
+        1205
+      ]
+    }
+  },
+  "status": "Artwork only; not uploaded or wired in Studio."
+}

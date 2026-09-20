@@ -1,0 +1,199 @@
+{
+  "periodSeconds": 4,
+  "fps": 30,
+  "frames": [
+    1,
+    121
+  ],
+  "bones": {
+    "Root": {
+      "pivotStuds": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "parent": null
+    },
+    "Tail": {
+      "pivotStuds": [
+        0.0,
+        4.619999885559082,
+        1.7400000095367432
+      ],
+      "parent": "Root"
+    },
+    "Ruff_L": {
+      "pivotStuds": [
+        -3.6000001430511475,
+        -3.0,
+        1.5
+      ],
+      "parent": "Root"
+    },
+    "Ruff_R": {
+      "pivotStuds": [
+        3.6000001430511475,
+        -3.0,
+        1.5
+      ],
+      "parent": "Root"
+    }
+  },
+  "tailSwayDegrees": 3,
+  "ruffSwayDegrees": 1.2,
+  "pulseCurve": "(0.5 - 0.5*cos(2*pi*(time/4-phase)))^4",
+  "groups": [
+    {
+      "part": "PrismStripe_Coral",
+      "alsoParts": [
+        "RearStripe_Coral"
+      ],
+      "colorRGB": [
+        231,
+        65,
+        91
+      ],
+      "phase": 0.0,
+      "emissionMin": 0.08,
+      "emissionMax": 1.03
+    },
+    {
+      "part": "PrismStripe_Orange",
+      "alsoParts": [
+        "RearStripe_Orange",
+        "FaceStripe_Orange_-1",
+        "FaceStripe_Orange_1"
+      ],
+      "colorRGB": [
+        247,
+        134,
+        29
+      ],
+      "phase": 0.14285714285714285,
+      "emissionMin": 0.08,
+      "emissionMax": 1.03
+    },
+    {
+      "part": "PrismStripe_Gold",
+      "alsoParts": [
+        "RearStripe_Gold",
+        "FaceStripe_Gold_-1",
+        "FaceStripe_Gold_1"
+      ],
+      "colorRGB": [
+        244,
+        209,
+        42
+      ],
+      "phase": 0.2857142857142857,
+      "emissionMin": 0.08,
+      "emissionMax": 1.03
+    },
+    {
+      "part": "PrismStripe_Lime",
+      "alsoParts": [
+        "RearStripe_Lime"
+      ],
+      "colorRGB": [
+        73,
+        214,
+        100
+      ],
+      "phase": 0.42857142857142855,
+      "emissionMin": 0.08,
+      "emissionMax": 1.03
+    },
+    {
+      "part": "PrismStripe_Cyan",
+      "alsoParts": [
+        "RearStripe_Cyan"
+      ],
+      "colorRGB": [
+        27,
+        164,
+        238
+      ],
+      "phase": 0.5714285714285714,
+      "emissionMin": 0.08,
+      "emissionMax": 1.03
+    },
+    {
+      "part": "PrismStripe_Blue",
+      "alsoParts": [
+        "RearStripe_Blue"
+      ],
+      "colorRGB": [
+        71,
+        101,
+        222
+      ],
+      "phase": 0.7142857142857143,
+      "emissionMin": 0.08,
+      "emissionMax": 1.03
+    },
+    {
+      "part": "PrismStripe_Violet",
+      "alsoParts": [
+        "RearStripe_Violet"
+      ],
+      "colorRGB": [
+        157,
+        65,
+        220
+      ],
+      "phase": 0.8571428571428571,
+      "emissionMin": 0.08,
+      "emissionMax": 1.03
+    }
+  ],
+  "notes": "Idle FBX contains bone motion. Material pulse stays in Blender and must be implemented by Fable on the named flank and forehead stripe parts; do not tint Body. No particle aura.",
+  "tailColor": {
+    "part": "TailPlume",
+    "colorTexture": "rainbowtiger-tail-gradient.png",
+    "behavior": "Continuous UV-mapped silver-to-rainbow color on the fur; preserve the texture rather than applying flat Color. Tail moves with its bone.",
+    "sha256": "f5bb65645e80a50520bdec8a738b009dc10b50911a84f44708ac418f4925b7ea"
+  },
+  "eyes": {
+    "part": "Eyes",
+    "periodSeconds": 4,
+    "paletteRGB": [
+      [
+        231,
+        65,
+        91
+      ],
+      [
+        247,
+        134,
+        29
+      ],
+      [
+        244,
+        209,
+        42
+      ],
+      [
+        73,
+        214,
+        100
+      ],
+      [
+        27,
+        164,
+        238
+      ],
+      [
+        71,
+        101,
+        222
+      ],
+      [
+        157,
+        65,
+        220
+      ]
+    ],
+    "glowStrengthPreview": 1.25,
+    "behavior": "Both eyes cycle smoothly through the same RGB palette in sync; brightness stays steady."
+  }
+}

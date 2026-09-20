@@ -1,0 +1,35 @@
+{
+  "name": "Strawberry Cow",
+  "parent": "cow",
+  "base": [
+    255,
+    209,
+    221
+  ],
+  "ink": [
+    193,
+    47,
+    99
+  ],
+  "nose": [
+    234,
+    119,
+    155
+  ],
+  "ear": [
+    255,
+    162,
+    188
+  ],
+  "pale": [
+    255,
+    234,
+    240
+  ],
+  "skin": "strawberrycow",
+  "rarity": "rare",
+  "parentScene": "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\cow\\cow.blend",
+  "parentSceneSha256": "593a5a80e7ca604f587d203cc4dc2ea23762db055a5355fe67dcdee150e492e0",
+  "emissiveStrength": 0.8,
+  "glow": "Static sparse highlights; no animation or extra geometry"
+}

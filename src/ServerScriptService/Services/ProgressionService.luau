@@ -92,7 +92,12 @@ function ProgressionService.rebirth(player: Player)
 			Config.getSkin(data.cosmetics.skin).name, Config.getShownHouse(data).name)
 		PlotService.updatePile(plot, 0, Config.getCapacity(1))
 		PlotService.buildFence(plot, 0)
-		PlotService.setDogLevel(plot, 0)
+		-- THE DOG STAYS. A rebirth takes away what was bought, and the Guard
+		-- rung is retired -- every plot has the same dog (`Config.DOG_LEVEL`)
+		-- and its skin is a cosmetic, which rebirth has never touched. Set
+		-- rather than skipped, so the teardown leaves the plot in a state
+		-- `UpgradeService.applyToPlot` agrees with.
+		PlotService.setDogLevel(plot, Config.DOG_LEVEL)
 		PlotService.setLockLevel(plot, 0)
 		PlotService.playBank(plot)
 		-- AND THE STREET FINDS OUT. Everything above this line puts the plot
@@ -106,15 +111,18 @@ function ProgressionService.rebirth(player: Player)
 	notify(player, ("REBIRTH %d! Your piggy earns +%d%% forever."):format(
 		data.rebirths, Config.rebirthBonusPercent(data.rebirths)), "good")
 
-	-- The standard Legendary Crate, with its normal odds and duplicate spares.
-	-- Once every eligible legendary is owned, pay its price in Acorns instead.
-	if Config.rebirthCrateComplete(data.cosmetics.owned) then
-		local bonus = Config.CHESTS[Config.REBIRTH_CRATE].cost
+	-- A shop Legendary crate for free, with its normal odds and duplicate
+	-- spares, picked at random from the collections not yet finished -- so the
+	-- free open never rolls at a shelf whose legendaries are all owned. With
+	-- every one complete, pay the crate's price in Acorns instead.
+	local open = Config.rebirthCratesOpen(data.cosmetics.owned)
+	if #open == 0 then
+		local bonus = Config.rebirthCrateBonus()
 		data.loot = (data.loot or 0) + bonus
-		notify(player, ("Legendary collection complete! %d %s instead."):format(
+		notify(player, ("Legendary collections complete! %d %s instead."):format(
 			bonus, Config.lootWord(bonus)), "good")
 	else
-		ChestService.grantFree(player, Config.REBIRTH_CRATE)
+		ChestService.grantFree(player, open[math.random(#open)])
 	end
 
 	-- Persist immediately. Losing a rebirth to a crash would be the single

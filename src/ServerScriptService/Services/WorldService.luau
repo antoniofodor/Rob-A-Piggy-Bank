@@ -32,13 +32,11 @@ local DAY = {
 
 local WorldService = {}
 
--- Sized to the neighbourhood, not to a big round number. The old 900-stud
--- square left the plots as a small island in an empty field, which read as
--- unfinished no matter how good the plots themselves looked.
-local GROUND_X = 780
--- Deep enough for two yards that now run 70 studs back from their plot
--- centres, plus the backdrop treeline beyond them.
-local GROUND_Z = 560
+-- THE MAP FOOTPRINT LIVES IN CONFIG, because the valley walls have to stand
+-- just inside this edge and a second copy of it in NeighborhoodService is the
+-- duplicate that goes stale. See Config.GROUND_SIZE for the sizing argument.
+local GROUND_X = Config.GROUND_SIZE.X
+local GROUND_Z = Config.GROUND_SIZE.Y
 -- TAKING THE TEXTURE OFF MADE THESE TOO BRIGHT, AND THAT IS ARITHMETIC
 -- RATHER THAN TASTE. A material MULTIPLIES `Part.Color`, so for as long as
 -- the ground carried a generated grass texture these values were being pulled
@@ -50,8 +48,13 @@ local GROUND_Z = 560
 -- free. Anything that ever puts a texture back here has to put them BACK UP
 -- by roughly the same amount, or the street goes dark: the pair of decisions
 -- is one decision, and this comment is the only place that says so.
+--
+-- THE SECOND SHADE THAT USED TO SIT HERE WENT WITH THE APRON RING and is now
+-- `LOWLAND_TURF` in NeighborhoodService, beside the geometry that wears it.
+-- Both halves of the paragraph above still apply to it: the lowland is flat
+-- colour, so a texture put back on either of these has to bring the value
+-- back up with it.
 local GRASS = Color3.fromRGB(82, 114, 60)
-local GRASS_DARK = Color3.fromRGB(70, 98, 52)
 
 local function clearDefaults()
 	for _, child in ipairs(workspace:GetChildren()) do
@@ -88,24 +91,25 @@ local function buildGround()
 	ground.TopSurface = Enum.SurfaceType.Smooth
 	ground.Parent = folder
 
-	-- A ring of slightly darker grass so the play area has an edge instead of
-	-- fading into an infinite green plane.
+	-- THE DARKER RING THAT USED TO BE HERE IS `NeighborhoodService.buildHorizon`
+	-- NOW, AND THAT IS A MOVE RATHER THAN A DELETION.
 	--
-	-- DELIBERATELY NOT THE LAWN VARIANT. It is LeafyGrass rather than Grass,
-	-- so it could not carry one anyway -- a MaterialVariant only applies to
-	-- its own BaseMaterial -- and that is the right answer rather than a
-	-- limitation to work around. This band exists to read as rougher ground
-	-- BEYOND the mown street, and giving it the same painted lawn surface as
-	-- the gardens would delete the edge it is here to draw.
-	local border = Instance.new("Part")
-	border.Name = "Border"
-	border.Size = Vector3.new(GROUND_X + 140, 6, GROUND_Z + 140)
-	border.Position = Vector3.new(0, -6, 0)
-	border.Anchored = true
-	border.Material = Enum.Material.LeafyGrass
-	border.Color = GRASS_DARK
-	border.TopSurface = Enum.SurfaceType.Smooth
-	border.Parent = folder
+	-- It was a 920 x 800 slab six studs thick, and what it was for is written
+	-- out in full over there: the play area needs an edge instead of fading
+	-- into an infinite green plane, and the ground beyond the mown gardens
+	-- should read as rougher -- which is why that ring was LeafyGrass rather
+	-- than the painted lawn variant, and why the lowland still is.
+	--
+	-- WHAT IT COULD NOT DO IS STOP BEING A RECTANGLE. One Part is one
+	-- rectangle, so the ring gave the map a second hard square edge four
+	-- hundred studs out with open sky under it -- reported, accurately, as a
+	-- square floating in the sky. A ragged outline needs segments, the
+	-- segments want the same rock and turf the valley wall is built from, and
+	-- that builder lives next to the valley wall.
+	--
+	-- This slab's own cut edge is buried by the lowland's first step, which
+	-- sits `APRON_LIFT` below the top face here. If GROUND_SIZE ever moves,
+	-- the horizon follows it -- every ring over there is derived from it.
 end
 
 local function setupLighting()

@@ -1,0 +1,1027 @@
+{
+  "source": "workspace/manor-roblox, imported from haunted-manor-roblox.fbx",
+  "note": "Dumped from Studio by assets/houses/tools/record_house_import.py. Every imported part carries identity rotation and Size equal to MeshSize, both checked at dump time, so only a position and the mesh size are needed.",
+  "groundY": 1859.2123,
+  "bounds": {
+    "lo": [
+      -1014.6157,
+      1858.517,
+      -118.6258
+    ],
+    "hi": [
+      1033.3843,
+      3654.1887,
+      1453.3333
+    ]
+  },
+  "parts": [
+    {
+      "name": "Approach_Stone",
+      "mesh": "rbxassetid://98748350196015",
+      "meshSize": [
+        352.4465,
+        76.2047,
+        205.2763
+      ],
+      "position": [
+        9.3842,
+        1897.3147,
+        -15.9877
+      ]
+    },
+    {
+      "name": "Approach_WalkWall",
+      "mesh": "rbxassetid://136106011824200",
+      "meshSize": [
+        315.9434,
+        76.2047,
+        22.0183
+      ],
+      "position": [
+        9.3843,
+        1897.3147,
+        54.3182
+      ]
+    },
+    {
+      "name": "AtticLookout_Amber",
+      "mesh": "rbxassetid://127785736030371",
+      "meshSize": [
+        65.7265,
+        112.8781,
+        6.1916
+      ],
+      "position": [
+        366.5935,
+        3013.9507,
+        769.3965
+      ]
+    },
+    {
+      "name": "AtticLookout_DarkGlass",
+      "mesh": "rbxassetid://113253772625806",
+      "meshSize": [
+        60.9637,
+        84.3013,
+        6.1916
+      ],
+      "position": [
+        366.5935,
+        3228.2761,
+        770.3491
+      ]
+    },
+    {
+      "name": "AtticLookout_Ink",
+      "mesh": "rbxassetid://131021303358202",
+      "meshSize": [
+        106.6865,
+        344.3498,
+        9.5256
+      ],
+      "position": [
+        366.5935,
+        3116.3508,
+        782.7323
+      ]
+    },
+    {
+      "name": "AtticLookout_Roof",
+      "mesh": "rbxassetid://125254134863556",
+      "meshSize": [
+        347.6837,
+        220.0409,
+        347.6837
+      ],
+      "position": [
+        366.5935,
+        3469.5115,
+        929.4262
+      ]
+    },
+    {
+      "name": "AtticLookout_Trim",
+      "mesh": "rbxassetid://115559338119140",
+      "meshSize": [
+        323.8698,
+        770.9767,
+        337.2056
+      ],
+      "position": [
+        366.5935,
+        3268.7004,
+        922.7584
+      ]
+    },
+    {
+      "name": "AtticLookout_WallLight",
+      "mesh": "rbxassetid://101962088469772",
+      "meshSize": [
+        285.7674,
+        476.2791,
+        285.7676
+      ],
+      "position": [
+        366.5935,
+        3121.3516,
+        929.4263
+      ]
+    },
+    {
+      "name": "BayWindows_Amber",
+      "mesh": "rbxassetid://81965892585712",
+      "meshSize": [
+        768.2382,
+        241.4736,
+        6.1917
+      ],
+      "position": [
+        9.3842,
+        2173.3184,
+        14.9704
+      ]
+    },
+    {
+      "name": "BayWindows_DarkGlass",
+      "mesh": "rbxassetid://133741956783833",
+      "meshSize": [
+        768.2382,
+        504.3796,
+        23.814
+      ],
+      "position": [
+        9.3842,
+        2785.8132,
+        6.1591
+      ]
+    },
+    {
+      "name": "BayWindows_Ink",
+      "mesh": "rbxassetid://139247401858259",
+      "meshSize": [
+        900.0336,
+        858.4739,
+        262.9062
+      ],
+      "position": [
+        -36.0335,
+        2363.9587,
+        154.9964
+      ]
+    },
+    {
+      "name": "BayWindows_Trim",
+      "mesh": "rbxassetid://73082812762264",
+      "meshSize": [
+        813.0084,
+        1014.4744,
+        49.0569
+      ],
+      "position": [
+        9.3842,
+        2543.6252,
+        8.5406
+      ]
+    },
+    {
+      "name": "BayWindows_WalkWall",
+      "mesh": "rbxassetid://140046152494377",
+      "meshSize": [
+        5.5624,
+        456.0459,
+        172.8859
+      ],
+      "position": [
+        -145.8063,
+        2134.8633,
+        120.4645
+      ]
+    },
+    {
+      "name": "BayWindows_Wall",
+      "mesh": "rbxassetid://81276577220599",
+      "meshSize": [
+        361.9722,
+        1285.9535,
+        252.4281
+      ],
+      "position": [
+        -324.0112,
+        2549.8169,
+        160.2354
+      ]
+    },
+    {
+      "name": "Central steep roof_Roof",
+      "mesh": "rbxassetid://88649172378669",
+      "meshSize": [
+        1245.8942,
+        422.4973,
+        1238.3257
+      ],
+      "position": [
+        9.3842,
+        3068.2654,
+        667.4725
+      ]
+    },
+    {
+      "name": "Central steep roof_RoofEdge",
+      "mesh": "rbxassetid://131541246440649",
+      "meshSize": [
+        1249.6028,
+        417.4794,
+        1270.7126
+      ],
+      "position": [
+        9.3841,
+        3082.1675,
+        667.4726
+      ]
+    },
+    {
+      "name": "CrookedChimneys_Ink",
+      "mesh": "rbxassetid://71803081839896",
+      "meshSize": [
+        1607.4418,
+        4.7629,
+        78.5861
+      ],
+      "position": [
+        9.3843,
+        3168.9795,
+        810.3564
+      ]
+    },
+    {
+      "name": "CrookedChimneys_Trim",
+      "mesh": "rbxassetid://70722225955331",
+      "meshSize": [
+        1657.4513,
+        28.5767,
+        128.5954
+      ],
+      "position": [
+        9.3842,
+        3152.3096,
+        810.3564
+      ]
+    },
+    {
+      "name": "CrookedChimneys_Wall",
+      "mesh": "rbxassetid://134243029514836",
+      "meshSize": [
+        1619.3488,
+        476.2791,
+        85.7303
+      ],
+      "position": [
+        9.3843,
+        2907.0264,
+        810.3564
+      ]
+    },
+    {
+      "name": "Foundation_Stone",
+      "mesh": "rbxassetid://137083406259109",
+      "meshSize": [
+        2048.0,
+        40.4841,
+        1571.7209
+      ],
+      "position": [
+        9.3843,
+        1879.4542,
+        667.4727
+      ]
+    },
+    {
+      "name": "Front bay roof-7_Roof",
+      "mesh": "rbxassetid://120527106966152",
+      "meshSize": [
+        428.6989,
+        350.0537,
+        309.5814
+      ],
+      "position": [
+        342.7795,
+        3065.3833,
+        162.6167
+      ]
+    },
+    {
+      "name": "Front bay roof-7_Trim",
+      "mesh": "rbxassetid://75014422247910",
+      "meshSize": [
+        436.7198,
+        342.8978,
+        341.9684
+      ],
+      "position": [
+        342.7794,
+        3081.3557,
+        162.6167
+      ]
+    },
+    {
+      "name": "Front bay roof7_Roof",
+      "mesh": "rbxassetid://107283147353084",
+      "meshSize": [
+        428.6989,
+        350.0537,
+        309.5814
+      ],
+      "position": [
+        -324.0112,
+        3065.3831,
+        162.6167
+      ]
+    },
+    {
+      "name": "Front bay roof7_Trim",
+      "mesh": "rbxassetid://112669352049807",
+      "meshSize": [
+        436.7198,
+        342.8979,
+        341.9684
+      ],
+      "position": [
+        -324.0112,
+        3081.3557,
+        162.6167
+      ]
+    },
+    {
+      "name": "GabledBays_WalkWall",
+      "mesh": "rbxassetid://106261979410677",
+      "meshSize": [
+        5.5624,
+        456.046,
+        172.8859
+      ],
+      "position": [
+        164.5747,
+        2134.8633,
+        120.4645
+      ]
+    },
+    {
+      "name": "GabledBays_Wall",
+      "mesh": "rbxassetid://137820768285976",
+      "meshSize": [
+        361.9722,
+        1285.9535,
+        252.4281
+      ],
+      "position": [
+        342.7795,
+        2549.8169,
+        160.2354
+      ]
+    },
+    {
+      "name": "GroundDetails_Moss",
+      "mesh": "rbxassetid://107088906017663",
+      "meshSize": [
+        1932.5815,
+        170.1387,
+        1090.2709
+      ],
+      "position": [
+        8.9002,
+        1951.4258,
+        786.8706
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkDoor",
+      "mesh": "rbxassetid://108001593722167",
+      "meshSize": [
+        148.4114,
+        413.5632,
+        6.953
+      ],
+      "position": [
+        86.1973,
+        2144.2847,
+        62.1985
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim",
+      "mesh": "rbxassetid://101011035299062",
+      "meshSize": [
+        136.5913,
+        397.919,
+        1.043
+      ],
+      "position": [
+        86.1973,
+        2144.1108,
+        58.0268
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim.001",
+      "mesh": "rbxassetid://101908034436223",
+      "meshSize": [
+        4.5194,
+        22.5972,
+        4.3456
+      ],
+      "position": [
+        20.3352,
+        2126.9397,
+        55.3325
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkDoor",
+      "mesh": "rbxassetid://115139542795679",
+      "meshSize": [
+        148.4114,
+        413.5632,
+        6.953
+      ],
+      "position": [
+        -67.4288,
+        2144.2847,
+        62.1985
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim",
+      "mesh": "rbxassetid://139039411347596",
+      "meshSize": [
+        136.5913,
+        397.919,
+        1.043
+      ],
+      "position": [
+        -67.4288,
+        2144.1108,
+        58.0268
+      ]
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim.001",
+      "mesh": "rbxassetid://118704944098567",
+      "meshSize": [
+        4.5194,
+        22.5972,
+        4.3456
+      ],
+      "position": [
+        -1.5667,
+        2126.9397,
+        55.3325
+      ]
+    },
+    {
+      "name": "HouseFX_PorchLantern_1_Amber",
+      "mesh": "rbxassetid://84816623282043",
+      "meshSize": [
+        40.0074,
+        53.3432,
+        40.0074
+      ],
+      "position": [
+        237.9982,
+        2240.2356,
+        0.6821
+      ]
+    },
+    {
+      "name": "HouseFX_PorchLantern_2_Amber",
+      "mesh": "rbxassetid://138610434265354",
+      "meshSize": [
+        40.0074,
+        53.3432,
+        40.0074
+      ],
+      "position": [
+        -219.2297,
+        2240.2356,
+        0.6821
+      ]
+    },
+    {
+      "name": "LanternFrames_Gold",
+      "mesh": "rbxassetid://132488186987410",
+      "meshSize": [
+        487.9806,
+        49.0568,
+        30.7526
+      ],
+      "position": [
+        9.3843,
+        2239.9976,
+        0.6821
+      ]
+    },
+    {
+      "name": "LanternFrames_Timber",
+      "mesh": "rbxassetid://91440085471800",
+      "meshSize": [
+        510.024,
+        71.68,
+        60.9637
+      ],
+      "position": [
+        9.3843,
+        2244.6411,
+        0.6821
+      ]
+    },
+    {
+      "name": "ManorShell_WalkWall",
+      "mesh": "rbxassetid://117259329513452",
+      "meshSize": [
+        307.9475,
+        438.594,
+        87.1557
+      ],
+      "position": [
+        9.3843,
+        2143.5894,
+        163.3297
+      ]
+    },
+    {
+      "name": "ManorShell_Wall",
+      "mesh": "rbxassetid://84687035206527",
+      "meshSize": [
+        1095.4419,
+        971.6096,
+        1095.442
+      ],
+      "position": [
+        9.3843,
+        2383.1194,
+        667.4727
+      ]
+    },
+    {
+      "name": "ManorShell_WallLight",
+      "mesh": "rbxassetid://127774952319680",
+      "meshSize": [
+        1838.4373,
+        590.5863,
+        904.9303
+      ],
+      "position": [
+        9.3843,
+        2192.6077,
+        715.1007
+      ]
+    },
+    {
+      "name": "Porch_Roof",
+      "mesh": "rbxassetid://87641098627620",
+      "meshSize": [
+        461.9907,
+        23.814,
+        247.6651
+      ],
+      "position": [
+        9.3843,
+        2359.3054,
+        24.496
+      ]
+    },
+    {
+      "name": "Porch_Trim",
+      "mesh": "rbxassetid://124950092650908",
+      "meshSize": [
+        403.8846,
+        427.9797,
+        22.8615
+      ],
+      "position": [
+        9.3843,
+        2135.1184,
+        -70.7598
+      ]
+    },
+    {
+      "name": "WalkApproach0_WalkFloor",
+      "mesh": "rbxassetid://104647053879989",
+      "meshSize": [
+        313.1622,
+        11.5817,
+        24.5093
+      ],
+      "position": [
+        9.3843,
+        1864.3079,
+        -88.2465
+      ]
+    },
+    {
+      "name": "WalkApproach1_WalkFloor",
+      "mesh": "rbxassetid://130606793659723",
+      "meshSize": [
+        313.1622,
+        22.4681,
+        24.5093
+      ],
+      "position": [
+        9.3843,
+        1869.7511,
+        -64.6064
+      ]
+    },
+    {
+      "name": "WalkApproach2_WalkFloor",
+      "mesh": "rbxassetid://117725136663545",
+      "meshSize": [
+        313.1622,
+        33.3545,
+        24.5093
+      ],
+      "position": [
+        9.3843,
+        1875.1943,
+        -40.9663
+      ]
+    },
+    {
+      "name": "WalkApproach3_WalkFloor",
+      "mesh": "rbxassetid://127593458349468",
+      "meshSize": [
+        313.1622,
+        44.2408,
+        24.5093
+      ],
+      "position": [
+        9.3843,
+        1880.6375,
+        -17.3261
+      ]
+    },
+    {
+      "name": "WalkApproach4_WalkFloor",
+      "mesh": "rbxassetid://119156615424588",
+      "meshSize": [
+        313.1622,
+        55.1272,
+        24.5093
+      ],
+      "position": [
+        9.3843,
+        1886.0807,
+        6.314
+      ]
+    },
+    {
+      "name": "WalkApproach5_WalkFloor",
+      "mesh": "rbxassetid://77117988657227",
+      "meshSize": [
+        313.1622,
+        66.0136,
+        24.5093
+      ],
+      "position": [
+        9.3843,
+        1891.5239,
+        29.9541
+      ]
+    },
+    {
+      "name": "WalkApproach6_WalkFloor",
+      "mesh": "rbxassetid://121015397064925",
+      "meshSize": [
+        313.1622,
+        76.9,
+        24.5093
+      ],
+      "position": [
+        9.3843,
+        1896.967,
+        53.5942
+      ]
+    },
+    {
+      "name": "WalkCeiling_WalkWall",
+      "mesh": "rbxassetid://84110557328440",
+      "meshSize": [
+        990.8691,
+        4.172,
+        981.3435
+      ],
+      "position": [
+        9.3843,
+        2461.4097,
+        657.9472
+      ]
+    },
+    {
+      "name": "WalkEntryHeader_WalkTrim",
+      "mesh": "rbxassetid://94117782557130",
+      "meshSize": [
+        313.8575,
+        8.6912,
+        11.8201
+      ],
+      "position": [
+        9.3843,
+        2358.8882,
+        61.5032
+      ]
+    },
+    {
+      "name": "WalkEntryJamb-1_WalkTrim",
+      "mesh": "rbxassetid://86989814280743",
+      "meshSize": [
+        9.0389,
+        424.6879,
+        11.8201
+      ],
+      "position": [
+        161.7935,
+        2147.761,
+        61.5032
+      ]
+    },
+    {
+      "name": "WalkEntryJamb1_WalkTrim",
+      "mesh": "rbxassetid://81157772346349",
+      "meshSize": [
+        9.0389,
+        424.6879,
+        11.8201
+      ],
+      "position": [
+        -143.0251,
+        2147.761,
+        61.5032
+      ]
+    },
+    {
+      "name": "WalkFloor_WalkFloor",
+      "mesh": "rbxassetid://140345942170421",
+      "meshSize": [
+        990.8691,
+        9.7344,
+        981.3435
+      ],
+      "position": [
+        9.3843,
+        1930.55,
+        657.9472
+      ]
+    },
+    {
+      "name": "WalkFrontLeft_WalkWall",
+      "mesh": "rbxassetid://72054910560597",
+      "meshSize": [
+        338.1582,
+        523.907,
+        4.1719
+      ],
+      "position": [
+        330.8726,
+        2197.3706,
+        170.0566
+      ]
+    },
+    {
+      "name": "WalkFrontRight_WalkWall",
+      "mesh": "rbxassetid://97921134389486",
+      "meshSize": [
+        338.1582,
+        523.907,
+        4.1719
+      ],
+      "position": [
+        -312.1041,
+        2197.3706,
+        170.0566
+      ]
+    },
+    {
+      "name": "WalkLintel_WalkWall",
+      "mesh": "rbxassetid://98857678898779",
+      "meshSize": [
+        304.8186,
+        104.7814,
+        4.1718
+      ],
+      "position": [
+        9.3843,
+        2406.9333,
+        170.0566
+      ]
+    },
+    {
+      "name": "WalkPassageCeiling_WalkWall",
+      "mesh": "rbxassetid://98201313921428",
+      "meshSize": [
+        318.7246,
+        6.9531,
+        102.991
+      ],
+      "position": [
+        9.3843,
+        2358.019,
+        116.4752
+      ]
+    },
+    {
+      "name": "WalkPassageFloor_WalkFloor",
+      "mesh": "rbxassetid://101753272230147",
+      "meshSize": [
+        304.8186,
+        8.6913,
+        101.9481
+      ],
+      "position": [
+        9.3843,
+        1931.0714,
+        116.3014
+      ]
+    },
+    {
+      "name": "WalkPassageLeft_WalkWall",
+      "mesh": "rbxassetid://124342239248717",
+      "meshSize": [
+        6.953,
+        419.1256,
+        102.9911
+      ],
+      "position": [
+        165.2701,
+        2144.98,
+        116.4752
+      ]
+    },
+    {
+      "name": "WalkPassageRight_WalkWall",
+      "mesh": "rbxassetid://78946416267090",
+      "meshSize": [
+        6.953,
+        419.1256,
+        102.9911
+      ],
+      "position": [
+        -146.5016,
+        2144.98,
+        116.4752
+      ]
+    },
+    {
+      "name": "WalkRearWall_WalkWall",
+      "mesh": "rbxassetid://122332579059074",
+      "meshSize": [
+        981.1349,
+        523.907,
+        4.172
+      ],
+      "position": [
+        9.3843,
+        2197.3706,
+        1145.8376
+      ]
+    },
+    {
+      "name": "WalkSideLeftWall_WalkWall",
+      "mesh": "rbxassetid://138888316421145",
+      "meshSize": [
+        4.1719,
+        523.9071,
+        971.6094
+      ],
+      "position": [
+        502.0376,
+        2197.3706,
+        657.9472
+      ]
+    },
+    {
+      "name": "WalkSideRightWall_WalkWall",
+      "mesh": "rbxassetid://129208027302553",
+      "meshSize": [
+        4.1719,
+        523.9071,
+        971.6094
+      ],
+      "position": [
+        -483.2691,
+        2197.3706,
+        657.9472
+      ]
+    },
+    {
+      "name": "WallDetails_Amber",
+      "mesh": "rbxassetid://73823103205339",
+      "meshSize": [
+        1799.3822,
+        270.0504,
+        6.1917
+      ],
+      "position": [
+        9.3843,
+        2197.1323,
+        242.6318
+      ]
+    },
+    {
+      "name": "WallDetails_Ink",
+      "mesh": "rbxassetid://76033666195356",
+      "meshSize": [
+        1840.3422,
+        301.4848,
+        8.5731
+      ],
+      "position": [
+        9.3842,
+        2199.5139,
+        255.4913
+      ]
+    },
+    {
+      "name": "WallDetails_Trim",
+      "mesh": "rbxassetid://107733238160763",
+      "meshSize": [
+        1844.1526,
+        490.5675,
+        161.4586
+      ],
+      "position": [
+        9.3843,
+        2187.845,
+        180.0011
+      ]
+    },
+    {
+      "name": "WallDetails_Wall",
+      "mesh": "rbxassetid://116170359222062",
+      "meshSize": [
+        1766.9954,
+        461.9908,
+        14.2884
+      ],
+      "position": [
+        9.3842,
+        2216.4219,
+        253.1099
+      ]
+    },
+    {
+      "name": "Wing roof-14.8_Roof",
+      "mesh": "rbxassetid://103336468678688",
+      "meshSize": [
+        532.1727,
+        264.882,
+        1047.814
+      ],
+      "position": [
+        714.2772,
+        2603.6719,
+        715.1005
+      ]
+    },
+    {
+      "name": "Wing roof-14.8_Trim",
+      "mesh": "rbxassetid://79426435521428",
+      "meshSize": [
+        538.0037,
+        259.2287,
+        1080.2009
+      ],
+      "position": [
+        714.2772,
+        2618.335,
+        715.1006
+      ]
+    },
+    {
+      "name": "Wing roof14.8_Roof",
+      "mesh": "rbxassetid://85713360288456",
+      "meshSize": [
+        532.1727,
+        264.882,
+        1047.814
+      ],
+      "position": [
+        -695.5088,
+        2603.6719,
+        715.1005
+      ]
+    },
+    {
+      "name": "Wing roof14.8_Trim",
+      "mesh": "rbxassetid://139969135335707",
+      "meshSize": [
+        538.0036,
+        259.2288,
+        1080.2009
+      ],
+      "position": [
+        -695.5088,
+        2618.3347,
+        715.1006
+      ]
+    }
+  ]
+}

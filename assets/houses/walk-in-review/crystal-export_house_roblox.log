@@ -1,0 +1,10 @@
+00:02.828  blend            | Read blend: "C:\Users\anton\robloxGame\assets\houses\crystal-spire-v2\crystal-spire.blend"
+ROUTES {"samples": 0, "blocked": 0, "firstFindings": []}
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\crystal-spire-v2\\crystal-spire-roblox.fbx'
+export finished in 0.0634 sec.
+FBX version: 7400
+IMPORT_REPORT {"meshCount": 47, "triangles": 3372, "basePartsWithCompanion": 65, "fbxRoundTripMaxBoundsError": 4.600733518600464e-07}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

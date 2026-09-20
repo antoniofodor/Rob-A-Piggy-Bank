@@ -11,18 +11,19 @@
 	     long as you are holding it, which is what the carry banner already
 	     does for the coins and is the half that makes the getaway mean
 	     something.
-	  3. THE DELIVERY. A summary of what the run was worth, with the items
-	     flying into the satchel and the coins rushing into the ACTUAL PIG on
-	     the lawn -- see `rushCoins`, and `Config.BANK_RUSH` for why that is
-	     in the world rather than on the HUD.
+	  3. THE DELIVERY. The coins stream into the ACTUAL PIG on the lawn one by
+	     one -- more of them the bigger the haul -- then each stolen item gets
+	     a reveal and flies to the bag, the acorns rise and fly to their chip,
+	     and a summary screen names the lot. See `rushCoins`, `revealItem`,
+	     `riseAndFly` and `Config.BANK_RUSH`.
 
 	NONE OF IT INTERRUPTS, and that is the constraint the whole file is built
 	against rather than a nicety. Every one of these lands while the player is
 	RUNNING, usually with a dog behind them: the grab card arrives mid-sprint
 	and the summary arrives at the moment they are deciding where to go next.
-	So nothing here is modal, nothing captures input, nothing pauses anything,
-	and the only clickable thing in the file is one button on the summary that
-	the player never has to press.
+	So nothing DURING the robbery is modal. The two exceptions are both at the
+	END of one, on the player's own lawn: the item reveal (a tap skips it)
+	and the summary screen (a tap closes it, and it closes itself).
 
 	`Active = false` on every frame is what enforces that. A Frame with
 	`Active` true swallows clicks under it, which on a touchscreen is the
@@ -37,6 +38,7 @@
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
@@ -47,6 +49,7 @@ local SoundKit = require(ReplicatedStorage.Shared.SoundKit)
 local Theme = require(ReplicatedStorage.Shared.Theme)
 
 local CarryDelivery = require(ReplicatedStorage.Shared.CarryDelivery)
+local CoinModel = require(ReplicatedStorage.Shared.CoinModel)
 
 local LootHaul = {}
 
@@ -57,8 +60,6 @@ local LootHaul = {}
 local POP_IN = 0.28
 local POP_HOLD = 1.9
 local POP_AWAY = 0.42
-local SUMMARY_IN = 0.3
-local SUMMARY_HOLD = 5.0
 local FLY = 0.55
 
 -- One tile size, so a grab card and a summary tile are the same object at two
@@ -132,6 +133,26 @@ local function buildTile(parent: Instance, kind: string, key: string,
 	return tile
 end
 
+-- How many coins a haul pours, and how far apart they start. Returned as a
+-- pair because the stagger tightens when a long stream would outrun
+-- `maxDuration`, and the caller needs the total to time what comes after.
+local function streamShape(banked: number?, capacity: number?): (number, number)
+	local spec = Config.BANK_RUSH
+	local count = spec.count
+	if type(banked) == "number" and type(capacity) == "number" and capacity > 0 then
+		if banked <= 0 then
+			return 0, spec.stagger
+		end
+		local share = math.clamp(banked / capacity, 0, 1)
+		count = math.floor(spec.minCount + (spec.maxCount - spec.minCount) * math.sqrt(share) + 0.5)
+	end
+	local stagger = spec.stagger
+	if count > 1 and (count - 1) * stagger + spec.fall > spec.maxDuration then
+		stagger = (spec.maxDuration - spec.fall) / (count - 1)
+	end
+	return count, stagger
+end
+
 -- COINS RUSHING INTO THE ACTUAL PIG ON THE LAWN.
 --
 -- `Config.BANK_RUSH` carries the argument for this being in the world rather
@@ -157,20 +178,54 @@ end
 -- BillboardGui solves for free. It also makes the face a piece of UI, which
 -- is what lets an empty `image` fall back to `Theme.coin`: the same drawn
 -- disc the HUD uses, out of frames, with no upload anywhere.
-local function rushCoins(bank: any)
+-- THE 3D COINS IN FLIGHT, driven by one shared Heartbeat rather than one
+-- tween per coin: each frame a coin eases down (Quart In, the "rush") while it
+-- tumbles, and is turned so its face stays roughly toward the camera -- the
+-- snout is what makes it read as THIS game's coin rather than a gold disc.
+local flying: { any } = {}
+local driver: RBXScriptConnection? = nil
+
+local function faceCamera(pos: Vector3, yaw: number, roll: number): CFrame
+	local camera = Workspace.CurrentCamera
+	local eye = if camera then camera.CFrame.Position else pos + Vector3.new(0, 0, 10)
+	-- `lookAt` points -Z at the camera, and the coin's decorated face is +Z
+	-- (models/coin/manifest.json), so a half turn shows the face.
+	return CFrame.lookAt(pos, eye) * CFrame.Angles(0, math.pi + yaw, roll)
+end
+
+local function driveCoins()
+	local now = os.clock()
+	for i = #flying, 1, -1 do
+		local c = flying[i]
+		if not c.part.Parent then
+			table.remove(flying, i)
+			continue
+		end
+		local a = math.clamp((now - c.t0) / c.fall, 0, 1)
+		local pos = c.from:Lerp(c.to, a * a * a * a)
+		c.part.CFrame = faceCamera(pos, math.sin(now * 5 + c.phase) * 0.7, c.roll + (now - c.t0) * c.spin)
+	end
+	if #flying == 0 and driver then
+		driver:Disconnect()
+		driver = nil
+	end
+end
+
+local function rushCoins(bank: any, banked: number?, capacity: number?): number
 	local spec = Config.BANK_RUSH
+	local count, stagger = streamShape(banked, capacity)
 	if typeof(bank) ~= "Instance" or not bank:IsA("BasePart") then
-		-- No pig to rush into. The summary card still names the figure, so
-		-- the payout is reported either way -- but this is worth a word,
-		-- because a delivery with no bank on it means `PlotService.getPlot`
-		-- returned nothing for a player who just delivered to their own plot.
+		-- No pig to rush into. The summary still names the figure, so the
+		-- payout is reported either way -- but a delivery with no bank on it
+		-- means `PlotService.getPlot` returned nothing for a player who just
+		-- delivered to their own plot, which is worth a word.
 		warn("[LootHaul] delivery carried no bank part; no coin rush")
-		return
+		return 0
 	end
 
 	local camera = Workspace.CurrentCamera
 	if not camera then
-		return
+		return 0
 	end
 	local folder = camera:FindFirstChild("LootFX")
 	if not folder then
@@ -180,86 +235,537 @@ local function rushCoins(bank: any)
 	end
 
 	local target = bank.Position
-	for i = 1, spec.count do
-		task.delay((i - 1) * spec.stagger, function()
+	local total = if count > 0 then (count - 1) * stagger + spec.fall else 0
+
+	-- SILENT, DELIBERATELY. A delivery used to stack a slot-machine pour, a
+	-- clink as the last coin landed, a sting and a sparkle per stolen item, a
+	-- clink per acorn and the summary's stamp on top of the cha-ching --
+	-- reported as far too many sounds for one event. The cha-ching (the
+	-- `money` toast) is the whole soundtrack now; everything here is picture.
+
+	for i = 1, count do
+		task.delay((i - 1) * stagger, function()
 			if not bank.Parent then
 				-- The pig went away mid-burst -- a rebirth, a plot release.
-				-- Nothing to rush into, and `target` is a stale position.
 				return
 			end
-
-			local coin = Instance.new("Part")
-			coin.Name = "RushCoin"
-			coin.Size = Vector3.new(0.2, 0.2, 0.2)
-			coin.Transparency = 1
-			coin.Anchored = true
-			coin.CanCollide = false
-			coin.CanQuery = false
-			coin.CanTouch = false
-			coin.CastShadow = false
 			-- SCATTERED ACROSS AND ABOVE, so the burst arrives as a shower
-			-- rather than as a column. The height is measured from the pig's
-			-- own centre, so a vault and a piggy bank both get it right
-			-- without either being special-cased.
+			-- rather than as a column. Measured from the pig's own centre, so
+			-- a vault and a piggy bank both get it right.
 			local angle = math.random() * math.pi * 2
 			local radius = spec.spread * math.sqrt(math.random())
-			coin.Position = target + Vector3.new(
-				math.cos(angle) * radius,
-				spec.height + math.random() * 2,
-				math.sin(angle) * radius)
-			coin.Parent = folder
+			local start = target + Vector3.new(math.cos(angle) * radius,
+				spec.height + math.random() * 2, math.sin(angle) * radius)
 
-			local face = Instance.new("BillboardGui")
-			face.Name = "Face"
-			-- SIZED IN PIXELS, WHICH IS THE OPPOSITE OF WHAT IT LOOKS LIKE IT
-			-- SHOULD BE AND IS FORCED BY WHAT IS DRAWN INSIDE IT.
-			--
-			-- A BillboardGui takes both: the SCALE half is studs and holds a
-			-- constant WORLD size, the OFFSET half is pixels and holds a
-			-- constant SCREEN size. Studs is the instinct for a coin beside a
-			-- twelve-stud pig -- and it makes the billboard AbsoluteSize
-			-- change with distance, and everything `Theme.coin` builds is
-			-- laid out in PIXELS. The rim is `size - 8` and the corner radius
-			-- is `size // 2`, so at studs the disc is the right size at
-			-- exactly one distance and overflows its own container at every
-			-- other one.
-			--
-			-- Offset is also what every other billboard in this game already
-			-- does, for the reason the prompt cards record: a card sized in
-			-- studs projects to fewer pixels the further off you stand, and
-			-- these are read from a stride away.
-			face.Size = UDim2.fromOffset(spec.size, spec.size)
-			face.AlwaysOnTop = false
-			face.LightInfluence = 0
-			face.Adornee = coin
-			face.Parent = coin
-
-			if spec.image ~= "" then
-				local img = Instance.new("ImageLabel")
-				img.Name = "Coin"
-				img.Size = UDim2.fromScale(1, 1)
-				img.BackgroundTransparency = 1
-				img.Image = spec.image
-				img.Parent = face
+			local body: Instance
+			local mesh = CoinModel.clone(spec.meshStuds)
+			if mesh then
+				-- THE REAL COIN: the double-sided snout mesh, tumbling in.
+				mesh.Name = "RushCoin"
+				mesh.CFrame = faceCamera(start, 0, 0)
+				mesh.Parent = folder
+				table.insert(flying, {
+					part = mesh, from = start, to = target, t0 = os.clock(), fall = spec.fall,
+					roll = math.random() * math.pi * 2, spin = (math.random() * 2 - 1) * 9,
+					phase = math.random() * math.pi * 2,
+				})
+				if not driver then
+					driver = RunService.Heartbeat:Connect(driveCoins)
+				end
+				body = mesh
 			else
-				-- The HUD's own drawn coin, which needs no asset at all. See
-				-- `Config.BANK_RUSH.image`.
-				-- AT THE BILLBOARD'S OWN SIZE, so the drawn disc fills it
-				-- exactly. One number, passed through, rather than two that
-				-- have to be kept in step.
-				Theme.coin(face, spec.size, "Coin")
+				-- THE FALLBACK while `Config.COIN_MESH` has no id: the HUD's own
+				-- drawn coin on a billboard. SIZED IN PIXELS because everything
+				-- `Theme.coin` draws is laid out in pixels, so a stud-sized
+				-- billboard would fit its contents at exactly one distance.
+				local coin = Instance.new("Part")
+				coin.Name = "RushCoin"
+				coin.Size = Vector3.new(0.2, 0.2, 0.2)
+				coin.Transparency = 1
+				coin.Anchored = true
+				coin.CanCollide = false
+				coin.CanQuery = false
+				coin.CanTouch = false
+				coin.CastShadow = false
+				coin.Position = start
+				coin.Parent = folder
+				local face = Instance.new("BillboardGui")
+				face.Name = "Face"
+				face.Size = UDim2.fromOffset(spec.size, spec.size)
+				face.AlwaysOnTop = false
+				face.LightInfluence = 0
+				face.Adornee = coin
+				face.Parent = coin
+				if spec.image ~= "" then
+					local img = Instance.new("ImageLabel")
+					img.Name = "Coin"
+					img.Size = UDim2.fromScale(1, 1)
+					img.BackgroundTransparency = 1
+					img.Image = spec.image
+					img.Parent = face
+				else
+					Theme.coin(face, spec.size, "Coin")
+				end
+				-- EASED IN RATHER THAN OUT, WHICH IS THE WORD "RUSH": slow, then
+				-- gathering, then gone into the pig fastest as it arrives.
+				tween(coin, spec.fall, { Position = target },
+					Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+				body = coin
 			end
 
-			-- EASED IN RATHER THAN OUT, WHICH IS THE WORD "RUSH". It starts
-			-- slow, gathers, and vanishes into the pig fastest at the moment
-			-- it arrives; eased the other way the coins drift down and settle,
-			-- which is money being put away rather than money being poured.
-			tween(coin, spec.fall, { Position = target },
-				Enum.EasingStyle.Quart, Enum.EasingDirection.In)
 			task.delay(spec.fall, function()
-				coin:Destroy()
+				body:Destroy()
 			end)
 		end)
+	end
+	return total
+end
+
+-- FLIES A SCREEN-SPACE FRAME INTO A HUD SLOT and bumps the slot as it lands.
+-- The ghost must already be parented to the ScreenGui, centre-anchored, at the
+-- pixel it starts from. SHRUNK BY A UISCALE, NOT BY `Size`, so whatever is
+-- drawn inside it -- pixel-laid or not -- shrinks with the frame.
+-- COINS THAT DID NOT FIT BURST OUT OF THE PIG AND LAND IN THE YARD.
+--
+-- A full pig banks nothing (Config.fitInPig), and until this the only sign
+-- was a line of text: the coins simply were not there. Now the overflow is a
+-- picture -- coins pop out of the top of the pig, arc over the lawn, land
+-- flat in the grass, lie there a moment and sink away. Same coin mesh as the
+-- rush, same camera folder, and the same shape rule for how many: sized to
+-- the SPILL against the pig, so a trickle over the brim and a whole haul
+-- bouncing off a full pig look different.
+--
+-- Purely a picture and purely local. Nothing on the lawn can be picked up:
+-- the coins are gone, which is the rule, and a pile that looked collectable
+-- would be the game lying about it.
+local spilling: { any } = {}
+local spillDriver: RBXScriptConnection? = nil
+
+local function driveSpill()
+	local now = os.clock()
+	for i = #spilling, 1, -1 do
+		local c = spilling[i]
+		if not c.part.Parent then
+			table.remove(spilling, i)
+			continue
+		end
+		local a = math.clamp((now - c.t0) / c.fall, 0, 1)
+		if a < 1 then
+			local pos = c.from:Lerp(c.to, a) + Vector3.new(0, c.peak * 4 * a * (1 - a), 0)
+			local tumble = (now - c.t0) * c.spin
+			c.part.CFrame = CFrame.new(pos) * CFrame.Angles(tumble, c.yaw, tumble * 0.6)
+		else
+			-- LANDED: flat on the grass, face up, then sinking away.
+			local rest = now - c.t0 - c.fall
+			local sink = math.clamp((rest - c.lie) / 0.6, 0, 1)
+			c.part.CFrame = CFrame.new(c.to - Vector3.new(0, sink * c.depth, 0))
+				* CFrame.Angles(math.pi / 2, 0, c.yaw)
+			if sink >= 1 then
+				c.part:Destroy()
+				table.remove(spilling, i)
+			end
+		end
+	end
+	if #spilling == 0 and spillDriver then
+		spillDriver:Disconnect()
+		spillDriver = nil
+	end
+end
+
+local function spillCoins(bank: any, spilled: number?, capacity: number?): number
+	if type(spilled) ~= "number" or spilled <= 0 then
+		return 0
+	end
+	if typeof(bank) ~= "Instance" or not bank:IsA("BasePart") then
+		return 0
+	end
+	local camera = Workspace.CurrentCamera
+	if not camera then
+		return 0
+	end
+	local folder = camera:FindFirstChild("LootFX")
+	if not folder then
+		folder = Instance.new("Folder")
+		folder.Name = "LootFX"
+		folder.Parent = camera
+	end
+	local spec = Config.BANK_RUSH
+	-- At least a handful even for a trickle, so a spill is always SEEN.
+	local count = math.max(6, (streamShape(spilled, capacity)))
+	local stagger = 0.05
+	local top = bank.Position + Vector3.new(0, bank.Size.Y / 2, 0)
+	-- The lawn, found by casting down past everything client-only. Falls back
+	-- to the pig's own underside.
+	local ignore = RaycastParams.new()
+	ignore.FilterType = Enum.RaycastFilterType.Exclude
+	local exclude: { Instance } = { folder, bank }
+	local me = game:GetService("Players").LocalPlayer
+	if me and me.Character then
+		table.insert(exclude, me.Character)
+	end
+	ignore.FilterDescendantsInstances = exclude
+	local floorY = bank.Position.Y - bank.Size.Y / 2
+
+	for i = 1, count do
+		task.delay((i - 1) * stagger, function()
+			if not bank.Parent then return end
+			local angle = math.random() * math.pi * 2
+			local reach = 5 + math.random() * 7
+			local land = bank.Position + Vector3.new(math.cos(angle) * reach, 0, math.sin(angle) * reach)
+			local hit = Workspace:Raycast(land + Vector3.new(0, 6, 0), Vector3.new(0, -30, 0), ignore)
+			local groundY = if hit then hit.Position.Y else floorY
+			local mesh = CoinModel.clone(spec.meshStuds)
+			if not mesh then return end
+			mesh.Name = "SpillCoin"
+			mesh.CFrame = CFrame.new(top)
+			mesh.Parent = folder
+			table.insert(spilling, {
+				part = mesh, t0 = os.clock(),
+				from = top, to = Vector3.new(land.X, groundY + mesh.Size.Z / 2 + 0.02, land.Z),
+				fall = 0.75 + math.random() * 0.3, peak = 3 + math.random() * 2,
+				spin = (math.random() * 2 - 1) * 12, yaw = math.random() * math.pi * 2,
+				lie = 1.6 + math.random() * 0.6, depth = mesh.Size.Z + 0.1,
+			})
+			if not spillDriver then
+				spillDriver = RunService.Heartbeat:Connect(driveSpill)
+			end
+		end)
+	end
+	return (count - 1) * stagger + 1.05
+end
+
+local function flyGhost(ghost: GuiObject, px: number, target: GuiObject?, spin: boolean,
+	onLand: (() -> ())?)
+	if not target or not target.Parent then
+		ghost:Destroy()
+		if onLand then onLand() end
+		return
+	end
+	local shrink = ghost:FindFirstChildOfClass("UIScale") or Instance.new("UIScale")
+	shrink.Parent = ghost
+	local to = target.AbsolutePosition + target.AbsoluteSize / 2
+	tween(ghost, FLY, { Position = UDim2.fromOffset(to.X, to.Y) },
+		Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+	tween(shrink, FLY, { Scale = 18 / px }, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+	if spin then
+		tween(ghost, FLY, { Rotation = ghost.Rotation + 220 })
+	end
+	task.delay(FLY + 0.05, function()
+		ghost:Destroy()
+		-- THE LANDING BUMP, ON THE THING IT LANDED IN. Without it the ghost
+		-- simply vanishes at the corner and reads as decoration rather than
+		-- as something ARRIVING somewhere.
+		local bump = target:FindFirstChildOfClass("UIScale") or Instance.new("UIScale")
+		bump.Parent = target
+		bump.Scale = 1.22
+		tween(bump, 0.24, { Scale = 1 }, Enum.EasingStyle.Back)
+		if onLand then onLand() end
+	end)
+end
+
+-- Where a point in the world is on this ScreenGui, or nil when it is behind
+-- the camera. `IgnoreGuiInset` is on for the HUD, so the viewport point IS
+-- the GUI point; the inset is only subtracted for a gui that respects it.
+local function screenPoint(gui: Instance, world: Vector3): Vector2?
+	local camera = Workspace.CurrentCamera
+	if not camera then return nil end
+	local point, onScreen = camera:WorldToViewportPoint(world)
+	if not onScreen then return nil end
+	local at = Vector2.new(point.X, point.Y)
+	if gui:IsA("ScreenGui") and not gui.IgnoreGuiInset then
+		at -= game:GetService("GuiService"):GetGuiInset()
+	end
+	return at
+end
+
+-- AN ACORN, RISING OUT OF THE PIG AND THEN FLYING TO THE ACORN CHIP.
+--
+-- TWO HALVES BECAUSE THEY LIVE IN TWO SPACES. The rise is a BillboardGui on
+-- the pig, so it stands over the real object the player is looking at; the
+-- flight is a screen-space frame started at the exact pixel the billboard
+-- was on, so the hand-over is seamless. `build` draws the contents into
+-- whichever of the two it is handed.
+local function riseAndFly(gui: Instance, bank: BasePart, px: number,
+	build: (Frame) -> (), target: GuiObject?, spin: boolean, onLand: (() -> ())?)
+	local spec = Config.BANK_RUSH
+	local host = gui.Parent
+	if not host then return end
+	local base = bank.Position
+
+	local board = Instance.new("BillboardGui")
+	board.Name = "LootRise"
+	board.Size = UDim2.fromOffset(px, px)
+	board.AlwaysOnTop = true
+	board.LightInfluence = 0
+	-- SIBLING, NOT THE DEFAULT GLOBAL. A shop card paints its tier colour at
+	-- ZIndex -2 underneath the card; Global ordering drew the dark card base
+	-- OVER that colour, which is why a stolen skin rose out of the pig on a
+	-- black card and only turned its tier colour once it reached the HUD.
+	board.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	board.StudsOffsetWorldSpace = Vector3.new(0, 3, 0)
+	board.Adornee = bank
+	board.ResetOnSpawn = false
+	board.Parent = host
+	local holder = Instance.new("Frame")
+	holder.Name = "Holder"
+	holder.BackgroundTransparency = 1
+	holder.Size = UDim2.fromScale(1, 1)
+	holder.Parent = board
+	local scale = Instance.new("UIScale")
+	scale.Scale = 0.2
+	scale.Parent = holder
+	build(holder)
+
+	-- Up out of the pig, overshooting a touch as it pops to full size.
+	tween(board, 0.45, { StudsOffsetWorldSpace = Vector3.new(0, spec.rise, 0) },
+		Enum.EasingStyle.Back)
+	tween(scale, 0.45, { Scale = 1 }, Enum.EasingStyle.Back)
+
+	task.delay(0.45 + spec.acornHold, function()
+		local world = (if bank.Parent then bank.Position else base) + board.StudsOffsetWorldSpace
+		board:Destroy()
+		if not target or not target.Parent then
+			return
+		end
+		-- Behind the camera: start from the middle of the screen rather than
+		-- from a mirrored point on the wrong side of it.
+		local at = screenPoint(gui, world) or ((gui :: any).AbsoluteSize / 2)
+
+		local ghost = Instance.new("Frame")
+		ghost.Name = "LootFlying"
+		ghost.BackgroundTransparency = 1
+		ghost.AnchorPoint = Vector2.new(0.5, 0.5)
+		ghost.Size = UDim2.fromOffset(px, px)
+		ghost.Position = UDim2.fromOffset(at.X, at.Y)
+		ghost.Active = false
+		ghost.ZIndex = 40
+		ghost.Parent = gui
+		build(ghost)
+		flyGhost(ghost, px, target, spin, onLand)
+	end)
+end
+
+-- A STOLEN ITEM'S REVEAL, which is the loudest moment of a delivery on
+-- purpose: coins are the everyday payout and a skin is the thing somebody
+-- will tell a friend about.
+--
+-- It LEAVES THE PIG -- starting at the pig's own place on the screen, small,
+-- so it visibly comes out of the thing it was delivered into -- and swells to
+-- the middle of the screen on a burst of rays in its TIER's colour, over a
+-- dim, with its tier and name spelled out. It holds for `revealHold` (a tap
+-- skips the rest once `revealGate` has passed), then flies into the bag.
+--
+-- `onDone` is ALWAYS called, even if something fails to build, because the
+-- delivery sequence waits on it before showing the next thing.
+local function revealItem(gui: Instance, bank: BasePart?, kind: string, key: string,
+	iconFor: ((string, string, Frame) -> ())?, target: GuiObject?, onDone: () -> ())
+	local spec = Config.BANK_RUSH
+	local size = spec.revealSize
+	local finished = false
+	local function finish()
+		if finished then return end
+		finished = true
+		onDone()
+	end
+
+	local ok, err = pcall(function()
+		local name, tone = describe(kind, key)
+		local catalogue = Config.catalogueFor(kind)
+		local entry = catalogue and catalogue[key]
+		local band = (entry and Config.RARITIES[Config.rarityOf(entry)]) or Config.RARITIES.common
+		local view = (gui :: any).AbsoluteSize :: Vector2
+		local centre = Vector2.new(view.X / 2, view.Y * 0.46)
+		local from = (bank and screenPoint(gui, bank.Position + Vector3.new(0, 3, 0)))
+			or Vector2.new(view.X / 2, view.Y * 0.62)
+
+		local root = Instance.new("Frame")
+		root.Name = "LootReveal"
+		root.Size = UDim2.fromScale(1, 1)
+		root.BackgroundTransparency = 1
+		root.Active = false
+		root.ZIndex = 60
+		root.Parent = gui
+
+		local dim = Instance.new("Frame")
+		dim.Name = "Dim"
+		dim.Size = UDim2.fromScale(1, 1)
+		dim.BackgroundColor3 = Theme.INK
+		dim.BackgroundTransparency = 1
+		dim.BorderSizePixel = 0
+		dim.ZIndex = 1
+		dim.Parent = root
+
+		-- THE RAYS: eight bars through one point, turning slowly, each fading
+		-- out along its length so the burst has no hard ends.
+		local rays = Instance.new("Frame")
+		rays.Name = "Rays"
+		rays.BackgroundTransparency = 1
+		rays.Position = UDim2.fromOffset(centre.X, centre.Y)
+		rays.Size = UDim2.fromOffset(0, 0)
+		rays.ZIndex = 2
+		rays.Parent = root
+		local bars = {}
+		for i = 1, 8 do
+			local bar = Instance.new("Frame")
+			bar.Name = "Ray" .. i
+			bar.AnchorPoint = Vector2.new(0.5, 0.5)
+			bar.Size = UDim2.fromOffset(math.max(view.X, view.Y) * 1.1, 40)
+			bar.BackgroundColor3 = tone
+			bar.BorderSizePixel = 0
+			bar.BackgroundTransparency = 1
+			bar.ZIndex = 2
+			bar.Parent = rays
+			local fade = Instance.new("UIGradient")
+			fade.Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 1),
+				NumberSequenceKeypoint.new(0.32, 0.7),
+				NumberSequenceKeypoint.new(0.5, 0.25),
+				NumberSequenceKeypoint.new(0.68, 0.7),
+				NumberSequenceKeypoint.new(1, 1),
+			})
+			fade.Parent = bar
+			bars[i] = bar
+			tween(bar, 0.5, { BackgroundTransparency = 0 })
+		end
+
+		local glow = Instance.new("Frame")
+		glow.Name = "Glow"
+		glow.AnchorPoint = Vector2.new(0.5, 0.5)
+		glow.Position = UDim2.fromOffset(centre.X, centre.Y)
+		glow.Size = UDim2.fromOffset(size * 1.5, size * 1.5)
+		glow.BackgroundColor3 = tone
+		glow.BackgroundTransparency = 1
+		glow.BorderSizePixel = 0
+		glow.ZIndex = 3
+		glow.Parent = root
+		Theme.corner(glow, math.floor(size * 0.75))
+		local glowFade = Instance.new("UIGradient")
+		glowFade.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.1),
+			NumberSequenceKeypoint.new(0.7, 0.6),
+			NumberSequenceKeypoint.new(1, 1),
+		})
+		glowFade.Parent = glow
+		tween(glow, 0.5, { BackgroundTransparency = 0.25 })
+
+		-- THE CARD ITSELF, the same tile the bag and the shop draw, at reveal
+		-- size and with a heavy edge in its tier's colour.
+		local card = buildTile(root, kind, key, size, iconFor)
+		card.Name = "RevealCard"
+		card.AnchorPoint = Vector2.new(0.5, 0.5)
+		card.Position = UDim2.fromOffset(from.X, from.Y)
+		card.Rotation = -18
+		card.ZIndex = 4
+		Theme.outline(card, 6, tone)
+		local grow = Instance.new("UIScale")
+		grow.Scale = 0.18
+		grow.Parent = card
+
+		local function word(labelName: string, text: string, y: number, height: number,
+			textSize: number, colour: Color3): TextLabel
+			local label = Instance.new("TextLabel")
+			label.Name = labelName
+			label.AnchorPoint = Vector2.new(0.5, 0.5)
+			label.Position = UDim2.fromOffset(centre.X, y)
+			label.Size = UDim2.fromOffset(math.min(view.X - 32, 560), height)
+			label.BackgroundTransparency = 1
+			label.Text = text
+			label.TextTransparency = 1
+			label.ZIndex = 5
+			label.Parent = root
+			Theme.title(label, textSize, colour)
+			local stroke = Instance.new("UIStroke")
+			stroke.Thickness = 3
+			stroke.Color = Theme.INK
+			stroke.Transparency = 1
+			stroke.Parent = label
+			return label
+		end
+		local heading = word("Heading", if kind == "skin" then "NEW SKIN!" else "NEW ITEM!",
+			centre.Y - size / 2 - 44, 48, 40, Theme.PAPER)
+		local tierWord = word("Tier", string.upper(band.label), centre.Y + size / 2 + 26, 30, 24, tone)
+		local nameWord = word("ItemName", string.upper(name), centre.Y + size / 2 + 60, 36, 30, Theme.PAPER)
+		local labels = { heading, tierWord, nameWord }
+
+		local flash = Instance.new("Frame")
+		flash.Name = "Flash"
+		flash.Size = UDim2.fromScale(1, 1)
+		flash.BackgroundColor3 = Color3.new(1, 1, 1)
+		flash.BackgroundTransparency = 1
+		flash.BorderSizePixel = 0
+		flash.ZIndex = 6
+		flash.Parent = root
+
+		-- A tap anywhere skips the rest of the hold, once the gate has passed.
+		local catcher = Instance.new("TextButton")
+		catcher.Name = "Skip"
+		catcher.Size = UDim2.fromScale(1, 1)
+		catcher.BackgroundTransparency = 1
+		catcher.Text = ""
+		catcher.ZIndex = 7
+		catcher.Parent = root
+
+		-- IN: out of the pig to the middle of the screen, growing and
+		-- straightening, landing on a flash and the reward sting.
+		tween(dim, 0.4, { BackgroundTransparency = 0.4 })
+		tween(card, 0.6, { Position = UDim2.fromOffset(centre.X, centre.Y), Rotation = 0 },
+			Enum.EasingStyle.Back)
+		tween(grow, 0.6, { Scale = 1 }, Enum.EasingStyle.Back)
+		task.delay(0.55, function()
+			if not root.Parent then return end
+			flash.BackgroundTransparency = 0.35
+			tween(flash, 0.45, { BackgroundTransparency = 1 })
+			for _, label in ipairs(labels) do
+				tween(label, 0.3, { TextTransparency = 0 })
+				tween(label:FindFirstChildOfClass("UIStroke") :: UIStroke, 0.3, { Transparency = 0 })
+			end
+		end)
+
+		-- The rays turn and the glow and card breathe for as long as it holds.
+		local t0 = os.clock()
+		local spinner = RunService.Heartbeat:Connect(function()
+			local t = os.clock() - t0
+			for i, bar in ipairs(bars) do
+				bar.Rotation = (i - 1) * 22.5 + t * 18
+			end
+			local breath = 1 + 0.04 * math.sin(t * 3.2)
+			glow.Size = UDim2.fromOffset(size * 1.5 * breath, size * 1.5 * breath)
+		end)
+
+		local skipped = false
+		local openedAt = os.clock()
+		catcher.Activated:Connect(function()
+			if os.clock() - openedAt >= spec.revealGate then skipped = true end
+		end)
+
+		task.spawn(function()
+			local holdEnd = os.clock() + 0.6 + spec.revealHold
+			while os.clock() < holdEnd and not skipped and root.Parent do
+				task.wait()
+			end
+			-- OUT: the burst fades, and the card leaves for the bag.
+			for _, label in ipairs(labels) do
+				tween(label, 0.2, { TextTransparency = 1 })
+				tween(label:FindFirstChildOfClass("UIStroke") :: UIStroke, 0.2, { Transparency = 1 })
+			end
+			for _, bar in ipairs(bars) do tween(bar, 0.3, { BackgroundTransparency = 1 }) end
+			tween(glow, 0.3, { BackgroundTransparency = 1 })
+			tween(dim, 0.35, { BackgroundTransparency = 1 })
+			catcher:Destroy()
+			card.Parent = gui
+			card.ZIndex = 60
+			flyGhost(card, size, target, true, function()
+				finish()
+			end)
+			task.delay(0.4, function()
+				spinner:Disconnect()
+				root:Destroy()
+			end)
+		end)
+	end)
+	if not ok then
+		warn("[LootHaul] item reveal failed: " .. tostring(err))
+		finish()
 	end
 end
 
@@ -346,156 +852,94 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 		end
 	end
 
-	-- ---------- the deliver button ----------
+	-- ---------- the drop-off rings ----------
 	--
-	-- THE FOURTH MOMENT, AND THE ONLY ONE IN THIS FILE THE PLAYER HAS TO
-	-- PRESS. The header's own rule is that nothing here interrupts and that
-	-- "the only clickable thing in the file is one button on the summary that
-	-- the player never has to press" -- this is the deliberate exception, and
-	-- it is worth saying why rather than quietly breaking it. Arriving home
-	-- used to bank the loot on its own: a thief crossed an invisible circle
-	-- and the coins appeared, so the pig the whole game is named after was a
-	-- thing a robbery never had to touch. The press is the loop closing, and
-	-- a press has to have something to press.
+	-- ARRIVING IS THE DELIVERY, AND THE RING IS HOW A PLAYER KNOWS WHERE THAT
+	-- IS. There was a DELIVER button bottom-centre; a player running home with
+	-- a dog behind them should not have to find a button as well, so the
+	-- server banks the haul the tick they step inside `Config.DROPOFF_RADIUS`
+	-- of their own pig (or of the owner's pig, for somebody returning loot)
+	-- and this draws that circle on the lawn.
 	--
-	-- `Active` IS THEREFORE TRUE HERE AND FALSE ON EVERYTHING ELSE. That flag
-	-- is what stops a frame swallowing the tap underneath it, which on a
-	-- touchscreen is the difference between a card you can ignore and one
-	-- that eats the tap meant for the hot bar. A button is the one thing in
-	-- here that IS the tap, and it is only on screen when the server has just
-	-- said it should be.
+	-- THE RING IS THE RULE, NOT A PICTURE OF IT. The server measures a 3D
+	-- distance from the pig's centre, so the circle on the grass is the slice
+	-- of that sphere at the carrier's own root height -- recomputed each
+	-- frame, so standing on the line means standing on the edge of the zone.
 	--
-	-- BOTTOM CENTRE, AND THE BAND WAS MEASURED ON A LIVE HUD RATHER THAN
-	-- ARGUED FROM THE LAYOUT NOTES. Swept at 1399x793, everything visible in
-	-- the bottom third:
-	--
-	--     DeliverLoot      y 579..643   x  587..811
-	--     HotBar           y 661..715   x  350..1048
-	--     BoostPill        y 605..649   x   22..190
-	--     GarageSlot/Dodge y 527..595   x   22..242
-	--     GaragePicker     y 527..595   x  174..588
-	--     CarryingLoot     y 521..585   x 1311..1375
-	--     shop / satchel   y 649..713   x 1171..1381
-	--
-	-- So it clears the hot bar by 18 pixels, and every other row in the band
-	-- is either far left or far right of a 224-wide centred button. The
-	-- closest thing to it is the garage picker's last tile, which ENDS at
-	-- x 588 against this starting at 587 -- one pixel, on a fan that is only
-	-- open while a finger is on it.
-	--
-	-- IT SHARES A BAND WITH THE CRACK PANEL ON PURPOSE, and that is the same
-	-- exclusivity the F key below leans on rather than a second risk. The
-	-- dial sits at y 553..587 and its three buttons at y 593..627, straight
-	-- through this -- and they can never both be up, because `attemptSteal`
-	-- refuses while you are carrying and there is nothing to deliver while
-	-- you are cracking. This is the band this game already uses for the
-	-- moment-to-moment of a robbery, which is what this is.
-	--
-	-- It is also where a primary action belongs on a touchscreen: reachable
-	-- by either thumb, which the top-centre banner saying the same word is
-	-- not.
-	local deliverBtn = Instance.new("TextButton")
-	deliverBtn.Name = "DeliverLoot"
-	deliverBtn.Size = UDim2.fromOffset(224, 64)
-	deliverBtn.Position = UDim2.new(0.5, 0, 1, -92)
-	deliverBtn.AnchorPoint = Vector2.new(0.5, 1)
-	deliverBtn.AutoButtonColor = false
-	deliverBtn.Text = ""
-	deliverBtn.Visible = false
-	deliverBtn.ZIndex = 12
-	deliverBtn.Parent = gui
-	-- GREEN GROUND, GOLD OBJECT, which is the palette rule rather than a
-	-- choice. `Theme`'s own line is that gold means money and pink means the
-	-- pig, and that both go on OBJECTS and never under them -- so the coin is
-	-- drawn on the button and the button is the "good thing happening" green
-	-- every other positive action in this game already uses.
-	Theme.tinted(deliverBtn, Theme.GOOD, Theme.GOOD:Lerp(Color3.new(), 0.35), 14)
-
-	local deliverCoin = Theme.coin(deliverBtn, 28)
-	deliverCoin.Position = UDim2.new(0, 16, 0.5, 0)
-	deliverCoin.AnchorPoint = Vector2.new(0, 0.5)
-	deliverCoin.ZIndex = 13
-
-	local deliverLabel = Instance.new("TextLabel")
-	deliverLabel.Name = "Label"
-	deliverLabel.Size = UDim2.new(1, -64, 1, 0)
-	deliverLabel.Position = UDim2.fromOffset(56, 0)
-	deliverLabel.BackgroundTransparency = 1
-	deliverLabel.Text = "DELIVER"
-	deliverLabel.ZIndex = 13
-	deliverLabel.Parent = deliverBtn
-	Theme.title(deliverLabel, 24, Theme.INK)
-
-	local deliverAcorn = Theme.acorn(deliverBtn, 28)
-	deliverAcorn.Position, deliverAcorn.AnchorPoint = deliverCoin.Position, deliverCoin.AnchorPoint
-	deliverAcorn.ZIndex, deliverAcorn.Visible = 13, false
-
-	-- Both destinations remain legible while running. The existing action
-	-- button chooses the destination underfoot, as confirmed by the server.
-	local destinations = Instance.new("Frame")
-	destinations.Name = "CarryDestinations"
-	destinations.Size = UDim2.new(0, 304, 0, 92)
-	destinations.Position = UDim2.new(0.5, 0, 1, -164)
-	destinations.AnchorPoint = Vector2.new(0.5, 1)
-	destinations.Visible, destinations.Active, destinations.ZIndex = false, false, 10
-	destinations.Parent = gui
-	Theme.card(destinations, 12)
-	local function destinationRow(name: string, y: number): TextLabel
-		local label = Instance.new("TextLabel")
-		label.Name, label.BackgroundTransparency = name, 1
-		label.Position, label.Size = UDim2.fromOffset(10, y), UDim2.new(1, -20, 0, 40)
-		label.TextWrapped, label.TextScaled, label.ZIndex = true, true, 11
-		label.Parent = destinations
-		Theme.title(label, 16, Theme.PAPER)
-		local limit = Instance.new("UITextSizeConstraint")
-		limit.MinTextSize, limit.MaxTextSize, limit.Parent = 11, 16, label
-		return label
+	-- CLIENT-SIDE AND FOR THE CARRIER ONLY. Nobody else needs to know where a
+	-- thief is heading; the loot on their chest already says they are one.
+	-- A `CylinderHandleAdornment` has an inner radius, which a Part does not,
+	-- so one instance is one ring and nothing here collides or is queried.
+	local localPlayer = game:GetService("Players").LocalPlayer
+	local rings: { [string]: any } = {}
+	local function makeRing(name: string, colour: Color3)
+		local band = Instance.new("CylinderHandleAdornment")
+		band.Name = name .. "Ring"
+		band.Adornee = Workspace.Terrain
+		band.Color3 = colour
+		band.Height = 0.35
+		band.AlwaysOnTop = false
+		band.ZIndex = 1
+		band.Visible = false
+		band.Parent = gui
+		-- A thin wall of the same colour standing on the ring, so the drop-off
+		-- reads from down the street and not only from on top of it.
+		local wall = Instance.new("CylinderHandleAdornment")
+		wall.Name = name .. "Glow"
+		wall.Adornee = Workspace.Terrain
+		wall.Color3 = colour
+		wall.Height = 2.6
+		wall.AlwaysOnTop = false
+		wall.Visible = false
+		wall.Parent = gui
+		rings[name] = { band = band, wall = wall, spec = nil }
 	end
-	local homeRow, returnRow = destinationRow("Keep", 4), destinationRow("Return", 48)
-	local carryShown, deliveryReady, crackOpen, shakeOpen = false, false, false, false
-	local function updateCarryVisibility()
+	makeRing("Home", Theme.GOLD)
+	makeRing("Return", Theme.GOOD)
+
+	local crackOpen, shakeOpen = false, false
+	local function paintRings()
 		local busy = crackOpen or shakeOpen
-		destinations.Visible = carryShown and not busy
-		deliverBtn.Visible = deliveryReady and not busy
+		for _, ring in pairs(rings) do
+			local on = ring.spec ~= nil and not busy
+			ring.band.Visible, ring.wall.Visible = on, on
+		end
 	end
 	Remotes.get("CrackState").OnClientEvent:Connect(function(payload)
 		crackOpen = payload ~= nil
-		updateCarryVisibility()
+		paintRings()
 	end)
 	Remotes.get("ShakeState").OnClientEvent:Connect(function(payload)
 		shakeOpen = payload ~= nil and payload.ended ~= true
-		updateCarryVisibility()
+		paintRings()
 	end)
-
-
-	-- ONE PATH FOR THE TAP AND THE KEY, so a desktop player and a tablet
-	-- player reach the same guard rather than two copies of it.
-	--
-	-- THE REQUEST CARRIES NOTHING and the server re-derives the plot, the
-	-- distance and the haul -- see `deliverRequest` in `HeistService`. The
-	-- `Visible` test here is the client declining to ask for a known no,
-	-- which is the same split the number keys and the dodge-while-riding
-	-- suppression already make; it is not the check that matters.
-	local function requestDeliver()
-		if not deliverBtn.Visible then
-			return
-		end
-		Remotes.get("DeliverRequest"):FireServer()
+	local function setRings(options: any?)
+		local info = options or {}
+		rings.Home.spec = if type(info.homeRing) == "table" then info.homeRing else nil
+		rings.Return.spec = if type(info.returnRing) == "table" then info.returnRing else nil
+		paintRings()
 	end
-	deliverBtn.Activated:Connect(requestDeliver)
 
-	-- F, AND IT IS SAFE FOR THE REASON Q IS SAFE FOR THE DODGE AND THE TRICK:
-	-- the two things that share it can never both be live. F is the crack's
-	-- dial tap, and `attemptSteal` refuses outright while you are carrying --
-	-- so a player with loot in their hands has no crack to tap, and a player
-	-- mid-crack is holding nothing to deliver. The button is the primary
-	-- route regardless, because most of this audience never presses a key.
-	UserInputService.InputBegan:Connect(function(input, typed)
-		if typed then
-			return
-		end
-		if input.KeyCode == Enum.KeyCode.F then
-			requestDeliver()
+	local FLAT = CFrame.Angles(math.pi / 2, 0, 0)
+	RunService.Heartbeat:Connect(function()
+		local character = localPlayer.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		local pulse = 0.5 + 0.5 * math.sin(os.clock() * math.pi * 2 * 0.8)
+		for _, ring in pairs(rings) do
+			local spec = ring.spec
+			if spec and ring.band.Visible and typeof(spec.at) == "Vector3" then
+				local reach = Config.DROPOFF_RADIUS
+				local dy = if root then root.Position.Y - spec.at.Y else 3
+				local r = math.sqrt(math.max(reach * reach - dy * dy, 4))
+				local ground = tonumber(spec.ground) or spec.at.Y
+				local centre = Vector3.new(spec.at.X, ground, spec.at.Z)
+				ring.band.CFrame = CFrame.new(centre + Vector3.new(0, 0.2, 0)) * FLAT
+				ring.band.Radius, ring.band.InnerRadius = r, r - 0.7
+				ring.band.Transparency = 0.05 + 0.3 * pulse
+				ring.wall.CFrame = CFrame.new(centre + Vector3.new(0, 1.3, 0)) * FLAT
+				ring.wall.Radius, ring.wall.InnerRadius = r, r - 0.12
+				ring.wall.Transparency = 0.6 + 0.25 * pulse
+			end
 		end
 	end)
 
@@ -617,16 +1061,7 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 	Remotes.get("CarryUpdate").OnClientEvent:Connect(function(amount: number, haul: any,
 		_inRange: boolean?, kind: string?, _worth: number?, _ownBasket: boolean?, options: any?)
 		local view = CarryDelivery.describe(amount, haul, kind, options)
-		deliveryReady, deliverLabel.Text = view.canPress, view.button
-		deliverCoin.Visible, deliverAcorn.Visible = kind ~= "basket", kind == "basket"
-		carryShown = view.visible
-		updateCarryVisibility()
-		homeRow.Visible = view.showHome
-		returnRow.Visible = view.showReturn or not view.showHome
-		homeRow.Text, returnRow.Text = view.home, view.returning
-		local both = homeRow.Visible and returnRow.Visible
-		destinations.Size = UDim2.fromOffset(304, if both then 92 else 48)
-		returnRow.Position = UDim2.fromOffset(10, if both then 48 else 4)
+		setRings(if view.visible then options else nil)
 		local list = if type(haul) == "table" then haul else {}
 		-- A LIST THAT GOT LONGER IS THE EVENT. Anything else -- a re-push on
 		-- a landed slice, the same haul arriving twice -- must not re-pop, or
@@ -649,229 +1084,390 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 	end)
 
 	-- ---------- the delivery summary ----------
-	local card = Instance.new("Frame")
-	card.Name = "HeistSummary"
-	card.Size = UDim2.fromOffset(360, 250)
-	card.Position = UDim2.new(0.5, 0, 0.4, 0)
-	card.AnchorPoint = Vector2.new(0.5, 0.5)
-	card.Visible = false
-	card.Active = false
-	card.ZIndex = 22
-	card.Parent = gui
-	Theme.card(card, 20)
+	--
+	-- THE LAST BEAT, AND THE ONE PLACE THIS FILE STOPS THE PLAYER. It comes
+	-- after the coins, any stolen item and any acorns have all landed, so it
+	-- is a receipt for things the player has just watched arrive rather than
+	-- a promise. A tap closes it -- after `summaryGate`, so a tap already on
+	-- its way does not dismiss it unread -- and `summaryAuto` closes it on its
+	-- own, so it can never trap anybody. The arrest scene's shape, in the
+	-- HUD's own paper-and-ink vocabulary.
+	local overlay = Instance.new("TextButton")
+	overlay.Name = "HeistSummary"
+	overlay.Size = UDim2.fromScale(1, 1)
+	overlay.BackgroundColor3 = Theme.INK
+	overlay.BackgroundTransparency = 1
+	overlay.BorderSizePixel = 0
+	overlay.AutoButtonColor = false
+	overlay.Text = ""
+	overlay.Visible = false
+	overlay.ZIndex = 70
+	overlay.Parent = gui
 
-	local cardScale = Instance.new("UIScale")
-	cardScale.Parent = card
+	local panel = Instance.new("Frame")
+	panel.Name = "Panel"
+	panel.AnchorPoint = Vector2.new(0.5, 0.5)
+	panel.Position = UDim2.fromScale(0.5, 0.52)
+	panel.Size = UDim2.fromOffset(440, 300)
+	panel.Active = false
+	panel.ZIndex = 71
+	panel.Parent = overlay
+	Theme.card(panel, 22)
+	local panelScale = Instance.new("UIScale")
+	panelScale.Parent = panel
 
-	local cardTitle = Instance.new("TextLabel")
-	cardTitle.Name = "Title"
-	cardTitle.Size = UDim2.new(1, -24, 0, 30)
-	cardTitle.Position = UDim2.fromOffset(12, 12)
-	cardTitle.BackgroundTransparency = 1
-	cardTitle.Text = "DELIVERED"
-	cardTitle.ZIndex = 23
-	cardTitle.Parent = card
-	Theme.title(cardTitle, 24, Theme.INK)
+	-- THE RIBBON across the top edge, half off the card: DELIVERED! on the
+	-- good green, REVENGE! on the alarm red. It slams in a beat after the
+	-- card, which is the stamp moment the arrest scene has.
+	local ribbon = Instance.new("Frame")
+	ribbon.Name = "Ribbon"
+	ribbon.AnchorPoint = Vector2.new(0.5, 0.5)
+	ribbon.Position = UDim2.new(0.5, 0, 0, 0)
+	ribbon.Size = UDim2.new(1, -56, 0, 58)
+	ribbon.ZIndex = 73
+	ribbon.Parent = panel
+	Theme.tinted(ribbon, Theme.GOOD, Theme.GOOD:Lerp(Color3.new(), 0.3), 16)
+	local ribbonScale = Instance.new("UIScale")
+	ribbonScale.Parent = ribbon
+	local ribbonTitle = Instance.new("TextLabel")
+	ribbonTitle.Name = "Title"
+	ribbonTitle.Size = UDim2.fromScale(1, 1)
+	ribbonTitle.BackgroundTransparency = 1
+	ribbonTitle.Text = "DELIVERED!"
+	ribbonTitle.ZIndex = 74
+	ribbonTitle.Parent = ribbon
+	Theme.title(ribbonTitle, 32, Theme.INK)
 
-	local cardCoins = Instance.new("TextLabel")
-	cardCoins.Name = "Coins"
-	cardCoins.Size = UDim2.new(1, -24, 0, 34)
-	cardCoins.Position = UDim2.fromOffset(12, 44)
-	cardCoins.BackgroundTransparency = 1
-	cardCoins.Text = ""
-	cardCoins.ZIndex = 23
-	cardCoins.Parent = card
-	Theme.title(cardCoins, 28, Theme.GOLD_INK)
+	local function line(labelName: string, textSize: number, colour: Color3, heading: boolean): TextLabel
+		local label = Instance.new("TextLabel")
+		label.Name = labelName
+		label.AnchorPoint = Vector2.new(0.5, 0)
+		label.BackgroundTransparency = 1
+		label.Text = ""
+		label.ZIndex = 72
+		label.Parent = panel
+		if heading then Theme.title(label, textSize, colour) else Theme.body(label, textSize, colour) end
+		return label
+	end
+	local fromLabel = line("From", 15, Theme.MUTED, false)
 
-	local cardNote = Instance.new("TextLabel")
-	cardNote.Name = "Note"
-	cardNote.Size = UDim2.new(1, -24, 0, 20)
-	cardNote.Position = UDim2.fromOffset(12, 78)
-	cardNote.BackgroundTransparency = 1
-	cardNote.Text = ""
-	cardNote.ZIndex = 23
-	cardNote.Parent = card
-	Theme.body(cardNote, 13, Theme.MUTED)
+	local coinRow = Instance.new("Frame")
+	coinRow.Name = "Coins"
+	coinRow.AnchorPoint = Vector2.new(0.5, 0)
+	coinRow.BackgroundTransparency = 1
+	coinRow.ZIndex = 72
+	coinRow.Parent = panel
+	local coinLayout = Instance.new("UIListLayout")
+	coinLayout.FillDirection = Enum.FillDirection.Horizontal
+	coinLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	coinLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	coinLayout.Padding = UDim.new(0, 10)
+	coinLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	coinLayout.Parent = coinRow
+	local coinIcon = Theme.coin(coinRow, 50, "CoinIcon")
+	coinIcon.LayoutOrder = 1
+	local coinAmount = Instance.new("TextLabel")
+	coinAmount.Name = "Amount"
+	coinAmount.AutomaticSize = Enum.AutomaticSize.X
+	coinAmount.Size = UDim2.new(0, 0, 1, 0)
+	coinAmount.BackgroundTransparency = 1
+	coinAmount.Text = ""
+	coinAmount.LayoutOrder = 2
+	coinAmount.ZIndex = 72
+	coinAmount.Parent = coinRow
+	Theme.title(coinAmount, 46, Theme.GOLD_INK)
 
-	local cardItems = Instance.new("Frame")
-	cardItems.Name = "Items"
-	cardItems.Size = UDim2.new(1, -24, 0, TILE)
-	cardItems.Position = UDim2.fromOffset(12, 104)
-	cardItems.BackgroundTransparency = 1
-	cardItems.Active = false
-	cardItems.ZIndex = 23
-	cardItems.Parent = card
+	local bankedLabel = line("Banked", 14, Theme.MUTED, false)
+	local spillLabel = line("Spilled", 15, Theme.WARN_INK, true)
+
+	local function strip(stripName: string): Frame
+		local row = Instance.new("Frame")
+		row.Name = stripName
+		row.AnchorPoint = Vector2.new(0.5, 0)
+		row.BackgroundTransparency = 1
+		row.ZIndex = 72
+		row.Parent = panel
+		local layout = Instance.new("UIListLayout")
+		layout.FillDirection = Enum.FillDirection.Horizontal
+		layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+		layout.VerticalAlignment = Enum.VerticalAlignment.Center
+		layout.Padding = UDim.new(0, 10)
+		layout.SortOrder = Enum.SortOrder.LayoutOrder
+		layout.Parent = row
+		return row
+	end
+	local chips = strip("Chips")
+	local itemRow = strip("Items")
 
 	local bagButton = Instance.new("TextButton")
 	bagButton.Name = "OpenBag"
-	bagButton.Size = UDim2.new(1, -24, 0, 36)
-	bagButton.Position = UDim2.new(0, 12, 1, -48)
-	bagButton.BackgroundColor3 = Theme.HUE.crates
+	bagButton.AnchorPoint = Vector2.new(0.5, 0)
+	bagButton.Size = UDim2.fromOffset(180, 40)
 	bagButton.AutoButtonColor = false
 	bagButton.Text = "OPEN BAG"
-	bagButton.Visible = false
-	bagButton.ZIndex = 24
-	bagButton.Parent = card
-	Theme.title(bagButton, 17, Theme.INK)
-	Theme.corner(bagButton, 10)
-	Theme.outline(bagButton, 3)
+	bagButton.ZIndex = 73
+	bagButton.Parent = panel
+	Theme.tinted(bagButton, Theme.HUE.crates, Theme.HUE.crates:Lerp(Color3.new(), 0.25), 12)
+	Theme.title(bagButton, 18, Theme.INK)
 
-	local summaryToken = 0
-	local function hideSummary()
-		card.Visible = false
-		bagButton.Visible = false
+	local tapLabel = line("TapToContinue", 16, Theme.MUTED, true)
+	tapLabel.Text = "TAP TO CONTINUE"
+
+	-- One pill in the chip strip: a tone-tinted ground, an optional icon, a
+	-- word. The acorn chip carries the real acorn icon, the same one the HUD
+	-- chip it just flew into wears.
+	local function addChip(order: number, tone: Color3, text: string, icon: string?)
+		local pill = Instance.new("Frame")
+		pill.Name = "Chip"
+		pill.AutomaticSize = Enum.AutomaticSize.X
+		pill.Size = UDim2.new(0, 0, 1, 0)
+		pill.BackgroundColor3 = tone:Lerp(Theme.PAPER, 0.55)
+		pill.LayoutOrder = order
+		pill.ZIndex = 72
+		pill.Parent = chips
+		Theme.corner(pill, 20)
+		Theme.outline(pill, 2.5)
+		local pad = Instance.new("UIPadding")
+		pad.PaddingLeft, pad.PaddingRight = UDim.new(0, 14), UDim.new(0, 14)
+		pad.Parent = pill
+		local layout = Instance.new("UIListLayout")
+		layout.FillDirection = Enum.FillDirection.Horizontal
+		layout.VerticalAlignment = Enum.VerticalAlignment.Center
+		layout.Padding = UDim.new(0, 6)
+		layout.SortOrder = Enum.SortOrder.LayoutOrder
+		layout.Parent = pill
+		if icon == "acorn" then
+			local a = Theme.acorn(pill, 26)
+			a.LayoutOrder = 1
+			a.ZIndex = 73
+		end
+		local label = Instance.new("TextLabel")
+		label.Name = "Label"
+		label.AutomaticSize = Enum.AutomaticSize.X
+		label.Size = UDim2.new(0, 0, 1, 0)
+		label.BackgroundTransparency = 1
+		label.Text = text
+		label.LayoutOrder = 2
+		label.ZIndex = 73
+		label.Parent = pill
+		Theme.title(label, 17, Theme.INK)
 	end
 
-	-- FLIES A COPY, NEVER THE TILE ITSELF. The real tile lives inside a
-	-- UIListLayout, so moving it collapses the row it is in -- the same
-	-- reason the hot bar's drag ghost is a clone rather than a reparent.
-	local function flyTo(from: GuiObject, target: GuiObject?, spin: boolean)
-		if not target then
-			return
+	local function clearRow(row: Frame)
+		for _, child in ipairs(row:GetChildren()) do
+			if not child:IsA("UIListLayout") then child:Destroy() end
 		end
-		local ghost = from:Clone()
-		ghost.Name = "Flying"
-		ghost.AnchorPoint = Vector2.new(0.5, 0.5)
-		ghost.Size = UDim2.fromOffset(from.AbsoluteSize.X, from.AbsoluteSize.Y)
-		ghost.Position = UDim2.fromOffset(
-			from.AbsolutePosition.X + from.AbsoluteSize.X / 2,
-			from.AbsolutePosition.Y + from.AbsoluteSize.Y / 2)
-		ghost.ZIndex = 40
-		ghost.Active = false
-		ghost.Parent = gui
+	end
 
-		local to = Vector2.new(
-			target.AbsolutePosition.X + target.AbsoluteSize.X / 2,
-			target.AbsolutePosition.Y + target.AbsoluteSize.Y / 2)
-		tween(ghost, FLY, {
-			Position = UDim2.fromOffset(to.X, to.Y),
-			Size = UDim2.fromOffset(18, 18),
-		}, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-		if spin then
-			tween(ghost, FLY, { Rotation = 220 })
-		end
-		task.delay(FLY + 0.05, function()
-			ghost:Destroy()
-			-- THE LANDING BUMP, ON THE THING IT LANDED IN. Without it the
-			-- ghost simply vanishes at the corner and the whole trip reads as
-			-- decoration rather than as something ARRIVING somewhere.
-			local bump = target:FindFirstChildOfClass("UIScale") or Instance.new("UIScale")
-			bump.Parent = target
-			bump.Scale = 1.22
-			tween(bump, 0.24, { Scale = 1 }, Enum.EasingStyle.Back)
+	local summaryToken = 0
+	local openedAt = 0
+	local counting: Tween? = nil
+	local pulsing: Tween? = nil
+
+	local function hideSummary()
+		if not overlay.Visible then return end
+		summaryToken += 1
+		local mine = summaryToken
+		if counting then counting:Cancel() end
+		if pulsing then pulsing:Cancel() end
+		tween(overlay, 0.2, { BackgroundTransparency = 1 })
+		tween(panelScale, 0.2, { Scale = panelScale.Scale * 0.8 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+		task.delay(0.2, function()
+			if summaryToken == mine then overlay.Visible = false end
 		end)
 	end
 
+	local function showSummary(payload: any, stolen: { { kind: string, key: string } })
+		summaryToken += 1
+		local mine = summaryToken
+		local revenge = payload.revenge == true
+		local banked = math.floor(tonumber(payload.banked) or 0)
+		local spilled = math.floor(tonumber(payload.spilled) or 0)
+		local run = math.floor(tonumber(payload.run) or 0)
+		local acorns = math.floor(tonumber(payload.acorns) or 0)
+
+		-- A FULL PIG IS ITS OWN RESULT, NOT A DELIVERY WITH A FOOTNOTE. Every
+		-- coin went on the grass, so the card leads with that in the warning
+		-- colour and the figure stays at +0 rather than counting anything up.
+		local full = banked <= 0 and spilled > 0
+		ribbon.BackgroundColor3 = if full then Theme.WARN elseif revenge then Theme.STOP else Theme.GOOD
+		Theme.gloss(ribbon, ribbon.BackgroundColor3, ribbon.BackgroundColor3:Lerp(Color3.new(), 0.3))
+		ribbonTitle.Text = if full then "PIGGY FULL!" elseif revenge then "REVENGE!" else "DELIVERED!"
+		ribbonTitle.TextColor3 = if revenge and not full then Theme.PAPER else Theme.INK
+		coinAmount.TextColor3 = if full then Theme.MUTED else Theme.GOLD_INK
+		local victim = if type(payload.victim) == "string" and payload.victim ~= "" then payload.victim else nil
+		fromLabel.Text = if victim then ("You robbed %s"):format(victim) else "You got the haul home"
+		bankedLabel.Text = if full then "your piggy was already full" else "banked into your piggy"
+		spillLabel.Text = if spilled > 0
+			then ("%s coins spilled into your yard"):format(Config.formatCoins(spilled)) else ""
+
+		clearRow(chips)
+		if run > 1 then addChip(1, Theme.WARN, ("%dx IN A ROW"):format(run), nil) end
+		if acorns > 0 then addChip(2, Theme.GOOD, ("+%d"):format(acorns), "acorn") end
+		clearRow(itemRow)
+		for i, item in ipairs(stolen) do
+			local tile = buildTile(itemRow, item.kind, item.key, 76, iconFor)
+			tile.LayoutOrder = i
+			tile.ZIndex = 73
+		end
+
+		-- LAID OUT TOP DOWN, skipping any row with nothing in it, so the card
+		-- is always as tall as what it says.
+		local width = 440
+		local y = 42
+		local function place(obj: GuiObject, height: number, gap: number, show: boolean)
+			obj.Visible = show
+			if not show then return end
+			obj.Position = UDim2.new(0.5, 0, 0, y)
+			if obj ~= bagButton then obj.Size = UDim2.new(1, -40, 0, height) end
+			y += height + gap
+		end
+		place(fromLabel, 22, 4, true)
+		place(coinRow, 58, 0, true)
+		place(bankedLabel, 20, 6, true)
+		place(spillLabel, 20, 6, spilled > 0)
+		place(chips, 40, 12, #chips:GetChildren() > 1)
+		place(itemRow, 76, 12, #stolen > 0)
+		place(bagButton, 40, 12, #stolen > 0 and openBag ~= nil)
+		place(tapLabel, 24, 16, true)
+		panel.Size = UDim2.fromOffset(width, y)
+
+		-- Fitted to a short screen, so a phone held sideways sees all of it.
+		local view = (gui :: any).AbsoluteSize :: Vector2
+		local fit = math.min(1, (view.Y - 40) / (y + 40), (view.X - 24) / width)
+
+		overlay.Visible = true
+		overlay.BackgroundTransparency = 1
+		tween(overlay, 0.3, { BackgroundTransparency = 0.45 })
+		panelScale.Scale = fit * 0.6
+		tween(panelScale, 0.4, { Scale = fit }, Enum.EasingStyle.Back)
+		ribbonScale.Scale = 1.8
+		ribbon.Rotation = -6
+		tapLabel.TextTransparency = 1
+		task.delay(0.25, function()
+			if summaryToken ~= mine then return end
+			tween(ribbonScale, 0.3, { Scale = 1 }, Enum.EasingStyle.Back)
+			tween(ribbon, 0.3, { Rotation = -2 }, Enum.EasingStyle.Back)
+		end)
+
+		-- THE FIGURE COUNTS UP, which is the difference between reading a
+		-- number and watching it be paid.
+		local counter = Instance.new("NumberValue")
+		counter.Value = 0
+		counter.Changed:Connect(function(v)
+			coinAmount.Text = ("+%s"):format(Config.formatCoins(math.floor(v)))
+		end)
+		coinAmount.Text = "+0"
+		counting = TweenService:Create(counter,
+			TweenInfo.new(0.9, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Value = banked })
+		;(counting :: Tween):Play()
+		task.delay(1, function() counter:Destroy() end)
+
+		openedAt = os.clock()
+		task.delay(Config.BANK_RUSH.summaryGate, function()
+			if summaryToken ~= mine then return end
+			tapLabel.TextTransparency = 0
+			pulsing = TweenService:Create(tapLabel,
+				TweenInfo.new(0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+				{ TextTransparency = 0.55 })
+			;(pulsing :: Tween):Play()
+		end)
+		task.delay(Config.BANK_RUSH.summaryAuto, function()
+			if summaryToken == mine then hideSummary() end
+		end)
+	end
+
+	local function tryClose()
+		if overlay.Visible and os.clock() - openedAt >= Config.BANK_RUSH.summaryGate then
+			hideSummary()
+		end
+	end
+	overlay.Activated:Connect(tryClose)
+	UserInputService.InputBegan:Connect(function(input, typed)
+		if typed then return end
+		local k = input.KeyCode
+		if k == Enum.KeyCode.Space or k == Enum.KeyCode.Return or k == Enum.KeyCode.Escape
+			or k == Enum.KeyCode.ButtonA then
+			tryClose()
+		end
+	end)
+	bagButton.Activated:Connect(function()
+		hideSummary()
+		if openBag then openBag() end
+	end)
+
+	-- ---------- the delivery sequence ----------
+	--
+	-- ONE THING AT A TIME, IN THE ORDER A PLAYER CAN FOLLOW: the coins pour
+	-- into the pig, each stolen item gets its reveal and goes to the bag,
+	-- the acorns rise and go to their chip, and then the summary names it all.
+	-- A second delivery arriving mid-sequence takes over from the first.
+	local sequence = 0
 	Remotes.get("HeistDelivered").OnClientEvent:Connect(function(payload: any)
 		if type(payload) ~= "table" then
 			return
 		end
-		summaryToken += 1
-		local mine = summaryToken
+		sequence += 1
+		local mine = sequence
+		hideSummary()
 
-		local items = if type(payload.items) == "table" then payload.items else {}
-		cardTitle.Text = if payload.revenge then "REVENGE!" else "DELIVERED"
-		cardCoins.Text = ("+%s"):format(Config.formatCoins(payload.banked or 0))
-
-		local bits = {}
-		-- A full pig spills (MASTER-PLAN 4c.6); the card says so beside the
-		-- figure it explains, so "+0" never reads as a delivery that failed.
-		if (payload.spilled or 0) > 0 then
-			table.insert(bits, ("PIGGY FULL: %s SPILLED"):format(Config.formatCoins(payload.spilled)))
-		end
-		if (payload.run or 0) > 1 then
-			table.insert(bits, ("%dx IN A ROW"):format(payload.run))
-		end
-		-- The pig-crack acorn, on the card as well as in the toast: the one
-		-- thing a robbery pays that is not coins, and the reason to rob a
-		-- person rather than an empty house.
-		if (payload.acorns or 0) > 0 then
-			table.insert(bits, ("+%d ACORN%s"):format(payload.acorns, if payload.acorns == 1 then "" else "S"))
-		end
-		cardNote.Text = table.concat(bits, "   ")
-
-		cardItems:ClearAllChildren()
-		-- Rebuilt per delivery rather than kept, because the layout is
-		-- cleared with the tiles it owns. One row, centred.
-		local itemLayout = Instance.new("UIListLayout")
-		itemLayout.FillDirection = Enum.FillDirection.Horizontal
-		itemLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-		itemLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-		itemLayout.Padding = UDim.new(0, 10)
-		itemLayout.Parent = cardItems
-
-		local tiles: { Frame } = {}
-		for _, item in ipairs(items) do
-			if item and item.kind and item.key then
-				table.insert(tiles, buildTile(cardItems, item.kind, item.key, TILE, iconFor))
+		local stolen: { { kind: string, key: string } } = {}
+		if type(payload.items) == "table" then
+			for _, item in ipairs(payload.items) do
+				if type(item) == "table" and item.kind and item.key then
+					table.insert(stolen, { kind = item.kind, key = item.key })
+				end
 			end
 		end
-		cardItems.Visible = #tiles > 0
-		-- SHORTER WITH NOTHING IN THE MIDDLE OF IT, rather than carrying a
-		-- gap where a row of items would have been. Most deliveries are coins
-		-- only, and a card sized for the rare case is a card that looks
-		-- half-empty almost every time it appears.
-		card.Size = UDim2.fromOffset(360, if #tiles > 0 then 250 else 154)
-		bagButton.Visible = #tiles > 0 and openBag ~= nil
+		local acorns = math.floor(tonumber(payload.acorns) or 0)
+		local bank: BasePart? = if typeof(payload.bank) == "Instance" and payload.bank:IsA("BasePart")
+			then payload.bank else nil
+		local spec = Config.BANK_RUSH
 
-		-- NO SOUND HERE, AND THAT IS A DUPLICATE REMOVED RATHER THAN AN
-		-- OVERSIGHT. `PlotService.playBank` already plays the bank cue in 3D
-		-- at the pig on the server, and the player is standing inside
-		-- `DROPOFF_RADIUS` of it -- so a 2D copy fired from the client was the
-		-- same sound twice in the same instant, which reads as a stutter
-		-- rather than as emphasis. The 3D one is also the better of the two
-		-- here: it is where the coins are going.
-
-		card.Visible = true
-		cardScale.Scale = 0.7
-		tween(cardScale, SUMMARY_IN, { Scale = 1 }, Enum.EasingStyle.Back)
-
-		-- THE COINS GO TO THE PIG AND THE ITEMS GO TO THE BAG, which is the
-		-- whole reason this is a panel rather than a bigger toast: a number
-		-- appearing on screen is a fact, and a number ARRIVING SOMEWHERE is
-		-- where it went. The two ends are deliberately different KINDS of
-		-- place -- the bag is a HUD button because that is where an item
-		-- lives, and the pig is twelve studs of geometry on the lawn the
-		-- player is standing on, because that is where the money lives.
-		task.delay(SUMMARY_IN + 0.35, function()
-			if summaryToken ~= mine then
-				return
-			end
-			rushCoins(payload.bank)
+		-- NO BANK SOUND HERE: the delivery toast is the one cha-ching.
+		task.spawn(function()
+			local pour = rushCoins(payload.bank, payload.banked, payload.capacity)
+			-- WHAT DID NOT FIT GOES ON THE GRASS, after the part that did went
+			-- in -- so a nearly full pig reads as "some in, the rest over the
+			-- top", and a full one as nothing going in at all.
+			local spill = spillCoins(payload.bank, payload.spilled, payload.capacity)
+			task.wait(pour + spill + 0.25)
+			if sequence ~= mine then return end
 
 			local satchel = anchor("BagToggle")
-			if #tiles > 0 and not satchel then
+			if #stolen > 0 and not satchel then
 				warn("[LootHaul] no BagToggle to fly the items into")
 			end
-			for i, tile in ipairs(tiles) do
-				task.delay(0.18 * (i - 1) + 0.25, function()
-					if summaryToken == mine then
-						flyTo(tile, satchel, true)
-					end
-				end)
+			for _, item in ipairs(stolen) do
+				local done = false
+				revealItem(gui, bank, item.kind, item.key, iconFor, satchel, function() done = true end)
+				local deadline = os.clock() + spec.revealHold + 4
+				while not done and os.clock() < deadline do task.wait() end
+				if sequence ~= mine then return end
 			end
-		end)
 
-		task.delay(SUMMARY_IN + SUMMARY_HOLD, function()
-			if summaryToken == mine then
-				tween(cardScale, 0.2, { Scale = 0.8 })
-				task.delay(0.2, function()
-					if summaryToken == mine then
-						hideSummary()
-					end
-				end)
+			if acorns > 0 and bank then
+				local slot = anchor("AcornBalance")
+				if not slot then
+					warn("[LootHaul] no AcornBalance chip to fly the acorns into")
+				end
+				local shown = math.min(acorns, spec.acornsShown)
+				for i = 1, shown do
+					task.delay((i - 1) * 0.18, function()
+						if sequence ~= mine then return end
+						riseAndFly(gui, bank :: BasePart, 56, function(into: Frame)
+							local icon = Theme.acorn(into, 56)
+							icon.AnchorPoint = Vector2.new(0.5, 0.5)
+							icon.Position = UDim2.fromScale(0.5, 0.5)
+						end, slot, false, function() end)
+					end)
+				end
+				task.wait((shown - 1) * 0.18 + 0.45 + spec.acornHold + FLY + 0.15)
+				if sequence ~= mine then return end
 			end
-		end)
-	end)
 
-	bagButton.Activated:Connect(function()
-		-- Bumping the token cancels this summary's own pending fade, so the
-		-- card cannot reappear behind the bag it just opened.
-		summaryToken += 1
-		hideSummary()
-		if openBag then
-			openBag()
-		end
+			showSummary(payload, stolen)
+		end)
 	end)
 end
 

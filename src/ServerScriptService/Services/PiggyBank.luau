@@ -39,10 +39,12 @@ local TweenService = game:GetService("TweenService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local PiggyModel = require(ReplicatedStorage.Shared.PiggyModel)
+local LegendaryModel = require(ReplicatedStorage.Shared.LegendaryModel)
+local SkinFX = require(ReplicatedStorage.Shared.SkinFX)
 local PigGear = require(ReplicatedStorage.Shared.PigGear)
 -- The strongroom on a shop's back wall. Geometry only: everything that
--- makes it BEHAVE like a piggy bank -- the fill, the dial, the alarm, the
--- plaster -- is this file's own functions running on its parts. See
+-- makes it BEHAVE like a piggy bank -- the fill, the dial, the alarm -- is
+-- this file's own functions running on its parts. See
 -- `PiggyBank.buildVault`.
 local VaultModel = require(ReplicatedStorage.Shared.VaultModel)
 
@@ -202,12 +204,9 @@ local RIM_SEGMENTS = 12
 -- function -- the forward-reference trap this project has now hit seven
 -- times. `buildLock` sits four hundred lines above where this table used to
 -- be, so the derivation below would silently have been `nil.radius`.
-local LOCK_TIERS = {
-	{ metal = Color3.fromRGB(122, 128, 138), radius = 1.55, spokes = 2 }, -- iron
-	{ metal = Color3.fromRGB(176, 122, 66), radius = 1.68, spokes = 3 },  -- bronze
-	{ metal = Color3.fromRGB(198, 204, 214), radius = 1.82, spokes = 4 }, -- steel
-	{ metal = Color3.fromRGB(240, 198, 76), radius = 1.95, spokes = 5 },  -- gold
-}
+-- In Config now, because the shop's Vault Lock tier cards draw the same dial
+-- (Shared/UpgradePreview). One ladder, read twice.
+local LOCK_TIERS = Config.LOCK_TIERS
 
 -- THE HOLE IS SIZED OFF THE SMALLEST DOOR, NOT THE LARGEST, AND THAT IS A
 -- BUG FIX RATHER THAN A TIDY-UP.
@@ -753,33 +752,62 @@ local function swapToMesh(refs: Refs): boolean
 		end
 	end
 
-	-- The face, moved off the ball and onto the mesh. Found by NAME off the
-	-- model rather than through `refs`, because the eyes and the
-	-- plaster are both pairs and a missed one is a dark spot floating inside a
-	-- pig -- the `Finial` trap this project has already hit twice.
-	local faceCentre = origin + MESH_FACE.bodyCentre
-	local seen = { Eye = 0, Plaster = 0 }
+	-- THE DOOR IS TURNED FLUSH TO THE SKIN IT SITS ON. `dialCFrame` tilts the
+	-- dial to the 6.00 BALL's normal at DIAL_Y -- 18.5 degrees nose-down,
+	-- because on the ball DIAL_Y is 1.9 below the equator. On the modelled
+	-- body DIAL_Y is the equator, so the real skin there is nearly vertical:
+	-- photographed from the side, the plate's top edge was buried and its
+	-- bottom stood 0.75 off the rump. The CENTRE stays where the dial's own
+	-- axis meets the skin, which is the centre of the hatch `build_pig.py`
+	-- cut along that axis, so the door still covers its hole; only the lean
+	-- changes. Solved on the body's own ellipsoid (half its Size), in body
+	-- space, so the far row's half turn comes for free.
+	if refs.lock and refs.lock.PrimaryPart then
+		local plate = refs.lock.PrimaryPart :: BasePart
+		local half = body.Size / 2
+		local o = body.CFrame:PointToObjectSpace(plate.Position)
+		local d = body.CFrame:VectorToObjectSpace(plate.CFrame.RightVector)
+		local qa = (d.X / half.X) ^ 2 + (d.Y / half.Y) ^ 2 + (d.Z / half.Z) ^ 2
+		local qb = 2 * (o.X * d.X / half.X ^ 2 + o.Y * d.Y / half.Y ^ 2 + o.Z * d.Z / half.Z ^ 2)
+		local qc = (o.X / half.X) ^ 2 + (o.Y / half.Y) ^ 2 + (o.Z / half.Z) ^ 2 - 1
+		local disc = qb * qb - 4 * qa * qc
+		if disc >= 0 then
+			local r = math.sqrt(disc)
+			local t1, t2 = (-qb - r) / (2 * qa), (-qb + r) / (2 * qa)
+			local t = if math.abs(t1) < math.abs(t2) then t1 else t2
+			local skin = o + d * t
+			local n = Vector3.new(skin.X / half.X ^ 2, skin.Y / half.Y ^ 2, skin.Z / half.Z ^ 2).Unit
+			-- Same bury the ball-seated plate had: its back face 0.2 into the skin.
+			local centre = body.CFrame:PointToWorldSpace(skin + n * (DIAL_THICK / 2 - 0.2))
+			local fromAxis = plate.CFrame.RightVector
+			local toAxis = body.CFrame:VectorToWorldSpace(n)
+			local cross = fromAxis:Cross(toAxis)
+			local turn = if cross.Magnitude > 1e-6
+				then CFrame.fromAxisAngle(cross.Unit, math.asin(math.min(cross.Magnitude, 1)))
+				else CFrame.identity
+			local move = CFrame.new(centre) * turn * CFrame.new(-plate.Position)
+			for _, piece in ipairs(refs.lock:GetChildren()) do
+				if piece:IsA("BasePart") then
+					piece.CFrame = move * piece.CFrame
+				end
+			end
+		end
+	end
+
+	-- The eyes, moved off the ball and onto the mesh. Found by NAME off the
+	-- model rather than through `refs`, because they are a PAIR and a missed
+	-- one is a dark spot floating inside a pig -- the `Finial` trap this
+	-- project has already hit twice. (The plaster was reseated here too and
+	-- is gone; the loop is left keyed by name so the next pair costs a row.)
+	local seen = { Eye = 0 }
 	for _, child in ipairs(refs.model:GetChildren()) do
 		if child:IsA("BasePart") and seen[child.Name] ~= nil then
 			seen[child.Name] += 1
 			-- The sign of the ORIGINAL x is what says which side a pair member
 			-- is on, so a mirrored seat cannot get the two the wrong way round.
 			local side = if (child.Position - origin).X < 0 then -1 else 1
-			if child.Name == "Eye" then
-				local e = MESH_FACE.eye
-				child.CFrame = CFrame.new(origin + Vector3.new(side * e.x, e.y, e.z))
-			else
-				-- Both strips share one seat and keep their own crossed spin,
-				-- which is carried in the rotation they were built with. The
-				-- second is nudged out a hair so the two cannot z-fight where
-				-- they cross, exactly as `build` does.
-				local frame = CFrame.lookAt(origin + MESH_FACE.plaster, faceCentre)
-				local spin = if seen.Plaster == 1 then 45 else -45
-				child.CFrame = frame * CFrame.Angles(0, 0, math.rad(spin))
-				if seen.Plaster == 2 then
-					child.CFrame = child.CFrame * CFrame.new(0, 0, -0.02)
-				end
-			end
+			local e = MESH_FACE.eye
+			child.CFrame = CFrame.new(origin + Vector3.new(side * e.x, e.y, e.z))
 		end
 	end
 
@@ -1160,36 +1188,11 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	lock.PrimaryPart = plate
 	lock.Parent = model
 
-	-- THE PLASTER: two crossed strips on the forehead, hidden until somebody
-	-- gets in. A tell for the street and nothing else -- see
-	-- Config.ROBBED_MARK_SECONDS. Placed BY DIRECTION on the body sphere like
-	-- the eyes and the mottling, half sunk, so it sits on the curve rather
-	-- than floating off it: above the eyes (which top out at BODY_Y + 2.7)
-	-- and in front of the ears (which start at z 1.9).
-	do
-		local dir = Vector3.new(0, 0.62, 0.78).Unit
-		-- Seated a shade INSIDE the surface, because a flat strip on a sphere
-		-- only touches it in the middle: measured, at +0.03 every corner of
-		-- the strip stood 0.06 to 0.24 off the skin. At -0.06 the middle is
-		-- sunk and the ends stand about a tenth proud, which is a plaster
-		-- stuck to a curve rather than one hovering over it.
-		local seat = centre + dir * (BODY_R - 0.06)
-		-- lookAt points -Z at the centre, so the strip's thin axis is the
-		-- surface normal and its long axis lies along the surface.
-		local frame = CFrame.lookAt(seat, centre)
-		for i, spin in ipairs({ 45, -45 }) do
-			local strip = part("Plaster", model, Vector3.new(2.4, 0.7, 0.16),
-				frame * CFrame.Angles(0, 0, math.rad(spin)))
-			strip.Color = Color3.fromRGB(226, 196, 156)
-			strip.Material = Enum.Material.SmoothPlastic
-			strip.Transparency = 1
-			-- The second strip sits a hair further out so the two cannot
-			-- z-fight where they cross.
-			if i == 2 then
-				strip.CFrame = strip.CFrame * CFrame.new(0, 0, -0.02)
-			end
-		end
-	end
+	-- NO PLASTER. Two crossed strips stood on the forehead for five minutes
+	-- after a robbery, hidden until somebody got in -- removed on the
+	-- designer's call, along with the vault door's matching scars and the
+	-- whole `setRobbed` path. It carried no behaviour, so nothing that prices
+	-- a robbery moved with it. See Config, where the constants were.
 
 	-- Interaction -----------------------------------------------------
 	-- There is no collect prompt: the pig is the wallet and nothing is
@@ -1255,7 +1258,7 @@ end
 --
 -- THAT IS THE WHOLE TRICK AND IT IS WORTH BEING EXACT ABOUT WHAT IT BOUGHT.
 -- `plot.piggy` is read in fourteen places across three services -- the fill,
--- the dial, the rattle, the plaster, the coin drop, the milestone, the
+-- the dial, the rattle, the coin drop, the milestone, the
 -- alarm, the raid drone's anchor, the crack panel's camera and the steal
 -- prompt -- and not one of them changed. `VaultModel` builds a carcass, a
 -- mouth, a stack of `Config.COIN_COUNT` bars and a door with a dial seat on
@@ -1633,6 +1636,10 @@ function PiggyBank.applySkin(refs: Refs, skinKey: string)
 		return
 	end
 
+	-- A LEGENDARY COMES OFF BEFORE ANYTHING IS PAINTED, so the parts it hid
+	-- are back at their own transparency before this skin writes over them.
+	LegendaryModel.undress(refs.model)
+
 	local tier = Config.getSkin(skinKey)
 
 	-- THE SKIN'S OWN AURA, DRIVEN FROM HERE RATHER THAN FROM `applyEffect`,
@@ -1669,6 +1676,9 @@ function PiggyBank.applySkin(refs: Refs, skinKey: string)
 			local spin = spec.rotSpeed or 0
 			sa.Rotation = NumberRange.new(0, 360)
 			sa.RotSpeed = NumberRange.new(-spin, spin)
+			sa.ShapeInOut = if spec.inOut == "Outward"
+				then Enum.ParticleEmitterShapeInOut.Outward
+				else Enum.ParticleEmitterShapeInOut.Inward
 			sa.Enabled = true
 		else
 			sa.Enabled = false
@@ -1732,7 +1742,7 @@ function PiggyBank.applySkin(refs: Refs, skinKey: string)
 	local overrides = tier.parts
 	for _, p in ipairs(trimParts) do
 		p.Color = (overrides and overrides[p.Name]) or tier.trim
-		p.Material = tier.material
+		p.Material = tier.trimMaterial or tier.material
 		p.Reflectance = tier.reflectance or 0
 	end
 
@@ -1805,6 +1815,27 @@ function PiggyBank.applySkin(refs: Refs, skinKey: string)
 	-- either near-black or near-white: a mid-tone trace would vanish for the
 	-- part of the cycle the body happened to pass through it.
 	refs.model:SetAttribute("SkinKey", skinKey)
+	-- The skin's own shape (Diamond's crystals, Supernova's corona...), or
+	-- nothing -- `apply` clears the last skin's set either way.
+	SkinFX.apply(refs.model, refs.body, skinKey, true)
+	PiggyBank.fitSkinSlots(refs)
+
+	-- A LEGENDARY GOES ON LAST, over everything above, and hides the pig it
+	-- stands on: the body, every trim part and the eyes. The dial, the coin
+	-- pile, the prompts and the badge all stay on the hidden Body, which is
+	-- why it is hidden rather than removed. See `Shared/LegendaryModel`.
+	if Config.legendary(skinKey) then
+		local hide: { BasePart } = { refs.body }
+		for _, p in ipairs(trimParts) do
+			table.insert(hide, p)
+		end
+		for _, child in ipairs(refs.model:GetChildren()) do
+			if child:IsA("BasePart") and child.Name == "Eye" then
+				table.insert(hide, child)
+			end
+		end
+		LegendaryModel.dress(refs.model, refs.body, skinKey, { anchored = true, hide = hide, rig = true })
+	end
 end
 
 -- Puts the worn accessories on the pig.
@@ -1814,6 +1845,27 @@ end
 -- and a diff would have to track which model came from which slot in order to
 -- save work nobody can measure -- while being the kind of bookkeeping that
 -- quietly leaks a hat when two changes land in the same frame.
+-- A SKIN'S OWN HAT GIVES WAY TO THE PLAYER'S. The Party Piggy's hat stands
+-- in the hat slot (`SkinFX` marks it), and the slot belongs to the player:
+-- anything they actually wear there wins, and the skin's hat hides until they
+-- take it off. Called from both ends, because a skin and an accessory can
+-- each change without the other.
+function PiggyBank.fitSkinSlots(refs: Refs)
+	local fx = refs.model:FindFirstChild(SkinFX.FOLDER)
+	if not fx then
+		return
+	end
+	local worn = (refs :: any).worn or {}
+	for _, d in ipairs(fx:GetDescendants()) do
+		if d:IsA("BasePart") then
+			local slot = d:GetAttribute(SkinFX.SLOT_ATTRIBUTE)
+			if slot then
+				d.Transparency = if worn[slot] then 1 else 0
+			end
+		end
+	end
+end
+
 function PiggyBank.applyAccessories(refs: Refs, worn: { [string]: string })
 	-- A SHOP VAULT WEARS NOTHING, and this is the only place the two kinds
 	-- of thing standing on a plot are told apart. A skin is colour and
@@ -1831,6 +1883,19 @@ function PiggyBank.applyAccessories(refs: Refs, worn: { [string]: string })
 	local folder = Instance.new("Folder")
 	folder.Name = "Gear"
 	folder.Parent = refs.model
+
+	-- Only the slots that really have something in them, so the skin's own
+	-- hat can tell a worn hat from a stale key.
+	local filled = {}
+	for slotKey, slot in pairs(Config.ACCESSORY_SLOTS) do
+		local key = worn[slotKey]
+		local spec = key and Config.ACCESSORIES[key]
+		if spec and spec.slot == slotKey then
+			filled[slotKey] = key
+		end
+	end
+	;(refs :: any).worn = filled
+	PiggyBank.fitSkinSlots(refs)
 
 	for slotKey, slot in pairs(Config.ACCESSORY_SLOTS) do
 		local key = worn[slotKey]
@@ -2030,16 +2095,6 @@ function PiggyBank.playMilestone(refs: Refs, index: number, total: number)
 	):Play()
 end
 
--- Shows or hides the plaster. Found by name rather than held in Refs: two
--- parts, toggled a few times an hour.
-function PiggyBank.setRobbed(refs: Refs, on: boolean)
-	for _, child in ipairs(refs.model:GetChildren()) do
-		if child.Name == "Plaster" and child:IsA("BasePart") then
-			child.Transparency = if on then 0 else 1
-		end
-	end
-end
-
 -- Someone is robbing this piggy. Loud and long-range on purpose: the alarm
 -- is how the owner and every bystander find out in time to do something.
 function PiggyBank.playAlarm(refs: Refs)
@@ -2073,6 +2128,14 @@ end
 -- at the top of that file: the carried loot and the shop tile must be the
 -- same piggy, or a skin can look like one thing in the catalogue and another
 -- on somebody's back.
+-- THE WELDABLE PART OF A CARRIED MINI. Delegated for the reason `buildMini`
+-- is: this is PiggyModel's contract and a second opinion about which part is
+-- the body is exactly the kind of thing that drifts. A mini has no
+-- PrimaryPart on purpose -- see the note beside `PiggyModel.bodyOf`.
+function PiggyBank.lootBody(model: Model): BasePart?
+	return PiggyModel.bodyOf(model)
+end
+
 function PiggyBank.buildMini(skinKey: string): Model
 	return PiggyModel.build(skinKey)
 end

@@ -1,0 +1,203 @@
+{
+  "count": 18,
+  "models": [
+    {
+      "id": "shack",
+      "folder": "cardboard-fort-v2",
+      "revision": 2,
+      "name": "Cardboard Fort",
+      "fbx": "cardboard-fort-v2/cardboard-fort-roblox.fbx",
+      "blend": "cardboard-fort-v2/cardboard-fort.blend",
+      "walkIn": true,
+      "studioIntegration": "pending new mesh import",
+      "clearanceSamples": 40
+    },
+    {
+      "id": "cottage",
+      "folder": "beehive-cottage-v2",
+      "revision": 2,
+      "name": "Beehive Cottage",
+      "fbx": "beehive-cottage-v2/beehive-cottage-roblox.fbx",
+      "blend": "beehive-cottage-v2/beehive-cottage.blend",
+      "walkIn": true,
+      "studioIntegration": "pending new mesh import",
+      "clearanceSamples": 40
+    },
+    {
+      "id": "townhouse",
+      "folder": "wonky-townhouse-v2",
+      "revision": 2,
+      "name": "Wonky Townhouse",
+      "fbx": "wonky-townhouse-v2/wonky-townhouse-roblox.fbx",
+      "blend": "wonky-townhouse-v2/wonky-townhouse.blend",
+      "walkIn": true,
+      "studioIntegration": "pending new mesh import",
+      "clearanceSamples": 40
+    },
+    {
+      "id": "mushroom",
+      "folder": "toadstool-cottage-v2",
+      "revision": 2,
+      "name": "Toadstool Cottage",
+      "fbx": "toadstool-cottage-v2/toadstool-cottage-roblox.fbx",
+      "blend": "toadstool-cottage-v2/toadstool-cottage.blend",
+      "walkIn": true,
+      "studioIntegration": "pending new mesh import",
+      "clearanceSamples": 40
+    },
+    {
+      "id": "villa",
+      "folder": "fairy-lantern-cottage-v2",
+      "revision": 2,
+      "name": "Fairy Lantern Cottage",
+      "fbx": "fairy-lantern-cottage-v2/fairy-lantern-cottage-roblox.fbx",
+      "blend": "fairy-lantern-cottage-v2/fairy-lantern-cottage.blend",
+      "walkIn": true,
+      "studioIntegration": "pending new mesh import",
+      "clearanceSamples": 40
+    },
+    {
+      "id": "treehouse",
+      "folder": "treehouse-v3",
+      "revision": 3,
+      "name": "Treehouse",
+      "fbx": "treehouse-v3/treehouse-roblox.fbx",
+      "blend": "treehouse-v3/treehouse.blend",
+      "walkIn": true,
+      "studioIntegration": "pending new mesh import",
+      "clearanceSamples": 40
+    },
+    {
+      "id": "manor",
+      "folder": "haunted-manor-v2",
+      "revision": 2,
+      "name": "Haunted Manor",
+      "fbx": "haunted-manor-v2/haunted-manor-roblox.fbx",
+      "blend": "haunted-manor-v2/haunted-manor.blend",
+      "walkIn": true,
+      "studioIntegration": "pending new mesh import",
+      "clearanceSamples": 40
+    },
+    {
+      "id": "slime",
+      "folder": "gloop-house-v3",
+      "revision": 3,
+      "name": "Gloop House",
+      "fbx": "gloop-house-v3/gloop-house-roblox.fbx",
+      "blend": "gloop-house-v3/gloop-house.blend",
+      "walkIn": true,
+      "studioIntegration": "pending new mesh import",
+      "clearanceSamples": 40
+    },
+    {
+      "id": "modern",
+      "folder": "fishbowl-house-v2",
+      "revision": 2,
+      "name": "Fishbowl House",
+      "fbx": "fishbowl-house-v2/fishbowl-house-roblox.fbx",
+      "blend": "fishbowl-house-v2/fishbowl-house.blend",
+      "walkIn": true,
+      "studioIntegration": "pending new mesh import",
+      "clearanceSamples": 40
+    },
+    {
+      "id": "neontower",
+      "folder": "neon-tower-v2",
+      "revision": 2,
+      "name": "Neon Tower",
+      "fbx": "neon-tower-v2/neon-tower-roblox.fbx",
+      "blend": "neon-tower-v2/neon-tower.blend",
+      "walkIn": true,
+      "studioIntegration": "pending new mesh import",
+      "clearanceSamples": 40
+    },
+    {
+      "id": "crystal",
+      "folder": "crystal-spire-v2",
+      "revision": 2,
+      "name": "Crystal Spire",
+      "fbx": "crystal-spire-v2/crystal-spire-roblox.fbx",
+      "blend": "crystal-spire-v2/crystal-spire.blend",
+      "walkIn": true,
+      "studioIntegration": "pending new mesh import",
+      "clearanceSamples": 40
+    },
+    {
+      "id": "palace",
+      "folder": "ice-palace-v2",
+      "revision": 2,
+      "name": "Ice Palace",
+      "fbx": "ice-palace-v2/ice-palace-roblox.fbx",
+      "blend": "ice-palace-v2/ice-palace.blend",
+      "walkIn": true,
+      "studioIntegration": "pending new mesh import",
+      "clearanceSamples": 40
+    },
+    {
+      "id": "skycastle",
+      "folder": "sky-castle-v2",
+      "revision": 2,
+      "name": "Sky Castle",
+      "fbx": "sky-castle-v2/sky-castle-roblox.fbx",
+      "blend": "sky-castle-v2/sky-castle.blend",
+      "walkIn": true,
+      "studioIntegration": "pending new mesh import",
+      "clearanceSamples": 40
+    },
+    {
+      "id": "galleon",
+      "folder": "beached-galleon-v2",
+      "revision": 2,
+      "name": "Beached Galleon",
+      "fbx": "beached-galleon-v2/beached-galleon-roblox.fbx",
+      "blend": "beached-galleon-v2/beached-galleon.blend",
+      "walkIn": true,
+      "studioIntegration": "pending new mesh import",
+      "clearanceSamples": 40
+    },
+    {
+      "id": "portal",
+      "folder": "portal-house-v2",
+      "revision": 2,
+      "name": "Portal House",
+      "fbx": "portal-house-v2/portal-house-roblox.fbx",
+      "blend": "portal-house-v2/portal-house.blend",
+      "walkIn": true,
+      "studioIntegration": "pending new mesh import",
+      "clearanceSamples": 40
+    },
+    {
+      "id": "thundercloud",
+      "folder": "thundercloud-fortress-v2",
+      "revision": 2,
+      "name": "Thundercloud Fortress",
+      "fbx": "thundercloud-fortress-v2/thundercloud-fortress-roblox.fbx",
+      "blend": "thundercloud-fortress-v2/thundercloud-fortress.blend",
+      "walkIn": true,
+      "studioIntegration": "pending new mesh import",
+      "clearanceSamples": 40
+    },
+    {
+      "id": "void",
+      "folder": "the-void-v2",
+      "revision": 2,
+      "name": "The Void",
+      "fbx": "the-void-v2/the-void-roblox.fbx",
+      "blend": "the-void-v2/the-void.blend",
+      "walkIn": true,
+      "studioIntegration": "pending new mesh import",
+      "clearanceSamples": 40
+    },
+    {
+      "id": "goldenpig",
+      "folder": "golden-piggy-v2",
+      "revision": 2,
+      "name": "Golden Piggy",
+      "fbx": "golden-piggy-v2/golden-piggy-roblox.fbx",
+      "blend": "golden-piggy-v2/golden-piggy.blend",
+      "walkIn": true,
+      "studioIntegration": "pending new mesh import",
+      "clearanceSamples": 40
+    }
+  ]
+}

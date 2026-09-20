@@ -39,8 +39,8 @@ local DEFINITIONS = {
 	-- rather than being worked out on the client. It is the same argument the
 	-- haul list makes one line up: the server already polls every carrier
 	-- four times a second to answer exactly this question, and it is the side
-	-- that has to answer it anyway, because `DeliverRequest` is re-checked
-	-- there. A client computing its own distance would be a second
+	-- that has to answer it anyway, because arriving is
+	-- the delivery and is settled there. A client computing its own distance would be a second
 	-- implementation of the one number that decides whether a robbery pays.
 	-- Trailing options: action (keep/return), canKeep/canReturn, victim,
 	-- ownReturn, keepWorth and bounty; clients show both named destinations.
@@ -49,19 +49,6 @@ local DEFINITIONS = {
 	-- Private recovery objectives; client sends an empty subscribe request.
 	-- No client claim, timer or price is accepted.
 	RecoveryObjective = "RemoteEvent",
-
-	-- Thief presses DELIVER. CARRIES NOTHING, for the reason `CrackTap`,
-	-- `BoneThrow` and `placeLadder` carry nothing: the press means "now", and
-	-- the server owns which plot is theirs, how far away it is and what the
-	-- haul is worth. There is no position to forge and no range check to
-	-- defeat.
-	--
-	-- IT REPLACED AN AUTOMATIC DELIVERY rather than being added beside one.
-	-- Arriving used to bank the loot on its own, so a player crossed an
-	-- invisible circle and the coins appeared -- two ways to deliver would be
-	-- two mechanisms for one thing, and the automatic one would always win
-	-- the race and make the button decorative.
-	DeliverRequest = "RemoteEvent",
 
 	-- Server tells ONE thief that one victim is on cooldown for them, as
 	-- (victimUserId, expiresAtServerTime). Fired on a completed grab and on
@@ -247,6 +234,31 @@ local DEFINITIONS = {
 	-- the thrower's own facing, which is a legal flat throw.
 	GadgetThrow = "RemoteEvent",
 
+	-- Client starts (true) or abandons (false) cocking the gadget it holds.
+	-- Carries a boolean and nothing else. It exists so the wind-up can be
+	-- HELD and seen by everybody, and so the server can time the release
+	-- from when the arm actually went back -- see Shared/ThrowPose.
+	GadgetCock = "RemoteEvent",
+
+	-- Server tells every client a gadget has left a hand: who, what, from
+	-- where, with what velocity, at what server time, under what id. Each
+	-- client flies its OWN copy along `Config.throwPointAt` -- a projectile
+	-- the server moves every frame replicates in lurches. `GadgetFlightEnd`
+	-- (id, position) stops every copy where the server's real one stopped.
+	-- Presentation only: the server alone decides what it hit.
+	GadgetFlight = "RemoteEvent",
+	GadgetFlightEnd = "RemoteEvent",
+
+	-- Server tells every client the zapper fired: who, from where, to where.
+	-- Each client draws the arc. Presentation only.
+	GadgetZap = "RemoteEvent",
+
+	-- Server tells ONE client they were knocked down by a gadget: which way
+	-- (horizontal), for how long, and how hard. The client plays the fall,
+	-- because a server write to a player's velocity is discarded -- the same
+	-- split as `FenceKnockback`. The stun itself is already server-side.
+	GadgetKnock = "RemoteEvent",
+
 	-- Client buys or puts away a ride; server pushes what they own and
 	-- whether they are on one right now. There is no "mount" request: getting
 	-- on is decided by the server from where the player is standing, so there
@@ -374,6 +386,12 @@ local DEFINITIONS = {
 	-- firePenalty, which rejects a climber to whichever side of the fence
 	-- they were already on so it can never carry anybody across.
 	FenceKnockback = "RemoteEvent",
+	-- A guard dog throwing a caught thief out of its yard. Carries the LANDING
+	-- point, computed by the server; the client only flies the arc there,
+	-- because a server write to a player's velocity or CFrame mid-flight is
+	-- fought by the client that owns the physics. The server teleports anybody
+	-- still inside the yard afterwards, so the client cannot opt out.
+	DogKnockout = "RemoteEvent",
 	AdminState = "RemoteEvent",
 }
 

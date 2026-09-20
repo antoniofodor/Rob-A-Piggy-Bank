@@ -1,0 +1,967 @@
+{
+  "export": "the-void-roblox.fbx",
+  "meshCount": 79,
+  "triangles": 19174,
+  "singleMaterialPerMesh": true,
+  "fbxRoundTripMaxBoundsError": 7.62939453125e-06,
+  "meshes": [
+    {
+      "name": "Foundation_BlackTrim",
+      "section": "Foundation",
+      "material": "BlackTrim",
+      "colorRGB": [
+        32,
+        27,
+        41
+      ],
+      "triangles": 80,
+      "roblox": {}
+    },
+    {
+      "name": "Manor_WalkWall",
+      "section": "Manor",
+      "material": "WalkWall",
+      "colorRGB": [
+        76,
+        64,
+        93
+      ],
+      "triangles": 22,
+      "roblox": {}
+    },
+    {
+      "name": "Wing roof-12.5_Black",
+      "section": "Wing roof-12.5",
+      "material": "Black",
+      "colorRGB": [
+        17,
+        17,
+        19
+      ],
+      "triangles": 60,
+      "roblox": {}
+    },
+    {
+      "name": "Bay roof-12.5_Black",
+      "section": "Bay roof-12.5",
+      "material": "Black",
+      "colorRGB": [
+        17,
+        17,
+        19
+      ],
+      "triangles": 68,
+      "roblox": {}
+    },
+    {
+      "name": "Wing roof12.5_Black",
+      "section": "Wing roof12.5",
+      "material": "Black",
+      "colorRGB": [
+        17,
+        17,
+        19
+      ],
+      "triangles": 60,
+      "roblox": {}
+    },
+    {
+      "name": "Bay roof12.5_Nebula",
+      "section": "Bay roof12.5",
+      "material": "Nebula",
+      "colorRGB": [
+        49,
+        16,
+        85
+      ],
+      "triangles": 32,
+      "roblox": {}
+    },
+    {
+      "name": "Central roof_Trace",
+      "section": "Central roof",
+      "material": "Trace",
+      "colorRGB": [
+        105,
+        34,
+        187
+      ],
+      "triangles": 172,
+      "roblox": {}
+    },
+    {
+      "name": "Entrance_BlackTrim",
+      "section": "Entrance",
+      "material": "BlackTrim",
+      "colorRGB": [
+        32,
+        27,
+        41
+      ],
+      "triangles": 98,
+      "roblox": {}
+    },
+    {
+      "name": "Approach_WalkWall",
+      "section": "Approach",
+      "material": "WalkWall",
+      "colorRGB": [
+        76,
+        64,
+        93
+      ],
+      "triangles": 31,
+      "roblox": {}
+    },
+    {
+      "name": "GroundWindows_Amber",
+      "section": "GroundWindows",
+      "material": "Amber",
+      "colorRGB": [
+        250,
+        177,
+        57
+      ],
+      "triangles": 64,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_StarInset_1_Star",
+      "section": "HouseFX_StarInset_1",
+      "material": "Star",
+      "colorRGB": [
+        163,
+        65,
+        224
+      ],
+      "triangles": 112,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_StarInset_2_Star",
+      "section": "HouseFX_StarInset_2",
+      "material": "Star",
+      "colorRGB": [
+        163,
+        65,
+        224
+      ],
+      "triangles": 112,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_StarInset_3_Star",
+      "section": "HouseFX_StarInset_3",
+      "material": "Star",
+      "colorRGB": [
+        163,
+        65,
+        224
+      ],
+      "triangles": 112,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_Comet_Trace",
+      "section": "HouseFX_Comet",
+      "material": "Trace",
+      "colorRGB": [
+        105,
+        34,
+        187
+      ],
+      "triangles": 28,
+      "roblox": {}
+    },
+    {
+      "name": "Manor_Black",
+      "section": "Manor",
+      "material": "Black",
+      "colorRGB": [
+        17,
+        17,
+        19
+      ],
+      "triangles": 190,
+      "roblox": {}
+    },
+    {
+      "name": "Wing roof-12.5_BlackRoof",
+      "section": "Wing roof-12.5",
+      "material": "BlackRoof",
+      "colorRGB": [
+        24,
+        21,
+        31
+      ],
+      "triangles": 1936,
+      "roblox": {}
+    },
+    {
+      "name": "Wing roof-12.5_Trace",
+      "section": "Wing roof-12.5",
+      "material": "Trace",
+      "colorRGB": [
+        105,
+        34,
+        187
+      ],
+      "triangles": 172,
+      "roblox": {}
+    },
+    {
+      "name": "Bay roof-12.5_BlackRoof",
+      "section": "Bay roof-12.5",
+      "material": "BlackRoof",
+      "colorRGB": [
+        24,
+        21,
+        31
+      ],
+      "triangles": 1948,
+      "roblox": {}
+    },
+    {
+      "name": "Bay roof-12.5_Trace",
+      "section": "Bay roof-12.5",
+      "material": "Trace",
+      "colorRGB": [
+        105,
+        34,
+        187
+      ],
+      "triangles": 172,
+      "roblox": {}
+    },
+    {
+      "name": "Bay roof-12.5_Ink",
+      "section": "Bay roof-12.5",
+      "material": "Ink",
+      "colorRGB": [
+        29,
+        27,
+        37
+      ],
+      "triangles": 32,
+      "roblox": {}
+    },
+    {
+      "name": "Bay roof-12.5_BlackTrim",
+      "section": "Bay roof-12.5",
+      "material": "BlackTrim",
+      "colorRGB": [
+        32,
+        27,
+        41
+      ],
+      "triangles": 392,
+      "roblox": {}
+    },
+    {
+      "name": "Bay roof-12.5_Nebula",
+      "section": "Bay roof-12.5",
+      "material": "Nebula",
+      "colorRGB": [
+        49,
+        16,
+        85
+      ],
+      "triangles": 32,
+      "roblox": {}
+    },
+    {
+      "name": "Wing roof12.5_BlackRoof",
+      "section": "Wing roof12.5",
+      "material": "BlackRoof",
+      "colorRGB": [
+        24,
+        21,
+        31
+      ],
+      "triangles": 1936,
+      "roblox": {}
+    },
+    {
+      "name": "Wing roof12.5_Trace",
+      "section": "Wing roof12.5",
+      "material": "Trace",
+      "colorRGB": [
+        105,
+        34,
+        187
+      ],
+      "triangles": 172,
+      "roblox": {}
+    },
+    {
+      "name": "Bay roof12.5_BlackRoof",
+      "section": "Bay roof12.5",
+      "material": "BlackRoof",
+      "colorRGB": [
+        24,
+        21,
+        31
+      ],
+      "triangles": 1936,
+      "roblox": {}
+    },
+    {
+      "name": "Bay roof12.5_Trace",
+      "section": "Bay roof12.5",
+      "material": "Trace",
+      "colorRGB": [
+        105,
+        34,
+        187
+      ],
+      "triangles": 172,
+      "roblox": {}
+    },
+    {
+      "name": "Bay roof12.5_Ink",
+      "section": "Bay roof12.5",
+      "material": "Ink",
+      "colorRGB": [
+        29,
+        27,
+        37
+      ],
+      "triangles": 32,
+      "roblox": {}
+    },
+    {
+      "name": "Bay roof12.5_BlackTrim",
+      "section": "Bay roof12.5",
+      "material": "BlackTrim",
+      "colorRGB": [
+        32,
+        27,
+        41
+      ],
+      "triangles": 392,
+      "roblox": {}
+    },
+    {
+      "name": "Central roof_BlackRoof",
+      "section": "Central roof",
+      "material": "BlackRoof",
+      "colorRGB": [
+        24,
+        21,
+        31
+      ],
+      "triangles": 2416,
+      "roblox": {}
+    },
+    {
+      "name": "Approach_BlackTrim",
+      "section": "Approach",
+      "material": "BlackTrim",
+      "colorRGB": [
+        32,
+        27,
+        41
+      ],
+      "triangles": 701,
+      "roblox": {}
+    },
+    {
+      "name": "GroundWindows_Ink",
+      "section": "GroundWindows",
+      "material": "Ink",
+      "colorRGB": [
+        29,
+        27,
+        37
+      ],
+      "triangles": 64,
+      "roblox": {}
+    },
+    {
+      "name": "GroundWindows_BlackTrim",
+      "section": "GroundWindows",
+      "material": "BlackTrim",
+      "colorRGB": [
+        32,
+        27,
+        41
+      ],
+      "triangles": 784,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_Comet_Planet",
+      "section": "HouseFX_Comet",
+      "material": "Planet",
+      "colorRGB": [
+        55,
+        27,
+        88
+      ],
+      "triangles": 8,
+      "roblox": {}
+    },
+    {
+      "name": "CentralTower_Nebula",
+      "section": "CentralTower",
+      "material": "Nebula",
+      "colorRGB": [
+        49,
+        16,
+        85
+      ],
+      "triangles": 16,
+      "roblox": {}
+    },
+    {
+      "name": "WingSpires_Trace",
+      "section": "WingSpires",
+      "material": "Trace",
+      "colorRGB": [
+        105,
+        34,
+        187
+      ],
+      "triangles": 16,
+      "roblox": {}
+    },
+    {
+      "name": "PortalDoor_WalkWall",
+      "section": "PortalDoor",
+      "material": "WalkWall",
+      "colorRGB": [
+        76,
+        64,
+        93
+      ],
+      "triangles": 5,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_EdgeTrace_1_Trace",
+      "section": "HouseFX_EdgeTrace_1",
+      "material": "Trace",
+      "colorRGB": [
+        105,
+        34,
+        187
+      ],
+      "triangles": 28,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_EdgeTrace_2_Trace",
+      "section": "HouseFX_EdgeTrace_2",
+      "material": "Trace",
+      "colorRGB": [
+        105,
+        34,
+        187
+      ],
+      "triangles": 28,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_EdgeTrace_3_Trace",
+      "section": "HouseFX_EdgeTrace_3",
+      "material": "Trace",
+      "colorRGB": [
+        105,
+        34,
+        187
+      ],
+      "triangles": 28,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_EdgeTrace_4_Trace",
+      "section": "HouseFX_EdgeTrace_4",
+      "material": "Trace",
+      "colorRGB": [
+        105,
+        34,
+        187
+      ],
+      "triangles": 28,
+      "roblox": {}
+    },
+    {
+      "name": "MainOrbitRing_Trace",
+      "section": "MainOrbitRing",
+      "material": "Trace",
+      "colorRGB": [
+        105,
+        34,
+        187
+      ],
+      "triangles": 768,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_Planet_1_Star",
+      "section": "HouseFX_Planet_1",
+      "material": "Star",
+      "colorRGB": [
+        163,
+        65,
+        224
+      ],
+      "triangles": 288,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_Planet_2_Planet",
+      "section": "HouseFX_Planet_2",
+      "material": "Planet",
+      "colorRGB": [
+        55,
+        27,
+        88
+      ],
+      "triangles": 20,
+      "roblox": {}
+    },
+    {
+      "name": "WalkFloor_WalkFloor",
+      "section": "WalkFloor",
+      "material": "WalkFloor",
+      "colorRGB": [
+        48,
+        40,
+        63
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkCeiling_WalkWall",
+      "section": "WalkCeiling",
+      "material": "WalkWall",
+      "colorRGB": [
+        76,
+        64,
+        93
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkSideLeftWall_WalkWall",
+      "section": "WalkSideLeftWall",
+      "material": "WalkWall",
+      "colorRGB": [
+        76,
+        64,
+        93
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkSideRightWall_WalkWall",
+      "section": "WalkSideRightWall",
+      "material": "WalkWall",
+      "colorRGB": [
+        76,
+        64,
+        93
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkRearWall_WalkWall",
+      "section": "WalkRearWall",
+      "material": "WalkWall",
+      "colorRGB": [
+        76,
+        64,
+        93
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkFrontLeft_WalkWall",
+      "section": "WalkFrontLeft",
+      "material": "WalkWall",
+      "colorRGB": [
+        76,
+        64,
+        93
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkFrontRight_WalkWall",
+      "section": "WalkFrontRight",
+      "material": "WalkWall",
+      "colorRGB": [
+        76,
+        64,
+        93
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkLintel_WalkWall",
+      "section": "WalkLintel",
+      "material": "WalkWall",
+      "colorRGB": [
+        76,
+        64,
+        93
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageLeft_WalkWall",
+      "section": "WalkPassageLeft",
+      "material": "WalkWall",
+      "colorRGB": [
+        76,
+        64,
+        93
+      ],
+      "triangles": 24,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageRight_WalkWall",
+      "section": "WalkPassageRight",
+      "material": "WalkWall",
+      "colorRGB": [
+        76,
+        64,
+        93
+      ],
+      "triangles": 24,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageCeiling_WalkWall",
+      "section": "WalkPassageCeiling",
+      "material": "WalkWall",
+      "colorRGB": [
+        76,
+        64,
+        93
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkPassageFloor_WalkFloor",
+      "section": "WalkPassageFloor",
+      "material": "WalkFloor",
+      "colorRGB": [
+        48,
+        40,
+        63
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach0_WalkFloor",
+      "section": "WalkApproach0",
+      "material": "WalkFloor",
+      "colorRGB": [
+        48,
+        40,
+        63
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach1_WalkFloor",
+      "section": "WalkApproach1",
+      "material": "WalkFloor",
+      "colorRGB": [
+        48,
+        40,
+        63
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach2_WalkFloor",
+      "section": "WalkApproach2",
+      "material": "WalkFloor",
+      "colorRGB": [
+        48,
+        40,
+        63
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach3_WalkFloor",
+      "section": "WalkApproach3",
+      "material": "WalkFloor",
+      "colorRGB": [
+        48,
+        40,
+        63
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach4_WalkFloor",
+      "section": "WalkApproach4",
+      "material": "WalkFloor",
+      "colorRGB": [
+        48,
+        40,
+        63
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkApproach5_WalkFloor",
+      "section": "WalkApproach5",
+      "material": "WalkFloor",
+      "colorRGB": [
+        48,
+        40,
+        63
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkDoor",
+      "section": "HouseDoorLeaf_L",
+      "material": "WalkDoor",
+      "colorRGB": [
+        35,
+        26,
+        47
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim",
+      "section": "HouseDoorLeaf_L",
+      "material": "WalkTrim",
+      "colorRGB": [
+        39,
+        29,
+        53
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_L_WalkTrim.001",
+      "section": "HouseDoorLeaf_L",
+      "material": "WalkTrim",
+      "colorRGB": [
+        39,
+        29,
+        53
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkDoor",
+      "section": "HouseDoorLeaf_R",
+      "material": "WalkDoor",
+      "colorRGB": [
+        35,
+        26,
+        47
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim",
+      "section": "HouseDoorLeaf_R",
+      "material": "WalkTrim",
+      "colorRGB": [
+        39,
+        29,
+        53
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "HouseDoorLeaf_R_WalkTrim.001",
+      "section": "HouseDoorLeaf_R",
+      "material": "WalkTrim",
+      "colorRGB": [
+        39,
+        29,
+        53
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkEntryJamb-1_WalkTrim",
+      "section": "WalkEntryJamb-1",
+      "material": "WalkTrim",
+      "colorRGB": [
+        39,
+        29,
+        53
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkEntryJamb1_WalkTrim",
+      "section": "WalkEntryJamb1",
+      "material": "WalkTrim",
+      "colorRGB": [
+        39,
+        29,
+        53
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "WalkEntryHeader_WalkTrim",
+      "section": "WalkEntryHeader",
+      "material": "WalkTrim",
+      "colorRGB": [
+        39,
+        29,
+        53
+      ],
+      "triangles": 12,
+      "roblox": {}
+    },
+    {
+      "name": "CentralTower_Black",
+      "section": "CentralTower",
+      "material": "Black",
+      "colorRGB": [
+        17,
+        17,
+        19
+      ],
+      "triangles": 28,
+      "roblox": {}
+    },
+    {
+      "name": "CentralTower_BlackTrim",
+      "section": "CentralTower",
+      "material": "BlackTrim",
+      "colorRGB": [
+        32,
+        27,
+        41
+      ],
+      "triangles": 252,
+      "roblox": {}
+    },
+    {
+      "name": "CentralTower_BlackRoof",
+      "section": "CentralTower",
+      "material": "BlackRoof",
+      "colorRGB": [
+        24,
+        21,
+        31
+      ],
+      "triangles": 190,
+      "roblox": {}
+    },
+    {
+      "name": "CentralTower_Trace",
+      "section": "CentralTower",
+      "material": "Trace",
+      "colorRGB": [
+        105,
+        34,
+        187
+      ],
+      "triangles": 2024,
+      "roblox": {}
+    },
+    {
+      "name": "CentralTower_Ink",
+      "section": "CentralTower",
+      "material": "Ink",
+      "colorRGB": [
+        29,
+        27,
+        37
+      ],
+      "triangles": 16,
+      "roblox": {}
+    },
+    {
+      "name": "WingSpires_Black",
+      "section": "WingSpires",
+      "material": "Black",
+      "colorRGB": [
+        17,
+        17,
+        19
+      ],
+      "triangles": 56,
+      "roblox": {}
+    },
+    {
+      "name": "WingSpires_BlackRoof",
+      "section": "WingSpires",
+      "material": "BlackRoof",
+      "colorRGB": [
+        24,
+        21,
+        31
+      ],
+      "triangles": 28,
+      "roblox": {}
+    },
+    {
+      "name": "PortalDoor_Trace",
+      "section": "PortalDoor",
+      "material": "Trace",
+      "colorRGB": [
+        105,
+        34,
+        187
+      ],
+      "triangles": 449,
+      "roblox": {}
+    },
+    {
+      "name": "HouseFX_Planet_1_Planet",
+      "section": "HouseFX_Planet_1",
+      "material": "Planet",
+      "colorRGB": [
+        55,
+        27,
+        88
+      ],
+      "triangles": 20,
+      "roblox": {}
+    }
+  ],
+  "collisionPartsDraft": 18,
+  "attachments": 2,
+  "basePartsWithCompanion": 98,
+  "routes": {
+    "samples": 0,
+    "blocked": [],
+    "method": "five vertical rays and two body cross-rays at three heights, 1.6-unit footprint; floor sampled below each centre; unmodeled outside ground assumed at zero"
+  },
+  "studioChecks": "not performed; actual avatar collision, camera, material colours and scale pending",
+  "notes": "Preview awards and presentation objects excluded. No runtime menus or animations included. Companion is a draft, not certified collision."
+}

@@ -1,0 +1,10 @@
+00:04.265  blend            | Read blend: "C:\Users\anton\robloxGame\assets\houses\golden-piggy-v2\golden-piggy.blend"
+ROUTES {"samples": 0, "blocked": 0, "firstFindings": []}
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\golden-piggy-v2\\golden-piggy-roblox.fbx'
+export finished in 0.1285 sec.
+FBX version: 7400
+IMPORT_REPORT {"meshCount": 54, "triangles": 6324, "basePartsWithCompanion": 74, "fbxRoundTripMaxBoundsError": 3.814697265625e-06}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

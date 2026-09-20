@@ -1,0 +1,94 @@
+{
+  "reports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 1040,
+      "cards": 19,
+      "states": [
+        "owned",
+        "affordable",
+        "shown",
+        "toodear",
+        "wontfit",
+        "earnedgoal"
+      ],
+      "overflowing": [],
+      "horizontalOverflow": false,
+      "cardSize": [
+        156,
+        182
+      ],
+      "catalogueScreens": 1.5647058823529412,
+      "detail": {
+        "actionVisible": true,
+        "actionHeight": 48,
+        "brokenImages": 0
+      }
+    },
+    {
+      "name": "phone",
+      "width": 1180,
+      "height": 546,
+      "cards": 19,
+      "states": [
+        "owned",
+        "affordable",
+        "shown",
+        "toodear",
+        "wontfit",
+        "earnedgoal"
+      ],
+      "overflowing": [],
+      "horizontalOverflow": false,
+      "cardSize": [
+        121.67999267578125,
+        141.95999145507812
+      ],
+      "catalogueScreens": 1.6525974025974026,
+      "detail": {
+        "actionVisible": true,
+        "actionHeight": 48,
+        "brokenImages": 0
+      }
+    },
+    {
+      "name": "portrait",
+      "width": 390,
+      "height": 844,
+      "cards": 19,
+      "states": [
+        "owned",
+        "affordable",
+        "shown",
+        "toodear",
+        "wontfit",
+        "earnedgoal"
+      ],
+      "overflowing": [],
+      "horizontalOverflow": false,
+      "cardSize": [
+        121.67999267578125,
+        141.95999145507812
+      ],
+      "catalogueScreens": 3.26734693877551,
+      "detail": {
+        "actionVisible": true,
+        "actionHeight": 48,
+        "brokenImages": 0
+      }
+    }
+  ],
+  "interactionChecks": [
+    "selection does not spend",
+    "explicit buy",
+    "free move in",
+    "owned priority",
+    "earned not purchasable",
+    "stable order",
+    "empty affordable",
+    "owned earned move in"
+  ],
+  "referenceImages": 11,
+  "errors": []
+}

@@ -1,27 +1,402 @@
+lets make coming soon page for alien stuff and alien event
+
+add coming soon for more crate themes we will add
+
+add comging soon in the houses for more trophy room with more achievements
+
+sound effect when event starting soon is sirens that needs to change, also the midnight heist banned says patrol on it which isn't right
+
+need items tab in your bag for players to be able to sell their items for half the price they bought for
+
+icon shown for current wearing skin in hud is still much smaller render of teh og skins than the properly fitted animal skins
+
+work on nab effects
+
+need to add screen that shows player earning hood item for escaping police once
 
 
-have chance to steal piggy outfits/skins from other players make it much higher than the chance we gave to steal from shops. this will make robbing more exciting there can be a chance for higher stakes we mightg need to make the cases more valuable then because as players level up and earn more it will be easy for them to purchase them. contemplate making it harder to earn coins and keep them (lower cooldown/amount stolen per hour) or increase prices i think to solve this we have common crate rare crate legendary crate with higher chances of rolls. we can have the higher chests have less common skins in them or something
+
+ultimate problem: 
+need to give players something else to do besides just robbing, they only gain cosmetics from this and theres no real incentive other than to get top of leaderboards and buy all cosmetics. im not sure about this i just played a similar game called hide a base and steal where the players buy pets as they walk down teh runway and then also steal other players pets and bring them back to their base, each pet earns a $ amount per second and are collected in the base, more rooms are unlocked via rebirths to hold more pets. its so simple yet its on the trending page. how can i make sure my game is simple enough to be enjoyable and successful like this one. it seems to simple and dumb to me but to little kids this is enough, so collecting the skins and robbing for fun might just almost enough. i still think there needs to be one more aspect to the game that replaces the acorns, some tasks for them to do to earn crates with a goal to work towards besides collecting skins there needs to be some way to make money that isn't passive
 
 
-minigame sound effect notes going up as they crack each can be cool game noise
-
-fix inside shops to display items somehow from outside view, move npc in piggy outfitters
-
-make crate roll pickers more dramatic and beef up with graphics, animations, colors, piggy themed make vibrant
-
-update piggys across whole game menus, miniature ones etc with the new design
-
-update buttons and ui menus to have more character like youtube videos, floating icons for shop inventory etc.
-
-continue on sneak animation
-
-upsidedown animation hoverboard second style
-
-update earning hud element
-
-change shop piggy to be named vault
+possible solution:
+- remove the smash and grab option from robbing
+- remove the partial crack options from robbing as well all or nothing
+- this enforces that players will get a skin every time from robbing which is good
+- make it obvious that the skin was stolen from the player currently it just looks like it was randomly given to them
+- need to introduce some kind of jobs
 
 
-when steals are double event make sure to show that in the piggy rob value above each piggy!
+The important thing about games like Hide a Base and Steal isn't that they have lots of systems. It's that the player immediately understands:
 
-revamp loot delivered screen have a visual pop up of what the player earned if they earned an item lets show it on the screen with a special sound effect and effect of stealing the item make an option to see that item in their bag or maybe the stolen item should be shown on the screen as soon as they rob it if the happen to get an item it shouldn't interrupt anything but it should pop up on the screen to make the player excited
+Do thing → get money → make base better → get better stuff → do thing again.
+
+Your current loop sounds more like:
+
+Rob → get money → buy cosmetics/house upgrades → rob again.
+
+The missing piece is a repeatable active money-making activity.
+
+I'd make the "one more thing" a Piggy Job system
+Instead of introducing a complicated quest system, give players 3–5 tiny jobs that appear around the map.
+
+For example:
+
+🐷 Feed the Piggies — find 3 food bowls and fill them.
+
+💰 Piggy Bank Delivery — pick up a piggy bank and deliver it to an NPC.
+
+🔨 Fix the Bank — hit 5 broken spots around an NPC's house.
+
+🚚 Piggy Bank Truck — follow a truck and grab dropped cash.
+
+🕵️ Catch the Thief — an NPC piggy gets robbed; chase the thief and recover the money.
+
+🧹 Clean the Pig Pen — clean 5 messes scattered around the map.
+
+🎁 Lost Piggy Bank — find a hidden bank somewhere in the world.
+
+The key is that these should take ~30–90 seconds, not 5 minutes.
+
+And they should pay real money, not just XP.
+
+The loop becomes
+Rob players/NPCs
+↓
+Do a quick job
+↓
+Earn cash + maybe a crate
+↓
+Upgrade house / buy dog / unlock cosmetics
+↓
+Go back out into the world
+↓
+Rob someone carrying valuable loot
+
+That is already a much stronger game.
+
+But I'd add one particularly important mechanic
+Make players physically carry valuable things home.
+This is what I think you're missing from the Hide a Base and Steal comparison.
+
+The fun isn't necessarily "pets generate $/sec."
+
+It's:
+
+I found something valuable → now I have to successfully get it home.
+
+That creates tension.
+
+You could have Piggy Jobs generate loot crates rather than immediately giving cash.
+
+For example:
+
+Small Job
+
+🐷 Feed 3 pigs
+Reward: Common Crate
+
+Medium Job
+
+🏦 Deliver a stolen piggy bank
+Reward: Rare Crate
+
+Hard Job
+
+🚨 Recover the Golden Piggy Bank
+Reward: Epic Crate
+
+Then the player has to physically carry the crate back to their house.
+
+And here's where your existing robbery system becomes much more interesting:
+
+Other players can steal your crate.
+Now you have:
+
+Job → loot → transport → defend → deposit → reward
+
+That's an actual gameplay loop rather than just another menu.
+
+Don't make the crate system complicated
+I'd probably make the crate contain one of three things:
+
+🐷 Piggy Skin
+Common → Uncommon → Rare → Epic → Legendary → Mythic
+
+🏠 House item
+Furniture, decorations, walls, doors, etc.
+
+🐕 Dog item
+Dog skins/variations, collars, accessories, etc.
+
+You already have these cosmetic categories, so you don't need to invent another progression system.
+
+The crate system simply becomes the mechanism for obtaining them.
+
+This also solves your "why am I robbing?" problem
+Right now, robbing sounds like the activity itself is the reward.
+
+Instead:
+
+Robbing is how you acquire valuable loot.
+
+And then:
+
+Jobs are another way to acquire valuable loot.
+
+And potentially:
+
+Other players can steal that loot from you before you get home.
+
+Now the game has a reason to leave your house.
+
+I'd actually avoid making "passive income" the main progression
+Your comparison game can get away with pets generating money because stealing pets is itself the active gameplay.
+
+Your game already has an active equivalent:
+
+stealing piggy banks.
+
+So you don't necessarily need to copy the pets-$-per-second system.
+
+I'd make the economy something like:
+
+Robbing
+
+Fast
+
+Risky
+
+High reward
+
+Jobs
+
+Reliable
+
+Active
+
+Medium reward
+
+House
+
+Permanent progression
+
+Crates
+
+Exciting rewards
+
+Piggy skins
+
+Collection/completion
+
+Dogs
+
+Collection + perhaps tiny gameplay utility
+
+This gives different types of players something to do without turning the game into an RPG.
+
+One thing I'd seriously consider: a "wanted" system
+This could make your robbery loop substantially more entertaining without adding much complexity.
+
+Every time you successfully rob someone, you accumulate Heat.
+
+For example:
+
+🔥 HEAT: 32%
+
+At high Heat:
+
+police NPCs start appearing
+
+security dogs chase you
+
+your location gets revealed periodically
+
+you drop more money if caught
+
+but successful robberies give bigger rewards
+
+So players have a choice:
+
+"Do I keep robbing because I'm on a hot streak, or go home and bank my money?"
+
+That's a very simple risk/reward decision.
+
+And importantly, it creates emergent player stories.
+
+"I had $15,000 on me and three cops were chasing me and I barely made it home."
+
+That's the sort of thing kids remember.
+
+Your game should probably have only ~4 major things
+If you're worried about becoming too complicated, I'd actually establish a hard rule:
+
+The player should understand the entire game in 30 seconds.
+Something like:
+
+1. Rob stuff.
+Steal piggy banks from NPCs and players.
+
+2. Do jobs.
+Complete little activities around the map for crates/cash.
+
+3. Get the loot home.
+Other players can steal valuable loot you're carrying.
+
+4. Upgrade your house and collection.
+Spend your money and collect better piggies, dogs and decorations.
+
+That's enough.
+
+You don't need crafting.
+
+You don't need skill trees.
+
+You don't need 15 currencies.
+
+You don't need elaborate quests.
+
+You don't need complicated stats.
+
+And I wouldn't underestimate the cosmetics
+You said:
+
+"they only gain cosmetics from this"
+
+But that's not necessarily a problem.
+
+For a Roblox game aimed at younger players, collecting itself can be the progression.
+
+The important question isn't:
+
+"Does this cosmetic have gameplay value?"
+
+It's:
+
+"Do I really want the next one?"
+
+If the answer is yes, you've created a progression system.
+
+Think about how satisfying this could be:
+
+Piggy Collection
+
+Common: 12/30
+Uncommon: 8/25
+Rare: 4/20
+Epic: 2/15
+Legendary: 0/10
+Mythic: 0/5
+
+Then you have:
+
+🔒 GOLDEN PIGGY — 0/1
+
+And the player thinks:
+
+"I need that."
+
+That's enough.
+
+One particularly strong idea: Piggy Museum
+This could give all those skins a purpose without changing your core gameplay.
+
+Players have a Piggy Museum/Collection Room inside their house.
+
+Every piggy they obtain gets displayed.
+
+Completing collections gives small rewards.
+
+For example:
+
+Farm Collection
+🐷 Farmer Piggy
+🐷 Tractor Piggy
+🐷 Cowboy Piggy
+🐷 Chicken Piggy
+🐷 Golden Farmer Piggy
+
+5/5 COMPLETE → Farm Trophy
+
+Then:
+
+Space Collection
+🚀 Astronaut Piggy
+👽 Alien Piggy
+🌙 Moon Piggy
+⭐ Galaxy Piggy
+🌌 Cosmic Piggy
+
+5/5 COMPLETE → Space House Theme
+
+Now cosmetics aren't just "skins in a menu."
+
+They're things you're hunting for and displaying.
+
+The biggest mistake I'd avoid
+Don't respond to the stale feeling by adding more content.
+
+If you currently have:
+
+Robbing → house → skins → dogs
+
+and you're worried it's stale, the solution isn't:
+
+Robbing → quests → pets → crafting → achievements → battles → trading → rebirths → talents → collections → events...
+
+You'll end up with a game that has 30 systems but no clear identity.
+
+Instead, I'd add one verb:
+
+"Complete jobs and bring the loot home."
+
+Then make your existing systems reinforce that.
+
+If I were prototyping this tomorrow
+I'd make one tiny vertical slice:
+
+🐷 JOB BOARD
+Every 2 minutes, 3 jobs appear:
+
+Feed 3 Piggies
+
+$500 + Common Crate
+
+Deliver a Piggy Bank
+
+$1,500 + Uncommon Crate
+
+Recover the Golden Piggy Bank
+
+$5,000 + Rare Crate
+
+Player chooses one.
+
+They go do it.
+
+They receive a physical crate.
+
+CRATE ACQUIRED!
+
+They have to carry it home.
+
+Other players can see:
+
+🔴 PLAYERNAME HAS A RARE CRATE!
+
+Now there's an opportunity to intercept them.
+
+They make it home.
+
+OPEN CRATE
+
+🎉 RARE COWBOY PIGGY
+
+Put it in their collection.
+
+Then they're immediately thinking:
+
+"Okay, how do I get the next one?"
+
+That's the loop I'd test before building anything else.

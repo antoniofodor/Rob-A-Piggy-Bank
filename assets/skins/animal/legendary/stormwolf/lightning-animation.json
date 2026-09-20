@@ -1,0 +1,256 @@
+{
+  "fps": 30,
+  "frames": 60,
+  "loopSeconds": 2,
+  "mainBolts": 8,
+  "forks": 8,
+  "style": "Long, chunky, tapered jagged bolts with substantial branching tips",
+  "mainBoltBaseDiameterStuds": 0.6,
+  "bodyGlow": {
+    "mask": "stormwolf_body_emissive.png",
+    "idleStrength": 0.35,
+    "peakStrength": 5.0,
+    "mode": "Stepped brightness synchronized to strongest active bolt group"
+  },
+  "interpolation": "Instant on/off. Most flashes last one frame (33 ms); double strikes and quiet gaps vary per group.",
+  "groups": [
+    {
+      "name": "Lightning_p0",
+      "events": [
+        {
+          "frame": 3,
+          "strength": 1
+        },
+        {
+          "frame": 4,
+          "strength": 0
+        },
+        {
+          "frame": 6,
+          "strength": 0.55
+        },
+        {
+          "frame": 7,
+          "strength": 0
+        },
+        {
+          "frame": 11,
+          "strength": 1
+        },
+        {
+          "frame": 12,
+          "strength": 0
+        },
+        {
+          "frame": 34,
+          "strength": 1
+        },
+        {
+          "frame": 35,
+          "strength": 0.45
+        },
+        {
+          "frame": 36,
+          "strength": 0
+        },
+        {
+          "frame": 53,
+          "strength": 1
+        },
+        {
+          "frame": 54,
+          "strength": 0
+        }
+      ]
+    },
+    {
+      "name": "Lightning_p1",
+      "events": [
+        {
+          "frame": 11,
+          "strength": 1
+        },
+        {
+          "frame": 12,
+          "strength": 0
+        },
+        {
+          "frame": 14,
+          "strength": 0.7
+        },
+        {
+          "frame": 15,
+          "strength": 0
+        },
+        {
+          "frame": 38,
+          "strength": 1
+        },
+        {
+          "frame": 39,
+          "strength": 0
+        },
+        {
+          "frame": 41,
+          "strength": 0.5
+        },
+        {
+          "frame": 42,
+          "strength": 0
+        }
+      ]
+    },
+    {
+      "name": "Lightning_p2",
+      "events": [
+        {
+          "frame": 11,
+          "strength": 0.85
+        },
+        {
+          "frame": 12,
+          "strength": 0
+        },
+        {
+          "frame": 22,
+          "strength": 1
+        },
+        {
+          "frame": 23,
+          "strength": 0
+        },
+        {
+          "frame": 25,
+          "strength": 0.5
+        },
+        {
+          "frame": 26,
+          "strength": 0
+        },
+        {
+          "frame": 44,
+          "strength": 1
+        },
+        {
+          "frame": 45,
+          "strength": 0
+        }
+      ]
+    },
+    {
+      "name": "Lightning_p3",
+      "events": [
+        {
+          "frame": 6,
+          "strength": 1
+        },
+        {
+          "frame": 7,
+          "strength": 0
+        },
+        {
+          "frame": 11,
+          "strength": 0.8
+        },
+        {
+          "frame": 12,
+          "strength": 0
+        },
+        {
+          "frame": 31,
+          "strength": 1
+        },
+        {
+          "frame": 32,
+          "strength": 0.6
+        },
+        {
+          "frame": 33,
+          "strength": 0
+        },
+        {
+          "frame": 55,
+          "strength": 1
+        },
+        {
+          "frame": 56,
+          "strength": 0
+        }
+      ]
+    },
+    {
+      "name": "Lightning_p4",
+      "events": [
+        {
+          "frame": 9,
+          "strength": 1
+        },
+        {
+          "frame": 10,
+          "strength": 0
+        },
+        {
+          "frame": 11,
+          "strength": 0.65
+        },
+        {
+          "frame": 12,
+          "strength": 0
+        },
+        {
+          "frame": 27,
+          "strength": 0.9
+        },
+        {
+          "frame": 28,
+          "strength": 0
+        },
+        {
+          "frame": 47,
+          "strength": 1
+        },
+        {
+          "frame": 48,
+          "strength": 0
+        }
+      ]
+    },
+    {
+      "name": "Lightning_p5",
+      "events": [
+        {
+          "frame": 11,
+          "strength": 1
+        },
+        {
+          "frame": 12,
+          "strength": 0
+        },
+        {
+          "frame": 18,
+          "strength": 1
+        },
+        {
+          "frame": 19,
+          "strength": 0
+        },
+        {
+          "frame": 20,
+          "strength": 0.4
+        },
+        {
+          "frame": 21,
+          "strength": 0
+        },
+        {
+          "frame": 50,
+          "strength": 1
+        },
+        {
+          "frame": 51,
+          "strength": 0
+        }
+      ]
+    }
+  ]
+}

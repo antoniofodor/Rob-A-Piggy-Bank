@@ -1,0 +1,33 @@
+{
+  "status": "Named mesh groups and timing spec; runtime animation not installed",
+  "effects": [
+    {
+      "section": "HouseFX_IcicleAccent_1",
+      "kind": "pulse",
+      "periodSeconds": 12,
+      "phase": 0.0,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_IcicleAccent_2",
+      "kind": "pulse",
+      "periodSeconds": 12,
+      "phase": 0.25,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_IcicleAccent_3",
+      "kind": "pulse",
+      "periodSeconds": 12,
+      "phase": 0.5,
+      "fixedGeometry": true
+    },
+    {
+      "section": "HouseFX_IcicleAccent_4",
+      "kind": "pulse",
+      "periodSeconds": 12,
+      "phase": 0.75,
+      "fixedGeometry": true
+    }
+  ]
+}

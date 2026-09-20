@@ -136,7 +136,10 @@ local officer: PoliceModel.Officer? = nil
 -- `victim` may be a RESIDENT rather than a Player since unclaimed plots
 -- became robbable, so it is only ever named and notified through
 -- HeistService's own accessors. Never index it as a Player here.
-type Alarm = { thief: Player, victim: any, amount: number, wanted: boolean? }
+-- `inSight` marks a pursuit the CAR raised by spotting somebody on its own
+-- cruise, which is the one case that must not pull level afterwards: it has
+-- already stopped exactly where it saw them.
+type Alarm = { thief: Player, victim: any, amount: number, wanted: boolean?, inSight: boolean? }
 local pending: Alarm? = nil
 local engaged = false
 
@@ -225,6 +228,34 @@ end
 -- every frame to learn something the character already knows.
 local function feetOf(root: BasePart, humanoid: Humanoid): number
 	return root.Position.Y - (humanoid.HipHeight + root.Size.Y / 2)
+end
+
+-- WHAT THE OFFICER IS STANDING ON, which is not the same question as where
+-- the thief's feet are -- and confusing the two is what made an officer fly.
+--
+-- The chase used to ease the officer's own Y toward `feetOf(thief)`. On the
+-- same ground those agree to a stud; with the thief upstairs in a house they
+-- differ by a storey, so the officer rose through the air and made the arrest
+-- through the floor. It walks on the ground beneath ITSELF now and waits at
+-- the bottom, and `Config.POLICE.catchRise` is what refuses the catch while
+-- the thief is above it.
+--
+-- Raycast rather than a constant, because the ground under a patrol is the
+-- road, a kerb, a driveway or a plot slab and those are four heights. The
+-- characters are excluded -- an officer must not stand on the thief it is
+-- chasing -- and anything non-collidable is invisible to a raycast anyway,
+-- which is most of this game's scenery by design.
+local function groundUnder(at: Vector3, fallback: number): number
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = { workspace:FindFirstChild("Characters") or workspace }
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player.Character then
+			table.insert(params.FilterDescendantsInstances, player.Character)
+		end
+	end
+	local hit = workspace:Raycast(at + Vector3.new(0, 6, 0), Vector3.new(0, -40, 0), params)
+	return if hit then hit.Position.Y else fallback
 end
 
 local function rootOf(player: Player): (BasePart?, Humanoid?)
@@ -456,10 +487,19 @@ local function pursue(alarm: Alarm)
 
 	-- Pull in level with the thief, clamped to the road. The car parks; it is
 	-- the officer who leaves the tarmac.
+	--
+	-- SKIPPED WHEN THE CAR STOPPED BECAUSE IT SAW THEM. A sight-raised pursuit
+	-- has already braked at the spot it spotted them from, and driving on to
+	-- draw level would be up to a sight radius of extra travel AFTER the moment
+	-- the thief watched the car stop -- which reads as the patrol noticing and
+	-- then thinking about it. An alarm-raised pursuit still pulls in, because
+	-- there the car has no idea where the robbery was until the alarm went.
 	local m = Config.streetMetrics()
-	local parkX = math.clamp(root.Position.X, m.roadStartX + 12, m.roadEndX - 12)
-	local lane = if root.Position.Z >= 0 then Config.POLICE.lane else -Config.POLICE.lane
-	driveTo(parkX, lane)
+	if not alarm.inSight then
+		local parkX = math.clamp(root.Position.X, m.roadStartX + 12, m.roadEndX - 12)
+		local lane = if root.Position.Z >= 0 then Config.POLICE.lane else -Config.POLICE.lane
+		driveTo(parkX, lane)
+	end
 
 	-- Published, like the rest of the patrol. Thirty seconds is the whole
 	-- escape, and an escape whose clock nobody can see is indistinguishable
@@ -500,6 +540,12 @@ local function pursue(alarm: Alarm)
 
 	local deadline = os.clock() + Config.POLICE.chase
 	local caught = false
+	-- WHERE THE THIEF WAS LAST SEEN, which is what the officer chases. The
+	-- same point as the thief's own position for as long as they are visible;
+	-- it stops updating while they are hidden, which is what makes a bin work.
+	local lastSeen = at
+	local seenFeet = at.Y
+	local searchUntil: number? = nil
 
 	while os.clock() < deadline and not aborting do
 		local dt = RunService.Heartbeat:Wait()
@@ -512,13 +558,35 @@ local function pursue(alarm: Alarm)
 			break
 		end
 
-		-- Ground to ground now: `at` is where the feet are, and `poseOfficer`
-		-- takes the same. No torso offset anywhere in this loop.
-		local groundY = feetOf(targetRoot, humanoid)
-		local flatDelta = Vector3.new(
-			targetRoot.Position.X - at.X, 0, targetRoot.Position.Z - at.Z)
+		-- OUT OF SIGHT IS OUT OF MIND. A thief inside a wheelie bin is not
+		-- somewhere the officer knows about: it keeps the LAST SEEN spot,
+		-- heads there, and gives up `searchSeconds` after arriving. Asked
+		-- through HeistService, which is where StealthService pushes this
+		-- (see its own note) -- so this file needs no new dependency and
+		-- cannot disagree with the dog about who is hidden.
+		if HeistService.isHidden(alarm.thief) then
+			if not searchUntil then
+				searchUntil = os.clock() + Config.POLICE.searchSeconds
+				hand.plate.Text = "SEARCHING"
+			end
+			if os.clock() >= searchUntil then
+				break
+			end
+		else
+			searchUntil = nil
+			lastSeen = targetRoot.Position
+			seenFeet = feetOf(targetRoot, humanoid)
+			hand.plate.Text = "PURSUING"
+		end
 
-		if flatDelta.Magnitude <= Config.POLICE.catchRadius then
+		local flatDelta = Vector3.new(lastSeen.X - at.X, 0, lastSeen.Z - at.Z)
+
+		-- ONLY WHAT IS ON ROUGHLY THE SAME LEVEL. `catchRadius` is a FLAT
+		-- distance, so without this an officer on the lawn catches a thief
+		-- standing directly above it on an upper floor. See
+		-- `Config.POLICE.catchRise`.
+		local sameLevel = math.abs(seenFeet - at.Y) <= Config.POLICE.catchRise
+		if sameLevel and not searchUntil and flatDelta.Magnitude <= Config.POLICE.catchRadius then
 			-- A dodge beats the catch. NAB.hold is 0.4s and the immunity is
 			-- 0.5s, so a well-timed roll costs the officer their moment and
 			-- they have to close again -- exactly what it costs a player who
@@ -532,9 +600,11 @@ local function pursue(alarm: Alarm)
 		if flatDelta.Magnitude > 0.001 then
 			look = flatDelta.Unit
 			local step = math.min(Config.POLICE.officerSpeed * dt, flatDelta.Magnitude)
-			-- Y eased rather than snapped: the officer steps up onto a lawn
-			-- and down onto the verge over a few frames instead of teleporting
-			-- a stud each time the thief crosses a kerb.
+			-- THE GROUND UNDER THE OFFICER, not the thief's feet -- see
+			-- `groundUnder`. Eased rather than snapped, so it steps up onto a
+			-- lawn and down onto the verge over a few frames instead of
+			-- teleporting a stud each time it crosses a kerb.
+			local groundY = groundUnder(at, at.Y)
 			local y = at.Y + (groundY - at.Y) * math.min(1, dt * 8)
 			at = Vector3.new(at.X, y, at.Z) + look * step
 
@@ -640,7 +710,11 @@ local function runPatrol()
 		car.siren:Play()
 	end
 
-	setPhase("patrol", Config.POLICE.patrol)
+	-- THE CAR'S OWN CLOCK, NOT A SECOND OPINION ABOUT IT. The window is the
+	-- time a whole number of legs actually takes, so the banner's countdown
+	-- and the cruise end together -- see `Config.policeCruise`.
+	local cruise = Config.policeCruise()
+	setPhase("patrol", cruise.seconds)
 
 	-- Anybody already holding loot when the siren arrives gets told, because
 	-- the decision this feature is built around -- keep running or deliver --
@@ -688,33 +762,129 @@ local function runPatrol()
 	-- check, and the notify sites downstream already skip every line that would
 	-- be sent when the two are the same player -- the admin console's self-bust
 	-- has taken that path since the day it was written.
+	-- WATCHED FOR, NOT DRIVEN AT. This is the half that was missing.
+	--
+	-- Setting `pending` here committed the pursuit before the car had moved --
+	-- and the cruise loop below opens `if pending or ... then break end`, so a
+	-- patrol with a name on the board BROKE ON ITS FIRST ITERATION and never
+	-- drove a single leg. The car did not patrol at all: it went straight to
+	-- `pursue`, which drove to wherever the suspect happened to be standing and
+	-- unloaded an officer at them. Through a back garden, if that is where they
+	-- were.
+	--
+	-- Two things were wrong with that and only one of them was visible. It made
+	-- the patrol's own warning a lie -- "Stay clear of the street" was advice
+	-- that bought nothing, because the street was not where the danger was. And
+	-- it is why a records check so often ended in no arrest: the officer was
+	-- deployed from the road at a suspect who could be most of a plot's depth
+	-- away, on foot at 14.5 against a thief who runs at 16, so the whole
+	-- thirty-second chase went on closing a gap it could never close. The
+	-- pursuit was lost before the officer's door opened.
+	--
+	-- So the suspect is only WATCHED here, and `sighted` below is what commits.
+	local watching: Player? = nil
 	if not pending and not aborting then
-		-- getPursuitTarget again: the floor's whole job is deciding whether this
-		-- records check is worth making, and this is the line it guards.
+		-- getPursuitTarget rather than getMostWanted: the floor's whole job is
+		-- deciding whether this records check is worth making at all, and this
+		-- is the line it guards.
 		local suspect, record = SocialService.getPursuitTarget()
 		if suspect and suspect.Parent and record > 0 then
-			pending = { thief = suspect, victim = suspect, amount = record, wanted = true }
+			watching = suspect
 		end
+	end
+
+	-- IS THE SUSPECT WITHIN SIGHT OF THE CAR RIGHT NOW? Commits the pursuit and
+	-- returns true, which stops the car exactly where it is standing.
+	--
+	-- A FLAT DISTANCE FROM THE CAR, AND DELIBERATELY NOT A RAYCAST. "Line of
+	-- sight" is the right idea and a ray is the wrong instrument for it here:
+	-- every fence in this game carries an invisible colliding Barrier, so a ray
+	-- from the road to a thief on their own front lawn is stopped by the fence
+	-- in front of them and the officer would never get out at anybody standing
+	-- on a plot. A distance says what is actually meant -- close enough to the
+	-- street to be seen from it -- and `Config.policeSightRadius` carries the
+	-- derivation.
+	--
+	-- HIDING STILL WORKS, through the one accessor that already answers it, so
+	-- this cannot disagree with the dog or with the officer's own search about
+	-- who is out of sight. A wheelie bin is a way past a records check.
+	--
+	-- THE BOARD IS RE-ASKED AT THE MOMENT OF SIGHT rather than trusted from the
+	-- top of the patrol, for two reasons. The rap sheet drives the BAIL, at
+	-- three times the record, so a figure captured a cruise earlier would
+	-- charge for a robbery count that has since moved. And a suspect can be
+	-- arrested, cleared or overtaken while the car is still driving -- in which
+	-- case there is no longer anybody to get out for, and `watching` is dropped
+	-- rather than pursued out of date.
+	local function sighted(): boolean
+		local suspect = watching
+		if pending or not suspect then
+			return false
+		end
+		if not suspect.Parent then
+			watching = nil
+			return false
+		end
+		if HeistService.isHidden(suspect) then
+			return false
+		end
+		local vehicle, root = car, rootOf(suspect)
+		if not vehicle or not root then
+			return false
+		end
+		local from, at = vehicle.body.Position, root.Position
+		if Vector3.new(at.X - from.X, 0, at.Z - from.Z).Magnitude > Config.policeSightRadius() then
+			return false
+		end
+		local current, record = SocialService.getPursuitTarget()
+		if current ~= suspect or record <= 0 then
+			watching = nil
+			return false
+		end
+		pending = { thief = suspect, victim = suspect, amount = record, wanted = true, inSight = true }
+		return true
 	end
 
 	local lane = Config.POLICE.lane
 	local target = m.roadStartX + 16
 
-	-- Up and down the street until either the patrol time runs out or a
-	-- robbery raises the alarm. Polled, so the alarm is seen the frame after
-	-- it is set rather than at the end of whichever leg is in progress.
-	while os.clock() < phaseEnds and not pending do
-		local arrived = driveTo(target, lane, function()
-			return pending ~= nil or os.clock() >= phaseEnds
-		end)
-		if arrived then
-			-- Turn round: the far end, and the other lane, so the return leg
-			-- passes on the correct side of the road.
-			lane = -lane
-			target = if target > (m.roadStartX + m.roadEndX) / 2
-				then m.roadStartX + 16
-				else m.roadEndX - 16
+	-- A WHOLE NUMBER OF LEGS, COUNTED, RATHER THAN WHATEVER FITS THE CLOCK.
+	--
+	-- This used to run `while os.clock() < phaseEnds`, which stopped the car
+	-- wherever the last leg happened to have got to: at 3.24 legs it drove
+	-- three, began a fourth and was cut off a quarter of the way along, so the
+	-- patrol ended in the middle of the street and drove off from there. The
+	-- count is derived and odd, so the cruise always finishes at the end the
+	-- car leaves by -- see `Config.policeCruise`.
+	--
+	-- THE CLOCK IS STILL AN ABORT AND DELIBERATELY NOT THE CONDITION. A leg
+	-- can outrun its own estimate if the car is blocked or the server stalls,
+	-- and a cruise that ignored the phase would leave the banner counting down
+	-- past zero with the car still driving. It is a backstop with slack rather
+	-- than the thing that decides, which is why it is `phaseEnds + legSeconds`
+	-- rather than `phaseEnds`.
+	local deadline = phaseEnds + cruise.legSeconds
+	for _ = 1, cruise.legs do
+		if pending or os.clock() >= deadline then
+			break
 		end
+		local arrived = driveTo(target, lane, function()
+			-- `sighted` first, so the frame the suspect comes into range is the
+			-- frame the car stops -- it commits `pending` as a side effect and
+			-- the alarm below picks it up. Checked every Heartbeat, which costs
+			-- one distance: the expensive question (is this still the name on
+			-- the board) is only asked once the cheap one has already passed.
+			return sighted() or pending ~= nil or os.clock() >= deadline
+		end)
+		if not arrived then
+			break
+		end
+		-- Turn round: the far end, and the other lane, so the return leg
+		-- passes on the correct side of the road.
+		lane = -lane
+		target = if target > (m.roadStartX + m.roadEndX) / 2
+			then m.roadStartX + 16
+			else m.roadEndX - 16
 	end
 
 	local alarm = pending

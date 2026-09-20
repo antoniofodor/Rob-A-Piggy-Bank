@@ -227,6 +227,8 @@ function Shake.start(parent: Instance)
 					if dragging or node.submitted or not state then return end
 					local touch = input.UserInputType == Enum.UserInputType.Touch
 					if not touch and input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+					-- Only a finger that STARTED on this acorn picks it up.
+					if require(script.Parent.TouchOrigin).beganElsewhere(input, button) then return end
 					dragging = { node = node, input = input, touch = touch }
 				end)
 				button.Activated:Connect(function(input)

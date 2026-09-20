@@ -330,8 +330,11 @@ type Crack = {
 	pig0: number,
 	allowance0: number,
 	stepStart: number, -- server time this sweep began
-	zone: number,      -- 0..1 along the dial
+	zone: number,      -- 0..1 along the dial, the notch's resting place
 	width: number,     -- 0..1
+	sweep: number,     -- seconds per pass; the Vault Lock sets it
+	drift: number,     -- how far the notch swings either side (Steel, Gold)
+	spares: number,    -- misses the thief's Lockpicks will still forgive
 	lastTap: number,
 	ending: boolean,
 }
@@ -744,7 +747,7 @@ function HeistService.targetPosition(target: Target): Vector3?
 		local root = getRoot(player)
 		return if root then root.Position else nil
 	end
-	return (target :: ResidentService.Resident).at
+	return ResidentService.bodyAt(target :: ResidentService.Resident)
 end
 
 local function getHumanoid(player: Player): Humanoid?
@@ -806,7 +809,11 @@ local function dropAction(player: Player, carry: Carry): string?
 	if not root or not humanoid or humanoid.Health <= 0 then return nil end
 	local ownHarvest = carry.kind == "basket" and carry.claimant == player and carry.victim == player
 	local destination = if not ownHarvest then returnPlot(carry) else nil
-	if destination and carryNearHome(carry, destination, root) then return "return" end
+	-- THE ROBBER NEVER RETURNS THEIR OWN HAUL BY WALKING. Arriving is the
+	-- delivery now, and a thief who has just cracked a pig is standing
+	-- inside its ring -- so a return here would hand every robbery straight
+	-- back. A return is for whoever took the loot OFF the robber.
+	if destination and carry.claimant ~= player and carryNearHome(carry, destination, root) then return "return" end
 	-- Recovering your own haul is always a return, never a keep payout.
 	if carry.victim == player and not ownHarvest then return nil end
 	local home = PlotService.getPlot(player)
@@ -825,8 +832,23 @@ local function carryOptions(player: Player, carry: Carry): any
 		local payout = if isRevenge(player, carry.victim) then Config.REVENGE.payout else Config.HEIST_PAYOUT
 		worth = math.floor(carry.amount * payout * SocialService.getSpreeMultiplier(player))
 	end
+	-- WHERE THE RINGS GO. The client draws a glowing ring on each place
+	-- arriving would settle the haul, centred on the exact part
+	-- `carryNearHome` measures from, so the ring and the rule are one circle.
+	local function ringAt(plot: any?): any?
+		if not plot or not plot.base then return nil end
+		local target = if carry.kind == "basket" then plot.acornStorage and plot.acornStorage.body else plot.base
+		if not target then return nil end
+		local size = (plot.base :: any).Size
+		return { at = target.Position,
+			ground = if size then plot.base.Position.Y + size.Y / 2 else target.Position.Y }
+	end
+	local homeRing = if ownReturn then nil else ringAt(PlotService.getPlot(player))
+	local returnRing = if original and not ownReturn then nil
+		elseif ownHarvest then nil else ringAt(returnPlot(carry))
 	return {
 		action = dropAction(player, carry), canKeep = not ownReturn,
+		homeRing = homeRing, returnRing = returnRing,
 		canReturn = not ownHarvest and returnPlot(carry) ~= nil,
 		victim = targetName(carry.victim), ownReturn = ownReturn,
 		keepWorth = worth, bounty = returnBounty(player, carry),
@@ -949,7 +971,11 @@ local function attachLoot(thief: Player, victim: Target, amount: number, kind: s
 	else
 		loot = PiggyBank.buildMini(skinKey)
 	end
-	local body = loot.PrimaryPart :: BasePart
+	-- NOT `loot.PrimaryPart`: a carried pig has none, deliberately, so that
+	-- `PivotTo` below cannot throw away the half turn its mesh body carries.
+	-- See the note beside `PiggyModel.bodyOf`. The acorn basket DOES set one
+	-- and `lootBody` prefers it, so this one line serves both kinds.
+	local body = PiggyBank.lootBody(loot) :: BasePart
 
 	-- WHERE IT SITS IS `CarryPose`'S TO DECIDE, NOT THIS FILE'S, because the
 	-- thief is now posed HOLDING it and the two are one measurement: the arms
@@ -1111,15 +1137,45 @@ end
 -- another, where the world and the server disagreed silently and the server
 -- was right.
 --
--- The two refusals are NOT the same kind of thing and both belong here.
--- Carrying is dropped loudly at the grab, so it is nearly always already
--- false by the time this is asked. CLIMBING is not: a climb starts and ends
--- without anybody pressing anything, which is exactly why this cannot be
--- computed once where the button lands.
+-- CARRYING IS ALLOWED NOW, AND THAT REVERSES THIS FILE'S OLD RULE ON
+-- PURPOSE: *you sneak IN and you never sneak the money OUT*.
+--
+-- The arithmetic that rule rested on is unchanged and is still the whole
+-- point: a tiptoe multiplies the carry penalty, so 12 x 0.35 is 4.2 studs a
+-- second, comfortably under every dog's `notice`. What changed is the
+-- DESIGN -- creeping home is now the intended getaway, and the price is TIME
+-- rather than noise: the 53-stud run home is about 12.6 seconds at a sneak
+-- against 4.4 at a carry-run, which is long enough for the owner, the
+-- patrol, or a neighbour with a gadget to arrive. So a thief chooses between
+-- being quick and loud (chased) or slow and quiet (unheard), which is a
+-- decision where there used to be none.
+--
+-- NEVER WHILE CLIMBING, because two slows multiplied produce a number nobody
+-- designed: 0.35 x CLIMB_MULTIPLIER 0.35 is 0.12, about two studs a second,
+-- or seven seconds to climb an eight-stud fence. That is the
+-- multiplicative-slow trap this project keeps recording, and a ladder is not
+-- somewhere anybody is being stealthy anyway. A climb starts and ends without
+-- anybody pressing anything, which is why this cannot be computed once where
+-- the button lands.
+--
+-- NEVER WHILE RIDING, AND THAT IS THE SAME TRAP ONE SIZE UP. A tiptoe is a
+-- multiplier on `currentSpeed` and so is a ride, so the two compose into a
+-- number nobody designed: 16 x 2.1 x 0.35 is 11.8 studs a second, which is a
+-- Volt Scrambler moving SLOWER than a player on foot. Nothing about that is
+-- what either purchase was sold as -- a sneak is for crossing somebody's lawn
+-- unheard and there are no dogs on the street, and a ride is switched off
+-- everywhere a sneak is worth having (`Config.isOnStreet`).
+--
+-- BELT AND BRACES RATHER THAN THE GUARD: `setTiptoe` refuses a sneak while a
+-- ride is on and `setRideMultiplier` drops one when a ride begins, so this
+-- term cannot fire today. It is here because a mount is AUTOMATIC -- you leave
+-- your gate and you are on it -- which is the same reason the climb is checked
+-- here rather than where the button lands, and because the two curves
+-- multiplying is exactly the failure this project keeps recording.
 local function tiptoeInEffect(player: Player): boolean
 	return tiptoeing[player] == true
-		and not carrying[player]
 		and not isClimbing(player)
+		and rideMultiplier[player] == nil
 end
 
 local function currentSpeed(player: Player): number
@@ -1138,22 +1194,8 @@ local function currentSpeed(player: Player): number
 	end
 	speed *= rideMultiplier[player] or 1
 
-	-- TIPTOE, and the two things it REFUSES to combine with are what make the
-	-- whole mechanic safe rather than a hole in it.
-	--
-	-- NEVER WHILE CARRYING. The ordering the guard dog's `notice` speeds are
-	-- built on is: tiptoe max (9.6) < notice < carry speed (12 to 16). Let a
-	-- tiptoe multiply the carry penalty instead and it is 12 x 0.35 = 4.2,
-	-- comfortably UNDER every threshold -- so a thief could creep home past
-	-- the dog with the pig in their arms and the entire risk half of the
-	-- trade would evaporate. You sneak IN; you never sneak the money OUT, and
-	-- that is the rule this line enforces rather than merely describes.
-	--
-	-- NEVER WHILE CLIMBING, because two slows multiplied produce a number
-	-- nobody designed: 0.35 x CLIMB_MULTIPLIER 0.35 is 0.12, about two studs
-	-- a second, which is seven seconds to climb an eight-stud fence. That is
-	-- the multiplicative-slow trap this project keeps recording, and a ladder
-	-- is not somewhere anybody is being stealthy anyway.
+	-- TIPTOE, which multiplies the carry penalty rather than being refused
+	-- alongside it -- see `tiptoeInEffect` for why that reversed.
 	if tiptoeInEffect(player) then
 		speed *= Config.getTiptoeMultiplier(UpgradeService.getLevel(player, "tiptoe"))
 	end
@@ -1376,23 +1418,50 @@ function HeistService.dodge(player: Player)
 	task.delay(Config.DODGE.duration + 0.02, function()
 		refreshSpeed(player)
 	end)
+
+	-- THE PUSH OUT OF THE ROLL, on the frame the feet come back under the
+	-- body. Asked again at that moment rather than decided now: a player who
+	-- was stunned, nabbed, climbed into a bin or got on a ride during the
+	-- roll has not "got up" into a sprint, so they get nothing.
+	local getUpBurst = Config.DODGE.getUpBurst
+	task.delay(Config.DODGE.rollSeconds * Config.DODGE.getUpAt, function()
+		if player.Parent and not isStunned(player) and not rideMultiplier[player]
+			and not HeistService.isHidden(player) then
+			HeistService.giveBurst(player, getUpBurst.peak, getUpBurst.seconds)
+		end
+	end)
 end
 
 -- Called by RideService and nobody else. 1 means on foot.
 -- Start or stop sneaking. The server decides whether it is allowed; the
 -- client only asks.
 --
--- REFUSED WHILE CARRYING, which is the same guarantee `currentSpeed` already
--- enforces, made LOUD here instead of silent. A thief who grabs a pig while
--- tiptoeing has the sneak dropped out from under them, and being told so is
--- the difference between a rule and a bug: the button would otherwise go on
--- saying ON while they walked home at carry speed.
+-- ALLOWED WHILE CARRYING, and that refusal being here was the other half of
+-- the rule `tiptoeInEffect` reversed: creeping home with the pig in your arms
+-- is the quiet getaway now, paid for in time rather than refused. The button
+-- and the speed agree because both go through `tiptoeInEffect`.
 function HeistService.setTiptoe(player: Player, on: boolean)
 	local want = on == true
-	if want and carrying[player] then
-		notify(player, "You cannot creep with a piggy bank in your arms.", "warn")
-		want = false
+
+	-- NOT WHILE RIDING, for the reason `tiptoeInEffect` gives: a sneak and a
+	-- ride are both multipliers on one speed, and a scrambler creeping along
+	-- at 11.8 studs a second is neither of the things a player bought.
+	--
+	-- LOUD, AND IT SHOULD NEVER BE HEARD. The client hides the SNEAK button
+	-- and suppresses C while a ride is on, so this is the client declining to
+	-- ask for a known no -- the same split the dodge, the number row and the
+	-- dodge-while-riding suppression already make. The refusal is here anyway
+	-- because the server owns this state and a remote exists for everybody:
+	-- a rejection nobody can see is indistinguishable from a broken button.
+	--
+	-- Only a turn-ON is refused. `setRideMultiplier` drops an active sneak
+	-- through this same function, and a refusal that caught that call would
+	-- leave the flag set under a ride that has just started.
+	if want and rideMultiplier[player] then
+		notify(player, "Not while you're riding.", "warn")
+		return
 	end
+
 	if want == (tiptoeing[player] == true) then
 		return
 	end
@@ -1413,6 +1482,30 @@ function HeistService.setRideMultiplier(player: Player, multiplier: number)
 		return
 	end
 	rideMultiplier[player] = value
+
+	-- A MOUNT DROPS THE SNEAK, WHICH IS THE CALL THE HELD ITEM ALREADY MAKES.
+	-- `RideService.mount` puts away whatever is in your hand and NAMES it
+	-- ("You put that away to ride."), because a prop leaving a player's own
+	-- fist with nothing said reads as having lost the item. A mode switching
+	-- itself off is the same thing: mounting is automatic, so a player who set
+	-- a sneak on their lawn and wandered onto the street would otherwise find
+	-- it gone for no reason they could see.
+	--
+	-- HERE RATHER THAN IN `RideService.mount`, which is where the held item's
+	-- put-away sits: this is the one function every ride goes through -- its
+	-- own comment says "called by RideService and nobody else" -- so a future
+	-- mount path cannot forget it. Dropped rather than left inert so the state
+	-- the client is holding is never one the hidden button cannot correct.
+	--
+	-- `rideMultiplier` is written ABOVE this deliberately, so the refusal
+	-- inside `setTiptoe` is already true and the `refreshSpeed` it runs
+	-- computes against the ride that has just begun rather than the sneak that
+	-- has just ended.
+	if value and HeistService.isTiptoeing(player) then
+		HeistService.setTiptoe(player, false)
+		notify(player, "You stopped sneaking to ride.", "warn")
+	end
+
 	refreshSpeed(player)
 end
 
@@ -1639,8 +1732,8 @@ end
 -- there is nothing else in range, can say which of the two things happened.
 -- "Nobody is close enough" and "you only just hit them" are completely
 -- different situations to a player standing in the street.
-function HeistService.nearestBystander(from: Vector3, range: number, thrower: Player): (Player?, string?)
-	local best: Player? = nil
+function HeistService.nearestBystander(from: Vector3, range: number, thrower: Player): (Target?, string?)
+	local best: Target? = nil
 	local bestDist: number? = nil
 	local cooling = false
 
@@ -1661,6 +1754,12 @@ function HeistService.nearestBystander(from: Vector3, range: number, thrower: Pl
 				end
 			end
 		end
+	end
+
+	-- AND A NEIGHBOUR WITH EMPTY ARMS, who takes a gadget as a player does.
+	local resident, residentDist = ResidentService.nearestIdle(from, range)
+	if resident and (not bestDist or residentDist < bestDist) then
+		best, bestDist = resident, residentDist
 	end
 
 	if best then
@@ -1820,7 +1919,73 @@ end
 -- flight: somebody who picks loot up mid-flight is hit as a carrier, and a
 -- thief who gets home first is hit as an ordinary player and gets the rest
 -- that comes with it. Neither end can time their way around it.
-function HeistService.applyGadget(target: Target, thrower: Player, spec: any): boolean
+--
+-- THE SECOND RETURN IS WHETHER THE EFFECT LANDED. True/false above means
+-- "was this throw used up"; a dodge and a raincoat both use it without the
+-- effect happening, and GadgetService only draws a splat, a knockdown or
+-- sparks when it did.
+-- WHAT A WHOLE STREET MAY DO TO ONE CHILD, and it is a bound that did not
+-- exist until a neighbour could throw.
+--
+-- `hitRestUntil` bounds gadget hits on somebody with EMPTY HANDS and
+-- deliberately does not bound a CARRIER -- "being stopped mid-robbery is the
+-- entire point of the item". That is right for a player throwing and wrong for
+-- scenery: a thief fleeing a robbed neighbour is carrying BY DEFINITION, so
+-- with no bound of its own, several neighbours landing several hits hold one
+-- child at `max(until_)` continuously. `applySlow` stops hits STACKING and
+-- does nothing about them CHAINING.
+--
+-- Keyed to the THIEF and never to the thrower, which is the shape
+-- `Config.GADGET_GUARD` already uses and for the same reason: the bound on
+-- what an entire street can do to one player has to be the same bound as what
+-- one neighbour can do, however many of them are out.
+local neighbourRest: { [Player]: number } = {}
+
+-- A NEIGHBOUR'S THROW LANDING. Deliberately NOT `applyGadget`: that function
+-- needs a Player thrower for its root, its display name and its notifies, and
+-- three of its endings are about refunding a thrower's stock. Scenery has no
+-- inventory to refund and nobody to tell.
+--
+-- IT CAN ONLY EVER SLOW THE THIEF IT WAS AIMED AT. The flight tests against
+-- that one player and nothing else, so a neighbour cannot clip a bystander --
+-- which is the harassment surface this game refuses everywhere, and refusing
+-- it in the flight rather than in a guard means there is no case to get wrong.
+function HeistService.neighbourHit(thief: Player, spec: any, name: string): boolean
+	if not getRoot(thief) or inBin[thief] then
+		return false
+	end
+	if os.clock() < (neighbourRest[thief] or 0) then
+		return false
+	end
+	-- Before the coat, so a well-timed dodge does not burn a perfectly good one
+	-- that was never needed. Same order `applyGadget` keeps below.
+	if HeistService.isDodgeImmune(thief) then
+		notify(thief, ("Dodged %s's %s!"):format(name, spec.name), "good")
+		return false
+	end
+	if warded[thief] and not spec.pierce then
+		warded[thief] = nil
+		for _, handler in ipairs(wardUsedHandlers) do
+			task.spawn(handler, thief, spec)
+		end
+		notify(thief, ("The %s slid off your raincoat!"):format(spec.name), "good")
+		return false
+	end
+	neighbourRest[thief] = os.clock() + Config.NEIGHBOUR_CHASE.restAfterHit
+	applySlow(thief, {
+		label = spec.name,
+		slow = spec.slow,
+		duration = spec.duration,
+		stun = spec.stun,
+	})
+	-- NAMED, because an unexplained wobble with nobody attached to it reads as
+	-- lag rather than as the neighbour you just robbed. The prank tone, not the
+	-- chase one: this costs a thief seconds and never the haul.
+	notify(thief, ("%s threw a %s at you!"):format(name, spec.name), "prank")
+	return true
+end
+
+function HeistService.applyGadget(target: Target, thrower: Player, spec: any): (boolean, boolean)
 	-- A CARRYING NEIGHBOUR TAKES THE COINS BACK AND NOTHING ELSE, and the
 	-- three things it does NOT do are each a rule from somewhere else in this
 	-- file arriving here.
@@ -1844,9 +2009,16 @@ function HeistService.applyGadget(target: Target, thrower: Player, spec: any): b
 	-- which is the same answer this function already gives for a person who
 	-- delivered mid-flight: an item spent on nothing is indistinguishable
 	-- from an item that is broken.
+	-- A NEIGHBOUR TAKES THE SAME HIT, through their own walker. See
+	-- `ResidentService.applyGadget`: slowed, frozen or knocked flat by the
+	-- same numbers, with the loot kept until somebody nabs it. Where it came
+	-- from is the thrower's position, so a knockdown falls the right way.
 	local resident = asResident(target)
 	if resident then
-		return ResidentService.recoverFrom(resident, thrower) > 0
+		local throwerRoot = getRoot(thrower)
+		local from = if throwerRoot then throwerRoot.Position else ResidentService.bodyAt(resident)
+		local landed = ResidentService.applyGadget(resident, spec, from)
+		return landed, landed
 	end
 
 	local player = target :: Player
@@ -1854,7 +2026,7 @@ function HeistService.applyGadget(target: Target, thrower: Player, spec: any): b
 	-- Gone, dead, or hiding in a bin: the throw is refunded rather than
 	-- landing on nobody.
 	if not getRoot(player) or inBin[player] then
-		return false
+		return false, false
 	end
 
 	-- Checked BEFORE the raincoat, so a well-timed dodge does not burn a
@@ -1862,7 +2034,7 @@ function HeistService.applyGadget(target: Target, thrower: Player, spec: any): b
 	if HeistService.isDodgeImmune(player) then
 		notify(player, ("Dodged the %s!"):format(spec.name), "good")
 		notify(thrower, ("%s dodged it."):format(player.DisplayName), "warn")
-		return true
+		return true, false
 	end
 
 	-- A RAINCOAT STOPS THE SLOWS AND NOTHING ELSE, and it is asked here --
@@ -1887,14 +2059,16 @@ function HeistService.applyGadget(target: Target, thrower: Player, spec: any): b
 	-- gadget and survived would make a line a player has already read into a
 	-- lie, which is the failure this project keeps finding as copy that
 	-- outlived the thing it described.
-	if warded[player] and (spec.stun or 0) <= 0 then
+	-- `pierce` rather than "has no stun": the plunger stuns now too, since
+	-- it knocks you down, and the stun test would have let it through.
+	if warded[player] and not spec.pierce then
 		warded[player] = nil
 		for _, handler in ipairs(wardUsedHandlers) do
 			task.spawn(handler, player, spec)
 		end
 		notify(player, ("The %s slid off your raincoat!"):format(spec.name), "good")
 		notify(thrower, ("%s was wearing a raincoat. It bounced off."):format(player.DisplayName), "warn")
-		return true
+		return true, false
 	end
 
 	if carrying[player] then
@@ -1906,7 +2080,7 @@ function HeistService.applyGadget(target: Target, thrower: Player, spec: any): b
 		})
 
 		notify(player, spec.hit or ("Hit by a %s!"):format(spec.name), "warn")
-		return true
+		return true, true
 	end
 
 	-- NOT CARRYING ANYTHING, AND IT IS THE SAME HIT. The only thing that
@@ -1916,7 +2090,7 @@ function HeistService.applyGadget(target: Target, thrower: Player, spec: any): b
 	-- enough for somebody else's to have landed first -- and two people
 	-- freezing one player back to back is the exact thing this stops.
 	if not HeistService.canHit(player) then
-		return false
+		return false, false
 	end
 
 	-- STAMPED BEFORE THE SLOW, so a throw that lands in the same frame as
@@ -1940,7 +2114,7 @@ function HeistService.applyGadget(target: Target, thrower: Player, spec: any): b
 		then (spec.prank):format(thrower.DisplayName)
 		else ("%s got you with a %s!"):format(thrower.DisplayName, spec.name)
 	notify(player, line, "prank")
-	return true
+	return true, true
 end
 
 -- Clears the carry state and returns what was being carried, or nil.
@@ -1995,9 +2169,20 @@ local CRACK_TAP_DEBOUNCE = 0.15
 -- -- the marker comes back. Wrapping would teleport it from the right edge
 -- to the left, which reads as the dial resetting rather than as a sweep.
 local function markerAt(crack: Crack, t: number): number
-	local sweep = Config.CRACK.sweepSeconds
+	local sweep = crack.sweep
 	local phase = (t - crack.stepStart) % (sweep * 2)
 	return if phase <= sweep then phase / sweep else 2 - phase / sweep
+end
+
+-- Where the notch's near edge is at server time `t`. It only moves on a
+-- drifting lock, and it moves on the same clock as the marker, so the panel
+-- draws the identical function and the notch you see is the notch judged.
+local function zoneAt(crack: Crack, t: number): number
+	if crack.drift <= 0 then
+		return crack.zone
+	end
+	local phase = (t - crack.stepStart) / Config.CRACK_DRIFT_PERIOD * math.pi * 2
+	return crack.zone + crack.drift * math.sin(phase)
 end
 
 -- Rolls the zone for the next slice and restarts the sweep.
@@ -2007,10 +2192,17 @@ end
 -- landable by a tap already in flight. CRACK_MIN_OFFSET is about two tenths
 -- of a second of travel, which is the marker having to actually reach the
 -- target before anybody can claim it.
+--
+-- A drifting notch rests where its whole swing stays on the track, and a
+-- notch too wide to swing its full amount swings less rather than running
+-- off either end.
 local function armStep(crack: Crack)
-	local window = Config.getCrackWindow(crack.steps + 1, crack.locks, crack.picks)
-	crack.width = math.clamp(window / Config.CRACK.sweepSeconds, 0.05, 1 - CRACK_MIN_OFFSET)
-	crack.zone = CRACK_MIN_OFFSET + math.random() * (1 - crack.width - CRACK_MIN_OFFSET)
+	local width, sweep = Config.getCrackZone(crack.steps + 1, crack.locks, crack.picks)
+	crack.width = math.clamp(width, 0.05, 1 - CRACK_MIN_OFFSET)
+	crack.sweep = sweep
+	local room = 1 - crack.width - CRACK_MIN_OFFSET
+	crack.drift = math.min(Config.crackLock(crack.locks).drift, room / 2)
+	crack.zone = CRACK_MIN_OFFSET + crack.drift + math.random() * (room - crack.drift * 2)
 	crack.stepStart = workspace:GetServerTimeNow()
 end
 
@@ -2052,7 +2244,38 @@ end
 -- without it. A MISS should fall and a WALK-AWAY should be silent -- nothing
 -- went wrong, and the player chose it -- and from the client both are the
 -- same nil.
-local function skinLootChoice(thief: Player, victim: Player): (string?, HotSkin?, string?)
+-- WHICH OF THE VICTIM'S SKINS A CLEAN CRACK CAN TAKE: the one they are
+-- wearing, if it can be taken, and every OTHER one they own that can. Both
+-- halves obey the same rails -- stealable (never a Robux skin, never the free
+-- default) and actually owned.
+--
+-- DUPLICATES ARE ALLOWED ON BOTH HALVES, and the first build had it otherwise:
+-- a skin the thief already owned was skipped, which read as the whole feature
+-- being dead rather than as a rail. On any save that has had `unlockall` run on
+-- it the thief owns everything, so the pool was permanently empty and the crack
+-- panel read SKIN 0% for ever -- which is exactly how it was reported. What the
+-- thief gets for a duplicate is a SPARE (see `grantHaul`), so the victim still
+-- loses the copy they lost and nothing is minted out of nowhere.
+local function skinCandidates(_thiefData: any, victimData: any): (string?, { string })
+	local worn = victimData.cosmetics.skin
+	local function takeable(key: string): boolean
+		return Config.isStealableSkin(key) and SetService.owns(victimData, "skin", key)
+	end
+	local others: { string } = {}
+	for key in pairs(Config.SKINS) do
+		if key ~= worn and takeable(key) then
+			table.insert(others, key)
+		end
+	end
+	table.sort(others)
+	return if type(worn) == "string" and takeable(worn) then worn else nil, others
+end
+
+-- A HALF-AND-HALF ROLL: the skin on the pig or a random other one the victim
+-- owns. When one half has nothing in it the other takes the whole chance, so
+-- a clean crack only comes away empty when nothing at all can be taken.
+-- `roll` false is the crack panel's preview, which must not draw.
+local function skinLootChoice(thief: Player, victim: Player, roll: boolean?): (string?, HotSkin?, string?)
 	local victimData, thiefData = DataService.get(victim), DataService.get(thief)
 	if not victimData or not thiefData then return nil,nil,"Player unavailable" end
 	local now = os.clock()
@@ -2071,10 +2294,21 @@ local function skinLootChoice(thief: Player, victim: Player): (string?, HotSkin?
 		end
 	end
 	if pending and not hot then return nil,nil,"Recovery skin in transit" end
-	local key = if hot then hotKey else victimData.cosmetics.skin
+	local key: string? = hotKey
+	if not hot then
+		local worn, others = skinCandidates(thiefData, victimData)
+		if not worn and #others == 0 then
+			return nil,nil,"No skin here can be stolen"
+		end
+		if roll then
+			local useWorn = worn ~= nil and (#others == 0 or math.random() < 0.5)
+			key = if useWorn then worn else others[math.random(1, #others)]
+		else
+			key = worn or others[1]
+		end
+	end
 	if type(key) ~= "string" or not Config.isStealableSkin(key) then return nil,nil,"This skin cannot be stolen" end
 	if not SetService.owns(victimData,"skin",key) then return nil,nil,"Skin unavailable" end
-	if not hot and SetService.owns(thiefData,"skin",key) then return nil,nil,"You already own this skin" end
 	local entry = skinLosses[victim]
 	if not hot and entry and now-entry.since <= Config.SKIN_STEAL.window and entry.lost >= Config.SKIN_STEAL.cap then
 		return nil,nil,"Skin theft limit reached"
@@ -2095,10 +2329,18 @@ local function robberyOdds(thief: Player, victim: Target): any
 	end
 	local player = asPlayer(victim)
 	if not player then return {chance=0,kind="resident",reason="Coins only"} end
-	local key,_,reason = skinLootChoice(thief,player)
+	local key,hot,reason = skinLootChoice(thief,player)
 	if not key then return {chance=0,kind="skin",reason=reason} end
 	local spec = Config.getSkin(key)
-	return {chance=1,kind="skin",name=spec.name,tier=Config.rarityOf(spec)}
+	-- The panel names the worn skin and counts the rest, so a thief knows
+	-- what the coin flip is between without the random half being given away.
+	local victimData, thiefData = DataService.get(player), DataService.get(thief)
+	local worn, others = nil, {}
+	if not hot and victimData and thiefData then
+		worn, others = skinCandidates(thiefData, victimData)
+	end
+	return {chance=1,kind="skin",name=spec.name,tier=Config.rarityOf(spec),
+		worn=worn ~= nil, others=#others}
 end
 
 local function pushCrack(thief: Player, crack: Crack?, why: string?)
@@ -2118,12 +2360,18 @@ local function pushCrack(thief: Player, crack: Crack?, why: string?)
 		floor = math.max(0, crack.pig0 - crack.allowance0),
 		step = crack.steps + 1,
 		maxSteps = Config.CRACK.maxSteps,
+		-- The victim's Vault Lock tier, printed in the panel's header. Read
+		-- only for the label: the lock's effect is already in `width`.
+		lock = crack.locks,
 		slice = sliceWorth(crack),
 		zone = crack.zone,
 		width = crack.width,
 		startedAt = crack.stepStart,
-		sweep = Config.CRACK.sweepSeconds,
-	})
+		sweep = crack.sweep,
+		drift = crack.drift,
+		driftPeriod = Config.CRACK_DRIFT_PERIOD,
+		spares = crack.spares,
+	}, why)
 end
 
 -- Repaints the figure over the carried piggy. It is written once by
@@ -2131,7 +2379,7 @@ end
 -- thief's hands is a running total now.
 local function setLootAmount(carry: Carry, victim: Target)
 	if carry.kind == "basket" then AcornModel.fillCarry(carry.loot, carry.amount) end
-	local body = carry.loot and carry.loot.PrimaryPart
+	local body = carry.loot and PiggyBank.lootBody(carry.loot)
 	local label = body and body:FindFirstChild("LootLabel")
 	local text = label and label:FindFirstChild("Amount")
 	if text and text:IsA("TextLabel") then
@@ -2167,6 +2415,47 @@ local endCrack: (Player, string) -> ()
 -- character is a fact about a player, so it belongs on this side of that line.
 local marked: { [Player]: number } = {}
 
+-- WHEN EACH DOG MAY BARK AGAIN. A dog barks at noise on its lawn and only
+-- chases a robbery, so without this a neighbour standing on the grass would be
+-- barked at every tick. Keyed on the dog rather than on the person: it is the
+-- dog's own voice being rate-limited, and one bark covers however many people
+-- are standing there.
+--
+-- IT IS DECLARED UP HERE BECAUSE `releaseDog` NEEDED ONE TOO, and a `local`
+-- below its reader is a nil global -- the trap this project has walked into
+-- ten times.
+local barkedAt: { [any]: number } = {}
+
+-- WHEN EACH DOG MAY RAISE THE ALARM ABOUT AN INTRUDER AGAIN, which is a
+-- different event from the bark above and therefore a different window.
+--
+-- This is the fix for a real spam bug. `releaseDog`'s owner-home branch barks,
+-- marks the intruder, tells both players and RETURNS WITHOUT SETTING ANY STATE
+-- -- so `GuardDog.isWatching` stayed true and the 10Hz watcher re-entered it
+-- every tick, for as long as a carrying thief stood on the lawn of an owner who
+-- was home. Two notifications a tick to both players, and a dog roused ten
+-- times a second.
+--
+-- It only ever showed up against a REAL PLAYER. On a resident's plot the same
+-- call reaches `GuardDog.chase`, which sets `dog.chasing`, so `isWatching` goes
+-- false and it cannot re-enter: the state change had been doing the
+-- rate-limiting everywhere anybody had looked, and the one branch that sets no
+-- state is the one nobody had. Same shape as the fence `Touched` handler that
+-- re-stamped its own stun faster than it could expire -- correct once,
+-- catastrophic repeated.
+--
+-- TWO WINDOWS AND NOT ONE, because the louder event must not be starved by the
+-- quieter one. Sharing `barkedAt` looked tidier and is wrong in exactly one
+-- direction: a thief who walks onto the lawn first gets a VISITOR bark, which
+-- would then suppress the ROBBERY alarm -- no mark on them and nothing said to
+-- the owner -- for the rest of the window, while the pig was being carried off.
+-- A visitor bark and "somebody is robbing you" are different facts with
+-- different audiences.
+--
+-- THE WINDOW IS THE MARK'S OWN LIFETIME, so the alarm becomes possible again at
+-- exactly the moment the Highlight it came with expires.
+local alertedAt: { [any]: number } = {}
+
 local function markIntruder(thief: Player)
 	local character = thief.Character
 	if not character then
@@ -2199,6 +2488,68 @@ local function markIntruder(thief: Player)
 		local current = thief.Character and thief.Character:FindFirstChild("DogMark")
 		if current then
 			current:Destroy()
+		end
+	end)
+end
+
+-- A DOG THAT CATCHES SOMEBODY IN ITS YARD THROWS THEM OUT OF IT.
+--
+-- The landing point is the nearest outside edge: the front (past the fence,
+-- onto the driveway) or a side alley, and never the woodland at the back. A
+-- side landing is capped at half the alley, so nobody is thrown into a
+-- neighbour's yard. The client flies the arc (see `Remotes.DogKnockout`), and
+-- the server places anybody still inside the yard once the throw should have
+-- landed, so the rule holds even if the client never flies it.
+local function knockOutOfYard(player: Player, plot: any)
+	local character = player.Character
+	local root = getRoot(player)
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if not root or not humanoid or humanoid.Health <= 0 or root.Anchored then
+		return
+	end
+	if not plot or not plot.cframe or PlotService.yardContaining(root.Position) ~= plot then
+		return
+	end
+	local k = Config.DOG_CHASE.knockout
+	local cf: CFrame = plot.cframe
+	local p = cf:PointToObjectSpace(root.Position)
+	local halfX = Config.PLOT_HALF_WIDTH
+	local frontZ = Config.PLOT_FRONT_LINE
+	local sideMargin = math.min(k.margin, (Config.PLOT_SPACING / 2 - halfX))
+	local inset = 4
+
+	local toFront = frontZ - p.Z
+	local toLeft = p.X + halfX
+	local toRight = halfX - p.X
+	local landingLocal
+	if toFront <= toLeft and toFront <= toRight then
+		landingLocal = Vector3.new(math.clamp(p.X, -halfX + inset, halfX - inset), 0, frontZ + k.margin)
+	else
+		local z = math.clamp(p.Z, -Config.YARD_DEPTH + inset, frontZ - inset)
+		local x = if toLeft < toRight then -(halfX + sideMargin) else halfX + sideMargin
+		landingLocal = Vector3.new(x, 0, z)
+	end
+
+	-- Find the ground there. Scenery is CanQuery off, so this hits the
+	-- world ground, a driveway or a lawn.
+	local above = cf * (landingLocal + Vector3.new(0, 30, 0))
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = { character }
+	local hit = workspace:Raycast(above, Vector3.new(0, -80, 0), params)
+	local groundY = if hit then hit.Position.Y else cf.Position.Y - Config.PLOT_SIZE.Y / 2
+	local flat = cf * landingLocal
+	local landing = Vector3.new(flat.X, groundY + humanoid.HipHeight + root.Size.Y / 2, flat.Z)
+
+	Remotes.get("DogKnockout"):FireClient(player, landing, k.duration)
+
+	task.delay(k.verifyAfter, function()
+		local now = getRoot(player)
+		if player.Character ~= character or not now or humanoid.Health <= 0 or now.Anchored then
+			return
+		end
+		if PlotService.yardContaining(now.Position) == plot then
+			character:PivotTo(CFrame.new(landing) * now.CFrame.Rotation)
 		end
 	end)
 end
@@ -2255,19 +2606,57 @@ local function releaseDog(thief: Player, victim: Target, plot: any)
 	-- every unclaimed plot still has an enforcer on it, which is what makes
 	-- robbing work on a quiet server.
 	if GuardDog.isOwnerHome(plot.dog) then
-		GuardDog.bark(plot.dog)
-		markIntruder(thief)
-		notify(thief, ("%s's dog has spotted you!"):format(targetName(victim)), "chase")
-		notifyTarget(victim, "Your dog is barking at somebody on your lawn!", "alarm")
+		-- ONE ALARM PER ALERT WINDOW. This branch sets no state -- it barks and
+		-- returns -- so it is the one path into this function that a poller can
+		-- re-enter for ever. `watchLawns` did exactly that at ten ticks a
+		-- second. See `alertedAt`, declared above, for the whole post-mortem.
+		--
+		-- THE GATE IS ON THE BARK AND NOT ON THE FUNCTION, which is the half
+		-- that matters: the moment the owner steps off their own lawn this
+		-- branch stops being taken and the chase below fires on the very next
+		-- tick, with no window to wait out. Putting the limit at the call site
+		-- instead would have made a dog up to `alertSeconds` slow to start
+		-- chasing somebody who was already carrying the piggy.
+		local now = os.clock()
+		if now >= (alertedAt[plot.dog] or 0) then
+			alertedAt[plot.dog] = now + Config.DOG_WATCH.alertSeconds
+			GuardDog.bark(plot.dog)
+			markIntruder(thief)
+			notify(thief, ("%s's dog has spotted you!"):format(targetName(victim)), "chase")
+			notifyTarget(victim, "Your dog is barking at somebody on your lawn!", "alarm")
+		end
 		return
 	end
 	-- The bark on the dog is a 3D sound that falls off with distance, which
 	-- is right for the street and useless for the one player it is about:
 	-- they are running AWAY from it. This is the same snarl, flat, for them.
 	notify(thief, "A guard dog is chasing you!", "chase")
+	-- AND THE NEIGHBOUR GETS UP, to take over where the dog has to stop.
+	--
+	-- ARMED HERE AND NOT ABOVE THE READINESS TEST, which is what keeps a bone
+	-- worth throwing. A dog that is napping on somebody's Golden Bone returns
+	-- before this line, so no dog chase means no neighbour either: the bone
+	-- still buys the whole window it is sold on. Bribe the dog and the lawn is
+	-- quiet; make it loud and there are two of them, one after the other.
+	--
+	-- It no-ops on a player's plot, because `alertNeighbour` asks for a
+	-- resident and a claimed plot has none -- so this is unreachable on a real
+	-- child's lawn without a guard anybody has to remember.
+	ResidentService.alertNeighbour(plot, thief)
 	GuardDog.chase(plot.dog, function(): BasePart?
+		-- OUT OF SIGHT ENDS A DOG CHASE TOO. A thief inside a wheelie bin was
+		-- caught through the lid: their root is parked AT the bin, so the dog
+		-- ran to it and the catch landed -- which made the one hiding place
+		-- in the game worse than useless against the thing most likely to be
+		-- chasing them. `GuardDog.chase` treats a nil root as "gone" and
+		-- trots home, which is the behaviour a dog losing somebody should
+		-- have. Same rule the patrol keeps; see `Config.POLICE.searchSeconds`
+		-- for the version with a search in it.
+		if HeistService.isHidden(thief) then
+			return nil
+		end
 		return getRoot(thief)
-	end, function()
+	end, function(): boolean
 		-- CARRYING decides which ending this is, and it is asked at the
 		-- CATCH rather than at the release. A dog let off by a fumbled slice
 		-- may arrive at somebody who has since banked three more and is
@@ -2279,10 +2668,26 @@ local function releaseDog(thief: Player, victim: Target, plot: any)
 			-- byDog is what the wording and the range check key off, so a
 			-- resident standing in the nabber slot is never read as a
 			-- player. A house with nobody in it still has a dog.
-			HeistService.nab(victim :: any, thief, true)
+			--
+			-- AND A REFUSED NAB IS REPORTED RATHER THAN SWALLOWED. `nab`
+			-- returns false when the thief was DODGING at the moment the dog
+			-- arrived, which is correct and is the dodge doing its job. What
+			-- was wrong is what happened next: the knockback below fired
+			-- anyway and `GuardDog.chase` had already committed to ending,
+			-- so half a second of immunity bought a clean getaway -- shoved
+			-- off the lawn, still holding the piggy, with the dog now on its
+			-- cooldown. Against a rule that says a dodge buys a MOMENT and
+			-- never an escape.
+			if HeistService.nab(victim :: any, thief, true) == false then
+				return false
+			end
 		else
 			HeistService.scare(thief, victim)
 		end
+		-- Only on a catch that actually landed. A thief who dodged the pounce
+		-- is still on the lawn with the dog still coming.
+		knockOutOfYard(thief, plot)
+		return true
 	end)
 end
 
@@ -2375,21 +2780,30 @@ end
 -- is here is the three decisions that live in the code rather than in a
 -- number.
 --
--- Ordinary theft skips skins already owned. Hot recovery is the exception:
--- it revokes the last robber's stolen copy even if the owner reacquired one.
--- ONE: ORDINARY THEFT ONLY TAKES A SKIN THE THIEF DOES NOT OWN, which is what
--- makes the mechanic DIRECTIONAL. You rob the pig whose colour you want, so
--- the street becomes a shopping list and the choice of target finally means
--- something beyond how full the pig is. It also settles the duplicate
--- question by deleting it: there is no spare to hand out and no coins to
--- mint, so none of this can become a faucet.
+-- Hot recovery is the exception to the rails below: it revokes the last
+-- robber's stolen copy even if the owner reacquired one.
+-- ONE: HALF AND HALF, AND DUPLICATES ARE ALLOWED (designer, 2026-09-19). A
+-- clean crack takes the skin on the pig or a random other one the victim owns,
+-- and it does NOT care whether the thief owns it already -- a duplicate lands
+-- as a spare (`grantHaul`).
 --
--- That last part is not a nicety. `rollShopDrop` twenty lines up refuses to
--- pay a duplicate in SPARES precisely because "a spare is fuel for
--- `Config.COMBINE`, so a drop that produced one would be a spare faucet
--- outside the chest system entirely -- a thief could farm combines by robbing
--- shops". A skin theft that minted spares would be that same arrow, running
--- from a source with no cap on how good the item is.
+-- IT USED TO SKIP ANYTHING THE THIEF OWNED, on the argument that this made the
+-- mechanic DIRECTIONAL -- rob the pig whose colour you want, and the street
+-- becomes a shopping list. That reasoning is sound and it shipped a feature
+-- that looked dead: on any save that has had `unlockall` run on it the thief
+-- owns every skin, so the pool was empty, every clean crack took nothing and
+-- the crack panel read SKIN 0% permanently. Reported as the skin not vending
+-- at all.
+--
+-- A SPARE IS NOT A FAUCET HERE, WHICH IS THE OBJECTION WORTH ANSWERING.
+-- `rollShopDrop` twenty lines up refuses to pay a duplicate in spares because
+-- "a spare is fuel for `Config.COMBINE`, so a drop that produced one would be
+-- a spare faucet outside the chest system entirely". That argument is about a
+-- drop MINTING an item out of a shop's shelves. A theft MOVES one: the victim
+-- lost exactly this copy, capped at one per victim per rolling hour, so the
+-- number of copies of that skin on the street is unchanged. The arrow only
+-- runs backwards if a theft ever pays a spare WITHOUT taking one, which is
+-- why the spare branch sits behind `granted == false` rather than beside it.
 --
 -- TWO: A SPARE ABSORBS IT. A victim holding a second copy loses the SPARE and
 -- goes on wearing the skin, so `data.spares` grows a second job and keeping
@@ -2418,7 +2832,7 @@ local function rollSkinSteal(thief: Player, victim: Player)
 			if candidate.expires <= os.clock() then claim.skins[key] = nil end
 		end
 	end
-	local key, hot = skinLootChoice(thief, victim)
+	local key, hot = skinLootChoice(thief, victim, true)
 	if not key then return end
 	local entry = nil
 	if not hot then
@@ -2497,12 +2911,18 @@ local function rollShopDrop(thief: Player, tab: string)
 			worth = Config.sellValue(entry.kind, entry.key)
 			if worth <= 0 then return end
 			mode = "sold"
-			-- Minted, so capped (Config.fitInPig). A full pig sells the
-			-- duplicate for what fits, and the line below reports that figure.
-			worth = Config.fitInPig(data.coins, Config.getCapacity(data.capacityLevel), worth)
-			data.coins += worth
 			local plot = PlotService.getPlot(thief)
-			if plot then PlotService.updatePile(plot, data.coins, Config.getCapacity(data.capacityLevel)) end
+			if Config.sellsForAcorns(entry.kind) then
+				-- A duplicate SKIN sells for acorns, like a spare in the bag.
+				data.loot = math.floor((data.loot or 0) + worth)
+				if plot then PlotService.updateAcorns(plot, data.loot) end
+			else
+				-- Minted, so capped (Config.fitInPig). A full pig sells the
+				-- duplicate for what fits, and the line below reports that figure.
+				worth = Config.fitInPig(data.coins, Config.getCapacity(data.capacityLevel), worth)
+				data.coins += worth
+				if plot then PlotService.updatePile(plot, data.coins, Config.getCapacity(data.capacityLevel)) end
+			end
 			DataService.save(thief)
 		else
 			local carry = carrying[thief]
@@ -2516,11 +2936,14 @@ local function rollShopDrop(thief: Player, tab: string)
 		-- never rolls, grants, sells or changes the server's chosen winner.
 		Remotes.get("RobberyLoot"):FireClient(thief, {
 			pool=odds.pool,won=entry,tier=entry.tier,mode=mode,coins=worth,
+			acorns=Config.sellsForAcorns(entry.kind),
 			chance=odds.chance,odds=entry.odds,shop=tab,
 		})
 		local note = if mode == "carried" then " Get it home."
 			elseif mode == "sold" then (if worth > 0
-				then (" Sold your duplicate for %s coins."):format(Config.formatCoins(worth))
+				then (" Sold your duplicate for %s."):format(
+					if Config.sellsForAcorns(entry.kind) then Config.formatSellValue(entry.kind, worth)
+					else Config.formatCoins(worth) .. " coins")
 				else " You already had it, and your piggy is too full to sell it.") else ""
 		notify(thief,("There was a %s in the vault!%s"):format(entry.name,note),"loot")
 		return
@@ -2550,11 +2973,6 @@ function endCrack(thief: Player, why: string)
 		lastGrab[victim][thief] = os.clock()
 		Remotes.get("StealCooldown"):FireClient(thief, targetId(victim),
 			workspace:GetServerTimeNow() + Config.stealCooldownFor(asResident(victim) ~= nil))
-
-		if plot then
-			-- The plaster. A tell for the street and nothing else.
-			PlotService.setRobbed(plot, Config.ROBBED_MARK_SECONDS)
-		end
 
 		-- Names what it is WORTH AT HOME -- the payout, capped at the room in
 		-- the thief's own pig: the number a thief is deciding whether to run
@@ -2655,9 +3073,20 @@ function HeistService.crackTap(thief: Player)
 	-- Slack either side, because the tap crossed the wire and is being judged
 	-- on the clock at the far end of it. Symmetric: the most an early tap can
 	-- buy is a zone it was already aiming at.
-	local grace = Config.CRACK.tapGrace / Config.CRACK.sweepSeconds
+	local grace = Config.CRACK.tapGrace / crack.sweep
 	local at = markerAt(crack, now)
-	if at < crack.zone - grace or at > crack.zone + crack.width + grace then
+	local zone = zoneAt(crack, now)
+	if at < zone - grace or at > zone + crack.width + grace then
+		-- A SPARE PICK FORGIVES IT. The pin snaps back and the same slice
+		-- re-arms on a fresh notch: no alarm, no dog, nothing banked or
+		-- lost. As far as the street is concerned the miss never happened,
+		-- which is the whole of what the Lockpicks tree sells now.
+		if crack.spares > 0 then
+			crack.spares -= 1
+			armStep(crack)
+			pushCrack(thief, crack, "forgiven")
+			return
+		end
 		endCrack(thief, "miss")
 		return
 	end
@@ -2718,10 +3147,12 @@ function HeistService.crackTap(thief: Player)
 		-- completed steal hangs here instead. You are a thief the moment a
 		-- coin leaves somebody else's pig, not when the fifth one does.
 		dropShield(thief)
-		-- And you are visibly hauling a piggy bank, so the sneak is over.
-		-- Dropped here rather than left to currentSpeed to ignore, because
-		-- the client's button would otherwise go on saying ON.
-		HeistService.setTiptoe(thief, false)
+		-- AND A SNEAK SURVIVES THE GRAB, which it did not use to. Creeping
+		-- home is the quiet getaway now (see `tiptoeInEffect`), so a thief who
+		-- crept in keeps creeping -- at 4.2 studs a second with the pig in
+		-- their arms, which is the price. Switching it off here would make the
+		-- one escape this design offers something a player has to re-press at
+		-- the exact moment they are being chased.
 		setCarrySpeed(thief, true)
 		pushCarryState(thief)
 
@@ -2768,16 +3199,16 @@ end
 -- do it. This service already has all four. GuardDog keeps what a dog IS:
 -- asleep or up, alerted or quiet, and how good its ears are.
 --
--- IT READS SPEED, NOT A STEALTH FLAG, and that is the load-bearing half. A
--- boolean the dog has to check is a second piece of state that can disagree
--- with how fast somebody is actually moving; a threshold on speed cannot.
--- Everything else falls out for free -- a thief snagged on an electric fence
--- is quiet because they are slow, and a thief CARRYING is always loud,
--- because carry speed is above every tier's threshold by construction:
+-- DON'T WAKE THE DOG is the whole rule. A SLEEPING dog is woken by footsteps
+-- and never by a sneak (`tiptoeInEffect`, the same answer the speed and the
+-- creep animation read, so the three cannot disagree). An AWAKE dog -- owner
+-- home, guard duty, or an alert running -- sees anybody who moves, sneaking
+-- or not. So a clean sneak in, a clean crack and a sneak out is never heard,
+-- and a thief who woke it cannot creep past it with the piggy.
 --
---     TIPTOE at max (9.6)  <  a dog's `notice`  <  CARRY_SPEED (12 to 16)
---
--- So you can sneak IN and you can never sneak the money OUT.
+-- It used to be a per-tier `notice` SPEED with tiptoe tuned under it. Dogs
+-- have no tiers now, and a threshold 0.6 studs/sec above a maxed carry-sneak
+-- was one that measurement jitter could cross by itself.
 --
 -- AND IT IS SPEED MEASURED, NEVER `WalkSpeed` READ. That distinction is the
 -- whole feature: `WalkSpeed` is what a character is ALLOWED to do, so a
@@ -2787,10 +3218,12 @@ end
 -- somebody actually went.
 local lastSeen: { [Player]: { pos: Vector3, at: number } } = {}
 
+-- `barkedAt` is declared above `releaseDog`, which reads it too. See there.
+
 -- Under this, somebody is standing still. A parked character still drifts a
--- little -- idle animation, the ground settling, network jitter -- and the
--- Titan's `notice` of 0 means ANY movement, so without a floor the top breed
--- would be permanently woken by nobody moving. Well under a tiptoe (5.6).
+-- little -- idle animation, the ground settling, network jitter -- and an
+-- awake dog sees ANY movement, so without a floor it would be permanently
+-- set off by nobody moving. Well under a tiptoe (5.6).
 local IDLE_SPEED = 0.5
 
 local function watchLawns()
@@ -2840,10 +3273,16 @@ local function watchLawns()
 		local owner = plot.owner
 		GuardDog.setOwnerHome(dog, owner ~= nil and yards[owner] == plot)
 
-		local notice = GuardDog.noticeSpeed(dog)
-		if not notice then
+		if dog.level <= 0 then
 			continue
 		end
+
+		-- DON'T WAKE THE DOG. A sleeping dog hears footsteps and never a
+		-- sneak; an awake one sees anybody who moves, sneaking or not. So a
+		-- thief who tiptoes in, cracks clean and tiptoes out with the piggy
+		-- is never heard -- and one who woke it on the way in, or fumbled a
+		-- slice, cannot creep past it on the way out.
+		local awake = GuardDog.isAwake(dog)
 
 		-- The LOUDEST intruder, not the first found. Two thieves on one lawn
 		-- and the dog goes for the one making noise rather than for whichever
@@ -2854,7 +3293,8 @@ local function watchLawns()
 		for player, yard in pairs(yards) do
 			if yard == plot and player ~= owner then
 				local speed = speeds[player] or 0
-				if speed > IDLE_SPEED and speed > notice and speed > loudestSpeed then
+				local noticed = speed > IDLE_SPEED and (awake or not tiptoeInEffect(player))
+				if noticed and speed > loudestSpeed then
 					loudest, loudestSpeed = player, speed
 				end
 			end
@@ -2869,9 +3309,33 @@ local function watchLawns()
 		-- lets it off.
 		GuardDog.alert(dog)
 		if GuardDog.isWatching(dog) then
+			-- A DOG ONLY GOES AFTER A ROBBERY, AND THIS REVERSES WHAT THE
+			-- LAWN WATCHER USED TO DO.
+			--
+			-- Walking loudly across a neighbour's lawn used to be enough to
+			-- be run down, marked and reported to the owner -- so visiting
+			-- somebody's base at all was a mistake, and this game has one
+			-- friendly mechanic as it is. Now noise gets you BARKED AT, which
+			-- is a tell for the visitor and for anybody watching, and nothing
+			-- else: no chase, no mark on the character, and nothing said to
+			-- the owner, because nothing has happened to their piggy.
+			--
+			-- ROBBING is walking off with somebody's piggy: carrying, with the
+			-- crack CLOSED. Footsteps while the lock is still being worked get a
+			-- bark and nothing more, even though the carry exists from the first
+			-- slice -- shuffling round a vault is not a getaway, and the crack
+			-- already has its own way to wake the dog: the fumbled slice. That
+			-- and the smash are the other two callers of `releaseDog`, and both
+			-- are untouched.
+			local robbing = carrying[loudest] ~= nil and cracking[loudest] == nil
 			local victim: Target? = owner or ResidentService.get(plot)
-			if victim then
+			if robbing and victim then
 				releaseDog(loudest, victim, plot)
+			elseif not robbing and now >= (barkedAt[dog] or 0) then
+				-- Rate-limited, or a visitor standing on the lawn would be
+				-- barked at ten times a second. One bark per alert window.
+				barkedAt[dog] = now + Config.DOG_WATCH.alertSeconds
+				GuardDog.bark(dog)
 			end
 		end
 	end
@@ -3033,6 +3497,9 @@ function HeistService.attemptSteal(thief: Player, victim: Target)
 		stepStart = 0,
 		zone = 0,
 		width = 0,
+		sweep = Config.CRACK.sweepSeconds,
+		drift = 0,
+		spares = Config.lockpickPerk(UpgradeService.getLevel(thief, "lockpicks")).spares,
 		lastTap = 0,
 		ending = false,
 	}
@@ -3057,7 +3524,7 @@ end
 --
 -- IT SHARES EVERY GATE WITH THE CRACK AND ADDS NONE. Same `whyCannotSteal`,
 -- same shop-room rule, same per-victim cooldown, same loss allowance, same
--- plaster, same carry, same doubled payout. That is deliberate and it is
+-- carry, same doubled payout. That is deliberate and it is
 -- what keeps the two honest against each other: a second set of refusals
 -- would be a second definition of who may rob whom, and the first thing to
 -- drift would be the one nobody is reading.
@@ -3152,7 +3619,6 @@ function HeistService.smash(thief: Player, victim: Target)
 	-- this path is the same instant the robbery ends. Same three writes the
 	-- crack's first slice makes.
 	dropShield(thief)
-	HeistService.setTiptoe(thief, false)
 	setCarrySpeed(thief, true)
 	pushCarryState(thief)
 
@@ -3162,7 +3628,6 @@ function HeistService.smash(thief: Player, victim: Target)
 	Remotes.get("StealCooldown"):FireClient(thief, targetId(victim),
 		workspace:GetServerTimeNow() + Config.stealCooldownFor(resident ~= nil))
 
-	PlotService.setRobbed(plot, Config.ROBBED_MARK_SECONDS)
 	PlotService.updatePile(plot, targetCoins(victim), targetCapacity(victim))
 	PlotService.playCoinDrop(plot)
 
@@ -3215,17 +3680,7 @@ end
 -- collision or query on it, and the stun beside it is the NAB's and was
 -- there before this existed.
 local function fireCatchEffect(thief: Player, nabber: Player)
-	local key = CosmeticsService.catchEffectOf(nabber)
-	if key == Config.DEFAULT_CATCH then
-		return
-	end
-	local character = thief.Character
-	if not character then
-		return
-	end
-	character:SetAttribute(Config.CATCH_ATTRIBUTE, key)
-	character:SetAttribute(Config.CATCH_COUNT_ATTRIBUTE,
-		(character:GetAttribute(Config.CATCH_COUNT_ATTRIBUTE) or 0) + 1)
+	CosmeticsService.fireCatchEffect(thief.Character, nabber)
 end
 
 -- Empty hands and a live, nearby character are required on every tick and
@@ -3264,7 +3719,7 @@ local function handOff(thief: Player, winner: Player): boolean
 		or not thiefHumanoid or thiefHumanoid.Health <= 0
 		or not canReceiveCarry(winner, thief) then return false end
 	local oldRoot, newRoot = getRoot(thief), getRoot(winner)
-	local body = carry.loot.PrimaryPart
+	local body = PiggyBank.lootBody(carry.loot)
 	local weld = body and body:FindFirstChild("CarryWeld")
 	if not oldRoot or not newRoot or carry.loot.Parent ~= oldRoot.Parent
 		or not weld or not weld:IsA("WeldConstraint")
@@ -3283,7 +3738,6 @@ local function handOff(thief: Player, winner: Player): boolean
 	newRoot.Parent:SetAttribute(Config.CARRY_VICTIM_ATTRIBUTE, if victim then victim.UserId else nil)
 	setCarrySpeed(thief, false)
 	dropShield(winner)
-	HeistService.setTiptoe(winner, false)
 	setCarrySpeed(winner, true)
 	pushCarryState(thief)
 	pushCarryState(winner)
@@ -3394,20 +3848,28 @@ function HeistService.nab(nabber: Player, thief: Player, byDog: boolean?, catche
 		return
 	end
 
+	-- RETURNS FALSE WHEN IT TOOK NOTHING, and only the dog reads that. A
+	-- player's nab is fired by a prompt and its caller has no use for an
+	-- answer; a DOG's is fired by `GuardDog.chase`, which has to know whether
+	-- to end the chase or keep running. Every other early return below is
+	-- inside `if not byDog` and is therefore unreachable from the dog, which
+	-- is why they are left returning nothing rather than threaded through.
 	local carry = carrying[thief]
 	if not carry then
-		return
+		return false
 	end
 
 	-- Dodged. Costs the nabber their whole NAB.hold and they must start again,
 	-- which is the entire point: the immunity is paid for in the currency of
-	-- the chase rather than in coins.
+	-- the chase rather than in coins. FOR A DOG, "start again" is the chase
+	-- carrying on and another lunge a moment later -- see the pounce in
+	-- `GuardDog.chase`, which is what makes that true rather than a comment.
 	if HeistService.isDodgeImmune(thief) then
 		notify(thief, "Dodged!", "good")
 		if not byDog then
 			notify(nabber, ("%s dodged you!"):format(thief.DisplayName), "warn")
 		end
-		return
+		return false
 	end
 
 	if not byDog then
@@ -3549,6 +4011,7 @@ function HeistService.nab(nabber: Player, thief: Player, byDog: boolean?, catche
 	if (nabber :: any) ~= victim and not byDog then
 		notify(nabber, ("Nice nab! You saved %s's coins."):format(targetName(victim)), "good")
 	end
+	return true
 end
 
 -- ============================================================
@@ -3595,8 +4058,10 @@ local function grantHaul(thief: Player, data: any, haul: { Haul }): { { kind: st
 	for _, item in ipairs(haul) do
 		local granted
 		if item.hot and item.hot.spare and item.recoveryOwner == thief then
-			-- Return the insured copy that was actually lost, never mint an
-			-- extra spare just because an ordinary stolen skin is already owned.
+			-- Return the insured copy that was actually lost. An ordinary
+			-- duplicate is handled below, and the two are separate because this
+			-- one is a RECOVERY: the owner is taking back the spare that was
+			-- taken off them, whoever is wearing what.
 			local key = item.kind .. ":" .. item.key
 			data.spares[key] = (data.spares[key] or 0) + 1
 			SetService.push(thief)
@@ -3604,6 +4069,18 @@ local function grantHaul(thief: Player, data: any, haul: { Haul }): { { kind: st
 			granted = true
 		else
 			granted = SetService.grant(thief, item.kind, item.key)
+			if not granted and not item.hot and item.kind == "skin" then
+				-- A DUPLICATE IS A SPARE, NEVER NOTHING. `grant` refuses a skin
+				-- the thief already owns, which would make a landed robbery pay
+				-- out silently -- and duplicates are allowed on purpose, so the
+				-- extra copy lands the way every other duplicate in this game
+				-- does. No faucet: the victim lost exactly this copy.
+				local key = item.kind .. ":" .. item.key
+				data.spares[key] = (data.spares[key] or 0) + 1
+				SetService.push(thief)
+				DataService.save(thief)
+				granted = true
+			end
 		end
 		if granted then
 			table.insert(delivered, { kind = item.kind, key = item.key })
@@ -3840,7 +4317,10 @@ local function deliver(thief: Player)
 	if plot then
 		PlotService.updateRank(plot, data.robberies)
 		PlotService.updatePile(plot, data.coins, capacity)
-		PlotService.playBank(plot)
+		-- NO `playBank` HERE. The delivery toast below is the `money` kind,
+		-- which already plays the cha-ching -- the 3D copy at the pig made it
+		-- twice, on top of the coin pour and the summary sting, and a delivery
+		-- was reported as too many sounds at once. One cha-ching is the sound.
 		if acorns > 0 then
 			PlotService.updateAcorns(plot, data.loot)
 		end
@@ -3910,7 +4390,7 @@ local function deliver(thief: Player)
 	-- bug. It leads the toast rather than trailing it, because it is the one
 	-- part of this line the player can do something about next time.
 	local spillNote = if spilled > 0
-		then (" Your piggy was full: %s spilled."):format(format(spilled))
+		then (" Your piggy was full: %s spilled into your yard."):format(format(spilled))
 		else ""
 
 	-- THE SUMMARY, FIRED BEFORE THE TOAST so the panel is what the player
@@ -3935,8 +4415,20 @@ local function deliver(thief: Player)
 		victim = targetName(victim),
 		bank = bank,
 		acorns = acorns,
+		-- What a full pig holds, so the coin stream can be sized to the haul
+		-- against the pig it is pouring into rather than against a number
+		-- that means something different at level 0 and level 60.
+		capacity = capacity,
 	})
 
+	-- A FULL PIG BANKS NOTHING, AND THE TOAST SAYS +0 RATHER THAN CHA-CHING.
+	-- The `money` kind plays the till; a delivery that put nothing in the pig
+	-- would then be celebrating coins that went on the grass. `warn` is
+	-- silent and orange, which is what "your pig was full" is.
+	if banked <= 0 and spilled > 0 then
+		notify(thief, ("Your piggy was FULL! +0 banked. %s coins spilled into your yard. Spend some first!"):format(
+			format(spilled)), "warn")
+	else
 	notify(thief, if not original
 		then ("Kept the haul! Half share: %s coins.%s"):format(format(banked), spillNote)
 		elseif revenge
@@ -3945,6 +4437,7 @@ local function deliver(thief: Player)
 		else ("Delivered %s stolen coins, %s banked.%s%s%s"):format(
 			format(amount), format(banked), spillNote, runNote, acornNote),
 		"money")
+	end
 	notifyTarget(victim, ("%s got away with %s of your coins. Get them back for triple!"):format(
 		thief.DisplayName, format(amount)), "bad")
 
@@ -3968,18 +4461,12 @@ end
 -- LIFECYCLE
 -- ============================================================
 
--- THE PRESS. Everything it needs is re-derived here rather than trusted,
--- which is what lets `DeliverRequest` carry nothing at all.
---
--- A REFUSAL IS SILENT ON PURPOSE, AND IT IS THE ONE PLACE IN THIS FILE THAT
--- IS. Every other rejection in this service names itself, because a player
--- pressed something and an unexplained nothing is indistinguishable from a
--- broken feature. This one cannot be pressed at all unless the button is up,
--- and the button is up only when the server has just said it should be -- so
--- anything arriving here that fails a check is a stale click from the frame
--- the player walked out of range, or a forged one. Toasting "too far away"
--- at somebody who is already running would be noise from their own lag.
-local function deliverRequest(thief: Player)
+-- ARRIVING SETTLES THE HAUL. The range loop in `start` calls this the tick a
+-- carrier steps into a glowing ring -- their own pig to keep it, the
+-- owner's pig to return it -- and everything is re-derived here rather than
+-- trusted. There was a DELIVER button; the ring replaced it, because a
+-- player running from a dog should not have to find a button as well.
+local function settleOnArrival(thief: Player)
 	local carry = carrying[thief]
 	if not carry or not canDeliverCarry(thief, carry) then
 		return
@@ -4142,7 +4629,6 @@ function HeistService.start()
 		opened = function(thief, victim, plot, source)
 			if thief == victim then return end
 			dropShield(thief)
-			HeistService.setTiptoe(thief, false)
 			PlotService.playAlarm(plot)
 			notifyTarget(victim, ("%s is shaking your tree! Get close to stop them."):format(thief.DisplayName), "alarm")
 			releaseDog(thief, victim, plot)
@@ -4189,50 +4675,9 @@ function HeistService.start()
 	end)
 	startObjectives()
 	startStreetState()
-	-- THE GATE JAM'S DECISION LIVES HERE, because every question it asks
-	-- belongs to this file: is this player carrying, is this their own plot,
-	-- and can they pay. PlotService owns the geometry and the prompt and asks
-	-- nothing.
-	PlotService.onGateJam(function(player, plot)
-		-- ONLY ON THE WAY OUT. The prompt exists for a thief leaving with
-		-- somebody's coins; offering it to anybody else would be a control that
-		-- spends 2,500 coins to inconvenience a street nobody is chasing them
-		-- down. It is also what makes the timing honest -- a jam is worth
-		-- something only while somebody is behind you.
-		if not carrying[player] then
-			notify(player, "Nothing to run from yet.", "warn")
-			return
-		end
-
-		-- NEVER YOUR OWN GATE. An owner jamming their own is either pointless
-		-- (they are exempt from it) or an attempt to bottle their own lawn with
-		-- a defender's dog inside it, and neither is a thing worth selling.
-		if plot.owner == player then
-			notify(player, "That is your own gate.", "warn")
-			return
-		end
-
-		local data = DataService.get(player)
-		if not data then
-			return
-		end
-		if data.coins < Config.GATE_JAM.cost then
-			notify(player, ("Need %s more coins to jam a gate."):format(
-				format(Config.GATE_JAM.cost - data.coins)), "warn")
-			return
-		end
-
-		-- CHARGED ONLY IF IT ACTUALLY STANDS. `jamGate` refuses a gate that is
-		-- already jammed and a plot with no fence to have a gate in, and a
-		-- consumable that took the coins and then found nothing to do with them
-		-- is the failure this project refuses above all others.
-		if not PlotService.jamGate(plot) then
-			notify(player, "That gate is already jammed.", "warn")
-			return
-		end
-		data.coins -= Config.GATE_JAM.cost
-		notify(player, "Gate jammed! Run.", "good")
-	end)
+	-- THE GATE JAM'S DECISION LIVED HERE -- is this player carrying, is it
+	-- their own gate, and can they pay -- and went with the jam itself. See the
+	-- retirement note in `PlotService`; nothing here reads `Config.GATE_JAM` now.
 
 	PlotService.onFencePenalty(function(player, plot, penalty)
 		HeistService.applyFencePenalty(player, plot, penalty)
@@ -4362,12 +4807,6 @@ function HeistService.start()
 	end)
 	Remotes.get("CrackStop").OnServerEvent:Connect(function(player)
 		HeistService.crackStop(player)
-	end)
-
-	-- The press that banks a haul. Carries nothing; `deliverRequest` re-derives
-	-- the plot, the distance and the haul before a coin moves.
-	Remotes.get("DeliverRequest").OnServerEvent:Connect(function(player)
-		deliverRequest(player)
 	end)
 
 	Players.PlayerRemoving:Connect(function(player)
@@ -4530,11 +4969,9 @@ function HeistService.start()
 	-- Range check. Polled rather than event-driven because the thief can
 	-- arrive by any route, and four times a second is plenty for a footrace.
 	--
-	-- IT USED TO BE THE DELIVERY ITSELF. Crossing this circle banked the loot
-	-- on its own, which made the pig -- the thing the whole game is named
-	-- after and the thing the coins actually live in -- a place a thief never
-	-- had to touch. Now it decides whether the DELIVER button is on screen
-	-- and `deliverRequest` below does the banking.
+	-- IT IS THE DELIVERY. The circle is DROPOFF_RADIUS round the pig itself
+	-- (not the old sixteen round the plot), drawn on the client as a glowing
+	-- ring, so the thief still walks right up to the thing the coins live in.
 	--
 	-- PUSHED ON THE EDGE, NEVER ON THE TICK. `inRange` is kept on the carry
 	-- record so this can fire a push only when the answer CHANGES -- four
@@ -4546,6 +4983,12 @@ function HeistService.start()
 			task.wait(0.25)
 			for thief, carry in pairs(carrying) do
 				local action = dropAction(thief, carry)
+				if action then
+					-- ARRIVING IS THE DELIVERY. Walking into the ring banks the
+					-- haul; there is no button to press.
+					settleOnArrival(thief)
+					continue
+				end
 				local canReturn = returnPlot(carry) ~= nil
 				if action ~= carry.dropAction or canReturn ~= carry.returnAvailable then
 					carry.dropAction, carry.returnAvailable = action, canReturn

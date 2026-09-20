@@ -165,9 +165,32 @@ function TrophyService.state(data: any): any
 		total += 1
 	end
 
+	-- WHAT IS OWNED, NOT ONLY WHAT THE COUNTERS SAY.
+	--
+	-- The trophy room derives "earned" from a grade, which is right for a
+	-- normal save and wrong for two real ones: an admin grant hands over a
+	-- trophy without moving its counter, and the Victim Shelf's own counter is
+	-- a set of skins that a prune can shrink. Measured on the dev save --
+	-- `decor.owned.victimshelf` true against `victims` of 0 -- which put a
+	-- PROGRESS PLAQUE on the wall for a trophy the shop was calling owned.
+	--
+	-- So ownership travels with the numbers and the room prefers it. The grade
+	-- still comes from the counters, because that is what a trophy's own model
+	-- reads to draw itself.
+	local owned: { [string]: boolean } = {}
+	local held = if type(data.decor) == "table" and type(data.decor.owned) == "table"
+		then data.decor.owned
+		else {}
+	for key in pairs(Config.TROPHIES) do
+		if held[key] then
+			owned[key] = true
+		end
+	end
+
 	return {
 		victims = victims,
 		skinTotal = total,
+		owned = owned,
 		stolen = counts.stolen,
 		caught = counts.caught,
 		escapes = counts.escapes,
@@ -176,6 +199,9 @@ function TrophyService.state(data: any): any
 		clean = counts.clean,
 		seasonBest = counts.seasonBest,
 		wanted = counts.wanted,
+		-- The figure the house's wanted poster prints. Session heat cannot
+		-- supply it -- see `recordWanted`.
+		bestBounty = tonumber(shelf(data).bestBounty) or 0,
 		harvested = counts.harvested,
 		plinth = t.plinth,
 	}
@@ -226,7 +252,6 @@ function TrophyService.check(player: Player)
 	end
 
 	local earned = false
-	local placedAny = false
 
 	-- Walked in catalogue ORDER rather than by `pairs`, so a session that
 	-- crosses two thresholds at once announces them in the same order every
@@ -248,20 +273,19 @@ function TrophyService.check(player: Player)
 		if item and not decor.owned[key] and have >= spec.need then
 			decor.owned[key] = true
 			earned = true
-
-			local slot = Config.firstFreeDecorSlot(item.zone, decor.placed)
-			if slot then
-				decor.placed[slot] = key
-				placedAny = true
-				notify(player, ("EARNED: %s. It is out on your lawn."):format(item.name),
-					"loot")
-			else
-				-- Owned but not standing, and said out loud. A reward that
-				-- lands somewhere the player cannot see is a reward they
-				-- earned and did not receive.
-				notify(player, ("EARNED: %s. Your lawn is full -- put something away to show it off."):format(
-					item.name), "loot")
-			end
+			-- A TROPHY GOES IN THE HOUSE NOW, NOT ON THE LAWN.
+			--
+			-- This used to claim a `Config.DECOR_SLOTS` lawn slot and stand
+			-- the trophy on the grass, competing with the bought ornaments --
+			-- and it had to say so out loud when the lawn was full. The
+			-- trophy room (`TrophyRoom`) displays every earned trophy inside
+			-- the house off the same published state, so there is no slot to
+			-- claim, nothing to put away to make room, and no full-lawn case
+			-- to explain. `assets/houses/docs/HOUSE-TROPHY-ROOMS.md` asks for the lawn
+			-- writes to be retired ONLY once the interior ships, and to never
+			-- touch earned ownership: `decor.owned` above is untouched.
+			notify(player, ("EARNED: %s. It is on show in your house."):format(item.name),
+				"loot")
 		end
 	end
 
@@ -269,10 +293,9 @@ function TrophyService.check(player: Player)
 		return
 	end
 
-	local plot = PlotService.getPlot(player)
-	if plot and placedAny then
-		PlotService.setDecor(plot, decor.placed)
-	end
+	-- `refresh` republishes the trophy state, which repaints the lawn's
+	-- ornaments AND refills the house's trophy room -- so nothing here needs
+	-- to rebuild the lawn itself any more.
 	TrophyService.refresh(player)
 	DataService.save(player)
 	pushAll(player)
@@ -376,7 +399,29 @@ function TrophyService.recordClean(player: Player)
 	bump(player, "clean", 1)
 end
 
-function TrophyService.recordWanted(player: Player)
+--[[
+	Top of the Most Wanted board, and the BOUNTY that put them there.
+
+	THE POSTER IN THE HOUSE NEEDS A FIGURE THAT OUTLIVES THE SESSION. The
+	street's own board prints the LIVE bounty -- `heat` times
+	`POLICE.bailMultiple` -- and heat is per session, held in memory and
+	dropped when a player leaves. So a poster hung in a house from that number
+	would read zero for everybody who was ever wanted, which is the one state
+	it must not have.
+
+	`bestBounty` is therefore kept on the save and only ever RISES. It is the
+	caller's figure rather than one computed here, for the reason the board's
+	own comment gives: two surfaces must not disagree about a bounty any more
+	than about who is wanted, so there is one piece of arithmetic and it lives
+	where `heat` does.
+]]
+function TrophyService.recordWanted(player: Player, bounty: number?)
+	local data = DataService.get(player)
+	if data then
+		local t = shelf(data)
+		local best = math.max(tonumber(t.bestBounty) or 0, math.floor(tonumber(bounty) or 0))
+		t.bestBounty = best
+	end
 	bump(player, "wanted", 1)
 end
 
