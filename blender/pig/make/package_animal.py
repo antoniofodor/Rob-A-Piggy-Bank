@@ -20,9 +20,9 @@ assert KEY in NAMES,'Pass --name for a newly authored coat'
 OUT=Path(paths.animal_package(KEY));OUT.mkdir(exist_ok=True)
 SRC=Path(paths.skin_blend(KEY))
 MAPS={group:Path(paths.skin_map(KEY,group)) for group in ('body','trim')}
-EMISSIVE={group:Path(paths.skin_dir(KEY))/f'{KEY}_{group}_emissive.png' for group in ('body','trim')}
+EMISSIVE={group:Path(paths.skin_emissive(KEY,group)) for group in ('body','trim')}
 EMISSIVE={group:p for group,p in EMISSIVE.items() if p.exists()}
-coat_spec=Path(paths.skin_dir(KEY))/'coat-spec.json'
+coat_spec=Path(paths.coat_spec(KEY))
 art=json.loads(coat_spec.read_text()) if coat_spec.exists() else {}
 def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 inputs={str(p):sha(p) for p in [SRC,Path(paths.PARTS),*MAPS.values(),*EMISSIVE.values(),*([coat_spec] if coat_spec.exists() else [])]}
@@ -128,7 +128,7 @@ assert error<.001,('FBX bounds drift',error)
 assert sum(len(p.vertices)-2 for o in meshes for p in o.data.polygons)==sum(r['triangles'] for r in checks)
 assert all(o.data.uv_layers for o in meshes if not o.name.startswith('Eyes')),'FBX lost a coat UV map'
 for o in imported:bpy.data.objects.remove(o,do_unlink=True)
-report={'skin':KEY,'name':NAMES[KEY],'status':'Complete static review asset; no new coat or runtime installation','sourceScene':str(SRC.relative_to(root)),'sourceFrame':'Blender X across, -Y face, Z up; origin at body centre','bodyWidthStuds':12,'sourceToStudScale':scale,'boundsBlenderStuds':source_bounds,'fbxRoundTripMaxBoundsError':error,'meshCount':len(objects),'triangles':sum(r['triangles'] for r in checks),'parts':checks,'textures':textures,'eyes':'Optional exported Eyes mesh; game-built eyes must not be duplicated','nostrils':'Sculpted recesses retained; matching the existing coat previews, no black insert mesh','sharedGeometry':'Body, snout, ears, legs and tail are unchanged apart from uniform scale and triangulation; UVs preserved','inputHashes':inputs,'integration':'Existing skin uses shared mesh IDs plus body/trim SurfaceAppearances. Complete FBX is a standalone review/import option; do not upload duplicate base meshes for every coat.'}
+report={'skin':KEY,'name':NAMES[KEY],'status':'Complete static review asset; no new coat or runtime installation','sourceScene':str(SRC.relative_to(paths.REPO)),'sourceFrame':'Blender X across, -Y face, Z up; origin at body centre','bodyWidthStuds':12,'sourceToStudScale':scale,'boundsBlenderStuds':source_bounds,'fbxRoundTripMaxBoundsError':error,'meshCount':len(objects),'triangles':sum(r['triangles'] for r in checks),'parts':checks,'textures':textures,'eyes':'Optional exported Eyes mesh; game-built eyes must not be duplicated','nostrils':'Sculpted recesses retained; matching the existing coat previews, no black insert mesh','sharedGeometry':'Body, snout, ears, legs and tail are unchanged apart from uniform scale and triangulation; UVs preserved','inputHashes':inputs,'integration':'Existing skin uses shared mesh IDs plus body/trim SurfaceAppearances. Complete FBX is a standalone review/import option; do not upload duplicate base meshes for every coat.'}
 report['status']='Complete static review asset; runtime installation pending'
 report['rarity']=art.get('rarity','common');report['emissiveTextures']=emissive_textures
 (OUT/f'{KEY}-asset-report.json').write_text(json.dumps(report,indent=2),encoding='utf-8')

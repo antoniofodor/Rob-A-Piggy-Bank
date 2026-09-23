@@ -5,7 +5,7 @@
     {
       "skin": "bee",
       "name": "Bumblebee",
-      "package": "assets/skins/animal/common/bee",
+      "package": "assets/piggies/common/bee/package",
       "meshes": 6,
       "triangles": 20670,
       "bodyWidthStuds": 12,
@@ -35,7 +35,7 @@
     {
       "skin": "ladybird",
       "name": "Ladybird",
-      "package": "assets/skins/animal/common/ladybird",
+      "package": "assets/piggies/common/ladybird/package",
       "meshes": 6,
       "triangles": 20670,
       "bodyWidthStuds": 12,
@@ -65,7 +65,7 @@
     {
       "skin": "cow",
       "name": "Dairy Cow",
-      "package": "assets/skins/animal/common/cow",
+      "package": "assets/piggies/common/cow/package",
       "meshes": 6,
       "triangles": 20670,
       "bodyWidthStuds": 12,
@@ -95,7 +95,7 @@
     {
       "skin": "zebra",
       "name": "Zebra",
-      "package": "assets/skins/animal/common/zebra",
+      "package": "assets/piggies/common/zebra/package",
       "meshes": 6,
       "triangles": 20670,
       "bodyWidthStuds": 12,
@@ -125,7 +125,7 @@
     {
       "skin": "giraffe",
       "name": "Giraffe",
-      "package": "assets/skins/animal/common/giraffe",
+      "package": "assets/piggies/common/giraffe/package",
       "meshes": 6,
       "triangles": 20670,
       "bodyWidthStuds": 12,
@@ -155,7 +155,7 @@
     {
       "skin": "leopard",
       "name": "Leopard",
-      "package": "assets/skins/animal/common/leopard",
+      "package": "assets/piggies/common/leopard/package",
       "meshes": 6,
       "triangles": 20670,
       "bodyWidthStuds": 12,
@@ -185,7 +185,7 @@
     {
       "skin": "tiger",
       "name": "Bengal Tiger",
-      "package": "assets/skins/animal/common/tiger",
+      "package": "assets/piggies/common/tiger/package",
       "meshes": 6,
       "triangles": 20670,
       "bodyWidthStuds": 12,
@@ -215,7 +215,7 @@
     {
       "skin": "snowleopard",
       "name": "Snow Leopard",
-      "package": "assets/skins/animal/common/snowleopard",
+      "package": "assets/piggies/common/snowleopard/package",
       "meshes": 6,
       "triangles": 20670,
       "bodyWidthStuds": 12,

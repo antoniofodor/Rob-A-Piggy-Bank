@@ -26,18 +26,23 @@ for key,skin in Config.SKINS do
  local cost=Config.buybackCost(key)
  if cost then keys[skin.rarity]=key end
 end
-for i,tier in {"common","rare","legendary"} do
- check(keys[tier]~=nil and Config.buybackCost(keys[tier])==Config.CHESTS.og.cost*3^i,tier.." price from themed crate")
+-- IN COINS, DERIVED FROM WHAT LETTING THE SKIN GO PAYS. It used to be the
+-- source crate's acorn price times a step per rung; a crate has no price now.
+for _,tier in {"common","rare","legendary"} do
+ local key=keys[tier]
+ check(key~=nil and Config.buybackCost(key)==math.floor(Config.sellValue("skin",key)*Config.BUYBACK.markup),
+  tier.." price derived from its own sell value")
+ check(Config.buybackCost(key)>Config.sellValue("skin",key),tier.." buy-back always costs more than selling")
 end
 local common,rare,legendary=keys.common,keys.rare,keys.legendary
 for _,key in {"classic","bullion","martian","nonexistent"} do
  check(Config.buybackCost(key)==nil,"ineligible skin "..key)
 end
-local crate=Config.CHESTS[Config.SKINS[common].chest]
-local cost,currency=crate.cost,crate.currency
-crate.cost=7;check(Config.buybackCost(common)==21,"uses source price rather than copied constant")
-crate.currency="coins";check(Config.buybackCost(common)==nil,"rejects non-Acorn source")
-crate.currency=currency;crate.cost=cost
+local basis=Config.SKINS[common].sellBasis
+Config.SKINS[common].sellBasis=4000
+check(Config.buybackCost(common)==math.floor(Config.sellValue("skin",common)*Config.BUYBACK.markup),
+ "tracks the skin's own value rather than a copied constant")
+Config.SKINS[common].sellBasis=basis
 local dataSource,n=sources.DataService:gsub("return DataService%s*$","return {defaults=defaultData,reconcile=reconcile}");assert(n==1)
 local Data=load("DataService",{game={JobId="isolated-buyback-tests",GetService=function(_,name)
  return if name=="ReplicatedStorage" then replicated else {}
@@ -76,34 +81,34 @@ local Chest=load("ChestService",env)
 local balancePushes=0
 Chest.registerBalancePusher(function() balancePushes+=1 end)
 local function reset(key,balance)
- data[player]=Data.defaults();data[player].loot=balance or 200;data[player].coins=1e12
+ data[player]=Data.defaults();data[player].coins=balance or 1e12
  data[robber]=Data.defaults();data[robber].cosmetics.owned[key or common]=true
  if key then data[player].claims[key]=Config.seasonIndex() end
  messages={};saved={};saves=0;balancePushes=0
 end
 for _,key in {common,rare,legendary} do
- reset(key,1000);local price=Config.buybackCost(key)
+ reset(key);local price=Config.buybackCost(key)
  Chest.push(player);local offer=messages[player].ChestState.buybacks[key]
  check(offer.cost==price and offer.name==Config.SKINS[key].name and offer.chest==Config.SKINS[key].chest,"exact claimed skin offer")
  Chest.buyback(player,key)
- check(data[player].loot==1000-price and data[player].coins==1e12,"Acorn-only exact charge")
+ check(data[player].coins==1e12-price,"exact coin charge")
  check(data[player].cosmetics.owned[key] and next(data[player].spares)==nil,"direct exact grant, no spare")
  check(data[robber].cosmetics.owned[key],"robber keeps their copy")
- check(saved[player].loot==1000-price and saved[player].cosmetics.owned[key] and saves==1,"same save includes charge and skin")
+ check(saved[player].coins==1e12-price and saved[player].cosmetics.owned[key] and saves==1,"same save includes charge and skin")
  check(data[player].claims[key]==season and not messages[player].ChestState.buybacks[key],"claim retained but owned skin hidden")
  check(messages[player].ChestResult==nil and balancePushes==1,"no crate reel; balance refresh")
  Chest.buyback(player,key)
- check(data[player].loot==1000-price and saves==1 and next(data[player].spares)==nil,"repeated request cannot charge or mint spare")
+ check(data[player].coins==1e12-price and saves==1 and next(data[player].spares)==nil,"repeated request cannot charge or mint spare")
 end
 local commonPrice=Config.buybackCost(common)
 reset(common,commonPrice-1);Chest.buyback(player,common)
-check(data[player].loot==commonPrice-1 and not data[player].cosmetics.owned[common] and saves==0,"one-Acorn shortfall refuses despite coins")
-check(messages[player].Notify==Config.acornShortfall(commonPrice-1,commonPrice),"shortfall uses shared earning hint")
+check(data[player].coins==commonPrice-1 and not data[player].cosmetics.owned[common] and saves==0,"a one-coin shortfall refuses")
+check(messages[player].Notify:find("more coins",1,true)~=nil,"the shortfall names coins")
 reset();Chest.push(player)
 check(next(messages[player].ChestState.buybacks)==nil,"unclaimed skins absent")
 for _,key in {common,"nonexistent","classic"} do Chest.buyback(player,key) end
 Chest.buyback(player,{});Chest.buyback({},common)
-check(data[player].loot==200 and saves==0,"unclaimed invalid and unloaded requests refuse")
+check(data[player].coins==1e12 and saves==0,"unclaimed invalid and unloaded requests refuse")
 reset(common);data[player].claims[rare]=season;Chest.push(player)
 check(messages[player].ChestState.buybacks[common] and messages[player].ChestState.buybacks[rare],"multiple claims offered independently")
 -- Ownership is committed before pushers/save can yield or reenter.
@@ -113,20 +118,20 @@ modules.SetService.registerPusher("skin",function(p)
  Chest.push(p)
 end)
 Chest.buyback(player,common)
-check(reentered and data[player].loot==200-Config.buybackCost(common) and saves==1,"reentrant double request charges once")
+check(reentered and data[player].coins==1e12-Config.buybackCost(common) and saves==1,"reentrant double request charges once")
 check(not messages[player].ChestState.buybacks[common] and messages[player].ChestState.buybacks[rare],"purchase removes only matching card")
 modules.SetService.registerPusher("skin",noop)
 reset(common)
 local grant=modules.SetService.grant;modules.SetService.grant=function() return false end
 Chest.buyback(player,common);modules.SetService.grant=grant
-check(data[player].loot==200 and not data[player].cosmetics.owned[common] and saves==0,"failed grant refunds full cost")
+check(data[player].coins==1e12 and not data[player].cosmetics.owned[common] and saves==0,"failed grant refunds full cost")
 Chest.start()
 check(type(handlers.SkinBuyback)=="function","buy-back remote wired")
-reset(legendary,1000);handlers.SkinBuyback(player,legendary,0,season+10)
-check(data[player].loot==1000-Config.buybackCost(legendary),"forged price/season arguments ignored")
+reset(legendary);handlers.SkinBuyback(player,legendary,0,season+10)
+check(data[player].coins==1e12-Config.buybackCost(legendary),"forged price/season arguments ignored")
 reset(common);now=boundary
 handlers.SkinBuyback(player,common)
-check(data[player].loot==200 and next(data[player].claims)==nil and saves==0,"expired remote refused at exact boundary")
+check(data[player].coins==1e12 and next(data[player].claims)==nil and saves==0,"expired remote refused at exact boundary")
 check(next(messages[player].ChestState.buybacks)==nil,"expired state clears offers")
 -- The periodic rollover also clears/saves idle players without a request.
 now=boundary-1;reset(common);data[robber].claims[rare]=season
@@ -163,7 +168,7 @@ local style={round=noop,outline=noop,gloss=noop,deepen=function(c) return c end,
  chip=function(parent) local c=instance("TextLabel");c.Parent=parent;return c end}
 local uiModules={Config=Config,ShopStyle=style,SpinWheel={},ShopIcons={mount=function() end},
  ShopWidgets={button=function(parent,name) local b=instance("TextButton");b.Name=name;b.Parent=parent;return b end},
- Theme={acornPrice=function(button,text) button.Text=text end,PAPER=colour,INK=colour,MUTED=colour,HUE={crates=colour}}}
+ Theme={PAPER=colour,INK=colour,MUTED=colour,HUE={crates=colour}}}
 uiModules.CrateContents={new=function() return {update=noop,close=noop,loadVisible=noop} end}
 uiModules.ShopCatalogueLayout={bindCard=noop} -- Geometry is covered by shopui.
 local uiNow=boundary-10
@@ -177,6 +182,7 @@ end},require=function(name) return assert(uiModules[name],name) end,
  workspace={GetServerTimeNow=function() return uiNow end}})
 local requested,previews={},{}
 UI.init(instance("Frame"),{buyback=function(key) table.insert(requested,key) end,
+ format=function(n) return tostring(math.floor(n)) end,
  iconFor=function(kind,key,parent) previews[key]={kind,parent} end})
 UI.render({chests={},buybacks={},buybacksExpireAt=boundary})
 check(not find("Buyback_"..common),"UI hides unclaimed skin")
@@ -188,7 +194,7 @@ UI.render({chests={},buybacks=offers,buybacksExpireAt=boundary})
 for _,key in {common,rare,legendary} do
  local card=find("Buyback_"..key);local button=child(card,"TextButton")
  check(card and previews[key][1]=="skin" and previews[key][2].Parent==card,"exact skin preview for "..key)
- check(button.Text:find(tostring(offers[key].cost).." acorns",1,true)~=nil,"UI displays server price")
+ check(button.Text:find(tostring(offers[key].cost),1,true)~=nil,"UI displays server price")
 end
 local commonCard=find("Buyback_"..common)
 local button=child(commonCard,"TextButton")

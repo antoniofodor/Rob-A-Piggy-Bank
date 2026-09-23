@@ -51,13 +51,21 @@ local DANGER = Theme.STOP_INK
 -- ============================================================
 --
 -- `cmd` is the AdminService command; `a` and `b` are its arguments. `danger`
--- paints a row red. That is the entire vocabulary -- anything a row needs to
--- say that is not in this list is a sign the panel is growing a second job.
+-- paints a row red. `open` names a CLIENT screen instead of a command -- see
+-- below. That is the entire vocabulary -- anything a row needs to say that is
+-- not in this list is a sign the panel is growing a second job.
+--
+-- `open` EXISTS FOR ONE ROW AND IS STILL THE PANEL'S OWN JOB. "Spawn any
+-- piggy" is sixty-odd buttons, one per skin, grouped by shelf -- which is a
+-- row list too big to be rows here and too visual to be a text list. So the
+-- row opens `AdminPiggyPicker`, a screen laid out like the crates tab, and
+-- every card on it fires the same `AdminRequest` a row would. The panel still
+-- owns nothing but a table; the picker is a bigger page of the same book.
 --
 -- Grouped by WHAT YOU ARE TESTING rather than by which service owns it, which
 -- is the same split the shop's four tabs already use: somebody reaching for
 -- this panel knows what they want to happen, not which file it lives in.
-type Row = { label: string, cmd: string, a: any?, b: any?, danger: boolean? }
+type Row = { label: string, cmd: string?, open: string?, a: any?, b: any?, danger: boolean? }
 type Group = { name: string, note: string?, rows: { Row } }
 
 local MENU: { Group } = {
@@ -66,8 +74,18 @@ local MENU: { Group } = {
 		note = "Each borrows the street without touching the schedule.",
 		rows = {
 			{ label = "ALIEN INVASION now", cmd = "event", a = "raid" },
-			{ label = "MIDNIGHT HEIST now", cmd = "event", a = "midnight" },
 			{ label = "What is running?", cmd = "eventstate" },
+		},
+	},
+	{
+		name = "Herds",
+		note = "Brings a pack in through a tunnel now. Respects the cap.",
+		rows = {
+			{ label = "Herd now (picked kind)", cmd = "herd" },
+			{ label = "STRAY herd now", cmd = "herd", a = "stray" },
+			{ label = "PRIZE herd now", cmd = "herd", a = "prize" },
+			{ label = "Send every herd home", cmd = "herdclear" },
+			{ label = "Herd status", cmd = "herdstate" },
 		},
 	},
 	{
@@ -114,32 +132,50 @@ local MENU: { Group } = {
 		},
 	},
 	{
-		name = "Season",
-		note = "Launch fell in a rest week: shift a week first to earn.",
+		name = "Season window",
+		note = "The buy-back claims and the hot-skin timer key off this index.",
 		rows = {
 			{ label = "Shift season clock +1 week", cmd = "seasonshift", a = 1 },
 			{ label = "Reset season clock", cmd = "seasonshift", a = 0 },
-			{ label = "+50 season acorns", cmd = "seasonearn", a = 50 },
-			{ label = "+300 season acorns", cmd = "seasonearn", a = 300 },
 			{ label = "Season status", cmd = "seasonstate" },
 		},
 	},
 	{
-		name = "Tree",
-		note = "Sets the level outright; the house gate only restricts buying.",
+		-- THE SIX LAWN PEDESTALS. Its own group rather than three more rows
+		-- under Collection, because what is being tested here is not the
+		-- CATALOGUE -- it is the lawn: what six pedestals look like from the
+		-- pavement, whether the buffers come ripe together, and whether one
+		-- lap of the plot is the right action. A full lawn and an empty one are
+		-- the two pictures worth having, so both are one press.
+		name = "Piggies",
+		note = "Six lawn slots; a crate fills them front to back.",
 		rows = {
-			{ label = "Tree Lv0", cmd = "tree", a = 0 },
-			{ label = "Tree Lv2", cmd = "tree", a = 2 },
-			{ label = "Tree Lv4", cmd = "tree", a = 4 },
-			{ label = "Fill tree to its cap", cmd = "ripe", a = 999 },
-			{ label = "Empty tree", cmd = "ripe", a = 0 },
+			{ label = "Fill every free lawn slot", cmd = "fillpiggies" },
+			{ label = "Clear all six pedestals", cmd = "clearpiggies" },
+			-- Two named ones, at opposite ends of the rarity ladder, because
+			-- the rate multiplier is the whole reason tiers exist here and a
+			-- legendary standing beside a common is the only way to see it.
+			{ label = "Place a Classic Pink (common, 1x)", cmd = "piggy", a = "classic" },
+			{ label = "Place a Prismatic (legendary, 15x)", cmd = "piggy", a = "prismatic" },
+			-- LOOK AT ANY PIGGY. Opens a shelf of every skin in the game;
+			-- a card stands that piggy on the ground in front of you, at the
+			-- pedestal's own display scale, owning nothing and saving
+			-- nothing. The only way to judge how a skin actually reads on a
+			-- lawn without a crate roll landing it.
+			{ label = "Spawn any piggy to look at...", open = "piggies" },
+			{ label = "Clear spawned piggies", cmd = "spawnclear" },
+			-- THE ONE READOUT NOTHING ELSE GIVES. Placement is ownership, so
+			-- `owned` and what is standing are two descriptions of one fact --
+			-- and a drift between them is invisible from every angle on
+			-- screen. Every verb that moves a piggy is meant to bump the pair
+			-- together; this is what says whether they did.
+			{ label = "Check owned against standing", cmd = "piggystate" },
 		},
 	},
 	{
 		name = "Collection",
 		rows = {
 			{ label = "Unlock skins / effects / houses / gear / catches", cmd = "unlockall" },
-			{ label = "+50 acorns", cmd = "loot", a = 50 },
 			{ label = "Raise the mailbox flag (unclaimed daily)", cmd = "post" },
 			{ label = "Claim daily day 7 (free crate)", cmd = "daily", a = 7 },
 			{ label = "Claim daily day 6 (golden bone)", cmd = "daily", a = 6 },
@@ -162,6 +198,10 @@ local MENU: { Group } = {
 		name = "Heist",
 		rows = {
 			{ label = "Open season (shield + cooldowns)", cmd = "shield" },
+			-- The one robbery a solo session can start: a real smash on the
+			-- nearest resident's pig through HeistService, so the coin carry
+			-- (the money bag) can be looked at without a second player.
+			{ label = "Smash nearest resident pig", cmd = "smash" },
 			-- Under Heist rather than Collection, because what it is for is
 			-- looking at the NAB. The real trigger needs a second player
 			-- carrying somebody else's coins; this fires the same two
@@ -204,8 +244,11 @@ end
 
 -- Builds the panel and returns it. `fire(command, targetUserId, a, b)` is
 -- handed in rather than the remote itself, so this module knows nothing about
--- Remotes and can be driven by a test harness.
-function AdminPanel.build(parent: Instance, fire: (string, number?, any, any) -> ()): Frame
+-- Remotes and can be driven by a test harness. `openers` maps a row's `open`
+-- name to a function taking the selected target's userId; a row naming a
+-- screen nobody registered says so rather than doing nothing.
+function AdminPanel.build(parent: Instance, fire: (string, number?, any, any) -> (),
+	openers: { [string]: (number) -> () }?): Frame
 	local panel = Instance.new("Frame")
 	panel.Name = "AdminPanel"
 	panel.Size = UDim2.new(0, 330, 0, 560)
@@ -421,7 +464,7 @@ function AdminPanel.build(parent: Instance, fire: (string, number?, any, any) ->
 			b.TextSize = 12
 			b.TextColor3 = TEXT
 			b.Text = row.label
-			b.Name = "Row_" .. row.cmd
+			b.Name = "Row_" .. (row.cmd or ("open_" .. tostring(row.open)))
 			b.ZIndex = 41
 			b.Parent = holder
 			corner(b, 7)
@@ -430,7 +473,17 @@ function AdminPanel.build(parent: Instance, fire: (string, number?, any, any) ->
 				-- row was built: the dropdown changes constantly and a
 				-- captured target would silently act on whoever was selected
 				-- when the panel was first opened.
-				fire(row.cmd, selected.UserId, row.a, row.b)
+				if row.open then
+					local opener = openers and openers[row.open]
+					if opener then
+						opener(selected.UserId)
+					else
+						warn(("[AdminPanel] row '%s' opens '%s' and nothing registered it"):format(
+							row.label, row.open))
+					end
+					return
+				end
+				fire(row.cmd :: string, selected.UserId, row.a, row.b)
 			end)
 		end
 

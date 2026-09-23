@@ -3,7 +3,9 @@ from pathlib import Path
 import bpy
 from mathutils import Vector
 
-package=Path(__file__).resolve().parents[1].parents[1]/'assets/skins/animal/legendary/rainbowtiger'
+ROOT=Path(__file__).resolve().parents[1]
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+package=Path(paths.animal_package('rainbowtiger'))
 bpy.ops.wm.open_mainfile(filepath=str(package/'rainbowtiger-complete.blend'))
 scene=bpy.context.scene
 scene.frame_set(1)

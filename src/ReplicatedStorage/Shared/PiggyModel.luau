@@ -34,6 +34,18 @@ local NEAR_BLACK = Color3.fromRGB(26, 26, 30)
 local MINI_R = 1.1
 local MINI_CENTRE = Vector3.new(0, 1.15, 0)
 
+-- HOW HIGH THE PIVOT SITS ABOVE THE MODEL'S OWN ORIGIN, exported because a
+-- caller standing one of these on a surface needs exactly this number and has
+-- no other way to get it.
+--
+-- `build` sets `WorldPivot = MINI_CENTRE` -- the BODY CENTRE, not the feet --
+-- and the mesh path re-seats the whole model against that same point, so a
+-- `PivotTo` places the middle of the animal rather than the bottom of it.
+-- Anything seating a mini on a plinth therefore has to lift by this, and a
+-- caller that guessed 1.1 off `MINI_R` would bury it by 0.05 studs: close
+-- enough to look deliberate, which is the worst kind of wrong.
+PiggyModel.MINI_CENTRE_Y = MINI_CENTRE.Y
+
 -- ============================================================
 -- SKIN PATTERNS
 -- ============================================================
@@ -123,6 +135,9 @@ export type PatternOpts = {
 	weldTo: BasePart?,
 	material: Enum.Material,
 	transparency: number,
+	-- Where the REAL surface is along a direction from `frame`, in studs, or
+	-- nil to trust `radius`. See `PiggyModel.surfaceSampler`.
+	surface: ((Vector3) -> number)?,
 }
 
 local function markPart(folder: Folder, name: string, size: Vector3, cf: CFrame,
@@ -185,6 +200,120 @@ end
 -- in place, because one band is cut up to six times and a cut can split a
 -- sweep in two: iterating a table that is being inserted into is the kind of
 -- bug that only shows up on the pig that happens to have two eyes in one band.
+-- ---- seating marks on the REAL body ---------------------------------------
+--
+-- A PATTERN IS PLACED ON A SPHERE AND THE MESH PIG IS NOT ONE, and until
+-- 2026-09-21 every mark took the sphere's word for where the surface was.
+-- Measured on a pedestal mini: body 6.03 x 5.80 x 6.43 studs, spots seated
+-- 2.6 to 3.7 studs from the pattern centre against a 3.0 half-width --
+-- buried on one side and floating a stud off the flank on the other, one
+-- hanging beside an ear. Shards hid it by standing proud on purpose; discs
+-- and bands could not, and it is the mechanism behind the retired Neon
+-- pattern skins reading as "stuck ON the mesh pig" (see the note in
+-- `Config.SKINS`).
+--
+-- THE FIX ASKS THE BODY. A raycast against the pig's own collision is
+-- useless -- the body ships at Box fidelity, so a ray hits a crate -- so a
+-- PROBE is made once per body size: the same mesh at
+-- PreciseConvexDecomposition, invisible, parked far under the map, and
+-- queried alone through an Include filter. A mark's direction is cast INWARD
+-- from outside the probe (a ray that starts inside a part does not report
+-- it) and the hit is the radius the sphere used to guess. Cached per mesh id
+-- and size, so the till pig and the mini each cost one mesh creation per
+-- peer and nothing per skin. Anything that fails hands back nil and the
+-- sphere carries on: the pig looks as it did rather than losing its marks,
+-- the same call `prewarm` makes when a mesh id is blank.
+--
+-- SHARDS DELIBERATELY DO NOT USE IT. They stand up to a third of a radius
+-- proud by design, were photographed seated on the sphere, and two other
+-- lanes build against that behaviour -- so `buildShards` reads `radius` as
+-- it always did.
+local PROBE_FOLDER = "PiggyModelProbes"
+local PROBE_Y = -600
+local probes: { [string]: any } = {}
+local probeSlot = 0
+
+local function probeFor(body: BasePart): any
+	if not body:IsA("MeshPart") or body.MeshId == "" then
+		return nil
+	end
+	local key = body.MeshId .. "|" .. tostring(body.Size)
+	local known = probes[key]
+	if known ~= nil then
+		return known or nil
+	end
+	local ok, part = pcall(function()
+		local insert = game:GetService("InsertService")
+		local p = insert:CreateMeshPartAsync(body.MeshId,
+			Enum.CollisionFidelity.PreciseConvexDecomposition, Enum.RenderFidelity.Automatic)
+		p.Size = body.Size
+		return p
+	end)
+	if not ok or not part then
+		-- Remembered, so a dead asset costs one failed fetch rather than one
+		-- per skin change.
+		probes[key] = false
+		return nil
+	end
+	part.Name = "Probe"
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanTouch = false
+	part.CanQuery = true
+	part.CastShadow = false
+	part.Transparency = 1
+	local folder = workspace:FindFirstChild(PROBE_FOLDER)
+	if not folder then
+		folder = Instance.new("Folder")
+		folder.Name = PROBE_FOLDER
+		folder.Parent = workspace
+	end
+	probeSlot += 1
+	part.CFrame = CFrame.new(probeSlot * 100, PROBE_Y, 0)
+	part.Parent = folder
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Include
+	params.FilterDescendantsInstances = { part }
+	local entry = { part = part, params = params }
+	probes[key] = entry
+	return entry
+end
+
+-- A function from a direction in `frame`'s space to the distance from
+-- `frame`'s origin to the body's real surface along it. `radius` is the
+-- sphere the pattern was authored on and is what a miss falls back to. nil
+-- when there is nothing better than the sphere -- a primitives Ball body, or
+-- a probe that could not be made.
+function PiggyModel.surfaceSampler(body: BasePart, frame: CFrame, radius: number): ((Vector3) -> number)?
+	local probe = probeFor(body)
+	if not probe then
+		return nil
+	end
+	-- The body's pose in the pattern frame is what the probe has to
+	-- reproduce: the probe stands with an identity rotation, so the pattern
+	-- frame in probe space is the probe's frame with that pose undone. The
+	-- far row's half turn is in both `frame` and `body.CFrame` and cancels.
+	local rel = frame:ToObjectSpace(body.CFrame)
+	local reach = radius * 3
+	return function(n: Vector3): number
+		local pf = probe.part.CFrame * rel:Inverse()
+		local dir = pf:VectorToWorldSpace(n.Unit)
+		local outside = pf.Position + dir * reach
+		local hit = workspace:Raycast(outside, -dir * reach, probe.params)
+		if hit then
+			return math.max((hit.Position - pf.Position):Dot(dir), radius * 0.25)
+		end
+		return radius
+	end
+end
+
+local function radiusAt(opts: PatternOpts, n: Vector3, R: number): number
+	if opts.surface then
+		return opts.surface(n)
+	end
+	return R
+end
+
 local function cutSpan(spans: { { number } }, lo: number, hi: number): { { number } }
 	local kept: { { number } } = {}
 	for _, s in ipairs(spans) do
@@ -373,7 +502,7 @@ local function buildStripes(folder: Folder, spec: any, opts: PatternOpts)
 						local n = (pole * h + flank * (ring * math.cos(phi))
 							+ crest * (ring * math.sin(phi))).Unit
 						local tangent = crest * math.cos(phi) - flank * math.sin(phi)
-						local seat = n * (R + lift - thick / 2)
+						local seat = n * (radiusAt(opts, n, R) + lift - thick / 2)
 						markPart(folder, "Stripe", Vector3.new(segLen, thick, w),
 							opts.frame * CFrame.fromMatrix(seat, tangent, n),
 							Enum.PartType.Block, colour, opts)
@@ -443,7 +572,7 @@ local function buildSpots(folder: Folder, spec: any, opts: PatternOpts)
 
 			if bump then
 				markPart(folder, "Fleece", Vector3.new(radius * 2, radius * 2, radius * 2),
-					opts.frame * CFrame.new(n * (R - (1 - proud) * radius)),
+					opts.frame * CFrame.new(n * (radiusAt(opts, n, R) - (1 - proud) * radius)),
 					Enum.PartType.Ball, colour, opts)
 			else
 				-- THICKNESS IS SOLVED, NOT CHOSEN, for the reason the stripe
@@ -461,7 +590,7 @@ local function buildSpots(folder: Folder, spec: any, opts: PatternOpts)
 				-- standing on edge, which is the mistake this project has now
 				-- made five separate times.
 				markPart(folder, "Spot", Vector3.new(thick, radius * 2, radius * 2),
-					opts.frame * CFrame.fromMatrix(n * (R + lift - thick / 2), n, up),
+					opts.frame * CFrame.fromMatrix(n * (radiusAt(opts, n, R) + lift - thick / 2), n, up),
 					Enum.PartType.Cylinder, colour, opts)
 			end
 		end
@@ -803,6 +932,7 @@ function PiggyModel.applyPattern(container: Instance, skin: any, opts: PatternOp
 		weldTo = opts.weldTo,
 		material = spec.material or opts.material,
 		transparency = if spec.transparency ~= nil then spec.transparency else opts.transparency,
+		surface = opts.surface,
 	}
 
 	if spec.kind == "stripes" then
@@ -825,6 +955,418 @@ end
 -- ============================================================
 -- BUILD
 -- ============================================================
+
+-- DECLARED ABOVE `prewarm`, WHICH READS `ensureFurTemplate` AND `furSetsInUse`.
+-- The first build of this block sat below `prewarm`, so at boot both names
+-- were nil globals and `task.spawn(nil)` took the server's `Main` and the
+-- client's HUD down together: the twelfth forward reference this project has
+-- recorded, and the first inside a `task.spawn`, where the message names the
+-- caller and not the missing function.
+-- ============================================================
+-- THE COAT, THE FUR AND THE AURA -- ONE IMPLEMENTATION, TWO PIGS
+-- ============================================================
+--
+-- A MINI USED TO WEAR THE SWATCH. `Config.SURFACE_PACKS`' own note records
+-- that a skin's `body` and `trim` colours were "kept because the shop swatch,
+-- the topiary and the mini still read them" -- true, and accepted while the
+-- mini was carried loot glimpsed for a few seconds. The piggy collection put
+-- six of them on plinths on every lawn, in every herd and on every shop card,
+-- and a Bengal Tiger on a plinth was an orange pig with cream trim. Fifteen
+-- of the nineteen animal skins were unrecognisable on the one surface the
+-- collection is displayed on. Designer, 2026-09-21: "we need the minis to
+-- look exactly like they were built".
+--
+-- SO THE COAT, THE RUFF, THE GLOWING EYES, THE PER-PART COLOURS AND THE AURA
+-- ARE BUILT HERE, and `PiggyBank` calls in for the lawn pig rather than
+-- keeping its own copies -- the same move `House`, `Decor` and this file's
+-- own pattern builder made when the shop started rendering the real item. A
+-- second near-identical `applySurface` in PiggyBank was the copy that would
+-- have drifted, and the mini is now the MORE-seen of the two pigs.
+--
+-- WHAT A MINI STILL DOES NOT CARRY IS A LIGHT. `AuraLight` and `Glow` belong
+-- to the till, where an equipped effect and the vault fill drive them; a
+-- point light inside every one of sixty pedestal minis and fifty herd members
+-- is a hundred and ten lamps on a street that CLAUDE.md already records
+-- washing out from one.
+
+-- What a surface pack is called once it is hanging on a part, so it can be
+-- found again and taken off when the next skin does not want one.
+local SURFACE_NAME = "SkinSurface"
+
+-- The till's authored body, which every scale on a mini is measured against
+-- -- the same lookup `SkinFX` makes, and for the same reason: a mini is the
+-- till's mesh at a fraction, and a fur mesh or an aura authored for twelve
+-- studs has to shrink by exactly that fraction.
+local baseBody = (function()
+	for _, entry in ipairs(Config.PIGGY_MESH) do
+		if entry.part == "Body" then
+			return entry
+		end
+	end
+	return nil
+end)()
+
+-- How much smaller (or larger) this body is than the till's. 1 on the lawn
+-- pig, about 0.18 on a freshly built mini, and whatever a pedestal or a herd
+-- has scaled it to since -- read off the part rather than remembered, so a
+-- `ScaleTo` after the build is seen by everything derived from it.
+local function bodyScale(body: BasePart): number
+	if baseBody and baseBody.size and baseBody.size.X > 0 then
+		return body.Size.X / baseBody.size.X
+	end
+	return 1
+end
+
+-- Dress one part in a skin's surface pack, or strip whatever it is wearing.
+--
+-- MESHPARTS ONLY, which is not defensiveness. A SurfaceAppearance does
+-- nothing on an ordinary Part, so on the primitives fallback pig -- the one
+-- that stands up when a mesh id is missing -- attaching one would create
+-- instances that silently do nothing on every piggy on the street. The pig
+-- renders as a plain skin there instead, which is what the fallback is for.
+--
+-- `isTrim` PICKS A DIFFERENT TEMPLATE, AND IT IS NOT A REFINEMENT. The ears,
+-- snout, tail and legs share the body's cylindrical unwrap, so handing them a
+-- PATTERN map runs tiger bars across a snout and leopard rosettes down a leg.
+-- An animal pack names a `trimTemplate` carrying the coat and no markings;
+-- anything without one hands both the same template, which is what the metal
+-- bands want and why this is opt-in rather than a branch on skin kind.
+--
+-- CLONED, NEVER BUILT, AND THAT IS A REFUSAL RATHER THAN A PREFERENCE.
+-- `SurfaceAppearance.ColorMap` is plugin-gated: assembling one threw `The
+-- current thread cannot write 'ColorMap' (lacking capability Plugin)` from a
+-- real server and took the whole of `applySkin` with it, so every skin change
+-- in the game failed. A clone copies the maps without writing them, which is
+-- the same escape `MaterialVariant` had to take. And REPLACED rather than
+-- patched, because the properties that would need patching are the gated
+-- ones.
+function PiggyModel.applySurface(part: BasePart, tier: any, isTrim: boolean?)
+	local pack = Config.skinSurface(tier)
+	local worn = part:FindFirstChild(SURFACE_NAME)
+
+	if not pack or not part:IsA("MeshPart") then
+		if worn then
+			worn:Destroy()
+		end
+		return
+	end
+
+	local template: Instance? = ReplicatedStorage:FindFirstChild("Shared")
+	template = template and template:FindFirstChild("SurfacePacks")
+	template = template and template:FindFirstChild(
+		(isTrim and pack.trimTemplate) or pack.template)
+	if not template then
+		-- A MISSING TEMPLATE IS A PLAIN PIG, NEVER AN ERROR. The skin still
+		-- has its colours and its `material`, so what a player sees is an
+		-- ordinary skin rather than a broken one -- the same way an empty mesh
+		-- id leaves the piggy on primitives instead of standing up half a
+		-- model.
+		if worn then
+			worn:Destroy()
+		end
+		return
+	end
+
+	if worn then
+		worn:Destroy()
+	end
+	local sa = template:Clone()
+	sa.Name = SURFACE_NAME
+	sa.Parent = part
+end
+
+-- ------------------------------------------------------------
+-- RAISED FUR
+-- ------------------------------------------------------------
+
+local FUR_NAME = "FurTufts"
+
+-- WHICH SET A WORN TUFT CAME FROM, WRITTEN ON THE PART ITSELF.
+--
+-- A skin is changed INTO rather than applied to a fresh pig, so going from
+-- the tiger to the zebra has to SWAP the mesh and not merely recolour it --
+-- and there is nothing on a MeshPart that says which set it was cloned from.
+-- Comparing `MeshId` would work and is the wrong instrument: it reads an
+-- asset id back out of the engine to answer a question about this game's own
+-- catalogue, so an unfilled set (id "") has no id to compare and a re-upload
+-- of the same mane would read as a different set. An attribute is the fact
+-- itself. Same call `SkinKey` already makes on the body.
+local FUR_SET_ATTRIBUTE = "FurSet"
+
+-- ONE TEMPLATE PER SET, CACHED SEPARATELY. `CreateMeshPartAsync` yields and
+-- there are ten pigs on a street and sixty minis, so this is the same cache
+-- the body and trim already keep -- it just has to be keyed, or the first set
+-- loaded would be handed to every animal for the rest of the server's life.
+local furTemplates: { [string]: BasePart } = {}
+local furChecked: { [string]: boolean } = {}
+
+local function ensureFurTemplate(setName: string): BasePart?
+	if furChecked[setName] then
+		return furTemplates[setName]
+	end
+	-- STAMPED BEFORE THE LOAD, NOT AFTER, so a set whose mesh fails to load is
+	-- attempted once rather than on every skin change for the rest of the
+	-- session -- which on a failing asset is a web call per pig per swap.
+	furChecked[setName] = true
+	local spec = Config.furMesh(setName)
+	if not spec then
+		return nil
+	end
+	local ok, part = pcall(function()
+		-- BOX COLLISION AND NO QUERY, because this is decoration standing on
+		-- the one object a thief runs at and a dog patrols around. Precise
+		-- collision on 6,080 triangles of wool would cost every one of them a
+		-- physics query to buy nothing.
+		local p = game:GetService("InsertService"):CreateMeshPartAsync(
+			spec.id, Enum.CollisionFidelity.Box, Enum.RenderFidelity.Precise)
+		-- THE MESH KEEPS ITS OWN SIZE, AND CONFIG'S IS A CHECK RATHER THAN AN
+		-- INSTRUCTION. Writing `Size` here scales the mesh to whatever number
+		-- happens to be in Config -- so a value measured off an older build
+		-- silently SHRINKS the tufts toward their own centre and buries them
+		-- in the body, which is precisely what shipped. A wrong number should
+		-- be loud; this one was invisible.
+		if (p.MeshSize - spec.size).Magnitude > 0.05 then
+			warn(string.format(
+				"[PiggyModel] Config.FUR_SETS.%s.size is stale: mesh is %.4f,"
+				.. " %.4f, %.4f but Config says %.4f, %.4f, %.4f -- re-run"
+				.. " make_fur_tufts.py with FUR_SET=%s and paste the block it"
+				.. " prints.",
+				setName, p.MeshSize.X, p.MeshSize.Y, p.MeshSize.Z,
+				spec.size.X, spec.size.Y, spec.size.Z, setName))
+		end
+		p.Name = FUR_NAME
+		p:SetAttribute(FUR_SET_ATTRIBUTE, setName)
+		p.Anchored = true
+		p.CanCollide = false
+		p.CanQuery = false
+		p.CanTouch = false
+		p.CastShadow = false
+		return p
+	end)
+	if not ok then
+		-- NEVER FAIL SILENTLY, and never take the skin down with it. A pig
+		-- with no ruff is a cosmetic fault; a build throwing is every skin
+		-- change in the game failing, which is what the surface pack
+		-- already cost once.
+		warn(string.format("[PiggyModel] fur mesh for set %q failed to load: %s",
+			setName, tostring(part)))
+		return nil
+	end
+	furTemplates[setName] = part
+	return part
+end
+
+-- The fur sets any skin in the catalogue asks for, so `prewarm` can load
+-- them up front and `applyFur` never yields inside a build -- which matters
+-- because `build` runs inside a pedestal dress on the economy tick and inside
+-- a shop card on the client, and a web call in either is a stall.
+local function furSetsInUse(): { string }
+	local seen: { [string]: boolean } = {}
+	local names: { string } = {}
+	for _, skin in pairs(Config.SKINS) do
+		local s = skin :: any
+		if s.fur ~= nil then
+			local setName = s.furSet or Config.DEFAULT_FUR_SET
+			if not seen[setName] then
+				seen[setName] = true
+				table.insert(names, setName)
+			end
+		end
+	end
+	table.sort(names)
+	return names
+end
+
+-- Give a pig its ruff, or take it off.
+--
+-- STRIPPED ON EVERY SKIN THAT DOES NOT WANT ONE, not only added to those that
+-- do. A skin is changed INTO, so a conditional that only ever attaches would
+-- leave a Solid Gold pig wearing the tiger's wool -- the same trap
+-- `reflectance` already fell into on the lawn.
+--
+-- SCALED OFF THE BODY IT IS ON. The mesh and its offset are authored against
+-- the twelve-stud till, and a mini is that body at `bodyScale`, so the clone
+-- takes the same fraction in size AND in seat -- a ruff at till size on a
+-- 2.2-stud mini would be a cloud six times the animal.
+--
+-- `anchored` IS THE CALLER'S CONVENTION, not this function's: the lawn pig is
+-- anchored part by part and the mini is welded to its body because it rides
+-- a running thief. Same split every builder in this file already keeps.
+function PiggyModel.applyFur(model: Instance, body: BasePart, tier: any, anchored: boolean)
+	local worn = model:FindFirstChild(FUR_NAME)
+
+	-- THE MESH IS THE FLAG. A skin asks for fur by carrying a `fur` colour,
+	-- which is also the colour the lobes are painted -- one field rather
+	-- than a boolean and a colour that could disagree.
+	local wants = tier and tier.fur ~= nil and body:IsA("MeshPart")
+	if not wants then
+		if worn then
+			worn:Destroy()
+		end
+		return
+	end
+
+	-- THE SET IS A PROPERTY OF THE SKIN AND FALLS BACK TO THE DEFAULT, so a
+	-- skin that predates sets carries no `furSet` and gets the mane.
+	local setName = tier.furSet or Config.DEFAULT_FUR_SET
+
+	-- A WORN TUFT FROM A DIFFERENT SET IS DESTROYED RATHER THAN REUSED, and
+	-- this is the whole reason the attribute exists. Reusing it would recolour
+	-- the tiger's ruff, seat it at the crest's offset and call it a zebra --
+	-- geometry from one animal at another's coordinates, with nothing erroring.
+	if worn and worn:GetAttribute(FUR_SET_ATTRIBUTE) ~= setName then
+		worn:Destroy()
+		worn = nil
+	end
+
+	local template = ensureFurTemplate(setName)
+	if not template then
+		if worn then
+			worn:Destroy()
+		end
+		return
+	end
+
+	local s = bodyScale(body)
+	local part = worn :: BasePart?
+	if not part then
+		part = template:Clone()
+	end
+	assert(part)
+	-- SIZE BEFORE CFRAME, the rule the prewarm keeps for the body: resizing a
+	-- MeshPart scales it about its own centre, so seat it after.
+	part.Size = template.Size * s
+	part.Color = tier.fur
+	part.Material = tier.material
+	part.Transparency = tier.transparency
+	part.Anchored = anchored
+	part.Massless = not anchored
+
+	-- THE RUFF WEARS THE BODY'S PACK, NOT THE TRIM'S, and that is the whole
+	-- reason it can exist on a patterned animal at all. The lobe mesh is
+	-- unwrapped on the SAME cylinder as the body, so handing it the body's
+	-- ColorMap makes the spots and stripes carry straight over the fur --
+	-- where a flat colour was a patch lying on top of the pattern whatever
+	-- shade it was given.
+	--
+	-- UNLESS THE SKIN SAYS `furFlat`, in which case the ruff is its own
+	-- `fur` colour and nothing else. A pack through the cylinder unwrap is
+	-- right where the fur is a few tufts ON a marking; it is wrong where the
+	-- fur IS the marking -- the lion's ruff sampled the sheet's top edge on
+	-- the crown (black) and the face window on the cheeks (tawny) -- and a
+	-- mane is one colour. `applySurface` with no pack also STRIPS a worn one,
+	-- so a skin change from a packed fur to a flat one undresses the ruff.
+	if tier.furFlat then
+		local worn = part:FindFirstChild(SURFACE_NAME)
+		if worn then
+			worn:Destroy()
+		end
+	else
+		PiggyModel.applySurface(part, tier, false)
+	end
+
+	-- SEATED OFF THE BODY'S OWN CFRAME, never off the plot's. Both meshes come
+	-- out of one Blender scene, so the fur's offset and the body's are in the
+	-- same frame -- and the far row of plots carries a half turn, which is the
+	-- error this project records three times for anything measured in world
+	-- axes.
+	local spec = Config.furMesh(setName)
+	part.CFrame = body.CFrame * CFrame.new(spec.offset * s)
+	if not anchored and not part:FindFirstChildOfClass("WeldConstraint") then
+		local weld = Instance.new("WeldConstraint")
+		weld.Part0 = body
+		weld.Part1 = part
+		weld.Parent = part
+	end
+	part.Parent = model
+end
+
+-- ------------------------------------------------------------
+-- THE SKIN'S OWN AURA
+-- ------------------------------------------------------------
+
+PiggyModel.AURA_NAME = "SkinAura"
+
+-- The emitter an epic or a legendary throws its particles from, built once
+-- per body and left DISABLED until a skin configures it.
+--
+-- INWARD RATHER THAN OUTWARD, which is the one property that differs from an
+-- equipped effect and is doing real work. With only three built-in particle
+-- textures, emission SHAPE is what keeps two effects on one animal from
+-- reading as one noisy one: an equipped effect blooms outward off the
+-- surface; a skin's own aura falls inward toward it, so a legendary reads as
+-- something coming OFF the animal rather than as a second copy of the same
+-- cloud. A row's `inOut` may still override it.
+function PiggyModel.buildSkinAura(body: BasePart): ParticleEmitter
+	local e = Instance.new("ParticleEmitter")
+	e.Name = PiggyModel.AURA_NAME
+	e.Enabled = false
+	e.Shape = Enum.ParticleEmitterShape.Sphere
+	e.ShapeStyle = Enum.ParticleEmitterShapeStyle.Surface
+	e.ShapeInOut = Enum.ParticleEmitterShapeInOut.Inward
+	e.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.25),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	e.LightEmission = 0.55
+	e.Parent = body
+	return e
+end
+
+-- Write one `Config.SKIN_AURAS` (or `Config.EFFECTS`) row onto an emitter.
+--
+-- `scale` IS THE BODY'S OWN, and the two properties measured in studs take
+-- it. A row is authored against the twelve-stud till: a 1.3-stud spark on a
+-- 2.2-stud mini is a snowball, and the same spark on a pedestal display at
+-- 3.3x is right again. Rate, lifetime, drag and spread are unitless or in
+-- seconds and are left alone.
+function PiggyModel.configureAura(sa: ParticleEmitter, spec: any, scale: number?)
+	local s = scale or 1
+	sa.Texture = spec.texture
+	sa.Color = spec.color
+	sa.Rate = spec.rate
+	local speed = spec.speed
+	sa.Speed = if typeof(speed) == "NumberRange"
+		then NumberRange.new(speed.Min * s, speed.Max * s)
+		else NumberRange.new((tonumber(speed) or 0) * s)
+	sa.Lifetime = spec.lifetime
+	sa.Drag = spec.drag
+	sa.Acceleration = spec.accel * s
+	sa.SpreadAngle = Vector2.new(spec.spread, spec.spread)
+	sa.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, spec.size * s),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	local spin = spec.rotSpeed or 0
+	sa.Rotation = NumberRange.new(0, 360)
+	sa.RotSpeed = NumberRange.new(-spin, spin)
+	sa.ShapeInOut = if spec.inOut == "Outward"
+		then Enum.ParticleEmitterShapeInOut.Outward
+		else Enum.ParticleEmitterShapeInOut.Inward
+	sa.Enabled = true
+end
+
+-- Scale a mini for wherever it is standing, and keep everything on it that is
+-- measured in studs in step. `Model:ScaleTo` carries the parts, the welds and
+-- the fur; the aura's spark size and speed are re-derived from the row against
+-- the body's NEW size, so a pedestal's 3.3x and a herd's 0.75 get the same
+-- particles the till would at that size rather than the mini's.
+--
+-- THIS IS THE ONE PLACE A DISPLAY SCALE IS APPLIED. The pedestal and the herd
+-- call it with `Config.piggyScale`; the carried loot and the till never do --
+-- see that function for why the scale is a property of the placement.
+function PiggyModel.scale(model: Model, factor: number)
+	model:ScaleTo(model:GetScale() * factor)
+	local body = PiggyModel.bodyOf(model)
+	local key = model:GetAttribute("SkinKey")
+	local sa = body and body:FindFirstChild(PiggyModel.AURA_NAME)
+	if body and sa and sa:IsA("ParticleEmitter") and type(key) == "string" then
+		local spec = Config.skinAura(Config.getSkin(key))
+		if spec and spec.texture then
+			PiggyModel.configureAura(sa, spec, bodyScale(body))
+		end
+	end
+end
 
 -- ---- the same pig, at preview size ----------------------------------------
 --
@@ -856,6 +1398,7 @@ local meshTried = false
 -- so `build` does not redo it per card.
 local meshPatternAt = Vector3.zero
 local meshPatternR = 1
+local meshPatternSurface: ((Vector3) -> number)? = nil
 
 --[[
 	Build the mesh pig once, sized to sit exactly where the primitives mini
@@ -955,6 +1498,19 @@ function PiggyModel.prewarm(): boolean
 	meshPatternAt = centre + (face.patternCentre - centre) * scale
 		+ (MINI_CENTRE - after.Position)
 	meshPatternR = face.patternRadius * scale
+	-- And where the body actually is along every direction from that
+	-- centre, so a mini's discs sit on its flank rather than on a sphere
+	-- the flank is not on. Sampled once here; every clone keeps the pose.
+	local templateBody = made:FindFirstChild("Body")
+	meshPatternSurface = if templateBody and templateBody:IsA("BasePart")
+		then PiggyModel.surfaceSampler(templateBody, CFrame.new(meshPatternAt), meshPatternR)
+		else nil
+
+	-- AND THE FUR, for the reason `furSetsInUse` gives: a ruff loaded inside
+	-- a build would yield a pedestal dress on the economy tick.
+	for _, setName in ipairs(furSetsInUse()) do
+		task.spawn(ensureFurTemplate, setName)
+	end
 
 	-- THE LEGENDARIES LOAD HERE TOO, AND THIS WAITS FOR THEM, because every
 	-- caller of `prewarm` rebuilds its icons the moment it returns and a
@@ -987,7 +1543,16 @@ function PiggyModel.build(skinKey: string): Model
 	if template then
 		local mesh = template:Clone()
 		mesh.Name = Config.LOOT_MODEL_NAME
+		-- THE KEY RIDES THE MODEL, exactly as it does on the lawn pig
+		-- (`PiggyBank.applySkin`): the client animator reads it to drive an
+		-- `anim` skin's colours, and `PiggyModel.scale` reads it to re-derive
+		-- the aura. Written BEFORE the model is parented, so it replicates
+		-- with it and a client's DescendantAdded sees a finished mini.
+		mesh:SetAttribute("SkinKey", skinKey)
+		local overrides = (skin :: any).parts
+		local glowEyes = (skin :: any).glowEyes == true
 		local body: BasePart? = nil
+		local trimParts: { BasePart } = {}
 		for _, d in ipairs(mesh:GetChildren()) do
 			if d:IsA("BasePart") then
 				-- THE MINI'S OWN CONVENTIONS, and they are the opposite of the
@@ -1001,15 +1566,23 @@ function PiggyModel.build(skinKey: string): Model
 				d.CanQuery = false
 				d.Massless = true
 				d.CastShadow = false
+				-- THE SAME THREE READS THE LAWN PIG MAKES, and in the same
+				-- order: a per-part override wins, then the tier's own colour,
+				-- and an eye goes Neon on a `glowEyes` skin. A mini that read
+				-- fewer fields than the till was the "reads as a plain common
+				-- on a plinth" report.
 				if d.Name == "Eye" then
-					d.Color = NEAR_BLACK
-					d.Material = Enum.Material.SmoothPlastic
+					d.Color = (overrides and overrides[d.Name]) or NEAR_BLACK
+					d.Material = if glowEyes then Enum.Material.Neon else Enum.Material.SmoothPlastic
 				elseif d:GetAttribute("Trim") == true then
-					d.Color = skin.trim
+					d.Color = (overrides and overrides[d.Name]) or skin.trim
 					d.Material = skin.trimMaterial or skin.material
+					d.Reflectance = skin.reflectance or 0
+					table.insert(trimParts, d)
 				else
 					d.Color = skin.body
 					d.Material = skin.material
+					d.Reflectance = skin.reflectance or 0
 					body = d
 				end
 			end
@@ -1033,6 +1606,7 @@ function PiggyModel.build(skinKey: string): Model
 			PiggyModel.applyPattern(mesh, skin, {
 				frame = CFrame.new(meshPatternAt),
 				radius = meshPatternR,
+				surface = meshPatternSurface,
 				anchored = false,
 				weldTo = body,
 				material = skin.material,
@@ -1040,6 +1614,20 @@ function PiggyModel.build(skinKey: string): Model
 			})
 			-- The skin's shape geometry, welded and still: see `Shared/SkinFX`.
 			SkinFX.apply(mesh, body, skinKey, false)
+
+			-- THE COAT, ON THE BODY AND ON THE TRIM, then the ruff over the
+			-- coat, then the aura -- the lawn pig's own order (`applySkin`),
+			-- because the ruff reads the body's pack and the aura hangs off
+			-- the body. See the block above `build`.
+			PiggyModel.applySurface(body, skin)
+			for _, p in ipairs(trimParts) do
+				PiggyModel.applySurface(p, skin, true)
+			end
+			PiggyModel.applyFur(mesh, body, skin, false)
+			local auraSpec = Config.skinAura(skin)
+			if auraSpec and auraSpec.texture then
+				PiggyModel.configureAura(PiggyModel.buildSkinAura(body), auraSpec, bodyScale(body))
+			end
 			-- See the note above `PiggyModel.bodyOf`: an identity-rotation
 			-- pivot at the seat the primitives pig uses, and no PrimaryPart.
 			-- A LEGENDARY STANDS OVER THE MINI exactly as it does over the plot's
@@ -1066,6 +1654,9 @@ function PiggyModel.build(skinKey: string): Model
 	-- Through the constant, because a client now WATCHES for this name to
 	-- decide whether to pose its owner as carrying. See Config.LOOT_MODEL_NAME.
 	model.Name = Config.LOOT_MODEL_NAME
+	-- The fallback carries the key too, so an `anim` skin still cycles on it
+	-- -- a coat cannot land on a Ball, but a colour can.
+	model:SetAttribute("SkinKey", skinKey)
 
 	local function piece(name: string, size: Vector3, cf: CFrame, color: Color3): Part
 		local p = Instance.new("Part")

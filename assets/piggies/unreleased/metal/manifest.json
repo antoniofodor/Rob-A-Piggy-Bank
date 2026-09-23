@@ -1,0 +1,74 @@
+{
+  "key": "metal",
+  "name": "Polished Metal (shared metal pack)",
+  "path": "assets/piggies/unreleased/metal/",
+  "tier": "unreleased",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); unreleased/: `metal` is not a Config.SKINS key -- it is the shared band-overlay pack Config.SKINS.bullion wears -- so it has no rarity to sort by",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": "blender/pig/skins/metal/",
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": null,
+    "surfacePack": null,
+    "legendaryPacks": [
+      "bands"
+    ],
+    "status": "shared pack: Config.SKINS.bullion (Solid Gold) wears SURFACE_PACKS.bands; `metal` is not a skin key"
+  },
+  "templates": {
+    "bands": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/bands.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://107416059648277",
+        "MetalnessMap": "rbxassetid://97940878818396",
+        "RoughnessMap": "rbxassetid://134417482845757",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://107416059648277": {
+      "file": "sheets/pig_metal_bands.png",
+      "sha256": "e222f570a1eeea1972b436b7775956cc76711cc73598209b85370fb4915c0e1f",
+      "role": "bands ColorMap",
+      "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    },
+    "rbxassetid://97940878818396": {
+      "file": "sheets/pig_metal_metalness.png",
+      "sha256": "28cf83da04589cdb947a86b427b8cc40491d7c53cc907bdf7b20639faf4a8d7f",
+      "role": "bands MetalnessMap",
+      "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    },
+    "rbxassetid://134417482845757": {
+      "file": "sheets/pig_metal_roughness.png",
+      "sha256": "9f706786ed05b9ecaac82da039d7c35fa523c3f87ea468d04cf7713f52d41063",
+      "role": "bands RoughnessMap",
+      "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    }
+  },
+  "shopCard": null,
+  "derivedPackage": null,
+  "closedBack": {
+    "closedScene": null,
+    "note": "n/a: a shared overlay pack, not a body bake"
+  },
+  "files": {
+    "source": [],
+    "generate": [],
+    "sheets": [
+      "pig_metal_bands.png",
+      "pig_metal_color.png",
+      "pig_metal_metalness.png",
+      "pig_metal_roughness.png",
+      "pig_value_ladder.png"
+    ],
+    "preview": [],
+    "package": []
+  },
+  "generator": null,
+  "notes": [
+    "Five sheets shared by every metal skin: pig_metal_bands.png is SURFACE_PACKS.bands' ColorMap (the band overlay masks/make_band_overlay.py writes), with the metalness/roughness pair beside it; pig_metal_color.png and pig_value_ladder.png are the older cylindrical-unwrap pack and the value ladder (masks/make_ladder.py).",
+    "Not yet a Config.SKINS row: nothing in the game reads these sheets today."
+  ]
+}

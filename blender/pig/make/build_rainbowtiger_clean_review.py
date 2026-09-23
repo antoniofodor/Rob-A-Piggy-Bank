@@ -7,8 +7,9 @@ from pathlib import Path
 import bpy,json,hashlib
 
 ROOT=Path(__file__).resolve().parents[1]
-SOURCE=ROOT/'skins/rainbowtiger/legendary-v1/rainbowtiger-complete.blend'
-OUT=ROOT/'skins/rainbowtiger/clean-review-v2'
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+SOURCE=Path(paths.skin_study('rainbowtiger','legendary-v1'))/'rainbowtiger-complete.blend'
+OUT=Path(paths.skin_study('rainbowtiger','clean-review-v2'))
 OUT.mkdir(parents=True,exist_ok=True)
 source_hash=hashlib.sha256(SOURCE.read_bytes()).hexdigest()
 bpy.ops.wm.open_mainfile(filepath=str(SOURCE))

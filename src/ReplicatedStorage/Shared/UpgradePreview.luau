@@ -86,7 +86,7 @@ local UPRIGHT = CFrame.Angles(0, 0, math.rad(90))
 local builders: { [string]: (level: number) -> () } = {}
 
 -- ============================================================
--- THE EARN PAIR
+-- THE EARN PAIR (NOW ONE: `capacity` IS RETIRED WITH THE PIG'S CEILING)
 -- ============================================================
 --
 -- BOTH OF THESE USED TO BE THE SAME PICTURE. `ShopUpgrades.modelFor` had one
@@ -268,21 +268,8 @@ end
 -- which is not hypothetical on this model: it is the mesh pig when a template
 -- has loaded and the primitives pig when one has not, and a client cannot call
 -- `CreateMeshPartAsync` at all.
-builders.capacity = function()
-	local GAP = 0.9
-	local small = pig(0.5, 0)
-	local big = pig(1.0, small.X + GAP)
-	local tall = math.max(small.Y, big.Y)
-	-- Across the gap: from over the small pig to over the big one.
-	local from = small.X * 0.55
-	local to = small.X + GAP + big.X * 0.45
-	-- 0.6 and not 0.45: modelled against the 2.2-stud pig, the lower barb of
-	-- the arrowhead came within 0.14 of the big pig's crown at 0.45, which is
-	-- inside the noise this project calls a placement rather than a clearance.
-	-- At 0.6 it is 0.29, and the head still points AT the pig, which is the read.
-	arrow((from + to) / 2, tall + 0.6, to - from, 30, 0.28, UP)
-	faceCamera()
-end
+-- `builders.capacity` (a small pig, an arrow, a big pig) stood here and is
+-- retired with the Bigger Piggy Bank rung; the pig has no ceiling to grow.
 
 
 -- THE VAULT DIAL: a plate, a hub and `spokes` handles, in the tier's metal.
@@ -396,21 +383,172 @@ builders.lockpicks = function(level)
 end
 
 -- BIGGER SACK: the bag grows, and so does the pile spilling from it.
+--
+-- THE SHOP'S OWN ARTWORK IS THE SPEC (designer, 2026-09-22), and this builder
+-- is not only a card: `HeistService.buildLootBag` builds the CARRIED LOOT out
+-- of it at the thief's own sack level, so the shelf, the preview and the
+-- getaway are one sack rather than three. The picture is
+-- `assets/shop-ui/icon-system-v1/sack.png`, rendered from
+-- `sources/sack.blend` -- a peach cloth drawstring sack with a rope bow at a
+-- gathered neck, a wavy open mouth above it, a gold coin on its front stamped
+-- with a pig snout, and coins at its foot. `assets/loot-bag/` holds that same
+-- object exported for upload, and its UPLOADS.md carries the `Config.LOOT_MESH`
+-- row that would swap this build for the mesh once the ids exist.
+--
+-- THE COLOURS ARE SAMPLED OFF THE RENDER RATHER THAN OFF THE BLEND, and the
+-- two disagree. The blend is flat material colours lit by Cycles studio lamps,
+-- so its raw `tan` is (231, 164, 83) -- an orange nothing in the artwork shows.
+-- What the artwork READS as, measured across the body of `sack.png`, is a
+-- light warm peach, and that is what a player compares this against.
+--
+-- SmoothPlastic throughout, like everything else in this file: `Fabric` is a
+-- dark noisy texture rather than a colour, and a peach sack in it renders
+-- muddy brown at any distance.
+local CLOTH = Color3.fromRGB(226, 182, 146)
+-- The inside of the mouth, seen down the throat. Deeper than the body, so an
+-- opening reads as an opening.
+local CLOTH_DEEP = Color3.fromRGB(198, 138, 110)
+local ROPE = Color3.fromRGB(150, 96, 66)
+-- The coin's FIELD is the game's own gold (`GOLD`) and its RIM is a deeper
+-- one, so the rim can stand proud AROUND the field rather than being a line
+-- drawn on a flat disc. Nothing here is dug: a recess is made by standing
+-- something proud around the dark, never by sinking the dark.
+local GOLD_DEEP = Color3.fromRGB(198, 150, 52)
+-- The snout is pink because pink means the pig everywhere else in this game.
+-- Its nostrils stand PROUD rather than being holes, for the reason above and
+-- the same call `ShopScenes`' own piggy already makes.
+local SNOUT = Color3.fromRGB(246, 206, 198)
+local NOSTRIL = Color3.fromRGB(150, 84, 92)
+
 builders.sack = function(level)
 	local s = 0.8 + level * 0.18
-	local cloth = Color3.fromRGB(176, 140, 96)
-	add("Bag", Vector3.new(2.4 * s, 2.6 * s, 2.2 * s), CFrame.new(0, 1.3 * s, 0), cloth, PLAIN, Enum.PartType.Ball)
-	add("Neck", Vector3.new(0.5 * s, 1.1 * s, 1.1 * s), CFrame.new(0, 2.6 * s, 0) * UPRIGHT,
-		cloth:Lerp(Color3.new(0, 0, 0), 0.2), PLAIN, Enum.PartType.Cylinder)
-	add("Tie", Vector3.new(0.2 * s, 1.25 * s, 1.25 * s), CFrame.new(0, 2.5 * s, 0) * UPRIGHT,
-		RUNG[level] or RUNG[1], PLAIN, Enum.PartType.Cylinder)
-	add("Mark", Vector3.new(0.9 * s, 0.9 * s, 0.1), CFrame.new(0, 1.3 * s, 1.08 * s),
-		Color3.fromRGB(240, 198, 76), PLAIN, Enum.PartType.Ball)
+
+	-- THE BODY. `Bag` keeps its name and its exact size, because
+	-- `buildLootBag` renames it `Body` and makes it the PrimaryPart: that means
+	-- `CarryPose.HOLD` lands on THIS ball's centre, and moving it moves the
+	-- carried loot out of the thief's own hands.
+	add("Bag", Vector3.new(2.40 * s, 2.60 * s, 2.20 * s), CFrame.new(0, 1.30 * s, 0),
+		CLOTH, PLAIN, Enum.PartType.Ball)
+	-- A sack sat down on the ground spreads at the bottom.
+	--
+	-- IT IS SIZED SO THAT IT NEVER REACHES PAST THE BODY ON ANY AXIS, and that
+	-- is a clearance rather than a taste call. Seated at `CarryPose.HOLD` this
+	-- bag is welded to a thief's chest, so anything wider or deeper than the
+	-- `Bag` ball is a new thing to clash with their arms and legs -- a first
+	-- pass at 2.56 x 2.30 put the flare 0.04 studs deeper into the thighs than
+	-- the bare body already goes. At 2.38 x 2.08 against the body's 2.40 x 2.20
+	-- its whole box is inside the body's, so the thief's clearances are exactly
+	-- what they were before this builder was touched.
+	--
+	-- It still reads, because what matters is the body's width AT THIS HEIGHT
+	-- rather than at its equator: the ellipsoid is 0.88 half-wide at y 0.42,
+	-- so the flare stands 0.31 proud of it all the way round.
+	add("Foot", Vector3.new(2.38 * s, 0.84 * s, 2.08 * s), CFrame.new(0, 0.42 * s, 0),
+		CLOTH, PLAIN, Enum.PartType.Ball)
+
+	-- THE NECK, THE ROPE AND THE MOUTH, in that order up the bag. Every span
+	-- overlaps the next on purpose -- two cylinder ends at one height would be
+	-- the coplanar flicker this project has already paid for three times:
+	--   neck  2.25 .. 2.95 s   gathered cloth, radius 0.50
+	--   wrap  2.57 .. 2.83 s   the drawstring wound round it, radius 0.60
+	--   mouth 2.90 .. 3.42 s   the dark throat, radius 0.57
+	add("Neck", Vector3.new(0.70 * s, 1.00 * s, 1.00 * s), CFrame.new(0, 2.60 * s, 0) * UPRIGHT,
+		CLOTH, PLAIN, Enum.PartType.Cylinder)
+	add("Wrap", Vector3.new(0.26 * s, 1.20 * s, 1.20 * s), CFrame.new(0, 2.70 * s, 0) * UPRIGHT,
+		ROPE, PLAIN, Enum.PartType.Cylinder)
+	add("Mouth", Vector3.new(0.52 * s, 1.14 * s, 1.14 * s), CFrame.new(0, 3.16 * s, 0) * UPRIGHT,
+		CLOTH_DEEP, PLAIN, Enum.PartType.Cylinder)
+
+	-- THE WAVY RIM IS SEVEN BALLS AND NOT A SECOND CYLINDER, because a cylinder
+	-- is SOLID: a dark disc set inside one is a disc nobody can see, which is
+	-- the water-bowl mistake this project already recorded. Seven at radius 0.70
+	-- overlap each other by 0.07 -- six leave gaps and read as beads -- and they
+	-- stand 0.22 above the mouth's own top, so the cloth is proud around the
+	-- dark and the opening reads as an opening rather than as a plug.
+	--
+	-- AND THE RIM IS AS HIGH AS IT IS BECAUSE OF THE THIEF'S HEAD, WHICH IS A
+	-- CLEARANCE RATHER THAN A TASTE CALL. Seated at `CarryPose.HOLD` this rim
+	-- is the part of the bag nearest the carrier's face, and LOWERING IT MAKES
+	-- THAT WORSE rather than better: dropped to 3.16 it stops passing over the
+	-- head and starts passing in FRONT of it, and the worst level's clearance
+	-- went 0.34 studs to 0.15. Measured sphere-to-box against a generous head
+	-- -- x +-0.6, y 1.9 .. 3.0, z +-0.6, generous because HAIR AND HATS ARE
+	-- THE PLAYER'S CHOICE and not this file's.
+	for i = 1, 7 do
+		local a = (i - 1) * (2 * math.pi / 7)
+		local lift = if i % 2 == 0 then 0.12 * s else 0
+		add("Frill", Vector3.new(0.68 * s, 0.68 * s, 0.68 * s),
+			CFrame.new(math.cos(a) * 0.70 * s, 3.30 * s + lift, math.sin(a) * 0.70 * s),
+			CLOTH, PLAIN, Enum.PartType.Ball)
+	end
+
+	-- THE BOW: two loops and two tails hung off a knot on the front of the wrap.
+	-- A tail is a cylinder with a ball of the SAME DIAMETER on its end, which is
+	-- tangent by construction and therefore has no rim at the join -- the
+	-- dimension match the drip statue's holdall already turns on.
+	add("Knot", Vector3.new(0.34 * s, 0.34 * s, 0.34 * s), CFrame.new(0, 2.70 * s, 0.60 * s),
+		ROPE, PLAIN, Enum.PartType.Ball)
+	for _, side in ipairs({ -1, 1 }) do
+		add("Loop", Vector3.new(0.54 * s, 0.44 * s, 0.22 * s),
+			CFrame.new(side * 0.44 * s, 2.84 * s, 0.56 * s)
+				* CFrame.Angles(0, 0, math.rad(side * -22)),
+			ROPE, PLAIN, Enum.PartType.Ball)
+		local tail = CFrame.new(side * 0.30 * s, 2.40 * s, 0.62 * s)
+			* CFrame.Angles(0, 0, math.rad(side * 18)) * UPRIGHT
+		add("Tail", Vector3.new(0.60 * s, 0.15 * s, 0.15 * s), tail, ROPE, PLAIN, Enum.PartType.Cylinder)
+		add("TailTip", Vector3.new(0.15 * s, 0.15 * s, 0.15 * s),
+			tail * CFrame.new(-0.30 * s, 0, 0), ROPE, PLAIN, Enum.PartType.Ball)
+	end
+
+	-- THE COIN ON THE FRONT: four discs at four depths, no two of them sharing
+	-- a face plane.
+	--   rim    0.910 .. 1.210 s   deep gold, standing proud all the way round
+	--   field  0.920 .. 1.140 s   the game's gold, recessed 0.07 inside the rim
+	--   snout  1.100 .. 1.260 s   pale pink, embossed 0.05 past the rim
+	--   holes  1.235 .. 1.335 s   two dots, proud rather than dug
+	-- The body's own surface at this height is z 1.087 s, so the rim's outer
+	-- edge is buried and the coin sits IN the cloth rather than on it.
+	add("Mark", Vector3.new(0.30 * s, 1.16 * s, 1.16 * s),
+		CFrame.new(0, 1.10 * s, 1.06 * s) * FACING_Z, GOLD_DEEP, PLAIN, Enum.PartType.Cylinder)
+	add("MarkField", Vector3.new(0.22 * s, 0.86 * s, 0.86 * s),
+		CFrame.new(0, 1.10 * s, 1.03 * s) * FACING_Z, GOLD, PLAIN, Enum.PartType.Cylinder)
+	add("Snout", Vector3.new(0.16 * s, 0.50 * s, 0.50 * s),
+		CFrame.new(0, 1.10 * s, 1.18 * s) * FACING_Z, SNOUT, PLAIN, Enum.PartType.Cylinder)
+	for _, side in ipairs({ -1, 1 }) do
+		add("Nostril", Vector3.new(0.10 * s, 0.11 * s, 0.11 * s),
+			CFrame.new(side * 0.11 * s, 1.10 * s, 1.285 * s) * FACING_Z,
+			NOSTRIL, PLAIN, Enum.PartType.Cylinder)
+	end
+
+	-- THE COINS AT ITS FOOT. ONE ALWAYS, THEN TWO MORE PER LEVEL: a level-0 bag
+	-- with none reads as an empty sack rather than as a small haul, and this is
+	-- the bag a thief carries from their very first robbery. The LADDER is still
+	-- the thing that grows.
+	--
+	-- They hug the bag rather than spreading outward with `i`. The ring they
+	-- replace grew by 0.2 a coin, so a maxed sack laid coins 3.7 studs off its
+	-- own centre -- out past the thief's arms, on a model welded to their chest.
+	--
+	-- ITS CENTRE IS ABOVE ITS OWN RADIUS BECAUSE IT IS TILTED. Half of 0.94 is
+	-- 0.47 and a disc seated there would stand exactly on the ground -- if it
+	-- were upright. Leaned, its own axis-aligned reach grows, and at 0.47 it
+	-- measured 0.0395 THROUGH the floor: the thing to seat is the tilted
+	-- part's span, not the shape's radius.
+	add("LeanCoin", Vector3.new(0.18 * s, 0.94 * s, 0.94 * s),
+		CFrame.new(-1.16 * s, 0.52 * s, 0.70 * s)
+			* CFrame.Angles(math.rad(10), math.rad(-32), 0) * FACING_Z,
+		GOLD, PLAIN, Enum.PartType.Cylinder)
 	for i = 1, level * 2 do
-		local a = i * 2.4
-		add("Coin", Vector3.new(0.14, 0.7, 0.7),
-			CFrame.new(math.cos(a) * (1.4 * s + 0.2 * i), 0.1 + (i % 3) * 0.08, math.sin(a) * 0.9 + 1.2 * s) * UPRIGHT,
-			Color3.fromRGB(240, 198, 76), PLAIN, Enum.PartType.Cylinder)
+		local a = 0.9 + i * 2.39
+		local r = 1.06 * s + 0.07 * s * (i % 4)
+		-- EVERY COIN GETS ITS OWN HEIGHT, and that is the coplanar rule rather
+		-- than tidiness: two flat discs sharing a height and overlapping share a
+		-- face plane, and 2.39 radians of step wraps close enough to touch by
+		-- the sixth coin.
+		local h = 0.10 * s + 0.035 * s * (i % 5) + 0.16 * s * math.floor((i - 1) / 5)
+		add("Coin", Vector3.new(0.17 * s, 0.76 * s, 0.76 * s),
+			CFrame.new(math.cos(a) * r, h, math.sin(a) * r * 0.62 + 0.62 * s) * UPRIGHT,
+			GOLD, PLAIN, Enum.PartType.Cylinder)
 	end
 end
 

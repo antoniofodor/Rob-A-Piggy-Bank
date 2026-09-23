@@ -8,7 +8,7 @@
 	This is the game's answer to "what am I grinding for?".
 
 	Every other purchase in the game is temporary -- rebirth wipes income,
-	capacity, and both upgrade trees back to zero. Cosmetics are the one
+	and both upgrade trees back to zero. Cosmetics are the one
 	thing rebirth never touches, so they accumulate for the life of the
 	account. That gives a player something ahead of them that a reset can't
 	take away, and because the piggy is visible from across the map, every
@@ -129,15 +129,10 @@ function CosmeticsService.buyHouse(player: Player, requested: string)
 	end
 
 	local cost = tier.cost or 0
-	-- Two refusals rather than one, because they ask for different things:
-	-- a price the pig cannot HOLD wants more capacity (levels, rebirths),
-	-- not more waiting, and telling a child to save up for a number their
-	-- wallet can never reach is the buy-button-that-never-lights failure
-	-- `auditEconomy` exists to catch at the catalogue end.
-	if cost > Config.getCapacity(data.capacityLevel) then
-		notify(player, ("Your piggy bank can't hold %s yet. Grow it first."):format(Config.formatCoins(cost)), "warn")
-		return
-	end
+	-- ONE refusal. There used to be a second -- "your piggy bank can't hold
+	-- that yet" -- for a price above the pig's capacity, because a bounded
+	-- wallet made such a price impossible rather than dear. The pig has no
+	-- ceiling now, so every price is a wait and the only refusal is coins.
 	if data.coins < cost then
 		notify(player, ("You need %s coins for that."):format(Config.formatCoins(cost)), "warn")
 		return
@@ -220,10 +215,10 @@ function CosmeticsService.buyDecor(player: Player, key: string)
 	-- feature, so it says the sentence rather than going quiet.
 	if item.trophy then
 		if decor.owned[key] then
-			-- OWNED, AND NOT A LAWN ORNAMENT ANY MORE. Trophies are displayed
-			-- inside the house (`TrophyRoom`), so the toggle below would put
-			-- one back on the grass and hold a slot a bought ornament could
-			-- use. Said out loud rather than ignored: a card that does nothing
+			-- OWNED, AND NOT A LAWN ORNAMENT ANY MORE. Trophies belong to the
+			-- house (the in-house room is retired and the real base takes them
+			-- over later), so the toggle below would put one back on the grass
+			-- and hold a slot a bought ornament could use. Said out loud rather than ignored: a card that does nothing
 			-- when pressed is the silent failure this project refuses.
 			notify(player, ("%s is on show in your house."):format(item.name), "good")
 		else
@@ -316,18 +311,9 @@ end
 -- button that spends loot wearing a completed state, for a collection that
 -- does not exist. `Config.getRollCost` and its two constants went with it.
 --
--- `Config.ROLL_CURRENCY` DID NOT, and the distinction is worth keeping: that
--- names the loot currency itself, which the event chests still price in and
--- `ChestService` still reads. The roll was one SPENDER of loot rather than
--- its definition.
-
--- Acorn grants are server-owned; this file only
--- REPORTS it, in the push. It used to spend it too, on the accessory roll,
--- which is retired -- so nothing in this file takes loot off anybody now.
-function CosmeticsService.getLoot(player: Player): number
-	local data = DataService.get(player)
-	return if data then math.floor(data.loot or 0) else 0
-end
+-- `Config.ROLL_CURRENCY` WENT WITH IT IN THE END, and so did this file's
+-- `getLoot`: the roll was one SPENDER of that currency, and then the currency
+-- itself retired with the acorn track. There is one balance in this game.
 
 -- Wear it, or take it off if it is already on. Toggling is the only way to
 -- empty a slot: a separate "remove" control would double the number of things
@@ -491,16 +477,41 @@ function CosmeticsService.applyToPlot(player: Player)
 		return
 	end
 
-	local cosmetics = data.cosmetics
-	local skinKey = cosmetics.skin
+	-- THE SIX LAWN PEDESTALS GO THROUGH THE SAME DOOR AS EVERY OTHER "make the
+	-- plot match the data" repaint, which is what this function is for. Put
+	-- here rather than at each site that can move a piggy -- a crate grant, a
+	-- placement, a snatch, a rebirth -- because that would be five chances to
+	-- leave it out and a missed one is a piggy that is earning and invisible.
+	PlotService.setPiggySlots(plot, data)
+	-- Both halves at a repaint, for the reason `EconomyService.refreshPlot`
+	-- gives at length: the accrual tick publishes the figures only when a
+	-- buffer MOVED, so a join onto a lawn already at its cap would show six
+	-- cards with no number on them.
+	PlotService.setPiggyBuffers(plot, data)
 
-	-- An equipped skin can become unavailable: a rebirth-locked one only
-	-- unlocks at N rebirths, and this same save could in principle load
-	-- with fewer. Fall back rather than showing something unearned.
-	if not Config.isSkinUnlocked(skinKey, cosmetics.owned, data.rebirths) then
-		skinKey = Config.DEFAULT_SKIN
-		cosmetics.skin = skinKey
-	end
+	local cosmetics = data.cosmetics
+
+	-- THE BANK WEARS THE TILL PIGGY (designer decision 2026-09-22). The
+	-- centre pig IS `data.piggies.till`: that key already decides what the
+	-- bank earns (`EconomyService.slotRate` at slot 0), and a bank that
+	-- earned as one piggy while dressed as another was the world and the
+	-- server disagreeing, with the server being right. `Config.piggyKeyAt`
+	-- is the one reader -- it falls back to Classic for a retired key, so a
+	-- till never stands bare -- and the swap prompt is the one writer.
+	--
+	-- NO `isSkinUnlocked` GATE ANY MORE. That gate guarded a WARDROBE choice
+	-- against a rebirth-locked skin; the till piggy is owned as an OBJECT in
+	-- `piggies.owned`, counted the way every pedestal copy is, so there is no
+	-- such thing as an unearned one standing here.
+	local skinKey = Config.piggyKeyAt(data, 0)
+
+	-- MIRRORED INTO THE WARDROBE FIELD, because that field still has readers
+	-- that ask "what is this player wearing" -- the bag's `equipped` flag,
+	-- `SetService.inUse`, the rebirth sign, the skin-theft `wasWorn` -- and
+	-- every one of them must read the piggy that is actually on the bank.
+	-- One source of truth (`piggies.till`) and one mirror written beside the
+	-- thing it mirrors, rather than two fields two services can move apart.
+	cosmetics.skin = skinKey
 
 	-- The house that is STANDING, not the highest one owned -- and the sign
 	-- names the same one. A sign announcing a Sky Castle over a Beach Villa
@@ -595,7 +606,10 @@ function CosmeticsService.equipFinish(player: Player, key: string)
 	end
 	local c = data.cosmetics
 	if not (c.ownedFinishes and c.ownedFinishes[key]) then
-		notify(player, ("%s is a season reward. Earn acorns to reach its tier."):format(spec.name), "warn")
+		-- THE SEASON LADDER THAT GRANTED THESE IS RETIRED, so there is no
+		-- tier left to reach and no honest instruction to give. Said plainly
+		-- rather than pointing at a thing that no longer exists.
+		notify(player, ("%s is a season reward you have not earned."):format(spec.name), "warn")
 		return
 	end
 	c.finish = if c.finish == key then "" else key
@@ -743,18 +757,29 @@ function CosmeticsService.fireCatchEffect(target: Model?, nabber: Player)
 	target:SetAttribute(Config.CATCH_COUNT_ATTRIBUTE,
 		(target:GetAttribute(Config.CATCH_COUNT_ATTRIBUTE) or 0) + 1)
 end
+-- THE BANK IS NOT A WARDROBE ANY MORE, AND THIS SAYS SO OUT LOUD.
+--
+-- This used to write `cosmetics.skin` and repaint, which dressed the bank in
+-- whatever the bag tapped. The bank wears the TILL piggy now (see
+-- `applyToPlot`), and the only way onto the till is to carry a piggy up to
+-- it and hold SWAP -- a rule with an accounting behind it that a tap here
+-- has no way to keep (which copy comes off, and where does it go?). Left as
+-- it was, a bag tap would have written a field `applyToPlot` immediately
+-- overwrites: a control that does nothing when pressed, which is the one
+-- failure this project refuses above all others. So it refuses, and names
+-- the verb that does the job.
 function CosmeticsService.equipSkin(player: Player, key: string)
 	local data = DataService.get(player)
 	if not data then
 		return
 	end
-	if not Config.isSkinUnlocked(key, data.cosmetics.owned, data.rebirths) then
-		notify(player, ("%s isn't unlocked yet."):format(Config.getSkin(key).name), "warn")
+	local name = Config.getSkin(key).name
+	if Config.piggyKeyAt(data, 0) == key then
+		notify(player, ("%s is already on your piggy bank."):format(name), "warn")
 		return
 	end
-	data.cosmetics.skin = key
-	CosmeticsService.applyToPlot(player)
-	CosmeticsService.push(player)
+	notify(player, ("Carry %s up to your piggy bank and hold SWAP to put it on the till.")
+		:format(name), "warn")
 end
 
 function CosmeticsService.equipEffect(player: Player, key: string)

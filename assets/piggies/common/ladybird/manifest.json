@@ -1,0 +1,128 @@
+{
+  "key": "ladybird",
+  "name": "Ladybird",
+  "path": "assets/piggies/common/ladybird/",
+  "tier": "common",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); common/: Config.SKINS.ladybird.rarity = \"common\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/ladybird/",
+    "assets/piggies/ladybird/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/common/ladybird/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6237,
+      "name": "Ladybird",
+      "rarity": "common",
+      "surface": "ladybird",
+      "legendary": null,
+      "chest": "animal",
+      "scale": 0.75,
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": {
+      "key": "ladybird",
+      "line": 5766,
+      "name": "Ladybird",
+      "template": "ladybird",
+      "trimTemplate": "ladybird_trim"
+    },
+    "legendaryPacks": null,
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/ladybird.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://70951590980749",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/ladybird_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://136388810443010",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://70951590980749": {
+      "file": "sheets/ladybird_body_color.open-hatch.png",
+      "sha256": "0df22b40565d867d1000c2db3dc693cab22ece2496b138e6472bf7fdde534f18",
+      "role": "body ColorMap",
+      "note": "uploaded from the open-hatch bake"
+    },
+    "rbxassetid://136388810443010": {
+      "file": "sheets/ladybird_trim_color.png",
+      "sha256": "62e5c558c82a2f81a213d3a311b0df1ebf8cf5bf17878264121327621c82b856",
+      "role": "trim ColorMap"
+    }
+  },
+  "shopCard": {
+    "file": "preview/ladybird_shop-card.png",
+    "robloxAssetId": "rbxassetid://119616262270164",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/common/ladybird/package/shop-cards/ladybird.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/common/ladybird/package",
+    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "fileCount": 13,
+    "textureCopiesMatchShippedSheets": {
+      "ladybird_body_color.png": true,
+      "ladybird_trim_color.png": true
+    }
+  },
+  "closedBack": {
+    "closedScene": "source/ladybird_closed.blend",
+    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as ladybird_body_color.open-hatch.png. Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "ladybird.blend",
+      "ladybird_closed.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_ladybird_blend.py"
+    ],
+    "sheets": [
+      "ladybird_body_color.open-hatch.png",
+      "ladybird_body_color.png",
+      "ladybird_trim_color.png"
+    ],
+    "preview": [
+      "ladybird_hatch.png",
+      "ladybird_hero.png",
+      "ladybird_shop-card.json",
+      "ladybird_shop-card.png",
+      "ladybird_view.blend"
+    ],
+    "package": [
+      "README.md",
+      "index.html",
+      "ladybird-asset-report.json",
+      "ladybird-complete.blend",
+      "ladybird-complete.fbx",
+      "ladybird-crown.png",
+      "ladybird-front.png",
+      "ladybird-hero.png",
+      "ladybird-spine.png",
+      "ladybird_body_color.png",
+      "ladybird_trim_color.png",
+      "shop-cards/"
+    ]
+  },
+  "generator": "generate/make_ladybird_blend.py",
+  "notes": []
+}

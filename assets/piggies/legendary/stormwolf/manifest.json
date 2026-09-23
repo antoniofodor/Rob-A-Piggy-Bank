@@ -1,0 +1,123 @@
+{
+  "key": "stormwolf",
+  "name": "Storm Wolf",
+  "path": "assets/piggies/legendary/stormwolf/",
+  "tier": "legendary",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); legendary/: Config.SKINS.stormwolf.rarity = \"legendary\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/stormwolf/",
+    "assets/piggies/stormwolf/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/legendary/stormwolf/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6667,
+      "name": "Storm Wolf",
+      "rarity": "legendary",
+      "surface": null,
+      "legendary": "stormwolf",
+      "chest": "animal",
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": null,
+    "legendaryPacks": [
+      "legend_stormwolf"
+    ],
+    "status": "in Config.SKINS as a LEGENDARY: Config.LEGENDARIES.stormwolf lists its parts and the legend_* packs they wear"
+  },
+  "templates": {
+    "legend_stormwolf": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/legend_stormwolf.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://137463257069203",
+        "EmissiveMaskContent": "rbxassetid://80272858542206"
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://137463257069203": {
+      "file": "package/stormwolf_body_color.png",
+      "sha256": "0cdb0d1dafe6ac3fb6205a69fdde69137bb669c80ddda87008cc6416406372ac",
+      "role": "legend_stormwolf ColorMap",
+      "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    },
+    "rbxassetid://80272858542206": {
+      "file": "package/stormwolf_body_emissive.png",
+      "sha256": "e5edafbf31f576d06d007d67d34a8001cd3d996c5200484fd53fc5634b3efc88",
+      "role": "legend_stormwolf EmissiveMaskContent",
+      "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    }
+  },
+  "shopCard": {
+    "file": "package/shop-cards/stormwolf.png",
+    "robloxAssetId": "rbxassetid://99604169685516",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/legendary/stormwolf/package/shop-cards/stormwolf.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/legendary/stormwolf/package",
+    "note": "DERIVED by the legendary builders under blender/pig/make/ (build_*_legendary.py, build_stormwolf_layout.py) from this folder; not a source",
+    "fileCount": 85
+  },
+  "closedBack": {
+    "closedScene": null,
+    "note": "NOT closed: the Storm Wolf has its own Meshy body (not the quad-sphere the fill targets); the designer handles it by hand"
+  },
+  "files": {
+    "source": [
+      "stormwolf.blend"
+    ],
+    "generate": [
+      "look_stormwolf.py",
+      "make_stormwolf_blend.py",
+      "preview_anim.py"
+    ],
+    "sheets": [
+      "stormwolf_body_alpha.png",
+      "stormwolf_body_color.png",
+      "stormwolf_trim_alpha.png",
+      "stormwolf_trim_color.png"
+    ],
+    "preview": [
+      "stormwolf_view.blend"
+    ],
+    "package": [
+      "README.md",
+      "SCALE-NOTES.md",
+      "StormWolfLightning.luau",
+      "body-glow-checks.json",
+      "index.html",
+      "lightning-animation.json",
+      "lightning-frames/",
+      "lightning-preview-checks.json",
+      "lightning-video-check.png",
+      "shop-cards/",
+      "stormwolf-complete.blend",
+      "stormwolf-complete.fbx",
+      "stormwolf-crown.png",
+      "stormwolf-front.png",
+      "stormwolf-hero.png",
+      "stormwolf-layout-checks.json",
+      "stormwolf-layout.blend",
+      "stormwolf-lightning-off.png",
+      "stormwolf-lightning-on.png",
+      "stormwolf-lightning.mp4",
+      "stormwolf-rear.png",
+      "stormwolf-side.png",
+      "stormwolf-vault.png",
+      "stormwolf_body_color.png",
+      "stormwolf_body_emissive.png"
+    ]
+  },
+  "generator": "generate/make_stormwolf_blend.py",
+  "notes": [
+    "Config row carries a code-built pattern/anim; the baked sheets here are the authored replacement that has not been wired as a SurfacePacks pair yet."
+  ]
+}

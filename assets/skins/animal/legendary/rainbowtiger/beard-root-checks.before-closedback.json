@@ -1,0 +1,341 @@
+{
+  "roots": [
+    {
+      "lock": "RootPatch",
+      "side": -1,
+      "anchorNative": [
+        -0.8214241862297058,
+        -0.5630348920822144,
+        0.15620000660419464
+      ],
+      "bone": "Ruff_L",
+      "attachment": "cheek",
+      "outsideSnoutWidth": 0.25604546070098877,
+      "buriedInCheek": 0.025
+    },
+    {
+      "lock": "LongOuter",
+      "side": -1,
+      "anchorNative": [
+        -0.7749001979827881,
+        -0.6557134389877319,
+        0.008656373247504234
+      ],
+      "bone": "Ruff_L",
+      "attachment": "cheek",
+      "outsideSnoutWidth": 0.20952147245407104,
+      "buriedInCheek": 0.025
+    },
+    {
+      "lock": "LongBottom",
+      "side": -1,
+      "anchorNative": [
+        -0.6800000071525574,
+        -0.5818418264389038,
+        -0.44999998807907104
+      ],
+      "bone": "Ruff_L",
+      "attachment": "cheek",
+      "outsideSnoutWidth": 0.11462128162384033,
+      "buriedInCheek": 0.025
+    },
+    {
+      "lock": "ShortDown",
+      "side": -1,
+      "anchorNative": [
+        -0.7626602053642273,
+        -0.6169768571853638,
+        0.24101680517196655
+      ],
+      "bone": "Ruff_L",
+      "attachment": "cheek",
+      "outsideSnoutWidth": 0.19728147983551025,
+      "buriedInCheek": 0.025
+    },
+    {
+      "lock": "ShortOut",
+      "side": -1,
+      "anchorNative": [
+        -0.7364976406097412,
+        -0.6463137865066528,
+        0.2494834065437317
+      ],
+      "bone": "Ruff_L",
+      "attachment": "cheek",
+      "outsideSnoutWidth": 0.17111891508102417,
+      "buriedInCheek": 0.025
+    },
+    {
+      "lock": "LowerSweep",
+      "side": -1,
+      "anchorNative": [
+        -0.7649685740470886,
+        -0.6468342542648315,
+        -0.15406711399555206
+      ],
+      "bone": "Ruff_L",
+      "attachment": "cheek",
+      "outsideSnoutWidth": 0.19958984851837158,
+      "buriedInCheek": 0.025
+    },
+    {
+      "lock": "UpperSweep",
+      "side": -1,
+      "anchorNative": [
+        -0.9443737268447876,
+        -0.23693117499351501,
+        0.20610599219799042
+      ],
+      "bone": "Ruff_L",
+      "attachment": "cheek",
+      "outsideSnoutWidth": 0.37899500131607056,
+      "buriedInCheek": 0.025
+    },
+    {
+      "lock": "MiddleSweep",
+      "side": -1,
+      "anchorNative": [
+        -0.8833367228507996,
+        -0.47043976187705994,
+        0.08220550417900085
+      ],
+      "bone": "Ruff_L",
+      "attachment": "cheek",
+      "outsideSnoutWidth": 0.3179579973220825,
+      "buriedInCheek": 0.025
+    },
+    {
+      "lock": "RootPatch",
+      "side": 1,
+      "anchorNative": [
+        0.8214241862297058,
+        -0.5629726648330688,
+        0.15620000660419464
+      ],
+      "bone": "Ruff_R",
+      "attachment": "cheek",
+      "outsideSnoutWidth": 0.25604546070098877,
+      "buriedInCheek": 0.025
+    },
+    {
+      "lock": "LongOuter",
+      "side": 1,
+      "anchorNative": [
+        0.7749001979827881,
+        -0.655685544013977,
+        0.008656373247504234
+      ],
+      "bone": "Ruff_R",
+      "attachment": "cheek",
+      "outsideSnoutWidth": 0.20952147245407104,
+      "buriedInCheek": 0.025
+    },
+    {
+      "lock": "LongBottom",
+      "side": 1,
+      "anchorNative": [
+        0.6800000071525574,
+        -0.582316517829895,
+        -0.44999998807907104
+      ],
+      "bone": "Ruff_R",
+      "attachment": "cheek",
+      "outsideSnoutWidth": 0.11462128162384033,
+      "buriedInCheek": 0.025
+    },
+    {
+      "lock": "ShortDown",
+      "side": 1,
+      "anchorNative": [
+        0.7626602053642273,
+        -0.616862416267395,
+        0.24101680517196655
+      ],
+      "bone": "Ruff_R",
+      "attachment": "cheek",
+      "outsideSnoutWidth": 0.19728147983551025,
+      "buriedInCheek": 0.025
+    },
+    {
+      "lock": "ShortOut",
+      "side": 1,
+      "anchorNative": [
+        0.7364976406097412,
+        -0.6458607912063599,
+        0.2494834065437317
+      ],
+      "bone": "Ruff_R",
+      "attachment": "cheek",
+      "outsideSnoutWidth": 0.17111891508102417,
+      "buriedInCheek": 0.025
+    },
+    {
+      "lock": "LowerSweep",
+      "side": 1,
+      "anchorNative": [
+        0.7649685740470886,
+        -0.646976113319397,
+        -0.15406711399555206
+      ],
+      "bone": "Ruff_R",
+      "attachment": "cheek",
+      "outsideSnoutWidth": 0.19958984851837158,
+      "buriedInCheek": 0.025
+    },
+    {
+      "lock": "UpperSweep",
+      "side": 1,
+      "anchorNative": [
+        0.9443737268447876,
+        -0.23678144812583923,
+        0.20610599219799042
+      ],
+      "bone": "Ruff_R",
+      "attachment": "cheek",
+      "outsideSnoutWidth": 0.37899500131607056,
+      "buriedInCheek": 0.025
+    },
+    {
+      "lock": "MiddleSweep",
+      "side": 1,
+      "anchorNative": [
+        0.8833367228507996,
+        -0.470416396856308,
+        0.08220550417900085
+      ],
+      "bone": "Ruff_R",
+      "attachment": "cheek",
+      "outsideSnoutWidth": 0.3179579973220825,
+      "buriedInCheek": 0.025
+    },
+    {
+      "lock": "InnerCheekUpper",
+      "side": -1,
+      "bone": "Ruff_L",
+      "attachment": "cheek",
+      "anchorNative": [
+        -0.7799999713897705,
+        -0.5966595411300659,
+        0.23000000417232513
+      ],
+      "outsideSnoutWidth": 0.21462124586105347,
+      "attachmentSurfaceNative": [
+        -0.7799999713897705,
+        -0.621659517288208,
+        0.23000000417232513
+      ],
+      "rootInset": 0.025
+    },
+    {
+      "lock": "InnerCheekLower",
+      "side": -1,
+      "bone": "Ruff_L",
+      "attachment": "cheek",
+      "anchorNative": [
+        -0.7900000214576721,
+        -0.6306284666061401,
+        0.07500000298023224
+      ],
+      "outsideSnoutWidth": 0.22462129592895508,
+      "attachmentSurfaceNative": [
+        -0.7900000214576721,
+        -0.6556284427642822,
+        0.07500000298023224
+      ],
+      "rootInset": 0.025
+    },
+    {
+      "lock": "UnderSnoutSide",
+      "side": -1,
+      "bone": "Root",
+      "attachment": "undersnout",
+      "anchorNative": [
+        -0.27000001072883606,
+        -1.0399999618530273,
+        -0.46584808826446533
+      ],
+      "outsideSnoutWidth": -0.295378714799881,
+      "attachmentSurfaceNative": [
+        -0.27000001072883606,
+        -1.0399999618530273,
+        -0.48384809494018555
+      ],
+      "rootInset": 0.018
+    },
+    {
+      "lock": "InnerCheekUpper",
+      "side": 1,
+      "bone": "Ruff_R",
+      "attachment": "cheek",
+      "anchorNative": [
+        0.7799999713897705,
+        -0.5965198278427124,
+        0.23000000417232513
+      ],
+      "outsideSnoutWidth": 0.21462124586105347,
+      "attachmentSurfaceNative": [
+        0.7799999713897705,
+        -0.6215198040008545,
+        0.23000000417232513
+      ],
+      "rootInset": 0.025
+    },
+    {
+      "lock": "InnerCheekLower",
+      "side": 1,
+      "bone": "Ruff_R",
+      "attachment": "cheek",
+      "anchorNative": [
+        0.7900000214576721,
+        -0.6306174993515015,
+        0.07500000298023224
+      ],
+      "outsideSnoutWidth": 0.22462129592895508,
+      "attachmentSurfaceNative": [
+        0.7900000214576721,
+        -0.6556174755096436,
+        0.07500000298023224
+      ],
+      "rootInset": 0.025
+    },
+    {
+      "lock": "UnderSnoutSide",
+      "side": 1,
+      "bone": "Root",
+      "attachment": "undersnout",
+      "anchorNative": [
+        0.27000001072883606,
+        -1.0399999618530273,
+        -0.46584808826446533
+      ],
+      "outsideSnoutWidth": -0.295378714799881,
+      "attachmentSurfaceNative": [
+        0.27000001072883606,
+        -1.0399999618530273,
+        -0.48384809494018555
+      ],
+      "rootInset": 0.018
+    },
+    {
+      "lock": "UnderSnoutCenter",
+      "side": 1,
+      "bone": "Root",
+      "attachment": "undersnout",
+      "anchorNative": [
+        0.0,
+        -1.0399999618530273,
+        -0.5468274354934692
+      ],
+      "outsideSnoutWidth": -0.565378725528717,
+      "attachmentSurfaceNative": [
+        0.0,
+        -1.0399999618530273,
+        -0.5648274421691895
+      ],
+      "rootInset": 0.018
+    }
+  ],
+  "snoutHalfWidthNative": 0.565378725528717,
+  "snoutBottomNative": -0.7318602800369263,
+  "allRootedOnCheeksOrUnderSnout": true
+}

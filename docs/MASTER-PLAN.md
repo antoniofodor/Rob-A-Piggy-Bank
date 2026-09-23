@@ -29,6 +29,52 @@ twice.
 
 ---
 
+## THE ACORN TRACK IS RETIRED (2026-09-21). READ THIS BEFORE BUILDING FROM ANY SECTION BELOW.
+
+**Acorns, the tree, the carry basket, the storage crate, the shake minigame,
+the pig-crack acorn and the acorn-ranked season ladder were removed from the
+codebase in full.** `data.loot` is deleted (schema 29). There is one currency:
+coins.
+
+What forced it was a crate decision rather than a complaint about acorns:
+**crates are EARNED or bought with ROBUX, never with in-game currency**
+(designer, 2026-09-21). Acorns had two spenders -- crates and set items -- so
+once crates stopped taking them there was a whole currency, faucet, minigame,
+ladder, HUD tab and save-field set left buying three alien cosmetics. The
+reasoning is written up in full in `CLAUDE.md` under **THERE IS ONE
+CURRENCY**; `docs/GAME.md` describes what the game is now.
+
+**SO THE FOLLOWING ARE VOID AS PLANS AND SURVIVE ONLY AS RECORD** -- the
+measurements in them are still the honest arithmetic of the day they were
+taken, and Part III's whole purpose is that a rejected road stays rejected,
+so nothing here is deleted:
+
+| section | what it planned |
+| --- | --- |
+| 3. Acorns are the spine | the currency itself |
+| 4. The tree, carry basket and storage crate | the faucet and its geometry |
+| 9. Street badges and nearby Acorn cooldowns | the acorn half of it |
+| 12. Seasons, boards and achievements | the season RANK; the nemesis ledger and the board's other two pages survive |
+| 19 and 19.1-19.6 | the whole re-centred acorn loop |
+| Phase 1 -- Acorns | built, then retired |
+| Phase 2 -- The tree, carry basket, storage crate and timed collection | built, then retired |
+| Phase 5 -- season one | the ladder half |
+
+**WHAT SURVIVED OUT OF THEM, so nobody deletes it by association:**
+`Config.seasonIndex`/`seasonEndsAt` (the buy-back claims and the hot-skin
+window key off that clock), the NEMESIS ledger, Top Thieves and Top
+Defenders, and `Config.FINISHES` -- which is now **unobtainable** until
+something grants it again, and is the one real hole this left.
+
+**AND THE ROBUX HALF IS NOT BUILT.** A direct Robux-to-crate purchase puts
+every crate inside Roblox's paid random item rule: disclosed numerical odds
+summing to 100% shown before purchase, and an `ArePaidRandomItemsRestricted`
+gate. That is `docs/PIGGY-COLLECTION-PLAN.md` section 14 / Stage 6, and
+`Config.auditRandomOutcomes` now refuses any crate carrying a price until it
+ships.
+
+---
+
 # PART I -- THE DESIGN
 
 ## 1. Constraints that may not be broken

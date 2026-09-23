@@ -4,7 +4,7 @@
     blender --background --python make/make_stormwolf_skin.py
     blender --background --python make/make_stormwolf_skin.py -- --margin 0.008
 
-Writes `skins/stormwolf/stormwolf.blend`, which `bake_skin.py --skin stormwolf`
+Writes `assets/piggies/legendary/stormwolf/source/stormwolf.blend`, which `bake_skin.py --skin stormwolf`
 then turns into `stormwolf_body_color.png` with no further arguments.
 
 WHY THIS EXISTS: THE SHARED CYLINDER SMEARS THIS ANIMAL, AND IT IS MEASURED.
@@ -162,7 +162,7 @@ print("  improvement: x%.1f -> x%.1f" % (before, after))
 # one map by a field that knows where they are in space.
 ob.name = "Body"
 
-out = _os.path.join(paths.skin_dir("stormwolf"), "stormwolf.blend")
+out = paths.skin_blend("stormwolf")
 bpy.ops.wm.save_as_mainfile(filepath=out)
 print("  wrote %s" % _os.path.relpath(out, _root))
 print("  next: blender --background --python make/bake_skin.py -- --skin stormwolf")

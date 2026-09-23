@@ -4,7 +4,7 @@
     blender.exe --background --python make_view_blend.py -- --skin bee
     blender.exe --background --python make_view_blend.py -- --skin bee --render
 
-...then open `pig_view.blend` and orbit it.
+...then open `assets/piggies/<tier>/<skin>/preview/<skin>_view.blend` and orbit it.
 
 WHY THIS EXISTS. There is no way to preview a texture in Studio without
 uploading it -- a Roblox texture is addressed by asset id, and getting an id IS

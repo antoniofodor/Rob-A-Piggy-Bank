@@ -3,7 +3,9 @@ from pathlib import Path
 import bpy,json,math,hashlib
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
-ROOT=Path(__file__).resolve().parents[1];OUT=ROOT.parents[1]/'assets/skins/animal/legendary/dragon'
+ROOT=Path(__file__).resolve().parents[1]
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+OUT=Path(paths.animal_package('dragon'))
 bpy.ops.wm.open_mainfile(filepath=str(OUT/'dragon-complete.blend'));scene=bpy.context.scene
 rig=bpy.data.objects['Dragon_Rig'];parts=[o for o in scene.objects if o.type=='MESH' and 'bone' in o]
 def pose(r,frame):

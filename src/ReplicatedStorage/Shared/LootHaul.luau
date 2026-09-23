@@ -13,9 +13,8 @@
 	     something.
 	  3. THE DELIVERY. The coins stream into the ACTUAL PIG on the lawn one by
 	     one -- more of them the bigger the haul -- then each stolen item gets
-	     a reveal and flies to the bag, the acorns rise and fly to their chip,
-	     and a summary screen names the lot. See `rushCoins`, `revealItem`,
-	     `riseAndFly` and `Config.BANK_RUSH`.
+	     a reveal and flies to the bag, and a summary screen names the lot.
+	     See `rushCoins`, `revealItem` and `Config.BANK_RUSH`.
 
 	NONE OF IT INTERRUPTS, and that is the constraint the whole file is built
 	against rather than a nicety. Every one of these lands while the player is
@@ -136,14 +135,17 @@ end
 -- How many coins a haul pours, and how far apart they start. Returned as a
 -- pair because the stagger tightens when a long stream would outrun
 -- `maxDuration`, and the caller needs the total to time what comes after.
-local function streamShape(banked: number?, capacity: number?): (number, number)
+-- `fullAt` is what the pig reads as full on the lawn (the rebirth cash gate,
+-- `Config.pigFullAt`) -- a readout the stream is sized against, never a
+-- limit: the pig has no ceiling and nothing spills.
+local function streamShape(banked: number?, fullAt: number?): (number, number)
 	local spec = Config.BANK_RUSH
 	local count = spec.count
-	if type(banked) == "number" and type(capacity) == "number" and capacity > 0 then
+	if type(banked) == "number" and type(fullAt) == "number" and fullAt > 0 then
 		if banked <= 0 then
 			return 0, spec.stagger
 		end
-		local share = math.clamp(banked / capacity, 0, 1)
+		local share = math.clamp(banked / fullAt, 0, 1)
 		count = math.floor(spec.minCount + (spec.maxCount - spec.minCount) * math.sqrt(share) + 0.5)
 	end
 	local stagger = spec.stagger
@@ -211,9 +213,9 @@ local function driveCoins()
 	end
 end
 
-local function rushCoins(bank: any, banked: number?, capacity: number?): number
+local function rushCoins(bank: any, banked: number?, fullAt: number?): number
 	local spec = Config.BANK_RUSH
-	local count, stagger = streamShape(banked, capacity)
+	local count, stagger = streamShape(banked, fullAt)
 	if typeof(bank) ~= "Instance" or not bank:IsA("BasePart") then
 		-- No pig to rush into. The summary still names the figure, so the
 		-- payout is reported either way -- but a delivery with no bank on it
@@ -239,7 +241,7 @@ local function rushCoins(bank: any, banked: number?, capacity: number?): number
 
 	-- SILENT, DELIBERATELY. A delivery used to stack a slot-machine pour, a
 	-- clink as the last coin landed, a sting and a sparkle per stolen item, a
-	-- clink per acorn and the summary's stamp on top of the cha-ching --
+	-- clink per mint and the summary's stamp on top of the cha-ching --
 	-- reported as far too many sounds for one event. The cha-ching (the
 	-- `money` toast) is the whole soundtrack now; everything here is picture.
 
@@ -325,114 +327,9 @@ end
 -- The ghost must already be parented to the ScreenGui, centre-anchored, at the
 -- pixel it starts from. SHRUNK BY A UISCALE, NOT BY `Size`, so whatever is
 -- drawn inside it -- pixel-laid or not -- shrinks with the frame.
--- COINS THAT DID NOT FIT BURST OUT OF THE PIG AND LAND IN THE YARD.
---
--- A full pig banks nothing (Config.fitInPig), and until this the only sign
--- was a line of text: the coins simply were not there. Now the overflow is a
--- picture -- coins pop out of the top of the pig, arc over the lawn, land
--- flat in the grass, lie there a moment and sink away. Same coin mesh as the
--- rush, same camera folder, and the same shape rule for how many: sized to
--- the SPILL against the pig, so a trickle over the brim and a whole haul
--- bouncing off a full pig look different.
---
--- Purely a picture and purely local. Nothing on the lawn can be picked up:
--- the coins are gone, which is the rule, and a pile that looked collectable
--- would be the game lying about it.
-local spilling: { any } = {}
-local spillDriver: RBXScriptConnection? = nil
-
-local function driveSpill()
-	local now = os.clock()
-	for i = #spilling, 1, -1 do
-		local c = spilling[i]
-		if not c.part.Parent then
-			table.remove(spilling, i)
-			continue
-		end
-		local a = math.clamp((now - c.t0) / c.fall, 0, 1)
-		if a < 1 then
-			local pos = c.from:Lerp(c.to, a) + Vector3.new(0, c.peak * 4 * a * (1 - a), 0)
-			local tumble = (now - c.t0) * c.spin
-			c.part.CFrame = CFrame.new(pos) * CFrame.Angles(tumble, c.yaw, tumble * 0.6)
-		else
-			-- LANDED: flat on the grass, face up, then sinking away.
-			local rest = now - c.t0 - c.fall
-			local sink = math.clamp((rest - c.lie) / 0.6, 0, 1)
-			c.part.CFrame = CFrame.new(c.to - Vector3.new(0, sink * c.depth, 0))
-				* CFrame.Angles(math.pi / 2, 0, c.yaw)
-			if sink >= 1 then
-				c.part:Destroy()
-				table.remove(spilling, i)
-			end
-		end
-	end
-	if #spilling == 0 and spillDriver then
-		spillDriver:Disconnect()
-		spillDriver = nil
-	end
-end
-
-local function spillCoins(bank: any, spilled: number?, capacity: number?): number
-	if type(spilled) ~= "number" or spilled <= 0 then
-		return 0
-	end
-	if typeof(bank) ~= "Instance" or not bank:IsA("BasePart") then
-		return 0
-	end
-	local camera = Workspace.CurrentCamera
-	if not camera then
-		return 0
-	end
-	local folder = camera:FindFirstChild("LootFX")
-	if not folder then
-		folder = Instance.new("Folder")
-		folder.Name = "LootFX"
-		folder.Parent = camera
-	end
-	local spec = Config.BANK_RUSH
-	-- At least a handful even for a trickle, so a spill is always SEEN.
-	local count = math.max(6, (streamShape(spilled, capacity)))
-	local stagger = 0.05
-	local top = bank.Position + Vector3.new(0, bank.Size.Y / 2, 0)
-	-- The lawn, found by casting down past everything client-only. Falls back
-	-- to the pig's own underside.
-	local ignore = RaycastParams.new()
-	ignore.FilterType = Enum.RaycastFilterType.Exclude
-	local exclude: { Instance } = { folder, bank }
-	local me = game:GetService("Players").LocalPlayer
-	if me and me.Character then
-		table.insert(exclude, me.Character)
-	end
-	ignore.FilterDescendantsInstances = exclude
-	local floorY = bank.Position.Y - bank.Size.Y / 2
-
-	for i = 1, count do
-		task.delay((i - 1) * stagger, function()
-			if not bank.Parent then return end
-			local angle = math.random() * math.pi * 2
-			local reach = 5 + math.random() * 7
-			local land = bank.Position + Vector3.new(math.cos(angle) * reach, 0, math.sin(angle) * reach)
-			local hit = Workspace:Raycast(land + Vector3.new(0, 6, 0), Vector3.new(0, -30, 0), ignore)
-			local groundY = if hit then hit.Position.Y else floorY
-			local mesh = CoinModel.clone(spec.meshStuds)
-			if not mesh then return end
-			mesh.Name = "SpillCoin"
-			mesh.CFrame = CFrame.new(top)
-			mesh.Parent = folder
-			table.insert(spilling, {
-				part = mesh, t0 = os.clock(),
-				from = top, to = Vector3.new(land.X, groundY + mesh.Size.Z / 2 + 0.02, land.Z),
-				fall = 0.75 + math.random() * 0.3, peak = 3 + math.random() * 2,
-				spin = (math.random() * 2 - 1) * 12, yaw = math.random() * math.pi * 2,
-				lie = 1.6 + math.random() * 0.6, depth = mesh.Size.Z + 0.1,
-			})
-			if not spillDriver then
-				spillDriver = RunService.Heartbeat:Connect(driveSpill)
-			end
-		end)
-	end
-	return (count - 1) * stagger + 1.05
-end
+-- (The SPILL picture -- coins that did not fit bursting out of the pig and
+-- landing in the yard -- stood here and is retired with the pig's ceiling:
+-- every delivery banks in full, so there is nothing to spill.)
 
 local function flyGhost(ghost: GuiObject, px: number, target: GuiObject?, spin: boolean,
 	onLand: (() -> ())?)
@@ -478,72 +375,10 @@ local function screenPoint(gui: Instance, world: Vector3): Vector2?
 	return at
 end
 
--- AN ACORN, RISING OUT OF THE PIG AND THEN FLYING TO THE ACORN CHIP.
---
--- TWO HALVES BECAUSE THEY LIVE IN TWO SPACES. The rise is a BillboardGui on
--- the pig, so it stands over the real object the player is looking at; the
--- flight is a screen-space frame started at the exact pixel the billboard
--- was on, so the hand-over is seamless. `build` draws the contents into
--- whichever of the two it is handed.
-local function riseAndFly(gui: Instance, bank: BasePart, px: number,
-	build: (Frame) -> (), target: GuiObject?, spin: boolean, onLand: (() -> ())?)
-	local spec = Config.BANK_RUSH
-	local host = gui.Parent
-	if not host then return end
-	local base = bank.Position
-
-	local board = Instance.new("BillboardGui")
-	board.Name = "LootRise"
-	board.Size = UDim2.fromOffset(px, px)
-	board.AlwaysOnTop = true
-	board.LightInfluence = 0
-	-- SIBLING, NOT THE DEFAULT GLOBAL. A shop card paints its tier colour at
-	-- ZIndex -2 underneath the card; Global ordering drew the dark card base
-	-- OVER that colour, which is why a stolen skin rose out of the pig on a
-	-- black card and only turned its tier colour once it reached the HUD.
-	board.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	board.StudsOffsetWorldSpace = Vector3.new(0, 3, 0)
-	board.Adornee = bank
-	board.ResetOnSpawn = false
-	board.Parent = host
-	local holder = Instance.new("Frame")
-	holder.Name = "Holder"
-	holder.BackgroundTransparency = 1
-	holder.Size = UDim2.fromScale(1, 1)
-	holder.Parent = board
-	local scale = Instance.new("UIScale")
-	scale.Scale = 0.2
-	scale.Parent = holder
-	build(holder)
-
-	-- Up out of the pig, overshooting a touch as it pops to full size.
-	tween(board, 0.45, { StudsOffsetWorldSpace = Vector3.new(0, spec.rise, 0) },
-		Enum.EasingStyle.Back)
-	tween(scale, 0.45, { Scale = 1 }, Enum.EasingStyle.Back)
-
-	task.delay(0.45 + spec.acornHold, function()
-		local world = (if bank.Parent then bank.Position else base) + board.StudsOffsetWorldSpace
-		board:Destroy()
-		if not target or not target.Parent then
-			return
-		end
-		-- Behind the camera: start from the middle of the screen rather than
-		-- from a mirrored point on the wrong side of it.
-		local at = screenPoint(gui, world) or ((gui :: any).AbsoluteSize / 2)
-
-		local ghost = Instance.new("Frame")
-		ghost.Name = "LootFlying"
-		ghost.BackgroundTransparency = 1
-		ghost.AnchorPoint = Vector2.new(0.5, 0.5)
-		ghost.Size = UDim2.fromOffset(px, px)
-		ghost.Position = UDim2.fromOffset(at.X, at.Y)
-		ghost.Active = false
-		ghost.ZIndex = 40
-		ghost.Parent = gui
-		build(ghost)
-		flyGhost(ghost, px, target, spin, onLand)
-	end)
-end
+-- `riseAndFly` STOOD HERE: an icon rose out of the pig on a BillboardGui
+-- and then flew, in screen space, to a chip on the HUD. Its only caller was
+-- the acorn beat of a delivery, and it went with the currency. The stolen
+-- item's reveal below is a different sequence and never used it.
 
 -- A STOLEN ITEM'S REVEAL, which is the loudest moment of a delivery on
 -- purpose: coins are the everyday payout and a skin is the thing somebody
@@ -897,9 +732,9 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 	makeRing("Home", Theme.GOLD)
 	makeRing("Return", Theme.GOOD)
 
-	local crackOpen, shakeOpen = false, false
+	local crackOpen = false
 	local function paintRings()
-		local busy = crackOpen or shakeOpen
+		local busy = crackOpen
 		for _, ring in pairs(rings) do
 			local on = ring.spec ~= nil and not busy
 			ring.band.Visible, ring.wall.Visible = on, on
@@ -907,10 +742,6 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 	end
 	Remotes.get("CrackState").OnClientEvent:Connect(function(payload)
 		crackOpen = payload ~= nil
-		paintRings()
-	end)
-	Remotes.get("ShakeState").OnClientEvent:Connect(function(payload)
-		shakeOpen = payload ~= nil and payload.ended ~= true
 		paintRings()
 	end)
 	local function setRings(options: any?)
@@ -1086,7 +917,7 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 	-- ---------- the delivery summary ----------
 	--
 	-- THE LAST BEAT, AND THE ONE PLACE THIS FILE STOPS THE PLAYER. It comes
-	-- after the coins, any stolen item and any acorns have all landed, so it
+	-- after the coins and any stolen item have all landed, so it
 	-- is a receipt for things the player has just watched arrive rather than
 	-- a promise. A tap closes it -- after `summaryGate`, so a tap already on
 	-- its way does not dismiss it unread -- and `summaryAuto` closes it on its
@@ -1178,7 +1009,6 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 	Theme.title(coinAmount, 46, Theme.GOLD_INK)
 
 	local bankedLabel = line("Banked", 14, Theme.MUTED, false)
-	local spillLabel = line("Spilled", 15, Theme.WARN_INK, true)
 
 	local function strip(stripName: string): Frame
 		local row = Instance.new("Frame")
@@ -1213,10 +1043,10 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 	local tapLabel = line("TapToContinue", 16, Theme.MUTED, true)
 	tapLabel.Text = "TAP TO CONTINUE"
 
-	-- One pill in the chip strip: a tone-tinted ground, an optional icon, a
-	-- word. The acorn chip carries the real acorn icon, the same one the HUD
-	-- chip it just flew into wears.
-	local function addChip(order: number, tone: Color3, text: string, icon: string?)
+	-- One pill in the chip strip: a tone-tinted ground and a word. It used to
+	-- take an icon as well, for the acorn chip; that was its only caller and
+	-- it went with the currency, so the parameter went too.
+	local function addChip(order: number, tone: Color3, text: string)
 		local pill = Instance.new("Frame")
 		pill.Name = "Chip"
 		pill.AutomaticSize = Enum.AutomaticSize.X
@@ -1236,11 +1066,6 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 		layout.Padding = UDim.new(0, 6)
 		layout.SortOrder = Enum.SortOrder.LayoutOrder
 		layout.Parent = pill
-		if icon == "acorn" then
-			local a = Theme.acorn(pill, 26)
-			a.LayoutOrder = 1
-			a.ZIndex = 73
-		end
 		local label = Instance.new("TextLabel")
 		label.Name = "Label"
 		label.AutomaticSize = Enum.AutomaticSize.X
@@ -1282,28 +1107,21 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 		local mine = summaryToken
 		local revenge = payload.revenge == true
 		local banked = math.floor(tonumber(payload.banked) or 0)
-		local spilled = math.floor(tonumber(payload.spilled) or 0)
 		local run = math.floor(tonumber(payload.run) or 0)
-		local acorns = math.floor(tonumber(payload.acorns) or 0)
 
-		-- A FULL PIG IS ITS OWN RESULT, NOT A DELIVERY WITH A FOOTNOTE. Every
-		-- coin went on the grass, so the card leads with that in the warning
-		-- colour and the figure stays at +0 rather than counting anything up.
-		local full = banked <= 0 and spilled > 0
-		ribbon.BackgroundColor3 = if full then Theme.WARN elseif revenge then Theme.STOP else Theme.GOOD
+		-- No PIGGY FULL result any more: the pig has no ceiling, so every
+		-- delivery banks in full and the card is DELIVERED or REVENGE.
+		ribbon.BackgroundColor3 = if revenge then Theme.STOP else Theme.GOOD
 		Theme.gloss(ribbon, ribbon.BackgroundColor3, ribbon.BackgroundColor3:Lerp(Color3.new(), 0.3))
-		ribbonTitle.Text = if full then "PIGGY FULL!" elseif revenge then "REVENGE!" else "DELIVERED!"
-		ribbonTitle.TextColor3 = if revenge and not full then Theme.PAPER else Theme.INK
-		coinAmount.TextColor3 = if full then Theme.MUTED else Theme.GOLD_INK
+		ribbonTitle.Text = if revenge then "REVENGE!" else "DELIVERED!"
+		ribbonTitle.TextColor3 = if revenge then Theme.PAPER else Theme.INK
+		coinAmount.TextColor3 = Theme.GOLD_INK
 		local victim = if type(payload.victim) == "string" and payload.victim ~= "" then payload.victim else nil
 		fromLabel.Text = if victim then ("You robbed %s"):format(victim) else "You got the haul home"
-		bankedLabel.Text = if full then "your piggy was already full" else "banked into your piggy"
-		spillLabel.Text = if spilled > 0
-			then ("%s coins spilled into your yard"):format(Config.formatCoins(spilled)) else ""
+		bankedLabel.Text = "banked into your piggy"
 
 		clearRow(chips)
-		if run > 1 then addChip(1, Theme.WARN, ("%dx IN A ROW"):format(run), nil) end
-		if acorns > 0 then addChip(2, Theme.GOOD, ("+%d"):format(acorns), "acorn") end
+		if run > 1 then addChip(1, Theme.WARN, ("%dx IN A ROW"):format(run)) end
 		clearRow(itemRow)
 		for i, item in ipairs(stolen) do
 			local tile = buildTile(itemRow, item.kind, item.key, 76, iconFor)
@@ -1325,7 +1143,6 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 		place(fromLabel, 22, 4, true)
 		place(coinRow, 58, 0, true)
 		place(bankedLabel, 20, 6, true)
-		place(spillLabel, 20, 6, spilled > 0)
 		place(chips, 40, 12, #chips:GetChildren() > 1)
 		place(itemRow, 76, 12, #stolen > 0)
 		place(bagButton, 40, 12, #stolen > 0 and openBag ~= nil)
@@ -1399,8 +1216,8 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 	-- ---------- the delivery sequence ----------
 	--
 	-- ONE THING AT A TIME, IN THE ORDER A PLAYER CAN FOLLOW: the coins pour
-	-- into the pig, each stolen item gets its reveal and goes to the bag,
-	-- the acorns rise and go to their chip, and then the summary names it all.
+	-- into the pig, each stolen item gets its reveal and goes to the bag, and
+	-- then the summary names it all.
 	-- A second delivery arriving mid-sequence takes over from the first.
 	local sequence = 0
 	Remotes.get("HeistDelivered").OnClientEvent:Connect(function(payload: any)
@@ -1419,19 +1236,14 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 				end
 			end
 		end
-		local acorns = math.floor(tonumber(payload.acorns) or 0)
 		local bank: BasePart? = if typeof(payload.bank) == "Instance" and payload.bank:IsA("BasePart")
 			then payload.bank else nil
 		local spec = Config.BANK_RUSH
 
 		-- NO BANK SOUND HERE: the delivery toast is the one cha-ching.
 		task.spawn(function()
-			local pour = rushCoins(payload.bank, payload.banked, payload.capacity)
-			-- WHAT DID NOT FIT GOES ON THE GRASS, after the part that did went
-			-- in -- so a nearly full pig reads as "some in, the rest over the
-			-- top", and a full one as nothing going in at all.
-			local spill = spillCoins(payload.bank, payload.spilled, payload.capacity)
-			task.wait(pour + spill + 0.25)
+			local pour = rushCoins(payload.bank, payload.banked, payload.fullAt)
+			task.wait(pour + 0.25)
 			if sequence ~= mine then return end
 
 			local satchel = anchor("BagToggle")
@@ -1446,25 +1258,10 @@ function LootHaul.start(gui: Instance, iconFor: ((string, string, Frame) -> ())?
 				if sequence ~= mine then return end
 			end
 
-			if acorns > 0 and bank then
-				local slot = anchor("AcornBalance")
-				if not slot then
-					warn("[LootHaul] no AcornBalance chip to fly the acorns into")
-				end
-				local shown = math.min(acorns, spec.acornsShown)
-				for i = 1, shown do
-					task.delay((i - 1) * 0.18, function()
-						if sequence ~= mine then return end
-						riseAndFly(gui, bank :: BasePart, 56, function(into: Frame)
-							local icon = Theme.acorn(into, 56)
-							icon.AnchorPoint = Vector2.new(0.5, 0.5)
-							icon.Position = UDim2.fromScale(0.5, 0.5)
-						end, slot, false, function() end)
-					end)
-				end
-				task.wait((shown - 1) * 0.18 + 0.45 + spec.acornHold + FLY + 0.15)
-				if sequence ~= mine then return end
-			end
+			-- THE ACORN BEAT STOOD HERE: an acorn per mint rose out of the pig
+			-- and flew to its chip on the HUD. Both the currency and the chip
+			-- retired, so a delivery is the coins and the stolen items and
+			-- then the summary.
 
 			showSummary(payload, stolen)
 		end)

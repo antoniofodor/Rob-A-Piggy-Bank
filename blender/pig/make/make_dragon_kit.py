@@ -1207,14 +1207,14 @@ def sheet_mat(name, png, glow=None):
     return m
 
 
-# THE REAL SKIN IF IT HAS BEEN BAKED, THE BLOCKING GREY IF NOT. `skins/dragon/`
+# THE REAL SKIN IF IT HAS BEEN BAKED, THE BLOCKING GREY IF NOT. `assets/piggies/legendary/dragon/sheets/`
 # already carries a molten scale bake with burning seams, built before this
 # kit existed -- so the honest preview is the geometry in that skin, and the
 # grey is only the fallback for a tree that has not run the bake.
 _dc = paths.skin_map("dragon", "body")
 _dt = paths.skin_map("dragon", "trim")
-_da = os.path.join(paths.skin_dir("dragon"), "dragon_body_alpha.png")
-_ta = os.path.join(paths.skin_dir("dragon"), "dragon_trim_alpha.png")
+_da = paths.skin_alpha("dragon", "body")
+_ta = paths.skin_alpha("dragon", "trim")
 # GREY BY DEFAULT AND DRESSED ONLY ON REQUEST, WHICH IS THE OPPOSITE OF WHAT
 # THIS STARTED AS AND IS THE RIGHT WAY ROUND FOR A GEOMETRY LOOP.
 #

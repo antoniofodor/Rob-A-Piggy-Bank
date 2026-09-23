@@ -24,15 +24,25 @@ nothing here is read at run time: these are the SOURCE files behind assets
 that had to be uploaded to Roblox and are referenced by id from `Config`.
 
 **This folder is for art authored OUTSIDE the Blender pipeline** -- Meshy,
-Studio's AI generator, anything hand-modelled, anything bought. The pig's own
-pipeline is `blender/pig/` and it has its own contract in
-`blender/pig/WORKFLOW.md` and its own `paths.py`; **do not move anything
-there**, because sixty scripts resolve their locations through that one file.
+Studio's AI generator, anything hand-modelled, anything bought -- **and, since
+2026-09-22, for the piggy skins themselves:** [`piggies/<key>/`](piggies/README.md)
+is the source of truth for every skin (scene, generator, sheets, previews and
+a manifest of the live ids), by the designer's decision. The pig's TOOLKIT is
+still `blender/pig/` with its contract in `blender/pig/WORKFLOW.md` and its
+`paths.py`; do not move anything of the toolkit, because sixty scripts resolve
+their locations through that one file -- which is also exactly what made the
+skins movable in one diff.
 
-The newer oak and dog Blender authoring scripts live in `blender/tree/` and
-`blender/dogs/`; their reviewable `.blend`, GLB, and render deliverables live
-with the named assets in `assets/tree/blender/` and `assets/dogs/`. This does
-not change the pig pipeline's paths.
+The newer oak Blender authoring script lives in `blender/tree/`; its
+reviewable `.blend`, GLB, and render deliverables live with the named asset in
+`assets/tree/blender/`. This does not change the pig pipeline's paths.
+
+`blender/dogs/` is **gone** (2026-09-21). It authored three low-poly guard dogs
+and was superseded twice over: the approved roster is authored by
+`blender/guards/` below, and the dogs the game actually stands on a lawn are
+built in CODE by `GuardDog.luau` rather than from a mesh at all -- see
+`CLAUDE.md` on why a repainted-per-breed animal cannot be one shared mesh. The
+deliverables it produced are still in `assets/dogs/`.
 
 The approved simpler guard direction is in `assets/guards/`, authored by
 `blender/guards/`. It includes the three revised dogs and five wild/elite
@@ -54,9 +64,9 @@ assets/
     terrier/  shepherd/  mastiff/
 ```
 
-That is deliberately the same rule `blender/pig/skins/<skin>/` already
-follows -- *a skin owns a folder and everything in it is named after the
-skin* -- rather than a second convention to learn. The payoff is that the
+That is deliberately the same rule `assets/piggies/<tier>/<skin>/` follows -- *a
+skin owns a folder and everything in it is named after the skin* -- rather
+than a second convention to learn. The payoff is that the
 folder name and the `Config` key are the same string, so the source of a
 shipped asset is findable from the code and the code is findable from the
 source with no index in between.

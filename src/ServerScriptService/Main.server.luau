@@ -40,6 +40,7 @@ local UpgradeService = require(Services.UpgradeService)
 local ProgressionService = require(Services.ProgressionService)
 local CosmeticsService = require(Services.CosmeticsService)
 local HeistService = require(Services.HeistService)
+local PiggyHaulService = require(Services.PiggyHaulService)
 local BoneService = require(Services.BoneService)
 local RideService = require(Services.RideService)
 local SettingsService = require(Services.SettingsService)
@@ -56,8 +57,8 @@ local DailyService = require(Services.DailyService)
 local PassService = require(Services.PassService)
 local TrophyService = require(Services.TrophyService)
 local AdminService = require(Services.AdminService)
-local TreeService = require(Services.TreeService)
 local SeasonService = require(Services.SeasonService)
+local InteriorService = require(Services.InteriorService)
 
 -- The legendary skins' meshes start loading now, in the background, so a
 -- player wearing one on join is dressed at once rather than a beat later.
@@ -102,11 +103,20 @@ PlotService.start()
 -- resident still living in it.
 ResidentService.start()
 SocialService.start()
+-- The street leaderboard: lifetime cash, piggies robbed and rebirths for
+-- everybody in the server, pushed on the leaderboard's cadence. Required and
+-- started in one statement; it needs nothing from here.
+require(Services.LobbyBoardService).start()
 EconomyService.start()
 UpgradeService.start()
 ProgressionService.start()
 CosmeticsService.start()
 HeistService.start()
+-- AFTER `HeistService` AND AFTER `PlotService`, AND BOTH HALVES MATTER. It
+-- connects a trigger to every pedestal on every plot, so the plots have to
+-- exist; and the three questions it answers for `HeistService` are registered
+-- below, so that file has to have loaded.
+PiggyHaulService.start()
 HeldItemService.start()
 BoneService.start()
 -- Both reach into HeistService, so they start after it.
@@ -126,11 +136,43 @@ PassService.start()
 RideService.start()
 SettingsService.start()
 SetService.start()
-TreeService.start()
 SeasonService.start()
--- A house purchase can open a new tree level (Config.TREE_HOUSE_GATE), so
--- the owner's offer is rewritten the moment one lands.
-CosmeticsService.onHouseBought(TreeService.refresh)
+-- The front door. Last of the plot chain, because it requires PlotService
+-- and wants the plots standing before it probes a hallway at boot -- and
+-- deliberately NOT before `PlotService.start`, which is what builds the
+-- houses it reads a door anchor off.
+InteriorService.start()
+
+-- ROAMING HERDS -- the PvE supply of piggies (docs/HERDS-PLAN.md).
+--
+-- After the plots, whose yards it must stay out of, and after SetService,
+-- whose `grant`/`repaint` a catch lands through. THE YARD TEST ARRIVES AS A
+-- VETO RATHER THAN A REQUIRE, so HerdService stays a leaf that requires
+-- Config, Remotes, PiggyModel, DataService and SetService and nothing else
+-- -- the same registry shape as the trampoline's bounce veto and the
+-- held-item vetoes above, and for the same reason.
+--
+-- The boot audit first, because every number in `Config.HERDS` is a
+-- placeholder and the failures it catches are numbers: a cap that is not a
+-- tier, a roster row weighting a tier the cap forbids, a band with no depth.
+-- Nothing errors on any of them; what they produce is a herd that never
+-- comes or one walking through a fence.
+do
+	local problems = Config.auditHerds()
+	if #problems > 0 then
+		warn(("[Main] %d PROBLEMS IN THE HERD TABLE. See Config.HERDS."):format(#problems))
+		for _, problem in ipairs(problems) do
+			warn("[Main]   " .. problem)
+		end
+	end
+end
+local HerdService = require(Services.HerdService)
+HerdService.addGroundVeto(function(position: Vector3): boolean
+	return PlotService.yardContaining(position) ~= nil
+end)
+HerdService.addGroundVeto(require(ReplicatedStorage.Shared.Grassland).blocks) -- a pack steers round the ponds
+HerdService.addGroundVeto(NeighborhoodService.treeBlocks) -- and round the trunks, never the canopies
+HerdService.start()
 
 -- WHAT MAY NOT BE DRAWN, AND WHY IT IS REGISTERED RATHER THAN REQUIRED.
 --
@@ -156,11 +198,33 @@ end)
 --
 -- A set spans five catalogues owned by two services, so granting a ride has
 -- to tell RideService and granting a skin has to tell CosmeticsService. But
--- RideService requires HeistService, which requires EventService, which needs
--- SetService -- so SetService requiring either of them directly is a cycle.
+-- RideService requires HeistService, which requires SetService -- so
+-- SetService requiring either of them directly is a cycle.
 -- It holds a table of pushers instead, and Main is the one file that already
 -- requires everything and can therefore wire them without a loop.
-SetService.registerPusher("skin", CosmeticsService.push)
+-- A SKIN IS A PIGGY NOW, SO ITS PUSHER HAS TO REPAINT THE PLOT AND NOT ONLY
+-- THE HUD -- and until it did, a crate open was correct in the save and
+-- invisible on the lawn.
+--
+-- `CosmeticsService.push` sends STATE to the client; `applyToPlot` is the one
+-- whose job is making the plot match the data, and it is what dresses the six
+-- pedestals. With only the former registered, `SetService.grant` wrote the
+-- new piggy into a slot and nothing stood it up: measured live, a crate
+-- rolled `skin:sunset` onto free slot 6 and that pedestal was still bare
+-- afterwards, with the save perfectly correct. Nothing errors, and the crate
+-- reads as having handed over nothing.
+--
+-- THIRD TIME THIS EXACT SHAPE HAS BITTEN in this feature alone -- a value
+-- written and never republished. The other two were the till's own figure and
+-- the buffers being published only when they moved. The rule stands: anything
+-- that changes a pig has to republish it in the same breath.
+--
+-- The heavier call is affordable because a skin grant is a crate open rather
+-- than a tick, and `applyToPlot` is idempotent.
+SetService.registerPusher("skin", function(player: Player)
+	CosmeticsService.applyToPlot(player)
+	CosmeticsService.push(player)
+end)
 SetService.registerPusher("effect", CosmeticsService.push)
 SetService.registerPusher("accessory", CosmeticsService.push)
 SetService.registerPusher("decor", CosmeticsService.push)
@@ -179,7 +243,6 @@ end
 -- Loot is spent in two places -- the set panel, which SetService pushes
 -- itself, and the accessory roll, whose balance rides on CosmeticsService's
 -- push -- so an award has to reach both.
-SetService.registerLootPusher(CosmeticsService.push)
 
 -- THE TROPHY SHELF REACHES THE SHOP THE SAME WAY, AND FOR THE SAME REASON.
 --
@@ -232,14 +295,13 @@ do
 	end
 end
 
--- EVERY PRICE HAS TO FIT IN A PIG, AND THIS IS WHERE THAT GETS CHECKED.
+-- THE CATALOGUE AND LADDER AUDIT, AND THIS IS WHERE IT GETS HEARD.
 --
--- The pig is the wallet now, so a price above capacity is not an expensive
--- thing, it is an IMPOSSIBLE one -- and it fails silently, as a button that
--- never lights. `Config.auditEconomy` walks both upgrade ladders, every
--- catalogue and every rebirth gate against the largest pig the game can
--- produce. See `Config.UPGRADE_COST_CEILING`: the trees hold by construction,
--- so anything this finds is a catalogue price somebody has just typed.
+-- It used to check every price against the largest pig the game could
+-- produce, because a bounded wallet made a price above it IMPOSSIBLE rather
+-- than dear. The pig has no ceiling now, so `Config.auditEconomy` is
+-- structural instead: retired gates, house ids, priced-or-earned, the
+-- rebirth cash gate being complete, the rarity ladder being priced.
 --
 -- Loud in STUDIO as well as live, unlike the animation warning above -- that
 -- one is about an asset that only fails when published, this one is about a
@@ -254,8 +316,8 @@ do
 		-- Luau refuse the whole chunk. This file is Main, so the cost of that
 		-- is every service in the game rather than one warning. A format
 		-- string with no backslash in it has nothing to get wrong.
-		warn(("[Main] %d PRICES CANNOT BE PAID -- the pig cannot hold them, so "):format(#problems)
-			.. "nobody can ever buy them by earning. See Config.UPGRADE_COST_CEILING.")
+		warn(("[Main] %d PROBLEMS IN THE ECONOMY AUDIT -- see Config.auditEconomy for "):format(#problems)
+			.. "what each check is about.")
 		for _, problem in ipairs(problems) do
 			warn("[Main]   " .. problem)
 		end
@@ -334,6 +396,44 @@ do
 	end
 end
 
+-- IS THERE ROOM ON THE LAWN FOR THE SIX PEDESTALS? Six coordinates on a lawn
+-- that already carries a twelve-stud piggy, a kennel, an oak, a basket, a
+-- doorstep crate and the walk from the gate -- and every one of those is a
+-- constant somebody may move for its own reasons. The failure is a number:
+-- nothing errors, the pedestal builds, and what it produces is a display
+-- piece standing inside a kennel or half through a house wall. Warned in
+-- Studio too, for the reason `auditEconomy` is -- the moment to hear about a
+-- number is while you are typing it. See Config.auditPiggySlots.
+do
+	local problems = Config.auditPiggySlots()
+	if #problems > 0 then
+		warn(("[Main] %d PIGGY PEDESTALS DO NOT FIT ON THE LAWN. "):format(#problems)
+			.. "See Config.PIGGY_LAWN_SLOTS and Config.PIGGY_PEDESTAL.")
+		for _, problem in ipairs(problems) do
+			warn("[Main]   " .. problem)
+		end
+	end
+end
+
+-- DOES A REBIRTH STILL OPEN A DOOR? Indoor capacity is the one thing rebirth
+-- is now the gate on, and the whole ladder hangs off a single fraction in
+-- `Config.INDOOR.plotsPerRebirth` -- so a hand edit to it is a rebirth that
+-- silently opens nothing, or a hallway three times longer than anybody
+-- intended standing off-map once per plot. Nothing errors either way: the
+-- corridor builds, the doors work, and the failure is a NUMBER. Warned in
+-- Studio too, for the reason `auditEconomy` is -- the moment to hear about a
+-- number is while you are typing it. See Config.auditIndoor.
+do
+	local problems = Config.auditIndoor()
+	if #problems > 0 then
+		warn(("[Main] %d PROBLEMS IN THE INDOOR CAPACITY LADDER. "):format(#problems)
+			.. "See Config.INDOOR and Shared/HouseInterior.")
+		for _, problem in ipairs(problems) do
+			warn("[Main]   " .. problem)
+		end
+	end
+end
+
 -- CAN A STOLEN SKIN BE WON BACK? Taking a cosmetic off a real player is the
 -- one place this game spends its "never lose permanent progress" rule, and
 -- the whole thing rests on the loss being TIME rather than the item. That is
@@ -388,24 +488,21 @@ do
 	end
 end
 
--- Phase 1.9 audits warn without blocking startup. The acorn figures are a
--- ceiling model (step 2.6: own tree plus the pig-crack acorn), not observed
--- live earning rates. Resident seed is one-off stock and is excluded.
+-- THE RANDOM-OUTCOME SWEEP, which is the one that is left and the one that
+-- matters most now.
+--
+-- It stood beside an Acorn faucet audit that modelled how fast a tree filled
+-- and what a crate therefore cost. Both went with the currency. What this one
+-- guards is sharper than either: a crate must carry NO price, because the day
+-- one does, every crate in the game is a paid random item under Roblox's rule
+-- and needs disclosed odds and a `PolicyService` gate before it may be sold.
+-- Warned rather than fatal, like the audits around it.
 do
-	for _, audit in ipairs({ { name = "Acorns", run = Config.auditAcorns }, { name = "random-outcome sweep", run = Config.auditRandomOutcomes } }) do
-		local ok, problems = pcall(audit.run)
-		if not ok then
-			warn("[Main] " .. audit.name .. " audit could not run: " .. tostring(problems))
-		else
-			for _, problem in ipairs(problems) do warn("[Main] " .. audit.name .. ": " .. problem) end
-		end
-	end
-	local ok, solo, full = pcall(function()
-		return Config.acornRates(1), Config.acornRates(Config.MAX_PLAYERS)
-	end)
-	if ok then
-		print(("[Main] Acorn faucet model (own tree + pig-crack ceiling; no storage raids, no acorn theft; online growth only, the overnight fill is in tests/sim/acorns): solo %.2f/full %.2f per player-hour (%.2f from cracks); active/passive %.2fx/%.2fx; solo common %.0f min, full-server common %.0f min, legendary %.2f h; a top tree grows %.2f/h live")
-			:format(solo.perThiefPerHour, full.perThiefPerHour, full.crackPerHour, solo.activeRatio, full.activeRatio, solo.commonMinutes, full.commonMinutes, full.legendaryHours, solo.treeTopPerHour))
+	local ok, problems = pcall(Config.auditRandomOutcomes)
+	if not ok then
+		warn("[Main] random-outcome sweep could not run: " .. tostring(problems))
+	else
+		for _, problem in ipairs(problems) do warn("[Main] random-outcome sweep: " .. problem) end
 	end
 end
 
@@ -419,6 +516,43 @@ ChestService.start()
 -- lists at one line -- and it is what makes "a decoration never changes an
 -- outcome" true by construction rather than by argument.
 PlotService.registerBounceVeto(HeistService.isCarrying)
+-- Five wanted stars call the patrol out early. SocialService cannot require
+-- PoliceService (which requires it), so the consequence is registered here.
+SocialService.registerStarAlarm(function()
+	PoliceService.call()
+end)
+
+-- AND THE SAME ARROW AGAIN FOR WHAT A PIGGY EARNS. `PlotService` builds the
+-- rate row under each pedestal's name and cannot work out what to print on
+-- it: the live figure folds in a friend bonus and a daily boost, which means
+-- asking EconomyService, which already requires PlotService. Without this
+-- one line the labels build and stay blank -- a failure that looks exactly
+-- like the feature not existing, which is why it is registered beside the
+-- veto above rather than somewhere a reader has to go looking for it.
+PlotService.registerPiggyRates(EconomyService.pedestalRates)
+
+-- AND THE OTHER THING A THIEF CAN BE CARRYING.
+--
+-- `PiggyHaulService` requires `HeistService` -- it needs the shield, the
+-- dodge immunity and the one function that owns every speed rule in the game
+-- -- so `HeistService` cannot ask back. Registered here, the same shape as
+-- the bounce veto above and the set pushers below it, which keeps both
+-- dependency lists at one line and makes the cycle impossible rather than
+-- merely absent today.
+--
+-- WHAT THE THREE ARE FOR. `isHauling` is what makes "is this player
+-- carrying" ONE question with one answer however many kinds of thing there
+-- turn out to be -- the carry speed penalty, the ride refusal, the disguise
+-- breaking and the dog hearing a loaded thief all read it. `nab` is the seam
+-- every catcher in the game already comes through, so a guard dog, a
+-- shopkeeper and a bystander all stop a piggy thief without one of them being
+-- the exception somebody forgot. `confiscate` is the patrol's, and without it
+-- an arrest would hold a thief still, charge them nothing and leave the piggy
+-- under their arm.
+HeistService.registerPiggyHaul(
+	PiggyHaulService.isHauling,
+	PiggyHaulService.nab,
+	PiggyHaulService.confiscate)
 
 -- A NEIGHBOUR GOING OUT ROBBING NEEDS THE HEIST'S OWN ACCOUNTING, and cannot
 -- ask for it: HeistService already requires ResidentService, so the arrow only
@@ -433,6 +567,13 @@ PlotService.registerBounceVeto(HeistService.isCarrying)
 -- would be the one nobody is testing.
 ResidentService.registerTake(HeistService.residentTake)
 ResidentService.registerGiveBack(HeistService.residentGiveBack)
+-- AND THE PIGGY SNATCH, THROUGH THE SERVICE THAT OWNS IT, for the identical
+-- reason: `PiggyHaulService` requires `ResidentService`. A neighbour's grab
+-- off a plinth and the put-back on a nab both run the player's own path, so
+-- the per-victim cooldown, the shield and the victim's alarm have exactly
+-- one implementation.
+ResidentService.registerSnatch(PiggyHaulService.residentSnatch)
+ResidentService.registerPiggyReturn(PiggyHaulService.residentReturn)
 -- The shopkeeper's catch, through the same accounting a guard dog's catch
 -- uses. Registered rather than required, because `HeistService` already
 -- requires `ResidentService` and asking back would be a cycle.
@@ -488,8 +629,7 @@ local function onPlayerAdded(player: Player)
 	ProgressionService.push(player)
 	CosmeticsService.applyToPlot(player)
 	CosmeticsService.push(player)
-	TreeService.apply(player)
-	-- The season chip, the nemesis line and the season push (Phase 5).
+	-- The nemesis line (Phase 5).
 	SeasonService.onPlayerAdded(player)
 	HeistService.onPlayerAdded(player)
 	BoneService.push(player)

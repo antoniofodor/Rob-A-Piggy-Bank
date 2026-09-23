@@ -13,20 +13,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local DEFINITIONS = {
-	-- Client asks to buy an upgrade: ("income" | "capacity").
+	-- Client asks to buy an upgrade: ("income"). "capacity" was the other
+	-- track and is retired with the pig's ceiling; the server ignores it.
 	PurchaseRequest = "RemoteEvent",
 
 	-- Server pushes the authoritative snapshot of a player's own state.
 	StateUpdate = "RemoteEvent",
-
-	-- Server-only cosmetic cue for live growth; no client request handler.
-	AcornGrown = "RemoteEvent",
-	ShakeState = "RemoteEvent",
-	ShakeCatch = "RemoteEvent", -- attempt ID and server-scheduled Acorn index only
-	ShakeStop = "RemoteEvent",
-	-- Private victim-id -> server-time deadlines, shared by tree/crate raids.
-	-- Empty client request resends its own snapshot; no timers accepted.
-	AcornCooldown = "RemoteEvent",
 
 	-- Server tells a client something worth a toast ("Banked 4,210 coins").
 	Notify = "RemoteEvent",
@@ -61,12 +53,6 @@ local DEFINITIONS = {
 
 	-- Client asks to buy a defence or offence upgrade, by key.
 	UpgradeRequest = "RemoteEvent",
-	-- Buy the next tree level (step 2.7). Carries nothing.
-	TreeRequest = "RemoteEvent",
-	-- Phase 5: the reader's season (tier, acorns, next need, end time) and
-	-- the season board rows around them. Server -> client.
-	SeasonState = "RemoteEvent",
-
 	-- Server pushes the player's upgrade levels, costs and caps.
 	UpgradeState = "RemoteEvent",
 
@@ -319,22 +305,20 @@ local DEFINITIONS = {
 	-- prize is a client that decided its own prize.
 	EventDrop = "RemoteEvent",
 
-	-- Client asks to buy a set item with LOOT, by kind and key. The server
-	-- re-reads the price from Config; nothing about the cost is sent.
-	LootBuy = "RemoteEvent",
+	-- THERE IS NO `LootBuy`. It bought a set item with the retired second
+	-- currency; the Alien Cache is the route to one now.
 
-	-- Server pushes the loot balance and every set's contents and progress.
+	-- Server pushes every set's contents and progress.
 	SetState = "RemoteEvent",
 
 	-- Admin console. Every request is re-authorised server-side against the
 	-- allowlist; the existence of this channel grants nobody anything.
 	AdminRequest = "RemoteEvent",
 
-	-- Client asks to open a chest, by KEY AND NOTHING ELSE. No tier, no item,
-	-- no price: the server re-reads the cost from Config, rolls the tier from
-	-- its own odds and picks the item from its own pool, so there is nothing
-	-- here to forge that is worth forging.
-	ChestOpen = "RemoteEvent",
+	-- THERE IS NO `ChestOpen`. A crate is earned rather than bought, so no
+	-- client channel opens one: `ChestService.grantFree` is reached from the
+	-- daily ladder, a rebirth and events and from nowhere on the wire.
+	--
 	-- Buy back one claimed skin; only the skin key crosses the wire.
 	SkinBuyback = "RemoteEvent",
 
@@ -347,7 +331,7 @@ local DEFINITIONS = {
 
 	-- Client asks to sell spare copies. Carries "kind:key" and a count, and
 	-- NEITHER A PRICE NOR A CURRENCY: the server re-derives what the thing is
-	-- worth from Config.sellValue, exactly as ChestOpen re-reads a cost. The
+	-- worth from Config.sellValue. The
 	-- one thing a client could usefully forge here would be the payout, so it
 	-- is not on the wire.
 	SpareSell = "RemoteEvent",
@@ -392,6 +376,31 @@ local DEFINITIONS = {
 	-- fought by the client that owns the physics. The server teleports anybody
 	-- still inside the yard afterwards, so the client cannot opt out.
 	DogKnockout = "RemoteEvent",
+	-- Server tells ONE player to cover the screen: they have just walked
+	-- through a front door. Carries a WAY ("in" or "out") and nothing else --
+	-- not a position, not a destination, not a room.
+	--
+	-- THE CLIENT DRAWS THE COVER AND THE SERVER MAKES THE MOVE, which is the
+	-- opposite split from the trampoline and for the opposite reason. There
+	-- the server cannot write a character's velocity, so the client applies
+	-- it; here the server CAN write a character's CFrame and must, because an
+	-- interior is a real place and where somebody is standing is not a thing
+	-- a client gets to claim. All this channel buys is that the screen is
+	-- black before the world changes.
+	--
+	-- Timed from `Config.HOUSE_DOOR`, which both ends read: the server waits
+	-- `maskLead` before teleporting and the client holds and fades on the two
+	-- numbers beside it, so the cover cannot drift off either side of the move
+	-- it exists to hide.
+	DoorCross = "RemoteEvent",
+
+	-- THE STREET LEADERBOARD: everybody in this server with three LIFETIME
+	-- figures -- cash, piggies robbed, rebirths -- sorted by cash. Broadcast
+	-- rather than per client, because unlike `WantedState` nothing in a row
+	-- is about the recipient; the client highlights its own row itself.
+	-- Pushed on `Config.LEADERBOARD_REFRESH` and on every join and leave.
+	LobbyBoard = "RemoteEvent",
+
 	AdminState = "RemoteEvent",
 }
 

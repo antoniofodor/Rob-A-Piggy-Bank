@@ -58,7 +58,12 @@ local function shop(icon: Frame)
 	part(icon, "Roof", 10, 16, 76, 10, Theme.GOOD, 4, 5, 3)
 end
 
-local builders = { GEAR = options, SATCHEL = stuff, BASKET = shop }
+local function board(icon: Frame)
+	-- The trophy the shop's marks already draw: a leaderboard is a cup.
+	require(script.Parent.ShopMarks).draw(icon, "trophy", 96)
+end
+
+local builders = { GEAR = options, SATCHEL = stuff, BASKET = shop, TROPHY = board }
 
 function MenuIcons.makeButton(name: string, kind: string, label: string,
 	size: UDim2, parent: Instance): TextButton

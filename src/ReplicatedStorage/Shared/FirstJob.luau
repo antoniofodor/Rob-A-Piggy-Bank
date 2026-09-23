@@ -45,15 +45,12 @@ local function build(parent: ScreenGui): any
 	Theme.corner(card, 12)
 	Theme.outline(card)
 	local coin = Theme.coin(card, 28)
-	local acorn = Theme.acorn(card, 28)
 	local thumbnail = Instance.new("Frame")
 	thumbnail.Name, thumbnail.BackgroundTransparency = "StolenSkin", 1
 	thumbnail.Size, thumbnail.Position = UDim2.fromOffset(36, 36), UDim2.fromOffset(5, 4)
 	thumbnail.Parent = card
-	for _, glyph in ipairs({ coin, acorn }) do
-		glyph.AnchorPoint = Vector2.new(0, 0.5)
-		glyph.Position = UDim2.new(0, 10, 0.5, 0)
-	end
+	coin.AnchorPoint = Vector2.new(0, 0.5)
+	coin.Position = UDim2.new(0, 10, 0.5, 0)
 	local function label(name: string, size: number): TextLabel
 		local text = Instance.new("TextLabel")
 		text.Name = name
@@ -126,7 +123,7 @@ local function build(parent: ScreenGui): any
 	end
 	parent:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
 	fit()
-	return { card = card, line = line, detail = detail, amount = amount, coin = coin, acorn = acorn,
+	return { card = card, line = line, detail = detail, amount = amount, coin = coin,
 		thumbnail = thumbnail, recoveryMark = recoveryMark, stack = stack, fit = fit }
 end
 
@@ -207,8 +204,9 @@ function FirstJob.start(me: Player, parent: ScreenGui, injected: any?)
 		ui.card.Active = row ~= nil
 		ui.card.AutoButtonColor = row ~= nil
 		local showSkin = row ~= nil and mode ~= "buyback"
-		ui.coin.Visible = row == nil
-		ui.acorn.Visible = mode == "buyback"
+		-- The coin covers the buy-back too, which is priced in coins now; it
+		-- used to carry an acorn glyph of its own.
+		ui.coin.Visible = row == nil or mode == "buyback"
 		ui.thumbnail.Visible, ui.recoveryMark.Visible = showSkin, showSkin
 		ui.stack.Text = if count > 1 then "+" .. (count - 1) else ""
 		local nextKey = if showSkin then row.key else nil
@@ -226,7 +224,7 @@ function FirstJob.start(me: Player, parent: ScreenGui, injected: any?)
 			ui.detail.Text = extra .. row.name
 			if mode == "buyback" then
 				ui.line.Text = "BUY IT BACK"
-				ui.amount.Text = ("%d ACORNS"):format(row.cost)
+				ui.amount.Text = ("%s COINS"):format(Config.formatCoins(row.cost))
 				ui.detail.Text ..= " · Tap for Crates"
 			elseif mode == "home" then
 				ui.line.Text = "GET IT HOME"

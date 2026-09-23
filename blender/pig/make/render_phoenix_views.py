@@ -2,7 +2,9 @@
 from pathlib import Path
 import bpy,hashlib
 from mathutils import Vector
-out=Path(__file__).resolve().parents[1].parents[1]/'assets/skins/animal/legendary/phoenix'
+ROOT=Path(__file__).resolve().parents[1]
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+out=Path(paths.animal_package('phoenix'))
 source=out/'phoenix-complete.blend';digest=hashlib.sha256(source.read_bytes()).hexdigest()
 bpy.ops.wm.open_mainfile(filepath=str(source));scene=bpy.context.scene;cam=scene.camera
 scene.frame_set(55);cam.data.ortho_scale=26

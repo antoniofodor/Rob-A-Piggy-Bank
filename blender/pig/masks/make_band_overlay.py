@@ -59,7 +59,7 @@ import paths   # noqa: E402 -- the one place that knows the layout
 import struct, zlib, os
 
 
-OUT = paths.skin_dir("metal")
+OUT = paths.skin_sheets_dir("metal")
 W, H = 64, 512          # constant along U, so the width is only mip headroom
 
 # THE SHADOWS CARRY THIS, NOT THE HIGHLIGHTS, AND THAT IS A MEASUREMENT

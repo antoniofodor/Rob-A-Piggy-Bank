@@ -73,7 +73,7 @@ for group,names in [('body',['Body']),('trim',['Snout','Ears','Legs','Tail'])]:
                 else:emission.inputs['Color'].default_value=(0,0,0,1)
             nt.links.new(emission.outputs[0],output.inputs['Surface']);restored.append((nt,output,surface,emission,target))
         select(obs);bpy.ops.object.bake(type='EMIT')
-        path=OUT/f'dragon_{group}_{channel}.png';image.filepath_raw=str(path);image.file_format='PNG';image.save();image.pack();sheets[channel]=image
+        path=OUT/f'dragon_{group}_{channel}.png';dragon_raised_scales.save_png(image,path);image.pack();sheets[channel]=image
         maps.append(dict(file=path.name,sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
         for nt,output,surface,emission,target in restored:nt.links.new(surface,output.inputs['Surface']);nt.nodes.remove(emission);nt.nodes.remove(target)
     m=material(group,(255,255,255));nt=m.node_tree;b=nt.nodes['Principled BSDF'];b.inputs['Roughness'].default_value=.8

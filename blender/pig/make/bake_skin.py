@@ -57,7 +57,13 @@ SKIN = arg("--skin", "bee")
 # THE BLEND IS DERIVED FROM THE SKIN, which is what a skin owning a folder
 # buys. It used to be a second argument, so `--skin tiger --blend pig_bee.blend`
 # was a legal command that baked one animal materials into another sheets.
-BLEND = arg("--blend", paths.skin_blend(SKIN))
+#
+# AND IT IS THE CLOSED-BACK SCENE WHEN THE SKIN HAS ONE. `paths.skin_bake_blend`
+# prefers `source/<key>_closed.blend` over `source/<key>.blend`, because the
+# current body sheet (designer, 2026-09-22) is the one baked with the vault
+# hatch filled, and baking the open scene over it would put the black disc
+# back on the rump with nothing to say so. `--blend` still overrides.
+BLEND = arg("--blend", paths.skin_bake_blend(SKIN))
 # THE DELIVERED SIZE, WHICH IS ROBLOX'S CAP. The bake runs at twice this and is
 # scaled down, so the extra resolution is spent entirely on ANTI-ALIASING --
 # every delivered texel is the average of four. Baked at 1024 directly, a band
@@ -66,13 +72,14 @@ BLEND = arg("--blend", paths.skin_blend(SKIN))
 SIZE = int(arg("--size", "1024"))
 SUPER = SIZE * 2
 
-# A SKIN THAT OWNS ITS TEXTURES OWNS A FOLDER. `skins/animal/` holds sheets
-# named by marking TYPE -- spots, stripes, patches -- because one of those
-# dresses a leopard, a cheetah and a snow leopard between them, and filing it
-# under any one animal would be a lie about what it is. A FULL-COLOUR texture
-# is the opposite: it carries its own colours, so it belongs to exactly one
-# skin and nothing else can ever wear it.
-OUT = paths.skin_dir(SKIN)
+# A SKIN THAT OWNS ITS TEXTURES OWNS A FOLDER -- `assets/piggies/<tier>/<skin>/`,
+# with the sheets in its `sheets/` room. The retired `skins/animal/` held
+# sheets named by marking TYPE -- spots, stripes, patches -- because one of
+# those dressed a leopard, a cheetah and a snow leopard between them, and
+# filing it under any one animal would have been a lie about what it is. A
+# FULL-COLOUR texture is the opposite: it carries its own colours, so it
+# belongs to exactly one skin and nothing else can ever wear it.
+OUT = paths.skin_sheets_dir(SKIN)
 os.makedirs(OUT, exist_ok=True)
 
 # THE BODY IS ONE PART AND EVERYTHING ELSE IS THE TRIM, which is the game's own

@@ -1,0 +1,66 @@
+{
+  "name": "Patched",
+  "parent": "giraffe",
+  "base": [
+    238,
+    226,
+    205
+  ],
+  "ink": [
+    176,
+    106,
+    94
+  ],
+  "nose": [
+    198,
+    150,
+    140
+  ],
+  "ear": [
+    216,
+    176,
+    166
+  ],
+  "pale": [
+    247,
+    240,
+    226
+  ],
+  "tweaks": [
+    [
+      "this cell's own gap",
+      "To Min",
+      0.03
+    ],
+    [
+      "this cell's own gap",
+      "To Max",
+      0.03
+    ],
+    [
+      "wander amount",
+      1,
+      0.006
+    ],
+    [
+      "grain amount",
+      1,
+      0.004
+    ],
+    [
+      "finer over the face",
+      "To Min",
+      2.3
+    ],
+    [
+      "finer over the face",
+      "To Max",
+      1.75
+    ]
+  ],
+  "skin": "patched",
+  "rarity": "rare",
+  "parentScene": "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\giraffe\\giraffe.blend",
+  "parentSceneSha256": "3381b2893e16477da368094ed2c0119e284be9b5d3ec4b89cb75d16e35a2e651",
+  "glow": "None. Flat baked colour; no emissive channel, no animation, no extra geometry"
+}

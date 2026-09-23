@@ -197,7 +197,9 @@ function TrafficService.send(): string
 			TrafficService.clear()
 		end
 	end)
-	return ("Van away, west to east at %d studs/s."):format(Config.DELIVERY.speed)
+	-- `%.1f`, never `%d`: the speed is a RATIO of `BASE_WALK_SPEED` and a base
+	-- that lands it on a fraction would make `%d` throw on every van.
+	return ("Van away, west to east at %.1f studs/s."):format(Config.DELIVERY.speed)
 end
 
 function TrafficService.start()

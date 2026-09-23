@@ -1,0 +1,128 @@
+{
+  "key": "giraffe",
+  "name": "Giraffe",
+  "path": "assets/piggies/common/giraffe/",
+  "tier": "common",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); common/: Config.SKINS.giraffe.rarity = \"common\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/giraffe/",
+    "assets/piggies/giraffe/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/common/giraffe/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6389,
+      "name": "Giraffe",
+      "rarity": "common",
+      "surface": "giraffe",
+      "legendary": null,
+      "chest": "animal",
+      "scale": 1.2,
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": {
+      "key": "giraffe",
+      "line": 5769,
+      "name": "Giraffe",
+      "template": "giraffe",
+      "trimTemplate": "giraffe_trim"
+    },
+    "legendaryPacks": null,
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/giraffe.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://118074796365721",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/giraffe_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://73750792833556",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://118074796365721": {
+      "file": "sheets/giraffe_body_color.open-hatch.png",
+      "sha256": "0726f19dcccbfd7e5f55fe11bbcd1f86ae73b5e5f57b42c22d9c54b27bf7165a",
+      "role": "body ColorMap",
+      "note": "uploaded from the open-hatch bake"
+    },
+    "rbxassetid://73750792833556": {
+      "file": "sheets/giraffe_trim_color.png",
+      "sha256": "88ed1e0d92acdb54c75c27ccb6717bdae94a2e161e407555929312c38c6c1a62",
+      "role": "trim ColorMap"
+    }
+  },
+  "shopCard": {
+    "file": "preview/giraffe_shop-card.png",
+    "robloxAssetId": "rbxassetid://138838534726663",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/common/giraffe/package/shop-cards/giraffe.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/common/giraffe/package",
+    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "fileCount": 13,
+    "textureCopiesMatchShippedSheets": {
+      "giraffe_body_color.png": true,
+      "giraffe_trim_color.png": true
+    }
+  },
+  "closedBack": {
+    "closedScene": "source/giraffe_closed.blend",
+    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as giraffe_body_color.open-hatch.png. Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "giraffe.blend",
+      "giraffe_closed.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_giraffe_blend.py"
+    ],
+    "sheets": [
+      "giraffe_body_color.open-hatch.png",
+      "giraffe_body_color.png",
+      "giraffe_trim_color.png"
+    ],
+    "preview": [
+      "giraffe_hatch.png",
+      "giraffe_hero.png",
+      "giraffe_shop-card.json",
+      "giraffe_shop-card.png",
+      "giraffe_view.blend"
+    ],
+    "package": [
+      "README.md",
+      "giraffe-asset-report.json",
+      "giraffe-complete.blend",
+      "giraffe-complete.fbx",
+      "giraffe-crown.png",
+      "giraffe-front.png",
+      "giraffe-hero.png",
+      "giraffe-spine.png",
+      "giraffe_body_color.png",
+      "giraffe_trim_color.png",
+      "index.html",
+      "shop-cards/"
+    ]
+  },
+  "generator": "generate/make_giraffe_blend.py",
+  "notes": []
+}

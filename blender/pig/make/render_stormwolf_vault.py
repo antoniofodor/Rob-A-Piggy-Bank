@@ -2,7 +2,9 @@
 from pathlib import Path
 import bpy,math,sys
 from mathutils import Vector
-root=Path(__file__).resolve().parents[1];out=root.parents[1]/'assets/skins/animal/legendary/stormwolf'
+root=Path(__file__).resolve().parents[1];ROOT=root
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+out=Path(paths.animal_package('stormwolf'))
 bpy.ops.wm.open_mainfile(filepath=str(out/'stormwolf-complete.blend'))
 scene=bpy.context.scene;camera=scene.camera
 n=Vector((0,math.sqrt(36-1.9**2),-1.9)).normalized()

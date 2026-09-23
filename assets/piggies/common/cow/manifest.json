@@ -1,0 +1,128 @@
+{
+  "key": "cow",
+  "name": "Dairy Cow",
+  "path": "assets/piggies/common/cow/",
+  "tier": "common",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); common/: Config.SKINS.cow.rarity = \"common\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/cow/",
+    "assets/piggies/cow/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/common/cow/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6247,
+      "name": "Dairy Cow",
+      "rarity": "common",
+      "surface": "cow",
+      "legendary": null,
+      "chest": "animal",
+      "scale": 1.15,
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": {
+      "key": "cow",
+      "line": 5767,
+      "name": "Dairy Cow",
+      "template": "cow",
+      "trimTemplate": "cow_trim"
+    },
+    "legendaryPacks": null,
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/cow.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://133527924964252",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/cow_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://79212811251675",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://133527924964252": {
+      "file": "sheets/cow_body_color.open-hatch.png",
+      "sha256": "57c5a8a17083f28b486a223e9a3cc9a2e0fdf267f665788c1ef8e4b447f30feb",
+      "role": "body ColorMap",
+      "note": "uploaded from the open-hatch bake"
+    },
+    "rbxassetid://79212811251675": {
+      "file": "sheets/cow_trim_color.png",
+      "sha256": "6b49344f8bb31fa8580353443d7bea32d8edf44a92487c7296e9dae9e0a3ba45",
+      "role": "trim ColorMap"
+    }
+  },
+  "shopCard": {
+    "file": "preview/cow_shop-card.png",
+    "robloxAssetId": "rbxassetid://118214168454938",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/common/cow/package/shop-cards/cow.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/common/cow/package",
+    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "fileCount": 13,
+    "textureCopiesMatchShippedSheets": {
+      "cow_body_color.png": true,
+      "cow_trim_color.png": true
+    }
+  },
+  "closedBack": {
+    "closedScene": "source/cow_closed.blend",
+    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as cow_body_color.open-hatch.png. Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "cow.blend",
+      "cow_closed.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_cow_blend.py"
+    ],
+    "sheets": [
+      "cow_body_color.open-hatch.png",
+      "cow_body_color.png",
+      "cow_trim_color.png"
+    ],
+    "preview": [
+      "cow_hatch.png",
+      "cow_hero.png",
+      "cow_shop-card.json",
+      "cow_shop-card.png",
+      "cow_view.blend"
+    ],
+    "package": [
+      "README.md",
+      "cow-asset-report.json",
+      "cow-complete.blend",
+      "cow-complete.fbx",
+      "cow-crown.png",
+      "cow-front.png",
+      "cow-hero.png",
+      "cow-spine.png",
+      "cow_body_color.png",
+      "cow_trim_color.png",
+      "index.html",
+      "shop-cards/"
+    ]
+  },
+  "generator": "generate/make_cow_blend.py",
+  "notes": []
+}

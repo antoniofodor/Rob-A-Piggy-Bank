@@ -4,12 +4,12 @@ that actually matches it.
 
     blender --background --python make/install_stormwolf_texture.py
 
-Reads `skins/stormwolf/source/*.png`, writes `skins/stormwolf/stormwolf_body_color.png`
+Reads `assets/piggies/legendary/stormwolf/generate/meshy-source/*.png`, writes `assets/piggies/legendary/stormwolf/sheets/stormwolf_body_color.png`
 and `pig/pig_stormwolf.obj`.
 
 WHY THE GEOMETRY IS IGNORED. Meshy was handed `pig_stormwolf_textured.glb` --
 our own 20k retopo -- and RE-PAINTED it rather than re-generating. Measured
-against `skins/stormwolf/stormwolf.blend`: 9,992 verts and 20,000 tris both
+against `assets/piggies/legendary/stormwolf/source/stormwolf.blend`: 9,992 verts and 20,000 tris both
 sides, loop order identical on all 60,000, vertex positions matching to
 0.000000 once its uniform scale is undone, and UVs matching to 0.000000.
 
@@ -50,10 +50,11 @@ def arg(name, default):
     return argv[argv.index(name) + 1] if name in argv else default
 
 
-SKIN = paths.skin_dir("stormwolf")
-SOURCE = _os.path.join(SKIN, "source")
-SHEET = _os.path.join(SKIN, "stormwolf_body_color.png")
-BLEND = _os.path.join(SKIN, "stormwolf.blend")
+# The Meshy download is an INPUT to this bake, so it lives with the generator rather
+# than in `source/` (which is the SCENE room since the 2026-09-22 move).
+SOURCE = paths.skin_study("stormwolf", "meshy-source")
+SHEET = paths.skin_map("stormwolf", "body")
+BLEND = paths.skin_blend("stormwolf")
 
 # ROBLOX'S CAP, the same number `bake_skin.py` delivers at and for the same
 # reason: anything larger is downscaled on upload anyway, so the choice is

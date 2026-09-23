@@ -35,7 +35,6 @@ local Theme = require(ReplicatedStorage.Shared.Theme)
 local DataService = require(script.Parent.DataService)
 local PlotService = require(script.Parent.PlotService)
 local TrophyService = require(script.Parent.TrophyService)
-local SeasonService = require(script.Parent.SeasonService)
 
 local SocialService = {}
 
@@ -74,19 +73,45 @@ local wantedHunted = false
 -- be collected out from under a player who is still standing on the street.
 local heat: { [Player]: number } = {}
 
--- THE SPREE, AND IT IS NOT THE TABLE ABOVE. `heat` is the RAP SHEET: every
+-- THE STARS, AND THEY ARE NOT THE TABLE ABOVE. `heat` is the RAP SHEET: every
 -- coin taken this session, only ever rising, and what the Most Wanted board
--- ranks on. This counts CONSECUTIVE DELIVERIES, decays when you stop, and is
--- spent by being caught.
+-- ranks on. Stars count deliveries in a run, FADE while you lay low (one per
+-- `WANTED_STARS.fade` seconds of quiet), and are wiped by being caught. They
+-- were the spree; see Config.WANTED_STARS for why the two ladders became
+-- one drawn on the wanted chip.
 --
 -- Two tables rather than two meanings in one, which is the `busyUntil` /
 -- `napUntil` lesson: one field carrying two clocks had two readers
 -- disagreeing about it in opposite directions, and the item that depended on
 -- it silently bought nothing for six minutes at a time.
 --
--- `at` is stamped in `os.clock`, which never leaves this server -- the same
--- reason `stunUntil` and `busyUntil` do.
-local spree: { [Player]: { steps: number, at: number } } = {}
+-- `at` is the moment the CURRENT count became true: a fade advances it by
+-- whole fade windows rather than resetting it, so a star lost at 120s of
+-- quiet is not followed by another one at 121s.
+--
+-- STAMPED IN `workspace:GetServerTimeNow()`, NOT `os.clock` (designer
+-- decision 2026-09-22: the fill DRAINS on the chip rather than blinking
+-- off). The client draws a star emptying across the fade window from this
+-- stamp alone -- the same "server publishes a stamp, client derives the
+-- picture" shape the crack's marker and the herd's dig take -- and
+-- `os.clock` is a process uptime that means nothing across the wire. Both
+-- ends subtract the same stamp from the same clock against the same
+-- `WANTED_STARS.fade`, so the gold reaches empty on screen in the instant
+-- `starsOf` drops the star here; the picture and the rule cannot disagree.
+--
+-- THE MOST WANTED PLAYER IS PINNED AT `max` AND DOES NOT FADE, until the
+-- board changes hands -- a rule of `starsOf`, below, and not of the chip.
+local stars: { [Player]: { count: number, at: number } } = {}
+
+-- One clock for every star stamp, so a later reader cannot mix the two.
+local function serverNow(): number
+	return workspace:GetServerTimeNow()
+end
+
+-- What five stars summons. Filled by Main with `PoliceService.call`, because
+-- PoliceService requires this service and asking back would be a cycle --
+-- the same registry shape `SetService.registerPusher` uses.
+local starAlarm: (() -> ())? = nil
 
 -- One table rather than six loose upvalues, and nil until the board is built.
 -- ONE ENTRY PER BOARD, because there is a pair at each end of the street now.
@@ -642,8 +667,9 @@ local function buildBoard()
 	-- Roblox's "Front" face is -Z. After the yaw above that points down the
 	-- street toward the plots, which is where the readers are.
 	local surface = Instance.new("SurfaceGui")
-	-- Named, because the season page is drawn by each client over this one
-	-- (`Shared/SeasonBoard`), which hides it locally by name.
+	-- Named, because the retired season page used to be drawn by each client
+	-- over this one, hiding it locally by name. Kept: a named instance is what
+	-- anything inspecting this board addresses it by.
 	surface.Name = "BoardGui"
 	surface.Face = Enum.NormalId.Front
 	surface.CanvasSize = Vector2.new(600, 400)
@@ -788,24 +814,18 @@ local function buildBoard()
 	table.insert(boards, { empty = empty, rows = rows, title = title, panel = panel })
 end
 
--- THE BOARD TURNS PAGES (Phase 5.5): Top Thieves, Top Defenders, and the
--- season. "Three boards and no more", on the one board the street already
--- has, because its geometry is measured and a second board is not. The
--- season page is published here as the global top; each client redraws it
--- around its own reader (`Shared/SeasonBoard`, keyed on the page attribute).
-local PAGES = { "thieves", "defenders", "season" }
+-- THE BOARD TURNS PAGES (Phase 5.5): Top Thieves and Top Defenders, on the
+-- one board the street already has, because its geometry is measured and a
+-- second board is not.
+--
+-- THERE WERE THREE PAGES AND THERE ARE TWO. The third ranked ACORNS EARNED
+-- this season and went with the acorn currency -- along with the local
+-- `Shared/SeasonBoard` overlay each client used to draw over it, which is the
+-- reason the page attribute below is still published: nothing reads it for
+-- the season any more, but the two surviving pages still name themselves on
+-- it. Both of these are WEEKLY and neither has ever counted a currency.
+local PAGES = { "thieves", "defenders" }
 local pageClock = { index = 1, turnedAt = os.clock() }
-
-local function seasonTitle(): string
-	local now = SeasonService.now()
-	local index = Config.seasonIndex(now)
-	local number = Config.seasonNumber(index)
-	if not number then
-		return "SEASON 1  STARTS SOON"
-	end
-	return if Config.seasonActive(now) then ("SEASON %d  ACORNS"):format(number)
-		else ("SEASON %d  FINAL"):format(number)
-end
 
 local function refreshBoard()
 	if #boards == 0 then
@@ -829,13 +849,9 @@ local function refreshBoard()
 	if page == "thieves" then
 		ranked, title, emptyText = weeklyTop, "TOP THIEVES  THIS WEEK", "nobody yet this week"
 		amountOf = format
-	elseif page == "defenders" then
+	else
 		ranked, title, emptyText = defend.top, "TOP DEFENDERS  THIS WEEK", "no thieves stopped yet this week"
 		amountOf = function(n: number) return ("%d stopped"):format(n) end
-	else
-		ranked, title, emptyText = SeasonService.getTop(Config.LEADERBOARD_SIZE), seasonTitle(),
-			"no acorns banked yet this season"
-		amountOf = function(n: number) return ("%d acorns"):format(n) end
 	end
 
 	-- EVERY board, not the last one built. Ranking once and painting many is
@@ -908,76 +924,86 @@ local function setHat(player: Player, wanted: boolean)
 	text.Parent = label
 end
 
--- How many consecutive deliveries this player has going.
+-- How many stars this player is carrying right now.
 --
--- EXPIRED LAZILY RATHER THAN ON A TIMER. A spree needs no loop of its own:
--- nothing in the game has to happen at the moment one lapses, so the honest
--- implementation is to check the clock when somebody asks. That also means a
--- player who logs off mid-run leaves no timer behind to fire at a Player that
--- has gone -- the failure the wheelie bin's `CharacterAdded` hook records from
--- the other end.
-local function spreeSteps(player: Player): number
-	local run = spree[player]
+-- FADED LAZILY RATHER THAN ON A TIMER. A run needs no loop of its own:
+-- nothing in the game has to happen at the moment a star lapses, so the
+-- honest implementation is to check the clock when somebody asks. That also
+-- means a player who logs off mid-run leaves no timer behind to fire at a
+-- Player that has gone -- the failure the wheelie bin's `CharacterAdded` hook
+-- records from the other end. The fade is written back so the next ask sees
+-- the same answer, with `at` advanced by the windows spent rather than reset.
+local function starsOf(player: Player): number
+	-- THE MOST WANTED PLAYER IS PINNED AT FIVE FULL STARS AND DOES NOT FADE
+	-- (designer decision 2026-09-22), until `refreshMostWanted` hands the
+	-- title to somebody else. The name on the poster is the biggest sheet in
+	-- the server, and the street reads that name as the most dangerous thief
+	-- on it -- a leader whose stars quietly drained while their poster stayed
+	-- up would be two readouts telling two stories about one player.
+	--
+	-- A SERVER RULE, NOT A DRAWING RULE: it is written into the run here, so
+	-- everything that reads stars -- the payout multiplier, the pursuit
+	-- target, the alarm, the chip and the poster -- sees five without any of
+	-- them knowing about the pin. What that costs, stated plainly: the leader
+	-- is always over `huntedFrom` (the patrol comes for them on every pass)
+	-- and always at `Config.getStarPayout(max)` (double pay). The stamp is
+	-- refreshed on every read so the fade clock is genuinely HELD, and the
+	-- hand-over in `refreshMostWanted` re-stamps it once more, so the old
+	-- leader starts fading from the five they were reading rather than from
+	-- wherever a stale clock would have put them.
+	if mostWanted == player then
+		-- THE CLOCK IS HELD AND THE COUNT IS KEPT. Only `at` is refreshed:
+		-- the run underneath -- how many deliveries in a row this player has
+		-- actually made -- goes on counting through `recordSteal`, because
+		-- the spree trophy and the "Nx IN A ROW" line read the RUN through
+		-- `SocialService.getRun` and a leader's first delivery is one
+		-- robbery, not five. The hand-over in `refreshMostWanted` is what
+		-- stamps the five the fade then starts from.
+		local held = stars[player]
+		if held then
+			held.at = serverNow()
+		end
+		return Config.WANTED_STARS.max
+	end
+	local run = stars[player]
 	if not run then
 		return 0
 	end
-	if os.clock() - run.at > Config.SPREE.window then
-		spree[player] = nil
+	local quiet = serverNow() - run.at
+	local left = Config.starsAfterQuiet(run.count, quiet)
+	if left <= 0 then
+		stars[player] = nil
 		return 0
 	end
-	return run.steps
+	if left < run.count then
+		run.at += (run.count - left) * Config.WANTED_STARS.fade
+		run.count = left
+	end
+	return left
 end
 
 -- What this player's rap sheet has to reach before the patrol will come
 -- looking for them unprovoked. Seconds of their OWN income; see Config.POLICE.
 --
--- SCALED BY THE SPREE, WHICH IS THE RISK HALF OF A RUN. A thief working fast
+-- SCALED BY THE STARS, WHICH ARE THE RISK HALF OF A RUN. A thief working fast
 -- draws a records check on a smaller sheet than the same thief taking their
 -- time -- so the reward for consecutive robberies is paid for in the one
 -- system that already hunts people, rather than in a new hazard nobody has to
--- learn. See Config.SPREE.floorDropPerStep.
-local function wantedFloor(player: Player): number
-	local data = DataService.get(player)
-	if not data then
-		return math.huge
-	end
-	local rate = Config.getIncomeRate(
-		data.incomeLevel, data.rebirths, SocialService.getFriendBonus(player))
-	return rate * Config.POLICE.wantedFloorSeconds
-		* Config.getSpreeFloorScale(spreeSteps(player))
-end
+-- learn. See Config.WANTED_STARS.floorDropPerStar.
+--
+-- DENOMINATED IN THE WHOLE COLLECTION'S INCOME, NOT ONE PIG'S. It read
+-- `getIncomeRate` for the life of the feature, which was a player's whole
+-- income until a lawn started earning -- and then it was a seventh of it at
+-- commons and a hundredth at the top tier, so a full lawn cleared its own
+-- floor with a couple of laps' worth and the poster promised a patrol for a
+-- pocketful. `collectionRateOf` is the same summation the tick pays.
+-- THE PATROL'S FLOOR IS RETIRED (designer decision 2026-09-22). It was
+-- seconds of the thief's own income that the sheet had to clear before the
+-- leader was worth a car, scaled down by the stars. The stars carry the
+-- whole consequence now: from `WANTED_STARS.huntedFrom` the patrol comes on
+-- every pass, whoever leads the board, and the board itself is only a
+-- ranking. One ladder, one rule, nothing to fold a second time.
 
--- The server's biggest thief wears something nobody can buy. It's the only
--- status in the game that can't be purchased, which is exactly why it works.
---
--- THE BOARD IS RANKED BY THE SHEET ALONE, AND THE FLOOR IS ASKED ABOUT THE
--- WINNER RATHER THAN USED TO PICK THEM. It used to be a filter inside this
--- loop -- a player whose sheet did not clear their own income floor was not
--- eligible to lead -- which quietly made the poster answer a question nobody
--- asked of it. The board's question is "who has stolen the most here", and the
--- floor cannot answer that, because the two numbers are measured against
--- different people: the floor scales with the THIEF's income and rebirths
--- while the loot scales with the VICTIM's vault. So a maxed thief robbing a
--- poorer neighbour can never clear their own floor however many plots they
--- empty, and the one status in this game that cannot be bought was hidden
--- from precisely the player who had earned it hardest.
---
--- Measured against the live curves, both players on the same level and the
--- victim's vault completely FULL -- the best case a steal ever has -- one
--- delivery is 0.4 to 0.8 of the thief's own floor. So the board wanted two or
--- three perfect robberies before it would name anybody, and more after a
--- rebirth (2.6 deliveries at rebirth 10, because prestige raises income and
--- therefore the floor, while capacity does not follow). Against a victim who
--- banks -- which is every victim -- it is many more. The poster read as
--- broken, and for most of a session it was.
---
--- What the floor is genuinely for is stated at Config.POLICE.wantedFloorSeconds
--- and is untouched: whether the PATROL should spend a records check on this
--- person, so somebody who lifted one small pile in a quiet server is not
--- hunted every eight minutes for the rest of it. That is a question about the
--- leader rather than about who leads, so it is asked once, here, and answered
--- by `getPursuitTarget` rather than by `getMostWanted`.
--- Wanted Poster (5.2) counts one session on the poster once.
 local wantedCounted: { [Player]: boolean } = {}
 
 local function refreshMostWanted()
@@ -992,9 +1018,16 @@ local function refreshMostWanted()
 		end
 	end
 
-	-- Asked about the winner ONLY, which also takes this from one DataService
-	-- read per player per tick to one in total.
-	local hunted = best ~= nil and bestAmount >= wantedFloor(best)
+	-- WHETHER THE PATROL COMES FOR THE WINNER is asked AFTER the board has
+	-- moved rather than here, because `starsOf` pins whoever `mostWanted`
+	-- names -- read before the hand-over it would report the new leader's
+	-- real run and the old leader's pin, both of them about to be wrong.
+	-- With the pin it is always true of a leader; the expression is kept
+	-- rather than replaced by `best ~= nil` so that a pin that is ever
+	-- relaxed does not leave a toast promising a patrol nobody sends.
+	local function huntedNow(): boolean
+		return best ~= nil and starsOf(best) >= Config.WANTED_STARS.huntedFrom
+	end
 
 	-- Names the consequence, not just the status. Being told you are Most
 	-- Wanted and then chased by an officer nobody warned you about is the
@@ -1009,11 +1042,13 @@ local function refreshMostWanted()
 		Remotes.get("Notify"):FireClient(player,
 			if patrol
 				then "You are MOST WANTED. The next patrol comes for you."
-				else "You are MOST WANTED. Take more and the patrol will come.",
+				else ("You are MOST WANTED. %d stars in a row and the patrol comes for you."):format(
+					Config.WANTED_STARS.huntedFrom),
 			"warn")
 	end
 
 	if best == mostWanted then
+		local hunted = huntedNow()
 		if mostWanted then
 			setHat(mostWanted, true) -- re-apply after a respawn
 			-- The board did not change hands, but the sheet grew past the floor
@@ -1030,8 +1065,21 @@ local function refreshMostWanted()
 
 	if mostWanted then
 		setHat(mostWanted, false)
+		-- THE OLD LEADER FADES FROM FIVE (designer decision 2026-09-22). Five
+		-- is what they were reading while they held the board, so it is the
+		-- only honest place to start draining from; a run that snapped back
+		-- to whatever it was before the pin would be a row of stars vanishing
+		-- for no reason a player can see. Stamped NOW, so the first star
+		-- starts full: `starsOf` last refreshed it up to a refresh tick ago.
+		--
+		-- An arrest is the one hand-over that must NOT leave a fading five,
+		-- and it does not: PoliceService calls `clearHeat` (which moves the
+		-- board here) BEFORE `clearStars` (which wipes what this stamped).
+		-- The wanted suite asserts that order.
+		stars[mostWanted] = { count = Config.WANTED_STARS.max, at = serverNow() }
 	end
 	mostWanted = best
+	local hunted = huntedNow()
 	wantedHunted = hunted
 
 	if best then
@@ -1041,11 +1089,20 @@ local function refreshMostWanted()
 		-- most once a session, or two friends trading the lead would farm it.
 		if not wantedCounted[best] then
 			wantedCounted[best] = true
-			-- THE SAME ARITHMETIC THE POSTER OUTSIDE PRINTS, handed over rather
-			-- than recomputed: `heat` lives here and dies with the session, so
-			-- the house's own poster cannot derive it later.
-			TrophyService.recordWanted(best,
-				math.floor((heat[best] or 0) * Config.POLICE.bailMultiple))
+			-- THE RAP SHEET ITSELF, not a bounty derived from it. Bail is a
+			-- share of the thief's own till now, so there is no per-player
+			-- bounty left to record -- and the sheet is the better trophy
+			-- anyway: what you were wanted FOR rather than what somebody
+			-- would have charged you. `heat` lives here and dies with the
+			-- session, which is why it is handed over rather than derived
+			-- later by a poster hanging in a house.
+			--
+			-- `bestBounty` KEEPS ITS FIELD NAME. Renaming a persisted field to
+			-- fix a wording is a schema migration for a wording problem --
+			-- the call `data.vault` already made while the HUD said PIGGY
+			-- BANK. It only ever rises, so saves carrying an old 3x figure
+			-- keep a generous record rather than a wrong one.
+			TrophyService.recordWanted(best, math.floor(heat[best] or 0))
 		end
 	end
 end
@@ -1350,31 +1407,32 @@ local function refreshWantedBoard()
 		name = suspect.DisplayName:upper()
 		local record = heat[suspect] or 0
 		stolen = ("STOLEN  %s"):format(format(record))
-		bounty = ("BOUNTY  %s"):format(
-			format(math.floor(record * Config.POLICE.bailMultiple)))
+		-- THE RULE RATHER THAN A FIGURE, because bail stopped being a
+		-- function of the rap sheet: it is a share of the THIEF'S OWN till
+		-- now, which this board cannot know and should not read a save to
+		-- find out. What the poster owes a reader is what being caught
+		-- COSTS -- `CLAUDE.md`'s rule that the patrol is published on
+		-- principle -- and a flat share says that better than a number,
+		-- because it is true of every reader rather than only this suspect.
+		--
+		-- MEASURED AT 42px AGAINST THE OLD 54. This row is TextScaled and
+		-- is the loud line on the card -- the photograph gave up height for
+		-- it -- so a longer string is paid for in size: `BOUNTY  999.9M`
+		-- renders at 54 and this at 42. Taken deliberately, because the
+		-- version that keeps 54 is `BAIL  20%` and a share of nothing
+		-- stated is worse than a smaller clear line.
+		bounty = ("BAIL  %d%% OF THE PIG"):format(Config.bailPercent())
 
-		-- THE SAME FUNCTION THE PATROL ASKS, not a second copy of the
-		-- arithmetic. `wantedFloor` already folds in the thief's income, their
-		-- rebirths, their friend bonus AND their spree -- a run shortens the
-		-- floor by 15% a step -- so a bar drawn from anything else would
-		-- disagree with the officer who actually turns up.
-		local floor = wantedFloor(suspect)
-		if floor > 0 and floor < math.huge then
-			progress = math.clamp(record / floor, 0, 1)
-			hot = record >= floor
-			-- WHAT IS LEFT, RATHER THAN A PERCENTAGE. "68%" is a number about the
-			-- bar; "12.4K TO GO" is a number about the game, in the one unit this
-			-- whole board is denominated in. The bar carries the proportion
-			-- already, which is what it is for.
-			says = if hot
-				then "PATROL COMING"
-				else ("%s TO A PATROL"):format(format(math.max(0, math.floor(floor - record))))
-		else
-			-- No data yet, or a floor of infinity because the save has not loaded.
-			-- The bar says nothing rather than reading empty, because an empty bar
-			-- is a claim that they are a long way from being hunted.
-			says = ""
-		end
+		-- THE BAR IS THE STAR LADDER, the same one the HUD chip draws, so the
+		-- poster and the officer who turns up cannot disagree: a patrol comes
+		-- at `huntedFrom` stars and nothing else decides it.
+		local run = starsOf(suspect)
+		local need = Config.WANTED_STARS.huntedFrom
+		progress = math.clamp(run / need, 0, 1)
+		hot = run >= need
+		says = if hot
+			then "PATROL COMING"
+			else ("%d STAR%s TO A PATROL"):format(need - run, if need - run == 1 then "" else "S")
 	end
 
 	for _, ui in ipairs(wantedBoards) do
@@ -1428,12 +1486,26 @@ local function wantedPayload(player: Player)
 	-- that already holds a badge, a caption and a figure has nowhere to put a
 	-- second player's name. Pushing them anyway is how a payload rots: a field
 	-- nobody reads is a field nobody notices going wrong.
+	local run = starsOf(player)
+	local stamp = stars[player]
 	return {
 		sheet = heat[player] or 0,
 		isLeader = leader == player,
-		hunted = wantedHunted,
-		spree = spreeSteps(player),
-		spreeMax = Config.SPREE.maxSteps,
+		-- THE NEXT PATROL COMES FOR THIS PLAYER, which is true two ways now:
+		-- they lead the board and their sheet clears the floor, or they are
+		-- carrying `WANTED_STARS.huntedFrom` stars whoever leads. One flag,
+		-- because the chip has one ring and a player has one question.
+		hunted = run >= Config.WANTED_STARS.huntedFrom,
+		stars = run,
+		starsMax = Config.WANTED_STARS.max,
+		-- THE STAMP THE DRAIN IS DRAWN FROM: server time at which `stars`
+		-- became true. The chip empties the newest star across
+		-- `WANTED_STARS.fade` from it and needs nothing per frame; with no
+		-- run there is nothing to drain and now is as good a stamp as any.
+		starsAt = if stamp then stamp.at else serverNow(),
+		-- Held full, not draining: the Most Wanted pin, decided above in
+		-- `starsOf` and reported here so the chip draws no motion.
+		pinned = leader == player,
 	}
 end
 
@@ -1459,37 +1531,120 @@ end
 -- delivery that STARTS a run pays 1.0 and the one after it pays more, which is
 -- what a player would expect from a streak. Bumping first would pay a bonus
 -- for the first robbery of a session and there would be no streak to speak of.
-function SocialService.getSpreeMultiplier(player: Player): number
-	return Config.getSpreePayout(spreeSteps(player))
+function SocialService.getStarMultiplier(player: Player): number
+	return Config.getStarPayout(starsOf(player))
 end
 
--- How many deliveries in a row, for anything that wants to show it.
-function SocialService.getSpree(player: Player): number
-	return spreeSteps(player)
+-- How many stars, for anything that wants to show or record it.
+--
+-- READS THE PIN. The Most Wanted player answers `max` here on every call,
+-- which is right for the payout and the chip and is worth knowing for a
+-- caller RECORDING a run: HeistService hands this to `TrophyService.recordSpree`
+-- after each delivery, so a leader's first delivery as leader records a
+-- five-star spree. `isPinned` is beside it for a caller that wants to know.
+function SocialService.getStars(player: Player): number
+	return starsOf(player)
+end
+
+-- THE RUN UNDERNEATH THE PIN: deliveries in a row, as counted, with the
+-- Most Wanted pin NOT applied. `getStars` is what the game pays, hunts and
+-- draws by; this is what a run IS, and it is the number a record of the
+-- best run ever should be measured on -- a leader pinned at five on their
+-- first delivery has made one robbery in a row, not five.
+function SocialService.getRun(player: Player): number
+	if mostWanted == player then
+		local held = stars[player]
+		return if held then math.min(held.count, Config.WANTED_STARS.max) else 0
+	end
+	return starsOf(player)
+end
+
+-- Is this player's row held full by the Most Wanted pin right now?
+function SocialService.isPinned(player: Player): boolean
+	return mostWanted == player
 end
 
 -- CAUGHT ENDS THE RUN, and that is the point of a run having an end.
 --
 -- Separate from `clearHeat`, which wipes the rap SHEET and fires only on a
 -- most-wanted arrest -- an ordinary bust deliberately leaves a record intact
--- because that is what the thief was caught for. A SPREE is momentum rather
+-- because that is what the thief was caught for. Stars are momentum rather
 -- than a record, and any arrest breaks momentum, so this is called on both.
-function SocialService.breakSpree(player: Player)
-	if spree[player] then
-		spree[player] = nil
+function SocialService.clearStars(player: Player)
+	if stars[player] then
+		stars[player] = nil
+		-- A LEADER STAYS PINNED THROUGH THIS. `starsOf` re-pins whoever the
+		-- board names on the next read, so an ORDINARY bust of the Most
+		-- Wanted player -- caught mid-robbery, sheet kept, board kept --
+		-- leaves them at five. That is the pin working: they are still the
+		-- biggest thief on the street. A MOST-WANTED arrest wipes the sheet
+		-- first (`clearHeat`), which hands the board on before this runs.
 		SocialService.pushWanted(player)
 	end
 end
 
+-- What reaching `WANTED_STARS.max` does to the street: Main registers
+-- `PoliceService.call`, so a five-star thief brings the patrol out early.
+-- A call that cannot be taken -- one already out, or the lockout -- is
+-- refused inside the callee, which is the right place for it: the stars
+-- name the consequence and the patrol owns its own clock.
+function SocialService.registerStarAlarm(fn: () -> ())
+	starAlarm = fn
+end
+
+-- ONE MORE ON THE SHEET.
+--
+-- `amount` IS COINS-EQUIVALENT VALUE TAKEN FROM ANOTHER PLAYER, which is a
+-- change of DEFINITION rather than of signature (designer call 2026-09-21).
+-- It used to mean coins, because coins were the only thing a robbery took.
+-- Most Wanted ranks on the value of PIGGIES stolen now, and a piggy's value
+-- is `Config.piggyWorth` -- the one coin figure this game already gives an
+-- animal, so the board and the sell prompt cannot drift.
+--
+-- THE COIN PATH STILL FEEDS IT, AND THAT IS THE SEQUENCING RATHER THAN A
+-- LEFTOVER. Cash robbery is going; the snatch that replaces it does not
+-- exist yet. Switching the source before the new one lands would leave the
+-- poster, the weekly board and the patrol's target counting zero for
+-- everybody until it did -- which is exactly the shape that killed the
+-- season ladder, and the one failure this project refuses above all others.
+-- Both sources are the same unit, so the coin caller is deleted later with
+-- nothing else here to change.
+--
+-- IT IS DELIBERATELY UNIT-AGNOSTIC INSIDE. Nothing below reads what the
+-- number means, so the transition costs this function no branch at all.
 function SocialService.recordSteal(thief: Player, amount: number)
 	heat[thief] = (heat[thief] or 0) + amount
 
-	-- ANOTHER ONE IN A ROW. Read the current steps through the accessor rather
-	-- than the raw table, so a run that lapsed while the thief was carrying is
-	-- expired here rather than silently continued -- the walk home is most of
-	-- the window, and a thief who dawdled has broken their own streak.
-	local steps = math.min(spreeSteps(thief) + 1, Config.SPREE.maxSteps)
-	spree[thief] = { steps = steps, at = os.clock() }
+	-- ANOTHER STAR. Read the current count through the accessor rather than
+	-- the raw table, so stars that faded while the thief was carrying are
+	-- dropped here rather than silently kept.
+	-- TWO READS, BECAUSE THE PIN SPLITS THEM: `before` is what the game
+	-- was showing (five for the Most Wanted leader, so the two announcements
+	-- below never repeat for them), and the RUN underneath is what this
+	-- delivery extends -- read through `getRun` so a pinned leader's count
+	-- keeps counting deliveries rather than being reset to five on each.
+	local before = starsOf(thief)
+	local run = SocialService.getRun(thief)
+	local count = math.min(run + 1, Config.WANTED_STARS.max)
+	stars[thief] = { count = count, at = serverNow() }
+	if before < Config.WANTED_STARS.huntedFrom and count >= Config.WANTED_STARS.huntedFrom then
+		-- THE THRESHOLD IS SAID THE MOMENT IT IS CROSSED. The chip's ring goes
+		-- red on the same push, and a consequence a player is not told about
+		-- is a patrol arriving without warning.
+		Remotes.get("Notify"):FireClient(thief,
+			("%d stars. The patrol comes for you on every pass until they fade."):format(count),
+			"police")
+	end
+	if before < Config.WANTED_STARS.max and count >= Config.WANTED_STARS.max and starAlarm then
+		-- FIVE STARS CALLS THE PATROL. Once per reaching the top: a thief who
+		-- stays at five keeps robbing under a patrol every pass already. The
+		-- `before` half is what makes that true of the PINNED leader too --
+		-- they read five before every delivery, so neither this nor the
+		-- `huntedFrom` toast above fires for them on every haul. Taking the
+		-- board does not call the patrol early on its own; being pinned
+		-- makes the leader the pursuit target on every scheduled pass.
+		task.spawn(starAlarm)
+	end
 
 	-- The thief's OWN row, immediately, because a delivery is the moment the
 	-- number changes and a readout that waited five seconds for it would read
@@ -1510,6 +1665,14 @@ end
 -- fifty coins, pay a hundred and fifty, and walk away clean.
 function SocialService.clearHeat(player: Player)
 	heat[player] = nil
+	-- AND THE BOARD MOVES NOW, NOT ON ITS NEXT TICK. The Most Wanted player
+	-- is pinned at five stars for as long as `mostWanted` names them, so a
+	-- wiped sheet that left the board standing for up to five more seconds
+	-- would re-pin the stars `clearStars` is about to wipe -- and an arrest
+	-- that leaves the arrested player at five stars is the one outcome this
+	-- rule may never produce. The hand-over inside stamps them at five for
+	-- the fade; `clearStars`, called next by PoliceService, takes that away.
+	refreshMostWanted()
 	SocialService.pushWanted(player)
 end
 
@@ -1540,7 +1703,10 @@ function SocialService.makeMostWanted(player: Player): number
 			top = math.max(top, heat[other] or 0)
 		end
 	end
-	heat[player] = math.floor(math.max(wantedFloor(player), top * 1.25) + 1000)
+	heat[player] = math.floor(top * 1.25 + 1000)
+	-- And the stars that actually bring the patrol, or the command would put
+	-- a name on the poster and no officer on the street.
+	stars[player] = { count = Config.WANTED_STARS.huntedFrom, at = serverNow() }
 	SocialService.refresh()
 	return heat[player]
 end
@@ -1568,11 +1734,29 @@ end
 -- The floor is evaluated on the refresh tick rather than here, so this can
 -- never disagree with the hat the whole street can see.
 function SocialService.getPursuitTarget(): (Player?, number)
-	local suspect = mostWanted
-	if not suspect or not wantedHunted then
-		return nil, 0
+	-- FROM `WANTED_STARS.huntedFrom` STARS THE PATROL COMES ON EVERY PASS,
+	-- AND NOTHING ELSE SENDS IT (designer decision 2026-09-22: the floor is
+	-- retired, the stars are the whole rule). A run of three deliveries is a
+	-- thief the street can see, and the stars are the reward AND the threat.
+	-- The most-starred player is taken, the bigger sheet breaking a tie, and
+	-- the bail is still measured against the sheet -- what they actually
+	-- took -- never against the stars. Leading the board on its own sends
+	-- nobody: the poster is a ranking, not a warrant.
+	local best: Player? = nil
+	local bestStars, bestSheet = 0, -1
+	for _, player in ipairs(Players:GetPlayers()) do
+		local stars = starsOf(player)
+		if stars >= Config.WANTED_STARS.huntedFrom then
+			local sheet = heat[player] or 0
+			if stars > bestStars or (stars == bestStars and sheet > bestSheet) then
+				best, bestStars, bestSheet = player, stars, sheet
+			end
+		end
 	end
-	return suspect, heat[suspect] or 0
+	if best then
+		return best, heat[best] or 0
+	end
+	return nil, 0
 end
 
 -- ============================================================
@@ -1625,9 +1809,10 @@ function SocialService.start()
 		-- The rap sheet dies with the session it belongs to. Left behind, it
 		-- would also hold a Player reference open for the life of the server.
 		heat[player] = nil
-		spree[player] = nil
+		stars[player] = nil
 		if mostWanted == player then
 			mostWanted = nil
+			wantedHunted = false
 		end
 		task.defer(recomputeFriendBonuses)
 	end)

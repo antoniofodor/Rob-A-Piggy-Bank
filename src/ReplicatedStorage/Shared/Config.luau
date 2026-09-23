@@ -34,15 +34,18 @@ local Config = {}
 -- Coins added to the vault per second, before upgrades and rebirths.
 Config.BASE_INCOME = 10
 
--- How much the vault holds before income stops. A full vault is the
--- return hook -- it should fill in roughly 8 minutes at level 1.
-Config.BASE_CAPACITY = 5000
+-- THE PIG IS UNBOUNDED (designer decision, 2026-09-21, reaffirmed). There
+-- is no capacity: `data.coins` has no ceiling, nothing clamps a mint, and the
+-- Bigger Piggy Bank tree is retired. Cash resets at every rebirth and rebirth
+-- is required for progress, so the RESET bounds hoarding rather than the pig.
+-- `BASE_CAPACITY`, the four `CAPACITY_*` growths, `CAPACITY_BASE_COST`,
+-- `UPGRADE_COST_CEILING`, `REBIRTH_CAPACITY_MULTIPLE`, `getCapacity`,
+-- `getCapacityCost`, `pigRoom` and `fitInPig` are all gone with it. What a
+-- pig reads as FULL on the lawn is now the rebirth cash gate -- see
+-- `Config.pigFullAt`.
 
 -- Each income upgrade multiplies the rate by this.
 Config.INCOME_GROWTH = 1.35
-
--- Each capacity upgrade multiplies storage by this.
-Config.CAPACITY_GROWTH = 1.40
 
 -- ---------------------------------------------------------------- TWO BANDS
 --
@@ -61,11 +64,13 @@ Config.CAPACITY_GROWTH = 1.40
 -- which is what keeps a 168M purchase feeling like a goal instead of a wall.
 Config.BAND_TOP = 20
 Config.INCOME_GROWTH_B = 1.16
-Config.CAPACITY_GROWTH_B = 1.19
 Config.INCOME_COST_GROWTH_B = 1.26
-Config.CAPACITY_COST_GROWTH_B = 1.16
 
 -- ---------------------------------------------------------------- BAND C
+--
+-- (THE CAPACITY HALF OF THIS BAND IS RETIRED with the pig's ceiling; the
+-- paragraph below is kept as the record of why the INCOME half runs to 60,
+-- which stands unchanged.)
 --
 -- THE THIRD BAND EXISTS SO A 1B HOUSE CAN FIT IN A PIG, AND NOTHING BELOW
 -- LEVEL 40 MOVED TO MAKE ROOM FOR IT.
@@ -94,9 +99,7 @@ Config.CAPACITY_COST_GROWTH_B = 1.16
 -- `tests/sim/late-game/`.
 Config.BAND_TOP_2 = 40
 Config.INCOME_GROWTH_C = 1.10
-Config.CAPACITY_GROWTH_C = 1.136
 Config.INCOME_COST_GROWTH_C = 1.26
-Config.CAPACITY_COST_GROWTH_C = 1.16
 
 -- The hard ceiling. What a player can actually reach is `Config.maxLevel`,
 -- which is lower until they have rebirthed enough -- see the note there.
@@ -109,67 +112,25 @@ Config.LEVELS_PER_REBIRTH = 2
 -- Cost of the first upgrade. Must be reachable in under a minute --
 -- the first win has to land immediately.
 Config.INCOME_BASE_COST = 400
-Config.CAPACITY_BASE_COST = 600
 
 -- Cost multiplier per level owned.
 Config.INCOME_COST_GROWTH = 1.55
-Config.CAPACITY_COST_GROWTH = 1.60
 
 -- ------------------------------------------------- THE AFFORDABILITY CEILING
 --
--- A RUNG MAY NEVER COST MORE THAN THE PIG THAT HAS TO PAY FOR IT, AND BEFORE
--- THIS THE LADDER DEADLOCKED AT LEVEL 17 OF 20.
---
--- Every growth number above is written as "cost outruns value, so each level
--- takes longer than the last" -- which is the correct shape for a ladder and
--- was correct here for the whole life of the project. It stopped being
--- correct the day the pig became the wallet. With an unbounded bank a price
--- above your income rate is a WAIT; with a balance bounded by capacity it is
--- a WALL, because the money to pay it cannot be held at one time however long
--- anybody waits.
---
--- Measured against the live curves before this constant existed: capacity
--- cost grows 1.60 against a capacity that grows 1.40, so the price gains 14%
--- on the pig every level and passes it at LEVEL 17. Capacity level 17 holds
--- 1.09M and level 18 costs 1.11M -- 20 of the 40 rungs unbuyable, the income
--- tree following at 31, and the rebirth gate (one full pig at the CEILING
--- level, 2.99M at rebirth 0) unreachable by a player whose pig had stopped at
--- 1.09M. Idling alone could not finish the game or leave it.
---
--- SO THE CEILING IS A FRACTION OF THE PIG, AND THE CLAMP IS WHAT MAKES THIS
--- STRUCTURAL RATHER THAN TUNED. Growth constants could have been retuned to
--- push the crossing past level 40 and it would have worked and it would have
--- been a coincidence -- the next price edit, the next band, the next rebirth
--- ceiling puts the wall back with nothing to say so. `math.min` against the
--- pig cannot regress: the geometric curve governs while it is the smaller of
--- the two, which is the whole of band A and every price this game has ever
--- shipped, and the pig governs after that.
---
--- WHAT IT COSTS, STATED PLAINLY: above the crossing the price is pinned to a
--- constant share of capacity, so it grows at the CAPACITY curve (1.40, then
--- 1.19) rather than at the cost curve, and a late upgrade is about 30-50%
--- cheaper than the old number nobody could pay. Time per upgrade goes from
--- rising-to-infinite to CONSTANT -- a fixed number of pig-fills, about 13
--- minutes of idling each -- which is a legible pace rather than a wall.
---
--- TWO FRACTIONS, NOT ONE, because a single ceiling would make the two trees
--- cost exactly the same at every clamped level and delete the "which one is
--- cheaper right now" decision that the base costs exist to create. The pair
--- keeps the ratio the base costs already have (400/600 = 0.688), so income
--- stays the cheaper rung all the way up.
---
--- Capacity's own clamp is the no-deadlock guarantee and the reason it is the
--- looser of the two: the pig can ALWAYS buy its own next size, so a player
--- who has poured everything into income can always grow their way out. The
--- income clamp is measured against the capacity at the INCOME level, which is
--- deliberately conservative -- it means your pig has to be roughly as big as
--- your income is high, which is a real coupling and the honest one. A bounded
--- wallet limits every purchase by construction; this only stops that being
--- fatal.
-Config.UPGRADE_COST_CEILING = {
-	income = 0.55,
-	capacity = 0.80,
-}
+-- RETIRED WITH THE CAPACITY CEILING. `UPGRADE_COST_CEILING` clamped every
+-- income and capacity rung to a share of the pig, and its whole reason was
+-- the BOUNDED wallet: with a balance capped by capacity a price above your
+-- rate was a WALL, because the coins could never be held at one time, and
+-- the ladder deadlocked at level 17 of 20 without it (CLAUDE.md, "SO A RUNG
+-- IS CLAMPED TO A SHARE OF THE PIG"). With no cap a price above your rate is
+-- a WAIT again, which is the ordinary shape of a ladder, so the clamp is
+-- gone and `getIncomeCost` is the pure geometric curve at every level. What
+-- that costs: the late rungs are dearer than the clamped figures nobody
+-- could pay were cheap -- level 20 is 1,653,340 against a clamped 1,643,483
+-- and level 40 is 168.2M against 53.3M -- and the "17 days at 2h/day" climb
+-- recorded in CLAUDE.md and `tests/sim/late-game/` was measured WITH the
+-- clamp and is void rather than re-measured.
 
 -- ============================================================
 -- OFFLINE ACCRUAL
@@ -184,29 +145,47 @@ Config.OFFLINE_CAP_SECONDS = 8 * 60 * 60
 -- REBIRTH
 -- ============================================================
 
--- REBIRTH COSTS A MULTIPLE OF YOUR OWN CAPACITY, NEVER A FLAT NUMBER.
+-- THE REBIRTH CASH GATE, FROZEN.
 --
--- This was a flat 1,000,000, and a flat gate cannot survive an economy that
--- grows: measured, it is 334 seconds of income the first time you cap the
--- ladder and EIGHT SECONDS by rebirth 10. It vanishes exactly as the decision
--- it guards gets more serious.
+-- It used to be `getCapacity(maxLevel(rebirths)) * REBIRTH_CAPACITY_MULTIPLE`
+-- -- one full pig at the ceiling you could reach -- and the reasoning behind
+-- that is worth keeping because it is what the replacement has to answer: a
+-- FLAT gate evaporated as income grew (334 seconds of income at rebirth 0,
+-- eight seconds by rebirth 10) and a GEOMETRIC gate outran income and became
+-- a wall (1M x 3^rebirths spent 60 days stuck at gates); capacity was the one
+-- anchor riding the same curve the player's own economy rides. The pig has
+-- no capacity any more, so the basis is gone.
 --
--- The obvious fix is worse. A geometric gate compounds faster than income
--- does -- income rises about 1.35x per rebirth, so a 3x gate diverges from it
--- and the gap becomes a wall: simulated, 1M x 3^rebirths spends 60 days stuck
--- at gates and 1M x 5^rebirths never finishes at all.
---
--- Capacity is the one anchor that can do neither. It rides the same curve the
--- player's own economy rides, so the gate can no more evaporate than it can
--- run away, and it stays correct with nothing to re-derive when the ladder
--- next changes. It is also the only version a nine-year-old can read: fill
--- your piggy bank, measured on the bar they are already watching.
---
--- ONE, NOT TWO, SINCE THE PIG BECAME THE WALLET. Income alone can never carry
--- a player past capacity now, so "twice over" was reachable only by robbing.
--- "Fill it" is reachable by idling and FASTER by robbing, which is the right
--- way round for the decision this economy most needs players to make.
-Config.REBIRTH_CAPACITY_MULTIPLE = 1
+-- PLACEHOLDER: designer to set. The designer's replacement is "own specific
+-- piggies plus a cash amount" with NO numbers given, so the cash half is
+-- today's `getRebirthThreshold(r)` results frozen as literals for r = 0 to
+-- `rebirthsToMax()` -- nothing got easier or harder by accident -- and the
+-- piggy half is the hook `Config.rebirthPiggyGate` below. Past the last
+-- rebirth that opens a level the gate stays at the top row, exactly as the
+-- old derivation flattened at `ABSOLUTE_MAX_LEVEL`.
+Config.REBIRTH_CASH_GATE = {
+	[0] = 2988151,
+	[1] = 4231522,
+	[2] = 5992258,
+	[3] = 8485637,
+	[4] = 12016510,
+	[5] = 17016580,
+	[6] = 24097179,
+	[7] = 34124016,
+	[8] = 48323019,
+	[9] = 68430228,
+	[10] = 96904045,
+	[11] = 125054283,
+	[12] = 161382052,
+	[13] = 208262893,
+	[14] = 268762431,
+	[15] = 346836842,
+	[16] = 447591557,
+	[17] = 577615115,
+	[18] = 745409995,
+	[19] = 961948617,
+	[20] = 1241390843,
+}
 
 -- Permanent income bonus per rebirth, additive: 1 + (rebirths * 0.12)
 --
@@ -250,8 +229,9 @@ Config.LEADERBOARD_REFRESH = 5
 -- FEEDBACK
 -- ============================================================
 
--- Fill fractions that get a celebration. 100% matters most: income stops at
--- a full vault, so that one is functional feedback, not just a flourish.
+-- Fill fractions that get a celebration, measured against what a pig reads
+-- as full on the lawn (`Config.pigFullAt`, the rebirth cash gate). 100% is
+-- functional feedback rather than a flourish: it is the rebirth amount.
 Config.MILESTONES = { 0.25, 0.5, 0.75, 1.0 }
 
 -- Free Creator Store audio. Swap these for your own uploads before launch --
@@ -545,8 +525,8 @@ Config.MUSIC = {
 -- HEIST_PAYOUT below, which is where most of the incentive actually lives.
 Config.STEAL_FRACTION = 0.08
 
--- STOLEN COINS COUNT DOUBLE. The thief banks the haul times this; the extra
--- is minted by the game, not taken from the victim.
+-- STOLEN COINS COUNT FOUR TIMES. The thief banks the haul times this; the
+-- extra is minted by the game, not taken from the victim.
 --
 -- This is the lever of the whole pivot. While the thief's gain and the
 -- victim's loss were the same number, every point of incentive was a point of
@@ -554,7 +534,20 @@ Config.STEAL_FRACTION = 0.08
 -- bullying simulator. Decoupled, robbing is the best earning rate on the
 -- street and being robbed is still a few minutes of income. Bail, the rap
 -- sheet and totalStolen all measure what the VICTIM lost, never this figure.
-Config.HEIST_PAYOUT = 2
+--
+-- FOUR, UP FROM TWO (designer decision 2026-09-22: robbing has to pay
+-- substantially more than a lawn earns, or nobody robs). What changed under
+-- it is the IDLE side of the comparison: a player's income is a whole lawn
+-- now -- the till plus six placed piggies, seven times the base rate on a
+-- lawn of commons -- where it used to be one pig. A crack still takes
+-- `getCrackTotal` of the victim's pig, so against a resident (whose pig is
+-- `RESIDENTS.pigSeconds` of income) the ratio is the payout times that
+-- fraction times `pigSeconds` over the cycle, over the thief's lawn; both
+-- halves scale with the income rate, so the ratio is flat across the
+-- ladder. `auditRobbery` measures it; `RESIDENTS.pigSeconds` is the other
+-- lever and is solved beside it. The victim's loss is still measured
+-- against what THEY lost, capped by `LOSS_CAP`, never against this figure.
+Config.HEIST_PAYOUT = 4
 
 -- WHAT A VICTIM CAN LOSE IN AN HOUR, whoever is robbing them.
 --
@@ -601,6 +594,15 @@ Config.LOSS_CAP = {
 	window = 60 * 60,
 }
 
+-- AND IT STAYED THROUGH THE 2026-09-22 PIVOT, for the reason it was written.
+-- For an hour that day the plan was to rob the six PEDESTAL piggies instead
+-- of the centre pig, which would have made a buffer the cap and retired this
+-- outright; the designer's call is that the centre pig -- the BANK, holding
+-- everything a player has -- is the target, with its lock on its back. A
+-- crack of it is a fraction of somebody's whole wealth times `HEIST_PAYOUT`,
+-- which is exactly the shape this cap exists to bound. Nothing about it
+-- moved.
+
 -- REVENGE PAYS TRIPLE. Robbing somebody who robbed YOU inside `window` pays
 -- `payout` times the coin haul instead of HEIST_PAYOUT; no Acorn payout.
 --
@@ -615,8 +617,18 @@ Config.LOSS_CAP = {
 -- the street.
 Config.REVENGE = {
 	window = 10 * 60,
-	payout = 3,
+	-- A MULTIPLE OF THE PAYOUT, NOT A PAYOUT OF ITS OWN. It was an absolute
+	-- 3 against a `HEIST_PAYOUT` of 2, and the day the payout moved to 4 an
+	-- absolute would have made revenge pay LESS than an ordinary robbery --
+	-- a bonus that is quietly a penalty, with nothing in any log. Derived,
+	-- revenge is always half again what a plain delivery banks.
+	bonus = 1.5,
 }
+
+-- What a revenge delivery banks per coin taken. See REVENGE.bonus.
+function Config.revengePayout(): number
+	return Config.HEIST_PAYOUT * Config.REVENGE.bonus
+end
 
 -- THE ROBBED PLASTER IS GONE. A robbed pig used to wear two crossed strips on
 -- its forehead for five minutes -- ROBBED_MARK_SECONDS and PLOT_ROBBED_ATTRIBUTE
@@ -642,10 +654,11 @@ Config.REVENGE = {
 -- TIGHTER than STEAL_RANGE below, which is the one relation here that means
 -- something -- an owner walking to their own piggy should not get the prompt
 -- from further out than a thief needs to reach it.
--- `COLLECT_RANGE` WAS HERE. There is no collect prompt since the pivot: the
--- pig is the wallet and nothing is banked. The note above is kept because the
--- relation it describes -- an owner should never reach their own piggy from
--- further out than a thief -- would apply to anything that ever replaced it.
+-- BACK, for the piggy collection's own collect prompt (Phase 1 --
+-- docs/PIGGY-COLLECTION-PLAN.md §4a). The relation the note above describes
+-- is what it was kept for: never further out than a thief needs to reach the
+-- same piggy.
+Config.COLLECT_RANGE = 9
 
 Config.STEAL_RANGE = 11
 
@@ -703,7 +716,25 @@ Config.JOIN_SHIELD = 90
 
 -- Carrying is slow and obvious. This is the entire risk half of the trade.
 Config.CARRY_SPEED_MULTIPLIER = 0.75
-Config.BASE_WALK_SPEED = 16
+
+-- THE ONE SPEED CONSTANT. Every other speed in the game -- the carry
+-- penalty, the tiptoe, the climb, the dodge, the burst, every dog tier, the
+-- officer, the patrol car, the shopkeeper, the chasing neighbour, a strolling
+-- resident, the delivery van, the herd, every ride tier and the gadget
+-- fallback throw -- is written as `Config.BASE_WALK_SPEED * <ratio>` and
+-- NEVER as an absolute (designer, 2026-09-21: "increase the walk speed and
+-- derive everything else as a ratio to it"). `tests/luau/speeds.luau` walks
+-- every ratio and holds the orderings CLAUDE.md calls load-bearing at three
+-- different bases, so this number can move without silently inverting one.
+--
+-- 24 (designer, 2026-09-22: "increase player walking speed still by a good
+-- bit"), after a session at the 20 placeholder that followed the 16 every
+-- number in this file was measured against. Half again over the original;
+-- every other speed follows as a ratio and `tests/luau/speeds.luau` says so,
+-- and `auditRobbery` re-derives the round trip from it at boot. The comments
+-- beside each ratio still quote the value at 16 ("14.5 at a base of 16") as
+-- the audit trail for the ratio, not as the live number.
+Config.BASE_WALK_SPEED = 24 -- was 20 (placeholder), was 16
 
 -- NABBING A THIEF: anyone nearby can do it, including bystanders.
 --
@@ -1640,7 +1671,22 @@ Config.RESIDENTS = {
 	-- listlessly, which is the behaviour that should be slower. 4.12x also
 	-- lands inside the 3-5x this design has been aiming at since the loop
 	-- was first measured.
-	pigSeconds = 200,
+	--
+	-- 200 -> 660 WHEN A LAWN BECAME THE IDLE (2026-09-22). The comparison
+	-- used to be against ONE pig; a player idles on the till plus six placed
+	-- piggies now, seven times the base rate on a lawn of commons, and the
+	-- audit reported 0.99x on a full server -- standing still was the better
+	-- play again, which is the finding this whole file exists to refuse. The
+	-- designer's call was that robbing has to pay substantially more than a
+	-- lawn, with `HEIST_PAYOUT` at 4, so this is the lever that moved:
+	-- measured across the population sweep, 660 lands 3.70x cold and 7.41x at
+	-- five stars on a one-player street, and 3.28x / 6.55x on a full server
+	-- where only two houses and the four shops are left -- above the 3.0x
+	-- floor everywhere, under the 10x ceiling everywhere. What a resident IS
+	-- worth is therefore eleven minutes of its own income now, sitting in a
+	-- house with nobody in it, and the shop vault follows it through
+	-- `shopVaultPigSeconds`.
+	pigSeconds = 660,
 
 	-- A RESIDENT'S PER-VICTIM COOLDOWN IS THE SAME AS A PLAYER'S, AND THE
 	-- SESSION IT SPENT AT 30 IS WORTH KEEPING BECAUSE THE ARGUMENT FOR
@@ -1686,18 +1732,21 @@ Config.RESIDENTS = {
 	-- buying a Mastiff has bought a thing that will never once be used.
 	walk = {
 		-- SPEED IS THE CURRENCY, AND THIS IS THE WHOLE BALANCE OF THE
-		-- FEATURE. `BASE_WALK_SPEED` is 16 and a carrying player does 12; a
-		-- neighbour strolls at 9 and carries at 7, so A PLAYER CAN ALWAYS RUN
+		-- FEATURE. A carrying player does `CARRY_SPEED_MULTIPLIER` (0.75) of
+		-- the base walk; a neighbour strolls at 0.5625 of it and carries at
+		-- 0.4375 (9 and 7 against a base of 16), so A PLAYER CAN ALWAYS RUN
 		-- ONE DOWN -- on their own lawn, on the pavement, or at the
 		-- neighbour's gate.
 		--
 		-- That ordering is what stops this being a tax rather than a game:
 		-- the coins are recoverable by doing the thing, every time, with no
-		-- purchase involved. Anything that raises these past 12 hands a
-		-- player a loss they cannot answer, which is the one outcome this
-		-- design will not put in front of a nine-year-old.
-		speed = 9,
-		carrySpeed = 7,
+		-- purchase involved. Anything that raises these past the carry
+		-- multiplier hands a player a loss they cannot answer, which is the
+		-- one outcome this design will not put in front of a nine-year-old.
+		-- RATIOS OF `BASE_WALK_SPEED`, never absolutes, so the ordering
+		-- survives the base moving.
+		speed = Config.BASE_WALK_SPEED * 0.5625, -- was 9 at a base of 16
+		carrySpeed = Config.BASE_WALK_SPEED * 0.4375, -- was 7 at a base of 16
 
 		-- HOW MANY ARE OUT AT ONCE. Two, and it is a cap on the PICTURE as
 		-- much as on the cost: eight neighbours all out at once is a street
@@ -1757,13 +1806,14 @@ Config.RESIDENTS = {
 			-- their own gate whatever is typed here.
 			radius = 6,
 
-			-- A POTTER, NOT A WALK. `speed` is 9 and is what a neighbour
-			-- does when they have somewhere to be; six studs of lawn at that
-			-- pace reads as marching off and then changing their mind. It
-			-- also keeps the ordering this whole feature rests on intact by a
-			-- wider margin than anything else here -- a player runs one down
-			-- at 16 without trying.
-			speed = 3.5,
+			-- A POTTER, NOT A WALK. `walk.speed` is what a neighbour does
+			-- when they have somewhere to be; six studs of lawn at that pace
+			-- reads as marching off and then changing their mind. It also
+			-- keeps the ordering this whole feature rests on intact by a
+			-- wider margin than anything else here -- a player at a full walk
+			-- runs one down without trying. A ratio of `BASE_WALK_SPEED`:
+			-- 3.5 at a base of 16.
+			speed = Config.BASE_WALK_SPEED * 0.21875, -- was 3.5 at a base of 16
 
 			-- Seconds standing between strolls, drawn per resident so a row
 			-- of them does not shuffle in step. Short against `restMin` of
@@ -1860,6 +1910,84 @@ Config.RESIDENTS = {
 	fencePerLevels = 5,
 	lockPerLevels = 6,
 	housePerLevels = 3,
+
+	-- ------------------------------------------------------------
+	-- WHAT A NEIGHBOUR KEEPS ON THEIR LAWN
+	-- ------------------------------------------------------------
+	--
+	-- PROVISIONAL, AND IT IS THE BIGGEST UNSOLVED DIAL IN THE COLLECTION.
+	-- `docs/PIGGY-PACKS-PLAN.md` SS10e calls it "the supply question" and
+	-- `docs/PIGGY-COLLECTION-PLAN.md` SS9.4 has had it open since the plan was
+	-- written: on a quiet server the only lawns to steal from are residents',
+	-- so this number is how fast a solo player can build a collection at all.
+	--
+	-- IT SHIPS NON-ZERO BECAUSE ZERO IS A BROKEN FEATURE RATHER THAN A SAFE
+	-- DEFAULT. Sixty empty plinths is an acquisition route with nothing on
+	-- it, and a snatch prompt that never appears anywhere is indistinguish-
+	-- able from the snatch not being built -- which is the one failure this
+	-- project refuses above all others.
+	--
+	-- THREE OF SIX, AND THE EMPTY HALF IS DELIBERATE. A full neighbour lawn
+	-- would read as the normal state of a plot and make a player's own six
+	-- look poor; half-full reads as somebody who is also still collecting,
+	-- and it leaves room for the thing this lawn is FOR -- a snatched piggy
+	-- is not replaced, so a street's stock is finite and visibly runs down
+	-- as it is picked over.
+	piggyCount = 3,
+
+	-- DRAWN AGAINST THE SAME WEIGHTS AS EVERY OTHER ROLL IN THE GAME, which
+	-- is the first of the two properties SS10e requires: a resident's lawn
+	-- must never be a second economy that can drift from the real one. It is
+	-- the argument `ResidentService` already makes for reading
+	-- `Config.getIncomeRate` and `getCapacity` directly rather than inventing
+	-- parallel curves.
+	--
+	-- AND IT IS CAPPED RATHER THAN SCALED, which is the second. The residents'
+	-- own level offset is downward-only because "residents richer than the
+	-- thief are a faucet, full stop"; the same reasoning one level up says a
+	-- lawn that seeds legendaries because the street is rich is a legendary
+	-- faucet, and the audit that would catch it does not exist yet. So the
+	-- street's wealth does not reach this at all: a neighbour's best piggy is
+	-- this tier on the first day and on the thousandth.
+	piggyTopRarity = "rare",
+
+	-- ------------------------------------------------------------
+	-- A NEIGHBOUR PLAYS THE SAME GAME A PLAYER DOES (designer, 2026-09-22)
+	-- ------------------------------------------------------------
+	--
+	-- WHICH JOB A TRIP IS. A player has two things to take off a lawn -- the
+	-- bank's coins and a pedestal's piggy -- and a row of neighbours who only
+	-- ever cracked the pig was a street playing last month's game. Each is
+	-- the chance a trip is a SNATCH rather than the crack, by who the victim
+	-- is; `ResidentService.chooseJob` reads them through a fallback carrying
+	-- these same values, so this table may land or not without a boot
+	-- changing.
+	--
+	-- TWO WEIGHTS BECAUSE THE TWO VICTIMS ARE NOT THE SAME EVENT. Against a
+	-- PLAYER a snatch is the threat: their plinth goes bare, they are told
+	-- who, and the neighbour walks it home at `walk.carrySpeed` past a
+	-- player who does `BASE_WALK_SPEED` -- recoverable by doing the thing,
+	-- every time. Against a RESIDENT it is scenery: nobody is told, nobody
+	-- chases, and two neighbours trading piggies is the street's finite stock
+	-- going round in a circle. Kept small enough that a collection visibly
+	-- drifts over a long session and no more.
+	snatch = {
+		playerWeight = 0.35,
+		residentWeight = 0.08,
+	},
+
+	-- COLLECTING THEIR OWN PADS. A plinth is worth walking to at this share of
+	-- its OWN cap (`rate * piggyBufferSeconds` of the tier, the player's own
+	-- arithmetic) -- the denominator `piggyCollectPitch` settled on, because a
+	-- share of the cap spans 0..1 on every tier where a coin figure saturates
+	-- on the best piggy and reads as nothing on the worst. Three quarters:
+	-- later than a lapping player, who collects everything before anything is
+	-- full, and earlier than FULL, so no pad on a neighbour's lawn ever sits
+	-- capped and earning nothing. Checked on the roam clock, not a clock of
+	-- its own.
+	collect = {
+		fullness = 0.75,
+	},
 }
 
 -- Published on the plot model so a CLIENT can tell a resident's house from a
@@ -1912,7 +2040,7 @@ Config.DOG_TIERS = {
 		-- down the street than a terrier.
 		bark = "rbxassetid://9113955391", pitch = 1.45, volume = 0.42,
 		breed = "Terrier", model = "terrier",
-		speed = 12,
+		speed = Config.BASE_WALK_SPEED * 0.75,
 		catchRadius = 7,
 		cooldown = 34,
 		maxChase = 12,
@@ -1948,7 +2076,7 @@ Config.DOG_TIERS = {
 		-- down the street than a terrier.
 		bark = "rbxassetid://9113956178", pitch = 1.00, volume = 0.55,
 		breed = "Shepherd", model = "shepherd",
-		speed = 14.5,
+		speed = Config.BASE_WALK_SPEED * 0.90625,
 		catchRadius = 8.2,
 		cooldown = 29,
 		maxChase = 15,
@@ -1971,7 +2099,7 @@ Config.DOG_TIERS = {
 		-- down the street than a terrier.
 		bark = "rbxassetid://9113955086", pitch = 0.68, volume = 0.75,
 		breed = "Mastiff", model = "mastiff",
-		speed = 17,
+		speed = Config.BASE_WALK_SPEED * 1.0625,
 		catchRadius = 9.5,
 		cooldown = 24,
 		maxChase = 18,
@@ -1991,7 +2119,7 @@ Config.DOG_TIERS = {
 	{
 		name = "Dire Wolf", breed = "Dire Wolf", model = "direwolf",
 		bark = "rbxassetid://9113955086", pitch = 0.62, volume = 0.8,
-		speed = 19, catchRadius = 10,
+		speed = Config.BASE_WALK_SPEED * 1.1875, catchRadius = 10,
 		cooldown = 21, maxChase = 20, boneResist = 0.5,
 		scale = 1.4, -- kennel/anchor only; imported mesh sizes are authored per tier
 		fur = Color3.fromRGB(124,137,154), furDark = Color3.fromRGB(67,76,92),
@@ -2001,7 +2129,7 @@ Config.DOG_TIERS = {
 	{
 		name = "Cerberus", breed = "Cerberus", model = "cerberus",
 		bark = "rbxassetid://9113955086", pitch = 0.55, volume = 0.85,
-		speed = 21, catchRadius = 10.5,
+		speed = Config.BASE_WALK_SPEED * 1.3125, catchRadius = 10.5,
 		cooldown = 18, maxChase = 22, boneResist = 0.4,
 		scale = 1.5,
 		fur = Color3.fromRGB(76,65,84), furDark = Color3.fromRGB(37,31,44),
@@ -3206,12 +3334,22 @@ Config.THROW = {
 	-- THE FALLBACK SPEED only: a thrown gadget's own speed is solved from
 	-- its range by `Config.throwSpeed`, so the plunger leaves the hand at
 	-- about 46.6 and the gum at 40.8. The lead is still fixed per gadget,
-	-- which is what a player has to learn.
-	speed = 60,
+	-- which is what a player has to learn. A ratio of `BASE_WALK_SPEED`
+	-- like every other speed here: 60 at a base of 16.
+	speed = Config.BASE_WALK_SPEED * 3.75, -- was 60 at a base of 16
 
 	-- Studs per second squared of drop. Together with a gadget's range it
 	-- sets that gadget's speed, so turning this changes how FLAT every throw
 	-- is while leaving how FAR each one goes exactly where it was.
+	--
+	-- DELIBERATELY NOT A RATIO OF `BASE_WALK_SPEED`. It is an acceleration,
+	-- not a speed, and a gadget's flight speed is `sqrt(range * gravity)`
+	-- -- so the arc over a FIXED range is a fact about the world's physics
+	-- rather than about how fast anybody walks. What moving the base does
+	-- change is the LEAD: a runner covers more ground during the same
+	-- flight. If that ever reads as the gadgets falling behind the street,
+	-- the lever is this number scaled by (base / 16)^2, which keeps every
+	-- range exactly where it is and shortens every flight in proportion.
 	gravity = 64,
 
 	-- How close the projectile has to pass to count as a hit. THE ONLY
@@ -3566,10 +3704,22 @@ local ICON = {
 	-- pick up the fault that made the warning triangle render 4px narrower
 	-- than everything beside it.
 	SMASH = utf8.char(0x1F4A5),
-	-- Growing your tree (step 2.7). U+1F333 DECIDUOUS TREE, four-byte, so it
-	-- has no monochrome text form. NOT YET render-measured the way the rest
-	-- of this table was; do that before trusting its width on the card.
-	TREE = utf8.char(0x1F333),
+	-- THE THREE PEDESTAL VERBS. Four-byte every one of them, so none can pick
+	-- up the fault that made the warning triangle render 4px narrower than
+	-- everything beside it: a four-byte emoji has no monochrome text form to
+	-- fall back to and is drawn from the colour font on every platform.
+	--
+	-- PIG FACE for taking your own off its plinth, because the noun IS the
+	-- verb here -- what a player is deciding is WHICH piggy, and the card
+	-- already names it underneath.
+	PIG = utf8.char(0x1F437),
+	-- A HAND REACHING for taking somebody else's. Deliberately not the money
+	-- bag `steal` wears: a snatch takes an OBJECT and leaves the coins alone,
+	-- and the two prompts can stand on one lawn twenty studs apart.
+	GRAB = utf8.char(0x1F91A),
+	-- A PIN for putting one down. The pedestal is the spot; this says so
+	-- without repeating the pig that is already in the player's arms.
+	PIN = utf8.char(0x1F4CD),
 }
 
 -- EVERY KIND GETS ITS OWN ICON, and that is the point of having one.
@@ -3648,6 +3798,34 @@ Config.NOTIFY = {
 	loot = {
 		title = "HAUL", glyph = ICON.MONEYBAG, tone = Color3.fromRGB(255, 203, 61),
 		sound = "COIN_DROP", volume = 0.5, hold = 4.0,
+	},
+
+	-- THE OBSERVER. A batch of piggies has been released into the enclosure,
+	-- and where. It is a fact about the STREET rather than about the reader,
+	-- which is the family `police` belongs to -- and unlike a patrol it is
+	-- not coming for anybody, so it takes none of that kind's loudness.
+	--
+	-- NO FLASH, DELIBERATELY. The three flashing kinds are the ones a player
+	-- has to react to; this one fires about once a minute for the whole
+	-- session, and a full-screen pulse at that cadence is the wallpaper a
+	-- player stops seeing -- which would cost the one message that makes a
+	-- drop findable by somebody looking the other way.
+	--
+	-- THE PIG FACE, because the noun IS the news and it was measured with the
+	-- rest of this table at 37.0 advance: four-byte, so it has no monochrome
+	-- text form to fall back to and cannot pick up the fault that made the
+	-- warning triangle render 4px narrower than everything beside it.
+	--
+	-- `Theme.COOL`'s own blue rather than a green: the drop is neither good
+	-- news nor bad, it is the simulation doing something, and it is the tone
+	-- the drop-zone beacon out on the grass is already drawn in.
+	--
+	-- LONGER THAN `good`, because there is a place name in it to read and the
+	-- reader is usually walking. `Config.NOTIFY_READ` adds its own per-word
+	-- allowance on top, so this is the floor rather than the length.
+	herd = {
+		title = "OBSERVER", glyph = ICON.PIG, tone = Color3.fromRGB(64, 147, 230),
+		hold = 4.5,
 	},
 
 	-- SOMEONE IS ROBBING YOU. The single most important message the game ever
@@ -3752,19 +3930,23 @@ Config.POLICE = {
 
 	-- SPEEDS, and the only numbers here that can break something else.
 	--
-	-- BASE_WALK_SPEED is 16 and a carrying thief does 12. The officer runs at
-	-- 14.5 -- between the two, which is the entire balance of this feature:
+	-- A carrying thief does `CARRY_SPEED_MULTIPLIER` (0.75) of the base
+	-- walk. The officer runs at 0.90625 of it -- between the two, which is
+	-- the entire balance of this feature (12, 14.5 and 16 at a base of 16):
 	--
-	--   carrying (12.0)      -> the officer gains on you, so holding the loot
+	--   carrying (0.75)      -> the officer gains on you, so holding the loot
 	--                           through a patrol has a real price
-	--   empty-handed (16.0)  -> you outrun them, so DELIVERING is the answer
+	--   empty-handed (1.0)   -> you outrun them, so DELIVERING is the answer
 	--                           and the bail is what you pay for being slow
 	--
-	-- Nothing here is faster than 16, so no existing calibration moves. The
-	-- car is quicker than that, but the car never leaves the road and never
-	-- catches anybody -- only the officer's catchRadius can end a chase.
-	officerSpeed = 14.5,
-	carSpeed = 34,
+	-- Nothing here is faster than the base walk, so no existing calibration
+	-- moves. The car is quicker than that, but the car never leaves the road
+	-- and never catches anybody -- only the officer's catchRadius can end a
+	-- chase. BOTH ARE RATIOS OF `BASE_WALK_SPEED`, so the base can move
+	-- without the officer landing on the wrong side of the carry speed --
+	-- `tests/luau/speeds.luau` holds carry < officer < walk at any base.
+	officerSpeed = Config.BASE_WALK_SPEED * 0.90625, -- 14.5 at a base of 16
+	carSpeed = Config.BASE_WALK_SPEED * 2.125, -- was 34 at a base of 16
 	catchRadius = 6.5,
 
 	-- HOW FAR ABOVE OR BELOW THE OFFICER A CATCH MAY LAND.
@@ -3801,24 +3983,45 @@ Config.POLICE = {
 	-- back in a live chase.
 	searchSeconds = 6,
 
-	-- BAIL, AND WHY IT IS CAPPED.
+	-- BAIL IS A SHARE OF WHAT YOU ARE HOLDING, NOT A MULTIPLE OF WHAT YOU
+	-- TOOK (designer call 2026-09-21), AND THE REASON IS THAT THE SECOND ONE
+	-- STOPPED BEING A NUMBER.
 	--
-	-- Confiscation takes from the PIGGY BANK, which since the pivot is the
-	-- only balance there is. What keeps it from costing progress is the cap
-	-- below: three times the haul, and never more than is in the pig -- so a
-	-- patrol can cost you an afternoon's idle income and can never cost you a
-	-- house, a skin or an upgrade, all of which are bought and gone from it.
+	-- It was `3x the haul, capped at the pig`, and every word of the entry
+	-- that defended it was right: bail was legible as three times what you
+	-- took, it always hurt, and it could never exceed what was already at
+	-- risk. That rests entirely on a robbery HAVING a coin figure. With the
+	-- core moving to stealing PIGGIES, what a thief took is an animal --
+	-- `3x` of one piggy is not a quantity, and a bail that could not be
+	-- computed would be the loudest number in the police loop going dark.
 	--
-	-- The multiple is what stops it being a trap. Uncapped, a thief who took
-	-- 2,500 off a neighbour while sitting on 200,000 of their own uncollected
-	-- coins would lose all 200,000 -- an eighty-to-one punishment, and the
-	-- lesson a child takes from that is "never rob anybody again". The economy
-	-- needs people robbing each other; the Guard Duty Treat exists for exactly
-	-- that reason and this cap is the same argument.
+	-- A SHARE OF THE TILL KEEPS EVERY PROPERTY THE CAP WAS PROTECTING. It is
+	-- legible without arithmetic (`a fifth of your piggy bank`), it is
+	-- survivable by construction -- you keep four fifths whatever happens --
+	-- and it still cannot reach a house, a skin or an upgrade, because those
+	-- are bought and gone from the till. The eighty-to-one punishment the old
+	-- multiple existed to prevent is impossible here rather than capped.
 	--
-	-- At 3x, bail is always legible as "three times what you took", it always
-	-- hurts, and it can never exceed what was already at risk.
-	bailMultiple = 3,
+	-- IT ALSO STOPS BEING A TRAP FOR THE SMALL THIEF, which the multiple
+	-- never quite managed: a child who lifted one cheap piggy while sitting
+	-- on very little pays very little, because the charge is measured against
+	-- what they are carrying rather than against what they did.
+	--
+	-- WHAT IT COSTS, STATED PLAINLY: IT TAXES SAVING UP. There is one balance
+	-- and no safe store, so a player hoarding for the 1B house is holding the
+	-- biggest till on the street and is therefore the most expensive person
+	-- to arrest. That is the honest reading of a one-wallet economy and it is
+	-- the first thing to re-derive if the top of the house ladder ever starts
+	-- reading as unreachable -- the lever would be a ceiling in seconds of
+	-- income, not a smaller fraction.
+	--
+	-- 0.20 IS PROVISIONAL AND SAID TO BE. It is a fifth because that is a
+	-- share a nine-year-old can hold in their head, and it has not been
+	-- solved against what a stolen piggy is worth -- which cannot be done
+	-- until the snatch exists and `Config.piggyWorth` has real traffic
+	-- through it. See `auditRobbery`, which is separately measuring against a
+	-- denominator that stopped describing income.
+	bailFraction = 0.20,
 
 	-- Which lane the car drives in, as an offset from the road's centreline.
 	-- Well inside ROAD_HALF_WIDTH so it never clips a kerb.
@@ -3854,30 +4057,13 @@ Config.POLICE = {
 	arrestTimeout = 30,
 	arrestSkipAfter = 3.5,
 
-	-- MOST WANTED: the floor a rap sheet has to clear before the patrol will
-	-- come looking for somebody who is not currently robbing anybody.
-	--
-	-- DENOMINATED IN SECONDS OF THAT PLAYER'S OWN INCOME, never a flat number,
-	-- for exactly the reason the daily ladder is: a steal takes 5% of a
-	-- victim's piggy bank and a piggy bank's capacity climbs without limit, so
-	-- any fixed figure is a serious crime on day one and a rounding error by
-	-- the weekend. At sixty seconds it always means the same thing -- "you
-	-- have taken about a minute of your own earnings off other people" --
-	-- which is a real robbery at every point in the game.
-	--
-	-- The floor exists for one specific failure: in a quiet server, a player
-	-- who lifted a single small pile would otherwise be hunted every eight
-	-- minutes for the rest of the session.
-	--
-	-- IT GATES THE PATROL AND NOT THE POSTER, which it used to do both of. As
-	-- a filter on who could lead the board it was answering a question it
-	-- cannot answer: this number scales with the THIEF's income and rebirths
-	-- while loot scales with the VICTIM's vault, so a maxed thief robbing a
-	-- poorer neighbour never cleared their own floor however many plots they
-	-- emptied, and the board stayed empty in exactly the servers that had a
-	-- biggest thief. See SocialService.refreshMostWanted -- the board ranks on
-	-- the sheet alone, and this decides whether the leader is worth a car.
-	wantedFloorSeconds = 60,
+	-- `wantedFloorSeconds` IS RETIRED (designer decision 2026-09-22). The
+	-- patrol used to come for the board's leader once their sheet cleared a
+	-- minute of their own income; it comes for anybody carrying
+	-- `WANTED_STARS.huntedFrom` stars now and for nobody else. The reasoning
+	-- the floor carried -- a single small pile must not draw a car every
+	-- eight minutes -- is kept by the stars themselves: one delivery is one
+	-- star, and three in a row is a thief the street can see.
 
 	-- HOW LONG THE STREET MUST BE QUIET BEFORE ANOTHER RADIO CALL IS TAKEN.
 	--
@@ -3896,6 +4082,55 @@ Config.POLICE = {
 	-- guard-duty lockout and for the same reason: measured from the call, it
 	-- would overlap the patrol it started and guarantee no gap at all.
 	callLockout = 180,
+
+	-- HOW THE OFFICER GOES ROUND THINGS (designer decision, 2026-09-21).
+	--
+	-- The officer is a posed model with no Humanoid and no physics, so it
+	-- walked through every trunk collider, every fence barrier and every
+	-- pond. `Shared/PathFollower` steps it along a PathfindingService path
+	-- now, and this table is that follower's spec -- the POLICE spec, passed
+	-- in by PoliceService. A resident, a guard pet or a herd leader wired to
+	-- the same follower later passes a table of its own.
+	--
+	-- `agentRadius` IS MEASURED, NOT PICKED. The widest thing on the officer
+	-- is the pair of arms: `PoliceModel.OFFICER` puts each at x 1.46 with a
+	-- 0.72-wide part, so the body spans 1.82 either side of its centre; the
+	-- shoes reach 0.92 forward. Two covers both with a hair to spare, and it
+	-- is what the gate check below is measured against: the narrowest gate
+	-- in `FENCE_TIERS` is the Moat's 8, which leaves 8 - 2 x 2 = 4 studs of
+	-- navmesh a path can use. Shrinking this below the body to fit a
+	-- narrower gate would put the officer's arms through the gate posts,
+	-- which is the bug this table exists to end.
+	--
+	-- `agentHeight` is the cap's crown (5.85 + 0.30), rounded up. Nothing on
+	-- the street overhangs the ground lower than a canopy underside (7+), so
+	-- it decides nothing today and is set from the geometry rather than
+	-- guessed so that it never silently decides something later.
+	--
+	-- `replanDistance` and `replanSeconds` are the recompute policy: a new
+	-- path when the thief has moved four studs off the goal the current one
+	-- was computed to, and never more than two and a half computes a second
+	-- however hard they dodge. `ComputeAsync` runs in a task of its own and
+	-- the follower keeps walking the last good path until the new one lands.
+	--
+	-- THERE IS NO `costs` ROW, AND THERE WAS ONE FOR A SESSION. It read
+	-- `costs = { Water = math.huge }` against a PathfindingModifier on every
+	-- pond's water, and measured live it did nothing: a path with that spec
+	-- passed 1.0 stud from a pond's centre, exactly as one with no costs
+	-- did, and only a COLLIDING part moved it (see `Grassland.buildPond`).
+	-- The ponds keep an officer out with their rim stones now, which
+	-- collide. `PathFollower` still passes a `costs` table through if a
+	-- future spec carries one -- but a row here would be a claim about the
+	-- navmesh that the navmesh has already refused once.
+	path = {
+		agentRadius = 2,
+		agentHeight = 6.2,
+		agentCanJump = false,
+		replanDistance = 4,
+		replanSeconds = 0.4,
+		maxWaypoints = 64,
+		waypointReach = 1.0,
+	},
 }
 
 -- ============================================================
@@ -3940,28 +4175,17 @@ Config.EVENTS = {
 	-- rule and, at a two-event roster, collapses into strict alternation with
 	-- the weights doing nothing at all.
 	--
-	-- As damped, the raid lands about 41% of slots -- roughly one every 37
-	-- minutes -- so it is the thing a session gets built around rather than
-	-- something that interrupts one, and it is genuinely unpredictable rather
-	-- than nominally random. Adding a third event moves this number; it is
-	-- derived from the weights, not pinned.
+	-- THE ROSTER IS ONE ROW NOW. Rush Hour went when Midnight Heist replaced
+	-- it, and Midnight Heist went with the piggy-collection pivot (designer,
+	-- September 21): its whole payload doubled coin steals and the pig-crack
+	-- acorn, and neither exists any more. With one row the picker draws the
+	-- raid every slot -- one every `period` -- and the damping is inert until
+	-- a second row lands. It stays because a second row WILL land, and the
+	-- alternation trap the note above describes is exactly what a two-row
+	-- roster without it walks into.
 	roster = {
-		-- `set` is which themed set this event's drop rolls from. Rush Hour
-		-- has none: its reward is the increased coin value of steals during
-		-- the event. Neither event pays attendance Acorns.
+		-- `set` is which themed set this event's drop rolls from.
 		raid = { name = "ALIEN INVASION", weight = 1, seconds = 150, set = "alien" },
-		-- MIDNIGHT HEIST (designer, September 16) REPLACES BOTH RUSH HOUR AND
-		-- THE HARVEST MOON. The street goes dusk and, for its length, every
-		-- coin steal pays double (Rush Hour's old job) and a clean pig crack's
-		-- acorn pays double too (`Config.MIDNIGHT`). It takes Rush Hour's
-		-- weight and length, so the raid is back to ~41% of slots.
-		--
-		-- ACORN THEFT IS DISABLED. The Harvest Moon was the one event that
-		-- opened other players' trees (a row carrying `acornTheft = true`), and
-		-- its inherited x5 swamped the multiplayer faucet. No row opens it now,
-		-- and `auditAcorns` refuses one that does; the shake-another-tree path
-		-- stays in the code, closed, until play-testing says otherwise.
-		midnight = { name = "MIDNIGHT HEIST", weight = 2, seconds = 180 },
 	},
 }
 
@@ -3991,8 +4215,8 @@ Config.EVENTS = {
 -- fault that made the notify warning triangle render 4px narrower than every
 -- glyph beside it, and a per-platform font decision rather than a promise.
 -- `icon` IS AN UPLOAD SLOT AND AN EMPTY ONE IS A WORKING STATE, which is the
--- call `Config.ANIMATIONS`, `Config.PIGGY_MESH` and `PiggyPanel.ICON_IMAGE`
--- all already make. Put an `rbxassetid://...` here and the standing countdown
+-- call `Config.ANIMATIONS` and `Config.PIGGY_MESH` both already make.
+-- Put an `rbxassetid://...` here and the standing countdown
 -- shows that picture; leave it empty and the countdown draws its own shape
 -- for that event out of frames, so a row landing before its artwork does
 -- renders the fallback rather than a blank tile. A row with NEITHER falls
@@ -4003,37 +4227,6 @@ Config.EVENT_UI = {
 		icon = "",
 		tone = Color3.fromRGB(59, 204, 209),
 		live = "DRONES ON THE STREET",
-	},
-	-- U+1F319 CRESCENT MOON, four-byte, so no monochrome text form. NOT YET
-	-- render-measured like the raid's glyph. A light periwinkle: far from the
-	-- raid's cyan, and light enough to carry ink -- measured 8.6:1 lit and
-	-- 5.2:1 at the bottom of the warning pulse, where a first pick at
-	-- (176, 164, 255) fell to 4.46 against a 4.5 floor.
-	midnight = {
-		glyph = utf8.char(0x1F319),
-		icon = "",
-		tone = Color3.fromRGB(192, 182, 255),
-		live = "STEALS PAY DOUBLE",
-	},
-}
-
--- MIDNIGHT HEIST'S LIGHT, AND IT IS A TWEEN FOR THE WINDOW ONLY.
---
--- There is no night in this game (CLAUDE.md, the Lighting entries): every
--- neon effect, the bloom threshold and the pig's readability are tuned
--- against one sun at ClockTime 14.5. So "midnight" is a DUSK, not a night --
--- the sun low and orange, the shadows violet, the whole street a stop
--- darker -- and it goes back to the exact day values when the event ends,
--- whatever happened in between (`WorldService.setNight`). Brightness stays
--- well above zero so a nine-year-old can still read a pig and a dog.
-Config.MIDNIGHT_LIGHT = {
-	fadeSeconds = 3,
-	lighting = {
-		ClockTime = 17.9,
-		Brightness = 1.5,
-		Ambient = Color3.fromRGB(96, 88, 136),
-		OutdoorAmbient = Color3.fromRGB(92, 86, 140),
-		ColorShift_Top = Color3.fromRGB(255, 190, 140),
 	},
 }
 
@@ -4229,23 +4422,12 @@ Config.RAID = {
 	beamRadius = 2.0,
 }
 
--- MIDNIGHT HEIST's two multipliers. `stealMultiplier` is Rush Hour's, moved
--- here unchanged: it doubles what a coin steal takes (EventService pushes it,
--- so the prompts and the badge quote it). `acornMultiplier` doubles the
--- pig-crack acorn (`Config.crackAcorns`) on a delivery whose CRACK ENDED
--- during the event -- it is stamped on the carry, so walking home after dawn
--- still pays what the night promised. A solo player gets no acorn bonus:
--- residents and shops mint no pig-crack acorn, and doubling zero is zero.
-Config.MIDNIGHT = {
-	stealMultiplier = 2,
-	acornMultiplier = 2,
-}
-
 -- ============================================================
 -- EVENT SETS
 -- ============================================================
--- Events pay coins and free set drops. They never mint Acorns. The legacy
--- Config.LOOT event/attendance/completion faucet was retired in Phase 1.9.
+-- Events pay coins and free set drops. They have never minted a second
+-- currency: the legacy Config.LOOT event/attendance/completion faucet was
+-- retired in Phase 1.9 and the Acorn track that replaced it is gone too.
 
 -- A SET IS A VIEW OVER THE EXISTING CATALOGUES, NEVER A NEW CATALOGUE.
 --
@@ -4364,6 +4546,23 @@ end
 -- looks available and does nothing.
 Config.PROMPT_OWNER_ATTRIBUTE = "PromptOwner"
 
+-- AND THE MIRROR: A PROMPT THAT IS FOR EVERYBODY EXCEPT ONE PERSON.
+--
+-- The snatch is the only thing in this game that needs it, and it needs it
+-- because three prompts share one plinth on one key. An owner standing at
+-- their own pedestal must see TAKE and not SNATCH; everybody else must see
+-- SNATCH and not TAKE. `PROMPT_OWNER_ATTRIBUTE` answers the first half and
+-- nothing answered the second, so without this the owner would be shown both
+-- cards on one part on one key -- which `PROMPT_SLOT_ATTRIBUTE` can separate
+-- on screen and `OnePerButton` cannot separate on the keyboard.
+--
+-- SAME INSTRUMENT AND SAME DIRECTION AS ITS TWIN: it only ever REFUSES. The
+-- server decides whether a prompt is available at all and re-checks the owner
+-- on every trigger; this subtracts from that on one screen and never adds to
+-- it, which is the rule `ownerRule` had to learn the hard way when its first
+-- version wrote `Enabled = (owner == me)` and became a second writer.
+Config.PROMPT_DENY_OWNER_ATTRIBUTE = "PromptDenyOwner"
+
 Config.PROMPTS = {
 	-- Your own piggy. Gold, and the quietest of the set: this is the thing a
 	-- player does a thousand times and it should never shout.
@@ -4398,10 +4597,25 @@ Config.PROMPTS = {
 	-- bang. Either alone is enough -- and on a touchscreen they are the ONLY
 	-- things that are, because `keyText` prints HOLD on both when there is no
 	-- key to name.
-	shake = { glyph = ICON.SMASH, tone = Color3.fromRGB(164, 96, 49), verb = "SHAKE" },
-	-- Buying the next tree level. The good green, because it is spending on
-	-- your own plot and never an act against anybody.
-	grow = { glyph = ICON.TREE, tone = Color3.fromRGB(92, 176, 84), verb = "GROW" },
+	-- LETTING A PIGGY GO, off its own pedestal, for coins.
+	--
+	-- WARN ORANGE RATHER THAN THE MONEY GOLD, and that is the whole reason it
+	-- is its own kind instead of reusing `collect`. Both pay out, so gold is
+	-- the obvious read -- and this is the only prompt on a player's own plot
+	-- that TAKES SOMETHING AWAY permanently. Under the six-slot lawn a piggy
+	-- is not a spare copy being tidied up, it is one of seven things a player
+	-- owns; a gold card would sell it as a reward.
+	--
+	-- It shares the warn tone with every refusal in the game, which is the
+	-- right family: this is the one action here a nine-year-old could regret.
+	-- Colour is not the only signal -- the verb says SELL and the card carries
+	-- the coin figure -- because on a touchscreen those are the only two
+	-- channels there are. The glyph is the money family now that the sale
+	-- pays coins; the WARN tone is what keeps it clear of `collect`.
+	sell = {
+		glyph = ICON.MONEYBAG, tone = Color3.fromRGB(230, 147, 64),
+		verb = "SELL",
+	},
 	smash = {
 		glyph = ICON.SMASH, tone = Color3.fromRGB(230, 72, 64),
 		verb = "SMASH",
@@ -4485,6 +4699,58 @@ Config.PROMPTS = {
 	recover = {
 		glyph = ICON.ALIEN, tone = Color3.fromRGB(59, 204, 209),
 		verb = "RECOVER",
+	},
+
+	-- ------------------------------------------------------------
+	-- THE THREE PEDESTAL VERBS, AND WHY THEY ARE THREE KINDS
+	-- ------------------------------------------------------------
+	--
+	-- One pedestal offers exactly one of these at a time, and WHICH one is a
+	-- fact about the reader as much as about the plinth: lifting your own
+	-- piggy off its stand and lifting somebody else's are the same gesture
+	-- and are not the same act. A single kind would have to pick one tone for
+	-- both, and either colour is a lie half the time -- a red card on your own
+	-- lawn for tidying your own collection, or a gold one for robbing a child.
+	--
+	-- This is the `collect`/`steal` split arriving on the object rather than
+	-- on the coins, and it is settled the same way: the tones are the tones
+	-- those two already own, so a player who has learned that gold is mine and
+	-- red is theirs does not have to learn it twice.
+
+	-- YOUR OWN, OFF YOUR OWN PLINTH. Gold, and it takes nothing from anybody
+	-- -- the piggy is in your arms and the slot it left is still yours.
+	take = {
+		glyph = ICON.PIG, tone = Color3.fromRGB(255, 203, 61),
+		verb = "TAKE",
+	},
+
+	-- SOMEBODY ELSE'S. `steal`'s own red, because this is the same crime
+	-- against the same person by a different door -- and under the six-slot
+	-- lawn it is the DEARER of the two: a coin robbery takes a share of a
+	-- pile that refills on its own, and this takes one of the seven things
+	-- they own outright.
+	snatch = {
+		glyph = ICON.GRAB, tone = Color3.fromRGB(230, 72, 64),
+		verb = "SNATCH",
+	},
+
+	-- PUTTING ONE DOWN, on an empty slot of your own. GREEN, which is the
+	-- shop door's tone and for the same reason: it costs nothing, risks
+	-- nothing and is the one prompt here a player can take their time over.
+	-- Gold would have read as a payout and this pays nothing; it files.
+	place = {
+		glyph = ICON.PIN, tone = Color3.fromRGB(129, 209, 59),
+		verb = "PLACE",
+	},
+	-- SWAPPING WHAT STANDS ON YOUR BANK (designer decision 2026-09-22): the
+	-- piggy in your arms goes onto the till and the one that was there comes
+	-- off into your arms. `place`'s green, because it is the same filing verb
+	-- one placement up -- it costs nothing and risks nothing -- and a pig is
+	-- on the till at all times by construction: there is no "take from till",
+	-- only this.
+	swap = {
+		glyph = ICON.PIG, tone = Color3.fromRGB(129, 209, 59),
+		verb = "SWAP",
 	},
 }
 
@@ -4578,8 +4844,21 @@ end
 -- Empty or absent draws nothing at all, which is what every prompt that is
 -- not about money does.
 Config.PROMPT_AMOUNT_ATTRIBUTE = "PromptAmount"
+-- WHICH LAWN PEDESTAL THIS IS, and WHAT IS STANDING ON IT. Both live on the
+-- plinth rather than on the prompt, because the plinth is what a client has
+-- in hand when it walks a plot looking for pedestals -- a prompt is a child
+-- of it and a client should not have to know that to answer "which slot".
+--
+-- THE KEY IS AN INTERFACE WITH NO COMPILER BEHIND IT, and the two readers are
+-- the placement prompt (is this slot free) and the collect card (what is it
+-- called) -- so it goes through a constant rather than a literal, which is the
+-- `"LockLevel"` lesson: that name was a raw string in four places and a
+-- missing attribute reads as nil, which is a legal answer meaning something
+-- else entirely.
+Config.PIGGY_SLOT_ATTRIBUTE = "PiggySlot"
+Config.PIGGY_SLOT_KEY_ATTRIBUTE = "PiggySlotKey"
 -- Client-only nearby feedback; never an authorization to steal.
-Config.PROMPT_COOLDOWN_ATTRIBUTE = "AcornCooldownText"
+Config.PROMPT_COOLDOWN_ATTRIBUTE = "PromptCooldownText"
 Config.PLOT_CAPPED_ATTRIBUTE = "CappedUntil"
 Config.PLOT_HOT_SKIN_ATTRIBUTE = "HotSkinUntil"
 
@@ -4598,20 +4877,6 @@ Config.PLOT_HOT_SKIN_ATTRIBUTE = "HotSkinUntil"
 -- HOLD already is. Presentation only -- the server re-derives the real amount
 -- on the trigger and never reads this back.
 Config.PLOT_VAULT_ATTRIBUTE = "VaultAmount"
-Config.PLOT_ACORNS_ATTRIBUTE = "AcornAmount" -- banked storage
-Config.PLOT_TREE_ACORNS_ATTRIBUTE = "TreeAcorns"
--- The oak's placeholder height factor for its level (step 2.7), so the ripe
--- acorns the client hangs on it rise with the canopy. Missing reads as 1.
-Config.PLOT_TREE_GROWTH_ATTRIBUTE = "TreeGrowth"
--- THE NEXT-ACORN CLOCK over the owner's tree (MASTER-PLAN 19.4's
--- anticipation layer). `TreeNextAcornAt` is the server time the next ripe
--- acorn lands, or nil while the tree is full; `TreeCap` is how many it holds.
--- Published by the server, which owns the growth cursor; the client only
--- counts down to it.
-Config.PLOT_TREE_NEXT_ATTRIBUTE = "TreeNextAcornAt"
-Config.PLOT_TREE_CAP_ATTRIBUTE = "TreeCap"
-Config.PLOT_GROUND_ACORNS_ATTRIBUTE = "GroundAcorns"
-Config.PLOT_SHAKE_ATTRIBUTE = "AcornShakeAt"
 
 -- The plot's Vault Lock tier, published for the same reason the pile is: a
 -- client has to be able to read it without asking. `PlotService.setLockLevel`
@@ -4660,9 +4925,9 @@ Config.PLOT_FIREWORK_RANK_ATTRIBUTE = "FireworkRank"
 Config.FIREWORKS = {
 	-- HOW MANY SHELLS, and it grows with the rebirth count on purpose.
 	--
-	-- The gate is `REBIRTH_CAPACITY_MULTIPLE` times a capacity that has
-	-- itself been climbing, so a tenth rebirth genuinely IS a bigger thing
-	-- than a first -- 193.8M against 6.0M, measured. A show that could not
+	-- The gate (`REBIRTH_CASH_GATE`) climbs with the rebirth count, so a
+	-- tenth rebirth genuinely IS a bigger thing than a first -- 96.9M
+	-- against 3.0M. A show that could not
 	-- tell those apart would be saying the same sentence about two very
 	-- different afternoons.
 	--
@@ -4874,6 +5139,31 @@ Config.CARRY_VICTIM_ATTRIBUTE = "CarryingFrom"
 -- So the writer and the reader go through here, and the way to find any
 -- future reader is to grep the CONSTANT rather than the word.
 Config.LOOT_MODEL_NAME = "StolenPiggy"
+
+-- WHAT THIS CHARACTER IS CARRYING OFF A PEDESTAL, and it is a WORD rather
+-- than a boolean because the two answers lead opposite ways.
+--
+--   "own"     lifted off one of your own plinths. It is still yours, nothing
+--             was taken from anybody, and it goes back down on any free slot
+--             of yours with one press.
+--   "stolen"  lifted off somebody else's. It is not yours until it has stood
+--             still on your own ground for `PIGGY_HAUL.secureSeconds`.
+--
+-- ON THE CHARACTER RATHER THAN IN A REMOTE, because three different readers
+-- want it and only one of them is the carrier: the `place` prompt hides
+-- itself for anybody not holding their own, the `take` and `snatch` prompts
+-- hide themselves for anybody already holding anything, and both of those
+-- run on every client that can see the plinth. A character attribute
+-- replicates to all of them for nothing.
+--
+-- IT IS NOT WHAT SAYS "IS THIS PLAYER CARRYING", and that distinction has
+-- already cost this project once. `CarryPose` asks the loot MODEL whether a
+-- character is carrying -- its presence IS the answer, replicated, and true
+-- on a client that joined halfway through a getaway -- precisely so there is
+-- never a flag beside the object that can disagree with it. This says which
+-- KIND of haul it is, which the model cannot, and nothing reads it to find
+-- out whether one exists.
+Config.PIGGY_HAUL_ATTRIBUTE = "PiggyHaul"
 
 -- WHETHER THIS CHARACTER IS ACTUALLY TIPTOEING, published so that EVERY
 -- client can draw the creep rather than only the person doing it.
@@ -5555,6 +5845,12 @@ Config.SURFACE_PACKS = {
 	glacier = { name = "Glacier", template = "glacier", trimTemplate = "glacier_trim" },
 	bubblegumleopard = { name = "Bubblegum Leopard", template = "bubblegumleopard", trimTemplate = "bubblegumleopard_trim" },
 	honeycomb = { name = "Honeycomb", template = "honeycomb", trimTemplate = "honeycomb_trim" },
+	-- THE EPIC ANIMALS' COATS, one pack each, authored by their own generators
+	-- under `blender/pig/skins/<key>/`. A row whose templates are not yet
+	-- uploaded is a PLAIN PIG rather than an error (`PiggyModel.applySurface`
+	-- returns on a missing template), so a row may land with its sheets baked
+	-- and its ids pending, and the animal wears its swatch until they arrive.
+	lion = { name = "Lion", template = "lion", trimTemplate = "lion_trim" },
 
 	-- THE BAND OVERLAY: ONE IMAGE, EVERY METAL. `AlphaMode.Overlay`
 	-- composites this map over the part's own `Color3` using THE MAP'S ALPHA,
@@ -5924,7 +6220,7 @@ Config.SKINS = {
 	supernova = {
 		fx = "supernova", aura = "sunburst",
 		chest = "og",
-		name = "Supernova", order = 50, rarity = "legendary",
+		name = "Supernova", order = 60, rarity = "legendary",
 		-- DEEP GOLD TO EMBER, NEVER NEAR WHITE: the palette used to start at
 		-- (255, 248, 220), and a Neon sphere that pale is a white hole under
 		-- the bloom. The corona and the sunburst carry the brightness now.
@@ -5939,7 +6235,7 @@ Config.SKINS = {
 	stormcaller = {
 		fx = "stormcaller", aura = "storm",
 		chest = "og",
-		name = "Stormcaller", order = 51, rarity = "legendary",
+		name = "Stormcaller", order = 61, rarity = "legendary",
 		-- The flash tops out at a bright electric blue rather than white, for
 		-- the Supernova reason: a white Neon sphere blows out the whole face.
 		body = Color3.fromRGB(64, 110, 220), trim = Color3.fromRGB(40, 52, 92),
@@ -5952,7 +6248,7 @@ Config.SKINS = {
 	prismatic = {
 		fx = "prismatic", aura = "prism",
 		chest = "og",
-		name = "Prismatic", order = 52, rarity = "legendary",
+		name = "Prismatic", order = 62, rarity = "legendary",
 		body = Color3.fromRGB(255, 120, 120), trim = Color3.fromRGB(255, 255, 255),
 		material = Enum.Material.Neon, transparency = 0,
 		trimMaterial = Enum.Material.SmoothPlastic,
@@ -6009,6 +6305,7 @@ Config.SKINS = {
 	ladybird = {
 		chest = "animal",
 		name = "Ladybird", order = 100, sellBasis = 25000, rarity = "common",
+		scale = 0.75,
 		body = Color3.fromRGB(214, 44, 44), trim = Color3.fromRGB(30, 28, 32),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		surface = "ladybird",
@@ -6018,6 +6315,7 @@ Config.SKINS = {
 	cow = {
 		chest = "animal",
 		name = "Dairy Cow", order = 101, sellBasis = 35000, rarity = "common",
+		scale = 1.15,
 		-- The trim stays PINK rather than going black with the blotches. It
 		-- paints the snout, and a cow's muzzle is the one part of it that is
 		-- pink -- so the two channels each say something instead of both
@@ -6034,6 +6332,7 @@ Config.SKINS = {
 	zebra = {
 		chest = "animal",
 		name = "Zebra", order = 110, sellBasis = 250000, rarity = "common",
+		scale = 1.1,
 		body = Color3.fromRGB(244, 242, 236), trim = Color3.fromRGB(36, 34, 38),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		surface = "zebra",
@@ -6103,6 +6402,7 @@ Config.SKINS = {
 	bee = {
 		chest = "animal",
 		name = "Bumblebee", order = 111, sellBasis = 400000, rarity = "common",
+		scale = 0.75,
 		-- DEEPER THAN IT WAS, TWICE. (250, 198, 40) is a pale lemon; the
 		-- reference is a saturated golden yellow, and against black bands the
 		-- pale one reads as washed rather than as a bee. The first correction
@@ -6157,6 +6457,7 @@ Config.SKINS = {
 	giraffe = {
 		chest = "animal",
 		name = "Giraffe", order = 120, sellBasis = 1800000, rarity = "common",
+		scale = 1.2,
 		body = Color3.fromRGB(234, 196, 124), trim = Color3.fromRGB(168, 120, 62),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		surface = "giraffe",
@@ -6167,27 +6468,22 @@ Config.SKINS = {
 	leopard = {
 		chest = "animal",
 		name = "Leopard", order = 121, sellBasis = 2400000, rarity = "common",
+		scale = 1.1,
 		body = Color3.fromRGB(232, 186, 110), trim = Color3.fromRGB(128, 86, 44),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		-- The second skin on a texture pack, and the pair is deliberate: one
 		-- stripes, one spots, both live, with the other eight animals left on
 		-- the part-built `pattern` so the two can be compared on one street
 		-- rather than the whole bucket being converted on an argument.
-		-- `fur` IS THE RAISED RUFF, AND IT IS THE BODY'S OWN COLOUR ON
-		-- PURPOSE. It came off this skin once, when the lobes had no usable
-		-- UVs and could therefore only be a flat colour -- which on a
-		-- patterned coat is a PATCH whatever shade it is: cream read as white
-		-- blobs stuck on the animal, and the body's colour would have read as
-		-- a bald spot where the spots stop.
-		--
-		-- The lobe mesh is unwrapped on the BODY'S OWN CYLINDER now, so it
-		-- samples the same ColorMap at the same place and the pattern carries
-		-- straight over the fur. What is left for this field to do is the base
-		-- tone UNDER that pattern, which should match the body or the ruff
-		-- reads as a different animal stitched on. Give it its own value only
-		-- to deliberately make a contrasting mane.
+		-- NO FUR, AND IT CAME OFF TWICE. `fur` put the mane tufts on this
+		-- coat -- the lobe mesh samples the body's own ColorMap, so the idea
+		-- was that the rosettes carry over the ruff. On the lawn pig it was
+		-- tolerated; the day the mini started wearing its coat and fur the
+		-- same tufts stood on every leopard plinth as a row of dark lumps
+		-- down the back, and the designer's reading (2026-09-21) was "ugly
+		-- spots on its back". A leopard has no mane. Same call the tiger made
+		-- for the same reason.
 		surface = "leopard",
-		fur = Color3.fromRGB(232, 186, 110),
 	},
 
 	-- CHEST-ONLY. An explicit `rarity` and no `cost`, which is what keeps them
@@ -6197,6 +6493,7 @@ Config.SKINS = {
 	tiger = {
 		chest = "animal",
 		name = "Bengal Tiger", order = 130, rarity = "common",
+		scale = 1.2,
 		body = Color3.fromRGB(238, 132, 36), trim = Color3.fromRGB(250, 240, 228),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		-- THE FIRST SKIN OFF THE PART-BUILT PATTERN AND ONTO A TEXTURE, and
@@ -6219,6 +6516,7 @@ Config.SKINS = {
 	snowleopard = {
 		chest = "animal",
 		name = "Snow Leopard", order = 131, rarity = "common",
+		scale = 1.1,
 		body = Color3.fromRGB(228, 234, 244), trim = Color3.fromRGB(150, 164, 184),
 		material = Enum.Material.Glass, transparency = 0,
 		surface = "snowleopard",
@@ -6276,6 +6574,7 @@ Config.SKINS = {
 	strawberrycow = {
 		chest = "animal",
 		name = "Strawberry Cow", order = 132, rarity = "rare",
+		scale = 1.15,
 		body = Color3.fromRGB(255, 209, 221), trim = Color3.fromRGB(193, 47, 99),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		surface = "strawberrycow",
@@ -6283,6 +6582,7 @@ Config.SKINS = {
 	cookiescream = {
 		chest = "animal",
 		name = "Cookies & Cream", order = 133, rarity = "rare",
+		scale = 1.15,
 		body = Color3.fromRGB(255, 238, 205), trim = Color3.fromRGB(68, 39, 28),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		surface = "cookiescream",
@@ -6290,6 +6590,7 @@ Config.SKINS = {
 	watermelon = {
 		chest = "animal",
 		name = "Watermelon", order = 134, rarity = "rare",
+		scale = 0.9,
 		body = Color3.fromRGB(86, 169, 58), trim = Color3.fromRGB(36, 37, 26),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		surface = "watermelon",
@@ -6311,6 +6612,7 @@ Config.SKINS = {
 	bubblegumleopard = {
 		chest = "animal",
 		name = "Bubblegum Leopard", order = 137, rarity = "rare",
+		scale = 1.1,
 		body = Color3.fromRGB(250, 162, 207), trim = Color3.fromRGB(156, 34, 121),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		surface = "bubblegumleopard",
@@ -6321,6 +6623,114 @@ Config.SKINS = {
 		body = Color3.fromRGB(155, 84, 15), trim = Color3.fromRGB(247, 183, 38),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		surface = "honeycomb",
+	},
+	-- ============================================================
+	-- THE EPIC ANIMALS -- SOMETHING GLOWS, AND SOMETHING COMES OFF THE PIG
+	-- ============================================================
+	--
+	-- Designer rule 2026-09-21: an epic has "an aura/glow/animation and
+	-- either a pattern or a small amount of geometry". Four rows, four
+	-- different levers, so the tier is four kinds of object rather than four
+	-- palettes: quills (`shards`), a mane (`furSet`), lightning in broken
+	-- rock (`shards` with Neon bolts) and a fan of feathers (`fx`). Every one
+	-- of those is built out of parts by `PiggyModel` or `SkinFX`, which is
+	-- what makes it READ ON A PLINTH: the mini on a pedestal, in a herd and
+	-- in a thief's arms carries pattern parts, fx geometry and fur, so an
+	-- epic built from those is an epic everywhere the collection is looked
+	-- at. An aura alone is not -- see `Config.skinAura` -- which is why none
+	-- of these is an aura and nothing else.
+	--
+	-- NO `sellBasis`, for the reason the rares above give: their tier value
+	-- (`SELL.base * 100/15`) is what every unpriced skin of this tier pays,
+	-- and a basis goes on the day that figure is decided rather than guessed.
+	--
+	-- NO EPIC IS EVER IN A HERD OR ON A RESIDENT'S LAWN. Both draws exclude
+	-- anything with an `aura` (`herdSkinPool`, `drawLawnPiggy`), so the four
+	-- below reach a player through the Animal Kingdom crates and by stealing
+	-- one off somebody who has one. That is also why their part counts (up to
+	-- about seventy on Storm Stone) are budgeted against six pedestals and
+	-- not against fifty loose herd members.
+	hedgehog = {
+		chest = "animal",
+		name = "Hedgehog", order = 139, rarity = "epic",
+		scale = 0.85,
+		-- A small animal: quills raked back over the whole crown with no
+		-- parting, a cream face and belly, and fireflies drifting off it at
+		-- dusk. `parting = 0` on purpose -- a hedgehog has no bare centre
+		-- line, and the default 0.26 reads as a mohawk on one this size.
+		body = Color3.fromRGB(150, 112, 78), trim = Color3.fromRGB(232, 214, 186),
+		material = Enum.Material.SmoothPlastic, transparency = 0,
+		pattern = { kind = "shards", count = 34, size = 0.20, vary = 0.30, thick = 0.12,
+			depth = 0.60, rake = 36, twist = 12, seed = 31,
+			lo = 0.05, hi = 0.97, parting = 0, faceStop = 0.35, faceHigh = 0.50,
+			colour = Color3.fromRGB(74, 52, 36) },
+		aura = "fireflies",
+	},
+	lion = {
+		chest = "animal",
+		name = "Lion", order = 141, rarity = "epic",
+		scale = 1.25,
+		-- THE MANE IS THE FIND. `Config.FUR_SETS.mane` was uploaded and worn
+		-- by nothing in the game, which `docs/animal-crate-plan.md` §3 called
+		-- "a legendary trait sitting on the shelf for the price of one Config
+		-- field". This is that field. Tawny coat, a darker gold ruff, amber
+		-- Neon eyes, and the sunburst aura the Supernova already carries.
+		-- GOLDEN RATHER THAN TAWNY, off the designer's low-poly reference:
+		-- a bright yellow-gold body, a rust mane, cream muzzle and paws.
+		body = Color3.fromRGB(242, 180, 72), trim = Color3.fromRGB(198, 134, 56),
+		material = Enum.Material.SmoothPlastic, transparency = 0,
+		-- THE MANE IS ITS OWN FUR SET AND ITS OWN FLAT COLOUR (designer,
+		-- 2026-09-21: "make the mane 3d instead of looking like a flat
+		-- color"). `lionmane` is 71 lobes in two rings round the face
+		-- (`blender/pig/make/make_fur_tufts.py`, FUR_SET=lionmane) against the
+		-- mane set's 36 on a crest, which on this animal read as a spiky
+		-- collar. `furFlat` keeps the body sheet OFF the ruff: painted through
+		-- the shared cylinder unwrap, the crown lobes sample the sheet's top
+		-- edge and come out black and the cheek lobes sample the face window
+		-- and come out tawny -- measured in the fur preview -- where a lion's
+		-- mane is one colour. The colour is the sheet's own mane band, so the
+		-- ruff and the ring it stands on cannot disagree.
+		fur = Color3.fromRGB(150, 80, 42), furSet = "lionmane", furFlat = true,
+		glowEyes = true, parts = { Eye = Color3.fromRGB(255, 196, 80) },
+		aura = "sunburst",
+		-- THE COAT: `blender/pig/skins/lion/make_lion_blend.py`, baked to two
+		-- sheets. Until their `SurfacePacks/lion*.model.json` land this is the
+		-- swatch pig with a painted mane mesh; the day they do, nothing here
+		-- changes. The mane band on the sheet is what colours the ruff.
+		surface = "lion",
+	},
+	stormstone = {
+		chest = "animal",
+		name = "Storm Stone", order = 144, rarity = "epic",
+		scale = 1.15,
+		-- BROKEN ROCK WITH LIGHTNING IN THE CRACKS: the `shards` kind with
+		-- every second shard a Neon bolt chain, which is the build
+		-- `blender/pig/skins/stormstone/` describes and the reason the
+		-- shards kind grew `glowEvery` at all. Its baked plate coat is NOT
+		-- uploaded (designer call: no upload for this one), so the body is a
+		-- flat stone grey and the shards carry the whole read. `docs/
+		-- PIGGY-SKIN-MAP.md` tagged it legendary for having geometry; on this
+		-- shelf the legendaries are whole creatures, so it sits at epic.
+		body = Color3.fromRGB(94, 96, 104), trim = Color3.fromRGB(64, 66, 74),
+		material = Enum.Material.SmoothPlastic, transparency = 0,
+		glowEyes = true, parts = { Eye = Color3.fromRGB(150, 210, 255) },
+		pattern = { kind = "shards", count = 24, size = 0.26, vary = 0.40, thick = 0.30,
+			depth = 0.90, rake = 20, twist = 40, seed = 47,
+			colour = Color3.fromRGB(78, 80, 90),
+			glowEvery = 2, glowColour = Color3.fromRGB(140, 200, 255) },
+		aura = "storm",
+	},
+	peacock = {
+		chest = "animal",
+		name = "Peacock", order = 145, rarity = "epic",
+		-- A fan of eyed tail feathers standing up behind the body
+		-- (`SkinFX` builder `peacock`), each eye a Neon gold point in a blue
+		-- disc, and the prism aura's rainbow sparkle. Deep teal body so the
+		-- fan, not the animal, is the bright thing.
+		body = Color3.fromRGB(24, 96, 108), trim = Color3.fromRGB(16, 60, 80),
+		material = Enum.Material.SmoothPlastic, transparency = 0,
+		fx = "peacock",
+		aura = "prism",
 	},
 	stormwolf = {
 		chest = "animal",
@@ -6400,6 +6810,239 @@ Config.SKINS = {
 			Color3.fromRGB(36, 196, 146), Color3.fromRGB(64, 226, 176),
 		} },
 	},
+
+	-- ------------------------------------------------ THE OG FAMILY, 2026-09-21
+	--
+	-- FIFTEEN ROWS BUILT IN STUDIO AND NOT IN BLENDER, AND THAT IS THE SHELF'S
+	-- IDENTITY RATHER THAN A SAVING. OG is the street's own pigs, so every row
+	-- here is made of what the engine hands out for free: flat colour and a
+	-- material, `pattern` PARTS, an `anim`, an `aura`. Nothing is uploaded, so
+	-- nothing here can be moderated away and nothing costs the developer's
+	-- account (CLAUDE.md, the `generate_material` ban). The animal shelf is
+	-- where baked coats live.
+	--
+	-- THE TIER IS A PRODUCTION CLASS (docs/PIGGY-PACKS-PLAN.md s1): a COMMON
+	-- is a look, a RARE is colour that moves or marks with a twist, an EPIC is
+	-- a glow plus an aura, and a LEGENDARY is all of that plus `fx` geometry.
+	-- Epic had ZERO stock anywhere in the game until this block, which is why
+	-- the six below are the rows that matter: every one carries a glowing
+	-- element (Neon, glowing shards or Neon eyes) AND an `aura`, and
+	-- `Config.skinAura` admits epic as of the same day.
+	--
+	-- PATTERN PARTS ON THE MESH PIG WANT A LOOK. The note below records nine
+	-- Neon skins whose part-built bars and dots "read as stuck ON the mesh pig
+	-- rather than as a coat", and the bee's own stripes were replaced by a
+	-- map. Those were Neon marks on Neon bodies; matte marks on matte bodies
+	-- are the version the zebra shipped on for a while and the shards have
+	-- been photographed on the Storm Stone. Every number below is authored,
+	-- not measured -- the first pedestal render is where they get tuned.
+
+	-- ---- commons: a look --------------------------------------------------
+	muddy = {
+		chest = "og",
+		name = "Muddy Piggy", order = 9, sellBasis = 15000, rarity = "common",
+		-- THE TRIM STAYS PINK. Three of the four trim parts are on the head,
+		-- so a brown trim is a pig in a mask rather than a pig that has been
+		-- rolling in something (docs/PIGGY-SKIN-MAP.md s1a).
+		body = Color3.fromRGB(238, 160, 184), trim = Color3.fromRGB(210, 118, 146),
+		material = Enum.Material.SmoothPlastic, transparency = 0,
+		pattern = { kind = "spots", count = 9, size = 0.15, vary = 0.42, seed = 7,
+			colour = Color3.fromRGB(112, 74, 48) },
+	},
+	sooty = {
+		chest = "og",
+		name = "Sooty Piggy", order = 10, sellBasis = 30000, rarity = "common",
+		-- The chimney sweep. Mid-grey trim rather than the soot's own black,
+		-- for the mask reason above.
+		body = Color3.fromRGB(198, 194, 198), trim = Color3.fromRGB(152, 148, 154),
+		material = Enum.Material.SmoothPlastic, transparency = 0,
+		pattern = { kind = "spots", count = 11, size = 0.14, vary = 0.4, seed = 3,
+			colour = Color3.fromRGB(34, 32, 36) },
+	},
+	rosegold = {
+		chest = "og",
+		name = "Rose Gold", order = 11, sellBasis = 150000, rarity = "common",
+		-- A METAL IS READ BY ITS TONAL RANGE, NOT ITS BRIGHTNESS -- see
+		-- `bullion`. Base pulled down so `reflectance` has something to put
+		-- back. A second flat metal beside Bronze, and the family's own
+		-- colour rather than a third yellow one.
+		body = Color3.fromRGB(196, 128, 120), trim = Color3.fromRGB(150, 92, 88),
+		material = Enum.Material.Metal, transparency = 0,
+		reflectance = 0.32,
+	},
+
+	-- ---- rares: colour that moves, or marks with a twist --------------------
+	marble = {
+		chest = "og",
+		name = "Marble", order = 43, rarity = "rare",
+		-- THE STRIPE BUILDER AS VEINING: few bands, very thin, wobbled hard
+		-- and tapered to points, on a pole tilted off every axis so no vein
+		-- runs level with anything.
+		body = Color3.fromRGB(236, 232, 226), trim = Color3.fromRGB(198, 190, 184),
+		material = Enum.Material.SmoothPlastic, transparency = 0, reflectance = 0.06,
+		pattern = { kind = "stripes", count = 6, width = 0.05, arc = 150, spread = 0.8,
+			taper = 0.7, wobble = 0.9, seed = 11, axis = Vector3.new(0.55, 0.7, 0.45),
+			colour = Color3.fromRGB(128, 124, 132) },
+	},
+	rockslide = {
+		chest = "og",
+		name = "Rockslide", order = 44, rarity = "rare",
+		-- THE ONE RARE THAT CHANGES THE SILHOUETTE. Shards with no glow: the
+		-- Storm Stone's hide without the storm.
+		body = Color3.fromRGB(96, 100, 108), trim = Color3.fromRGB(74, 76, 84),
+		material = Enum.Material.SmoothPlastic, transparency = 0,
+		pattern = { kind = "shards", count = 16, size = 0.22, vary = 0.4, thick = 0.35,
+			depth = 0.9, rake = 20, twist = 30, seed = 5,
+			colour = Color3.fromRGB(118, 122, 130) },
+	},
+	quartz = {
+		chest = "og",
+		name = "Quartz", order = 45, rarity = "rare",
+		-- A GLASS BODY CARRYING PLASTIC CRYSTALS, which is the Snow Leopard's
+		-- own trick: the marks are deliberately a different material from the
+		-- thing they stand on, or they vanish into it. No glow, so it is not
+		-- Diamond.
+		body = Color3.fromRGB(236, 196, 214), trim = Color3.fromRGB(214, 160, 190),
+		material = Enum.Material.Glass, transparency = 0,
+		pattern = { kind = "shards", count = 12, size = 0.2, vary = 0.35, thick = 0.3,
+			depth = 0.8, rake = 12, twist = 40, seed = 13,
+			material = Enum.Material.SmoothPlastic,
+			colour = Color3.fromRGB(250, 244, 248) },
+	},
+	banker = {
+		chest = "og",
+		name = "Banker Piggy", order = 46, rarity = "rare",
+		-- PINSTRIPES RUN NOSE TO TAIL, so the pole is the FLANK (+X): a band
+		-- at constant angle from a side pole is a meridian over the crown and
+		-- under the belly, where the default spine pole girdles the animal in
+		-- belts (the bee's own complaint). `faceGap` ends a stripe at each
+		-- eye rather than drawing one through it. The one joke in the tier,
+		-- and it is about the bank.
+		body = Color3.fromRGB(240, 232, 214), trim = Color3.fromRGB(206, 196, 176),
+		material = Enum.Material.SmoothPlastic, transparency = 0,
+		pattern = { kind = "stripes", count = 14, width = 0.045, arc = 300, spread = 0.85,
+			taper = 0.15, wobble = 0, faceGap = 18, seed = 1, axis = Vector3.xAxis,
+			colour = Color3.fromRGB(44, 52, 92) },
+	},
+	tiedye = {
+		chest = "og",
+		name = "Tie-Dye", order = 47, rarity = "rare",
+		-- A MOVING COLOUR THAT IS NOT NEON, which none of the four animated
+		-- survivors are. SmoothPlastic on a slow cycle, with pale splats that
+		-- hold still while the ground turns under them.
+		body = Color3.fromRGB(232, 96, 160), trim = Color3.fromRGB(250, 190, 120),
+		material = Enum.Material.SmoothPlastic, transparency = 0,
+		anim = { kind = "cycle", speed = 0.6, palette = {
+			Color3.fromRGB(236, 84, 160), Color3.fromRGB(250, 150, 60),
+			Color3.fromRGB(150, 80, 220), Color3.fromRGB(236, 84, 160),
+		} },
+		pattern = { kind = "spots", count = 8, size = 0.17, vary = 0.3, seed = 21,
+			colour = Color3.fromRGB(250, 236, 120) },
+	},
+	verdigris = {
+		chest = "og",
+		name = "Verdigris", order = 48, rarity = "rare",
+		-- Copper with its patina. The spots are MATTE on a Metal body on
+		-- purpose: patina is the one part of an old coin that does not shine.
+		body = Color3.fromRGB(176, 104, 72), trim = Color3.fromRGB(130, 76, 52),
+		material = Enum.Material.Metal, transparency = 0, reflectance = 0.3,
+		pattern = { kind = "spots", count = 14, size = 0.13, vary = 0.5, seed = 17,
+			material = Enum.Material.SmoothPlastic,
+			colour = Color3.fromRGB(88, 168, 130) },
+	},
+
+	-- ---- epics: a glow and an aura ----------------------------------------
+	--
+	-- `parts.Eye` IS WHAT MAKES `glowEyes` GLOW. The eye is painted
+	-- `NEAR_BLACK` unless a skin overrides it by name, and a near-black Neon
+	-- part is a dull one -- so every row that lights its eyes also colours
+	-- them. Transparency stays 0 on every row (skin-map rule): the material
+	-- does the ghosting, never the alpha.
+	ghost = {
+		chest = "og",
+		name = "Ghost Piggy", order = 50, rarity = "epic",
+		body = Color3.fromRGB(222, 232, 236), trim = Color3.fromRGB(198, 212, 218),
+		material = Enum.Material.Glass, transparency = 0,
+		glowEyes = true, parts = { Eye = Color3.fromRGB(170, 232, 232) },
+		anim = { kind = "pulse", speed = 0.35, glow = 1.2, palette = {
+			Color3.fromRGB(222, 232, 236), Color3.fromRGB(198, 214, 226),
+		} },
+		aura = "wisp",
+	},
+	charcoal = {
+		chest = "og",
+		name = "Charcoal Piggy", order = 51, rarity = "epic",
+		-- TAKES THE ORANGE-GLOW SLOT WITHOUT BEING LAVA. The body is black and
+		-- the glow lives in the cracks: every second shard is Neon ember, the
+		-- rest are coal. The aura is the embers effect the catalogue already
+		-- carries.
+		body = Color3.fromRGB(40, 36, 36), trim = Color3.fromRGB(64, 56, 54),
+		material = Enum.Material.SmoothPlastic, transparency = 0,
+		glowEyes = true, parts = { Eye = Color3.fromRGB(255, 140, 60) },
+		pattern = { kind = "shards", count = 18, size = 0.22, vary = 0.4, thick = 0.32,
+			depth = 0.9, rake = 22, twist = 28, seed = 9,
+			colour = Color3.fromRGB(52, 46, 46),
+			glowEvery = 2, glowColour = Color3.fromRGB(255, 120, 40) },
+		aura = "embers",
+	},
+	starlight = {
+		chest = "og",
+		name = "Starlight Piggy", order = 52, rarity = "epic",
+		-- Midnight glass with every shard a white Neon star point, and the
+		-- silver-lilac sparkle drifting off it.
+		body = Color3.fromRGB(36, 42, 92), trim = Color3.fromRGB(62, 70, 132),
+		material = Enum.Material.Glass, transparency = 0,
+		glowEyes = true, parts = { Eye = Color3.fromRGB(230, 236, 255) },
+		pattern = { kind = "shards", count = 14, size = 0.16, vary = 0.3, thick = 0.25,
+			depth = 0.7, rake = 10, twist = 45, seed = 19,
+			material = Enum.Material.SmoothPlastic,
+			colour = Color3.fromRGB(250, 250, 255),
+			glowEvery = 1, glowColour = Color3.fromRGB(240, 244, 255) },
+		aura = "sparkle",
+	},
+	nightlight = {
+		chest = "og",
+		name = "Nightlight Piggy", order = 53, rarity = "epic",
+		-- DEEP AMBER, NEVER A PALE ONE: a Neon sphere near white is a hole
+		-- under the bloom (four separate times in this project). Matte trim
+		-- keeps the face. The fireflies are few and slow on purpose.
+		body = Color3.fromRGB(214, 120, 24), trim = Color3.fromRGB(120, 66, 24),
+		material = Enum.Material.Neon, transparency = 0,
+		trimMaterial = Enum.Material.SmoothPlastic,
+		anim = { kind = "pulse", speed = 0.45, glow = 1.4, palette = {
+			Color3.fromRGB(214, 120, 24), Color3.fromRGB(250, 170, 56),
+		} },
+		aura = "fireflies",
+	},
+	sugarrush = {
+		chest = "og",
+		name = "Sugar Rush Piggy", order = 54, rarity = "epic",
+		-- The candy cycle at a run, with `glow` tinting the lamp to match and
+		-- a fizz of sparkles boiling off it. Neon so the cycle blooms; every
+		-- stop in the palette is saturated for the same reason.
+		body = Color3.fromRGB(250, 120, 190), trim = Color3.fromRGB(250, 236, 120),
+		material = Enum.Material.Neon, transparency = 0,
+		trimMaterial = Enum.Material.SmoothPlastic,
+		anim = { kind = "cycle", speed = 1.6, glow = 1.8, palette = {
+			Color3.fromRGB(250, 120, 190), Color3.fromRGB(120, 220, 250),
+			Color3.fromRGB(250, 236, 120), Color3.fromRGB(170, 120, 250),
+			Color3.fromRGB(250, 120, 190),
+		} },
+		aura = "fizz",
+	},
+	hologram = {
+		chest = "og",
+		name = "Hologram Piggy", order = 55, rarity = "epic",
+		-- `ForceField` IS ANIMATED BY THE ENGINE FOR FREE -- a moving hex
+		-- shimmer over whatever colour it is given -- and it has never been
+		-- put on the mesh pig. It wants a look on the plinth before it ships;
+		-- if it does not read, the fallback is Neon cyan on a `flicker`.
+		body = Color3.fromRGB(60, 220, 240), trim = Color3.fromRGB(30, 120, 140),
+		material = Enum.Material.ForceField, transparency = 0,
+		trimMaterial = Enum.Material.SmoothPlastic,
+		glowEyes = true, parts = { Eye = Color3.fromRGB(120, 250, 255) },
+		aura = "hologram",
+	},
 	-- THE STRIPED AND SPOTTED NEON SKINS ARE RETIRED (Hot Wire, Laser Grid,
 	-- Vaporwave, Synthwave Sun, Gridrunner, Hyperdrive, Plasma Ball,
 	-- Ultraviolet, Singularity). Their part-built `pattern` marks read as bars
@@ -6442,7 +7085,7 @@ Config.SKINS = {
 	-- THE KEY STAYS `firstday` so nothing already saved against it breaks;
 	-- the name and the look are the Party Piggy's.
 	firstday = {
-		name = "Party Piggy", order = 71, pass = "starterPack", rarity = "rare",
+		name = "Party Piggy", order = 71, pass = "starterPack", rarity = "epic",
 		-- THE ROBUX TAG. See `Config.isRobuxItem`: never stealable.
 		robux = true,
 		-- THE PARTY IS PART OF THE SKIN (`SkinFX` builder `party`): a striped
@@ -6455,11 +7098,17 @@ Config.SKINS = {
 		-- And confetti drifting down round it on the lawn (`SKIN_AURAS`),
 		-- the same paper the Party Popper throws at a thief.
 		aura = "confetti",
-		-- RARE RATHER THAN LEGENDARY, and that is the starter pack knowing
-		-- its place. A pack sold to somebody in their first session must not
-		-- out-rank the thing sold to somebody in their thirtieth, or the
-		-- cheapest purchase in the game is also the best one and there is
-		-- nothing left to want.
+		-- EPIC, ON THE DESIGNER'S CALL (2026-09-21: "the party pig can be an
+		-- epic if we add confetti aura to it"), and it is the first row that
+		-- meets the epic rule exactly -- geometry (the hat and balloons) plus
+		-- an aura. It was RARE, on the argument that a starter pack must not
+		-- out-rank what is sold to somebody in their thirtieth session; epic
+		-- is still under legendary, so that argument survives one rung down.
+		-- WHAT THE RE-TAG CHANGES THAT IS NOT COSMETIC: rarity is INCOME now
+		-- (`PIGGY_RARITY_INCOME`), so a placed Party Piggy earns 8x a common
+		-- where it earned 4x -- and the confetti finally shows, because
+		-- `Config.skinAura` refuses an aura on anything under epic, so at rare
+		-- the aura authored two lines down was silently never built.
 		-- Party colours: a bright turquoise pig with a hot-pink snout, ears
 		-- and trotters, picked out of the hat's own stripes so the hat, the
 		-- balloons and the pig read as one outfit.
@@ -6700,13 +7349,24 @@ function Config.getEffect(key: string)
 	return Config.EFFECTS[key] or Config.EFFECTS[Config.DEFAULT_EFFECT]
 end
 
--- A SKIN'S OWN AURA: the particles a LEGENDARY throws off, which are part of
--- the skin rather than something the player equipped.
+-- A SKIN'S OWN AURA: the particles an EPIC OR A LEGENDARY throws off, which
+-- are part of the skin rather than something the player equipped.
 --
 -- `applyEffect` has always been driven by `cosmetics.effect` alone -- the
 -- player's own choice -- so a skin had no say. A legendary in the animal
 -- crate is meant to be a different KIND of object from an epic rather than a
 -- better picture of one, and this is the half of that which is not paint.
+--
+-- AND THE GATE OPENED TO EPIC ON 2026-09-21, BECAUSE THE AURA IS WHAT AN EPIC
+-- *IS*. The tier ladder is a production ladder (docs/PIGGY-PACKS-PLAN.md
+-- s1): common is a look, rare is a described variant, EPIC IS A VARIANT WITH
+-- AN EFFECT, legendary adds geometry on top. While this function refused
+-- anything under legendary, an epic authored with an `aura` rendered with no
+-- particles at all and nothing in any log -- the whole identity of the rung,
+-- silently absent -- which is why the rung had zero stock anywhere in the
+-- game. What still separates the two tiers is `fx`: `SkinFX` builds shape
+-- for a legendary and an epic carries none, so an epic is paint, a glow and
+-- particles, and a legendary is all of that plus geometry.
 --
 -- IT STACKS WITH THE EQUIPPED EFFECT RATHER THAN REPLACING IT. A player
 -- wearing Inferno and a legendary skin gets both. That is a deliberate call
@@ -6732,7 +7392,11 @@ end
 -- aura cannot describe a particle system the effects catalogue could not, and
 -- anything learned tuning one is learned for both.
 function Config.skinAura(tier: any)
-	if not tier or Config.rarityOf(tier) ~= "legendary" or type(tier.aura) ~= "string" then
+	if not tier or type(tier.aura) ~= "string" then
+		return nil
+	end
+	local rarity = Config.rarityOf(tier)
+	if rarity ~= "legendary" and rarity ~= "epic" then
 		return nil
 	end
 	return Config.SKIN_AURAS[tier.aura] or Config.EFFECTS[tier.aura]
@@ -6770,6 +7434,51 @@ Config.SKIN_AURAS = {
 		}),
 		rate = 14, speed = NumberRange.new(2, 4), size = 0.9, lifetime = NumberRange.new(2.0, 3.0),
 		drag = 1.6, accel = Vector3.new(0, -3, 0), spread = 60, rotSpeed = 260, inOut = "Outward",
+	},
+	-- THE FOUR EPIC AURAS, 2026-09-21. An epic is a glow and an aura and
+	-- nothing else (docs/PIGGY-PACKS-PLAN.md s1), so these are the whole of
+	-- what makes the rung a rung. Every one is a copy of a row above with
+	-- different numbers -- no new texture, no upload. Rates are LOW: an epic
+	-- sits beside legendaries whose auras run 16 to 42 a second, and an epic
+	-- that out-shouts a legendary is the ladder lying.
+
+	-- GHOST PIGGY: pale smoke drifting UP off the body and thinning as it
+	-- goes. Slow, sparse and large, so it reads as a haze rather than a fire.
+	wisp = {
+		name = "Wisp", texture = SMOKE,
+		color = ColorSequence.new(Color3.fromRGB(214, 232, 240), Color3.fromRGB(150, 176, 196)),
+		rate = 6, speed = NumberRange.new(0.6, 1.4), size = 3.2, lifetime = NumberRange.new(2.4, 3.6),
+		drag = 1.2, accel = Vector3.new(0, 1.6, 0), spread = 30, rotSpeed = 8, inOut = "Outward",
+	},
+	-- NIGHTLIGHT PIGGY: a handful of yellow-green points wandering round the
+	-- pig. Few and slow is the whole read -- fireflies are counted, not
+	-- sprayed -- and they drift rather than rise.
+	fireflies = {
+		name = "Fireflies", texture = SPARK,
+		color = ColorSequence.new(Color3.fromRGB(226, 255, 140), Color3.fromRGB(190, 224, 60)),
+		rate = 5, speed = NumberRange.new(0.5, 1.2), size = 0.7, lifetime = NumberRange.new(2.6, 4.0),
+		drag = 0.6, accel = Vector3.new(0, 0.3, 0), spread = 180, rotSpeed = 0, inOut = "Outward",
+	},
+	-- SUGAR RUSH PIGGY: the sparkle row at a boil, in candy colours, rising
+	-- fast and dying young. The one epic aura allowed a real rate, because
+	-- fizz that is not busy is not fizz.
+	fizz = {
+		name = "Fizz", texture = SPARK,
+		color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 160, 214)),
+			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(170, 236, 255)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 244, 150)),
+		}),
+		rate = 22, speed = NumberRange.new(3, 6), size = 0.6, lifetime = NumberRange.new(0.6, 1.1),
+		drag = 1.0, accel = Vector3.new(0, 5, 0), spread = 40, rotSpeed = 220, inOut = "Outward",
+	},
+	-- HOLOGRAM PIGGY: the Stormcaller's static recoloured cyan and slowed --
+	-- scan-line flecks breaking off the shimmer rather than lightning.
+	hologram = {
+		name = "Static Cyan", texture = SPARK,
+		color = ColorSequence.new(Color3.fromRGB(200, 250, 255), Color3.fromRGB(60, 200, 240)),
+		rate = 12, speed = NumberRange.new(2, 4), size = 0.6, lifetime = NumberRange.new(0.4, 0.8),
+		drag = 3, accel = Vector3.new(0, 0, 0), spread = 25, rotSpeed = 300, inOut = "Outward",
 	},
 	glint = {
 		name = "Diamond Glint", texture = SPARK,
@@ -7453,9 +8162,10 @@ Config.NEIGHBOUR_CHASE = {
 	-- that closes and the early throws are the ones that count.
 	--
 	-- It also keeps `RESIDENTS.walk`'s own promise, which is load-bearing and
-	-- stated there: a player can always run one down, and anything past 12
-	-- hands a player a loss they cannot answer.
-	speed = 11,
+	-- stated there: a player can always run one down, and anything past the
+	-- carry speed hands a player a loss they cannot answer. A ratio of
+	-- `BASE_WALK_SPEED`: 11 at a base of 16, under the carry's 0.75.
+	speed = Config.BASE_WALK_SPEED * 0.6875, -- was 11 at a base of 16
 	-- THE BEAT BEFORE THEY MOVE, and the same 1.2 the dog and the shopkeeper
 	-- use. It is what makes a robbery a DECISION: the `!` goes up, and the
 	-- thief chooses whether to finish the crack or run, rather than finding
@@ -7517,8 +8227,10 @@ Config.SHOPKEEPER = {
 	-- losing ground and DELIVERING is the answer -- the counter is a decision
 	-- the player already knows how to make. A shopkeeper who could outrun an
 	-- empty-handed thief would be a wall rather than a cost, and nothing in
-	-- this game may exceed `BASE_WALK_SPEED`.
-	speed = 14.5,
+	-- this game may exceed `BASE_WALK_SPEED`. READ FROM THE OFFICER rather
+	-- than typed a second time, so the two cannot drift -- it is
+	-- `BASE_WALK_SPEED * 0.90625`, 14.5 at a base of 16.
+	speed = Config.POLICE.officerSpeed, -- was 14.5 at a base of 16
 	-- 4.5, AND THE TERRIER'S 7 WAS MEASURED TO BE WRONG HERE RATHER THAN
 	-- REASONED ABOUT.
 	--
@@ -7649,10 +8361,7 @@ function Config.shopLootOdds(tab: string, robberies: number?, owns: (string, str
 	local locked = Config.getRapSheetRank(robberies) < minRank
 	return {chance=if locked or total == 0 then 0 else drop.chance[tab] or 0,
 		baseChance=drop.chance[tab] or 0, minRank=minRank, locked=locked,
-		pool=pool,total=total,tiers=tiers,resale=resale,kind="shop",
-		-- A duplicate from this vault sells for acorns when it can only drop
-		-- skins (`sellsForAcorns`), so the odds line names the right currency.
-		acorns=kinds ~= nil and #kinds == 1 and Config.sellsForAcorns(kinds[1])}
+		pool=pool,total=total,tiers=tiers,resale=resale,kind="shop"}
 end
 
 -- ============================================================
@@ -7839,13 +8548,6 @@ Config.BANK_RUSH = {
 	revealSize = 240,
 	revealHold = 3.2,
 	revealGate = 0.9,
-
-	-- AN ACORN rises `rise` studs out of the pig, hangs for `acornHold` and
-	-- flies to the acorn chip. `acornsShown` is the most icons drawn; the
-	-- chip counts the rest.
-	rise = 10,
-	acornHold = 0.7,
-	acornsShown = 5,
 
 	-- THE SUMMARY SCREEN closes the sequence. A tap closes it once
 	-- `summaryGate` has passed, so the tap that was already on its way does
@@ -9217,48 +9919,40 @@ Config.PIGGY_MESH_FACE = {
 	-- The 1.25-stud ball keeps its 0.14 of sink, so it shows about half a
 	-- stud of disc exactly as it did on the generated body.
 	eye = { x = 1.909, y = 8.802, z = 5.333 },
-	-- AND THE NOSTRILS ARE BACK, because the reason they were dropped has
-	-- gone. On the generated snout they were two black boxes standing on a
-	-- smooth dome and read as bricks stuck to the nose at every depth tried.
-	-- This snout has nostril patches modelled INTO it, so a dark block seated
-	-- 0.05 proud sits in a hollow the model already has rather than on a
-	-- curve that has nothing to hold it.
-	-- Seated at the FLOOR of the dimples the snout is modelled with, pushed
-	-- forward by half the block's own depth so it hangs just inside the
-	-- hollow. A dark block in a dent reads as a nostril; the same block on a
-	-- smooth dome reads as a brick stuck to the nose, which is what retired
-	-- them on the generated snout.
+	-- THERE IS NO NOSTRIL SEAT, AND THIS TABLE CARRIED ONE FOR NOTHING.
 	--
-	-- AND THE Z WAS WRONG BY 0.89 STUDS, WHICH IS MOST OF THE BLOCK'S OWN
-	-- DEPTH -- so the nostrils have been sunk almost entirely INSIDE the
-	-- snout, which is why a pig with black nostrils read as having none.
+	-- A `nostril = { x = 1.050, y = 6.689, z = 7.354 }` stood here under a
+	-- block headed "AND THE NOSTRILS ARE BACK", directly above a second block
+	-- saying they were gone. Both cannot be true and the second one was:
+	-- NOTHING READ THE FIELD. Grepped across the whole source, `MESH_FACE` is
+	-- read by `PiggyBank` and `PiggyModel` and neither asks it for a nostril,
+	-- so the seat, its arithmetic and the long correction attached to it were
+	-- describing a part that has not been built since the mesh pig shipped.
 	--
-	-- `build_pig.py` computes this seat from the snout's own surface point,
-	-- held in a local called `surf` -- and three hundred lines below that, the
-	-- EYE PREVIEW loop writes `surf, n = ...` at module scope, once per eye.
-	-- So the expression that prints this number had been reading the last
-	-- eye's surface point rather than the snout's ever since the preview was
-	-- added: -0.9257 against a true -1.0740, which is 0.8903 studs once
-	-- scaled. Both are plausible points on the same body, nothing errors, and
-	-- the arithmetic either side of it is correct.
+	-- Two contradictory comments on one table is worse than either alone --
+	-- the next person to touch this has to work out which is stale before
+	-- they can act, and the dead one carried the more confident wording. It
+	-- is the "a comment is not a measurement" family in its quietest form:
+	-- nothing errored, nothing looked wrong, and the file asserted both
+	-- answers at once.
 	--
-	-- The shadowing family this file already records for `legRoll` and the
-	-- cylinder axis, in its quietest form. The builder holds `SNOUT_SURF` now
-	-- and prints the delta on every run so the correction cannot silently
-	-- reverse.
-	nostril = { x = 1.050, y = 6.689, z = 7.354 },
-	-- THE NOSTRILS ARE GONE ON THE MESH PIG, and there is no seat for them
-	-- here because there is no part left to seat. They were a Block 0.50 by
-	-- 0.95 by 0.40, which works on the ball pig's CYLINDER snout -- a flat
-	-- face, where a dark box standing a third of a stud proud reads as a
-	-- dent. The generated snout is domed and smooth, and the same two boxes on
-	-- it read as black rectangles stuck to the pig's nose at every depth they
-	-- were tried at, flush included. Reported as exactly that.
+	-- WHAT IS TRUE, AND IT IS A THREE-WAY DISTINCTION RATHER THAN A TWO-WAY
+	-- ONE, which is why this table managed to carry both answers at once.
 	--
-	-- The primitives piggy keeps them; `swapToMesh` destroys them alongside
-	-- the snout and the ears it replaces. If the snout ever wants nostrils
-	-- back they are a CUT, like the vault and the coin slit -- a hole in a
-	-- surface, not a solid stuck on one.
+	--   the BOWLS   two dimples cut into the snout by the boolean in
+	--               `build_pig.py`, `NOS_SINK` deep. They are the nostrils,
+	--               they are in the shipped `Trim` mesh, and they stay.
+	--   the INSERTS two thin dark blades that used to sit inside those bowls
+	--               as a detail. Retired, and out of the blend files as of
+	--               2026-09-21 -- see `blender/pig/make/strip_nostril_inserts.py`.
+	--   the PARTS   code-built `Nostril` parts on the PRIMITIVES piggy, which
+	--               `swapToMesh` destroys alongside the snout and the ears it
+	--               replaces. The mesh pig never had one, which is why there
+	--               is no seat for one here.
+	--
+	-- So the mesh pig has no nostril PART and never did, and it does have
+	-- nostril GEOMETRY, which is the sentence the two contradictory blocks
+	-- were each telling half of.
 	-- THE SPHERE A SKIN'S PATTERN IS PLACED ON, which is NOT the body's own
 	-- bounding-box centre -- 8.5 against the body's 6.62. `applyPattern`
 	-- places every mark by DIRECTION on a sphere, and this is the sphere that
@@ -9520,6 +10214,19 @@ Config.FUR_SETS = {
 	-- a pig with no tuft rather than an error, which is the same contract the
 	-- body and the mane already keep -- so this can sit here unfilled and the
 	-- zebra simply wears no fur until it is uploaded.
+	-- THE LION'S RUFF: one faceted SHELL round the head with a scalloped
+	-- outline, and a faceted ball on the tail (`add_shell` / `add_tail_tuft`
+	-- in make_fur_tufts.py, off the designer's low-poly reference). ID
+	-- PENDING THE IMPORT of
+	-- `blender/pig/pig/pig_fur_lionmane.obj` -- an empty id is a lion with no
+	-- mane rather than an error, the contract every set here keeps. The size
+	-- and offset are the block `make_fur_tufts.py` printed for this build;
+	-- re-run it with FUR_SET=lionmane and paste again if the set is retuned.
+	lionmane = {
+		id = "",
+		size = Vector3.new(14.6822, 13.0186, 15.4838),
+		offset = Vector3.new(0.0788, 6.5439, -1.8582),
+	},
 	crest = {
 		id = "",
 		size = Vector3.new(2.1927, 2.3579, 3.0955),
@@ -9863,95 +10570,6 @@ function Config.treeMesh(): { any }?
 		scales = spec.scales,
 		parts = parts,
 	}
-end
-
--- Imported assets/tree/blender/oak.glb, at the compact 8.5-stud yard size.
--- Offsets are measured from the imported trunk's ground contact: Studio's
--- importer reverses X/Z relative to the GLB report. Keep the assembled pose.
--- Independent of TREE_MESH; street scenery keeps its own oak.
-Config.ACORN_OAK_MESH = {
-	parts = {
-		{
-			part = "Trunk", id = "86596500351307", texture = "122626758016508",
-			offset = Vector3.new(-0.00026703, 4.15144634, 0.16966248),
-			size = Vector3.new(6.20796633, 8.30289268, 3.70538425),
-		},
-		{
-			part = "Canopy", id = "126109660219617", texture = "122626758016508",
-			offset = Vector3.new(0.01684570, 6.73089504, 0.72576904),
-			size = Vector3.new(8.5, 5.03738499, 4.67738152),
-		},
-	},
-}
-
-function Config.acornOakMesh(): { any }?
-	local parts = {}
-	for _, entry in ipairs(Config.ACORN_OAK_MESH.parts) do
-		local id = assetId(entry.id)
-		local texture = assetId(entry.texture)
-		if not id or not texture then return nil end
-		table.insert(parts, {
-			part = entry.part, id = id, texture = texture,
-			offset = entry.offset, size = entry.size,
-		})
-	end
-	return parts
-end
-
--- Source: assets/basket/basket.rbxmx. Measured from the imported bottom
--- pivot; contents are separate objects, never baked into this empty bowl.
-Config.ACORN_BASKET_MESH = {
-	parts = {
-		{
-			part = "Basket", id = "100678587274495", texture = "138402969079437",
-			offset = Vector3.new(0.00187683, 0.45282504, -0.00001144),
-			size = Vector3.new(2.46588612, 0.90565002, 2.5),
-		},
-		{
-			part = "BasketDetail2", id = "94132455116099", texture = "110241410993564",
-			offset = Vector3.new(0.00000191, 0.96808410, -0.00014496),
-			size = Vector3.new(2.54199457, 0.46452266, 0.77379179),
-		},
-	},
-}
-
--- Source: assets/crate/AcornStorageCrate.rbxmx; bottom-centre measurements (studs).
-Config.ACORN_STORAGE_MESH = { parts = {
-	{ part = "CrateBody", id = "114021735333130", texture = "108648327781313",
-		size = Vector3.new(3.45, 1.73894882, 2.65), offset = Vector3.new(0, 0.86947799, 0) },
-	{ part = "CornerPosts", id = "73778528926375", texture = "108648327781313",
-		size = Vector3.new(3.6, 1.7, 2.8), offset = Vector3.new(0, 0.85, 0) },
-	{ part = "TopRim", id = "137168620124935", texture = "108648327781313",
-		size = Vector3.new(3.6, 0.23, 2.8), offset = Vector3.new(0, 1.78500533, 0) },
-	{ part = "AcornEmblem", id = "106520226066739", texture = "108648327781313",
-		size = Vector3.new(0.74, 0.74, 0.061), offset = Vector3.new(0, 1.02999949, -1.34649658) },
-} }
-
-function Config.acornStorageMesh(): { any }?
-	local parts = {}
-	for _, entry in ipairs(Config.ACORN_STORAGE_MESH.parts) do
-		local id, texture = assetId(entry.id), assetId(entry.texture)
-		if not id or not texture then return nil end
-		table.insert(parts, {
-			part = entry.part, id = id, texture = texture,
-			offset = entry.offset, size = entry.size,
-		})
-	end
-	return parts
-end
-
-function Config.acornBasketMesh(): { any }?
-	local parts = {}
-	for _, entry in ipairs(Config.ACORN_BASKET_MESH.parts) do
-		local id = assetId(entry.id)
-		local texture = assetId(entry.texture)
-		if not id or not texture then return nil end
-		table.insert(parts, {
-			part = entry.part, id = id, texture = texture,
-			offset = entry.offset, size = entry.size,
-		})
-	end
-	return parts
 end
 
 -- ------------------------------------------------------------
@@ -10559,11 +11177,23 @@ end
 -- CHESTS
 -- ============================================================
 --
--- Every crate costs earned Acorns (the persisted currency is "loot").
--- Coins never buy a random crate outcome. ChestService rejects other
--- currencies and auditEconomy reports any catalogue regression at boot.
--- The coin-price calculations below are historical; current pricing is
--- decided in docs/MASTER-PLAN.md section 6. Odds and pools are unchanged.
+-- A CRATE IS EARNED, NEVER BOUGHT WITH IN-GAME CURRENCY (designer, 2026-09-21).
+--
+-- No row here carries a `currency` or a `cost`, and `auditRandomOutcomes`
+-- refuses one that does. Crates arrive from the daily ladder, from events and
+-- from whatever else hands one over; `ChestService.grantFree` is the only way
+-- one opens. That is what keeps the whole catalogue clear of Roblox's paid
+-- random item rule: nothing random here is purchased with anything.
+--
+-- THE ROBUX ROUTE IS NOT BUILT AND MAY NOT BE BOLTED ON HERE. A direct
+-- Robux-to-crate purchase puts every crate INSIDE that rule -- disclosed
+-- numerical odds summing to 100% shown before purchase, and a `PolicyService`
+-- gate (`ArePaidRandomItemsRestricted`) so restricted players are refused
+-- rather than meeting a button that does nothing. See docs/PIGGY-COLLECTION-PLAN.md
+-- section 14. Until that ships, a price field here is a compliance bug.
+--
+-- The coin-price calculations below are historical. Odds and pools are
+-- unchanged: what retired is what pays for a roll, never what a roll gives.
 --
 -- A CHEST DECLARES ITS ODDS AND ITS MEMBERS DECLARE THEIR CHEST. Membership is
 -- a `chest` field on each item rather than a list here, for the reason `zone`
@@ -10619,20 +11249,21 @@ Config.CHESTS = {
 	-- want a specific pig. Animal is a real category because it answers a
 	-- question somebody actually asks.
 	--
-	-- THE ODDS LOST `epic` AND NOTHING ELSE MOVED. A skin is one of three
-	-- tiers now, so the middle rung carries what two used to: 32 + 12 = 44.
-	-- Legendary stays at 4, which is what holds the whole price ladder below
-	-- still -- it is solved on COINS PER LEGENDARY, so touching that number
-	-- reprices every crate at once.
+	-- THE ODDS LOST `epic` WHEN SKINS WENT TO THREE TIERS, AND GOT IT BACK ON
+	-- 2026-09-21 WHEN THE OG FAMILY STOCKED THE RUNG. For the three-tier
+	-- interval the middle rung carried what two used to (32 + 12 = 44); the
+	-- 12 points are epic's own again. Legendary stays at 4, which is what
+	-- holds the whole price ladder below still -- it is solved on COINS PER
+	-- LEGENDARY, so touching that number reprices every crate at once. And
+	-- `epic = 3 x legendary` is what keeps `Config.COMBINE` level against
+	-- rolling directly, which is why it is 12 and not a round 10.
 	og = {
 		name = "OG Piggy Common",
 		order = 1,
 		collection = "og",
 		tier = "common",
 		kind = "skin",
-		currency = "loot",
-		cost = 15,
-		odds = { common = 52, rare = 44, legendary = 4 },
+		odds = { common = 52, rare = 32, epic = 12, legendary = 4 },
 		colour = Color3.fromRGB(236, 138, 178),
 		blurb = "The skins the street was built on, glow and all",
 	},
@@ -10720,12 +11351,12 @@ Config.CHESTS = {
 		name = "OG Piggy Rare",
 		order = 2,
 		kind = "skin",
-		currency = "loot",
-		cost = 45,
 		collection = "og",
 		tier = "rare",
 		floor = "rare",
-		odds = { rare = 90, legendary = 10 },
+		-- Legendary held at 10 (the solved ladder); epic takes three times
+		-- it, the same relation the common crate keeps.
+		odds = { rare = 60, epic = 30, legendary = 10 },
 		colour = Color3.fromRGB(64, 147, 230),
 		blurb = "No commons. Rare or better, OG Piggy only",
 	},
@@ -10733,16 +11364,20 @@ Config.CHESTS = {
 		name = "OG Piggy Legendary",
 		order = 3,
 		kind = "skin",
-		currency = "loot",
-		cost = 120,
 		collection = "og",
 		tier = "legendary",
-		-- `rare`, never `epic`: a skin is three tiers, and a floor naming a
-		-- tier no skin carries leaves LEGENDARY the only stocked tier, which
+		-- `rare` AS THE FLOOR, STILL, though epic is stocked now: the floor
+		-- names the cheapest tier the crate may pay, and a legendary crate
+		-- that could only pay epic-or-better would be a different product
+		-- from the one the rebirth grants. The reason the floor was never
+		-- `epic` while the tier was empty stands as a warning -- a floor over
+		-- an unstocked tier leaves LEGENDARY the only stocked tier, which
 		-- `liveOdds` renormalises into a GUARANTEED legendary. A floor that
 		-- empties a crate is caught loudly; one that promotes it is not.
+		--
+		-- Legendary held at 35; the 65 that was all rare splits toward epic.
 		floor = "rare",
-		odds = { rare = 65, legendary = 35 },
+		odds = { rare = 40, epic = 25, legendary = 35 },
 		colour = Color3.fromRGB(255, 203, 61),
 		blurb = "The best odds on an OG Legendary",
 	},
@@ -10750,12 +11385,11 @@ Config.CHESTS = {
 		name = "Animal Kingdom Rare",
 		order = 5,
 		kind = "skin",
-		currency = "loot",
-		cost = 45,
 		collection = "animal",
 		tier = "rare",
 		floor = "rare",
-		odds = { rare = 90, legendary = 10 },
+		-- The `ograre` split, now that this shelf stocks epic too.
+		odds = { rare = 60, epic = 30, legendary = 10 },
 		colour = Color3.fromRGB(64, 147, 230),
 		blurb = "No commons. Rare or better, animals only",
 	},
@@ -10763,12 +11397,12 @@ Config.CHESTS = {
 		name = "Animal Kingdom Legendary",
 		order = 6,
 		kind = "skin",
-		currency = "loot",
-		cost = 120,
 		collection = "animal",
 		tier = "legendary",
 		floor = "rare",
-		odds = { rare = 65, legendary = 35 },
+		-- The `oglegendary` split: legendary held at 35, the 65 that was all
+		-- rare shared with epic.
+		odds = { rare = 40, epic = 25, legendary = 35 },
 		colour = Color3.fromRGB(255, 203, 61),
 		blurb = "The best odds on an Animal Legendary",
 	},
@@ -10801,8 +11435,6 @@ Config.CHESTS = {
 		collection = "alien",
 		kind = "set",
 		set = "alien",
-		currency = "loot",
-		cost = 18,
 		-- TWO ITEMS, BOTH EPIC: the Martian skin and the Hoverdisc. The odds
 		-- follow the STOCK rather than the coin chests' ladder, because an event
 		-- pool is small and top-heavy by nature and there is no common tier here
@@ -10842,8 +11474,6 @@ Config.CHESTS = {
 		collection = "animal",
 		tier = "common",
 		kind = "skin",
-		currency = "loot",
-		cost = 15,
 		-- EIGHT PAINTED COATS AND ONE STORM WOLF: THIS SHELF HAS NO RARE TIER
 		-- AT ALL, AND THE ODDS ROW SAYS SO RATHER THAN LEAVING IT TO
 		-- `liveOdds`.
@@ -10871,13 +11501,19 @@ Config.CHESTS = {
 		-- is LEGENDARY AT 4 -- the whole tier ladder is solved on coins per
 		-- legendary, so that one is a repricing rather than a rounding.
 		--
-		-- 44 AND NOT 32, because there is still no EPIC animal: the plan's
-		-- 52/32/12/4 assumes one, `liveOdds` drops a tier with no stock and
-		-- renormalises what is left, and authoring odds for a tier that cannot
-		-- be stocked is the failure this crate already recorded once. Rare
-		-- absorbs epic's share until an epic exists, which is the same 52/44/4
-		-- the `og` crate runs.
-		odds = { common = 52, rare = 44, legendary = 4 },
+		-- AND BACK TO THE PLAN'S 52/32/12/4 THE DAY THE FIRST EPIC ANIMALS
+		-- LANDED (four of them: Hedgehog, Lion, Storm Stone, Peacock). Rare
+		-- had been holding epic's 12 points because a tier with no stock may
+		-- not be authorised -- `liveOdds` renormalises an empty tier away and
+		-- reprices the crate, which is the failure this row recorded once
+		-- already. With stock in every tier the ladder is the `og` crate's,
+		-- and `epic = 3 * legendary` is what holds `COMBINE.need` at 3.
+		--
+		-- IT ALSO ENDS A REFUSAL THAT WAS LIVE: a combine of three rares
+		-- climbs one tier 85% of the time, and `ChestService.combine` walks
+		-- the four-tier ladder -- so with no epic stocked it landed on an
+		-- empty pool and refused with "has no epic to give yet".
+		odds = { common = 52, rare = 32, epic = 12, legendary = 4 },
 		colour = Color3.fromRGB(214, 158, 96),
 		blurb = "Stripes, spots and fleece. Your piggy, as something else",
 	},
@@ -10903,13 +11539,16 @@ Config.CHESTS = {
 	-- stay direct-purchase.
 }
 
--- Combining uses existing spares and targets regular Acorn crates only.
+-- Combining uses existing spares and targets ordinary crates only.
 -- Event-set crates keep their separate route even though all prices now
 -- use the same currency. Shared by the server guard and ChestState UI flag.
 function Config.canCombineChest(chestKey: string): boolean
 	local chest = Config.CHESTS[chestKey]
-	return chest ~= nil and chest.currency == "loot"
-		and chest.kind ~= "set" and chest.set == nil
+	-- The currency clause that used to open this test went with the crate
+	-- price. What it was really asking is "is this an ordinary crate rather
+	-- than an event set", and the two clauses below have always been the part
+	-- that answered it.
+	return chest ~= nil and chest.kind ~= "set" and chest.set == nil
 end
 
 -- COMBINING: three of a tier for one of the next.
@@ -10941,7 +11580,7 @@ end
 -- The word "shard" leaves the player's vocabulary entirely: there is no second
 -- noun to teach, because the thing being combined is the skins they can see.
 --
--- Combining targets regular Acorn crates via Config.canCombineChest.
+-- Combining targets ordinary crates via Config.canCombineChest.
 -- Event-set crates remain excluded, so ordinary spares cannot bypass their
 -- event reward route. Event duplicates can still be sold as spares.
 -- FIVE OF A TIER, NOT THREE, AND THE THIRD TIER COMING OUT IS WHY.
@@ -10966,12 +11605,20 @@ end
 --     need 5   9.2 opens   2.7x                        -- today's ratio
 --     need 6  11.4 opens   2.2x
 --
--- So 5 is where the ratio lands back on what the game already ships, and it
--- is derived from the odds rather than picked. ANYTHING THAT MOVES AN ODDS
--- ROW HAS TO RE-RUN THAT TABLE -- leaving this at 3 through the tier change
--- would have halved the cost of the top tier with nothing in any log.
+-- So 5 is where the ratio landed while skins were three tiers, and it was
+-- derived from the odds rather than picked. ANYTHING THAT MOVES AN ODDS ROW
+-- HAS TO RE-RUN THAT TABLE -- leaving this at 3 through the tier change would
+-- have halved the cost of the top tier with nothing in any log.
+--
+-- AND IT IS BACK TO 3, BECAUSE THE FOURTH TIER IS BACK (2026-09-21, the OG
+-- family). Against 52 / 32 / 12 / 4 the two routes to a legendary are level
+-- exactly as the CHESTS comment derives: 1 / 0.04 = 25 opens rolling, and
+-- 3 / 0.12 = 25 opens gathering three epics. Left at 5 through THIS change
+-- it would have been 5 / 0.12 = 41.7 opens -- combining 67% dearer than
+-- rolling, so nobody would ever combine and the spare screen is decoration.
+-- Same table, re-run, the other direction.
 Config.COMBINE = {
-	need = 5,
+	need = 3,
 	-- Tiers to climb, and the chance of each. Clamped at legendary, so
 	-- combining epics is simply a legendary.
 	odds = { [1] = 85, [2] = 12, [3] = 3 },
@@ -11029,41 +11676,27 @@ Config.SELL = {
 	priceFraction = 0.25,
 }
 
--- A SPARE SKIN SELLS FOR ACORNS, NOT COINS. Skins come out of crates, and
--- crates are bought with acorns, so a duplicate paying coins was paying in a
--- currency the skin was never priced in -- and coins are the one thing a
--- nine-year-old already has too much of by the time they own spares.
+-- A SPARE SKIN SELLS FOR COINS AGAIN, AND THE RULE THAT MOVED IT OFF THEM HAS
+-- EXPIRED RATHER THAN BEEN OVERRULED.
 --
--- WHY NOT HALF OF WHAT THEY ARE WORTH. The obvious "worth" is the crate that
--- pays out that tier: 15 acorns for a common, 45 for a rare, 120 for a
--- legendary. Half of that (7 / 22 / 60) makes the Common crate return 15.7
--- acorns of spares per 15-acorn open -- more than it costs -- so a player
--- with a finished collection opens and sells forever. A crate that pays for
--- itself is an acorn printer, and acorns are the currency robbing is FOR.
+-- It read: skins come out of crates and crates are bought with acorns, so a
+-- duplicate paying coins pays in a currency the skin was never priced in --
+-- and, sharper, "a crate that pays for itself is an acorn printer". Both
+-- halves rested on a crate being BUYABLE with the thing a spare pays out.
+-- Nothing in this game buys a crate with in-game currency now, so there is no
+-- loop to close: coins cannot be turned back into a roll at any price.
 --
--- So the numbers are solved against what a crate full of duplicates returns,
--- and every crate stays a clear loss: the Common crate hands back 48% of its
--- price, the Rare 27%, the Legendary 14%. A spare is change, never profit.
--- If a cheaper skin crate is ever added, check its return here first.
-Config.SKIN_SELL_ACORNS = {
-	common = 3,
-	rare = 10,
-	epic = 15,
-	legendary = 30,
-}
+-- What comes back with it is the cap that made the coin ladder safe in the
+-- first place. `sellValue` takes the tier value and clamps it to
+-- `SELL.priceFraction` of the item's own `sellBasis`, so Bubblegum at a basis
+-- of 8,000 pays 2,000 rather than a flat common's 40,000 -- which is the
+-- measured behaviour this file already records from before the acorn pass.
+--
+-- The faucet is bounded by how often a crate is AWARDED, which is the daily
+-- ladder and events, rather than by how fast anybody can grind one.
 
--- Which currency an item sells for. Skins sell for acorns; everything else a
--- crate can repeat (accessories, effects, the set chest's pieces) still sells
--- for coins, priced by `Config.SELL`.
-function Config.sellsForAcorns(kind: string): boolean
-	return kind == "skin"
-end
-
--- A sell value as a player reads it: "10 acorns", or a coin figure.
+-- A sell value as a player reads it. One currency, so one formatter.
 function Config.formatSellValue(kind: string, value: number): string
-	if Config.sellsForAcorns(kind) then
-		return ("%d %s"):format(value, Config.lootWord(value))
-	end
 	return Config.formatCoins(value)
 end
 
@@ -11183,6 +11816,38 @@ function Config.chestEntry(chestKey: string, entry: string): (string, string)
 end
 
 -- What ONE spare of a thing sells for.
+-- WHAT A STOLEN PIGGY IS WORTH, WHICH IS THE RAP SHEET'S UNIT.
+--
+-- Most Wanted ranks on the VALUE of the piggies a thief has taken off other
+-- players (designer call 2026-09-21), replacing coins stolen -- which is
+-- measurably dead: `robberyRates` reports robbing at 3.21x idling and
+-- measured against real collection income it is 0.46x on a beginner's lawn
+-- and 0.046x on a good one.
+--
+-- IT IS `sellValue`, NOT A SECOND PRICE. A piggy already has exactly one
+-- coin figure in this game: what letting it go pays, which the pedestal's
+-- own sell prompt prints while you hold the button. A rap sheet priced any
+-- other way would be a second valuation of one object, and the two would
+-- drift the first time either moved -- the near-identical duplicate this
+-- project keeps recording. It is also already capped and already audited,
+-- so nothing here can mint notoriety the shop would not pay for.
+--
+-- NAMED RATHER THAN CALLED INLINE, because the callers are a board, a
+-- trophy, a patrol and whatever the snatch turns out to be, and `what a
+-- piggy is worth` is a question those four must answer identically.
+-- Bail as a whole percentage, for the three surfaces that quote it: the
+-- Most Wanted poster, the pull-over warning and the dev console. ONE NUMBER
+-- AND THREE WORDINGS rather than one shared string -- the poster is short
+-- and shouted, the warning is a sentence and the console is a diagnostic,
+-- so what they genuinely share is the figure.
+function Config.bailPercent(): number
+	return math.floor(Config.POLICE.bailFraction * 100 + 0.5)
+end
+
+function Config.piggyWorth(key: string): number
+	return Config.sellValue("skin", key)
+end
+
 function Config.sellValue(kind: string, key: string): number
 	local catalogue = Config.catalogueFor(kind)
 	local spec = catalogue and catalogue[key]
@@ -11193,10 +11858,6 @@ function Config.sellValue(kind: string, key: string): number
 	local rarity = Config.RARITIES[tier]
 	if not rarity then
 		return 0
-	end
-	-- Skins are ACORNS, a flat value per tier (see `SKIN_SELL_ACORNS`).
-	if Config.sellsForAcorns(kind) then
-		return Config.SKIN_SELL_ACORNS[tier] or 0
 	end
 	local value = Config.SELL.base * (Config.RARITIES.common.weight / rarity.weight)
 	local basis = spec.cost or spec.sellBasis
@@ -11319,8 +11980,9 @@ Config.CRATE_SECTIONS = {
 
 -- Rebirth opens a shop Legendary crate for free, picked at random from the
 -- collections whose legendaries the player does NOT all own yet -- so the
--- free open is never a roll at a finished shelf. With every one complete it
--- pays the crate's Acorn price instead. Exclusives outside these pools do not
+-- free open is never a roll at a finished shelf. With every one complete the
+-- open is simply skipped: a crate has no price to pay out instead of opening,
+-- now that a crate has no price at all. Exclusives outside these pools do not
 -- count.
 Config.REBIRTH_CRATES = { "oglegendary", "animallegendary" }
 
@@ -11332,7 +11994,6 @@ Config.UI_ICONS = {
 	rebirthArrows = "rbxassetid://100432615961562",
 	piggy = "rbxassetid://137409150398786",
 	piggyCoins = "rbxassetid://113893443320035",
-	acornTree = "rbxassetid://87515989265886",
 }
 
 local function legendariesOwned(chestKey: string, owned: { [string]: boolean }): boolean
@@ -11359,16 +12020,11 @@ function Config.rebirthCrateComplete(owned: { [string]: boolean }): boolean
 	return #Config.rebirthCratesOpen(owned) == 0
 end
 
--- What a complete collection is paid instead: the dearest rebirth crate's
--- price (they are all 120 today).
-function Config.rebirthCrateBonus(): number
-	local best = 0
-	for _, key in ipairs(Config.REBIRTH_CRATES) do
-		local chest = Config.CHESTS[key]
-		if chest and chest.cost > best then best = chest.cost end
-	end
-	return best
-end
+-- A COMPLETE COLLECTION IS PAID NOTHING INSTEAD, and that is a consequence
+-- rather than a choice. `rebirthCrateBonus` used to hand over the dearest
+-- rebirth crate's PRICE in acorns; a crate has no price now, so there is no
+-- figure to pay and no currency to pay it in. `rebirthCrateComplete` is what
+-- the rebirth page reads to say so instead.
 
 -- Where each slot hangs off the pig, in the same local space PiggyBank.build
 -- uses -- so these move with the pig if its proportions ever change.
@@ -11542,321 +12198,6 @@ Config.ACCESSORY_SLOTS = {
 -- empty table type and every `Config.ACCESSORIES[key]` in the game stops
 -- compiling.
 Config.ACCESSORIES = {} :: { [string]: any }
-
--- ============================================================
--- THE ROLL CURRENCY
--- ============================================================
---
--- Acorns are the earned secondary currency. The persisted field stays
--- `data.loot`, preserving existing balances without a save migration.
--- The HUD and prices draw Theme.acorn; this table supplies their wording.
-Config.ROLL_CURRENCY = {
-	name = "Acorn",
-	plural = "Acorns",
-	-- Matches Theme.ACORN without introducing a UI dependency into Config.
-	colour = Color3.fromRGB(164, 96, 49),
-}
-
--- Phase 1 foundation for the tree's shake payout. Piggy deliveries never
--- call this. A nil victim rebirth count means a resident; zero is a player.
-Config.ACORNS = {
-	-- Tree growth and banked storage are independent. STORAGE IS A BANK
-	-- (MASTER-PLAN 19.3, step 2.6): nothing in a crate can be taken by anyone,
-	-- so there is no storage share, no hourly acorn loss cap and no resident
-	-- raid cadence -- `auditAcorns` refuses any of those coming back. The only
-	-- acorns another player can take are RIPE ones shaken off a tree while an
-	-- acorn-theft event is live (a roster row carrying `acornTheft = true`).
-	growCap = 8,
-	shakeSeconds = 5, shakeCooldown = 60, startDelay = 0.35, groundSeconds = 60,
-	-- A resident's starting stock. `harvestSeconds` is how long a new crop
-	-- stays on their tree before they bank it.
-	resident = { seedRipe = 2, seedStored = 2, harvestSeconds = 900 },
-	fallSeconds = 0.4, catchMinSeconds = 0.15, catchGrace = 0.3,
-	-- THE SIDE FENCE IS WHAT CAPS THIS, AND THE CAP IS 2.0.
-	--
-	-- The imported Blender oak is 8.5 studs across at 1.0 -- a yard shrub
-	-- beside a five-stud character, against a 34-stud grove tree behind the
-	-- plot. It stands at plot x -25 and the fence interior is at -33.6, so half
-	-- a canopy past that is a tree growing through the fence: measured, 2.0
-	-- lands its edge on -33.50 against -33.60 and 2.2 is 0.75 studs out over
-	-- the alley. 1.8 keeps a stud of daylight.
-	--
-	-- `AcornTree` multiplies the mesh sizes, the offsets and the trunk collider
-	-- by this, and `AcornFill` scales the crop's radius and height by it -- the
-	-- acorns hang off the CANOPY, so a tree that grew while they did not would
-	-- leave the crop hanging inside the trunk.
-	treeScale = 1.8, slot = "lawnI", treeOffset = Vector3.new(-25, 0, 16),
-	-- The wood mesh includes wide branches. Only the lower trunk blocks a
-	-- character; a box around all the wood would wall off empty lawn.
-	treeCollisionSize = Vector3.new(1.3, 3.4, 1.3),
-	treeCollisionOffset = Vector3.new(0, 1.7, 0),
-	-- On the pig side of the oak, within the retired lawnI footprint.
-	storageOffset = Vector3.new(-20, 0, 16), basketScale = 1,
-	payout = { resident = 1, player = 5, perRebirthAbove = 1, revenge = 2,
-		-- THE PIG-CRACK ACORN (MASTER-PLAN section 19.2, step 1.11). A
-		-- delivered carry whose crack ran ALL FIVE slices against a PLAYER's
-		-- pig mints `crack` acorns for the thief -- `crackRevenge` inside
-		-- `REVENGE.window`. Residents and shops mint none (the tree is the
-		-- solo faucet; this is the reason to rob a person), and a partial
-		-- crack mints none, so `LOSS_CAP` bounds this faucet too: about two
-		-- per victim per hour, whoever is robbing. MINTED, never taken --
-		-- the victim loses coins and possibly a skin, never an acorn.
-		-- Read through `Config.crackAcorns`, and only there.
-		crack = 1, crackRevenge = 2 },
-}
-
--- How many acorns a delivered pig carry mints. The three gates are the
--- whole rule and `auditAcorns` provokes each of them: not clean, not a
--- player, or handed off (the caller passes `revenge` only for the original
--- grabber) all pay zero.
-function Config.crackAcorns(clean: boolean, victimIsPlayer: boolean, revenge: boolean): number
-	if not clean or not victimIsPlayer then
-		return 0
-	end
-	local payout = Config.ACORNS.payout
-	return if revenge then payout.crackRevenge else payout.crack
-end
-
--- Imported Workspace.acorn, archived in assets/acorn/acorn.json/rbxmx.
--- Nut-centred offsets match the existing basket fill positions at scale 1.
-Config.ACORN_MESH = { parts = {
-	{ part = "Stem", id = "rbxassetid://123914273548822", texture = "rbxassetid://120631223897118",
-		size = Vector3.new(0.096932940, 0.115000010, 0.066295095),
-		offset = Vector3.new(-0.017829895, 0.494493484, 0.000000000) },
-	{ part = "Cap", id = "rbxassetid://99661896461850", texture = "rbxassetid://120631223897118",
-		size = Vector3.new(0.594365239, 0.294259816, 0.594365239),
-		offset = Vector3.new(0.000000000, 0.333129883, 0.000000000) },
-	{ part = "Nut", id = "rbxassetid://107705713264554", texture = "rbxassetid://120631223897118",
-		size = Vector3.new(0.492000014, 0.550000012, 0.492000014),
-		offset = Vector3.new(0.000000000, 0.000000000, 0.000000000) },
-} }
-
-Config.ACORNS.growSeconds = Config.OFFLINE_CAP_SECONDS / Config.ACORNS.growCap
-
--- Both ends render/check the same drop windows; the client cannot choose
--- how many Acorns exist or extend the time for catching one.
-function Config.acornFallWindow(startedAt: number, index: number, count: number): (number, number)
-	-- All loose Acorns stay available for the entire collection round.
-	return startedAt, startedAt + Config.ACORNS.shakeSeconds
-end
-
--- A saved growth cursor, independent of autosaves. Missing legacy cursors
--- start at lastSave; invalid/future timestamps cannot grant extra currency.
-function Config.acornGrowthCursor(value: any, now: number): number
-	if type(value) ~= "number" or value ~= value or math.abs(value) == math.huge then
-		return now
-	end
-	return math.clamp(math.floor(value), now - Config.OFFLINE_CAP_SECONDS, now)
-end
-
--- ============================================================
--- THE TREE LADDER (MASTER-PLAN 19.4, 19.4a; step 2.7)
--- ============================================================
---
--- ONE TREE PER PLOT, WITH LEVELS; NEVER MORE TREES. The ladder sells the
--- RATE and is priced in coins -- the direction the title wants: rob pigs,
--- spend coins on your tree, grow acorns, open crates -- and it is the
--- repeatable coin sink the shop was missing.
---
--- THE HOUSE GATES AND HOLDS; IT NEVER GENERATES. The best house a player
--- OWNS (never the one shown -- moving into a cheaper-looking house for taste
--- must not cost anybody their tree) decides how high the ladder may be
--- bought and how many ripe acorns the tree holds. It never adds a tree and
--- never adds acorns per hour, so every acorn price solved against the
--- faucet stays solved whatever house somebody buys.
---
--- Rows are levels 0..4 at index level + 1. Level 0 is the tree everybody has
--- and must equal the base rate `ACORNS.growSeconds` describes, or the
--- offline window stops filling a Common tree exactly (auditAcorns checks).
--- `scaleXZ`/`scaleY` are the PLACEHOLDER growth on the oak until brief B5
--- lands the real five levels. HEIGHT ONLY: the trunk mesh's bounding box
--- already reaches the storage crate's edge at level 0 (its forks are 6.2
--- studs across, up in the air where the crate is not), so any sideways
--- growth would be a clearance nobody measured in Studio. Taller changes no
--- clearance at all (tests/luau/tree.luau), and still reads from the pavement.
---
--- FIRST-PASS PRICES, each set just below the cheapest house of the rarity
--- that opens it, so the rung is affordable the moment the gate opens and
--- never outprices the house that unlocked it. Re-solve with 19.5.
-Config.TREE_LEVELS = {
-	{ rate = 1.0, scaleXZ = 1.0, scaleY = 1.0 },
-	{ rate = 1.25, cost = 25000, scaleXZ = 1.0, scaleY = 1.05 },
-	{ rate = 1.5, cost = 100000, scaleXZ = 1.0, scaleY = 1.1 },
-	{ rate = 2.0, cost = 1000000, scaleXZ = 1.0, scaleY = 1.15 },
-	{ rate = 2.5, cost = 12000000, scaleXZ = 1.0, scaleY = 1.2 },
-}
-
--- Best owned house rarity -> the highest tree level that may be BOUGHT and
--- the ripe acorns the tree HOLDS. Common's cap is today's cap: nothing moves
--- for anybody who owns only Common houses.
-Config.TREE_HOUSE_GATE = {
-	common = { maxLevel = 1, cap = 8 },
-	rare = { maxLevel = 2, cap = 12 },
-	epic = { maxLevel = 3, cap = 16 },
-	legendary = { maxLevel = 4, cap = 24 },
-}
-
--- REBIRTH GROWS THE TREE WHILE YOU PLAY. A few percent per rebirth, ONLINE
--- ONLY -- the loop is on the street -- and capped, so it is the one thing
--- rebirth still grows past the ladder's ceiling without becoming a faucet.
-Config.TREE_REBIRTH_BONUS = { perRebirth = 0.03, max = 0.6 }
-
--- The highest-rarity house in an owned set. Reads `data.houses.owned`; a
--- table with no houses (a resident's stock) is Common.
-function Config.bestHouseRarity(data: any): string
-	local houses = type(data) == "table" and data.houses
-	local owned = type(houses) == "table" and houses.owned
-	local best, bestRank = "common", Config.rarityRank("common")
-	if type(owned) ~= "table" then
-		return best
-	end
-	for _, tier in ipairs(Config.HOUSE_TIERS) do
-		if owned[tier.id] == true then
-			local rarity = Config.rarityOf(tier)
-			local rank = Config.rarityRank(rarity)
-			if rank > bestRank then
-				best, bestRank = rarity, rank
-			end
-		end
-	end
-	return best
-end
-
-function Config.treeGate(data: any): { maxLevel: number, cap: number }
-	return Config.TREE_HOUSE_GATE[Config.bestHouseRarity(data)] or Config.TREE_HOUSE_GATE.common
-end
-
--- The saved level, clamped to the ladder. Deliberately NOT clamped to the
--- gate: houses are never lost in play, and a level already bought stays.
-function Config.treeLevelOf(data: any): number
-	local tree = type(data) == "table" and data.tree
-	local level = type(tree) == "table" and tonumber(tree.level) or 0
-	if level ~= level then
-		level = 0
-	end
-	return math.clamp(math.floor(level), 0, #Config.TREE_LEVELS - 1)
-end
-
-function Config.treeCap(data: any): number
-	return Config.treeGate(data).cap
-end
-
-function Config.treeRebirthFactor(rebirths: number?, online: boolean?): number
-	if not online then
-		return 1
-	end
-	local b = Config.TREE_REBIRTH_BONUS
-	return 1 + math.min(b.max, math.max(0, math.floor(tonumber(rebirths) or 0)) * b.perRebirth)
-end
-
-function Config.treeGrowthPerHour(level: number, rebirths: number?, online: boolean?): number
-	local row = Config.TREE_LEVELS[math.clamp(math.floor(level), 0, #Config.TREE_LEVELS - 1) + 1]
-	return row.rate * Config.treeRebirthFactor(rebirths, online)
-end
-
--- Shared arithmetic for the server's offline and live paths. Preserve partial
--- hours below cap. Time spent full is discarded, never banked for after spending.
---
--- THE RATE AND THE CAP ARE THE SAVE'S OWN (step 2.7): the tree level and
--- the rebirth bonus (live only -- `online`) set the seconds per acorn, and
--- the best owned house sets the cap. A resident's stock carries no level, no
--- houses and no rebirths, so it grows exactly as before: 1 an hour to 8.
-function Config.growAcorns(data: any, now: number, online: boolean?): number
-	local cap = Config.treeCap(data)
-	local seconds = 3600 / Config.treeGrowthPerHour(Config.treeLevelOf(data), data.rebirths, online)
-	local cursor = Config.acornGrowthCursor(data.acornsGrownAt, now)
-	local before = data.treeAcorns or 0
-	if before >= cap then
-		data.acornsGrownAt = now
-		return 0
-	end
-	local elapsed = math.floor((now - cursor) / seconds)
-	local gained = math.min(elapsed, cap - before)
-	data.treeAcorns = before + gained
-	data.acornsGrownAt = if data.treeAcorns >= cap then now
-		else cursor + elapsed * seconds
-	return gained
-end
-
--- Seconds until the next ripe acorn, or nil while the tree is full. The same
--- cursor and rate `growAcorns` uses; call it right after a `growAcorns` so
--- the cursor is settled.
-function Config.nextAcornIn(data: any, now: number, online: boolean?): number?
-	if (data.treeAcorns or 0) >= Config.treeCap(data) then
-		return nil
-	end
-	local seconds = 3600 / Config.treeGrowthPerHour(Config.treeLevelOf(data), data.rebirths, online)
-	local cursor = Config.acornGrowthCursor(data.acornsGrownAt, now)
-	return math.max(0, cursor + seconds - now)
-end
-
--- What the owner's tree prompt says and sells next: nil when fully grown.
-function Config.nextTreeLevel(data: any): (number?, any?, boolean)
-	local nextLevel = Config.treeLevelOf(data) + 1
-	local row = Config.TREE_LEVELS[nextLevel + 1]
-	if not row then
-		return nil, nil, false
-	end
-	return nextLevel, row, nextLevel <= Config.treeGate(data).maxLevel
-end
-
--- The cheapest rarity whose gate allows `level`, for the refusal's wording.
-function Config.treeGateRarityFor(level: number): string?
-	for _, rarity in ipairs(Config.RARITY_ORDER) do
-		local gate = Config.TREE_HOUSE_GATE[rarity]
-		if gate and gate.maxLevel >= level then
-			return rarity
-		end
-	end
-	return nil
-end
--- Ground stock is saved separately, so reconnecting cannot duplicate a shake.
-function Config.expireGroundAcorns(data: any, now: number): boolean
-	if (data.groundAcorns or 0) > 0 and now >= (data.acornsDroppedAt or 0) + Config.ACORNS.groundSeconds then
-		data.groundAcorns = 0
-		return true
-	end
-	return false
-end
-
--- Explicit modelling assumptions, not new reward sources (re-derived for step
--- 2.6): a passive player harvests one full tree a day and loses nothing; an
--- active one also plays `activeHours`, harvesting the tree's hourly growth
--- and cracking other players at the `LOSS_CAP` ceiling. `minPopulationRatio`
--- keeps a full server from starving anyone relative to solo;
--- `maxCrackRatio` keeps the pig-crack acorn a SIDE faucet -- it may never
--- pay more per hour than this multiple of a tree.
-Config.ACORN_AUDIT = { activeHours = 2, minPopulationRatio = 0.5, maxCrackRatio = 2 }
--- Reserved integration point for the later coin-pack step. No product is sold.
--- Rebirth still rolls a standard Legendary Crate, per the designer correction.
-Config.COIN_PACK = { productId = 0 }
-
-function Config.acornMultiplier(thief: number, victim: number?, revenge: boolean): number
-	local payout = Config.ACORNS.payout
-	if victim == nil then return payout.resident end
-	local multiplier = payout.player + math.max(0, victim - thief) * payout.perRebirthAbove
-	return multiplier * (if revenge then payout.revenge else 1)
-end
-
--- Keep singular/plural wording consistent across prices and receipts.
-function Config.lootWord(n: number): string
-	return string.lower(if n == 1 then Config.ROLL_CURRENCY.name
-		else Config.ROLL_CURRENCY.plural)
-end
-
--- The same refusal on the crate card and the authoritative server response.
-function Config.acornShortfall(held: number, cost: number): string
-	local short = math.max(0, cost - held)
-	return ("Need %d more %s. Shake trees to earn %s."):format(
-		short, Config.lootWord(short), Config.ROLL_CURRENCY.plural:lower())
-end
-
--- THE ROLL'S PRICE LADDER IS RETIRED WITH THE ROLL. `ROLL_BASE_COST`,
--- `ROLL_GROWTH`, `getRollCost`, `accessoryCount` and `rollableAccessoryCount`
--- all existed to price and pace the accessory collection, and there is no
--- collection to pace. `Config.ROLL_CURRENCY` and `Config.lootWord` above are
--- deliberately NOT part of this: they name the Acorn currency, which the
--- event chests still price in.
 
 
 -- ============================================================
@@ -12609,7 +12950,7 @@ Config.DRIVEWAY_WIDTH = 17
 -- COMPRESSING THE THREE ROWS INSTEAD WAS MEASURED AND BUYS ALMOST NOTHING.
 -- Rows have to stay 11 studs apart -- that is the deepest ornament, and it is
 -- the one number holding all 64 pairings -- and the FRONT row is pinned at
--- z +4 by the kennel and the acorn oak, which start at z 12.4. So the three
+-- z +4 by the kennel (and, until it retired, the acorn oak), at z 12.4. So the three
 -- rows can only close up to +4 / -7 / -18, which moves the rearmost by two
 -- studs and the yard by two. The row had to go or the yard had to stay.
 Config.DECOR_SLOTS = {
@@ -12620,7 +12961,12 @@ Config.DECOR_SLOTS = {
 	{ id = "lawnG", zone = "lawn", offset = Vector3.new(-25, 0, 4) },
 	{ id = "lawnH", zone = "lawn", offset = Vector3.new(25, 0, 4) },
 
-	-- Front corners are reserved for the acorn oak/basket and the kennel.
+	-- The front-right corner is reserved for the kennel. The front-LEFT one
+	-- used to hold the acorn oak and its basket; both retired with the acorn
+	-- currency, so that ground is free again and a later pass could widen the
+	-- lawn grid into it. The slots below were solved around the old footprint
+	-- and are deliberately left where they are -- moving a slot moves what is
+	-- standing on it in every existing save.
 	-- Retired lawnI placements are shelved by DataService's catalogue prune;
 	-- the player still owns the ornament and can place it in another slot.
 
@@ -13321,6 +13667,9 @@ end
 -- input happened to turn. ClientMain eases the ROOT toward this target at
 -- this rate every frame; RideYaw itself is still the instant, published fact
 -- of which way the deck is meant to sit.
+-- DEGREES PER SECOND, NOT STUDS -- an ANGULAR rate, so it is deliberately
+-- not a ratio of `BASE_WALK_SPEED`: how fast a deck swings round under a
+-- rider has nothing to do with how far they cover in a second.
 Config.RIDE_STANCE_TURN_RATE = 420
 
 -- HOW FAST A RIDE GOES IS A PROPERTY OF ITS TIER, NEVER OF ITS OWN ROW.
@@ -13665,10 +14014,12 @@ end
 -- the thing this game most needs a returning player to do is go and rob
 -- somebody -- a daily that only pays coins rewards standing still.
 --
--- NO LOOT ON THIS LADDER, since the pivot. It used to pay the roll currency
--- on every rung, which made turning up a route to the collection. Loot is the
--- currency you go out and earn -- see Config.ACORNS -- and a ladder that paid it
--- would let a player who never robs anybody finish the thief's collection.
+-- NO SECOND CURRENCY ON THIS LADDER, and there is no second currency left to
+-- put on it. The rungs used to pay the roll currency, which made turning up a
+-- route to the collection; the Acorn track that replaced it is retired too.
+-- What day seven pays instead is a CRATE, which is the one thing on this
+-- ladder an hour of play cannot buy -- and, with crates earned rather than
+-- bought, the shape the whole catalogue now runs on.
 --
 -- `short` is the word the daily board prints on the card. It lives here
 -- rather than in ClientMain, which used to keep its own seven-entry copy of
@@ -13712,11 +14063,12 @@ Config.DAILY_CYCLE = {
 
 -- Stored, never auto-applied.
 --
--- The vault caps at capacity, so a boost handed to somebody sitting on a full
--- vault is worth exactly nothing -- and that is precisely the player most
--- likely to be logging in to claim a daily. Holding it in a pocket makes the
--- reward keep its value and turns "bank first, then boost" into a small real
--- decision.
+-- A boost multiplies the LIVE DRIP and never offline accrual, so one applied
+-- on claim would be burned by anybody who claims and logs off -- which is
+-- most of a daily-claim population. The pocket lets a player spend it while
+-- they are actually playing. (This used to be argued from the pig's capacity
+-- -- a boost on a full pig was worth nothing -- and the pig has no capacity
+-- now; the reason above is the one that survives.)
 --
 -- Wall-clock from activation. It does NOT apply to offline accrual: a boost
 -- is for playing, and one that ticks while you are logged off is just a worse
@@ -13752,135 +14104,16 @@ function Config.seasonEndsAt(when: number?): number
 	return (Config.seasonIndex(when) + 1) * (Config.SEASON.weeks + Config.SEASON.rest) * 7 * 86400
 end
 
--- ============================================================
--- SEASON ONE (Phase 5.3, MASTER-PLAN 12)
--- ============================================================
---
--- A SEASON IS THE SAME INDEX THE BUY-BACK CLAIMS ALREADY USE, and the fifth
--- week of it is REST: nothing counts, the board shows the final standings,
--- and the next index starts fresh. Keeping `seasonIndex` untouched is what
--- keeps every saved buy-back claim meaning what it meant.
---
--- `first` is the index Season 1 is: the launch week (2026-09-17) fell in the
--- rest week of index 591, so the first real season is 592. An index below
--- it is PRE-SEASON: nothing counts and the chip stays off the sign.
-Config.SEASON.first = 592
-
--- Season rank is ACORNS EARNED this season: the own-tree harvest deposited
--- and the pig-crack acorn. Never a refund, a grant or an admin gift. Tiers
--- are solved in tests/sim/acorns/model.py (`python3 model.py x3 season`):
--- a casual child reaches tier 6-7 over a season, a regular player 9-10, a
--- keen player tier 10 in the third or fourth week. Two segments, because the
--- overnight fill flattens the gap between casual and keen and one geometric
--- ratio could not hit both targets. Re-derive from telemetry before season 2.
---
--- `reward` is one grant through `SetService.grant` (kinds finish, plinth,
--- coat, catch), or a `sign` word the plot sign shows. A reward already
--- owned is said and skipped: nothing converts to acorns, which would be a
--- faucet. Tier 6 is the Season Cup trophy, which reads the best tier ever
--- reached (`Config.TROPHIES.seasoncup`), so it needs no grant here.
-Config.SEASON.tiers = {
-	{ need = 10, reward = { kind = "finish", key = "brighteyes" } },
-	-- WAS `plinth:marble`, AND THE BOOT AUDIT CAUGHT IT the moment the plinth
-	-- catalogue was retired: a season tier granting something that does not
-	-- exist is a reward a player earns and never receives, with nothing else
-	-- in any log to say so. Same family as the crate `floor` naming a tier
-	-- nothing carries.
-	{ need = 20, reward = { kind = "catch", key = "dust" } },
-	{ need = 40, reward = { kind = "finish", key = "polished" } },
-	-- Kennel customization is retired; this tier now unlocks a guardian.
-	{ need = 75, reward = { kind = "coat", key = "goldenboy" } },
-	{ need = 150, reward = { kind = "finish", key = "lanternglow" } },
-	-- Was `trophy:seasoncup`, retired with the rest of the shelf. A FINISH
-	-- rather than a kennel, because this is the season's own prestige rung and
-	-- four of the ten tiers already pay in finishes.
-	{ need = 210, reward = { kind = "finish", key = "midnightstar" } },
-	{ need = 280, reward = { kind = "catch", key = "bubbles" } },
-	{ need = 370, reward = { kind = "finish", key = "gilded" } },
-	{ need = 480, reward = { kind = "sign", key = "STAR" } },
-	{ need = 620, reward = { kind = "finish", key = "season" } },
-}
-
--- THE SEASON FINISH, NEVER SOLD AGAIN. Tier 10 grants the finish named here
--- for the season's number. A season with no row does NOT fall back to last
--- season's exclusive: the grant is said and skipped, so a missing row is a
--- visible gap for whoever runs the next season rather than a quiet repeat.
-Config.SEASON.finishes = { [1] = "midnightstar" }
-
--- The Season number (1, 2, ...) for an index, or nil before Season 1.
-function Config.seasonNumber(index: number): number?
-	local n = index - Config.SEASON.first + 1
-	return if n >= 1 then n else nil
-end
-
--- Whether acorns earned at `when` count: a real season, not its rest week.
-function Config.seasonActive(when: number?): boolean
-	local span = Config.SEASON.weeks + Config.SEASON.rest
-	local week = Config.weekIndex(when)
-	return Config.seasonNumber(week // span) ~= nil and week % span < Config.SEASON.weeks
-end
-
--- The tier (0-10) for an earned total.
-function Config.seasonTier(earned: number): number
-	local tier = 0
-	for i, row in ipairs(Config.SEASON.tiers) do
-		if earned >= row.need then
-			tier = i
-		end
-	end
-	return tier
-end
-
--- The concrete grant for tier `i` of season `number`, resolving the season
--- finish; nil for a sign word, a trophy tier or an unauthored season finish.
-function Config.seasonReward(i: number, number: number?): { kind: string, key: string }?
-	local row = Config.SEASON.tiers[i]
-	local reward = row and row.reward
-	if not reward or reward.kind == "sign" or reward.kind == "trophy" then
-		return nil
-	end
-	if reward.kind == "finish" and reward.key == "season" then
-		local key = number and Config.SEASON.finishes[number]
-		return if key then { kind = "finish", key = key } else nil
-	end
-	return reward
-end
-
--- What the plot sign's season chip says: nothing below tier 1, the tier
--- number, and the season's words from tier 9.
-function Config.seasonChipText(number: number?, tier: number): string?
-	if not number or tier < 1 then
-		return nil
-	end
-	if tier >= #Config.SEASON.tiers then
-		return ("S%d CHAMPION"):format(number)
-	elseif tier >= 9 then
-		return ("S%d STAR"):format(number)
-	end
-	return ("S%d TIER %d"):format(number, tier)
-end
-
--- The chip's colour climbs the rarity ladder with the tier.
-function Config.seasonChipColour(tier: number): Color3
-	local rarity = if tier >= 8 then "legendary" elseif tier >= 5 then "epic"
-		elseif tier >= 3 then "rare" else "common"
-	return Config.RARITIES[rarity].colour
-end
-
--- THE BOARDS (Phase 5.5). The season board ranks acorns earned this season;
--- `window` rows are drawn around the reader, not the top of the list,
--- because a global top eight produces one euphoric winner and seven
--- demoralised children. `pages` pages of 100 are cached per server.
--- Top Defenders is the weekly twin of Top Thieves.
-Config.SEASON_BOARD = { store = "SeasonAcorns.v1", pageSize = 100, pages = 2, refresh = 60,
-	above = 3, below = 4 }
+-- THE BOARDS. Top Defenders is the weekly twin of Top Thieves. The SEASON
+-- board that used to stand beside them ranked acorns earned, and retired with
+-- the acorn currency.
 Config.WEEKLY_DEFEND = { store = "WeeklyDefend.v1", rows = 8, refresh = 45 }
 -- The physical board shows each page this long before turning to the next.
 Config.BOARD_PAGE_SECONDS = 10
 Config.BOARD_PAGE_ATTRIBUTE = "BoardPage"
 
 -- THE NEMESIS LEDGER (Phase 5.1): who has robbed this player most this
--- season, twenty counterparties at most, the smallest dropped first.
+-- season window, twenty counterparties at most, the smallest dropped first.
 Config.NEMESIS_ROWS = 20
 
 -- ============================================================
@@ -13912,41 +14145,22 @@ Config.FINISHES = {
 		light = { colour = Color3.fromRGB(132, 104, 255), brightness = 0.5, range = 14 } },
 }
 
--- A season's every promised grant must exist, fit its kind, and never be a
--- priced finish; the thresholds must climb. Warned at boot with the others.
+-- WHAT IS LEFT OF THE SEASON AUDIT AFTER THE LADDER RETIRED WITH THE ACORNS.
+--
+-- The tier sweep is gone because the tiers are: rank was ACORNS EARNED and
+-- nothing else ever fed it, so a ladder left standing would have counted zero
+-- forever, which is the broken-feature shape this project refuses everywhere
+-- else. `seasonIndex` survives, because the buy-back claims and the hot-skin
+-- window are keyed to it and neither has anything to do with acorns.
+--
+-- THE FINISH CHECK SURVIVES AND IS THE HALF THAT STILL EARNS ITS KEEP: a
+-- finish must stay unpriced. It is UNOBTAINABLE until something grants it
+-- again (the job board in docs/PIGGY-COLLECTION-PLAN.md section 7a is the
+-- intended home), and that is recorded rather than papered over -- giving it
+-- a coin price here would put a season exclusive in the shop, which is the
+-- one thing `season = true` has always meant it is not.
 function Config.auditSeason(): { string }
 	local problems = {}
-	local last = 0
-	local known = {
-		finish = Config.FINISHES, plinth = Config.TROPHY_PLINTHS,
-		coat = Config.DOG_COATS, catch = Config.CATCH_EFFECTS,
-	}
-	for i, row in ipairs(Config.SEASON.tiers) do
-		if type(row.need) ~= "number" or row.need <= last then
-			table.insert(problems, ("SEASON.tiers[%d] must need more acorns than the tier below"):format(i))
-		end
-		last = row.need or last
-		local reward = row.reward
-		if type(reward) ~= "table" then
-			table.insert(problems, ("SEASON.tiers[%d] has no reward"):format(i))
-		elseif reward.kind == "trophy" then
-			if not Config.TROPHIES[reward.key] then
-				table.insert(problems, ("SEASON.tiers[%d] names trophy %s, which does not exist"):format(i, tostring(reward.key)))
-			end
-		elseif reward.kind ~= "sign" and not (reward.kind == "finish" and reward.key == "season") then
-			local catalogue = known[reward.kind]
-			if not catalogue or not catalogue[reward.key] then
-				table.insert(problems, ("SEASON.tiers[%d] grants %s:%s, which does not exist"):format(
-					i, tostring(reward.kind), tostring(reward.key)))
-			end
-		end
-	end
-	for number, key in pairs(Config.SEASON.finishes) do
-		local spec = Config.FINISHES[key]
-		if not spec or spec.season ~= number then
-			table.insert(problems, ("SEASON.finishes[%d] must be a finish flagged season = %d"):format(number, number))
-		end
-	end
 	for key, spec in pairs(Config.FINISHES) do
 		if spec.cost ~= nil or not spec.season then
 			table.insert(problems, ("FINISHES.%s must be season-only and unpriced"):format(key))
@@ -13958,18 +14172,30 @@ function Config.auditSeason(): { string }
 	return problems
 end
 
-Config.BUYBACK = { perStep = 3, tiers = { "common", "rare", "legendary" } }
+-- BUYING BACK A SKIN SOMEBODY TOOK OFF YOU, IN COINS.
+--
+-- It used to be priced off the crate that drops it -- `chest.cost` times a
+-- step per rarity rung -- and crates have no price any more. What replaced
+-- that is DERIVED from the one number a skin still carries: what letting one
+-- go pays. `markup` is the inverse of `SELL.priceFraction`, so a buy-back
+-- costs what the skin's own `sellBasis` says it is worth and sell-then-rebuy
+-- is always a dead loss rather than a loop.
+--
+-- COINS RATHER THAN ROBUX, AND IT IS NOT A CRATE. This hands over one NAMED
+-- skin the player already owned, so nothing about it is random and none of
+-- the paid random item reasoning above applies. It is an ordinary purchase.
+Config.BUYBACK = { markup = 4, tiers = { "common", "rare", "legendary" } }
 function Config.buybackCost(key: string): number?
 	if not Config.isStealableSkin(key) then return nil end
 	local skin = Config.SKINS[key]
-	local chest = Config.CHESTS[skin.chest]
 	-- Skins use THREE steps; the global rarity ladder also includes epic.
-	local rank = table.find(Config.BUYBACK.tiers, Config.rarityOf(skin))
-	if not chest or chest.currency ~= "loot" or not rank then return nil end
-	if type(chest.cost) ~= "number" or chest.cost <= 0 or chest.cost == math.huge then return nil end
+	if not table.find(Config.BUYBACK.tiers, Config.rarityOf(skin)) then return nil end
+	if not skin.chest or not Config.CHESTS[skin.chest] then return nil end
 	local pool = Config.chestPool(skin.chest)
 	if not table.find(pool[Config.rarityOf(skin)] or {}, key) then return nil end
-	return chest.cost * Config.BUYBACK.perStep ^ rank
+	local value = Config.sellValue("skin", key)
+	if value <= 0 then return nil end
+	return math.floor(value * Config.BUYBACK.markup)
 end
 
 -- Claims are eligibility for the rest of a season, not copies or a payout.
@@ -14183,12 +14409,13 @@ end
 -- mailbox on every lawn and the crate on a seventh-day doorstep.
 Config.DELIVERY = {
 	-- SLOWER THAN THE PATROL, WHICH IS THE POINT RATHER THAN A SAVING. The
-	-- car does 34 because it is answering an alarm; a van doing the same
-	-- speed reads as a second emergency. It is also well under
+	-- car does 2.125 of the base walk because it is answering an alarm; a
+	-- van doing the same speed reads as a second emergency. At 1.25 of the
+	-- base walk (20 at a base of 16) it is also well under
 	-- `BASE_WALK_SPEED`'s neighbours in every direction that matters --
 	-- nothing here can catch, block or outrun anybody, because nothing here
 	-- touches anybody at all.
-	speed = 20,
+	speed = Config.BASE_WALK_SPEED * 1.25, -- was 20 at a base of 16
 
 	-- THE OPPOSITE LANE FROM THE PATROL'S, DERIVED SO THE TWO CANNOT DRIFT
 	-- ONTO THE SAME LINE. Two vehicles sharing a centreline is a road with
@@ -14225,7 +14452,15 @@ Config.DELIVERY = {
 -- printer.
 -- 25: preserve the former rebirth-gated skins as explicit ownership, once.
 -- 26: houses by stable id (`data.houses`); `houseLevel`/`houseShown` deleted.
-Config.SCHEMA_VERSION = 26
+-- 29: THE ACORN TRACK IS DELETED. `loot` (the acorn balance), the tree
+-- (`tree`, `treeAcorns`, `groundAcorns`, `acornsGrownAt`, `acornsDroppedAt`)
+-- and the acorn-ranked `season` table are dropped rather than converted, the
+-- same call `shards` took and for the same reason: there is nothing a crate
+-- price can be converted INTO now that a crate has no price, and a payout
+-- that runs on every join is a money printer -- a far worse bug than a
+-- retired balance. Nothing is refunded; the game is in beta, which is the
+-- same line the retired lawn ornaments took.
+Config.SCHEMA_VERSION = 29
 
 Config.AUTOSAVE_INTERVAL = 60
 
@@ -14324,37 +14559,1666 @@ function Config.getIncomeRate(incomeLevel: number, rebirths: number, friendBonus
 	return base * Config.rebirthIncomeFactor(rebirths) * (1 + (friendBonus or 0))
 end
 
-function Config.getCapacity(capacityLevel: number): number
-	return math.floor(banded(Config.BASE_CAPACITY, Config.CAPACITY_GROWTH,
-		Config.CAPACITY_GROWTH_B, Config.CAPACITY_GROWTH_C, capacityLevel))
+-- ============================================================
+-- PIGGY COLLECTION -- Phase 1 slice. See docs/PIGGY-COLLECTION-PLAN.md.
+-- ============================================================
+--
+-- HOW LONG A SLOT'S OWN BUFFER HOLDS BEFORE IT NEEDS COLLECTING. Provisional:
+-- the plan's own §4a calls for 90-120s (a lap of the plot every one to two
+-- minutes) but wants the same sim treatment `RESIDENTS.pigSeconds` got before
+-- it is trusted as a real number. Picked at the midpoint of that range rather
+-- than derived, on purpose, so nobody mistakes this for solved.
+Config.PIGGY_BUFFER_SECONDS = 100
+
+-- What one piggy of a given rarity earns AS A MULTIPLE of a Classic one.
+-- Shape from plan §4 -- common is the floor and what the starter piggy pays,
+-- legendary should feel like a windfall -- not yet solved against
+-- `auditRobbery`. Missing/unknown rarities fall back to 1x rather than
+-- erroring, the same "a rejection nobody can see is a broken feature" rule
+-- applied to a number instead of a refusal: a skin shipped with no rarity tag
+-- should earn like the floor, never earn nothing.
+-- AND `epic` IS HERE BECAUSE ONE SKIN CARRIES IT, which the plan's own
+-- three-row table does not mention and which `tests/luau/piggies` caught by
+-- walking the catalogue rather than trusting the table.
+--
+-- Skins WERE on three tiers -- that decision is recorded at length, and the
+-- reason was a content budget: a four-rung ladder across two collections was
+-- setting the art schedule. THE OG SHELF RESTORED THE FOURTH RUNG ON
+-- 2026-09-21 with six Studio-built epics (see the OG FAMILY block in
+-- `Config.SKINS`), so this row is stocked rather than held for the Martian
+-- alone. The Martian is still the one alien-set skin carrying it.
+--
+-- WITHOUT A ROW HERE IT WOULD HAVE EARNED THE FLOOR, silently. The fallback
+-- below is deliberate and right -- an untagged skin must earn like a common
+-- rather than earn nothing -- and that same fallback is what would have made
+-- a 120-loot event exclusive pay exactly what the free starter pays, with
+-- nothing erroring and nothing in any log. A fallback that protects against
+-- a missing tag also hides a tier nobody priced.
+--
+-- 8, as the geometric middle of 4 and 15 (7.75, rounded). Provisional like
+-- the three around it -- none of these four is solved against `auditRobbery`
+-- yet (plan §8) -- but it has to sit BETWEEN its neighbours or the ladder
+-- stops being a ladder, and that much is not a judgement call.
+Config.PIGGY_RARITY_INCOME = {
+	common = 1,
+	rare = 4,
+	epic = 8,
+	legendary = 15,
+}
+
+-- HOW BIG A PIGGY IS, AS A MULTIPLE OF THE ONE EVERY OTHER NUMBER IS SOLVED
+-- AGAINST (designer, 2026-09-21: "bee and lady bugs should be smaller but
+-- lions and tigers should be larger").
+--
+-- IT IS A DISPLAY SCALE AND NEVER A BODY SCALE, which is the decision
+-- `docs/PIGGY-PACKS-PLAN.md` section 9c already took for the proportion field and
+-- for the same reason: the till pig carries the vault dial, the hatch, the
+-- coin pile, the rob badge, the steal prompt and the crack camera, most of
+-- them PINNED numbers rather than functions of the body, and the carried
+-- loot is seated on a hug pose measured against a 2.2-stud mini
+-- (`CarryPose.HOLD`). So the pedestal display, the herd member and the shop
+-- card honour it, and the till and the carried mini do not. A caller that
+-- honours it reads `Config.piggyScale`, which is also where an unknown skin
+-- or a missing field comes back as 1.
+--
+-- THE BAND IS WHAT KEEPS IT COSMETIC. A pedestal display is `2.2 * display`
+-- studs wide on a row pitched `PIGGY_LAWN_SLOTS` apart, and
+-- `auditPiggySlots` refuses a `max` that would put two neighbours into each
+-- other; the herd's `followSpacing` is 3.5 against a mini 2.2 across, so
+-- 1.3 leaves 0.64 of daylight before a member's own drift. Anything wider
+-- than this band has to spend one of those two numbers, and is not a value
+-- to nudge here.
+Config.PIGGY_SCALE = { min = 0.7, max = 1.3 }
+
+function Config.piggyScale(key: string?): number
+	local skin = if type(key) == "string" then Config.SKINS[key] else nil
+	local s = skin and tonumber((skin :: any).scale) or 1
+	return math.clamp(s, Config.PIGGY_SCALE.min, Config.PIGGY_SCALE.max)
 end
 
--- NOTHING PUTS MORE IN A PIG THAN IT HOLDS (MASTER-PLAN 4c.6).
---
--- This used to be false for exactly one source: a robbery delivery banked
--- `amount * payout` straight past capacity, on the argument that an overfull
--- pig is self-limiting. Reversed by designer decision. A level-5 player
--- cracking a level-32 resident could bank 180 times their own pig in one run;
--- capped, they bank a full pig -- still the best minute of their session --
--- and robbing with a full pig SPILLS, so "spend it or lose it" has teeth on
--- the robbery side too.
---
--- EVERY WAY COINS ARRIVE goes through here: the delivery, the return bounty,
--- a shop drop sold on the spot, the daily ladder, the event payouts -- and,
--- by designer decision, coins coming BACK as well: a refund, a returned carry
--- (nab, dog, patrol, voluntary return) and a drone recovery all fill only the
--- room the pig has now. A full pig takes nothing back.
---
--- A clamp is silent by default, and this project refuses silent failure, so
--- it returns the spill as well: every caller names it.
-function Config.pigRoom(coins: number, capacity: number): number
-	return math.max(0, math.floor(capacity - coins))
+function Config.getPiggyIncomeRate(rarity: string?, incomeLevel: number, rebirths: number,
+	friendBonus: number?): number
+
+	local multiplier = (rarity and Config.PIGGY_RARITY_INCOME[rarity]) or 1
+	return Config.getIncomeRate(incomeLevel, rebirths, friendBonus) * multiplier
 end
 
-function Config.fitInPig(coins: number, capacity: number, amount: number): (number, number)
-	local whole = math.max(0, math.floor(amount))
-	local banked = math.min(whole, Config.pigRoom(coins, capacity))
-	return banked, whole - banked
+-- AND HOW LONG IS A FUNCTION OF THE TIER (designer call 2026-09-21: "we need
+-- the pigs to have a cap corresponding to the tier that they are").
+--
+-- WHAT WAS ALREADY TIERED AND WHAT WAS NOT. A buffer caps at `rate * seconds`
+-- and the rate already carries `PIGGY_RARITY_INCOME`, so the cap IN COINS has
+-- varied by tier since the day it shipped -- a legendary held fifteen times a
+-- common's. What did NOT vary is the DURATION: every placement on the lawn,
+-- from the free starter to a legendary, stopped earning after the same hundred
+-- seconds. So the best piggy in the collection was the one punished hardest by
+-- a late lap, which is backwards.
+--
+-- DERIVED FROM THE INCOME LADDER RATHER THAN A SECOND TABLE OF ITS OWN, and
+-- that is the load-bearing decision here. A second map keyed by rarity is a
+-- SECOND COPY OF THE SET OF TIERS, and this file's own record is that the
+-- second copy of a grammar is always the one that goes stale -- `Crates.luau`
+-- kept its own rarity ladder and grew an epic row that could never fill, two
+-- hundred lines from the code that did it. Derived, a tier added to
+-- `PIGGY_RARITY_INCOME` gets a duration for nothing, and one REMOVED cannot
+-- leave an orphan behind.
+--
+-- THE CUBE ROOT, WHICH IS A FLATTENING AND NOT A COINCIDENCE. Duration must
+-- climb with the tier and must climb far more slowly than income does, because
+-- the two MULTIPLY into the coin cap -- the product of two curves nobody
+-- checked is the most repeated post-mortem in this file. Straight through
+-- (power 1) a legendary would hold fifteen times as long, which is 25 minutes
+-- and stops being a lap at all. At a third:
+--
+--     common     x1  income ->  100s   coin cap x1
+--     rare       x4            158.7s            x6.3
+--     epic       x8            200.0s            x16
+--     legendary x15            246.6s            x37
+--
+-- so the duration spread is 2.5x while the coin cap spread goes from 15x to
+-- 37x. `epic` landing exactly on 200 is the cube root of 8 being 2, which is
+-- worth nothing except that it makes the ladder easy to remember.
+--
+-- WHAT IT COSTS IS THE "EVERYTHING RIPENS TOGETHER" PROPERTY, and that is a
+-- real trade rather than a wash. `tests/luau/piggies` recorded the flat cap's
+-- benefit in as many words: "the buffer cap is per slot and proportional to
+-- the rate, which is the property that makes one lap of the plot the right
+-- action -- everything comes ripe together rather than on six different
+-- clocks." Six clocks is what this creates.
+--
+-- IT IS AFFORDABLE BECAUSE THE SLACK IS ALL IN THE PLAYER'S FAVOUR. The lap is
+-- still set by the SHORTEST cap -- the commons at 100s -- and a player lapping
+-- on that clock collects every placement before any of them is full, so
+-- nothing is left on the table. What the longer caps buy is forgiveness: being
+-- late costs you your cheapest piggies first and your best ones last. Had the
+-- ladder run the other way it would be unplayable.
+Config.PIGGY_BUFFER_TIER_POWER = 1 / 3
+
+-- HOW LONG ONE PLACEMENT'S BUFFER HOLDS, in seconds of its own income.
+--
+-- `PIGGY_BUFFER_SECONDS` IS THE COMMON'S CAP AND THEREFORE THE LAP CLOCK --
+-- common's multiplier is 1 and 1 to any power is 1, so the baseline is
+-- untouched by the exponent above and the plan's 90-120s band still describes
+-- the number a player actually has to lap against.
+--
+-- AN UNKNOWN TIER HOLDS THE FLOOR, never nothing and never forever. Same rule
+-- and same reason as `getPiggyIncomeRate`'s fallback one function up: a skin
+-- shipped with no rarity tag should behave like a common. A nil here would be
+-- `rate * nil` at the two call sites, which throws inside the accrual loop --
+-- and a zero would be a pedestal that can never hold anything, which reads as
+-- a piggy that has stopped working.
+function Config.piggyBufferSeconds(rarity: string?): number
+	local multiplier = (rarity and Config.PIGGY_RARITY_INCOME[rarity]) or 1
+	return Config.PIGGY_BUFFER_SECONDS
+		* multiplier ^ Config.PIGGY_BUFFER_TIER_POWER
+end
+
+-- WHAT A WHOLE COLLECTION EARNS PER SECOND, WHICH IS WHAT "INCOME" MEANS NOW.
+--
+-- THIS EXISTS BECAUSE `getIncomeRate` STOPPED DESCRIBING THE GAME AND NOTHING
+-- SAID SO. That function is ONE pig's rate, and it was the whole of a player's
+-- income for the life of the project -- so every reader that meant "what this
+-- player earns" reached for it, correctly. A lawn is seven placements now (the
+-- till plus six pedestals), each earning the full rate times its own rarity,
+-- so the real figure is up to seven times that and up to a hundred and five
+-- times it with a top-tier collection. Measured, `auditRobbery` was reporting
+-- ZERO problems while robbing returned 0.46x idling against a floor of 3.0x.
+--
+-- That is this file's own most-repeated post-mortem arriving somewhere new:
+-- two curves multiplied without anybody checking the product, and an audit
+-- that went quiet because its QUESTION went stale -- exactly what `auditFences`
+-- did through the entire period every fence tier in the game was jumpable.
+--
+-- IT TAKES A DENSE LIST OF RARITIES RATHER THAN A SAVE, because `Config`
+-- requires nothing and must go on requiring nothing. An EMPTY pedestal is
+-- absent from the list rather than a nil hole in it: a Lua table with holes is
+-- neither an array nor a dictionary, which is the shape `Config.piggySlots`
+-- already refuses for the DataStore's sake.
+--
+-- ONE SUMMATION, TWO CALLERS, WHICH IS THE POINT. `EconomyService.collectionRate`
+-- walks a real save through this, and `robberyRates` walks a canonical lawn
+-- through it -- so the number the audit measures and the number the player
+-- earns cannot disagree about what a collection is worth. A second copy here
+-- would be the near-identical duplicate that drifts, and it would drift on the
+-- one figure the whole economy is balanced against.
+--
+-- `friendBonus` IS OPTIONAL FOR THE REASON IT IS ON `getIncomeRate`: offline
+-- accrual passes nothing, because your friends were not in the server while
+-- you were asleep. The DAILY BOOST is deliberately not here at all -- it is a
+-- multiplier on the live drip only, so its one caller applies it outside.
+function Config.collectionRate(placed: { string }, incomeLevel: number,
+	rebirths: number, friendBonus: number?): number
+
+	local total = 0
+	for _, rarity in placed do
+		total += Config.getPiggyIncomeRate(rarity, incomeLevel, rebirths, friendBonus)
+	end
+	return total
+end
+
+-- A CANONICAL FULL LAWN, FOR THE AUDITS RATHER THAN FOR A PLAYER.
+--
+-- Every placement wearing one rarity: the till plus every pedestal. It is what
+-- `auditRobbery` measures idling against, and the two ends of it are the two
+-- ends of what a collection can be -- all commons is the cheapest lawn a
+-- player can fill, and all of the top tier is the richest.
+--
+-- NOT A GUESS AT WHAT A PLAYER ACTUALLY OWNS AT A GIVEN LEVEL, because nothing
+-- in this design couples the two yet (plan §9.4 -- what residents display is
+-- "the single biggest dial on solo pacing" and is still open). A canonical
+-- lawn is an honest bound; an invented ownership curve would be a number
+-- nobody chose, dressed as a derivation.
+-- (`PIGGY_LAWN_SLOT_COUNT` is defined below this point and read from inside a
+-- function body, which is the one place that is safe in this file -- a body
+-- cannot run during module load. This file has had eleven forward references
+-- take the whole server down, so it is worth saying that this is not one.)
+function Config.fullLawn(rarity: string): { string }
+	local placed = {}
+	for _ = 1, Config.PIGGY_LAWN_SLOT_COUNT + 1 do
+		table.insert(placed, rarity)
+	end
+	return placed
+end
+
+-- WHAT IS STANDING IN A PLACEMENT, AND WHAT TIER IT IS -- in `Config`, because
+-- two services now ask and they are not allowed to ask each other.
+--
+-- These were locals in `EconomyService` and moved here when `EventService`'s
+-- raid drain needed the same answer. The alternative was EventService requiring
+-- EconomyService, which is a new dependency edge for two accessors, or a second
+-- copy of the till fallback and the retired-key prune -- and a second copy of
+-- THOSE is the one that hurts, because both are silent when wrong: a missing
+-- fallback is a till earning nothing in a player's first minute, and a missing
+-- prune is a retired piggy earning off a pedestal that cannot draw it.
+--
+-- `Config` REQUIRES NOTHING AND STILL DOES. It already reads this save shape
+-- (`Config.piggySlots`), so nothing new is coupled by putting the question
+-- where both callers already look.
+function Config.piggyKeyAt(data: any, slot: number): string?
+	if slot == 0 then
+		-- THE TILL FALLS BACK TO CLASSIC RATHER THAN TO NOTHING, which is plan
+		-- §3's rule: "if the displayed piggy ever leaves your collection the
+		-- till falls back to Classic". A till earning nothing is the one state
+		-- this economy may not have -- it is the first minute of the game.
+		local key = data.piggies and data.piggies.till
+		if key == nil or Config.SKINS[key] == nil then
+			return Config.DEFAULT_SKIN
+		end
+		return key
+	end
+	local entry = Config.piggySlots(data)[slot]
+	local key = entry and entry.key
+	-- A KEY THAT IS NO LONGER IN THE CATALOGUE IS AN EMPTY SLOT, never a
+	-- multiplier of 1. Retiring a skin leaves dead keys in every save that
+	-- owned one and `DataService.reconcile` prunes the wardrobe against
+	-- `Config.SKINS` -- this is the same prune asked as a question, so a
+	-- retired piggy stops earning rather than earning the floor rate off a
+	-- pedestal that cannot draw it.
+	if key ~= nil and Config.SKINS[key] == nil then
+		return nil
+	end
+	return key
+end
+
+-- The tier standing in a placement, or nil for an empty one.
+function Config.piggyRarityAt(data: any, slot: number): string?
+	local key = Config.piggyKeyAt(data, slot)
+	if key == nil then
+		return nil
+	end
+	local skin = Config.SKINS[key]
+	return skin and skin.rarity
+end
+
+-- WHAT A SAVE'S WHOLE LAWN EARNS PER SECOND, before any multiplier a service
+-- has to supply. This is `Config.collectionRate` with the list-building folded
+-- in, so a caller that has a SAVE rather than a list of tiers does not have to
+-- assemble one -- and so there is exactly one walk over the seven placements.
+--
+-- NO FRIEND BONUS AND NO DAILY BOOST UNLESS ASKED. `friendBonus` is optional
+-- for the reason it is optional on `getIncomeRate`, and the boost is not here
+-- at all: it multiplies the live drip only, so the one caller that wants it
+-- applies it outside. A caller that passes nothing gets the honest base figure,
+-- which is what offline accrual and the raid drain both want.
+function Config.collectionRateOf(data: any, friendBonus: number?): number
+	local placed = {}
+	for slot = 0, Config.PIGGY_LAWN_SLOT_COUNT do
+		if Config.piggyKeyAt(data, slot) ~= nil then
+			-- `common` IS the floor multiplier and `getPiggyIncomeRate` already
+			-- returns the floor for an unknown tier, so naming it is
+			-- arithmetically identical and keeps this array DENSE --
+			-- `table.insert(t, nil)` leaves a hole rather than an entry, which
+			-- would silently drop a placement from the total.
+			table.insert(placed, Config.piggyRarityAt(data, slot) or "common")
+		end
+	end
+	return Config.collectionRate(placed, data.incomeLevel, data.rebirths, friendBonus)
+end
+
+-- ------------------------------------------------------------
+-- SIX LAWN PEDESTALS, AND THE LAWN IS CAPPED AFTER ALL
+-- ------------------------------------------------------------
+--
+-- DESIGNER DECISION 2026-09-20, AND IT REVERSES §3/§4 OF THE PLAN. Those
+-- sections say the lawn has NO cap -- "every piggy you own, all of them, all
+-- the time", a grid that grows rather than ever refusing an arrival, and the
+-- flat rule that "EVERY PIGGY YOU OWN IS ALWAYS PLACED AND ALWAYS EARNING".
+-- It is six spots. What that costs and what it buys are both real and worth
+-- stating rather than discovering later:
+--
+--   * IT COSTS the "nothing ever sits doing nothing" rule. Own a seventh
+--     piggy and it is owned, collected, and earning nothing until there is
+--     room -- so `owned` and what is PLACED are two different numbers now,
+--     and every income figure has to read the placements rather than the
+--     collection.
+--   * IT BUYS BACK THE PRESSURE THE PLAN GAVE AWAY. §4 had to argue that the
+--     reason to buy a bigger house was "find room or leave your best pieces
+--     exposed", which is a weaker sentence than "find room or it earns
+--     nothing" -- and the rebirth hallway in §6 is 126 plots of indoor
+--     capacity that, uncapped, nothing needed. Capped, the whole interior
+--     ladder has a job again.
+--
+-- TWO WAYS IN, AND THEY ARE DELIBERATELY NOT THE SAME.
+--   * A piggy you WENT AND GOT -- rounded up out of a herd (§15) or snatched
+--     off somebody's lawn (§5) -- is placed BY HAND into any free slot. You
+--     carried it home; you choose where it stands.
+--   * A piggy out of a CRATE lands on the first free slot, front to back,
+--     with nothing to press. A reveal is already a moment (the reel, the
+--     tier, the spare chip); making it also a placement decision spends that
+--     moment on admin.
+--
+-- FRONT TO BACK IS THE ORDER OF THIS TABLE and it is the interface, not a
+-- detail: `firstFreePiggySlot` walks it in order, so the front pair fills
+-- first and a new player's collection grows toward their own house rather
+-- than appearing behind it where nobody walking past would see it. +Z is the
+-- street, so the rows descend; left (-x) before right within a row, for no
+-- reason beyond reading order and determinism.
+--
+-- EVENLY SPACED (designer call 2026-09-21), AND THE PITCH IS SOLVED RATHER
+-- THAN PICKED. The rows used to sit at 4, -8, -15 -- gaps of 12 and 7, which
+-- read as two rows and a straggler, because the back pair had been pulled
+-- forward on its own to clear the house and nothing moved with it. One pitch
+-- for both gaps is the ask; what decides the pitch is that the three rows
+-- have to fit between the two things already standing at either end of that
+-- column, with a pedestal's own width spent at each end:
+--
+--     back:   the HOUSE wall is at -`HOUSE_FRONT_LINE`, i.e. -18
+--     front:  the lawn ends at `PLOT_SIZE.Z / 2`, i.e. 24
+--
+-- THE KENNEL USED TO BE THE FRONT BOUND AND IT HAS BEEN MOVED (designer call
+-- 2026-09-21, explicitly temporary). It stood at (25, 16) and its audit
+-- rectangle reached z 10, which capped the front row at `10 - base/2` -- and
+-- swept properly, THE LARGEST PEDESTAL THAT FITS AROUND IT IS 8.0 while the
+-- lawn on its own allows 11.6. It is at (-25, 18) now: the front-LEFT corner,
+-- which the retired acorn oak vacated and which this file already noted as
+-- room going spare. Measured after the move, that spot keeps the clearances
+-- the old one was chosen for -- 3.85 studs off the side fence, identical, and
+-- 2.85 off the front against 3.23 -- and clears the nearest pedestal by 1.25
+-- and the nearest pad by 1.05. See `PlotService`'s `KENNEL_X`.
+--
+-- 8.0 RATHER THAN 11.6 IS THE DOG STAYING IN THE YARD, and that is the whole
+-- trade. Everything bigger needs the kennel OUTSIDE the fence, and that
+-- breaks the animal rather than the layout: `clampToYard` holds every patrol
+-- destination inside the fence rectangle and `sleepCFrame` clamps its own
+-- result, so a kennel out on the verge would leave the dog sleeping at the
+-- clamp instead of at its own kennel -- which is the one tell a thief reads
+-- from the pavement ("a dog curled up means the house is empty"). A bigger
+-- pedestal is not worth breaking that for.
+--
+-- so the usable span is `42 - base.Z` and three evenly spaced rows take
+-- `2 * pitch` of it. At an 8.0 base that is 34 studs to spend and a pitch of
+-- 10 spends 20 -- deliberately NOT all of it, because the kennel needs the
+-- front-left corner back: rows at 8, -2, -12 leave 2.0 studs at the house and
+-- twelve at the lawn edge, and it is that twelve the kennel stands in.
+--
+-- THE PITCH IS ALSO WHAT UN-CROSSED THE FLOOR PADS, which is the half of this
+-- that was a live fault rather than a look. Measured on the SHIPPED uneven
+-- layout with a proper rotated-rectangle test, the middle and back pads
+-- OVERLAPPED BY 0.30 STUDS -- two stone faces at identical height,
+-- intersecting, which is the z-fighting this file refuses everywhere, on the
+-- one object a player is looking down at as they step on it. An earlier
+-- check had called them 0.94 clear because it measured the pads' widths and
+-- not their depths. Square to the plot (see `piggyPadYaw`) and 10 apart, they
+-- clear by 1.60.
+--
+-- THE IDS ARE STABLE LABELS NOW AND NO LONGER NAME THE OLD GROUND. Four of
+-- them were the ornament grid's own coordinates, kept when these slots first
+-- reused that ground; the even pitch has moved all six, so `lawnE`..`lawnH`
+-- are names `AdminService` prints and the audit checks for duplicates, and
+-- nothing else. They are NOT save keys -- `piggies.slots` is a dense array
+-- indexed by position -- so renaming them would cost nothing.
+--
+-- WHICH LEAVES A LATENT CLASH WORTH KNOWING ABOUT RATHER THAN A LIVE BUG.
+-- `Config.DECOR_SLOTS` still carries `lawnE`..`lawnH` at the coordinates these
+-- used to share -- (+-25, 4) and (+-25, -8) -- and those ARE save keys, since
+-- `decor.placed` is keyed by slot id. So two tables now use four of the same
+-- names for different ground. It costs nothing today because
+-- `Config.DECOR_ITEMS` is `{}`: there is no ornament in the game to stand in
+-- any of them, which is the same reason that table's own comment gives for the
+-- retired back row costing nothing. The day the ornament shelf comes back,
+-- every one of its four lawn slots lands inside one of these pedestals -- at
+-- an 8.0 base the columns own x 21 to 29 outright -- so whoever restores it
+-- re-solves the lawn grid against these six first, and `auditPiggySlots` does
+-- not check it because the decor slots are the other table's business.
+-- WHERE THE KENNEL STANDS, IN `Config` RATHER THAN IN `PlotService`, and that
+-- move is a fix rather than filing.
+--
+-- It lived in PlotService as `KENNEL_X`/`KENNEL_Z` while `auditPiggySlots` kept
+-- a hand-written rectangle over here reserving the ground for it. Two
+-- descriptions of one position in two files with no compiler between them --
+-- and the first thing that happened when the kennel moved was that the
+-- rectangle did not, which is a pedestal built inside a dog kennel with
+-- nothing in any log. The audit is what caught it, one edit after the comment
+-- warning about it was written.
+--
+-- THE RESERVATION IS DERIVED FROM THE SPOT NOW, so the two cannot disagree.
+-- `PlotService` reads this for the build; the audit reads it for the
+-- rectangle; the yaw stays over there because it is a fact about how the model
+-- is turned rather than about where the lawn is spoken for.
+--
+-- FOOTPRINT IS MEASURED AND CLEARANCE IS DELIBERATELY GENEROUS. The kennel's
+-- roof panels are pitched and reach a stud further out on each side than
+-- anything holding them up, so it spans 9.5 studs across its own centre; the
+-- extra stud on every side is the audit being cautious, which this file's own
+-- note on `taken` argues for -- a rectangle that is too big only ever costs a
+-- slot, and one that is too small costs a bug nobody would file.
+Config.KENNEL_SPOT = { x = -25, z = 19 }
+Config.KENNEL_FOOTPRINT = 9.5
+Config.KENNEL_CLEARANCE = 1.0
+
+Config.PIGGY_LAWN_SLOTS = {
+	{ id = "lawnG", offset = Vector3.new(-25, 0, 8) },
+	{ id = "lawnH", offset = Vector3.new(25, 0, 8) },
+	{ id = "lawnE", offset = Vector3.new(-25, 0, -2) },
+	{ id = "lawnF", offset = Vector3.new(25, 0, -2) },
+	{ id = "lawnC", offset = Vector3.new(-25, 0, -12) },
+	{ id = "lawnD", offset = Vector3.new(25, 0, -12) },
+}
+
+-- Read through this rather than `#Config.PIGGY_LAWN_SLOTS` at call sites, so
+-- the save's own dense-array length has one source.
+Config.PIGGY_LAWN_SLOT_COUNT = #Config.PIGGY_LAWN_SLOTS
+
+-- LETTING A PIGGY GO, AND THE HOLD IS THE ONLY THING GUARDING IT.
+--
+-- THE GUARD THAT USED TO COVER THIS NO LONGER APPLIES, which is why there has
+-- to be a new one. `SetService`'s sell path refuses the copy IN USE -- the
+-- rule written for "a nine-year-old with a stray thumb and the legendary they
+-- spent three weeks getting", where taking it off first was one tap and that
+-- killed the accidental case with no lock flag to teach. Under the six-slot
+-- lawn EVERY copy is in use, because placement is ownership: there is no
+-- "take it off first" state to step through, so that guard would either
+-- refuse every sale or refuse none.
+--
+-- SO IT IS A LONG HOLD, which is the instrument this game already uses when a
+-- press has consequences: `Config.SMASH.hold` is 1.3s explicitly because a
+-- smash "may never be startable by a brushed prompt", against a crack's
+-- half-second doorknob. This is dearer than a smash -- a smash takes a share
+-- of somebody's coins and this permanently removes one of seven things a
+-- player owns -- so it is longer, and it is the longest hold in the game on
+-- purpose.
+--
+-- WHAT IT IS NOT IS A CONFIRMATION DIALOGUE. The rebirth page earns one by
+-- being a decision a player makes twenty times a lifetime; this is a tidying
+-- action taken whenever a crate is wanted, so a modal every time is the
+-- confirmation everybody dismisses reflexively -- which this file already
+-- records as the one that fails when it finally matters. The card naming the
+-- piggy AND the coins it pays is the honest version: you read what you are
+-- giving up while you hold.
+Config.PIGGY_SELL = {
+	hold = 1.8,
+}
+
+-- ============================================================
+-- CARRYING A PIGGY: OFF A PLINTH, ACROSS THE STREET, ONTO ANOTHER
+-- ============================================================
+--
+-- Plan SS5, and the one line of it that decides the shape: *"the verb is a
+-- hold, not a crack."* The crack minigame stays on the till and is untouched,
+-- so the two robberies stay distinct -- crack the bank for MONEY, lift a
+-- pedestal for an OBJECT -- and a player never has to be taught which
+-- minigame this is, because it is not one.
+--
+-- THE FOUR HOLDS ARE A LADDER OF CONSEQUENCE, which is the same argument
+-- `PIGGY_SELL` makes one table up and `SMASH.hold` makes against the crack's
+-- half-second doorknob. Nothing here is a reaction test; every one of them is
+-- a statement about how much a press costs the person on the other end.
+Config.PIGGY_HAUL = {
+	-- YOUR OWN, OFF YOUR OWN PLINTH. A doorknob. It costs nobody anything and
+	-- is undone by walking four studs and pressing again, so anything longer
+	-- would be a toll on tidying your own lawn. It is deliberately not ZERO:
+	-- this prompt shares a plinth and a key with two others, and a press with
+	-- no hold at all is one a player can brush past something else into.
+	takeHold = 0.4,
+
+	-- SOMEBODY ELSE'S. Longer than a smash (1.3) and shorter than a sale
+	-- (1.8), which is exactly where it belongs on that ladder: it takes one
+	-- of seven things a real child owns, so it may never be startable by a
+	-- brushed prompt -- but it is taken while standing on a defended lawn
+	-- with a dog waking up, so the hold is not where the risk is supposed to
+	-- live. The fence, the dog and the run home are.
+	snatchHold = 1.5,
+
+	-- PUTTING ONE DOWN. The same doorknob as taking it up, and the same
+	-- reason: this is the second half of one gesture and charging more for
+	-- the half that finishes it would make an interrupted move the cheap
+	-- outcome.
+	placeHold = 0.4,
+	-- SWAPPING THE TILL. Twice the doorknob, because this one changes what
+	-- the bank EARNS and what the sign boasts as well as what stands there --
+	-- and well under a snatch, because nothing here costs anybody else
+	-- anything. See `PiggyHaulService.swap`.
+	swapHold = 0.8,
+
+	-- TAKING ONE OFF A THIEF, by anybody who can reach them. `NAB.hold`'s own
+	-- number, read through here rather than copied, so the two cannot drift:
+	-- a nab is a nab whether what is being dropped is coins or a piggy.
+	nabHold = Config.NAB.hold,
+
+	-- ------------------------------------------------------------
+	-- AND THE FIVE SECONDS THAT MAKE IT SAFE
+	-- ------------------------------------------------------------
+	--
+	-- A SNATCHED PIGGY IS NOT YOURS WHEN YOU REACH YOUR LAWN. It is yours
+	-- when you have stood on it, holding the thing, with room to put it down,
+	-- for this long -- and that window is the entire recovery mechanic.
+	--
+	-- WHY A DWELL RATHER THAN A DELIVERY PROMPT, which is what a coin haul
+	-- uses. A prompt is instantaneous and therefore uninterruptible: reach
+	-- the ring and it is banked. This is the only moment in the whole getaway
+	-- where a defender who is BEHIND the thief can still catch them, and it
+	-- is the reason the run home ends somewhere a victim can follow you to.
+	--
+	-- WHY FIVE, AND THE BODY IT IS MEASURED AGAINST IS THE CHASER'S RATHER
+	-- THAN THE THIEF'S. At `BASE_WALK_SPEED` five seconds is 80 studs, which
+	-- is exactly `PLOT_SPACING` -- so the dwell on its own is a whole plot's
+	-- walk for somebody coming after you.
+	--
+	-- That is slack ON TOP of a chase the victim is already winning. The
+	-- shortest getaway is one plot: a loaded thief covers it at
+	-- `CARRY_SPEED_MULTIPLIER` of walking pace and the victim, carrying
+	-- nothing, covers it at full -- so a victim who set off the moment their
+	-- own plinth went bare arrives as the dwell begins, and the five seconds
+	-- are for the one who set off late, went round the houses, or had to get
+	-- off a ride first.
+	--
+	-- IT IS STILL A PACING NUMBER RATHER THAN A DERIVED ONE, and it is the
+	-- dial to pull if snatching turns out to be too easy or too grim. The
+	-- derivation it wants is the SS8 economy pass, alongside `LOSS_CAP`'s
+	-- piggy clause.
+	secureSeconds = 5,
+
+	-- HOW OFTEN ONE LAWN MAY BE PICKED OVER, per thief per victim, and it is
+	-- the coin `STEAL_COOLDOWN`'s own number read through here for the same
+	-- reason `nabHold` is: a per-victim cooldown is the one bound this game
+	-- already trusts to stop a thief camping a plot, and two copies of it
+	-- would be two answers to one question.
+	--
+	-- IT IS NOT `LOSS_CAP`'S PIGGY CLAUSE AND MUST NOT BE MISTAKEN FOR ONE.
+	-- That clause bounds what a victim may LOSE in a rolling hour whoever is
+	-- robbing them; this bounds one thief. Seven players taking turns clear
+	-- it seven times over, which is precisely the hole `LOSS_CAP` was written
+	-- to close for coins and which is still open for piggies. Flagged in
+	-- `docs/PIGGY-COLLECTION-BUILD-ORDER.md` rather than quietly half-built
+	-- here, because a cap invented without the economy pass behind it is a
+	-- number nobody can defend.
+	victimCooldown = Config.STEAL_COOLDOWN,
+}
+
+-- PUT A PIGGY ON A NAMED SLOT, which is the one thing `addPiggy` cannot do.
+--
+-- `addPiggy(data, key, true)` lands front to back, which is the CRATE rule --
+-- a reveal is already a moment and making it a placement decision spends that
+-- moment on admin. `addPiggy(data, key, false)` bumps the count and places
+-- nothing, which is what a source with nowhere to put it wants.
+--
+-- A piggy somebody CARRIED HOME is the third case and it is the one the
+-- collection plan describes in as many words: *"placed by hand into any free
+-- slot. You carried it home; you choose where it stands."* So the slot is an
+-- argument rather than a search.
+--
+-- OWNERSHIP AND PLACEMENT ARE BUMPED TOGETHER HERE FOR THE REASON `addPiggy`
+-- SAYS THEY ARE: they are two numbers describing one fact, and the moment
+-- they are written at different call sites they can disagree -- a piggy
+-- earning on a pedestal nobody owns, or owned and standing nowhere.
+--
+-- REFUSES AN OCCUPIED SLOT rather than overwriting it, because the overwrite
+-- destroys a piggy with nothing in any log: `piggySlots` would hold the new
+-- key and `owned` would still count the old one, and the collection total and
+-- the lawn would disagree for the rest of that save's life.
+function Config.placePiggy(data: any, key: string, slot: number): boolean
+	if slot < 1 or slot > Config.PIGGY_LAWN_SLOT_COUNT then
+		return false
+	end
+	local slots = Config.piggySlots(data)
+	local entry = slots[slot]
+	if not entry or entry.key ~= nil then
+		return false
+	end
+	local piggies = data.piggies
+	piggies.owned = piggies.owned or {}
+	piggies.owned[key] = (piggies.owned[key] or 0) + 1
+	entry.key = key
+	-- EMPTY, never the buffer this slot happened to be holding -- the rule
+	-- `addPiggy` states at the one place every other arrival comes through,
+	-- and the one a carried piggy follows for its own reason: plan SS4a says
+	-- a piggy taken off a lawn brings its buffer as ZERO rather than as a
+	-- windfall, because the object was the target and its small change
+	-- never was.
+	entry.buffer = 0
+	return true
+end
+
+-- A PLINTH AND A PIGGY STANDING ON IT, sized off the mini rather than chosen.
+--
+-- `PiggyModel`'s mini is 2.2 studs across (MINI_R 1.1) because it was built
+-- to be carried in two hands, and at that size on a 64-stud lawn it reads as
+-- litter. `display` scales it up; 1.55 lands it at 3.4 across, which is the
+-- same number as the plinth it stands on -- a display piece exactly covering
+-- its own base, which is what a plinth is.
+--
+-- The plinth is DELIBERATELY SHORT. Anything on this lawn is read over a
+-- fence from the pavement, and `CLAUDE.md` records that the sightline over a
+-- 6-stud barrier already clips the plot piggy at y 7.75. A pedestal reaching
+-- much above 4 would be the tallest thing on the grass after the pig itself
+-- and would start hiding it, which is the one readout every thief prices a
+-- job on.
+-- HOW LONG THE PIGGY'S ANSWER TO A COLLECT LASTS, IN SECONDS.
+--
+-- `PiggyIdle`'s collect reaction -- the crouch, the hop, the landing and the
+-- shimmy it settles out of -- is authored on a normalised 0..1 timeline and
+-- stretched over this, so this number IS how long that performance runs.
+--
+-- IT LIVES HERE RATHER THAN IN THE CLIP BECAUSE THE PAD HAS TO KNOW IT. See
+-- `PIGGY_PEDESTAL.pad.cooldown`: the button may not fire again while the
+-- reaction it caused is still playing, and its own FACE reports that window in
+-- colour. Those are three readers of one duration -- the clip, the debounce
+-- and the light -- and this project's most-repeated post-mortem is two curves
+-- multiplied without anybody checking the product. One number cannot fall out
+-- of step with itself.
+--
+-- A LOCAL RATHER THAN A FIELD READING ANOTHER FIELD. `Config` is loaded by
+-- every service and every client, and a table field derived from a sibling
+-- inside the same literal is the eleven-instance forward-reference bug that
+-- has taken the whole server down twice. A local declared above the table
+-- cannot be one.
+local PAD_REACTION = 1.55
+
+Config.PIGGY_PEDESTAL = {
+	-- MUCH LARGER (designer call 2026-09-21, third pass) AND THE CEILING IS
+	-- THE GUARD DOG, WHICH IS WHY THE DOG MOVED INSTEAD.
+	--
+	-- The first two passes read the ceiling off the row spacing and then off
+	-- the kennel, both correct for the layout in front of them. Re-solved with
+	-- the pads square to the plot (`piggyPadYaw`) and the kennel free to move,
+	-- the sweep says:
+	--
+	--     kennel kept in the yard        base 8.0
+	--     kennel out of the yard         base 11.6
+	--
+	-- and the gap between those two is the dog's own behaviour rather than any
+	-- geometry -- see the note above `PIGGY_LAWN_SLOTS`. 8.0 is the larger of
+	-- the two things worth having.
+	--
+	-- WHAT THE PADS STOPPED COSTING. While each pad inherited its pedestal's
+	-- inward yaw, pad width landed diagonally across the row pitch and was one
+	-- of the three binding constraints. Square to the plot it is a clean
+	-- `pitch - pad.X` and stops competing: at pitch 10 and a pad 8.4 wide there
+	-- is 1.60 spare, and pad DEPTH now costs nothing at all.
+	--
+	-- Measured on the shipped layout: worst clearance +1.05 studs, against a
+	-- 6.0 base's +1.00 and the first build's 0.40 at the house.
+	--
+	-- ANYTHING LARGER HAS TO SPEND THE DOG. It is not a number to nudge.
+	plinth = Vector3.new(7.2, 1.7, 7.2),
+	-- A second, wider course under it, so the thing reads as built rather
+	-- than as a cube dropped on the grass -- the plinth rule the houses
+	-- already follow ("a plinth is what stops a house looking like a box
+	-- resting on grass"). Kept 0.8 wider than the plinth, which is the
+	-- relationship it has always had.
+	base = Vector3.new(8.0, 0.5, 8.0),
+	-- SCALED UP WITH THE PLINTH, because `display` is what keeps the piggy
+	-- covering its own base -- the mini is 2.2 across, so this is
+	-- `plinth.X / 2.2` and lands it at 7.20, exactly filling the top course.
+	--
+	-- THE HIERARCHY IS WHAT BOUNDS THE HEIGHT NOW, not the fence. The courses
+	-- stack to a display top of 10.18 (0.5 of base, less the 0.1 each course
+	-- sinks into what it stands on, plus 1.7 of plinth, plus 2.5 of scaled
+	-- mini) and the piggy is 7.20 across. Against the plot pig -- 12 across,
+	-- body top 13.3 -- that is 60% of its width and comfortably under its
+	-- crown, which is the reading this wants: six two-thirds-size piggies
+	-- arranged around one big one. A display that out-topped the centrepiece
+	-- would be the collection competing with the thing it is a collection of.
+	--
+	-- AND IT NOW CLEARS THE CLIMBED FENCE TIERS AT 7.50, which REVERSES a trade
+	-- the previous pass made deliberately. That pass kept the display under
+	-- 7.50 on the grounds that ~8 studs is where `CLAUDE.md` records things
+	-- starting to hide the plot piggy. Re-read, that measurement is about a
+	-- FENCE -- a continuous wall across the sightline at the plot boundary --
+	-- and these stand at x +-25 while the pig is at x 0, so a pavement viewer
+	-- looking at the pig has no pedestal anywhere near the line. What clearing
+	-- 7.50 buys is the one thing the photographs said was missing: a maxed
+	-- fence no longer hides the collection.
+	display = 7.2 / 2.2,
+
+	-- THE FLAT COLLECT BUTTON ON THE GRASS. See `PiggyPedestal.build` for why
+	-- it is a place rather than a press.
+	pad = {
+		-- Wider than it is deep, so it reads as something laid ACROSS the walk
+		-- rather than a tile you have to aim at. It stays 0.4 wider than the
+		-- pedestal's own base -- that overhang is what makes it look like part
+		-- of the pedestal rather than a separate object parked next to one, so
+		-- it has to GROW with the base or a wider plinth leaves the pad
+		-- reading as a mat somebody put down in front of it.
+		--
+		-- IT USED TO CAP THE WHOLE PEDESTAL AND NO LONGER DOES, because the pad
+		-- is square to the plot now (`piggyPadYaw`) rather than turned with the
+		-- piggy. Turned, this width landed diagonally across the row pitch and
+		-- was one of three binding constraints; square, the clearance is a plain
+		-- `pitch - size.X` and there is 1.60 spare. `auditPiggySlots` still
+		-- checks it, because nothing did until it bound.
+		-- THICKER THAN IT WAS, because 0.34 less a 0.08 sink stood 0.26 proud of
+		-- the grass, which is a decal rather than a button. At 0.5 less a 0.1
+		-- sink it stands 0.40, and the recess below has something to be cut
+		-- into.
+		size = Vector3.new(8.4, 0.5, 3.6),
+		-- HOW FAR THE WHOLE PAD SINKS INTO THE LAWN. The project convention --
+		-- anything standing on something sinks about 0.1 into it -- which is
+		-- what stops the pad's underside sharing a plane with the grass.
+		sink = 0.1,
+		-- THE FACE STANDS PROUD OF THE SURROUND, AND IT TOOK TWO WRONG BUILDS
+		-- TO GET HERE. Both are worth recording because they are the same rule
+		-- misread in opposite directions.
+		--
+		-- FIRST IT WAS FLUSH: a `faceHeight` the builder subtracted from the
+		-- pad's own thickness landed the face's top at 0.26 and the surround's
+		-- top at 0.26 too -- two faces on one plane across the whole face,
+		-- which is the z-fighting this file refuses everywhere and was reported
+		-- as the buttons clipping through the floor.
+		--
+		-- THEN IT WAS SUNK, AND THE PADS WENT INVISIBLE. Dropping the face
+		-- 0.12 below the surround's top looked like the recess rule -- "a
+		-- recess is made by standing something PROUD around the dark" -- and it
+		-- is that rule's own counter-example: A SURROUND IS A SOLID SLAB, so a
+		-- face sunk into it is not recessed, it is INSIDE it. `CLAUDE.md` says
+		-- this in as many words about the moat: nothing here can be DUG,
+		-- because a Part cannot cut a hole in another Part, so every layer sits
+		-- PROUD and the depth comes from the kerbs. A real recess needs the
+		-- surround to be a RING of four bars, which is five parts a pad and
+		-- seventy a street.
+		--
+		-- SO THE FACE IS THE HIGHEST THING and the surround shows as a border
+		-- around it, which is the moat kerb read the other way up and still
+		-- obeys "the eye takes the highest line as the surface". The face bites
+		-- `faceSink` into the surround so their shared plane is a BUTT JOINT --
+		-- two faces pointing at each other, both buried, never a fight, which
+		-- is the distinction the coplanar audit had to learn -- and stands
+		-- `faceProud` above it, which is what makes it a button you can see.
+		--
+		-- The face's thickness is DERIVED from those two, so there is no third
+		-- number that can be set to something that collides.
+		faceSink = 0.1,
+		faceProud = 0.16,
+		-- Clear of the base course, so the two do not share a face plane --
+		-- the coplanar rule, and at this size a shared plane would flicker
+		-- right where a player is looking as they step on it.
+		gap = 0.5,
+		-- The surround that makes it a button: the face sits inside this, and
+		-- a recess is made by standing something PROUD around the dark rather
+		-- than by sinking the dark, because the eye takes the highest line as
+		-- the surface.
+		rim = 0.5,
+		-- THE FIGURE THE PAD CARRIES, AND IT IS PAINTED ON THE FACE RATHER
+		-- THAN FLOATING OVER IT (designer call 2026-09-21: "the text that
+		-- shows how much can be collected should be embedded into the button
+		-- not floating above it").
+		--
+		-- THIS REVERSES THE ENTRY THAT USED TO SIT HERE, AND THE MEASUREMENT
+		-- IS WHY. It read: "NOT TYPE LYING ON THE STONE... a pad is 3.6 studs
+		-- deep and the camera sits behind a five-stud character, so a label on
+		-- its top face is foreshortened to a SLIVER at exactly the distance it
+		-- has to be read from." That is the right worry and the wrong number,
+		-- and it was never measured -- which is the failure this project has
+		-- recorded three times on one pig alone (the cap's depth, the rim's
+		-- ring, the disc's flatness): a plausible claim about geometry, taken
+		-- against a model of the thing rather than the thing.
+		--
+		-- MEASURED FROM A PLAYER'S OWN CAMERA -- 22.7 studs out at 36.8
+		-- degrees of depression, which is where the default third person puts
+		-- somebody standing at their own pedestal -- a pad occupies 234 x 56
+		-- PIXELS of a 1180 x 820 viewport. Its depth reads at about 55% of
+		-- true, not at nothing. Fifty-six pixels is a tall glyph, and the
+		-- string is four characters. The sliver was imaginary.
+		--
+		-- WHAT THE FLOATING LABEL ACTUALLY COST is what the designer saw: a
+		-- number hanging in the air over a button is not the button saying
+		-- anything, it is a second object parked above it -- and six of them
+		-- on one lawn read as a row of price tags rather than as six buttons.
+		--
+		-- CAPPED, because there are six of these per lawn and ten lawns. The
+		-- shop fascia entry records what uncapped world type costs: "eight of
+		-- these legible from anywhere on a 350-stud street is a wall of text
+		-- over the world." This is a figure for the owner walking their own
+		-- grass, so it does not need to carry to the pavement. Note a
+		-- `SurfaceGui` culls on distance from the CHARACTER rather than the
+		-- camera, so this is a rule about where the owner is standing.
+		labelRange = 70,
+		-- HOW MANY PIXELS OF CANVAS A STUD OF PAD GETS. The same
+		-- `PixelsPerStud` sizing every other world surface in this game uses
+		-- (the shop fascias, the patrol car's plate, the van), so the type
+		-- scales with the pad rather than with the screen.
+		labelPixelsPerStud = 64,
+		-- THE CANVAS IS TURNED A QUARTER RELATIVE TO THE PAD, AND THAT IS
+		-- MEASURED RATHER THAN ASSUMED. On a face 7.4 x 2.6 studs the canvas
+		-- comes back 166 x 474 px -- so a `Face = Top` SurfaceGui maps its own
+		-- X to the pad's SHORT axis and its Y to the long one. Built at
+		-- rotation 0 the figure therefore runs ALONG the pad instead of across
+		-- it, and reads bottom-to-top: photographed, and it was the first
+		-- thing wrong with this.
+		--
+		-- ONE ROTATION SERVES ALL SEVEN PADS, which is the property worth
+		-- protecting because it looks as though it cannot be true. The six
+		-- pedestal pads carry OPPOSITE yaws -- the left column +90 and the
+		-- right column -90 (`piggyPadYaw`) -- and the far row's plot adds a
+		-- half turn on top, which is exactly the shape of thing this project
+		-- has shipped backwards on half a street before now.
+		--
+		-- It holds because the reader is always on the pad's own local +Z
+		-- side: a pad is sited BETWEEN its piggy and the walk, so whichever
+		-- way the pedestal is turned, the side a player stands on turns with
+		-- it. Measured on both columns -- the left pad's local +Z points at
+		-- plot +X and the right pad's at plot -X, and both of those are
+		-- inboard, toward the till. Verified by photograph on both, right way
+		-- up, left to right.
+		labelRotation = 90,
+		-- HOW MUCH OF THE FACE THE TYPE FILLS, long axis then short. Short of
+		-- 1.0 on both so the glyphs do not touch the face's own edges -- the
+		-- state this project already records as "a label reporting `TextFits`
+		-- true while the glyphs sit exactly on the frame edge".
+		labelFill = Vector2.new(0.92, 0.86),
+		-- GREEN WHEN READY, RED WHEN NOT (designer call 2026-09-21). These were
+		-- money gold and the pedestal's own muted stone, on the reasoning that a
+		-- spent pad should read as part of the masonry rather than as a broken
+		-- light. What that actually bought was a pad whose two states differ by
+		-- SATURATION alone -- and the one question this button is asked from
+		-- across a lawn is go or do not go, which is exactly the question a
+		-- red/green pair answers without being read.
+		--
+		-- MONEY GREEN, AND IT IS SATURATION THAT MAKES IT ONE (designer call
+		-- 2026-09-21). This was `Theme.GOOD` at hue 148, saturation 0.72,
+		-- value 0.82 -- which is a MINT, and mint is what it read as: a pale
+		-- spring green on a lawn rather than the colour of a banknote.
+		--
+		-- THE INSTINCT IS TO DARKEN IT AND THAT IS THE WRONG DIAL, measured.
+		-- A money green solved by dropping VALUE lands at roughly the lawn's
+		-- own luminance: swept, hue 150 at value 0.50 reads 1.10 against the
+		-- grass and 1.33 against the empty red, so the pad stops being visible
+		-- from across a lawn AND its two states stop differing in lightness --
+		-- which is the red/green pair failing in exactly the way it fails for
+		-- a colour-blind nine-year-old.
+		--
+		-- Taken to FULL SATURATION at the value it already had, it is an
+		-- emerald and it costs nothing. Measured against the mint it replaces:
+		--
+		--     against the lawn        2.29 -> 2.33
+		--     against the empty red   1.89 -> 1.93
+		--     under the ink stroke     8.07 -> 8.23
+		--
+		-- Better on all three, so this is a look bought for nothing rather than
+		-- a trade. THE DIAL TO TURN FOR A COLOUR THAT READS AS THE WRONG
+		-- MATERIAL IS SATURATION; value is what decides whether it can be seen.
+		--
+		-- IT LEAVES THE ACCENT FAMILY, WHICH IS A REAL EXCEPTION AND HAS
+		-- PRECEDENT. `Theme` holds every accent at saturation 0.72 so the set
+		-- reads as one palette, and GOLD is already carried outside it at full
+		-- value on the grounds that it is a MATERIAL rather than a category --
+		-- it is what a coin is made of. This is the same argument: the pad is
+		-- not saying `good`, it is saying MONEY, and money is a material. The
+		-- red beside it is still `Theme.STOP` exactly.
+		--
+		-- WRITTEN OUT AS NUMBERS, because Config requires nothing and must go on
+		-- requiring nothing -- it is pure data pulled in by every server service.
+		-- The same call `Config.NOTIFY` and `Config.PROMPTS` already make.
+		--
+		-- ONLY THE RED STILL MIRRORS `Theme`. This paragraph used to read "move
+		-- one and move both" against `Theme.GOOD` and `Theme.STOP`, and the green
+		-- has since moved off Theme deliberately for the money-is-a-material
+		-- reason above -- so the pairing is gone and saying otherwise would send
+		-- the next person to keep two numbers in step that are no longer related.
+		-- `emptyColour` IS `Theme.STOP` exactly and that one still moves together.
+		--
+		-- RE-MEASURED ON THE NEW GREEN, because the figure printed on this is the
+		-- reason the colour is constrained at all. `Theme.INK` reads 8.23:1 on it
+		-- against 8.07 on the old one, so marginally better; `Theme.PAPER` reads
+		-- 1.82:1, so ink-with-a-paper-stroke is still the right way round and
+		-- inverting it would make the number unreadable. Ink on the red is 4.26:1.
+		-- Both clear the 3.0 floor scaled type is measured against.
+		--
+		-- AND THE FIGURE IS LOAD-BEARING FOR A COLOUR-BLIND PLAYER, WHICH IS THE
+		-- REASON AN EMPTY PAD MAY NEVER GO BACK TO BEING BLANK. Green against red
+		-- separates by only 1.93:1 in LUMINANCE -- they are a hue pair, and
+		-- red/green is THE colour-blind pair. This file's own rule is that colour
+		-- alone separates tiers only for players who can see them, which is why
+		-- Legendary is drawn thicker as well as gold. Here the second channel is
+		-- the NUMBER: a ready pad prints an amount and a spent one prints 0, so
+		-- the state survives without the hue. The build before this one hid the
+		-- figure on an empty pad (`padLabel.Enabled = false`), which would have
+		-- left the state carried by a red/green pair and nothing else.
+		--
+		-- WHAT SPENDING RED COSTS, STATED PLAINLY: red is the ALARM in this game
+		-- -- `NOTIFY.alarm`, somebody robbing you -- and this puts up to six of
+		-- it on your own lawn as a resting state. It is affordable because the
+		-- alarm is a screen-edge flash and a toast rather than anything on the
+		-- grass, so the two never compete for the same read. If it ever does
+		-- dilute the alarm, the lever is a deeper, less saturated red here and
+		-- not a different green.
+		readyColour = Color3.fromRGB(0, 214, 107),
+		emptyColour = Color3.fromRGB(230, 81, 64),
+		-- HOW OFTEN ONE PAD MAY FIRE FOR ONE PLAYER, and this is not a nicety.
+		--
+		-- `Touched` IS NOT AN ENTRY EVENT: it fires PER CHARACTER PART and
+		-- re-fires on every re-contact. Measured on an electric fence, that is
+		-- fourteen parts reporting on the first contact frame and eighteen
+		-- fires over four seconds while standing still -- which is the bug
+		-- that made a fence stun renew itself faster than it could expire.
+		-- A collect is idempotent, so the cost here is not a freeze; it is a
+		-- player walking one pad and banking seven times, and a refusal toast
+		-- fired fourteen times over.
+		--
+		-- Long enough to swallow a whole crossing at walking pace: a 3.2-deep
+		-- pad at `BASE_WALK_SPEED` is 0.2 seconds of contact, so even the old
+		-- 1.0 covered the crossing and a pause on top of it.
+		--
+		-- AND IT IS THE REACTION'S OWN LENGTH NOW, WHICH FIXES A LIE RATHER
+		-- THAN A DEBOUNCE. Reported as *"when walking over the button the
+		-- piggies do the animation, then if you quickly walk over them again
+		-- when it's green they don't"*, and that is two faults meeting:
+		--
+		-- * `setBuffered` called a pad READY at `whole > 0`, and a buffer
+		--   refills continuously -- so a pad went back to GREEN within a tick
+		--   of being emptied, while this cooldown went on refusing it for a
+		--   second. Green meant nothing for that second, which is the
+		--   silent-refusal failure wearing a button: the player presses, by
+		--   walking, and gets no answer.
+		-- * At 1.0 against a 1.55-second reaction, the one crossing that DID
+		--   get through landed mid-performance and restarted it.
+		--
+		-- So the face reports this window (see `PiggyPedestal.padReady`) and
+		-- the window is exactly the performance. A pad is green when stepping
+		-- on it will bank coins and make a piggy hop, and red when it will
+		-- not -- which is what the colour claimed all along.
+		--
+		-- IT SUPERSEDES `PiggyIdle`'s "RESTARTED RATHER THAN QUEUED" NOTE FOR
+		-- THIS PATH ONLY, and that note is still right about what it argues:
+		-- banking twice quickly is two reactions to two events and the second
+		-- must not arrive late. What changed is that the pad can no longer
+		-- produce the second event inside the first clip, so the restart is
+		-- unreachable from here rather than wrong.
+		--
+		-- LONGER IS THE SAFE DIRECTION FOR A DEBOUNCE and the pads are keyed
+		-- per player per pad, so a LAP of six is untouched -- only re-crossing
+		-- the same pad inside one reaction is, which is the case being fixed.
+		cooldown = PAD_REACTION,
+		-- Read by `PiggyIdle` as the collect clip's own length. See
+		-- `PAD_REACTION` above for why one number serves three readers.
+		reaction = PAD_REACTION,
+
+		-- WHAT A COLLECT SOUNDS LIKE (designer call 2026-09-21: "we need to
+		-- have a collection sound effect when collecting the coins").
+		--
+		-- IT WAS THE ONE FEEDBACK CHANNEL THIS PAD HAD NOTHING ON. A collect
+		-- already repaints the face to `emptyColour` and drops the figure, so
+		-- the pad answers a player who is LOOKING AT IT -- and a collect is
+		-- done on the move, at walking pace, by somebody looking where they
+		-- are going. Same gap the tiptoe, `HouseFX` and the standing event
+		-- countdown each had: a mechanism built, tuned and argued about at
+		-- length with nothing ever drawn for it.
+		--
+		-- IT IS `SOUNDS.BANK`, WHICH IS THE CUE THAT ALREADY MEANS THIS. That
+		-- id is "coins went into your pig", and its only caller is the rebirth
+		-- (`ProgressionService` -> `PlotService.playBank`) -- so a collect is
+		-- the EVERYDAY version of the event it already names, and sharing the
+		-- id is this file's own rule rather than thrift: two ids for one
+		-- meaning is the near-identical copy that drifts the first time either
+		-- is touched. If a collect ever wants a bigger noise than a rebirth's,
+		-- the lever is a slice of `SOUNDS.COIN_POUR` -- `BANK_RUSH.pour*`
+		-- already proves that machinery -- rather than a second cue here.
+		--
+		-- QUIETER AND SHORTER-RANGE THAN THE PIG'S OWN BANK (0.6 at 70). A
+		-- rebirth happens once; this can happen seven times in one lap of one
+		-- lawn, and `playCoinDrop`'s comment is the standing warning about what
+		-- a repeated cue costs -- "anything louder becomes nagging". The range
+		-- is deliberately under the pad's own `labelRange` of 70: the figure is
+		-- for the owner walking their own grass, and so is this.
+		--
+		-- POSITIONAL AT THE PAD RATHER THAN 2D FOR THE COLLECTOR, which is the
+		-- call `addSounds` already records for the pig: "neighbours hearing your
+		-- piggy chime is deliberate -- it tells a thief where the money is,
+		-- which turns feedback into information." Seven pads mean seven places
+		-- on a lawn that can make this noise, so a thief on the pavement hears
+		-- WHICH pedestal was just emptied -- which is the one now worth robbing
+		-- least.
+		sound = {
+			id = Config.SOUNDS.BANK,
+			volume = 0.4,
+			distance = 55,
+			-- THE PITCH IS HOW FULL THE BUFFER WAS, AND THE DENOMINATOR IS THE
+			-- MEASUREMENT THAT DECIDED IT.
+			--
+			-- The instinct is a share of CAPACITY, which is what
+			-- `BANK_RUSH.minCount/maxCount` uses and is right there -- a delivery
+			-- is measured against the pig because "50K is the whole pig at level 5
+			-- and nothing at 40". It is the wrong denominator HERE, and it took a
+			-- MEASUREMENT to say why, because the first reasoning about it was
+			-- wrong in the other direction: it assumed one slot earns a seventh of
+			-- the collection and concluded a full buffer was 1-3% of the pig. A
+			-- slot earns the FULL `getIncomeRate` times its rarity (`slotRate` ->
+			-- `getPiggyIncomeRate`), so the collection is seven TIMES a slot rather
+			-- than seven slots sharing one rate.
+			--
+			-- SWEPT OVER EVERY LEVEL AND REBIRTH A PLAYER CAN REACH, the real
+			-- figure is that a COMMON's full buffer is 9.47% of capacity at its
+			-- thinnest (L60 rb20) and 62.23% at its fattest (L0 rb20) -- and the
+			-- top rarity multiplies that by 15, reaching 933%. So capacity does
+			-- not COMPRESS the ladder, it SATURATES it: every legendary collect in
+			-- the game would pin at the ceiling, and the commons would spread over
+			-- 1.014..1.180 of a 0.940..1.180 band. A dial that reads the same for
+			-- the best piggy on the lawn is the derived number that is really a
+			-- constant, which is the failure this file keeps recording.
+			--
+			-- So it is the SLOT'S OWN CEILING -- `take / (rate * bufferSeconds)`,
+			-- which genuinely spans 0..1 and says something a player can act on.
+			-- A pad left to fill chimes higher than one collected early, so the
+			-- sound reports whether you came at a good time. That is the same
+			-- fact the FACE already carries in colour, said in the channel a
+			-- player walking past actually has open.
+			--
+			-- SQUARE ROOT, for `BANK_RUSH`'s own reason: linear, the small hauls
+			-- all read as the minimum, and it is the small hauls that most need to
+			-- differ from each other.
+			pitchLow = 0.94,
+			pitchHigh = 1.18,
+		},
+	},
+}
+
+-- THE DIRECTION FROM A PEDESTAL TO THE TILL, WHICH IS AN INPUT AND NO LONGER
+-- A SEATING.
+--
+-- WHY INWARD AT ALL (designer call 2026-09-21). They all faced plot-local +Z
+-- -- the street -- so six of them read as a shop rack rather than as a
+-- collection: identical objects in identical poses, and the three on the left
+-- showed the same face as the three on the right. Turned inward they face each
+-- other across the lawn with the big pig between them, which is what a display
+-- arranged AROUND something looks like.
+--
+-- BUT NOTHING IS SEATED ON THIS ANGLE. It is the TRUE bearing, so it differs
+-- per row, and both the pad and the piggy standing behind it are square to the
+-- plot -- so seating a display here put it askew on its own plinth by up to 26
+-- degrees, reported as "some piggies are slightly tilted inwards". Both the
+-- pad and the display go through `piggyPadYaw`, the quarter-turn quantiser
+-- directly below, which is the only thing that is square AND inward at once.
+-- This function's one job is to tell that quantiser which way the middle is.
+--
+-- A YAW IN THE PLOT'S OWN FRAME, AND DELIBERATELY NOT `CFrame.lookAt`. This
+-- file records four separate bugs from aiming `lookAt` at models authored
+-- facing +Z -- its LookVector is -Z, so every one of them travelled backwards
+-- until somebody added a half turn. `PiggyModel` is a +Z model, so composing
+-- a plain yaw onto the pedestal's own ground frame sidesteps that question
+-- entirely: rotating +Z by this angle gives (sin, 0, cos), which is the
+-- direction wanted, and the frame already carries the plot's rotation so the
+-- far row's half turn comes along for free.
+--
+-- ZERO FOR A SLOT ON THE CENTRE LINE, which cannot happen with the six as
+-- they stand (every one is at |x| 25) but would otherwise ask for the
+-- direction to a point it is already on.
+function Config.piggyPedestalYaw(index: number): number
+	local slot = Config.PIGGY_LAWN_SLOTS[index]
+	if not slot then
+		return 0
+	end
+	-- PLAIN ARITHMETIC RATHER THAN A Vector3, and that is not tidiness: this is
+	-- read by `auditPiggySlots`, which runs in the offline test harness where
+	-- `Vector3.new` is a stub returning a bare {X,Y,Z}. The old body asked the
+	-- result for its `.Magnitude`, so it compared nil against a number and
+	-- threw -- a landmine that sat here unexploded only because nothing in the
+	-- suite happened to call it.
+	local toX, toZ = -slot.offset.X, -slot.offset.Z
+	if toX * toX + toZ * toZ < 0.0001 then
+		return 0
+	end
+	return math.atan2(toX, toZ)
+end
+
+-- THE NAME OVER A PIGGY'S HEAD.
+--
+-- SIZED IN STUDS, WHICH IS THE FIX FOR "WAY TOO LARGE". A `BillboardGui`'s
+-- Size takes its SCALE component in studs and its OFFSET in pixels, and this
+-- shipped in pixels -- 190 by 44 -- so it held a constant size on screen while
+-- the piggy it belongs to shrank with distance. Up close it was reasonable and
+-- from anywhere else it was a banner over a small pig. In studs it shrinks
+-- with the thing it names, which is what makes it read as a label ON it.
+--
+-- 6.0 AGAINST A PIGGY 7.2 ACROSS, so the name is 83% of its own piggy's width
+-- -- clearly attached to it, and clearly not competing with it.
+--
+-- `gap` IS CLEAR AIR BETWEEN THE EARS AND THE LABEL'S BOTTOM EDGE, which is
+-- the other half of the report. The lift used to be built from the mini's
+-- nominal height times the display scale -- so it was right for the ordinary
+-- pig and wrong for a LEGENDARY, which is a whole model of 9 to 24 meshes with
+-- its own silhouette, and wrong again the moment the label's own height
+-- changed. `PiggyPedestal.dress` measures the crown of whatever it actually
+-- seated and lifts from there.
+--
+-- RANGE CAME DOWN FROM 110 WITH THE SIZE. A 1.2-stud glyph at 110 studs is
+-- about eight pixels, so the old cap was showing type nobody could read; 80
+-- covers the whole lawn and a little of the pavement, which is where a visitor
+-- deciding whether to come in is standing.
+--
+-- AND WHAT IT EARNS, UNDER IT (designer call 2026-09-21). The name says which
+-- piggy this is; the rate says what it is FOR, and until now the only place a
+-- player could read that was one aggregated figure on the HUD covering all
+-- seven placements at once. Six pedestals in four tier colours advertise a
+-- ladder and never say what a rung of it is worth -- so the one decision this
+-- lawn exists to create, WHICH piggy stands in a slot, was being made off a
+-- colour rather than off a number.
+--
+-- `rateHeight` IS A SECOND ROW ON THE SAME BILLBOARD rather than a second
+-- billboard. Two guis is two lifts to keep in step, and the lift here is
+-- measured off the crown of whatever was actually seated -- a legendary is a
+-- whole model of 9 to 24 meshes with its own silhouette -- so the second one
+-- would be the copy that drifts the first time either row's height changes.
+-- One gui, two rows, one measurement.
+--
+-- SHORTER THAN THE NAME, because it is the secondary half of the pair: at
+-- parity the two rows read as two names rather than as a label and its
+-- figure. How MUCH shorter was a guess and is now a measurement.
+--
+-- IT WENT UP FROM 0.62 (designer call 2026-09-21: "the amount per second
+-- needs to be a bit larger"), and the number that says why is the rendered
+-- one rather than the authored one. Measured on a live pedestal from 15.1
+-- studs -- a player standing at their own plinth -- the name renders 47 px
+-- and the rate rendered 24 px: almost exactly half, which is small enough
+-- that the figure had to be looked FOR rather than read. At 0.85 it lands
+-- about 33 px against the same 47, still plainly subordinate.
+--
+-- THE NAME DOES NOT MOVE WHEN THIS DOES, which is what makes it a safe dial.
+-- The name's row is `size.Y / total`, so growing this grows the BILLBOARD and
+-- the rate's share of it while the name stays 1.2 studs. The lift is re-solved
+-- off the same total, so the gap over the piggy's crown holds too -- one
+-- number, and nothing else to re-derive.
+Config.PIGGY_NAME = {
+	size = Vector2.new(6.0, 1.2),
+	rateHeight = 0.85,
+	gap = 0.5,
+	range = 80,
+}
+
+-- WHAT COLOUR A PIGGY'S NAME IS WRITTEN IN: ITS TIER'S.
+--
+-- Designer call 2026-09-21 -- the name over each pedestal is drawn in the
+-- colour of the skin's rarity, so a lawn reads as a collection with its best
+-- pieces picked out rather than as six labels.
+--
+-- ONE FUNCTION RATHER THAN TWO STEPS AT EVERY CALL SITE, because getting a
+-- tier colour is `rarityOf` on the skin's own spec and then an index into
+-- `RARITIES`, and `rarityOf` takes the SPEC rather than a key -- which is
+-- exactly the kind of two-step somebody shortens to `RARITIES[key]` and gets
+-- a nil colour from. A `Color3.fromRGB(nil, ...)` would throw on a lawn.
+--
+-- COMMON IS THE FALLBACK AND NOT AN ERROR. An unknown key already falls back
+-- to the default skin everywhere else (`getSkin`'s own rule, and the reason a
+-- retired skin comes back as Classic Pink rather than throwing), so a name
+-- with no catalogue row behind it is written in the bottom tier's colour.
+--
+-- THESE READ AS TEXT BECAUSE OF THE STROKE, not because of the ground. All
+-- four are solved as CARD colours -- surfaces that carry ink type -- so
+-- measured against bare lawn they run 1.65 to 3.74, and epic on grass is the
+-- worst of them. Against an ink stroke they are 4.65 to 10.53, so the
+-- outline is load-bearing rather than decoration, and it wants Contextual
+-- stroke mode: `Theme.outline` sets Border, which outlines a label's
+-- invisible rectangle instead of its glyphs. `RobberMark` records the same
+-- two-word difference.
+function Config.piggyTierColour(key: string): Color3
+	local skin = Config.getSkin(key)
+	local tier = if skin then Config.rarityOf(skin) else "common"
+	local row = Config.RARITIES[tier] or Config.RARITIES.common
+	return row.colour
+end
+
+-- WHICH WAY THE COLLECT PAD LIES: SQUARE TO THE PLOT, NOT WITH THE PIGGY.
+--
+-- Reported as the buttons being crooked and messed up, which is exactly what
+-- they were. The pad was placed on the pedestal's own +Z, so it inherited
+-- `piggyPedestalYaw` -- and that angle is a function of the slot's distance
+-- from the till, so it is DIFFERENT FOR EVERY ROW. Measured on the six as
+-- they stood: 103.5, 80.9 and 60.8 degrees down the left column and the
+-- mirror of those down the right, so three flat stones splayed 43 degrees
+-- apart, none of them square to the lawn, the fence, the house or each other.
+--
+-- WHERE A DISPLAY LOOKS AND WHERE YOU STAND TO COLLECT ARE TWO QUESTIONS AND
+-- THEY WERE SHARING ONE NUMBER. The piggy facing inward is a designer call and
+-- is untouched -- it is what makes six pedestals read as arranged around the
+-- pig rather than as a shop rack. A pad is a floor button on a route: it wants
+-- to be square to the ground it is laid on, the way every paving slab, kerb
+-- and driveway in this game already is.
+--
+-- SNAPPED RATHER THAN HARDCODED, so it stays derived from where the slot
+-- actually is. The inward direction is rounded to the nearest quarter turn,
+-- which for the shipped six is +90 degrees down the left column and -90 down
+-- the right -- all six parallel, and the pad's wide axis lands along the face
+-- of the pedestal it sits against rather than diagonally across the row
+-- pitch. That is also what stopped pad width capping the pedestal size; see
+-- `PIGGY_PEDESTAL.pad.size`.
+--
+-- A quarter turn is exact in the plot's own frame, so this keeps the property
+-- `piggyPedestalYaw` was written for: the far row's half turn rides on the
+-- plot CFrame and never has to be thought about here.
+function Config.piggyPadYaw(index: number): number
+	local quarter = math.pi / 2
+	return math.floor(Config.piggyPedestalYaw(index) / quarter + 0.5) * quarter
+end
+
+-- HOW HIGH A COLLECT CHIMES, from how full the buffer it just banked was.
+--
+-- IN CONFIG RATHER THAN AT THE SOUND, because two things play this cue -- the
+-- six pedestals and the till -- and a pitch solved twice is a pitch that can
+-- disagree about what a full buffer sounds like. `PIGGY_PEDESTAL.pad.sound`
+-- carries why the denominator is the slot's own ceiling and not the pig's.
+--
+-- `fullness` IS ALREADY THE SHARE, 0..1, and it is CLAMPED here rather than
+-- trusted: it is a quotient with a RATE underneath it, so a slot whose rate
+-- is zero (an empty pedestal, a plot mid-release) divides by nothing and
+-- hands this a nan or an inf. A `PlaybackSpeed` of nan is silence, which is
+-- the silent failure this project refuses -- so a share that is not a real
+-- number reads as the FLOOR and the collect still makes its noise.
+function Config.piggyCollectPitch(fullness: number?): number
+	local spec = Config.PIGGY_PEDESTAL.pad.sound
+	local share = tonumber(fullness) or 0
+	-- nan fails every comparison including its own, which is what catches it.
+	if share ~= share or share == math.huge or share == -math.huge then
+		share = 0
+	end
+	share = math.clamp(share, 0, 1)
+	return spec.pitchLow + (spec.pitchHigh - spec.pitchLow) * math.sqrt(share)
+end
+
+-- The dense six-entry array every reader below works on, created on demand.
+--
+-- DENSE AND NEVER SPARSE, which is a DataStore constraint rather than taste:
+-- a Lua table holding {[1]=x, [3]=y} is neither an array nor a dictionary to
+-- JSON, and mixed tables are exactly where `SetAsync` starts refusing saves.
+-- Every slot is a table; an EMPTY one is an empty table rather than nil, so
+-- the array has no holes and `entry.key == nil` is the whole emptiness test.
+function Config.piggySlots(data: any): { any }
+	local piggies = data.piggies
+	if not piggies then
+		piggies = { owned = {}, till = Config.DEFAULT_SKIN }
+		data.piggies = piggies
+	end
+	local slots = piggies.slots
+	if type(slots) ~= "table" then
+		slots = {}
+		piggies.slots = slots
+	end
+	-- Grown and trimmed to the table above rather than trusted, so a save
+	-- written before a slot was added or after one was removed reconciles
+	-- here instead of needing a schema branch of its own.
+	for i = 1, Config.PIGGY_LAWN_SLOT_COUNT do
+		if type(slots[i]) ~= "table" then
+			slots[i] = {}
+		end
+	end
+	for i = #slots, Config.PIGGY_LAWN_SLOT_COUNT + 1, -1 do
+		slots[i] = nil
+	end
+	return slots
+end
+
+-- Front to back, which is the order of `PIGGY_LAWN_SLOTS`. nil when the lawn
+-- is full -- the caller decides what that means, because the two callers want
+-- opposite things: a crate reveal says so out loud and keeps the piggy in the
+-- collection, and a placement prompt should never have been offered.
+function Config.firstFreePiggySlot(data: any): number?
+	local slots = Config.piggySlots(data)
+	for i = 1, Config.PIGGY_LAWN_SLOT_COUNT do
+		if slots[i].key == nil then
+			return i
+		end
+	end
+	return nil
+end
+
+-- ONE DOOR INTO THE COLLECTION, and every source goes through it: a crate
+-- reveal, a herd round-up, a delivered snatch, an admin grant. Returns the
+-- slot it landed on, or nil when the lawn was full and the copy is owned but
+-- standing nowhere.
+--
+-- OWNERSHIP AND PLACEMENT ARE BUMPED TOGETHER HERE BECAUSE THEY ARE TWO
+-- NUMBERS NOW. `owned` counts copies and the six slots plus the till are
+-- where copies stand, and the moment those are written at two different call
+-- sites they can disagree -- a piggy earning from a pedestal nobody owns, or
+-- owned and invisible. That is the `updatePile` lesson ("anything that
+-- changes a pig has to republish it in the same breath") applied to a count.
+--
+-- `place` IS THE CRATE RULE AND THE ROUND-UP RULE IS ITS OPPOSITE. Pass true
+-- for a source that should land with nothing to press -- a crate, front to
+-- back -- and false for one the player carried home and places by hand. The
+-- flag rather than two functions, because everything either side of it is
+-- identical and a second copy of "bump the count" is the copy that drifts.
+function Config.addPiggy(data: any, key: string, place: boolean): number?
+	local slots = Config.piggySlots(data)
+	local piggies = data.piggies
+	piggies.owned = piggies.owned or {}
+
+	-- A PLACEMENT THAT CANNOT LAND BUMPS NOTHING, which is the difference
+	-- between refusing and creating a GHOST.
+	--
+	-- This used to increment `owned` first and then look for a slot, so a full
+	-- lawn left the count one higher with nothing standing anywhere -- and
+	-- under the designer's 2026-09-21 ruling that state is not merely untidy,
+	-- it is incoherent: placement IS ownership, there is no bag, so a copy
+	-- that stands nowhere does not exist. It would have shown up as a
+	-- collection total that disagreed with the lawn and nothing to explain it.
+	--
+	-- Checked FIRST rather than rolled back afterwards, because a rollback is
+	-- a second place that has to know what the write was.
+	local free = if place then Config.firstFreePiggySlot(data) else nil
+	if place and free == nil then
+		return nil
+	end
+
+	piggies.owned[key] = (piggies.owned[key] or 0) + 1
+	if free == nil then
+		return nil
+	end
+	-- A NEW ARRIVAL STARTS EMPTY, never with the buffer the slot happened to
+	-- be holding. An empty slot's buffer is already zeroed by the accrual
+	-- loop, so this is belt and braces -- and it is the same rule a SNATCHED
+	-- piggy follows (plan §4a: a carried piggy takes its buffer with it as
+	-- zero rather than as a bonus), stated at the one place both arrive.
+	slots[free].key = key
+	slots[free].buffer = 0
+	return free
+end
+
+-- Take the piggy off a slot and hand back its key, or nil if it was empty.
+-- The count comes down with it: a snatched copy is one the victim no longer
+-- owns, which is the whole of why §8 calls this "losing permanent progress"
+-- and why `LOSS_CAP` is owed a second clause.
+function Config.removePiggy(data: any, slot: number): string?
+	local entry = Config.piggySlots(data)[slot]
+	if not entry or entry.key == nil then
+		return nil
+	end
+	local key = entry.key
+	entry.key = nil
+	entry.buffer = 0
+	local owned = data.piggies.owned
+	if owned and owned[key] then
+		owned[key] = math.max(0, owned[key] - 1)
+		if owned[key] == 0 then
+			owned[key] = nil
+		end
+	end
+	return key
+end
+
+-- How many copies of a key are STANDING SOMEWHERE, which is a different
+-- question from how many are owned and is the one every income figure wants.
+-- The till counts: §3 says the piggy on it "earns like any other".
+function Config.piggyPlacedCount(data: any, key: string): number
+	local n = 0
+	if data.piggies and data.piggies.till == key then
+		n += 1
+	end
+	for _, entry in ipairs(Config.piggySlots(data)) do
+		if entry.key == key then
+			n += 1
+		end
+	end
+	return n
+end
+
+-- WHETHER A COPY IS SPARE, asked before a placement prompt is offered and
+-- again on the server when it fires. `owned` is the count; anything already
+-- standing is spoken for.
+function Config.piggySpareCount(data: any, key: string): number
+	local owned = (data.piggies and data.piggies.owned and data.piggies.owned[key]) or 0
+	return math.max(0, owned - Config.piggyPlacedCount(data, key))
+end
+
+-- SIX COORDINATES ON A LAWN THAT ALREADY HAS SEVEN THINGS ON IT, so they are
+-- audited at boot rather than trusted -- the same argument `auditFences` and
+-- `auditYard` make, and for the same reason: the failure is a number, nothing
+-- errors, and what it produces is a display piece standing inside a kennel.
+--
+-- Returns a list of problems, empty when clean. `Main` warns per problem.
+function Config.auditPiggySlots(): { string }
+	local problems: { string } = {}
+	local half = Config.PIGGY_PEDESTAL.base.X / 2
+	local halfZ = Config.PIGGY_PEDESTAL.base.Z / 2
+
+	-- Everything already standing on a lawn, as plot-local rectangles.
+	-- Deliberately generous: a rectangle that is too big only ever costs a
+	-- slot, and one that is too small costs a bug nobody would file.
+	local kennelReach = Config.KENNEL_FOOTPRINT / 2 + Config.KENNEL_CLEARANCE
+	local kennelReserve = {
+		x = { Config.KENNEL_SPOT.x - kennelReach, Config.KENNEL_SPOT.x + kennelReach },
+		z = { Config.KENNEL_SPOT.z - kennelReach, Config.KENNEL_SPOT.z + kennelReach },
+	}
+
+	-- `pad = false` means a FLOOR PAD may stand in this one. Only the gate
+	-- walk qualifies, and it is not an exemption so much as the point: a pad
+	-- is a thing you walk over, so ground a player already walks across is
+	-- where one most belongs. Everything else on this list is an object, and
+	-- a pad inside an object is the same fault as a plinth inside one.
+	local taken = {
+		{ name = "the till", x = { -9, 9 }, z = { -9, 9 } },
+		-- The gate is 24 wide and the walk from it to the pig is the whole
+		-- centre of every row in front of the pig.
+		{ name = "the gate walk", x = { -12, 12 }, z = { 0, Config.PLOT_SIZE.Z / 2 },
+			pad = false },
+		-- DERIVED FROM `Config.KENNEL_SPOT` rather than written out, so moving
+		-- the kennel moves what it reserves. See the note on that table: this
+		-- rectangle used to be a hand-written copy of the position, and the
+		-- copy went stale the first time the kennel moved.
+		{ name = "the kennel", x = kennelReserve.x, z = kennelReserve.z },
+		{ name = "the doorstep crate", x = { -4, 4 },
+			z = { -Config.HOUSE_FRONT_LINE + 0.5, -Config.HOUSE_FRONT_LINE + 4 } },
+	}
+
+	local function overlaps(o: Vector3, r: any): boolean
+		return o.X - half < r.x[2] and o.X + half > r.x[1]
+			and o.Z - halfZ < r.z[2] and o.Z + halfZ > r.z[1]
+	end
+
+	-- ------------------------------------------------------------
+	-- THE FLOOR PADS ARE AUDITED TOO, AND NOTHING WAS CHECKING THEM
+	-- ------------------------------------------------------------
+	--
+	-- Added after a widening crossed two of them. The pads had been reasoned
+	-- about by hand, with their WIDTHS measured and their depths forgotten, and
+	-- on the layout that shipped the middle and back pads overlapped by 0.30
+	-- studs: two stone faces at identical height, intersecting, right where a
+	-- player is looking down as they step on one. Nothing errored, nothing
+	-- refused it, and it is not visible in a plan view.
+	--
+	-- A PAD IS NOT AXIS-ALIGNED, which is the whole reason a bounding box is
+	-- the wrong instrument here. `piggyPedestalYaw` turns each pedestal to face
+	-- the till, and the pad rides that same turn -- so the further back a row
+	-- sits the more its pad is pushed FORWARD into the row ahead, and a pad's
+	-- box is up to 40% larger than the pad. A box test would refuse layouts
+	-- that work. This file's own rule for the vault door says it in as many
+	-- words: a rotated part needs a per-part test in its own frame.
+	local function padRect(index: number, o: Vector3): any
+		local pad = Config.PIGGY_PEDESTAL.pad
+		-- The SAME expression `PiggyPedestal.build` places the pad with: out
+		-- along the pedestal's own +Z, which the yaw has already turned inward.
+		-- Two descriptions of where a pad is would be the duplicate this file
+		-- keeps recording, and this is the copy that would go stale.
+		local yaw = Config.piggyPadYaw(index)
+		local s, c = math.sin(yaw), math.cos(yaw)
+		local out = Config.PIGGY_PEDESTAL.base.Z / 2 + pad.gap + pad.size.Z / 2
+		return {
+			x = o.X + s * out, z = o.Z + c * out,
+			-- The pad's own X and Z axes, as plot-frame directions.
+			axes = { { c, -s }, { s, c } },
+			half = { pad.size.X / 2, pad.size.Z / 2 },
+		}
+	end
+
+	local function padCorners(r: any): { { number } }
+		local pts = {}
+		for _, sx in ipairs({ -1, 1 }) do
+			for _, sz in ipairs({ -1, 1 }) do
+				table.insert(pts, {
+					r.x + r.axes[1][1] * sx * r.half[1] + r.axes[2][1] * sz * r.half[2],
+					r.z + r.axes[1][2] * sx * r.half[1] + r.axes[2][2] * sz * r.half[2],
+				})
+			end
+		end
+		return pts
+	end
+
+	-- SEPARATING AXIS. Two convex rectangles miss each other exactly when some
+	-- axis of one of them separates their projections, so four axes settle it.
+	local function padsApart(a: any, b: any): boolean
+		local pa, pb = padCorners(a), padCorners(b)
+		for _, r in ipairs({ a, b }) do
+			for _, ax in ipairs(r.axes) do
+				local aLo, aHi, bLo, bHi = math.huge, -math.huge, math.huge, -math.huge
+				for _, p in ipairs(pa) do
+					local d = p[1] * ax[1] + p[2] * ax[2]
+					aLo, aHi = math.min(aLo, d), math.max(aHi, d)
+				end
+				for _, p in ipairs(pb) do
+					local d = p[1] * ax[1] + p[2] * ax[2]
+					bLo, bHi = math.min(bLo, d), math.max(bHi, d)
+				end
+				if aLo > bHi or bLo > aHi then
+					return true
+				end
+			end
+		end
+		return false
+	end
+
+	-- A pad's own bounding box, which IS the right instrument against the
+	-- axis-aligned obstacles: generous there only ever costs a slot, and this
+	-- file's note on `taken` already makes that trade deliberately.
+	local function padBounds(r: any): (number, number, number, number)
+		local xLo, xHi, zLo, zHi = math.huge, -math.huge, math.huge, -math.huge
+		for _, p in ipairs(padCorners(r)) do
+			xLo, xHi = math.min(xLo, p[1]), math.max(xHi, p[1])
+			zLo, zHi = math.min(zLo, p[2]), math.max(zHi, p[2])
+		end
+		return xLo, xHi, zLo, zHi
+	end
+
+	-- The count is audited too, because the SAVE is a dense array of exactly
+	-- this length: a slot added here without the default growing to match is a
+	-- pedestal that can never hold anything, silently.
+	if Config.PIGGY_LAWN_SLOT_COUNT ~= #Config.PIGGY_LAWN_SLOTS then
+		table.insert(problems, "[piggy.count] PIGGY_LAWN_SLOT_COUNT disagrees with the table it counts")
+	end
+
+	local seen: { [string]: boolean } = {}
+	for i, slot in ipairs(Config.PIGGY_LAWN_SLOTS) do
+		local o = slot.offset
+		if seen[slot.id] then
+			table.insert(problems, ("[piggy.id] two piggy slots are both called %s"):format(slot.id))
+		end
+		seen[slot.id] = true
+		-- Inside the grass, which is the plot slab.
+		if math.abs(o.X) + half > Config.PLOT_SIZE.X / 2
+			or math.abs(o.Z) + halfZ > Config.PLOT_SIZE.Z / 2 then
+			table.insert(problems,
+				("[piggy.lawn] slot %d (%s) reaches off the lawn"):format(i, slot.id))
+		end
+		-- In FRONT of the house wall, not through it.
+		if o.Z - halfZ < -Config.HOUSE_FRONT_LINE then
+			table.insert(problems,
+				("[piggy.house] slot %d (%s) reaches into the house at z %.1f"):format(i, slot.id, o.Z))
+		end
+		for _, r in ipairs(taken) do
+			if overlaps(o, r) then
+				table.insert(problems,
+					("[piggy.occupied] slot %d (%s) stands in %s"):format(i, slot.id, r.name))
+			end
+		end
+		for j = i + 1, #Config.PIGGY_LAWN_SLOTS do
+			local other = Config.PIGGY_LAWN_SLOTS[j].offset
+			if math.abs(o.X - other.X) < Config.PIGGY_PEDESTAL.base.X
+				and math.abs(o.Z - other.Z) < Config.PIGGY_PEDESTAL.base.Z then
+				table.insert(problems,
+					("[piggy.overlap] slots %d and %d overlap"):format(i, j))
+			end
+		end
+
+		-- The pad, in the same pass, against the same ground.
+		local rect = padRect(i, o)
+		local pxLo, pxHi, pzLo, pzHi = padBounds(rect)
+		if math.max(math.abs(pxLo), math.abs(pxHi)) > Config.PLOT_SIZE.X / 2
+			or math.max(math.abs(pzLo), math.abs(pzHi)) > Config.PLOT_SIZE.Z / 2 then
+			table.insert(problems,
+				("[piggy.padlawn] slot %d (%s) has its collect pad off the lawn"):format(i, slot.id))
+		end
+		if pzLo < -Config.HOUSE_FRONT_LINE then
+			table.insert(problems,
+				("[piggy.padhouse] slot %d (%s) has its collect pad in the house"):format(i, slot.id))
+		end
+		for _, r in ipairs(taken) do
+			if r.pad ~= false and pxLo < r.x[2] and pxHi > r.x[1]
+				and pzLo < r.z[2] and pzHi > r.z[1] then
+				table.insert(problems,
+					("[piggy.padoccupied] slot %d (%s) has its collect pad in %s"):format(
+						i, slot.id, r.name))
+			end
+		end
+		for j = i + 1, #Config.PIGGY_LAWN_SLOTS do
+			if not padsApart(rect, padRect(j, Config.PIGGY_LAWN_SLOTS[j].offset)) then
+				table.insert(problems,
+					("[piggy.padoverlap] the collect pads of slots %d and %d cross"):format(i, j))
+			end
+		end
+	end
+	-- ------------------------------------------------------------
+	-- THE DISPLAY SCALE FITS THE ROW
+	-- ------------------------------------------------------------
+	--
+	-- A pedestal display is `2.2 * display` studs wide at scale 1, and
+	-- `Config.PIGGY_SCALE.max` multiplies it. The row is pitched by the slot
+	-- table, so the widest piggy the catalogue may ask for has to leave
+	-- daylight between two neighbours in a column -- or a tiger next to a
+	-- tiger is two animals standing through each other, which no plan view
+	-- shows and no probe reports. Checked against the smallest pitch in the
+	-- table rather than a typed 10, so a slot moved closer moves this.
+	local pitch = math.huge
+	for i = 1, #Config.PIGGY_LAWN_SLOTS do
+		for j = i + 1, #Config.PIGGY_LAWN_SLOTS do
+			local a, b = Config.PIGGY_LAWN_SLOTS[i].offset, Config.PIGGY_LAWN_SLOTS[j].offset
+			if math.abs(a.X - b.X) < 0.5 then
+				pitch = math.min(pitch, math.abs(a.Z - b.Z))
+			end
+		end
+	end
+	local widest = 2.2 * Config.PIGGY_PEDESTAL.display * Config.PIGGY_SCALE.max
+	if pitch < math.huge and widest >= pitch then
+		table.insert(problems, ("[piggy.scale] the largest display (%.2f studs at scale %.2f)"
+			.. " does not fit the %.1f-stud row pitch"):format(widest, Config.PIGGY_SCALE.max, pitch))
+	end
+	if Config.PIGGY_SCALE.min <= 0 or Config.PIGGY_SCALE.min > 1 or Config.PIGGY_SCALE.max < 1 then
+		table.insert(problems, "[piggy.scale] PIGGY_SCALE has to bracket 1, the size everything is solved against")
+	end
+	-- AND EVERY ROW THAT NAMES A SCALE NAMES ONE INSIDE THE BAND. `piggyScale`
+	-- clamps, so an out-of-band value would not error -- it would render at
+	-- the band's edge while the row said otherwise, which is the wrong-number-
+	-- nobody-sees shape this file refuses everywhere.
+	for key, skin in pairs(Config.SKINS) do
+		local s = (skin :: any).scale
+		if s ~= nil and (type(s) ~= "number" or s < Config.PIGGY_SCALE.min or s > Config.PIGGY_SCALE.max) then
+			table.insert(problems, ("[piggy.scale] %s asks for scale %s, outside %.2f..%.2f"):format(
+				key, tostring(s), Config.PIGGY_SCALE.min, Config.PIGGY_SCALE.max))
+		end
+	end
+
+	return problems
+end
+
+-- WHAT A PIG READS AS FULL ON THE LAWN, now that it has no capacity.
+--
+-- The coin pile inside the pig, the four MILESTONES and the delivery coin
+-- stream are all pictures of "how full is it", and a picture needs a
+-- denominator. The one that is not invented is the rebirth cash gate: under
+-- the old rule the gate WAS one full pig at the ceiling, so "the pig is full"
+-- and "you can rebirth" were the same moment -- and they still are. Coins
+-- above it are simply a pig that stays full, which is the honest picture of
+-- somebody who has not rebirthed yet.
+--
+-- NOTHING READS THIS AS A LIMIT. No mint is clamped against it, no collect
+-- or sale is refused by it, and income never stops at it. It is a readout.
+function Config.pigFullAt(rebirths: number?): number
+	return Config.getRebirthThreshold(rebirths or 0)
+end
+
+-- NOTHING PUTS MORE IN A PIG THAN IT HOLDS was the rule here (`fitInPig`,
+-- MASTER-PLAN 4c.6), and it is REVERSED by the same designer with the
+-- capacity ceiling: a pig holds everything. Every mint -- the delivery, the
+-- return bounty, a shop drop sold on the spot, the daily ladder, the event
+-- payouts, and coins coming back as a refund, a returned carry or a drone
+-- recovery -- banks in full, and there is no spill to say.
+--
+-- PLACEHOLDER: "own specific piggies" is unspecified; this is the hook. The
+-- designer's rebirth gate is specific piggies PLUS a cash amount, and the
+-- cash half is `REBIRTH_CASH_GATE`. This half returns true until it is
+-- written, so today rebirth is gated on cash alone -- exactly as it was.
+-- `ProgressionService.canRebirth` and the `rebirthReady` push both call it,
+-- so the day it is filled in the button, the page and the refusal all move
+-- together.
+function Config.rebirthPiggyGate(data: any): boolean
+	local _ = data
+	return true
 end
 
 -- WHAT A PIG IS WORTH TO WHOEVER ROBS IT, for the three street readouts: the
@@ -14387,69 +16251,49 @@ end
 -- the moment the cap came off -- and a dead `homeTake` one letter from a live
 -- `homeWorth` is a trap rather than an option. The places that genuinely do
 -- ask "what would I bank" already answer it themselves and never called it:
--- `HeistService.homeWorthPhrase` needs the spree in the same breath, and
--- every mint goes through `Config.fitInPig` directly.
-function Config.homeWorth(vault: number?, fraction: number, multiplier: number?): number
-	return math.floor((vault or 0) * fraction * (multiplier or 1)) * Config.HEIST_PAYOUT
+-- `HeistService.homeWorthPhrase` needs the spree in the same breath. (The
+-- cap it once referred to, `fitInPig`, is retired with the pig's ceiling.)
+function Config.homeWorth(vault: number?, fraction: number): number
+	return math.floor((vault or 0) * fraction) * Config.HEIST_PAYOUT
 end
 
 -- Costs are indexed by the level you are LEAVING, so they run one behind the
 -- value tables above -- `getIncomeCost(20)` is the price of reaching 21 and is
 -- therefore the first band-B price.
 --
--- BOTH ARE CLAMPED TO A SHARE OF THE PIG. See UPGRADE_COST_CEILING: the
--- geometric curve outruns capacity and used to cross it, which with a wallet
--- bounded by capacity is a rung nobody can ever pay for. `math.min` is the
--- whole enforcement -- the curve wins while it is the cheaper of the two and
--- the pig wins afterwards, so the invariant cannot be edited back out by
--- moving a growth number.
---
--- Measured against `getCapacity(currentLevel)` -- the pig you have BEFORE the
--- upgrade, which is the one the coins have to sit in.
+-- THE PURE CURVE, UNCLAMPED. It was `math.min`ed against a share of the pig
+-- (`UPGRADE_COST_CEILING`, retired above) for as long as the pig was bounded;
+-- with no ceiling a rung that outruns the rate is a wait rather than a wall.
 function Config.getIncomeCost(currentLevel: number): number
-	local curve = banded(Config.INCOME_BASE_COST, Config.INCOME_COST_GROWTH,
-		Config.INCOME_COST_GROWTH_B, Config.INCOME_COST_GROWTH_C, currentLevel)
-	local ceiling = Config.UPGRADE_COST_CEILING.income * Config.getCapacity(currentLevel)
-	return math.floor(math.min(curve, ceiling))
+	return math.floor(banded(Config.INCOME_BASE_COST, Config.INCOME_COST_GROWTH,
+		Config.INCOME_COST_GROWTH_B, Config.INCOME_COST_GROWTH_C, currentLevel))
 end
 
-function Config.getCapacityCost(currentLevel: number): number
-	local curve = banded(Config.CAPACITY_BASE_COST, Config.CAPACITY_COST_GROWTH,
-		Config.CAPACITY_COST_GROWTH_B, Config.CAPACITY_COST_GROWTH_C, currentLevel)
-	local ceiling = Config.UPGRADE_COST_CEILING.capacity * Config.getCapacity(currentLevel)
-	return math.floor(math.min(curve, ceiling))
-end
-
--- What you must have BANKED to rebirth. See REBIRTH_CAPACITY_MULTIPLE.
---
--- Measured against the ceiling you can currently reach rather than the
--- capacity you happen to have bought, so the gate is the same for everybody at
--- a given rebirth count and cannot be lowered by declining to upgrade.
+-- What you must have in the pig to rebirth: `REBIRTH_CASH_GATE` for this
+-- rebirth count, flat at the top row beyond the last rebirth that opens a
+-- level. The same for everybody at a given count, so it cannot be lowered by
+-- declining to upgrade. PLACEHOLDER values -- see the table.
 function Config.getRebirthThreshold(rebirths: number): number
-	return math.floor(Config.getCapacity(Config.maxLevel(rebirths))
-		* Config.REBIRTH_CAPACITY_MULTIPLE)
+	local top = Config.rebirthsToMax()
+	local r = math.clamp(math.floor(rebirths or 0), 0, top)
+	return Config.REBIRTH_CASH_GATE[r] or Config.REBIRTH_CASH_GATE[top]
 end
 
 -- ============================================================
 -- THE PRICE AUDIT
 -- ============================================================
 
--- EVERY PRICE IN THIS GAME HAS TO FIT IN A PIG, AND NOTHING USED TO CHECK.
+-- THE CATALOGUE AND LADDER AUDIT, run at startup.
 --
--- `UPGRADE_COST_CEILING` makes that true of the two trees by construction.
--- The CATALOGUES have no such clamp and should not have one -- a house price
--- is a design statement, not a derived number -- so they get an audit
--- instead, run at startup, naming anything nobody could ever hold. The Sky
--- Castle was 100M against a pig that maxes at 96.9M: not expensive, not slow,
--- IMPOSSIBLE, and indistinguishable in play from the buy button being broken.
---
--- Note this is a different question from "is it reachable in a reasonable
--- time", which is what the rule about `HEIST_PAYOUT` and `DROPOFF_RADIUS`
--- being the levers rather than the prices is about. That rule is still right.
--- A price above the largest wallet the game can produce is not slow pacing,
--- it is a purchase that cannot exist, and no payout multiplier fixes it --
--- and since 4c.6 not even robbing gets past it: a delivery banks only what
--- fits the pig, so the largest pig is a hard ceiling on every purchase.
+-- It USED to open with "every price in this game has to fit in a pig": the
+-- two trees were checked against the pig at every rung and every catalogue
+-- price against the largest pig the game could produce, because with a
+-- bounded wallet a price above it was not expensive, it was IMPOSSIBLE (the
+-- Sky Castle at 100M against a 96.9M pig). The pig is unbounded now, so no
+-- price is impossible and that check is retired -- a dear house is a wait,
+-- and the levers for "too slow" are `HEIST_PAYOUT` and `DROPOFF_RADIUS`, as
+-- ever. What is left is structural: retired gates, house ids, priced-or-
+-- earned, the rebirth cash gate being complete, and the rarity ladder.
 --
 -- WARNS RATHER THAN THROWS, for the reason `Decor.prewarm` is pcalled: a
 -- mispriced ornament may never stop the server starting. Returns the list so
@@ -14472,22 +16316,10 @@ function Config.auditEconomy(): { string }
 	end
 	checkGates(Config, "Config")
 
-
-	-- The two trees, over every level anybody can ever reach.
-	for level = 0, Config.ABSOLUTE_MAX_LEVEL - 1 do
-		local pig = Config.getCapacity(level)
-		if Config.getIncomeCost(level) > pig then
-			table.insert(problems, ("income rung %d costs %d into a pig holding %d")
-				:format(level + 1, Config.getIncomeCost(level), pig))
-		end
-		if Config.getCapacityCost(level) > pig then
-			table.insert(problems, ("capacity rung %d costs %d into a pig holding %d")
-				:format(level + 1, Config.getCapacityCost(level), pig))
-		end
-	end
-
-	-- The catalogues, against the largest pig the game can ever produce.
-	local biggest = Config.getCapacity(Config.ABSOLUTE_MAX_LEVEL)
+	-- The catalogues: every priced row has to carry a NUMBER for a price. The
+	-- "fits in the largest pig" half of this sweep is retired with the pig's
+	-- ceiling; what survives is the shape check, because `(nil or 0)` is a
+	-- free item and a string is a shop card that throws.
 	local catalogues = {
 		SKINS = Config.SKINS, EFFECTS = Config.EFFECTS,
 		HOUSE_TIERS = Config.HOUSE_TIERS, DECOR_ITEMS = Config.DECOR_ITEMS,
@@ -14515,16 +16347,14 @@ function Config.auditEconomy(): { string }
 		-- `cost` at all, so there is no price here for a pig to fail to
 		-- hold.
 		TROPHY_PLINTHS = Config.TROPHY_PLINTHS,
-		-- The tree ladder (step 2.7): every rung above 0 is a coin price.
-		TREE_LEVELS = Config.TREE_LEVELS,
 	}
 	for name, catalogue in pairs(catalogues) do
 		if type(catalogue) == "table" then
 			for key, item in pairs(catalogue) do
-				if type(item) == "table" and type(item.cost) == "number"
-					and item.cost > biggest then
-					table.insert(problems, ("%s.%s costs %d against a largest possible pig of %d")
-						:format(name, tostring(key), item.cost, biggest))
+				if type(item) == "table" and item.cost ~= nil
+					and (type(item.cost) ~= "number" or item.cost < 0) then
+					table.insert(problems, ("%s.%s carries a cost that is not a non-negative number")
+						:format(name, tostring(key)))
 				end
 			end
 		end
@@ -14587,24 +16417,85 @@ function Config.auditEconomy(): { string }
 		end
 	end
 
-	-- Crates are outside the coin catalogue, regardless of their price.
-	for key, chest in pairs(Config.CHESTS) do
-		if chest.currency ~= "loot" then
-			table.insert(problems, ("CHESTS.%s must cost earned Acorns (currency = loot)"):format(key))
+	-- Crates are outside the coin catalogue because they are outside every
+	-- catalogue: they carry no price at all. `auditRandomOutcomes` is what
+	-- enforces that, so there is nothing for the coin audit to say here.
+
+	-- The rebirth cash gate is a PLACEHOLDER table and a table can have a
+	-- hole in it: a missing row would make `getRebirthThreshold` fall back to
+	-- the top row and silently gate a mid-game rebirth at 1.24B. Every rebirth
+	-- that opens a level has to have a positive row, and the ladder may never
+	-- get EASIER with rebirths -- a gate that fell would make the reset that
+	-- bounds hoarding cheaper the more of it a player had done.
+	local lastGate = 0
+	for rebirths = 0, Config.rebirthsToMax() do
+		local gate = Config.REBIRTH_CASH_GATE[rebirths]
+		if type(gate) ~= "number" or gate <= 0 then
+			table.insert(problems, ("REBIRTH_CASH_GATE[%d] is missing or not a positive number")
+				:format(rebirths))
+		elseif gate < lastGate then
+			table.insert(problems, ("REBIRTH_CASH_GATE[%d] (%d) is lower than the rebirth before it (%d)")
+				:format(rebirths, gate, lastGate))
+		else
+			lastGate = gate
 		end
 	end
 
-	-- The rebirth gate, which is a price like any other: it is one full pig at
-	-- the ceiling, so it is reachable exactly while the ceiling is.
-	-- Two past the last rebirth that opens a level, so the flat tail where
-	-- the gate stops moving is audited as well as the climb.
-	for rebirths = 0, Config.rebirthsToMax() + 2 do
-		local gate = Config.getRebirthThreshold(rebirths)
-		local ceiling = Config.getCapacity(Config.maxLevel(rebirths))
-		if gate > ceiling then
-			table.insert(problems, ("rebirth %d gate is %d against a ceiling pig of %d")
-				:format(rebirths, gate, ceiling))
+	-- EVERY TIER ON THE LADDER HAS TO BE PRICED AS INCOME, and nothing checked.
+	--
+	-- RARITY IS INCOME NOW, so `Config.RARITY_ORDER` and
+	-- `Config.PIGGY_RARITY_INCOME` are two views of one ladder -- and the second
+	-- one is a MAP, so a tier can exist on the ladder with no row in it. What
+	-- happens then is the quietest failure this table can have:
+	-- `getPiggyIncomeRate` falls back to 1x and `piggyBufferSeconds` falls back
+	-- to the floor duration, so a brand new tier earns and holds EXACTLY like a
+	-- common, on every pedestal in the game, with nothing in any log.
+	--
+	-- THE TABLE'S OWN COMMENT PREDICTED THIS AND NOTHING ENFORCED IT: "a
+	-- fallback that protects against a missing tag also hides a tier nobody
+	-- priced." It is the same sentence `epic` earned by being caught only
+	-- because `tests/luau/piggies` walked the catalogue rather than trusting
+	-- the table.
+	--
+	-- IT IS WORTH ADDING NOW RATHER THAN AFTER, because a five-tier re-tag is
+	-- queued (docs/PIGGY-COLLECTION-BUILD-ORDER.md Stage 8) and this is the
+	-- check that makes the re-tag safe to land in any order: add a tier without
+	-- pricing it and the boot says so, instead of the whole street quietly
+	-- earning the floor. Derived from `RARITY_ORDER` rather than from a count,
+	-- so it needs nothing when the ladder grows.
+	for index, tier in ipairs(Config.RARITY_ORDER) do
+		local multiplier = Config.PIGGY_RARITY_INCOME[tier]
+		if multiplier == nil then
+			table.insert(problems, ("rarity '%s' is on RARITY_ORDER and has no PIGGY_RARITY_INCOME row: "):format(tier)
+				.. "every piggy of that tier would earn and hold like a common, silently")
+		elseif index > 1 then
+			-- AND THE LADDER HAS TO CLIMB, which is not a judgement call: a tier
+			-- that pays less than the one below it makes the rarer piggy the
+			-- worse piggy, and the buffer duration is derived from this same
+			-- multiplier so it would invert with it.
+			local below = Config.PIGGY_RARITY_INCOME[Config.RARITY_ORDER[index - 1]]
+			if below ~= nil and multiplier <= below then
+				table.insert(problems, ("PIGGY_RARITY_INCOME.%s (%s) does not beat %s (%s): "):format(
+					tier, tostring(multiplier), Config.RARITY_ORDER[index - 1], tostring(below))
+					.. "the income ladder has stopped being a ladder, and the buffer cap rides it")
+			end
 		end
+	end
+
+	-- AND EVERY RARITY THE SKIN CATALOGUE ACTUALLY USES HAS TO BE ON THAT
+	-- LADDER, which is the same question from the other end. A skin tagged with
+	-- a tier `RARITY_ORDER` does not carry is a piggy nothing can price -- and
+	-- `rarityOf` would rank it 0, below common, while its income fell back to
+	-- the floor. Walked rather than trusted, which is how `epic` was found.
+	local unknown = {}
+	for key, skin in pairs(Config.SKINS) do
+		if skin.rarity ~= nil and Config.rarityRank(skin.rarity) == 0 then
+			table.insert(unknown, ("%s=%s"):format(key, tostring(skin.rarity)))
+		end
+	end
+	if #unknown > 0 then
+		table.insert(problems, ("skins carry a rarity that is not on RARITY_ORDER: %s"):format(
+			table.concat(unknown, ", ")))
 	end
 
 	return problems
@@ -14667,87 +16558,65 @@ function Config.canCase(lockpickLevel: number): boolean
 end
 
 -- ============================================================
--- THE SPREE
+-- WANTED STARS
 -- ============================================================
 
--- ROBBERIES IN A ROW ARE WORTH MORE AND COST MORE, WHICH IS THE ONLY THING
--- IN THIS GAME THAT VARIES BETWEEN ROBBERIES RATHER THAN WITHIN ONE.
+-- ROBBERIES IN A ROW ARE WORTH MORE AND COST MORE, AND THE LADDER IS DRAWN
+-- NOW: IT IS THE STARS ON THE WANTED CHIP.
 --
--- The crack made a single robbery a decision. It did nothing about the
--- shape of a SESSION: forty cracks in an hour are forty independent
--- transactions, and a run of five means exactly what five separate ones
--- mean. A spree is the structure that turns a sequence into a run.
+-- This was `Config.SPREE` -- four steps, +25% a delivery, a 45-second
+-- window, and a patrol floor that fell with each step. Designer decision
+-- 2026-09-22: the same ladder, longer, drawn as stars, and the ONLY ladder. A
+-- star is a reward and a threat at once, which is the whole trade a thief is
+-- making; two ladders would let a player read a run on one readout and a
+-- danger on another and be told two different stories, and this file's own
+-- record is that two tables carrying one meaning drift (`busyUntil` and
+-- `napUntil`).
 --
--- IT IS NOT THE RAP SHEET, AND THE TWO MUST NEVER BE CONFLATED.
--- `SocialService`'s `heat` is the rap sheet: everything you have stolen this
--- session, it only ever goes UP, and it decides the Most Wanted board. A
--- SPREE is momentum -- it counts consecutive deliveries, it DECAYS when you
--- stop, and it is spent by being caught. One field carrying both meanings is
--- the `busyUntil`/`napUntil` bug this file already records, so they are two
--- fields with two names.
-Config.SPREE = {
-	-- How long after a delivery the next one still counts as consecutive.
-	--
-	-- MEASURED AGAINST THE ROUND TRIP RATHER THAN CHOSEN. A full five-slice
-	-- robbery of the nearest resident is about 21 seconds door to door (see
-	-- `robberyCycleSeconds`), so a window of 45 lets a thief working at a
-	-- normal pace hold a spree with a little slack, and drops it if they stop
-	-- to shop, bank, or wait out a patrol. Much shorter and it would demand
-	-- perfect play; much longer and it would never cool down, which makes it
-	-- a permanent bonus rather than a run.
-	window = 45,
-
-	-- How many consecutive deliveries reach the top.
-	--
-	-- Four, so the ladder is 1.00, 1.25, 1.50, 1.75, 2.00 -- the first step
-	-- is felt immediately and the top is a full minute and a half of
-	-- uninterrupted work away. A longer ladder makes the top unreachable in a
-	-- fifteen-minute session, which is most of them.
-	maxSteps = 4,
-
-	-- What each step adds to the payout multiplier. `maxSteps * payoutPerStep`
-	-- is deliberately 1.00, so a maxed spree DOUBLES what a delivery is worth
-	-- and nothing about the arithmetic has to be remembered separately.
-	--
-	-- THE SIZE OF THIS IS PAID FOR BY `RESIDENTS.pigSeconds`, which came down
-	-- from 400 to 200 in the same change: a cold thief earns 4.12x idling and
-	-- a maxed one 8.25x, which is what EVERYBODY earned before. See that
-	-- constant. Raising this without lowering that one is the two-curve
-	-- mistake, and `auditRobbery` refuses it at startup.
-	payoutPerStep = 0.25,
-
-	-- What each step takes OFF the patrol's floor, as a fraction.
-	--
-	-- THE RISK HALF, AND IT IS THE EXISTING PATROL RATHER THAN A NEW HAZARD.
-	-- `POLICE.wantedFloorSeconds` is how much a thief must have on their rap
-	-- sheet before a patrol will come for them unprovoked, in seconds of
-	-- their own income. A spree shortens it, so a thief on a run draws a
-	-- records check sooner than the same thief taking their time -- and the
-	-- rap sheet chip they are already watching turns red to say so.
-	--
-	-- At four steps the floor is 40% of its resting value, so a full spree
-	-- roughly halves the takings needed to be hunted. That is a real cost and
-	-- not a fatal one: the counter is to stop for forty-five seconds, which
-	-- is the same decision the spree is asking about from the other side.
-	floorDropPerStep = 0.15,
+-- IT IS NOT THE RAP SHEET, and the two must never be conflated. `heat` in
+-- SocialService is the sheet: everything stolen this session, only ever
+-- rising, ranking the Most Wanted board. Stars rise one per delivery, FADE
+-- while you lay low, and are wiped with the bail by an arrest.
+Config.WANTED_STARS = {
+	-- How many. Five: the chip draws them as STARS and five is still a thing
+	-- you SEE, which is where the upgrade rows already record pips stop
+	-- working. One delivery earns one.
+	max = 5,
+	-- What each star adds to the payout multiplier. `max * payoutPerStar` is
+	-- deliberately 1.00, so five stars DOUBLE a delivery and nothing about the
+	-- arithmetic has to be remembered. `auditRobbery` measures both ends.
+	payoutPerStar = 0.20,
+	-- From this many stars the patrol comes for you on EVERY pass -- and this
+	-- is the ONLY thing that sends it, since the sheet floor was retired
+	-- (designer decision 2026-09-22) -- and at `max` it is called early.
+	-- `SocialService.getPursuitTarget` and `recordSteal` own the two
+	-- consequences; this table only names them.
+	huntedFrom = 3,
+	-- How long a star lasts once you stop. One star per `fade` seconds of
+	-- quiet, expired lazily when anybody asks, so a thief who stops for two
+	-- minutes drops one star and one who stops for ten is back to none.
+	-- Measured against the robbery cycle (`robberyCycleSeconds`, about
+	-- twenty seconds door to door): working at a normal pace holds a run
+	-- with room to walk to the next lawn, and stopping to shop or wait out a
+	-- patrol loses it one star at a time rather than all at once, which is
+	-- the difference between a ladder and a cliff.
+	fade = 120,
 }
 
--- The payout multiplier at `steps` consecutive deliveries. 1.0 at zero.
-function Config.getSpreePayout(steps: number): number
-	local n = math.clamp(math.floor(steps or 0), 0, Config.SPREE.maxSteps)
-	return 1 + n * Config.SPREE.payoutPerStep
+-- The payout multiplier at `stars`. 1.0 at none.
+function Config.getStarPayout(stars: number): number
+	local n = math.clamp(math.floor(stars or 0), 0, Config.WANTED_STARS.max)
+	return 1 + n * Config.WANTED_STARS.payoutPerStar
 end
 
--- What the patrol's floor is multiplied by at `steps`. Clamped at a fifth so
--- no ladder length can ever drive it to zero -- a floor of nothing would mean
--- a single small robbery draws a patrol, which is precisely the failure the
--- floor was introduced to fix.
-function Config.getSpreeFloorScale(steps: number): number
-	local n = math.clamp(math.floor(steps or 0), 0, Config.SPREE.maxSteps)
-	return math.max(0.2, 1 - n * Config.SPREE.floorDropPerStep)
+-- How many stars are left after `quiet` seconds without a delivery.
+function Config.starsAfterQuiet(stars: number, quiet: number): number
+	local lost = math.floor(math.max(0, quiet or 0) / Config.WANTED_STARS.fade)
+	return math.max(0, math.floor(stars or 0) - lost)
 end
 
 -- ============================================================
+
 -- THE ROBBERY AUDIT
 -- ============================================================
 
@@ -14939,93 +16808,109 @@ function Config.shopVaultRunStuds(): number
 	return math.max(0, straight - Config.STEAL_RANGE - Config.DROPOFF_RADIUS)
 end
 
--- Coins an hour from cycling non-player pigs at `incomeLevel` and `rebirths`,
--- against coins an hour from doing nothing at all. Both are returned so a
--- caller can print them rather than only their quotient.
+-- Coins an hour from cycling non-player pigs at `incomeLevel` and
+-- `rebirths`, against coins an hour from standing on your own lawn. Both are
+-- returned so a caller can print them rather than only their quotient.
 --
--- A resident is seated at the AVERAGE income level of the humans in the
--- server, so a solo player robs a peer -- which is the case this measures, and
--- `pigSeconds` then cancels the rate out of the ratio entirely. THAT
--- CANCELLATION IS THE INVARIANT, and computing it the long way here rather
--- than asserting it is what lets the spread check see it break.
+-- THE TARGET IS THE CENTRE PIG (designer decision 2026-09-22, reaffirmed the
+-- same day after an hour in which it was going to be the pedestals). A
+-- resident's pig holds `RESIDENTS.pigSeconds` of its own income and a crack
+-- takes `getCrackTotal` of it, paid `HEIST_PAYOUT` times the stars; a shop
+-- vault holds `shopVaultPigSeconds` and is priced off the same take. The
+-- IDLE side is the thief's WHOLE LAWN -- `collectionRate` over `thief`,
+-- defaulting to a lawn of commons, the cheapest lawn anybody can fill --
+-- which is the re-derivation the collection had been owing since a lawn
+-- started earning: it used to be one pig, and a lawn of commons earns seven
+-- of them.
 --
--- `houses` IS THE THIRD AXIS AND LEAVING IT OUT IS WHAT HID THE WORST BUG IN
--- THIS ECONOMY. This used to assume a thief robs back to back forever, which
--- is only true while there are enough targets that the per-victim cooldown
--- never binds. Residents are seated on UNCLAIMED plots, so how many there are
--- is a function of how busy the server is -- and at a cap equal to the plot
--- count a full server has none at all.
+-- WHAT THAT MEANS FOR A RARER LAWN, stated rather than hidden: robbing a
+-- resident pays a fixed multiple of BASE income, so a thief whose own lawn
+-- is legendaries idles far more than a resident can ever pay. That is the
+-- design -- the rich thief's target is a rich PLAYER, whose bank scales with
+-- their wealth -- and the audit therefore measures the commons lawn and
+-- `robberyFigures` prints the rest.
 --
--- `shops` IS THE FOURTH, AND IT IS THE ONE THAT MAKES THE THIRD SURVIVABLE.
--- Shop vaults stand on plots nobody can claim, so their count does not move
--- with population at all -- see `Config.SHOPS`. Both default to the
--- floor, which is the worst case rather than the best one.
---
--- THE TWO CLASSES ARE AVERAGED RATHER THAN MODELLED SEPARATELY, and that is
--- an approximation with a stated direction. A shop is a smaller pig on a
--- shorter cycle and a house is a bigger pig on a longer one, so a thief
--- working the whole street earns the weighted mean of the two -- which is
--- what this computes. What it does NOT model is a thief who works ONLY the
--- shops, and that is deliberate: `SHOP_VAULT_DISCOUNT` is solved to make
--- the two rates equal, so the two strategies converge by construction and the
--- audit measuring the mean is measuring both. If that constant is ever moved
--- so the rates diverge, this function has to grow a per-class sweep and the
--- audit has to check the BETTER of the two rather than the average.
-function Config.robberyRates(incomeLevel: number, rebirths: number, spreeSteps: number?,
-	houses: number?, shops: number?): (number, number)
+-- `houses` and `shops` default to the permanent supply: the resident houses
+-- that survive a full server (`PLOT_COUNT - MAX_PLAYERS`) and every shop.
+-- Cycles are averaged over that supply, and laps an hour is whichever of the
+-- lap and the per-victim cooldown binds. The rate cancels out of the
+-- quotient at every level and rebirth -- a pig is seconds of the resident's
+-- income and idling is seconds of the thief's, and a peer has the same rate
+-- -- so the ratio is a function of the take, the payout, the stars and
+-- `pigSeconds`, and nothing else. THAT CANCELLATION IS THE INVARIANT,
+-- computed the long way here so the spread check can see it break.
+function Config.robberyRates(incomeLevel: number, rebirths: number, stars: number?,
+	houses: number?, shops: number?, thief: { string }?): (number, number)
 	local rate = Config.getIncomeRate(incomeLevel, rebirths)
-	local payout = Config.HEIST_PAYOUT * Config.getSpreePayout(spreeSteps or 0)
+	local idle = Config.collectionRate(thief or Config.fullLawn("common"), incomeLevel, rebirths)
+	local payout = Config.HEIST_PAYOUT * Config.getStarPayout(stars or 0)
 	local take = Config.getCrackTotal(0) * payout
-
 	local nHouses = houses or math.max(0, Config.PLOT_COUNT - Config.MAX_PLAYERS)
 	local nShops = shops or Config.SHOP_COUNT
 	local n = nHouses + nShops
 	if n <= 0 then
-		return 0, rate * 3600
+		return 0, idle * 3600
 	end
-
 	local houseHaul = Config.RESIDENTS.pigSeconds * rate * take
 	local shopHaul = Config.shopVaultPigSeconds() * rate * take
 	local houseCycle = Config.robberyCycleSeconds(Config.CRACK.maxSteps)
 	local shopCycle = Config.robberyCycleSeconds(Config.CRACK.maxSteps, Config.shopVaultRunStuds())
-
 	local haul = (houseHaul * nHouses + shopHaul * nShops) / n
 	local cycle = (houseCycle * nHouses + shopCycle * nShops) / n
-
-	-- HAULS AN HOUR IS WHICHEVER OF TWO LIMITS BINDS FIRST: how fast one
-	-- robbery can be performed, and how fast the same pig may be robbed
-	-- twice. With N pigs a thief completes one every `cycle`, and revisits any
-	-- given one every `N x cycle` -- so the cooldown only costs anything when
-	-- that lap is shorter than it. Zero pigs is zero income, which is the case
-	-- the old formula could not express.
 	local perHour = 3600 * math.min(1 / cycle, n / Config.RESIDENTS.stealCooldown)
-	return haul * perHour, rate * 3600
+	return haul * perHour, idle * 3600
+end
+
+-- THE FIGURES A PERSON WANTS TO SEE, in one table, for the boot line and the
+-- tests: cold and at five stars for a thief on a lawn of commons, and cold
+-- for a thief on a lawn of the top rarity -- which is the number that says
+-- residents cannot keep a rich collection fed, and is printed rather than
+-- audited because that is the design.
+function Config.robberyFigures(): { [string]: number }
+	local top, topMultiplier = "common", 1
+	for key, multiplier in pairs(Config.PIGGY_RARITY_INCOME) do
+		if multiplier > topMultiplier then
+			top, topMultiplier = key, multiplier
+		end
+	end
+	local function ratio(stars: number, lawn: { string }): number
+		local robbing, idling = Config.robberyRates(20, 0, stars, nil, nil, lawn)
+		return robbing / idling
+	end
+	local commons = Config.fullLawn("common")
+	return {
+		cycleSeconds = Config.robberyCycleSeconds(Config.CRACK.maxSteps),
+		cold = ratio(0, commons),
+		hot = ratio(Config.WANTED_STARS.max, commons),
+		coldTopLawn = ratio(0, Config.fullLawn(top)),
+	}
 end
 
 -- WARNS RATHER THAN THROWS, and returns the list so a test can assert on it
 -- instead of reading the log -- the same shape as `auditEconomy` and
 -- `auditFences`, for the same reason: a balance number may never stop the
 -- server starting.
+--
+-- WHAT IT ASKS. The floor is asked of the weakest robber this game has -- no
+-- stars, a bare sack, a lawn of commons to idle on -- because if THAT beats
+-- standing still then robbing pays for everybody. The ceiling is asked of
+-- the same thief at five stars, which is the best the commons game can be
+-- played. Both are swept over every level and rebirth, and the spread check
+-- refuses a ratio that MOVES across that sweep -- the rate has to cancel,
+-- and anything that stops it cancelling (a pig priced off capacity, a take
+-- that scales with level) shows up here as a spread rather than as a number
+-- somebody has to notice. Then the population sweep, the supply floor, the
+-- shop skew and the player cap, unchanged from before the collection.
 function Config.auditRobbery(): { string }
 	local problems = {}
 	local band = Config.ROBBERY_ADVANTAGE
 
-	-- BOTH ENDS OF THE SPREE, because they answer different questions and a
-	-- single measurement would miss one of them entirely.
-	--
-	-- COLD is a thief robbing without a run going, and it is what the FLOOR is
-	-- about: nobody should be punished for playing at their own pace. HOT is a
-	-- thief sustaining a full spree, and it is what the CEILING is about,
-	-- because that is the best this game can be played and therefore the rate
-	-- that decides whether a resident is a faucet. Measuring only one lets the
-	-- other drift with nothing to say so -- which is exactly what a spree
-	-- multiplying an unmeasured payout would have done.
-	local function sweep(steps: number): (number, string, number, string)
+	local function sweep(stars: number): (number, string, number, string)
 		local lowest, highest = math.huge, 0
 		local lowestAt, highestAt = "", ""
 		for rebirths = 0, Config.rebirthsToMax() do
 			for level = 0, Config.maxLevel(rebirths) do
-				local robbing, idling = Config.robberyRates(level, rebirths, steps)
+				local robbing, idling = Config.robberyRates(level, rebirths, stars)
 				local ratio = robbing / idling
 				local at = ("level %d rebirth %d"):format(level, rebirths)
 				if ratio < lowest then
@@ -15039,42 +16924,32 @@ function Config.auditRobbery(): { string }
 		return lowest, lowestAt, highest, highestAt
 	end
 
-	local coldLow, coldLowAt = sweep(0)
-	local _, _, hotHigh, hotHighAt = sweep(Config.SPREE.maxSteps)
-	local lowest, lowestAt, highest, highestAt = sweep(0)
+	local coldLow, coldLowAt, coldHigh, coldHighAt = sweep(0)
+	local _, _, hotHigh, hotHighAt = sweep(Config.WANTED_STARS.max)
 
 	if coldLow < band.min then
-		table.insert(problems, ("robbing with no spree returns only %.2fx idling at %s, under a floor of %.2fx: "):format(
+		table.insert(problems, ("robbing with no stars returns only %.2fx a lawn of commons at %s, under a floor of %.2fx: "):format(
 			coldLow, coldLowAt, band.min)
-			.. "standing on your own lawn is the better play there")
+			.. "standing on your own lawn is the better play there, see HEIST_PAYOUT and RESIDENTS.pigSeconds")
 	end
 	if hotHigh > band.max then
-		table.insert(problems, ("a maxed spree returns %.2fx idling at %s, over a ceiling of %.2fx: "):format(
+		table.insert(problems, ("five stars return %.2fx a lawn of commons at %s, over a ceiling of %.2fx: "):format(
 			hotHigh, hotHighAt, band.max)
-			.. "a resident is a faucet, see RESIDENTS.pigSeconds and SPREE.payoutPerStep")
+			.. "a resident is a faucet, see RESIDENTS.pigSeconds and WANTED_STARS.payoutPerStar")
 	end
 
-	-- The constancy check. Expressed as a fraction of the smaller figure so it
-	-- reads the same at level 0 as at level 40, which is the whole point of it.
-	-- Run on the COLD sweep, because the spree is a flat multiplier and cannot
-	-- introduce a curve the cold pass would not already show.
-	local drift = (highest - lowest) / lowest
+	-- The constancy check, on the cold sweep: the stars are a flat multiplier
+	-- and cannot introduce a curve the cold pass would not already show.
+	local drift = (coldHigh - coldLow) / coldLow
 	if drift > band.spread then
 		table.insert(problems, ("the advantage MOVES: %.2fx at %s up to %.2fx at %s, a spread of %.1f%% against %.1f%% allowed: "):format(
-			lowest, lowestAt, highest, highestAt, drift * 100, band.spread * 100)
-			.. "something is riding a curve again, see RESIDENTS.pigSeconds")
+			coldLow, coldLowAt, coldHigh, coldHighAt, drift * 100, band.spread * 100)
+			.. "something is riding a curve again, see RESIDENTS.pigSeconds and collectionRate")
 	end
 
-	-- THE POPULATION SWEEP, WHICH IS THE ONE THAT WAS MISSING AND THE ONE THAT
-	-- ACTUALLY BROKE. Everything above measures how the advantage moves with
-	-- LEVEL and REBIRTH. It moves with SERVER POPULATION too, and far harder,
-	-- because residents are seated on unclaimed plots -- so the supply is
-	-- `PLOT_COUNT - players online` and the old audit measured exactly one
-	-- point on that axis.
-	--
-	-- Swept at the busiest the street can be and every population under it,
-	-- because the WORST case is a FULL server rather than an empty one, which
-	-- is the opposite of what the level sweeps assume.
+	-- THE POPULATION SWEEP. The supply is a function of how busy the server
+	-- is -- residents evaporate as players claim plots -- so the figure
+	-- above is re-asked at every population, with the shops as the floor.
 	for players = 1, Config.MAX_PLAYERS do
 		local houses = math.max(0, Config.PLOT_COUNT - players)
 		local robbing, idling = Config.robberyRates(20, 0, 0, houses, Config.SHOP_COUNT)
@@ -15086,16 +16961,6 @@ function Config.auditRobbery(): { string }
 		end
 	end
 
-	-- AND THE FLOOR POPULATION MUST SATURATE, which is what makes the sweep
-	-- above come out FLAT rather than merely passing. A thief working the
-	-- fewest houses the street can ever hold should never be left waiting on a
-	-- cooldown -- if they are, the advantage falls with every extra player and
-	-- the ratio moves for the same reason `pigSeconds` exists to stop it
-	-- moving with level.
-	-- The lap at the floor. Measured on the SHOP cycle rather than the house
-	-- one, because at a full server the shops are the entire floor -- so this
-	-- is the fastest a thief can get round the fewest pigs the street ever
-	-- holds, which is exactly the case that has to clear the cooldown.
 	local floorLap = Config.RESIDENT_FLOOR
 		* Config.robberyCycleSeconds(Config.CRACK.maxSteps, Config.shopVaultRunStuds())
 	if Config.RESIDENT_FLOOR <= 0 then
@@ -15109,28 +16974,7 @@ function Config.auditRobbery(): { string }
 	end
 
 	-- A SHOP MAY PAY LESS THAN A HOUSE AND MAY NEVER PAY MORE, AND THE CHECK
-	-- IS DIRECTIONAL BECAUSE THE DESIGN IS.
-	--
-	-- The two are not the same job: a shop has no dog and a carry home about
-	-- 43% as long, so paying the same for it would make the houses pointless
-	-- the moment a player worked out which was which.
-	-- `Config.SHOP_VAULT_DISCOUNT` is that risk premium, and it is meant to
-	-- come out BELOW parity -- so a symmetric skew check would fire on the
-	-- design working correctly, which is the cry-wolf failure this file
-	-- already records for the clipping checks.
-	--
-	-- WHAT IT IS ACTUALLY GUARDING IS `robberyRates`, which models a thief
-	-- working the whole street and returns the weighted MEAN of the two
-	-- classes. A mean is only a fair summary of a strategy while the two are
-	-- close: let a shop pay more and a thief works shops exclusively, so every
-	-- figure the sweeps above print describes a strategy nobody uses. Let a
-	-- shop pay far less and the same is true from the other side -- nobody
-	-- would walk to one, and the supply floor those shops are supposed to BE
-	-- is fictional.
-	--
-	-- The floor case is the sharp one and it is already covered above: at a
-	-- full server the shops are the entire supply, so a shop too cheap fails
-	-- `ROBBERY_ADVANTAGE.min` in the population sweep before it fails here.
+	-- IS DIRECTIONAL BECAUSE THE DESIGN IS. See `SHOP_VAULT_DISCOUNT`.
 	do
 		local houseRate = Config.RESIDENTS.pigSeconds
 			/ Config.robberyCycleSeconds(Config.CRACK.maxSteps)
@@ -15166,204 +17010,8 @@ function Config.stealCooldownFor(isResident: boolean): number
 end
 
 
--- THE ACORN FAUCET MODEL, re-derived for step 2.6 (MASTER-PLAN 19.2-19.3).
--- Capacity/throughput ceilings, not measured play rates. Outside an
--- acorn-theft event there are exactly two sources: a player's OWN tree, and
--- the pig-crack acorn minted for a clean five-slice crack of another
--- player's pig. Residents are nobody's faucet, storage is a bank, and the
--- Harvest Moon's shaken acorns are an event bonus left out of the steady
--- rate on purpose.
 local function finite(value: any): boolean
 	return type(value) == "number" and value == value and math.abs(value) < math.huge
-end
-
-function Config.acornRates(players: number): any
-	local a, model = Config.ACORNS, Config.ACORN_AUDIT
-	local growth = 3600 / a.growSeconds
-	-- The most clean cracks one victim can suffer in an hour, at a BARE sack
-	-- (the smallest crack, so the most of them fit): LOSS_CAP is per victim,
-	-- so whoever is robbing them shares this.
-	local cleanPerVictim = math.floor(Config.LOSS_CAP.fraction
-		/ Config.getCrackFraction(Config.CRACK.maxSteps, 0) * 3600 / Config.LOSS_CAP.window)
-	-- n players are n victims shared by n thieves, so one thief's ceiling is
-	-- one victim's budget. Solo there is nobody to crack.
-	local crack = if players > 1 then cleanPerVictim * Config.crackAcorns(true, true, false) else 0
-	local hourly = growth + crack
-	local passive = a.growCap
-	local active = a.growCap + model.activeHours * hourly
-	-- The best a tree can do (step 2.7): the top rung with the full online
-	-- rebirth bonus. Reported beside the base, never used by the floors
-	-- above, which are about a player who has bought nothing.
-	local top = Config.treeGrowthPerHour(#Config.TREE_LEVELS - 1, math.huge, true)
-	return { players = players, residents = Config.PLOT_COUNT - players,
-		treePerHour = growth, treeTopPerHour = top, crackPerHour = crack, cleanPerVictimHour = cleanPerVictim,
-		perThiefPerHour = hourly, passiveDaily = passive, activeDaily = active,
-		activeRatio = active / passive,
-		initialResidentSupply = (Config.PLOT_COUNT - players) * (a.resident.seedRipe + a.resident.seedStored),
-		commonMinutes = Config.CHESTS.og.cost / hourly * 60,
-		legendaryHours = Config.CHESTS.oglegendary.cost / hourly }
-end
-
-function Config.auditAcorns(): { string }
-	local problems = {}
-	local function fail(code: string, detail: string) table.insert(problems, "[" .. code .. "] " .. detail) end
-	local a, model = Config.ACORNS, Config.ACORN_AUDIT
-	if type(a) ~= "table" or type(model) ~= "table" or type(a.payout) ~= "table" or type(a.resident) ~= "table" then
-		fail("acorn.config", "missing tree/model/payout/resident configuration");return problems
-	end
-	-- STORAGE RAIDS ARE RETIRED (step 2.6). Any of their tunables coming back
-	-- is a raid coming back, with nothing else in the log to say so.
-	for _, key in ipairs({ "share", "lossCap", "lossWindow" }) do
-		if a[key] ~= nil then fail("acorn.retiredRaid", "ACORNS." .. key .. " belonged to storage raids, which are retired") end
-	end
-	if a.resident.raidSeconds ~= nil then
-		fail("acorn.retiredRaid", "ACORNS.resident.raidSeconds belonged to storage raids, which are retired")
-	end
-	local invalid = false
-	for key, value in pairs({ growCap = a.growCap or false, growSeconds = a.growSeconds or false,
-		plots = Config.PLOT_COUNT or false, players = Config.MAX_PLAYERS or false,
-		activeHours = model.activeHours or false, resident = a.payout.resident or false,
-		player = a.payout.player or false, offline = Config.OFFLINE_CAP_SECONDS or false }) do
-		if not finite(value) or value <= 0 then fail("acorn.number", key .. " must be finite and positive");invalid = true end
-	end
-	for _, key in ipairs({ "minPopulationRatio", "maxCrackRatio" }) do
-		if not finite(model[key]) or model[key] <= 0 then
-			fail("acorn.model", key .. " must be finite and positive");invalid = true
-		end
-	end
-	for _, key in ipairs({ "perRebirthAbove", "revenge" }) do
-		local value = a.payout[key]
-		if not finite(value) or value < (if key == "revenge" then 1 else 0) then
-			fail("acorn.multiplier", key .. " is invalid");invalid = true
-		end
-	end
-	for _, key in ipairs({"seedRipe", "seedStored"}) do
-		local value = a.resident[key]
-		if not finite(value) or value < 0 or value % 1 ~= 0 then
-			fail("acorn.resident", key .. " must be a non-negative whole count"); invalid = true
-		end
-	end
-	if not finite(a.resident.harvestSeconds) or a.resident.harvestSeconds <= 0 then
-		fail("acorn.resident", "harvestSeconds must be finite and positive"); invalid = true
-	end
-	-- THE PIG-CRACK ACORN: a whole, positive count on a clean player crack,
-	-- at least as much again on revenge, and NOTHING on a resident, a shop
-	-- (its target is a resident) or fewer than five slices.
-	for _, key in ipairs({ "crack", "crackRevenge" }) do
-		local value = a.payout[key]
-		if not finite(value) or value < 1 or value % 1 ~= 0 then
-			fail("acorn.crack", key .. " must be a whole count of at least one"); invalid = true
-		end
-	end
-	if invalid then return problems end
-	if a.payout.crackRevenge < a.payout.crack then
-		fail("acorn.crack", "a revenge crack must mint at least what a plain one does")
-	end
-	if Config.crackAcorns(false, true, false) ~= 0 or Config.crackAcorns(true, false, false) ~= 0
-		or Config.crackAcorns(true, false, true) ~= 0 then
-		fail("acorn.crackGate", "no acorn is credited on a resident, a shop, or fewer than five slices")
-	end
-	if a.resident.seedRipe + a.resident.seedStored > a.growCap then
-		fail("acorn.resident", "initial resident supply must not exceed one full tree")
-	end
-	if Config.MAX_PLAYERS > Config.PLOT_COUNT or Config.MAX_PLAYERS % 1 ~= 0 or Config.PLOT_COUNT % 1 ~= 0 then
-		fail("acorn.population", "player/plot counts must be whole and players cannot exceed plots");return problems
-	end
-	if a.growCap % 1 ~= 0 then fail("acorn.whole", "a tree holds a whole number of Acorns") end
-	if math.abs(a.growSeconds * a.growCap - Config.OFFLINE_CAP_SECONDS) > 0.001 then
-		fail("acorn.growth", "a full tree must take one offline window to grow")
-	end
-
-	-- THE TREE LADDER (step 2.7). Level 0 is the base tree; rates only climb;
-	-- every rung above 0 is priced; the gate never unlocks a level that does
-	-- not exist, never lowers the cap below today's, and only ever loosens
-	-- as the house gets rarer -- so a better house can never cost a tree.
-	local levels = Config.TREE_LEVELS
-	if type(levels) ~= "table" or #levels < 1 then
-		fail("tree.levels", "TREE_LEVELS must list at least the base tree"); return problems
-	end
-	if math.abs(levels[1].rate * a.growSeconds - 3600) > 0.001 or levels[1].cost ~= nil then
-		fail("tree.base", "level 0 must be the unpriced base tree at ACORNS.growSeconds")
-	end
-	for index = 2, #levels do
-		local row, below = levels[index], levels[index - 1]
-		if not finite(row.rate) or row.rate <= below.rate then
-			fail("tree.rate", ("level %d must grow faster than level %d"):format(index - 1, index - 2))
-		end
-		if not finite(row.cost) or row.cost <= 0 or (below.cost and row.cost < below.cost) then
-			fail("tree.cost", ("level %d needs a positive price no cheaper than the rung below"):format(index - 1))
-		end
-		if not finite(row.scaleXZ) or not finite(row.scaleY) or row.scaleXZ < below.scaleXZ or row.scaleY < below.scaleY then
-			fail("tree.scale", ("level %d must not shrink the oak"):format(index - 1))
-		end
-	end
-	local lastMax, lastCap = -1, 0
-	for _, rarity in ipairs(Config.RARITY_ORDER) do
-		local gate = Config.TREE_HOUSE_GATE[rarity]
-		if type(gate) ~= "table" or not finite(gate.maxLevel) or not finite(gate.cap) then
-			fail("tree.gate", rarity .. " needs a maxLevel and a cap")
-		else
-			if gate.maxLevel < lastMax or gate.cap < lastCap then
-				fail("tree.gate", rarity .. " must not gate or hold less than a commoner rarity")
-			end
-			if gate.maxLevel > #levels - 1 or gate.maxLevel < 0 or gate.maxLevel % 1 ~= 0 then
-				fail("tree.gate", rarity .. " unlocks a tree level that does not exist")
-			end
-			if gate.cap % 1 ~= 0 or gate.cap < a.growCap then
-				fail("tree.gate", rarity .. " must hold a whole number of acorns, at least ACORNS.growCap")
-			end
-			lastMax, lastCap = gate.maxLevel, gate.cap
-		end
-	end
-	if Config.TREE_HOUSE_GATE.common and Config.TREE_HOUSE_GATE.common.cap ~= a.growCap then
-		fail("tree.gate", "a Common house must hold exactly today's cap, so nothing moves for anybody")
-	end
-	local bonus = Config.TREE_REBIRTH_BONUS
-	if type(bonus) ~= "table" or not finite(bonus.perRebirth) or not finite(bonus.max)
-		or bonus.perRebirth < 0 or bonus.max < 0 then
-		fail("tree.rebirth", "TREE_REBIRTH_BONUS needs a non-negative perRebirth and max")
-	elseif Config.treeRebirthFactor(1000, false) ~= 1 then
-		fail("tree.rebirth", "the rebirth growth bonus must never apply offline")
-	end
-	for _, key in ipairs({ "og", "oglegendary" }) do
-		local chest = Config.CHESTS[key]
-		if not chest or not finite(chest.cost) or chest.cost <= 0 then
-			fail("acorn.price", key .. " must have a finite positive price");return problems
-		end
-	end
-	local solo, full = Config.acornRates(1), Config.acornRates(Config.MAX_PLAYERS)
-	if full.perThiefPerHour < solo.perThiefPerHour * model.minPopulationRatio then
-		fail("acorn.populationFloor", ("solo %.2f / full %.2f Acorns per player-hour; full must be at least %.0f%% of solo")
-			:format(solo.perThiefPerHour, full.perThiefPerHour, model.minPopulationRatio * 100))
-	end
-	-- THE TREE IS THE SPINE. The pig-crack acorn is the reason to rob a
-	-- person, and it may never out-earn the thing on your own lawn by more
-	-- than `maxCrackRatio`.
-	if full.crackPerHour > full.treePerHour * model.maxCrackRatio then
-		fail("acorn.crackCeiling", ("the pig-crack faucet pays %.2f an hour against a tree's %.2f; the ceiling is %.1fx")
-			:format(full.crackPerHour, full.treePerHour, model.maxCrackRatio))
-	end
-	-- ACORN THEFT IS DISABLED (designer, September 16): no event may open
-	-- another player's tree. Acorns are the timer currency; coins carry the
-	-- risk. Re-enabling it is a decision, and this is where it gets made.
-	for key, spec in pairs(Config.EVENTS.roster) do
-		if spec.acornTheft then
-			fail("theft.disabled", key .. " opens acorn theft, which is switched off")
-		end
-	end
-	-- MIDNIGHT HEIST may double the pig-crack acorn and no more: it is an
-	-- existing faucet made louder for three minutes, never a new one.
-	local mid = Config.MIDNIGHT
-	if type(mid) ~= "table" or not finite(mid.acornMultiplier) or mid.acornMultiplier < 1
-		or mid.acornMultiplier > 2 or mid.acornMultiplier % 1 ~= 0 then
-		fail("midnight.acorns", "MIDNIGHT.acornMultiplier must be a whole 1 or 2")
-	end
-	-- Retired faucets must not be silently reintroduced into configuration.
-	if Config.LOOT ~= nil then fail("acorn.legacyFaucet", "Config.LOOT is retired; events award no Acorns and a pig delivery pays only through Config.crackAcorns") end
-	for _, key in ipairs({ "spree", "boost", "income" }) do
-		if a.payout[key] ~= nil then fail("acorn.coinMultiplier", key .. " must not multiply Acorns") end
-	end
-	return problems
 end
 
 -- Random outcomes: inspect authored tags AND actual pools (including mixed
@@ -15372,9 +17020,14 @@ function Config.auditRandomOutcomes(): { string }
 	local problems = {}
 	local function fail(code: string, detail: string) table.insert(problems, "[" .. code .. "] " .. detail) end
 	for key, chest in pairs(Config.CHESTS) do
-		if chest.currency ~= "loot" then fail("random.currency", key .. " must cost earned Acorns") end
-		if not finite(chest.cost) or chest.cost <= 0 or chest.cost % 1 ~= 0 then
-			fail("random.price", key .. " needs a finite positive whole-Acorn price")
+		-- THE CHECK IS INVERTED FROM WHAT IT USED TO BE, and it guards a
+		-- stricter rule than the one it replaced. A crate used to have to
+		-- carry an earned-currency price; now it must carry NO price at all.
+		-- A `cost` here is what would put the whole catalogue inside Roblox's
+		-- paid random item rule the day anything can be bought, which is the
+		-- one regression nothing else in this file would notice.
+		if chest.currency ~= nil or chest.cost ~= nil then
+			fail("random.price", key .. " is priced: a crate is earned, never bought")
 		end
 		local ok, pool = pcall(Config.chestPool, key)
 		if not ok then
@@ -15454,15 +17107,1573 @@ function Config.auditRandomOutcomes(): { string }
 			if not Config.CHESTS[key] then fail("random.crateSection", section.name .. " lists a missing crate: " .. key) end
 		end
 	end
-	local pack = Config.COIN_PACK
-	if type(pack) ~= "table" or not finite(pack.productId) or pack.productId < 0 or pack.productId % 1 ~= 0 then
-		fail("random.coinPackId", "COIN_PACK.productId must be zero (disabled) or a whole positive id")
-	elseif pack.productId > 0 then
-		-- Rebirth's actual service calls grantFree: it rolls, as explicitly
-		-- requested by the designer. Never invent a flag claiming otherwise.
-		fail("random.paidRebirth", "a live coin-pack product would fund the random rebirth crate; keep the pack disabled")
+	-- `COIN_PACK` WENT WITH THE ACORN TRACK, and so did the check that lived
+	-- here: it refused a live coin-pack product on the grounds that
+	-- purchasable coins would fund the random rebirth crate. No crate costs
+	-- coins now, or any other in-game currency -- the `random.price` sweep at
+	-- the top of this function is what guards that, and it is the stricter
+	-- rule. Selling coins for Robux would still break the whole shop for the
+	-- reason CLAUDE.md gives; it just is not this audit's question.
+	return problems
+end
+
+-- ============================================================
+-- INDOOR CAPACITY: THE HALLWAY LADDER
+-- ============================================================
+--
+-- Every house interior is the same fixed-size, fixed-layout hallway --
+-- `Shared/HouseInterior` builds it, and what a house purchase buys in there
+-- is the DRESSING and never the space (docs/PIGGY-COLLECTION-PLAN.md section
+-- 6, rewritten 2026-09-20). Capacity is a separate axis and it comes from
+-- REBIRTHS, which is what this block is.
+--
+-- ONE PACING DIAL, AND EVERYTHING ELSE IS DERIVED FROM IT. `plotsPerRebirth`
+-- decides how fast a collection grows; `plotsPerSide` decides how big a room
+-- is; and the room cadence -- which rebirth opens which door -- is NOT a
+-- table, it is `indoorRooms`. This project has a dozen post-mortems about two
+-- tables that can disagree, and the newest is `RARITY_ORDER` against
+-- `PIGGY_RARITY_INCOME`: one ladder described twice, where a tier could sit
+-- on the first with no row in the second and earn exactly like a common with
+-- nothing in any log. A door schedule beside a plot schedule would be that
+-- again, with a locked corridor as the symptom.
+--
+-- WHY IT IS 2.5 AND NOT 2 OR 3 (designer, 2026-09-21: "a rebirth unlocks two
+-- to three plots, not a whole room"). A fraction is what makes ONE dial
+-- produce both numbers: the grant is `floor(r * k) - floor((r-1) * k)`, which
+-- at 2.5 alternates 2, 3, 2, 3 for the whole ladder, and the cumulative total
+-- is a plain `floor(r * k)` that cannot drift from it. Pinning a per-rebirth
+-- table of twos and threes instead would be the second table this block
+-- exists to avoid.
+--
+-- WHERE IT LANDS. `startPlots` 6 plus 50 over twenty rebirths is 56 plots
+-- across 10 rooms, inside the 40-60 the plan asks for. Rebirth one takes the
+-- capacity past the first room, so the first rebirth opens the first door --
+-- which is the beat the whole axis is sold on.
+--
+-- IT STOPS AT `rebirthsToMax`, DELIBERATELY. Rebirths past 20 still pay an
+-- income multiplier, so an uncapped ladder would keep asking for corridor
+-- nobody has built. Read the ceiling through `indoorPlotCeiling` and never
+-- from a constant: the builder sizes the hallway from it and the audit checks
+-- it, so both ends agree by construction. Same argument as `Config.maxLevel`.
+Config.INDOOR = {
+	-- The room you walk into before you have rebirthed at all. Exactly one
+	-- room's worth, so a new player's hallway is a room rather than a corridor
+	-- with a shut door four studs in.
+	startPlots = 6,
+	-- THE DIAL. See above for why it is a fraction.
+	plotsPerRebirth = 2.5,
+	-- Plots down each side of a room. `INDOOR_ROOM_PLOTS` is derived from it,
+	-- so a wider room is one edit and not two.
+	plotsPerSide = 3,
+	-- WHAT THE AUDIT REFUSES. Neither is a source -- both are guards on the
+	-- dial above, so that a hand edit to `plotsPerRebirth` says so at boot
+	-- instead of quietly tripling the game's storage. `grantBand` is the
+	-- designer's sentence stated as a number; `totalBand` is the plan's.
+	grantBand = { min = 2, max = 3 },
+	totalBand = { min = 40, max = 60 },
+}
+
+-- Read through this rather than multiplying `plotsPerSide` at call sites, for
+-- the reason `PIGGY_LAWN_SLOT_COUNT` exists: the room size is one number and
+-- the geometry, the ladder and the audit all have to be reading the same one.
+Config.INDOOR_ROOM_PLOTS = Config.INDOOR.plotsPerSide * 2
+
+-- How many indoor plots a save at this many rebirths has standing.
+function Config.indoorPlots(rebirths: number?): number
+	local r = math.max(0, math.floor(tonumber(rebirths) or 0))
+	r = math.min(r, Config.rebirthsToMax())
+	return Config.INDOOR.startPlots + math.floor(r * Config.INDOOR.plotsPerRebirth)
+end
+
+-- How many rooms that capacity reaches into, which IS the door schedule: the
+-- door in front of room N is open when this returns N or more.
+--
+-- A DOOR OPENS WHEN THERE IS SOMEWHERE TO STAND PAST IT, never when the room
+-- behind it is exactly full. The two readings differ by one door: at a
+-- capacity of exactly six, room one is full and room two holds nothing, so
+-- the second reading frames six locked plots and promises something that is
+-- not there. An absence a new player cannot read is the failure the rob badge
+-- had to be reversed to fix.
+function Config.indoorRooms(plots: number?): number
+	local p = math.max(0, math.floor(tonumber(plots) or 0))
+	return math.max(1, math.ceil(p / Config.INDOOR_ROOM_PLOTS))
+end
+
+-- The most plots this game will ever ask a hallway to hold, and the rooms
+-- they stand in. The builder sizes the corridor off these.
+function Config.indoorPlotCeiling(): number
+	return Config.indoorPlots(Config.rebirthsToMax())
+end
+
+function Config.indoorRoomCeiling(): number
+	return Config.indoorRooms(Config.indoorPlotCeiling())
+end
+
+-- How many plots stand in room `room`, 1-based. The last room takes the
+-- remainder and is BUILT SHORT rather than built full and half locked: a plot
+-- that can never unlock, at the rebirth ceiling, behind an open door, is the
+-- game advertising something that does not exist.
+function Config.indoorPlotsInRoom(room: number): number
+	local per = Config.INDOOR_ROOM_PLOTS
+	local left = Config.indoorPlotCeiling() - (math.max(1, math.floor(room)) - 1) * per
+	return math.clamp(left, 0, per)
+end
+
+-- THE REBIRTH COUNT A DOOR OPENS AT, which is what the door itself prints.
+-- The reference art puts "Need 2 Rebirths" on the locked door, and a door
+-- that says what unlocks it has to say the ladder's own number: this walks
+-- `indoorPlots` rather than carrying a second table of thresholds, so the
+-- text on the door and the door actually opening cannot disagree. nil for a
+-- room no rebirth reaches, which is a room the hallway does not build.
+function Config.indoorDoorRebirths(room: number): number?
+	local want = math.max(1, math.floor(room))
+	for rebirths = 0, Config.rebirthsToMax() do
+		if Config.indoorRooms(Config.indoorPlots(rebirths)) >= want then
+			return rebirths
+		end
+	end
+	return nil
+end
+
+-- IS THE LADDER STILL A LADDER? The plan asks for this by name: refuse to
+-- boot clean if the plot count per rebirth tier is not strictly increasing.
+--
+-- It is cheap and it is not redundant. Every failure it can report is a
+-- NUMBER -- nothing errors, the hallway builds, and what comes out is a
+-- rebirth that opens nothing, or a corridor three times longer than anybody
+-- intended, or a ceiling that overflows the rooms built to hold it. That is
+-- the same argument `auditEconomy` and `auditFences` make, and the moment to
+-- hear about a number is while you are typing it.
+function Config.auditIndoor(): { string }
+	local problems = {}
+	local function fail(message: string)
+		table.insert(problems, message)
+	end
+
+	local indoor = Config.INDOOR
+	if indoor.plotsPerSide < 1 or indoor.plotsPerSide % 1 ~= 0 then
+		fail("[indoor.room] plotsPerSide must be a whole number of plots, got "
+			.. tostring(indoor.plotsPerSide))
+	end
+	if Config.INDOOR_ROOM_PLOTS ~= indoor.plotsPerSide * 2 then
+		fail("[indoor.room] INDOOR_ROOM_PLOTS disagrees with the plotsPerSide it is derived from")
+	end
+
+	-- STRICTLY INCREASING, WHICH IS THE ONE THE PLAN ASKS FOR. A rebirth that
+	-- opens no plot is a rebirth with nothing to show for it in the one system
+	-- rebirth is now the gate on.
+	local last = -1
+	for rebirths = 0, Config.rebirthsToMax() do
+		local here = Config.indoorPlots(rebirths)
+		if rebirths > 0 then
+			if here <= last then
+				fail(("[indoor.ladder] rebirth %d opens no new plot: %d against %d")
+					:format(rebirths, here, last))
+			else
+				local grant = here - last
+				if grant < indoor.grantBand.min or grant > indoor.grantBand.max then
+					fail(("[indoor.grant] rebirth %d opens %d plots, outside the %d-%d band")
+						:format(rebirths, grant, indoor.grantBand.min, indoor.grantBand.max))
+				end
+			end
+		end
+		last = here
+	end
+
+	local ceiling = Config.indoorPlotCeiling()
+	if ceiling < indoor.totalBand.min or ceiling > indoor.totalBand.max then
+		fail(("[indoor.total] the hallway ends up holding %d plots, outside the designed %d-%d")
+			:format(ceiling, indoor.totalBand.min, indoor.totalBand.max))
+	end
+
+	-- THE ROOMS HAVE TO HOLD THE CEILING, and the per-room counts have to add
+	-- up to it. Trivially true while both come out of `ceil`, and that is the
+	-- point: the day one of them stops being derived, this is what says so
+	-- rather than a corridor with two plots hanging off the end of it.
+	local rooms = Config.indoorRoomCeiling()
+	if rooms * Config.INDOOR_ROOM_PLOTS < ceiling then
+		fail(("[indoor.rooms] %d rooms of %d cannot hold %d plots")
+			:format(rooms, Config.INDOOR_ROOM_PLOTS, ceiling))
+	end
+	local summed = 0
+	local lastGate = -1
+	for room = 1, rooms do
+		summed += Config.indoorPlotsInRoom(room)
+		-- EVERY BUILT ROOM HAS A REBIRTH THAT OPENS IT, AND THE GATES CLIMB.
+		-- A door printing a count no rebirth reaches is a door that says
+		-- "Need 7 Rebirths" over a room that opened at six.
+		local gate = Config.indoorDoorRebirths(room)
+		if gate == nil then
+			fail(("[indoor.door] room %d is built but no rebirth ever opens it"):format(room))
+		elseif gate < lastGate then
+			fail(("[indoor.door] room %d opens at rebirth %d, before the room in front of it"):format(room, gate))
+		else
+			lastGate = gate
+		end
+	end
+	if summed ~= ceiling then
+		fail(("[indoor.rooms] the rooms add up to %d plots against a ceiling of %d")
+			:format(summed, ceiling))
+	end
+
+	return problems
+end
+
+
+-- ============================================================
+-- THE FRONT DOOR: CROSSING BETWEEN A LAWN AND A HALLWAY
+-- ============================================================
+--
+-- An interior is a DETACHED room standing off the map, not a room inside the
+-- house model, so walking through a front door is a TELEPORT with a mask over
+-- it (docs/PIGGY-COLLECTION-BUILD-ORDER.md Stage 4). What lives here is the
+-- geometry of the decision -- where the plane is, how wide a doorway counts
+-- as, and how long the screen stays covered -- because both ends read it:
+-- `InteriorService` decides the crossing and `Shared/DoorMask` draws the
+-- cover, and a mask timed from a second copy of these numbers would fade off
+-- either side of the move it exists to hide.
+--
+-- WHERE THE ANCHOR COMES FROM, AND IT IS AUTHORED RATHER THAN GUESSED. Every
+-- one of the eighteen house templates ships a `Mount_Door_Exit` marker, and
+-- measured across all eighteen it is the same object every time: identity
+-- rotation, on the doorway's own centre line to the millistud, and exactly
+-- 0.92 studs outside the line the two door leaves hang on. So the anchor is
+-- read off the art rather than derived from a bounding box, and its +Z is
+-- OUTWARD -- toward the street, because `House.build` only ever TRANSLATES a
+-- template and plot-local +Z is the street on both rows.
+--
+-- A code-built house carries no mount, so its `Door` part is put back onto
+-- the same convention with `mountStandoff` below. One anchor shape, two
+-- sources, and nothing downstream has to know which it got.
+Config.HOUSE_DOOR = {
+	-- HOW FAR INSIDE THE ANCHOR THE CROSSING PLANE STANDS. The mount is 0.92
+	-- studs outside the leaves on every template, so 1.6 puts the plane 0.68
+	-- studs INSIDE the leaf line: the crossing fires with the doorway around
+	-- you rather than a stud short of it, which is what makes the mask read
+	-- as walking through rather than as bouncing off.
+	inset = 1.6,
+
+	-- WHAT A CODE-BUILT DOOR'S ANCHOR IS PUSHED OUT BY, so it lands on the
+	-- authored convention rather than on its own. Measured, not chosen: all
+	-- eighteen templates stand their mount this far outside the leaf line.
+	mountStandoff = 0.92,
+
+	-- HALF THE DOORWAY, WHEN THERE IS NOTHING TO MEASURE. A template carries
+	-- `HouseDoorHinge_L`/`_R` and the service takes the real half-separation
+	-- from them; this is the fallback for a house that has neither.
+	--
+	-- IT IS THE NARROWEST DOORWAY IN THE CATALOGUE AND NOT THE AVERAGE.
+	-- Measured, the eighteen run 5.70 (treehouse, shack, townhouse) to 8.99
+	-- (crystal) hinge to hinge. A fallback WIDER than the real doorway would
+	-- fire a crossing on somebody walking past the front wall; one narrower
+	-- only ever refuses somebody hugging a jamb, and they can step across.
+	-- Fail toward the refusal.
+	halfWidth = 2.85,
+
+	-- THE BAND ABOVE AND BELOW THE THRESHOLD A CROSSING COUNTS IN, AND IT IS
+	-- MEASURED AGAINST A ROOT RATHER THAN A PAIR OF FEET. The mover is tested
+	-- by its `HumanoidRootPart`, which stands about three studs above whatever
+	-- it is standing on -- so a headroom under three would make a door that
+	-- can never be walked through, with nothing erroring. `auditHouseDoor`
+	-- refuses that outright, because it is a number and the moment to hear
+	-- about a number is while you are typing it.
+	--
+	-- What the band is FOR is the Treehouse, whose door is fourteen studs up
+	-- its trunk: somebody walking underneath it at ground level is eleven
+	-- studs below the threshold and must not be teleported into a hallway.
+	headroom = 8.0,
+	underfoot = 2.0,
+
+	-- THE PLANE INSIDE THE HALLWAY, measured from its threshold down the
+	-- corridor.
+	--
+	-- IT CANNOT BE ZERO, and that is the one number in here that a plausible
+	-- reading gets wrong. The hallway's end wall is SOLID and has no opening
+	-- in it -- deliberately, an open end is a player walking out of the world
+	-- -- so a plane on the threshold itself is a plane no character can ever
+	-- reach: their own collision hull stops the root well short of a wall.
+	-- Three studs is inside the lobby, comfortably reachable, and still three
+	-- clear of `HouseInterior`'s own arrival spot so that arriving cannot
+	-- immediately leave again. `InteriorService.start` asserts that second
+	-- half against the real builder rather than trusting this comment.
+	exitReach = 3.0,
+
+	-- ONE CROSSING PER MOVER PER THIS LONG. Not a debounce on a `Touched`
+	-- handler -- there is no `Touched` here, the crossing is a swept segment
+	-- polled on the server -- but the same job: an arrival stands you inside
+	-- another gate's reach, and without this the pair would hand you back and
+	-- forth. Longer than the whole mask, so a second crossing can never start
+	-- while the first one's cover is still on screen.
+	cooldown = 1.5,
+
+	-- A SEGMENT LONGER THAN THIS WAS A TELEPORT, NOT A WALK, and it is
+	-- ignored. The fastest thing in this game is a Volt Scrambler at 33.6
+	-- studs a second and a ride is switched off anywhere but the street, so on
+	-- a lawn the ceiling is a dodge at roughly 40 -- two studs at this poll
+	-- rate. Forty studs is twenty times that, so it can only be an arrest
+	-- release, a respawn or a door. Without it the very next tick after any
+	-- teleport tests a segment that spans the map and can pierce anything.
+	--
+	-- A RATIO OF `BASE_WALK_SPEED` (2.5 of it: 40 at a base of 16), because
+	-- it is a speed threshold in everything but its unit -- `auditHouseDoor`
+	-- and `tests/luau/doors.luau` both hold it above twice the walk, and a
+	-- pinned 40 sat exactly on that line the day the base went to 20.
+	maxStep = Config.BASE_WALK_SPEED * 2.5, -- was 40 at a base of 16
+
+	-- HOW OFTEN THE SWEEP RUNS. The test is a segment rather than a point, so
+	-- this is LATENCY and never correctness: nothing can be missed by moving
+	-- too fast, it can only be noticed up to one tick late. At twenty a second
+	-- a walking player is about eight tenths of a stud past the plane when the
+	-- mask lands, which the mask covers.
+	tickRate = 20,
+
+	-- THE MASK, AND ITS SHAPE IS THE ARREST SCENE'S. Cover first, move under
+	-- the cover, then reveal on the far side -- the same trick
+	-- `PoliceService.releaseHome` uses when it puts a thief back at their own
+	-- gate while the mugshot card is still opaque.
+	--
+	-- `lead` is the only one the SERVER reads: it fires the remote, waits, and
+	-- then teleports. It is short because the crossing is already latched when
+	-- it starts, so nothing a player does during it can change the outcome --
+	-- all it buys is that the cover is on screen first.
+	maskLead = 0.12,
+	maskHold = 0.25,
+	maskFade = 0.45,
+
+	-- ONLY THE PLOT'S OWNER CROSSES, FOR NOW. Section 6 puts the collection
+	-- behind the door/fence/lock gate rather than open to the street, and the
+	-- robbery side of that is a later stage's decision -- so a neighbour or a
+	-- resident's door does nothing at all rather than doing something nobody
+	-- has priced. One word to open up when it is.
+	ownerOnly = true,
+}
+
+-- WHERE THE HALLWAYS STAND. Off the map entirely, laid out in a row along Z.
+--
+-- SIDEWAYS RATHER THAN UP, and that is the load-bearing half. Every rectangle
+-- test in this game -- `isOnStreet`, `yardContaining`, the dog's clamp -- is a
+-- test on X and Z and takes no notice of height, so a hallway stacked over the
+-- street would be ON the street: a player could mount a ride in a corridor and
+-- a thief standing in one would be inside somebody's yard. Four thousand studs
+-- out, nothing matches any of them.
+--
+-- THE PITCH IS NOT HERE, because it is `HouseInterior.footprint()` plus the gap
+-- and Config may not require a builder. It is solved in `InteriorService`,
+-- where both terms exist. A pinned pitch is the failure this project has
+-- written up twice -- `SHOP_BANK_PIG_SECONDS` wrong by 62% on its first audited
+-- boot -- and here it would put two hallways through each other with nothing in
+-- any log.
+Config.INDOOR_ESTATE = {
+	x = 4000,
+	z = -2000,
+	-- Clear air between one hallway and the next. Generous because it costs
+	-- nothing: there is no ground out here to run out of.
+	gap = 80,
+}
+
+--[[
+	DID THIS STEP CROSS A DOORWAY, GOING IN?
+
+	`from` and `to` are the mover's root at the two ends of one tick, expressed
+	in the GATE'S OWN FRAME: +Z is the side you come from, X runs across the
+	opening and Y is up, with the threshold at Y = 0.
+
+	ONE FUNCTION FOR BOTH DIRECTIONS, and that is what the gate frame is for.
+	The way in and the way out are geometrically the same event seen from two
+	rooms, so `InteriorService` builds a frame for each and this never learns
+	which is which. Two near-identical crossing tests is the duplicate this
+	project keeps recording -- the kennel's two `Roof` parts, `Crates.luau`'s
+	second copy of the rarity ladder -- and one of them would go stale.
+
+	A SEGMENT AND NOT A POINT. A point test inside the doorway can be stepped
+	over at speed, and no poll rate fixes that; a segment cannot be, at any
+	speed, so the tick rate above is latency rather than correctness.
+
+	It is plain arithmetic on three numbers so that it is testable with no
+	engine at all -- the CFrame work that produces `from` and `to` is the half
+	that needs one.
+]]
+function Config.crossedDoorway(from: any, to: any, spec: any): boolean
+	-- A REAL Vector3 IS type() "vector", NOT "table". The offline runner stubs
+	-- Vector3.new as a plain table, so a guard written against the stub passed
+	-- 61 checks and a full walkthrough and then refused EVERY crossing in the
+	-- engine -- the door never fired for anybody. Accept both representations;
+	-- the shape test below (.X/.Y/.Z) is what actually matters.
+	local function isPoint(v: any): boolean
+		local t = type(v)
+		return t == "vector" or t == "table" or t == "userdata"
+	end
+	if not isPoint(from) or not isPoint(to) or type(spec) ~= "table" then
+		return false
+	end
+	local z0, z1 = from.Z, to.Z
+	-- Outside to inside, and never the other way: a gate is one-way by
+	-- construction, so the pair of them cannot fight over one step.
+	if z0 <= 0 or z1 > 0 then
+		return false
+	end
+	-- Where the step pierces the plane, rather than where either end of it
+	-- happened to be. Somebody running diagonally past a jamb is inside the
+	-- opening at one end of the tick and beyond it at the other.
+	local t = z0 / (z0 - z1)
+	local x = from.X + (to.X - from.X) * t
+	local y = from.Y + (to.Y - from.Y) * t
+	local half = tonumber(spec.halfWidth) or 0
+	-- A DOORWAY WITH NO OPENING IS NOT A DOORWAY. Without this a spec whose
+	-- width never got filled in still admits a crossing dead on the centre
+	-- line, which is a door that works from exactly one pixel -- the shape of
+	-- bug nobody reports, they just decide the door is broken.
+	if half <= 0 then
+		return false
+	end
+	return math.abs(x) <= half
+		and y >= -(tonumber(spec.underfoot) or 0)
+		and y <= (tonumber(spec.headroom) or 0)
+end
+
+-- IS THE DOOR A DOOR? Every failure this can report is a NUMBER: nothing
+-- errors, the hallway builds, the mask plays, and what comes out is a doorway
+-- that never fires or one that fires on somebody walking past a wall. Same
+-- argument as `auditFences` and `auditIndoor`, and the same reason it runs in
+-- Studio as well as live.
+function Config.auditHouseDoor(): { string }
+	local problems = {}
+	local function fail(message: string)
+		table.insert(problems, message)
+	end
+	local door = Config.HOUSE_DOOR
+
+	-- THE ONE THAT WOULD BE INVISIBLE. The mover is tested by its root, which
+	-- stands about three studs above the threshold, so a headroom under that
+	-- is a front door nobody can ever walk through.
+	if door.headroom < 4.0 then
+		fail(("[door.headroom] %.1f is under a character's own root height, so no crossing could ever land")
+			:format(door.headroom))
+	end
+	if door.underfoot < 0 or door.headroom <= -door.underfoot then
+		fail("[door.band] the height band a crossing counts in is empty")
+	end
+	if door.halfWidth <= 0 then
+		fail("[door.width] a doorway with no width can never be crossed")
+	end
+
+	-- YOU LAND ON THE ANCHOR AND THE PLANE IS INSIDE IT, which is the whole of
+	-- why an arrival cannot immediately leave again by the door it came out
+	-- of. At an inset of zero the landing spot IS the plane.
+	if door.inset <= 0.5 then
+		fail(("[door.inset] the plane at %.2f is on top of the spot somebody lands on coming out")
+			:format(door.inset))
+	end
+	if door.exitReach <= 0 then
+		fail("[door.exit] the way out has to stand clear of a solid end wall")
+	end
+
+	-- THE COVER HAS TO OUTLAST THE MOVE AND THE COOLDOWN HAS TO OUTLAST THE
+	-- COVER. A second crossing starting while the first one's mask is still
+	-- fading would leave a player looking at a screen that is going clear on
+	-- the room they have just left.
+	local mask = door.maskLead + door.maskHold + door.maskFade
+	if door.cooldown < mask then
+		fail(("[door.mask] the %.2fs mask outlasts the %.2fs cooldown behind it")
+			:format(mask, door.cooldown))
+	end
+	if door.maskLead <= 0 then
+		fail("[door.mask] the teleport has to happen UNDER the cover, never before it")
+	end
+
+	-- A STEP NOBODY CAN TAKE ON FOOT. The ceiling on a lawn is a dodge at
+	-- roughly 40 studs a second, so at this tick rate anything past a couple of
+	-- studs is already generous; the guard only has to be clear of it.
+	if door.maxStep < 2 * Config.BASE_WALK_SPEED then
+		fail(("[door.step] a %.0f-stud step is inside what a running player covers, so real walks would be ignored")
+			:format(door.maxStep))
+	end
+	if door.tickRate < 5 then
+		fail("[door.tick] the sweep is slow enough to be felt as lag on a door")
+	end
+
+	-- THE HALLWAYS HAVE TO STAND OFF THE MAP. The outer shelf of the horizon
+	-- reaches about 1,075 studs and the range sits on its rim beyond that, so
+	-- anything inside a couple of thousand is a corridor standing in a
+	-- mountain -- and the point of the estate is that no rectangle test in
+	-- this game can reach it.
+	local estate = Config.INDOOR_ESTATE
+	if math.abs(estate.x) < 2500 then
+		fail(("[door.estate] hallways at x %.0f are close enough to the world to collide with the horizon")
+			:format(estate.x))
+	end
+	if estate.gap <= 0 then
+		fail("[door.estate] two hallways with no gap between them are one hallway")
+	end
+
+	return problems
+end
+
+
+-- ============================================================
+-- ROAMING HERDS -- THE SKELETON (docs/HERDS-PLAN.md)
+-- ============================================================
+--
+-- A herd is a pack of skin-only piggies, each at the size it stands at on a
+-- plinth, DROPPED FROM THE SKY into the grassland behind the plots (designer
+-- 2026-09-22: the street is a simulation and a batch is released into the
+-- enclosure -- see `HERDS.drop`), which walks the band for a while and is
+-- recalled upward. It used to walk in and out through the tunnel bores;
+-- `herdRoute` below is that walk and nothing reads it now. Any player may catch one member by
+-- holding its prompt; the first to finish the hold gets it, and it lands on
+-- their lawn through `Config.addPiggy` exactly as a crate roll does.
+-- `HerdService` owns the life cycle; everything here is the DATA and the
+-- pure arithmetic it reads, so a suite can pin both without an engine.
+--
+-- ############################################################
+-- ##  EVERY NUMBER IN `Config.HERDS` IS A PLACEHOLDER.       ##
+-- ##  The designer has NOT chosen the tier odds, the tier    ##
+-- ##  cap or the spawn rate (HERDS-PLAN section 3: the tier   ##
+-- ##  table binds BEFORE the rate, and both are re-derived    ##
+-- ##  against the economy audit). Nothing below was tuned;    ##
+-- ##  it exists so the machinery can be built and played.     ##
+-- ############################################################
+-- The one name the server writes and every client's dig visual reads. See
+-- `HERDS.dig` below. A plain string, so it cannot forward-reference anything.
+Config.HERD_DIG_ATTRIBUTE = "DigStartedAt"
+
+-- ============================================================
+-- THE TREES -- what stops a character at a trunk
+-- ============================================================
+--
+-- Every tree NeighborhoodService builds -- the grove behind the plots and the
+-- verge trees along the street -- carries ONE invisible collider round its
+-- TRUNK (designer decision, 2026-09-21: "make the trees around the map real
+-- impassable trees so players and the piggies have to walk around them").
+-- The canopy never collides: a character walks under the leaves and stops at
+-- the wood. The collider is SIZED FROM THE TRUNK MESH, never typed -- see the
+-- TRUNK COLLIDERS section of NeighborhoodService -- and these are the numbers
+-- that derivation reads. Nothing here reads another Config field.
+Config.TREES = {
+	-- What every tree's collider is named: the one string the trees suite
+	-- and any probe look for.
+	colliderName = "TrunkCollider",
+	-- How much of the trunk mesh's FOOTPRINT is bole. The generated trunk
+	-- part is a bounding box carrying the root flare and the main limbs as
+	-- well as the bole -- 6.44 by 4.68 at scale 1 under a crown 12 wide -- so
+	-- the box itself would be a wall as wide as a car. 0.35 of the smaller
+	-- axis is a bole 3.0 studs across at the grove's smallest scale and 3.8
+	-- at its largest, against trees 26 to 35 tall: about one to nine, which
+	-- is what a broadleaf stands at. A LIVE WALK IS WHAT SETTLES whether it
+	-- matches the bark on screen; if a character clips into the wood, or
+	-- stops a stud short of it, the lever is this and never the mesh.
+	boleFraction = 0.35,
+	-- How far outside a trunk the herd veto reaches: a pet-sized piggy is
+	-- about 2.5 studs across its body, the same margin `GRASSLAND.pondMargin`
+	-- keeps a pack off a pond's rim.
+	margin = 2.5,
+	-- Studs the collider is sunk below the ground's top face, so its base
+	-- can never sit a hair proud of the grass as a lip. It is invisible, so
+	-- nothing can z-fight with it.
+	sink = 0.5,
+	-- THE COLUMN RUNS UP INTO THE CANOPY, BECAUSE A TRUNK A CHARACTER CAN JUMP
+	-- ONTO IS A STEP, NOT A WALL. Walked live with the client's default
+	-- `AutoJumpEnabled` (touch controls, most of this audience): a verge
+	-- collider topping out at 4.9 -- the canopy's underside -- put the root at
+	-- y 8.6 and the character walked OFF THE TOP seven studs on. The number a
+	-- barrier has to beat is `Config.jumpReach()` (collision float plus jump
+	-- height, 6.14), exactly as `auditFences` and `isHoppableFence` read it,
+	-- and this is the margin over it; the collider's top is the HIGHER of the
+	-- canopy underside and `jumpReach() + jumpMargin`. Up in the leaves the
+	-- column is one bole wide and the canopy has no collision, so the only
+	-- player who can reach it is one already standing on the trunk -- which is
+	-- the case it closes.
+	jumpMargin = 1.0,
+}
+
+-- ============================================================
+-- THE GRASSLAND -- what stands in the band the herds wander
+-- ============================================================
+--
+-- `Shared/Grassland` builds ponds, flower drifts, rocks and a fallen log
+-- across the band `Config.herdGround()` describes (a FUNCTION defined below
+-- this table -- it is read inside functions only, never at load scope).
+-- Everything here is a NUMBER: the builder owns the colours and the shapes,
+-- NeighborhoodService hands it where the grove's trunks stand, and
+-- HerdService reads `Grassland.blocks` so a pack steers round the water.
+--
+-- A POND IS PLACED BY SCANNING, NEVER BY A TYPED COORDINATE. The band is
+-- three rows of grove trees, and a coordinate that clears them today is a
+-- coordinate under a canopy the next time `GROVE_ROWS` moves -- the same
+-- fault as the grove row that once landed 46 studs inside the yards. The
+-- builder scans the band for the spot whose edge is furthest outside every
+-- canopy's reach circle, and the two knobs below only say which of the
+-- clear spots it prefers.
+Config.GRASSLAND = {
+	seed = 20260921,
+	-- Three ponds a side. The first prefers the NEAR edge, where a player
+	-- looking over their own back fence sees it; the second prefers depth;
+	-- the third takes the clearest spot left. Photographed at r 7 and 9 a
+	-- pond read as a ring of rocks with a sliver of blue from sixty studs,
+	-- so the smallest is 10 now.
+	pondRadii = { 12, 10, 10 },
+	-- Centre to centre, so a side's ponds cannot read as one.
+	pondSpacing = 60,
+	-- A pond's stone rim stays this far outside every grove canopy's reach
+	-- circle -- the DIAGONAL, as `NeighborhoodService.canopyReach` measures
+	-- it, so a turned tree cannot lean a corner over the water. 8 was asked
+	-- for and is not available: measured against the grove as it stands,
+	-- three ponds a side inside |z| 230 clear the reach circles by 3.2 to
+	-- 8.3 studs (the tightest is the near r 12 pond on the -z side, between
+	-- the first two rows), and the reach circle is already the worst-case
+	-- yaw of a canopy twenty studs up. Below this the builder warns, and a
+	-- warning about a spot that cannot be improved is the cry-wolf failure
+	-- this project already records, so this sits AT the measured floor.
+	canopyMargin = 3,
+	-- Clearance past that margin stops scoring beyond this, or every pond
+	-- would run to the emptiest corner of the band -- measured, all four
+	-- against the valley wall.
+	clearCap = 6,
+	-- Score per stud of depth into the band: the first pond SUBTRACTS it and
+	-- the second ADDS it. Small against `clearCap`, so it only ever breaks
+	-- ties between spots that are already clear.
+	preferDepth = 0.05,
+	-- Studs of band past `bandNear` before a pond's edge may start, so the
+	-- water sits back from the fence margin a pack walks along.
+	nearKeep = 8,
+	-- |X| kept clear inside `corridorInner`: the end corridor is where a
+	-- pack turns into the band, and its first steps must meet grass.
+	entryKeep = 40,
+	-- Studs in from the slab edge a pond's rim must stop: the valley wall's
+	-- columns stand from `edgeZ` (GROUND_SIZE.Y / 2 - 30) with small
+	-- foreground columns about 13 studs inside that line. Photographed at
+	-- 45 the wall filled the frame behind the far pond, so the rim now stops
+	-- 25 studs short of the foreground columns -- |z| 230.
+	farInset = 70,
+	-- Scan pitch in studs. Finer buys nothing a stone ring this lumpy can
+	-- show, and the scan runs once at boot.
+	scanStep = { x = 4, z = 2 },
+	-- How far past the stones a piggy is turned away. A pet-sized piggy is
+	-- about 2.5 studs across its body, so its edge never touches the rim.
+	pondMargin = 2.5,
+	-- The stone rim: how far outside the water's edge the ring's centre
+	-- line runs, and the boulders' radii. Every boulder is sunk so about
+	-- two thirds of it shows; chords at ground level overlap at the ring's
+	-- pitch, which is what hides the water's circular edge behind them.
+	stoneRingOut = 0.6,
+	stonePitch = 3.4,
+	stoneRadius = { 1.9, 2.5 },
+	-- HOW FAR THE RIM'S INVISIBLE WALL STANDS OVER A JUMP. Each rim stone
+	-- carries a colliding column whose top is `groundY + jumpReach() +
+	-- rimJumpMargin`, derived inside `Grassland.buildPond` and never typed
+	-- as a height -- the same rule and the same margin as `TREES.jumpMargin`,
+	-- for the same reason: measured live, the navmesh STEPS a stone 1.6
+	-- proud and routed every pond dead centre, while 7.5-tall colliding
+	-- columns on the same ring pushed the path 19 studs out. A wall has to
+	-- beat `jumpReach`, not the eye.
+	rimJumpMargin = 1.0,
+	-- Reeds and lily pads per pond.
+	reeds = 3,
+	pads = 3,
+	-- FLOWER DRIFTS. Photographed, four 0.3 heads on stems vanished against
+	-- the lawn from thirty studs: dots, not drifts. A drift is a green mound
+	-- with six to nine heads of 0.45-0.6 nestled on it in two or three
+	-- colours, and a stem under every third head so the close read is still
+	-- flowers. The mound is what makes it a patch of colour from forty studs
+	-- and what makes it affordable: a stem under every head at this count
+	-- is about 1,200 parts, and the budget below is the whole grassland.
+	flowerClustersPerSide = 28,
+	flowersPerCluster = { 6, 9 },
+	headRadius = { 0.45, 0.6 },
+	stemHeight = { 0.9, 1.6 },
+	stemEvery = 3,
+	moundRadius = { 1.3, 1.9 },
+	-- Low bushes for silhouette: two or three overlapping green balls.
+	bushesPerSide = 6,
+	bushBalls = { 2, 3 },
+	bushRadius = { 1.5, 2.5 },
+	rocksPerSide = 5,
+	logsPerSide = 2,
+	-- A rock or a flower keeps this far from a trunk's centre (the trunk
+	-- mesh's base is about 7.6 studs across at the largest scale) and this
+	-- far past a pond's stones.
+	trunkKeep = 9,
+	pondKeep = 1.5,
+	-- BaseParts across both sides. The suite holds the build under it. It
+	-- is cheap against the 1,463 tufts already standing in this world.
+	budget = 900,
+}
+
+Config.HERDS = {
+	-- THE MINIMUM GAP BETWEEN TWO PACKS ENTERING, in seconds -- and it is
+	-- NOT the supply rate any more. With `maxLoose` at 5 and a replacement
+	-- due `replaceDelay` after every exit, the steady-state supply is
+	-- `maxLoose / (lifetime + replaceDelay)` herds a second, where a
+	-- lifetime is the enter walk (204 studs at 6.4, 32 s), the roam draw
+	-- (150..240, mean 195) and the exit walk (32 s): about 259 s. Five
+	-- slots cycling every ~274 s is a pack entering about every 55 s -- 11
+	-- catchable piggies a minute -- and that rate is set by `maxLoose` and
+	-- `roam`, which HERDS-PLAN section 3 says are the numbers to weigh
+	-- against the economy audit. THIS number only spaces the entries: at
+	-- boot the cap fills one pack per gap from `firstSpawnDelay` (30, 50,
+	-- 70, 90, 110 s), which is the stagger, and in the steady state two
+	-- exits close together still produce two entries a gap apart. 20 s at
+	-- (The bore-clearance argument that used to sit here -- a pack's file
+	-- clearing the kerb leg before the next was born -- described the tunnel
+	-- walk, which packs no longer take; `auditHerds` still carries the
+	-- inequality and it is harmless. Packs land on their own drop points.)
+	spawnEverySeconds = 20, -- PLACEHOLDER
+
+	-- "When one exits, a new one enters." Seconds from a herd DESPAWNING
+	-- inside the far bore to its replacement being due, still subject to
+	-- the gap above. 15 s is a hole of about 5% of a herd's life, so the
+	-- expected count loose is 5 x 259 / 274 = 4.7 with the entering pack
+	-- counted from its first step out of the hill; a longer hole reads as
+	-- the street emptying, and zero is a pack born the frame another
+	-- vanishes, which reads as a swap rather than as traffic.
+	replaceDelay = 15, -- PLACEHOLDER
+
+	-- How long the first herd waits after boot, so the world is standing
+	-- before anything walks into it.
+	firstSpawnDelay = 30, -- PLACEHOLDER
+
+	-- HARD CAP on herds loose at once: FIVE PACKS (designer, 2026-09-21).
+	-- The scheduler never spawns past it, and the admin trigger respects
+	-- it too. Room is not the constraint: each band behind a row is
+	-- 443 x 122 studs (`herdGround`), a pack of ten fans out to about
+	-- 9 x 13, and `HerdService.pickSide` seats the packs three-and-two
+	-- across the two bands, so three packs stand on under 1% of a side.
+	maxLoose = 5,
+
+	-- How long a pack wanders the band before it heads for a tunnel.
+	-- 150..240 -> 200..290 WHEN THE TUNNEL WALK WENT (2026-09-22): a pack
+	-- used to spend about 57 seconds of its life walking in and out, and
+	-- falling in and being recalled takes six, so the same roam band left
+	-- the loose count dipping to three. Same mean life as before, roughly.
+	roam = { min = 200, max = 290 }, -- PLACEHOLDER
+
+	-- How long the leader grazes at each wander point before moving on.
+	graze = { min = 2, max = 6 }, -- PLACEHOLDER
+
+	-- Members per herd: TEN, exactly (designer, 2026-09-21). Kept as a band
+	-- so the roll and the audit keep one shape; both ends are 10 on purpose.
+	size = { min = 10, max = 10 },
+
+	-- Pack speed as a FRACTION of `BASE_WALK_SPEED`, so a player at a walk
+	-- always closes on one and the number cannot invert if base moves --
+	-- the same reason the dog and officer speeds became ratios.
+	speedFraction = 0.4, -- PLACEHOLDER
+
+	-- Formation: studs between the rows (and between the three columns) of
+	-- the slot grid a follower keeps behind the leader, and how far a
+	-- member drifts off that slot on its own. THREE ABREAST -- a pack of ten
+	-- is three rows, 34.4 studs deep by 22.9 wide -- and ONE SHAPE, since
+	-- the single-file variant existed only for the kerb legs of a tunnel
+	-- walk nothing takes any more.
+	--
+	-- MULTIPLES OF `PIGGY_PEDESTAL.display`, NEVER TYPED, AND THAT IS THE
+	-- WHOLE POINT OF THE EXPRESSION. These were 3.5 and 1.2, solved against
+	-- a mini 2.2 studs across -- and a herd member is not that any more: the
+	-- designer's 2026-09-22 ruling is that it stands at exactly the size the
+	-- same skin stands at on a plinth, which is `display` times the row's own
+	-- scale. So every stud in the formation is that same multiple of what it
+	-- was, and the one number that decides how big a piggy is decides how
+	-- far apart they stand with nothing to keep in step.
+	--
+	-- WHAT IT COMES TO, AND WHAT IT CLEARS. `display` is 3.2727, so the
+	-- spacing is 11.4545 and the drift 3.9273. A member is 7.20 studs across
+	-- at scale 1 and 9.36 at `PIGGY_SCALE.max` -- so a row's neighbours have
+	-- 2.09 studs of daylight at the widest a piggy can be, which is exactly
+	-- the 0.64 the 2.2-stud mini had times the same factor. The herd-eligible
+	-- pool itself runs 5.40 (the bee at 0.75) to 8.64 (scale 1.2), so on the
+	-- street it is nearer 2.81.
+	--
+	-- AND IT STILL FITS THE BAND, WHICH IS THE ONE THING THAT COULD HAVE
+	-- BROKEN. A pack lands facing the houses, so the formation stacks AWAY
+	-- from the back fences: three rows is 34.4 studs behind the leader
+	-- against a band 97 deep (|z| 158 to 255), which leaves a 62.6-stud
+	-- window for the leader rather than the whole band. `HerdService.dropFits`
+	-- tests every slot against that band and the ground vetoes before a part
+	-- is built, and `tests/luau/herds.luau` drops twenty full-size packs
+	-- through it.
+	followSpacing = 3.5 * Config.PIGGY_PEDESTAL.display,
+	jitter = 1.2 * Config.PIGGY_PEDESTAL.display,
+
+	-- HOW A PACK ARRIVES: IT IS DROPPED IN FROM THE SKY (designer,
+	-- 2026-09-22). The street is a SIMULATION and the players are the
+	-- subjects; a batch is RELEASED into the enclosure from above rather than
+	-- let in at the gate. That retired the whole tunnel walk -- see
+	-- `Config.herdRoute`, which nothing reads any more.
+	--
+	-- Read by `HerdService` through one accessor with a local default, so the
+	-- service boots either side of this table landing.
+	drop = {
+		-- HOW HIGH A BATCH IS RELEASED FROM. It has to clear everything
+		-- between the band and a viewer on the pavement, so the pack is seen
+		-- against the sky rather than through a canopy: the grove behind the
+		-- plots tops out about 35 studs and the tallest house in the
+		-- catalogue is the Neon Tower at 64. 120 is well clear of both and is
+		-- also the beacon's own height, because the beacon IS the shaft the
+		-- pack comes down.
+		height = 120,
+
+		-- HOW LONG THE FALL TAKES, AND IT IS DELIBERATELY SLOWER THAN
+		-- GRAVITY. Real gravity drops 120 studs in 1.11 s; this takes 2.4,
+		-- which is 2.2x slower. What that buys is the READ -- a batch LOWERED
+		-- into an enclosure rather than dropped out of a hole -- and the time
+		-- for somebody who heard the toast to turn round and watch it land.
+		-- The curve itself accelerates (`HerdService.fallAt`): a sine here
+		-- would read as zero gravity, which is the lesson the pedestal idle
+		-- already paid for.
+		seconds = 2.4,
+
+		-- HOW FAR APART THE TEN LANDINGS ARE SPREAD. Ten animals touching
+		-- down on one frame reads as a machine placing objects; spread front
+		-- to back over six tenths of a second it reads as a pack arriving in
+		-- its own rows. Short enough that the whole batch is catchable within
+		-- a beat of the first one.
+		stagger = 0.6,
+
+		-- THE SETTLE. Studs of hop after the thump, in the units of a SCALE-1
+		-- mini and multiplied by the member's own factor, so a tiger settles
+		-- proportionally further than a bee. Ten animals arriving and
+		-- stopping dead is ten statues being placed.
+		bounce = 0.35,
+		bounceSeconds = 0.34,
+
+		-- THE MARKER OVER THE LANDING ZONE. A drop that only announced itself
+		-- in a toast would be a supply route for whoever happened to be
+		-- reading the HUD, so a neon shaft and a card stand on the spot from
+		-- the moment the batch is released. 40 seconds is about four times a
+		-- crossing of the street at a walk, which is what it has to survive:
+		-- long enough that somebody at the far end can reach it, short enough
+		-- that five of them do not stand permanently over the grassland.
+		beaconSeconds = 40,
+		beaconFade = 1.5,
+		-- The shaft's diameter. Wide enough to read from the far end of a
+		-- 443-stud band, thin enough to be a beam rather than a building.
+		beaconWidth = 5,
+
+		-- THE DUST, in seconds and in studs of a scale-1 mini (scaled by the
+		-- member like the bounce). Built out of PARTS rather than a
+		-- ParticleEmitter, because an emitter needs a texture and a texture
+		-- is a third-party asset that can be moderated away.
+		puffSeconds = 0.5,
+		puffRadius = 1.6,
+
+		-- HOW MANY LANDING ZONES ARE TRIED BEFORE A DROP IS REFUSED. Every
+		-- slot of the pack is tested against the band and the ground vetoes,
+		-- so a try fails if any of ten lands in a pond, on a trunk, in a yard
+		-- or past the band's edge. Measured on the shipped geometry a try
+		-- succeeds about 63% of the time before vetoes, so twenty-four is a
+		-- refusal only when somebody has vetoed most of a side -- which is
+		-- said out loud rather than dropping a pack half in the water.
+		tries = 24,
+	},
+
+	-- How often, in studs, the straight line to a wander target is tested
+	-- against the ground vetoes on the way there (`HerdService.pathClear`):
+	-- coarser than a piggy and far finer than any pond, so no veto the
+	-- decoration lane registers can fall between two samples.
+	pathSample = 4,
+
+	-- The pick-up prompt. Range and hold are READ from the pedestal's own
+	-- take prompt so a herd piggy is caught the way a pedestal piggy is
+	-- taken; both constants are defined far above this block.
+	range = Config.COLLECT_RANGE,
+	hold = Config.PIGGY_HAUL.takeHold,
+
+	-- Where the pack may walk, all in studs. `fenceMargin` keeps the band
+	-- and the end corridor off the yards' back and side fences,
+	-- `edgeMargin` keeps it inside the ground slab (the horizon rings past
+	-- it COLLIDE), and `tunnelMargin` keeps the end corridor clear of the
+	-- earth bank that starts at the mouth face.
+	fenceMargin = 8,
+	-- 45, NOT 20: `bandFar` is `GROUND_SIZE.Y / 2 - edgeMargin`, and the
+	-- valley wall stands its columns from |z| 270 with its small foreground
+	-- columns reaching in to ~258 -- so at 20 the band ran to 280 and a
+	-- wander target could be inside rock (found by the grassland lane
+	-- measuring the wall for its own ponds, 2026-09-21). 45 lands the band
+	-- edge at 255, matching `GRASSLAND.farInset`.
+	edgeMargin = 45,
+	tunnelMargin = 10,
+
+	-- THE TIER CAP, AND IT IS ABSOLUTE RATHER THAN AN OFFSET (HERDS-PLAN
+	-- 3.3, the shape `RESIDENTS.piggyTopRarity` already uses). A herd MINTS
+	-- a piggy where a snatch only moves one, so "richer than the thief is a
+	-- faucet" applies with more force here: nothing a herd member rolls may
+	-- sit above this rung of `RARITY_ORDER`, whatever any row below says.
+	tierCap = "rare", -- PLACEHOLDER
+	-- DIGGING (designer, 2026-09-21: "while they're wandering around they
+	-- should be digging in the ground to find coins, just for visual"). A
+	-- roaming member stops on its slot for `seconds` every `every` seconds
+	-- -- drawn PER MEMBER, so a pack never digs in step -- and the SERVER
+	-- publishes the start as `Config.HERD_DIG_ATTRIBUTE` on the member model
+	-- in `workspace:GetServerTimeNow()` seconds -- the same clock the shield
+	-- attribute uses, because a client reads it -- then clears it to nil at
+	-- the end (nil reads as not digging). Visual only: no coins move
+	-- anywhere. Every client plays the dig pose, the dirt and the coin off
+	-- that one stamp (`Shared/PiggyDig`), so the street agrees about who is
+	-- digging.
+	--
+	-- THE INTERVAL IS SET AGAINST THE CATCH-UP, NOT AGAINST HOW OFTEN A DIG
+	-- LOOKS NICE. A 2.6-s dig on a pack walking at 6.4 leaves the digger
+	-- 16.6 studs off its slot, and a follower closes at 1.4x pack speed --
+	-- 2.6 studs a second net -- so it is 6.5 s getting back: one dig costs
+	-- a member about 9 s of formation. At the first placeholder, 8..20
+	-- (mean 14), that was 65% of every member's time out of its slot and
+	-- the pack read as stragglers. At 12..30 (mean 21) a member is digging
+	-- 12% of the time and catching up 30%, so a core of six or seven holds
+	-- the shape -- while ten clocks at that mean still start a dig
+	-- somewhere in the pack about every two seconds, so a watcher always
+	-- sees one. 2.6 s is on the order of a graze (2..6 above): long enough
+	-- to read as a dig rather than a stumble, short enough that the pack
+	-- has not walked out of sight of the digger.
+	--
+	-- The leader digs only while the pack is grazing with no target (the
+	-- leader is the anchor, and an anchor that stops mid-walk never catches
+	-- up), and nobody digs in a state named in `never`: the enter and exit
+	-- legs, where a stopped member would be left standing in a tunnel.
+	dig = {
+		every = { min = 12, max = 30 },
+		seconds = 2.6,
+		never = { "drop", "recall" },
+	},
+
+	-- The damped-repeat picker's damping, the same value `EventService`
+	-- uses and for the same reason: at a two-row roster, EXCLUDING the last
+	-- pick makes the picker strictly alternate and the weights do nothing.
+	repeatWeight = 0.35,
+
+	-- WHAT KIND OF HERD SPAWNS -- a weighted roster in the event
+	-- scheduler's own shape, picked with the last kind damped. Each row's
+	-- `tiers` is the per-MEMBER tier roll for that kind; anything above
+	-- `tierCap` in it is ignored at roll time and reported by `auditHerds`.
+	-- Two rows so the picker has something to pick between; the names,
+	-- weights, sizes and odds are all placeholders.
+	roster = {
+		stray = { -- PLACEHOLDER
+			name = "STRAY HERD", weight = 3,
+			tiers = { common = 80, rare = 20 },
+		},
+		prize = { -- PLACEHOLDER
+			name = "PRIZE HERD", weight = 1,
+			-- Rarer, not richer: the cap is what decides the top, and a row
+			-- weighting a tier above it is dead weight `auditHerds` reports.
+			tiers = { common = 40, rare = 60 },
+		},
+	},
+}
+
+-- THE DAMPED-REPEAT PICKER, extracted from `EventService.pick` so the herd
+-- roster reads the SAME function rather than a second copy of it. Weighted,
+-- with the last pick multiplied by `damp` rather than removed: at a small
+-- roster, removing it collapses the draw into strict alternation and the
+-- weights do nothing (see the note above `pick` in EventService).
+--
+-- Keys are SORTED so the same ticket picks the same key on every server --
+-- `pairs` order is undefined and an unreproducible schedule is one nobody
+-- can investigate. `ticket` is a 0..1 roll, injected so a suite can sweep
+-- it; nil draws one. Returns nil for an empty or all-zero roster.
+function Config.pickWeighted(weights: { [string]: number }, last: string?, damp: number, ticket: number?): string?
+	local keys: { string } = {}
+	for key in pairs(weights) do
+		table.insert(keys, key)
+	end
+	table.sort(keys)
+	if #keys == 0 then
+		return nil
+	end
+	local function weightOf(key: string): number
+		local w = weights[key] or 0
+		return if key == last then w * damp else w
+	end
+	local total = 0
+	for _, key in ipairs(keys) do
+		total += weightOf(key)
+	end
+	if total <= 0 then
+		return nil
+	end
+	local roll = (ticket or math.random()) * total
+	for _, key in ipairs(keys) do
+		roll -= weightOf(key)
+		if roll <= 0 then
+			return key
+		end
+	end
+	return keys[#keys]
+end
+
+-- Pack speed in studs a second. Derived at call time so a retune of base
+-- walk speed moves the herd with it.
+function Config.herdSpeed(): number
+	return Config.BASE_WALK_SPEED * Config.HERDS.speedFraction
+end
+
+-- WHERE A HERD MAY WALK, in plain numbers rather than Vector3s so a suite
+-- can read it without an engine. Everything is derived from the street and
+-- plot constants above, never typed: the band is the grass BEHIND the back
+-- fences, and the end corridor is the strip of ground past the last plot
+-- column that joins the band to the road at each tunnel.
+--
+-- Symmetric in both axes: `side` picks which row's back band (+1 / -1 on Z)
+-- and `end` picks which tunnel (+1 / -1 on X), so one set of numbers serves
+-- all four combinations.
+function Config.herdGround()
+	local m = Config.streetMetrics()
+	local h = Config.HERDS
+	local streetHalf = Config.STREET_SPACING / 2
+	-- The back fence stands `YARD_DEPTH` behind the plot centre, and the
+	-- plot centre is a street half-spacing off the road's centreline.
+	local backFence = streetHalf + Config.YARD_DEPTH
+	-- Where the last yard's side fence ends along X.
+	local rowEnd = m.endX + Config.PLOT_HALF_WIDTH
+	local corridorInner = rowEnd + h.fenceMargin
+	local corridorOuter = m.tunnelEastX - h.tunnelMargin
+	return {
+		-- The world ground's top face, as NeighborhoodService derives it.
+		groundY = -Config.PLOT_SIZE.Y / 2,
+		-- |Z| range of the wander band behind a row.
+		bandNear = backFence + h.fenceMargin,
+		bandFar = Config.GROUND_SIZE.Y / 2 - h.edgeMargin,
+		-- |X| range of the end corridor, and the line the pack walks it on.
+		corridorInner = corridorInner,
+		corridorOuter = corridorOuter,
+		corridorX = (corridorInner + corridorOuter) / 2,
+		-- |Z| the pack keeps while inside the bore and crossing the verge:
+		-- on the kerb, off the tarmac, well inside the bore's half width.
+		kerbZ = m.roadHalfWidth + 0.5,
+		tunnelX = m.tunnelEastX,
+		tunnelDepth = m.tunnelDepth,
+	}
+end
+
+-- The fixed legs of a herd's walk: in through `entryEnd`'s tunnel, out to
+-- the band on `side`, and later back out through `exitEnd`'s. Each point is
+-- {x, z}; the band itself is wandered between the two legs.
+function Config.herdRoute(side: number, entryEnd: number, exitEnd: number)
+	local g = Config.herdGround()
+	local bandEntry = g.bandNear + Config.HERDS.fenceMargin
+	return {
+		enter = {
+			{ entryEnd * (g.tunnelX + g.tunnelDepth - 6), side * g.kerbZ },
+			{ entryEnd * g.corridorX, side * g.kerbZ },
+			{ entryEnd * g.corridorX, side * bandEntry },
+		},
+		exit = {
+			{ exitEnd * g.corridorX, side * bandEntry },
+			{ exitEnd * g.corridorX, side * g.kerbZ },
+			{ exitEnd * (g.tunnelX + g.tunnelDepth - 4), side * g.kerbZ },
+		},
+	}
+end
+
+-- One member's tier, rolled from a row's `tiers` map with everything above
+-- the ABSOLUTE cap dropped before the roll rather than clamped after it --
+-- clamping would pile every over-cap weight onto the cap tier and make it
+-- far commoner than the row says. Walks `RARITY_ORDER` so a tier the ladder
+-- does not know cannot be rolled. nil when nothing under the cap has weight.
+function Config.herdRollTier(tiers: { [string]: number }, cap: string, ticket: number?): string?
+	local capRank = Config.rarityRank(cap)
+	local weights: { [string]: number } = {}
+	for _, tier in ipairs(Config.RARITY_ORDER) do
+		local w = tiers[tier] or 0
+		if w > 0 and Config.rarityRank(tier) <= capRank then
+			weights[tier] = w
+		end
+	end
+	return Config.pickWeighted(weights, nil, 1, ticket)
+end
+
+-- The skins a herd member of `tier` may wear, sorted for reproducibility.
+-- The same exclusions a resident's lawn draw makes and for the same
+-- reasons: nothing earned elsewhere (a pass or set skin on a herd would
+-- mint a paid exclusive), and nothing with an aura.
+function Config.herdSkinPool(tier: string): { string }
+	local pool: { string } = {}
+	for key, spec in pairs(Config.SKINS) do
+		if not Config.isEarnedElsewhere(spec) and spec.aura == nil
+			and Config.rarityOf(spec) == tier then
+			table.insert(pool, key)
+		end
+	end
+	table.sort(pool)
+	return pool
+end
+
+-- Roll a member: a tier under the cap, then a skin of that tier. A tier
+-- whose pool is EMPTY falls DOWN the ladder to the next stocked one, never
+-- up -- the cap is a ceiling, and a roll that climbed to find stock would be
+-- the promotion-not-caught failure the crate floors already record. Returns
+-- (key, tier), or nil when nothing under the cap is stocked at all.
+function Config.herdDraw(tiers: { [string]: number }, tierTicket: number?, skinTicket: number?): (string?, string?)
+	local tier = Config.herdRollTier(tiers, Config.HERDS.tierCap, tierTicket)
+	if not tier then
+		return nil, nil
+	end
+	local rank = Config.rarityRank(tier)
+	while rank >= 1 do
+		local name = Config.RARITY_ORDER[rank]
+		local pool = Config.herdSkinPool(name)
+		if #pool > 0 then
+			local i = math.clamp(math.floor((skinTicket or math.random()) * #pool) + 1, 1, #pool)
+			return pool[i], name
+		end
+		rank -= 1
+	end
+	return nil, nil
+end
+
+-- THE BOOT AUDIT, in the shape of `auditEconomy`: the failures here are
+-- numbers, nothing errors on them, and what they produce is a herd that
+-- never comes, a pack rolling a tier the cap forbids, or a pack walking
+-- through a fence. The moment to hear about a number is while typing it.
+function Config.auditHerds(): { string }
+	local problems: { string } = {}
+	local h = Config.HERDS
+	local function fail(message: string)
+		table.insert(problems, message)
+	end
+
+	if Config.rarityRank(h.tierCap) == 0 then
+		fail(("[herds.cap] tierCap %q is not a tier on RARITY_ORDER"):format(tostring(h.tierCap)))
+	end
+	if h.maxLoose < 1 then
+		fail("[herds.cap] maxLoose under 1 means no herd can ever spawn")
+	end
+	if h.spawnEverySeconds <= 0 or h.replaceDelay < 0 or h.firstSpawnDelay < 0 then
+		fail("[herds.rate] a spawn timer at or below zero")
+	end
+	if h.size.min < 1 or h.size.max < h.size.min then
+		fail("[herds.size] the pack size band is empty")
+	end
+	if h.roam.min <= 0 or h.roam.max < h.roam.min then
+		fail("[herds.roam] the roam band is empty")
+	end
+	if h.speedFraction <= 0 or h.speedFraction >= 1 then
+		fail("[herds.speed] a herd has to be slower than a walking player and faster than standing still")
+	end
+
+	local rows = 0
+	for key, row in pairs(h.roster) do
+		rows += 1
+		if (row.weight or 0) <= 0 then
+			fail(("[herds.roster] row %q has no weight and can never be picked"):format(key))
+		end
+		local under = 0
+		for tier, w in pairs(row.tiers or {}) do
+			if Config.rarityRank(tier) == 0 then
+				fail(("[herds.roster] row %q names tier %q, which is not on the ladder"):format(key, tier))
+			elseif Config.rarityRank(tier) > Config.rarityRank(h.tierCap) then
+				fail(("[herds.roster] row %q weights %q above the cap %q; that weight is dead"):format(key, tier, h.tierCap))
+			elseif w > 0 then
+				under += 1
+			end
+		end
+		if under == 0 then
+			fail(("[herds.roster] row %q has no weight under the cap, so it rolls nothing"):format(key))
+		end
+	end
+	if rows == 0 then
+		fail("[herds.roster] the roster is empty")
+	end
+
+	-- The cap tier and every tier under it that a row weights has to be
+	-- STOCKED, or the fall-down quietly hands out a lower tier than the row
+	-- promised. Checked against the live catalogue rather than a count.
+	for rank = 1, Config.rarityRank(h.tierCap) do
+		if #Config.herdSkinPool(Config.RARITY_ORDER[rank]) == 0 then
+			fail(("[herds.pool] no herd-eligible skin at tier %q"):format(Config.RARITY_ORDER[rank]))
+		end
+	end
+
+	local g = Config.herdGround()
+	if g.bandNear >= g.bandFar then
+		fail("[herds.ground] the wander band behind the plots has no depth")
+	end
+	if g.corridorInner >= g.corridorOuter then
+		fail("[herds.ground] the end corridor between the last plot and the tunnel has no width")
+	end
+	if g.bandFar > Config.GROUND_SIZE.Y / 2 or g.corridorOuter > Config.GROUND_SIZE.X / 2 then
+		fail("[herds.ground] the pack can walk off the ground slab")
+	end
+	if (h.pathSample or 0) <= 0 then
+		fail("[herds.ground] pathSample at or below zero samples nothing between a pack and its target")
+	end
+
+	-- DIGGING: a band that can draw, a dig shorter than the shortest gap
+	-- between two (or a member digs back to back), and `never` naming only
+	-- states a herd actually has -- a misspelt state there is a leg the
+	-- pack digs on, with nothing in any log.
+	local d = h.dig
+	if d.every.min <= 0 or d.every.max < d.every.min then
+		fail("[herds.dig] the dig interval band is empty")
+	end
+	if d.seconds <= 0 or d.seconds >= d.every.min then
+		fail("[herds.dig] a dig has to be shorter than the shortest gap between digs")
+	end
+	for _, state in ipairs(d.never) do
+		if state ~= "drop" and state ~= "roam" and state ~= "recall" then
+			fail(("[herds.dig] never names %q, which is not a herd state"):format(tostring(state)))
+		end
+	end
+
+	-- THE GAP CLEARS THE BORE. By the time the next pack is born the last
+	-- one's tail -- a file of `size.max` at `followSpacing` -- has walked
+	-- the kerb leg into the corridor, so two packs entering by one tunnel
+	-- never stand in it together. Derived from the same numbers the route
+	-- is, so shortening the street or slowing the herd re-asks it.
+	local fileLength = (h.size.max - 1) * h.followSpacing
+	local kerbLeg = (g.tunnelX + g.tunnelDepth - 6) - g.corridorX
+	if h.spawnEverySeconds * Config.herdSpeed() < fileLength + kerbLeg then
+		fail("[herds.rate] spawnEverySeconds is too short: the next pack is born on the last one's tail in the bore")
 	end
 	return problems
 end
+
+
+-- ============================================================
+-- THE HERD PIGGIES' WALK (Shared/PiggyWalk, blender/pig/anim/make_walk.py)
+-- ============================================================
+--
+-- A roaming herd piggy is slid across the grass by `HerdService` with one
+-- `PivotTo` a frame; on its own that is a statue on rails. What makes it
+-- WALK is a waddle laid over that placement on every client -- a bob, a
+-- sway, a nod and a rear swing about the animal's own feet -- and it is a
+-- whole-model rigid pose because a mini has no leg part to swing: its ears,
+-- snout, legs and tail are ONE merged Trim mesh (`PiggyIdle` records the
+-- same measurement), and a MeshPart built at run time does not deform under
+-- bones. The skeletal walk is PREPARED in `blender/pig/anim/` for a later
+-- import through Roblox's 3D importer and is deliberately not shipped:
+-- every animation path this project has taken that only works in Studio
+-- died on the live site, and this one needs no asset at all.
+--
+-- DRIVEN BY DISTANCE, NEVER BY A CLOCK -- the officer's rule. `HerdService`
+-- publishes the studs a member has walked as `HERD_WALK_ATTRIBUTE`; the
+-- client divides by the stride and plays the curve at that phase. A member
+-- that stops stops mid-step, one that hurries steps in proportion, and the
+-- animation cannot desync from the motion it depicts because it is a
+-- function of it. The only clock in `PiggyWalk` fades the waddle out once
+-- the number stops moving, so a grazing piggy settles rather than freezing
+-- tilted.
+--
+-- THE CURVE IS BAKED FROM BLENDER, NOT TYPED. `make_walk.py` authors the
+-- cycle as keyframes with easing on a rigged pig, samples the BODY bone 24
+-- times a stride, converts to Roblox axes and writes `walk_curve.lua`; the
+-- rows below are pasted from it and `tests/luau/walk.luau` holds them to it
+-- row by row. The bob is shaped against gravity rather than as a sine --
+-- fast off the ground, slow at the top, fast into the plant -- which is the
+-- lesson the pedestal idle paid for when a sine read as zero gravity.
+Config.HERD_WALK_ATTRIBUTE = "Walked"
+Config.PIGGY_WALK = {
+	-- One stride in BODY RADII, so a herd mini (R 1.1) and a full pig (R 6)
+	-- each step at their own size. At 1.8 a mini strides 1.98 studs, which
+	-- at the pack's 6.4 studs a second is 3.2 steps a second: a trot.
+	strideRadii = 1.8,
+	-- Seconds after the last distance publish before the waddle starts to
+	-- fade, and how long the fade in and out take. Replication delivers the
+	-- attribute in bursts, so the hold has to outlast a gap between them.
+	hold = 0.25,
+	fadeIn = 0.15,
+	fadeOut = 0.35,
+	-- Seconds a newly seen model is left alone before its rest pose is
+	-- captured, so every part has replicated and nothing has been posed.
+	settle = 0.25,
+	-- Studs from the camera beyond which no pose is written: a six-degree
+	-- sway across the street is not a thing anybody can see.
+	far = 140,
+	-- THE BAKE. `lift` in body radii, `pitch` about +X (nose down positive),
+	-- `roll` about +Z, `yaw` about +Y, in degrees; `t` is stride phase. The
+	-- last row repeats the first so the loop closes. Do not hand-edit --
+	-- re-run make_walk.py and paste.
+	frames = {
+		{ t = 0.0000, lift = 0.0000, pitch = 2.00, roll = -0.00, yaw = -0.00 },
+		{ t = 0.0417, lift = 0.0143, pitch = 1.79, roll = 0.40, yaw = 0.20 },
+		{ t = 0.0833, lift = 0.0259, pitch = 1.20, roll = 1.50, yaw = 0.75 },
+		{ t = 0.1250, lift = 0.0350, pitch = 0.40, roll = 3.00, yaw = 1.50 },
+		{ t = 0.1667, lift = 0.0415, pitch = -0.40, roll = 4.50, yaw = 2.25 },
+		{ t = 0.2083, lift = 0.0454, pitch = -0.99, roll = 5.60, yaw = 2.80 },
+		{ t = 0.2500, lift = 0.0467, pitch = -1.20, roll = 6.00, yaw = 3.00 },
+		{ t = 0.2917, lift = 0.0454, pitch = -0.99, roll = 5.60, yaw = 2.80 },
+		{ t = 0.3333, lift = 0.0415, pitch = -0.40, roll = 4.50, yaw = 2.25 },
+		{ t = 0.3750, lift = 0.0350, pitch = 0.40, roll = 3.00, yaw = 1.50 },
+		{ t = 0.4167, lift = 0.0259, pitch = 1.20, roll = 1.50, yaw = 0.75 },
+		{ t = 0.4583, lift = 0.0143, pitch = 1.79, roll = 0.40, yaw = 0.20 },
+		{ t = 0.5000, lift = 0.0000, pitch = 2.00, roll = -0.00, yaw = -0.00 },
+		{ t = 0.5417, lift = 0.0143, pitch = 1.79, roll = -0.40, yaw = -0.20 },
+		{ t = 0.5833, lift = 0.0259, pitch = 1.20, roll = -1.50, yaw = -0.75 },
+		{ t = 0.6250, lift = 0.0350, pitch = 0.40, roll = -3.00, yaw = -1.50 },
+		{ t = 0.6667, lift = 0.0415, pitch = -0.40, roll = -4.50, yaw = -2.25 },
+		{ t = 0.7083, lift = 0.0454, pitch = -0.99, roll = -5.60, yaw = -2.80 },
+		{ t = 0.7500, lift = 0.0467, pitch = -1.20, roll = -6.00, yaw = -3.00 },
+		{ t = 0.7917, lift = 0.0454, pitch = -0.99, roll = -5.60, yaw = -2.80 },
+		{ t = 0.8333, lift = 0.0415, pitch = -0.40, roll = -4.50, yaw = -2.25 },
+		{ t = 0.8750, lift = 0.0350, pitch = 0.40, roll = -3.00, yaw = -1.50 },
+		{ t = 0.9167, lift = 0.0259, pitch = 1.20, roll = -1.50, yaw = -0.75 },
+		{ t = 0.9583, lift = 0.0143, pitch = 1.79, roll = -0.40, yaw = -0.20 },
+		{ t = 1.0000, lift = 0.0000, pitch = 2.00, roll = -0.00, yaw = -0.00 },
+	},
+}
+
+-- One stride in studs for a piggy of this body radius.
+function Config.piggyWalkStride(radius: number): number
+	return Config.PIGGY_WALK.strideRadii * radius
+end
+
+-- The pose at stride phase `u` (any real; wrapped): lift in body radii, then
+-- pitch, roll and yaw in degrees. LINEAR between samples on purpose -- the
+-- samples are dense and the bake already carries the easing, so a spline
+-- here would round off exactly the plant it was shaped to keep.
+function Config.piggyWalkSample(u: number): (number, number, number, number)
+	local frames = Config.PIGGY_WALK.frames
+	u = u % 1
+	for i = 1, #frames - 1 do
+		local a, b = frames[i], frames[i + 1]
+		if u <= b.t then
+			local span = b.t - a.t
+			local k = if span > 0 then (u - a.t) / span else 0
+			return a.lift + (b.lift - a.lift) * k,
+				a.pitch + (b.pitch - a.pitch) * k,
+				a.roll + (b.roll - a.roll) * k,
+				a.yaw + (b.yaw - a.yaw) * k
+		end
+	end
+	local z = frames[#frames]
+	return z.lift, z.pitch, z.roll, z.yaw
+end
+
+-- ============================================================
+-- THE HERD PIGGIES' DIG (Shared/PiggyWalk, the dig half)
+-- ============================================================
+--
+-- "While they're wandering around they should be digging in the ground to
+-- find coins (just for visual)" -- designer, 2026-09-21. `HERDS.dig` above
+-- is the SERVER half: a member stops on its slot and publishes the start as
+-- `HERD_DIG_ATTRIBUTE` in `workspace:GetServerTimeNow()` seconds, and clears
+-- it when the dig ends. This block is the CLIENT half: the pose it plays,
+-- the dirt it throws and the coin it finds, all VISUAL ONLY -- no coin moves
+-- anywhere, nothing goes on the wire beyond the one stamp the server already
+-- publishes.
+--
+-- SAMPLED BY SERVER TIME, NOT BY A LOCAL CLOCK. The phase is
+-- `(now - stamp) / HERDS.dig.seconds` with `now` from `GetServerTimeNow`, so
+-- every client is on the same frame of the same dig -- the street agrees
+-- about who is digging and when the coin pops. The clip is NORMALISED 0..1
+-- on purpose: the herd lane owns `dig.seconds`, and retuning it stretches
+-- the whole clip rather than clipping the end of it. What that costs is the
+-- scratch cadence: four strokes over 54% of the clip is 3 Hz at 2.6s and
+-- scales with the length, which is noted rather than pinned.
+--
+-- WHOLE-MODEL RIGID, LIKE THE WADDLE, AND LAYERED ONTO IT. A mini has no
+-- leg to swing and no ear to flap (one merged Trim mesh), so a dig is a
+-- pitch about the FEET -- front down, rump up -- with a scratching rock and
+-- a recoil hop, composed with the walk pose in the one place PiggyWalk
+-- writes those CFrames. While a member digs it does not move and `Walked`
+-- does not advance, so the waddle fades out on its own and the dig lands on
+-- a still base.
+--
+-- THE CLIP, in normalised phase (seconds at the placeholder 2.6):
+--     0.00-0.18   ease into the dip: nose down to 14 deg           0.00-0.47s
+--     0.18-0.72   scratch: four strokes, pitch 14 +-4, roll +-3.5,
+--                 dirt at the pull of each stroke (rows marked `dirt`) 0.47-1.87s
+--     0.72-0.80   recoil hop: lift to 0.24 radii, nose snaps to -9 deg
+--                 -- the "found it" beat; the coin pops at 0.73 (`coin`) 1.87-2.08s
+--     0.80-0.92   ease back to rest                                  2.08-2.39s
+--     0.92-1.00   still, so a late clear reads as nothing            2.39-2.60s
+-- Frame 0 equals frame 1 (rest), so a dig that is cut off by the server
+-- clearing the stamp fades from wherever it was rather than snapping, and
+-- one that runs past its seconds sits at rest.
+--
+-- GENERATED, NOT TYPED: the rows are the output of the beat constants above
+-- run through a short generator, sampled at 0.02 with the recoil at 0.01
+-- because the hop is the one fast thing in it. `tests/luau/walk.luau` holds
+-- the clip to its own rules -- closes, nose never through the ground, hop
+-- bounded -- rather than to a bake, because there is no rig behind this one.
+Config.PIGGY_DIG = {
+	-- WHERE THE NOSE IS, in body radii from the body centre, model axes
+	-- (+Z snout). Measured off the mesh: the Snout part reaches z 8.28 on
+	-- the lawn pig's radius of 6 (1.38), and the nostrils sit at y 6.667 on a
+	-- centre of 6.62 (about level). The clamp below keeps THIS point above
+	-- the foot plane at every phase, so a dig can never push the snout
+	-- through the grass however the pitch is retuned.
+	nose = { y = -0.10, z = 1.40 },
+	-- How far above the foot plane the nose must stay, in radii.
+	noseClearance = 0.05,
+	-- Ceilings the suite holds the clip to: the pitch in degrees and the
+	-- hop in body radii. A dig is a nosing at the ground, not a somersault.
+	maxPitch = 20,
+	maxLift = 0.30,
+	-- THE DIRT: brown flat flecks thrown up at the pull of each stroke, from
+	-- an emitter built lazily on the Body and reused for the life of the
+	-- model. `LightEmission` 0 so it reads as dirt rather than as an effect;
+	-- a burst per stroke rather than a running rate, so nothing emits between
+	-- strokes and a culled piggy emits nothing at all. Sized in studs
+	-- because a particle is a sprite, not a part of the animal -- and
+	-- MULTIPLIED BY `PIGGY_PEDESTAL.display` since 2026-09-22, when a herd
+	-- member became the size it is on a plinth: these were solved against a
+	-- mini of radius 1.1, and a fleck that size on a body 3.27x bigger reads
+	-- as grit. The only diggers are herd members.
+	dirt = {
+		colour = Color3.fromRGB(96, 66, 40),
+		speed = { min = 3.5, max = 6.5 },
+		lifetime = { min = 0.3, max = 0.5 },
+		spread = 35,
+		size = 0.16 * Config.PIGGY_PEDESTAL.display,
+		gravity = 28,
+		-- Where the flecks come from, in body radii from the body centre,
+		-- model axes: just ahead of the snout, at the ground.
+		at = { y = -0.95, z = 1.5 },
+	},
+	-- THE COIN: one small gold disc from a per-CLIENT pool, never one part per
+	-- piggy. It pops up from the snout at the recoil beat, rises `rise`
+	-- studs, spins, and fades over `seconds`, then goes back to the pool.
+	-- With the pool empty the beat is simply skipped -- fifty piggies may not
+	-- mint fifty parts. Flat gold, SmoothPlastic and not Metal: Metal shades
+	-- the palette's gold to olive (CLAUDE.md), and a coin has to be gold.
+	coin = {
+		pool = 6,
+		-- Studs, times the display factor for the reason the dirt is.
+		size = 0.5 * Config.PIGGY_PEDESTAL.display,
+		thickness = 0.08 * Config.PIGGY_PEDESTAL.display,
+		rise = 2.0 * Config.PIGGY_PEDESTAL.display,
+		seconds = 0.6,
+		-- Turns per second of spin about the vertical.
+		spin = 2.5,
+		-- Where it starts, in body radii from the body centre, model axes.
+		at = { y = -0.2, z = 1.3 },
+	},
+	-- THE CLIP. `lift` in body radii, `pitch` about +X in degrees (nose down
+	-- positive, the walk's convention), `roll` about +Z in degrees; `t` is
+	-- normalised phase. A row carrying `dirt` throws that many flecks as the
+	-- phase passes it; the row carrying `coin` pops the coin. Do not
+	-- hand-edit a row -- change the beat constants in the header and
+	-- regenerate.
+	frames = {
+		{ t = 0.0000, lift = 0.0000, pitch = 0.00, roll = 0.00 },
+		{ t = 0.0200, lift = 0.0000, pitch = 0.48, roll = 0.00 },
+		{ t = 0.0400, lift = 0.0000, pitch = 1.77, roll = 0.00 },
+		{ t = 0.0600, lift = 0.0000, pitch = 3.63, roll = 0.00 },
+		{ t = 0.0800, lift = 0.0000, pitch = 5.84, roll = 0.00 },
+		{ t = 0.1000, lift = 0.0000, pitch = 8.16, roll = 0.00 },
+		{ t = 0.1200, lift = 0.0000, pitch = 10.37, roll = 0.00 },
+		{ t = 0.1400, lift = 0.0000, pitch = 12.23, roll = 0.00 },
+		{ t = 0.1600, lift = 0.0000, pitch = 13.52, roll = 0.00 },
+		{ t = 0.1800, lift = 0.0000, pitch = 14.00, roll = 0.00 },
+		{ t = 0.2000, lift = 0.0024, pitch = 17.21, roll = 1.57 },
+		{ t = 0.2200, lift = 0.0077, pitch = 17.83, roll = 2.81 },
+		{ t = 0.2400, lift = 0.0116, pitch = 15.37, roll = 3.45 },
+		{ t = 0.2475, lift = 0.0120, pitch = 14.00, roll = 3.50, dirt = 5 },
+		{ t = 0.2600, lift = 0.0110, pitch = 11.80, roll = 3.35 },
+		{ t = 0.2800, lift = 0.0063, pitch = 10.01, roll = 2.55 },
+		{ t = 0.3000, lift = 0.0014, pitch = 11.43, roll = 1.20 },
+		{ t = 0.3200, lift = 0.0002, pitch = 14.92, roll = -0.41 },
+		{ t = 0.3400, lift = 0.0036, pitch = 17.67, roll = -1.92 },
+		{ t = 0.3600, lift = 0.0090, pitch = 17.46, roll = -3.03 },
+		{ t = 0.3800, lift = 0.0120, pitch = 14.46, roll = -3.49 },
+		{ t = 0.3825, lift = 0.0120, pitch = 14.00, roll = -3.50, dirt = 5 },
+		{ t = 0.4000, lift = 0.0101, pitch = 11.09, roll = -3.21 },
+		{ t = 0.4200, lift = 0.0050, pitch = 10.06, roll = -2.25 },
+		{ t = 0.4400, lift = 0.0006, pitch = 12.20, roll = -0.81 },
+		{ t = 0.4600, lift = 0.0006, pitch = 15.80, roll = 0.81 },
+		{ t = 0.4800, lift = 0.0050, pitch = 17.94, roll = 2.25 },
+		{ t = 0.5000, lift = 0.0101, pitch = 16.91, roll = 3.21 },
+		{ t = 0.5175, lift = 0.0120, pitch = 14.00, roll = 3.50, dirt = 5 },
+		{ t = 0.5200, lift = 0.0120, pitch = 13.54, roll = 3.49 },
+		{ t = 0.5400, lift = 0.0090, pitch = 10.54, roll = 3.03 },
+		{ t = 0.5600, lift = 0.0036, pitch = 10.33, roll = 1.92 },
+		{ t = 0.5800, lift = 0.0002, pitch = 13.08, roll = 0.41 },
+		{ t = 0.6000, lift = 0.0014, pitch = 16.57, roll = -1.20 },
+		{ t = 0.6200, lift = 0.0063, pitch = 17.99, roll = -2.55 },
+		{ t = 0.6400, lift = 0.0110, pitch = 16.20, roll = -3.35 },
+		{ t = 0.6525, lift = 0.0120, pitch = 14.00, roll = -3.50, dirt = 5 },
+		{ t = 0.6600, lift = 0.0116, pitch = 12.63, roll = -3.45 },
+		{ t = 0.6800, lift = 0.0077, pitch = 10.17, roll = -2.81 },
+		{ t = 0.7000, lift = 0.0024, pitch = 10.79, roll = -1.57 },
+		{ t = 0.7100, lift = 0.0006, pitch = 12.20, roll = -0.81 },
+		{ t = 0.7200, lift = 0.0000, pitch = 14.00, roll = 0.00 },
+		{ t = 0.7300, lift = 0.1041, pitch = 8.04, roll = 0.00, coin = true },
+		{ t = 0.7400, lift = 0.1876, pitch = -3.04, roll = 0.00 },
+		{ t = 0.7500, lift = 0.2340, pitch = -9.00, roll = 0.00 },
+		{ t = 0.7550, lift = 0.2400, pitch = -9.00, roll = 0.00 },
+		{ t = 0.7600, lift = 0.2370, pitch = -9.00, roll = 0.00 },
+		{ t = 0.7700, lift = 0.2133, pitch = -9.00, roll = 0.00 },
+		{ t = 0.7800, lift = 0.1659, pitch = -9.00, roll = 0.00 },
+		{ t = 0.7900, lift = 0.0948, pitch = -9.00, roll = 0.00 },
+		{ t = 0.8000, lift = 0.0000, pitch = -9.00, roll = 0.00 },
+		{ t = 0.8100, lift = 0.0000, pitch = -8.82, roll = 0.00 },
+		{ t = 0.8200, lift = 0.0000, pitch = -8.33, roll = 0.00 },
+		{ t = 0.8300, lift = 0.0000, pitch = -7.59, roll = 0.00 },
+		{ t = 0.8400, lift = 0.0000, pitch = -6.67, roll = 0.00 },
+		{ t = 0.8600, lift = 0.0000, pitch = -4.50, roll = 0.00 },
+		{ t = 0.8800, lift = 0.0000, pitch = -2.33, roll = 0.00 },
+		{ t = 0.9000, lift = 0.0000, pitch = -0.67, roll = 0.00 },
+		{ t = 0.9200, lift = 0.0000, pitch = 0.00, roll = 0.00 },
+		{ t = 0.9400, lift = 0.0000, pitch = 0.00, roll = 0.00 },
+		{ t = 0.9600, lift = 0.0000, pitch = 0.00, roll = 0.00 },
+		{ t = 0.9800, lift = 0.0000, pitch = 0.00, roll = 0.00 },
+		{ t = 1.0000, lift = 0.0000, pitch = 0.00, roll = 0.00 },
+	},
+}
+
+-- The dig pose at normalised phase `u`, CLAMPED to 0..1 rather than wrapped:
+-- a dig does not loop, and a phase past the end is the rest pose. Returns
+-- lift in body radii, then pitch and roll in degrees. Linear between rows,
+-- as the walk sampler is.
+function Config.piggyDigSample(u: number): (number, number, number)
+	local frames = Config.PIGGY_DIG.frames
+	u = math.clamp(u, 0, 1)
+	for i = 1, #frames - 1 do
+		local a, b = frames[i], frames[i + 1]
+		if u <= b.t then
+			local span = b.t - a.t
+			local k = if span > 0 then (u - a.t) / span else 0
+			return a.lift + (b.lift - a.lift) * k,
+				a.pitch + (b.pitch - a.pitch) * k,
+				a.roll + (b.roll - a.roll) * k
+		end
+	end
+	local z = frames[#frames]
+	return z.lift, z.pitch, z.roll
+end
+
+-- The beats the phase crossed moving from `from` (exclusive) to `to`
+-- (inclusive): how many dirt flecks to throw, and whether the coin pops.
+-- Scanned over the rows rather than timed, so a client at ten frames a
+-- second throws the same dirt as one at sixty, and a client that first
+-- sees a dig already past the coin never pops one.
+function Config.piggyDigBeats(from: number, to: number): (number, boolean)
+	local dirt, coin = 0, false
+	for _, f in ipairs(Config.PIGGY_DIG.frames) do
+		if f.t > from and f.t <= to then
+			dirt += f.dirt or 0
+			coin = coin or f.coin == true
+		end
+	end
+	return dirt, coin
+end
+
+-- How far above the foot plane the nose stands at this pose, in body radii.
+-- `footDepth` is the body centre's height above the foot plane in radii
+-- (PiggyWalk captures it; a mini's is 1.15 / 1.1). The pose pitches about
+-- the FOOT, so the nose's arm is its offset from that point.
+function Config.piggyDigNoseHeight(pitchDeg: number, liftRadii: number, footDepth: number): number
+	local n = Config.PIGGY_DIG.nose
+	local y = footDepth + n.y
+	local t = math.rad(pitchDeg)
+	return y * math.cos(t) - n.z * math.sin(t) + liftRadii
+end
+
+-- The largest nose-down pitch that keeps the nose `noseClearance` above the
+-- ground at this lift, in degrees. PiggyWalk clamps the sampled pitch to it
+-- on every frame, so the clip's numbers can never put a snout through the
+-- grass on a body whose feet sit lower than the one it was authored for.
+function Config.piggyDigMaxPitch(liftRadii: number, footDepth: number): number
+	local n = Config.PIGGY_DIG.nose
+	local y = footDepth + n.y
+	local r = math.sqrt(y * y + n.z * n.z)
+	local need = Config.PIGGY_DIG.noseClearance - liftRadii
+	if r <= 0 or need >= r then
+		return 0
+	end
+	local phi = math.atan2(n.z, y)
+	return math.deg(math.acos(math.max(-1, need / r)) - phi)
+end
+
 
 return Config

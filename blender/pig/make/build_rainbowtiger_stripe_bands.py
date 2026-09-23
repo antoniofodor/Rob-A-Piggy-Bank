@@ -1,6 +1,6 @@
 """Rainbow Tiger: one ribbon mesh per stripe colour, so the rainbow can FLOW.
 
-    blender.exe -b assets/skins/animal/legendary/rainbowtiger/rainbowtiger-complete.blend \
+    blender.exe -b assets/piggies/legendary/rainbowtiger/package/rainbowtiger-complete.blend \
         --python blender/pig/make/build_rainbowtiger_stripe_bands.py
 
 WHY GEOMETRY. The stripes are painted into `rainbowtiger-coat.png` in fixed
@@ -28,8 +28,9 @@ from mathutils.bvhtree import BVHTree
 from mathutils.geometry import tessellate_polygon
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-ROOT = Path(__file__).resolve().parents[3]
-OUT = ROOT / 'assets/skins/animal/legendary/rainbowtiger/stripe-bands'
+ROOT = Path(__file__).resolve().parents[1]
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+OUT = Path(paths.animal_package('rainbowtiger')) / 'stripe-bands'
 OUT.mkdir(parents=True, exist_ok=True)
 
 LIFT = 0.03          # studs off the coat

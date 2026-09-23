@@ -93,13 +93,28 @@ function HUDLayout.bindMenu(menu: Frame, gui: ScreenGui)
 		local m = HUDLayout.metrics(view)
 		menu.AnchorPoint = Vector2.zero
 		menu.Position = UDim2.fromOffset(4, if m.compact then 78 else 144)
-		menu.Size = UDim2.fromOffset(66, 192 + 2 * m.menuGap * 64 / m.menuSize)
+		-- SIZED BY THE TILES IT HOLDS, never by a pinned three. A
+		-- UIListLayout neither clips nor errors, so a fourth tile in a rail
+		-- sized for three draws past the edge with nothing to say so -- the
+		-- tab rail that ate two tabs. Floored at three so the rail keeps the
+		-- height it has always had while the tiles are still being built.
+		local tiles = 0
+		for _, child in menu:GetChildren() do
+			if child:IsA("GuiObject") and child.Visible then tiles += 1 end
+		end
+		tiles = math.max(tiles, 3)
+		menu.Size = UDim2.fromOffset(66, tiles * 64 + (tiles - 1) * m.menuGap * 64 / m.menuSize)
 		menu.AutomaticSize = Enum.AutomaticSize.None
 		scale.Scale = m.menuSize / 64
 		local layout = menu:FindFirstChildOfClass("UIListLayout")
 		if layout then layout.Padding = UDim.new(0, m.menuGap * 64 / m.menuSize) end
 	end
 	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+	-- A tile added after the bind (the lobby board's is started thousands of
+	-- lines later) re-fits the rail; deferred so the child's own layout
+	-- properties have landed before it is counted.
+	menu.ChildAdded:Connect(function() task.defer(fit) end)
+	menu.ChildRemoved:Connect(function() task.defer(fit) end)
 	fit()
 end
 

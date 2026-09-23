@@ -1,0 +1,128 @@
+{
+  "key": "leopard",
+  "name": "Leopard",
+  "path": "assets/piggies/common/leopard/",
+  "tier": "common",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); common/: Config.SKINS.leopard.rarity = \"common\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/leopard/",
+    "assets/piggies/leopard/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/common/leopard/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6400,
+      "name": "Leopard",
+      "rarity": "common",
+      "surface": "leopard",
+      "legendary": null,
+      "chest": "animal",
+      "scale": 1.1,
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": {
+      "key": "leopard",
+      "line": 5770,
+      "name": "Leopard",
+      "template": "leopard",
+      "trimTemplate": "leopard_trim"
+    },
+    "legendaryPacks": null,
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/leopard.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://124640948324368",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/leopard_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://78720762753411",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://124640948324368": {
+      "file": "sheets/leopard_body_color.open-hatch.png",
+      "sha256": "04f085f3177ce54835063676d302db43702c21760ec4d9d202fdee54bb4153a0",
+      "role": "body ColorMap",
+      "note": "uploaded from the open-hatch bake"
+    },
+    "rbxassetid://78720762753411": {
+      "file": "sheets/leopard_trim_color.png",
+      "sha256": "7dd5800a02c448c16dc137bbaaeb26bc070d6840b6a7379b1e3800b0b5c5ba81",
+      "role": "trim ColorMap"
+    }
+  },
+  "shopCard": {
+    "file": "preview/leopard_shop-card.png",
+    "robloxAssetId": "rbxassetid://129271773951053",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/common/leopard/package/shop-cards/leopard.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/common/leopard/package",
+    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "fileCount": 13,
+    "textureCopiesMatchShippedSheets": {
+      "leopard_body_color.png": true,
+      "leopard_trim_color.png": true
+    }
+  },
+  "closedBack": {
+    "closedScene": "source/leopard_closed.blend",
+    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as leopard_body_color.open-hatch.png. Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "leopard.blend",
+      "leopard_closed.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_leopard_blend.py"
+    ],
+    "sheets": [
+      "leopard_body_color.open-hatch.png",
+      "leopard_body_color.png",
+      "leopard_trim_color.png"
+    ],
+    "preview": [
+      "leopard_hatch.png",
+      "leopard_hero.png",
+      "leopard_shop-card.json",
+      "leopard_shop-card.png",
+      "leopard_view.blend"
+    ],
+    "package": [
+      "README.md",
+      "index.html",
+      "leopard-asset-report.json",
+      "leopard-complete.blend",
+      "leopard-complete.fbx",
+      "leopard-crown.png",
+      "leopard-front.png",
+      "leopard-hero.png",
+      "leopard-spine.png",
+      "leopard_body_color.png",
+      "leopard_trim_color.png",
+      "shop-cards/"
+    ]
+  },
+  "generator": "generate/make_leopard_blend.py",
+  "notes": []
+}

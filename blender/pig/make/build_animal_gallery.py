@@ -43,7 +43,7 @@ for skin,name in NAMES.items():
 - `{skin}_body_color.png`, `{skin}_trim_color.png`: exact copies of the existing 1024×1024 coats, verified by SHA-256.
 - `{skin}-hero.png`, `-front.png`, `-crown.png`, `-spine.png`: rendered from the exported geometry. Neutral studio lighting for inspection; not a live Roblox screenshot.
 - `{skin}-asset-report.json`: mesh/triangle counts, source hashes, texture assignments and FBX round-trip measurements.
-- `blender/pig/skins/{skin}/{skin}.blend` and `blender/pig/skins/{skin}/make_{skin}_blend.py`: original procedural coat authoring scene and generator, preserved.
+- `assets/piggies/{paths.tier_of(skin)}/{skin}/source/{skin}.blend` and `assets/piggies/{paths.tier_of(skin)}/{skin}/generate/make_{skin}_blend.py`: the coat's authoring scene and generator -- the source of truth this package is derived from.
 
 ## Geometry and scale
 
@@ -89,7 +89,7 @@ if (GALLERY.parent/'legendary/index.html').exists():rare_nav+='<p><a href="../le
 
 [Open the gallery](index.html).
 
-Bumblebee, Ladybird, Dairy Cow, Zebra, Giraffe, Leopard, Bengal Tiger and Snow Leopard are packaged under assets/skins/animal/common/<skin>/. Each includes a complete six-mesh Blender scene and FBX, the unchanged body/trim textures, four rendered views and a measured handoff. These are the existing animal designs; no new coats/species were invented.
+Bumblebee, Ladybird, Dairy Cow, Zebra, Giraffe, Leopard, Bengal Tiger and Snow Leopard are packaged under assets/piggies/<tier>/<skin>/package/. Each includes a complete six-mesh Blender scene and FBX, the unchanged body/trim textures, four rendered views and a measured handoff. These are the existing animal designs; no new coats/species were invented.
 
 All 16 source coat sheets passed the existing check_fade.py hard-edge test (0.00% broad fades). Packaging verifies texture SHA-256, preserved source scenes/master, original vertices and UVs, per-mesh triangle limits, manifold source edges, and FBX mesh/triangle/bounds reimport. The uniform package is 20,670 triangles; the largest mesh is 7,152 triangles. Every body is 12 studs wide.
 

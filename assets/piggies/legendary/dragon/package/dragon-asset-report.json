@@ -1,0 +1,426 @@
+{
+  "skin": "dragon",
+  "rarity": "legendary",
+  "chest": "animal",
+  "status": "Raised-scale revision; continuous breathing glow; Studio integration pending",
+  "inputHashes": {
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\dragon\\dragon.blend": "27aed55ce649ebae301ca82674f9ee5e15e6554f71104926a3539838d839b588",
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\pig\\pig_parts.blend": "c5e740da3db249498a048da7cc4764ab1b4aa6c4cb103a46775d63dd4a5b2f4a",
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\dragon\\dragon_body_color.png": "1409fd464595563dfb98ba7b1ac31102c97ccc25f6fbd7b15fba2cba6718fd18",
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\dragon\\dragon_trim_color.png": "d7768831e66416ea7a6e9c30ee26864e4531fd92ccd61180005b2e0d02040132"
+  },
+  "preservedSourceParts": [
+    {
+      "part": "Body",
+      "vertices": 3134,
+      "positionsSHA256": "f1a57195d87c8cf12855246cad397c7bb6a1790d636a3c1feb7e7cc4fdebc7ae"
+    },
+    {
+      "part": "Snout",
+      "vertices": 1245,
+      "positionsSHA256": "d395630ab5a7147146a73049f1d3ec506c062bcb721746d8b06ff287998323e5"
+    },
+    {
+      "part": "Ears",
+      "vertices": 3580,
+      "positionsSHA256": "12d99da0c137bab8791aa42a2861399dc5f688f6113955f4926647ef5392fdd0"
+    },
+    {
+      "part": "Legs",
+      "vertices": 1024,
+      "positionsSHA256": "dd983905042ddf314fa8206ef60089a72314a2d8a8fe14761771a83c9861a7b5"
+    },
+    {
+      "part": "Tail",
+      "vertices": 798,
+      "positionsSHA256": "b7051ea49a82e854cf96d69096c7d08a3538ba50b645f9a48b6cfcac2360437d"
+    },
+    {
+      "part": "EyePreview",
+      "vertices": 532,
+      "positionsSHA256": "d459469f0994e2d6f866f8cdfe4b1047ae5db490b768da1e5b9345f49fedad34"
+    }
+  ],
+  "maps": [
+    {
+      "file": "dragon_body_color.png",
+      "sha256": "411eeb247be267e15967f9cc7201ed0153b31a5ab322a9290570b7272e63c2cf"
+    },
+    {
+      "file": "dragon_body_emissive.png",
+      "sha256": "45f1306c462ccd369b2855cefa7df3466d8835dd6aa0ae9d636cd1c8651df3aa"
+    },
+    {
+      "file": "dragon_trim_color.png",
+      "sha256": "f6e2a81e11db92942e61b4ea4d88728da3cc27fe448fa45a2bc5ceed41322aa1"
+    },
+    {
+      "file": "dragon_trim_emissive.png",
+      "sha256": "5bcb3491608db21dd71275b9664b5c88ea0e0ec28a2df139a17cfee5679ff15f"
+    }
+  ],
+  "meshCount": 24,
+  "triangles": 40512,
+  "meshes": [
+    {
+      "name": "Body",
+      "bone": "Root",
+      "triangles": 6264,
+      "nonManifoldEdges": 0,
+      "tone": null,
+      "colorRGB": null
+    },
+    {
+      "name": "Snout",
+      "bone": "Root",
+      "triangles": 2486,
+      "nonManifoldEdges": 0,
+      "tone": null,
+      "colorRGB": null
+    },
+    {
+      "name": "Ears",
+      "bone": "Root",
+      "triangles": 7152,
+      "nonManifoldEdges": 0,
+      "tone": null,
+      "colorRGB": null
+    },
+    {
+      "name": "Legs",
+      "bone": "Root",
+      "triangles": 2032,
+      "nonManifoldEdges": 0,
+      "tone": null,
+      "colorRGB": null
+    },
+    {
+      "name": "Tail",
+      "bone": "Tail",
+      "triangles": 1592,
+      "nonManifoldEdges": 0,
+      "tone": null,
+      "colorRGB": null
+    },
+    {
+      "name": "Eyes",
+      "bone": "Root",
+      "triangles": 1056,
+      "nonManifoldEdges": 0,
+      "tone": null,
+      "colorRGB": null
+    },
+    {
+      "name": "Dragon_Root_ScaleMid",
+      "bone": "Root",
+      "triangles": 8172,
+      "nonManifoldEdges": 0,
+      "tone": "ScaleMid",
+      "colorRGB": [
+        44,
+        68,
+        46
+      ]
+    },
+    {
+      "name": "Dragon_Root_ScaleDark",
+      "bone": "Root",
+      "triangles": 4746,
+      "nonManifoldEdges": 0,
+      "tone": "ScaleDark",
+      "colorRGB": [
+        35,
+        54,
+        40
+      ]
+    },
+    {
+      "name": "Dragon_Root_ScaleLit",
+      "bone": "Root",
+      "triangles": 4362,
+      "nonManifoldEdges": 0,
+      "tone": "ScaleLit",
+      "colorRGB": [
+        56,
+        81,
+        51
+      ]
+    },
+    {
+      "name": "Dragon_Root_ScaleOlive",
+      "bone": "Root",
+      "triangles": 1020,
+      "nonManifoldEdges": 0,
+      "tone": "ScaleOlive",
+      "colorRGB": [
+        67,
+        83,
+        49
+      ]
+    },
+    {
+      "name": "Dragon_Tail_ScaleMid",
+      "bone": "Tail",
+      "triangles": 210,
+      "nonManifoldEdges": 0,
+      "tone": "ScaleMid",
+      "colorRGB": [
+        44,
+        68,
+        46
+      ]
+    },
+    {
+      "name": "Dragon_Tail_ScaleDark",
+      "bone": "Tail",
+      "triangles": 192,
+      "nonManifoldEdges": 0,
+      "tone": "ScaleDark",
+      "colorRGB": [
+        35,
+        54,
+        40
+      ]
+    },
+    {
+      "name": "Dragon_Tail_ScaleLit",
+      "bone": "Tail",
+      "triangles": 36,
+      "nonManifoldEdges": 0,
+      "tone": "ScaleLit",
+      "colorRGB": [
+        56,
+        81,
+        51
+      ]
+    },
+    {
+      "name": "Dragon_Root_Horn",
+      "bone": "Root",
+      "triangles": 560,
+      "nonManifoldEdges": 0,
+      "tone": "Horn",
+      "colorRGB": [
+        232,
+        203,
+        139
+      ]
+    },
+    {
+      "name": "Dragon_Wing_L_WingFrame",
+      "bone": "Wing_L",
+      "triangles": 140,
+      "nonManifoldEdges": 0,
+      "tone": "WingFrame",
+      "colorRGB": [
+        49,
+        83,
+        58
+      ]
+    },
+    {
+      "name": "Dragon_Wing_L_WingMembrane",
+      "bone": "Wing_L",
+      "triangles": 32,
+      "nonManifoldEdges": 0,
+      "tone": "WingMembrane",
+      "colorRGB": [
+        147,
+        66,
+        35
+      ]
+    },
+    {
+      "name": "Dragon_Wing_L_Ember",
+      "bone": "Wing_L",
+      "triangles": 96,
+      "nonManifoldEdges": 0,
+      "tone": "Ember",
+      "colorRGB": [
+        255,
+        121,
+        27
+      ]
+    },
+    {
+      "name": "Dragon_Wing_L_WingShade",
+      "bone": "Wing_L",
+      "triangles": 16,
+      "nonManifoldEdges": 0,
+      "tone": "WingShade",
+      "colorRGB": [
+        103,
+        43,
+        29
+      ]
+    },
+    {
+      "name": "Dragon_Wing_R_WingFrame",
+      "bone": "Wing_R",
+      "triangles": 140,
+      "nonManifoldEdges": 0,
+      "tone": "WingFrame",
+      "colorRGB": [
+        49,
+        83,
+        58
+      ]
+    },
+    {
+      "name": "Dragon_Wing_R_WingMembrane",
+      "bone": "Wing_R",
+      "triangles": 32,
+      "nonManifoldEdges": 0,
+      "tone": "WingMembrane",
+      "colorRGB": [
+        147,
+        66,
+        35
+      ]
+    },
+    {
+      "name": "Dragon_Wing_R_Ember",
+      "bone": "Wing_R",
+      "triangles": 96,
+      "nonManifoldEdges": 0,
+      "tone": "Ember",
+      "colorRGB": [
+        255,
+        121,
+        27
+      ]
+    },
+    {
+      "name": "Dragon_Wing_R_WingShade",
+      "bone": "Wing_R",
+      "triangles": 16,
+      "nonManifoldEdges": 0,
+      "tone": "WingShade",
+      "colorRGB": [
+        103,
+        43,
+        29
+      ]
+    },
+    {
+      "name": "Dragon_Tail_WingMembrane",
+      "bone": "Tail",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "tone": "WingMembrane",
+      "colorRGB": [
+        147,
+        66,
+        35
+      ]
+    },
+    {
+      "name": "Dragon_Tail_Ember",
+      "bone": "Tail",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "tone": "Ember",
+      "colorRGB": [
+        255,
+        121,
+        27
+      ]
+    }
+  ],
+  "bodyWidthStuds": 12,
+  "sourceToStudScale": 6,
+  "boundsStuds": {
+    "min": [
+      -9.688165664672852,
+      -8.28360652923584,
+      -6.119999885559082
+    ],
+    "max": [
+      9.688165664672852,
+      10.319999694824219,
+      8.268709182739258
+    ]
+  },
+  "fbxRoundTripBoundsError": 9.5367431640625e-07,
+  "addedGeometryVaultBlocked": [],
+  "addedGeometryCoinBlocked": [],
+  "animation": {
+    "periodSeconds": 4,
+    "fps": 30,
+    "frames": [
+      1,
+      121
+    ],
+    "wingLiftDegrees": 5,
+    "tailSwayDegrees": 3,
+    "emissionMin": 0.35,
+    "emissionMax": 2.2,
+    "pulseCurve": "0.35 + 1.85 * (0.5 - 0.5*cos(2*pi*time/4))^2",
+    "bones": {
+      "Root": {
+        "pivotStuds": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "parent": null
+      },
+      "Tail": {
+        "pivotStuds": [
+          0.0,
+          4.619999885559082,
+          1.7400000095367432
+        ],
+        "parent": "Root"
+      },
+      "Wing_L": {
+        "pivotStuds": [
+          -4.320000171661377,
+          1.0800000429153442,
+          2.0999999046325684
+        ],
+        "parent": "Root"
+      },
+      "Wing_R": {
+        "pivotStuds": [
+          4.320000171661377,
+          1.0800000429153442,
+          2.0999999046325684
+        ],
+        "parent": "Root"
+      }
+    },
+    "notes": "Idle FBX contains bone animation. Body/trim masks and Ember parts require client-side emission playback in Studio."
+  },
+  "raisedScales": {
+    "platesByPart": {
+      "Body": 346,
+      "Ears": 38,
+      "Legs": 63,
+      "Tail": 11
+    },
+    "totalPlates": 458,
+    "heightNative": [
+      0.02,
+      0.028
+    ],
+    "heightStuds": [
+      0.12,
+      0.168
+    ],
+    "method": "Closed beveled Voronoi scale plates clipped onto original mesh surfaces",
+    "boundaryCellsSkipped": 21,
+    "seamMasks": [
+      {
+        "group": "body",
+        "maskCoverageAboveTenPercent": 0.13173580169677734,
+        "source": "Projected borders of the actual raised scale geometry"
+      },
+      {
+        "group": "trim",
+        "maskCoverageAboveTenPercent": 0.06238555908203125,
+        "source": "Projected borders of the actual raised scale geometry"
+      }
+    ]
+  }
+}

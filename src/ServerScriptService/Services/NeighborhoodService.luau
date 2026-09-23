@@ -33,6 +33,7 @@ local PiggyModel = require(ReplicatedStorage.Shared.PiggyModel)
 local RideModel = require(ReplicatedStorage.Shared.RideModel)
 local BoneModel = require(ReplicatedStorage.Shared.BoneModel)
 local GrassTuft = require(ReplicatedStorage.Shared.GrassTuft)
+local Grassland = require(ReplicatedStorage.Shared.Grassland)
 local SceneryTrees = require(script.Parent.SceneryTrees)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 
@@ -281,10 +282,188 @@ local function canopyReach(spec: any, scale: number): number
 	return math.sqrt(spec.width ^ 2 + spec.canopyDepth ^ 2) / 2 * scale
 end
 
+-- ============================================================
+-- TRUNK COLLIDERS
+-- ============================================================
+--
+-- EVERY TREE STOPS A CHARACTER AT ITS TRUNK, WHICH REVERSES THE RULE AT THE
+-- TOP OF THIS FILE AND THE ONE CLAUDE.md RECORDS AS "hills are the only
+-- scenery in NeighborhoodService that collides". Designer decision,
+-- 2026-09-21: "make the trees around the map real impassable trees so
+-- players and the piggies have to walk around them". A tree you run through
+-- is a painted backdrop; one that stops you is a place.
+--
+-- IT IS THE FENCE'S OWN SPLIT, ONE OBJECT ALONG. Nothing VISIBLE collides:
+-- the trunk mesh, the canopy and every SceneryTrees part stay CanCollide
+-- false exactly as they were, and the collision lives on ONE invisible
+-- cylinder standing where the bole is. So a tree can be re-meshed, re-scaled
+-- or re-themed without the walk changing -- which is exactly what the fence
+-- bought by putting all its collision on one invisible slab.
+--
+-- TRUNK ONLY, NEVER THE CANOPY. A player must be able to walk under the
+-- leaves, so the collider is as wide as the BOLE rather than the crown and
+-- nothing about the canopy collides.
+--
+-- AND IT IS TALLER THAN A JUMP, WHICH THE FIRST BUILD WAS NOT. It stopped at
+-- the canopy's underside -- 4.9 studs on a verge tree -- on the argument that
+-- an invisible wall in the air above a trunk must never be built. Walked
+-- live with the client's default `AutoJumpEnabled` (touch controls, most of
+-- this audience), the character hit the verge trunk, its root rose to y 8.6
+-- and it walked OFF THE TOP seven studs later: a 4.9 trunk is a STEP. The
+-- number a barrier has to beat is `Config.jumpReach()`, the collision float
+-- plus the jump height (6.14), read exactly as `auditFences` reads it -- so
+-- the top is the HIGHER of the canopy underside and `jumpReach() +
+-- Config.TREES.jumpMargin`. The column runs up into the leaves where it can
+-- meet nothing a player can reach: it is one bole wide and the canopy has
+-- no collision, so the only character who can touch it up there is one
+-- already standing on the trunk, which is exactly the case being closed.
+--
+-- CanQuery FALSE, DELIBERATELY. Collision does not need it, and a hundred
+-- query-able cylinders would eat raycasts and prompts meant for piggies.
+-- CanTouch false for the reason a fence panel carries it.
+--
+-- THE HERD READS THE SAME FOOTPRINTS. `NeighborhoodService.treeBlocks` is
+-- registered with HerdService as a ground veto in Main, so a pack steers
+-- round a trunk plus a piggy's own radius through the segment sampling it
+-- already does for the ponds -- and NOT round a canopy, which would blanket
+-- the whole band the herds wander.
+export type TrunkFootprint = { x: number, z: number, radius: number }
+local trunkColliders: { TrunkFootprint } = {}
+
+-- The bole's radius from a trunk part's FOOTPRINT. A generated trunk part is
+-- a bounding box carrying the root flare and the main limbs as well as the
+-- bole -- 6.44 by 4.68 at scale 1 under a crown 12 wide -- so taking the box
+-- as the trunk would build a wall as wide as a car. The bole is a FRACTION of
+-- the smaller footprint axis (`Config.TREES.boleFraction`); the box-and-ball
+-- fallback passes 1.0, because its trunk IS a bole.
+local function boleRadius(footprintX: number, footprintZ: number, fraction: number): number
+	return math.min(footprintX, footprintZ) / 2 * fraction
+end
+
+-- The generated tree's bole radius and canopy underside at `scale`, read off
+-- `Config.TREE_MESH`'s own part table -- the same numbers `buildTree` sizes
+-- and seats the mesh by, so the collider cannot drift from the picture. The
+-- top is the LOWER of the canopy's underside and the trunk part's own top.
+local function meshTrunkProfile(spec: any, scale: number, fraction: number): (number, number)
+	local trunk, canopy
+	for _, entry in ipairs(spec.parts) do
+		if entry.part == "Trunk" then
+			trunk = entry
+		elseif entry.part == "Canopy" then
+			canopy = entry
+		end
+	end
+	if not (trunk and canopy) then
+		-- The box tree's own bole, which needs no fraction.
+		return 0.8, spec.height * scale * 0.5
+	end
+	local radius = boleRadius(trunk.size.X * scale, trunk.size.Z * scale, fraction)
+	local top = math.min(canopy.offset.Y - canopy.size.Y / 2, trunk.offset.Y + trunk.size.Y / 2) * scale
+	return radius, top
+end
+
+-- A part's world-space half extent along one axis, read per part through
+-- its own CFrame: `Size.Y / 2` is wrong for anything turned, and a
+-- SceneryTrees model is turned on its own axis for variety.
+local function halfExtent(part: BasePart, axis: string): number
+	local cf, s = part.CFrame, part.Size
+	local r, u, l = cf.RightVector, cf.UpVector, cf.LookVector
+	return math.abs((r :: any)[axis]) * s.X / 2 + math.abs((u :: any)[axis]) * s.Y / 2
+		+ math.abs((l :: any)[axis]) * s.Z / 2
+end
+
+-- A SceneryTrees model is MEASURED rather than assumed. The bole is the
+-- non-foliage part standing lowest, and the top is the lowest foliage part's
+-- underside -- so a species with a low crown gets a short collider and one
+-- with a bare trunk gets a tall one, with nothing per species to remember.
+-- The fallbacks are the generated tree's own profile, because SceneryTrees
+-- fits every template to that envelope.
+local function measureSceneryTree(model: Instance, fallbackRadius: number, fallbackTop: number): (number, number)
+	local bole: BasePart? = nil
+	local boleBottom = math.huge
+	local leafBottom = math.huge
+	for _, p in ipairs(model:GetDescendants()) do
+		if p:IsA("BasePart") then
+			local bottom = p.CFrame.Position.Y - halfExtent(p, "Y")
+			if string.find(string.lower(p.Name), "foliage", 1, true) then
+				leafBottom = math.min(leafBottom, bottom)
+			elseif bottom < boleBottom then
+				boleBottom = bottom
+				bole = p
+			end
+		end
+	end
+	if not bole then
+		return fallbackRadius, fallbackTop
+	end
+	-- THE FOOTPRINT IS READ IN THE PART'S OWN FRAME, never off world axes: a
+	-- turned box projects wider onto X and Z than it is, so a world-axis
+	-- reading fattens every yawed trunk by up to root two. The vertical is
+	-- whichever local axis stands closest to world Y; the other two are the
+	-- footprint. The top and bottom ARE world-axis, because yaw cannot move Y.
+	local cf, s = bole.CFrame, bole.Size
+	local ry, uy, ly = math.abs(cf.RightVector.Y), math.abs(cf.UpVector.Y), math.abs(cf.LookVector.Y)
+	local footX, footZ
+	if ry >= uy and ry >= ly then
+		footX, footZ = s.Y, s.Z
+	elseif uy >= ly then
+		footX, footZ = s.X, s.Z
+	else
+		footX, footZ = s.X, s.Y
+	end
+	local radius = boleRadius(footX, footZ, Config.TREES.boleFraction)
+	local top = math.min(cf.Position.Y + halfExtent(bole, "Y"), leafBottom) - GROUND_Y
+	if top <= 1 then
+		return radius, fallbackTop
+	end
+	return radius, top
+end
+
+-- The model `SceneryTrees.build` just parented for `seed`, found by the
+-- attribute it stamps rather than by position -- seeds are unique per tree.
+local function sceneryTreeFor(seed: number): Instance?
+	local kids = folder:GetChildren()
+	for i = #kids, 1, -1 do
+		local kid = kids[i]
+		if kid.Name == "SceneryTree" and kid:GetAttribute("PlacementSeed") == seed then
+			return kid
+		end
+	end
+	return nil
+end
+
+local function plantTrunkCollider(x: number, z: number, radius: number, top: number)
+	local t = Config.TREES
+	-- Sunk `sink` into the ground so the base can never sit a hair proud of
+	-- the grass as a lip somebody trips on. The top is the canopy's underside
+	-- or a jump and a margin above the ground, whichever is HIGHER -- see the
+	-- section note: a trunk a character can hop onto is a step, not a wall.
+	top = math.max(top, Config.jumpReach() + t.jumpMargin)
+	local height = top + t.sink
+	local part = Instance.new("Part")
+	part.Name = t.colliderName
+	-- A ROBLOX CYLINDER'S AXIS IS ITS X AXIS (CLAUDE.md, five times over):
+	-- the LENGTH goes first and the cross-section second, and a quarter turn
+	-- about Z stands it up. Written the other way round it is a disc lying
+	-- on the grass as wide as the tree is tall.
+	part.Shape = Enum.PartType.Cylinder
+	part.Size = Vector3.new(height, radius * 2, radius * 2)
+	part.CFrame = CFrame.new(x, GROUND_Y - t.sink + height / 2, z) * CFrame.Angles(0, 0, math.pi / 2)
+	part.Transparency = 1
+	part.Anchored = true
+	part.CanCollide = true
+	part.CanQuery = false
+	part.CanTouch = false
+	part.CastShadow = false
+	part.Parent = folder
+	table.insert(trunkColliders, { x = x, z = z, radius = radius })
+end
+
 -- What shipped before the mesh. Kept, and reached whenever `Config.TREE_MESH`
 -- has no ids in it, so a fresh empty place plus this repo still builds the
--- world this repo has always built.
-local function buildBoxTree(x: number, z: number, seed: number)
+-- world this repo has always built. Returns the bole's radius and the
+-- canopy's underside for the collider.
+local function buildBoxTree(x: number, z: number, seed: number): (number, number)
 	local height = 9 + (seed % 3) * 2
 	scenery("Trunk", Vector3.new(1.6, height, 1.6),
 		CFrame.new(x, GROUND_Y + height / 2, z), TRUNK, Enum.Material.Wood)
@@ -294,25 +473,40 @@ local function buildBoxTree(x: number, z: number, seed: number)
 		CFrame.new(x, GROUND_Y + height + canopy / 3, z),
 		if seed % 2 == 0 then LEAF else LEAF_2, Enum.Material.Grass)
 	top.Shape = Enum.PartType.Ball
+	-- The ball's underside is `canopy / 6` below the trunk's top.
+	return boleRadius(1.6, 1.6, 1.0), math.min(height, height + canopy / 3 - canopy / 2)
 end
 
+-- Builds one tree by whichever route is available and then ONE trunk collider
+-- for it, whichever route that was -- so every tree on the street stops a
+-- character the same way whatever it is drawn with.
 local function buildTree(x: number, z: number, seed: number, scaleOverride: number?)
+	local spec = Config.treeMesh()
+	local scale = scaleOverride or treeScale(Config.TREE_MESH, seed)
+	-- The generated tree's profile at this scale is the fallback for every
+	-- route, because both mesh routes fit that envelope.
+	local radius, top = meshTrunkProfile(Config.TREE_MESH, scale, Config.TREES.boleFraction)
+
 	-- New scenery models fit the existing clearance envelope. The old tree is
 	-- retained only as a fallback for places missing the synced model library.
-	if SceneryTrees.build(x, z, seed, scaleOverride or treeScale(Config.TREE_MESH, seed), GROUND_Y, folder) then
+	if SceneryTrees.build(x, z, seed, scale, GROUND_Y, folder) then
+		local model = sceneryTreeFor(seed)
+		if model then
+			radius, top = measureSceneryTree(model, radius, top)
+		end
+		plantTrunkCollider(x, z, radius, top)
 		return
 	end
-	local spec = Config.treeMesh()
 	local templates = spec and ensureTreeTemplates()
 	if not (spec and templates) then
-		buildBoxTree(x, z, seed)
+		radius, top = buildBoxTree(x, z, seed)
+		plantTrunkCollider(x, z, radius, top)
 		return
 	end
 
 	-- The grove picks its scale off the seed, which is what gives it a height
 	-- spread. A street tree is placed against measured clearances instead, so
-	-- it is handed one.
-	local scale = scaleOverride or treeScale(spec, seed)
+	-- it is handed one. (`scale` above: the two spec tables carry one ladder.)
 	-- A turn per tree, stepped by the golden angle so consecutive seeds never
 	-- land near each other. It costs nothing and it is the whole difference
 	-- between a grove and a hundred copies of one tree.
@@ -341,6 +535,7 @@ local function buildTree(x: number, z: number, seed: number, scaleOverride: numb
 			part.Parent = folder
 		end
 	end
+	plantTrunkCollider(x, z, radius, top)
 end
 
 -- `MAILBOX_HALF` went with the kerbside mailbox it placed: the street has no
@@ -622,6 +817,19 @@ local function buildStreetTrees(m: any)
 	-- gap centres, which is where the shops and the boards stand.
 	local halfDrive = Config.DRIVEWAY_WIDTH / 2 + 1
 	local SHOP_HALF = 11 -- 18 wide plus its two-stud forecourt overhang
+	-- AND THE HERD CORRIDOR, NOW THAT A TRUNK STOPS A PIGGY. A pack enters the
+	-- street through a tunnel and walks the verge at `herdGround().corridorX`
+	-- (|x| 221.8) from the kerb to the band behind the plots -- straight
+	-- through the verge at |z| 19, where the past-the-plot trees stood at
+	-- 190 and 220. Before the colliders a tree there was scenery the pack
+	-- walked through; with `treeBlocks` registered it is a wall across the
+	-- one line every herd has to take, so THE TREE MOVES AND NEVER THE
+	-- ROUTE. The keep is the trunk's own bole plus the herd margin, plus a
+	-- flank and the jitter, because the thing walking is a file three
+	-- columns wide -- derived, so a fatter bole or a wider pack re-asks it.
+	local ground = Config.herdGround()
+	local boleR = meshTrunkProfile(Config.TREE_MESH, STREET_TREE.scale, Config.TREES.boleFraction)
+	local herdKeep = boleR + Config.TREES.margin + Config.HERDS.followSpacing + Config.HERDS.jitter
 	local function clear(x: number): boolean
 		for col = 0, perRow - 1 do
 			if math.abs(x - Config.plotColumnX(col)) < halfDrive + reach then
@@ -632,6 +840,11 @@ local function buildStreetTrees(m: any)
 			if math.abs(x - gapX(col)) < SHOP_HALF + reach then
 				return false
 			end
+		end
+		-- A hair of tolerance, because the slide below lands a tree EXACTLY one
+		-- keep off the line and float arithmetic would refuse its own answer.
+		if math.abs(math.abs(x) - ground.corridorX) < herdKeep - 1e-6 then
+			return false
 		end
 		-- THE TREES CAME BACK. A veto stood here for one release: four of
 		-- these gaps carried a robbable piggy bank on the verge, 16 studs off
@@ -661,9 +874,21 @@ local function buildStreetTrees(m: any)
 	local outer = Config.plotColumnX(perRow - 1)
 	local limit = m.tunnelEastX - 24 - reach
 	local x = outer + 30
+	local last = -math.huge
 	while x <= limit do
-		table.insert(xs, x)
-		table.insert(xs, -x)
+		-- A candidate on the herd corridor slides INWARD to the corridor's
+		-- edge rather than being dropped: 220 lands at 213.8 today, still
+		-- two canopy reaches past the tree at 190. A second candidate that
+		-- would slide onto the same spot is skipped.
+		local placed = x
+		if math.abs(placed - ground.corridorX) < herdKeep then
+			placed = ground.corridorX - herdKeep
+		end
+		if placed - last >= 12 then
+			table.insert(xs, placed)
+			table.insert(xs, -placed)
+			last = placed
+		end
 		x += 30
 	end
 
@@ -684,7 +909,15 @@ local function buildStreetTrees(m: any)
 	end
 end
 
+-- Where the grove's trunks stood and how far each canopy reaches, kept so
+-- the grassland can be laid out against the trees that are actually there
+-- rather than against the rows they were meant to follow. A pond under a
+-- canopy is the grove-row-in-the-yard fault one object along.
+local grovePlacements: { Grassland.Obstacle } = {}
+
 local function buildTrees(m: any)
+	grovePlacements = {}
+	trunkColliders = {}
 	-- The back fence line -- YARD_DEPTH behind the plot centre, not half a
 	-- plot.
 	--
@@ -728,11 +961,12 @@ local function buildTrees(m: any)
 				-- view, and a canopy standing over somebody's piggy should
 				-- not be something the next edit to `scales` can bring back.
 				local depth = row.depth + scatter(seed + 97, 8)
+				local reach = if treeSpec then canopyReach(treeSpec, treeScale(treeSpec, seed)) else 8
 				if treeSpec then
-					depth = math.max(depth,
-						canopyReach(treeSpec, treeScale(treeSpec, seed)) + CANOPY_CLEARANCE)
+					depth = math.max(depth, reach + CANOPY_CLEARANCE)
 				end
 				buildTree(x, side * (rear + depth), seed)
+				table.insert(grovePlacements, { x = x, z = side * (rear + depth), reach = reach })
 				col += row.step
 			end
 		end
@@ -1660,6 +1894,30 @@ local function buildShops(_m: any)
 	end
 end
 
+-- ============================================================
+-- THE GRASSLAND
+-- ============================================================
+--
+-- Ponds, flower drifts, rocks and a log in the band the herds wander,
+-- behind the back fences on both sides. `Shared/Grassland` owns the
+-- geometry and the layout; this hands it the grove's trunks so nothing it
+-- stands lands under a canopy or inside a trunk. Pcalled for the reason
+-- `Decor.prewarm` is: a pond that fails to build is a bare patch of grass,
+-- and a bare patch of grass may never stop the server starting.
+local function buildGrassland()
+	local ok, err = pcall(function()
+		local _, ponds, count = Grassland.build(folder, grovePlacements)
+		print(("[NeighborhoodService] Grassland: %d ponds, %d parts"):format(#ponds, count))
+		for _, pond in ipairs(ponds) do
+			print(("[NeighborhoodService]   pond side %+d at (%.1f, %.1f) r %.1f, rim %.1f studs clear of the canopies")
+				:format(pond.side, pond.x, pond.z, pond.radius, pond.clear))
+		end
+	end)
+	if not ok then
+		warn("[NeighborhoodService] the grassland did not build: " .. tostring(err))
+	end
+end
+
 function NeighborhoodService.start()
 	local existing = workspace:FindFirstChild("Neighborhood")
 	if existing then
@@ -1673,6 +1931,8 @@ function NeighborhoodService.start()
 	local m = metrics()
 	buildRoad(m)
 	buildTrees(m)
+	-- After the trees, whose trunks it is laid out against.
+	buildGrassland()
 	buildStreetTrees(m)
 	buildStreetFurniture(m)
 	-- After the furniture, so the band above can be read against what is
@@ -1681,7 +1941,42 @@ function NeighborhoodService.start()
 	buildHills(m)
 	buildShops(m)
 
-	print(("[NeighborhoodService] Built %d scenery parts"):format(#folder:GetChildren()))
+	print(("[NeighborhoodService] Built %d scenery parts, %d trunk colliders"):format(
+		#folder:GetChildren(), #trunkColliders))
+end
+
+-- True inside a trunk collider's footprint plus a piggy's own radius
+-- (`Config.TREES.margin`). XZ only, like `Grassland.blocks`: the herd asks
+-- with a point at its own body height and a bole is upright. Registered
+-- with HerdService in Main; a pack then paths round a trunk through the
+-- segment sampling it already does. Canopies are deliberately NOT in this:
+-- a canopy veto would blanket the whole band the herds wander.
+function NeighborhoodService.treeBlocks(position: Vector3): boolean
+	local margin = Config.TREES.margin
+	for _, trunk in ipairs(trunkColliders) do
+		local dx, dz = position.X - trunk.x, position.Z - trunk.z
+		local keep = trunk.radius + margin
+		if dx * dx + dz * dz <= keep * keep then
+			return true
+		end
+	end
+	return false
+end
+
+-- Where every trunk collider stands and how wide its bole is, for anything
+-- that wants to measure the street against the trees that are actually there.
+function NeighborhoodService.trunkColliders(): { TrunkFootprint }
+	return trunkColliders
+end
+
+-- The grove and the verge trees alone, into a parent of the caller's: the
+-- two calls `start` makes either side of the grassland, exposed so the trees
+-- suite can build the real layout under an engine stub and measure it.
+function NeighborhoodService.plantTrees(parent: Folder)
+	folder = parent
+	local m = metrics()
+	buildTrees(m)
+	buildStreetTrees(m)
 end
 
 return NeighborhoodService

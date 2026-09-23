@@ -42,7 +42,8 @@ nobody has seen.
 
 ## 2. The reframe: collect looks, not species
 
-There are **five working pattern generators** under `blender/pig/skins/`, and
+There are **five working pattern generators** under `assets/piggies/<tier>/<key>/generate/`
+(the legendaries' still under `blender/pig/skins/`), and
 a fantasy skin is one of them with a different palette and material:
 
 | generator | what it draws | what it can be |
@@ -171,7 +172,7 @@ in the PAINT.
 
 ### The pass, and why the fallback is free
 
-    blender --background --python skins/<skin>/make_<skin>_blend.py
+    blender --background --python assets/piggies/<tier>/<skin>/generate/make_<skin>_blend.py
     blender --background --python make/bake_skin.py   -- --skin <skin>
     blender --background --python make/bake_alpha.py  -- --skin <skin>
     python make/apply_alpha.py --skin <skin>

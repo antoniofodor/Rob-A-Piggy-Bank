@@ -1,0 +1,95 @@
+{
+  "key": "lion",
+  "name": "Lion",
+  "path": "assets/piggies/epic/lion/",
+  "tier": "epic",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); epic/: Config.SKINS.lion.rarity = \"epic\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/lion/",
+    "assets/piggies/lion/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/epic/lion/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6601,
+      "name": "Lion",
+      "rarity": "epic",
+      "surface": "lion",
+      "legendary": null,
+      "chest": "animal",
+      "scale": 1.25,
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": {
+      "key": "lion",
+      "line": 5785,
+      "name": "Lion",
+      "template": "lion",
+      "trimTemplate": "lion_trim"
+    },
+    "legendaryPacks": null,
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/lion.model.json",
+      "missing": true
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/lion_trim.model.json",
+      "missing": true
+    }
+  },
+  "idSources": {},
+  "shopCard": null,
+  "derivedPackage": {
+    "path": "assets/piggies/epic/lion/package",
+    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "fileCount": 9,
+    "textureCopiesMatchShippedSheets": {
+      "lion_body_color.png": true,
+      "lion_trim_color.png": true
+    }
+  },
+  "closedBack": {
+    "closedScene": "source/lion_closed.blend",
+    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as lion_body_color.open-hatch.png. Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "coat-spec.json",
+      "lion.blend",
+      "lion_closed.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_lion_blend.py"
+    ],
+    "sheets": [
+      "lion_body_color.open-hatch.png",
+      "lion_body_color.png",
+      "lion_trim_color.png"
+    ],
+    "preview": [
+      "lion_hatch.png",
+      "lion_hero.png",
+      "lion_view.blend"
+    ],
+    "package": [
+      "lion-asset-report.json",
+      "lion-complete.blend",
+      "lion-complete.fbx",
+      "lion-crown.png",
+      "lion-front.png",
+      "lion-hero.png",
+      "lion-spine.png",
+      "lion_body_color.png",
+      "lion_trim_color.png"
+    ]
+  },
+  "generator": "generate/make_lion_blend.py",
+  "notes": []
+}

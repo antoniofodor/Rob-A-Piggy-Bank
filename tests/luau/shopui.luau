@@ -57,14 +57,14 @@ for _, rarity in pairs(Config.RARITIES) do rarity.colour=colour end
 -- with `CHESTS[key].colour`, and Config builds those through its own Color3
 -- stub, which has no Lerp on it.
 for _, chest in pairs(Config.CHESTS) do if chest.colour then chest.colour=colour end end
-local Theme = setmetatable({HUE=setmetatable({},{__index=function() return colour end}),acornPrice=function(o,text) o.Text=text end,
-	-- `coinPrice` is `acornPrice` for coins and `readable` solves a text tone
-	-- against its ground; the stub keeps the text and hands the tone back, since
-	-- neither contrast nor a drawn glyph is what these checks are about.
+local Theme = setmetatable({HUE=setmetatable({},{__index=function() return colour end}),
+	-- `coinPrice` seats a coin against a price string and `readable` solves a
+	-- text tone against its ground; the stub keeps the text and hands the tone
+	-- back, since neither contrast nor a drawn glyph is what these checks are
+	-- about.
 	coinPrice=function(o,text) o.Text=text end,readable=function(tone) return tone end},{__index=function() return colour end})
 Theme.SHOP_COLOURS=setmetatable({},{__index=function() return colour end})
 Theme.coin=function(parent) local f=instance("Frame");f.Parent=parent;return f end
-Theme.acorn=Theme.coin
 local names=setmetatable({},{__index=function(_,key) return key end})
 local modules={Config=Config,Theme=Theme,UpgradePreview={build=function() return {} end},PiggyModel={build=function() return {} end}}
 -- The tier dressing paints gradients this harness cannot draw; stubbed to the
@@ -79,7 +79,10 @@ local environment=setmetatable({
 	Enum=setmetatable({},{__index=function() return names end}),
 	Color3={new=function() return colour end,fromRGB=function() return colour end},
 	ColorSequence={new=function(a,b) return {a,b} end},
-	task={defer=function() end,delay=function(_, fn) table.insert(delays,fn) end},
+	-- `spawn` runs the thread at once: `HUDLayout.bindAction` spawns the
+	-- jump-button watcher, which returns on the first line here because a
+	-- harness has no LocalPlayer to find a PlayerGui under.
+	task={defer=function() end,delay=function(_, fn) table.insert(delays,fn) end,spawn=function(fn,...) fn(...) end},
 },{__index=getfenv()})
 local function load(name)
 	local fn=assert(loadstring(sources[name],name));setfenv(fn,environment);modules[name]=fn();return modules[name]
@@ -121,10 +124,11 @@ local ui=Upgrades.new(view,function(key) table.insert(bought,key) end)
 local upgrades={}
 for key, spec in pairs(Config.UPGRADES) do upgrades[key]={name=spec.name,level=0,max=spec.max,cost=Config.getUpgradeCost(key,0),blurb=spec.blurb} end
 ui:setUpgrades(upgrades)
-local economy={coins=1e9,incomeLevel=4,capacityLevel=3,maxIncome=50,maxCapacity=50,incomeCost=200,capacityCost=300,rebirths=2,friendBonus=0,rate=Config.getIncomeRate(4,2,0)*1.2}
+local economy={coins=1e9,incomeLevel=4,maxIncome=50,incomeCost=200,rebirths=2,friendBonus=0,rate=Config.getIncomeRate(4,2,0)*1.2}
 ui:setEconomy(economy)
 check(ui.title.Text=="Earn Faster","earn selected on first load")
-check(ui.tiles.income.check.Visible and not ui.tiles.capacity.check.Visible,"selected upgrade has an explicit checkmark")
+check(ui.tiles.income.check.Visible,"selected upgrade has an explicit checkmark")
+check(ui.tiles.capacity==nil and Facts.rows("capacity",1,2,economy)[1]==nil,"there is no Bigger Piggy Bank tile or fact row: the pig has no ceiling")
 check(ui.model:FindFirstChild("ShopIcon"):GetAttribute("IconKey")=="income","income uses approved rendered art")
 check(ui.model:FindFirstChild("ShopIcon").Image==Icons.ids.income,"rendered art references uploaded Roblox image")
 local supplyHolder=instance("Frame")
@@ -156,9 +160,11 @@ check(ui.tiles.income.lock.Visible and ui.tiles.income.level.Text=="LEVEL 42 / 4
 check(ui.buy.Text=="REBIRTH TO UNLOCK MORE" and not ui.buy.Active,"rebirth gate remains non-purchasable")
 local requestsBefore=#bought;ui.buy.Activated:fire();check(#bought==requestsBefore,"locked card never sends a purchase")
 ui:setEconomy(economy);check(not ui.tiles.income.lock.Visible,"unlockable card removes its requirement lock")
-ui.tiles.capacity.button.Activated:fire()
-check(ui.tiles.capacity.check.Visible and not ui.tiles.income.check.Visible,"selection check follows the selected card")
-check(ui.model:FindFirstChild("ShopIcon"):GetAttribute("IconKey")=="capacity","detail artwork follows selection")
+-- Only the open group's tiles are repainted, so the check is asserted on
+-- the card that was selected rather than on a hidden tile's stale flag.
+ui.groupButtons[3].Activated:fire();ui.tiles.sack.button.Activated:fire()
+check(ui.selected=="sack" and ui.tiles.sack.check.Visible,"selection check follows the selected card")
+check(ui.model:FindFirstChild("ShopIcon"):GetAttribute("IconKey")=="sack","detail artwork follows selection")
 local iconCount=0;for _,child in ipairs(ui.model:GetChildren()) do if child.Name=="ShopIcon" then iconCount+=1 end end
 check(iconCount==1,"changing selection replaces rather than stacks artwork")
 for group,keys in pairs({[2]={"locks","fences"},[3]={"lockpicks","sack","boots","tiptoe"}}) do
@@ -176,19 +182,31 @@ local panel=sized(1040,660)
 local header=instance("Frame");header.Parent=panel;header.Size=dim(1,-20,0,52)
 local tabs={};for i=1,8 do tabs[i]={view=instance("Frame")};tabs[i].view.Parent=panel end
 local shell
-local at={home=3,rides=4,items=5,worn=6,crates=7,companions=8}
+-- The real rail, as ClientMain numbers it: the Worn tab is gone (Most Wanted
+-- gear lives in the bag and catch effects moved to Guardians), Crates is sixth
+-- and the Robux tab is last. A suite that kept `worn=6` was routing a category
+-- to a tab that no longer exists.
+local at={home=3,rides=4,items=5,crates=6,companions=7,premium=8}
 shell=Shell.new({panel=panel,header=header,rail=instance("Frame"),coins=instance("TextLabel"),title=instance("TextLabel"),close=instance("TextButton"),tabs=tabs,at=at,startView=tabs[1].view,
 	selectTab=function(i) route=i;shell:select(i) end})
-for i, expected in ipairs({2,3,8,4,5,7}) do shell.links[i].Activated:fire();check(route==expected,"category route "..i) end
-shell:select(6);check(shell.style.Visible and shell.title.Text=="Style & Crates","outfits remain accessible within style")
+-- Sidebar order is the category list: Upgrades, Home, Guardians, Rides,
+-- Supplies, Style & Crates, then the Robux entry the shell appends when a
+-- premium tab exists.
+for i, expected in ipairs({2,3,at.companions,at.rides,at.items,at.crates,at.premium}) do shell.links[i].Activated:fire();check(route==expected,"category route "..i) end
+check(#shell.links==7,"robux category sits in the sidebar when a premium tab exists")
+-- There is no style sub-view any more: outfits live in the bag, and the crates
+-- category is signed Style & Crates with the chevron back to the landing.
+shell:select(at.crates);check(shell.title.Text=="Style & Crates" and shell.back.Visible and shell.sidebar.Visible,"crates category is signed Style & Crates with a way back")
 shell.back.Activated:fire();check(route==1,"back returns to shop")
 check(shell.footer==nil and shell.achievements==nil,"shop has no bag or achievement section")
 local entries={}
 for tier,pool in pairs(Config.chestPool("og")) do for _,key in ipairs(pool) do table.insert(entries,{kind="skin",key=key,name=Config.SKINS[key].name,tier=tier}) end end
 local opened={}
 local listVisible=true
-local contents=Contents.new(tabs[7].view,{stockOf=function() return entries end,iconFor=function() end,open=function(key) table.insert(opened,key) end,showList=function(v) listVisible=v end})
-local state={chests={og={cost=15,currency="loot",owned=1,total=#entries,odds={common=51.25,rare=44.75,legendary=4}}}}
+local contents=Contents.new(tabs[at.crates].view,{stockOf=function() return entries end,iconFor=function() end,open=function(key) table.insert(opened,key) end,showList=function(v) listVisible=v end})
+-- No `cost` and no `currency`: a crate is earned or bought with Robux and
+-- never with in-game currency, which is the rule `auditRandomOutcomes` keeps.
+local state={chests={og={owned=1,total=#entries,odds={common=51.25,rare=44.75,legendary=4}}}}
 local cosmetics={skins={}};for _,e in ipairs(entries) do cosmetics.skins[e.key]={unlocked=false} end
 cosmetics.skins[entries[1].key].unlocked=true
 contents:update(state,20,cosmetics,nil);contents:show("og")
@@ -204,8 +222,11 @@ check(visible==1,"owned filter uses authoritative ownership")
 contents.filters["Not owned"].Activated:fire()
 visible=0;for _,tile in ipairs(contents.tiles) do if tile.frame.Visible then visible+=1 end end
 check(visible==#entries-1,"not-owned filter excludes owned entries")
-contents.open.Activated:fire();contents.open.Activated:fire();check(#opened==1 and opened[1]=="og","crate open sends only key and debounces")
-contents.pending=false;contents:update(state,0,cosmetics,nil);contents.open.Activated:fire();check(#opened==1,"unaffordable crate does not send")
+-- THE OPEN BUTTON SENDS NOTHING. Crates are earned or bought with Robux, so
+-- the button on this surface is a signpost, not a purchase: pressing it never
+-- reaches the server, and it says where a crate comes from instead.
+contents.open.Activated:fire();contents.open.Activated:fire();check(#opened==0,"crate surface never sends an open request")
+check(not contents.open.Active and contents.open.Text=="EARN THIS CRATE","crate button is an inert signpost naming how a crate is got")
 contents:close();check(listVisible,"back restores crate and buyback list")
 local function contained(child,parent,message)
 	local p,s=pos(child),size(child);local pp,ps=pos(parent),size(parent)
@@ -221,16 +242,16 @@ for _,screen in ipairs({{1480,920},{1040,660},{776,335},{627,287},{345,640},{920
 	check(shell.categories[2].title=="Home","home category has the shorter title")
 	contained(shell.home,tabs[1].view,"categories use the full landing")
 	contained(shell.coinBadge,header,"coin badge stays in header")
-	contained(shell.acornBadge,header,"acorn badge stays in header")
+
 	check(shell.grid.CellSize.Y.Offset>=96,"category cards retain readable art and captions")
 	contained(shell.coinIcon,shell.coinBadge,"coin fits inside its balance badge")
-	contained(shell.acornIcon,shell.acornBadge,"acorn fits inside its balance badge")
+
 	panel._size={X=screen[1],Y=screen[2]};shell:select(2)
 	ui.view=tabs[2].view;ui.root.Parent=ui.view;ui.mobileDetail=true;ui:layout()
 	contained(ui.buy,ui.detail,"upgrade purchase remains in detail at "..screen[1])
 	contained(ui.stats,ui.detail,"upgrade stats remain in detail at "..screen[1])
 	check(size(ui.stats).Y>=55,"upgrade comparison retains scroll space")
-	shell:select(7);contents:show("og");contents:layout()
+	shell:select(at.crates);contents:show("og");contents:layout()
 	contained(contents.open,contents.summary,"crate purchase in summary")
 	contained(contents.list,contents.root,"collection scroll in viewport")
 	check(size(contents.list).Y>=65,"collection retains usable scroll space")
@@ -239,7 +260,7 @@ for _,screen in ipairs({{1480,920},{1040,660},{776,335},{627,287},{345,640},{920
 	 local buyTop=size(contents.summary).Y+contents.open.Position.Y.Offset
 	 check(oddsBottom<=buyTop,"compact crate odds stay above the purchase button")
 	end
-	contained(shell.style,panel,"style navigation in panel")
+	contained(shell.sidebar,panel,"category navigation in panel")
 end
 -- Garage contract: only owned rides can issue the existing toggle request;
 -- style cycling excludes locked stances and shop/bag navigation closes the panel.

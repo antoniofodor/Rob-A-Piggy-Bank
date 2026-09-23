@@ -1,0 +1,133 @@
+{
+  "key": "glacier",
+  "name": "Glacier",
+  "path": "assets/piggies/rare/glacier/",
+  "tier": "rare",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); rare/: Config.SKINS.glacier.rarity = \"rare\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/glacier/",
+    "assets/piggies/glacier/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/rare/glacier/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6537,
+      "name": "Glacier",
+      "rarity": "rare",
+      "surface": "glacier",
+      "legendary": null,
+      "chest": "animal",
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": {
+      "key": "glacier",
+      "line": 5777,
+      "name": "Glacier",
+      "template": "glacier",
+      "trimTemplate": "glacier_trim"
+    },
+    "legendaryPacks": null,
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/glacier.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://98780172703635",
+        "EmissiveMaskContent": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/glacier_trim.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://81141498873927",
+        "EmissiveMaskContent": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://98780172703635": {
+      "file": "sheets/glacier_body_color.open-hatch.png",
+      "sha256": "3dd4c1fc49ab4de23d4a370416b31ae4f7ba7a375357313cbba0e20ad890419c",
+      "role": "body ColorMap",
+      "note": "uploaded from the open-hatch bake"
+    },
+    "rbxassetid://81141498873927": {
+      "file": "sheets/glacier_trim_color.png",
+      "sha256": "d8f9864c91f58964bb2120d6d4ac5aa626e1d4491a5897bc7a4292739d320579",
+      "role": "trim ColorMap"
+    }
+  },
+  "shopCard": {
+    "file": "preview/glacier_shop-card.png",
+    "robloxAssetId": "rbxassetid://93224357602594",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/rare/glacier/package/shop-cards/glacier.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/rare/glacier/package",
+    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "fileCount": 16,
+    "textureCopiesMatchShippedSheets": {
+      "glacier_body_color.png": false,
+      "glacier_trim_color.png": false
+    }
+  },
+  "closedBack": {
+    "closedScene": "source/glacier_closed.blend",
+    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as glacier_body_color.open-hatch.png. Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "coat-spec.json",
+      "glacier.blend",
+      "glacier_closed.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_glacier_blend.py"
+    ],
+    "sheets": [
+      "glacier_body_color.open-hatch.png",
+      "glacier_body_color.png",
+      "glacier_trim_color.png"
+    ],
+    "preview": [
+      "glacier_hatch.png",
+      "glacier_hero.png",
+      "glacier_shop-card.json",
+      "glacier_shop-card.png",
+      "glacier_view.blend"
+    ],
+    "package": [
+      "README.md",
+      "glacier-asset-report.json",
+      "glacier-complete.blend",
+      "glacier-complete.fbx",
+      "glacier-crown.png",
+      "glacier-front.png",
+      "glacier-glow.png",
+      "glacier-hero.png",
+      "glacier-spine.png",
+      "glacier_body_color.png",
+      "glacier_body_emissive.png",
+      "glacier_trim_color.png",
+      "glacier_trim_emissive.png",
+      "index.html",
+      "shop-cards/"
+    ]
+  },
+  "generator": "generate/make_glacier_blend.py",
+  "notes": []
+}

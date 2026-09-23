@@ -4,7 +4,8 @@ from html.parser import HTMLParser
 import json,hashlib,os,re
 from PIL import Image
 ROOT=Path(__file__).resolve().parents[1];REPO=ROOT.parents[1]
-PACKAGE=ROOT/'skins/rainbowtiger/legendary-v1';OUT=REPO/'assets/skins/animal/legendary'
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+PACKAGE=Path(paths.skin_study('rainbowtiger','legendary-v1'));OUT=Path(paths.tier_gallery('legendary'))
 def relative(path,base):return os.path.relpath(path,base).replace('\\','/')
 def publish():
     report=json.loads((PACKAGE/'rainbowtiger-asset-report.json').read_text())

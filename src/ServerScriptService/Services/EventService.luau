@@ -62,7 +62,6 @@ local DataService = require(script.Parent.DataService)
 local PlotService = require(script.Parent.PlotService)
 local SetService = require(script.Parent.SetService)
 local CosmeticsService = require(script.Parent.CosmeticsService)
-local WorldService = require(script.Parent.WorldService)
 
 local EventService = {}
 
@@ -111,10 +110,6 @@ type Beam = {
 
 local beams: { Beam } = {}
 
--- Rush Hour's multiplier on the steal fraction, read by HeistService. 1 when
--- nothing is running, which is what makes it safe to consult unconditionally.
-local stealMultiplier = 1
-
 local function notify(player: Player, message: string, kind: string)
 	Remotes.get("Notify"):FireClient(player, message, kind)
 end
@@ -149,16 +144,6 @@ local function pushPhase(to: Player?)
 		event = phaseName,
 		secondsLeft = math.max(0, phaseEnds - os.clock()),
 		secondsTotal = phaseSpan,
-		-- Sent so the steal prompt can print what a grab is actually worth.
-		-- Rush Hour doubles a take, and a prompt quoting the un-doubled figure
-		-- would be showing a number the server does not use -- the same fault
-		-- the chest reel avoids by printing ChestService's own live odds
-		-- rather than recomputing them from Config.
-		stealMultiplier = stealMultiplier,
-		-- Whether another player's ripe tree can be shaken right now. The
-		-- client hides the shake prompt on anybody else's tree unless this is
-		-- true; the server refuses it regardless.
-		acornTheft = EventService.isAcornTheftOpen(),
 		-- WHICH EVENT IS COMING, published through the quiet stretch.
 		--
 		-- This reverses a rule CLAUDE.md states outright: the standing
@@ -207,16 +192,13 @@ local function payIncomeSeconds(player: Player, seconds: number, why: string)
 	if not data then
 		return 0
 	end
-	local amount, spilled = Config.fitInPig(data.coins, Config.getCapacity(data.capacityLevel),
-		incomeOf(data) * seconds)
-	if amount <= 0 and spilled <= 0 then
+	local amount = math.max(0, math.floor(incomeOf(data) * seconds))
+	if amount <= 0 then
 		return 0
 	end
-	-- Capped at the pig like every other mint (Config.fitInPig), and the
-	-- spill is named rather than silently dropped.
+	-- Minted in full: the pig has no ceiling.
 	data.coins += amount
-	notify(player, ("%s +%s coins.%s"):format(why, format(amount),
-		if spilled > 0 then (" Your piggy was full: %s spilled."):format(format(spilled)) else ""), "money")
+	notify(player, ("%s +%s coins."):format(why, format(amount)), "money")
 	return amount
 end
 
@@ -235,28 +217,24 @@ local function takeFromVault(player: Player, amount: number): number
 	data.coins -= taken
 	local plot = PlotService.getPlot(player)
 	if plot then
-		PlotService.updatePile(plot, data.coins, Config.getCapacity(data.capacityLevel))
+		PlotService.updatePile(plot, data.coins, Config.pigFullAt(data.rebirths))
 	end
 	return taken
 end
 
--- Recovered coins go back into the pig, capped at the room it has now like
--- every other way coins arrive (MASTER-PLAN 4c.6); the rest spills, and the
--- owner is told. Returns what was banked, which is what the toasts name.
+-- Recovered coins go back into the pig in full: the pig has no ceiling, so
+-- there is no room to fit and no spill to tell the owner about. Returns what
+-- was banked, which is what the toasts name.
 local function giveToVault(player: Player, amount: number): number
 	local data = DataService.get(player)
 	if not data or amount <= 0 then
 		return 0
 	end
-	local capacity = Config.getCapacity(data.capacityLevel)
-	local banked, spilled = Config.fitInPig(data.coins, capacity, amount)
+	local banked = math.max(0, math.floor(amount))
 	data.coins += banked
 	local plot = PlotService.getPlot(player)
 	if plot then
-		PlotService.updatePile(plot, data.coins, capacity)
-	end
-	if spilled > 0 and player.Parent then
-		notify(player, ("Your piggy was full: %s of your recovered coins spilled."):format(format(spilled)), "warn")
+		PlotService.updatePile(plot, data.coins, Config.pigFullAt(data.rebirths))
 	end
 	return banked
 end
@@ -422,8 +400,8 @@ local function rewardRaid(cleared: boolean)
 		payIncomeSeconds(player, Config.RAID.bountySeconds
 			* (if cleared then 1.5 else 1), "Invasion survived.")
 
-		-- Attendance pays the coin bounty above and one free set drop.
-		-- Events never mint Acorns, including on a completed collection.
+		-- Attendance pays the coin bounty above and one free set drop. Events
+		-- have never minted a second currency, and there is not one to mint.
 		if set then
 			SetService.rollDrop(player, set)
 		end
@@ -576,8 +554,30 @@ local function runRaid()
 				-- vault sat at 2,988,151 for a whole raid while coins were
 				-- genuinely being taken. A loss nobody can see is
 				-- indistinguishable from a broken feature.
+				--
+				-- AND IT IS THE WHOLE COLLECTION'S INCOME, NOT ONE PIG'S. This
+				-- asked `incomeOf`, which is `getIncomeRate` -- a player's entire
+				-- income until a lawn started earning and about a twenty-second
+				-- of it now (seven placements, each carrying its own rarity
+				-- multiplier). So the floor was set a factor of twenty-plus too
+				-- low and the invariant above had quietly stopped holding: the
+				-- pile stopped visibly falling again, for exactly the reason
+				-- that comment was written, and nothing errored.
+				--
+				-- BOUNDED EITHER WAY, which is why this is a fix rather than a
+				-- balance change: `room` clamps against `entry.cap` two lines
+				-- down, so a higher floor makes the drain REACH the cap sooner
+				-- -- visibly, which is the point -- and can never take more.
+				--
+				-- `collectionRateOf` RATHER THAN `incomeOf`, and `incomeOf`
+				-- deliberately stays for `payIncomeSeconds`: that one is a
+				-- PAYOUT denominated in seconds of income, and multiplying a
+				-- reward by twenty is a pacing decision rather than a bug. A
+				-- drain has to track income; a payout is priced against it.
 				local data = DataService.get(entry.victim)
-				local floorRate = if data then incomeOf(data) * raid.drainIncomeMultiple else 0
+				local floorRate = if data
+					then Config.collectionRateOf(data) * raid.drainIncomeMultiple
+					else 0
 				local want = math.max(entry.cap * baseRate, floorRate) * dt
 				local room = entry.cap - entry.held
 				if room > 0 then
@@ -609,52 +609,14 @@ local function runRaid()
 	endRaid()
 end
 
--- ============================================================
--- MIDNIGHT HEIST (designer, September 16; replaces Rush Hour and the
--- Harvest Moon)
--- ============================================================
---
--- The street goes dusk and, for its length, every coin steal pays double
--- (Rush Hour's old job) and a clean pig crack's acorn pays double
--- (`Config.MIDNIGHT`). It opens nobody's tree: acorn theft is disabled.
---
--- THE MULTIPLIERS ARE SET BEFORE THE PUSH. `pushPhase` stamps
--- `stealMultiplier` into the payload so the steal prompt and the badge can
--- quote what a grab is worth, and Rush Hour once set it on the line AFTER the
--- push -- so no push in the whole cycle ever carried a 2, and nothing read it
--- to say so. Anything that changes a number publishes it in the same breath.
-
-local acornMultiplier = 1
-
-local function runMidnight()
-	local spec = Config.EVENTS.roster.midnight
-	stealMultiplier = Config.MIDNIGHT.stealMultiplier
-	acornMultiplier = Config.MIDNIGHT.acornMultiplier
-	WorldService.setNight(true)
-	setPhase("running", "midnight", spec.seconds)
-	announce(("MIDNIGHT HEIST! For %d seconds every steal pays %dx, and a clean crack on a player's pig pays %dx acorns.")
-		:format(spec.seconds, Config.MIDNIGHT.stealMultiplier, Config.MIDNIGHT.acornMultiplier), "police")
-
-	while os.clock() < phaseEnds do
-		task.wait(0.25)
-	end
-
-	stealMultiplier = 1
-	acornMultiplier = 1
-	WorldService.setNight(false)
-	announce("Dawn. The Midnight Heist is over.", "warn")
-end
-
--- Read by HeistService when a clean crack ends. 1 whenever nothing is running.
-function EventService.getAcornMultiplier(): number
-	return acornMultiplier
-end
-
--- Read by HeistService. Safe to consult unconditionally because it is 1
--- whenever nothing is running.
-function EventService.getStealMultiplier(): number
-	return stealMultiplier
-end
+-- ONE RUNNER PER ROSTER ROW, keyed by the roster's own key so the loop looks
+-- a runner up rather than branching on a name. Midnight Heist (which doubled
+-- coin steals under a dusk) was retired with the piggy-collection pivot, so
+-- this is one row today; a roster row with no runner here is warned about in
+-- the loop rather than silently run as a raid.
+local RUNNERS: { [string]: () -> () } = {
+	raid = runRaid,
+}
 
 -- ANY event suppresses the patrol, not just the raid.
 --
@@ -671,15 +633,6 @@ function EventService.isEventLive(): boolean
 	return running ~= nil
 end
 
--- THE ONLY WINDOW IN WHICH ANOTHER PLAYER'S ACORNS COULD BE TAKEN (MASTER-PLAN
--- 19.3). True while a roster row carrying `acornTheft = true` is running.
--- ACORN THEFT IS DISABLED (September 16): no row carries the flag and
--- `auditAcorns` refuses one that does, so this is always false.
-function EventService.isAcornTheftOpen(): boolean
-	local spec = running and Config.EVENTS.roster[running]
-	return spec ~= nil and spec.acornTheft == true
-end
-
 -- ============================================================
 -- WIRING
 -- ============================================================
@@ -692,11 +645,13 @@ local lastPicked: string? = nil
 -- THE LAST EVENT IS WEIGHTED DOWN, NEVER EXCLUDED.
 --
 -- Excluding it is the obvious version and it degenerates completely at the
--- roster size this actually has: with TWO events, removing the last one
--- leaves exactly one candidate, so the picker strictly ALTERNATES and the
--- weights do nothing whatever. Raid, rush, raid, rush -- an invasion every
--- second slot instead of the intended one in three, and a player who has seen
--- one Rush Hour knows exactly what is coming next.
+-- roster size this has had: with TWO events, removing the last one leaves
+-- exactly one candidate, so the picker strictly ALTERNATES and the weights
+-- do nothing whatever. Raid, rush, raid, rush -- an invasion every second
+-- slot instead of the intended one in three, and a player who has seen one
+-- Rush Hour knows exactly what is coming next. (The roster is ONE row since
+-- Midnight Heist was retired, so the damping is inert until a second lands;
+-- it stays so that the second row does not walk straight into this.)
 --
 -- That is the same failure this project already wrote down about shuffled
 -- bags ("with two entries a bag is strict alternation, which is more
@@ -707,39 +662,21 @@ local lastPicked: string? = nil
 local REPEAT_WEIGHT = 0.35
 
 local function pick(): string
-	-- Sorted, so the same random number picks the same event on every server.
-	-- `pairs` order is undefined and an unreproducible schedule is one nobody
-	-- can investigate when a player reports a strange run of them.
+	-- THE DRAW ITSELF LIVES IN `Config.pickWeighted` NOW. The herd roster
+	-- (`Config.HERDS`) needed the identical damped, sorted, weighted pick,
+	-- and a second copy of a picker is the copy that goes stale -- so this
+	-- is the one caller of one function rather than two bodies that agree
+	-- today. Sorted keys and the damped last pick are both inside it.
 	local keys: { string } = {}
-	for key in pairs(Config.EVENTS.roster) do
+	local weights: { [string]: number } = {}
+	for key, row in pairs(Config.EVENTS.roster) do
 		table.insert(keys, key)
+		weights[key] = row.weight or 1
 	end
 	table.sort(keys)
-	if #keys == 0 then
-		return ""
-	end
-
-	local function weightOf(key: string): number
-		local w = Config.EVENTS.roster[key].weight or 1
-		return if key == lastPicked then w * REPEAT_WEIGHT else w
-	end
-
-	local total = 0
-	for _, key in ipairs(keys) do
-		total += weightOf(key)
-	end
-	if total <= 0 then
-		return keys[1]
-	end
-
-	local ticket = math.random() * total
-	for _, key in ipairs(keys) do
-		ticket -= weightOf(key)
-		if ticket <= 0 then
-			return key
-		end
-	end
-	return keys[#keys]
+	-- An all-zero roster used to hand back the first key rather than
+	-- nothing; kept, so a mis-weighted roster still runs SOMETHING.
+	return Config.pickWeighted(weights, lastPicked, REPEAT_WEIGHT) or keys[1] or ""
 end
 
 -- Starts an event early. Used by the admin console, because waiting fifteen
@@ -766,9 +703,9 @@ function EventService.trigger(name: string?): string
 end
 
 function EventService.status(): string
-	return ("phase=%s event=%s left=%.1fs beams=%d saucer=%s steals=x%d acorns=x%d"):format(
+	return ("phase=%s event=%s left=%.1fs beams=%d saucer=%s"):format(
 		phase, phaseName, math.max(0, phaseEnds - os.clock()),
-		#beams, tostring(saucer ~= nil), stealMultiplier, acornMultiplier)
+		#beams, tostring(saucer ~= nil))
 end
 
 function EventService.start()
@@ -813,22 +750,18 @@ function EventService.start()
 			end
 
 			running = chosen
-			local run = if chosen == "raid" then runRaid else runMidnight
-			local ok, err = pcall(run)
+			local run = RUNNERS[chosen]
+			local ok, err = false, "no runner for this roster row"
+			if run then
+				ok, err = pcall(run)
+			end
 			if not ok then
 				warn(("[EventService] '%s' failed: %s"):format(chosen, tostring(err)))
 			end
 			-- Torn down whatever happened above. A raid that errored halfway
 			-- must not leave a saucer parked over the street forever.
 			running = nil
-			stealMultiplier = 1
-			acornMultiplier = 1
 			endRaid()
-			-- The day back, whatever the night did or failed to do. A night
-			-- that errored halfway must not leave the street at dusk forever.
-			if chosen == "midnight" and not ok then
-				WorldService.restoreDay()
-			end
 
 			setPhase("quiet", "", 2)
 		end

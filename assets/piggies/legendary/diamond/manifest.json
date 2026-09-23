@@ -1,0 +1,120 @@
+{
+  "key": "diamond",
+  "name": "Diamond",
+  "path": "assets/piggies/legendary/diamond/",
+  "tier": "legendary",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); legendary/: Config.SKINS.diamond.rarity = \"legendary\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/diamond/",
+    "assets/piggies/diamond/ (2026-09-22, before the sort by tier)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6066,
+      "name": "Diamond",
+      "rarity": "legendary",
+      "surface": "diamond",
+      "legendary": null,
+      "chest": "og",
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": {
+      "key": "diamond",
+      "line": 5890,
+      "name": "Diamond Facets",
+      "template": "diamond",
+      "trimTemplate": "diamond_trim"
+    },
+    "legendaryPacks": null,
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/diamond.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://125476979840396",
+        "NormalMap": "rbxassetid://74301706874923",
+        "RoughnessMap": "rbxassetid://74684639770892",
+        "MetalnessMap": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/diamond_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://91108666510275",
+        "NormalMap": "rbxassetid://134300356281092",
+        "RoughnessMap": "rbxassetid://110136525104561",
+        "MetalnessMap": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://125476979840396": {
+      "file": "sheets/diamond_body_color.open-hatch.png",
+      "sha256": "82f4f255a4c191166c1b8897f3f67b42e8054f9aa7a8f2c799081bb13d278131",
+      "role": "body ColorMap",
+      "note": "uploaded from the open-hatch bake"
+    },
+    "rbxassetid://74301706874923": {
+      "file": "sheets/diamond_body_normal.open-hatch.png",
+      "sha256": "946d01bc6d9aa49e557f04f80da74f7855069c2cb6f9b3ccaaf5993062b69e60",
+      "role": "body NormalMap"
+    },
+    "rbxassetid://74684639770892": {
+      "file": "sheets/diamond_body_roughness.open-hatch.png",
+      "sha256": "a8b13afec20b3fb6beaf9746dda5a32db0d52a9e5f8a6ca24c1b4a408e4b4c6a",
+      "role": "body RoughnessMap"
+    },
+    "rbxassetid://91108666510275": {
+      "file": "sheets/diamond_trim_color.png",
+      "sha256": "6883f5dde0312aa1828ec70f12ed947ddff9a604e28cd35caa0c8fa446408993",
+      "role": "trim ColorMap"
+    },
+    "rbxassetid://134300356281092": {
+      "file": "sheets/diamond_trim_normal.png",
+      "sha256": "a6e6a75684763f5715adcfc5c3bad489b7cc577103c8cdd089876a942dfad11a",
+      "role": "trim NormalMap"
+    },
+    "rbxassetid://110136525104561": {
+      "file": "sheets/diamond_trim_roughness.png",
+      "sha256": "91ac70e1251d9a43f944e5d7d4916b1ebfaa744b9fcca213d76653a69f020355",
+      "role": "trim RoughnessMap"
+    }
+  },
+  "shopCard": null,
+  "derivedPackage": null,
+  "closedBack": {
+    "closedScene": null,
+    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as diamond_body_color.open-hatch.png. Re-upload pending."
+  },
+  "files": {
+    "source": [],
+    "generate": [
+      "__pycache__/",
+      "make_diamond.py",
+      "preview_diamond.py"
+    ],
+    "sheets": [
+      "diamond_body_color.open-hatch.png",
+      "diamond_body_color.png",
+      "diamond_body_normal.open-hatch.png",
+      "diamond_body_normal.png",
+      "diamond_body_roughness.open-hatch.png",
+      "diamond_body_roughness.png",
+      "diamond_trim_color.png",
+      "diamond_trim_normal.png",
+      "diamond_trim_roughness.png"
+    ],
+    "preview": [],
+    "package": []
+  },
+  "generator": "generate/make_diamond.py",
+  "notes": [
+    "Bakes straight from blender/pig/pig/pig_parts.blend (no per-skin scene), so source/ is empty; roblox-uploads.json at the folder root is the per-file upload register the model.json ids were pasted from."
+  ]
+}

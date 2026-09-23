@@ -3,7 +3,7 @@
 blender --background --python blender/shop/render_skin_images.py [-- key key ...]
 
 Every skin in `chest = "animal"` has a package at
-assets/skins/animal/<tier>/<key>/<key>-complete.blend carrying the real body
+assets/piggies/<tier>/<key>/package/<key>-complete.blend carrying the real body
 meshes, the real coat textures and a REVIEW_Camera/REVIEW_Ground/three-light
 studio. The existing <key>-hero.png is rendered from that studio onto a grey
 backdrop, which a crate card cannot use: house and guardian cards are
@@ -59,7 +59,7 @@ if wanted:
 
 
 def package(key):
-    hits = sorted((ROOT / 'assets/skins/animal').glob(f'*/{key}/{key}-complete.blend'))
+    hits = sorted((ROOT / 'assets/piggies').glob(f'*/{key}/package/{key}-complete.blend'))   # <tier>/<key>/
     return hits[0] if hits else None
 
 

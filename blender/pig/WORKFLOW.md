@@ -1,3 +1,13 @@
+> **Layout moved, 2026-09-22.** Every skin now lives in
+> `assets/piggies/<tier>/<key>/` with four rooms -- `source/`, `generate/`, `sheets/`,
+> `preview/` -- and a `manifest.json`; that folder is the source of truth and
+> `assets/piggies/README.md` describes it -- including, since later the same
+> day, the four legendaries, the shared `metal/` pack and every derived import
+> package (`package/`). The toolkit, the master scene and the method below are
+> unchanged and still live here; `skins/` holds only the designer's copies to
+> clean up. Where this file says `skins/<skin>/...`, read the room named in the
+> README.
+
 # Making a skin
 
 This is the method the tiger was made with, and it is the method for every skin
@@ -8,12 +18,14 @@ written when there was one skin and does not survive there being two.
 
 ## The shape of it
 
-**A skin is a PYTHON SCRIPT, not a .blend file.** The blend is disposable
-output; the script is the thing that is kept, reviewed and re-run. That is not
-a style preference — `blender/.gitignore` ignores `*.blend` outright, on the
-correct argument that a scene file is large and is rebuilt by the script beside
-it. Anything authored only inside a blend is therefore work with no backup and
-no diff, sitting in an ignored binary.
+**A skin is a PYTHON SCRIPT, not a .blend file.** The blend is derived
+output; the script is the thing that is reviewed and re-run. `blender/.gitignore`
+ignores `*.blend` in THIS tree on the correct argument that a scene file is
+large and is rebuilt by the script beside it. (`assets/piggies/` commits the
+scene anyway, because that folder is the designer's source of truth and a
+scene somebody has turned dials in by hand is worth carrying -- but the script
+is still the thing that can be diffed and re-run.) Anything authored only
+inside a blend and not committed is work with no backup and no diff.
 
 ```
 blender/pig/
@@ -26,8 +38,15 @@ blender/pig/
   look/                looking at the geometry
   retired/             recorded dead ends, kept on purpose
   pig/                 the ANIMAL: its scenes and the meshes that get uploaded
-  skins/<skin>/        one folder per skin -- its script, its scene, its sheets
+  skins/               empty of skins since 2026-09-22 (copies left for clean-up)
   renders/             pictures. All reproducible, none of them kept.
+
+assets/piggies/<tier>/<key>/  one folder per skin -- see assets/piggies/README.md
+  source/              the scene (open and closed-back) and a rare coat's spec
+  generate/            make_<key>_blend.py, and every number in it
+  sheets/              what gets uploaded, with the open-hatch sheet kept beside it
+  preview/             the game-lit view scene, the renders, the shop card
+  manifest.json        Config row, SurfacePacks templates, the live ids, their sources
 ```
 
 **`paths.py` is the only file that knows any of that.** Every location in
@@ -39,32 +58,37 @@ this project has paid for getting it wrong often enough to write it down.
 **A skin owns a folder and everything in it is named after the skin:**
 
 ```
-skins/tiger/make_tiger_blend.py     the pattern, and every number in it
-skins/tiger/tiger.blend             open this to look and turn nodes by hand
-skins/tiger/tiger_body_color.png    the two sheets that get uploaded
-skins/tiger/tiger_trim_color.png
-skins/tiger/tiger_view.blend        the game-lit preview, rewritten each render
+assets/piggies/common/tiger/generate/make_tiger_blend.py   the pattern, and every number in it
+assets/piggies/common/tiger/source/tiger.blend             open this to look and turn nodes by hand
+assets/piggies/common/tiger/source/tiger_closed.blend      the same scene with the hatch filled
+assets/piggies/common/tiger/sheets/tiger_body_color.png    the two sheets that get uploaded
+assets/piggies/common/tiger/sheets/tiger_trim_color.png
+assets/piggies/common/tiger/preview/tiger_view.blend       the game-lit preview, rewritten each render
 ```
 
 which is why `bake_skin.py` takes `--skin` and nothing else now. It used to
 take `--blend` as well, so `--skin tiger --blend pig_bee.blend` was a legal
 command that baked one animal's materials into another animal's sheets.
 
-**Every script starts with the same six-line bootstrap** that walks up from
-its own location until it finds `paths.py`. Depth independent on purpose: a
-script in `make/` is one level down and a script in `skins/tiger/` is two, and
-a hardcoded `..` is the thing that breaks silently the first time anything
-moves.
+**Every script starts with the same bootstrap** that walks up from its own
+location until it finds `paths.py` -- or, for a generator living outside this
+tree in `assets/piggies/<tier>/<key>/generate/`, the repo root holding
+`blender/pig/paths.py`, which it then puts on the path. Depth independent on
+purpose: a script in `make/` is one level down and a generator is three under
+a different top-level folder, and a hardcoded `..` is the thing that breaks
+silently the first time anything moves. (It did, on the day of the move; the
+walk accepts both spellings so a copy left in `skins/` still runs too.)
 
 ---
 
 ## The loop
 
-    blender --background --python skins/tiger/make_tiger_blend.py
-    blender --background --python make/bake_skin.py       -- --skin tiger
-    blender --background --python make/make_view_blend.py -- --skin tiger --render
+    blender --background --python assets/piggies/common/tiger/generate/make_tiger_blend.py
+    blender --background --python blender/pig/make/bake_skin.py       -- --skin tiger
+    blender --background --python blender/pig/make/make_view_blend.py -- --skin tiger --render
 
-About six seconds end to end. Then look at `renders/view_tiger_*.png`, decide
+(from the repo root; every path is resolved by `paths.py`, so the cwd does not
+matter). About six seconds end to end. Then look at `renders/view_tiger_*.png`, decide
 what is wrong, change **one number** at the top of the skin script, and run it
 again. That cycle is the whole point of the method: nothing is hand-placed, so
 nothing has to be hand-fixed.
@@ -244,7 +268,7 @@ and **no `Mix` node's factor is wired from anything else.** Every skin declares
 `NO_FADING = True` beside its tunables saying so, which is also how the whole
 set is audited in one line:
 
-    grep -c "^NO_FADING = True" skins/*/make_*_blend.py rosette.py
+    grep -c "^NO_FADING = True" assets/piggies/*/*/generate/make_*_blend.py rosette.py
 
 **IT IS ENFORCED AT THE OUTPUT RATHER THAN ASKED OF EACH MASK, and that
 distinction is the reason it holds.** Half the masks in these files are soft by
@@ -387,13 +411,13 @@ every `make_<skin>_blend.py` afterwards.
 ## Verifying a rebuild
 
 The check that means something is **baking it and diffing the maps**, not
-reading the script. `skins/bee/bee.blend` was written as a transcription of a
+reading the script. `assets/piggies/common/bee/source/bee.blend` was written as a transcription of a
 hand-built graph and its body map matched byte for byte while its trim map did
 not — 23,174 texels different, every one ink in the original and yellow in the
 rebuild. That is what exposed the `clear()` bug, and no amount of reading the
 node dump would have: the node dumps were identical.
 
-    md5sum skins/<skin>/*.png
+    md5sum assets/piggies/<tier>/<skin>/sheets/*.png
 
 before and after. If a skin script claims to reproduce something, prove it.
 
@@ -406,7 +430,9 @@ one Body id and one Trim id for the whole catalogue — so `export_meshes.py` an
 its two `.obj` uploads happened for the re-unwrap and do not happen again.
 Every skin after that is **two texture uploads and some Config**:
 
-1. Upload `skins/<skin>/<skin>_body_color.png` and `<skin>_trim_color.png`.
+1. Upload `assets/piggies/<tier>/<skin>/sheets/<skin>_body_color.png` and
+   `<skin>_trim_color.png`. Then record the ids in the skin's `manifest.json`
+   beside the sha256 of the sheet each became.
 2. A `.model.json` each in `src/ReplicatedStorage/Shared/SurfacePacks/`, with
    `AlphaMode: "Overlay"` and the ColorMap id. Leave NormalMap empty unless the
    skin actually wants one.
@@ -452,7 +478,7 @@ candidate for deletion, the reason it survived is in this table.
 | `make/select_inner_ear.py` | **regenerates the ear face selection.** Run inside Blender after a master rebuild, or the inner ear is gone |
 | `skin_parts.py` (toolkit) | seats materials without wiping face selections |
 | `skin_colours.py` (toolkit) | reads a skin's colours out of `Config.luau` so they cannot drift |
-| `skins/<skin>/make_<skin>_blend.py` | the skins themselves |
+| `assets/piggies/<tier>/<skin>/generate/make_<skin>_blend.py` | the skins themselves (moved out of `skins/` on 2026-09-22; `paths.py` knows) |
 | `make/bake_skin.py` | bake -> the two sheets |
 | `make/make_view_blend.py` | game-lit preview |
 | `look/check_fade.py` | **does any sheet fade?** The check behind "Nothing fades". Derives a skin's palette from its OWN maps, so it keeps no second copy of the colour tables -- pooled across the body and trim sheets, because a colour common on one and rare on the other otherwise misses the floor on the rare one and its own solid texels get reported as a fade |
@@ -514,7 +540,10 @@ from `renders/`. 13 MB.
 Then everything was filed: the pig's scenes and mesh exports into `pig/`,
 each skin's scene and script into its own folder under `skins/`, and the tools
 into `make/`, `masks/`, `look/` and `retired/`. The five toolkit modules stayed
-at the root because that is what the bootstrap looks for.
+at the root because that is what the bootstrap looks for. On 2026-09-22 the
+skins moved again, out of this tree into `assets/piggies/<tier>/<key>/` -- the
+designer's source of truth -- and `paths.py` was the one-file diff that claim
+promised.
 
 **`renders/` holds only what is current**: the bee and the tiger under game
 light, plus the tiger contact sheet. Everything in there is one command away
@@ -530,14 +559,14 @@ uploaded** and no `Config.luau` row written for any of them. Every one declares
 
 | skin | script | state |
 |---|---|---|
-| `bee` | `skins/bee/make_bee_blend.py` | shipped. A transcription of the hand-built graph, **verified byte-identical** to the shipped maps. Two flat colours, so there is no mask in it for anything to be enforced on. |
-| `ladybird` | `skins/ladybird/make_ladybird_blend.py` | baked. **The one that was always right** — every mask in it is a threshold already and its one `MapRange` drives a WIDTH. The reference for what a skin should look like from the inside. |
-| `zebra` | `skins/zebra/make_zebra_blend.py` | baked and approved. Bands about a pole through the MUZZLE; the eye is a domain warp, so bands bend round it and close up behind rather than ending at it. |
-| `tiger` | `skins/tiger/make_tiger_blend.py` | baked and approved. Rings on the body, a radial fan on the face, and the eye narrows a stroke to a point rather than cutting it. Config still says `surface = "animal_stripes"`. |
-| `cow` | `skins/cow/make_cow_blend.py` | baked. Two colours, and no eye clearance at all — the dial that replaces one is `seed`. |
-| `giraffe` | `skins/giraffe/make_giraffe_blend.py` | baked. |
-| `leopard` | `skins/leopard/make_leopard_blend.py` | baked, **re-cut from 3D**. The line that used to stand here saying it was against the old cylindrical unwrap is out of date. |
-| `snowleopard` | `skins/snowleopard/make_snowleopard_blend.py` | baked. The only skin with a dorsal shade — one more ground colour under the markings, and hard-edged like everything else. |
+| `bee` | `assets/piggies/common/bee/generate/make_bee_blend.py` | shipped. A transcription of the hand-built graph, **verified byte-identical** to the shipped maps. Two flat colours, so there is no mask in it for anything to be enforced on. |
+| `ladybird` | `assets/piggies/common/ladybird/generate/make_ladybird_blend.py` | baked. **The one that was always right** — every mask in it is a threshold already and its one `MapRange` drives a WIDTH. The reference for what a skin should look like from the inside. |
+| `zebra` | `assets/piggies/common/zebra/generate/make_zebra_blend.py` | baked and approved. Bands about a pole through the MUZZLE; the eye is a domain warp, so bands bend round it and close up behind rather than ending at it. |
+| `tiger` | `assets/piggies/common/tiger/generate/make_tiger_blend.py` | baked and approved. Rings on the body, a radial fan on the face, and the eye narrows a stroke to a point rather than cutting it. Config still says `surface = "animal_stripes"`. |
+| `cow` | `assets/piggies/common/cow/generate/make_cow_blend.py` | baked. Two colours, and no eye clearance at all — the dial that replaces one is `seed`. |
+| `giraffe` | `assets/piggies/common/giraffe/generate/make_giraffe_blend.py` | baked. |
+| `leopard` | `assets/piggies/common/leopard/generate/make_leopard_blend.py` | baked, **re-cut from 3D**. The line that used to stand here saying it was against the old cylindrical unwrap is out of date. |
+| `snowleopard` | `assets/piggies/common/snowleopard/generate/make_snowleopard_blend.py` | baked. The only skin with a dorsal shade — one more ground colour under the markings, and hard-edged like everything else. |
 
 `leopard` and `snowleopard` are both `rosette.py` with a different dict, which
 is why one edit in that file fixed two skins here.

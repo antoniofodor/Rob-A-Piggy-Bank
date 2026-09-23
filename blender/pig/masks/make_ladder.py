@@ -42,7 +42,7 @@ import paths   # noqa: E402 -- the one place that knows the layout
 import struct, zlib, os
 
 
-OUT = paths.skin_dir("metal")
+OUT = paths.skin_sheets_dir("metal")
 W, H = 64, 512
 # top of the pig -> bottom. Spaced closer at the shiny end, because that is
 # where the eye can tell two values apart.

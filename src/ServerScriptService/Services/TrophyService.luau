@@ -278,10 +278,11 @@ function TrophyService.check(player: Player)
 			-- This used to claim a `Config.DECOR_SLOTS` lawn slot and stand
 			-- the trophy on the grass, competing with the bought ornaments --
 			-- and it had to say so out loud when the lawn was full. The
-			-- trophy room (`TrophyRoom`) displays every earned trophy inside
-			-- the house off the same published state, so there is no slot to
-			-- claim, nothing to put away to make room, and no full-lawn case
-			-- to explain. `assets/houses/docs/HOUSE-TROPHY-ROOMS.md` asks for the lawn
+			-- in-house trophy room that replaced the lawn is itself retired
+			-- (2026-09-22): the achievements move into the real base
+			-- (`InteriorService` / `HouseInterior`) later, off this same
+			-- published state, so there is still no slot to claim, nothing to
+			-- put away to make room, and no full-lawn case to explain. `assets/houses/docs/HOUSE-TROPHY-ROOMS.md` asks for the lawn
 			-- writes to be retired ONLY once the interior ships, and to never
 			-- touch earned ownership: `decor.owned` above is untouched.
 			notify(player, ("EARNED: %s. It is on show in your house."):format(item.name),
@@ -403,12 +404,20 @@ end
 	Top of the Most Wanted board, and the BOUNTY that put them there.
 
 	THE POSTER IN THE HOUSE NEEDS A FIGURE THAT OUTLIVES THE SESSION. The
-	street's own board prints the LIVE bounty -- `heat` times
-	`POLICE.bailMultiple` -- and heat is per session, held in memory and
+	street's own board prints the rap sheet -- `heat` -- and heat is per
+	session, held in memory and
 	dropped when a player leaves. So a poster hung in a house from that number
 	would read zero for everybody who was ever wanted, which is the one state
 	it must not have.
-
+	
+	WHAT IT HOLDS IS THE RAP SHEET NOW, NOT A BOUNTY. Bail became a share of
+	the thief's own till (`Config.POLICE.bailFraction`), so there is no
+	per-player bounty left to record -- and the sheet is the better trophy
+	anyway: what you were wanted FOR rather than what somebody would have
+	charged you for it. The FIELD keeps its name, because renaming a
+	persisted one to fix a wording is a schema migration for a wording
+	problem; it only ever rises, so a save carrying an old 3x figure keeps a
+	generous record rather than a wrong one.
 	`bestBounty` is therefore kept on the save and only ever RISES. It is the
 	caller's figure rather than one computed here, for the reason the board's
 	own comment gives: two surfaces must not disagree about a bounty any more
@@ -425,9 +434,8 @@ function TrophyService.recordWanted(player: Player, bounty: number?)
 	bump(player, "wanted", 1)
 end
 
-function TrophyService.recordHarvest(player: Player, amount: number)
-	bump(player, "harvested", math.floor(amount))
-end
+-- `recordHarvest` STOOD HERE and counted acorns off the player's own tree.
+-- Its one caller was the basket delivery; both went with the currency.
 
 -- The robbery count and the season's best tier live elsewhere in the save;
 -- their writers call this so Old Hand and the Season Cup can land.

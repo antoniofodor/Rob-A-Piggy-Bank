@@ -6,7 +6,7 @@
       "name": "Strawberry Cow",
       "rarity": "rare",
       "parent": "cow",
-      "package": "assets/skins/animal/rare/strawberrycow",
+      "package": "assets/piggies/rare/strawberrycow/package",
       "triangles": 20670,
       "emissiveTextures": [
         {
@@ -29,7 +29,7 @@
       "name": "Cookies & Cream",
       "rarity": "rare",
       "parent": "cow",
-      "package": "assets/skins/animal/rare/cookiescream",
+      "package": "assets/piggies/rare/cookiescream/package",
       "triangles": 20670,
       "emissiveTextures": [
         {
@@ -52,7 +52,7 @@
       "name": "Watermelon",
       "rarity": "rare",
       "parent": "ladybird",
-      "package": "assets/skins/animal/rare/watermelon",
+      "package": "assets/piggies/rare/watermelon/package",
       "triangles": 20670,
       "emissiveTextures": [
         {
@@ -75,7 +75,7 @@
       "name": "Peppermint",
       "rarity": "rare",
       "parent": "tiger",
-      "package": "assets/skins/animal/rare/peppermint",
+      "package": "assets/piggies/rare/peppermint/package",
       "triangles": 20670,
       "emissiveTextures": [
         {
@@ -98,7 +98,7 @@
       "name": "Glacier",
       "rarity": "rare",
       "parent": "tiger",
-      "package": "assets/skins/animal/rare/glacier",
+      "package": "assets/piggies/rare/glacier/package",
       "triangles": 20670,
       "emissiveTextures": [
         {
@@ -121,7 +121,7 @@
       "name": "Bubblegum Leopard",
       "rarity": "rare",
       "parent": "leopard",
-      "package": "assets/skins/animal/rare/bubblegumleopard",
+      "package": "assets/piggies/rare/bubblegumleopard/package",
       "triangles": 20670,
       "emissiveTextures": [
         {
@@ -144,7 +144,7 @@
       "name": "Honeycomb",
       "rarity": "rare",
       "parent": "giraffe",
-      "package": "assets/skins/animal/rare/honeycomb",
+      "package": "assets/piggies/rare/honeycomb/package",
       "triangles": 20670,
       "emissiveTextures": [
         {

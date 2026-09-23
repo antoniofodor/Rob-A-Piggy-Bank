@@ -99,11 +99,11 @@ GROUPS = [("body", ["Body"]),
 
 
 def alpha_path(skin, group):
-    """Beside the colour sheet and named for it. Deliberately NOT `paths.py`'s
-    business yet: this is one pass on trial, and a layout function is a
-    promise that something is permanent."""
-    return os.path.join(paths.skin_dir(skin),
-                        "%s_%s_alpha.png" % (skin, group))
+    """Beside the colour sheet and named for it -- `paths.skin_alpha`. It was
+    deliberately not `paths.py`'s business while the pass was on trial; the
+    2026-09-22 move put every sheet in a `sheets/` room, so the one place
+    that knows the layout has to know this one too."""
+    return paths.skin_alpha(skin, group)
 
 
 bpy.ops.wm.open_mainfile(filepath=paths.find(BLEND, "blend"))

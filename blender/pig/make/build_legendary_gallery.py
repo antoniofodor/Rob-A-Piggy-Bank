@@ -3,7 +3,8 @@ from pathlib import Path
 import json,hashlib,os
 from html.parser import HTMLParser
 ROOT=Path(__file__).resolve().parents[1];REPO=ROOT.parents[1]
-PACKAGE=ROOT.parents[1]/'assets/skins/animal/legendary/stormwolf';OUT=REPO/'assets/skins/animal/legendary';OUT.mkdir(parents=True,exist_ok=True)
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+PACKAGE=Path(paths.animal_package('stormwolf'));OUT=Path(paths.tier_gallery('legendary'))
 report_path=PACKAGE/'stormwolf-layout-checks.json';r=json.loads(report_path.read_text())
 assert not r['vaultBlocked'] and not r['plateBlocked']
 assert all(m['nonManifoldEdges']==0 and m['triangles']<21000 for m in r['meshes'])
@@ -76,9 +77,9 @@ for p in (OUT/'index.html',PACKAGE/'index.html'):
 print('LEGENDARY_GALLERY_VERIFIED',r['meshCount'],'meshes,',r['totalTriangles'],'triangles; source hashes, UVs, clearance and local links passed')
 
 # Preserve additional verified legendary packages when refreshing Storm Wolf.
-if (ROOT.parents[1]/'assets/skins/animal/legendary/rainbowtiger/animation-checks.json').exists():
+if (Path(paths.animal_package('rainbowtiger'))/'animation-checks.json').exists():
     from build_rainbowtiger_swept_gallery import publish
     publish()
-elif (ROOT/'skins/rainbowtiger/legendary-v1/animation-checks.json').exists():
+elif (Path(paths.skin_study('rainbowtiger','legendary-v1'))/'animation-checks.json').exists():
     from build_rainbowtiger_gallery import publish
     publish()

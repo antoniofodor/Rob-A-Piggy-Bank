@@ -6,9 +6,10 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO = ROOT.parents[1]
-PACKAGE = ROOT.parents[1]/'assets/skins/animal/legendary/phoenix'
-OUT = REPO / 'assets/skins/animal/legendary'
-OUT.mkdir(parents=True, exist_ok=True)
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+PACKAGE = Path(paths.animal_package('phoenix'))
+OUT = Path(paths.tier_gallery('legendary'))
+CONCEPTS = Path(paths.skin_study('phoenix', 'concepts-v2'))
 def relative(path, base): return os.path.relpath(path, base).replace('\\', '/')
 def sha(path): return hashlib.sha256(path.read_bytes()).hexdigest()
 r = json.loads((PACKAGE / 'phoenix-asset-report.json').read_text())
@@ -63,7 +64,7 @@ The vein pattern and color gradient are fixed; brightness
 changes over time. Original pig body, snout, eyes, feet, ears and curled tail
 are retained, with the tail above the flush rear vault opening. The crown
 coin slot stays clear. This revision follows the user's selected and refined
-Crystal Crown concept in `../../../../../blender/pig/skins/phoenix/concepts-v2/crystal-crown-refined.png`.
+Crystal Crown concept in `../generate/concepts-v2/crystal-crown-refined.png`.
 
 ## Files
 
@@ -164,8 +165,8 @@ page = page.replace('Three-feather crest and clear coin slot', 'Seven-feather cr
 page = page.replace('Ivory face and curved cheek fans', 'Branching frost face markings and feathered legs')
 page = page.replace('</div></main>', '<figure><img src="phoenix-detail.png" alt="Close-up of crystal feather veins and frost face markings"><figcaption>Crystal feather veins and facial frost detail</figcaption></figure></div></main>')
 page = page.replace('<h2>Actual animation</h2>', '<h2>Vault fit — complete</h2><p>The feathers meet the vault edge with no bare gap across all four sizes. Smallest and largest plates shown.</p><div class="grid"><figure><img src="phoenix-vault-iron.png" alt="Iron vault fitted flush into the feather coat"><figcaption>Iron — smallest vault plate</figcaption></figure><figure><img src="phoenix-vault-gold.png" alt="Gold vault fitted flush into the feather coat"><figcaption>Gold — largest vault plate</figcaption></figure></div><h2>Actual animation</h2>')
-if (ROOT / 'skins/phoenix/concepts-v2/index.html').exists():
-    page = page.replace('<h2>Actual animation</h2>', '<p class="note"><a href="../../../../../blender/pig/skins/phoenix/concepts-v2/index.html#refined">Selected Crystal Crown concept →</a><br>The model below implements the crown, frost-vein glow, facial markings and feathered legs.</p><h2>Actual animation</h2>')
+if (CONCEPTS / 'index.html').exists():
+    page = page.replace('<h2>Actual animation</h2>', '<p class="note"><a href="../generate/concepts-v2/index.html#refined">Selected Crystal Crown concept →</a><br>The model below implements the crown, frost-vein glow, facial markings and feathered legs.</p><h2>Actual animation</h2>')
 (PACKAGE / 'index.html').write_text(page, encoding='utf-8')
 # Only replace this package's marked card; preserve the other artist's cards.
 index = OUT / 'index.html'
@@ -185,7 +186,7 @@ class Links(HTMLParser):
         for key, value in attrs:
             if key in ('href', 'src'):
                 assert (self.folder / value.split('#',1)[0]).exists(), value
-for path in (PACKAGE / 'index.html', OUT / 'index.html', ROOT / 'skins/phoenix/concepts-v2/index.html'):
+for path in (PACKAGE / 'index.html', OUT / 'index.html', CONCEPTS / 'index.html'):
     parser = Links(); parser.folder = path.parent
     parser.feed(path.read_text(encoding='utf-8'))
 print('ICE_PHOENIX_GALLERY_VERIFIED', r['meshCount'], 'meshes,', r['triangles'], 'triangles; geometry, animation, maps, sources and links passed')

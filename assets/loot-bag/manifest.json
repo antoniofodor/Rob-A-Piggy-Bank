@@ -1,0 +1,224 @@
+{
+ "source": "assets/shop-ui/icon-system-v1/sources/sack.blend",
+ "artwork": "assets/shop-ui/icon-system-v1/sack.png",
+ "blender": "5.2.1 LTS",
+ "textured": false,
+ "note": "The blend is flat material colours -- seven Principled base colours and not one image -- so there is nothing to bake and the split is per material, the way Config.PIGGY_MESH splits Body from Trim.",
+ "axes": "exported axis_up=Y, axis_forward=-Z; Blender (x, y, z) arrives as (x, z, -y)",
+ "scale": 1.138365,
+ "targetHeightStuds": 3.008,
+ "segments": [
+  {
+   "part": "Cloth",
+   "material": "tan",
+   "what": "the sack itself: body, sat-down base and the outside of the flared mouth",
+   "blendColour": [
+    231,
+    164,
+    83
+   ],
+   "gameColour": [
+    226,
+    182,
+    146
+   ],
+   "offset": [
+    0.0,
+    1.504,
+    -0.0
+   ],
+   "size": [
+    2.0491,
+    3.008,
+    1.5254
+   ],
+   "triangles": 2599,
+   "trianglesBeforeDecimate": 17532,
+   "fbx": "parts/loot-bag-cloth.fbx",
+   "obj": "parts/loot-bag-cloth.obj"
+  },
+  {
+   "part": "Lining",
+   "material": "wood",
+   "what": "the inside of the mouth, seen down the throat",
+   "blendColour": [
+    169,
+    93,
+    45
+   ],
+   "gameColour": [
+    198,
+    138,
+    110
+   ],
+   "offset": [
+    0.0191,
+    2.5381,
+    -0.0091
+   ],
+   "size": [
+    1.3993,
+    0.9097,
+    1.0139
+   ],
+   "triangles": 700,
+   "trianglesBeforeDecimate": 12288,
+   "fbx": "parts/loot-bag-lining.fbx",
+   "obj": "parts/loot-bag-lining.obj"
+  },
+  {
+   "part": "Rope",
+   "material": "brown",
+   "what": "the drawstring: the wrap, the knot, both bow loops and both tails",
+   "blendColour": [
+    117,
+    69,
+    44
+   ],
+   "gameColour": [
+    150,
+    96,
+    66
+   ],
+   "offset": [
+    0.0049,
+    2.2632,
+    0.1715
+   ],
+   "size": [
+    1.0643,
+    0.624,
+    0.9757
+   ],
+   "triangles": 1600,
+   "trianglesBeforeDecimate": 7760,
+   "fbx": "parts/loot-bag-rope.fbx",
+   "obj": "parts/loot-bag-rope.obj"
+  },
+  {
+   "part": "Gold",
+   "material": "gold",
+   "what": "the coin's rolled rim and satin face, and the three coins at its foot",
+   "blendColour": [
+    255,
+    183,
+    34
+   ],
+   "gameColour": [
+    240,
+    198,
+    76
+   ],
+   "offset": [
+    -0.0679,
+    0.8849,
+    0.4252
+   ],
+   "size": [
+    2.8671,
+    1.6643,
+    0.8221
+   ],
+   "triangles": 1200,
+   "trianglesBeforeDecimate": 5348,
+   "fbx": "parts/loot-bag-gold.fbx",
+   "obj": "parts/loot-bag-gold.obj"
+  },
+  {
+   "part": "GoldDark",
+   "material": "golddark",
+   "what": "the coin's recessed field, behind the snout",
+   "blendColour": [
+    176,
+    88,
+    15
+   ],
+   "gameColour": [
+    198,
+    150,
+    52
+   ],
+   "offset": [
+    -0.4849,
+    0.8925,
+    0.6581
+   ],
+   "size": [
+    1.8763,
+    1.4665,
+    0.3343
+   ],
+   "triangles": 600,
+   "trianglesBeforeDecimate": 1528,
+   "fbx": "parts/loot-bag-golddark.fbx",
+   "obj": "parts/loot-bag-golddark.obj"
+  },
+  {
+   "part": "GoldLight",
+   "material": "goldlight",
+   "what": "the pig snout embossed on the coin",
+   "blendColour": [
+    255,
+    224,
+    112
+   ],
+   "gameColour": [
+    246,
+    206,
+    198
+   ],
+   "offset": [
+    -0.497,
+    0.8741,
+    0.7018
+   ],
+   "size": [
+    1.5726,
+    0.9965,
+    0.4024
+   ],
+   "triangles": 600,
+   "trianglesBeforeDecimate": 3096,
+   "fbx": "parts/loot-bag-goldlight.fbx",
+   "obj": "parts/loot-bag-goldlight.obj"
+  },
+  {
+   "part": "Nostril",
+   "material": "golddark",
+   "what": "the snout's two nostrils, which the game paints a different colour",
+   "blendColour": [
+    176,
+    88,
+    15
+   ],
+   "gameColour": [
+    150,
+    84,
+    92
+   ],
+   "offset": [
+    -0.5078,
+    0.8643,
+    0.7033
+   ],
+   "size": [
+    1.3016,
+    0.7497,
+    0.3344
+   ],
+   "triangles": 200,
+   "trianglesBeforeDecimate": 3840,
+   "fbx": "parts/loot-bag-nostril.fbx",
+   "obj": "parts/loot-bag-nostril.obj"
+  }
+ ],
+ "whole": {
+  "size": [
+   2.8671,
+   3.008,
+   1.6657
+  ],
+  "baseAtY": 0.0,
+  "triangles": 7499
+ }
+}

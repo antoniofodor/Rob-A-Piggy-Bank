@@ -1,0 +1,34 @@
+{
+  "name": "Watermelon",
+  "parent": "ladybird",
+  "base": [
+    86,
+    169,
+    58
+  ],
+  "ink": [
+    36,
+    37,
+    26
+  ],
+  "nose": [
+    242,
+    88,
+    110
+  ],
+  "ear": [
+    255,
+    146,
+    154
+  ],
+  "pale": [
+    251,
+    98,
+    124
+  ],
+  "skin": "watermelon",
+  "rarity": "rare",
+  "parentScene": "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\ladybird\\ladybird.blend",
+  "parentSceneSha256": "c1ea8c8732441436c5c6910cd5a37e90525ec03182768c5aae074c295a637489",
+  "glow": "None. Flat baked colour; no emissive channel, no animation, no extra geometry"
+}

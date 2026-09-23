@@ -9,9 +9,11 @@ from mathutils import Vector,Quaternion
 from mathutils.bvhtree import BVHTree
 from mathutils.geometry import barycentric_transform,tessellate_polygon
 
-ROOT=Path(__file__).resolve().parents[1];OUT=ROOT/'skins/rainbowtiger/legendary-v1';OUT.mkdir(parents=True,exist_ok=True)
-SOURCE=ROOT/'pig/pig_parts.blend';OLD=ROOT/'skins/rainbowtiger/rainbowtiger.blend'
-INPUTS={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in (SOURCE,OLD,OLD.parent/'rainbowtiger_body_color.png',OLD.parent/'rainbowtiger_trim_color.png')}
+ROOT=Path(__file__).resolve().parents[1]
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+OUT=Path(paths.skin_study('rainbowtiger','legendary-v1'));OUT.mkdir(parents=True,exist_ok=True)
+SOURCE=Path(paths.PARTS);OLD=Path(paths.skin_blend('rainbowtiger'))
+INPUTS={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in (SOURCE,OLD,Path(paths.skin_map('rainbowtiger','body')),Path(paths.skin_map('rainbowtiger','trim')))}
 DRAFT='--draft' in sys.argv;SCALE=6
 RGB={'Coat':(24,25,29),'Cuff':(48,51,61),'Ruff':(174,180,190),'RuffShade':(98,105,118),'Snout':(45,46,53),'EarInner':(67,62,77),'Feet':(18,19,24),'Eyes':(231,65,91),
      'Coral':(231,65,91),'Orange':(247,134,29),'Gold':(244,209,42),'Lime':(73,214,100),'Cyan':(27,164,238),'Blue':(71,101,222),'Violet':(157,65,220)}

@@ -12,50 +12,19 @@ local function provoke(tbl,key,value,audit,code)
  tbl[key]=old
  check(ok and contains(problems,code),"audit catches "..code.." at "..key)
 end
-local A,R=Config.auditAcorns,Config.auditRandomOutcomes
-check(#A()==0 and #R()==0,"new boot audits clean")
+local R=Config.auditRandomOutcomes
+check(#R()==0,"random-outcome sweep clean")
 check(#Config.auditEconomy()==0 and #Config.auditSkinSteal()==0,"existing audits remain clean")
-local solo,full=Config.acornRates(1),Config.acornRates(Config.MAX_PLAYERS)
--- Step 2.6 model: own tree plus the pig-crack acorn; storage loses nothing.
-local cracks=math.floor(Config.LOSS_CAP.fraction/Config.getCrackFraction(Config.CRACK.maxSteps,0))
-check(cracks==2 and full.cleanPerVictimHour==2,"LOSS_CAP admits two clean bare-sack cracks per victim-hour")
-check(solo.treePerHour==1 and solo.crackPerHour==0 and solo.perThiefPerHour==1,"solo faucet is the player's own tree alone")
-check(full.crackPerHour==2*Config.ACORNS.payout.crack and full.perThiefPerHour==3,"full server adds the pig-crack ceiling")
-check(Config.acornRates(2).crackPerHour==full.crackPerHour,"the crack ceiling is one victim's budget at any population above one")
-check(solo.passiveDaily==8 and full.passiveDaily==8,"a passive player keeps a whole tree: nothing in storage can be lost")
-check(solo.activeDaily==10 and full.activeDaily==14,"two active hours add growth and cracks")
--- Online-only rates: the overnight fill and the tree ladder are modelled in
--- tests/sim/acorns/model.py, which is what the 19.5 prices were solved on.
-check(math.abs(solo.commonMinutes-900)<.001 and math.abs(full.commonMinutes-300)<.001,"crate times derived from prices and the new faucet")
-check(math.abs(full.legendaryHours-120/3)<.001,"legendary crate time derived")
-check(solo.initialResidentSupply==36 and full.initialResidentSupply==8,"seed is separate from steady hourly production")
-provoke(Config.ACORNS,"resident",nil,A,"acorn.config")
-for _,v in {-1,1.5,math.huge,0/0} do provoke(Config.ACORNS.resident,"seedRipe",v,A,"acorn.resident") end
-provoke(Config.ACORNS.resident,"seedStored",9,A,"acorn.resident")
-provoke(Config.ACORNS.resident,"harvestSeconds",0,A,"acorn.resident")
--- Storage raids are retired; any of their tunables coming back is refused.
-for _,key in {"share","lossCap","lossWindow"} do provoke(Config.ACORNS,key,4,A,"acorn.retiredRaid") end
-provoke(Config.ACORNS.resident,"raidSeconds",900,A,"acorn.retiredRaid")
-provoke(Config,"ACORNS",nil,A,"acorn.config")
-for _,v in {0,-1,math.huge,0/0} do provoke(Config.ACORNS,"growSeconds",v,A,"acorn.number") end
-provoke(Config.ACORNS,"growCap",nil,A,"acorn.number")
-provoke(Config.ACORN_AUDIT,"minPopulationRatio",nil,A,"acorn.model")
-provoke(Config.ACORN_AUDIT,"maxCrackRatio",0,A,"acorn.model")
-provoke(Config.ACORNS.payout,"revenge",0,A,"acorn.multiplier")
-provoke(Config.ACORNS.payout,"perRebirthAbove",-1,A,"acorn.multiplier")
-provoke(Config,"MAX_PLAYERS",Config.PLOT_COUNT+1,A,"acorn.population")
-provoke(Config,"PLOT_COUNT",10.5,A,"acorn.population")
-provoke(Config.ACORNS,"growCap",7.5,A,"acorn.whole")
-provoke(Config.ACORNS,"growSeconds",7200,A,"acorn.growth")
-provoke(Config.CHESTS.og,"cost",0,A,"acorn.price")
-provoke(Config.ACORN_AUDIT,"minPopulationRatio",4,A,"acorn.populationFloor")
-provoke(Config.ACORN_AUDIT,"maxCrackRatio",1.5,A,"acorn.crackCeiling")
-provoke(Config,"LOOT",{event={attend=3}},A,"acorn.legacyFaucet")
-for _,v in {0,1.5,-1} do provoke(Config.ACORNS.payout,"crack",v,A,"acorn.crack") end
-provoke(Config.ACORNS.payout,"crackRevenge",0,A,"acorn.crack")
-provoke(Config.ACORNS.payout,"crack",3,A,"acorn.crack")
-for _,key in {"spree","boost","income"} do provoke(Config.ACORNS.payout,key,2,A,"acorn.coinMultiplier") end
-for _,v in {"coins","unknown",false} do provoke(Config.CHESTS.og,"currency",if v==false then nil else v,R,"random.currency") end
+-- THE ACORN FAUCET AUDIT STOOD HERE and went with the currency: it modelled
+-- how fast a tree filled and what a crate therefore cost. What replaces it is
+-- the stricter rule below -- a crate must carry NO price at all.
+for _,key in {"currency","cost"} do
+ provoke(Config.CHESTS.og,key,if key=="cost" then 15 else "loot",R,"random.price")
+end
+for _,chest in Config.CHESTS do
+ check(chest.cost==nil and chest.currency==nil,"no crate carries a price")
+end
+for _,v in {"coins","unknown"} do provoke(Config.CHESTS.og,"currency",v,R,"random.price") end
 for _,v in {0,1.5,math.huge,0/0} do provoke(Config.CHESTS.og,"cost",v,R,"random.price") end
 provoke(Config,"chestPool",function() error("broken pool") end,R,"random.pool")
 provoke(Config.SKINS.bronze,"cost",0,R,"random.coinTag")
@@ -70,8 +39,6 @@ provoke(Config,"isStealableSkin",function(key) return key==protected or original
 provoke(Config.SKIN_STEAL,"chance",.5,R,"random.theft")
 provoke(Config,"REBIRTH_CRATES",{"missing"},R,"random.rebirthCrate")
 provoke(Config,"CRATE_SECTIONS",{{key="x",name="X",chests={"missing"}}},R,"random.crateSection")
-provoke(Config.COIN_PACK,"productId",-1,R,"random.coinPackId")
-provoke(Config.COIN_PACK,"productId",123456,R,"random.paidRebirth")
 -- Cycles/shared references cannot trap the recursive tag/gate sweep.
 local cycle={};cycle.self=cycle;Config._auditFixture=cycle
 check(#R()==0,"recursive sweep handles cycles");Config._auditFixture=nil
@@ -81,24 +48,24 @@ local sales={galaxy=40000,stormwolf=125000,
  pearl=40000,mint=5000,sunset=11250,midnight=22500,lava=40000,
  cow=8750,neonmint=10000,zebra=40000,cyberlime=3000,
  leopard=40000}
--- Skins sell for ACORNS now (Config.SKIN_SELL_ACORNS, a flat value per tier);
--- the coin figures above are kept as the record of what they used to pay.
-for key in sales do
- local acorns=Config.SKIN_SELL_ACORNS[Config.rarityOf(Config.SKINS[key])]
- check(acorns and Config.sellValue("skin",key)==acorns and Config.isSellable("skin",key),key.." sells for its tier's acorns")
+-- SKINS SELL FOR COINS AGAIN. They paid acorns for one pass; with no crate
+-- priced in any in-game currency there is no printer to close, so the coin
+-- ladder and its `sellBasis` cap are back and these are the figures it pays.
+for key,coins in sales do
+ check(Config.sellValue("skin",key)==coins and Config.isSellable("skin",key),key.." sells for its coin value")
  check(Config.SKINS[key].cost==nil and Config.SKINS[key].sellBasis>0 and Config.SKINS[key].rarity~=nil,key.." resale metadata separate from coin price")
  check(not Config.isSkinUnlocked(key,{},100),key.." not made free by removing price")
 end
--- No skin crate may pay for itself in spares: a crate full of duplicates,
--- sold, must return less than it cost (see Config.SKIN_SELL_ACORNS).
-for chestKey,chest in Config.CHESTS do
- if chest.kind=="skin" and chest.cost and chest.cost>0 then
-  local back=0
-  for tier,weight in chest.odds do back+=weight/100*(Config.SKIN_SELL_ACORNS[tier] or 0) end
-  check(back<chest.cost*0.5,chestKey.." spares return under half its price")
- end
+-- A CRATE CANNOT PAY FOR ITSELF IN SPARES because a crate costs nothing to
+-- open. What is checked instead is that the sell cap still binds: no skin may
+-- return more than `SELL.priceFraction` of its own basis.
+for key in sales do
+ local spec=Config.SKINS[key]
+ check(Config.sellValue("skin",key)<=math.max(1,math.floor(spec.sellBasis*Config.SELL.priceFraction)),
+  key.." resale stays under the price cap")
 end
-check(Config.COIN_PACK.productId==0 and Config.CHESTS[Config.REBIRTH_CRATES[1]].odds.rare==65,"standard random rebirth crate retained; pack disabled")
+check(Config.CHESTS[Config.REBIRTH_CRATES[1]].odds.rare==40 and Config.CHESTS[Config.REBIRTH_CRATES[1]].odds.epic==25
+ and Config.CHESTS[Config.REBIRTH_CRATES[1]].odds.legendary==35,"standard random rebirth crate retained, epic rung stocked")
 
 local function load(name,env,source)
  local run=assert(loadstring(source or sources[name],name));setfenv(run,setmetatable(env,{__index=getfenv()}));return run()
@@ -108,7 +75,7 @@ local replicated={Shared=names}
 local dataSource,n=sources.DataService:gsub("return DataService%s*$","return {defaults=defaultData}");assert(n==1)
 local Data=load("DataService",{game={JobId="audit-tests",GetService=function(_,name) return if name=="ReplicatedStorage" then replicated else {} end},require=function() return Config end},dataSource)
 local player={DisplayName="Test"};local data,events,saves,rolls,now
-local modules={Config=Config,AlienModel={},PlotService={},CosmeticsService={},PlayerGear={},PassService={},TrophyService={},WorldService={setNight=function() end,restoreDay=function() end}}
+local modules={Config=Config,AlienModel={},PlotService={},CosmeticsService={},PlayerGear={},PassService={},TrophyService={}}
 modules.Remotes={get=function(name) return {FireClient=function(_,p,payload) events[name]=payload end,
  FireAllClients=function(_,payload) events[name]=payload end} end}
 modules.DataService={get=function() return data end,save=function() saves+=1;return true end}
@@ -118,11 +85,10 @@ local env={game={GetService=function(_,name)
 end},script={Parent=names},require=function(name) return assert(modules[name],name) end,
  os={clock=function() return now end},task={wait=function(seconds) now+=seconds end}}
 modules.SetService=load("SetService",env)
-modules.SetService.award=function() error("event path tried to mint Acorns") end
-local eventSource,n=sources.EventService:gsub("return EventService%s*$","return {raid=rewardRaid,midnight=runMidnight,multiplier=EventService.getStealMultiplier,acorns=EventService.getAcornMultiplier}");assert(n==1)
+local eventSource,n=sources.EventService:gsub("return EventService%s*$","return {raid=rewardRaid}");assert(n==1)
 local Event=load("EventService",env,eventSource)
 local function reset(complete)
- data=Data.defaults();data.loot=23;data.coins=17;events={};saves=0;now=0
+ data=Data.defaults();data.coins=17;events={};saves=0;now=0
  if complete then
   for _,entry in Config.SETS.alien.items do modules.SetService.grant(player,entry.kind,entry.key) end
   events={};saves=0
@@ -132,23 +98,20 @@ for _,cleared in {false,true} do
  for _,complete in {false,true} do
   reset(complete);Event.raid(cleared)
   local bounty=math.floor(Config.getIncomeRate(data.incomeLevel,data.rebirths)*Config.RAID.bountySeconds*(if cleared then 1.5 else 1))
-  check(data.loot==23 and data.coins==17+bounty,"raid preserves coin bounty without Acorns")
+  check(data.coins==17+bounty,"raid pays its coin bounty")
   check((events.EventDrop~=nil)==not complete,"raid keeps free unowned drop; full set has no duplicate payout")
   check(next(data.spares)==nil,"completed raid never mints spares")
  end
 end
-reset(false);Event.midnight()
-check(data.loot==23 and data.coins==17 and saves==0,"Midnight Heist settlement has no currency faucet of its own")
-check(events.EventState.stealMultiplier==Config.MIDNIGHT.stealMultiplier and Event.multiplier()==1,"Midnight coin-steal multiplier still starts and resets")
-check(Event.acorns()==1,"Midnight acorn multiplier resets at dawn")
+check(Config.EVENTS.roster.midnight==nil and Config.EVENT_UI.midnight==nil and Config.MIDNIGHT==nil,"Midnight Heist is retired: no roster row, no banner row, no multiplier")
 reset(true);modules.SetService.rollDrop(player,"alien")
-check(data.loot==23 and saves==0 and events.Notify:find("already own",1,true),"full set provides feedback without bonus currency")
+check(saves==0 and events.Notify:find("already own",1,true),"full set provides feedback without bonus currency")
 -- Stale/malicious coin purchase requests still cannot grant unowned crate
 -- skins after their historical cost fields have been removed.
 local Cosmetics=load("CosmeticsService",env)
 for key in sales do
  reset(false);Cosmetics.buySkin(player,key)
- check(data.coins==17 and data.loot==23 and not data.cosmetics.owned[key] and saves==0,
+ check(data.coins==17 and not data.cosmetics.owned[key] and saves==0,
   key.." direct coin request cannot grant a now-unpriced crate skin")
 end
 -- Paused pets and retired kennel skins cannot be bought or reactivated by old clients.
@@ -182,10 +145,12 @@ data.pets.owned.piglet=true;data.pets.equipped="piglet"
 Cosmetics.applyToPlot(player)
 check(attributes.PetKey=="" and data.pets.equipped=="piglet", "pet publication is cleared while saved selection survives")
 reset(false)
-local reward=Config.SEASON.tiers[4].reward
-check(reward.kind=="coat" and reward.key=="goldenboy", "season replaces retired kennel reward with Golden Boy")
-check(modules.SetService.grant(player,reward.kind,reward.key) and data.dogs.owned.goldenboy,
- "replacement guardian reward grants successfully")
+-- THE SEASON TIER LADDER GRANTED THIS and retired with the acorn rank that
+-- fed it. What is checked is that the guardian it named is still grantable,
+-- so whatever earns it next has something to hand over.
+check(modules.SetService.grant(player,"coat","goldenboy") and data.dogs.owned.goldenboy,
+ "the Golden Boy guardian is still grantable")
+check(Config.SEASON.tiers==nil,"the acorn-ranked tier ladder is retired")
 -- Retired piggy effects cannot charge, equip or grant through stale clients.
 local applied,pushed=0,0
 Cosmetics.applyToPlot=function() applied+=1 end
@@ -208,12 +173,15 @@ reset(false);data.cosmetics.effect="inferno";Cosmetics.equipEffect(player,"none"
 check(data.cosmetics.effect=="none" and applied==1 and pushed==1,"legacy aura can be cleared")
 check(Config.EFFECTS.starfall==nil,"unwanted new Starfall removed")
 check(Config.EFFECTS.aurora==nil,"unwanted new Aurora removed")
-reset(false);data.loot=100
-modules.SetService.buy(player,"effect","tractor")
-check(data.loot==100 and not data.cosmetics.ownedEffects.tractor,"stale Acorn purchase cannot charge for retired effect")
+reset(false)
+check(modules.SetService.buy==nil,"the loot-priced set purchase is retired")
+check(not data.cosmetics.ownedEffects.tractor,"no path grants the retired effect")
 check(Config.skinAura({rarity="legendary",aura="sparkle"})==Config.EFFECTS.sparkle,
  "Legendary skin particle definitions remain available")
-check(Config.skinAura({rarity="rare",aura="sparkle"})==nil,"non-Legendary skins cannot gain particle auras")
+check(Config.skinAura({rarity="epic",aura="sparkle"})==Config.EFFECTS.sparkle,
+ "an epic skin carries its aura: the effect is what makes the tier")
+check(Config.skinAura({rarity="rare",aura="sparkle"})==nil,"a rare skin cannot gain a particle aura")
+check(Config.skinAura({rarity="common",aura="sparkle"})==nil,"a common skin cannot gain a particle aura")
 for passKey in Config.PASSES do
  for _,entry in Config.passItems(passKey) do check(entry.kind~="effect","pass grants exclude standalone auras") end
 end
@@ -230,16 +198,16 @@ render.applyEffect(refs,"inferno")
 check(not refs.aura.Enabled and not light.Enabled,"legacy renderer disables separate aura and light")
 check(refs.skinAura.Enabled and refs.drip.Enabled,"renderer preserves skin and coin emitters")
 -- Execute the actual new boot block; warnings never throw or stop startup.
-local boot=assert(sources.Main:match("(%-%- Phase 1%.9 audits.-)ChestService%.start%(%)"))
+local boot=assert(sources.Main:match("(%-%- THE RANDOM%-OUTCOME SWEEP.-)ChestService%.start%(%)"))
 local warnings,prints={},{ }
 local bootEnv={Config=Config,warn=function(message) table.insert(warnings,message) end,print=function(message) table.insert(prints,message) end}
 load("Main audits",bootEnv,boot)
-check(#warnings==0 and #prints==1 and prints[1]:find("no storage raids, no acorn theft",1,true),"clean boot reports model honestly")
-local old=Config.COIN_PACK.productId;Config.COIN_PACK.productId=1
-load("Main audits",bootEnv,boot);Config.COIN_PACK.productId=old
-check(contains(warnings,"random.paidRebirth"),"boot surfaces paid-random conflict without throwing")
-local originalAudit=Config.auditAcorns;Config.auditAcorns=function() error("test failure") end
-load("Main audits",bootEnv,boot);Config.auditAcorns=originalAudit
+check(#warnings==0,"clean boot warns about nothing")
+local price=Config.CHESTS.og.cost;Config.CHESTS.og.cost=15
+load("Main audits",bootEnv,boot);Config.CHESTS.og.cost=price
+check(contains(warnings,"random.price"),"boot surfaces a priced crate without throwing")
+local originalAudit=Config.auditRandomOutcomes;Config.auditRandomOutcomes=function() error("test failure") end
+load("Main audits",bootEnv,boot);Config.auditRandomOutcomes=originalAudit
 check(warnings[#warnings]:find("could not run",1,true)~=nil,"failing audit warns and permits startup")
-check(#A()==0 and #R()==0,"all deliberate faults restored")
-print(("PASS: %d audit checks; all rules provoked, resale preserved, actual event rewards, boot warnings and model rates. No player saves."):format(checks))
+check(#R()==0,"all deliberate faults restored")
+print(("PASS: %d audit checks; crates unpriced, resale on coins, actual event rewards and boot warnings. No player saves."):format(checks))

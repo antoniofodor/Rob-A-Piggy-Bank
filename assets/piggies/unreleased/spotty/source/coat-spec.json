@@ -1,0 +1,39 @@
+{
+  "name": "Spotty",
+  "parent": "leopard",
+  "base": [
+    250,
+    178,
+    198
+  ],
+  "ink": [
+    176,
+    52,
+    96
+  ],
+  "fill": [
+    214,
+    92,
+    136
+  ],
+  "nose": [
+    226,
+    120,
+    152
+  ],
+  "ear": [
+    255,
+    206,
+    222
+  ],
+  "pale": [
+    255,
+    232,
+    240
+  ],
+  "skin": "spotty",
+  "rarity": "rare",
+  "parentScene": "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\leopard\\leopard.blend",
+  "parentSceneSha256": "09966b5574d6fc07502e99224942db2fd2eda3e3203d309e998b0811dc4c8011",
+  "glow": "None. Flat baked colour; no emissive channel, no animation, no extra geometry"
+}

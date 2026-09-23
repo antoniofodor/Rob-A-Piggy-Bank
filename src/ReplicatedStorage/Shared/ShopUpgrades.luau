@@ -7,7 +7,10 @@ local Facts = require(Shared.ShopUpgradeFacts)
 local Preview = require(Shared.UpgradePreview)
 local ShopUpgrades = {}
 ShopUpgrades.__index = ShopUpgrades
-local GROUPS = { { key = "earn", label = "Earn", colour = Theme.GOLD, keys = { "income", "capacity" } },
+-- ONE EARN ROW. "capacity" (Bigger Piggy Bank) was the second and is retired
+-- with the pig's ceiling: the pig holds everything, so there was nothing left
+-- for the rung to buy.
+local GROUPS = { { key = "earn", label = "Earn", colour = Theme.GOLD, keys = { "income" } },
 	{ key = "defense", label = "Defend", colour = Theme.HUE.gear, keys = { "locks", "fences" } },
 	{ key = "offense", label = "Rob", colour = Theme.HUE.kit, keys = { "lockpicks", "sack", "boots", "tiptoe" } } }
 
@@ -66,17 +69,17 @@ function ShopUpgrades.new(view: Frame, purchase: (string) -> ())
 end
 
 function ShopUpgrades:info(key: string): any
-	if key == "income" or key == "capacity" then
+	if key == "income" then
 		local s = self.economy
 		if not s then return nil end
-		local max = if key == "income" then s.maxIncome else s.maxCapacity
-		return { name = if key == "income" then "Earn Faster" else "Bigger Piggy Bank",
-			level = s[key .. "Level"], max = max,
-			-- Only these two have a ceiling a rebirth lifts. The six tree rows
+		local max = s.maxIncome
+		return { name = "Earn Faster",
+			level = s.incomeLevel, max = max,
+			-- Only this row has a ceiling a rebirth lifts. The six tree rows
 			-- come out of `self.snapshot` and carry no `gated` at all, so they
 			-- keep MAX LEVEL -- which is the truth about them.
 			gated = Config.rebirthOpensMore(max),
-			cost = s[key .. "Cost"], blurb = if key == "income" then "More coins every second. Bonuses included." else "More room before your piggy stops filling." }
+			cost = s.incomeCost, blurb = "More coins every second. Bonuses included." }
 	end
 	return self.snapshot[key]
 end

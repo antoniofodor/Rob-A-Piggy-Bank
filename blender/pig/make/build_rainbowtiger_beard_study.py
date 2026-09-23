@@ -8,7 +8,9 @@ import bpy, bmesh, math, json
 import numpy as np
 from mathutils import Vector
 
-OUT=Path(__file__).resolve().parents[1]/'skins/rainbowtiger/beard-shape-study'
+ROOT=Path(__file__).resolve().parents[1]
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+OUT=Path(paths.skin_study('rainbowtiger','beard-shape-study'))
 OUT.mkdir(parents=True,exist_ok=True)
 WIDTH_FULLNESS=2.05
 DEPTH_FULLNESS=2.70

@@ -1,0 +1,164 @@
+{
+  "key": "phoenix",
+  "name": "Ice Phoenix",
+  "path": "assets/piggies/legendary/phoenix/",
+  "tier": "legendary",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); legendary/: Config.SKINS.phoenix.rarity = \"legendary\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/phoenix/",
+    "assets/piggies/phoenix/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/legendary/phoenix/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6688,
+      "name": "Ice Phoenix",
+      "rarity": "legendary",
+      "surface": null,
+      "legendary": "phoenix",
+      "chest": "animal",
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": null,
+    "legendaryPacks": [
+      "legend_phoenix"
+    ],
+    "status": "in Config.SKINS as a LEGENDARY: Config.LEGENDARIES.phoenix lists its parts and the legend_* packs they wear"
+  },
+  "templates": {
+    "legend_phoenix": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/legend_phoenix.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://125946536265422",
+        "EmissiveMaskContent": "rbxassetid://113205026319092"
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://125946536265422": {
+      "file": "package/phoenix_color.png",
+      "sha256": "14e352534b5a2df1df710cf9b59b9be07f772413ff89e6581edd929c1bde03a2",
+      "role": "legend_phoenix ColorMap",
+      "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    },
+    "rbxassetid://113205026319092": {
+      "file": "package/phoenix_emissive.png",
+      "sha256": "c136a9e7ac6aaca8c1a682523ddd8988e52006494c59073eebce096a64ea4c6b",
+      "role": "legend_phoenix EmissiveMaskContent",
+      "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    }
+  },
+  "shopCard": {
+    "file": "package/shop-cards/phoenix.png",
+    "robloxAssetId": "rbxassetid://78405426785417",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/legendary/phoenix/package/shop-cards/phoenix.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/legendary/phoenix/package",
+    "note": "DERIVED by the legendary builders under blender/pig/make/ (build_*_legendary.py, build_stormwolf_layout.py) from this folder; not a source",
+    "fileCount": 123,
+    "textureCopiesMatchShippedSheets": {}
+  },
+  "closedBack": {
+    "closedScene": "source/phoenix_closed.blend",
+    "note": "CLOSED BY THE LEGENDARY REBUILD (2026-09-22): source/phoenix.blend is the closed scene and sheets/phoenix_body_color.png the closed re-bake; the *.before-closedback.* files beside them are the open-hatch originals (the live ids' sources). Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "phoenix.before-closedback.blend",
+      "phoenix.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "build_phoenix_asset.py",
+      "concepts-v2/",
+      "loop.sh",
+      "make_phoenix_blend.py",
+      "measure.py",
+      "preview_anim.py",
+      "render_phoenix_preview.py",
+      "strip.py",
+      "validate_phoenix.py"
+    ],
+    "sheets": [
+      "phoenix_body_alpha.before-closedback.png",
+      "phoenix_body_alpha.png",
+      "phoenix_body_color.before-closedback.png",
+      "phoenix_body_color.png",
+      "phoenix_trim_alpha.before-closedback.png",
+      "phoenix_trim_alpha.png",
+      "phoenix_trim_color.before-closedback.png",
+      "phoenix_trim_color.png"
+    ],
+    "preview": [
+      "phoenix_hatch.png",
+      "phoenix_hero.png",
+      "phoenix_legendary_behind.png",
+      "phoenix_legendary_hatch.png",
+      "phoenix_legendary_hero.png",
+      "phoenix_view.blend"
+    ],
+    "package": [
+      "PhoenixFrost.luau",
+      "README.before-closedback.md",
+      "README.md",
+      "animation-checks.before-closedback.json",
+      "animation-checks.json",
+      "animation-handoff.before-closedback.json",
+      "animation-handoff.json",
+      "animation-preflight.before-closedback.json",
+      "animation-preflight.json",
+      "index.before-closedback.html",
+      "index.html",
+      "motion.before-closedback/",
+      "motion/",
+      "phoenix-asset-report.before-closedback.json",
+      "phoenix-asset-report.json",
+      "phoenix-complete.before-closedback.blend",
+      "phoenix-complete.before-closedback.fbx",
+      "phoenix-complete.blend",
+      "phoenix-complete.fbx",
+      "phoenix-crown.before-closedback.png",
+      "phoenix-crown.png",
+      "phoenix-detail.before-closedback.png",
+      "phoenix-detail.png",
+      "phoenix-front.before-closedback.png",
+      "phoenix-front.png",
+      "phoenix-hero.before-closedback.png",
+      "phoenix-hero.png",
+      "phoenix-idle.before-closedback.fbx",
+      "phoenix-idle.before-closedback.gif",
+      "phoenix-idle.fbx",
+      "phoenix-idle.gif",
+      "phoenix-rear.before-closedback.png",
+      "phoenix-rear.png",
+      "phoenix-vault-gold.before-closedback.png",
+      "phoenix-vault-gold.png",
+      "phoenix-vault-iron.before-closedback.png",
+      "phoenix-vault-iron.png",
+      "phoenix_color.before-closedback.png",
+      "phoenix_color.png",
+      "phoenix_emissive.before-closedback.png",
+      "phoenix_emissive.png",
+      "shop-cards/",
+      "vault-fit-checks.before-closedback.json",
+      "vault-fit-checks.json"
+    ]
+  },
+  "generator": "generate/make_phoenix_blend.py",
+  "notes": [
+    "closed-back pass phoenix_body_color.png NOT copied: superseded by the rebuild's own re-bake in sheets/ (16:54), whose open-hatch predecessor is phoenix_body_color.before-closedback.png",
+    "closed-back pass phoenix_closed.blend NOT copied: the rebuild already closed source/phoenix.blend (its .before-closedback.blend is the open one)",
+    "sheets/phoenix_body_color.before-closedback.png is the open-hatch sheet (the live ColorMap id's source); no .open-hatch copy was made",
+    "generate/concepts-v2/ was restored byte-for-byte from git HEAD (3f5e182) because the tracked folder blender/pig/skins/phoenix/concepts-v2/ was deleted from the working tree by another session earlier today; the old path still shows as D in git status",
+    "Config row carries a code-built pattern/anim; the baked sheets here are the authored replacement that has not been wired as a SurfacePacks pair yet."
+  ]
+}

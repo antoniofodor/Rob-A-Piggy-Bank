@@ -1,0 +1,132 @@
+{
+  "skin": "lion",
+  "name": "Lion",
+  "status": "Complete static review asset; runtime installation pending",
+  "sourceScene": "skins\\lion\\lion.blend",
+  "sourceFrame": "Blender X across, -Y face, Z up; origin at body centre",
+  "bodyWidthStuds": 12,
+  "sourceToStudScale": 5.999999642372153,
+  "boundsBlenderStuds": {
+    "min": [
+      -6.0,
+      -8.283605575561523,
+      -6.119999408721924
+    ],
+    "max": [
+      5.999999523162842,
+      8.792325973510742,
+      7.8538594245910645
+    ],
+    "size": [
+      11.999999523162842,
+      17.075931549072266,
+      13.973858833312988
+    ]
+  },
+  "fbxRoundTripMaxBoundsError": 4.76837158203125e-07,
+  "meshCount": 6,
+  "triangles": 20670,
+  "parts": [
+    {
+      "name": "Body",
+      "sourcePart": "Body",
+      "textureGroup": "body",
+      "vertices": 3176,
+      "triangles": 6352,
+      "sourceNonManifoldEdges": 0,
+      "maxSourceVertexError": 8.940696716308594e-08,
+      "uvPreservedBeforeTriangulation": true,
+      "removedPreviewModifiers": [
+        "SUBSURF"
+      ]
+    },
+    {
+      "name": "Snout",
+      "sourcePart": "Snout",
+      "textureGroup": "trim",
+      "vertices": 1245,
+      "triangles": 2486,
+      "sourceNonManifoldEdges": 0,
+      "maxSourceVertexError": 1.2644054553268208e-07,
+      "uvPreservedBeforeTriangulation": true,
+      "removedPreviewModifiers": []
+    },
+    {
+      "name": "Ears",
+      "sourcePart": "Ears",
+      "textureGroup": "trim",
+      "vertices": 3580,
+      "triangles": 7152,
+      "sourceNonManifoldEdges": 0,
+      "maxSourceVertexError": 1.3657139822709083e-07,
+      "uvPreservedBeforeTriangulation": true,
+      "removedPreviewModifiers": []
+    },
+    {
+      "name": "Legs",
+      "sourcePart": "Legs",
+      "textureGroup": "trim",
+      "vertices": 1024,
+      "triangles": 2032,
+      "sourceNonManifoldEdges": 0,
+      "maxSourceVertexError": 8.940696716308594e-08,
+      "uvPreservedBeforeTriangulation": true,
+      "removedPreviewModifiers": []
+    },
+    {
+      "name": "Tail",
+      "sourcePart": "Tail",
+      "textureGroup": "trim",
+      "vertices": 798,
+      "triangles": 1592,
+      "sourceNonManifoldEdges": 0,
+      "maxSourceVertexError": 1.3348812510944096e-07,
+      "uvPreservedBeforeTriangulation": true,
+      "removedPreviewModifiers": []
+    },
+    {
+      "name": "Eyes",
+      "sourcePart": "EyePreview",
+      "textureGroup": "face",
+      "vertices": 532,
+      "triangles": 1056,
+      "sourceNonManifoldEdges": 0,
+      "maxSourceVertexError": 1.2644054553268208e-07,
+      "uvPreservedBeforeTriangulation": true,
+      "removedPreviewModifiers": []
+    }
+  ],
+  "textures": [
+    {
+      "group": "body",
+      "file": "lion_body_color.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "15a889baa38f7a7026be90278ff10a70e1aae144b1f0851f9fffb005a9f4291f"
+    },
+    {
+      "group": "trim",
+      "file": "lion_trim_color.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "98a536e9177dcb9d6393657b3300aadb1b9a730f71698e2afa960c794b6bad9b"
+    }
+  ],
+  "eyes": "Optional exported Eyes mesh; game-built eyes must not be duplicated",
+  "nostrils": "Sculpted recesses retained; matching the existing coat previews, no black insert mesh",
+  "sharedGeometry": "Body, snout, ears, legs and tail are unchanged apart from uniform scale and triangulation; UVs preserved",
+  "inputHashes": {
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\lion\\lion.blend": "0aab8de79becb3211dd5b501553c5fae026ae4b73d9442548c1e792d3ea6d67a",
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\pig\\pig_parts.blend": "4853e18a7719bfb4dd7cafb6f87c435b6142f6b0b16097775a608e7f725d5571",
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\lion\\lion_body_color.png": "15a889baa38f7a7026be90278ff10a70e1aae144b1f0851f9fffb005a9f4291f",
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\lion\\lion_trim_color.png": "98a536e9177dcb9d6393657b3300aadb1b9a730f71698e2afa960c794b6bad9b",
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\lion\\coat-spec.json": "a04ce3e6aff5ef26bf28021ee5e283e686ffbb4f9e98bcea4ce84b657ffe2175"
+  },
+  "integration": "Existing skin uses shared mesh IDs plus body/trim SurfaceAppearances. Complete FBX is a standalone review/import option; do not upload duplicate base meshes for every coat.",
+  "rarity": "epic",
+  "emissiveTextures": []
+}

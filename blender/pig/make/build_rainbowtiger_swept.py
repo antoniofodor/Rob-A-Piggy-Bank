@@ -9,11 +9,17 @@ from mathutils import Vector,Quaternion
 from mathutils.bvhtree import BVHTree
 from mathutils.geometry import barycentric_transform,tessellate_polygon
 
-ROOT=Path(__file__).resolve().parents[1];OUT=ROOT.parents[1]/'assets/skins/animal/legendary/rainbowtiger';OUT.mkdir(parents=True,exist_ok=True)
-SOURCE=ROOT/'pig/pig_parts.blend';OLD=ROOT/'skins/rainbowtiger/rainbowtiger.blend'
-INPUTS={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in (SOURCE,OLD,OLD.parent/'rainbowtiger_body_color.png',OLD.parent/'rainbowtiger_trim_color.png')}
+ROOT=Path(__file__).resolve().parents[1]
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+OUT=Path(paths.animal_package('rainbowtiger'))
+SOURCE=Path(paths.PARTS);OLD=Path(paths.skin_blend('rainbowtiger'))
+INPUTS={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in (SOURCE,OLD,Path(paths.skin_map('rainbowtiger','body')),Path(paths.skin_map('rainbowtiger','trim')))}
+# The approved study folder can be pointed elsewhere (RTIGER_BEARD_STUDY) when
+# it has been rebuilt out of tree with make/build_rainbowtiger_beard_study.py.
+import os
+STUDY=Path(os.environ.get('RTIGER_BEARD_STUDY') or paths.skin_study('rainbowtiger','beard-shape-study'))
 for filename in ('beard-shape-study.blend','beard-flow-color.png','beard-flow-normal.png'):
-    p=ROOT/'skins/rainbowtiger/beard-shape-study'/filename
+    p=STUDY/filename
     INPUTS[str(p)]=hashlib.sha256(p.read_bytes()).hexdigest()
 DRAFT='--draft' in sys.argv;SCALE=6
 RGB={'Coat':(24,25,29),'Cuff':(48,51,61),'Ruff':(174,180,190),'RuffShade':(98,105,118),'Snout':(45,46,53),'EarInner':(67,62,77),'Feet':(18,19,24),'Eyes':(231,65,91),
@@ -193,7 +199,7 @@ for side in (-1,1):
 
 # The approved study replaces all earlier cheek/beard swept tubes.
 from rainbowtiger_fit_beard import fit_approved_beard
-fit_approved_beard(ROOT/'skins/rainbowtiger/beard-shape-study',OUT,mesh)
+fit_approved_beard(STUDY,OUT,mesh)
 
 # Low-profile relaxed arches sit clear of the round eyes.
 for side in (-1,1):

@@ -16,14 +16,14 @@
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+-- For the one clock a pad cooldown is measured on, which has to be the
+-- same one `PiggyPedestal.padReady` reads it back with.
+local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local PiggyBank = require(script.Parent.PiggyBank)
 local GuardDog = require(script.Parent.GuardDog)
--- The trophies displayed INSIDE an authored house. A leaf that requires
--- Config, Decor and Theme and nothing from this file, so there is no cycle.
-local TrophyRoom = require(script.Parent.TrophyRoom)
 -- Geometry, in Shared because the shop renders these too.
 local House = require(ReplicatedStorage.Shared.House)
 -- For `HouseFX.TAG` alone, so the yard audit can skip the light show rather
@@ -32,8 +32,7 @@ local HouseFX = require(ReplicatedStorage.Shared.HouseFX)
 local Decor = require(ReplicatedStorage.Shared.Decor)
 local SoundKit = require(ReplicatedStorage.Shared.SoundKit)
 local GrassTuft = require(ReplicatedStorage.Shared.GrassTuft)
-local AcornTree = require(ReplicatedStorage.Shared.AcornTree)
-local AcornStorage = require(ReplicatedStorage.Shared.AcornStorage)
+local PiggyPedestal = require(ReplicatedStorage.Shared.PiggyPedestal)
 -- The ladder a player stands against a fence. Shared geometry rather than a
 -- second copy here, for the reason House and Decor live in Shared: the shop
 -- renders the real item, and a near-identical copy drifts the first time
@@ -58,11 +57,37 @@ export type Plot = {
 	-- could have jumped, and reading a height back off a barrier would be a
 	-- second answer to a question `Config.FENCE_TIERS` already answers.
 	fenceLevel: number,
+	-- THE BACK HALF OF THE LAWN, AND THE FOLDER THE GRASS STANDS IN. Held
+	-- because `plantGrass` runs again every time the lawn gains or loses
+	-- something standing on it, and `FindFirstChild` on a plot is the lookup
+	-- this file has already paid for twice (the castle's four `Finial`s, the
+	-- kennel's two `Roof`s).
+	--
+	-- OPTIONAL BECAUSE A SHOP PLOT IS A FORECOURT. `buildShopPlot` builds no
+	-- lawn and no yard, so these are genuinely absent there rather than
+	-- absent by omission -- and `plantGrass` says so rather than indexing a
+	-- nil on a unit nobody lives in.
+	yard: Part?,
+	grass: Folder?,
 	house: Model?,
 	decor: Model?,
-	-- Present on residential plots, including residents; shops have no tree.
-	acornTree: AcornTree.Refs?,
-	acornStorage: AcornStorage.Refs?,
+	-- THE SIX LAWN PEDESTALS, held by REFERENCE from the build rather than
+	-- looked back up by name, for the reason the sign's labels and the dog's
+	-- nameplate are: a plot is one flat Model and `FindFirstChild` on a
+	-- repeated name returns the first one -- the castle's four finials and the
+	-- wheelie bin's pair of lids are the same trap, and six pedestals is the
+	-- most repeated name on a plot.
+	--
+	-- OPTIONAL, BECAUSE A SHOP HAS NO LAWN. `buildShopPlot` is a second
+	-- builder returning the same shape and every reader guards on this being
+	-- present, the same way the mailbox and the tree already do.
+	pedestals: { PiggyPedestal.Refs }?,
+	-- THE OWNER THE SIX PLINTHS WERE LAST PUBLISHED AGAINST, which is a
+	-- different question from `owner` and is why it is its own field. `owner`
+	-- is who lives here NOW; this is who the prompts were last told about, and
+	-- the gap between them is the one moment a client can be left holding a
+	-- stale refusal. See `PiggyPedestal.republish`.
+	piggyOwnerId: number?,
 	-- THE GARDEN: a border along the fence, a path up to the pig, and boxes
 	-- under the windows. Three models rather than one, because they are
 	-- rebuilt on three different events -- the border follows the FENCE, the
@@ -95,7 +120,6 @@ export type Plot = {
 	signKit: any?,
 	-- Phase 5.1, residential signs only: the season tier chip under the
 	-- rule, and the NEMESIS line under the boasts.
-	signChip: Frame?,
 	signNemesis: TextLabel?,
 	finishKey: string?,
 	-- THE PAID MARK, HELD ON THE PLOT RATHER THAN PASSED IN.
@@ -123,9 +147,15 @@ export type Plot = {
 	mailFlag: BasePart?,
 	mailFlagPieces: any,
 	mailPrompt: ProximityPrompt?,
-	-- The owner's "Grow Tree" prompt (step 2.7); TreeService wires it and
-	-- writes what it says. Nil on a shop, which has no tree.
-	growPrompt: ProximityPrompt?,
+	-- THE TWO FACTS THE MAIL PROMPT IS PUBLISHED FROM, held on the plot so
+	-- they can be RECOMPUTED rather than remembered. `mailWaiting` is
+	-- `DailyService`'s answer ("there is something in it") and `mailOwnerId`
+	-- is who the prompt was last told about -- a different question from
+	-- `owner`, for the reason `piggyOwnerId` is its own field: the gap
+	-- between the two is the one moment a client can be left holding a stale
+	-- refusal. See `publishMail`.
+	mailWaiting: boolean?,
+	mailOwnerId: number?,
 	-- THE DOORSTEP CRATE. Held the same way and for the same reason: a plot
 	-- is one flat model, so a part looked back up by name is whichever the
 	-- builder happened to make first.
@@ -138,6 +168,12 @@ export type Plot = {
 	crateParts: { BasePart }?,
 	crateTint: { BasePart }?,
 	cratePrompt: ProximityPrompt?,
+	-- And the crate's two facts, on the same terms as the mailbox's:
+	-- `crateKey` is the chest standing on the step (nil for none) and
+	-- `crateOwnerId` is who its prompt was last published against. See
+	-- `publishCrate`.
+	crateKey: string?,
+	crateOwnerId: number?,
 	-- THE TROPHY SHELF'S NUMBERS, HELD ON THE PLOT RATHER THAN PASSED IN.
 	--
 	-- Four of the lawn ornaments are TROPHIES, and what they are shaped
@@ -430,9 +466,94 @@ end
 -- the message names a line that looks fine and nothing points at the
 -- declaration. When something reads nil and the error names nothing useful,
 -- check declaration order first.
-local KENNEL_X = 25
-local KENNEL_Z = 16
-local KENNEL_YAW = math.rad(-90)
+-- MOVED TO THE FRONT-LEFT CORNER, AND IT IS TEMPORARY (designer call
+-- 2026-09-21, in those words). THE POSITION ITSELF LIVES IN
+-- `Config.KENNEL_SPOT` NOW, because `auditPiggySlots` has to reserve this
+-- ground and a second copy of the coordinate over there went stale the first
+-- time this moved -- see that table's own note.
+--
+-- It stood at (25, 16) for the reasons three paragraphs above, every one of
+-- which is about clearances rather than about which corner -- so the move
+-- keeps them. What forced it is `Config.PIGGY_PEDESTAL`: the six lawn
+-- pedestals grew, and swept properly the kennel's own audit rectangle was the
+-- thing capping them. The largest pedestal that fits around a kennel at (25,
+-- 16) is 8.0; the largest the lawn allows is 11.6. The front-LEFT corner is
+-- where the retired acorn oak stood, which `CLAUDE.md` and the piggy suite
+-- both already noted as room going spare.
+--
+-- MEASURED AT THE NEW SPOT RATHER THAN ASSUMED, because every number in the
+-- old justification was a measurement: 3.85 studs off the side fence, which
+-- is IDENTICAL to the old spot (x 25 and x -25 are the same distance from a
+-- fence at 33.6), 2.85 off the front against 3.23, and clear of the nearest
+-- pedestal by 1.25 and the nearest collect pad by 1.05.
+--
+-- THE YAW MIRRORS WITH IT, and getting that wrong would put the doorway in the
+-- fence. The comment above records that the doorway must face ACROSS the lawn
+-- rather than at the street; a yaw of -90 maps kennel-local +Z to plot -X,
+-- which is across the lawn from x 25 and INTO the side fence from x -25. So
+-- the sign flips with the column.
+--
+-- WHAT IS NOT RE-DERIVED, STATED PLAINLY: the dog's rest spot, its patrol
+-- radius and its toy offsets are all authored in KENNEL-LOCAL space, so they
+-- travelled with it -- which is the property `CLAUDE.md` records as the reason
+-- local offsets are the right choice ("local means a MEASUREMENT to redo;
+-- global means a relationship silently severed"). They have NOT been
+-- re-measured at the new corner. `clampToYard` is what makes that safe rather
+-- than lucky: it holds every patrol destination inside the fence rectangle,
+-- inset by the dog's own half-length, so no offset here can put an animal
+-- through a fence. The toys are the half worth a look -- the bed sits four
+-- studs off the rest spot on purpose.
+local KENNEL_X = Config.KENNEL_SPOT.x
+local KENNEL_Z = Config.KENNEL_SPOT.z
+local KENNEL_YAW = math.rad(if KENNEL_X < 0 then 90 else -90)
+
+-- PLANT THE LAWN, AROUND WHATEVER IS STANDING ON IT.
+--
+-- CALLED AGAIN RATHER THAN TRIMMED, and that is the decision worth the
+-- paragraph. The obvious fix for grass growing through a pad is to walk the
+-- folder afterwards and destroy the offenders -- one pass, no re-clone, and
+-- it is wrong in the one direction that matters: it is not reversible. Put
+-- an ornament away and the grass under it would never come back, so a lawn
+-- would collect bald patches shaped like things that are no longer there.
+--
+-- Re-planting cannot do that, because THE SCATTER IS DETERMINISTIC. It is a
+-- hash of the plot's own seed, chosen so a plot rebuilt after a rebirth
+-- grows back the same grass rather than reshuffling under its owner -- so
+-- the same seed against a smaller set of obstacles gives the previous lawn
+-- with the missing tufts back, exactly. A property built for one reason
+-- paying for another.
+--
+-- AND IT IS WHY `scatterRect` DRAWS BEFORE IT VETOES, which its own comment
+-- already explains: every spot consumes the same random numbers whether or
+-- not it is planted, so adding an obstacle removes the tufts under it and
+-- moves no other blade on the lawn. Without that, buying a gnome would
+-- reshuffle the whole garden.
+--
+-- WHAT IT COSTS: about 144 clones per plot per call, and the callers are a
+-- build, a house tier and an ornament -- none of them on a clock. Measured
+-- live on the shipped layout it refuses 82 of 144 spots, of which 50 are
+-- under the house foundation and were never visible; the ~32 left are the
+-- ones that were growing through something.
+function PlotService.plantGrass(plot: Plot)
+	local base, yard, grass = plot.base, plot.yard, plot.grass
+	if not (yard and grass) then
+		return
+	end
+	grass:ClearAllChildren()
+	-- BOTH SURFACES ARE AT ONE HEIGHT -- the yard BUTTS UP against the slab
+	-- rather than overlapping it, precisely so the two cannot z-fight along
+	-- the seam -- so one band serves both, read off the part rather than
+	-- rebuilt out of `PLOT_SIZE`.
+	local surfaceY = base.Position.Y + base.Size.Y / 2
+	-- The two parts BEING planted are the ground rather than things standing
+	-- on it. Everything else on the model is fair game; see
+	-- `GrassTuft.clearance` for the band and for why a dog is never a
+	-- blocker.
+	local accept = GrassTuft.clearance(plot.model, surfaceY,
+		{ [base] = true, [yard] = true })
+	GrassTuft.scatterOn(base, grass, plot.index * 2, accept)
+	GrassTuft.scatterOn(yard, grass, plot.index * 2 + 1, accept)
+end
 
 local function buildPlot(index: number): Plot
 	local cf = plotCFrame(index)
@@ -522,34 +643,24 @@ local function buildPlot(index: number): Plot
 
 	-- The grass standing up out of both of them.
 	--
-	-- BUILT BEFORE THE `PivotTo` AT THE END OF THIS FUNCTION, which is what
-	-- makes the far row correct for nothing: every tuft is authored in the
-	-- same pre-rotation frame as the lawn it stands on, and the single turn
-	-- at the end carries them along with everything else. Scattered ON the
-	-- two parts rather than over a rectangle for the same reason -- a part
-	-- carries its own frame, so this cannot get the rotation wrong.
+	-- ITS OWN FOLDER so the count is one line to read, the whole lot is one
+	-- line to remove, and `plantGrass` has something to clear.
 	--
-	-- NO VETO IS PASSED. The two things a lawn could have grass growing out
-	-- of are the driveway and a tier-5 moat, and neither reaches this grass.
+	-- PLANTED AT THE END OF THIS FUNCTION RATHER THAN HERE, which is a change
+	-- and is worth the line. It used to be scattered at this point, BEFORE
+	-- the `PivotTo`, so that the far row's half turn carried the tufts along
+	-- with the lawn -- correct, and it meant the grass was planted before a
+	-- single thing that stands on it existed. Nothing could be vetoed because
+	-- nothing was there to veto against, which is how a pad face 0.06 studs
+	-- proud came to have 1.17-stud blades growing through it.
 	--
-	-- The DRIVEWAY is derived AND measured: `buildDriveway` runs from
-	-- `driveNear` to `driveFar` in PLOT-LOCAL z, so it starts at 25.6 against
-	-- a slab that ends at PLOT_SIZE.Z / 2, which puts the whole drive in
-	-- front of the lawn rather than on it. Counted live across every plot at
-	-- zero tufts standing on a driveway slab.
-	--
-	-- The MOAT is derivation only and is recorded as such under "Not yet
-	-- verified": it takes the fence RING, which is outboard of this 64-wide
-	-- grass with the stone trim in between, and nobody in a solo session owns
-	-- a tier-5 fence for it to be measured against.
-	--
-	-- Its own folder so the count is one line to read and the whole lot is
-	-- one line to remove.
+	-- `GrassTuft.scatterOn` takes the PART and reads its own CFrame, so
+	-- planting after the pivot is correct on both rows by construction --
+	-- which is what that function was written for, and what makes this move
+	-- free.
 	local grass = Instance.new("Folder")
 	grass.Name = "Grass"
 	grass.Parent = model
-	GrassTuft.scatterOn(base, grass, index * 2)
-	GrassTuft.scatterOn(yard, grass, index * 2 + 1)
 
 	local piggy = PiggyBank.build(origin, model)
 
@@ -675,29 +786,6 @@ local function buildPlot(index: number): Plot
 	rule.BackgroundColor3 = Color3.fromRGB(178, 150, 112)
 	rule.BorderSizePixel = 0
 	rule.Parent = surface
-
-	-- THE SEASON CHIP (Phase 5.1): the tier as a coloured pill, drawn from
-	-- `Config.seasonChipText` / `seasonChipColour`. Hidden below tier 1.
-	local chip = Instance.new("Frame")
-	chip.Name = "SeasonChip"
-	-- Centred under the rule now the robber-rank row beside it is gone.
-	chip.AnchorPoint = Vector2.new(0.5, 0)
-	chip.Position, chip.Size = UDim2.new(0.5, 0, 0, 191), UDim2.fromOffset(185, 44)
-	chip.BackgroundColor3 = Color3.fromRGB(172, 159, 145)
-	chip.BorderSizePixel, chip.Visible = 0, false
-	chip.Parent = surface
-	local chipCorner = Instance.new("UICorner")
-	chipCorner.CornerRadius = UDim.new(0.5, 0)
-	chipCorner.Parent = chip
-	local chipStroke = Instance.new("UIStroke")
-	chipStroke.Color, chipStroke.Thickness = Color3.fromRGB(70, 46, 30), 3
-	chipStroke.Parent = chip
-	local chipText = Instance.new("TextLabel")
-	chipText.Name = "Text"
-	chipText.Size, chipText.Position = UDim2.new(1, -20, 1, -8), UDim2.fromOffset(10, 4)
-	chipText.BackgroundTransparency, chipText.Font = 1, Enum.Font.FredokaOne
-	chipText.TextScaled, chipText.TextColor3 = true, Color3.fromRGB(41, 32, 27)
-	chipText.Text, chipText.Parent = "", chip
 
 	local boast = Instance.new("TextLabel")
 	boast.Name = "Boasts"
@@ -934,44 +1022,32 @@ local function buildPlot(index: number): Plot
 		-- Without it the whole kennel and dog stood half a stud into the lawn.
 		cf * CFrame.new(KENNEL_X, Config.PLOT_SIZE.Y / 2, KENNEL_Z) * CFrame.Angles(0, KENNEL_YAW, 0),
 		model, cf)
-	-- Build after PivotTo so the ground contact and far-row facing are final.
-	local tree = AcornTree.build(model, cf * CFrame.new(
-		Config.ACORNS.treeOffset + Vector3.new(0, Config.PLOT_SIZE.Y / 2, 0)))
-	local storage = AcornStorage.build(model, cf * CFrame.new(
-		Config.ACORNS.storageOffset + Vector3.new(0, Config.PLOT_SIZE.Y / 2, 0)))
-
-	-- THE TREE LADDER'S BUY BUTTON LIVES ON THE TREE (step 2.7). Slot 1 on
-	-- the collider, above the shake prompt in slot 0, on J -- the key the
-	-- retired storage raid gave back. Owner-only through
-	-- PROMPT_OWNER_ATTRIBUTE, like the mailbox: nobody else can grow your
-	-- tree, so nobody else should read the offer.
-	local growPrompt: ProximityPrompt? = nil
-	if tree then
-		local prompt = Instance.new("ProximityPrompt")
-		prompt.Name = "GrowPrompt"
-		prompt.ActionText = "Grow Tree"
-		prompt.ObjectText = ""
-		prompt.KeyboardKeyCode = Enum.KeyCode.J
-		prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
-		prompt.HoldDuration = Config.CRACK.openHold
-		prompt.MaxActivationDistance = Config.STEAL_RANGE
-		prompt.RequiresLineOfSight = false
-		prompt.Enabled = false
-		prompt:SetAttribute(Config.PROMPT_SLOT_ATTRIBUTE, 1)
-		Config.setPromptKind(prompt, "grow")
-		prompt.Parent = tree.collider
-		growPrompt = prompt
+	-- THE SIX LAWN PEDESTALS (plan §3). Built EMPTY on every plot, including
+	-- the ones nobody lives on, for the reason the tier-0 dog is built and
+	-- hidden rather than skipped: `plot.pedestals` is read by the economy tick
+	-- and by the placement prompt, and a nil there is a crash rather than a
+	-- missing feature. An empty plinth is also the honest picture -- it is what
+	-- an unclaimed lawn should look like, and it advertises the slot.
+	--
+	-- Same grass-level lift the kennel takes: `cf` is
+	-- the SLAB's centre and every lawn offset is authored from the GRASS, so
+	-- without the half-slab rise the whole thing stands half a stud sunk.
+	local pedestals: { PiggyPedestal.Refs } = {}
+	for i, slot in ipairs(Config.PIGGY_LAWN_SLOTS) do
+		pedestals[i] = PiggyPedestal.build(model,
+			cf * CFrame.new(slot.offset + Vector3.new(0, Config.PLOT_SIZE.Y / 2, 0)), i)
 	end
 
 	local plot: Plot = {
 		index = index,
 		model = model,
 		base = base,
+		yard = yard,
+		grass = grass,
 		cframe = cf,
 		piggy = piggy,
 		dog = dog,
-		acornTree = tree,
-		acornStorage = storage,
+		pedestals = pedestals,
 		fence = fence,
 		fenceLevel = 0,
 		house = nil,
@@ -991,12 +1067,10 @@ local function buildPlot(index: number): Plot
 				return out
 			end)(),
 		},
-		signChip = chip,
 		signNemesis = nemesis,
 		mailFlag = flag,
 		mailFlagPieces = mail.flagPieces,
 		mailPrompt = mailPrompt,
-		growPrompt = growPrompt,
 		crateParts = crateParts,
 		crateTint = crateTint,
 		cratePrompt = cratePrompt,
@@ -1011,6 +1085,10 @@ local function buildPlot(index: number): Plot
 	-- is hidden rather than absent: every reader here guards on the fields
 	-- being present, and a nil is a crash rather than a missing feature.
 	PlotService.setCrate(plot, nil)
+	-- AND THE GRASS LAST OF ALL, now that there is something to plant it
+	-- around. Everything that lands on this lawn later -- a house tier, an
+	-- ornament -- plants it again; see `PlotService.plantGrass`.
+	PlotService.plantGrass(plot)
 
 	-- The press. Connected here, where `plot` exists, rather than in `start`
 	-- -- there is nothing to look the plot back up by, and holding the
@@ -2354,6 +2432,11 @@ function PlotService.setDecor(plot: Plot, placed: { [string]: string })
 	-- away an ornament -- there is no single moment at which they could all be
 	-- collected. See bindTrampolinesIn for why a tag signal cannot do this.
 	bindTrampolinesIn(plot.decor)
+	-- AND THE GRASS COMES BACK AROUND WHAT IS THERE NOW. An ornament is the
+	-- one thing on a lawn that arrives and LEAVES, so this is the call that
+	-- has to be a replant rather than a trim: shelving a gnome has to give
+	-- back the grass it was standing on.
+	PlotService.plantGrass(plot)
 end
 
 -- What the four trophy ornaments are shaped like, and a rebuild to show
@@ -2371,15 +2454,13 @@ function PlotService.setTrophyState(plot: Plot, state: any?)
 	if placed then
 		PlotService.setDecor(plot, placed)
 	end
-	-- AND INSIDE THE HOUSE, from the same state. A trophy stands on the lawn
-	-- AND in the trophy room (`TrophyRoom`), so the one function that means
-	-- "these numbers moved" repaints both. Houses with no display mounts --
-	-- every code-built tier -- are left alone by `fill` itself.
-	-- THE OWNER'S USER ID IS FOR THE WANTED POSTER'S PHOTOGRAPH, and it is
-	-- passed rather than looked up: `TrophyRoom` is handed a house and a
-	-- published state and has no way back to a Player. A resident has no
-	-- Player at all, so the poster is drawn without a face.
-	TrophyRoom.fill(plot.house, state, if plot.owner then plot.owner.UserId else nil)
+	-- NOTHING IS DRAWN INSIDE THE HOUSE ANY MORE. The achievement room
+	-- (`Services/TrophyRoom`, stat panels and a wanted poster on an authored
+	-- template's `Mount_Wall`) was retired on 2026-09-22: entering a house
+	-- now lands in the real base (`InteriorService` / `HouseInterior`), and
+	-- the achievements move into that base later. The STATE is unchanged --
+	-- `plot.trophies` is still published here and `data.trophies` still
+	-- counts everything -- so the base has the numbers the day it wants them.
 end
 
 -- The strip of paving from the gate out to the kerb, surfaced by house tier.
@@ -2685,12 +2766,16 @@ function PlotService.setHouseLevel(plot: Plot, level: number)
 	plot.house = House.build(level, plot.cframe * CFrame.new(0, groundY, 0), plot.model)
 	buildDriveway(plot, Config.getHouseTier(level))
 	PlotService.refreshWindowBoxes(plot)
-	-- The trophies hang off mounts inside the model destroyed above, so they
-	-- go back up against the new one -- the same seam the window boxes take,
-	-- for the same reason: a house tier can be bought with nothing else about
-	-- the plot changing, and a new house would otherwise stand empty until the
-	-- next time a counter happened to move.
-	TrophyRoom.fill(plot.house, plot.trophies, if plot.owner then plot.owner.UserId else nil)
+	-- The in-house trophy display used to be rebuilt here too, off the same
+	-- seam the window boxes take. It is retired (see `setTrophyState`), so a
+	-- new house carries nothing on its `Mount_Wall` and there is nothing to
+	-- put back.
+	-- A HOUSE IS THE BIGGEST THING THAT EVER LANDS ON THIS GRASS, and the
+	-- nine tiers have nine different footprints -- measured, the Starter
+	-- Shack's foundation alone covers 57.8 by 40.1 studs of the yard. So the
+	-- lawn is replanted around whichever one is now standing, which is also
+	-- what gives the grass back when a smaller tier is moved into.
+	PlotService.plantGrass(plot)
 end
 
 function PlotService.setDogLevel(plot: Plot, level: number)
@@ -2778,41 +2863,17 @@ end
 -- VISUALS
 -- ============================================================
 
--- Returns how many coins newly appeared, so callers can decide whether that
--- deserves a sound.
-function PlotService.updateAcorns(plot: Plot, amount: number)
-	plot.model:SetAttribute(Config.PLOT_ACORNS_ATTRIBUTE, math.max(0, math.floor(amount)))
-end
-
-function PlotService.updateTreeAcorns(plot: Plot, ripe: number, ground: number)
-	plot.model:SetAttribute(Config.PLOT_TREE_ACORNS_ATTRIBUTE, math.max(0, math.floor(ripe)))
-	plot.model:SetAttribute(Config.PLOT_GROUND_ACORNS_ATTRIBUTE, math.max(0, math.floor(ground)))
-end
-
--- The next-acorn clock over the owner's tree. `secondsLeft` nil means the
--- tree is full (the chip says so) and a nil `cap` clears the clock entirely,
--- which is what an unowned plot shows. Written as a whole server second so a
--- republish at the same deadline is not a replicated change.
-function PlotService.updateTreeClock(plot: Plot, secondsLeft: number?, cap: number?)
-	plot.model:SetAttribute(Config.PLOT_TREE_CAP_ATTRIBUTE, cap)
-	plot.model:SetAttribute(Config.PLOT_TREE_NEXT_ATTRIBUTE,
-		if cap and secondsLeft then math.floor(workspace:GetServerTimeNow() + secondsLeft + 0.5) else nil)
-end
-
--- Both halves of a player's tree display from their save, for the three
--- places that settle it: the economy push, a shake and a purchase.
-function PlotService.publishTree(plot: Plot, data: any)
-	PlotService.updateTreeAcorns(plot, data.treeAcorns or 0, data.groundAcorns or 0)
-	PlotService.updateTreeClock(plot, Config.nextAcornIn(data, os.time(), true), Config.treeCap(data))
-end
-
-function PlotService.updatePile(plot: Plot, vault: number, capacity: number): number
+-- `fullAt` IS WHAT THE PILE READS AS FULL, NEVER A LIMIT: a player's pig has
+-- no ceiling and this is the rebirth cash gate (`Config.pigFullAt`); a
+-- resident's is `pigSeconds` of its own income. It sizes the coin pile inside
+-- the pig and nothing else.
+function PlotService.updatePile(plot: Plot, vault: number, fullAt: number): number
 	-- Published here rather than at the call sites because this is the one
 	-- function every path already goes through -- the accrual tick, a steal, a
 	-- delivery, and `release` zeroing an abandoned plot. See
 	-- Config.PLOT_VAULT_ATTRIBUTE for why a thief is allowed to read it.
 	plot.model:SetAttribute(Config.PLOT_VAULT_ATTRIBUTE, math.floor(vault))
-	return PiggyBank.setFill(plot.piggy, vault, capacity)
+	return PiggyBank.setFill(plot.piggy, vault, fullAt)
 end
 
 function PlotService.playCoinDrop(plot: Plot)
@@ -2829,6 +2890,49 @@ end
 
 function PlotService.playAlarm(plot: Plot)
 	PiggyBank.playAlarm(plot.piggy)
+end
+
+-- A BUFFER JUST BANKED, AND THE SOUND COMES FROM THE PAD THAT BANKED IT.
+--
+-- `slot` 0 is the till and 1..N are the pedestals -- the same numbering
+-- `collectPiggy`, `setPiggyBuffers` and the pads' own `PIGGY_SLOT_ATTRIBUTE`
+-- all use, so there is no second convention to keep in step. `fullness` is
+-- how full that buffer was, 0..1; `Config.piggyCollectPitch` owns what it
+-- means, and `PIGGY_PEDESTAL.pad.sound` owns why it is measured against the
+-- slot's own ceiling rather than against the pig.
+--
+-- PER PAD RATHER THAN AT THE PIG, which is the whole reason this takes a
+-- slot at all. The obvious cheap version plays the till's existing `bank`
+-- cue for every collect -- one sound, no new instances, and it would put the
+-- noise 25 studs from the pedestal a player is standing on. The pads are
+-- spread across the lawn on purpose; the feedback has to be too.
+--
+-- SILENT ON A SLOT THAT HAS NO PAD rather than falling back to the pig. A
+-- collect that cannot be attributed to a placement is a collect nothing
+-- should be claiming happened somewhere -- and the only ways to get here are
+-- a slot index outside the range (which `collectPiggy` has already refused)
+-- or a plot mid-release.
+--- AND IT STAMPS THE PAD, WHICH IS THE OTHER HALF OF THE SAME EVENT. The
+--- sound, the piggy's hop and the button going dark are three answers to one
+--- thing happening, so they are written in one place rather than three -- and
+--- the stamp is what stops the face claiming READY while the pad is still
+--- refusing. See `PiggyPedestal.padReady`.
+---
+--- STAMPED HERE BECAUSE THIS IS THE ONLY SITE THAT RUNS ON A COLLECT THAT
+--- ACTUALLY BANKED. `EconomyService`'s pad cooldown is written on every TOUCH,
+--- including a visitor's and including one that banked nothing -- correct for a
+--- debounce and exactly wrong for a light. The two stamps are two different
+--- facts and this project has paid for one field carrying two (`busyUntil`
+--- serving a chase cooldown and a bone nap, read in opposite directions).
+function PlotService.playCollect(plot: Plot, slot: number, fullness: number?)
+	local index = math.floor(tonumber(slot) or -1)
+	local now = Workspace:GetServerTimeNow()
+	-- Slot 0 is the bank, which has no pad and is never collected.
+	local pedestal = plot.pedestals and plot.pedestals[index]
+	if pedestal then
+		pedestal.padFiredAt = now
+		PiggyPedestal.playPadCollect(pedestal.padSound, fullness)
+	end
 end
 
 -- The sign advertises the skin as well as the rebirth count -- a cosmetic
@@ -2882,50 +2986,336 @@ end
 -- press when you get there. Two setters would be two states that could
 -- disagree -- a flag up over a box that will not open is the silent
 -- failure this project refuses above all others, wearing a picture.
+-- ============================================================
+-- OWNER-GATED PROMPTS: ONE WRITER, AND A BOUNCE WHEN THE PLOT CHANGES HANDS
+-- ============================================================
+--
+-- THIS IS `PiggyPedestal.setHaul` AND `.republish`, COPIED ONTO THE MAILBOX
+-- AND THE DOORSTEP CRATE. The diagnosis is written up once, in
+-- docs/PIGGY-COLLECTION-BUILD-ORDER.md ("A prompt bug this found, and it is
+-- a CLASS rather than one prompt"), and the short form is this:
+--
+-- "Write the owner before you enable" is necessary and NOT sufficient.
+-- `PromptUI`'s rules may only ever REFUSE, and its one-time startup sweep
+-- can land between the `Enabled` replication and the OWNER replication for
+-- an instance -- so it refuses a prompt the reader OWNS, and nothing ever
+-- changes again to take it back. Measured on the pedestals: three of six
+-- sell prompts locally dead on a plot whose owner attribute read correctly
+-- on both sides. Not an exploit -- every trigger here re-checks `plot.owner`
+-- -- but a player silently locked out of their OWN control, which is the
+-- failure this project refuses above all others.
+--
+-- The mailbox and the crate had the same shape the pedestals had before
+-- the fix: the owner attribute written in one function (`setMailOwner`,
+-- `setCrateOwner`) and `Enabled` in another (`setMail`, `setCrate`), so the
+-- ordering rule was a property of the distance between two callers. Each
+-- fact is recorded on the plot now and ONE function per prompt writes both.
+--
+-- HOW LONG A BOUNCED PROMPT STAYS OFF. A REAL FRAME HAS TO PASS: Roblox
+-- replicates the value a property HAS at the end of a frame, so
+-- `Enabled = false; Enabled = true` inside one frame is no change at all and
+-- the client hears nothing. Equal to `PiggyPedestal`'s `REPUBLISH_DELAY`,
+-- which is a local in another session's file -- exporting it and reading
+-- one number from both is the tidy version, and until then it is written
+-- here a second time on purpose.
+local PROMPT_REPUBLISH_DELAY = 0.2
+
+-- WHICH BOUNCE IS THE LIVE ONE, per prompt. Two bounces starting inside one
+-- beat would have two timers restoring against two different owners, and
+-- the loser would win because it lands last -- a plot claimed and released
+-- inside a fifth of a second would come back wearing the departed owner's
+-- prompt. Stamped on the way in and checked on the way out. Strong-keyed on
+-- purpose: a plot's prompts live for the server's life, and a weak key here
+-- would be the collector trap `RidePose` records.
+local bounceGeneration: { [ProximityPrompt]: number } = {}
+
+-- SWITCH IT OFF, AND A BEAT LATER LET `publish` RECOMPUTE IT. Recompute
+-- rather than remember: `publish` reads the plot's facts as they are when
+-- the timer fires, so post that arrived, a crate that was opened or a plot
+-- that was released during the beat is answered correctly, where a
+-- remembered "it was true" would put back a state that has since changed.
+local function bouncePrompt(prompt: ProximityPrompt, publish: () -> ())
+	prompt.Enabled = false
+	local generation = (bounceGeneration[prompt] or 0) + 1
+	bounceGeneration[prompt] = generation
+	task.delay(PROMPT_REPUBLISH_DELAY, function()
+		if bounceGeneration[prompt] ~= generation then
+			return
+		end
+		publish()
+	end)
+end
+
+-- WHO THE MAILBOX IS FOR AND WHETHER IT IS LIVE, WRITTEN BY ONE FUNCTION.
+--
+-- THE TWO WRITES ARE IN THIS ORDER AND THE ORDER IS LOAD-BEARING. Attribute
+-- first, then `Enabled`: `PromptUI` answers an `Enabled` change by re-running
+-- its refusal against whatever the attribute says at that instant, so
+-- enabling against a stale owner refuses the box on the right person's
+-- screen permanently.
+--
+-- OWNED PLOTS ONLY, which changes nothing today -- `release` lowers the flag
+-- before it clears the owner, and `DailyService.push` only ever runs for an
+-- owner -- and is the guard `setHaul` carries for the same reason: a prompt
+-- `Enabled` on a plot nobody owns is the state that poisons a client's
+-- first sweep, and making it impossible is cheaper than remembering why it
+-- does not happen.
+--
+-- AND NIL IS NOBODY HERE, NOT 0. A pedestal publishes 0 for an unclaimed
+-- lawn and `PromptUI` refuses 0 on every screen; an unowned mailbox carries
+-- no attribute at all, which that rule leaves alone. Both are correct --
+-- nothing on an unclaimed plot is enabled -- and `MailCall.waiting` compares
+-- the attribute against the reader, so it must stay nil rather than be
+-- "tidied" to 0 to match the plinths.
+local function publishMail(plot: Plot)
+	local prompt = plot.mailPrompt
+	if not prompt then
+		return
+	end
+	local ownerId = plot.mailOwnerId
+	prompt:SetAttribute(Config.PROMPT_OWNER_ATTRIBUTE, ownerId)
+	prompt.Enabled = ownerId ~= nil and plot.mailWaiting == true
+end
+
+-- Flag up and prompt live, or neither.
+--
+-- ONE CALL FOR BOTH, because they are one fact seen from two distances:
+-- the flag is what you read from the pavement and the prompt is what you
+-- press when you get there. Two setters would be two states that could
+-- disagree -- a flag up over a box that will not open is the silent
+-- failure this project refuses above all others, wearing a picture.
 function PlotService.setMail(plot: Plot, waiting: boolean)
 	if not plot.mailFlag or not plot.mailPrompt then
 		-- A shop. See the note on the type.
 		return
 	end
-	-- HELD IN A LOCAL RATHER THAN INDEXED IN PLACE. `f(a, b)` followed by a
-	-- line opening with `(` is parsed as a CALL ON THE RESULT, and a leading
-	-- `;` to break it up is itself a parse error after a comment line in
-	-- Luau -- which this project has already lost a whole HUD to.
-	local prompt = plot.mailPrompt :: ProximityPrompt
+	plot.mailWaiting = waiting
 	seatMailFlag(plot, waiting)
-	prompt.Enabled = waiting
+	publishMail(plot)
 end
 
--- THE TREE'S LEVEL, drawn as the placeholder growth (step 2.7). A plot with
--- no tree ignores it.
-function PlotService.setTreeLevel(plot: Plot, level: number)
-	local row = Config.TREE_LEVELS[math.clamp(math.floor(level), 0, #Config.TREE_LEVELS - 1) + 1]
-	AcornTree.setGrowth(plot.acornTree, row.scaleXZ, row.scaleY)
-	plot.model:SetAttribute(Config.PLOT_TREE_GROWTH_ATTRIBUTE, row.scaleY)
-end
+-- ============================================================
+-- THE LAWN PEDESTALS
+-- ============================================================
+--
+-- Same split as the mailbox and the crate: PlotService stands the six
+-- plinths up, dresses them and publishes who they belong to; it does not
+-- decide what a piggy earns, what is in a buffer, or who may place one.
+-- `EconomyService` owns all three, because it owns the save fields.
 
--- WHOSE "GROW TREE" OFFER THIS IS, on the mailbox's terms. The prompt stays
--- off until TreeService has written what it sells.
-function PlotService.setTreeOwner(plot: Plot, player: Player?)
-	local prompt = plot.growPrompt
-	if not prompt then
+-- Repaint the whole lawn from a save. Idempotent -- `PiggyPedestal.dress`
+-- returns early on a pedestal already wearing the right piggy -- so this is
+-- safe to call from the accrual tick rather than only from the moment
+-- something changes, which is what keeps the six plinths from ever
+-- disagreeing with the save that describes them.
+--
+-- WHY THAT MATTERS MORE THAN IT LOOKS: the alternative is calling this at
+-- every site that can move a piggy -- a crate open, a placement, a snatch, a
+-- delivery, a rebirth, a join -- which is six chances to leave it out, and a
+-- missed one is a piggy that is earning and invisible, or visible and gone.
+-- That is the `setDecor` argument arriving on a second object.
+function PlotService.setPiggySlots(plot: Plot, data: any?)
+	local pedestals = plot.pedestals
+	if not pedestals then
 		return
 	end
-	prompt:SetAttribute(Config.PROMPT_OWNER_ATTRIBUTE, if player then player.UserId else nil)
-	if not player then
-		prompt.Enabled = false
+	-- ZERO RATHER THAN NIL WHEN NOBODY OWNS THIS PLOT, and that is a fix
+	-- rather than a formality. `PromptUI.ownerRule` refuses a prompt whose
+	-- owner is set and is not the reader, and does NOTHING when the attribute
+	-- is absent -- correctly, because most prompts in this game have no owner
+	-- and must not be refused. So an unowned plot publishing nil would offer
+	-- its collect prompts to everybody, on every one of the ten plots a
+	-- resident lives on. UserId 0 is nobody, so it refuses every reader.
+	local ownerId = if plot.owner then plot.owner.UserId else 0
+
+	-- THE OWNER IS WRITTEN BEFORE ANYTHING IS ENABLED, ON ALL SEVEN, AND THAT
+	-- ORDER IS THE WHOLE OF WHY THESE PROMPTS WORK.
+	--
+	-- `PromptUI.ownerRule` only ever turns a prompt OFF -- deliberately, so a
+	-- client rule can never switch on something the server turned off. The
+	-- consequence is that a refusal is PERMANENT until the server writes
+	-- `Enabled` again. A plot is built at server startup with no owner, so
+	-- every client's opening sweep disables all seven locally; if `Enabled`
+	-- then replicates BEFORE the owner does, the client's `Enabled` watcher
+	-- re-runs the rule against the stale owner 0 and refuses it again, and the
+	-- later owner write never re-enables because the rule is one-way.
+	--
+	-- Measured, that way round: server `Enabled=true` on all seven, client
+	-- `Enabled=false` on all seven, owner attribute correct on both sides, and
+	-- `PromptShown` never firing on a prompt 2.5 studs away.
+	-- THE OWNER LOOP THAT USED TO STAND HERE IS INSIDE `PiggyPedestal.setHaul`
+	-- NOW, along with every `Enabled` write for all four prompts on a plinth.
+	--
+	-- It was one loop writing the SELL prompt's owner, with `dress` writing
+	-- that prompt's `Enabled` in the loop below -- correct, and split across
+	-- two passes over the same six objects for no reason except that the sell
+	-- prompt arrived first. Consolidating is what makes the ordering rule
+	-- ("the owner, then `Enabled`, always") a property of ONE function rather
+	-- than a property of the distance between two loops, which is the sort of
+	-- thing that stays true until somebody inserts something between them.
+	--
+	-- The collect PAD is deliberately still not in it: a pad is not a prompt,
+	-- carries no owner attribute and cannot be refused per client, so it is
+	-- guarded on the server in `EconomyService` instead -- the stronger half
+	-- anyway, since a pad has no card to hide and the only thing that matters
+	-- is that walking over somebody else's does nothing.
+	--
+	-- AND WHETHER THE OWNER CHANGED IS ANSWERED BEFORE THE LOOP, because the
+	-- loop is what makes it stop being true.
+	local claimed = plot.piggyOwnerId ~= ownerId
+	plot.piggyOwnerId = ownerId
+
+	-- THE BANK'S SWAP PROMPT TAKES THE SAME OWNER IN THE SAME BREATH, so the
+	-- seven owner-gated prompts on a lawn are written from one place on one
+	-- clock. Its `Enabled` is NOT touched here: `setSwapOffer` owns it, and
+	-- it is only ever on while the owner is carrying -- so a plot changing
+	-- hands finds it off and there is nothing to bounce.
+	local swapPrompt = plot.piggy and plot.piggy.swapPrompt
+	if swapPrompt then
+		swapPrompt:SetAttribute(Config.PROMPT_OWNER_ATTRIBUTE, ownerId)
+		if ownerId == 0 then
+			swapPrompt.ObjectText = ""
+			swapPrompt.Enabled = false
+		end
+	end
+
+	for i, pedestal in ipairs(pedestals) do
+		local key: string? = nil
+		if data then
+			local entry = Config.piggySlots(data)[i]
+			key = entry and entry.key
+		end
+		-- `dress` is what writes `Enabled`, so it has to run after the loop
+		-- above. It is idempotent on the key, so a repaint that changes
+		-- nothing writes nothing -- which is also why the owner cannot be left
+		-- to it: an owner changing while the key does not would never be
+		-- published at all.
+		PiggyPedestal.dress(pedestal, key)
+		-- AND THE TWO HAUL PROMPTS, WHICH ARE NOT IDEMPOTENT ON THE KEY AND
+		-- MUST NOT BE. Who may take a piggy off this plinth and who may put
+		-- one on it are facts about the PLOT rather than about the save, and
+		-- a plot changes hands with every one of its six slots standing
+		-- exactly as it was -- which `dress` returns early on and would
+		-- therefore never republish. Same argument as the owner loop above;
+		-- this one runs after `dress` because it reads `refs.key`.
+		PiggyPedestal.setHaul(pedestal, ownerId)
+		-- A PLOT CHANGING HANDS IS THE ONE MOMENT A CLIENT CAN BE LEFT
+		-- HOLDING A STALE REFUSAL, so it is the one moment the prompts are
+		-- bounced rather than merely written. See `PiggyPedestal.republish`
+		-- for the measurement -- three of six sell prompts locally dead on a
+		-- plot whose owner attribute read correctly on both sides.
+		--
+		-- ON THE CHANGE AND NOT ON EVERY REPAINT, because a repaint runs on
+		-- every purchase, collect, rebirth and join: bouncing there would
+		-- blink every card on the lawn several times a minute for a race that
+		-- can only happen when the owner moves.
+		if claimed then
+			PiggyPedestal.republish(pedestal, ownerId)
+		end
+	end
+
+	-- The bank has no pad to light: it drips straight into the balance.
+end
+
+-- WHETHER THE OWNER MAY SWAP RIGHT NOW, published on the bank's own prompt.
+--
+-- `key` is the piggy in the owner's arms, or nil for empty hands. The prompt
+-- is live exactly while there is one, and it names what would go onto the
+-- till, so the card reads SWAP over the piggy being offered rather than over
+-- a word. `PiggyHaulService` calls this at the three moments a carry starts,
+-- ends or changes; it is the ONE writer of this prompt's `Enabled`, which is
+-- what keeps "the owner, then `Enabled`" a property of one function -- the
+-- owner attribute lands in `setPiggySlots` at claim, long before any carry.
+--
+-- AN UNOWNED PLOT NEVER OFFERS, whatever is asked: residents are never
+-- swapped, and a prompt enabled on a lawn nobody owns is the state that
+-- poisons a client's first sweep and cannot be taken back.
+function PlotService.setSwapOffer(plot: Plot, key: string?)
+	local swapPrompt = plot.piggy and plot.piggy.swapPrompt
+	if not swapPrompt then
+		return
+	end
+	local offered = plot.owner ~= nil and key ~= nil
+	swapPrompt.ObjectText = if offered then Config.getSkin(key :: string).name else ""
+	swapPrompt.Enabled = offered
+end
+
+-- WHAT EACH PLACED PIGGY EARNS PER SECOND, ASKED RATHER THAN DERIVED.
+--
+-- REGISTERED BY `Main`, for the reason `registerBounceVeto` and
+-- `SetService.registerPusher` already record: the live rate folds in a
+-- friend bonus and a daily boost on top of the income tree, so asking for it
+-- means asking `EconomyService` -- and `EconomyService` already requires this
+-- file. A registry keeps the dependency list at one line and makes the cycle
+-- impossible rather than merely absent today.
+--
+-- AND IT IS THE ONLY HONEST SOURCE. `Config.getPiggyIncomeRate` is reachable
+-- from here and answers a DIFFERENT question -- the rate before either bonus
+-- -- so a rate row painted from it would disagree with what the pad actually
+-- banks the moment somebody claimed a daily boost.
+local piggyRates: ((Player, any) -> { number })? = nil
+
+function PlotService.registerPiggyRates(fn: (Player, any) -> { number })
+	piggyRates = fn
+end
+
+-- What each pedestal's prompt card prints in its amount box. Split from the
+-- dressing above because the two change on completely different clocks: what
+-- is STANDING here changes when somebody opens a crate, and what is BANKED
+-- here changes every tick.
+function PlotService.setPiggyBuffers(plot: Plot, data: any?)
+	-- THE BANK HAS NO BUFFER AND NO PAD (designer decision 2026-09-22): its
+	-- income drips straight into the balance and the pile on the lawn is the
+	-- readout, so there is nothing of the till's to repaint here. Slots 1..N
+	-- are the pedestals.
+	local pedestals = plot.pedestals
+	if not pedestals then
+		return
+	end
+	-- ASKED ONCE FOR THE WHOLE LAWN, not once per pedestal: the rate folds in
+	-- a friend bonus and a daily boost that are facts about the OWNER rather
+	-- than about a slot, so six separate asks would be six identical lookups
+	-- for five identical multipliers.
+	--
+	-- AN UNOWNED PLOT HAS NO RATES AND MUST NOT HAVE ANY. A resident's lawn
+	-- carries no piggies and a released plot has no `data` -- both of which
+	-- `dress` has already blanked these labels for.
+	local rates = if data and plot.owner and piggyRates
+		then piggyRates(plot.owner, data) else nil
+	for i, pedestal in ipairs(pedestals) do
+		local amount = 0
+		if data then
+			local entry = Config.piggySlots(data)[i]
+			amount = (entry and entry.buffer) or 0
+		end
+		PiggyPedestal.setBuffered(pedestal, amount)
+		PiggyPedestal.setRate(pedestal, if rates then rates[i] else nil)
 	end
 end
 
 -- WHO THE MAILBOX IS FOR, published so the prompt can refuse itself on
 -- everybody else's screen. See `Config.PROMPT_OWNER_ATTRIBUTE`.
 function PlotService.setMailOwner(plot: Plot, player: Player?)
-	if not plot.mailPrompt then
+	local prompt = plot.mailPrompt
+	if not prompt then
 		return
 	end
-	local prompt = plot.mailPrompt :: ProximityPrompt
-	prompt:SetAttribute(Config.PROMPT_OWNER_ATTRIBUTE,
-		if player then player.UserId else nil)
+	local ownerId = if player then player.UserId else nil
+	-- WHETHER THE OWNER CHANGED IS ANSWERED BEFORE THE WRITE, because the
+	-- write is what makes it stop being true.
+	local changed = plot.mailOwnerId ~= ownerId
+	plot.mailOwnerId = ownerId
+	publishMail(plot)
+	-- A PLOT CHANGING HANDS IS THE ONE MOMENT A CLIENT CAN BE LEFT HOLDING A
+	-- STALE REFUSAL, so it is the one moment the prompt is bounced rather
+	-- than merely written -- here, and never in `setMail`, which runs on
+	-- every `DailyService.push`. Same call `setPiggySlots` makes with
+	-- `claimed`, and see `bouncePrompt` for why the beat is real.
+	if changed then
+		bouncePrompt(prompt, function()
+			publishMail(plot)
+		end)
+	end
 end
 -- ============================================================
 -- THE DOORSTEP CRATE
@@ -2949,6 +3339,19 @@ end
 -- Dress-Up Crate reads purple. That is the same argument the shop's own
 -- cards make about rendering the real item: a coloured box says which
 -- crate before a word is read, and it costs one lookup.
+-- WHO THE CRATE IS FOR AND WHETHER IT IS LIVE, WRITTEN BY ONE FUNCTION --
+-- attribute first, then `Enabled`, owned plots only, nil for nobody. See
+-- `publishMail` for the reasoning; it is identical here.
+local function publishCrate(plot: Plot)
+	local prompt = plot.cratePrompt
+	if not prompt then
+		return
+	end
+	local ownerId = plot.crateOwnerId
+	prompt:SetAttribute(Config.PROMPT_OWNER_ATTRIBUTE, ownerId)
+	prompt.Enabled = ownerId ~= nil and plot.crateKey ~= nil
+end
+
 function PlotService.setCrate(plot: Plot, chestKey: string?)
 	if not plot.crateParts or not plot.crateTint or not plot.cratePrompt then
 		-- A shop. See the note on the type: a plot nobody can move into has
@@ -2975,21 +3378,39 @@ function PlotService.setCrate(plot: Plot, chestKey: string?)
 			part.Color = chest.colour
 		end
 	end
-	prompt.Enabled = showing
+	-- THE KEY IS RECORDED ON THE PLOT AND `Enabled` IS WRITTEN BY
+	-- `publishCrate`, never here: the one function that owns the owner
+	-- attribute owns `Enabled` with it, which is the whole of the prompt-race
+	-- fix. A retired key is recorded as nothing, for the reason `showing`
+	-- already treats it as nothing.
+	plot.crateKey = if showing then chestKey else nil
 	prompt.ObjectText = if chest then chest.name else "Doorstep Delivery"
+	publishCrate(plot)
 end
 
 -- WHO THE CRATE IS FOR, published so the prompt refuses itself on every
 -- other screen. See `Config.PROMPT_OWNER_ATTRIBUTE`, and note the box
 -- itself stays VISIBLE to the street -- a crate on a doorstep is somebody
 -- announcing a seven-day streak, which is worth being able to see.
+--
+-- ONE WRITER FOR THE OWNER AND `Enabled`, bounced across a real frame when
+-- the plot changes hands. `publishMail` above carries the full note; this
+-- is the same shape on the second of the two prompts that had the pedestals'
+-- old fault.
 function PlotService.setCrateOwner(plot: Plot, player: Player?)
-	if not plot.cratePrompt then
+	local prompt = plot.cratePrompt
+	if not prompt then
 		return
 	end
-	local prompt = plot.cratePrompt :: ProximityPrompt
-	prompt:SetAttribute(Config.PROMPT_OWNER_ATTRIBUTE,
-		if player then player.UserId else nil)
+	local ownerId = if player then player.UserId else nil
+	local changed = plot.crateOwnerId ~= ownerId
+	plot.crateOwnerId = ownerId
+	publishCrate(plot)
+	if changed then
+		bouncePrompt(prompt, function()
+			publishCrate(plot)
+		end)
+	end
 end
 
 -- THE RANK IS PUBLISHED BUT NOT PRINTED. The sign's ROBBER RANK row is
@@ -3007,28 +3428,14 @@ end
 -- and the boasts take everything between, centred, so a sign with neither
 -- does not print its boasts halfway down with a hole above them.
 local function layoutSign(plot: Plot)
-	local chip, nemesis = plot.signChip, plot.signNemesis
-	local top = if chip and chip.Visible then 245 else 191
+	-- THE SEASON CHIP USED TO SIT BETWEEN THE RULE AND THE BOASTS and set the
+	-- top of this block; it retired with the acorn-ranked season ladder, so
+	-- the boasts always start where an unchipped sign already put them.
+	local nemesis = plot.signNemesis
+	local top = 191
 	local bottom = if nemesis and nemesis.Visible then 347 else 400
 	plot.signBoast.Position = UDim2.fromOffset(7, top)
 	plot.signBoast.Size = UDim2.new(1, -14, 0, bottom - top)
-end
-
--- The season tier chip (Phase 5.1); nil text hides it.
-function PlotService.setSeasonChip(plot: Plot, text: string?, colour: Color3?)
-	local chip = plot.signChip
-	if not chip then
-		return
-	end
-	chip.Visible = text ~= nil
-	if text then
-		chip.BackgroundColor3 = colour or chip.BackgroundColor3
-		local label = chip:FindFirstChild("Text") :: TextLabel?
-		if label then
-			label.Text = text
-		end
-	end
-	layoutSign(plot)
 end
 
 -- The NEMESIS line (Phase 5.1); nil name hides it and gives the boasts back
@@ -3286,8 +3693,6 @@ function PlotService.assign(player: Player): Plot?
 				end
 			end
 
-			PlotService.updateAcorns(plot, 0)
-			PlotService.updateTreeAcorns(plot, 0, 0)
 			plot.owner = player
 			byPlayer[player] = plot
 			plot.model:SetAttribute("OwnerUserId", player.UserId)
@@ -3317,8 +3722,6 @@ function PlotService.release(player: Player)
 		return
 	end
 
-	PlotService.updateAcorns(plot, 0)
-	PlotService.updateTreeAcorns(plot, 0, 0)
 	plot.owner = nil
 	byPlayer[player] = nil
 	plot.model:SetAttribute("OwnerUserId", nil)
@@ -3337,13 +3740,7 @@ function PlotService.release(player: Player)
 	-- Castle left the Sky Castle standing.
 	PlotService.setMail(plot, false)
 	PlotService.setMailOwner(plot, nil)
-	-- The tree goes back to the unbought oak and its offer goes with the
-	-- owner, for the Sky Castle reason: nothing of the last owner stands.
-	PlotService.setTreeOwner(plot, nil)
-	PlotService.setTreeLevel(plot, 0)
-	PlotService.updateTreeClock(plot, nil, nil)
-	-- The last owner's season, nemesis and finish come down with them.
-	PlotService.setSeasonChip(plot, nil, nil)
+	-- The last owner's nemesis line and finish come down with them.
 	PlotService.setNemesis(plot, nil, nil)
 	PlotService.applyFinish(plot, nil)
 	-- And the crate goes with it, for the reason the flag does: an unclaimed
@@ -3366,6 +3763,14 @@ function PlotService.release(player: Player)
 	-- Cleared BEFORE the ornaments are, so nothing rebuilds a shelf out of
 	-- the old numbers on the way past.
 	PlotService.setTrophyState(plot, nil)
+	-- AND THE SIX PEDESTALS, for the reason the flag, the crate and the
+	-- trophy case come down: the Sky Castle bug a fifth time, and this one is
+	-- the worst yet -- a piggy is INCOME and it is STEALABLE, so a lawn left
+	-- wearing the last owner's collection is a row of earning, robbable
+	-- objects standing on a plot nobody owns. Cleared with a nil save rather
+	-- than slot by slot, so a pedestal added later comes down for free.
+	PlotService.setPiggySlots(plot, nil)
+	PlotService.setPiggyBuffers(plot, nil)
 	PlotService.updateSign(plot, nil, 0)
 	PlotService.applySkin(plot, Config.DEFAULT_SKIN)
 	PlotService.applyEffect(plot, Config.DEFAULT_EFFECT)
@@ -3571,10 +3976,6 @@ function PlotService.start()
 	end
 
 	Decor.prewarm()
-	AcornTree.prewarm()
-	AcornStorage.prewarm()
-	require(ReplicatedStorage.Shared.AcornBasket).prewarm() -- carried mesh is ready before any catch
-	require(ReplicatedStorage.Shared.AcornModel).prewarm()
 
 	local existing = workspace:FindFirstChild("Plots")
 	if existing then

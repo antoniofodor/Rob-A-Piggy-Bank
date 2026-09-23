@@ -5,8 +5,11 @@ local CarryDelivery = {}
 function CarryDelivery.describe(amount: number, haul: any, kind: string?, options: any?): any
 	local items = if type(haul) == "table" then #haul else 0
 	local visible = amount > 0 or items > 0
-	local currency = if kind == "basket" then "Acorns" else "coins"
-	local place = if kind == "basket" then "crate" else "piggy"
+	-- ONE CARRY KIND. `kind` used to pick between a stolen pig and an acorn
+	-- basket, which went with the currency; it stays in the signature because
+	-- the server still sends it and a nil here has always meant a pig.
+	local currency = "coins"
+	local place = "piggy"
 	local info = options or {}
 	local action = info.action
 	local home = if info.canKeep == false then "RETURN YOUR HAUL HOME"

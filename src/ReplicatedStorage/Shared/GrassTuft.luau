@@ -165,4 +165,116 @@ function GrassTuft.scatterOn(surface: BasePart, parent: Instance, seed: number,
 		surface.Size.X, surface.Size.Z, parent, seed, accept)
 end
 
+--[[
+	WHERE GRASS MAY NOT GROW, MEASURED OFF THE THINGS THAT ARE ACTUALLY
+	STANDING THERE.
+
+	Reported as the grass clipping through the collect buttons, and measured
+	live that is exactly what it was: a pad face stands 0.06 studs above the
+	lawn and a tuft reaches 1.17, so every blade near one grew straight
+	through it. The same is true of every pedestal base, the piggy's own
+	belly and the house foundation -- the lawn acquired things standing on it
+	and the scatter still had the veto it was written with, which was none.
+
+	THE RULE IS A BAND RATHER THAN A LIST, and that is the whole point. The
+	old comment in `PlotService` names the two things a lawn could have grass
+	growing out of -- a driveway and a moat -- and it was right when it was
+	written. A list is wrong now for a reason that will not stop being true:
+	six pedestals, seven pads, a kennel, a sign, a mailbox, a crate, nine
+	ornaments that change when somebody shops and nine house tiers that
+	change when somebody upgrades. Naming them is a list nobody will keep.
+
+	So a part blocks grass when it OCCUPIES THE BAND A TUFT STANDS IN: its
+	underside is below the tuft's crown and its top is above the ground. That
+	is a restatement of the complaint rather than a heuristic -- a thing
+	grass can grow through is a thing with grass-height air under it -- and
+	it needs to know nothing about what the part IS.
+
+	IT ALSO ANSWERS THE THINGS THAT MUST NOT BLOCK, for free and by
+	measurement rather than by exception:
+
+		* THE STONE TRIM around the yard tops out 0.2 studs BELOW the lawn --
+		  it is proud of the world ground, not of the grass -- so it never
+		  enters the band and no tuft is ever cut for it.
+		* A FENCE, its panels and a moat stand outboard of this grass, so
+		  their footprints do not reach it.
+		* HOUSE FX, the sign's arm and board, and every billboard hang in the
+		  AIR. A band test cannot see them, where a bounding box would --
+		  which is the trap that once recorded the Sky Castle as 16.6 studs
+		  too wide when it was measuring orbiting shards at altitude.
+
+	AND THE SURFACES BEING PLANTED ARE NAMED RATHER THAN DEDUCED. A lawn
+	slab's top IS the ground, so it sits exactly on the band's floor and
+	whether it lands inside depends on a float comparison. `ignore` is how
+	the caller says which parts are the ground rather than things on it, and
+	there are exactly two.
+
+	AN UNANCHORED PART IS NEVER A BLOCKER, WHICH IS THE GUARD DOG. Measured,
+	116 of a dog's 118 parts are unanchored while every piece of furniture on
+	a plot is anchored -- so the test costs one property read and needs no
+	name. It matters because a dog WALKS: a patch cleared under one is a
+	patch cleared where it happened to be standing at that instant, and it
+	leaves a bald spot in the middle of a lawn that nothing is standing on.
+
+	THE MARGIN IS HALF A TUFT, because a clump is 2.8 studs across at scale 1
+	and a blade centred just outside a pad still leans over it. `accept` is
+	handed a POSITION and the scale has not been drawn yet, so this is the
+	widest a tuft can be rather than the width of the one being placed -- a
+	hair of bare lawn at a pad's edge is the safe direction to be wrong in.
+]]
+function GrassTuft.clearance(model: Instance, surfaceY: number,
+	ignore: { [Instance]: boolean }?): ((Vector3) -> boolean)?
+
+	local spec = Config.grassTuft()
+	if not spec then
+		return nil
+	end
+	-- How far above the surface the tallest tuft's crown gets, and how far to
+	-- either side of its own spot the widest one reaches. Both derived from
+	-- the same three numbers the scatter plants with, so a taller or wider
+	-- clump widens its own exclusion with nothing to remember here.
+	local reach = spec.size.Y * spec.maxScale - spec.sink
+	local margin = math.max(spec.size.X, spec.size.Z) * spec.maxScale / 2
+
+	local blocks: { { x: number, z: number, hx: number, hz: number } } = {}
+	for _, part in ipairs(model:GetDescendants()) do
+		if part:IsA("BasePart") and part.Anchored
+			and not (ignore and ignore[part]) then
+			-- PER PART, IN WORLD SPACE, projecting its own size through its own
+			-- CFrame. `GetBoundingBox` is oriented by a model's pivot and
+			-- transposes extents, which this project has paid for twice.
+			local cf, size = part.CFrame, part.Size
+			local hx = math.abs(cf.RightVector.X) * size.X / 2
+				+ math.abs(cf.UpVector.X) * size.Y / 2
+				+ math.abs(cf.LookVector.X) * size.Z / 2
+			local hy = math.abs(cf.RightVector.Y) * size.X / 2
+				+ math.abs(cf.UpVector.Y) * size.Y / 2
+				+ math.abs(cf.LookVector.Y) * size.Z / 2
+			local hz = math.abs(cf.RightVector.Z) * size.X / 2
+				+ math.abs(cf.UpVector.Z) * size.Y / 2
+				+ math.abs(cf.LookVector.Z) * size.Z / 2
+			local y = cf.Position.Y
+			if y - hy < surfaceY + reach and y + hy > surfaceY then
+				table.insert(blocks, { x = cf.Position.X, z = cf.Position.Z,
+					hx = hx + margin, hz = hz + margin })
+			end
+		end
+	end
+
+	-- NOTHING IN THE WAY MEANS NO PREDICATE, so a bare plot plants at exactly
+	-- the cost it always did rather than paying for a test that can never
+	-- refuse anything.
+	if #blocks == 0 then
+		return nil
+	end
+	return function(at: Vector3): boolean
+		for _, b in ipairs(blocks) do
+			if math.abs(at.X - b.x) <= b.hx and math.abs(at.Z - b.z) <= b.hz then
+				return false
+			end
+		end
+		return true
+	end
+end
+
 return GrassTuft

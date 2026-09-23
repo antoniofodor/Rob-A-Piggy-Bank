@@ -33,7 +33,7 @@
 
 	Granting a ride has to tell RideService, and granting a skin has to tell
 	CosmeticsService -- but RideService requires HeistService, which requires
-	EventService, which needs this file. Requiring the services directly is
+	this file. Requiring the services directly is
 	therefore a cycle. So the pushes are a REGISTRY that `Main` fills in at
 	startup, which keeps this module's dependency list to one line and the
 	cycle impossible rather than merely absent today.
@@ -55,14 +55,6 @@ local pushers: { [string]: (Player) -> () } = {}
 
 function SetService.registerPusher(kind: string, fn: (Player) -> ())
 	pushers[kind] = fn
-end
-
--- Anything else that shows the loot balance. Filled by Main with
--- CosmeticsService.push, which carries the roll button's balance.
-local lootPushers: { (Player) -> () } = {}
-
-function SetService.registerLootPusher(fn: (Player) -> ())
-	table.insert(lootPushers, fn)
 end
 
 -- WHERE EACH KIND KEEPS ITS OWNERSHIP. Five different tables, because five
@@ -219,6 +211,26 @@ function SetService.progress(data: any, setKey: string): (number, number)
 	return have, #set.items
 end
 
+-- Fire a kind's registered pusher WITHOUT granting anything.
+--
+-- FOR THE ONE CALLER THAT CHANGES WHAT A PLAYER HAS WITHOUT GOING THROUGH
+-- `grant`: a repeat piggy. `grant` returns false for a key already owned and
+-- writes nothing, so `ChestService.handOver` places a second copy on a
+-- pedestal itself -- and without this it would be the only write in the game
+-- that changes a lawn and tells nobody. Measured on the first-copy path
+-- before this existed: the save was correct and the pedestal stayed bare.
+--
+-- THROUGH THE REGISTRY RATHER THAN A REQUIRE, which is the whole reason the
+-- registry exists: this file may not reach CosmeticsService or RideService
+-- (RideService requires HeistService, which requires this), and `Main` is
+-- the one place that can wire them.
+function SetService.repaint(player: Player, kind: string)
+	local push = pushers[kind]
+	if push then
+		push(player)
+	end
+end
+
 -- Marks one item owned and tells whatever service renders it. Returns false
 -- if they already had it, so callers never double-count a grant.
 function SetService.grant(player: Player, kind: string, key: string): boolean
@@ -232,6 +244,26 @@ function SetService.grant(player: Player, kind: string, key: string): boolean
 		return false
 	end
 	owned[key] = true
+
+	-- A SKIN IS A PIGGY NOW, SO IT ALSO ENTERS THE COLLECTION AND LANDS ON A
+	-- PEDESTAL (docs/PIGGY-COLLECTION-PLAN.md §3). `place = true`, because
+	-- every caller that reaches here is a crate, a set drop or an admin grant
+	-- -- a source that should land with nothing to press, front to back. The
+	-- ROUND-UP and SNATCH paths place by hand and call `Config.addPiggy`
+	-- themselves with `place = false`; they do not come through here.
+	--
+	-- WHAT THIS DELIBERATELY DOES NOT DO IS COUNT DUPLICATES, and that is a
+	-- gap rather than a decision. The guard above returns false for a key the
+	-- player already owns, so a second Pearl never reaches this line -- it
+	-- goes to `ChestService`'s spare pool instead, which is the WARDROBE
+	-- model. Plan §4 wants the opposite ("duplicates stack and each one
+	-- earns... `spares` becomes the thing you were hoping for"), and making
+	-- that true means reworking the spare/combine/sell path rather than adding
+	-- a line here. Until then: one copy per skin, and the collection is a set
+	-- rather than a tally.
+	if kind == "skin" then
+		Config.addPiggy(data, key, true)
+	end
 
 	local push = pushers[kind]
 	if push then
@@ -247,82 +279,19 @@ function SetService.grant(player: Player, kind: string, key: string): boolean
 end
 
 -- ============================================================
--- LOOT
--- ============================================================
-
-function SetService.getLoot(player: Player): number
-	local data = DataService.get(player)
-	return if data then math.floor(data.loot or 0) else 0
-end
-
--- `why` is OPTIONAL and nil means silent: the caller owns the wording, not
--- the choice of whether to speak. A delivery folds the loot into its own
--- card rather than firing a second one at a nine-year-old; nothing is ever
--- granted with nothing on screen.
-function SetService.award(player: Player, amount: number, why: string?): number
-	local data = DataService.get(player)
-	if not data or amount <= 0 then
-		return 0
-	end
-	data.loot = math.floor((data.loot or 0) + amount)
-	if why then
-		Remotes.get("Notify"):FireClient(player,
-			("%s +%d %s."):format(why, amount, Config.lootWord(amount)), "money")
-	end
-	SetService.push(player)
-	for _, fn in ipairs(lootPushers) do
-		fn(player)
-	end
-	return amount
-end
-
--- ============================================================
--- BUYING
+-- THE RETIRED SECOND CURRENCY
 -- ============================================================
 --
--- The price is READ FROM CONFIG here and never sent by the client. The
--- request carries a kind and a key and nothing else, which is the same shape
--- every other purchase in this game uses and the reason there is no number
--- on the wire to forge.
-
-function SetService.buy(player: Player, kind: string, key: string)
-	if kind == "effect" then return end -- refuse before charging Acorns
-	local data = DataService.get(player)
-	local spec = Config.getSetItem(kind, key)
-	if not data or not spec then
-		return
-	end
-
-	local function refuse(message: string)
-		Remotes.get("Notify"):FireClient(player, message, "warn")
-	end
-
-	-- Not a set item at all. Refused rather than falling through to a coin
-	-- price: loot must never be an alternative currency for the ordinary
-	-- catalogue, or every coin price in the game has a second, cheaper route.
-	local price = spec.loot
-	if type(price) ~= "number" or price <= 0 then
-		refuse("That isn't bought with acorns.")
-		return
-	end
-
-	if SetService.owns(data, kind, key) then
-		refuse(("You already have the %s."):format(spec.name))
-		return
-	end
-
-	local have = math.floor(data.loot or 0)
-	if have < price then
-		refuse(("Need %d more %s for the %s."):format(price - have, Config.lootWord(price - have), spec.name))
-		return
-	end
-
-	data.loot = have - price
-	SetService.grant(player, kind, key)
-	Remotes.get("Notify"):FireClient(player,
-		("%s unlocked!"):format(spec.name), "good")
-	SetService.push(player)
-end
+-- THREE THINGS STOOD HERE AND ALL THREE WENT WITH THE ACORN BALANCE:
+-- `getLoot`, `award` (which credited it and told every balance reader), and
+-- `buy`, the guaranteed route to a set item.
+--
+-- `buy` is the one with a cost worth recording. Every set item carried a
+-- price in that currency so "nothing is ever locked behind luck" held -- a
+-- drop only ever saved you the wait. The Alien Cache is the whole route now.
+-- This project already recorded that rule as HALF broken on this set (two
+-- items guaranteed, two gambled); it is spent. Putting it back is a price
+-- field and one function, in whatever currency a later pass decides.
 
 -- ============================================================
 -- THE DROP
@@ -346,7 +315,7 @@ function SetService.rollDrop(player: Player, setKey: string)
 	local pool = SetService.unowned(data, setKey)
 
 	-- The raid's coin bounty is paid separately to everyone. A finished set
-	-- gives no duplicate, spare or Acorn fallback; events cannot mint Acorns.
+	-- gives no duplicate or spare fallback; an event mints no currency.
 	if #pool == 0 then
 		Remotes.get("Notify"):FireClient(player, ("You already own the whole %s set!"):format(set.name), "good")
 		return
@@ -402,18 +371,13 @@ function SetService.push(player: Player)
 	end
 
 	Remotes.get("SetState"):FireClient(player, {
-		loot = math.floor(data.loot or 0),
 		sets = sets,
 	})
 end
 
-function SetService.start()
-	Remotes.get("LootBuy").OnServerEvent:Connect(function(player, kind, key)
-		if type(kind) ~= "string" or type(key) ~= "string" then
-			return
-		end
-		SetService.buy(player, kind, key)
-	end)
-end
+-- NOTHING TO START. The `LootBuy` handler that lived here bought a set item
+-- with the retired currency and went with it. Kept as a no-op so `Main` keeps
+-- one shape for every service it starts.
+function SetService.start() end
 
 return SetService

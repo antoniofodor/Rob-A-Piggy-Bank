@@ -1,3 +1,17 @@
+# skins/ -- MOVED
+
+**Every skin -- the four legendaries and the shared `metal/` pack included --
+now lives in [`assets/piggies/<tier>/<key>/`](../../../assets/piggies/README.md)**
+(designer, 2026-09-22): its scene in `source/`, its generator in `generate/`,
+its sheets in `sheets/`, its renders in `preview/`, its derived import package
+in `package/`, and a `manifest.json` naming the Config row, the SurfacePacks
+templates and the live ids. `paths.py` resolves every key there. Tracked files
+were `git mv`ed; the untracked scenes and sheets were COPIED, so the old
+folders below are now duplicates the designer can delete once happy.
+Everything from here down is the note as it stood before the move.
+
+---
+
 # skins/
 
 Current import packages have moved to [assets/skins/animal](../../../assets/skins/animal/README.md):

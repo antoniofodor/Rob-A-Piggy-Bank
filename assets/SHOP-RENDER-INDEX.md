@@ -6,9 +6,9 @@ Canonical artwork is stored beside its original 3D source. Each PNG has a matchi
 - Guardians: `guards/<rig>/shop-cards/<guardian-id>.png` (six coats share the Shepherd rig).
 - Rides: `rides/<ride>/shop-cards/<ride>.png`, rebuilt from `rides/ride-geometry.json` (ids mapped in `ShopRideCards`)
 - Acorn currency: `acorn/ui/acorn-model-icon.png`
-- Animal skins: `skins/animal/<tier>/<skin>/shop-cards/<skin>.png` (all 19; ids in `shop-ui/skin-images/roblox-uploads.json`, mapped in `ShopSkinCards`)
+- Animal skins: `piggies/<skin>/package/shop-cards/<skin>.png` (all 19; ids in `shop-ui/skin-images/roblox-uploads.json`, mapped in `ShopSkinCards`). Everything about a skin -- scene, generator, sheets, previews, the derived import package and the live texture ids -- is under `piggies/<skin>/`; see `piggies/README.md`. The tier galleries stay at `skins/animal/<tier>/index.html`.
 
-Regenerate with Blender using `blender/shop/render_house_images.py`, `blender/shop/render_guardian_images.py`, `blender/shop/render_ride_images.py`, `blender/shop/render_skin_images.py`, or `blender/acorn/render_icon.py` from the repository root. These scripts only read the native models; they never save over them. Upload changed PNGs and update the corresponding `ShopHouseCards`, `ShopGuardianCards`, `ShopRideCards`, or `ShopIcons` mappings. Guardian colors use `Config.DOG_COATS` and each model's authored palette, matching `GuardRig.tones`.
+Regenerate with Blender using `blender/shop/render_house_images.py`, `blender/shop/render_guardian_images.py`, `blender/shop/render_ride_images.py`, or `blender/shop/render_skin_images.py` from the repository root. (`blender/acorn/render_icon.py` was listed here and is gone with the acorn track, schema 29.) These scripts only read the native models; they never save over them. Upload changed PNGs and update the corresponding `ShopHouseCards`, `ShopGuardianCards`, `ShopRideCards`, or `ShopIcons` mappings. Guardian colors use `Config.DOG_COATS` and each model's authored palette, matching `GuardRig.tones`.
 
 | Asset | 3D source | Card image | Roblox image ID |
 | --- | --- | --- | --- |

@@ -21,23 +21,16 @@ def paint(nt,label,side,color):
     node=labeled(nt,label)
     socket=node.inputs[side] if node.bl_idname=='ShaderNodeMixRGB' else [s for s in node.inputs if s.type=='RGBA'][side-1]
     socket.default_value=rgba(color)
-def calc(nt,op,a,b,label):
-    n=nt.nodes.new('ShaderNodeMath');n.operation=op;n.label=label
-    if isinstance(a,(int,float)):n.inputs[0].default_value=a
-    else:nt.links.new(a,n.inputs[0])
-    if isinstance(b,(int,float)):n.inputs[1].default_value=b
-    else:nt.links.new(b,n.inputs[1])
-    return n.outputs[0]
 def mix(nt,a,b,fac,label):
     n=nt.nodes.new('ShaderNodeMixRGB');n.label=label
     nt.links.new(a,n.inputs[1]);n.inputs[2].default_value=rgba(b);nt.links.new(fac,n.inputs[0]);return n.outputs[0]
 materials={m for name in ('Body','Snout','Ears','Legs','Tail') for m in bpy.data.objects[name].data.materials if m}
+tweaks_applied={}
 for mat in materials:
     original_name=mat.name;mat.name=original_name.replace(spec['parent'],key)
     nt=mat.node_tree;bsdf=next(n for n in nt.nodes if n.type=='BSDF_PRINCIPLED')
     if not bsdf.inputs['Base Color'].is_linked:
         bsdf.inputs['Base Color'].default_value=rgba(spec['ear'] if 'ear' in original_name else spec['nose'])
-        zero=nt.nodes.new('ShaderNodeValue');zero.label='RARE_EMISSIVE_MASK';zero.outputs[0].default_value=0
         continue
     parent=spec['parent']
     if parent=='cow':
@@ -70,46 +63,70 @@ for mat in materials:
         seeds=labeled(nt,'THE SPOTS').outputs[0]
         color=mix(nt,flesh,spec['ink'],seeds,'black seeds over rind and flesh')
         nt.links.new(color,bsdf.inputs['Base Color'])
-    # A sparse set of sugar/ice/honey highlights, confined to painted areas.
-    # Kept as a separate grayscale map; color sheets remain opaque.
-    tex=nt.nodes.new('ShaderNodeTexCoord')
-    vor=nt.nodes.new('ShaderNodeTexVoronoi');vor.inputs['Scale'].default_value=6.5
-    nt.links.new(tex.outputs['Object'],vor.inputs['Vector'])
-    sparkle=calc(nt,'LESS_THAN',vor.outputs['Distance'],.19,'small rare highlight islands')
-    sep=nt.nodes.new('ShaderNodeSeparateXYZ');nt.links.new(tex.outputs['Object'],sep.inputs[0])
-    upper=calc(nt,'GREATER_THAN',sep.outputs['Z'],.12,'highlights above belly')
-    behind=calc(nt,'GREATER_THAN',sep.outputs['Y'],-.72,'keep highlights off face')
-    mask=calc(nt,'MULTIPLY',sparkle,calc(nt,'MULTIPLY',upper,behind,'back and shoulders'),'RARE_EMISSIVE_MASK')
-    color=bsdf.inputs['Base Color'].links[0].from_socket
-    # Visible little tonal highlights also read when emission is disabled.
-    highlight=tuple(round(.65*c+.35*255) for c in spec['ink'])
-    nt.links.new(mix(nt,color,highlight,mask,'rare accent colour'),bsdf.inputs['Base Color'])
+    # A COAT MAY RETUNE ITS PARENT'S FIELD AS WELL AS REPAINT IT, and the
+    # difference is what separates a recoloured animal from a different
+    # object. Patched proved it: the giraffe's palette swapped fine and the
+    # render was a terracotta GIRAFFE, because the thing that says "animal"
+    # is not the colour, it is that the lanes are wide, uneven and wandering.
+    # A seam is thin and even. `tweaks` is (label, input, value) triples set
+    # on the parent's own labelled nodes, so a spec can move the FIELD
+    # without a second generator and without touching the parent scene.
+    #
+    # Applied across every material and asserted to have landed at least
+    # once GLOBALLY rather than per material: a label like 'this cell's own
+    # gap' lives on the body graph and legitimately does not exist on the
+    # flat snout, so a per-material assert would fire on a correct spec --
+    # while a typo still cannot pass, which is the half that matters.
+    for label, socket, value in spec.get('tweaks', ()):
+        for node in (n for n in nt.nodes if n.label == label):
+            node.inputs[socket].default_value = value
+            tweaks_applied[(label, socket)] = tweaks_applied.get((label, socket), 0) + 1
+
+    # THE SPARSE HIGHLIGHT SPECKLES ARE RETIRED, AND THEY WERE ONE FEATURE
+    # WEARING TWO CHANNELS. A Voronoi island field mixed pale dots into the
+    # BASE COLOUR -- so they baked into the colour sheet and showed on the
+    # animal -- and the same mask was baked again as a grayscale
+    # `<skin>_<group>_emissive.png`.
+    #
+    # THE EMISSIVE HALF WAS LIVE, AND I NEARLY RECORDED THAT IT WAS NOT.
+    # `PiggyModel` says beside the shard glow that *a surface pack has no
+    # emissive channel*, and `Config.SURFACE_PACKS` rows carry `template`
+    # and `trimTemplate` and no third map -- so on both of those the sheet
+    # looked like dead output. It is not: a pack is a CLONED
+    # `SurfaceAppearance`, and the real wiring is in
+    # `src/ReplicatedStorage/Shared/SurfacePacks/<name>.model.json`, where
+    # fourteen of them carried `EmissiveMaskContent` at an uploaded asset id
+    # with `EmissiveStrength` 0.8. The speckles GLOWED in the shipped game.
+    #
+    # A COMMENT IS NOT A MEASUREMENT, and the model.json was the
+    # measurement. Two separate sources agreed with each other and with a
+    # plausible story, and the thing that settled it was opening the file
+    # that actually ships.
+    #
+    # THE 0.8 IS WHAT TELLS THE TWO APART, and it is worth keeping because
+    # the packs are otherwise identical in shape. The five `legend_*` packs
+    # carry an emissive map at 0.35 -- the dragon's burning seams, the
+    # stormwolf's lightning -- which is a designed feature from a different
+    # pipeline and must never be cleared with these. Every 0.8 was this
+    # builder's, because `coat-spec.json` wrote `emissiveStrength=.8`.
+    #
+    # WHAT IS LOST, STATED PLAINLY: a coat is flat colour now, with no tonal
+    # break across the back and shoulders. If one ever wants that again it
+    # belongs in the COAT'S OWN FIELD -- the generator already draws cells,
+    # lanes and belly masks that a highlight could ride -- rather than as a
+    # second unrelated noise laid over every skin in the catalogue at once.
     bsdf.inputs['Roughness'].default_value=.82
+for label, socket, _ in spec.get('tweaks', ()):
+    assert tweaks_applied.get((label, socket)), (key, 'tweak never landed', label, socket)
 # A single muzzle colour also covers the dimple floors. Reusing the parent's
 # full body field here leaves pale spots inside the nostrils (fixed on Tiger).
 snout_mat=bpy.data.materials.new(key+'_snout');snout_mat.use_nodes=True
 snout_mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value=rgba(spec['nose'])
 snout_mat.node_tree.nodes['Principled BSDF'].inputs['Roughness'].default_value=.88
-zero=snout_mat.node_tree.nodes.new('ShaderNodeValue');zero.label='RARE_EMISSIVE_MASK';zero.outputs[0].default_value=0
 snout=bpy.data.objects['Snout']
 for i in range(len(snout.data.materials)):snout.data.materials[i]=snout_mat
 bpy.context.preferences.filepaths.save_version=0
 bpy.ops.wm.save_as_mainfile(filepath=paths.skin_blend(key))
-out=Path(paths.skin_dir(key));(out/'coat-spec.json').write_text(json.dumps(dict(spec,skin=key,rarity='rare',parentScene=str(source),parentSceneSha256=source_hash,emissiveStrength=.8,glow='Static sparse highlights; no animation or extra geometry'),indent=2))
-# Bake a dedicated grayscale emissive map from the labeled source node.
-scene=bpy.context.scene;scene.render.engine='CYCLES';scene.cycles.samples=1;scene.render.bake.margin=8;scene.render.bake.use_selected_to_active=False
-import numpy as np
-for group,names in [('body',['Body']),('trim',['Snout','Ears','Legs','Tail'])]:
-    obs=[bpy.data.objects[n] for n in names];mats={m for ob in obs for m in ob.data.materials if m};saved=[]
-    img=bpy.data.images.new(key+'_'+group+'_emissive',2048,2048,alpha=False);img.colorspace_settings.name='Non-Color'
-    for mat in mats:
-        nt=mat.node_tree;output=next(n for n in nt.nodes if n.type=='OUTPUT_MATERIAL');saved.append((nt,output,output.inputs['Surface'].links[0].from_socket))
-        emission=nt.nodes.new('ShaderNodeEmission');nt.links.new(labeled(nt,'RARE_EMISSIVE_MASK').outputs[0],emission.inputs['Color']);nt.links.new(emission.outputs[0],output.inputs['Surface'])
-        target=nt.nodes.new('ShaderNodeTexImage');target.image=img;nt.nodes.active=target
-    bpy.ops.object.select_all(action='DESELECT')
-    for ob in obs:ob.hide_render=False;ob.hide_set(False);ob.select_set(True)
-    bpy.context.view_layer.objects.active=obs[0];bpy.ops.object.bake(type='EMIT')
-    img.scale(1024,1024);img.filepath_raw=str(out/f'{key}_{group}_emissive.png');img.file_format='PNG';img.save()
-    for nt,output,socket in saved:nt.links.new(socket,output.inputs['Surface'])
+Path(paths.coat_spec(key)).write_text(json.dumps(dict(spec,skin=key,rarity='rare',parentScene=str(source),parentSceneSha256=source_hash,glow='None. Flat baked colour; no emissive channel, no animation, no extra geometry'),indent=2))
 assert hashlib.sha256(source.read_bytes()).hexdigest()==source_hash
 print('RARE_COAT_AUTHORED',key,flush=True)

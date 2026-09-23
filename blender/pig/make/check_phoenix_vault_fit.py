@@ -3,7 +3,9 @@ from pathlib import Path
 import bpy,math,json,hashlib,re
 from mathutils import Vector,Matrix
 from mathutils.bvhtree import BVHTree
-ROOT=Path(__file__).resolve().parents[1];REPO=ROOT.parents[1];OUT=ROOT.parents[1]/'assets/skins/animal/legendary/phoenix'
+ROOT=Path(__file__).resolve().parents[1];REPO=ROOT.parents[1]
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+OUT=Path(paths.animal_package('phoenix'))
 runtime=REPO/'src/ServerScriptService/Services/PiggyBank.luau';config=REPO/'src/ReplicatedStorage/Shared/Config.luau'
 code=runtime.read_text(encoding='utf-8');cfg=config.read_text(encoding='utf-8')
 def constant(name):return float(re.search(r'local '+name+r' = ([0-9.]+)',code)[1])
@@ -12,6 +14,9 @@ N=Vector((0,math.sqrt(radius*radius-drop*drop),drop)).normalized();U=Vector((1,0
 O=Vector((0,0,body_y-(.5+1.02*6)))
 seat=O+N*(radius+constant('MESH_DIAL_OUT'))
 tiers=[dict(name=n,rgb=tuple(map(int,(r,g,b))),radius=float(rad),spokes=int(sp)) for n,r,g,b,rad,sp in re.findall(r'name = "(Iron|Bronze|Steel|Gold)", metal = Color3.fromRGB\((\d+), (\d+), (\d+)\), radius = ([0-9.]+), spokes = (\d+)',cfg)]
+# An empty match passed every assertion below vacuously once (Config.luau was
+# mid-rewrite and read back empty); the check has to refuse rather than report.
+assert len(tiers)==4,('lock tiers not found in Config.luau',len(tiers),len(cfg))
 source=OUT/'phoenix-complete.blend';digest=hashlib.sha256(source.read_bytes()).hexdigest()
 bpy.ops.wm.open_mainfile(filepath=str(source));scene=bpy.context.scene;scene.frame_set(55)
 vertices=[];polys=[];deps= bpy.context.evaluated_depsgraph_get()

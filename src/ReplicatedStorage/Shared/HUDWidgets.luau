@@ -75,8 +75,8 @@ local IDLE_W = 160
 -- STACKED IN THE LOWER HALF so the top of the picture stays clear: the name
 -- at 28..52 and the clock under it at 50..76, over a 76-tall icon. Two lines
 -- of type do cover a drawing, and putting them low is the only lever there
--- is -- what is left uncovered is the moon's crown and the saucer's dome,
--- which is the half of each that identifies it.
+-- is -- what is left uncovered is the saucer's dome, which is the half of
+-- it that identifies it.
 local IDLE = {
 	root = UDim2.fromOffset(IDLE_W, ICON_H),
 	card = 1,
@@ -196,33 +196,16 @@ end
 -- drew a bell, which says "something is coming" and leaves the interesting
 -- half -- WHAT -- to nothing at all. The scheduler rolls the event at the
 -- start of the quiet stretch now, so the icon is a picture of the actual
--- thing: a moon for the Midnight Heist, a saucer for the Alien Raid. The
--- bell survives as the UNKNOWN case, which is what a roster row with no
--- artwork and no drawn fallback has to look like.
+-- thing: a saucer for the Alien Raid (the Midnight Heist's moon went with
+-- the event). The bell survives as the UNKNOWN case, which is what a roster
+-- row with no artwork and no drawn fallback has to look like.
 
--- A MOON AND A SAUCER, DRAWN, BECAUSE AN EMPTY UPLOAD SLOT IS A WORKING
--- STATE. `Config.EVENT_UI[key].icon` wins when it is filled in; these are
--- what a row renders until its picture lands, and what it falls back to if
--- an upload is ever moderated away. Each is authored inside the 66 x 64 rail
+-- A SAUCER, DRAWN, BECAUSE AN EMPTY UPLOAD SLOT IS A WORKING STATE.
+-- `Config.EVENT_UI[key].icon` wins when it is filled in; this is what the
+-- row renders until its picture lands, and what it falls back to if an
+-- upload is ever moderated away. It is authored inside the 66 x 64 rail
 -- cell and takes its own event's tone from Config, so the icon and the
 -- banner that follows it twenty seconds later cannot disagree about colour.
-local function moon(icon: Frame, tone: Color3)
-	local disc = part(icon, "Disc", 12, 11, 42, 42, tone, 21)
-	Theme.outline(disc, 2.5, Theme.INK)
-	Theme.shade(disc, 0.88)
-	local crater = tone:Lerp(Theme.INK, 0.28)
-	part(disc, "CraterA", 7, 8, 11, 11, crater, 6)
-	part(disc, "CraterB", 23, 20, 9, 9, crater, 5)
-	part(disc, "CraterC", 11, 26, 7, 7, crater, 4)
-	-- Diamonds rather than points: a four-pointed star needs a shape this
-	-- toolkit does not have, and a turned square reads as one at icon size.
-	for _, spot in { { 55, 4, 9 }, { 2, 33, 7 } } do
-		local star = part(icon, "Star" .. spot[1], spot[1], spot[2], spot[3], spot[3], Theme.GOLD, 2)
-		star.Rotation = 45
-		Theme.outline(star, 1.5, Theme.INK)
-	end
-end
-
 local function saucer(icon: Frame, tone: Color3)
 	-- The beam goes down FIRST and stays behind the hull, so the hull's own
 	-- stroke is what caps it rather than a second edge across the middle.
@@ -282,7 +265,7 @@ local function car(icon: Frame, tone: Color3)
 end
 
 local EVENT_ART: { [string]: (Frame, Color3) -> () } = {
-	midnight = moon, raid = saucer, siren = siren, car = car,
+	raid = saucer, siren = siren, car = car,
 }
 -- The patrol pictures take their own tones rather than an event's.
 local ART_TONE: { [string]: () -> Color3 } = {

@@ -1,9 +1,10 @@
 --!strict
 -- Blender-rendered artwork. Shop IDs: assets/shop-ui/icon-system-v1/roblox-uploads.json.
--- Acorn source and upload: assets/acorn/ui/acorn-model-icon.json.
+--
+-- The ACORN row went with the currency. Its artwork is still uploaded and
+-- still archived in assets/acorn/ui/acorn-model-icon.json; nothing mounts it.
 local Icons = {}
 Icons.ids = {
-	["acorn"] = "rbxassetid://86680018585267",
 	["locks"] = "rbxassetid://112442325562665",
 	["fences"] = "rbxassetid://90879713992858",
 	["lockpicks"] = "rbxassetid://77326087433511",

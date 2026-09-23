@@ -1,0 +1,195 @@
+{
+  "key": "dragon",
+  "name": "Ember Dragon",
+  "path": "assets/piggies/legendary/dragon/",
+  "tier": "legendary",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); legendary/: Config.SKINS.dragon.rarity = \"legendary\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/dragon/",
+    "assets/piggies/dragon/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/legendary/dragon/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6681,
+      "name": "Ember Dragon",
+      "rarity": "legendary",
+      "surface": null,
+      "legendary": "dragon",
+      "chest": "animal",
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": null,
+    "legendaryPacks": [
+      "legend_dragon_body",
+      "legend_dragon_trim"
+    ],
+    "status": "in Config.SKINS as a LEGENDARY: Config.LEGENDARIES.dragon lists its parts and the legend_* packs they wear"
+  },
+  "templates": {
+    "legend_dragon_body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/legend_dragon_body.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://94063911128605",
+        "EmissiveMaskContent": "rbxassetid://136276063836251"
+      },
+      "alphaMode": "Overlay"
+    },
+    "legend_dragon_trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/legend_dragon_trim.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://99100943341562",
+        "EmissiveMaskContent": "rbxassetid://124967953354753"
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://94063911128605": {
+      "file": "package/dragon_body_color.png",
+      "sha256": "411eeb247be267e15967f9cc7201ed0153b31a5ab322a9290570b7272e63c2cf",
+      "role": "legend_dragon_body ColorMap",
+      "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    },
+    "rbxassetid://136276063836251": {
+      "file": "package/dragon_body_emissive.png",
+      "sha256": "45f1306c462ccd369b2855cefa7df3466d8835dd6aa0ae9d636cd1c8651df3aa",
+      "role": "legend_dragon_body EmissiveMaskContent",
+      "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    },
+    "rbxassetid://99100943341562": {
+      "file": "package/dragon_trim_color.png",
+      "sha256": "f6e2a81e11db92942e61b4ea4d88728da3cc27fe448fa45a2bc5ceed41322aa1",
+      "role": "legend_dragon_trim ColorMap",
+      "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    },
+    "rbxassetid://124967953354753": {
+      "file": "package/dragon_trim_emissive.png",
+      "sha256": "5bcb3491608db21dd71275b9664b5c88ea0e0ec28a2df139a17cfee5679ff15f",
+      "role": "legend_dragon_trim EmissiveMaskContent",
+      "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    }
+  },
+  "shopCard": {
+    "file": "package/shop-cards/dragon.png",
+    "robloxAssetId": "rbxassetid://109836906184393",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/legendary/dragon/package/shop-cards/dragon.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/legendary/dragon/package",
+    "note": "DERIVED by the legendary builders under blender/pig/make/ (build_*_legendary.py, build_stormwolf_layout.py) from this folder; not a source",
+    "fileCount": 119,
+    "textureCopiesMatchShippedSheets": {}
+  },
+  "closedBack": {
+    "closedScene": "source/dragon_closed.blend",
+    "note": "CLOSED BY THE LEGENDARY REBUILD (2026-09-22): source/dragon.blend is the closed scene and sheets/dragon_body_color.png the closed re-bake; the *.before-closedback.* files beside them are the open-hatch originals (the live ids' sources). Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "dragon.before-closedback.blend",
+      "dragon.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_dragon_blend.py"
+    ],
+    "sheets": [
+      "dragon_body_alpha.before-closedback.png",
+      "dragon_body_alpha.png",
+      "dragon_body_color.before-closedback.png",
+      "dragon_body_color.png",
+      "dragon_trim_alpha.before-closedback.png",
+      "dragon_trim_alpha.png",
+      "dragon_trim_color.before-closedback.png",
+      "dragon_trim_color.png"
+    ],
+    "preview": [
+      "dragon_hatch.png",
+      "dragon_hero.png",
+      "dragon_legendary_behind.png",
+      "dragon_legendary_hatch.png",
+      "dragon_legendary_hero.png",
+      "dragon_view.blend"
+    ],
+    "package": [
+      "DragonGlow.luau",
+      "README.before-closedback.md",
+      "README.md",
+      "animation-checks.before-closedback.json",
+      "animation-checks.json",
+      "animation-handoff.before-closedback.json",
+      "animation-handoff.json",
+      "dragon-asset-report.before-closedback.json",
+      "dragon-asset-report.json",
+      "dragon-complete.before-closedback.blend",
+      "dragon-complete.before-closedback.fbx",
+      "dragon-complete.blend",
+      "dragon-complete.fbx",
+      "dragon-crown.before-closedback.png",
+      "dragon-crown.png",
+      "dragon-front.before-closedback.png",
+      "dragon-front.png",
+      "dragon-hero.before-closedback.png",
+      "dragon-hero.png",
+      "dragon-idle.before-closedback.fbx",
+      "dragon-idle.before-closedback.gif",
+      "dragon-idle.fbx",
+      "dragon-idle.gif",
+      "dragon-rear.before-closedback.png",
+      "dragon-rear.png",
+      "dragon-scales.before-closedback.png",
+      "dragon-scales.png",
+      "dragon_body_color.before-closedback.png",
+      "dragon_body_color.png",
+      "dragon_body_emissive.before-closedback.png",
+      "dragon_body_emissive.png",
+      "dragon_trim_color.before-closedback.png",
+      "dragon_trim_color.png",
+      "dragon_trim_emissive.before-closedback.png",
+      "dragon_trim_emissive.png",
+      "index.before-closedback.html",
+      "index.html",
+      "motion.before-closedback/",
+      "motion/",
+      "shop-cards/"
+    ]
+  },
+  "generator": "generate/make_dragon_blend.py",
+  "notes": [
+    "closed-back pass dragon_body_color.png NOT copied: superseded by the rebuild's own re-bake in sheets/ (16:54), whose open-hatch predecessor is dragon_body_color.before-closedback.png",
+    "closed-back pass dragon_closed.blend NOT copied: the rebuild already closed source/dragon.blend (its .before-closedback.blend is the open one)",
+    "sheets/dragon_body_color.before-closedback.png is the open-hatch sheet (the live ColorMap id's source); no .open-hatch copy was made",
+    "source/, sheets/ (except what package/ carries) and preview/dragon_hatch|hero are the LEGACY painted bake -- see `legacy`.",
+    "Config row carries a code-built pattern/anim; the baked sheets here are the authored replacement that has not been wired as a SurfacePacks pair yet."
+  ],
+  "legacy": {
+    "files": [
+      "source/dragon.blend",
+      "source/dragon.before-closedback.blend",
+      "sheets/dragon_body_color.png",
+      "sheets/dragon_body_color.before-closedback.png",
+      "sheets/dragon_trim_color.png",
+      "sheets/dragon_trim_color.before-closedback.png",
+      "sheets/dragon_body_alpha.png",
+      "sheets/dragon_body_alpha.before-closedback.png",
+      "sheets/dragon_trim_alpha.png",
+      "sheets/dragon_trim_alpha.before-closedback.png",
+      "preview/dragon_hatch.png",
+      "preview/dragon_hero.png",
+      "preview/dragon_view.blend",
+      "generate/make_dragon_blend.py"
+    ],
+    "why": "LEGACY: the PAINTED dragon skin bake -- the procedural molten-scale coat generate/make_dragon_blend.py writes onto the plain pig. Nothing in the game reads it: the live Ember Dragon is the RAISED-SCALE package (Config.LEGENDARIES.dragon lists its 24 parts, wearing legend_dragon_body / legend_dragon_trim whose ColorMap and EmissiveMaskContent were uploaded from package/dragon_*_color.png and package/dragon_*_emissive.png -- see idSources). Kept as the record of the coat make/make_dragon_kit.py previews with, and as the closed-back proof on that coat; preview/dragon_legendary_*.png are renders of the LIVE package and are not legacy."
+  }
+}

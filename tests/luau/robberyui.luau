@@ -17,7 +17,7 @@ check(title:find("ITEM 0%%") and detail:find("100 completed",1,true),"locked sho
 title,detail=U.describe({kind="skin",chance=1,name="Bronze",tier="rare"})
 check(title:find("100%%") and detail=="Bronze · Rare","deterministic player skin is not presented as a random tier roll")
 title,detail=U.describe({kind="resident",chance=0,reason="Coins only"})
-check(title=="ITEM 0%" and detail=="Coins only","resident has no imaginary prize")
+check(title=="COINS ONLY" and detail=="Skins come from robbing players","a neighbour says coins only rather than printing a 0% roll that reads as broken")
 title=U.describe(Config.shopLootOdds("gear",100,function() return true end))
 check(title:find("Duplicate sells for coins",1,true)~=nil,"completed collection explains resale")
 for _,view in {{X=1399,Y=793},{X=750,Y=361},{X=480,Y=320},{X=320,Y=568}} do

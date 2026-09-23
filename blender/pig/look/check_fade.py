@@ -170,7 +170,5 @@ def main(skins):
 if __name__ == "__main__":
     args = [a for a in _sys.argv[1:] if not a.startswith("-")]
     if not args:
-        args = sorted(d for d in _os.listdir(paths.SKINS)
-                      if _os.path.isdir(_os.path.join(paths.SKINS, d))
-                      and _os.path.exists(paths.skin_map(d, "body")))
+        args = paths.skin_keys(need_body_sheet=True)
     _sys.exit(main(args))

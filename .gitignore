@@ -17,10 +17,19 @@ Thumbs.db
 assets/**/*.glb
 assets/**/*.fbx
 
-# Current animal skin import packages live beside their maps and handoffs.
+# Current animal skin import packages live beside their maps and handoffs --
+# under assets/piggies/<tier>/<key>/package/ since 2026-09-22 (the old tier folders
+# only hold the designer's copies to clean up).
 !assets/skins/animal/**/*.fbx
 !assets/skins/animal/**/*.glb
 assets/skins/animal/**/*.blend1
+!assets/piggies/**/*.fbx
+!assets/piggies/**/*.glb
+
+# The loot bag the shop's Bigger Sack artwork is cut from. Same call as the
+# piggy packages: the FBX IS the deliverable here -- it is what the designer
+# opens and uploads -- so a clone that cannot see it has nothing to upload.
+!assets/loot-bag/**/*.fbx
 
 # Approved shop icon pack includes the actual game-import deliverables.
 !assets/shop-ui/icon-system-v1/models/**/*.glb

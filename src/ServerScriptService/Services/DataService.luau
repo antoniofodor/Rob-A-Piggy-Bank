@@ -35,7 +35,8 @@ export type PlayerData = {
 	-- the long new-player shield; every later one gets the short join shield.
 	sessions: number,
 	incomeLevel: number,
-	capacityLevel: number,
+	-- `capacityLevel` sat here until the pig's ceiling was removed; reconcile
+	-- prunes it from every existing save, unrefunded (the game is in beta).
 	rebirths: number,
 	-- Skin key -> season index of its loss. Filled for existing schema-25 saves.
 	claims: { [string]: number },
@@ -51,6 +52,13 @@ export type PlayerData = {
 	lastSave: number,
 	-- Lifetime delivered robberies, against any target; survives rebirth.
 	robberies: number,
+	-- PIGGIES ROBBED, LIFETIME. Counted at the moment a snatched piggy is
+	-- SECURED on the thief's own plinth (`PiggyHaulService`), never at the
+	-- grab -- the same line `totalStolen` draws for coins: caught, nabbed or
+	-- returned never counts. A PLAYER counter: a neighbour's snatch runs the
+	-- resident core, which touches no save. Read by the street leaderboard.
+	-- Survives rebirth, like every other record of things done.
+	piggiesStolen: number,
 	totalStolen: number,
 	totalLost: number,
 	-- THE WEEKLY LADDER. `index` is a UTC week index, never a timestamp, for
@@ -112,8 +120,11 @@ export type PlayerData = {
 		victims: { [string]: boolean },
 		caught: number,
 		bestSpree: number,
-		-- Phase 5.2: clean cracks delivered, times topping Most Wanted, and
-		-- acorns harvested from the player's own tree, lifetime.
+		-- Phase 5.2: clean cracks delivered and times topping Most Wanted,
+		-- lifetime. `harvested` counted acorns off the player's own tree. It is
+		-- kept as an inert counter nothing writes and nothing reads, because
+		-- `TrophyService` still carries it across its own pushes and dropping a
+		-- field from a payload shape is a bigger edit than the currency was.
 		clean: number,
 		wanted: number,
 		harvested: number,
@@ -123,14 +134,7 @@ export type PlayerData = {
 		plinths: { [string]: boolean },
 		plinth: string,
 	},
-	-- PHASE 5.3: THE SEASON. `index` is the `Config.seasonIndex` these
-	-- numbers belong to; `earned` is acorns earned in it, `tier` the tier
-	-- reached, `granted` which tier rewards already landed (so a crossing
-	-- grants once and never twice), `best` the best tier ever (the Season
-	-- Cup). Rolled lazily on read by SeasonService.
-	season: { index: number, earned: number, tier: number, best: number,
-		granted: { [string]: boolean } },
-	-- PHASE 5.1: who robbed this player most this season. Keyed by the
+	-- PHASE 5.1: who robbed this player most this season window. Keyed by the
 	-- thief's UserId as a string, at most `Config.NEMESIS_ROWS` rows.
 	nemesis: { index: number, rows: { [string]: { name: string, count: number } } },
 	-- PHASE 5.5: thieves stopped this week, for Top Defenders.
@@ -159,21 +163,10 @@ export type PlayerData = {
 	-- player still owning one. Spares are sold for coins or combined by tier --
 	-- see Config.COMBINE and Config.sellValue.
 	spares: { [string]: number },
-	-- LOOT. The second currency and the only one besides coins: earned by
-	-- delivering a robbery (and at events when they return), never
-	-- purchasable, and what the accessory roll and the set items cost. Schema
-	-- 17 merged the old `medals` and `tokens` fields into it one-for-one.
-	--
-	-- Never wiped by rebirth, like every other cosmetic track.
-	loot: number,
-	acornsGrownAt: number,
-	-- THE TREE LADDER (step 2.7). The bought level, 0..#Config.TREE_LEVELS-1.
-	-- Survives rebirth like the houses that gate it; only the deferred Legacy
-	-- reset may take it.
-	tree: { level: number },
-	treeAcorns: number,
-	groundAcorns: number,
-	acornsDroppedAt: number,
+	-- THERE IS ONE CURRENCY. `loot` -- the acorn balance, and before that the
+	-- merged medals and tokens -- is gone with the tree that filled it and the
+	-- crates it bought. Schema 29 deletes it and the five tree fields beside
+	-- it; see `Config.SCHEMA_VERSION`.
 	decor: {
 		owned: { [string]: boolean },
 		-- slot id -> item key. Auto-assigned on purchase.
@@ -277,10 +270,12 @@ local function defaultData(): PlayerData
 		coins = 0,
 		sessions = 0,
 		incomeLevel = 1,
-		capacityLevel = 1,
 		rebirths = 0,
 		lastSave = os.time(),
 		robberies = 0,
+		-- A field add rather than a schema bump: the generic fill in
+		-- `reconcile` hands every existing save a zero, idempotently.
+		piggiesStolen = 0,
 		totalStolen = 0,
 		totalLost = 0,
 		-- Schema 19. reconcile descends one level, so an existing save picks
@@ -294,7 +289,6 @@ local function defaultData(): PlayerData
 		-- branch and nothing that can run twice. Every field defaults to
 		-- empty or zero, so a save written before trophies existed joins
 		-- with an empty shelf rather than with a payout.
-		season = { index = 0, earned = 0, tier = 0, best = 0, granted = {} },
 		nemesis = { index = 0, rows = {} },
 		defend = { index = 0, count = 0 },
 		trophies = { victims = {}, caught = 0, bestSpree = 0, clean = 0, wanted = 0, harvested = 0,
@@ -306,14 +300,6 @@ local function defaultData(): PlayerData
 			plinths = {}, plinth = "" },
 		upgrades = upgrades,
 		houses = { owned = { shack = true }, shown = "shack" },
-		-- LOOT. Flat, never scaled by income, never wiped by rebirth -- it buys
-		-- cosmetics, which are the permanent track. See the type above.
-		loot = 0,
-		acornsGrownAt = os.time(),
-		-- A new top-level table: the generic fill in `reconcile` gives every
-		-- existing save level 0, which is the tree they already have.
-		tree = { level = 0 },
-		treeAcorns = 0, groundAcorns = 0, acornsDroppedAt = 0,
 		-- Spare copies by "kind:key". Missing keys read as zero, so an item
 		-- added later needs no migration -- the shape `consumables` uses.
 		spares = {},
@@ -374,6 +360,31 @@ local function defaultData(): PlayerData
 		boosts = {},
 		boostUntil = 0,
 		boostMult = 1,
+		-- Schema 28: the piggy collection. `owned` is duplicate-counted
+		-- (three Pearls in three slots pay three times, plan §4), keyed by
+		-- `Config.SKINS`. `till` is which owned key is standing on the till
+		-- and earning -- ITS OWN FIELD, deliberately not read off
+		-- `cosmetics.skin`: the old wardrobe can already hold a rare or
+		-- legendary from before this system existed, and this field must
+		-- never inherit that. Every save, old or new, gets exactly one
+		-- Classic Pink here -- the same free ride `catch`/`dogs` took as a
+		-- brand new top-level table, no migration branch needed, because an
+		-- old save has no `piggies` key at all for reconcile's generic pass
+		-- to leave alone.
+		--
+		-- `slots` is the SIX LAWN PEDESTALS (`Config.PIGGY_LAWN_SLOTS`) -- a
+		-- DENSE array of six tables, one per slot, where an empty table is an
+		-- empty slot. Dense and never sparse because a mixed array/dictionary
+		-- is exactly what `SetAsync` starts refusing, and grown through
+		-- `Config.piggySlots` rather than trusted, so a save written before a
+		-- slot existed picks one up without a schema branch. It starts EMPTY on
+		-- purpose: the starter Classic is on the TILL, which is the one
+		-- placement a new save is guaranteed.
+		piggies = {
+			owned = { [Config.DEFAULT_SKIN] = 1 },
+			till = Config.DEFAULT_SKIN,
+			slots = { {}, {}, {}, {}, {}, {} },
+		},
 		-- Schema 13. reconcile descends one level, so an existing save picks up
 		-- all three of these rather than just the parent table.
 		gear = { unlocked = {}, worn = "", escapes = 0 },
@@ -418,43 +429,88 @@ local function reconcile(data: any): PlayerData
 		return base
 	end
 
-	-- Before generic defaults: legacy saves catch up from their last save,
-	-- capped to the same eight-hour allowance as coins. Existing cursors keep
-	-- their partial hour across saves and server changes.
-	data.acornsGrownAt = Config.acornGrowthCursor(
-		if data.acornsGrownAt == nil then data.lastSave else data.acornsGrownAt, os.time())
-	-- Existing loot stays banked. Adding tree stock never copies the wallet.
-	local function stock(value: any, cap: number): number
-		if type(value) ~= "number" or value ~= value or math.abs(value) == math.huge then return 0 end
-		return math.clamp(math.floor(value), 0, cap)
-	end
-	-- Clamped to the largest cap any house allows here; the house set is not
-	-- resolved yet. Re-clamped to this save's own cap once it is (below).
-	local largestCap = Config.ACORNS.growCap
-	for _, gate in pairs(Config.TREE_HOUSE_GATE) do
-		largestCap = math.max(largestCap, gate.cap)
-	end
-	data.treeAcorns = stock(data.treeAcorns, largestCap)
-	data.groundAcorns = stock(data.groundAcorns, 1000000)
-	data.acornsDroppedAt = Config.acornGrowthCursor(data.acornsDroppedAt or 0, os.time())
-	Config.expireGroundAcorns(data, os.time())
+	-- SCHEMA 29: THE ACORN TRACK IS DELETED, NOT CONVERTED.
+	--
+	-- `loot` was the acorn balance and the only thing a crate ever cost; the
+	-- five fields beside it were the tree that filled it. With no crate price
+	-- there is nothing to convert a balance INTO, and this file already
+	-- records what a payout on join is worth: `shards` took the same call, and
+	-- "one that pays on every join is a money printer -- a far worse bug than
+	-- the one being fixed". Nothing is refunded; the game is in beta.
+	--
+	-- BEFORE the generic fill, so the dead fields are consumed rather than
+	-- left beside a defaulted new one, and idempotent by construction: a
+	-- second run finds nothing to nil out.
+	data.loot = nil
+	data.tree = nil
+	data.treeAcorns = nil
+	data.groundAcorns = nil
+	data.acornsGrownAt = nil
+	data.acornsDroppedAt = nil
+	-- The season table ranked acorns earned and nothing else fed it, so it
+	-- goes with them. `nemesis` and `defend` are untouched: both count
+	-- ROBBERIES and neither has anything to do with the currency.
+	data.season = nil
+	-- THE CAPACITY TREE IS RETIRED, AND THE RUNGS ARE PRUNED, NOT REFUNDED.
+	-- `capacityLevel` was the Bigger Piggy Bank ladder; the pig has no
+	-- ceiling now (designer decision 2026-09-21) so the field describes an
+	-- upgrade that does not exist -- the Tiptoe rung on disk, in reverse.
+	-- Nothing is paid back for the same reason `loot` and `shards` paid
+	-- nothing: a payout on every join is a money printer, a far worse bug
+	-- than the one being fixed, and the game is in beta. Idempotent: a save
+	-- that has been through this has no field to nil out. No schema bump,
+	-- because a prune that is idempotent needs no version branch.
+	data.capacityLevel = nil
 	local previousSchema = tonumber(data.schema) or 0
 
 	-- Schema 17: THE PIG IS THE WALLET. `vault` (the stealable pile) and
-	-- `coins` (the banked balance) became one field, and `medals` and
-	-- `tokens` became `loot`. Both merges are one-for-one and additive, and
-	-- both run before the generic fill so the old fields are consumed rather
-	-- than left beside a zeroed new one. Idempotent: a save that has already
-	-- been through this has no `vault`, `medals` or `tokens` to add.
+	-- `coins` (the banked balance) became one field. Idempotent: a save that
+	-- has already been through this has no `vault` to add.
+	--
+	-- The other half of 17 merged `medals` and `tokens` into `loot`, and all
+	-- three are dropped above by schema 29 -- so a save old enough to carry
+	-- them loses them here rather than being carried into a currency that no
+	-- longer exists.
 	if type(data.vault) == "number" then
 		data.coins = (tonumber(data.coins) or 0) + data.vault
 		data.vault = nil
 	end
-	if type(data.medals) == "number" or type(data.tokens) == "number" then
-		data.loot = (tonumber(data.loot) or 0)
-			+ (tonumber(data.medals) or 0) + (tonumber(data.tokens) or 0)
-		data.medals = nil
-		data.tokens = nil
+	-- The till's buffer (schema 27) is retired (2026-09-22): the bank drips
+	-- straight into the balance. Whatever a save was holding in it is banked
+	-- once, here, and the field goes.
+	if type(data.tillBuffer) == "number" then
+		data.coins = (tonumber(data.coins) or 0) + math.max(0, data.tillBuffer)
+		data.tillBuffer = nil
+	end
+	data.medals = nil
+	data.tokens = nil
+
+	-- THE TILL NAMES A PIGGY THE CATALOGUE STILL HOLDS, OR IT NAMES CLASSIC.
+	--
+	-- `Config.piggyKeyAt` already answers Classic for a retired till at every
+	-- READ, so the bank never earned nothing and never stood bare. What that
+	-- read-time fallback could not do is keep the BOOKS: `piggies.owned` went
+	-- on counting a copy of a key nobody can draw, and the Classic the bank
+	-- was actually wearing was counted nowhere -- so `piggystate` reported a
+	-- mismatch and a swap would have decremented a Classic that was never
+	-- owned. Settled here once, as the swap it effectively is: the retired
+	-- copy leaves the count and the Classic that replaces it enters it.
+	-- Idempotent -- a second pass finds a valid till and does nothing -- and
+	-- a save with no `piggies` table at all is left to the generic fill,
+	-- which seats the starter Classic with its count.
+	if type(data.piggies) == "table" then
+		local piggies = data.piggies
+		local till = piggies.till
+		if till ~= nil and (type(till) ~= "string" or not Config.SKINS[till]) then
+			if type(piggies.owned) == "table" then
+				if type(till) == "string" and type(piggies.owned[till]) == "number" then
+					local left = piggies.owned[till] - 1
+					piggies.owned[till] = if left > 0 then left else nil
+				end
+				piggies.owned[Config.DEFAULT_SKIN] = (piggies.owned[Config.DEFAULT_SKIN] or 0) + 1
+			end
+			piggies.till = Config.DEFAULT_SKIN
+		end
 	end
 
 	-- Schema 18: `shards` (a counter per rarity tier) became `spares` (a count
@@ -523,15 +579,6 @@ local function reconcile(data: any): PlayerData
 		data.houses.shown = Config.getShownHouse(data).id
 	end
 
-	-- THE TREE (step 2.7): a whole level on the ladder, and ripe stock no
-	-- larger than what this save's best house lets the tree hold. Houses are
-	-- never lost in play, so the second clamp only bites a hand-edited save.
-	if type(data.tree) ~= "table" then
-		data.tree = { level = 0 }
-	end
-	data.tree.level = Config.treeLevelOf(data)
-	data.treeAcorns = math.min(data.treeAcorns, Config.treeCap(data))
-
 	-- DECOR IS PRUNED AGAINST THE CATALOGUE, not against a list of names.
 	--
 	-- Retiring the Wheelie Bins and the two parked cars left dead keys in
@@ -565,8 +612,9 @@ local function reconcile(data: any): PlayerData
 			for slot, key in pairs(data.decor.placed) do
 				local item = Config.DECOR_ITEMS[key]
 				-- A TROPHY IS CLEARED OFF THE LAWN, AND ITS OWNERSHIP IS NOT
-				-- TOUCHED. Trophies are displayed inside the house now
-				-- (`TrophyRoom`), so a save written before that still has one
+				-- TOUCHED. Trophies moved off the lawn into the house (the
+				-- in-house room is retired since; the real base takes them over
+				-- later), so a save written before that still has one
 				-- standing on the grass and holding a slot a bought ornament
 				-- could use. Pruned here rather than migrated, the same call
 				-- the retired bins and cars take -- and `decor.owned` above
@@ -836,14 +884,12 @@ local function reconcile(data: any): PlayerData
 		if type(c.finish) ~= "string" or (c.finish ~= "" and not c.ownedFinishes[c.finish]) then
 			c.finish = ""
 		end
-		-- The season and nemesis tables need their one-deeper shape.
-		for _, key in ipairs({ "season", "nemesis", "defend" }) do
+		-- The nemesis and defend tables need their one-deeper shape. The
+		-- season table went with the acorn ladder that ranked it.
+		for _, key in ipairs({ "nemesis", "defend" }) do
 			if type(data[key]) ~= "table" then
 				data[key] = base[key]
 			end
-		end
-		if type(data.season.granted) ~= "table" then
-			data.season.granted = {}
 		end
 		if type(data.nemesis.rows) ~= "table" then
 			data.nemesis.rows = {}
@@ -867,6 +913,14 @@ local function reconcile(data: any): PlayerData
 		data.robberies = 0
 	else
 		data.robberies = math.max(0, math.floor(robberies))
+	end
+	-- Same normalisation as `robberies`, for the same reason: a counter the
+	-- leaderboard sorts on may not be a NaN, a fraction or a negative.
+	local piggiesStolen = data.piggiesStolen
+	if type(piggiesStolen) ~= "number" or piggiesStolen ~= piggiesStolen or math.abs(piggiesStolen) == math.huge then
+		data.piggiesStolen = 0
+	else
+		data.piggiesStolen = math.max(0, math.floor(piggiesStolen))
 	end
 	if type(data.claims) ~= "table" then data.claims = {} end
 	Config.pruneBuybackClaims(data.claims)

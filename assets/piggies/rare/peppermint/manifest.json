@@ -1,0 +1,133 @@
+{
+  "key": "peppermint",
+  "name": "Peppermint",
+  "path": "assets/piggies/rare/peppermint/",
+  "tier": "rare",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); rare/: Config.SKINS.peppermint.rarity = \"rare\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/peppermint/",
+    "assets/piggies/peppermint/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/rare/peppermint/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6530,
+      "name": "Peppermint",
+      "rarity": "rare",
+      "surface": "peppermint",
+      "legendary": null,
+      "chest": "animal",
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": {
+      "key": "peppermint",
+      "line": 5776,
+      "name": "Peppermint",
+      "template": "peppermint",
+      "trimTemplate": "peppermint_trim"
+    },
+    "legendaryPacks": null,
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/peppermint.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://131923962473751",
+        "EmissiveMaskContent": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/peppermint_trim.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://116877587043457",
+        "EmissiveMaskContent": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://131923962473751": {
+      "file": "sheets/peppermint_body_color.open-hatch.png",
+      "sha256": "a686e7666a7237cf90549b95c54cd7344b100e9f33ceae5c25e56a367d841898",
+      "role": "body ColorMap",
+      "note": "uploaded from the open-hatch bake"
+    },
+    "rbxassetid://116877587043457": {
+      "file": "sheets/peppermint_trim_color.png",
+      "sha256": "cf30a5bfbf25b04c11e7c9cccb5f66a942aad313bb7d9fe48fbc5b83af0f8dde",
+      "role": "trim ColorMap"
+    }
+  },
+  "shopCard": {
+    "file": "preview/peppermint_shop-card.png",
+    "robloxAssetId": "rbxassetid://119504778501327",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/rare/peppermint/package/shop-cards/peppermint.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/rare/peppermint/package",
+    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "fileCount": 16,
+    "textureCopiesMatchShippedSheets": {
+      "peppermint_body_color.png": false,
+      "peppermint_trim_color.png": false
+    }
+  },
+  "closedBack": {
+    "closedScene": "source/peppermint_closed.blend",
+    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as peppermint_body_color.open-hatch.png. Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "coat-spec.json",
+      "peppermint.blend",
+      "peppermint_closed.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_peppermint_blend.py"
+    ],
+    "sheets": [
+      "peppermint_body_color.open-hatch.png",
+      "peppermint_body_color.png",
+      "peppermint_trim_color.png"
+    ],
+    "preview": [
+      "peppermint_hatch.png",
+      "peppermint_hero.png",
+      "peppermint_shop-card.json",
+      "peppermint_shop-card.png",
+      "peppermint_view.blend"
+    ],
+    "package": [
+      "README.md",
+      "index.html",
+      "peppermint-asset-report.json",
+      "peppermint-complete.blend",
+      "peppermint-complete.fbx",
+      "peppermint-crown.png",
+      "peppermint-front.png",
+      "peppermint-glow.png",
+      "peppermint-hero.png",
+      "peppermint-spine.png",
+      "peppermint_body_color.png",
+      "peppermint_body_emissive.png",
+      "peppermint_trim_color.png",
+      "peppermint_trim_emissive.png",
+      "shop-cards/"
+    ]
+  },
+  "generator": "generate/make_peppermint_blend.py",
+  "notes": []
+}

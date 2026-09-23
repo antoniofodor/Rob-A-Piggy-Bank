@@ -46,9 +46,9 @@ end
 print("ceiling.income", C.UPGRADE_COST_CEILING.income)
 print("ceiling.capacity", C.UPGRADE_COST_CEILING.capacity)
 print("LOSS_CAP", C.LOSS_CAP.fraction, C.LOSS_CAP.window)
-print("REVENGE", C.REVENGE.payout, C.REVENGE.window)
+print("REVENGE", C.revengePayout(), C.REVENGE.window)
 print("RESIDENTS.pigSeconds", C.RESIDENTS.pigSeconds, C.RESIDENTS.stealCooldown)
-print("SPREE", C.SPREE.maxSteps, C.SPREE.payoutPerStep, C.getSpreePayout(C.SPREE.maxSteps))
+print("STARS", C.WANTED_STARS.max, C.WANTED_STARS.payoutPerStar, C.getStarPayout(C.WANTED_STARS.max))
 print("crackTotal", C.getCrackTotal(0), C.getCrackTotal(4))
 print("smashFrac", C.getSmashFraction(0), C.getSmashFraction(4))
 print("cycle.house", C.robberyCycleSeconds(C.CRACK.maxSteps))
@@ -67,7 +67,7 @@ end
 print("#robbery level,rb,coldPerHour,hotPerHour,idlePerHour")
 for _, p in ipairs({{1,0},{20,0},{22,1},{30,5},{40,10}}) do
   local cold, idle = C.robberyRates(p[1], p[2], 0)
-  local hot = C.robberyRates(p[1], p[2], C.SPREE.maxSteps)
+  local hot = C.robberyRates(p[1], p[2], C.WANTED_STARS.max)
   print(p[1], p[2], cold, hot, idle)
 end
 print("#trees key,max,total")

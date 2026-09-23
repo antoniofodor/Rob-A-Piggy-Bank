@@ -1,0 +1,9 @@
+# Blender's own rolling backups -- written on every save, never wanted.
+*.blend1
+*.blend2
+
+# The game-lit preview scene is REWRITTEN on every run of make/make_view_blend.py,
+# so it is output rather than source. The authored scene in source/ is kept.
+*_view.blend
+
+__pycache__/

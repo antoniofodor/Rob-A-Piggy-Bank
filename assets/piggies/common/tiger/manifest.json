@@ -1,0 +1,128 @@
+{
+  "key": "tiger",
+  "name": "Bengal Tiger",
+  "path": "assets/piggies/common/tiger/",
+  "tier": "common",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); common/: Config.SKINS.tiger.rarity = \"common\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/tiger/",
+    "assets/piggies/tiger/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/common/tiger/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6425,
+      "name": "Bengal Tiger",
+      "rarity": "common",
+      "surface": "tiger",
+      "legendary": null,
+      "chest": "animal",
+      "scale": 1.2,
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": {
+      "key": "tiger",
+      "line": 5771,
+      "name": "Bengal Tiger",
+      "template": "tiger",
+      "trimTemplate": "tiger_trim"
+    },
+    "legendaryPacks": null,
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/tiger.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://135042598389110",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/tiger_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://126507711535316",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://135042598389110": {
+      "file": "sheets/tiger_body_color.open-hatch.png",
+      "sha256": "ddb782ae6f72c3feaf80f80bf401a9f5a83f002b7e85df89c34a09aac083be6e",
+      "role": "body ColorMap",
+      "note": "uploaded from the open-hatch bake"
+    },
+    "rbxassetid://126507711535316": {
+      "file": "sheets/tiger_trim_color.png",
+      "sha256": "26032b6bbd4bdcb791d404eecf0735f64642bcf8709030a25010636ad9f68e49",
+      "role": "trim ColorMap"
+    }
+  },
+  "shopCard": {
+    "file": "preview/tiger_shop-card.png",
+    "robloxAssetId": "rbxassetid://120311433092780",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/common/tiger/package/shop-cards/tiger.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/common/tiger/package",
+    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "fileCount": 13,
+    "textureCopiesMatchShippedSheets": {
+      "tiger_body_color.png": true,
+      "tiger_trim_color.png": true
+    }
+  },
+  "closedBack": {
+    "closedScene": "source/tiger_closed.blend",
+    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as tiger_body_color.open-hatch.png. Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "tiger.blend",
+      "tiger_closed.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_tiger_blend.py"
+    ],
+    "sheets": [
+      "tiger_body_color.open-hatch.png",
+      "tiger_body_color.png",
+      "tiger_trim_color.png"
+    ],
+    "preview": [
+      "tiger_hatch.png",
+      "tiger_hero.png",
+      "tiger_shop-card.json",
+      "tiger_shop-card.png",
+      "tiger_view.blend"
+    ],
+    "package": [
+      "README.md",
+      "index.html",
+      "shop-cards/",
+      "tiger-asset-report.json",
+      "tiger-complete.blend",
+      "tiger-complete.fbx",
+      "tiger-crown.png",
+      "tiger-front.png",
+      "tiger-hero.png",
+      "tiger-spine.png",
+      "tiger_body_color.png",
+      "tiger_trim_color.png"
+    ]
+  },
+  "generator": "generate/make_tiger_blend.py",
+  "notes": []
+}

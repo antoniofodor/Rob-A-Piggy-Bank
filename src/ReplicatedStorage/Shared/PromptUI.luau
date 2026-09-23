@@ -518,9 +518,22 @@ function PromptUI.start()
 	-- should be available at all is the server's answer; this only ever
 	-- subtracts from it, which is the same shape as the number row declining
 	-- an item you do not hold.
+	--
+	-- AND ITS MIRROR, `PROMPT_DENY_OWNER_ATTRIBUTE`, WHICH REFUSES THE ONE
+	-- PERSON THE OTHER ONE ADMITS. The snatch prompt is the only thing that
+	-- needs it and it needs it because three verbs share one plinth on one
+	-- key: an owner at their own pedestal must be shown TAKE and not SNATCH,
+	-- and everybody else the reverse. Written as two complementary refusals
+	-- rather than one rule with a flag, so each stays the one-way subtraction
+	-- this file has already had to learn twice -- and so no client can ever
+	-- have both enabled, which is the exclusivity `PromptUI` is built on.
 	local function ownerRule(prompt: ProximityPrompt)
 		local owner = prompt:GetAttribute(Config.PROMPT_OWNER_ATTRIBUTE)
 		if owner ~= nil and owner ~= Players.LocalPlayer.UserId then
+			prompt.Enabled = false
+		end
+		local deny = prompt:GetAttribute(Config.PROMPT_DENY_OWNER_ATTRIBUTE)
+		if deny ~= nil and deny == Players.LocalPlayer.UserId then
 			prompt.Enabled = false
 		end
 	end
@@ -544,6 +557,10 @@ function PromptUI.start()
 		-- gains an owner is untouched by construction.
 		ownerRule(prompt)
 		prompt:GetAttributeChangedSignal(Config.PROMPT_OWNER_ATTRIBUTE)
+			:Connect(function()
+				ownerRule(prompt)
+			end)
+		prompt:GetAttributeChangedSignal(Config.PROMPT_DENY_OWNER_ATTRIBUTE)
 			:Connect(function()
 				ownerRule(prompt)
 			end)

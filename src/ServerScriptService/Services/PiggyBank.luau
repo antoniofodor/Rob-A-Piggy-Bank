@@ -47,6 +47,11 @@ local PigGear = require(ReplicatedStorage.Shared.PigGear)
 -- this file's own functions running on its parts. See
 -- `PiggyBank.buildVault`.
 local VaultModel = require(ReplicatedStorage.Shared.VaultModel)
+-- For `buildPadFigure` only. The till's collect button carries the same
+-- billboard the six pedestals do, and one builder is what stops the seventh
+-- pad drifting from the other six. `PiggyPedestal` requires Config, PiggyModel
+-- and Theme and nothing else, so it is a leaf from here -- no cycle.
+local PiggyPedestal = require(ReplicatedStorage.Shared.PiggyPedestal)
 
 local PiggyBank = {}
 
@@ -91,6 +96,12 @@ export type Refs = {
 	-- whole feature is a choice and a choice you cannot see is not one. See
 	-- `Config.PROMPT_SLOT_ATTRIBUTE` for what that cost the card renderer.
 	smashPrompt: ProximityPrompt,
+	-- THE OWNER'S ONLY VERB ON THE BANK, AND ONLY THE BANK HAS ONE. Swapping
+	-- the till piggy for the one in your arms (designer decision 2026-09-22).
+	-- Optional because a shop vault has no till to swap. Owner-gated through
+	-- `PROMPT_OWNER_ATTRIBUTE` and switched on only while the owner is
+	-- carrying -- `PlotService.setSwapOffer` is the one writer of both.
+	swapPrompt: ProximityPrompt?,
 	sounds: { [string]: Sound },
 	-- WHICH OF THE TWO THIS IS, and the only branch the difference costs
 	-- anywhere. Three functions in this file dress a piggy -- the skin, the
@@ -886,6 +897,43 @@ local function buildSmashPrompt(body: BasePart, objectText: string): ProximityPr
 	return prompt
 end
 
+-- THE SWAP: the owner's one verb on their own bank. A pig is on the till at
+-- all times, so there is no "take from till" prompt -- the only way to move
+-- the till piggy off is to carry another up to it and hold this.
+--
+-- `E`, WHICH IS SAFE HERE BY THE SAME RULE THAT MADE IT SAFE ON A PLINTH: the
+-- steal prompt on this Body is `E` too, and the client enables steal and
+-- smash for everybody BUT the owner while `PROMPT_OWNER_ATTRIBUTE` refuses
+-- this one to everybody but the owner. Exact complements, so no client ever
+-- has two `E` prompts live on this part. Card slot 2 rather than 0 all the
+-- same: the two thief cards take 0 and 1, and the one moment the client's
+-- own refresh could be a frame stale is exactly the moment a shared slot
+-- would draw two words on one card.
+--
+-- BORN REFUSED AND ATTRIBUTED TO NOBODY, the pedestal prompts' own order: a
+-- plot is built at server startup with no owner, and `PromptUI`'s rules only
+-- ever refuse. `Enabled` is written by `PlotService.setSwapOffer` and by
+-- nothing else, and only while the owner is holding a piggy of their own.
+local function buildSwapPrompt(body: BasePart): ProximityPrompt
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "SwapPrompt"
+	prompt.ActionText = "Swap Piggy"
+	Config.setPromptKind(prompt, "swap")
+	prompt.ObjectText = ""
+	prompt:SetAttribute(Config.PROMPT_SLOT_ATTRIBUTE, 2)
+	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
+	prompt.HoldDuration = Config.PIGGY_HAUL.swapHold
+	-- The owner's reach, which is the pedestal prompts' reach and not the
+	-- thief's: an owner tidying their own lawn stands at the pig.
+	prompt.MaxActivationDistance = Config.COLLECT_RANGE
+	prompt.RequiresLineOfSight = false
+	prompt.Enabled = false
+	prompt:SetAttribute(Config.PROMPT_OWNER_ATTRIBUTE, 0)
+	prompt.Parent = body
+	return prompt
+end
+
 local function buildBurst(body: BasePart): ParticleEmitter
 	local burst = Instance.new("ParticleEmitter")
 	burst.Name = "Burst"
@@ -1195,10 +1243,11 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	-- a robbery moved with it. See Config, where the constants were.
 
 	-- Interaction -----------------------------------------------------
-	-- There is no collect prompt: the pig is the wallet and nothing is
-	-- banked. The steal prompt exists on every piggy and the client enables it
-	-- for everybody but the owner. The server never trusts that choice -- it
-	-- re-checks ownership on every trigger.
+	-- The steal prompt exists on every piggy and the client enables it for
+	-- everybody but the owner. The server never trusts that choice -- it
+	-- re-checks ownership on every trigger. The owner's own way in, the
+	-- collect prompt, is built below the smash prompt -- see there for why
+	-- it is safe on the same Body as these two.
 	local stealPrompt = Instance.new("ProximityPrompt")
 	stealPrompt.Name = "StealPrompt"
 	stealPrompt.ActionText = "Steal Coins"
@@ -1214,6 +1263,12 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	stealPrompt.Parent = body
 
 	local smashPrompt = buildSmashPrompt(body, "Piggy Bank")
+	-- The owner's swap, on the bank only: `buildVault` builds none.
+	local swapPrompt = buildSwapPrompt(body)
+
+	-- NO COLLECT PAD. The bank drips straight into the balance (designer
+	-- decision 2026-09-22), so the floor button that used to sit on the gate
+	-- walk is gone with the buffer it emptied. The six pedestals keep theirs.
 
 	model.PrimaryPart = body
 	model.Parent = parent
@@ -1237,6 +1292,7 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 		lock = lock,
 		stealPrompt = stealPrompt,
 		smashPrompt = smashPrompt,
+		swapPrompt = swapPrompt,
 		sounds = sounds,
 	}
 
@@ -1403,225 +1459,22 @@ end
 -- APPEARANCE
 -- ============================================================
 
--- What a surface pack is called once it is hanging on a part, so it can be
--- found again and taken off when the next skin does not want one.
-local SURFACE_NAME = "SkinSurface"
-
--- Dress one part in a skin's surface pack, or strip whatever it is wearing.
---
--- REUSED RATHER THAN REBUILT, unlike the pattern decals below it. Those are
--- torn down every call because a stripe that accumulated would be a visible
--- bug; a SurfaceAppearance carries four texture ids, and destroying and
--- recreating it makes the engine drop and refetch all four every time
--- somebody tries a skin on in the shop.
---
--- MESHPARTS ONLY, which is not defensiveness. A SurfaceAppearance does
--- nothing on an ordinary Part, so on the primitives fallback pig -- the one
--- that stands up when a mesh id is missing -- attaching one would create
--- instances that silently do nothing on every piggy on the street. The pig
--- renders as a plain skin there instead, which is what the fallback is for.
--- `isTrim` PICKS A DIFFERENT TEMPLATE, AND IT IS NOT A REFINEMENT. The ears,
--- snout, tail and legs share the body's cylindrical unwrap, so handing them a
--- PATTERN map runs tiger bars across a snout and leopard rosettes down a leg.
--- An animal pack names a `trimTemplate` carrying the coat and no markings;
--- anything without one hands both the same template, which is what the metal
--- bands want and why this is opt-in rather than a branch on skin kind.
+-- THE COAT AND THE RUFF LIVE IN `PiggyModel` NOW, beside the marks -- see the
+-- block above `PiggyModel.build`. The mini on a pedestal, in a herd and in a
+-- thief's arms wears them too, so ONE implementation dresses both pigs and
+-- cannot disagree with itself: this file used to carry its own `applySurface`
+-- and `applyFur`, which were correct and were also the copy that would have
+-- drifted the day the mini started being the more-seen pig. These two are the
+-- lawn pig's spelling of the same calls -- anchored, part by part.
 local function applySurface(part: BasePart, tier, isTrim: boolean?)
-	local pack = Config.skinSurface(tier)
-	local worn = part:FindFirstChild(SURFACE_NAME)
-
-	if not pack or not part:IsA("MeshPart") then
-		if worn then
-			worn:Destroy()
-		end
-		return
-	end
-
-	-- CLONED, NEVER BUILT, AND THAT IS A REFUSAL RATHER THAN A PREFERENCE.
-	-- `SurfaceAppearance.ColorMap` is plugin-gated: assembling one here threw
-	-- `The current thread cannot write 'ColorMap' (lacking capability Plugin)`
-	-- from a real server and took the whole of `applySkin` with it, so every
-	-- skin change in the game failed. A clone copies the maps without writing
-	-- them, which is the same escape `MaterialVariant` had to take.
-	local template = ReplicatedStorage:FindFirstChild("Shared")
-	template = template and template:FindFirstChild("SurfacePacks")
-	template = template and template:FindFirstChild(
-		(isTrim and pack.trimTemplate) or pack.template)
-	if not template then
-		-- A MISSING TEMPLATE IS A PLAIN PIG, NEVER AN ERROR. The skin still
-		-- has its colours and its `material`, so what a player sees is an
-		-- ordinary skin rather than a broken one -- the same way an empty mesh
-		-- id leaves the piggy on primitives instead of standing up half a
-		-- model.
-		if worn then
-			worn:Destroy()
-		end
-		return
-	end
-
-	-- REPLACED RATHER THAN PATCHED, because the properties that would need
-	-- patching are the gated ones. Reusing the instance was the original
-	-- design -- to stop the engine refetching four textures on every skin
-	-- change -- and it is not available: there is no way to change a worn
-	-- pack's maps without writing them.
-	if worn then
-		worn:Destroy()
-	end
-	local sa = template:Clone()
-	sa.Name = SURFACE_NAME
-	sa.Parent = part
+	PiggyModel.applySurface(part, tier, isTrim)
 end
 
--- ============================================================
--- RAISED FUR
--- ============================================================
-
-local FUR_NAME = "FurTufts"
-
--- WHICH SET A WORN TUFT CAME FROM, WRITTEN ON THE PART ITSELF.
---
--- A skin is changed INTO rather than applied to a fresh pig, so going from
--- the tiger to the zebra has to SWAP the mesh and not merely recolour it --
--- and there is nothing on a MeshPart that says which set it was cloned from.
--- Comparing `MeshId` would work and is the wrong instrument: it reads an
--- asset id back out of the engine to answer a question about this game's own
--- catalogue, so an unfilled set (id "") has no id to compare and a re-upload
--- of the same mane would read as a different set. An attribute is the fact
--- itself. Same call `SkinKey` already makes on the body.
-local FUR_SET_ATTRIBUTE = "FurSet"
-
--- ONE TEMPLATE PER SET, CACHED SEPARATELY. `CreateMeshPartAsync` yields and
--- there are ten pigs on a street, so this is the same cache the body and trim
--- already keep -- it just has to be keyed now, or the first set loaded would
--- be handed to every animal for the rest of the server's life.
-local furTemplates: { [string]: BasePart } = {}
-local furChecked: { [string]: boolean } = {}
-
-local function ensureFurTemplate(setName: string): BasePart?
-	if furChecked[setName] then
-		return furTemplates[setName]
-	end
-	-- STAMPED BEFORE THE LOAD, NOT AFTER, so a set whose mesh fails to load is
-	-- attempted once rather than on every skin change for the rest of the
-	-- session -- which on a failing asset is a web call per pig per swap.
-	furChecked[setName] = true
-	local spec = Config.furMesh(setName)
-	if not spec then
-		return nil
-	end
-	local ok, part = pcall(function()
-		-- BOX COLLISION AND NO QUERY, because this is decoration standing on
-		-- the one object a thief runs at and a dog patrols around. Precise
-		-- collision on 6,080 triangles of wool would cost every one of them a
-		-- physics query to buy nothing.
-		local p = game:GetService("InsertService"):CreateMeshPartAsync(
-			spec.id, Enum.CollisionFidelity.Box, Enum.RenderFidelity.Precise)
-		-- THE MESH KEEPS ITS OWN SIZE, AND CONFIG'S IS A CHECK RATHER THAN AN
-		-- INSTRUCTION. Writing `Size` here scales the mesh to whatever number
-		-- happens to be in Config -- so a value measured off an older build
-		-- silently SHRINKS the tufts toward their own centre and buries them
-		-- in the body, which is precisely what shipped. A wrong number should
-		-- be loud; this one was invisible.
-		if (p.MeshSize - spec.size).Magnitude > 0.05 then
-			warn(string.format(
-				"[PiggyBank] Config.FUR_SETS.%s.size is stale: mesh is %.4f,"
-				.. " %.4f, %.4f but Config says %.4f, %.4f, %.4f -- re-run"
-				.. " make_fur_tufts.py with FUR_SET=%s and paste the block it"
-				.. " prints.",
-				setName, p.MeshSize.X, p.MeshSize.Y, p.MeshSize.Z,
-				spec.size.X, spec.size.Y, spec.size.Z, setName))
-		end
-		p.Name = FUR_NAME
-		p:SetAttribute(FUR_SET_ATTRIBUTE, setName)
-		p.Anchored = true
-		p.CanCollide = false
-		p.CanQuery = false
-		p.CanTouch = false
-		p.CastShadow = false
-		return p
-	end)
-	if not ok then
-		-- NEVER FAIL SILENTLY, and never take the skin down with it. A pig
-		-- with no ruff is a cosmetic fault; `applySkin` throwing is every
-		-- skin change in the game failing, which is what the surface pack
-		-- already cost once.
-		warn(string.format("[PiggyBank] fur mesh for set %q failed to load: %s",
-			setName, tostring(part)))
-		return nil
-	end
-	furTemplates[setName] = part
-	return part
-end
-
--- Give this piggy its ruff, or take it off.
---
--- STRIPPED ON EVERY SKIN THAT DOES NOT WANT ONE, not only added to those that
--- do. A skin is changed INTO, so a conditional that only ever attaches would
--- leave a Solid Gold pig wearing the tiger's wool -- the same trap
--- `reflectance` already fell into on this function.
 local function applyFur(refs: Refs, tier)
-	local body = refs.body
-	local model = body.Parent
-	local worn = model and model:FindFirstChild(FUR_NAME)
-
-	-- THE MESH IS THE FLAG. A skin asks for fur by carrying a `fur` colour,
-	-- which is also the colour the lobes are painted -- one field rather than
-	-- a boolean and a colour that could disagree.
-	local wants = tier and tier.fur ~= nil and body:IsA("MeshPart")
-	if not wants then
-		if worn then
-			worn:Destroy()
-		end
-		return
+	local model = refs.body.Parent
+	if model then
+		PiggyModel.applyFur(model, refs.body, tier, true)
 	end
-
-	-- THE SET IS A PROPERTY OF THE SKIN AND FALLS BACK TO THE DEFAULT, so the
-	-- four skins that predate sets carry no `furSet` and get the mane exactly
-	-- as they always did.
-	local setName = tier.furSet or Config.DEFAULT_FUR_SET
-
-	-- A WORN TUFT FROM A DIFFERENT SET IS DESTROYED RATHER THAN REUSED, and
-	-- this is the whole reason the attribute exists. Reusing it would recolour
-	-- the tiger's ruff, seat it at the crest's offset and call it a zebra --
-	-- geometry from one animal at another's coordinates, with nothing erroring.
-	if worn and worn:GetAttribute(FUR_SET_ATTRIBUTE) ~= setName then
-		worn:Destroy()
-		worn = nil
-	end
-
-	local template = ensureFurTemplate(setName)
-	if not template then
-		if worn then
-			worn:Destroy()
-		end
-		return
-	end
-
-	local part = worn
-	if not part then
-		part = template:Clone()
-		part.Parent = model
-	end
-	part.Color = tier.fur
-	part.Material = tier.material
-	part.Transparency = tier.transparency
-
-	-- THE RUFF WEARS THE BODY'S PACK, NOT THE TRIM'S, and that is the whole
-	-- reason it can exist on a patterned animal at all. The lobe mesh is
-	-- unwrapped on the SAME cylinder as the body, so handing it the body's
-	-- ColorMap makes the spots and stripes carry straight over the fur --
-	-- where a flat colour was a patch lying on top of the pattern whatever
-	-- shade it was given. `false` rather than `true`: the trim template is the
-	-- coat WITHOUT markings, which is right for a snout and wrong here.
-	applySurface(part, tier, false)
-
-	-- SEATED OFF THE BODY'S OWN CFRAME, never off the plot's. Both meshes come
-	-- out of one Blender scene, so the fur's offset and the body's are in the
-	-- same frame -- and the far row of plots carries a half turn, which is the
-	-- error this file already records three times for anything measured in
-	-- world axes.
-	local spec = Config.furMesh(setName)
-	part.CFrame = body.CFrame * CFrame.new(spec.offset)
 end
 
 -- The equipped skin owns the piggy's whole appearance. Rebirth-earned looks
@@ -1661,25 +1514,11 @@ function PiggyBank.applySkin(refs: Refs, skinKey: string)
 	if sa then
 		local spec = Config.skinAura(tier)
 		if spec and spec.texture then
-			sa.Texture = spec.texture
-			sa.Color = spec.color
-			sa.Rate = spec.rate
-			sa.Speed = spec.speed
-			sa.Lifetime = spec.lifetime
-			sa.Drag = spec.drag
-			sa.Acceleration = spec.accel
-			sa.SpreadAngle = Vector2.new(spec.spread, spec.spread)
-			sa.Size = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, spec.size),
-				NumberSequenceKeypoint.new(1, 0),
-			})
-			local spin = spec.rotSpeed or 0
-			sa.Rotation = NumberRange.new(0, 360)
-			sa.RotSpeed = NumberRange.new(-spin, spin)
-			sa.ShapeInOut = if spec.inOut == "Outward"
-				then Enum.ParticleEmitterShapeInOut.Outward
-				else Enum.ParticleEmitterShapeInOut.Inward
-			sa.Enabled = true
+			-- THE SAME WRITES THE MINI MAKES, through one function, so an aura
+			-- on a plinth and the same aura on the till cannot be two
+			-- readings of one row. No scale: the till IS the size the rows are
+			-- authored against.
+			PiggyModel.configureAura(sa, spec)
 		else
 			sa.Enabled = false
 		end
@@ -1793,9 +1632,14 @@ function PiggyBank.applySkin(refs: Refs, skinKey: string)
 	-- a meshed pig, on twelve skins, with nothing erroring. The correction is
 	-- applied in the BODY'S OWN FRAME rather than in world space, which is
 	-- what keeps the far row's half turn working (see below).
+	-- AND SEATED ON THE BODY'S REAL SURFACE, not on the sphere the pattern
+	-- was authored against -- see `PiggyModel.surfaceSampler`. nil on the
+	-- primitives pig, where the sphere is the truth.
+	local patternFrame = refs.body.CFrame * (refs.patternSeat or CFrame.identity)
 	PiggyModel.applyPattern(refs.model, tier, {
-		frame = refs.body.CFrame * (refs.patternSeat or CFrame.identity),
+		frame = patternFrame,
 		radius = BODY_R,
+		surface = PiggyModel.surfaceSampler(refs.body, patternFrame, BODY_R),
 		anchored = true,
 		weldTo = nil,
 		material = tier.material,
@@ -2140,8 +1984,12 @@ function PiggyBank.buildMini(skinKey: string): Model
 	return PiggyModel.build(skinKey)
 end
 
--- Vault dial appearance per lock level. Level 0 hides it entirely: an
--- unlocked piggy should look unlocked.
+-- Vault dial appearance per lock level. LEVEL 0 DRAWS THE LEVEL-1 DIAL
+-- (designer decision 2026-09-22): the hatch in the pig's back is filled on
+-- the mesh, so there is no open hole for "unlocked" to read as, and a bare
+-- rump over the dial seat read as a pig with no vault at all. Every pig now
+-- carries an iron dial from its first second; what a bought lock changes is
+-- the metal and the spoke count, exactly as before.
 --
 -- Two things ramp, and they are readable at different distances. The metal
 -- carries from outside the fence, where a thief decides whether to come in at
@@ -2206,15 +2054,12 @@ function PiggyBank.setLockLevel(refs: Refs, level: number)
 		end
 	end
 
-	-- LEVEL 0 IS AN OPEN HOLE, not an absent one. An unlocked piggy used to
-	-- show nothing at all, which reads as "this piggy has no vault" rather
-	-- than "this piggy is not locked" -- and the second is the thing a thief
-	-- at the gate is actually deciding on. Hiding the door leaves the hole.
-	if level <= 0 then
-		plate.Transparency = 1
-		return
-	end
-
+	-- LEVEL 0 WEARS THE IRON DIAL (designer decision 2026-09-22). This used
+	-- to hide the door and leave the hole, so "unlocked" read as an open
+	-- hatch; the hatch is filled on the mesh now, and a bare rump over the
+	-- seat read as a pig with no vault at all. The clamp below is what does
+	-- it: level 0 resolves to tier 1, and the pips and the prompt label
+	-- still say the true level.
 	local tier = LOCK_TIERS[math.clamp(level, 1, #LOCK_TIERS)]
 	plate.Transparency = 0
 	plate.Size = Vector3.new(DIAL_THICK, tier.radius * 2, tier.radius * 2)

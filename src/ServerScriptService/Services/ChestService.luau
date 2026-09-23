@@ -1,11 +1,19 @@
 --!strict
 --[[
-	Crates charge earned Acorns only; there is no coin fallback.
-	Duplicates become per-item spares. Config.COMBINE.need spares of one
-	tier can roll into a regular crate; event-set crates cannot be combined
-	into. Selling spares pays through Config.sellValue: acorns for a skin,
-	coins for anything else.
-	Free daily crates share the reveal and grant path without charging.
+	CRATES ARE EARNED, NEVER BOUGHT. No crate carries a price in any currency:
+	they arrive from the daily ladder, from a rebirth and from events, and
+	`grantFree` is the only way one opens. That is what keeps every crate here
+	outside Roblox's paid random item rule -- see the note above
+	`Config.CHESTS` for what a price field would cost.
+
+	A SECOND PIGGY IS A SECOND PIGGY (2026-09-21): a duplicate SKIN is placed
+	on a free lawn pedestal rather than becoming a spare, and a crate that
+	could yield one is REFUSED while the lawn is full -- see `handOver` and
+	`whyCannotOpen`. Duplicates of every other kind still become per-item
+	spares, because those are wardrobe items with nowhere to stand a second
+	copy. Config.COMBINE.need spares of one tier can roll into a regular
+	crate; event-set crates cannot be combined into. Selling spares pays coins
+	through Config.sellValue.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -33,11 +41,11 @@ local TIERS = Config.RARITY_ORDER
 -- WHO TO TELL WHEN A BALANCE MOVES, filled in by Main.
 --
 -- SetService.grant already pushes whichever service renders the ITEM, so a new
--- skin lands on screen by itself. What it cannot cover is the CURRENCY: coins
--- live behind EconomyService's own push and tokens ride on the cosmetic state,
--- and a DUPLICATE grants nothing at all, so nothing pushed anything. Measured:
--- six opens charged three million coins and the HUD sat unchanged, which reads
--- as the chest being free.
+-- skin lands on screen by itself. What it cannot cover is the COIN BALANCE,
+-- which lives behind EconomyService's own push -- and a DUPLICATE grants
+-- nothing at all, so nothing pushed anything. Measured: six opens charged
+-- three million coins and the HUD sat unchanged, which reads as the chest
+-- being free.
 --
 -- A registry rather than a require, for the reason SetService.registerPusher is
 -- one: it keeps this file's dependency list at DataService and SetService, and
@@ -185,13 +193,6 @@ local function takeSpare(data: any, entry: string)
 	data.spares[entry] = if left > 0 then left else nil
 end
 
-local function spend(data: any, cost: number): boolean
-	local held = math.floor(data.loot or 0)
-	if held < cost then return false end
-	data.loot = held - cost
-	return true
-end
-
 -- NO `DataService.save` PER OPEN, AND THAT MATCHES THE HOUSE STYLE RATHER THAN
 -- DEPARTING FROM IT.
 --
@@ -224,6 +225,146 @@ end
 -- OUTCOME. It becomes a shard in the same breath, in the same reveal, so an
 -- open always visibly pays out. What the old rule protected -- that a
 -- nine-year-old never opens something and gets nothing -- is still true.
+-- ============================================================
+-- WHETHER A CRATE MAY BE OPENED AT ALL
+-- ============================================================
+--
+-- A PIGGY OUT OF A CRATE HAS TO HAVE SOMEWHERE TO STAND, and since the
+-- designer's 2026-09-21 ruling there is no bag behind the lawn: placement IS
+-- ownership (docs/PIGGY-COLLECTION-PLAN.md §3/§4). So a crate that could hand
+-- over a skin is REFUSED while every placement is taken, rather than rolling
+-- one and having nowhere to put it.
+--
+-- REFUSED BEFORE THE ROLL, NOT AFTER IT. The entry below `roll` records why
+-- the CHARGE happens only once the outcome exists -- "a chest that took the
+-- money and then found nothing to hand over would be the one failure mode
+-- here that looks like theft". An unplaceable outcome is that same failure
+-- wearing different clothes: the reel would land on a legendary and then
+-- nothing would arrive. Better never to spin.
+--
+-- "CAN YIELD A SKIN" RATHER THAN "IS A SKIN CRATE", which is deliberately the
+-- stricter of the two. The Alien Cache is mixed, so a pool that MIGHT roll a
+-- piggy is held back even though its other outcomes would have fitted -- the
+-- looser rule would let a mixed crate roll the one thing it cannot deliver,
+-- which is what this gate exists to stop.
+--
+-- MEASURED, THAT IS EVERY CRATE IN THE GAME TODAY: all seven of
+-- `Config.CHESTS` can yield a skin (`og`/`animal` and their rare and
+-- legendary tiers are skins only, `alien` is mixed), so right now this gate
+-- applies to the whole Crates tab. The test is written as a QUESTION rather
+-- than as "always true" because the catalogue has already moved once -- the
+-- Dress-Up and effects crates are retired -- and an accessory-only pool
+-- coming back must not be blocked by a full lawn it can never fill.
+local function poolCanYieldPiggy(chestKey: string): boolean
+	local _, pool = liveOdds(chestKey)
+	for _, entries in pairs(pool) do
+		for _, entry in ipairs(entries) do
+			local kind = Config.chestEntry(chestKey, entry)
+			if kind == "skin" then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+-- nil when it may be opened, or the sentence to show the player.
+--
+-- ONE PREDICATE, TWO CALLERS, WHICH IS THE POINT OF IT BEING A FUNCTION.
+-- `roll` asks it before spinning, and `DailyService.openCrate` asks it BEFORE
+-- clearing the doorstep -- because that function clears the field and SAVES
+-- before it rolls, deliberately, so that a disconnect cannot hand out a crate
+-- twice. A refusal is not a disconnect: it is a synchronous, known no, and
+-- without this the day-seven reward would be destroyed by a full lawn with a
+-- warning as its only trace. Two copies of the reason would be two things
+-- that can disagree about whether a crate is openable.
+--
+-- Deliberately NOT the funds check: what a crate costs only applies to the
+-- charged path, and `grantFree` has to be able to open one for nothing.
+function ChestService.whyCannotOpen(player: Player, chestKey: string): string?
+	local data = DataService.get(player)
+	local chest = Config.CHESTS[chestKey]
+	if not data or not chest then
+		return "That crate does not exist."
+	end
+	-- FAIL CLOSED IF A FUTURE CATALOGUE EDIT PUTS A PRICE BACK. A crate is
+	-- earned; a priced one would be a paid random item with none of the
+	-- disclosure that rule demands, so it refuses to open rather than
+	-- quietly charging.
+	if chest.currency ~= nil or chest.cost ~= nil then
+		return ("The %s is unavailable."):format(chest.name)
+	end
+	local odds, _, total = liveOdds(chestKey)
+	if total == 0 or next(odds) == nil then
+		-- Never fail silently. A chest with nothing in it is a button that
+		-- takes coins and returns nothing, which is the worst thing this
+		-- codebase can ship -- so it refuses and says why instead.
+		return ("The %s is not stocked yet."):format(chest.name)
+	end
+	if Config.firstFreePiggySlot(data) == nil and poolCanYieldPiggy(chestKey) then
+		-- NAMES THE FIX, because a refusal that does not is indistinguishable
+		-- from a broken button -- the rule every bone and gadget refusal here
+		-- already follows.
+		return "Your lawn is full. Make room for a piggy before you open a crate."
+	end
+	return nil
+end
+
+-- HANDING OVER WHAT WAS ROLLED. Returns whether the reveal should call it a
+-- DUPLICATE, which for a piggy is now always false.
+--
+-- ONE FUNCTION BECAUSE THERE WERE TWO COPIES: the roll and the combine both
+-- had the same four lines, and the piggy rule below would have had to be
+-- written into both -- which is the near-identical duplicate this project
+-- keeps recording as the thing that drifts. A combine that still made spares
+-- out of skins while a roll did not is exactly the drift that would follow.
+--
+-- A SECOND PIGGY IS A SECOND PIGGY, NOT A SPARE (designer ruling 2026-09-21;
+-- docs/PIGGY-COLLECTION-PLAN.md §3/§4). The duplicate/spare split is the
+-- WARDROBE model -- you own a skin or you do not, so a repeat is a
+-- consolation that pays its sell value -- and that was right while a skin was
+-- a costume. A piggy is income standing on a pedestal, so a repeat is a REAL
+-- prize: plan §4's whole argument is that this is "what makes a repeat pull
+-- from a crate exciting rather than a consolation".
+--
+-- EVERY OTHER KIND KEEPS THE OLD BEHAVIOUR, deliberately rather than as
+-- unfinished work: a duplicate ride or decoration out of the Alien Cache IS a
+-- spare, because those are still wardrobe items with one copy each and
+-- nowhere to stand a second.
+local function handOver(player: Player, data: any, kind: string, key: string): boolean
+	local duplicate = SetService.owns(data, kind, key)
+	if kind ~= "skin" then
+		if duplicate then
+			addSpare(data, kind, key)
+		else
+			SetService.grant(player, kind, key)
+		end
+		return duplicate
+	end
+
+	-- `SetService.grant` returns false for a key already owned and writes
+	-- nothing, so the collection write cannot be left to it for a repeat --
+	-- that early-out IS the wardrobe rule this branch steps around. The first
+	-- copy still goes through it, so `cosmetics.owned` and the set panel see
+	-- it; later copies go straight onto a pedestal.
+	if duplicate then
+		Config.addPiggy(data, key, true)
+		-- AND TELL SOMEBODY, because `grant` is what normally does that and
+		-- this branch deliberately steps around it. Without this the only
+		-- write in the game that changes a lawn and pushes nothing -- the save
+		-- correct, the pedestal bare, and the crate reading as having handed
+		-- over nothing.
+		SetService.repaint(player, kind)
+	else
+		SetService.grant(player, kind, key)
+	end
+	-- A PLACEMENT IS GUARANTEED TO HAVE BEEN FREE, which is what lets this be
+	-- unconditional: `whyCannotOpen` refuses the whole crate while the lawn is
+	-- full, ahead of the roll and the charge, so there is no "rolled it and
+	-- had nowhere to put it" case left to handle here.
+	return false
+end
+
 -- THE ONE ROLL, WITH `charge` DECIDING WHETHER ANYBODY PAYS FOR IT.
 --
 -- A free open and a bought one differ by exactly one `if`: the tier roll, the
@@ -231,41 +372,36 @@ end
 -- the same, and a second copy of that is the near-identical duplicate this
 -- project keeps recording as the thing that drifts.
 --
--- IT IS A LOCAL AND THE FREE PATH IS NOT ON THE SERVICE'S REMOTE HANDLER,
--- which is the half that matters. `ChestOpen` forwards a chest key and
--- nothing else, so a client cannot reach `charge = false` however many extra
--- arguments it fires -- the same shape as every other "the click sends no
--- position" decision here.
-local function roll(player: Player, chestKey: string, charge: boolean)
+-- THERE IS NO CHARGED PATH LEFT, and that is the whole shape of crates now.
+--
+-- This used to take a `charge` flag: the shop's buy button passed true and
+-- the daily ladder passed false, and the note here explained at length why
+-- the free path was a local rather than a remote handler. Crates are EARNED
+-- (designer, 2026-09-21) -- the daily ladder, a rebirth, an event -- so every
+-- open is what the free path always was, and there is no flag to reach.
+--
+-- WHAT THAT BUYS IS THE THING THE COMMENT ABOVE `Config.CHESTS` IS ABOUT:
+-- nothing random here is purchased with anything, so no crate is a paid
+-- random item and none of the disclosure or `PolicyService` machinery that
+-- rule demands has to exist.
+local function roll(player: Player, chestKey: string)
 	local data = DataService.get(player)
 	local chest = Config.CHESTS[chestKey]
 	if not data or not chest then
 		return
 	end
 
-	-- Fail closed if a future catalogue edit forgets the earned-only price.
-	if chest.currency ~= "loot" then
-		notify(player, ("The %s is unavailable. Crates only take %s."):format(
-			chest.name, Config.ROLL_CURRENCY.plural:lower()), "warn")
+	-- THE STOCK AND THE ROOM ON THE LAWN, through the one predicate
+	-- `DailyService` also asks -- see `whyCannotOpen`. It used to be two
+	-- checks written out here; they moved so that the doorstep crate and the
+	-- shop button cannot disagree about whether a crate is openable.
+	local refusal = ChestService.whyCannotOpen(player, chestKey)
+	if refusal then
+		notify(player, refusal, "warn")
 		return
 	end
 
-	local odds, pool, total = liveOdds(chestKey)
-	if total == 0 or next(odds) == nil then
-		-- Never fail silently. A chest with nothing in it is a button that
-		-- takes coins and returns nothing, which is the worst thing this
-		-- codebase can ship -- so it refuses and says why instead.
-		notify(player, ("The %s is not stocked yet."):format(chest.name), "warn")
-		return
-	end
-
-	if charge then
-		local held = math.floor(data.loot or 0)
-		if held < chest.cost then
-			notify(player, Config.acornShortfall(held, chest.cost), "warn")
-			return
-		end
-	end
+	local odds, pool = liveOdds(chestKey)
 
 	local tier = pickTier(odds)
 	if not tier then
@@ -275,19 +411,7 @@ local function roll(player: Player, chestKey: string, charge: boolean)
 	local entry = entries[math.random(1, #entries)]
 	local kind, key = Config.chestEntry(chestKey, entry)
 
-	-- Charged only once the outcome exists. A chest that took the money and
-	-- then found nothing to hand over would be the one failure mode here that
-	-- looks like theft.
-	if charge and not spend(data, chest.cost) then
-		return
-	end
-
-	local duplicate = SetService.owns(data, kind, key)
-	if duplicate then
-		addSpare(data, kind, key)
-	else
-		SetService.grant(player, kind, key)
-	end
+	local duplicate = handOver(player, data, kind, key)
 
 	ChestService.push(player)
 	pushBalances(player)
@@ -310,14 +434,11 @@ local function roll(player: Player, chestKey: string, charge: boolean)
 	return tier, kind, key, duplicate
 end
 
-function ChestService.open(player: Player, chestKey: string)
-	return roll(player, chestKey, true)
-end
-
--- Daily rewards and rebirths open the same crate as the shop, without a charge.
--- No client remote exposes this free path.
+-- Daily rewards, rebirths and events open a crate. There is no other way in:
+-- `ChestService.open` retired with the buy button, so nothing a client can
+-- fire opens one.
 function ChestService.grantFree(player: Player, chestKey: string)
-	return roll(player, chestKey, false)
+	return roll(player, chestKey)
 end
 
 -- Direct recovery of a lost skin, never a random roll. Eligibility, ownership
@@ -339,20 +460,26 @@ function ChestService.buyback(player: Player, key: string)
 		ChestService.push(player)
 		return
 	end
-	local held = math.floor(data.loot or 0)
+	-- IN COINS NOW. The buy-back used to be priced off the crate that drops
+	-- the skin and paid in acorns; `Config.buybackCost` derives it from what
+	-- letting the skin go pays instead. This is one NAMED skin and nothing
+	-- about it is random, so a coin price here is an ordinary purchase rather
+	-- than anything the paid random item rule reaches.
+	local held = math.floor(data.coins or 0)
 	if held < cost then
-		notify(player, Config.acornShortfall(held, cost), "warn")
+		notify(player, ("Need %s more coins to buy that back."):format(
+			Config.formatCoins(cost - held)), "warn")
 		return
 	end
 	-- No yield between eligibility, charge and grant's ownership write. Its
 	-- normal save includes this balance and the retained seasonal claim.
-	data.loot = held - cost
+	data.coins = held - cost
 	if not SetService.grant(player, "skin", key) then
-		data.loot += cost
-		notify(player, "Could not return that skin. Your Acorns were refunded.", "warn")
+		data.coins += cost
+		notify(player, "Could not return that skin. Your coins were refunded.", "warn")
 	else
-		notify(player, ("Bought back %s for %d %s."):format(
-			Config.SKINS[key].name, cost, Config.lootWord(cost)), "good")
+		notify(player, ("Bought back %s for %s coins."):format(
+			Config.SKINS[key].name, Config.formatCoins(cost)), "good")
 	end
 	ChestService.push(player)
 	pushBalances(player)
@@ -434,6 +561,17 @@ function ChestService.combine(player: Player, tier: string, chestKey: string,
 		notify(player, ("Spares cannot be combined into the %s."):format(chest.name), "warn")
 		return
 	end
+	-- THE SAME ROOM-ON-THE-LAWN GATE THE ROLL TAKES, and for the sharper
+	-- reason: a combine CONSUMES spares. A roll that could not place its
+	-- outcome would waste the crate; a combine would eat five spares and hand
+	-- back a piggy with nowhere to stand. Asked ahead of every consumption
+	-- below, through the same predicate the shop button and the doorstep crate
+	-- use, so the three cannot disagree about whether a crate is openable.
+	local refusal = ChestService.whyCannotOpen(player, chestKey)
+	if refusal then
+		notify(player, refusal, "warn")
+		return
+	end
 
 	local need = Config.COMBINE.need
 	local entriesAt, have = sparesAt(data, tier)
@@ -488,12 +626,7 @@ function ChestService.combine(player: Player, tier: string, chestKey: string,
 
 	local entry = entries[math.random(1, #entries)]
 	local kind, key = Config.chestEntry(chestKey, entry)
-	local duplicate = SetService.owns(data, kind, key)
-	if duplicate then
-		addSpare(data, kind, key)
-	else
-		SetService.grant(player, kind, key)
-	end
+	local duplicate = handOver(player, data, kind, key)
 
 	ChestService.push(player)
 	pushBalances(player)
@@ -566,36 +699,11 @@ function ChestService.sell(player: Player, kind: string, key: string, count: num
 	if payout <= 0 then
 		return
 	end
-	-- A SKIN PAYS ACORNS, which have no pig to fit into, so none of the
-	-- capacity refusals below apply to it.
-	local acorns = Config.sellsForAcorns(kind)
-
-	-- A SALE THAT WOULD OVERFLOW THE PIG IS REFUSED, NEVER CLAMPED.
-	--
-	-- The pig is the wallet and it is BOUNDED, so a payout that does not fit has
-	-- two possible endings and only one of them is honest. Clamping quietly
-	-- destroys coins the player has just earned, and from their side that is
-	-- indistinguishable from theft: they pressed sell, the item went, and the
-	-- money did not arrive. It is the silent-failure rule wearing a button.
-	--
-	-- Refusing costs them nothing and names the fix. It is also the "spend it or
-	-- lose it" loop this economy already runs on, arriving from a new direction:
-	-- a full pig stops earning until you spend some, and now it stops selling
-	-- too.
-	--
-	-- WHOLE ORDER, NEVER PARTIAL. Selling four spares and being handed two is
-	-- the same silent clamp one level up.
-	local capacity = Config.getCapacity(data.capacityLevel)
-	local room = if acorns then math.huge else capacity - data.coins
-	if room <= 0 then
-		notify(player, "Your piggy bank is full. Spend some coins before you sell.", "warn")
-		return
-	end
-	if payout > room then
-		notify(player, ("That is worth %s and your piggy bank only has room for %s. Spend some coins first."):format(
-			Config.formatCoins(payout), Config.formatCoins(room)), "warn")
-		return
-	end
+	-- A SALE BANKS IN FULL. It used to be REFUSED when the payout would not
+	-- fit the pig -- refused rather than clamped, because a clamp that
+	-- destroys coins a player has just earned is indistinguishable from
+	-- theft -- and both endings are gone with the pig's ceiling: there is no
+	-- room to overflow.
 
 	local fromSpares = math.min(wanted, held)
 	for _ = 1, fromSpares do
@@ -607,20 +715,15 @@ function ChestService.sell(player: Player, kind: string, key: string, count: num
 		-- actually mind getting wrong is written immediately.
 		SetService.revoke(player, kind, key)
 	end
-	if acorns then
-		data.loot = math.floor((data.loot or 0) + payout)
-	else
-		data.coins += payout
-	end
+	data.coins += payout
 
 	ChestService.push(player)
 	pushBalances(player)
 
 	local catalogue = Config.catalogueFor(kind)
 	local spec = catalogue and catalogue[key]
-	notify(player, ("Sold %d %s for %s."):format(
-		wanted, (spec and spec.name) or key, Config.formatSellValue(kind, payout)),
-		if acorns then "loot" else "money")
+	notify(player, ("Sold %d %s for %s coins."):format(
+		wanted, (spec and spec.name) or key, Config.formatCoins(payout)), "money")
 	return payout
 end
 
@@ -659,8 +762,6 @@ function ChestService.push(player: Player)
 			chests[key] = {
 				name = chest.name,
 				order = chest.order,
-				cost = chest.cost,
-				currency = chest.currency,
 				canCombine = Config.canCombineChest(key),
 				blurb = chest.blurb,
 				colour = chest.colour,
@@ -735,12 +836,10 @@ function ChestService.start()
 		end
 	end)
 
-	Remotes.get("ChestOpen").OnServerEvent:Connect(function(player, chestKey)
-		if type(chestKey) ~= "string" then
-			return
-		end
-		ChestService.open(player, chestKey)
-	end)
+	-- THERE IS NO `ChestOpen` HANDLER. A crate is earned rather than bought,
+	-- so nothing a client fires may open one -- the buy button and its remote
+	-- retired together, and `grantFree` is reached only from the daily ladder,
+	-- a rebirth and events.
 
 	Remotes.get("ChestCombine").OnServerEvent:Connect(function(player, tier, chestKey, entries)
 		if type(tier) ~= "string" or type(chestKey) ~= "string" then

@@ -2231,7 +2231,8 @@ local trophyState: any = nil
 -- These were garden monuments: 5.8 to 8.2 studs, drawn to be read from a
 -- pavement. `TrophyService.check` stopped claiming a lawn slot when they moved
 -- indoors, so NOTHING IS EVER DISPLAYED AT THE SIZE IT WAS DRAWN FOR any more
--- -- and `TrophyRoom` was compensating with `ScaleTo`, measured at between a
+-- -- and the retired in-house room (`Services/TrophyRoom`, gone 2026-09-22)
+-- was compensating with `ScaleTo`, measured at between a
 -- sixth and a ninth. At that factor a flame tier, a dial ring, a rank star and
 -- a rosette are all authored around 0.85 and land at a TENTH OF A STUD: the
 -- shape survives and everything that says which grade it is does not.
@@ -2929,33 +2930,10 @@ builders.wantedposter = function(_item, at)
 	end
 end
 
-builders.goodharvest = function(_item, at)
-	local harvested = (trophyState and trophyState.harvested) or 0
-	local fill = Config.trophyGrade("goodharvest", harvested)
-	local top = trophyPlinth(at, 3.6, 3.6, ("%d HARVESTED"):format(harvested))
-	-- A squatter barrel on a shelf: the heaped acorns over the rim are the
-	-- grade, and a tall barrel spends the budget on staves nobody counts.
-	local barrelH, barrelD = (if keepsake() then 2.0 else 3.0), 2.6
-	cylinderY("Barrel", barrelH, barrelD, at * CFrame.new(0, top + barrelH / 2, 0),
-		TROPHY_WOOD, Enum.Material.SmoothPlastic)
-	for _, y in ipairs({ 0.5, barrelH - 0.5 }) do
-		cylinderY("BarrelHoop", 0.22, barrelD + 0.1, at * CFrame.new(0, top + y, 0),
-			TROPHY_DARK, Enum.Material.SmoothPlastic)
-	end
-	-- Acorns heap up above the rim: one ring of them per grade.
-	local rim = top + barrelH
-	for level = 1, fill do
-		local count = math.max(1, 7 - level)
-		local radius = math.max(0, 0.95 - (level - 1) * 0.16)
-		for i = 1, count do
-			local angle = (i / count) * math.pi * 2 + level * 0.4
-			local pos = CFrame.new(math.cos(angle) * radius, rim + 0.15 + (level - 1) * 0.3, math.sin(angle) * radius)
-			ball("AcornNut", 0.46, at * pos, Color3.fromRGB(164, 96, 49), Enum.Material.SmoothPlastic)
-			ball("AcornCap", 0.36, at * pos * CFrame.new(0, 0.2, 0), Color3.fromRGB(104, 64, 34),
-				Enum.Material.SmoothPlastic)
-		end
-	end
-end
+-- `builders.goodharvest` STOOD HERE: a barrel whose heaped ACORNS were its
+-- grade, filled from `trophies.harvested`. It went with the currency, and it
+-- was already unreachable -- `Config.TROPHIES` is empty, so nothing could ask
+-- for it.
 
 function Decor.prewarm()
 	if not RunService:IsServer() then
@@ -3326,7 +3304,6 @@ local function showroom(): any
 		clean = 40,
 		seasonBest = 8,
 		wanted = 4,
-		harvested = 400,
 		plinth = "",
 	}
 end

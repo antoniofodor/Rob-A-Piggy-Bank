@@ -6,7 +6,7 @@
     "RoughnessMap": "",
     "NormalMap": "",
     "ColorMap": "rbxassetid://116877587043457",
-    "EmissiveMaskContent": "rbxassetid://136506353284712",
-    "EmissiveStrength": 0.8
+    "EmissiveMaskContent": "",
+    "EmissiveStrength": 0
   }
 }

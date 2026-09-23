@@ -76,7 +76,7 @@ local grid: ScrollingFrame? = nil
 local cards: { [string]: any } = {}
 local buybackCards: { [string]: any } = {}
 local latest: any = nil
-local loot = 0
+local coins = 0
 local explorer: any = nil
 local cosmetics: any = nil
 local rides: any = nil
@@ -226,15 +226,15 @@ local function buildTile(parent: Instance, chestKey: string, index: number): any
 	ShopStyle.round(open, 12)
 	ShopStyle.outline(open, 3)
 	ShopStyle.gloss(open)
-	-- A short balance still gets the server's refusal and earning hint.
-	-- Only a valid Acorn-priced crate sends an open request.
-	open.Activated:Connect(function()
-		if cards[chestKey] and cards[chestKey].canOpen and deps.open then
-			deps.open(chestKey)
-		end
-	end)
+	-- NO HANDLER. This label used to be the BUY BUTTON; a crate is earned
+	-- rather than bought, so it names where the crate comes from and does
+	-- nothing when pressed -- deliberately inert rather than removed, because
+	-- the tile's layout is measured around it and "how do I get one" is the
+	-- question a player opening this tab actually has.
+	open.Active = false
+	open.AutoButtonColor = false
 
-	return { card = tile, icon = icon, open = open, tier = tier, affordable = false, canOpen = false }
+	return { card = tile, icon = icon, open = open, tier = tier }
 end
 
 local function buildSection(def: any, order: number): any
@@ -382,17 +382,10 @@ local function paint(chestKey: string, info: any)
 	if not ui then
 		return
 	end
-	local held = math.floor(loot)
-	local cost = info.cost or 0
-	ui.canOpen = info.currency == "loot"
-	ui.affordable = ui.canOpen and held >= cost
-	if ui.canOpen then
-		Theme.acornPrice(ui.open, ("OPEN %s %d %s"):format(DOT, cost, Config.lootWord(cost)))
-	else
-		ui.open.Text = "UNAVAILABLE"
-	end
-	ui.open.BackgroundColor3 = if ui.affordable then ShopStyle.BUY else ShopStyle.DEAR
-	ui.open.TextColor3 = if ui.affordable then ShopStyle.TEXT else ShopStyle.MUTED
+	-- WHERE A CRATE COMES FROM, not what it costs. Nothing here is priced.
+	ui.open.Text = "EARN THIS CRATE"
+	ui.open.BackgroundColor3 = ShopStyle.DEAR
+	ui.open.TextColor3 = ShopStyle.MUTED
 end
 
 -- Repaint a collection's progress and combine chips.
@@ -405,7 +398,31 @@ local function paintSection(ui: any)
 	local perTier = (latest and latest.perTier) or {}
 	local need = (latest and latest.need) or Config.COMBINE.need
 	local canCombine = base ~= nil and base.canCombine == true
-	ui.combineRow.Visible = canCombine and next(ui.combines) ~= nil
+	-- HIDDEN UNTIL THE PLAYER ACTUALLY HOLDS A SPARE, which is new and is a
+	-- consequence of piggies no longer making them (2026-09-21; see
+	-- `ChestService.handOver`).
+	--
+	-- It used to be enough that the CHEST could be combined into and had
+	-- stocked tiers to draw chips for. That was fine while every crate in the
+	-- game rained spares: the row was always live for somebody. Now a repeat
+	-- skin is placed on a pedestal instead, and six of the seven crates are
+	-- skins only -- so on those the row would be permanently visible and
+	-- permanently 0/5, which is the control that does nothing when pressed
+	-- and reads as broken rather than as locked.
+	--
+	-- NOT the same as hiding it on skins-only crates, which was the tempting
+	-- version and throws away a real path: `sparesAt` pools by TIER across
+	-- kinds, so a spare ride out of the Alien Cache can still be combined into
+	-- an OG crate. Asking whether there is anything to combine keeps that and
+	-- costs nothing.
+	local holdsAny = false
+	for tier in pairs(ui.combines) do
+		if (perTier[tier] or 0) > 0 then
+			holdsAny = true
+			break
+		end
+	end
+	ui.combineRow.Visible = canCombine and next(ui.combines) ~= nil and holdsAny
 	for tier, chip in pairs(ui.combines) do
 		local have = perTier[tier] or 0
 		local ready = canCombine and have >= need
@@ -470,9 +487,7 @@ function Crates.reveal(payload: any)
 
 	local note = nil
 	if payload.duplicate then
-		local value = payload.value or 0
-		note = ("Spare %s sells for %s"):format(DOT, if Config.sellsForAcorns(payload.kind)
-			then Config.formatSellValue(payload.kind, value) else deps.format(value))
+		note = ("Spare %s sells for %s"):format(DOT, deps.format(payload.value or 0))
 	end
 
 	-- THE TIER GOES THROUGH RATHER THAN ONLY ITS COLOUR, and that is what
@@ -569,13 +584,15 @@ local function paintBuybacks()
 				buybackCards[key] = ui
 			end
 			ui.card.LayoutOrder = (info.order or 0) + 1
-			local held = math.floor(loot)
+			-- IN COINS. The buy-back is one NAMED skin, so a price on it is an
+			-- ordinary purchase rather than anything random.
+			local held = math.floor(coins)
 			local affordable = held >= info.cost
-			Theme.acornPrice(ui.buy, ("BUY BACK\n%d %s"):format(info.cost, Config.lootWord(info.cost)))
+			ui.buy.Text = ("BUY BACK  %s"):format(deps.format(info.cost))
 			ui.buy.BackgroundColor3 = if affordable then ShopStyle.BUY else ShopStyle.DEAR
 			ui.buy.TextColor3 = if affordable then ShopStyle.TEXT else ShopStyle.MUTED
 			ui.hint.Text = if affordable then "This season only. Get this exact skin back."
-				else Config.acornShortfall(held, info.cost)
+				else ("Need %s more coins."):format(deps.format(info.cost - held))
 		end
 	end
 	-- A collection's buy-back row shows only while it holds a card, counted
@@ -607,7 +624,7 @@ function Crates.render(state: any?)
 		paintSection(section)
 	end
 	paintBuybacks()
-	if explorer then explorer:update(latest, loot, cosmetics, rides) end
+	if explorer then explorer:update(latest, 0, cosmetics, rides) end
 end
 
 -- Opened from the recovery objective. Wait for the newly visible grid to
@@ -629,12 +646,14 @@ end
 
 -- THE BALANCE ARRIVES SEPARATELY, because it always did.
 --
--- Coin ticks cannot change crate affordability. Keep the existing caller
--- signature while repainting only when the earned Acorn balance changes.
-function Crates.setBalance(_newCoins: number?, newLoot: number?)
+-- NO CRATE HAS A PRICE, so the only thing on this tab a balance still decides
+-- is whether a BUY-BACK is affordable -- and that is coins now, where it used
+-- to be the earned acorn balance this function was written for. The second
+-- parameter is kept so existing callers do not have to change.
+function Crates.setBalance(newCoins: number?, _newLoot: number?)
 	local changed = false
-	if type(newLoot) == "number" and newLoot ~= loot then
-		loot = newLoot
+	if type(newCoins) == "number" and newCoins ~= coins then
+		coins = newCoins
 		changed = true
 	end
 	if changed then
@@ -696,7 +715,7 @@ function Crates.init(view: Frame, injected: any)
 	scroll:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
 	fit()
 	explorer = require(ReplicatedStorage.Shared.CrateContents).new(view, {
-		stockOf = stockOf, iconFor = deps.iconFor, open = deps.open,
+		stockOf = stockOf, iconFor = deps.iconFor,
 		-- Tier artwork is shared by the card and its collection summary.
 		crateIcon = crateIcon,
 		showList = function(visible: boolean)
@@ -725,12 +744,12 @@ end
 
 function Crates.setCosmetics(snapshot: any)
 	cosmetics = snapshot
-	if explorer then explorer:update(latest, loot, cosmetics, rides) end
+	if explorer then explorer:update(latest, 0, cosmetics, rides) end
 end
 
 function Crates.setRides(snapshot: any)
 	rides = snapshot
-	if explorer then explorer:update(latest, loot, cosmetics, rides) end
+	if explorer then explorer:update(latest, 0, cosmetics, rides) end
 end
 
 function Crates.rebuildIcons()

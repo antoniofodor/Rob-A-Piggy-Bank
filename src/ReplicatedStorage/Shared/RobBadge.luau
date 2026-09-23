@@ -11,7 +11,7 @@ local me: Player? = nil
 local cards: { [Instance]: any } = {}
 local cooldown: { [number]: number } = {}
 local recovery: any = nil
-local myPicks, mySack, stealMultiplier = 0, 0, 1
+local myPicks, mySack = 0, 0
 local REACH = Config.STREET_SPACING + Config.PLOT_SPACING
 -- A ROB FIGURE IS READ FROM THE PAVEMENT AND IS NOT THE LOUDEST THING ON
 -- THE STREET. At 224 x 42 with a 29px figure this card was wider than the
@@ -19,10 +19,8 @@ local REACH = Config.STREET_SPACING + Config.PLOT_SPACING
 -- eight of them across a street is a wall of gold type. The card carries the
 -- same four states at 150 x 30; what shrank is the type, not the vocabulary.
 local CARD_W, CARD_H, LOCK_ROW, TAG_H = 150, 30, 8, 16
--- The figure's ceiling, plain and with an event multiplier running. `big` is
--- the only thing on this card allowed to grow, because a doubled take is the
--- one moment the number is the news.
-local TEXT_MAX, TEXT_MAX_BIG = 20, 26
+-- The figure's ceiling.
+local TEXT_MAX = 20
 
 local function clockText(seconds: number): string
 	local left = math.max(0, math.ceil(seconds))
@@ -49,18 +47,17 @@ function RobBadge.describe(facts: any, now: number): any
 	if facts.home ~= nil then
 		return { text = Config.formatCoins(facts.home), timer = "", tone = "GOLD_INK", available = true }
 	end
-	return { text = Config.formatCoins(facts.vault * (facts.multiplier or 1)), timer = "", tone = "GOLD_INK", available = true }
+	return { text = Config.formatCoins(facts.vault), timer = "", tone = "GOLD_INK", available = true }
 end
 
 -- The figure `describe` prints for an available pig: a clean five-slice crack
--- at this reader's sack, times any event multiplier, times HEIST_PAYOUT.
+-- at this reader's sack, times HEIST_PAYOUT.
 --
 -- It needs nothing about the reader's own balance, which is the point: the
 -- badge is a price tag on somebody else's pig and can be drawn before the
 -- first StateUpdate has ever arrived.
-function RobBadge.homeFigure(vault: number?, sack: number, multiplier: number?): number
-	return Config.homeWorth(vault,
-		Config.getCrackFraction(Config.CRACK.maxSteps, sack), multiplier)
+function RobBadge.homeFigure(vault: number?, sack: number): number
+	return Config.homeWorth(vault, Config.getCrackFraction(Config.CRACK.maxSteps, sack))
 end
 
 function RobBadge.recoverable(state: any, victimId: number, now: number): boolean
@@ -119,7 +116,7 @@ local function build(body: BasePart): any
 	tag.Size, tag.BackgroundTransparency = UDim2.fromOffset(104, TAG_H), 0
 	tag.BackgroundColor3, tag.TextColor3, tag.TextSize = Theme.STOP_INK, Theme.PAPER, 11
 	Theme.corner(tag, 5)
-	return { gui = gui, card = card, label = text, timer = timer, glyph = glyph, coin = coin, locks = locks, tag = tag, limit = limit }
+	return { gui = gui, card = card, label = text, timer = timer, glyph = glyph, coin = coin, locks = locks, tag = tag }
 end
 
 local function attach(plot: Instance)
@@ -142,8 +139,8 @@ local function paint()
 			shield = owner and owner:GetAttribute(Config.PLAYER_SHIELD_ATTRIBUTE),
 			firstJob = owner and owner:GetAttribute(Config.PLAYER_FIRST_JOB_ATTRIBUTE) == true,
 			cooldown = cooldown[victimId], vault = vault,
-			capped = plot:GetAttribute(Config.PLOT_CAPPED_ATTRIBUTE), multiplier = stealMultiplier,
-			home = RobBadge.homeFigure(vault, mySack, stealMultiplier),
+			capped = plot:GetAttribute(Config.PLOT_CAPPED_ATTRIBUTE),
+			home = RobBadge.homeFigure(vault, mySack),
 		}, now)
 		local recover = RobBadge.recoverable(recovery, victimId, now)
 		local hot = (plot:GetAttribute(Config.PLOT_HOT_SKIN_ATTRIBUTE) or 0) > now
@@ -154,14 +151,12 @@ local function paint()
 		badge.coin.Visible = spec.available == true
 		local showLocks = spec.available and Config.canCase(myPicks)
 		badge.locks.Visible = showLocks == true
-		local big = spec.available and stealMultiplier > 1
-		local width, height = if big then 166 else CARD_W, if big then 38 else CARD_H
+		local width, height = CARD_W, CARD_H
 		local tagHeight = if recover or hot then TAG_H else 0
 		local lockHeight = if showLocks then LOCK_ROW else 0
 		badge.gui.Size = UDim2.fromOffset(width, height + lockHeight + tagHeight)
 		badge.card.Position, badge.card.Size = UDim2.fromOffset(0, tagHeight), UDim2.new(1, 0, 0, height + lockHeight)
 		badge.label.Size = UDim2.new(1, if spec.timer ~= "" then -68 else -36, 0, height - 6)
-		badge.limit.MaxTextSize = if big then TEXT_MAX_BIG else TEXT_MAX
 		badge.locks.Position = UDim2.fromOffset(9, height - 3)
 		if showLocks then
 			local level = plot:GetAttribute(Config.PLOT_LOCK_ATTRIBUTE) or 0
@@ -184,7 +179,6 @@ function RobBadge.start(player: Player)
 	end)
 	Remotes.get("StealCooldown").OnClientEvent:Connect(function(id, deadline) cooldown[id] = deadline end)
 	Remotes.get("RecoveryObjective").OnClientEvent:Connect(function(state) recovery = state end)
-	Remotes.get("EventState").OnClientEvent:Connect(function(state) stealMultiplier = (state and state.stealMultiplier) or 1 end)
 	task.spawn(function()
 		local plots = workspace:WaitForChild("Plots", 30)
 		if not plots then return end

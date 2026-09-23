@@ -9,7 +9,7 @@ import os
 import shutil
 import sys
 
-ROOT = "assets/skins/animal"
+ROOT = "assets/piggies"      # <tier>/<key>/package/ since 2026-09-22
 OUT = "import"
 
 COMMON = ["bee", "ladybird", "cow", "zebra", "giraffe", "leopard", "tiger", "snowleopard"]
@@ -60,7 +60,7 @@ missing = []
 
 
 def src(tier, skin, name):
-    return os.path.join(ROOT, tier, skin, name)
+    return os.path.join(ROOT, tier, skin, "package", name)   # the tier IS the folder now
 
 
 def take(tier, skin, name, role, target, bucket):

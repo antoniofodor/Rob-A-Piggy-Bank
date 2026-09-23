@@ -1,0 +1,9 @@
+{
+  "id": "tiger",
+  "name": "Bengal Tiger",
+  "source": "assets/piggies/common/tiger/package/tiger-complete.blend",
+  "sourceSha256": "882570b9174eba836efc818aa4fdd56a43d7b2d9b54248ec6c2aa53cc301a634",
+  "image": "assets/piggies/common/tiger/package/shop-cards/tiger.png",
+  "sha256": "f1d0c59284f81cafc5cc75bddd29d8d3d5b3993faa15aad3460c94e6a1727471",
+  "robloxAssetId": "rbxassetid://120311433092780"
+}

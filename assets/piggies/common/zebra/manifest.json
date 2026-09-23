@@ -1,0 +1,128 @@
+{
+  "key": "zebra",
+  "name": "Zebra",
+  "path": "assets/piggies/common/zebra/",
+  "tier": "common",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); common/: Config.SKINS.zebra.rarity = \"common\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/zebra/",
+    "assets/piggies/zebra/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/common/zebra/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6264,
+      "name": "Zebra",
+      "rarity": "common",
+      "surface": "zebra",
+      "legendary": null,
+      "chest": "animal",
+      "scale": 1.1,
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": {
+      "key": "zebra",
+      "line": 5768,
+      "name": "Zebra",
+      "template": "zebra",
+      "trimTemplate": "zebra_trim"
+    },
+    "legendaryPacks": null,
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/zebra.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://127489646933876",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/zebra_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://99597652549447",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://127489646933876": {
+      "file": "sheets/zebra_body_color.open-hatch.png",
+      "sha256": "d20c2240060434f3968c937fcaa41a7058908e9d268385dadf2ee8b0ef45de67",
+      "role": "body ColorMap",
+      "note": "uploaded from the open-hatch bake"
+    },
+    "rbxassetid://99597652549447": {
+      "file": "sheets/zebra_trim_color.png",
+      "sha256": "231941b68f1f4cf9e0e2892895c96fc0ff25f758c3427e1acdbe8af3a7d815d4",
+      "role": "trim ColorMap"
+    }
+  },
+  "shopCard": {
+    "file": "preview/zebra_shop-card.png",
+    "robloxAssetId": "rbxassetid://134406442403226",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/common/zebra/package/shop-cards/zebra.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/common/zebra/package",
+    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "fileCount": 13,
+    "textureCopiesMatchShippedSheets": {
+      "zebra_body_color.png": true,
+      "zebra_trim_color.png": true
+    }
+  },
+  "closedBack": {
+    "closedScene": "source/zebra_closed.blend",
+    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as zebra_body_color.open-hatch.png. Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "zebra.blend",
+      "zebra_closed.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_zebra_blend.py"
+    ],
+    "sheets": [
+      "zebra_body_color.open-hatch.png",
+      "zebra_body_color.png",
+      "zebra_trim_color.png"
+    ],
+    "preview": [
+      "zebra_hatch.png",
+      "zebra_hero.png",
+      "zebra_shop-card.json",
+      "zebra_shop-card.png",
+      "zebra_view.blend"
+    ],
+    "package": [
+      "README.md",
+      "index.html",
+      "shop-cards/",
+      "zebra-asset-report.json",
+      "zebra-complete.blend",
+      "zebra-complete.fbx",
+      "zebra-crown.png",
+      "zebra-front.png",
+      "zebra-hero.png",
+      "zebra-spine.png",
+      "zebra_body_color.png",
+      "zebra_trim_color.png"
+    ]
+  },
+  "generator": "generate/make_zebra_blend.py",
+  "notes": []
+}

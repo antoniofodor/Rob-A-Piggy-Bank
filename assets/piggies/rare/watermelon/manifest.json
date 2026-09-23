@@ -1,0 +1,134 @@
+{
+  "key": "watermelon",
+  "name": "Watermelon",
+  "path": "assets/piggies/rare/watermelon/",
+  "tier": "rare",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); rare/: Config.SKINS.watermelon.rarity = \"rare\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/watermelon/",
+    "assets/piggies/watermelon/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/rare/watermelon/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6522,
+      "name": "Watermelon",
+      "rarity": "rare",
+      "surface": "watermelon",
+      "legendary": null,
+      "chest": "animal",
+      "scale": 0.9,
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": {
+      "key": "watermelon",
+      "line": 5775,
+      "name": "Watermelon",
+      "template": "watermelon",
+      "trimTemplate": "watermelon_trim"
+    },
+    "legendaryPacks": null,
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/watermelon.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://81592756060314",
+        "EmissiveMaskContent": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/watermelon_trim.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://116324624730692",
+        "EmissiveMaskContent": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://81592756060314": {
+      "file": "sheets/watermelon_body_color.open-hatch.png",
+      "sha256": "784cb138bf86a94b812b881cc1a5d25be5912465cf764277d3e991a160960d64",
+      "role": "body ColorMap",
+      "note": "uploaded from the open-hatch bake"
+    },
+    "rbxassetid://116324624730692": {
+      "file": "sheets/watermelon_trim_color.png",
+      "sha256": "d9b7302c0d1abb63e69ac5d64b80cc0c7baae2dd45f10d3384802a3e926d2e37",
+      "role": "trim ColorMap"
+    }
+  },
+  "shopCard": {
+    "file": "preview/watermelon_shop-card.png",
+    "robloxAssetId": "rbxassetid://86426347641869",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/rare/watermelon/package/shop-cards/watermelon.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/rare/watermelon/package",
+    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "fileCount": 16,
+    "textureCopiesMatchShippedSheets": {
+      "watermelon_body_color.png": false,
+      "watermelon_trim_color.png": false
+    }
+  },
+  "closedBack": {
+    "closedScene": "source/watermelon_closed.blend",
+    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as watermelon_body_color.open-hatch.png. Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "coat-spec.json",
+      "watermelon.blend",
+      "watermelon_closed.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_watermelon_blend.py"
+    ],
+    "sheets": [
+      "watermelon_body_color.open-hatch.png",
+      "watermelon_body_color.png",
+      "watermelon_trim_color.png"
+    ],
+    "preview": [
+      "watermelon_hatch.png",
+      "watermelon_hero.png",
+      "watermelon_shop-card.json",
+      "watermelon_shop-card.png",
+      "watermelon_view.blend"
+    ],
+    "package": [
+      "README.md",
+      "index.html",
+      "shop-cards/",
+      "watermelon-asset-report.json",
+      "watermelon-complete.blend",
+      "watermelon-complete.fbx",
+      "watermelon-crown.png",
+      "watermelon-front.png",
+      "watermelon-glow.png",
+      "watermelon-hero.png",
+      "watermelon-spine.png",
+      "watermelon_body_color.png",
+      "watermelon_body_emissive.png",
+      "watermelon_trim_color.png",
+      "watermelon_trim_emissive.png"
+    ]
+  },
+  "generator": "generate/make_watermelon_blend.py",
+  "notes": []
+}

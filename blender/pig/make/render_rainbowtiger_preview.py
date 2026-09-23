@@ -3,7 +3,9 @@ from pathlib import Path
 import bpy,json,math,sys,hashlib
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
-ROOT=Path(__file__).resolve().parents[1];OUT=(ROOT.parents[1]/'assets/skins/animal/legendary/rainbowtiger' if '--swept' in sys.argv else ROOT/'skins/rainbowtiger/legendary-v1')
+ROOT=Path(__file__).resolve().parents[1]
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+OUT=(Path(paths.animal_package('rainbowtiger')) if '--swept' in sys.argv else Path(paths.skin_study('rainbowtiger','legendary-v1')))
 scene_hash=hashlib.sha256((OUT/'rainbowtiger-complete.blend').read_bytes()).hexdigest()
 bpy.ops.wm.open_mainfile(filepath=str(OUT/'rainbowtiger-complete.blend'));scene=bpy.context.scene
 rig=bpy.data.objects['RainbowTiger_Rig'];parts=[o for o in scene.objects if o.type=='MESH' and 'bone' in o]

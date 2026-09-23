@@ -1,0 +1,34 @@
+{
+  "name": "Peppermint",
+  "parent": "tiger",
+  "base": [
+    255,
+    248,
+    233
+  ],
+  "ink": [
+    208,
+    37,
+    66
+  ],
+  "nose": [
+    210,
+    49,
+    69
+  ],
+  "ear": [
+    255,
+    178,
+    181
+  ],
+  "pale": [
+    255,
+    248,
+    233
+  ],
+  "skin": "peppermint",
+  "rarity": "rare",
+  "parentScene": "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\tiger\\tiger.blend",
+  "parentSceneSha256": "0742c01a8bbf8f15fb5f4118e475bef421726e8c16b4b6b354e7745b2938de78",
+  "glow": "None. Flat baked colour; no emissive channel, no animation, no extra geometry"
+}

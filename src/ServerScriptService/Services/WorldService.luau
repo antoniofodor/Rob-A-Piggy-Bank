@@ -16,12 +16,13 @@ local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
-local TweenService = game:GetService("TweenService")
 
--- THE DAY, AS ONE TABLE, because Midnight Heist (step 6.4) has to put these
--- five back EXACTLY when it ends. The reasoning for each value lives beside
--- the line that applies it in `setupLighting`; this is only where the
--- numbers are kept, so the moon's restore and the boot cannot disagree.
+-- THE DAY, AS ONE TABLE. It was split out so Midnight Heist could put these
+-- five back EXACTLY when its dusk ended; that event is retired and nothing
+-- tweens Lighting any more -- there is no night in this game -- but the boot
+-- reads it, so it stays. The reasoning for each value lives beside the line
+-- that applies it in `setupLighting`; this is only where the numbers are
+-- kept.
 local DAY = {
 	ClockTime = 14.5,
 	Brightness = 2.4,
@@ -254,48 +255,6 @@ local function setupLighting()
 	rays.Intensity = 0.03
 	rays.Spread = 0.8
 end
-
--- MIDNIGHT HEIST'S DUSK (step 6.4), a tween for the window only. `on`
--- fades to `Config.MIDNIGHT_LIGHT.lighting`; off fades back and then SETS the
--- day values outright, so a tween that was interrupted, overlapped or left a
--- float a hair off still ends on ClockTime 14.5 exactly. There is no night in
--- this game, and this is what keeps that true.
-local nightTween: Tween? = nil
-local nightToken = 0
-function WorldService.setNight(on: boolean)
-	nightToken += 1
-	local token = nightToken
-	if nightTween then
-		nightTween:Cancel()
-		nightTween = nil
-	end
-	local spec = Config.MIDNIGHT_LIGHT
-	local goal = if on then spec.lighting else DAY
-	local tween = TweenService:Create(Lighting,
-		TweenInfo.new(spec.fadeSeconds, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), goal)
-	nightTween = tween
-	tween:Play()
-	if not on then
-		task.delay(spec.fadeSeconds + 0.1, function()
-			if nightToken == token then
-				WorldService.restoreDay()
-			end
-		end)
-	end
-end
-
--- The day, set outright. Also the teardown if an event errors mid-moon.
-function WorldService.restoreDay()
-	if nightTween then
-		nightTween:Cancel()
-		nightTween = nil
-	end
-	for key, value in pairs(DAY) do
-		(Lighting :: any)[key] = value
-	end
-end
-
-WorldService.DAY = DAY
 
 function WorldService.start()
 	clearDefaults()

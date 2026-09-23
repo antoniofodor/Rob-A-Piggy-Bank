@@ -125,12 +125,13 @@ function Contents.new(view: Frame, deps: any)
 
 	self.note = W.text(self.summary, "Duplicates", "Duplicates become spares. Combine or sell them from the crate list or your bag.", 13)
 	self.note.TextWrapped = true; self.note.TextTruncate = Enum.TextTruncate.None
-	self.open = W.button(self.summary, "OpenCrate", "Loading...", Theme.GOOD, function()
-		local info = self.state.chests and self.state.chests[self.selected]
-		if self.pending or not info or info.currency ~= "loot" or self.loot < info.cost then return end
-		self.pending = true; self:paint(); deps.open(self.selected)
-		task.delay(1.5, function() self.pending = false; self:paint() end)
-	end)
+	-- NOT A BUTTON ANY MORE, and deliberately still a button-shaped label.
+	-- This opened the crate for its price; a crate is earned rather than
+	-- bought, so it names where one comes from instead. The shape stays
+	-- because the summary's layout is measured around it.
+	self.open = W.button(self.summary, "OpenCrate", "Loading...", Theme.GOOD, function() end)
+	self.open.Active = false
+	self.open.AutoButtonColor = false
 	view:GetPropertyChangedSignal("AbsoluteSize"):Connect(function() self:layout() end)
 	return self
 end
@@ -376,24 +377,16 @@ function Contents:paint()
 		b.BackgroundColor3 = if name == self.filter then W.colours.style else Theme.PAPER
 	end
 
-	local available = info ~= nil and info.currency == "loot"
-	local affordable = available and self.loot >= info.cost
-	self.open.Active = affordable and not self.pending
-	self.open.BackgroundColor3 = if affordable then Theme.GOOD else Theme.SAND_DEEP
-	if self.pending then self.open.Text = "OPENING..."
-	elseif not available then self.open.Text = "UNAVAILABLE"
-	elseif not affordable then
-		local short = info.cost - self.loot
-		Theme.acornPrice(self.open, ("NEED %d MORE %s"):format(short, Config.lootWord(short):upper()))
-	else
-		Theme.acornPrice(self.open, ("OPEN %s %d %s"):format(DOT, info.cost, Config.lootWord(info.cost):upper()))
-	end
+	self.open.BackgroundColor3 = Theme.SAND_DEEP
+	self.open.Text = if info ~= nil then "EARN THIS CRATE" else "UNAVAILABLE"
 	self:refreshHint()
 	task.defer(function() self:loadVisible() end)
 end
 
-function Contents:update(state: any, loot: number, cosmetics: any, rides: any)
-	self.state = state or {}; self.loot = loot; self.cosmetics = cosmetics; self.rides = rides; self:paint()
+-- `loot` is kept in the signature and ignored: nothing on this surface is
+-- priced in it any more, and the caller has one fewer thing to change.
+function Contents:update(state: any, _loot: number, cosmetics: any, rides: any)
+	self.state = state or {}; self.cosmetics = cosmetics; self.rides = rides; self:paint()
 end
 
 function Contents:rebuildIcons()

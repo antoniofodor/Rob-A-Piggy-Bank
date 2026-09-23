@@ -4,8 +4,10 @@ import bpy,json,bmesh
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 ROOT=Path(__file__).resolve().parents[1]
-for relative in ('skins/stormwolf/stormwolf.blend','pig/pig_parts.blend','pig/pig_stormwolf_bolts.blend'):
-    bpy.ops.wm.open_mainfile(filepath=str(ROOT/relative))
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+SKIN=Path(paths.skin_blend('stormwolf'))
+for relative in (SKIN,ROOT/'pig/pig_parts.blend',ROOT/'pig/pig_stormwolf_bolts.blend'):
+    bpy.ops.wm.open_mainfile(filepath=str(relative))
     rows=[]
     for ob in bpy.context.scene.objects:
         if ob.type!='MESH':continue
@@ -17,7 +19,7 @@ for relative in ('skins/stormwolf/stormwolf.blend','pig/pig_parts.blend','pig/pi
             location=list(ob.location),scale=list(ob.scale),materials=[m.name for m in ob.data.materials if m],
             images=[n.image.filepath for m in ob.data.materials if m and m.node_tree for n in m.node_tree.nodes if n.type=='TEX_IMAGE' and n.image]))
         bm.free()
-        if relative.startswith('skins/'):
+        if relative==SKIN:
             bm=bmesh.new();bm.from_mesh(ob.data);bm.transform(ob.matrix_world)
             tree=BVHTree.FromBMesh(bm)
             for direction in ((0,1,0),(0,0,1),(0,0,-1),(1,0,0),(-1,0,0),(0,.94854,-.31667)):

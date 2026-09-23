@@ -41,9 +41,11 @@ local UpgradeService = require(script.Parent.UpgradeService)
 local CosmeticsService = require(script.Parent.CosmeticsService)
 local TrophyService = require(script.Parent.TrophyService)
 local ProgressionService = require(script.Parent.ProgressionService)
-local TreeService = require(script.Parent.TreeService)
 local SeasonService = require(script.Parent.SeasonService)
 local HeistService = require(script.Parent.HeistService)
+-- For `smash`: a dev command robs a RESIDENT and never a real child.
+-- ResidentService requires PlotService and nothing above it, so no cycle.
+local ResidentService = require(script.Parent.ResidentService)
 local BoneService = require(script.Parent.BoneService)
 local PoliceService = require(script.Parent.PoliceService)
 local TrafficService = require(script.Parent.TrafficService)
@@ -56,6 +58,7 @@ local GadgetService = require(script.Parent.GadgetService)
 local HomeService = require(script.Parent.HomeService)
 local StealthService = require(script.Parent.StealthService)
 local DailyService = require(script.Parent.DailyService)
+local HerdService = require(script.Parent.HerdService)
 
 local AdminService = {}
 
@@ -132,17 +135,18 @@ commands.coins = function(player, amount)
 	return ("Coins now %d"):format(math.floor(data.coins))
 end
 
--- Fills the pig to capacity, which is the state most worth testing: a full
--- pig has stopped earning and is the best target on the street.
+-- Fills the pig to the rebirth cash gate -- what the pile reads as full now
+-- that the pig has no ceiling -- which is the state most worth testing: the
+-- rebirth button lights and the pile shows every coin.
 commands.fill = function(player)
 	local data = DataService.get(player)
 	if not data then
 		return nil
 	end
-	data.coins = math.max(data.coins, Config.getCapacity(data.capacityLevel))
+	data.coins = math.max(data.coins, Config.pigFullAt(data.rebirths))
 	local plot = PlotService.getPlot(player)
 	if plot then
-		PlotService.updatePile(plot, data.coins, Config.getCapacity(data.capacityLevel))
+		PlotService.updatePile(plot, data.coins, Config.pigFullAt(data.rebirths))
 	end
 	return ("Piggy bank at %d"):format(math.floor(data.coins))
 end
@@ -184,36 +188,6 @@ commands.house = function(player, which)
 	return ("Moved into the %s"):format(tier.name)
 end
 
--- THE TREE LADDER (step 2.7) without buying the houses that gate it. Sets
--- the level outright -- the gate only restricts BUYING -- and redraws the oak,
--- the Grow offer and the next-acorn clock.
-commands.tree = function(player, level)
-	local data = DataService.get(player)
-	if not data or type(level) ~= "number" then
-		return nil
-	end
-	-- Settle at the old rate first, as a purchase does.
-	Config.growAcorns(data, os.time(), true)
-	data.tree.level = math.clamp(math.floor(level), 0, #Config.TREE_LEVELS - 1)
-	TreeService.apply(player)
-	return ("Tree set to level %d (%g acorns an hour, holds %d)"):format(
-		data.tree.level, Config.treeGrowthPerHour(data.tree.level), Config.treeCap(data))
-end
-
--- Fills the tree to its cap (or empties it with 0), for the clock's FULL
--- state and for Harvest Moon tests.
-commands.ripe = function(player, amount)
-	local data = DataService.get(player)
-	if not data or type(amount) ~= "number" then
-		return nil
-	end
-	local cap = Config.treeCap(data)
-	data.treeAcorns = math.clamp(math.floor(amount), 0, cap)
-	data.acornsGrownAt = os.time()
-	TreeService.apply(player)
-	return ("Tree holds %d of %d ripe acorns"):format(data.treeAcorns, cap)
-end
-
 commands.rebirths = function(player, count)
 	local data = DataService.get(player)
 	if not data or type(count) ~= "number" then
@@ -226,8 +200,8 @@ end
 
 -- FIRES THE REBIRTH SHOW WITHOUT PAYING THE REBIRTH GATE.
 --
--- The gate is a multiple of a capacity that is itself climbing -- 6.0M at
--- rebirth 1 and 193.8M at rebirth 10 -- so the only way to see the show at
+-- The gate climbs with the rebirth count (`Config.REBIRTH_CASH_GATE`, 4.2M
+-- at rebirth 1 and 96.9M at rebirth 10) -- so the only way to see the show at
 -- the top of its ladder is to play for a fortnight or to fake the balance
 -- ten times over. The show is the one part of a rebirth that has to be
 -- LOOKED AT rather than read back, and this is what makes that affordable.
@@ -256,6 +230,289 @@ commands.skin = function(player, key)
 	CosmeticsService.applyToPlot(player)
 	CosmeticsService.push(player)
 	return ("Wearing %s"):format(Config.getSkin(key).name)
+end
+
+-- ============================================================
+-- THE PIGGY COLLECTION
+-- ============================================================
+--
+-- THE SIX LAWN PEDESTALS CANNOT OTHERWISE BE DRIVEN, which is the whole
+-- reason these are on the panel rather than reachable only by opening crates
+-- until something lands. A crate open is a real reveal on a real roll, so
+-- filling a lawn that way is a dozen presses and a lot of luck -- and the one
+-- thing that actually needs exercising here is what the pedestals do once
+-- they are full, not the odds that filled them.
+--
+-- THROUGH `Config.addPiggy` AND `Config.removePiggy`, never by writing the
+-- save by hand. A harness that sets up its own state is a harness that lies
+-- to you -- `commands.spares` re-granting an item a probe had just sold is
+-- already on the record -- and these two are the same door every real source
+-- goes through, so what is being tested is the real path.
+commands.piggy = function(player, key)
+	local data = DataService.get(player)
+	if not data then
+		return nil
+	end
+	if type(key) ~= "string" or not Config.SKINS[key] then
+		return "unknown piggy key"
+	end
+	local slot = Config.addPiggy(data, key, true)
+	CosmeticsService.applyToPlot(player)
+	CosmeticsService.push(player)
+	DataService.save(player)
+	if slot == nil then
+		return ("%s owned -- the lawn is full, so it is standing nowhere")
+			:format(Config.getSkin(key).name)
+	end
+	return ("%s placed on slot %d (%s)"):format(Config.getSkin(key).name, slot,
+		Config.PIGGY_LAWN_SLOTS[slot].id)
+end
+
+-- ============================================================
+-- SPAWN A PIGGY TO LOOK AT
+-- ============================================================
+--
+-- The `AdminPiggyPicker` screen's other half. Stands the named skin on the
+-- ground in front of the player at the PEDESTAL'S display scale -- the size
+-- a collection piggy is actually read at -- facing them, anchored, owning
+-- nothing and touching no save. It is what `PiggyPedestal.dress` builds
+-- minus the plinth, so what is judged here is what a plinth would show.
+--
+-- NAMED `Display`, WHICH IS LOAD-BEARING. The client animator collects minis
+-- by name (Display, HerdPiggy, the carried loot), so a spawn called anything
+-- else would stand still with no aura -- a still, silent copy of an epic,
+-- which is the one thing this tool exists to not show you.
+--
+-- LINED UP RATHER THAN STACKED. Each spawn takes the next slot in a row
+-- seven studs apart in front of the player, wrapping to a second row, so
+-- pressing six cards stands six piggies side by side for comparing.
+local SPAWN_FOLDER = "AdminSpawns"
+local SPAWN_PITCH = 7
+local SPAWN_PER_ROW = 6
+local SPAWN_AHEAD = 10
+
+local function spawnFolder(player: Player, create: boolean): Folder?
+	local root = workspace:FindFirstChild(SPAWN_FOLDER)
+	if not root then
+		if not create then
+			return nil
+		end
+		root = Instance.new("Folder")
+		root.Name = SPAWN_FOLDER
+		root.Parent = workspace
+	end
+	local mine = root:FindFirstChild(tostring(player.UserId))
+	if not mine and create then
+		mine = Instance.new("Folder")
+		mine.Name = tostring(player.UserId)
+		mine.Parent = root
+	end
+	return mine :: Folder?
+end
+
+commands.spawnpiggy = function(player, key)
+	if type(key) ~= "string" or not Config.SKINS[key] then
+		return "unknown piggy key"
+	end
+	local character = player.Character
+	local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+	if not rootPart or not rootPart:IsA("BasePart") then
+		return "no character to stand it in front of"
+	end
+
+	local PiggyModel = require(ReplicatedStorage.Shared.PiggyModel)
+	local model = PiggyModel.build(key)
+	-- The pedestal's own scale times the skin's own, through the one
+	-- function that keeps the aura's stud sizes in step.
+	local factor = Config.PIGGY_PEDESTAL.display * Config.piggyScale(key)
+	PiggyModel.scale(model, factor)
+	-- Anchor whatever `PiggyModel` hands back: it builds unanchored and
+	-- massless for the thief's arms, and stood on nothing it simply falls.
+	for _, d in ipairs(model:GetDescendants()) do
+		if d:IsA("BasePart") then
+			d.Anchored = true
+			d.CanCollide = false
+			d.CanQuery = false
+		end
+	end
+
+	local folder = spawnFolder(player, true) :: Folder
+	local index = #folder:GetChildren()
+	local col = index % SPAWN_PER_ROW
+	local row = index // SPAWN_PER_ROW
+	local flat = rootPart.CFrame.LookVector * Vector3.new(1, 0, 1)
+	local forward = if flat.Magnitude > 0.01 then flat.Unit else Vector3.zAxis
+	local right = forward:Cross(Vector3.yAxis).Unit
+	local across = (col - (SPAWN_PER_ROW - 1) / 2) * SPAWN_PITCH
+	local spot = rootPart.Position + forward * (SPAWN_AHEAD + row * SPAWN_PITCH) + right * across
+
+	-- The ground under that spot, asked for rather than assumed: a lawn is
+	-- a stud above the world ground and a driveway a fifth below it.
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = { character, workspace:FindFirstChild(SPAWN_FOLDER) }
+	local hit = workspace:Raycast(spot + Vector3.new(0, 6, 0), Vector3.new(0, -40, 0), params)
+	local groundY = if hit then hit.Position.Y else rootPart.Position.Y - 3
+	-- `PiggyModel`'s pivot is the mini's body centre; the origin is the feet.
+	local lift = PiggyModel.MINI_CENTRE_Y * factor
+	-- Facing the player: the model is authored facing +Z and `lookAt` aims
+	-- -Z, so the half turn is what points the snout at them -- the same
+	-- correction the dog and the mini already carry.
+	local at = Vector3.new(spot.X, groundY + lift, spot.Z)
+	local look = Vector3.new(rootPart.Position.X, at.Y, rootPart.Position.Z)
+	model:PivotTo(CFrame.lookAt(at, look) * CFrame.Angles(0, math.pi, 0))
+	model.Name = "Display"
+	model:SetAttribute("AdminSpawn", key)
+	model.Parent = folder
+
+	-- Its name in its tier's colour over its head, so a row of six reads as
+	-- six named things rather than six pigs.
+	local body = PiggyModel.bodyOf(model)
+	if body then
+		local skin = Config.getSkin(key)
+		local plate = Instance.new("BillboardGui")
+		plate.Name = "Nameplate"
+		plate.Size = UDim2.new(0, 220, 0, 36)
+		plate.StudsOffset = Vector3.new(0, body.Size.Y / 2 + 2.2, 0)
+		plate.MaxDistance = 90
+		plate.AlwaysOnTop = false
+		local text = Instance.new("TextLabel")
+		text.Size = UDim2.fromScale(1, 1)
+		text.BackgroundTransparency = 1
+		text.Font = Enum.Font.FredokaOne
+		text.TextScaled = true
+		text.TextColor3 = Config.piggyTierColour(key)
+		text.Text = (skin and skin.name) or key
+		local stroke = Instance.new("UIStroke")
+		stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+		stroke.Thickness = 2
+		stroke.Color = Color3.fromRGB(40, 26, 30)
+		stroke.Parent = text
+		text.Parent = plate
+		plate.Parent = body
+	end
+
+	return ("%s standing in front of you (%s, %.2fx)"):format(
+		(Config.getSkin(key) or {}).name or key, Config.rarityOf(Config.SKINS[key]), factor)
+end
+
+commands.spawnclear = function(player)
+	local folder = spawnFolder(player, false)
+	if not folder then
+		return "nothing spawned"
+	end
+	local n = #folder:GetChildren()
+	folder:Destroy()
+	return ("cleared %d spawned piggies"):format(n)
+end
+
+-- Fill every free slot front to back, which is the state worth looking at:
+-- six pedestals, six buffers, six prompts and one walk between them.
+commands.fillpiggies = function(player)
+	local data = DataService.get(player)
+	if not data then
+		return nil
+	end
+	-- Ordered rather than `pairs`, so the same command twice fills the same
+	-- lawn: a catalogue walked by hash puts a different six on the grass every
+	-- run, which makes a screenshot impossible to compare against the last one.
+	local keys: { string } = {}
+	for skinKey in pairs(Config.SKINS) do
+		table.insert(keys, skinKey)
+	end
+	table.sort(keys)
+
+	local placed = 0
+	for _, skinKey in ipairs(keys) do
+		if Config.firstFreePiggySlot(data) == nil then
+			break
+		end
+		if Config.addPiggy(data, skinKey, true) ~= nil then
+			placed += 1
+		end
+	end
+	CosmeticsService.applyToPlot(player)
+	CosmeticsService.push(player)
+	DataService.save(player)
+	return ("Placed %d piggies"):format(placed)
+end
+
+-- OWNED AGAINST STANDING, WHICH IS THE ONE THING NOTHING ELSE CAN SAY.
+--
+-- Placement IS ownership under the six-slot lawn, so `piggies.owned` and what
+-- is on the grass are two descriptions of one fact -- and the moment they
+-- disagree the failure is invisible from every angle: a crate refuses to open
+-- over a visibly free plinth, or a piggy earns from a pedestal nobody owns.
+-- `Config.addPiggy`, `removePiggy` and `placePiggy` all bump the pair in one
+-- breath precisely so they cannot drift, and this is what checks that they
+-- did not.
+--
+-- IT EXISTS BECAUSE THE SANDBOX CANNOT READ A LIVE SAVE. Requiring
+-- `DataService` from the MCP console hands back a fresh module whose state is
+-- empty, so the only way to see a real player's collection is to make the
+-- GAME say it -- the same move `PlotService.auditYard` makes for a house that
+-- could not be measured any other way.
+commands.piggystate = function(player)
+	local data = DataService.get(player)
+	if not data then
+		return nil
+	end
+	local placed: { [string]: number } = {}
+	local standing = 0
+	for _, entry in ipairs(Config.piggySlots(data)) do
+		if entry.key then
+			placed[entry.key] = (placed[entry.key] or 0) + 1
+			standing += 1
+		end
+	end
+	-- THE TILL COUNTS. Plan SS3: the piggy on it "earns like any other", so a
+	-- sweep that left it out would read every worn piggy as one copy short.
+	local till = data.piggies and data.piggies.till
+	if till then
+		placed[till] = (placed[till] or 0) + 1
+	end
+
+	local keys: { string } = {}
+	local seen: { [string]: boolean } = {}
+	for key in pairs((data.piggies and data.piggies.owned) or {}) do
+		keys[#keys + 1] = key
+		seen[key] = true
+	end
+	for key in pairs(placed) do
+		if not seen[key] then
+			keys[#keys + 1] = key
+		end
+	end
+	table.sort(keys)
+
+	local bad = 0
+	for _, key in ipairs(keys) do
+		local owned = (data.piggies.owned and data.piggies.owned[key]) or 0
+		if owned ~= (placed[key] or 0) then
+			bad += 1
+			warn(("[piggystate] %s owned=%d standing=%d"):format(key, owned, placed[key] or 0))
+		end
+	end
+	return ("%d/%d plinths + till %s; %d keys; %s"):format(standing,
+		Config.PIGGY_LAWN_SLOT_COUNT, tostring(till), #keys,
+		if bad == 0 then "owned matches standing" else ("%d MISMATCHES, see the log"):format(bad))
+end
+
+commands.clearpiggies = function(player)
+	local data = DataService.get(player)
+	if not data then
+		return nil
+	end
+	local taken = 0
+	for slot = 1, Config.PIGGY_LAWN_SLOT_COUNT do
+		if Config.removePiggy(data, slot) ~= nil then
+			taken += 1
+		end
+	end
+	CosmeticsService.applyToPlot(player)
+	CosmeticsService.push(player)
+	DataService.save(player)
+	return ("Cleared %d pedestals"):format(taken)
 end
 
 commands.unlockall = function(player)
@@ -378,7 +635,6 @@ commands.maxupgrades = function(player)
 	-- path cannot produce, which is exactly the sort of thing a dev command
 	-- should not be able to fake.
 	data.incomeLevel = Config.maxLevel(data.rebirths)
-	data.capacityLevel = Config.maxLevel(data.rebirths)
 	refresh(player)
 	return "All upgrades maxed"
 end
@@ -474,8 +730,8 @@ commands.mostwanted = function(player)
 		return "Rap sheet cleared. You are off the board."
 	end
 	local record = SocialService.makeMostWanted(player)
-	return ("You are MOST WANTED with %d on the sheet. Bail would be %d."):format(
-		record, record * Config.POLICE.bailMultiple)
+	return ("You are MOST WANTED with %d on the sheet. Bail is %d%% of your pig.")
+		:format(record, Config.bailPercent())
 end
 
 -- Reports what the patrol is actually doing rather than what it looks like it
@@ -484,6 +740,32 @@ end
 -- already committed, and those are the two states a bug would hide in.
 -- Puts an officer onto you without needing a second player and a real
 -- robbery. `amount` is the notional loot the bail is calculated from.
+-- Smashes the nearest RESIDENT's pig through the real path -- `whyCannotSteal`,
+-- the drain, `attachLoot`, the carry, the alarm, the dog -- so the coin carry
+-- (the money bag, its label, the nab prompt and the delivery home) can be
+-- driven in a solo Studio session where no prompt can be held (RenderStepped
+-- does not fire when the viewport is not drawing, so no prompt is ever shown).
+-- Residents only, on purpose: a dev command may never rob a real player, and
+-- a shop is skipped because its vault has to be robbed from inside the room.
+commands.smash = function(player)
+	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+	local best, bestDist = nil, nil
+	for _, plot in ipairs(PlotService.getAll()) do
+		local resident = ResidentService.get(plot)
+		if resident and not plot.shop and plot.piggy and plot.piggy.body then
+			local d = if root then (plot.piggy.body.Position - root.Position).Magnitude else plot.index
+			if bestDist == nil or d < bestDist then
+				best, bestDist = resident, d
+			end
+		end
+	end
+	if not best then
+		return "Nobody to rob: no resident on a house plot."
+	end
+	HeistService.smash(player, best)
+	return ("Smashed %s's pig, %.0f studs away. Check your arms."):format(best.name, bestDist or 0)
+end
+
 commands.bust = function(player, amount)
 	local n = if type(amount) == "number" then math.clamp(math.floor(amount), 1, 1e9) else 10000
 	return PoliceService.bust(player, n)
@@ -615,7 +897,7 @@ commands.chest = function(player, key, times)
 	local n = math.clamp(tonumber(times) or 1, 1, 25)
 	local lines = {}
 	for _ = 1, n do
-		local tier, kind, itemKey, dup = ChestService.open(player, chestKey)
+		local tier, kind, itemKey, dup = ChestService.grantFree(player, chestKey)
 		if not tier then
 			table.insert(lines, "refused")
 			break
@@ -839,19 +1121,6 @@ commands.spares = function(player, amount)
 	return ("Spares: +%d across the coin chests, %d items granted"):format(added, granted)
 end
 
--- Grants loot. Earning it legitimately means delivering a robbery, and the
--- roll button and the set panel both read the balance, so a dev grant has to
--- push -- which SetService.award already does.
-commands.loot = function(player, amount)
-	local n = if type(amount) == "number" then math.floor(amount) else 0
-	if n ~= 0 then
-		SetService.award(player, n, "Dev grant.")
-	else
-		SetService.push(player)
-	end
-	return ("Acorns: %d"):format(SetService.getLoot(player))
-end
-
 commands.event = function(player, name)
 	return EventService.trigger(if type(name) == "string" then name else nil)
 end
@@ -860,26 +1129,31 @@ commands.eventstate = function(player)
 	return EventService.status()
 end
 
--- PHASE 5. The season only counts in a real season week and launched in a
--- rest week, so a test needs the clock moved: `seasonshift 1` moves this
--- server's season clock a week forward (never saved). `seasonearn` credits
--- acorns to the season exactly as a harvest would, through the real path.
+-- ROAMING HERDS. `herd` brings one in now (respecting the cap, ignoring the
+-- timer) so a three-minute wait is not the price of testing a catch; the
+-- kind is optional and names a `Config.HERDS.roster` row.
+commands.herd = function(player, kind)
+	return HerdService.trigger(if type(kind) == "string" then kind else nil)
+end
+
+commands.herdclear = function(player)
+	return HerdService.clear()
+end
+
+commands.herdstate = function(player)
+	return HerdService.status()
+end
+
+-- THE SEASON WINDOW is what the buy-back claims and the hot-skin timer are
+-- keyed to, and it moves once every five weeks -- so a test needs the clock
+-- moved: `seasonshift 1` moves this server's season index a week forward
+-- (never saved). `seasonearn` went with the acorn-ranked ladder it credited.
 commands.seasonshift = function(_player, weeks)
 	SeasonService.shiftWeeks(math.clamp(math.floor(tonumber(weeks) or 0), -10, 10))
 	for _, p in ipairs(Players:GetPlayers()) do
 		SeasonService.refreshSign(p)
-		SeasonService.push(p)
 	end
 	return SeasonService.status()
-end
-
-commands.seasonearn = function(player, amount)
-	local n = math.clamp(math.floor(tonumber(amount) or 0), 0, 10000)
-	SeasonService.earn(player, n)
-	local data = DataService.get(player)
-	local season = data and SeasonService.state(data)
-	return if season then ("Season acorns %d, tier %d (%s)"):format(season.earned, season.tier,
-		SeasonService.status()) else nil
 end
 
 commands.seasonstate = function(_player)
@@ -969,7 +1243,6 @@ commands.reset = function(player)
 	end
 	data.coins = 0
 	data.incomeLevel = 1
-	data.capacityLevel = 1
 	data.rebirths = 0
 	data.houses = { owned = { shack = true }, shown = "shack" }
 	for key in pairs(Config.UPGRADES) do
@@ -1007,7 +1280,7 @@ commands.reset = function(player)
 		PlotService.setDecor(plot, data.decor.placed)
 		PlotService.applyAccessories(plot, data.accessories.worn)
 		PlotService.setHouseLevel(plot, 0)
-		PlotService.updatePile(plot, 0, Config.getCapacity(1))
+		PlotService.updatePile(plot, 0, Config.pigFullAt(0))
 	end
 	refresh(player)
 	BoneService.push(player)

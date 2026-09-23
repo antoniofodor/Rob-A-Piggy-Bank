@@ -1,0 +1,34 @@
+{
+  "name": "Piggy Bank",
+  "parent": "giraffe",
+  "base": [
+    246,
+    243,
+    234
+  ],
+  "ink": [
+    38,
+    70,
+    146
+  ],
+  "nose": [
+    226,
+    216,
+    198
+  ],
+  "ear": [
+    236,
+    228,
+    212
+  ],
+  "pale": [
+    252,
+    250,
+    244
+  ],
+  "skin": "piggybank",
+  "rarity": "rare",
+  "parentScene": "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\giraffe\\giraffe.blend",
+  "parentSceneSha256": "3381b2893e16477da368094ed2c0119e284be9b5d3ec4b89cb75d16e35a2e651",
+  "glow": "None. Flat baked colour; no emissive channel, no animation, no extra geometry"
+}

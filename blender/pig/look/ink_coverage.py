@@ -49,7 +49,7 @@ falls.
 # --- find the toolkit, wherever this script has been filed ------------------
 # Walks up from this file until it finds the folder holding `paths.py`. Depth
 # independent on purpose: a script in `look/` is one level down and a script in
-# `skins/cow/` is two, and a hardcoded `..` is a thing that breaks silently the
+# `assets/piggies/common/cow/generate/` is elsewhere, and a hardcoded `..` is a thing that breaks silently the
 # first time anything is refiled.
 import os as _os, sys as _sys
 _root = _os.path.dirname(_os.path.abspath(__file__))

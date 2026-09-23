@@ -4,7 +4,8 @@ from html.parser import HTMLParser
 import json,hashlib,os,re
 from PIL import Image
 ROOT=Path(__file__).resolve().parents[1];REPO=ROOT.parents[1]
-PACKAGE=ROOT.parents[1]/'assets/skins/animal/legendary/rainbowtiger';OUT=REPO/'assets/skins/animal/legendary'
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+PACKAGE=Path(paths.animal_package('rainbowtiger'));OUT=Path(paths.tier_gallery('legendary'))
 def relative(path,base):return os.path.relpath(path,base).replace('\\','/')
 def publish():
     report=json.loads((PACKAGE/'rainbowtiger-asset-report.json').read_text())
@@ -20,7 +21,7 @@ def publish():
     images[0].save(PACKAGE/'rainbowtiger-idle.gif',save_all=True,append_images=images[1:],duration=round(1000/animation['previewFPS']),loop=0)
     readme=f'''# Rainbow Tiger — option C, swept charcoal
 
-Built from the approved [option C concept](../../../../../assets/skins/animal/legendary/rainbow-tiger-concept/concept-v5-c-swept-charcoal.png), with the latest adjustments:
+Built from the approved [option C concept](../generate/rainbow-tiger-concept/concept-v5-c-swept-charcoal.png), with the latest adjustments:
 
 - Upper cheek strands rebuilt to follow the face downward in curved layers.
 - Inner-ear locks share roots at the actual medial corner nearest the forehead,

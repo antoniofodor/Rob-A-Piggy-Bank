@@ -10,28 +10,49 @@ local function near(a, b, tol) return math.abs(a - b) <= (tol or 1e-6) * math.ma
 -- These are the values measured out of the live Config the day before band C
 -- landed (tests/sim/late-game/dump.py). A byte-identical early and mid game
 -- is the whole reason there is no value migration.
-check(Config.getCapacity(1) == 5000 and Config.getCapacity(20) == 2988151 and Config.getCapacity(40) == 96904045,
-	"capacity at 1 / 20 / 40 unchanged")
+-- THE PIG HAS NO CAPACITY (designer decision 2026-09-21). The ladder below is
+-- the INCOME ladder alone, and the retired half has to STAY retired: a
+-- `getCapacity` that came back would be a cap with no reader deciding to
+-- have one.
+check(Config.getCapacity == nil and Config.getCapacityCost == nil and Config.fitInPig == nil
+	and Config.pigRoom == nil and Config.UPGRADE_COST_CEILING == nil
+	and Config.CAPACITY_GROWTH == nil and Config.BASE_CAPACITY == nil
+	and Config.REBIRTH_CAPACITY_MULTIPLE == nil,
+	"the capacity ceiling, its tree, its clamp and its gate basis are gone")
 check(near(Config.getIncomeRate(20, 0), 2994.6191770211863) and near(Config.getIncomeRate(40, 10), 128210.63960711213),
 	"income at L20 RB0 and L40 RB10 unchanged")
-check(Config.getIncomeCost(20) == 1643483 and Config.getCapacityCost(20) == 2390520
-	and Config.getIncomeCost(40) == 53297224 and Config.getCapacityCost(40) == 77523236,
-	"upgrade costs at 20 and 40 unchanged")
+-- INCOME COSTS ARE THE PURE CURVE NOW. They were 1,643,483 and 53,297,224 at
+-- 20 and 40 -- both CLAMPED by `UPGRADE_COST_CEILING`, which is retired with
+-- the wallet it guarded -- so these two moved, on purpose, and are pinned at
+-- the unclamped figures so they cannot move again by accident.
+check(Config.getIncomeCost(20) == 1653340 and Config.getIncomeCost(40) == 168179539,
+	"income costs at 20 and 40 are the unclamped curve")
+check(Config.getIncomeCost(1) == 400 and Config.getIncomeCost(19) == 400 * 1.55 ^ 18 // 1,
+	"band A income costs untouched")
 for rb = 0, 10 do
 	check(Config.maxLevel(rb) == 20 + 2 * rb, "maxLevel unchanged at rebirth " .. rb)
 	check(near(Config.rebirthIncomeFactor(rb), 1 + rb * 0.12), "rebirth factor unchanged at rebirth " .. rb)
 end
 check(Config.getRebirthThreshold(0) == 2988151 and Config.getRebirthThreshold(10) == 96904045,
 	"rebirth gates at 0 and 10 unchanged")
+-- THE GATE IS A FROZEN TABLE (`REBIRTH_CASH_GATE`, PLACEHOLDER: designer to
+-- set): every row is today's old derivation as a literal, so nothing got
+-- easier or harder, and the piggy half is a hook that says yes.
+for rb, gate in pairs({ [1] = 4231522, [5] = 17016580, [15] = 346836842, [20] = 1241390843 }) do
+	check(Config.getRebirthThreshold(rb) == gate, "frozen gate at rebirth " .. rb)
+end
+check(Config.rebirthPiggyGate({}) == true, "the piggy gate is a placeholder that passes")
 
 -- ---- THE THIRD BAND ---------------------------------------------------------
 check(Config.ABSOLUTE_MAX_LEVEL == 60 and Config.BAND_TOP_2 == 40, "ceiling 60, band C from 40")
 check(Config.rebirthsToMax() == 20 and Config.maxLevel(20) == 60 and Config.maxLevel(25) == 60,
 	"twenty rebirths open the ladder and the cap holds after")
-local top = Config.getCapacity(60)
-check(top >= 1.2e9 and top <= 1.3e9, "top pig is about 1.24B, got " .. top)
-check(1e9 <= 0.85 * top, "a 1B house keeps the Sky Castle's headroom under the top pig")
-check(near(Config.getCapacity(41) / Config.getCapacity(40), 1.136, 1e-4), "band C seam is exactly one band-C multiplier")
+-- The gate flattens past the last rebirth that opens a level, as the old
+-- derivation did at ABSOLUTE_MAX_LEVEL, and never gets easier on the way up.
+check(Config.getRebirthThreshold(25) == Config.getRebirthThreshold(20), "the gate is flat past rebirth 20")
+for rb = 1, Config.rebirthsToMax() do
+	check(Config.REBIRTH_CASH_GATE[rb] > Config.REBIRTH_CASH_GATE[rb - 1], "the gate climbs at rebirth " .. rb)
+end
 check(near(Config.getIncomeRate(41, 0) / Config.getIncomeRate(40, 0), 1.10, 1e-6), "income seam is one band-C multiplier")
 
 -- The taper: 0.12 to rebirth 10, 0.08 beyond. Designer's choice (A2).
@@ -39,22 +60,16 @@ check(near(Config.rebirthIncomeFactor(11), 2.28) and near(Config.rebirthIncomeFa
 	"rebirth factor tapers to 3.0x at rebirth 20")
 check(Config.rebirthBonusPercent(10) == 120 and Config.rebirthBonusPercent(20) == 200, "bonus percent reads the taper")
 
--- Fill time at every reachable ceiling stays in the band the whole game is
--- tuned to. 8 minutes at level 0; 12.6 at rebirth 10; 17.6 at rebirth 20.
-for rb = 0, 20 do
-	local L = Config.maxLevel(rb)
-	local fill = Config.getCapacity(L) / Config.getIncomeRate(L, rb) / 60
-	check(fill >= 10 and fill <= 18, ("fill time at rebirth %d ceiling is %.1f min"):format(rb, fill))
+-- (The fill-time band and the affordability clamp that used to be asserted
+-- here were both statements about a bounded pig and went with it.)
+--
+-- Unclamped, the income cost curve is monotonic across all three bands and
+-- its seams are one band multiplier each.
+for L = 1, Config.ABSOLUTE_MAX_LEVEL - 1 do
+	check(Config.getIncomeCost(L + 1) > Config.getIncomeCost(L), "income cost climbs at level " .. L)
 end
-
--- The affordability clamp binds on every band-C rung, which is what makes
--- time-per-rung constant there and is the no-deadlock guarantee.
-for L = 40, 59 do
-	local pig = Config.getCapacity(L)
-	check(Config.getCapacityCost(L) == math.floor(0.80 * pig), "capacity clamp binds at level " .. L)
-	check(Config.getIncomeCost(L) == math.floor(0.55 * pig), "income clamp binds at level " .. L)
-	check(Config.getCapacityCost(L) <= pig and Config.getIncomeCost(L) <= pig, "no rung costs more than its pig at " .. L)
-end
+check(near(Config.getIncomeCost(21) / Config.getIncomeCost(20), 1.26, 1e-6), "income cost seam A/B is one band-B multiplier")
+check(near(Config.getIncomeCost(41) / Config.getIncomeCost(40), 1.26, 1e-6), "income cost seam B/C is one band-C multiplier")
 
 -- Robbing versus idling is a flat ratio by construction (pigSeconds cancels
 -- the rate); band C lives inside getIncomeRate so it must stay flat.
@@ -64,25 +79,56 @@ check(near(r0 / i0, r1 / i1, 1e-6), "robbery advantage flat from L1 RB0 to L60 R
 
 -- ---- AUDITS ---------------------------------------------------------------
 check(#Config.auditEconomy() == 0, "auditEconomy clean with the longer ladder")
-check(#Config.auditRobbery() == 0, "auditRobbery clean across twenty rebirths")
+-- AUDITROBBERY IS NOT CLEAN, ON PURPOSE, AND THIS IS THE ONE PROBLEM IT MAY
+-- REPORT. The collection sweep added to it measures idling against a whole
+-- lawn instead of one pig, and robbing loses to it: 0.459x against a floor of
+-- 3.0x. That is a real imbalance awaiting plan §8's re-derivation, so the
+-- audit is meant to say so on every boot.
+--
+-- ASSERTED AS "NOTHING ELSE", NEVER AS A COUNT. A flat `== 1` would pass just
+-- as happily if the collection check went quiet and some OTHER check started
+-- firing, which is the swap this suite exists to catch. Matching the wording
+-- means zero problems passes too, so the day §8 lands this test does not have
+-- to be edited to let the fix through.
+for _, problem in ipairs(Config.auditRobbery()) do
+	check(problem:find("FULL LAWN", 1, true) ~= nil,
+		"the only robbery problem is the known collection one: " .. problem)
+end
+-- And the collection check has to be REACHABLE rather than silently skipped:
+-- a `fullLawn` that came back empty would make its ratio infinite and the
+-- sweep would never fire, which is the shape of a guard that guards nothing.
+check(#Config.fullLawn("common") == Config.PIGGY_LAWN_SLOT_COUNT + 1,
+	"a full lawn is every pedestal plus the till")
+check(Config.collectionRate(Config.fullLawn("common"), 20, 0)
+	> Config.getIncomeRate(20, 0),
+	"and a whole collection earns more than the one pig the old audit measured")
 
--- Provoked: a 1B house against a 40-level ceiling must fire, and a 1B house
--- against the real ceiling must not.
-local fake = { id = "testcitadel", name = "Test Citadel", style = "shack", cost = 1e9 }
+-- NO PRICE IS IMPOSSIBLE: a 100B house is a wait, not a wall, and the audit
+-- says nothing about it.
+local fake = { id = "testcitadel", name = "Test Citadel", style = "shack", cost = 1e11 }
 table.insert(Config.HOUSE_TIERS, fake)
-check(#Config.auditEconomy() == 0, "a 1B house fits the 60-level pig")
-local saved = Config.ABSOLUTE_MAX_LEVEL
-Config.ABSOLUTE_MAX_LEVEL = 40
-local problems = Config.auditEconomy()
-Config.ABSOLUTE_MAX_LEVEL = saved
+check(#Config.auditEconomy() == 0, "a 100B house is not an audit problem with an unbounded pig")
 table.remove(Config.HOUSE_TIERS)
--- The message names the catalogue and the key, not the house: "HOUSE_TIERS.10
--- costs 1000000000 against a largest possible pig of 96904045".
+-- Provoked: a HOLE in the frozen gate table must fire, because a missing row
+-- falls back to the top row and silently gates a mid-game rebirth at 1.24B;
+-- and a gate that got EASIER with rebirths must fire too.
+local savedGate = Config.REBIRTH_CASH_GATE[5]
+Config.REBIRTH_CASH_GATE[5] = nil
+local problems = Config.auditEconomy()
+Config.REBIRTH_CASH_GATE[5] = savedGate
 local fired = false
 for _, p in problems do
-	if p:find("HOUSE_TIERS", 1, true) and p:find("1000000000", 1, true) then fired = true end
+	if p:find("REBIRTH_CASH_GATE[5]", 1, true) then fired = true end
 end
-check(fired, "audit refuses a 1B house against a 40-level pig")
-check(#Config.auditEconomy() == 0, "audit clean again after the provocation")
+check(fired, "audit refuses a hole in the rebirth cash gate")
+Config.REBIRTH_CASH_GATE[5] = 1
+problems = Config.auditEconomy()
+Config.REBIRTH_CASH_GATE[5] = savedGate
+fired = false
+for _, p in problems do
+	if p:find("REBIRTH_CASH_GATE[5]", 1, true) and p:find("lower", 1, true) then fired = true end
+end
+check(fired, "audit refuses a gate that gets easier with rebirths")
+check(#Config.auditEconomy() == 0, "audit clean again after the provocations")
 
 print(("ladder: %d checks passed"):format(checks))

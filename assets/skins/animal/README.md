@@ -4,25 +4,25 @@
 
 | Tier | Skin | Import | Review |
 |---|---|---|---|
-| Common | Bumblebee (`bee`) | [FBX](common/bee/bee-complete.fbx) | [Preview and notes](common/bee/index.html) |
-| Common | Ladybird (`ladybird`) | [FBX](common/ladybird/ladybird-complete.fbx) | [Preview and notes](common/ladybird/index.html) |
-| Common | Dairy Cow (`cow`) | [FBX](common/cow/cow-complete.fbx) | [Preview and notes](common/cow/index.html) |
-| Common | Zebra (`zebra`) | [FBX](common/zebra/zebra-complete.fbx) | [Preview and notes](common/zebra/index.html) |
-| Common | Giraffe (`giraffe`) | [FBX](common/giraffe/giraffe-complete.fbx) | [Preview and notes](common/giraffe/index.html) |
-| Common | Leopard (`leopard`) | [FBX](common/leopard/leopard-complete.fbx) | [Preview and notes](common/leopard/index.html) |
-| Common | Bengal Tiger (`tiger`) | [FBX](common/tiger/tiger-complete.fbx) | [Preview and notes](common/tiger/index.html) |
-| Common | Snow Leopard (`snowleopard`) | [FBX](common/snowleopard/snowleopard-complete.fbx) | [Preview and notes](common/snowleopard/index.html) |
-| Rare | Strawberry Cow (`strawberrycow`) | [FBX](rare/strawberrycow/strawberrycow-complete.fbx) | [Preview and notes](rare/strawberrycow/index.html) |
-| Rare | Cookies & Cream (`cookiescream`) | [FBX](rare/cookiescream/cookiescream-complete.fbx) | [Preview and notes](rare/cookiescream/index.html) |
-| Rare | Watermelon (`watermelon`) | [FBX](rare/watermelon/watermelon-complete.fbx) | [Preview and notes](rare/watermelon/index.html) |
-| Rare | Peppermint (`peppermint`) | [FBX](rare/peppermint/peppermint-complete.fbx) | [Preview and notes](rare/peppermint/index.html) |
-| Rare | Glacier (`glacier`) | [FBX](rare/glacier/glacier-complete.fbx) | [Preview and notes](rare/glacier/index.html) |
-| Rare | Bubblegum Leopard (`bubblegumleopard`) | [FBX](rare/bubblegumleopard/bubblegumleopard-complete.fbx) | [Preview and notes](rare/bubblegumleopard/index.html) |
-| Rare | Honeycomb (`honeycomb`) | [FBX](rare/honeycomb/honeycomb-complete.fbx) | [Preview and notes](rare/honeycomb/index.html) |
-| Legendary | Stormwolf (`stormwolf`) | [FBX](legendary/stormwolf/stormwolf-complete.fbx) | [Preview and notes](legendary/stormwolf/index.html) |
-| Legendary | Dragon (`dragon`) | [FBX](legendary/dragon/dragon-complete.fbx) | [Preview and notes](legendary/dragon/index.html) |
-| Legendary | Ice Phoenix (`phoenix`) | [FBX](legendary/phoenix/phoenix-complete.fbx) | [Preview and notes](legendary/phoenix/index.html) |
-| Legendary | Rainbowtiger (`rainbowtiger`) | [FBX](legendary/rainbowtiger/rainbowtiger-complete.fbx) | [Preview and notes](legendary/rainbowtiger/index.html) |
+| Common | Bumblebee (`bee`) | [FBX](../../piggies/common/bee/package/bee-complete.fbx) | [Preview and notes](../../piggies/common/bee/package/index.html) |
+| Common | Ladybird (`ladybird`) | [FBX](../../piggies/common/ladybird/package/ladybird-complete.fbx) | [Preview and notes](../../piggies/common/ladybird/package/index.html) |
+| Common | Dairy Cow (`cow`) | [FBX](../../piggies/common/cow/package/cow-complete.fbx) | [Preview and notes](../../piggies/common/cow/package/index.html) |
+| Common | Zebra (`zebra`) | [FBX](../../piggies/common/zebra/package/zebra-complete.fbx) | [Preview and notes](../../piggies/common/zebra/package/index.html) |
+| Common | Giraffe (`giraffe`) | [FBX](../../piggies/common/giraffe/package/giraffe-complete.fbx) | [Preview and notes](../../piggies/common/giraffe/package/index.html) |
+| Common | Leopard (`leopard`) | [FBX](../../piggies/common/leopard/package/leopard-complete.fbx) | [Preview and notes](../../piggies/common/leopard/package/index.html) |
+| Common | Bengal Tiger (`tiger`) | [FBX](../../piggies/common/tiger/package/tiger-complete.fbx) | [Preview and notes](../../piggies/common/tiger/package/index.html) |
+| Common | Snow Leopard (`snowleopard`) | [FBX](../../piggies/common/snowleopard/package/snowleopard-complete.fbx) | [Preview and notes](../../piggies/common/snowleopard/package/index.html) |
+| Rare | Strawberry Cow (`strawberrycow`) | [FBX](../../piggies/rare/strawberrycow/package/strawberrycow-complete.fbx) | [Preview and notes](../../piggies/rare/strawberrycow/package/index.html) |
+| Rare | Cookies & Cream (`cookiescream`) | [FBX](../../piggies/rare/cookiescream/package/cookiescream-complete.fbx) | [Preview and notes](../../piggies/rare/cookiescream/package/index.html) |
+| Rare | Watermelon (`watermelon`) | [FBX](../../piggies/rare/watermelon/package/watermelon-complete.fbx) | [Preview and notes](../../piggies/rare/watermelon/package/index.html) |
+| Rare | Peppermint (`peppermint`) | [FBX](../../piggies/rare/peppermint/package/peppermint-complete.fbx) | [Preview and notes](../../piggies/rare/peppermint/package/index.html) |
+| Rare | Glacier (`glacier`) | [FBX](../../piggies/rare/glacier/package/glacier-complete.fbx) | [Preview and notes](../../piggies/rare/glacier/package/index.html) |
+| Rare | Bubblegum Leopard (`bubblegumleopard`) | [FBX](../../piggies/rare/bubblegumleopard/package/bubblegumleopard-complete.fbx) | [Preview and notes](../../piggies/rare/bubblegumleopard/package/index.html) |
+| Rare | Honeycomb (`honeycomb`) | [FBX](../../piggies/rare/honeycomb/package/honeycomb-complete.fbx) | [Preview and notes](../../piggies/rare/honeycomb/package/index.html) |
+| Legendary | Stormwolf (`stormwolf`) | [FBX](../../piggies/legendary/stormwolf/package/stormwolf-complete.fbx) | [Preview and notes](../../piggies/legendary/stormwolf/package/index.html) |
+| Legendary | Dragon (`dragon`) | [FBX](../../piggies/legendary/dragon/package/dragon-complete.fbx) | [Preview and notes](../../piggies/legendary/dragon/package/index.html) |
+| Legendary | Ice Phoenix (`phoenix`) | [FBX](../../piggies/legendary/phoenix/package/phoenix-complete.fbx) | [Preview and notes](../../piggies/legendary/phoenix/package/index.html) |
+| Legendary | Rainbowtiger (`rainbowtiger`) | [FBX](../../piggies/legendary/rainbowtiger/package/rainbowtiger-complete.fbx) | [Preview and notes](../../piggies/legendary/rainbowtiger/package/index.html) |
 
 Each skin folder contains the complete FBX, editable Blender scene, texture maps, renders, and its README/import notes. Legendary folders also contain animation exports and effect helpers where authored. Rainbow Tiger uses the latest swept revision; `phoenix` is Ice Phoenix.
 
@@ -30,4 +30,4 @@ Each skin folder contains the complete FBX, editable Blender scene, texture maps
 
 Start with each skin’s README. Common and rare coats can reuse the existing pig meshes with their body/trim textures; the complete FBXs are provided for standalone import. Legendary packages have additional meshes, rigs, maps and effect instructions. The folders alone do not upload assets or register Roblox IDs. Studio import, material assignment and runtime skin registration remain separate steps.
 
-Original procedural sources and previous revisions remain under `blender/pig/skins/`. Current builders write their import packages here. No skin appearance, crate weights or economy settings were changed by this move.
+**Moved, 2026-09-22:** every package listed above now lives at `assets/piggies/<tier>/<key>/package/`, beside the skin's scene, generator and sheets (`assets/piggies/README.md`); the links in this table point there. Only the tier index pages (`common/`, `rare/`, `legendary/` and this file) are still written here, by the gallery builders. No skin appearance, crate weights or economy settings were changed by either move.

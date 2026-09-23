@@ -38,17 +38,29 @@ local function lock(): Model
 	box(m,"KeyStem",0,.84,.39,.26,.5,.06,Theme.INK)
 	return m
 end
+-- THE SAME SACK THE SHOP SELLS AND THE THIEF CARRIES, in this file's own
+-- vocabulary. It was a dark brown bag with a plain gold seal on it, which
+-- was a THIRD sack -- `UpgradePreview.sack` builds the card and the carried
+-- loot, `assets/shop-ui/icon-system-v1/sack.png` is the artwork both are cut
+-- against, and this one agreed with neither. Same palette and same two
+-- tells now: a rope round a gathered neck, and a snout on the coin.
 local function sack(): Model
 	local m=model("CoinSack")
-	box(m,"Centre",0,1.13,0,1.7,2.05,1.6,C(144,89,41))
+	box(m,"Centre",0,1.13,0,1.7,2.05,1.6,C(226,182,146))
 	for _,x in {-1,1} do
-		part(m,"Fold",Vector3.new(.48,1.8,1.48),CFrame.new(x*.88,1.05,0)*CFrame.Angles(0,0,math.rad(-x*12)),C(159,99,43))
+		part(m,"Fold",Vector3.new(.48,1.8,1.48),CFrame.new(x*.88,1.05,0)*CFrame.Angles(0,0,math.rad(-x*12)),C(214,168,132))
 	end
-	box(m,"Neck",0,2.4,0,.96,.65,.95,C(107,65,33))
-	box(m,"OpenTop",0,2.82,0,1.42,.46,1.2,C(155,97,48))
-	box(m,"Inside",0,3.06,0,1.07,.025,.8,C(87,54,32))
+	box(m,"Neck",0,2.4,0,.96,.65,.95,C(226,182,146))
+	box(m,"Wrap",0,2.4,0,1.06,.3,1.05,C(150,96,66))
+	box(m,"Knot",0,2.4,.6,.3,.3,.3,C(150,96,66))
+	box(m,"OpenTop",0,2.82,0,1.42,.46,1.2,C(198,138,110))
+	box(m,"Inside",0,3.06,0,1.07,.025,.8,C(150,88,68))
 	local coin=part(m,"GoldSeal",Vector3.new(.14,1.2,1.2),CFrame.new(0,1.05,.87)*CFrame.Angles(0,math.pi/2,0),Theme.GOLD);
 	(coin :: Part).Shape=Enum.PartType.Cylinder
+	-- The snout, embossed rather than dug, for the reason everything else in
+	-- this game is: nothing here can cut a hole in anything.
+	box(m,"Snout",0,1.05,.96,.44,.44,.1,C(246,206,198))
+	for _,x in {-.11,.11} do box(m,"Nostril",x,1.05,1.02,.09,.13,.04,C(150,84,92)) end
 	return m
 end
 local function house(): Model

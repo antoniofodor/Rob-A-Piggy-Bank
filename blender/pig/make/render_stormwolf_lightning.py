@@ -1,7 +1,9 @@
 """Render unique lightning states, then encode the 30 fps flicker as MP4."""
 from pathlib import Path
 import bpy,json,shutil,sys
-ROOT=Path(__file__).resolve().parents[1];OUT=ROOT.parents[1]/'assets/skins/animal/legendary/stormwolf'
+ROOT=Path(__file__).resolve().parents[1]
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+OUT=Path(paths.animal_package('stormwolf'))
 sys.path.insert(0,str(Path(__file__).parent))
 from stormwolf_lightning import values
 bpy.ops.wm.open_mainfile(filepath=str(OUT/'stormwolf-complete.blend'))

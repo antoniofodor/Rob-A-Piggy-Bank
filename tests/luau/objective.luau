@@ -48,8 +48,7 @@ local ownPig=node("Model","PiggyBank",ownPlot);local ownBody=node("BasePart","Bo
 local plot=node("Model","RobberHome",plots);plot.attrs.OwnerUserId=2;plot.attrs[Config.PLOT_VAULT_ATTRIBUTE]=100
 local pig=node("Model","PiggyBank",plot);local body=node("BasePart","Body",pig);body.Position=vector(10,0,0)
 local theme={corner=noop,outline=noop,title=noop,body=noop,
- coin=function(parent) return node("Frame","Coin",parent) end,
- acorn=function(parent) return node("Frame","Acorn",parent) end}
+ coin=function(parent) return node("Frame","Coin",parent) end}
 local remote={OnClientEvent=signals.OnClientEvent,FireServer=function() requests+=1 end}
 local modules={Config=Config,Theme=theme,Remotes={get=function(name)
  assert(name=="RecoveryObjective");return remote
@@ -119,9 +118,9 @@ now=101;signals.Heartbeat:fire(1)
 check(requests==2,"authoritative snapshot stops subscription retries")
 check(amount.Text=="9:59" and #icons==1,"countdown uses server wall clock without rebuilding skin")
 now=700;signals.Heartbeat:fire(.25)
-check(title.Text=="BUY IT BACK" and amount.Text=="45 ACORNS" and not mark.Enabled,"clock alone flips expired recovery without new server event")
+check(title.Text=="BUY IT BACK" and amount.Text=="45 COINS" and not mark.Enabled,"clock alone flips expired recovery without new server event")
 check(icons[1].destroyed,"expired free task releases thumbnail")
-check(card:FindFirstChild("Acorn").Visible and not card:FindFirstChild("Coin").Visible,"buy-back uses Acorn glyph")
+check(card:FindFirstChild("Coin").Visible,"the buy-back carries the coin glyph, which is the only one left")
 card.Activated:fire()
 check(#opened==1 and opened[1]=="bronze","buy-back opens Crates for matching key without buying")
 signals.OnClientEvent:fire(state({}))
@@ -159,7 +158,7 @@ for _,size in {{1920,1080},{1180,800},{750,361},{705,338},{390,844}} do
  check(left>=0 and right<=size[1] and card.Size.Y.Offset==44,"objective stays inside viewport "..size[1])
  if size[1]>size[2] then
   local m=modules.HUDLayout.metrics(gui.AbsoluteSize)
-  check(right<=size[1]-m.bankWidth-22,"objective clears bank/Acorn column "..size[1])
+  check(right<=size[1]-m.bankWidth-22,"objective clears the piggy bank column "..size[1])
  end
 end
 check(detail.TextTruncate=="AtEnd" and title.TextTruncate=="AtEnd","long player/skin names truncate inside card")

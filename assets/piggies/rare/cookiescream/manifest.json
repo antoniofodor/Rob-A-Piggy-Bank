@@ -1,0 +1,134 @@
+{
+  "key": "cookiescream",
+  "name": "Cookies & Cream",
+  "path": "assets/piggies/rare/cookiescream/",
+  "tier": "rare",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); rare/: Config.SKINS.cookiescream.rarity = \"rare\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/cookiescream/",
+    "assets/piggies/cookiescream/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/rare/cookiescream/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6514,
+      "name": "Cookies & Cream",
+      "rarity": "rare",
+      "surface": "cookiescream",
+      "legendary": null,
+      "chest": "animal",
+      "scale": 1.15,
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": {
+      "key": "cookiescream",
+      "line": 5774,
+      "name": "Cookies & Cream",
+      "template": "cookiescream",
+      "trimTemplate": "cookiescream_trim"
+    },
+    "legendaryPacks": null,
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/cookiescream.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://105526982547509",
+        "EmissiveMaskContent": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/cookiescream_trim.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://121020885689753",
+        "EmissiveMaskContent": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://105526982547509": {
+      "file": "sheets/cookiescream_body_color.open-hatch.png",
+      "sha256": "8d7941cb956c02d2587958a652c01bd51b5196066cba5282659a7565bee10744",
+      "role": "body ColorMap",
+      "note": "uploaded from the open-hatch bake"
+    },
+    "rbxassetid://121020885689753": {
+      "file": "sheets/cookiescream_trim_color.png",
+      "sha256": "e2e0e0b8d3e20b5d423073590a1c606b8903907e199e58e06e31a6768f6c8682",
+      "role": "trim ColorMap"
+    }
+  },
+  "shopCard": {
+    "file": "preview/cookiescream_shop-card.png",
+    "robloxAssetId": "rbxassetid://126277155980258",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/rare/cookiescream/package/shop-cards/cookiescream.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/rare/cookiescream/package",
+    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "fileCount": 16,
+    "textureCopiesMatchShippedSheets": {
+      "cookiescream_body_color.png": false,
+      "cookiescream_trim_color.png": false
+    }
+  },
+  "closedBack": {
+    "closedScene": "source/cookiescream_closed.blend",
+    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as cookiescream_body_color.open-hatch.png. Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "coat-spec.json",
+      "cookiescream.blend",
+      "cookiescream_closed.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_cookiescream_blend.py"
+    ],
+    "sheets": [
+      "cookiescream_body_color.open-hatch.png",
+      "cookiescream_body_color.png",
+      "cookiescream_trim_color.png"
+    ],
+    "preview": [
+      "cookiescream_hatch.png",
+      "cookiescream_hero.png",
+      "cookiescream_shop-card.json",
+      "cookiescream_shop-card.png",
+      "cookiescream_view.blend"
+    ],
+    "package": [
+      "README.md",
+      "cookiescream-asset-report.json",
+      "cookiescream-complete.blend",
+      "cookiescream-complete.fbx",
+      "cookiescream-crown.png",
+      "cookiescream-front.png",
+      "cookiescream-glow.png",
+      "cookiescream-hero.png",
+      "cookiescream-spine.png",
+      "cookiescream_body_color.png",
+      "cookiescream_body_emissive.png",
+      "cookiescream_trim_color.png",
+      "cookiescream_trim_emissive.png",
+      "index.html",
+      "shop-cards/"
+    ]
+  },
+  "generator": "generate/make_cookiescream_blend.py",
+  "notes": []
+}

@@ -14,8 +14,6 @@ function Facts.rows(key: string, level: number, nextLevel: number, state: any): 
 		local factor = if state.rate then state.rate / math.max(Config.getIncomeRate(level, state.rebirths or 0, state.friendBonus), .001) else 1
 		add("Coins / second", Config.formatCoins(Config.getIncomeRate(level, state.rebirths or 0, state.friendBonus) * factor),
 			Config.formatCoins(Config.getIncomeRate(nextLevel, state.rebirths or 0, state.friendBonus) * factor))
-	elseif key == "capacity" then
-		add("Piggy capacity", Config.formatCoins(Config.getCapacity(level)), Config.formatCoins(Config.getCapacity(nextLevel)))
 	elseif key == "sack" then
 		add("First crack slice", pct(Config.getCrackSlice(1, level)), pct(Config.getCrackSlice(1, nextLevel)))
 		add("All slices landed", pct(Config.getCrackTotal(level)), pct(Config.getCrackTotal(nextLevel)))

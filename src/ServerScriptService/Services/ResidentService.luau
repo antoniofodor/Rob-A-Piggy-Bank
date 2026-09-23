@@ -23,9 +23,11 @@
 	getting any worse for a real player. The uncapped supply is the whole
 	point.
 
-	A RESIDENT IS A PEER, NOT A SECOND ECONOMY. Its income and capacity come
-	from `Config.getIncome` and `Config.getCapacity` at a level derived from
-	the humans in the server, so an NPC pig is worth robbing at minute one
+	A RESIDENT IS A PEER, NOT A SECOND ECONOMY. Its income comes from
+	`Config.getIncomeRate` at a level derived from the humans in the server,
+	and its pig is `RESIDENTS.pigSeconds` of that income (a player's pig has
+	no ceiling at all now; a resident's still does, because it is the supply
+	the robbery audit is measured against), so an NPC pig is worth robbing at minute one
 	and still worth robbing at rebirth ten, with no parallel ladder to tune
 	and nothing that can quietly drift away from the real one.
 
@@ -84,13 +86,14 @@ local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local Services = ServerScriptService:WaitForChild("Services")
 local DataService = require(Services.DataService)
 local PlotService = require(Services.PlotService)
-local ResidentAcorns = require(Services.ResidentAcorns)
 local PiggyModel = require(ReplicatedStorage.Shared.PiggyModel)
 local ResidentModel = require(ReplicatedStorage.Shared.ResidentModel)
+-- For the name over a carried piggy, in the same paper-on-ink the haul
+-- service hangs over a player thief's: one label, two carriers.
+local Theme = require(ReplicatedStorage.Shared.Theme)
 
 export type Resident = {
 	plot: PlotService.Plot,
-	acornStock: ResidentAcorns.Stock?,
 	-- WHO THIS SHOPKEEPER IS AFTER, and until when. Only ever set on a
 	-- resident seated on a shop plot -- see `Config.SHOPKEEPER`. A house
 	-- resident is never given these because a house has a dog, and two
@@ -112,8 +115,10 @@ export type Resident = {
 	seat: Vector3?,
 	name: string,
 	coins: number,
-	-- Its own copy of the two economy levels, so `Config.getIncome` and
-	-- `Config.getCapacity` can be asked exactly as they are for a player.
+	-- Its own copy of the two economy levels: `Config.getIncomeRate` is
+	-- asked exactly as it is for a player, and `capacityLevel` feeds
+	-- `pigSize` (seconds of income) -- it is a resident's own field and not
+	-- the retired player save field of the same name.
 	incomeLevel: number,
 	capacityLevel: number,
 	-- HOW FAR BELOW THE STREET THIS ONE SITS, rolled once when it is seated
@@ -129,6 +134,21 @@ export type Resident = {
 	-- would make it a two-player feature on a game whose whole resident
 	-- system exists to stop those.
 	skin: string,
+	-- WHAT IS STANDING ON THEIR SIX PLINTHS, in exactly the shape a player's
+	-- save carries it: `{ owned = {...}, slots = {...} }`.
+	--
+	-- DUCK-TYPED ON PURPOSE. `Config.piggySlots`, `addPiggy`, `removePiggy`
+	-- and `placePiggy` take a table with a `piggies` field and nothing else,
+	-- so a Resident answers all four exactly as a save does -- which is what
+	-- lets ONE snatch path serve both kinds of lawn instead of two that can
+	-- drift. Same call this file already makes when it reads
+	-- `Config.getIncomeRate` for a neighbour rather than inventing a parallel
+	-- curve.
+	--
+	-- `any` rather than a written-out type, because the shape belongs to
+	-- `Config` and a second declaration of it here is a second thing to keep
+	-- in step with the save format.
+	piggies: any,
 	-- The ordered list of ornaments this garden would hold if it were full.
 	-- Taken as a PREFIX, so a resident that climbs with the street ADDS to its
 	-- garden rather than being handed a different one.
@@ -149,6 +169,7 @@ export type Resident = {
 	--   "out"      walking to somebody else's piggy bank
 	--   "cracking" standing at it, taking their time
 	--   "carrying" walking home with the loot
+	--   "collecting" walking to one of their OWN pads to bank its buffer
 	--
 	-- There is deliberately no "returning empty" state: a trip that comes
 	-- back with nothing walks the identical route carrying zero, so the one
@@ -168,6 +189,20 @@ export type Resident = {
 	markIndex: number?,
 	loot: number,
 	lootModel: Model?,
+	-- A SNATCHED PIGGY IN THEIR ARMS, which is the OTHER thing a neighbour can
+	-- be carrying home. `key` is the piggy and `slot` is the plinth it came
+	-- off -- so a nab puts it back WHERE IT WAS, the rule the haul service's
+	-- own record keeps -- and whose it was is `markIndex`. Nil with empty
+	-- arms. `loot` and this are never both set, because a trip is one job;
+	-- `carrying` is the one question that covers both.
+	haul: { key: string, slot: number }?,
+	-- WHICH JOB THIS TRIP IS, "crack" or "snatch", and for a snatch the
+	-- victim's plinth. Chosen in `beginTrip`, read in `finishCrack`, cleared
+	-- in `goHome`.
+	job: string?,
+	markSlot: number?,
+	-- THE PLINTH OF THEIR OWN they are walking to bank. See `beginCollect`.
+	collectSlot: number?,
 	-- os.clock() stamps.
 	nextTrip: number,
 	-- When they may next stroll. A SECOND CLOCK AND NOT A SHORTER `nextTrip`:
@@ -204,6 +239,64 @@ local ResidentService = {}
 -- Keyed by plot INDEX rather than by the plot table, so a resident survives
 -- anything that rebuilds the plot model underneath it.
 local residents: { [number]: Resident } = {}
+
+-- ANYTHING IN THEIR ARMS: a bag of somebody's coins OR somebody's piggy.
+--
+-- Asked in one place because it is asked in seven -- the pose, the two gadget
+-- target searches, the gadget rest, the eviction refund and the nab -- and
+-- every one of them used to read `loot > 0`, which was the whole truth while
+-- coins were the only thing a neighbour ever carried home. A snatched piggy
+-- is loot of 0 in the arms of somebody who is plainly carrying, and a reader
+-- left on the old test is a thief a gadget cannot find, walking with its
+-- arms at its sides.
+local function carrying(resident: Resident): boolean
+	return resident.loot > 0 or resident.haul ~= nil
+end
+
+-- THE COLLECTION STANDING ON A PLOT, whoever lives there: a player's save or
+-- a neighbour's record, both of which answer `Config.piggySlots` identically
+-- (see the note on `Resident.piggies`). Nil for a plot mid-handover.
+local function collectionOf(plot: PlotService.Plot): any?
+	if plot.owner then
+		return DataService.get(plot.owner :: Player)
+	end
+	return residents[plot.index]
+end
+
+-- The plot a trip was aimed at, looked up by INDEX at the moment it is needed
+-- rather than held: a victim who moves house or logs off must not leave a
+-- dangling reference to a plot table.
+local function plotByIndex(index: number?): PlotService.Plot?
+	if index == nil then
+		return nil
+	end
+	for _, plot in ipairs(PlotService.getAll()) do
+		if plot.index == index then
+			return plot
+		end
+	end
+	return nil
+end
+
+-- ------------------------------------------------------------
+-- THE TWO DIALS THIS FILE READS THROUGH A FALLBACK
+-- ------------------------------------------------------------
+--
+-- `Config.RESIDENTS.snatch` and `Config.RESIDENTS.collect` are read through
+-- these so the server boots identically before and after the Config rows
+-- land: a missing table answers the defaults below, and the defaults ARE the
+-- proposed rows. Nothing else in this file may carry a number of its own for
+-- either -- see `chooseJob` and `ripestPad` for what each means.
+local SNATCH_DEFAULTS = { playerWeight = 0.35, residentWeight = 0.08 }
+local COLLECT_DEFAULTS = { fullness = 0.75 }
+
+local function snatchSpec(): any
+	return Config.RESIDENTS.snatch or SNATCH_DEFAULTS
+end
+
+local function collectSpec(): any
+	return Config.RESIDENTS.collect or COLLECT_DEFAULTS
+end
 
 -- ============================================================
 -- LEVEL
@@ -562,6 +655,20 @@ local function applyLevel(resident: Resident)
 	PlotService.applySkin(plot, resident.skin)
 	PlotService.updateSign(plot, resident.name, 0,
 		Config.getSkin(resident.skin).name)
+
+	-- AND THE SIX PLINTHS, THROUGH THE SAME DOOR A PLAYER'S GO THROUGH.
+	--
+	-- Here rather than at `seat` for the reason the skin is: this is what runs
+	-- whenever anything about this house is repainted, and a lawn dressed once
+	-- at seat would be silently undone by anything that rebuilt the plot
+	-- afterwards. It is idempotent on the key, so a repaint that changes
+	-- nothing writes nothing.
+	--
+	-- `setHaul` inside it is what actually lights the snatch prompts: a
+	-- resident's plot publishes owner 0, which refuses the TAKE and PLACE
+	-- prompts on every screen in the game and refuses the SNATCH on none.
+	PlotService.setPiggySlots(plot, resident)
+	PlotService.setPiggyBuffers(plot, resident)
 end
 
 -- ============================================================
@@ -654,12 +761,69 @@ local function drawSkin(): string
 	return table.remove(skinBag) :: string
 end
 
--- Publish only for the current occupant. Refunds may hold an evicted resident.
-local function publishAcorns(resident: Resident)
-	local plot, stock = resident.plot, resident.acornStock
-	if not stock or plot.owner or residents[plot.index] ~= resident then return end
-	PlotService.updateAcorns(plot, stock.acorns)
-	PlotService.updateTreeAcorns(plot, stock.treeAcorns, stock.groundAcorns)
+-- ============================================================
+-- WHAT A NEIGHBOUR KEEPS ON THEIR PLINTHS
+-- ============================================================
+--
+-- SIXTY EMPTY PEDESTALS WAS AN ACQUISITION ROUTE WITH NOTHING ON IT.
+-- `docs/PIGGY-PACKS-PLAN.md` §10e promoted this from a solo-pacing dial to
+-- THE supply question the day stealing became a primary way to collect: on a
+-- quiet server the only lawns to steal from are residents'.
+--
+-- THE TWO PROPERTIES §10e REQUIRES ARE BOTH HERE AND NEITHER IS OPTIONAL.
+--
+-- It is drawn against the SAME catalogue and the same exclusions every other
+-- roll in this game uses, so a neighbour's lawn can never become a second
+-- economy that drifts from the real one. And it is CAPPED rather than scaled:
+-- `RESIDENTS.piggyTopRarity` does not move with the street, because the
+-- residents' own level offset is downward-only on the rule that "residents
+-- richer than the thief are a faucet, full stop" -- and a lawn that seeded
+-- legendaries because the street happened to be rich is that faucet one level
+-- up, with no audit in existence that would catch it.
+--
+-- A BAG RATHER THAN A ROLL PER PLINTH, the same pattern `drawSkin` and the
+-- music cues take: it spreads the catalogue across the street instead of
+-- letting one key come up three times on one lawn, which is what makes the
+-- row read as ten different collectors rather than as one generator.
+--
+-- IT REFILLS, unlike `skinBag`, and that difference is deliberate. A skin is
+-- one per neighbour and sharing one would make two houses read as the same
+-- house; a piggy is one of six on each of ten lawns, and duplicates across
+-- the street are honest -- duplicates STACK in this collection, so seeing the
+-- same one twice is a real thing a player can act on.
+local lawnBag: { string } = {}
+
+local function drawLawnPiggy(): string?
+	if #lawnBag == 0 then
+		local cap = Config.rarityRank(Config.RESIDENTS.piggyTopRarity)
+		for key, spec in pairs(Config.SKINS) do
+			-- THE SAME TWO EXCLUSIONS THE PIG ITSELF TAKES, and for the same
+			-- reasons: an earned-elsewhere skin on scenery advertises a paid
+			-- exclusive or an event reward nobody attended anything for, and
+			-- an aura is not colour on a body -- it is particles thrown off
+			-- one, which is the "variety that LIES" failure this project
+			-- records for gardens advertising wealth that is not there.
+			--
+			-- AND ONE MORE THAT IS THIS FUNCTION'S OWN: the rarity cap. See
+			-- the header.
+			if not Config.isEarnedElsewhere(spec) and spec.aura == nil
+				and Config.rarityRank(Config.rarityOf(spec)) <= cap then
+				table.insert(lawnBag, key)
+			end
+		end
+		-- Sorted before the shuffle for `drawSkin`'s own reason: a bag built
+		-- from whatever order `pairs` happened to walk makes a bad draw a
+		-- ghost rather than something anybody can reproduce.
+		table.sort(lawnBag)
+		for i = #lawnBag, 2, -1 do
+			local j = math.random(i)
+			lawnBag[i], lawnBag[j] = lawnBag[j], lawnBag[i]
+		end
+	end
+	if #lawnBag == 0 then
+		return nil
+	end
+	return table.remove(lawnBag) :: string
 end
 
 -- Seats a resident on a plot that has just become free (or is free at
@@ -680,7 +844,6 @@ function ResidentService.seat(plot: PlotService.Plot)
 
 	local resident: Resident = {
 		plot = plot,
-		acornStock = ResidentAcorns.attach(plot.index, plot.shop ~= nil, os.time()),
 		-- Indexed by plot rather than picked at random, so a house keeps its
 		-- identity across an owner arriving and leaving.
 		--
@@ -707,6 +870,14 @@ function ResidentService.seat(plot: PlotService.Plot)
 		-- a shop does with it is nothing -- `applyLevel` returns before the
 		-- skin is applied, because a shop counter is a shop counter.
 		skin = drawSkin(),
+		-- SEEDED HERE AND NEVER REFILLED, which is the half of the supply
+		-- decision that keeps it from being a faucet. A snatched piggy leaves
+		-- this lawn for good, so a server's neighbour stock is FINITE and
+		-- visibly runs down as the street is picked over -- which is also the
+		-- honest reading: `seat` runs whenever a plot frees up, so a
+		-- neighbour genuinely is a new occupant with a new collection, and
+		-- one who has been robbed is one who has less.
+		piggies = { owned = {}, till = Config.DEFAULT_SKIN, slots = {} },
 		garden = garden,
 		state = "home",
 		at = Vector3.zero,
@@ -730,6 +901,25 @@ function ResidentService.seat(plot: PlotService.Plot)
 		nextLine = os.clock() + math.random() * Config.RESIDENT_CHATTER.maxGap,
 		quietAt = 0,
 	}
+
+	-- FRONT TO BACK THROUGH `Config.addPiggy`, which is the one door every
+	-- source of a piggy in this game goes through -- a crate reveal, an admin
+	-- grant, a delivered snatch and now a neighbour moving in. It bumps the
+	-- count and takes the slot in one breath, which is what stops `owned` and
+	-- what is STANDING from ever disagreeing.
+	--
+	-- A SHOP GETS NONE, because a shop has no pedestals: `PlotService` builds
+	-- the six on residential plots only, and seeding a collection onto a
+	-- counter would be ownership with nowhere to stand.
+	if not plot.shop then
+		for _ = 1, Config.RESIDENTS.piggyCount do
+			local key = drawLawnPiggy()
+			if key == nil then
+				break
+			end
+			Config.addPiggy(resident, key :: string, true)
+		end
+	end
 
 	residents[plot.index] = resident
 	applyLevel(resident)
@@ -778,7 +968,6 @@ function ResidentService.seat(plot: PlotService.Plot)
 	-- HeistService exactly, or a client would key its cooldown badge to an
 	-- id the server never sends and the badge would never count down.
 	plot.model:SetAttribute(Config.PLOT_RESIDENT_ID_ATTRIBUTE, -plot.index)
-	publishAcorns(resident)
 end
 
 -- Takes the resident off a plot a player is moving into.
@@ -797,13 +986,12 @@ function ResidentService.evict(plot: PlotService.Plot)
 	-- to be halfway home with somebody else's coins then destroying them
 	-- would DELETE those coins -- a silent leak out of a real player's pig,
 	-- keyed to somebody else joining the server.
-	if resident.loot > 0 then
+	if carrying(resident) then
 		ResidentService.nabbed(resident)
 	end
 	if resident.model then
 		resident.model:Destroy()
 	end
-	ResidentAcorns.suspend(plot.index, os.time())
 	residents[plot.index] = nil
 	plot.model:SetAttribute(Config.PLOT_RESIDENT_ATTRIBUTE, nil)
 	plot.model:SetAttribute(Config.PLOT_RESIDENT_ID_ATTRIBUTE, nil)
@@ -914,6 +1102,44 @@ local function groundY(plot: PlotService.Plot): number
 	return plot.base.Position.Y - plot.base.Size.Y / 2
 end
 
+-- WHERE A NEIGHBOUR STANDS TO COLLECT FROM, OR SNATCH OFF, A PLINTH: on its
+-- pad, at lawn height. The pad is the part a player crosses to bank the same
+-- buffer, so a neighbour walking to it reads as doing the thing a player does
+-- -- and it is read off the BUILT PART rather than off `PIGGY_LAWN_SLOTS`,
+-- for the reason the route is walked from real plot frames: the part knows
+-- its own position on both rows, with nothing to flip. Nil on a plot with no
+-- pedestals, which is a shop.
+local function padAt(plot: PlotService.Plot, slot: number): Vector3?
+	local pedestal = plot.pedestals and plot.pedestals[slot]
+	if not pedestal then
+		return nil
+	end
+	local p = pedestal.pad.Position
+	return Vector3.new(p.X, lawnY(plot), p.Z)
+end
+
+-- WHAT ONE OF A NEIGHBOUR'S PLINTHS EARNS AND HOLDS, WHICH IS THE PLAYER'S
+-- OWN ARITHMETIC AND NOT A SECOND COPY OF IT.
+--
+-- `EconomyService.slotRate` is `Config.getPiggyIncomeRate` at the owner's
+-- level, times a friend bonus and a daily boost; `slotCeiling` is that rate
+-- times `Config.piggyBufferSeconds` of the tier. A neighbour has neither
+-- multiplier -- prestige and friends are things a PLAYER has, the same line
+-- the coin accrual in `tick` already draws -- so its rate is the plain one
+-- and its cap is the same product. Two numbers, both derived from the two
+-- Config functions the player's loop reads, so a tier that gets a longer
+-- buffer gets it on every lawn on the street.
+--
+-- Returns rate then ceiling; both 0 on an empty plinth.
+local function slotEconomy(resident: Resident, slot: number): (number, number)
+	if Config.piggyKeyAt(resident, slot) == nil then
+		return 0, 0
+	end
+	local rarity = Config.piggyRarityAt(resident, slot)
+	local rate = Config.getPiggyIncomeRate(rarity, resident.incomeLevel, 0)
+	return rate, rate * Config.piggyBufferSeconds(rarity)
+end
+
 -- WHICH WAY THEY ARE POINTING, AND IT IS A FUNCTION RATHER THAN TWO CALLS TO
 -- `CFrame.lookAt` BECAUSE THIS EXACT LINE HAS COST THIS PROJECT A BUG BEFORE.
 --
@@ -985,6 +1211,106 @@ local function roamTarget(resident: Resident): Vector3
 	return Vector3.new(p.X, lawnY(resident.plot), p.Z)
 end
 
+-- ============================================================
+-- COLLECTING THEIR OWN PADS
+-- ============================================================
+--
+-- A NEIGHBOUR'S PLINTHS FILLED NOTHING AND NOBODY EMPTIED THEM. The economy
+-- loop accrues buffers for PLAYERS (`EconomyService.start`) and residents are
+-- not in that list, so `resident.piggies.slots[i].buffer` sat at zero from
+-- the day the plinths were seeded, and `setPiggyBuffers` dutifully painted
+-- six empty pads on every neighbour's lawn. The street had six piggies a
+-- house and none of them were playing the game. `tick` fills them now
+-- (through `slotEconomy`) and this is the half that empties them.
+
+-- THE PLINTH WORTH WALKING TO: the fullest one at or over
+-- `collect.fullness` of its OWN cap, or nil when none is.
+--
+-- FULLNESS IS A SHARE OF THE SLOT'S CEILING, never a coin figure and never a
+-- share of the pig -- the denominator `Config.piggyCollectPitch` settled on
+-- for the same object, and for the same measured reason: a share of the cap
+-- spans 0..1 on every tier, where a coin figure saturates on the best piggy
+-- and reads as nothing on the worst. The threshold is the one new number
+-- (`COLLECT_DEFAULTS.fullness`): a player laps on the commons' hundred
+-- seconds and collects everything before anything is full, so a neighbour
+-- who waited for FULL would be the one collector on the street who is always
+-- late, and one who went at every coin would never stand still.
+local function ripestPad(resident: Resident): number?
+	local best, bestShare = nil, collectSpec().fullness
+	local slots = Config.piggySlots(resident)
+	for i = 1, Config.PIGGY_LAWN_SLOT_COUNT do
+		local _, ceiling = slotEconomy(resident, i)
+		if ceiling > 0 then
+			local share = (slots[i].buffer or 0) / ceiling
+			if share >= bestShare and padAt(resident.plot, i) then
+				best, bestShare = i, share
+			end
+		end
+	end
+	return best
+end
+
+-- WALKING TO ONE OF THEIR OWN PADS: A STATE OF ITS OWN, "collecting", for the
+-- reason `returning` is one. `roam` is a potter with a random target that
+-- ends by standing; this is an errand with a destination that ends by
+-- BANKING, and sharing the state would mean a flag beside it saying which
+-- kind of stroll just ended -- a second piece of state that can disagree
+-- with the first.
+--
+-- IT IS IN (`isIn`): a neighbour collecting on their own lawn is home for
+-- every question anybody asks -- alertable by a robbery behind them, not
+-- away, and not counted against `walk.maxOut`.
+local function beginCollect(resident: Resident, slot: number): boolean
+	local at = padAt(resident.plot, slot)
+	if not at then
+		return false
+	end
+	resident.state = "collecting"
+	resident.collectSlot = slot
+	resident.route = { at }
+	return true
+end
+
+-- AT THE PAD. The buffer goes into the neighbour's own pig, which is the one
+-- place a resident's coins live and the pig a thief can come and take them
+-- back out of -- so a neighbour's lawn income is robbable exactly as a
+-- player's is once collected, and sits on the pad where nobody can take it
+-- until then, which is the shape a player's has.
+--
+-- CLAMPED TO THE PIG, AS `bankLoot` IS. A resident's pig is bounded
+-- (`pigSeconds` of its own income is the supply the robbery audit prices),
+-- so a collect fills the room there is and the rest is gone: "spend it or
+-- lose it", on a neighbour who never spends.
+--
+-- THE PAD FIRES AS IT DOES FOR A PLAYER -- `PlotService.playCollect` is the
+-- sound at the pad and the reaction window on its face -- so from the
+-- pavement a neighbour collecting looks and sounds like anybody collecting.
+local function finishCollect(resident: Resident)
+	local slot = resident.collectSlot
+	resident.collectSlot = nil
+	if slot then
+		local entry = Config.piggySlots(resident)[slot]
+		local held = (entry and entry.buffer) or 0
+		if held > 0 then
+			local _, ceiling = slotEconomy(resident, slot)
+			entry.buffer = 0
+			local capacity = pigSize(resident.capacityLevel, resident.plot)
+			resident.coins = math.min(capacity, resident.coins + held)
+			PlotService.updatePile(resident.plot, resident.coins, capacity)
+			PlotService.playCollect(resident.plot, slot,
+				if ceiling > 0 then held / ceiling else 0)
+			PlotService.setPiggyBuffers(resident.plot, resident)
+		end
+	end
+	-- THEN BACK INTO THE GARDEN, AS A STROLL. The pads stand in the ornament
+	-- column outside the roam box, and a neighbour planted on one until the
+	-- next potter would be standing where they never otherwise stand. `roam`
+	-- ends by standing and touches no trip clock, which is what a collect
+	-- must not do -- an errand on the lawn is not a rest between trips.
+	resident.state = "roam"
+	resident.route = { roamTarget(resident) }
+end
+
 -- WHO IS WORTH GOING OUT FOR.
 --
 -- Every plot but their own is a candidate, players included. A resident does
@@ -1022,8 +1348,14 @@ end
 -- the alternative is `state == "home" or state == "roam"` written at four
 -- call sites and the fifth one added later being the bug -- silently, because
 -- every one of those failures is a neighbour who simply does nothing.
+--
+-- COLLECTING IS IN TOO. An errand to one of your own pads is done on your own
+-- lawn, and a neighbour who could not be alerted, or who counted as away,
+-- for the four seconds it takes to cross to a plinth is the intermittent
+-- failure the roam entry above already refuses.
 local function isIn(resident: Resident): boolean
 	return resident.state == "home" or resident.state == "roam"
+		or resident.state == "collecting"
 end
 
 -- How many are out at once, counted rather than tracked.
@@ -1072,6 +1404,31 @@ local giveBackTo: ((PlotService.Plot, number) -> ())? = nil
 
 function ResidentService.registerGiveBack(fn: (PlotService.Plot, number) -> ())
 	giveBackTo = fn
+end
+
+-- AND THE PIGGY SNATCH, THROUGH THE SERVICE THAT OWNS IT. `PiggyHaulService`
+-- requires this file, so asking it directly is a cycle; `Main` fills these
+-- in with `PiggyHaulService.residentSnatch` and `.residentReturn`, the same
+-- shape as the four registries above.
+--
+-- WHAT THAT BUYS IS THAT A NEIGHBOUR'S SNATCH IS A PLAYER'S SNATCH. The
+-- per-victim cooldown, the shield, the slot emptying, the repaint, the
+-- victim's alarm and the return on a nab all run in the one file that runs
+-- them for a person -- a second copy here would be the near-identical
+-- duplicate this project keeps recording, and this one drifts into taking a
+-- child's piggy past a rule nobody is testing.
+--
+-- `snatchFrom` answers the piggy's KEY, or nil when the lawn refused (on
+-- cooldown, shielded, empty). `giveBackPiggy` is the nab's other half.
+local snatchFrom: ((Resident, PlotService.Plot, number) -> string?)? = nil
+local giveBackPiggy: ((PlotService.Plot, string, number) -> ())? = nil
+
+function ResidentService.registerSnatch(fn: (Resident, PlotService.Plot, number) -> string?)
+	snatchFrom = fn
+end
+
+function ResidentService.registerPiggyReturn(fn: (PlotService.Plot, string, number) -> ())
+	giveBackPiggy = fn
 end
 
 -- AND THE CATCH, FILLED IN BY `Main` FOR THE REASON THE TWO ABOVE ARE.
@@ -1214,27 +1571,24 @@ end
 -- carrying a labelled miniature piggy bank with a highlight on it. Building
 -- a different picture for an NPC would say "this one is scenery" at exactly
 -- the moment it stops being scenery.
-local function attachLoot(resident: Resident, victim: PlotService.Plot, amount: number)
+-- THE BUILDER BOTH KINDS OF CARRY SHARE. `skinKey` is what the miniature
+-- wears: the victim's own pig for a bag of coins (`attachLoot`), the piggy
+-- itself for a snatch (`attachHaul`). Returns the mini, or nil when nothing
+-- could be built -- and sets no `loot` and no `haul`, because which of the
+-- two this is belongs to the caller.
+local function attachCarry(resident: Resident, victim: PlotService.Plot, skinKey: string): Model?
 	local model = resident.model
 	if not model then
-		return
+		return nil
 	end
 	local torso = model:FindFirstChild("Tee", true)
 	if not (torso and torso:IsA("BasePart")) then
-		return
+		return nil
 	end
-
-	-- THE MINIATURE MATCHES THE PIG IT CAME OUT OF, the same rule
-	-- `HeistService.attachLoot` follows: the label on a thief's arms is a
-	-- tell about WHOSE coins those are, and a resident carrying a default
-	-- pink pig away from somebody's Bubblegum one is a tell that lies.
-	local victimPlayer = victim.owner
-	local victimData = if victimPlayer then DataService.get(victimPlayer) else nil
-	local skinKey = if victimData then victimData.cosmetics.skin else Config.DEFAULT_SKIN
 
 	local ok, mini = pcall(PiggyModel.build, skinKey)
 	if not ok or not mini then
-		return
+		return nil
 	end
 	mini.Name = "ResidentLoot"
 	-- Inherits the figure's own rule rather than restating it: a resident is
@@ -1332,8 +1686,57 @@ local function attachLoot(resident: Resident, victim: PlotService.Plot, amount: 
 		if victim.owner then victim.owner.UserId else nil)
 
 	resident.lootModel = mini
-	resident.loot = amount
 	resident.markIndex = victim.index
+	return mini
+end
+
+local function attachLoot(resident: Resident, victim: PlotService.Plot, amount: number)
+	-- THE MINIATURE MATCHES THE PIG IT CAME OUT OF, the same rule
+	-- `HeistService.attachLoot` follows: the label on a thief's arms is a
+	-- tell about WHOSE coins those are, and a resident carrying a default
+	-- pink pig away from somebody's Bubblegum one is a tell that lies.
+	local victimPlayer = victim.owner
+	local victimData = if victimPlayer then DataService.get(victimPlayer) else nil
+	local skinKey = if victimData then victimData.cosmetics.skin else Config.DEFAULT_SKIN
+	if attachCarry(resident, victim, skinKey) then
+		resident.loot = amount
+	end
+end
+
+-- A SNATCHED PIGGY IN A NEIGHBOUR'S ARMS: the piggy ITSELF, with its name
+-- over it -- the same picture `PiggyHaulService.attach` makes on a player
+-- thief, down to the 1.8-stud offset, so a victim chasing either reads the
+-- same tell. Returns whether it is in their arms; the caller puts the piggy
+-- back if not, because the victim's slot has already emptied by then.
+local function attachHaul(resident: Resident, victim: PlotService.Plot,
+	key: string, slot: number): boolean
+	local mini = attachCarry(resident, victim, key)
+	if not mini then
+		return false
+	end
+	local body = PiggyModel.bodyOf(mini)
+	if body then
+		local label = Instance.new("BillboardGui")
+		label.Name = "HaulLabel"
+		label.Size = UDim2.new(0, 200, 0, 40)
+		label.StudsOffset = Vector3.new(0, 1.8, 0)
+		label.AlwaysOnTop = true
+		label.LightInfluence = 0
+		label.Parent = body
+		local text = Instance.new("TextLabel")
+		text.Name = "What"
+		text.Size = UDim2.fromScale(1, 1)
+		text.BackgroundTransparency = 1
+		text.Font = Theme.FONT
+		text.TextScaled = true
+		text.TextColor3 = Theme.PAPER
+		text.TextStrokeColor3 = Theme.INK
+		text.TextStrokeTransparency = 0.1
+		text.Text = Config.getSkin(key).name
+		text.Parent = label
+	end
+	resident.haul = { key = key, slot = slot }
+	return true
 end
 
 local function clearLoot(resident: Resident)
@@ -1345,6 +1748,7 @@ local function clearLoot(resident: Resident)
 		resident.model:SetAttribute(Config.CARRY_VICTIM_ATTRIBUTE, nil)
 	end
 	resident.loot = 0
+	resident.haul = nil
 	resident.markIndex = nil
 end
 
@@ -1366,6 +1770,9 @@ end
 local function goHome(resident: Resident)
 	resident.state = "home"
 	resident.route = {}
+	resident.job = nil
+	resident.markSlot = nil
+	resident.collectSlot = nil
 	local walk = Config.RESIDENTS.walk
 	resident.nextTrip = os.clock() + walk.restMin
 		+ math.random() * math.max(0, walk.restMax - walk.restMin)
@@ -1391,15 +1798,127 @@ local function returnToCounter(resident: Resident)
 	resident.route = { seat }
 end
 
+-- WHICH JOB A TRIP IS. Returns "snatch" and the victim's plinth, or "crack"
+-- and nil.
+--
+-- A NEIGHBOUR PLAYS THE SAME GAME A PLAYER DOES, AND A PLAYER HAS TWO THINGS
+-- TO TAKE OFF A LAWN: the bank's coins and a pedestal's piggy. A row of
+-- neighbours who only ever cracked the pig was a street playing last month's
+-- game -- and everything that defends a PIGGY (the fence, the dog, the run
+-- home a victim can chase) protected against nothing on a solo server, which
+-- is the argument that made residents rob at all.
+--
+-- WEIGHTED BY WHO THE VICTIM IS, AND THE TWO WEIGHTS ARE NOT ONE NUMBER FOR
+-- A REASON. Against a PLAYER a snatch is the threat: their plinth goes bare,
+-- they are told who, and the neighbour walks it home at `walk.carrySpeed`
+-- past a player who does `BASE_WALK_SPEED` -- recoverable by doing the thing,
+-- every time. Against a RESIDENT it is scenery: nobody is told and nobody
+-- chases, so two neighbours trading piggies is the street's finite stock
+-- going round in a circle and a real player's target list reshuffling for no
+-- reason they can see. `residentWeight` is small enough that a collection
+-- visibly drifts over a long session and no more; `playerWeight` is a third
+-- of trips, because the crack is still the loop this file was built for.
+--
+-- A SNATCH NEEDS SOMETHING STANDING. A shop has no plinths and an emptied
+-- lawn has nothing on them; both fall back to the crack rather than to a trip
+-- that walks up a drive and finds nothing to do -- a neighbour standing at a
+-- bare plinth for six seconds reads as broken. And with no snatch registered
+-- (`Main` has not wired it) every trip is a crack, so the file boots and
+-- behaves exactly as it did before this branch existed.
+local function chooseJob(resident: Resident, victim: PlotService.Plot): (string, number?)
+	if victim.shop or snatchFrom == nil then
+		return "crack", nil
+	end
+	local spec = snatchSpec()
+	local weight = if victim.owner then spec.playerWeight else spec.residentWeight
+	if math.random() >= weight then
+		return "crack", nil
+	end
+	local data = collectionOf(victim)
+	if not data then
+		return "crack", nil
+	end
+	-- A RANDOM STANDING PLINTH, never the best one, for `pickVictim`'s own
+	-- reason: a neighbour does not case a lawn for the rarest piggy, because
+	-- the one thing eight of them must not do is converge on one object.
+	local standing = {}
+	local slots = Config.piggySlots(data)
+	for i = 1, Config.PIGGY_LAWN_SLOT_COUNT do
+		if slots[i].key ~= nil and padAt(victim, i) then
+			table.insert(standing, i)
+		end
+	end
+	if #standing == 0 then
+		return "crack", nil
+	end
+	return "snatch", standing[math.random(#standing)]
+end
+
+-- THE PLINTH THIS NEIGHBOUR WOULD STAND A NEW PIGGY ON: the first free one,
+-- or -- on a full lawn -- the one holding the LOWEST-RARITY piggy, which is
+-- the one a snatched piggy swaps out (designer intent: a neighbour's
+-- collection changes over time rather than filling once and freezing). Ties
+-- go to the front-most plinth. Nil with no pedestals at all.
+local function placeSlot(resident: Resident): number?
+	local free = Config.firstFreePiggySlot(resident)
+	if free then
+		return free
+	end
+	local worst, worstRank = nil, nil
+	for i = 1, Config.PIGGY_LAWN_SLOT_COUNT do
+		local rank = Config.rarityRank(Config.piggyRarityAt(resident, i))
+		if worstRank == nil or rank < worstRank then
+			worst, worstRank = i, rank
+		end
+	end
+	return worst
+end
+
+-- HOME WITH SOMEBODY'S PIGGY. It goes on a plinth through `Config.addPiggy`,
+-- the one door every source of a piggy in this game comes through, so
+-- `owned` and what is STANDING cannot disagree. A full lawn swaps its
+-- lowest-rarity piggy out first (`placeSlot`); the piggy that came off is
+-- simply gone, which is the resident stock being finite scenery -- the same
+-- "nothing is refunded" line every retirement here has taken.
+local function placeHaul(resident: Resident)
+	local haul = resident.haul
+	if not haul then
+		return
+	end
+	if Config.addPiggy(resident, haul.key, true) == nil then
+		local slot = placeSlot(resident)
+		if slot then
+			Config.removePiggy(resident, slot)
+			Config.placePiggy(resident, haul.key, slot)
+		end
+	end
+	PlotService.setPiggySlots(resident.plot, resident)
+	PlotService.setPiggyBuffers(resident.plot, resident)
+	clearLoot(resident)
+end
+
 local function beginTrip(resident: Resident)
 	local victim = pickVictim(resident)
 	if not victim then
 		goHome(resident)
 		return
 	end
+	local job, slot = chooseJob(resident, victim)
 	resident.state = "out"
-	resident.route = routeTo(resident, victim)
+	resident.job = job
+	resident.markSlot = slot
 	resident.markIndex = victim.index
+	resident.route = routeTo(resident, victim)
+	-- A SNATCH ENDS AT THE PLINTH RATHER THAN AT THE PIG: the last waypoint is
+	-- swapped for the victim's pad, so the approach is the same walk up the
+	-- same drive and only where they stop differs -- which is what a player
+	-- doing either job looks like from the pavement.
+	if job == "snatch" and slot then
+		local at = padAt(victim, slot)
+		if at then
+			resident.route[#resident.route] = at
+		end
+	end
 end
 
 -- Standing at the pig. A resident takes its time on purpose: the crack is a
@@ -1422,23 +1941,45 @@ local function finishCrack(resident: Resident)
 	end
 	-- The plot went away underneath them -- an owner arrived, or a resident
 	-- was evicted. Walk home empty rather than reaching into a stale table.
-	if not (victim and takeFrom) then
+	if not victim then
 		resident.state = "carrying"
 		resident.route = routeTo(resident, resident.plot)
 		return
 	end
 
-	-- HOW MUCH THEY ASK FOR IS THE SAME SHARE A PLAYER'S CRACK TAKES, so a
-	-- neighbour is never worse to be robbed by than a person. What comes back
-	-- is what the cap and the pig actually allowed, which is why the answer
-	-- is read rather than assumed.
-	local want = math.floor(Config.RESIDENTS.walk.takeFraction
-		* (victim.model:GetAttribute(Config.PLOT_VAULT_ATTRIBUTE) or 0))
-	-- The name goes with it, because the victim's alert has to say WHO --
-	-- an unattributed alarm is the thing a player cannot act on.
-	local got = if want > 0 then (takeFrom :: any)(victim, want, resident.name) else 0
-	if got > 0 then
-		attachLoot(resident, victim, got)
+	if resident.job == "snatch" then
+		-- THE PIGGY, THROUGH THE HAUL SERVICE'S OWN SNATCH (see
+		-- `registerSnatch`). It answers nil when the lawn refused -- on
+		-- cooldown, shielded, or emptied while they walked -- and a refusal
+		-- is a walk home with nothing, the same ending a crack that found an
+		-- empty pig gets.
+		local slot = resident.markSlot
+		local key = if slot and snatchFrom
+			then (snatchFrom :: any)(resident, victim, slot) else nil
+		if key and slot and not attachHaul(resident, victim, key, slot) then
+			-- IT CAME OFF THE PLINTH AND COULD NOT BE PICKED UP. The victim's
+			-- slot has already emptied, so it goes straight back rather than
+			-- vanishing -- the same put-it-back a player's `snatch` does when
+			-- its own attach fails, and the one line here that stops a
+			-- missing figure deleting somebody's piggy with nothing in any
+			-- log.
+			if giveBackPiggy then
+				(giveBackPiggy :: any)(victim, key, slot)
+			end
+		end
+	elseif takeFrom then
+		-- HOW MUCH THEY ASK FOR IS THE SAME SHARE A PLAYER'S CRACK TAKES, so a
+		-- neighbour is never worse to be robbed by than a person. What comes
+		-- back is what the cap and the pig actually allowed, which is why the
+		-- answer is read rather than assumed.
+		local want = math.floor(Config.RESIDENTS.walk.takeFraction
+			* (victim.model:GetAttribute(Config.PLOT_VAULT_ATTRIBUTE) or 0))
+		-- The name goes with it, because the victim's alert has to say WHO --
+		-- an unattributed alarm is the thing a player cannot act on.
+		local got = if want > 0 then (takeFrom :: any)(victim, want, resident.name) else 0
+		if got > 0 then
+			attachLoot(resident, victim, got)
+		end
 	end
 
 	resident.state = "carrying"
@@ -1484,6 +2025,17 @@ local function finishCrack(resident: Resident)
 		at(home, GATE_Z, lawnY(home)),
 		at(home, PIG_Z, lawnY(home)),
 	}
+	-- A PIGGY GOES ON A PLINTH, NOT INTO THE PIG, so a haul's last leg ends
+	-- at the pad of the plinth it will stand on (`placeSlot`, re-asked on
+	-- arrival in case the lawn changed while they walked). The bank of coins
+	-- keeps the pig for the reason above.
+	if resident.haul then
+		local slot = placeSlot(resident)
+		local pad = if slot then padAt(home, slot) else nil
+		if pad then
+			resident.route[#resident.route] = pad
+		end
+	end
 end
 
 -- Banking it. A resident's own pig is where the coins go, which keeps the
@@ -1502,13 +2054,17 @@ end
 -- TAGGED. The coins go back to whoever they came from and the neighbour
 -- walks home with nothing, which is exactly what happens to a player thief.
 function ResidentService.nabbed(resident: Resident)
-	local index = resident.markIndex
-	if resident.loot > 0 and index and giveBackTo then
-		for _, plot in ipairs(PlotService.getAll()) do
-			if plot.index == index then
-				(giveBackTo :: any)(plot, resident.loot)
-			end
-		end
+	local plot = plotByIndex(resident.markIndex)
+	if resident.loot > 0 and plot and giveBackTo then
+		(giveBackTo :: any)(plot, resident.loot)
+	end
+	-- THE PIGGY GOES BACK WHERE IT WAS, through the haul service's own
+	-- return -- the ending a player thief's nab gives it -- so there is one
+	-- place that knows what "you did not get away with it" means for a
+	-- piggy, whoever was carrying it.
+	local haul = resident.haul
+	if haul and plot and giveBackPiggy then
+		(giveBackPiggy :: any)(plot, haul.key, haul.slot)
 	end
 	clearLoot(resident)
 	resident.state = "carrying"
@@ -1529,7 +2085,8 @@ end
 -- refund coins that are no longer in their arms.
 function ResidentService.recoverFrom(resident: Resident, taker: Player): number
 	local amount = resident.loot
-	if amount <= 0 then
+	local haul = resident.haul
+	if amount <= 0 and not haul then
 		return 0
 	end
 	ResidentService.nabbed(resident)
@@ -1537,6 +2094,16 @@ function ResidentService.recoverFrom(resident: Resident, taker: Player): number
 	-- player thief. On a solo server this is the only nab there is.
 	if catchEffect then
 		catchEffect(resident.model, taker)
+	end
+	if haul then
+		-- THE THANKS AND NOTHING ELSE, which is `PiggyHaulService.nab`'s own
+		-- rule: a piggy is not fungible, and handing a bystander somebody's
+		-- Pearl for pressing a button would make nabbing a better way to
+		-- collect than stealing. It went home.
+		Remotes.get("Notify"):FireClient(taker,
+			("Nice nab! %s dropped %s."):format(
+				resident.name, Config.getSkin(haul.key).name), "good")
+		return 0
 	end
 	Remotes.get("Notify"):FireClient(taker,
 		("Nice nab! You took %s back off %s."):format(
@@ -1556,7 +2123,7 @@ end
 function ResidentService.nearestCarrier(from: Vector3, range: number): (Resident?, number)
 	local best, bestDist = nil, range
 	for _, r in pairs(residents) do
-		if r.loot > 0 and r.model then
+		if carrying(r) and r.model then
 			local d = (ResidentService.bodyAt(r) - from).Magnitude
 			if d <= bestDist then
 				best, bestDist = r, d
@@ -1594,7 +2161,7 @@ end
 function ResidentService.nearestIdle(from: Vector3, range: number): (Resident?, number)
 	local best, bestDist = nil, range
 	for _, r in pairs(residents) do
-		if r.loot <= 0 and r.model and ResidentService.canHit(r) then
+		if not carrying(r) and r.model and ResidentService.canHit(r) then
 			local d = (ResidentService.bodyAt(r) - from).Magnitude
 			if d <= bestDist then
 				best, bestDist = r, d
@@ -1611,7 +2178,7 @@ function ResidentService.applyGadget(resident: Resident, spec: any, from: Vector
 		return false
 	end
 	local now = os.clock()
-	if resident.loot <= 0 then
+	if not carrying(resident) then
 		if not ResidentService.canHit(resident) then
 			return false
 		end
@@ -1743,7 +2310,7 @@ local function stepResident(resident: Resident, dt: number)
 			local tip = CFrame.fromAxisAngle(axis, math.rad(78))
 			local lying = CFrame.new(resident.at + Vector3.new(0, 0.7, 0))
 				* tip * facingCF(Vector3.zero, resident.facing)
-			ResidentModel.poseWalk(model, rig, lying, resident.stride, resident.loot > 0)
+			ResidentModel.poseWalk(model, rig, lying, resident.stride, carrying(resident))
 		end
 		return
 	end
@@ -1753,7 +2320,7 @@ local function stepResident(resident: Resident, dt: number)
 		resident.fxKnockUntil = nil
 		resident.fxKnockAxis = nil
 		ResidentModel.poseWalk(model, rig, facingCF(resident.at, resident.facing),
-			resident.stride, resident.loot > 0)
+			resident.stride, carrying(resident))
 	end
 
 	if resident.state == "home" then
@@ -1793,8 +2360,18 @@ local function stepResident(resident: Resident, dt: number)
 			-- clock -- a stroll is about a second of walking in every
 			-- fourteen, so the street averages well under one figure moving
 			-- at a time on top of the two who are genuinely out.
-			resident.state = "roam"
-			resident.route = { roamTarget(resident) }
+			--
+			-- A PLINTH WORTH COLLECTING FROM COMES BEFORE A POTTER, checked on
+			-- the roam clock rather than on a third clock of its own: every
+			-- six to twenty seconds a neighbour who is about to move looks at
+			-- their own pads first, and walks to the ripest instead of
+			-- nowhere in particular. No new cadence, and a neighbour cannot
+			-- be both strolling and collecting, so nothing to keep in step.
+			local ripe = ripestPad(resident)
+			if not (ripe and beginCollect(resident, ripe)) then
+				resident.state = "roam"
+				resident.route = { roamTarget(resident) }
+			end
 		else
 			-- STILL IN, AND THEREFORE FREE. Posing a figure that has not
 			-- moved writes the same CFrame to every limb again -- identical
@@ -1910,7 +2487,7 @@ local function stepResident(resident: Resident, dt: number)
 		-- advance, so the legs close by construction with no test for it.
 		ResidentModel.poseWalk(model, rig,
 			facingCF(resident.at, resident.facing), resident.stride,
-			resident.loot > 0)
+			carrying(resident))
 		return
 	end
 
@@ -1928,14 +2505,22 @@ local function stepResident(resident: Resident, dt: number)
 				-- AT THEIR OWN PIG, which is where the route now ends. The
 				-- coins go in here rather than over by the front door, so the
 				-- delivery happens AT the thing the coins live in -- the same
-				-- move a player's DELIVER press makes.
-				bankLoot(resident)
+				-- move a player's DELIVER press makes. A PIGGY ends at the
+				-- plinth instead and is stood on it; the two never coexist,
+				-- because a trip is one job.
+				if resident.haul then
+					placeHaul(resident)
+				else
+					bankLoot(resident)
+				end
 				-- Then the second leg, to wherever they stand when idle. A
 				-- neighbour who banked and then stayed planted beside their
 				-- own piggy would be permanently in the one spot a thief has
 				-- to reach, which is a defence nobody bought.
 				resident.state = "returning"
 				resident.route = { homeStand(resident) }
+			elseif resident.state == "collecting" then
+				finishCollect(resident)
 			elseif resident.state == "roam" then
 				-- Nothing to put back. A stroll ends facing wherever it was
 				-- walked, which is what somebody who has just stopped looks
@@ -1967,9 +2552,9 @@ local function stepResident(resident: Resident, dt: number)
 		resident.stride += step
 	end
 
-	-- THE HOLD IS `resident.loot > 0` AND DELIBERATELY NOT `state ==
-	-- "carrying"`. Those two disagree in both directions and the loot is the
-	-- honest one: a neighbour who was nabbed on the way home keeps the
+	-- THE HOLD IS `carrying(resident)` AND DELIBERATELY NOT `state ==
+	-- "carrying"`. Those two disagree in both directions and the arms are
+	-- the honest one: a neighbour who was nabbed on the way home keeps the
 	-- carrying STATE with nothing in their arms, and `finishCrack` sets the
 	-- state before `attachLoot` decides whether anything came out of the pig
 	-- at all. The file's own note one screen up makes the same call about the
@@ -1977,7 +2562,7 @@ local function stepResident(resident: Resident, dt: number)
 	-- loot model and never the walk".
 	ResidentModel.poseWalk(model, rig,
 		facingCF(resident.at, resident.facing), resident.stride,
-		resident.loot > 0)
+		carrying(resident))
 end
 
 
@@ -2015,11 +2600,16 @@ end
 
 -- Puts coins back, for the one path that needs it: a grab that was charged
 -- and then failed to attach its loot model.
--- Returned coins fill only the room the pig has now (MASTER-PLAN 4c.6); the
--- rest spills, exactly as it would for a player. Returns what was banked.
+-- A RESIDENT'S PIG IS STILL BOUNDED -- `pigSeconds` of its own income is the
+-- supply `auditRobbery` prices, and `bankLoot` and the tick both clamp to it
+-- -- so a refund fills only the room it has now, exactly as they do. A
+-- PLAYER'S pig has no ceiling and takes everything back (`HeistService.
+-- giveBack`); this is the one clamp left in a refund and it is deliberate.
+-- Returns what was banked.
 function ResidentService.refund(resident: Resident, amount: number): number
 	local capacity = ResidentService.getCapacity(resident)
-	local banked = Config.fitInPig(resident.coins, capacity, amount)
+	local banked = math.min(math.max(0, math.floor(amount)),
+		math.max(0, math.floor(capacity - resident.coins)))
 	resident.coins += banked
 	PlotService.updatePile(resident.plot, resident.coins, capacity)
 	return banked
@@ -2090,11 +2680,6 @@ local function tick()
 			PlotService.updatePile(resident.plot, resident.coins, pigSize(level, resident.plot))
 		end
 
-		local stock = resident.acornStock
-		if stock and ResidentAcorns.tick(stock, os.time(), isIn(resident)) then
-			publishAcorns(resident)
-		end
-
 		local capacity = pigSize(resident.capacityLevel, resident.plot)
 		if resident.coins < capacity then
 			-- Rebirths 0 and no friend bonus: a resident earns the plain rate
@@ -2105,6 +2690,31 @@ local function tick()
 				resident.coins
 					+ Config.getIncomeRate(resident.incomeLevel, 0) * Config.RESIDENTS.tickRate)
 			PlotService.updatePile(resident.plot, resident.coins, capacity)
+		end
+
+		-- AND THE PLINTHS FILL, on the player's own arithmetic (`slotEconomy`)
+		-- and the player's own two rules: a buffer over its cap is clamped
+		-- down rather than left (a level falling with the street drops every
+		-- cap), and an empty plinth holds nothing. Repainted only when
+		-- something moved, which after the lap's worth of ticks is never --
+		-- six attribute writes a plot a second while filling, none once full.
+		if not resident.plot.shop then
+			local slots = Config.piggySlots(resident)
+			local moved = false
+			for slot = 1, Config.PIGGY_LAWN_SLOT_COUNT do
+				local rate, ceiling = slotEconomy(resident, slot)
+				local held = slots[slot].buffer or 0
+				local next_ = if rate > 0
+					then math.min(ceiling, held + rate * Config.RESIDENTS.tickRate)
+					else 0
+				if next_ ~= held then
+					slots[slot].buffer = next_
+					moved = true
+				end
+			end
+			if moved then
+				PlotService.setPiggyBuffers(resident.plot, resident)
+			end
 		end
 	end
 end

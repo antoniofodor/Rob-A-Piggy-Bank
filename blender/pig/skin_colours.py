@@ -52,7 +52,13 @@ _RGB = re.compile(r"body = Color3\.fromRGB\((\d+), (\d+), (\d+)\),\s*"
 def skin(key):
     """(body, trim) as 0..1 sRGB triples, for the skin named `key`."""
     src = open(CONFIG, encoding="utf-8").read()
-    i = src.find("\n\t%s = {" % key)
+    # FROM `Config.SKINS` ONWARD, not from the top of the file. A key at one
+    # tab is not unique to the skins table: `Config.SURFACE_PACKS.lion` is a
+    # one-line row that sits four thousand lines ABOVE `Config.SKINS.lion`,
+    # and searching the whole file found it first and reported "no body/trim
+    # pair" against the wrong table.
+    start = src.find("\nConfig.SKINS = {")
+    i = src.find("\n\t%s = {" % key, start if start >= 0 else 0)
     if i < 0:
         raise RuntimeError("Config.SKINS has no %r" % key)
     m = _RGB.search(src, i, i + 4000)

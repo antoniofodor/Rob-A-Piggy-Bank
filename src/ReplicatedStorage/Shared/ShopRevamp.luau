@@ -44,15 +44,10 @@ function Shell.new(deps: any)
  self.back=W.button(deps.header,"ShopHome",utf8.char(0x2039),Theme.GOLD,function() deps.selectTab(1) end)
  self.back.Visible=false
  self.coinBadge=W.frame(self.masthead,"CoinBadge",Theme.PAPER);W.round(self.coinBadge,15)
- self.acornBadge=W.frame(self.masthead,"AcornBadge",Theme.PAPER);W.round(self.acornBadge,15)
  self.coinBadge:FindFirstChildOfClass("UIStroke").Thickness=3
- self.acornBadge:FindFirstChildOfClass("UIStroke").Thickness=3
  self.coinIcon=W.frame(self.coinBadge,"CoinIcon");self.coinIcon.BackgroundTransparency=1
- self.acornIcon=W.frame(self.acornBadge,"AcornIcon");self.acornIcon.BackgroundTransparency=1
  self.coinScale=Instance.new("UIScale");self.coinScale.Parent=Theme.coin(self.coinIcon,34,"Coin")
- self.acornScale=Instance.new("UIScale");self.acornScale.Parent=Theme.acorn(self.acornIcon,37,"Acorn")
  self.coins=W.text(self.coinBadge,"Coins","0",30);self.coins.Position=UDim2.fromOffset(52,0);self.coins.Size=UDim2.new(1,-60,1,0)
- self.acorns=W.text(self.acornBadge,"Acorns","0",30);self.acorns.Position=UDim2.fromOffset(52,0);self.acorns.Size=UDim2.new(1,-60,1,0)
  deps.close.ZIndex=4
  self.sidebar=W.scroll(deps.panel,"Categories")
  local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=self.sidebar
@@ -212,29 +207,24 @@ function Shell:layout()
  self.title.Position=UDim2.fromOffset(titleX,0);self.title.Size=UDim2.new(1,-titleX-signH/2,1,0)
  self.title.TextSize=if landing then (if narrow then 30 else math.floor(mastH*.64)) else (if narrow then 19 else 25)
  self.title.TextWrapped=not landing;self.title.TextTruncate=Enum.TextTruncate.None
+ -- ONE BADGE. The acorn balance stood beside the coins and went with the
+ -- currency, so what was a pair now takes the width the pair shared.
  if narrow then
-  self.coinBadge.Position=UDim2.fromOffset(10,53);self.coinBadge.Size=UDim2.new(.5,-16,0,40)
-  self.acornBadge.Position=UDim2.new(.5,5,0,53);self.acornBadge.Size=UDim2.new(.5,-16,0,40)
+  self.coinBadge.Position=UDim2.fromOffset(10,53);self.coinBadge.Size=UDim2.new(1,-20,0,40)
  else
-  local badgeW=math.floor((width*.54-closeSize-26)/2)
-  self.coinBadge.Size=UDim2.fromOffset(badgeW,mastH-18);self.acornBadge.Size=self.coinBadge.Size
-  self.acornBadge.Position=UDim2.new(1,-closeSize-20-badgeW,0,9)
-  self.coinBadge.Position=UDim2.new(1,-closeSize-32-badgeW*2,0,9)
+  local badgeW=math.floor(width*.54-closeSize-26)
+  self.coinBadge.Size=UDim2.fromOffset(badgeW,mastH-18)
+  self.coinBadge.Position=UDim2.new(1,-closeSize-20-badgeW,0,9)
  end
  self.coins.TextSize=if width<900 or height<420 then 20 else math.floor(mastH*.40)
- self.acorns.TextSize=self.coins.TextSize
  -- Scale the complete drawing, including the coin's fixed-size inner rim.
  local badgeH=self.coinBadge.Size.Y.Offset
  local currencySize=math.min(if compact then 24 else 34,badgeH-14)
- self.coinScale.Scale=currencySize/34;self.acornScale.Scale=currencySize/37
- for _,icon in {self.coinIcon,self.acornIcon} do
-  icon.Size=UDim2.fromOffset(currencySize,currencySize)
-  icon.Position=UDim2.new(0,8,.5,-currencySize/2)
- end
+ self.coinScale.Scale=currencySize/34
+ self.coinIcon.Size=UDim2.fromOffset(currencySize,currencySize)
+ self.coinIcon.Position=UDim2.new(0,8,.5,-currencySize/2)
  local balanceX=currencySize+16
- for _,label in {self.coins,self.acorns} do
-  label.Position=UDim2.fromOffset(balanceX,0);label.Size=UDim2.new(1,-balanceX-8,1,0)
- end
+ self.coins.Position=UDim2.fromOffset(balanceX,0);self.coins.Size=UDim2.new(1,-balanceX-8,1,0)
  local top=mastH+10
  local left=if landing or compact then 16 else 190
  self.sidebar.Visible=not landing and not compact
@@ -326,8 +316,9 @@ function Shell:setFeatured(info: any?)
   then (if info.id then ("%s %s %d Robux"):format(info.name or "",utf8.char(0x00B7),info.robux or 0) else (info.name or "").." "..utf8.char(0x00B7).." coming soon")
   else "You own every pass. Thank you!"
 end
-function Shell:setBalances(coins: number,acorns: number?)
- self.coins.Text=Config.formatCoins(coins);self.acorns.Text=Config.formatCoins(math.floor(acorns or 0))
+-- The second parameter is kept and ignored so existing callers do not change.
+function Shell:setBalances(coins: number,_acorns: number?)
+ self.coins.Text=Config.formatCoins(coins)
 end
 function Shell:rebuildPiggy() end -- Category illustrations do not use the purchasable skin mesh.
 return Shell

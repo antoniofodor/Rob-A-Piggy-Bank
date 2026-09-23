@@ -1,0 +1,213 @@
+{
+  "key": "rainbowtiger",
+  "name": "Rainbow Tiger",
+  "path": "assets/piggies/legendary/rainbowtiger/",
+  "tier": "legendary",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); legendary/: Config.SKINS.rainbowtiger.rarity = \"legendary\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/rainbowtiger/",
+    "assets/piggies/rainbowtiger/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/legendary/rainbowtiger/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6695,
+      "name": "Rainbow Tiger",
+      "rarity": "legendary",
+      "surface": null,
+      "legendary": "rainbowtiger",
+      "chest": "animal",
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": null,
+    "legendaryPacks": [
+      "legend_rtiger_beard",
+      "legend_rtiger_coat",
+      "legend_rtiger_earfur",
+      "legend_rtiger_tail"
+    ],
+    "status": "in Config.SKINS as a LEGENDARY: Config.LEGENDARIES.rainbowtiger lists its parts and the legend_* packs they wear"
+  },
+  "templates": {
+    "legend_rtiger_beard": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/legend_rtiger_beard.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "rbxassetid://79049808266407",
+        "ColorMap": "rbxassetid://126875957823840"
+      },
+      "alphaMode": "Overlay"
+    },
+    "legend_rtiger_coat": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/legend_rtiger_coat.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://110696323838054",
+        "EmissiveMaskContent": "rbxassetid://128530572586037"
+      },
+      "alphaMode": "Overlay"
+    },
+    "legend_rtiger_earfur": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/legend_rtiger_earfur.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://133588227358545"
+      },
+      "alphaMode": "Overlay"
+    },
+    "legend_rtiger_tail": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/legend_rtiger_tail.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://70768744570297"
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://126875957823840": {
+      "file": "package/beard-flow-color.png",
+      "sha256": "7fbb431a959ab560555ec76b98d113d514695a8706954b014857084ff99ce62e",
+      "role": "legend_rtiger_beard ColorMap",
+      "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    },
+    "rbxassetid://79049808266407": {
+      "file": "package/beard-flow-normal.png",
+      "sha256": "cac0d8254847a04025f38df90ddccf602379da53bc5c42a98bb62a96e5e6e9ee",
+      "role": "legend_rtiger_beard NormalMap",
+      "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    },
+    "rbxassetid://110696323838054": {
+      "file": "package/rainbowtiger-coat.png",
+      "sha256": "a3e59d02aaf4f9cc015911917a76fb0396e319298bad94ef3c58b387a0c406de",
+      "role": "legend_rtiger_coat ColorMap",
+      "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    },
+    "rbxassetid://128530572586037": {
+      "file": "package/rainbowtiger-stripe-emission.png",
+      "sha256": "8d6e49e79bfd030c9450e0fc0286c764c7023d7d3e4ff03772bdbe07797d0cb3",
+      "role": "legend_rtiger_coat EmissiveMaskContent",
+      "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    },
+    "rbxassetid://133588227358545": {
+      "file": "package/rainbowtiger-charcoal-fur.png",
+      "sha256": "3ed1574300860901cc8d4fb4a7aaad761c2771a69f03ea25d52fc0e93dcc143e",
+      "role": "legend_rtiger_earfur ColorMap",
+      "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    },
+    "rbxassetid://70768744570297": {
+      "file": "package/rainbowtiger-tail-gradient.png",
+      "sha256": "548c3447acc7b18a675c471a01dcc0fd9f1c43687090d91dd789e71892d13ee3",
+      "role": "legend_rtiger_tail ColorMap",
+      "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    }
+  },
+  "shopCard": {
+    "file": "package/shop-cards/rainbowtiger.png",
+    "robloxAssetId": "rbxassetid://114158169786998",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/legendary/rainbowtiger/package/shop-cards/rainbowtiger.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/legendary/rainbowtiger/package",
+    "note": "DERIVED by the legendary builders under blender/pig/make/ (build_*_legendary.py, build_stormwolf_layout.py) from this folder; not a source",
+    "fileCount": 134,
+    "textureCopiesMatchShippedSheets": {}
+  },
+  "closedBack": {
+    "closedScene": "source/rainbowtiger_closed.blend",
+    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as rainbowtiger_body_color.open-hatch.png. Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "rainbowtiger.blend",
+      "rainbowtiger_closed.blend"
+    ],
+    "generate": [
+      "beard-shape-study/",
+      "make_rainbowtiger_blend.py",
+      "rainbow-tiger-concept/"
+    ],
+    "sheets": [
+      "rainbowtiger_body_color.open-hatch.png",
+      "rainbowtiger_body_color.png",
+      "rainbowtiger_trim_color.png"
+    ],
+    "preview": [
+      "rainbowtiger_hatch.png",
+      "rainbowtiger_hero.png",
+      "rainbowtiger_legendary_behind.png",
+      "rainbowtiger_legendary_hatch.png",
+      "rainbowtiger_legendary_hero.png",
+      "rainbowtiger_view.blend"
+    ],
+    "package": [
+      "README.before-closedback.md",
+      "README.md",
+      "animation-checks.before-closedback.json",
+      "animation-checks.json",
+      "animation-handoff.before-closedback.json",
+      "animation-handoff.json",
+      "beard-flow-color.before-closedback.png",
+      "beard-flow-color.png",
+      "beard-flow-normal.before-closedback.png",
+      "beard-flow-normal.png",
+      "beard-root-checks.before-closedback.json",
+      "beard-root-checks.json",
+      "index.before-closedback.html",
+      "index.html",
+      "motion.before-closedback/",
+      "motion/",
+      "rainbowtiger-asset-report.before-closedback.json",
+      "rainbowtiger-asset-report.json",
+      "rainbowtiger-beard-fur.before-closedback.png",
+      "rainbowtiger-beard-fur.png",
+      "rainbowtiger-charcoal-fur.before-closedback.png",
+      "rainbowtiger-charcoal-fur.png",
+      "rainbowtiger-coat.before-closedback.png",
+      "rainbowtiger-coat.png",
+      "rainbowtiger-complete.before-closedback.blend",
+      "rainbowtiger-complete.before-closedback.fbx",
+      "rainbowtiger-complete.blend",
+      "rainbowtiger-complete.fbx",
+      "rainbowtiger-crown.before-closedback.png",
+      "rainbowtiger-crown.png",
+      "rainbowtiger-ear-detail.before-closedback.png",
+      "rainbowtiger-ear-detail.png",
+      "rainbowtiger-front.before-closedback.png",
+      "rainbowtiger-front.png",
+      "rainbowtiger-hero.before-closedback.png",
+      "rainbowtiger-hero.png",
+      "rainbowtiger-idle.before-closedback.fbx",
+      "rainbowtiger-idle.before-closedback.gif",
+      "rainbowtiger-idle.fbx",
+      "rainbowtiger-idle.gif",
+      "rainbowtiger-rear.before-closedback.png",
+      "rainbowtiger-rear.png",
+      "rainbowtiger-side.before-closedback.png",
+      "rainbowtiger-side.png",
+      "rainbowtiger-stripe-emission.before-closedback.png",
+      "rainbowtiger-stripe-emission.png",
+      "rainbowtiger-tail-gradient.before-closedback.png",
+      "rainbowtiger-tail-gradient.png",
+      "shop-cards/",
+      "stripe-bands/"
+    ]
+  },
+  "generator": "generate/make_rainbowtiger_blend.py",
+  "notes": [
+    "rainbowtiger_body_color.png: closed-back pass output is CURRENT; shipped bake kept as rainbowtiger_body_color.open-hatch.png",
+    "generate/beard-shape-study/ was COPIED from the legendary agent's scratchpad rebuild (closedback-legendaries/beard-shape-study); the tracked original under blender/pig/skins/rainbowtiger/beard-shape-study/ was deleted from the working tree by another session earlier today",
+    "Config row carries a code-built pattern/anim; the baked sheets here are the authored replacement that has not been wired as a SurfacePacks pair yet."
+  ]
+}

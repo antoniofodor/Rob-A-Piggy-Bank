@@ -71,16 +71,48 @@ your collection the till falls back to Classic.
 This is the answer to the question: **not a fixed default — the default until
 you own something you would rather show.**
 
-**LAWN — every piggy you own, all of them, all the time.** There is no cap
-here and no bag behind it. `Config.DECOR_ITEMS` is empty — the lawn ornament
-catalogue was retired and left a placement grid, an auto-slot, a put-away
-toggle, a rebuild-on-plot path and a save field standing with nothing in them
-— and a piggy moves straight onto it the moment you own it. The grid grows
-(more rows, tighter spacing) as the collection grows rather than ever
-refusing a new arrival; the only real ceiling is a part-count number far
-beyond anything a player will reach, and it is a rendering concern, never a
-design lever. This is the default state of everything you own, and it is
-what anybody can walk up and take.
+**LAWN — SIX PEDESTALS. Resolved 2026-09-20, and it reverses what this
+section and §4 used to say.** The paragraph here read *"every piggy you own,
+all of them, all the time. There is no cap here and no bag behind it... the
+grid grows (more rows, tighter spacing) as the collection grows rather than
+ever refusing a new arrival"*, and §4 stated it as flatly as a rule gets:
+*"EVERY PIGGY YOU OWN IS ALWAYS PLACED AND ALWAYS EARNING. There is no
+unslotted state, no bag, no shed."* It is **six slots**
+(`Config.PIGGY_LAWN_SLOTS`), and the first four of them are the retired lawn
+ornament grid reused rather than a new one invented — `Config.DECOR_SLOTS`'
+own comment says those four coordinates cost nothing standing empty and that
+deleting them would be the expensive half of coming back.
+
+**WHAT IT COSTS is the "nothing ever sits doing nothing" rule, and that is a
+real loss rather than a technicality.** Own a seventh piggy and it is owned,
+counted, and earning nothing until there is room — so `owned` and what is
+PLACED are two different numbers now, and every income figure has to read the
+placements rather than the collection. §4's own argument that a repeat pull
+from a crate is "the thing you were hoping for" is weaker against a full
+lawn than it was against an unlimited one.
+
+**WHAT IT BUYS BACK IS THE PRESSURE THE UNCAPPED VERSION GAVE AWAY.** §4 had
+to argue that the reason to buy a bigger house was *"find room or leave your
+best pieces exposed"* — which is a far weaker sentence than "find room or it
+earns nothing" — and §6 is 126 plots of indoor capacity that, uncapped,
+nothing actually needed. Capped, the whole rebirth hallway has a job again,
+and so does every fence tier and lock that defends six visible pedestals
+instead of an unbounded pile.
+
+**TWO WAYS ONTO A PEDESTAL, AND THEY ARE DELIBERATELY NOT THE SAME.**
+
+* A piggy you **went and got** — rounded up out of a herd (§15) or snatched
+  off somebody's lawn (§5) — is placed **by hand** into any free slot. You
+  carried it home; you choose where it stands.
+* A piggy out of a **crate** lands on the **first free slot, front to back**,
+  with nothing to press. A reveal is already a moment — the reel, the tier,
+  the spare chip — and making it also a placement decision spends that moment
+  on admin.
+
+Front-to-back is the order of the table, so a collection grows **toward the
+street** rather than appearing behind the house where nobody walking past
+would see it. This is still the default state of everything you own, and it
+is still what anybody can walk up and take.
 
 **INDOOR SHELVES — N, set by your house tier, earning the same rate.** The
 authored house templates already carry `Featured`, `Shelf_1..N` and `Wall`
@@ -122,14 +154,25 @@ times. This is what makes a repeat pull from a crate exciting rather than a
 consolation, and it is why `spares` stops being a sell-it-back pity system and
 becomes the thing you were hoping for.
 
-**EVERY PIGGY YOU OWN IS ALWAYS PLACED AND ALWAYS EARNING.** There is no
-unslotted state, no bag, no shed. A piggy comes out of a crate standing on
-your lawn, earning from that second — this is the rule the plan opened with,
-stated here as flatly as the one it replaces, because it is just as
-load-bearing: nothing this design ever hands a player is allowed to sit there
-doing nothing. The pressure to buy a bigger house is not "find room or lose
-income" — every piggy already pays regardless of where it stands — it is
-"find room or leave your best pieces exposed."
+**~~EVERY PIGGY YOU OWN IS ALWAYS PLACED AND ALWAYS EARNING.~~ Reversed
+2026-09-20 — the lawn is six slots. See §3.** What stood here read: *"There
+is no unslotted state, no bag, no shed. A piggy comes out of a crate standing
+on your lawn, earning from that second... nothing this design ever hands a
+player is allowed to sit there doing nothing. The pressure to buy a bigger
+house is not 'find room or lose income' — every piggy already pays regardless
+of where it stands — it is 'find room or leave your best pieces exposed.'"*
+
+It is kept rather than deleted because the sentence it gave up is the one to
+weigh against anything that widens the lawn again: **a spare piggy now sits
+there doing nothing, which is the thing this design said it would never
+hand anybody.** What replaces it is that the pressure went back to being
+"find room or it earns nothing", which is the stronger half of the trade and
+is what gives the rebirth hallway in §6 something to be for.
+
+**A PLACED PIGGY EARNS WHEREVER IT STANDS, WHICH IS UNTOUCHED BY THAT.** A
+lawn pedestal, the till and an indoor plot all pay the same rate; placement
+is entirely about exposure (§9.2). What changed is only whether a copy is
+placed at all.
 
 **The income tree becomes a multiplier on the collection.** "Earn Faster" now
 raises what every piggy pays instead of raising a drip. Capacity is untouched —
@@ -272,80 +315,87 @@ shape above is what to build against, not the final constants.
 
 ---
 
-## 6. Indoor shelves and the house ladder
+## 6. Indoor capacity — a hallway gated by rebirth, not by house tier
 
-**The catalogue has grown since this section was first drafted: eighteen
-tiers exist in `Config.HOUSE_TIERS` today, not nine** — shack through
-goldenpig, the last one earned rather than bought. The rule below is
-unchanged; only the row count is bigger, and every number this section
-carries below is illustrative rather than final until generated against the
-real eighteen.
+**Superseded 2026-09-20.** This section used to derive shelf count from each
+house's own authored floor area (Crystal Spire's narrow tower, a clamp
+borrowed from `UPGRADE_COST_CEILING`, a `Shelf_N`-per-perimeter tooling
+pass). None of that survives now that the interior is one fixed-size generic
+room for every tier — see §6a and `docs/PIGGY-COLLECTION-BUILD-ORDER.md`.
+What follows is the replacement.
 
-**The rule is strictly monotonic: every tier holds at least one more indoor
-shelf than the tier below it, with no exceptions and no ties.** A player who
-rebirths straight past a middle tier must never end up with fewer shelves
-than one they walked past.
+**Every house interior is the same fixed size and the same fixed layout: one
+long hallway, doors along it, floor plots between them.** What a house
+purchase buys for the interior is the THEME dressing on that hallway — the
+part §6a is actually about — never more space and never more plots. Capacity
+is a separate axis entirely, and it comes from rebirths.
 
-**Shelf count is derived from the room's own floor area, and the derivation
-needs a clamp the moment you look at the real numbers.**
-`assets/houses/tools/walkin_catalogue.py` already has a measured, walkable
-room for all eighteen houses, and floor area is not remotely monotonic with
-price today: Crystal Spire, at $25M, has the SMALLEST room of any tier —
-smaller than the free Starter Shack. That is not a flaw to fix in the room
-geometry (a crystal spire is meant to be a narrow tower, and §6a is what
-actually fixes it); it is a reason the shelf FORMULA cannot be a bare
-`floor(area / density)`. It has to be that, clamped to never fall below the
-previous tier's count plus one — the exact shape `Config.UPGRADE_COST_CEILING`
-already uses to keep an unrelated curve from breaking a rule it was never
-solved to respect.
+**Piggies stand on floor plots, not wall shelves.** This is closer to the
+lawn's own placement grid than to `TrophyRoom`'s wall-mount system — the same
+"a piggy has a spot, and the spot is a floor position" logic, just relocated
+indoors and behind the door/fence/lock gate instead of open to the street.
+The achievement wall (`TrophyRoom`, stats plus the wanted poster) is
+untouched and keeps its own `Wall` mount somewhere along the hallway — a
+separate display on a separate contract, for a separate thing.
 
-**The count still comes from the art, never from a number typed twice** —
-that half of the rule doesn't change. What changes is that "the art" gets a
-tooling pass rather than a hand-authored mount per house: a script (extending
-`build_walkin.py`) places `Shelf_N` mounts around a room's own perimeter at a
-fixed spacing, so the count is a consequence of the room someone already
-built rather than a fresh decision per tier.
+**Each door along the hallway unlocks at a rebirth threshold**, revealing
+more corridor and more plots beyond it. The strictly-monotonic rule this
+section always carried survives unchanged, and it is trivially true now
+instead of needing a clamp to guarantee it: it is a designed sequence — a
+typed table of plot count per rebirth tier — rather than something derived
+from messy per-house art.
 
-**And the ladder is asserted at boot, not eyeballed.** An audit — either a
-new `Config.auditHouseSlots()` or a clause inside whichever audit already
-walks the house catalogue — builds every tier, counts its `Shelf_N` mounts,
-and refuses to boot clean if the sequence is not strictly increasing.
-`CLAUDE.md`'s own history is the argument for this: the Sky Castle's "16.6
-studs too wide," the vault opening sized against only one of four lock
-tiers, `SHOP_BANK_PIG_SECONDS` wrong by 62% on its first audited boot — every
-one of those was a number that looked fine until something actually measured
-it.
+**Asserted at boot the same way the old formula would have been** — a clause
+that walks the rebirth ladder and refuses to boot clean if the plot count
+per tier is not strictly increasing. Cheaper to write than what this
+replaced: there is no art left to measure, only a table to check.
 
 **Plus the till (1) and the lawn, which has room for everything else you
 own.**
 
-**The ear shelves are a one-off, not a step in the ladder.** They belong to
-the top house alone — visible from the street, unreachable by anyone but the
-owner, pure flex, earning the same rate as anything else. If a nineteenth
-priced house is ever added, it does not get its own matching flourish by
-default; that pattern was spent once, deliberately, at the top.
+**The ear shelves stay a one-off on the top house** — visible from the
+street, unreachable by anyone but the owner, pure flex. Unaffected by any of
+the above; they were never part of the indoor capacity ladder.
 
-**Switching your displayed house down costs protection, never income.**
-`houseShown` and `houseLevel` are already separate — a player may wear any
-house tier they have unlocked, not only their newest, purely for looks — and
-under the old "unslotted piggies earn zero" model that meant a real risk of
-orphaning a collection. It does not any more: the lawn is unlimited, so
-anything that no longer fits on the smaller house's shelves simply stands
-outside instead, still earning, now just exposed. Worth a heads-up toast on
-the switch — *"Only 4 of your 16 shelved piggies fit in Beehive Cottage; the
-rest will be on the lawn."* — but never a blocking confirm, because nothing
-is actually at stake in the way the old draft of this section thought it was.
+**Switching your displayed house is now purely cosmetic.** Under the old
+model, displaying a smaller house risked orphaning shelved piggies onto the
+lawn, which needed its own toast and its own reasoning. That risk is gone —
+capacity never comes from the house at all under this shape, so changing
+which house is shown changes nothing about what fits where.
 
-**Rebirth raises the house ceiling rather than wiping the collection.**
-Rebirth keeps doing what it does — wipes the upgrade trees and coins, never
-touches cosmetics — and since cosmetics are now income, what it must NOT do
-is take piggies. What it grants instead is access to the next house tiers,
-which is "more rooms unlocked via rebirths" and is exactly the loop the
-comparison game runs on.
+**One new room every rebirth, 6 plots each, straight through to rebirth 20.**
+Resolved 2026-09-20 — rebirth 20 matches the ceiling this game already uses
+elsewhere (band C already runs "two levels per rebirth to rebirth 20"), so
+that half isn't a new number, just a new axis using an existing one. 21
+rooms (rebirth 0's starting room plus one per rebirth through 20) at 6 each
+is **126 total indoor plots** — 120 if the first room itself is meant to
+require the first rebirth rather than existing from day one; either is a
+one-line change to the per-tier table, not a design question.
+
+**More skins is the right instinct, and 126 plots against a ~44-skin
+catalogue (§1) says roughly how many.** Duplicates stacking and earning (§4)
+means the economy never runs short of room to fill — the lawn alone is
+uncapped — so nothing here is blocked on having more skins; the hallway will
+fill with duplicates fine either way. What more skins buys is a curated
+hallway that still reads as a COLLECTION at rebirth 20 rather than the same
+44 faces averaging three copies apiece. Filling it near 1:1 wants roughly
+the catalogue tripled; even getting average duplication down to about 2x
+wants it somewhere past 60. That's a dial, not a hard requirement — and it's
+a content-authoring track, not a blocker for Stage 4's engineering. It can
+run in parallel, the same way the house art and the runtime integration were
+split into separate workstreams in
+`assets/houses/docs/HOUSE-TROPHY-ROOMS.md`.
 
 ---
 
 ## 6a. Making eighteen houses feel like eighteen different amounts of space
+
+**Deferred past the MVP — resolved 2026-09-20, see `docs/PIGGY-COLLECTION-BUILD-ORDER.md`.**
+The MVP interior is one code-generated generic room, not per-house Blender
+art, so nothing below is being built yet. It stays here rather than being
+deleted because it is exactly the brief to pick back up if bespoke,
+theme-matched interiors get built later — the curated shortlist and the
+reasoning behind it don't go stale just because the first version skips them.
 
 **Right now every one of the eighteen has exactly one room, and most of them
 are lying about it.** `walkin_catalogue.py`'s own comment says so: *"Higher
@@ -399,14 +449,22 @@ people spend enough time in to make new modelling worth it.
 * **The passive drip.** Income comes from piggies. Offline accrual keeps
   running off the same collection, so coming back is never empty.
 * **Acorns, the tree, the basket, the shake, `ResidentAcorns`, `auditAcorns`.**
-  Confirmed.
-* **The coin-priced crate purchase in the shop.** Crates are job-earned only
-  (see §7a) and event-earned as they are today; the Crates tab's buy button
-  retires with it. Nothing in `Config.CHESTS` — the pool, the odds, the tier
-  structure — changes; only what pays for a roll.
-* **The season track**, which counts acorns and nothing else. It has no readers
-  after the above and it is a live-ops retention system on a game that has not
-  launched.
+  **DONE 2026-09-21**, out of order — ahead of the job board rather than after
+  it, because the crate decision below forced it. `data.loot` is deleted
+  (schema 29). See `CLAUDE.md` under THERE IS ONE CURRENCY.
+* **The crate purchase in the shop.** **DONE 2026-09-21.** No crate carries a
+  `currency` or a `cost`, `ChestService.open` and the `ChestOpen` remote are
+  gone, and `auditRandomOutcomes` now REFUSES a priced crate. Nothing in
+  `Config.CHESTS` — the pool, the odds, the tier structure — changed; only what
+  pays for a roll. Crates are award-only in the meantime: day seven of the
+  daily ladder, a rebirth, and events. **The job board (§7a) is still the
+  intended earn surface and is still unbuilt**, so the tab is thinner than it
+  will be.
+* **The season track**, which counted acorns and nothing else. **DONE
+  2026-09-21** — the RANK, its tiers, its rewards, its board page and the plot
+  sign's chip. `Config.seasonIndex` survives because the buy-back claims and
+  the hot-skin window key off it, and so does the nemesis ledger. **The five
+  `Config.FINISHES` are now unobtainable**, which is the one hole this left.
 * **Skins as a wardrobe.** There is no "equipped skin" any more, only "which
   piggy is on the till".
 
@@ -559,3 +617,119 @@ Gate Fence (§5a), and the curated second floors from §6a land.
 **Phase 1 and 2 together are the vertical slice.** If placing a piggy, watching
 it earn, and having somebody take it is not fun with an open lawn and no
 rooms, no amount of interior work will rescue it.
+
+---
+
+## 11. Rebirth-gated content
+
+**Houses already work this way** — §6 already says "Rebirth raises the house
+ceiling rather than wiping the collection." Nothing new needed there; this
+section is about extending the same shape to a category that doesn't have it
+yet.
+
+**Gadgets join the same ladder.** The §5a mobility gadgets (Spring Boots,
+Grapple Gun, Jetpack) unlock progressively by rebirth count rather than being
+purchasable from level 0 — a new player cannot buy their way to reaching an
+indoor shelf on day one, the same way a new player cannot buy their way to
+the top house tier today.
+
+**"Etc." needs a specific list before this is buildable, and one thing has to
+stay off it no matter what's on it.** Rebirth-gating "everything" would
+include the piggy collection itself if read literally, and that directly
+reverses the rule this whole plan is built on top of: *"Rebirth wipes power
+but never cosmetics... the collection is the reason to press the button."*
+Piggies are income now, not cosmetics, but the rule protecting them from
+rebirth is the same rule — losing the collection on rebirth would mean losing
+the income source on the one action meant to grow it. **Gate power (gadgets,
+fence tiers, upgrade trees), never the collection.**
+
+*Open: what else is on the "etc" list?*
+
+## 12. The piggy-pedestal guards run slower than the player
+
+The reference game's guards sleep until triggered, then chase — but never win
+a footrace against a player with any separation. That's the rule to
+replicate: **guard speed for the pedestal defence sits below the player's own
+carrying speed (12 studs/s)**, so once a thief is moving with a head start,
+distance only grows. The threat is being caught close, not being run down
+from across the lawn.
+
+This is a genuinely different speed rule from the till's existing guard dog,
+where the top tier (Titan, 17) is deliberately *faster* than even a
+free-running player (16) — that asymmetry is load-bearing for the till's own
+chase math and the officer/dog speed ladder the whole getaway is tuned
+against. So this wants to ship as a **separate speed profile on the same
+`GuardDog` rig** (a pedestal-guarding role vs. a till-guarding role), not a
+global retune, unless there's a reason to want the till softer too.
+
+*Open: confirm this is scoped to pedestal guards only.*
+
+## 13. An in-base shop
+
+The interior gets a second shop entrance — same door-and-prompt pattern as
+the street shops, opening the identical shop panel that already exists. No
+new shop system; just a second door into the one that's there.
+
+## 14. Robux-purchasable crates — flagged, not decided
+
+This is the one item here that isn't a "note it down and move on," because it
+reverses the single most defended rule in this file's whole history:
+*"COINS ARE NOT PURCHASABLE WITH ROBUX AT ANY PRICE, EVER... the day a coin
+pack ships, every chest in the game becomes a regulated loot box
+retroactively... this rule can only ever be broken once."* Pets-from-crates
+is already this game's design — §7a already has piggies coming from crates,
+earned through jobs. What's new in "mimic the reference game" is Robux being
+able to buy those crates directly, or buy a currency that can.
+
+If that is really what's wanted, it needs to be built as a **compliant paid
+random item**, not a bare purchase button: Roblox requires disclosed
+numerical odds summing to 100% before purchase, and a
+`PolicyService.ArePaidRandomItemsRestricted` check that refuses the feature
+outright for restricted regions and ages (UK under-18, Australia, Belgium,
+and expanding) — meaning a real share of this game's own stated audience
+would meet a button that does nothing. That is buildable, but it is a real
+compliance surface, not a config flag, and it is one-way: once it ships, it
+cannot be walked back without every existing chest becoming retroactively
+regulated alongside it.
+
+**The alternative already in use elsewhere in this game** gets most of the
+commercial value without any of that: sell a *named* pet directly for Robux —
+no randomness, no odds disclosure, no regional gate — the same shape as the
+Style Pack and the ride passes. A guaranteed legendary skin for a fixed Robux
+price is a real thing to sell; a gamble at one is the thing that needs the
+compliance work above.
+
+*Open: direct Robux-to-crate purchase (needs the compliance build), or a
+named-pet direct purchase (already the pattern this game uses)?*
+
+## 15. Roaming herds — a fourth way to earn a crate
+
+**The shape:** herds of small, pet-scale piggies run out through the street's
+own tunnel mouths — the same geometry the patrol car already enters and
+exits by — and roam the street for a while before despawning. A player who
+catches one banks a crate, the same reward shape dailies and jobs already
+pay, not a guaranteed specific piggy.
+
+**Cadence and cap reuse the event scheduler's own shape**, not new machinery:
+a timed roll every few minutes, weighted rather than uniform (the
+damped-repeat picker already built for raid/rush-hour is the pattern), and a
+hard cap on how many herds are loose on the street at once.
+
+**Catching is a genuinely new verb.** Every other pickup in this game is a
+stationary target — a till, a pedestal, a bin. A herd member has to move on
+its own (wander, and maybe flee once approached) before a player closes on
+it, which is new NPC-movement code, not a reskin of anything that exists.
+Contested the same way everything else on this shared street is: first
+player to reach a given pig gets it.
+
+**Pet-sized is right, and it buys something specific: no accessory slots, no
+vault hatch, no dial.** Every scale-dependent measurement this game has ever
+shipped — the accessory anchors, `DIAL_MAX_R`, the vault opening sized
+against the smallest lock tier — was solved against one specific pig radius,
+and re-deriving all of it at a new, smaller scale is exactly the class of
+work this file has whole sections of scar tissue about. A herd piggy that is
+skin-only, with nothing worn and no hatch cut into it, sidesteps that math
+entirely rather than reopening it.
+
+**Crates are earned four ways once this lands: catching a herd member, the
+daily ladder, jobs (§7a), and Robux (§14, still undecided which shape).**

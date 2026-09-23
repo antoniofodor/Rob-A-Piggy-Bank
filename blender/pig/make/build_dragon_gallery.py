@@ -4,7 +4,8 @@ from html.parser import HTMLParser
 import hashlib,json,os,re,shutil
 from PIL import Image
 ROOT=Path(__file__).resolve().parents[1];REPO=ROOT.parents[1]
-PACKAGE=ROOT.parents[1]/'assets/skins/animal/legendary/dragon';OUT=REPO/'assets/skins/animal/legendary';OUT.mkdir(parents=True,exist_ok=True)
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+PACKAGE=Path(paths.animal_package('dragon'));OUT=Path(paths.tier_gallery('legendary'))
 def relative(path,base):return os.path.relpath(path,base).replace('\\','/')
 r=json.loads((PACKAGE/'dragon-asset-report.json').read_text());a=json.loads((PACKAGE/'animation-checks.json').read_text())
 assert a['sceneSHA256']==hashlib.sha256((PACKAGE/'dragon-complete.blend').read_bytes()).hexdigest()

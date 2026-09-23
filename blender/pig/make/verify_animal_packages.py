@@ -1,4 +1,7 @@
-"""Check the organized import packages without rebuilding artwork or uploading."""
+"""Check the organized import packages without rebuilding artwork or uploading.
+
+The tier pages are still under assets/skins/animal/<tier>/; the packages they list moved to
+assets/piggies/<tier>/<key>/package/ on 2026-09-22 and are found through the manifests' `package` fields."""
 from pathlib import Path
 from html.parser import HTMLParser
 from urllib.parse import urlsplit, unquote
@@ -18,7 +21,7 @@ class Links(HTMLParser):
             if url.scheme or url.netloc or not url.path:continue
             links+=1
             if not (self.path.parent/unquote(url.path)).resolve().exists():errors.append(f'{self.path.relative_to(REPO)}: {value}')
-for p in ROOT.rglob('*.html'):
+for p in list(ROOT.rglob('*.html'))+list((REPO/'assets/piggies').glob('*/*/package/**/*.html')):
     parser=Links();parser.path=p;parser.feed(p.read_text(encoding='utf-8'))
 for m in manifest['models']:
     folder=REPO/m['package'];key=m['skin']

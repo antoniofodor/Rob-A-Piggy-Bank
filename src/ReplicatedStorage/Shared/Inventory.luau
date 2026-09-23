@@ -554,10 +554,9 @@ local function paintCard(section: any, key: string, info: any)
 	card.sell.BackgroundTransparency = 0
 	card.sell.BackgroundColor3 = ShopStyle.DEAR
 	card.sell.TextColor3 = Theme.GOLD_INK
-	-- A skin sells for acorns, everything else for coins (`Config.sellsForAcorns`).
-	local value = valueOf(section.kind, key)
-	card.sell.Text = "SELL " .. (if Config.sellsForAcorns(section.kind)
-		then Config.formatSellValue(section.kind, value) else deps.format(value))
+	-- ONE CURRENCY. A skin used to sell for acorns and everything else for
+	-- coins; the acorn half retired with the currency.
+	card.sell.Text = "SELL " .. deps.format(valueOf(section.kind, key))
 end
 
 -- ---- the rail --------------------------------------------------------------
@@ -1031,8 +1030,9 @@ end
 -- THE SHOP'S MASTHEAD, rebuilt here rather than shared, because the shop's
 -- lives inside `ShopRevamp`'s shell with its landing grid and back button,
 -- none of which a bag has. Every piece is the same widget with the same
--- numbers -- green band, pointed gold-edged sign, coin and acorn badges --
--- so the two panels one tap apart read as one game.
+-- numbers -- green band, pointed gold-edged sign, coin badge -- so the two
+-- panels one tap apart read as one game. There were TWO badges: the second
+-- was the acorn balance and went with the currency.
 local function buildChrome(view: Frame)
 	local c: any = {}
 	c.header = W.frame(view, "Header")
@@ -1053,15 +1053,10 @@ local function buildChrome(view: Frame)
 	ShopStyle.popText(c.title)
 
 	c.coinBadge = W.frame(c.masthead, "CoinBadge", Theme.PAPER); W.round(c.coinBadge, 15)
-	c.acornBadge = W.frame(c.masthead, "AcornBadge", Theme.PAPER); W.round(c.acornBadge, 15)
 	c.coinBadge:FindFirstChildOfClass("UIStroke").Thickness = 3
-	c.acornBadge:FindFirstChildOfClass("UIStroke").Thickness = 3
 	c.coinIcon = W.frame(c.coinBadge, "CoinIcon"); c.coinIcon.BackgroundTransparency = 1
-	c.acornIcon = W.frame(c.acornBadge, "AcornIcon"); c.acornIcon.BackgroundTransparency = 1
 	c.coinScale = Instance.new("UIScale"); c.coinScale.Parent = Theme.coin(c.coinIcon, 34, "Coin")
-	c.acornScale = Instance.new("UIScale"); c.acornScale.Parent = Theme.acorn(c.acornIcon, 37, "Acorn")
 	c.coins = W.text(c.coinBadge, "Coins", "0", 30)
-	c.acorns = W.text(c.acornBadge, "Acorns", "0", 30)
 	return c
 end
 
@@ -1117,31 +1112,25 @@ layout = function()
 	c.title.Size = UDim2.new(1, -titleX - signH / 2, 1, 0)
 	c.title.TextSize = if narrow then 30 else math.floor(mastH * 0.56)
 
+	-- ONE BADGE, so it takes the whole width the pair used to share.
 	if narrow then
-		c.coinBadge.Position = UDim2.fromOffset(10, 53); c.coinBadge.Size = UDim2.new(0.5, -16, 0, 40)
-		c.acornBadge.Position = UDim2.new(0.5, 5, 0, 53); c.acornBadge.Size = UDim2.new(0.5, -16, 0, 40)
+		c.coinBadge.Position = UDim2.fromOffset(10, 53)
+		c.coinBadge.Size = UDim2.new(1, -20, 0, 40)
 	else
-		local badgeW = math.floor((width * 0.54 - closeSize - 26) / 2)
-		c.coinBadge.Size = UDim2.fromOffset(badgeW, mastH - 18); c.acornBadge.Size = c.coinBadge.Size
-		c.acornBadge.Position = UDim2.new(1, -closeSize - 20 - badgeW, 0, 9)
-		c.coinBadge.Position = UDim2.new(1, -closeSize - 32 - badgeW * 2, 0, 9)
+		local badgeW = math.floor(width * 0.54 - closeSize - 26)
+		c.coinBadge.Size = UDim2.fromOffset(badgeW, mastH - 18)
+		c.coinBadge.Position = UDim2.new(1, -closeSize - 20 - badgeW, 0, 9)
 	end
 	c.coins.TextSize = if width < 900 or height < 420 then 20 else math.floor(mastH * 0.40)
-	c.acorns.TextSize = c.coins.TextSize
 	local badgeH = c.coinBadge.AbsoluteSize.Y
 	if badgeH <= 0 then badgeH = if narrow then 40 else mastH - 18 end
 	local currencySize = math.min(if compact then 24 else 34, badgeH - 14)
 	c.coinScale.Scale = currencySize / 34
-	c.acornScale.Scale = currencySize / 37
-	for _, icon in { c.coinIcon, c.acornIcon } do
-		icon.Size = UDim2.fromOffset(currencySize, currencySize)
-		icon.Position = UDim2.new(0, 8, 0.5, -currencySize / 2)
-	end
+	c.coinIcon.Size = UDim2.fromOffset(currencySize, currencySize)
+	c.coinIcon.Position = UDim2.new(0, 8, 0.5, -currencySize / 2)
 	local balanceX = currencySize + 16
-	for _, lbl in { c.coins, c.acorns } do
-		lbl.Position = UDim2.fromOffset(balanceX, 0)
-		lbl.Size = UDim2.new(1, -balanceX - 8, 1, 0)
-	end
+	c.coins.Position = UDim2.fromOffset(balanceX, 0)
+	c.coins.Size = UDim2.new(1, -balanceX - 8, 1, 0)
 
 	local top = mastH + 10
 	local side = if compact then 70 else 166
@@ -1163,13 +1152,13 @@ layout = function()
 	end
 end
 
--- The two balances, from the pushes that already feed the shop's badges.
-function Inventory.setBalances(coins: number, acorns: number?)
+-- The balance, from the push that already feeds the shop's badge. The second
+-- parameter is kept and ignored so existing callers do not have to change.
+function Inventory.setBalances(coins: number, _acorns: number?)
 	if not chrome then
 		return
 	end
 	chrome.coins.Text = Config.formatCoins(coins)
-	chrome.acorns.Text = Config.formatCoins(math.floor(acorns or 0))
 end
 
 function Inventory.init(view: Frame, injected: any)

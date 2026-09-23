@@ -1,0 +1,128 @@
+{
+  "key": "snowleopard",
+  "name": "Snow Leopard",
+  "path": "assets/piggies/common/snowleopard/",
+  "tier": "common",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); common/: Config.SKINS.snowleopard.rarity = \"common\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/snowleopard/",
+    "assets/piggies/snowleopard/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/common/snowleopard/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6448,
+      "name": "Snow Leopard",
+      "rarity": "common",
+      "surface": "snowleopard",
+      "legendary": null,
+      "chest": "animal",
+      "scale": 1.1,
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": {
+      "key": "snowleopard",
+      "line": 5772,
+      "name": "Snow Leopard",
+      "template": "snowleopard",
+      "trimTemplate": "snowleopard_trim"
+    },
+    "legendaryPacks": null,
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/snowleopard.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://91133047013350",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/snowleopard_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://135054588737773",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://91133047013350": {
+      "file": "sheets/snowleopard_body_color.open-hatch.png",
+      "sha256": "146242e4c97232a1aee6cf60ead3c94ce0aa55d3416d6dfb5d732d0741a1a233",
+      "role": "body ColorMap",
+      "note": "uploaded from the open-hatch bake"
+    },
+    "rbxassetid://135054588737773": {
+      "file": "sheets/snowleopard_trim_color.png",
+      "sha256": "f5c612ed93e9ce54906968b37b7b110e61025a3515903e12ffb6360f4353c45e",
+      "role": "trim ColorMap"
+    }
+  },
+  "shopCard": {
+    "file": "preview/snowleopard_shop-card.png",
+    "robloxAssetId": "rbxassetid://112167361610831",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/common/snowleopard/package/shop-cards/snowleopard.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/common/snowleopard/package",
+    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "fileCount": 13,
+    "textureCopiesMatchShippedSheets": {
+      "snowleopard_body_color.png": true,
+      "snowleopard_trim_color.png": true
+    }
+  },
+  "closedBack": {
+    "closedScene": "source/snowleopard_closed.blend",
+    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as snowleopard_body_color.open-hatch.png. Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "snowleopard.blend",
+      "snowleopard_closed.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_snowleopard_blend.py"
+    ],
+    "sheets": [
+      "snowleopard_body_color.open-hatch.png",
+      "snowleopard_body_color.png",
+      "snowleopard_trim_color.png"
+    ],
+    "preview": [
+      "snowleopard_hatch.png",
+      "snowleopard_hero.png",
+      "snowleopard_shop-card.json",
+      "snowleopard_shop-card.png",
+      "snowleopard_view.blend"
+    ],
+    "package": [
+      "README.md",
+      "index.html",
+      "shop-cards/",
+      "snowleopard-asset-report.json",
+      "snowleopard-complete.blend",
+      "snowleopard-complete.fbx",
+      "snowleopard-crown.png",
+      "snowleopard-front.png",
+      "snowleopard-hero.png",
+      "snowleopard-spine.png",
+      "snowleopard_body_color.png",
+      "snowleopard_trim_color.png"
+    ]
+  },
+  "generator": "generate/make_snowleopard_blend.py",
+  "notes": []
+}

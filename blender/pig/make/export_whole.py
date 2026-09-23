@@ -70,7 +70,28 @@ PARTS = ["Body", "Snout", "Ears", "Legs", "Tail"]
 # VERIFIED RATHER THAN TRUSTED FOR ITS NAME, and re-verified on every run
 # below. A preview object that had quietly drifted from the thing it previews
 # would be worse than no preview at all.
-FACE = ["EyePreview", "NostrilPreview"]
+# `NostrilPreview` WAS IN THIS LIST AND IS GONE (2026-09-21), which narrows
+# the argument above rather than overturning it.
+#
+# It holds for the EYES exactly as written: they are code-built Roblox Parts,
+# there is no eye geometry in the mesh at all, and a pig exported without them
+# invites the clipping this project has already paid for on the padlock, the
+# visor and the cape. So `EyePreview` stays.
+#
+# It does not hold for the nostrils, because the snout is not missing them --
+# `build_pig.py` cuts the two bowls into it with a boolean, so the HOLLOW is
+# the record and a workbench sees exactly where they are without help. The
+# blades that used to sit inside those hollows were a dark DETAIL rather than
+# a marker: 16 vertices, 0.392 by 0.033 by 0.079, retired long enough ago that
+# `make_parts_blend` calls them "the retired black inserts" and strips them,
+# and nothing in `blender/` has built one in a very long time.
+#
+# THIS EXPORT WAS THE ONLY PLACE THEY STILL REACHED. `export_meshes` drops
+# them before writing `Body` and `Trim`, and `make_view_blend` and
+# `make_dragon_kit` drop them too -- so the shipped pig never carried one and
+# this was the last leak. They are out of the blends themselves now; see
+# `strip_nostril_inserts.py`.
+FACE = ["EyePreview"]
 if "--no-face" in argv:
     FACE = []
 
@@ -159,9 +180,10 @@ for ob in sources:
     c.data = ob.data.copy()
     bpy.context.scene.collection.objects.link(c)
     # **`hide_select` IS WHY THE EYES WERE MISSING, AND IT FAILED IN SILENCE
-    # AT EVERY SINGLE STEP.** `EyePreview` and `NostrilPreview` carry
-    # `hide_select = True` in the master -- sensibly, so they cannot be
-    # grabbed by accident while somebody is modelling the animal around them.
+    # AT EVERY SINGLE STEP.** `EyePreview` carries `hide_select = True` in the
+    # master -- sensibly, so it cannot be grabbed by accident while somebody is
+    # modelling the animal around it. (`NostrilPreview` carried it too and is
+    # gone; see `FACE` above.)
     # A copy inherits it, `select_set(True)` then does NOTHING AND RETURNS
     # NOTHING, `join()` reports FINISHED because it joined what it was given,
     # and the export comes out without a face.

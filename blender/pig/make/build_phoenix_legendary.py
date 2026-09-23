@@ -1,6 +1,6 @@
 """Ice Phoenix: curved feather geometry following the original Phoenix concept.
 
-Writes only phoenix/legendary-v1. Original concept, old art and master stay intact.
+Writes only assets/piggies/legendary/phoenix/package/. Original concept, old art and master stay intact.
 """
 from pathlib import Path
 import sys,math,json,hashlib,struct,zlib
@@ -10,8 +10,10 @@ from mathutils.bvhtree import BVHTree
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT));sys.path.insert(0,str(Path(__file__).parent))
 import paths
 OUT=Path(paths.animal_package('phoenix'));OUT.mkdir(exist_ok=True)
-MASTER=Path(paths.PARTS);CONCEPT=OUT.parent/'concepts-v2/crystal-crown-refined.png'
-INPUTS={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in (MASTER,CONCEPT,Path(paths.skin_blend('phoenix')))}
+MASTER=Path(paths.PARTS);CONCEPT=Path(paths.skin_study('phoenix','concepts-v2'))/'crystal-crown-refined.png'
+# The concept raster is provenance only (nothing reads its pixels), so a
+# working tree without it still builds; the report records which it was.
+INPUTS={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in (MASTER,CONCEPT,Path(paths.skin_blend('phoenix'))) if p.exists()}
 DRAFT='--draft' in sys.argv;SCALE=6
 RGB={'Ivory':(225,232,226),'Frost':(217,240,249),'Snout':(134,185,210),'Sky':(149,194,218),'Azure':(92,143,187),'Indigo':(69,100,153),'Eye':(23,38,57),'InnerEar':(76,129,172),
      'FeatherPearl':(167,209,229),'FeatherSky':(98,160,205),'FeatherAzure':(63,121,178),'FeatherIndigo':(59,92,149),'GlowPearl':(146,210,230),'GlowSky':(104,177,221),'GlowAzure':(106,150,210),'Face':(225,232,226)}

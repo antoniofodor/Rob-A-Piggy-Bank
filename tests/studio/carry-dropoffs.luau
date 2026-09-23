@@ -15,8 +15,8 @@ local ok, err = pcall(function()
   local panel, action = card:Clone(), button:Clone()
   panel.Parent, action.Parent = frame, frame
   panel.Visible, action.Visible = true, true
-  panel.Keep.Text = "KEEP · Your crate\n123456789 Acorns + all items"
-  panel.Return.Text = "RETURN · TwentyCharacterNameX's crate\n+12345678 Acorns bounty"
+  panel.Keep.Text = "KEEP · Your piggy\n123456789 coins + all items"
+  panel.Return.Text = "RETURN · TwentyCharacterNameX's piggy\n+12345678 coins bounty"
   action.Label.Text = "RETURN"
   task.wait(.15)
   local left, top = panel.AbsolutePosition.X-frame.AbsolutePosition.X, panel.AbsolutePosition.Y-frame.AbsolutePosition.Y

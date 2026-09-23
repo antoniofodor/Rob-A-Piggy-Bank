@@ -510,7 +510,71 @@ STORMCREST = [
          width=(0.200, 0.300), height=(0.320, 0.480), lean=-0.30),
 ]
 
-SETS = {"mane": MANE, "crest": CREST, "stormcrest": STORMCREST}
+# THE LION'S MANE: A RUFF, NOT A CREST, AND IT IS THE SAME MACHINERY WITH A
+# RING WHERE THE OTHERS HAVE A LINE.
+#
+# Designer, 2026-09-21: "for an epic tier we can have 3d geometry lets make
+# the mane 3d instead of looking like a flat color". The `mane` set above IS
+# geometry -- 36 lobes on a crest, two cheeks and a brisket -- and on the lion
+# it read as a spiky collar, because a lion's mane is not a few tufts on a
+# ridge: it is a MASS that frames the face on every side and stands off the
+# shoulders. What says lion is the silhouette of a disc round the head.
+#
+# So this set walks two RINGS around the nose axis (`ring` below): an outer
+# one at 74 degrees off the nose, big lobes leaning back off the shoulders,
+# and an inner one at 60 degrees, smaller and more upright, filling between
+# the outer ring and the face. Both stop short of the chin, where the chest
+# brisket takes over; the crest over the crown is the `mane` set's own,
+# parted for the hat anchor for the reason recorded there. About eighty
+# lobes against the mane's 36, and still one mesh.
+#
+# THE RING IS WRITTEN IN LON/LAT WAYPOINTS RATHER THAN A NEW PATH TYPE, so
+# `along` and every band field work unchanged: a circle of angular radius
+# `rho` about the nose, from `phi0` to `phi1` degrees round it (0 over the
+# crown, +-90 the cheeks, +-180 the chin), sampled finely enough that the
+# linear walk between waypoints is under two degrees off the true circle.
+def ring(rho_deg, phi0_deg, phi1_deg, n):
+    rho = math.radians(rho_deg)
+    out = []
+    for i in range(n):
+        phi = math.radians(phi0_deg + (phi1_deg - phi0_deg) * i / (n - 1))
+        x = math.sin(rho) * math.sin(phi)
+        y = -math.cos(rho)
+        z = math.sin(rho) * math.cos(phi)
+        out.append((math.degrees(math.atan2(x, -y)), math.degrees(math.asin(z))))
+    return out
+
+
+LIONMANE = [
+    # THE RUFF IS ONE SHELL, NOT SEVENTY LOBES (designer reference, 2026-09-21:
+    # a low-poly lion money box whose mane is a single chunky faceted mass
+    # round the head with big scalloped lobes on its outline). Seventy-one
+    # lobes read as a hedgehog's spikes; the reference reads as a HELMET of
+    # hair. See `add_shell`: a coarse grid over a band of angles round the
+    # nose, lifted off the body on a bell profile, scalloped round its
+    # outline and jittered so every quad is its own facet.
+    dict(name="ruff", shape="shell",
+         rho=(44, 96),      # angular band off the nose: inner edge, outer edge at the sides
+         rho_chin=66,       # ...and the outer edge closes to this under the chin
+         segs=28,           # facets round the head: coarse on purpose, the facets ARE the look
+         # THE PROFILE ACROSS THE BAND, as (share of the band, lift off the hide).
+         # A WALL AT THE FACE, THEN A HELMET, THEN A ROLL DOWN TO THE SHOULDERS:
+         # the first bake used a bell that peaked mid-band at 0.62 and stood
+         # off the head like a frill. The reference's mane is a thick block
+         # whose face-side edge is nearly vertical -- so the ring on the hide
+         # at the inner edge is followed by one lifted almost straight up, and
+         # the lift then eases out to nothing over the shoulders.
+         profile=[(0.00, 0.00), (0.03, 0.26), (0.18, 0.32), (0.40, 0.30),
+                  (0.64, 0.20), (0.86, 0.09), (1.00, 0.00)],
+         scallops=9, scallop=0.20,  # big lobes round the outline, and how deep
+         part=20,           # degrees either side of the crown left low: the hat anchor
+         jitter=0.05,       # facet break-up
+         lean=-0.06),       # the whole mass swept back a little
+    # the tail: one faceted ball on the tip, like the reference
+    dict(name="tail-tuft", shape="tailtuft", radius=0.21, jitter=0.03),
+]
+
+SETS = {"mane": MANE, "crest": CREST, "stormcrest": STORMCREST, "lionmane": LIONMANE}
 SET = os.environ.get("FUR_SET", "mane")
 if SET not in SETS:
     raise SystemExit("FUR_SET must be one of %s" % sorted(SETS))
@@ -755,6 +819,80 @@ def add_shard(bm, base, normal, width, height, lean, phase, squash,
     return tris
 
 
+def add_shell(bm, band, rng):
+    """One faceted shell of hair round the head. A grid of `rings` x `segs`
+    vertices over the band of directions `rho` off the nose (phi round it: 0
+    the crown, +-90 the cheeks, +-180 the chin), each seated on the real body
+    by `surface_hit` and lifted along the normal by a bell across the band
+    (zero at both edges, so the shell meets the hide rather than floating), a
+    scallop round the outline, a parting at the crown for the hat anchor, and
+    a jitter that stops any two quads sharing a plane -- which under flat
+    shading is what makes it read as cut stone rather than as a smooth tube.
+    Quads, not triangles: the exporter triangulates, and a jittered quad
+    splits into two facets that disagree slightly, which is the point."""
+    rho0, rho1_side = band["rho"]
+    rho1_chin = band["rho_chin"]
+    profile = band["profile"]
+    rings, segs = len(profile), band["segs"]
+    part = math.radians(band.get("part", 0.0))
+    jitter = band.get("jitter", 0.0)
+    grid = []
+    for i in range(rings):
+        u, lift = profile[i]
+        # jitter and the scallop scale with the lift, so the two rings on the
+        # hide stay on the hide and the seam never opens
+        bell = lift / max(l for _, l in profile)
+        row = []
+        for j in range(segs):
+            phi = -math.pi + math.tau * j / segs
+            aphi = abs(phi)
+            # the outer edge drops from the sides toward the chin
+            if aphi <= math.pi / 2:
+                rho1 = rho1_side
+            else:
+                rho1 = rho1_side + (rho1_chin - rho1_side) * (aphi - math.pi / 2) / (math.pi / 2)
+            rho = math.radians(rho0 + (rho1 - rho0) * u)
+            d = Vector((math.sin(rho) * math.sin(phi), -math.cos(rho),
+                        math.sin(rho) * math.cos(phi))).normalized()
+            loc, nor = surface_hit(d)
+            if loc is None:
+                loc, nor = d, d
+            lobes = 1.0 + band.get("scallop", 0.0) * math.cos(band.get("scallops", 8) * phi + 0.7)
+            crown = 1.0 if part <= 0 or aphi >= part else aphi / part
+            h = lift * lobes * crown
+            h += rng.uniform(-jitter, jitter) * bell
+            p = loc + nor * h + Vector((0.0, band.get("lean", 0.0) * h, 0.0))
+            p += Vector((rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-1, 1))) * (jitter * 0.6 * bell)
+            row.append(bm.verts.new(p))
+        grid.append(row)
+    n = 0
+    for i in range(rings - 1):
+        for j in range(segs):
+            q = (grid[i][j], grid[i][(j + 1) % segs], grid[i + 1][(j + 1) % segs], grid[i + 1][j])
+            try:
+                bm.faces.new(q)
+                n += 2
+            except ValueError:
+                pass
+    return n
+
+
+def add_tail_tuft(bm, band, rng):
+    """A faceted ball on the tip of the tail, jittered so it is a rock rather
+    than a sphere. The tail is a separate object in the same frame, so its
+    tip is read off the mesh rather than typed."""
+    tail = bpy.data.objects["Tail"]
+    pts = [tail.matrix_world @ v.co for v in tail.data.vertices]
+    tip = max(pts, key=lambda p: p.y)
+    r = band["radius"]
+    made = bmesh.ops.create_icosphere(bm, subdivisions=1, radius=r,
+                                      matrix=Matrix.Translation(tip - Vector((0, r * 0.35, 0))))
+    j = band.get("jitter", 0.0)
+    for v in made["verts"]:
+        v.co += Vector((rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-1, 1))) * j
+    return 80
+
+
 SHAPES = {"lobe": add_lobe, "shard": add_shard}
 
 rng = random.Random(SEED)
@@ -816,6 +954,16 @@ band_spans = []
 
 for band in BANDS:
     _v0 = len(bm.verts)
+    if band.get("shape") == "shell":
+        tris += add_shell(bm, band, rng)
+        placed += 1
+        band_spans.append((band["name"], _v0, len(bm.verts)))
+        continue
+    if band.get("shape") == "tailtuft":
+        tris += add_tail_tuft(bm, band, rng)
+        placed += 1
+        band_spans.append((band["name"], _v0, len(bm.verts)))
+        continue
     path = band["path"]
     # **ROWS, WHICH IS A DESIGNED CREST RATHER THAN A SCATTERED ONE.**
     #

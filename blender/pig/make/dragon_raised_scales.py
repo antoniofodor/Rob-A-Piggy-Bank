@@ -13,6 +13,24 @@ from mathutils.bvhtree import BVHTree
 
 STEP=Vector((.245,.205,.245))
 N=Vector((0,math.sqrt(36-1.9**2),-1.9)).normalized()
+
+def save_png(image,path,attempts=10,wait=.5):
+    """Save `image` to `path`, retrying a refused open.
+
+    On Blender 5.2 (2026-09-22) overwriting a sheet in the package folder is
+    refused about one time in four with 'Could not open file' from
+    OpenImageIO, from inside Blender only: a probe polling the same files at
+    20 ms saw no other process holding them, and Python overwrote them 450
+    times without a refusal. The same overwrite succeeds on the next attempt,
+    so this retries rather than diagnosing further. Every retry is printed."""
+    import time
+    image.filepath_raw=str(path);image.file_format='PNG'
+    for attempt in range(1,attempts+1):
+        try:image.save();return
+        except RuntimeError as e:
+            print('SAVE_RETRY',attempt,path,str(e)[:80],flush=True)
+            if attempt==attempts:raise
+            time.sleep(wait)
 PALETTE={'ScaleDark':(35,54,40),'ScaleMid':(44,68,46),'ScaleLit':(56,81,51),'ScaleOlive':(67,83,49)}
 
 def guard(p,kind):
@@ -175,7 +193,7 @@ def bake_seams(sources,materials,out,select,linear):
             if name not in sources:continue
             select([bpy.data.objects[name],sources[name]])
             bpy.ops.object.bake(type='EMIT')
-        mask.filepath_raw=str(out/f'dragon_{group}_emissive.png');mask.file_format='PNG';mask.save();mask.pack();masknode.image=mask
+        save_png(mask,out/f'dragon_{group}_emissive.png');mask.pack();masknode.image=mask
         pixels=np.asarray(mask.pixels[:]).reshape(-1,4)
         coverage=float((pixels[:,0]>.1).mean())
         assert .003<coverage<.30,(group,coverage)
@@ -188,7 +206,7 @@ def bake_seams(sources,materials,out,select,linear):
         output=next(n for n in nt.nodes if n.type=='OUTPUT_MATERIAL');nt.links.new(emission.outputs[0],output.inputs['Surface'])
         select([bpy.data.objects[n] for n in names]);bpy.ops.object.bake(type='EMIT')
         nt.links.new(b.outputs[0],output.inputs['Surface']);nt.nodes.remove(emission);nt.nodes.remove(mix);nt.nodes.remove(target)
-        newcolor.filepath_raw=str(out/f'dragon_{group}_color.png');newcolor.file_format='PNG';newcolor.save();newcolor.pack();color.image=newcolor
+        save_png(newcolor,out/f'dragon_{group}_color.png');newcolor.pack();color.image=newcolor
         scene.render.bake.use_selected_to_active=True;scene.render.bake.use_clear=False
     for ob in sources.values():bpy.data.objects.remove(ob,do_unlink=True)
     scene.render.bake.use_selected_to_active=False;scene.render.bake.use_clear=True

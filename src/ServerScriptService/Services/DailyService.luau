@@ -125,16 +125,11 @@ function DailyService.push(player: Player)
 	})
 end
 
--- Nothing puts more in a pig than it holds (MASTER-PLAN 4c.6), the daily
--- ladder included, and the spill is said rather than swallowed.
-local function fitDaily(data: any, amount: number): (number, number)
-	return Config.fitInPig(data.coins, Config.getCapacity(data.capacityLevel), amount)
-end
-
-local function spillNote(spilled: number): string
-	return if spilled > 0
-		then (" Your piggy was full, so %s spilled."):format(Config.formatCoins(spilled))
-		else ""
+-- A coin rung banks in full: the pig has no ceiling (it used to clamp to the
+-- room and say what spilled). Kept as a function so the two coin rungs share
+-- one rounding rule.
+local function fitDaily(_data: any, amount: number): number
+	return math.max(0, math.floor(amount))
 end
 
 function DailyService.claim(player: Player)
@@ -157,28 +152,31 @@ function DailyService.claim(player: Player)
 	data.daily.streak = streak
 	data.daily.lifetime += 1
 
-	-- NO LOOT HERE, since the pivot: loot is the currency you go out and
-	-- earn, and a ladder that paid it would let a player who never robs
-	-- anybody finish the thief's collection. See Config.ACORNS.
+	-- NO SECOND CURRENCY HERE, and there is no second currency left to pay.
+	-- Day seven pays a CRATE instead, which is the one thing on this ladder
+	-- an hour of play cannot buy -- and, with crates earned rather than
+	-- bought, the shape the whole catalogue now runs on.
 
 	local message
 	if reward.kind == "coins" then
-		local amount, spilled = fitDaily(data, coinValue(data, reward))
+		local amount = fitDaily(data, coinValue(data, reward))
 		data.coins += amount
-		message = ("Day %d: %s coins!%s"):format(streak, tostring(amount), spillNote(spilled))
+		message = ("Day %d: %s coins!"):format(streak, tostring(amount))
 	elseif reward.kind == "boost" then
 		data.boosts[reward.boost] = (data.boosts[reward.boost] or 0) + 1
 		local boost = Config.BOOSTS[reward.boost]
-		message = ("Day %d: %s for %d minutes. Tap it when your piggy bank has room!")
+		-- A boost multiplies the LIVE drip only, so it is pocketed rather than
+		-- lit here: tap it while you are actually playing. See Config.BOOSTS.
+		message = ("Day %d: %s for %d minutes. Tap it while you play!")
 			:format(streak, boost.name, boost.seconds // 60)
 	elseif reward.kind == "bone" then
 		data.consumables[reward.bone] = (data.consumables[reward.bone] or 0) + reward.count
 		message = ("Day %d: %s!"):format(streak, reward.label)
 	elseif reward.kind == "golden" then
 		data.consumables.golden = (data.consumables.golden or 0) + 1
-		local amount, spilled = fitDaily(data, coinValue(data, reward))
+		local amount = fitDaily(data, coinValue(data, reward))
 		data.coins += amount
-		message = ("Day %d: a Golden Bone and %s coins!%s"):format(streak, tostring(amount), spillNote(spilled))
+		message = ("Day %d: a Golden Bone and %s coins!"):format(streak, tostring(amount))
 	elseif reward.kind == "crate" then
 		local chest = Config.CHESTS[reward.crate]
 		-- THE CRATE IS OWED, NOT OPENED. Written into the save here and paid
@@ -234,13 +232,34 @@ function DailyService.openCrate(player: Player)
 		return
 	end
 
+	local ChestService = require(script.Parent.ChestService)
+
+	-- ASKED BEFORE THE STEP IS CLEARED, WHICH IS THE WHOLE REASON THIS CHECK
+	-- IS HERE RATHER THAN LEFT TO `grantFree`.
+	--
+	-- The ordering above is deliberate and stays: clear, save, then roll, so
+	-- that a disconnect mid-window hands out nothing rather than handing out a
+	-- crate twice. A REFUSAL IS NOT A DISCONNECT -- it is a synchronous, known
+	-- no -- and with the lawn now capped at six pedestals plus the till
+	-- (docs/PIGGY-COLLECTION-PLAN.md §3) the commonest refusal there is "no
+	-- room for a piggy". Left to `grantFree`, a full lawn would have consumed
+	-- day seven, cleared the step, saved, and paid out nothing but a warning:
+	-- the one rung on that ladder which hands over something playing cannot
+	-- buy, destroyed by a condition the player can fix in ten seconds.
+	--
+	-- So the box STAYS ON THE STEP and can be opened again once there is room.
+	local refusal = ChestService.whyCannotOpen(player, key)
+	if refusal then
+		notify(player, refusal, "warn")
+		return
+	end
+
 	data.daily.crate = ""
 	DataService.save(player)
 	-- The step is cleared BEFORE the reveal, so the box is gone by the time
 	-- the reel is on screen rather than a second afterwards.
 	DailyService.push(player)
 
-	local ChestService = require(script.Parent.ChestService)
 	ChestService.grantFree(player, key)
 end
 

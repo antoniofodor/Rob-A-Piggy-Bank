@@ -10,7 +10,7 @@
     {
       "skin": "bee",
       "name": "Bumblebee",
-      "package": "assets/skins/animal/common/bee",
+      "package": "assets/piggies/common/bee/package",
       "meshes": 6,
       "triangles": 20670,
       "bodyWidthStuds": 12,
@@ -41,7 +41,7 @@
     {
       "skin": "ladybird",
       "name": "Ladybird",
-      "package": "assets/skins/animal/common/ladybird",
+      "package": "assets/piggies/common/ladybird/package",
       "meshes": 6,
       "triangles": 20670,
       "bodyWidthStuds": 12,
@@ -72,7 +72,7 @@
     {
       "skin": "cow",
       "name": "Dairy Cow",
-      "package": "assets/skins/animal/common/cow",
+      "package": "assets/piggies/common/cow/package",
       "meshes": 6,
       "triangles": 20670,
       "bodyWidthStuds": 12,
@@ -103,7 +103,7 @@
     {
       "skin": "zebra",
       "name": "Zebra",
-      "package": "assets/skins/animal/common/zebra",
+      "package": "assets/piggies/common/zebra/package",
       "meshes": 6,
       "triangles": 20670,
       "bodyWidthStuds": 12,
@@ -134,7 +134,7 @@
     {
       "skin": "giraffe",
       "name": "Giraffe",
-      "package": "assets/skins/animal/common/giraffe",
+      "package": "assets/piggies/common/giraffe/package",
       "meshes": 6,
       "triangles": 20670,
       "bodyWidthStuds": 12,
@@ -165,7 +165,7 @@
     {
       "skin": "leopard",
       "name": "Leopard",
-      "package": "assets/skins/animal/common/leopard",
+      "package": "assets/piggies/common/leopard/package",
       "meshes": 6,
       "triangles": 20670,
       "bodyWidthStuds": 12,
@@ -196,7 +196,7 @@
     {
       "skin": "tiger",
       "name": "Bengal Tiger",
-      "package": "assets/skins/animal/common/tiger",
+      "package": "assets/piggies/common/tiger/package",
       "meshes": 6,
       "triangles": 20670,
       "bodyWidthStuds": 12,
@@ -227,7 +227,7 @@
     {
       "skin": "snowleopard",
       "name": "Snow Leopard",
-      "package": "assets/skins/animal/common/snowleopard",
+      "package": "assets/piggies/common/snowleopard/package",
       "meshes": 6,
       "triangles": 20670,
       "bodyWidthStuds": 12,
@@ -260,7 +260,7 @@
       "name": "Strawberry Cow",
       "rarity": "rare",
       "parent": "cow",
-      "package": "assets/skins/animal/rare/strawberrycow",
+      "package": "assets/piggies/rare/strawberrycow/package",
       "triangles": 20670,
       "emissiveTextures": [
         {
@@ -283,7 +283,7 @@
       "name": "Cookies & Cream",
       "rarity": "rare",
       "parent": "cow",
-      "package": "assets/skins/animal/rare/cookiescream",
+      "package": "assets/piggies/rare/cookiescream/package",
       "triangles": 20670,
       "emissiveTextures": [
         {
@@ -306,7 +306,7 @@
       "name": "Watermelon",
       "rarity": "rare",
       "parent": "ladybird",
-      "package": "assets/skins/animal/rare/watermelon",
+      "package": "assets/piggies/rare/watermelon/package",
       "triangles": 20670,
       "emissiveTextures": [
         {
@@ -329,7 +329,7 @@
       "name": "Peppermint",
       "rarity": "rare",
       "parent": "tiger",
-      "package": "assets/skins/animal/rare/peppermint",
+      "package": "assets/piggies/rare/peppermint/package",
       "triangles": 20670,
       "emissiveTextures": [
         {
@@ -352,7 +352,7 @@
       "name": "Glacier",
       "rarity": "rare",
       "parent": "tiger",
-      "package": "assets/skins/animal/rare/glacier",
+      "package": "assets/piggies/rare/glacier/package",
       "triangles": 20670,
       "emissiveTextures": [
         {
@@ -375,7 +375,7 @@
       "name": "Bubblegum Leopard",
       "rarity": "rare",
       "parent": "leopard",
-      "package": "assets/skins/animal/rare/bubblegumleopard",
+      "package": "assets/piggies/rare/bubblegumleopard/package",
       "triangles": 20670,
       "emissiveTextures": [
         {
@@ -398,7 +398,7 @@
       "name": "Honeycomb",
       "rarity": "rare",
       "parent": "giraffe",
-      "package": "assets/skins/animal/rare/honeycomb",
+      "package": "assets/piggies/rare/honeycomb/package",
       "triangles": 20670,
       "emissiveTextures": [
         {
@@ -418,7 +418,7 @@
     },
     {
       "skin": "stormwolf",
-      "package": "assets/skins/animal/legendary/stormwolf",
+      "package": "assets/piggies/legendary/stormwolf/package",
       "meshCount": 9,
       "triangles": 23516,
       "status": "Layout revision for review; Studio integration pending",
@@ -426,7 +426,7 @@
     },
     {
       "skin": "dragon",
-      "package": "assets/skins/animal/legendary/dragon",
+      "package": "assets/piggies/legendary/dragon/package",
       "meshCount": 24,
       "triangles": 40426,
       "status": "Raised-scale revision with continuous breathing glow; Studio integration pending",
@@ -435,7 +435,7 @@
     {
       "skin": "phoenix",
       "displayName": "Ice Phoenix",
-      "package": "assets/skins/animal/legendary/phoenix",
+      "package": "assets/piggies/legendary/phoenix/package",
       "meshCount": 22,
       "triangles": 106800,
       "status": "Art approved with vault fit verified; Studio integration pending",
@@ -443,7 +443,7 @@
     },
     {
       "skin": "rainbowtiger",
-      "package": "assets/skins/animal/legendary/rainbowtiger",
+      "package": "assets/piggies/legendary/rainbowtiger/package",
       "meshCount": 15,
       "triangles": 82580,
       "status": "Option C built with requested refinements; Studio integration pending",

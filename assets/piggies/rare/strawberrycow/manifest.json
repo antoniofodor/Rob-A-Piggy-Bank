@@ -1,0 +1,134 @@
+{
+  "key": "strawberrycow",
+  "name": "Strawberry Cow",
+  "path": "assets/piggies/rare/strawberrycow/",
+  "tier": "rare",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); rare/: Config.SKINS.strawberrycow.rarity = \"rare\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/strawberrycow/",
+    "assets/piggies/strawberrycow/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/rare/strawberrycow/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6506,
+      "name": "Strawberry Cow",
+      "rarity": "rare",
+      "surface": "strawberrycow",
+      "legendary": null,
+      "chest": "animal",
+      "scale": 1.15,
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": {
+      "key": "strawberrycow",
+      "line": 5773,
+      "name": "Strawberry Cow",
+      "template": "strawberrycow",
+      "trimTemplate": "strawberrycow_trim"
+    },
+    "legendaryPacks": null,
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/strawberrycow.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://96043299373119",
+        "EmissiveMaskContent": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/strawberrycow_trim.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://83699393611461",
+        "EmissiveMaskContent": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://96043299373119": {
+      "file": "sheets/strawberrycow_body_color.open-hatch.png",
+      "sha256": "6e8e3e41cda5d90e2208e6e22ad883c68f80c2c47db8ce44317e503ee25a2ef7",
+      "role": "body ColorMap",
+      "note": "uploaded from the open-hatch bake"
+    },
+    "rbxassetid://83699393611461": {
+      "file": "sheets/strawberrycow_trim_color.png",
+      "sha256": "3200093325513f26f55f4760d113b5308238bbec1d92426ca96ff9399bff7dcd",
+      "role": "trim ColorMap"
+    }
+  },
+  "shopCard": {
+    "file": "preview/strawberrycow_shop-card.png",
+    "robloxAssetId": "rbxassetid://129470418408323",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/rare/strawberrycow/package/shop-cards/strawberrycow.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/rare/strawberrycow/package",
+    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "fileCount": 16,
+    "textureCopiesMatchShippedSheets": {
+      "strawberrycow_body_color.png": false,
+      "strawberrycow_trim_color.png": false
+    }
+  },
+  "closedBack": {
+    "closedScene": "source/strawberrycow_closed.blend",
+    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as strawberrycow_body_color.open-hatch.png. Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "coat-spec.json",
+      "strawberrycow.blend",
+      "strawberrycow_closed.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_strawberrycow_blend.py"
+    ],
+    "sheets": [
+      "strawberrycow_body_color.open-hatch.png",
+      "strawberrycow_body_color.png",
+      "strawberrycow_trim_color.png"
+    ],
+    "preview": [
+      "strawberrycow_hatch.png",
+      "strawberrycow_hero.png",
+      "strawberrycow_shop-card.json",
+      "strawberrycow_shop-card.png",
+      "strawberrycow_view.blend"
+    ],
+    "package": [
+      "README.md",
+      "index.html",
+      "shop-cards/",
+      "strawberrycow-asset-report.json",
+      "strawberrycow-complete.blend",
+      "strawberrycow-complete.fbx",
+      "strawberrycow-crown.png",
+      "strawberrycow-front.png",
+      "strawberrycow-glow.png",
+      "strawberrycow-hero.png",
+      "strawberrycow-spine.png",
+      "strawberrycow_body_color.png",
+      "strawberrycow_body_emissive.png",
+      "strawberrycow_trim_color.png",
+      "strawberrycow_trim_emissive.png"
+    ]
+  },
+  "generator": "generate/make_strawberrycow_blend.py",
+  "notes": []
+}

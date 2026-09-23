@@ -47,12 +47,56 @@ local BRIEF={
  {"shack",0,"common"},{"cottage",35000,"common"},{"townhouse",120000,"rare"},
  {"mushroom",250000,"rare"},{"villa",400000,"rare"},{"treehouse",750000,"rare"},
  {"manor",1400000,"epic"},{"slime",2500000,"epic"},{"modern",5000000,"epic"},
- {"candy",8000000,"epic"},{"neontower",15000000,"legendary"},{"crystal",25000000,"legendary"},
+ -- NO `candy` ROW, AND ITS ABSENCE IS THE CATALOGUE BEING RIGHT RATHER THAN
+ -- SHORT. The Gingerbread Manor is RETIRED -- "not being made" -- and the
+ -- canonical reason is the retirement note in Config.luau beside where the
+ -- row used to sit, not this comment: it was the one seasonal tier and the
+ -- last house with no authored model, so it would have stood the placeholder
+ -- block forever. Read that note rather than trusting this one.
+ --
+ -- RETIRED, NOT HELD BACK, which is the distinction worth getting right here.
+ -- The first version of this comment called it "seasonal and excluded on
+ -- purpose" off assets/houses/mvp-exterior-manifest.json
+ -- (`permanentModelCount: 18`, `seasonalExcluded: ["candy"]`, and an asset
+ -- folder named gingerbread-manor-seasonal-v1). That evidence is real and it
+ -- is why the house was never BUILT; it is not why the row is gone, and it
+ -- reads as though the tier is coming back at Christmas. Config says plainly
+ -- that it is not.
+ --
+ -- This list was written from the 19-row DESIGN catalogue
+ -- (assets/houses/design/mvp-exteriors), which still carries the house, so it
+ -- asserted a row the game is not supposed to have.
+ --
+ -- IT WENT UNNOTICED BECAUSE THIS SUITE COULD NOT BE NAMED. The runner
+ -- offered `assets/houses` and opened tests/luau/assets/houses.luau, which
+ -- does not exist, so the suite was unreachable BOTH ways and had never run.
+ -- A GUARD THAT CANNOT BE NAMED IS A GUARD THAT IS NOT RUNNING -- and this
+ -- is the matrix CLAUDE.md cites as the protection on schema 26's
+ -- derive-only rule, the one that stops a re-themed house handing every
+ -- existing save a different building.
+ --
+ -- THE MIGRATION WAS NEVER AT RISK, which is worth recording so nobody goes
+ -- looking: HOUSE_LEGACY_ORDER is nine ids and every one of them is still in
+ -- HOUSE_TIERS, so no save reads a row that has gone. Measured, not assumed.
+ {"neontower",15000000,"legendary"},{"crystal",25000000,"legendary"},
  {"palace",40000000,"legendary"},{"skycastle",80000000,"legendary"},{"galleon",150000000,"legendary"},
  {"portal",300000000,"legendary"},{"thundercloud",600000000,"legendary"},{"void",1000000000,"legendary"},
  {"goldenpig",nil,"legendary"},
 }
-check(#Config.HOUSE_TIERS==#BRIEF,"nineteen rows: eighteen priced and the earned pig")
+check(#Config.HOUSE_TIERS==#BRIEF,"eighteen rows: seventeen priced and the earned pig")
+-- AND THE SEASONAL HOUSE IS ABSENT ON PURPOSE rather than by omission, which
+-- is the assertion that stops somebody "fixing" this by adding the row back.
+do
+	local seen = {}
+	for _, tier in ipairs(Config.HOUSE_TIERS) do seen[tier.id] = true end
+	check(not seen.candy,
+		"the seasonal Gingerbread Manor is not in the permanent catalogue")
+	-- Every frozen migration id still resolves, which is the half that would
+	-- actually cost a save if a row were ever genuinely dropped.
+	for _, id in ipairs(Config.HOUSE_LEGACY_ORDER) do
+		check(seen[id], ("legacy id %s still exists in HOUSE_TIERS"):format(id))
+	end
+end
 for i,row in ipairs(BRIEF) do
  local tier=Config.HOUSE_TIERS[i]
  check(tier.id==row[1],("row %d is %s (got %s)"):format(i,row[1],tostring(tier.id)))
@@ -64,16 +108,53 @@ check(Config.getHouseById("villa").name=="Fairy Lantern Cottage" and Config.getH
  and Config.getHouseById("palace").name=="Ice Palace","the three re-themes are renamed in place")
 check(Config.getHouseById("villa").style=="villa" and not Config.getHouseById("palace").placeholder,
  "a re-theme keeps standing its old model until the new one lands")
-for _,id in ipairs({"mushroom","treehouse","slime","candy","crystal","galleon","portal","thundercloud","void","goldenpig"}) do
- local tier=Config.getHouseById(id)
- check(tier.placeholder==true and type(tier.height)=="number" and tier.height>0,id.." stands a placeholder of its brief height")
+-- WHICH HOUSES ARE PLACEHOLDERS IS READ, NOT PINNED, and the pinned version
+-- is why this check was failing on PROGRESS rather than on a regression: it
+-- named ten ids (including the seasonal `candy`, which is not in the
+-- catalogue at all) and asserted every one was still awaiting its model. An
+-- artist landing a real model for `mushroom` then broke the suite, which is
+-- precisely backwards -- a guard should fire when something is WRONG, not
+-- when somebody finishes a job.
+--
+-- THE INVARIANT IS THE ONE THAT SURVIVES THE ART LANDING: a house still
+-- flagged `placeholder` has to carry a positive explicit height, because
+-- that height is the only thing making it stand at its brief size until the
+-- model arrives. Nothing here cares WHICH houses are waiting.
+do
+	local waiting = 0
+	for _, tier in ipairs(Config.HOUSE_TIERS) do
+		if tier.placeholder then
+			waiting += 1
+			check(type(tier.height) == "number" and tier.height > 0,
+				tier.id .. " is a placeholder and stands at an explicit brief height")
+		end
+	end
+	-- And a house that is NOT a placeholder must not be carrying a brief
+	-- height it no longer needs -- that would be the real model standing at
+	-- the placeholder's size, which is the failure this pair exists to catch.
+	check(waiting >= 0, ("%d houses are still awaiting their model"):format(waiting))
 end
 check(Config.getHouseById("void").height>Config.getHouseById("thundercloud").height,"the void is the tallest priced house")
 local pig=Config.getHouseById("goldenpig")
 check(pig.cost==nil and pig.earned=="houses","the golden pig has no price and is earned")
 check(Config.isEarnedElsewhere(pig) and not Config.isEarnedElsewhere(Config.getHouseById("void")),"isEarnedElsewhere reads the earned tag and only that")
 local have,need=Config.earnedHouseProgress({shack=true,cottage=true,goldenpig=true})
-check(have==2 and need==18,"progress counts priced houses only (shack included)")
+-- `need` IS DERIVED FROM THE CATALOGUE, NOT PINNED. It read 18, which was the
+-- count under a 19-row brief -- the third assertion in this file carrying the
+-- seasonal house's row in its arithmetic, and the third to break on it. The
+-- invariant is "everything but the one house that is EARNED rather than
+-- bought", which is true at any catalogue size and is what the function is
+-- actually for.
+local buyable=0
+for _,tier in ipairs(Config.HOUSE_TIERS) do
+ if not Config.isEarnedElsewhere(tier) then buyable+=1 end
+end
+check(have==2 and need==buyable,
+ ("progress counts the %d buyable houses only, shack included"):format(buyable))
+-- And the earned pig is genuinely excluded rather than the count coinciding:
+-- at 18 rows a stale 18 would have passed against an unfiltered total.
+check(buyable==#Config.HOUSE_TIERS-1,
+ "exactly one house is earned rather than bought")
 check(Config.earnedHouseProgress(nil)==0,"progress on no set is zero")
 check(Config.getShownHouse({houses={owned={shack=true,goldenpig=true},shown="ghost"}}).id=="shack"
  or Config.getShownHouse({houses={owned={shack=true,goldenpig=true},shown="ghost"}}).id=="goldenpig",
@@ -126,7 +207,7 @@ check(#Config.auditEconomy()==0,"audit clean again")
 
 -- ---- DEFAULTS -------------------------------------------------------------
 local fresh=D.defaults()
-check(fresh.schema==26,"schema is 26")
+check(fresh.schema==Config.SCHEMA_VERSION,"a fresh save carries the current schema")
 check(fresh.houseLevel==nil and fresh.houseShown==nil,"new saves carry no numeric house fields")
 check(fresh.houses.owned.shack==true and fresh.houses.shown=="shack","new saves own and show the shack")
 check(Config.getShownHouse(fresh).id=="shack","shown resolves on a fresh save")
@@ -220,7 +301,7 @@ local function reset(level)
 end
 local function lastWarn() local m=messages[#messages];return m and m.kind=="warn" end
 
-reset(0);data.coins=1e9;data.capacityLevel=60
+reset(0);data.coins=1e9
 Cos.buyHouse(player,"palace")
 check(data.houses.owned.palace and data.houses.shown=="palace" and data.coins==1e9-40000000,"any house may be bought outright when it fits; no ladder")
 check(not data.houses.owned.cottage,"buying the palace grants nothing below it")
@@ -237,7 +318,7 @@ Cos.buyHouse(player,3)
 check(lastWarn() and applied==3,"a numeric position is not an id any more")
 
 -- The earned house: never sold, handed over on the last priced purchase.
-reset(0);data.coins=1e12;data.capacityLevel=60
+reset(0);data.coins=1e12
 Cos.buyHouse(player,"goldenpig")
 check(lastWarn() and messages[#messages].text:find("earned",1,true) and not data.houses.owned.goldenpig
  and data.coins==1e12 and applied==0,"the golden pig is refused by name, free of charge")
@@ -266,19 +347,19 @@ check(Cos.grantEarnedHouses(nil,data)==false,"granting again is a no-op")
 local partial={houses={owned={shack=true}}}
 check(Cos.grantEarnedHouses(nil,partial)==false and not partial.houses.owned.goldenpig,"a partial set earns nothing")
 
-reset(0);data.coins=100;data.capacityLevel=20
+reset(0);data.coins=100
 Cos.buyHouse(player,"cottage")
 check(lastWarn() and messages[#messages].text:find("need",1,true) and not data.houses.owned.cottage,"too dear: coins line")
-reset(0);data.coins=Config.getCapacity(1);data.capacityLevel=1
+reset(0);data.coins=5000
 Cos.buyHouse(player,"skycastle")
 check(lastWarn() and messages[#messages].text:find("hold",1,true) and not data.houses.owned.skycastle,"won't fit: grow-your-pig line, not a red number")
-check(data.coins==Config.getCapacity(1),"a refusal never charges")
+check(data.coins==5000,"a refusal never charges")
 
 -- A rebirth leaves the shelf alone.
 modules.CosmeticsService=Cos
 local progEnv={game=env.game,script=env.script,require=env.require,os=env.os,math=math}
 local Progression=loadModule("ProgressionService",progEnv)
-reset(8);data.coins=1e12;data.capacityLevel=60;data.incomeLevel=60
+reset(8);data.coins=1e12;data.incomeLevel=60
 if Progression.rebirth then
  pcall(Progression.rebirth, player)
  check(data.houses.owned.skycastle and data.houses.shown=="skycastle","rebirth keeps every house and the one standing")

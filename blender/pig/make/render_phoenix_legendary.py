@@ -3,7 +3,9 @@ from pathlib import Path
 import bpy,json,math,hashlib,sys
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
-ROOT=Path(__file__).resolve().parents[1];OUT=ROOT.parents[1]/'assets/skins/animal/legendary/phoenix'
+ROOT=Path(__file__).resolve().parents[1]
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+OUT=Path(paths.animal_package('phoenix'))
 source_hash=hashlib.sha256((OUT/'phoenix-complete.blend').read_bytes()).hexdigest()
 bpy.ops.wm.open_mainfile(filepath=str(OUT/'phoenix-complete.blend'));scene=bpy.context.scene
 asset=json.loads((OUT/'phoenix-asset-report.json').read_text())

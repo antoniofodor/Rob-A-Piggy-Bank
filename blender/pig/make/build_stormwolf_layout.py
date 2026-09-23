@@ -8,9 +8,10 @@ import bpy,bmesh,math,json,hashlib,sys,shutil
 from mathutils import Vector,Matrix
 from mathutils.bvhtree import BVHTree
 ROOT=Path(__file__).resolve().parents[1]
-OUT=ROOT.parents[1]/'assets/skins/animal/legendary/stormwolf';OUT.mkdir(parents=True,exist_ok=True)
-SOURCE=ROOT/'skins/stormwolf/stormwolf.blend'
-SHEET=ROOT/'skins/stormwolf/stormwolf_body_color.png'
+import sys as _sys;_sys.path.insert(0,str(ROOT));import paths
+OUT=Path(paths.animal_package('stormwolf'))
+SOURCE=Path(paths.skin_blend('stormwolf'))
+SHEET=Path(paths.skin_map('stormwolf','body'))
 BOLTS=ROOT/'pig/pig_stormwolf_bolts.blend'
 INPUTS={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in (SOURCE,SHEET,BOLTS,ROOT/'pig/pig_parts.blend')}
 DRAFT='--draft' in sys.argv

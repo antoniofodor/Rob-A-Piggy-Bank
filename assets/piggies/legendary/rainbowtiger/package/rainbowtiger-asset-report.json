@@ -1,0 +1,409 @@
+{
+  "skin": "rainbowtiger",
+  "rarity": "legendary",
+  "chest": "animal",
+  "status": "Approved option C built; model review and Studio integration pending",
+  "design": "Option C: compact swept charcoal cheek and ear locks, soft relaxed arches, bare feet, curled rainbow-gradient tail, black piggy with clean UV-painted wraparound stripes; one inner and one outer face stripe per eye; approved full overlapping banana-shaped beard with flowing textured strokes, fitted from the reviewed study",
+  "inputHashes": {
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\pig\\pig_parts.blend": "c5e740da3db249498a048da7cc4764ab1b4aa6c4cb103a46775d63dd4a5b2f4a",
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\rainbowtiger\\rainbowtiger.blend": "1de83a8286f2b6bffc3a4bdab25b10260f77f377b70fc42566d12abd9466fb77",
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\rainbowtiger\\rainbowtiger_body_color.png": "aebb3d192cb56c2d9f6c11f57d97581e9887bffc905dac5c79e096106ba66e33",
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\rainbowtiger\\rainbowtiger_trim_color.png": "45414838c196d64b10363026a14a815bb6e29411801b80d513191b9f1a86b39b",
+    "C:\\Users\\anton\\AppData\\Local\\Temp\\claude\\c--Users-anton-robloxGame\\51fa1b93-03ef-4147-b2c3-d6fa9ac51154\\scratchpad\\closedback-legendaries\\beard-shape-study\\beard-shape-study.blend": "84a7550356c2071b37818534d3e3c50938f1ab0a72f855d8f0f3a09aff0d6225",
+    "C:\\Users\\anton\\AppData\\Local\\Temp\\claude\\c--Users-anton-robloxGame\\51fa1b93-03ef-4147-b2c3-d6fa9ac51154\\scratchpad\\closedback-legendaries\\beard-shape-study\\beard-flow-color.png": "7fbb431a959ab560555ec76b98d113d514695a8706954b014857084ff99ce62e",
+    "C:\\Users\\anton\\AppData\\Local\\Temp\\claude\\c--Users-anton-robloxGame\\51fa1b93-03ef-4147-b2c3-d6fa9ac51154\\scratchpad\\closedback-legendaries\\beard-shape-study\\beard-flow-normal.png": "cac0d8254847a04025f38df90ddccf602379da53bc5c42a98bb62a96e5e6e9ee"
+  },
+  "preservedSourceParts": [
+    {
+      "part": "Body",
+      "vertices": 3134,
+      "positionsSHA256": "f1a57195d87c8cf12855246cad397c7bb6a1790d636a3c1feb7e7cc4fdebc7ae"
+    },
+    {
+      "part": "Snout",
+      "vertices": 1245,
+      "positionsSHA256": "d395630ab5a7147146a73049f1d3ec506c062bcb721746d8b06ff287998323e5"
+    },
+    {
+      "part": "Ears",
+      "vertices": 3580,
+      "positionsSHA256": "12d99da0c137bab8791aa42a2861399dc5f688f6113955f4926647ef5392fdd0"
+    },
+    {
+      "part": "Legs",
+      "vertices": 1024,
+      "positionsSHA256": "dd983905042ddf314fa8206ef60089a72314a2d8a8fe14761771a83c9861a7b5"
+    },
+    {
+      "part": "Tail",
+      "vertices": 798,
+      "positionsSHA256": "b7051ea49a82e854cf96d69096c7d08a3538ba50b645f9a48b6cfcac2360437d"
+    },
+    {
+      "part": "EyePreview",
+      "vertices": 532,
+      "positionsSHA256": "d459469f0994e2d6f866f8cdfe4b1047ae5db490b768da1e5b9345f49fedad34"
+    }
+  ],
+  "meshCount": 15,
+  "triangles": 82492,
+  "meshes": [
+    {
+      "name": "Body",
+      "bone": "Root",
+      "tone": "Coat",
+      "colorRGB": [
+        24,
+        25,
+        29
+      ],
+      "triangles": 6264,
+      "nonManifoldEdges": 0,
+      "colorTexture": "rainbowtiger-coat.png",
+      "normalTexture": null
+    },
+    {
+      "name": "Snout",
+      "bone": "Root",
+      "tone": "Snout",
+      "colorRGB": [
+        45,
+        46,
+        53
+      ],
+      "triangles": 2486,
+      "nonManifoldEdges": 0,
+      "colorTexture": null,
+      "normalTexture": null
+    },
+    {
+      "name": "Ears",
+      "bone": "Root",
+      "tone": "Coat",
+      "colorRGB": [
+        24,
+        25,
+        29
+      ],
+      "triangles": 7152,
+      "nonManifoldEdges": 0,
+      "colorTexture": null,
+      "normalTexture": null
+    },
+    {
+      "name": "Legs",
+      "bone": "Root",
+      "tone": "Feet",
+      "colorRGB": [
+        18,
+        19,
+        24
+      ],
+      "triangles": 2032,
+      "nonManifoldEdges": 0,
+      "colorTexture": null,
+      "normalTexture": null
+    },
+    {
+      "name": "Tail",
+      "bone": "Tail",
+      "tone": "Coat",
+      "colorRGB": [
+        24,
+        25,
+        29
+      ],
+      "triangles": 1592,
+      "nonManifoldEdges": 0,
+      "colorTexture": null,
+      "normalTexture": null
+    },
+    {
+      "name": "Eyes",
+      "bone": "Root",
+      "tone": "Eyes",
+      "colorRGB": [
+        231,
+        65,
+        91
+      ],
+      "triangles": 1056,
+      "nonManifoldEdges": 0,
+      "colorTexture": null,
+      "normalTexture": null
+    },
+    {
+      "name": "CheekFur_-1",
+      "bone": "Ruff_L",
+      "tone": "Ruff",
+      "colorRGB": [
+        174,
+        180,
+        190
+      ],
+      "triangles": 18048,
+      "nonManifoldEdges": 0,
+      "colorTexture": "beard-flow-color.png",
+      "normalTexture": "beard-flow-normal.png"
+    },
+    {
+      "name": "CheekFur_1",
+      "bone": "Ruff_R",
+      "tone": "Ruff",
+      "colorRGB": [
+        174,
+        180,
+        190
+      ],
+      "triangles": 18048,
+      "nonManifoldEdges": 0,
+      "colorTexture": "beard-flow-color.png",
+      "normalTexture": "beard-flow-normal.png"
+    },
+    {
+      "name": "CheekFill_-1",
+      "bone": "Ruff_L",
+      "tone": "Ruff",
+      "colorRGB": [
+        174,
+        180,
+        190
+      ],
+      "triangles": 4512,
+      "nonManifoldEdges": 0,
+      "colorTexture": "beard-flow-color.png",
+      "normalTexture": "beard-flow-normal.png"
+    },
+    {
+      "name": "BeardFur",
+      "bone": "Root",
+      "tone": "Ruff",
+      "colorRGB": [
+        174,
+        180,
+        190
+      ],
+      "triangles": 6768,
+      "nonManifoldEdges": 0,
+      "colorTexture": "beard-flow-color.png",
+      "normalTexture": "beard-flow-normal.png"
+    },
+    {
+      "name": "CheekFill_1",
+      "bone": "Ruff_R",
+      "tone": "Ruff",
+      "colorRGB": [
+        174,
+        180,
+        190
+      ],
+      "triangles": 4512,
+      "nonManifoldEdges": 0,
+      "colorTexture": "beard-flow-color.png",
+      "normalTexture": "beard-flow-normal.png"
+    },
+    {
+      "name": "SoftBrow_-1",
+      "bone": "Root",
+      "tone": "Coat",
+      "colorRGB": [
+        24,
+        25,
+        29
+      ],
+      "triangles": 300,
+      "nonManifoldEdges": 0,
+      "colorTexture": null,
+      "normalTexture": null
+    },
+    {
+      "name": "SoftBrow_1",
+      "bone": "Root",
+      "tone": "Coat",
+      "colorRGB": [
+        24,
+        25,
+        29
+      ],
+      "triangles": 300,
+      "nonManifoldEdges": 0,
+      "colorTexture": null,
+      "normalTexture": null
+    },
+    {
+      "name": "EarFur",
+      "bone": "Root",
+      "tone": "RuffShade",
+      "colorRGB": [
+        98,
+        105,
+        118
+      ],
+      "triangles": 7152,
+      "nonManifoldEdges": 0,
+      "colorTexture": "rainbowtiger-charcoal-fur.png",
+      "normalTexture": null
+    },
+    {
+      "name": "TailPlume",
+      "bone": "Tail",
+      "tone": "Ruff",
+      "colorRGB": [
+        174,
+        180,
+        190
+      ],
+      "triangles": 2270,
+      "nonManifoldEdges": 0,
+      "colorTexture": "rainbowtiger-tail-gradient.png",
+      "normalTexture": null
+    }
+  ],
+  "coat": {
+    "resolution": 2048,
+    "colorTexture": "rainbowtiger-coat.png",
+    "emissionTexture": "rainbowtiger-stripe-emission.png",
+    "faceMarkings": "One inner and one outer stripe per eye",
+    "raisedStripeMeshes": 0
+  },
+  "sourceToStudScale": 6,
+  "bodyWidthStuds": 12,
+  "boundsStuds": {
+    "min": [
+      -6.358819961547852,
+      -8.28360652923584,
+      -6.119999885559082
+    ],
+    "max": [
+      6.358819961547852,
+      9.58033275604248,
+      7.853859901428223
+    ]
+  },
+  "fbxRoundTripBoundsError": 9.5367431640625e-07,
+  "addedGeometryVaultBlocked": [],
+  "animation": {
+    "periodSeconds": 4,
+    "fps": 30,
+    "frames": [
+      1,
+      121
+    ],
+    "bones": {
+      "Root": {
+        "pivotStuds": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "parent": null
+      },
+      "Tail": {
+        "pivotStuds": [
+          0.0,
+          4.619999885559082,
+          1.7400000095367432
+        ],
+        "parent": "Root"
+      },
+      "Ruff_L": {
+        "pivotStuds": [
+          -3.6000001430511475,
+          -3.0,
+          1.5
+        ],
+        "parent": "Root"
+      },
+      "Ruff_R": {
+        "pivotStuds": [
+          3.6000001430511475,
+          -3.0,
+          1.5
+        ],
+        "parent": "Root"
+      }
+    },
+    "tailSwayDegrees": 3,
+    "ruffSwayDegrees": 1.2,
+    "pulseCurve": "(0.5 - 0.5*cos(2*pi*(time/4-phase)))^4",
+    "groups": [
+      {
+        "part": "Body",
+        "material": "RainbowTiger_BodyCoat",
+        "emissionTexture": "rainbowtiger-stripe-emission.png",
+        "phase": 0,
+        "emissionMin": 0.08,
+        "emissionMax": 1.03
+      }
+    ],
+    "notes": "Idle FBX contains bone motion. Material pulse stays in Blender and must be implemented by Fable on the Body stripe-only emission mask; preserve its fixed color texture. No particle aura.",
+    "tailColor": {
+      "part": "TailPlume",
+      "colorTexture": "rainbowtiger-tail-gradient.png",
+      "behavior": "Continuous UV-mapped silver-to-rainbow color on the fur; preserve the texture rather than applying flat Color. Tail moves with its bone.",
+      "sha256": "548c3447acc7b18a675c471a01dcc0fd9f1c43687090d91dd789e71892d13ee3"
+    },
+    "charcoalFur": {
+      "parts": [
+        "EarFur"
+      ],
+      "colorTexture": "rainbowtiger-charcoal-fur.png",
+      "behavior": "Preserve original inner-ear fan material."
+    },
+    "beardFur": {
+      "parts": [
+        "CheekFur_-1",
+        "CheekFur_1",
+        "CheekFill_-1",
+        "CheekFill_1",
+        "BeardFur"
+      ],
+      "colorTexture": "beard-flow-color.png",
+      "normalTexture": "beard-flow-normal.png",
+      "behavior": "Approved dense curved locks hug the snout rim, with overlapping inner cheek fills and three chin locks rooted beneath the snout. Preserve color/normal maps with white part tint. Cheeks follow Ruff_L/R; under-snout BeardFur follows Root."
+    },
+    "eyes": {
+      "part": "Eyes",
+      "periodSeconds": 4,
+      "paletteRGB": [
+        [
+          231,
+          65,
+          91
+        ],
+        [
+          247,
+          134,
+          29
+        ],
+        [
+          244,
+          209,
+          42
+        ],
+        [
+          73,
+          214,
+          100
+        ],
+        [
+          27,
+          164,
+          238
+        ],
+        [
+          71,
+          101,
+          222
+        ],
+        [
+          157,
+          65,
+          220
+        ]
+      ],
+      "glowStrengthPreview": 1.25,
+      "behavior": "Both eyes cycle smoothly through the same RGB palette in sync; brightness stays steady."
+    }
+  }
+}

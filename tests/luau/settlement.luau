@@ -13,13 +13,13 @@ local players = {PlayerRemoving={Connect=function(_,fn) leaving=fn end}}
 local function player(name, skin)
  nextId += 1
  local p = {_player=true,DisplayName=name,UserId=nextId,Parent=true,SetAttribute=noop}
- data[p]={coins=100,loot=13,robberies=0,totalStolen=0,totalLost=0,capacityLevel=1,
+ data[p]={coins=100,loot=13,robberies=0,totalStolen=0,totalLost=0,
   cosmetics={skin=skin or "classic",owned={}},spares={}}
  if skin then data[p].cosmetics.owned[skin]=true end
  return p
 end
-local modules={Config=Config,AcornBasket={},AcornModel={fillCarry=function() end},ShakeService={isShaking=function() return false end}}
-for _, name in {"SoundKit","CarryPose","PiggyBank","UpgradeService","GuardDog","EventService","ResidentService"} do modules[name]={} end
+local modules={Config=Config}
+for _, name in {"SoundKit","CarryPose","UpgradePreview","PiggyBank","UpgradeService","GuardDog","EventService","ResidentService"} do modules[name]={} end
 modules.Remotes={get=function(name) return {FireClient=function(_,p,payload)
  events[p]=events[p] or {};events[p][name]=payload
  if name=="RecoveryObjective" then sent+=1 end
@@ -27,23 +27,13 @@ end,OnServerEvent={Connect=function(_,fn) handlers[name]=fn end}} end}
 modules.DataService={get=function(p) return data[p] end,save=function(p) if saveHook then saveHook(p) end;return true end}
 modules.PlotService={getPlot=function(p) return p.plot end,
 	updateRank=function(plot,count) plot.rank=Config.getRapSheetRank(count) end,
- updatePile=function(plot,amount) plot.coins=amount end,playBank=noop,
- updateAcorns=function(plot,amount) plot.acorns=amount end}
+ updatePile=function(plot,amount) plot.coins=amount end,playBank=noop}
 modules.ResidentService={get=function(plot) return plot.resident end,refund=function(r,amount) r.coins+=amount end}
-modules.ShakeService={finish=noop,isShaking=function(p) return p.shaking==true end,refund=function(victim,amount,receipts)
- local remaining=amount
- for _,r in receipts do
-  local n=math.min(r.amount,remaining);r.amount-=n;remaining-=n
-  local d=if victim._player then data[victim] else victim
-  if r.source=="tree" then d.groundAcorns=(d.groundAcorns or 0)+n
-  elseif victim._player then d.loot+=n else d.acorns+=n end
- end
-end}
-modules.SocialService={getSpreeMultiplier=function(p) return p.spree or 1 end,getSpree=function() return 1 end,
+modules.SocialService={getStarMultiplier=function(p) return p.stars or 1 end,getStars=function() return 1 end,getRun=function() return 1 end,
  recordSteal=noop,recordWeekly=noop,markRevenge=function(v,t) events[v]=events[v] or {};events[v].revengeTarget=t end}
 modules.TrophyService={recordVictim=noop,recordSpree=noop}
 modules.SeasonService={earn=function() end,recordNemesis=function() end}
-for _,k in {"recordClean","recordWanted","recordHarvest","recheck","recordVictim","recordSpree","recordCatch"} do modules.TrophyService[k]=modules.TrophyService[k] or function() end end
+for _,k in {"recordClean","recordWanted","recheck","recordVictim","recordSpree","recordCatch"} do modules.TrophyService[k]=modules.TrophyService[k] or function() end end
 modules.SetService={owns=function(d,kind,key) return d.cosmetics.owned[key]==true end,push=noop,
  grant=function(p,kind,key)
   assert(kind=="skin")
@@ -97,27 +87,27 @@ local function stealAndDeliver(p,v)
 end
 local function plot(p,x)
  p.root={Position=vector(x,1,0)}
- p.plot={owner=p,base={Position=vector(x,0,0)},acornStorage={body={Position=vector(x,0,14)}}}
+ p.plot={owner=p,base={Position=vector(x,0,0)}}
  return p
 end
-local function home(p,kind)
- p.root.Position=if kind=="basket" then p.plot.acornStorage.body.Position else p.plot.base.Position
+-- ONE CARRY KIND. `kind` used to pick between a plot's base and its acorn
+-- storage crate; the basket retired with the currency, so every destination
+-- is the base and the parameter is ignored.
+local function home(p,_kind)
+ p.root.Position=p.plot.base.Position
 end
-local function moveTo(p,target,kind)
- p.root.Position=if kind=="basket" then target.plot.acornStorage.body.Position else target.plot.base.Position
+local function moveTo(p,target,_kind)
+ p.root.Position=target.plot.base.Position
 end
 local function transfer(c,old,holder)
  H.carrying[old]=nil;H.carrying[holder]=c;c.holder=holder
-end
-local function basket(p,v,amount,source)
- local c=carry(p,v);c.kind="basket";c.amount=amount;c.receipts={{source=source or "storage",amount=amount}};return c
 end
 local thief=plot(player("Original"),100)
 local victim=plot(player("Victim","bronze"),200)
 local keeper=plot(player("Keeper"),300)
 local c=take(thief,victim);c.amount=17
 transfer(c,thief,keeper)
-keeper.spree=99;H.grudge[keeper]={[victim]={expires=now+60,skins={}}}
+keeper.stars=99;H.grudge[keeper]={[victim]={expires=now+60,skins={}}}
 local choices=H.options(keeper,c)
 check(choices.canKeep and choices.canReturn and choices.victim=="Victim" and choices.keepWorth==8 and choices.bounty==4,"server quotes both destinations and raw half share")
 H.request(keeper)
@@ -128,10 +118,10 @@ check(H.grudge[keeper][victim].expires>now,"half-share keep does not consume kee
 H.request(keeper);check(data[keeper].coins==108 and data[keeper].robberies==1,"keep request replay cannot settle twice")
 check(events[keeper].Notify:find("Half share",1,true) and events[victim].Notify:find("Keeper",1,true),"keeper and victim toasts name the settlement")
 -- The actual settlement paths publish each newly earned rank immediately.
-for _,kind in {"pig","basket","skin"} do
+for _,kind in {"pig","skin"} do
  local t=plot(player("RankThief"),4100);local v=plot(player("RankVictim"),4200)
  data[t].robberies=99
- local held=if kind=="basket" then basket(t,v,1) else carry(t,v)
+ local held=carry(t,v)
  if kind=="skin" then held.amount=0;held.haul={{kind="skin",key="bronze"}} end
  home(t,kind)
  H.request(t)
@@ -169,33 +159,11 @@ do
  local carried=take(t,v);moveTo(t,v);H.request(t)
  check(H.carrying[t]==carried and H.options(t,carried).returnRing==nil,"robber at the robbed pig keeps the haul and sees no return ring")
 end
--- Raw Acorn halves bypass rebirth/revenge multipliers and floor odd counts.
-for _,amount in {1,3,8,17} do
- local t=plot(player("AcornThief"),900);local v=plot(player("AcornVictim"),1000);local h=plot(player("AcornKeeper"),1100)
- data[v].rebirths=100;data[h].rebirths=0;h.spree=99
- local carried=basket(t,v,amount);transfer(carried,t,h);home(h,"basket")
- H.request(h)
- check(data[h].loot==13+math.floor(amount*.5) and data[h].coins==100,"Acorn keep floors raw half without coin or rebirth conversion")
- check(data[h].robberies==1 and data[h].totalStolen==0 and data[v].totalLost==0,"Acorn keep counts a getaway without inflating coin statistics")
- check(carried.receipts[1].amount==amount and data[v].loot==13,"keep never refunds the source or its loss receipt")
-end
-for _,sourceKind in {"storage","tree"} do
- local t=plot(player("T"),1200);local v=plot(player("V"),1300);local h=plot(player("H"),1400)
- local carried=basket(t,v,8,sourceKind);transfer(carried,t,h)
- moveTo(h,v) -- pig is not the Acorn return location
- H.request(h);check(H.carrying[h]==carried,"Acorns cannot return at the victim's pig")
- moveTo(h,v,"basket");H.request(h)
- check(data[h].loot==15 and data[h].coins==100 and data[h].robberies==0,"Acorn return bounty is two Acorns, never coins or a robbery")
- check((if sourceKind=="tree" then data[v].groundAcorns==8 and data[v].loot==13 else data[v].loot==21),"Acorn refund restores original source: "..sourceKind)
- check(carried.receipts[1].amount==0 and H.carrying[h]==nil,"source receipt consumed exactly once")
- H.request(h);check(data[h].loot==15,"Acorn bounty cannot replay")
-end
-local farmer=plot(player("Farmer"),1500);local harvest=basket(farmer,farmer,8,"tree")
-home(farmer,"basket");H.request(farmer)
-check(data[farmer].loot==21 and data[farmer].robberies==0,"own harvest stays one-for-one with no bounty")
-local helper=plot(player("Helper"),1600);local harvest2=basket(farmer,farmer,8,"tree")
-transfer(harvest2,farmer,helper);moveTo(helper,farmer,"basket");H.request(helper)
-check(data[helper].loot==13 and data[farmer].groundAcorns==8,"returning another player's own harvest cannot farm bounty")
+-- THE ACORN-BASKET SETTLEMENT PATHS STOOD HERE: a raw half share that
+-- bypassed the coin multipliers, a two-acorn return bounty, a source-receipt
+-- refund that put tree acorns back on the ground, and the own-harvest case.
+-- All four went with the carry kind. The coin paths above and below are the
+-- whole of what a settlement is now.
 -- Returning an insured spare restores the spare; keeping never mints one.
 local insured=plot(player("Insured","bronze"),1700);data[insured].spares["skin:bronze"]=1
 local raider=plot(player("Raider"),1800);local rescuer=plot(player("Rescuer"),1900)
@@ -246,13 +214,11 @@ for _,reason in {"far","vertical","dead","wrongHolder","missingClaimant","depart
 end
 -- Active minigames own their controls; a stale delivery key cannot cash out.
 local busy=plot(player("Busy"),3300);local source=plot(player("Source"),3400)
-local active=basket(busy,source,8);home(busy,"basket")
+local active=carry(busy,source);home(busy)
 H.cracking[busy]={};H.request(busy)
-check(H.carrying[busy]==active and data[busy].loot==13,"crack in progress blocks delivery")
-H.cracking[busy]=nil;busy.shaking=true;H.request(busy)
-check(H.carrying[busy]==active and data[busy].loot==13,"collection in progress blocks delivery")
-busy.shaking=false;H.request(busy)
-check(H.carrying[busy]==nil,"delivery becomes available when the minigame ends")
+check(H.carrying[busy]==active and data[busy].coins==100,"crack in progress blocks delivery")
+H.cracking[busy]=nil;H.request(busy)
+check(H.carrying[busy]==nil,"delivery becomes available when the crack ends")
 -- Resident plots return only while they still belong to that same resident.
 local t=plot(player("ResidentThief"),2700);local h=plot(player("ResidentHelper"),2800)
 local npc={name="NPC",coins=10,plot={index=9,base={Position=vector(2900,0,0)}}};npc.plot.resident=npc
@@ -267,18 +233,18 @@ local held=take(t,v);transfer(held,t,h);moveTo(h,v)
 saveHook=function() H.request(h) end
 H.request(h);saveHook=nil
 check(data[v].spares["skin:bronze"]==1 and data[h].coins==102 and H.carrying[h]==nil,"yielding return grant cannot replay bounty or insured refund")
--- A basket carrying an item must stage currency AND its completed getaway
--- before a grant callback can save. It follows the same ordering as pig loot.
-local t=plot(player("BasketT"),4100);local v=plot(player("BasketV","bronze"),4200);local h=plot(player("BasketH"),4300)
-local mixed=take(t,v);mixed.kind="basket";mixed.receipts={{amount=10,source="storage"}}
-transfer(mixed,t,h);home(h,"basket")
+-- A carry holding an ITEM as well as coins must stage the money AND its
+-- completed getaway before a grant callback can save.
+local t=plot(player("MixedT"),4100);local v=plot(player("MixedV","bronze"),4200);local h=plot(player("MixedH"),4300)
+local mixed=take(t,v);mixed.amount=10
+transfer(mixed,t,h);home(h)
 local saved=false
 saveHook=function(p)
  if p==h then
-  check(H.carrying[h]==nil and data[h].loot==18 and data[h].robberies==1,"basket keep stages complete accounting before item grant/save")
+  check(H.carrying[h]==nil and data[h].robberies==1,"a keep stages complete accounting before item grant/save")
   saved=true;H.request(h)
  end
 end
 H.request(h);saveHook=nil
-check(saved and owned(h,"bronze") and data[h].robberies==1,"basket item grant cannot replay the completed getaway")
-print(("PASS: %d settlement checks; both drop-offs, payouts, raw source refunds, skins/recovery, replay, residents and server range authority."):format(checks))
+check(saved and owned(h,"bronze") and data[h].robberies==1,"item grant cannot replay the completed getaway")
+print(("PASS: %d settlement checks; drop-offs, payouts, skins/recovery, replay, residents and server range authority."):format(checks))

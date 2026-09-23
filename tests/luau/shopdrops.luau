@@ -26,7 +26,7 @@ local load = assert(loadstring("return function(" .. body .. "\nend", "rollShopD
 setfenv(load,env)
 local roll = load()
 local function reset(count)
- data={robberies=count,coins=100,loot=7,consumables={},capacityLevel=20}
+ data={robberies=count,coins=100,loot=7,consumables={}}
  grants,notices,saves,pushes,rngCalls=0,0,0,0,0
  carrying[thief]=nil;allOwned=false;discovery=nil;draw=function() return 0 end
 end
@@ -34,7 +34,7 @@ for _,count in {0,24,25,99} do
  reset(count)
  for _=1,200 do roll(thief,"gear") end
  check(grants==0 and notices==0 and saves==0 and rngCalls==0,"ride gate is silent before 100: "..count)
- check(data.coins==100 and data.loot==7 and next(data.consumables)==nil,"refusal changes no balances or stock")
+ check(data.coins==100 and next(data.consumables)==nil,"refusal changes no balances or stock")
 end
 reset(nil);roll(thief,"gear")
 check(grants==0 and rngCalls==0,"legacy missing count cannot unlock rides")
@@ -44,8 +44,19 @@ reset(1600);roll(thief,"unknown")
 check(grants==0 and saves==0 and notices==0 and rngCalls==0,"unknown shop cannot award consumables")
 -- Evenly spaced draws cover the entire probability interval without flaky
 -- random assertions. Each successful attempt also runs the real item pool.
-for tab,expected in {piggy=20,home=16,gear=6,defend=40} do
- reset(if tab=="gear" then 100 else 0)
+--
+-- THE EXPECTATION IS DERIVED FROM THE LIVE POOL, NEVER PINNED. A shop drops
+-- what it sells, and a shop whose catalogue is EMPTY -- the home shop today,
+-- because every lawn ornament is off `Config.DECOR_ITEMS` -- has a chance of
+-- zero and must never spend a roll: 8% of nothing is a dead outcome, and the
+-- honest behaviour is to refuse before the dice rather than after them.
+local function unlockedRank(tab) return Config.RAP_SHEET_RANK[(Config.SHOP_VAULT_DROP.minRank[tab] or 0)+1] or 0 end
+local emptyShops={}
+for tab,chance in Config.SHOP_VAULT_DROP.chance do
+ local odds=Config.shopLootOdds(tab,unlockedRank(tab),function() return false end)
+ local expected=if odds.total>0 then math.floor(chance*200+.5) else 0
+ if odds.total==0 then table.insert(emptyShops,tab) end
+ reset(unlockedRank(tab))
  for i=1,200 do
   local first=true
   draw=function() if first then first=false;return (i-.5)/200 end;return .5 end
@@ -55,8 +66,13 @@ for tab,expected in {piggy=20,home=16,gear=6,defend=40} do
  if tab=="defend" then for _,count in data.consumables do received+=count end end
  check(received==expected,"200 probability samples: "..tab)
  check(notices==expected,"one reward notification per success: "..tab)
- check(data.robberies==(if tab=="gear" then 100 else 0) and data.loot==7,"shop drop never changes rank or Acorns")
+ check(odds.total>0 or rngCalls==0,"an empty shop pool never spends a roll: "..tab)
+ check(data.robberies==unlockedRank(tab),"shop drop never changes rank")
 end
+check(next(Config.DECOR_ITEMS)==nil == (Config.shopLootOdds("home",0,function() return false end).total==0),
+ "the home shop drops the lawn catalogue and nothing else, so it is inert exactly while that catalogue is empty")
+table.sort(emptyShops)
+print(("Shops with nothing to drop (chance forced to 0, no roll spent): %s"):format(if #emptyShops>0 then table.concat(emptyShops,", ") else "none"))
 -- Independent reproducible pseudorandom run of the actual gear roll.
 reset(100)
 local seed=421
@@ -66,12 +82,13 @@ local rate=grants/10000
 check(math.abs(rate-.03)<.006,"seeded eligible ride frequency stays near three percent")
 print(("Eligible rides: %d/10000 (%.2f%%); rank 1: 0/200."):format(grants,rate*100))
 for tab,chance in Config.SHOP_VAULT_DROP.chance do
+ local stocked=Config.shopLootOdds(tab,100,function() return false end).total>0
  reset(100);draw=function() return chance end;roll(thief,tab)
- check(notices==0 and rngCalls==1,"upper probability boundary excluded: "..tab)
+ check(notices==0 and rngCalls==(if stocked then 1 else 0),"upper probability boundary excluded: "..tab)
  reset(100);local first=true
  draw=function() if first then first=false;return chance-.000001 end;return .5 end
  roll(thief,tab)
- check(notices==1,"just below probability boundary succeeds: "..tab)
+ check(notices==(if stocked then 1 else 0),"just below probability boundary succeeds: "..tab)
 end
 reset(100);carrying[thief]={haul={}};roll(thief,"gear")
 check(#carrying[thief].haul==1 and carrying[thief].haul[1].kind=="ride" and grants==0,"new ride enters carry before it is owned")
@@ -83,13 +100,10 @@ check(data.coins==100 and notices==0,"rank gate also blocks owned-ride coin fall
 reset(100);allOwned=true;roll(thief,"gear")
 check(data.coins>100 and grants==0 and saves==1 and notices==1,"eligible complete ride collection still pays resale coins")
 check(discovery.mode=="sold" and discovery.coins==data.coins-100,"resale reveal reports coins rather than a new ride")
--- Nothing puts more in a pig than it holds (4c.6): a resale into a nearly
--- full pig pays only the room, and a full one pays nothing and says why.
-local cap=Config.getCapacity(20)
-reset(100);data.coins=cap-5;allOwned=true;roll(thief,"gear")
-check(data.coins==cap and discovery.coins==5,"resale into a nearly full pig pays only the room")
-reset(100);data.coins=cap;allOwned=true;roll(thief,"gear")
-check(data.coins==cap and discovery.coins==0 and notices==1,"resale into a full pig pays nothing and still reports the find")
+-- The pig has no ceiling: a resale pays in full onto any balance, and the
+-- reveal reports the whole figure.
+reset(100);data.coins=1e12;allOwned=true;roll(thief,"gear")
+check(data.coins>1e12 and discovery.coins==data.coins-1e12 and notices==1,"resale onto a huge balance pays in full")
 -- Actual rarity chances are normalized over the currently eligible items.
 local odds=Config.shopLootOdds("gear",100,function() return false end)
 local sum=0

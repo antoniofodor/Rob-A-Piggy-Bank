@@ -1,0 +1,133 @@
+{
+  "key": "honeycomb",
+  "name": "Honeycomb",
+  "path": "assets/piggies/rare/honeycomb/",
+  "tier": "rare",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); rare/: Config.SKINS.honeycomb.rarity = \"rare\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/honeycomb/",
+    "assets/piggies/honeycomb/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/rare/honeycomb/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6552,
+      "name": "Honeycomb",
+      "rarity": "rare",
+      "surface": "honeycomb",
+      "legendary": null,
+      "chest": "animal",
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": {
+      "key": "honeycomb",
+      "line": 5779,
+      "name": "Honeycomb",
+      "template": "honeycomb",
+      "trimTemplate": "honeycomb_trim"
+    },
+    "legendaryPacks": null,
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/honeycomb.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://73337490597333",
+        "EmissiveMaskContent": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/honeycomb_trim.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://79364999560427",
+        "EmissiveMaskContent": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://73337490597333": {
+      "file": "sheets/honeycomb_body_color.open-hatch.png",
+      "sha256": "771a514915e3aff17d99f0ec0c65bedd323983410754ac3fb191d6653831a3c4",
+      "role": "body ColorMap",
+      "note": "uploaded from the open-hatch bake"
+    },
+    "rbxassetid://79364999560427": {
+      "file": "sheets/honeycomb_trim_color.png",
+      "sha256": "320ef19c565153ca5053822aa6bba27f29806802c04a8fb7b7562d2d4ad4c778",
+      "role": "trim ColorMap"
+    }
+  },
+  "shopCard": {
+    "file": "preview/honeycomb_shop-card.png",
+    "robloxAssetId": "rbxassetid://114718401104881",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/rare/honeycomb/package/shop-cards/honeycomb.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/rare/honeycomb/package",
+    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "fileCount": 16,
+    "textureCopiesMatchShippedSheets": {
+      "honeycomb_body_color.png": false,
+      "honeycomb_trim_color.png": false
+    }
+  },
+  "closedBack": {
+    "closedScene": "source/honeycomb_closed.blend",
+    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as honeycomb_body_color.open-hatch.png. Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "coat-spec.json",
+      "honeycomb.blend",
+      "honeycomb_closed.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_honeycomb_blend.py"
+    ],
+    "sheets": [
+      "honeycomb_body_color.open-hatch.png",
+      "honeycomb_body_color.png",
+      "honeycomb_trim_color.png"
+    ],
+    "preview": [
+      "honeycomb_hatch.png",
+      "honeycomb_hero.png",
+      "honeycomb_shop-card.json",
+      "honeycomb_shop-card.png",
+      "honeycomb_view.blend"
+    ],
+    "package": [
+      "README.md",
+      "honeycomb-asset-report.json",
+      "honeycomb-complete.blend",
+      "honeycomb-complete.fbx",
+      "honeycomb-crown.png",
+      "honeycomb-front.png",
+      "honeycomb-glow.png",
+      "honeycomb-hero.png",
+      "honeycomb-spine.png",
+      "honeycomb_body_color.png",
+      "honeycomb_body_emissive.png",
+      "honeycomb_trim_color.png",
+      "honeycomb_trim_emissive.png",
+      "index.html",
+      "shop-cards/"
+    ]
+  },
+  "generator": "generate/make_honeycomb_blend.py",
+  "notes": []
+}

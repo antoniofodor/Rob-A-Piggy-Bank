@@ -13,8 +13,8 @@ CSS='*{box-sizing:border-box}body{margin:0;background:#f5f0f8;color:#32273d;font
 def page(title,body):return f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{escape(title)}</title><style>{CSS}</style></head><body><main>{body}</main></body></html>'
 cards=[];models=[];pages=[]
 for key,spec in SPECS.items():
-    folder=Path(paths.skin_dir(key));package=Path(paths.animal_package(key));report_path=package/f'{key}-asset-report.json'
-    r=json.loads(report_path.read_text());art=json.loads((folder/'coat-spec.json').read_text())
+    package=Path(paths.animal_package(key));report_path=package/f'{key}-asset-report.json'
+    r=json.loads(report_path.read_text());art=json.loads(Path(paths.coat_spec(key)).read_text())
     assert r['meshCount']==6 and r['triangles']==20670 and r['fbxRoundTripMaxBoundsError']<.001,key
     assert (package/f'{key}-complete.blend').stat().st_mtime>=report_path.stat().st_mtime,key+' incomplete'
     assert all(sha(p)==digest for p,digest in r['inputHashes'].items()),key+' source drift'
@@ -38,7 +38,7 @@ Palette: {', '.join(f"{k} #{''.join(f'{c:02X}' for c in v)}" for k,v in spec.ite
 - `{key}_body_color.png`, `{key}_trim_color.png`: opaque 1024×1024 colour sheets.
 - `{key}_body_emissive.png`, `{key}_trim_emissive.png`: 1024×1024 grayscale glow masks; white marks the sparse highlights.
 - Five review renders, including dim lighting, and `{key}-asset-report.json`.
-- `blender/pig/skins/{key}/coat-spec.json`: palette, parent scene hash and preview glow strength.
+- `assets/piggies/{paths.tier_of(key)}/{key}/source/coat-spec.json`: palette, parent scene hash and preview glow strength.
 
 ## Import
 

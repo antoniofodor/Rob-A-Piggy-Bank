@@ -152,9 +152,9 @@ Theme.PAPER_DEEP = Color3.fromRGB(237, 220, 194)
 Theme.GOLD = Color3.fromRGB(255, 203, 61)
 Theme.GOLD_DEEP = Color3.fromRGB(227, 138, 30)
 
--- Acorn UI accents: warm brown and leaf green. Icon artwork uses the 3D model palette.
-Theme.ACORN = Color3.fromRGB(164, 96, 49)
-Theme.ACORN_CAP = Color3.fromRGB(111, 170, 69)
+-- `Theme.ACORN` and `Theme.ACORN_CAP` stood here -- the currency's warm brown
+-- and leaf green. Nothing reads them now, so they went with it rather than
+-- sitting in the palette as two colours named after a thing that is gone.
 
 -- The pig. The snout on the piggy bank panel, and the piggy tab. Lighter
 -- than the rest of the accents on purpose: it is used as a SURFACE that
@@ -414,46 +414,16 @@ function Theme.tinted(frame: GuiObject, top: Color3, bottom: Color3, radius: num
 	return frame
 end
 
--- Rendered from the same olive nut, chestnut cap and stem as AcornModel.
--- Keep the Frame contract so every HUD, price and reward caller scales alike.
-function Theme.acorn(parent: Instance, size: number, name: string?): Frame
-	local root = Instance.new("Frame")
-	root.Name = name or "Acorn"
-	root.Size = UDim2.fromOffset(size, size)
-	root.BackgroundTransparency = 1
-	root:SetAttribute("CurrencyIcon", "Acorn")
-	root.Parent = parent
-	require(game:GetService("ReplicatedStorage").Shared.ShopIcons).mount(root, "acorn")
-	return root
-end
-
--- Decorate an existing price label without changing its bounds. Its other
--- states (owned/equipped/locked) automatically remove the glyph and padding.
-function Theme.acornPrice(label: TextLabel | TextButton, text: string)
-	if not label:FindFirstChild("AcornPriceIcon") then
-		local icon = Theme.acorn(label, 20, "AcornPriceIcon")
-		icon.AnchorPoint = Vector2.new(0, 0.5)
-		icon.Position = UDim2.new(0, -24, 0.5, 0)
-		local pad = Instance.new("UIPadding")
-		pad.Name = "AcornPricePadding"
-		pad.Parent = label
-		local originalAlignment = label.TextXAlignment
-		local function refresh()
-			local active = string.find(string.lower(label.Text), "acorn", 1, true) ~= nil
-			icon.Visible = active
-			pad.PaddingLeft = UDim.new(0, if active then 24 else 0)
-			label.TextXAlignment = if active then Enum.TextXAlignment.Left else originalAlignment
-		end
-		label:GetPropertyChangedSignal("Text"):Connect(refresh)
-	end
-	label.Text = text
-end
+-- `Theme.acorn` AND `Theme.acornPrice` STOOD HERE. One drew the currency icon
+-- (the HUD chip, a price label, the reward reel) and the other seated it
+-- against a price string; both went with the currency itself. `Theme.coin`
+-- below is the one that is left, and it is the whole money vocabulary now.
 
 -- A COIN ON A PRICE BUTTON, seated against the TEXT rather than the frame, so
--- the glyph and the words read as one group. `acornPrice` above can left-align
--- its label instead because every caller it has is a left-aligned line; a
--- full-width CTA is centred, and a fixed left inset would park the coin out in
--- the margin with the price floating in the middle of the button.
+-- the glyph and the words read as one group. The retired `acornPrice` could
+-- left-align its label instead because every caller it had was a left-aligned
+-- line; a full-width CTA is centred, and a fixed left inset would park the
+-- coin out in the margin with the price floating in the middle of the button.
 --
 -- IT SHOWS ON A DIGIT, which is the honest test for "this text is a price".
 -- The same button also reads MAX LEVEL and REQUESTING..., and a coin beside

@@ -3,9 +3,10 @@
 	SkinFX
 
 	THE THIRD LAYER OF A LEGENDARY OG SKIN, AFTER PAINT AND PARTICLES. A skin
-	is colour and material on the pig's body; `Config.skinAura` gives a
-	legendary its particles. Neither can add SHAPE, and a legendary that is a
-	better colour than a rare is still the same object. This builds the shape:
+	is colour and material on the pig's body; `Config.skinAura` gives an epic
+	or a legendary its particles. Neither can add SHAPE, and a legendary that
+	is a better colour than an epic is still the same object -- geometry is
+	the line between those two tiers. This builds the shape:
 	crystal shards on the Diamond, a solar corona on Supernova, storm clouds on
 	Stormcaller, a ring of prisms on Prismatic. A skin opts in with
 	`fx = "<kind>"` in `Config.SKINS`.
@@ -342,6 +343,64 @@ builders.prismatic = function(ctx)
 		part(ctx, "Prism" .. i, Vector3.new(1.2, 4.0, 1.2), at, Color3.fromHSV((i - 1) / n, 0.8, 1),
 			Enum.Material.Neon, { orbit = 0.07, spin = 0.25, bob = 0.35, bobRate = 0.3,
 				cycle = 0.18, hue = (i - 1) / n, sat = 0.8, phase = i / n })
+	end
+end
+
+-- PEACOCK: a fan of seven eyed tail feathers standing up behind the body,
+-- each eye a Neon gold point in a Neon blue disc on a green plume, swaying a
+-- little out of step with each other. The animal shelf's `fx` epic.
+--
+-- BEHIND THE ANIMAL, ON -Z, which is the one side a viewer on the pavement
+-- never has between them and the face -- so the fan frames the pig rather
+-- than hiding it -- and it tops out at seat y 16, under the rob badge (the
+-- body's 6 plus its 11). Seat units are the twelve-stud till like every
+-- builder here; a mini takes them through `ctx.s`. The parts stand in the
+-- BACK slot, where a cape would.
+--
+-- A DISC IS A FLATTENED BALL, the balloon's own trick: a `Ball` ignores a
+-- non-uniform Size, a SpecialMesh sphere does not, and three of them
+-- stacked at different radii are three curved surfaces that cannot share a
+-- plane -- which is what keeps the layered eye off the coplanar rule.
+builders.peacock = function(ctx)
+	local root = Vector3.new(0, 7.2, -5.2)
+	local n, reach = 7, 8.6
+	local plume = Color3.fromRGB(28, 122, 96)
+	local outer = Color3.fromRGB(46, 170, 120)
+	local ring = Color3.fromRGB(30, 96, 210)
+	local core = Color3.fromRGB(255, 200, 60)
+	local function flat(p: Part, k: number)
+		local shape = Instance.new("SpecialMesh")
+		shape.MeshType = Enum.MeshType.Sphere
+		shape.Scale = Vector3.new(1, 1, k)
+		shape.Parent = p
+	end
+	for i = 1, n do
+		local t = (i - 1) / (n - 1)
+		local angle = math.rad(-62 + 124 * t)
+		local tip = root + Vector3.new(math.sin(angle) * reach, math.cos(angle) * reach, -2.4)
+		local motion = { bob = 0.18, bobRate = 0.28, phase = i / n }
+		local mid = (root + tip) / 2
+		local length = (tip - root).Magnitude
+		local made = {
+			part(ctx, "Plume" .. i, Vector3.new(0.3, 0.3, length), CFrame.lookAt(mid, tip),
+				plume, Enum.Material.SmoothPlastic, motion),
+		}
+		local face = CFrame.new(tip)
+		local disc = part(ctx, "PlumeEye" .. i, Vector3.new(3.0, 3.0, 3.0), face, outer,
+			Enum.Material.SmoothPlastic, motion, Enum.PartType.Ball)
+		flat(disc, 0.22)
+		local iris = part(ctx, "PlumeRing" .. i, Vector3.new(1.9, 1.9, 1.9),
+			face * CFrame.new(0, 0, 0.14), ring, Enum.Material.Neon, motion, Enum.PartType.Ball)
+		flat(iris, 0.22)
+		local point = part(ctx, "PlumeCore" .. i, Vector3.new(0.9, 0.9, 0.9),
+			face * CFrame.new(0, 0, 0.28), core, Enum.Material.Neon, motion, Enum.PartType.Ball)
+		flat(point, 0.22)
+		table.insert(made, disc)
+		table.insert(made, iris)
+		table.insert(made, point)
+		for _, p in ipairs(made) do
+			p:SetAttribute(SkinFX.SLOT_ATTRIBUTE, "back")
+		end
 	end
 end
 

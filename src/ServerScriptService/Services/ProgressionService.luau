@@ -4,9 +4,11 @@
 
 	Rebirth: the reset that makes week three interesting.
 
-	Everything purchased goes back to zero -- income, capacity, and both
-	upgrade trees -- in exchange for a permanent income multiplier and a
-	visible change of material on your piggy.
+	Everything purchased goes back to zero -- income and both upgrade trees
+	-- in exchange for a permanent income multiplier and a visible change of
+	material on your piggy. (The capacity tree is retired with the pig's
+	ceiling; the rebirth gate is `Config.REBIRTH_CASH_GATE` plus the
+	placeholder `Config.rebirthPiggyGate`.)
 
 	Wiping the trees is the point, not a side effect. It's the only way to
 	respec, so a player who committed to defence and regrets it has a route
@@ -32,10 +34,10 @@ local function notify(player: Player, message: string, kind: string)
 	Remotes.get("Notify"):FireClient(player, message, kind)
 end
 
--- The rebirth gate is a multiple of capacity now, so it runs to eight and nine
--- figures -- and "You need 137438953 coins" is not a number a nine-year-old can
--- read, let alone compare against the one on their own HUD. The HUD already
--- abbreviates; this is the server saying the same thing the same way.
+-- The rebirth gate runs to eight and nine figures -- and "You need 137438953
+-- coins" is not a number a nine-year-old can read, let alone compare against
+-- the one on their own HUD. The HUD already abbreviates; this is the server
+-- saying the same thing the same way.
 local function short(n: number): string
 	if n >= 1e9 then
 		return ("%.1fB"):format(n / 1e9)
@@ -47,9 +49,14 @@ local function short(n: number): string
 	return tostring(math.floor(n))
 end
 
+-- TWO GATES, ONE PREDICATE: the cash amount (`REBIRTH_CASH_GATE`) and the
+-- piggy hook (`rebirthPiggyGate`, a placeholder that returns true). Both the
+-- refusal below and the `rebirthReady` push read this shape, so the button
+-- and the refusal move together the day the piggy half is written.
 function ProgressionService.canRebirth(player: Player): boolean
 	local data = DataService.get(player)
 	return data ~= nil and data.coins >= Config.getRebirthThreshold(data.rebirths)
+		and Config.rebirthPiggyGate(data)
 end
 
 function ProgressionService.rebirth(player: Player)
@@ -66,19 +73,23 @@ function ProgressionService.rebirth(player: Player)
 		return
 	end
 
-	-- The gate scales with the ceiling you can currently reach, so the message
-	-- has to name THIS player's number rather than a constant -- see
-	-- Config.REBIRTH_CAPACITY_MULTIPLE for why it is not a flat million.
+	-- The gate climbs with the rebirth count, so the message has to name THIS
+	-- player's number rather than a constant -- see Config.REBIRTH_CASH_GATE.
 	local threshold = Config.getRebirthThreshold(data.rebirths)
 	if data.coins < threshold then
 		notify(player, ("You need %s coins in your piggy bank to rebirth."):format(short(threshold)), "warn")
+		return
+	end
+	-- PLACEHOLDER HOOK: true today. When "own specific piggies" is written
+	-- this is where it refuses, and it will need its own wording.
+	if not Config.rebirthPiggyGate(data) then
+		notify(player, "You need the right piggies to rebirth.", "warn")
 		return
 	end
 
 	data.rebirths += 1
 	data.coins = 0
 	data.incomeLevel = 1
-	data.capacityLevel = 1
 	for key in pairs(Config.UPGRADES) do
 		data.upgrades[key] = 0
 	end
@@ -90,7 +101,7 @@ function ProgressionService.rebirth(player: Player)
 	if plot then
 		PlotService.updateSign(plot, player.DisplayName, data.rebirths,
 			Config.getSkin(data.cosmetics.skin).name, Config.getShownHouse(data).name)
-		PlotService.updatePile(plot, 0, Config.getCapacity(1))
+		PlotService.updatePile(plot, 0, Config.pigFullAt(data.rebirths))
 		PlotService.buildFence(plot, 0)
 		-- THE DOG STAYS. A rebirth takes away what was bought, and the Guard
 		-- rung is retired -- every plot has the same dog (`Config.DOG_LEVEL`)
@@ -113,14 +124,15 @@ function ProgressionService.rebirth(player: Player)
 
 	-- A shop Legendary crate for free, with its normal odds and duplicate
 	-- spares, picked at random from the collections not yet finished -- so the
-	-- free open never rolls at a shelf whose legendaries are all owned. With
-	-- every one complete, pay the crate's price in Acorns instead.
+	-- free open never rolls at a shelf whose legendaries are all owned.
+	--
+	-- WITH EVERY ONE COMPLETE THERE IS NOTHING TO PAY INSTEAD. It used to hand
+	-- over the crate's price in acorns; a crate has no price any more, so the
+	-- rebirth is SAID to be complete rather than silently paying zero -- a
+	-- grant with nothing on screen is one nobody believes.
 	local open = Config.rebirthCratesOpen(data.cosmetics.owned)
 	if #open == 0 then
-		local bonus = Config.rebirthCrateBonus()
-		data.loot = (data.loot or 0) + bonus
-		notify(player, ("Legendary collections complete! %d %s instead."):format(
-			bonus, Config.lootWord(bonus)), "good")
+		notify(player, "Every Legendary collected -- no crate left to open!", "good")
 	else
 		ChestService.grantFree(player, open[math.random(#open)])
 	end
@@ -145,7 +157,7 @@ function ProgressionService.push(player: Player)
 	Remotes.get("RebirthState"):FireClient(player, {
 		rebirths = data.rebirths,
 		threshold = Config.getRebirthThreshold(data.rebirths),
-		ready = data.coins >= Config.getRebirthThreshold(data.rebirths),
+		ready = ProgressionService.canRebirth(player),
 	})
 end
 

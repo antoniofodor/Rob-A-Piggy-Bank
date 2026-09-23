@@ -86,12 +86,14 @@ local player = Players.LocalPlayer
 -- Defined down in the prompt-visibility section; needed earlier so an
 -- upgrade purchase can re-time the steal prompts immediately.
 local refreshStealPrompts: () -> ()
--- Medals and set progress. UP HERE, not beside homeUI, because the cosmetic
--- card renderer four hundred lines below reads `setUI.medals` to colour a
--- medal price -- and a `local` declared after its reader compiles against a
--- nil GLOBAL and dies at the call, naming neither the variable nor the cause.
--- One table rather than four locals: this chunk is near Luau's 200-register
--- ceiling and the budget is spent by more than one feature at a time.
+-- Set progress. UP HERE, not beside homeUI, because the cosmetic card
+-- renderer four hundred lines below reads it -- and a `local` declared after
+-- its reader compiles against a nil GLOBAL and dies at the call, naming
+-- neither the variable nor the cause. One table rather than four locals: this
+-- chunk is near Luau's 200-register ceiling and the budget is spent by more
+-- than one feature at a time. `loot` is kept at zero rather than removed: the
+-- set cards still branch on `info.loot` to keep an unpriced set item out of
+-- the coin formatter, and a nil there would be a second thing to reason about.
 local setUI = { loot = 0, sets = nil :: any, cards = {}, dirty = false }
 -- Declared here and assigned four hundred lines down, for the same reason.
 -- The cosmetic cards render 3D previews now and are built well above the
@@ -165,20 +167,11 @@ local latestUpgrades: { [string]: any } = {}
 --
 -- ONE TABLE rather than separate locals, for the same reason.
 --
--- AND THE EVENT MULTIPLIER IS BACK, ON THE ONE CARD THAT STILL QUOTES A TAKE.
--- It was dropped with the other two because the STEAL prompt stopped
--- computing a take -- correctly, since a crack is five slices any prefix of
--- which the thief may walk away with. The SMASH card is the exception and its
--- own comment says so: a smash is a fixed fraction, it cannot be missed, and
--- the card prints it. During a Rush Hour that printed figure was half of what
--- the server pays.
---
--- It is not the "second implementation" the paragraph above guards against
--- either. `EventState` carries the server's own `stealMultiplier`, so this
--- multiplies BY the number the server is using rather than deciding what a
--- rush is worth -- the same call the chest reel makes when it prints
--- `ChestService`'s live odds instead of recomputing them from Config.
-local stealInfo = { carrying = 0, stealMultiplier = 1 }
+-- The event multiplier came back once, for the SMASH card, and went again
+-- with the event that set it: Midnight Heist was the last thing doubling a
+-- take, and it was retired with the piggy-collection pivot. No event moves
+-- what a grab is worth now, so nothing here carries one.
+local stealInfo = { carrying = 0 }
 -- Whether the daily board is up. Read by `Rebirth.canShow`, which is wired
 -- further down and would otherwise let the rebirth button sit on top of it:
 -- the same collision the shop panel already had.
@@ -218,7 +211,7 @@ game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, fal
 -- empty, is one too many.
 game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
 
--- The balance, capacity gauge and responsive readout column share one module.
+-- The balance and the responsive readout column share one module.
 local bankHUD = require(ReplicatedStorage.Shared.PiggyPanel).new(gui)
 
 -- THE SHOP BUTTON, BOTTOM RIGHT, AND NOTHING ELSE NOW.
@@ -1546,8 +1539,9 @@ local function ensureRow(key: string, info: any)
 	return row
 end
 
--- THE TWO EARN ROWS, half of the band each -- so they come out about the width
--- of a tree card and the price chip lands in the same place on all eight.
+-- ONE EARN ROW, half of the band -- about the width of a tree card, so the
+-- price chip lands in the same place on all seven. The second, Bigger Piggy
+-- Bank, is retired with the pig's ceiling: there is nothing for it to buy.
 earn.rows.income = makeUpgradeCard(earn.band, 1, GOLD, UDim2.new(0.5, -8, 1, 0),
 	function()
 		Remotes.get("PurchaseRequest"):FireServer("income")
@@ -1555,19 +1549,12 @@ earn.rows.income = makeUpgradeCard(earn.band, 1, GOLD, UDim2.new(0.5, -8, 1, 0),
 earn.rows.income.title.Text = "Earn Faster"
 earn.rows.income.blurb.Text = "More coins every second, forever."
 
-earn.rows.capacity = makeUpgradeCard(earn.band, 2, GOLD, UDim2.new(0.5, -8, 1, 0),
-	function()
-		Remotes.get("PurchaseRequest"):FireServer("capacity")
-	end)
-earn.rows.capacity.title.Text = "Bigger Piggy Bank"
-earn.rows.capacity.blurb.Text = "Holds more before it stops filling."
-
 -- A LADDER YOU CAN COUNT, OR A BAR YOU READ, AND THE CALLER SAYS WHICH.
 --
 -- Pips are the right picture for a tree: four rungs with three filled answers
 -- "how much have I got, how much is left" with no reading at all, and that is
--- the whole argument for them. They are the WRONG picture for income and
--- capacity, because those run to `Config.maxLevel` -- 20, and 40 once enough
+-- the whole argument for them. They are the WRONG picture for income,
+-- because it runs to `Config.maxLevel` -- 20, and 40 once enough
 -- rebirths have opened the ceiling. Measured on the card this actually renders
 -- on: 40 pips share 337 pixels, so each one is 4.4 wide and carries a 2px
 -- outline. That is not a ladder, it is noise.
@@ -1776,9 +1763,9 @@ local function paintLadder(row: any, level: number, max: number, bar: boolean)
 end
 
 -- One EARN row against the economy push. The same three questions a tree row
--- answers, asked of `StateUpdate` rather than `UpgradeState`: income and
--- capacity have always been pushed there, beside the coins they are priced
--- against, and moving the control did not move the data.
+-- answers, asked of `StateUpdate` rather than `UpgradeState`: income has
+-- always been pushed there, beside the coins it is priced against, and moving
+-- the control did not move the data.
 local function paintEarn(row: any, level: number, max: number,
 	cost: number, coins: number)
 
@@ -2138,8 +2125,9 @@ local vergeGridFrame = homeGrid(105)
 --
 -- `Config.TROPHIES` and `Config.TROPHY_PLINTHS` are empty tables now: the ten
 -- earned trophies and the six plinth finishes were retired in favour of three
--- stat panels and a wanted poster on the house's own wall, which `TrophyRoom`
--- builds. Every counter survives in `data.trophies` -- victims, catches,
+-- stat panels and a wanted poster on the house's own wall -- and that room is
+-- retired in turn (2026-09-22); the achievements move into the real base
+-- later. Every counter survives in `data.trophies` -- victims, catches,
 -- sprees, clean cracks, wanted appearances, harvests -- so what went is the
 -- CATALOGUE and never the record of what anybody did.
 --
@@ -2691,16 +2679,17 @@ local function renderCosmetics()
 			entry.sub.TextColor3 = Theme.GOLD_INK
 			entry.button.BackgroundColor3 = ShopStyle.LOCKED
 		elseif info.loot then
-			-- Priced in loot. `info.cost` is nil for a set item and `format`
-			-- floors its argument, so reaching the branch below throws rather
-			-- than rendering a wrong number -- which is the louder half of the
-			-- same rule the skins tab already learned: ask whether the thing
-			-- has a coin price before formatting one.
-			Theme.acornPrice(entry.sub, ("%d %s"):format(info.loot, Config.lootWord(info.loot)))
-			entry.sub.TextColor3 = Theme.GOOD
-			entry.button.BackgroundColor3 = if setUI.loot >= info.loot
-				then ShopStyle.OWNED
-				else Theme.PAPER_DEEP
+			-- A SET ITEM, AND THERE IS NO LONGER A PRICE TO PRINT. These used
+			-- to carry a loot price so that "nothing is ever locked behind
+			-- luck" held -- a drop only saved you the wait. The currency is
+			-- gone, so the guaranteed route went with it and the card says
+			-- where the thing actually comes from instead of what it costs.
+			-- `info.cost` is nil for a set item and `format` floors its
+			-- argument, so the branch below would throw rather than render a
+			-- wrong number; this one still has to come first.
+			entry.sub.Text = "FROM THE ALIEN CACHE"
+			entry.sub.TextColor3 = Theme.MUTED_LIGHT
+			entry.button.BackgroundColor3 = ShopStyle.LOCKED
 		else
 			entry.sub.Text = format(info.cost)
 			entry.sub.TextColor3 = GOLD
@@ -2885,17 +2874,14 @@ local function renderCosmetics()
 			entry.sub.TextColor3 = Theme.GOLD_INK
 			entry.button.BackgroundColor3 = ShopStyle.LOCKED
 		elseif info.loot then
-			-- Nothing here is priced in loot today. Written anyway for the
-			-- reason the effects loop above carries the same branch: a set
-			-- entry landing in this catalogue would have no `cost`, and a
-			-- missing cost arrives as 0 and renders "0" in gold on the
-			-- you-can-afford green -- the drop-pool skins' own bug, which is
-			-- silent every time.
-			Theme.acornPrice(entry.sub, ("%d %s"):format(info.loot, Config.lootWord(info.loot)))
-			entry.sub.TextColor3 = Theme.GOOD
-			entry.button.BackgroundColor3 = if setUI.loot >= info.loot
-				then ShopStyle.OWNED
-				else Theme.PAPER_DEEP
+			-- Nothing here is a set item today. Written anyway for the reason
+			-- the loop above carries the same branch: a set entry landing in
+			-- this catalogue would have no `cost`, and a missing cost arrives
+			-- as 0 and renders "0" in gold on the you-can-afford green -- the
+			-- drop-pool skins' own bug, which is silent every time.
+			entry.sub.Text = "FROM A SET CRATE"
+			entry.sub.TextColor3 = Theme.MUTED_LIGHT
+			entry.button.BackgroundColor3 = ShopStyle.LOCKED
 		else
 			-- A BUY BUTTON, AND IT IS THE POINT RATHER THAN A PLACEHOLDER.
 			-- Coins are not purchasable with Robux at any price, so this is
@@ -4952,12 +4938,11 @@ local function renderRides()
 			tile.sub.TextColor3 = tile.deep
 			tile.button.BackgroundColor3 = ShopStyle.CARD
 		elseif info.loot then
+			-- A SET RIDE. No price: see the note on the decoration card above.
 			tile.sub.BackgroundColor3 = ShopStyle.SUNK
-			Theme.acornPrice(tile.sub, ("%d %s  ·  +%d%%"):format(info.loot, Config.lootWord(info.loot), info.boost))
-			tile.sub.TextColor3 = Theme.GOOD
-			tile.button.BackgroundColor3 = if setUI.loot >= info.loot
-				then ShopStyle.OWNED
-				else ShopStyle.DEAR
+			tile.sub.Text = ("ALIEN CACHE  ·  +%d%%"):format(info.boost)
+			tile.sub.TextColor3 = Theme.MUTED_LIGHT
+			tile.button.BackgroundColor3 = ShopStyle.LOCKED
 		else
 			tile.sub.BackgroundColor3 = ShopStyle.SUNK
 			tile.sub.Text = ("%s  ·  +%d%%"):format(format(info.cost), info.boost)
@@ -5032,17 +5017,8 @@ end)
 -- HUD, since the chunk never compiles and nothing gets built.
 do
 	Remotes.get("SetState").OnClientEvent:Connect(function(state)
-		setUI.loot = state.loot or 0
-		bankHUD:setAcorns(setUI.loot)
 		setUI.sets = state.sets
 		setUI.dirty = true
-		-- The Alien Cache is priced in loot, so its buy state moves with this
-		-- push and with no other. `ChestState` is fired on a chest ACTION.
-		Crates.setBalance(nil, setUI.loot)
-		if SHOP.shell then SHOP.shell:setBalances(latestCoins, setUI.loot) end
-		require(ReplicatedStorage.Shared.Inventory).setBalances(latestCoins, setUI.loot)
-		-- The cosmetic cards colour their loot prices against this balance,
-		-- so they have to be redrawn when it moves.
 		renderCosmetics()
 	end)
 
@@ -5217,12 +5193,9 @@ do
 		gui = gui,
 		iconFor = function(kind, key, holder) iconFor(kind, key, holder, true) end,
 		format = format,
-		-- The click means "open this crate", never "open it for this price":
-		-- the key and nothing else, so there is no cost on the wire to forge
-		-- and the server re-reads every number it charges.
-		open = function(chestKey: string)
-			Remotes.get("ChestOpen"):FireServer(chestKey)
-		end,
+		-- NO `open`. A crate is earned rather than bought, so the tab has no
+		-- buy button and there is no channel to fire: `ChestService.grantFree`
+		-- is reached from the daily ladder, a rebirth and events.
 		buyback = function(key: string)
 			Remotes.get("SkinBuyback"):FireServer(key)
 		end,
@@ -5239,6 +5212,17 @@ do
 	Remotes.get("ChestState").OnClientEvent:Connect(Crates.render)
 	Remotes.get("ChestState").OnClientEvent:Connect(Rebirth.onChest)
 	Remotes.get("ChestResult").OnClientEvent:Connect(Crates.reveal)
+
+	-- THE ADMIN PICKER IS WIRED HERE, NOT BESIDE THE ADMIN PANEL, because it
+	-- draws a real piggy per card and `iconFor` lives in this block. Holding
+	-- no local: the module keeps its own state and `AdminPanel` opens it by
+	-- name, so nothing up here needs a handle on it.
+	require(ReplicatedStorage.Shared.AdminPiggyPicker).init(gui, {
+		iconFor = function(kind, key, holder) iconFor(kind, key, holder, true) end,
+		fire = function(command, targetId, a, b)
+			Remotes.get("AdminRequest"):FireServer(command, targetId, a, b)
+		end,
+	})
 
 	-- THE INVENTORY IS WIRED IN THE SAME BLOCK AND FOR THE SAME REASON: it
 	-- renders a real model per owned item, so it needs `iconFor`, and this
@@ -5335,8 +5319,8 @@ do
 			end
 		end,
 		-- Kind, key and a count -- never a value. The server re-reads
-		-- `Config.sellValue` and re-checks the capacity, exactly as
-		-- `ChestOpen` re-reads a cost, so there is no payout on the wire.
+		-- `Config.sellValue`, exactly as `ChestOpen` re-reads a cost, so
+		-- there is no payout on the wire.
 		sell = function(kind: string, key: string, count: number)
 			Remotes.get("SpareSell"):FireServer(kind, key, count)
 		end,
@@ -5472,7 +5456,7 @@ do
 		if child:IsA("GuiObject") then child.Visible = false end
 	end
 	SHOP.upgrades = require(ReplicatedStorage.Shared.ShopUpgrades).new(upgradesView, function(key: string)
-		Remotes.get(if key == "income" or key == "capacity" then "PurchaseRequest" else "UpgradeRequest"):FireServer(key)
+		Remotes.get(if key == "income" then "PurchaseRequest" else "UpgradeRequest"):FireServer(key)
 	end)
 	SHOP.upgrades:setUpgrades(latestUpgrades)
 	SHOP.shell = require(ReplicatedStorage.Shared.ShopRevamp).new({
@@ -5480,7 +5464,7 @@ do
 		close = closeButton, tabs = tabs, at = SHOP.at, startView = startView,
 		selectTab = selectTab,
 	})
-	SHOP.shell:setBalances(latestCoins, setUI.loot)
+	SHOP.shell:setBalances(latestCoins)
 	-- The landing banner names the cheapest pass not owned yet; the Robux tab
 	-- works that out on every render and hands it over.
 	if SHOP.premium then
@@ -6400,10 +6384,8 @@ local function renderUpgrades()
 end
 
 local function render(state: any)
-	-- ONE BALANCE, ONE READOUT. The pig is the wallet, so this figure and
-	-- the bar under it are the same number: the bar is a picture of it
-	-- against capacity, and the label on the bar names the capacity rather
-	-- than repeating the figure.
+	-- ONE BALANCE, ONE READOUT. The pig is the wallet and it has no ceiling,
+	-- so the panel is the figure and nothing else.
 	bankHUD:render(state)
 	latestCoins = state.coins
 	-- The steal and smash cards used to be handed this player's own coins and
@@ -6415,30 +6397,20 @@ local function render(state: any)
 		refreshStealPrompts()
 	end
 	renderUpgrades()
-	-- Four of the five crates are priced in coins, and coins move on their own
-	-- clock rather than on `ChestState`. Only the buy state repaints -- the
-	-- cards themselves are built once, or this would rebuild fifteen
-	-- ViewportFrames every time a coin landed.
-	Crates.setBalance(state.coins, state.acorns)
-	if type(state.acorns) == "number" and state.acorns ~= setUI.loot then
-		setUI.loot = state.acorns
-		bankHUD:setAcorns(state.acorns)
-		setUI.dirty = true
-		renderCosmetics()
-	end
+	-- NO CRATE HAS A PRICE, so there is no buy state to repaint against a
+	-- balance. The cards are built once and the tab is a browse surface.
 
-	-- The two EARN rows in the Upgrades tab. They are painted from HERE and
-	-- not from renderUpgrades, because their levels, ceilings and prices ride
-	-- the economy push rather than the upgrade snapshot -- and the ceiling is
-	-- the reason that matters: `maxIncome` and `maxCapacity` grow with every
-	-- rebirth, so the bar's own length is state rather than a constant.
+	-- The EARN row in the Upgrades tab. It is painted from HERE and not from
+	-- renderUpgrades, because its level, ceiling and price ride the economy
+	-- push rather than the upgrade snapshot -- and the ceiling is the reason
+	-- that matters: `maxIncome` grows with every rebirth, so the bar's own
+	-- length is state rather than a constant.
 	if SHOP.upgrades then
 		SHOP.upgrades:setEconomy(state)
-		SHOP.shell:setBalances(state.coins, state.acorns)
-		require(ReplicatedStorage.Shared.Inventory).setBalances(state.coins, state.acorns)
+		SHOP.shell:setBalances(state.coins)
+		require(ReplicatedStorage.Shared.Inventory).setBalances(state.coins)
 	else
 		paintEarn(earn.rows.income, state.incomeLevel, state.maxIncome, state.incomeCost, state.coins)
-		paintEarn(earn.rows.capacity, state.capacityLevel, state.maxCapacity, state.capacityCost, state.coins)
 	end
 
 	-- Coins, piggy bank, both upgrade levels and the rebirth count all go
@@ -6520,9 +6492,7 @@ Remotes.get("CarryUpdate").OnClientEvent:Connect(function(amount: number, haul: 
 			tone = row and row.tone,
 			glyph = row and row.glyph,
 			image = row and row.icon,
-			headline = if kind == "basket"
-				then ("%d ACORNS"):format(amount)
-				else ("CARRYING %s"):format(format(amount)),
+			headline = ("CARRYING %s"):format(format(amount)),
 			subline = view.banner,
 		})
 	else
@@ -6624,7 +6594,7 @@ function refreshStealPrompts()
 			-- once. The piggy panel carries "you have no room" now.
 			local sack = (latestUpgrades.sack and latestUpgrades.sack.level) or 0
 			local home = Config.homeWorth(vault,
-				Config.getCrackFraction(Config.CRACK.maxSteps, sack), stealInfo.stealMultiplier)
+				Config.getCrackFraction(Config.CRACK.maxSteps, sack))
 			entry.steal:SetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE,
 				if vault <= 0 then "EMPTY" else ("~%s"):format(format(home)))
 		end
@@ -6640,12 +6610,9 @@ function refreshStealPrompts()
 		-- which is exactly the comparison the choice is made on.
 		--
 		-- Still a "~", for the reason the pile's own figure carries one: the pig
-		-- accrues while the hold runs, so the real take is a beat larger. During
-		-- a Rush Hour it is larger again -- `EventService.getStealMultiplier` is
-		-- the server's and is deliberately not re-derived here, because a second
-		-- implementation of a number that decides money is the one thing this
-		-- file must not grow. Under-stating is the safe direction and the tilde
-		-- is what stops it reading as a promise.
+		-- accrues while the hold runs, so the real take is a beat larger.
+		-- Under-stating is the safe direction and the tilde is what stops it
+		-- reading as a promise.
 		--
 		-- Presentation only. `HeistService.smash` recomputes all of it.
 		entry.smash.HoldDuration = Config.SMASH.hold
@@ -6675,20 +6642,10 @@ function refreshStealPrompts()
 			entry.smash.ObjectText = ("Alarm %s no lock"):format(GLYPH.dot)
 			local vault = math.floor(entry.model:GetAttribute(Config.PLOT_VAULT_ATTRIBUTE) or 0)
 			local sack = (latestUpgrades.sack and latestUpgrades.sack.level) or 0
-			-- THE RUSH IS IN HERE NOW, AND THE COMMENT ABOVE USED TO SAY IT
-			-- DELIBERATELY WAS NOT. The reasoning was that
-			-- `EventService.getStealMultiplier` is the server's and must not be
-			-- re-derived on a client -- right, and it is not re-derived here:
-			-- it is PUSHED, on `EventState`, and this multiplies by whatever
-			-- arrived. Under-stating was called the safe direction, and at 2x
-			-- it is not a rounding the tilde can cover: the card was quoting
-			-- half of what `smash` pays, on the one card in the game whose
-			-- entire job is naming a take.
-			-- And, like the badge, what that take banks AT HOME -- paid out,
-			-- and NOT capped at this player's own room. See the steal card
-			-- above and RobBadge.describe for why that cap came off.
-			local home = Config.homeWorth(vault,
-				Config.getSmashFraction(sack), stealInfo.stealMultiplier)
+			-- Like the badge, what that take banks AT HOME -- paid out, and
+			-- NOT capped at this player's own room. See the steal card above
+			-- and RobBadge.describe for why that cap came off.
+			local home = Config.homeWorth(vault, Config.getSmashFraction(sack))
 			entry.smash:SetAttribute(Config.PROMPT_AMOUNT_ATTRIBUTE,
 				if home <= 0 then "EMPTY" else ("~%s"):format(format(home)))
 		end
@@ -6718,6 +6675,12 @@ local function bindPlot(plotModel: Instance)
 	-- `Config.PROMPT_SLOT_ATTRIBUTE`, which is what taught `PromptUI` to draw
 	-- a second card at all.
 	local smashPrompt = body:WaitForChild("SmashPrompt", 10) :: ProximityPrompt
+	-- THERE IS A THIRD PROMPT ON THIS BODY -- the till's owner-only
+	-- `CollectPrompt` (piggy collection Phase 1, plan §4a) -- and it is
+	-- DELIBERATELY NOT BOUND HERE. It carries `PROMPT_OWNER_ATTRIBUTE`, and
+	-- `PromptUI` already watches every prompt in the world for that and
+	-- refuses the ones that are not the reader's. See the note in `refresh`
+	-- below for what binding it here cost.
 
 	local function refresh()
 		local ownerId = plotModel:GetAttribute("OwnerUserId")
@@ -6737,6 +6700,22 @@ local function bindPlot(plotModel: Instance)
 		local robbable = (isOwned and not isMine) or (not isOwned and hasResident)
 		stealPrompt.Enabled = robbable
 		smashPrompt.Enabled = robbable
+		-- THERE IS NO COLLECT PROMPT TO TOUCH ANY MORE, and the two things
+		-- that used to be wrong here are both worth keeping.
+		--
+		-- This line read `collectPrompt.Enabled = isMine`, which looks like
+		-- the exact inverse of the two above and is a SECOND WRITER -- the bug
+		-- `PromptUI.ownerRule` records in full: the server turns a prompt off
+		-- when there is nothing to do with it, and a client rule written as
+		-- `Enabled = (owner == me)` switches it straight back on. Measured
+		-- once already on the mailbox, where the flag lay flat over a live
+		-- prompt.
+		--
+		-- Then collecting stopped being a prompt at all: the till and all six
+		-- pedestals carry a flat PAD on the grass that the owner walks over,
+		-- guarded on the server where the guard belongs. So there is nothing
+		-- on this side to enable, refuse or get out of step -- which is the
+		-- quiet second win of the conversion.
 	end
 
 	plotModel:GetAttributeChangedSignal("OwnerUserId"):Connect(refresh)
@@ -6805,21 +6784,32 @@ end)
 -- the Player list and one remote, so it finds its own plots and needs no hook
 -- in `bindPlot`.
 require(ReplicatedStorage.Shared.RobBadge).start(player)
+-- THE STREET LEADERBOARD: a toggled panel of everybody's lifetime cash,
+-- piggies robbed and rebirths, its BOARD tile in the left menu rail (`shop`
+-- is that rail) and its keys (Tab, L). One statement holding no local, for
+-- the 200-register ceiling. See LobbyBoard.
+require(ReplicatedStorage.Shared.LobbyBoard).start(player, gui, shop)
 -- Moves the legendary skins' shape geometry on the lawn pigs. No local held.
 require(ReplicatedStorage.Shared.SkinFX).start()
 -- The legendary skins' glow and lightning, driven here per machine. One
 -- statement holding no local, for the 200-local ceiling. See LegendaryFX.
 require(ReplicatedStorage.Shared.LegendaryFX).start()
+-- The idle breath on every piggy standing on a pedestal. One statement
+-- holding no local, for the 200-register ceiling. See PiggyIdle -- and note
+-- it finds its displays BY NAME rather than by tag, because a tag the
+-- server sets before parenting never fires its added signal here.
+require(ReplicatedStorage.Shared.PiggyIdle).start()
+-- The WADDLE on every roaming herd piggy: a bob, a sway and a nod about its
+-- own feet, laid over the server's placement and driven by the distance the
+-- server publishes on the member -- never by a clock. One statement holding
+-- no local, for the same ceiling. See PiggyWalk.
+require(ReplicatedStorage.Shared.PiggyWalk).start()
 -- The DAILY REWARD sign and its sparkles, over the reader's OWN mailbox and
 -- nobody else's. One statement, no local -- the 200-register ceiling, and the
 -- same call the badge above makes for the same reason. It finds its own plots
 -- and reads the two facts `PlotService.setMail`/`setMailOwner` already
 -- publish on the prompt, so it needs no hook here and no new remote.
 require(ReplicatedStorage.Shared.MailCall).start(player)
--- The next-acorn clock over your own oak. One statement, no local: the
--- 200-register ceiling again.
-require(ReplicatedStorage.Shared.TreeClock).start(player)
-require(ReplicatedStorage.Shared.SeasonBoard).start()
 
 -- THE BURST THAT GOES OFF ON A THIEF WHEN SOMEBODY NABS THEM. Required and
 -- started in ONE statement holding no local at all, which is the ninth time
@@ -6835,7 +6825,6 @@ require(ReplicatedStorage.Shared.SignShine).start()
 -- ceiling has shaped a decision. It wants nothing from here either: it
 -- finds the plot folder itself and watches one attribute on each plot.
 require(ReplicatedStorage.Shared.Fireworks).start()
-require(ReplicatedStorage.Shared.AcornFill).start()
 
 -- SOMEBODY IS RUNNING OFF WITH YOUR COINS -- the "!" over a thief's head, and
 -- the replacement for a Highlight that used to glow on every carrier in the
@@ -6851,7 +6840,6 @@ require(ReplicatedStorage.Shared.RobberMark).start()
 -- because everything it draws arrives on one remote from the server that
 -- decided it.
 require(ReplicatedStorage.Shared.Crack).start(gui)
-require(ReplicatedStorage.Shared.Shake).start(gui)
 
 -- One shared onboarding/recovery objective slot. Keep it in its own module:
 -- ClientMain is at Luau's top-level local ceiling. Crates remains the purchase
@@ -6923,7 +6911,12 @@ local function buildAdminPanel()
 	end
 	adminGui = AdminPanel.build(gui, function(command, targetId, a, b)
 		Remotes.get("AdminRequest"):FireServer(command, targetId, a, b)
-	end)
+	end, {
+		-- The "spawn any piggy" screen; see `AdminPiggyPicker`.
+		piggies = function(targetId)
+			require(ReplicatedStorage.Shared.AdminPiggyPicker).toggle(targetId)
+		end,
+	})
 end
 
 Remotes.get("AdminState").OnClientEvent:Connect(function(isAdmin)
@@ -6961,7 +6954,7 @@ end)
 -- hooves and tail on their static colour -- forever, on 23 skins, with
 -- nothing in the log. The four primitive names stay beside it because an
 -- empty mesh id is still a supported state.
-local ANIMATED_TRIM = { "Snout", "Tail", "Ear", "Leg" }
+local ANIMATED_TRIM = { "Trim", "Snout", "Tail", "Ear", "Leg" }
 
 -- THE `patch` FIELD IS RETIRED WITH THE PART IT PAINTED. It capped a socket
 -- the generator left in the old body's back, and was a field of its own
@@ -7041,6 +7034,70 @@ task.spawn(function()
 			collectAnimated(piggy)
 		end
 	end
+
+	-- THE MINIS FEED IT NOW: every pedestal display, every herd member and
+	-- every carried piggy, found BY NAME the way `LegendaryFX` finds its
+	-- folders -- a model parented whole is seen by a scan and by
+	-- DescendantAdded both, where a CollectionService tag's added signal
+	-- does not fire for an instance that replicates already tagged. They
+	-- carry `SkinKey` from `PiggyModel.build`, so an `anim` skin cycles on a
+	-- plinth exactly as it does on the till. Designer, 2026-09-21: "we need
+	-- the minis to look exactly like they were built".
+	--
+	-- PRUNED ON `Destroying`, which is what the shop previews below could not
+	-- have and the reason they stay out: a display is destroyed by the next
+	-- dress, a herd member by its catch or its exit, a carry by delivery, and
+	-- each takes its entry with it. The trim is collected by the `Trim`
+	-- attribute as well as by name, because the mesh mini's whole trim is one
+	-- part called `Trim` and the primitives fallback still names four.
+	local MINI_NAMES = { Display = true, HerdPiggy = true, [Config.LOOT_MODEL_NAME] = true }
+	local collected: { [Instance]: boolean } = {}
+	local function collectMini(inst: Instance)
+		if not inst:IsA("Model") or type(inst:GetAttribute("SkinKey")) ~= "string" then
+			return
+		end
+		if collected[inst] then
+			return
+		end
+		collected[inst] = true
+		-- WAITED FOR, NOT LOOKED UP. A replicated model raises DescendantAdded
+		-- the moment IT arrives, and its children follow in later packets --
+		-- so a `FindFirstChild("Body")` here answered nil for every display
+		-- that came in after the first scan, and the plinths sat static while
+		-- every property on them read right. Bounded, so a model that never
+		-- gets a body (a shop's own "Display" case carries no SkinKey and is
+		-- refused above anyway) costs one wait and no entry.
+		local body = inst:WaitForChild("Body", 10) :: BasePart?
+		if not body or not inst.Parent then
+			collected[inst] = nil
+			return
+		end
+		local trim: { BasePart } = {}
+		for _, child in ipairs(inst:GetChildren()) do
+			if child:IsA("BasePart") and child ~= body
+				and (child:GetAttribute("Trim") == true or table.find(ANIMATED_TRIM, child.Name)) then
+				table.insert(trim, child)
+			end
+		end
+		local entry = { model = inst, body = body, trim = trim, glow = nil, auraLight = nil }
+		table.insert(animatedPiggies, entry)
+		inst.Destroying:Once(function()
+			local at = table.find(animatedPiggies, entry)
+			if at then
+				table.remove(animatedPiggies, at)
+			end
+		end)
+	end
+	for _, d in ipairs(workspace:GetDescendants()) do
+		if MINI_NAMES[d.Name] then
+			task.spawn(collectMini, d)
+		end
+	end
+	workspace.DescendantAdded:Connect(function(d)
+		if MINI_NAMES[d.Name] then
+			task.spawn(collectMini, d)
+		end
+	end)
 
 	-- THE SHOP NO LONGER FEEDS THIS LIST. `watchShopPiggy` existed so that a
 	-- skin tile cycled in the catalogue as well as on the lawn, and the skins
@@ -8191,21 +8248,6 @@ local function buildPatrol()
 		-- been updated -- which the chip renders as the generic bell rather
 		-- than as a blank tile.
 		event.next = state.nextEvent or ""
-		-- WHAT A GRAB IS WORTH, WHICH IS WHAT THIS FIELD WAS ALWAYS SENT FOR.
-		-- The smash card prints a take and the rob badge tags every pig on the
-		-- street, and both read it from here rather than from Config, so
-		-- neither can claim a rush is running while the server disagrees.
-		-- Refreshed on the spot: a rush starts and ends on one push each, and a
-		-- card that waited for the next vault tick to notice would be quoting
-		-- the wrong figure for as long as nobody's pig happened to move.
-		stealInfo.stealMultiplier = (state and state.stealMultiplier) or 1
-		if refreshStealPrompts then
-			refreshStealPrompts()
-		end
-		-- Rush Hour doubles a take, and the prompt no longer quotes one: it
-		-- quotes what is in the pig, which no event moves. The doubling shows
-		-- up where the decision is, on the crack panel's slice figures, and
-		-- those are the server's own arithmetic rather than a copy of it.
 		event.endsAt = os.clock() + (state.secondsLeft or 0)
 		-- Guarded against zero: this divides the bar, and a phase pushed
 		-- without a total would put a nan into a UDim2 rather than erroring.
@@ -8819,7 +8861,7 @@ local function buildBustScene()
 		caseNo.Text = ("CASE #%04d"):format(math.random(1, 9999))
 		victimRow.Text = ("VICTIM   %s"):format(payload.victim or "--")
 		recoveredRow.Text = if recovered > 0
-			then ("SEIZED   %s %s"):format(exact(recovered), if payload.currency == "Acorns" then "Acorns" else "coins")
+			then ("SEIZED   %s coins"):format(exact(recovered))
 			else "SEIZED   nothing -- already delivered"
 		bailValue.Text = "0"
 
@@ -9470,6 +9512,11 @@ require(ReplicatedStorage.Shared.CarryPose).start()
 -- own throw, is started further up beside the old aim preview.
 require(ReplicatedStorage.Shared.ThrowPose).start()
 require(ReplicatedStorage.Shared.GadgetFlight).start()
+
+-- THE FRONT DOOR'S WIPE. The server decides the crossing and writes the
+-- CFrame; this is only the cover that hides it. One statement holding no
+-- local, for the 200-register ceiling -- see DoorMask.
+require(ReplicatedStorage.Shared.DoorMask).start()
 
 buildPatrol()
 buildBustScene()

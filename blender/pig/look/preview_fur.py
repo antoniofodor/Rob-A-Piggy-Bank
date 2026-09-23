@@ -102,12 +102,23 @@ bpy.ops.wm.open_mainfile(filepath=paths.skin_view(SKIN))
 # THE MANE COMES OUT OF THE SKIN'S OWN BLEND, which is the same file the view
 # was built from -- so the geometry is the one this coat was baked against
 # rather than whatever `pig_parts.blend` happens to hold today.
-src = paths.skin_blend(SKIN)
-with bpy.data.libraries.load(src) as (frm, to):
-    to.objects = [n for n in frm.objects if n == "Fur_mane"]
+#
+# `--set NAME` LOADS A NEWLY BUILT SET INSTEAD: `pig/pig_<NAME>.blend`, which
+# is what `make_fur_tufts.py` writes for anything but the default mane, and
+# whose tuft object is called `FurTufts`. That is how a set is judged before
+# it is uploaded and before the master carries it.
+SET = _arg("--set", None)
+if SET:
+    src = paths.pig("pig_%s.blend" % SET)
+    with bpy.data.libraries.load(src) as (frm, to):
+        to.objects = [n for n in frm.objects if n == "FurTufts"]
+else:
+    src = paths.skin_blend(SKIN)
+    with bpy.data.libraries.load(src) as (frm, to):
+        to.objects = [n for n in frm.objects if n == "Fur_mane"]
 mane = to.objects[0]
 if mane is None:
-    raise SystemExit("  ! no Fur_mane in %s" % src)
+    raise SystemExit("  ! no fur object in %s" % src)
 bpy.context.scene.collection.objects.link(mane)
 mane.hide_render = False
 
@@ -128,6 +139,22 @@ if mane.data.materials:
 else:
     mane.data.materials.append(mat)
 
+# `--sheet` PAINTS THE FUR WITH THE BAKED BODY SHEET, which is what the game
+# does (`PiggyModel.applyFur` hands the ruff the body's own pack, and the tuft
+# mesh shares the body's cylinder unwrap). A flat colour is the right question
+# for a coat that reads through a MASK; a full-colour sheet ignores the part
+# colour entirely, so for one of those the only honest preview is the sheet.
+# The candidate loop then renders once, under the name "sheet".
+if "--sheet" in _argv:
+    img = bpy.data.images.load(paths.skin_map(SKIN, "body"))
+    tex = mat.node_tree.nodes.new("ShaderNodeTexImage")
+    tex.image = img
+    uvn = mat.node_tree.nodes.new("ShaderNodeUVMap")
+    uvn.uv_map = "UVMap"
+    mat.node_tree.links.new(uvn.outputs["UV"], tex.inputs["Vector"])
+    mat.node_tree.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+    CANDIDATES = [("sheet", (0, 0, 0))]
+
 cam = bpy.data.objects["View"]
 scene = bpy.context.scene
 
@@ -142,7 +169,8 @@ SHOTS = (("hero", (-3.9, -5.4, 2.0), (0, -0.05, 0.05)),
 
 made = []
 for name, rgb in CANDIDATES:
-    bsdf.inputs["Base Color"].default_value = tuple(srgb(v) for v in rgb) + (1.0,)
+    if name != "sheet":
+        bsdf.inputs["Base Color"].default_value = tuple(srgb(v) for v in rgb) + (1.0,)
     row = []
     for shot, loc, aim in SHOTS:
         cam.location = Vector(loc)

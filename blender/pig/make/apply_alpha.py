@@ -56,8 +56,7 @@ GROUPS = ("body", "trim")
 
 
 def alpha_path(skin, group):
-    return os.path.join(paths.skin_dir(skin),
-                        "%s_%s_alpha.png" % (skin, group))
+    return paths.skin_alpha(skin, group)
 
 
 def main():

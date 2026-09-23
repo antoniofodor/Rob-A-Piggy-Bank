@@ -1,0 +1,61 @@
+{
+  "key": "stormstone",
+  "name": "Storm Stone",
+  "path": "assets/piggies/epic/stormstone/",
+  "tier": "epic",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); epic/: Config.SKINS.stormstone.rarity = \"epic\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/stormstone/",
+    "assets/piggies/stormstone/ (2026-09-22, before the sort by tier)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6634,
+      "name": "Storm Stone",
+      "rarity": "epic",
+      "surface": null,
+      "legendary": null,
+      "chest": "animal",
+      "scale": 1.15,
+      "pattern": true,
+      "anim": false
+    },
+    "surfacePack": null,
+    "legendaryPacks": null,
+    "status": "in Config.SKINS with no `surface` (pattern/anim row; sheets baked, no pack wired)"
+  },
+  "templates": {},
+  "idSources": {},
+  "shopCard": null,
+  "derivedPackage": null,
+  "closedBack": {
+    "closedScene": null,
+    "note": "not in the closed-back pass yet: the body sheet here is the open-hatch bake"
+  },
+  "files": {
+    "source": [
+      "stormstone.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_stormstone_blend.py"
+    ],
+    "sheets": [
+      "stormstone_body_alpha.png",
+      "stormstone_body_color.png",
+      "stormstone_trim_alpha.png",
+      "stormstone_trim_color.png"
+    ],
+    "preview": [
+      "stormstone_view.blend"
+    ],
+    "package": []
+  },
+  "generator": "generate/make_stormstone_blend.py",
+  "notes": [
+    "Config row carries a code-built pattern/anim; the baked sheets here are the authored replacement that has not been wired as a SurfacePacks pair yet.",
+    "Carries *_alpha.png masks from make/bake_alpha.py; apply_alpha.py folds them into the colour sheets for the animated-skin path."
+  ]
+}

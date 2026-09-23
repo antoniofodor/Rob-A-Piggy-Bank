@@ -1,0 +1,49 @@
+{
+  "key": "spotty",
+  "name": "Spotty",
+  "path": "assets/piggies/unreleased/spotty/",
+  "tier": "unreleased",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); unreleased/: no Config.SKINS row yet, so no rarity to sort by (an authored coat nothing in the game reads)",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/spotty/",
+    "assets/piggies/spotty/ (2026-09-22, before the sort by tier)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": null,
+    "surfacePack": null,
+    "legendaryPacks": null,
+    "status": "NOT in Config.SKINS -- an authored coat with no row yet (see docs/PIGGY-SKIN-MAP.md); name from blender/pig/rare_coats.py"
+  },
+  "templates": {},
+  "idSources": {},
+  "shopCard": null,
+  "derivedPackage": null,
+  "closedBack": {
+    "closedScene": null,
+    "note": "not in the closed-back pass yet: the body sheet here is the open-hatch bake"
+  },
+  "files": {
+    "source": [
+      "coat-spec.json",
+      "spotty.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_spotty_blend.py"
+    ],
+    "sheets": [
+      "spotty_body_color.png",
+      "spotty_trim_color.png"
+    ],
+    "preview": [
+      "spotty_view.blend"
+    ],
+    "package": []
+  },
+  "generator": "generate/make_spotty_blend.py",
+  "notes": [
+    "Not yet a Config.SKINS row: nothing in the game reads these sheets today."
+  ]
+}

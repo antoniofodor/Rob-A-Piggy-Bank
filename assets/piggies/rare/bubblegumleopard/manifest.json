@@ -1,0 +1,134 @@
+{
+  "key": "bubblegumleopard",
+  "name": "Bubblegum Leopard",
+  "path": "assets/piggies/rare/bubblegumleopard/",
+  "tier": "rare",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); rare/: Config.SKINS.bubblegumleopard.rarity = \"rare\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/bubblegumleopard/",
+    "assets/piggies/bubblegumleopard/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/rare/bubblegumleopard/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6544,
+      "name": "Bubblegum Leopard",
+      "rarity": "rare",
+      "surface": "bubblegumleopard",
+      "legendary": null,
+      "chest": "animal",
+      "scale": 1.1,
+      "pattern": false,
+      "anim": false
+    },
+    "surfacePack": {
+      "key": "bubblegumleopard",
+      "line": 5778,
+      "name": "Bubblegum Leopard",
+      "template": "bubblegumleopard",
+      "trimTemplate": "bubblegumleopard_trim"
+    },
+    "legendaryPacks": null,
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/bubblegumleopard.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://109130419469195",
+        "EmissiveMaskContent": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/bubblegumleopard_trim.model.json",
+      "ids": {
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "ColorMap": "rbxassetid://77795227405685",
+        "EmissiveMaskContent": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://109130419469195": {
+      "file": "sheets/bubblegumleopard_body_color.open-hatch.png",
+      "sha256": "e7d7adc5235b22872c7a6ff5c29b049276a1b247fd05f358807654a07b597780",
+      "role": "body ColorMap",
+      "note": "uploaded from the open-hatch bake"
+    },
+    "rbxassetid://77795227405685": {
+      "file": "sheets/bubblegumleopard_trim_color.png",
+      "sha256": "87fb6b1d0c2b42a36a2ce1b287c4a371ed78d0c3a9b51e47fa41c18b64e055ad",
+      "role": "trim ColorMap"
+    }
+  },
+  "shopCard": {
+    "file": "preview/bubblegumleopard_shop-card.png",
+    "robloxAssetId": "rbxassetid://106032101636660",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/rare/bubblegumleopard/package/shop-cards/bubblegumleopard.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/rare/bubblegumleopard/package",
+    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "fileCount": 16,
+    "textureCopiesMatchShippedSheets": {
+      "bubblegumleopard_body_color.png": false,
+      "bubblegumleopard_trim_color.png": false
+    }
+  },
+  "closedBack": {
+    "closedScene": "source/bubblegumleopard_closed.blend",
+    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as bubblegumleopard_body_color.open-hatch.png. Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "bubblegumleopard.blend",
+      "bubblegumleopard_closed.blend",
+      "coat-spec.json"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_bubblegumleopard_blend.py"
+    ],
+    "sheets": [
+      "bubblegumleopard_body_color.open-hatch.png",
+      "bubblegumleopard_body_color.png",
+      "bubblegumleopard_trim_color.png"
+    ],
+    "preview": [
+      "bubblegumleopard_hatch.png",
+      "bubblegumleopard_hero.png",
+      "bubblegumleopard_shop-card.json",
+      "bubblegumleopard_shop-card.png",
+      "bubblegumleopard_view.blend"
+    ],
+    "package": [
+      "README.md",
+      "bubblegumleopard-asset-report.json",
+      "bubblegumleopard-complete.blend",
+      "bubblegumleopard-complete.fbx",
+      "bubblegumleopard-crown.png",
+      "bubblegumleopard-front.png",
+      "bubblegumleopard-glow.png",
+      "bubblegumleopard-hero.png",
+      "bubblegumleopard-spine.png",
+      "bubblegumleopard_body_color.png",
+      "bubblegumleopard_body_emissive.png",
+      "bubblegumleopard_trim_color.png",
+      "bubblegumleopard_trim_emissive.png",
+      "index.html",
+      "shop-cards/"
+    ]
+  },
+  "generator": "generate/make_bubblegumleopard_blend.py",
+  "notes": []
+}

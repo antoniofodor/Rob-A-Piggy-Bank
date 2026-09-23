@@ -24,22 +24,19 @@ state=B.describe(facts,180)
 check(state.text=="CAPPED" and state.timer=="39m", "live cap replaces value")
 state=B.describe(facts,2500)
 check(state.available and state.text==Config.formatCoins(12345), "exact expiry restores value locally")
-facts.multiplier=2
-check(B.describe(facts,2500).text==Config.formatCoins(24690), "rush worth preserved")
 check(not B.describe({vault=0.9},100).available, "fractional sub-coin balance is empty like server")
 -- THE FIGURE IS ABOUT THE TARGET AND HAS NO READER IN IT. It was capped at
 -- the room in the reader's own pig (4c.6) and said PIG FULL when there was
 -- none, which printed one fact about YOUR pig over every pig on the street.
 local clean=Config.getCrackFraction(Config.CRACK.maxSteps,0)
 local full=math.floor(math.floor(100000*clean)*Config.HEIST_PAYOUT)
-check(B.homeFigure(100000,0,1)==full,"the badge quotes a whole clean-crack payout")
-check(B.homeFigure(100000,0,2)==math.floor(math.floor(100000*clean*2)*Config.HEIST_PAYOUT),"the rush multiplier is in the take")
+check(B.homeFigure(100000,0)==full,"the badge quotes a whole clean-crack payout")
 local sack=Config.UPGRADES.sack.max
-check(B.homeFigure(100000,sack,1)>full,"a bigger sack shows a bigger take")
-check(B.homeFigure(0,0,1)==0,"an empty target is worth nothing")
+check(B.homeFigure(100000,sack)>full,"a bigger sack shows a bigger take")
+check(B.homeFigure(0,0)==0,"an empty target is worth nothing")
 -- One expression, two callers: the badge and the two prompt cards.
-check(B.homeFigure(100000,0,1)==Config.homeWorth(100000,clean,1),"badge and prompt cards read one function")
-check(Config.homeWorth(100000,clean,1)==math.floor(100000*clean)*Config.HEIST_PAYOUT,"homeWorth is the take, paid out, uncapped")
+check(B.homeFigure(100000,0)==Config.homeWorth(100000,clean),"badge and prompt cards read one function")
+check(Config.homeWorth(100000,clean)==math.floor(100000*clean)*Config.HEIST_PAYOUT,"homeWorth is the take, paid out, uncapped")
 -- The reader's own balance can no longer change what hangs over a neighbour.
 local home={vault=100000,home=50}
 check(B.describe(home,100).text==Config.formatCoins(50) and B.describe(home,100).available,"badge prints the home figure")
@@ -57,4 +54,4 @@ check(not B.recoverable(claims,12,300), "last expiry clears tag without packet")
 for _, stage in {"chase","home","buyback"} do
  check(not B.recoverable({claims={{robberId=12,stage=stage,expiresAt=300}}},12,100), "non-plot objective doesn't promise skin at pig: "..stage)
 end
-print(("PASS: %d badge checks; refusal priority, timer boundaries, rush worth and private stacked recovery tags."):format(checks))
+print(("PASS: %d badge checks; refusal priority, timer boundaries, home worth and private stacked recovery tags."):format(checks))

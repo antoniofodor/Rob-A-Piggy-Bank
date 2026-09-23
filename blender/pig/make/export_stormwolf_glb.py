@@ -20,7 +20,7 @@ reason this exists rather than a note saying "send these two files".
 **THE UVs HERE ARE THE BAKED ONES, WHICH IS THE HALF THAT WOULD BE EASY TO GET
 WRONG.** The animal carries two unwraps in two different files: the shared
 cylinder in `pig/pig_stormwolf_20k.blend`, which registers against every sheet
-in `skins/`, and its own smart-project unwrap in `skins/stormwolf/stormwolf.blend`,
+in `sheets/`, and its own smart-project unwrap in `assets/piggies/legendary/stormwolf/source/stormwolf.blend`,
 which is what `stormwolf_body_color.png` was actually baked through. Pairing the
 sheet with the cylinder mesh renders a smear -- the two are not
 interchangeable, and nothing about either file says so. This reads the SKIN
@@ -49,8 +49,8 @@ import bpy                                                # noqa: E402
 argv = _sys.argv[_sys.argv.index("--") + 1:] if "--" in _sys.argv else []
 WITH_BOLTS = "--with-bolts" in argv
 
-SKIN_BLEND = _os.path.join(paths.skin_dir("stormwolf"), "stormwolf.blend")
-SHEET = _os.path.join(paths.skin_dir("stormwolf"), "stormwolf_body_color.png")
+SKIN_BLEND = paths.skin_blend("stormwolf")
+SHEET = paths.skin_map("stormwolf", "body")
 
 for p in (SKIN_BLEND, SHEET):
     if not _os.path.exists(p):

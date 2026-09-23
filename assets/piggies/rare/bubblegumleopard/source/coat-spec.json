@@ -1,0 +1,39 @@
+{
+  "name": "Bubblegum Leopard",
+  "parent": "leopard",
+  "base": [
+    250,
+    162,
+    207
+  ],
+  "ink": [
+    156,
+    34,
+    121
+  ],
+  "fill": [
+    219,
+    78,
+    162
+  ],
+  "nose": [
+    215,
+    97,
+    163
+  ],
+  "ear": [
+    255,
+    201,
+    223
+  ],
+  "pale": [
+    255,
+    222,
+    238
+  ],
+  "skin": "bubblegumleopard",
+  "rarity": "rare",
+  "parentScene": "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\leopard\\leopard.blend",
+  "parentSceneSha256": "09966b5574d6fc07502e99224942db2fd2eda3e3203d309e998b0811dc4c8011",
+  "glow": "None. Flat baked colour; no emissive channel, no animation, no extra geometry"
+}

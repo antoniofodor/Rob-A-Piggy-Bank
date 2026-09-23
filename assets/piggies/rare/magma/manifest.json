@@ -1,0 +1,60 @@
+{
+  "key": "magma",
+  "name": "Magma Core",
+  "path": "assets/piggies/rare/magma/",
+  "tier": "rare",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); rare/: Config.SKINS.magma.rarity = \"rare\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/magma/",
+    "assets/piggies/magma/ (2026-09-22, before the sort by tier)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6132,
+      "name": "Magma Core",
+      "rarity": "rare",
+      "surface": null,
+      "legendary": null,
+      "chest": "og",
+      "pattern": false,
+      "anim": true
+    },
+    "surfacePack": null,
+    "legendaryPacks": null,
+    "status": "in Config.SKINS with no `surface` (pattern/anim row; sheets baked, no pack wired)"
+  },
+  "templates": {},
+  "idSources": {},
+  "shopCard": null,
+  "derivedPackage": null,
+  "closedBack": {
+    "closedScene": null,
+    "note": "not in the closed-back pass yet: the body sheet here is the open-hatch bake"
+  },
+  "files": {
+    "source": [
+      "magma.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_magma_blend.py"
+    ],
+    "sheets": [
+      "magma_body_alpha.png",
+      "magma_body_color.png",
+      "magma_trim_alpha.png",
+      "magma_trim_color.png"
+    ],
+    "preview": [
+      "magma_view.blend"
+    ],
+    "package": []
+  },
+  "generator": "generate/make_magma_blend.py",
+  "notes": [
+    "Config row carries a code-built pattern/anim; the baked sheets here are the authored replacement that has not been wired as a SurfacePacks pair yet.",
+    "Carries *_alpha.png masks from make/bake_alpha.py; apply_alpha.py folds them into the colour sheets for the animated-skin path."
+  ]
+}

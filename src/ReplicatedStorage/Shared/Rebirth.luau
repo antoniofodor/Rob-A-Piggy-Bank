@@ -28,7 +28,9 @@
 
 	THE NUMBERS ARE REAL. Every value comes from a Config helper the server
 	also reads (`rebirthBonusPercent`, `maxLevel`, `treeRebirthFactor`,
-	`getRebirthThreshold`, `rebirthCratesOpen`, `rebirthCrateBonus`) or from a
+	`getRebirthThreshold` -- the CASH gate, `Config.REBIRTH_CASH_GATE`, a
+	placeholder table the designer has yet to set -- `rebirthCratesOpen`,
+	`rebirthCrateBonus`) or from a
 	push (`StateUpdate`, `UpgradeState`, `CosmeticState`, `ChestState`). The
 	crate odds are `ChestState`'s -- what `liveOdds` actually rolls with -- and
 	are simply not printed until that push has arrived, because a drawn
@@ -87,14 +89,12 @@ local onConfirm: (() -> ())? = nil
 local seen = {
 	coins = 0,
 	incomeLevel = 1,
-	capacityLevel = 1,
 	rebirths = 0,
 	ready = false,
 	upgrades = nil :: any,
 	cosmetics = nil :: any,
 	rides = nil :: any,
 	chests = nil :: any,
-	treeLevel = nil :: number?,
 }
 
 -- The confirm is in flight. `from` is the rebirth count it was sent at, so
@@ -566,7 +566,6 @@ local function buildPage(gui: ScreenGui)
 	ui.coinCard = benefitCard(grid, 1, "CoinBonus", Theme.GOLD:Lerp(Theme.PAPER, 0.35))
 	ui.limitCard = benefitCard(grid, 2, "UpgradeLimit", Theme.COOL:Lerp(Theme.GOOD, 0.5):Lerp(Theme.PAPER, 0.55))
 	ui.crateCard = benefitCard(grid, 3, "FreeCrate", PLUM:Lerp(Theme.PAPER, 0.55))
-	ui.acornCard = benefitCard(grid, 4, "AcornGrowth", Theme.GOOD:Lerp(Theme.PAPER, 0.25))
 
 	-- B. crate details, expanded in place -- never the shop over this page.
 	local crateDetails = sectionCard(body, "CrateDetails", Theme.PAPER, Theme.MUTED_LIGHT,
@@ -598,7 +597,10 @@ local function buildPage(gui: ScreenGui)
 	req.Size = UDim2.new(1, 0, 0, 58)
 	Theme.corner(req, 14)
 	Theme.outline(req, Theme.OUTLINE_THIN, Theme.MUTED_LIGHT)
-	local reqName = text(req, "Name", "Piggy coins", 15, Theme.INK, Theme.FONT)
+	-- THE CASH GATE, named as one. It used to read "fill your piggy bank"
+	-- in spirit -- the gate WAS one full pig -- and the pig has no ceiling
+	-- now, so the row names the amount the server actually checks.
+	local reqName = text(req, "Name", "Coins needed", 15, Theme.INK, Theme.FONT)
 	reqName.Position = UDim2.fromOffset(14, 6)
 	reqName.Size = UDim2.new(0.5, -14, 0, 22)
 	local reqAmount = text(req, "Amount", "", 15, Theme.INK, Theme.FONT_BODY)
@@ -742,9 +744,11 @@ local function buildPage(gui: ScreenGui)
 		local cellH = if short then 96 else 112
 		local cellW = math.floor((inner - (cols - 1) * 12) / cols)
 		gridLayout.CellSize = UDim2.fromOffset(cellW, cellH)
-		local rows = math.ceil(4 / cols)
+		-- THREE CARDS, NOT FOUR. The fourth was ONLINE ACORN GROWTH and went
+		-- with the tree it described.
+		local rows = math.ceil(3 / cols)
 		grid.Size = UDim2.new(1, 0, 0, rows * cellH + (rows - 1) * 12)
-		for _, c in ipairs({ ui.coinCard, ui.limitCard, ui.crateCard, ui.acornCard }) do
+		for _, c in ipairs({ ui.coinCard, ui.limitCard, ui.crateCard }) do
 			local wellSize = if short then 62 else 74
 			c.well.Size = UDim2.fromOffset(wellSize, wellSize)
 			c.well.Position = UDim2.new(0, 12, 0.5, 0)
@@ -863,10 +867,6 @@ local function drawGearIcon(chip: Frame)
 	centred(Theme.gear(chip, 24))
 end
 
-local function drawAcornIcon(chip: Frame)
-	centred(Theme.acorn(chip, 24))
-end
-
 local function drawBagIcon(chip: Frame)
 	centred(Theme.satchel(chip, 24))
 end
@@ -890,7 +890,7 @@ local function drawHouseIcon(chip: Frame)
 	body.Position = UDim2.fromScale(0.5, 0.84)
 	body.Size = UDim2.fromScale(0.5, 0.36)
 	Theme.outline(body, 1.5)
-	local door = frame(body, "Door", Theme.ACORN)
+	local door = frame(body, "Door", Theme.SAND_DEEP)
 	door.AnchorPoint = Vector2.new(0.5, 1)
 	door.Position = UDim2.fromScale(0.5, 1)
 	door.Size = UDim2.fromScale(0.3, 0.62)
@@ -917,14 +917,6 @@ local function drawCoinBonus(well: Frame)
 	badge.Size = UDim2.fromOffset(32, 22)
 	Theme.corner(badge, 11)
 	Theme.outline(badge, 2)
-end
-
--- Acorns an hour, trimmed: "1.36", "2", "2.5".
-local function perHour(value: number): string
-	local out = ("%.2f"):format(value)
-	out = out:gsub("0+$", "")
-	out = out:gsub("%.$", "")
-	return out
 end
 
 local function drawCrate(well: Frame, colour: Color3)
@@ -996,7 +988,7 @@ local function fill()
 	l.title.Text = "Higher upgrade limit"
 	if capNext > capNow then
 		l.value.Text = compare(("Lv %d"):format(capNow), ("Lv %d"):format(capNext))
-		l.helper.Text = "Earn Faster + Bigger Piggy Bank"
+		l.helper.Text = "Earn Faster"
 	else
 		l.value.Text = ("Lv %d"):format(capNow)
 		l.helper.Text = "All upgrade levels unlocked"
@@ -1010,14 +1002,13 @@ local function fill()
 	resetWell(k)
 	clear(k.card, { Well = true, Title = true, Value = true, Helper = true })
 	if #open == 0 then
-		-- Nothing left to open: the page says the Acorns, never a crate.
-		local bonus = Config.rebirthCrateBonus()
+		-- NOTHING LEFT TO OPEN, AND NOTHING PAID INSTEAD. This used to print
+		-- the crate's price in acorns; a crate has no price now, so the card
+		-- says the collection is finished rather than quoting a figure.
 		k.title.Text = "Collections complete"
-		k.value.Text = ("%d %s"):format(bonus, Config.lootWord(bonus))
-		k.helper.Text = "Every Legendary collected, so you get Acorns instead"
-		local acorn = Theme.acorn(k.well, 48)
-		acorn.AnchorPoint = Vector2.new(0.5, 0.5)
-		acorn.Position = UDim2.fromScale(0.5, 0.5)
+		k.value.Text = "All Legendaries"
+		k.helper.Text = "Nothing left for a free crate to give you"
+		drawEmblemIcon(k.well)
 		expanded.crate = false
 	else
 		local first = Config.CHESTS[open[1]]
@@ -1053,34 +1044,9 @@ local function fill()
 		k.title.Size = UDim2.new(1, -(k.title.Position.X.Offset + 146), 0, 22)
 	end
 
-	local a = ui.acornCard
-	local treeNow = math.floor((Config.treeRebirthFactor(r, true) - 1) * 100 + 0.5)
-	local treeNext = math.floor((Config.treeRebirthFactor(nextR, true) - 1) * 100 + 0.5)
-	a.title.Text = "Online Acorn growth"
-	-- Acorns an hour from `treeGrowthPerHour` -- the one function the
-	-- server's live tick grows the tree with -- at this tree's level.
-	local rateLine = "While you're playing"
-	if seen.treeLevel then
-		local now = Config.treeGrowthPerHour(seen.treeLevel, r, true)
-		local after = Config.treeGrowthPerHour(seen.treeLevel, nextR, true)
-		rateLine = if after > now
-			then ("%s %s <font color=\"%s\"><b>%s</b></font> acorns an hour"):format(
-				perHour(now), ARROW, PLUM_HEX, perHour(after))
-			else ("%s acorns an hour"):format(perHour(now))
-	end
-	if treeNext > treeNow then
-		a.value.Text = compare(("+%d%%"):format(treeNow), ("+%d%%"):format(treeNext))
-		a.helper.Text = rateLine
-	else
-		a.value.Text = ("+%d%%"):format(treeNow)
-		a.helper.Text = rateLine .. " (max bonus)"
-	end
-	resetWell(a)
-	if not image(a.well, "Art", ICONS.acornTree, 0.95) then
-		local acorn = Theme.acorn(a.well, 48)
-		acorn.AnchorPoint = Vector2.new(0.5, 0.5)
-		acorn.Position = UDim2.fromScale(0.5, 0.5)
-	end
+	-- THE FOURTH BENEFIT CARD STOOD HERE: ONLINE ACORN GROWTH, the percentage
+	-- a rebirth added to the tree's hourly rate. Both the tree and the
+	-- currency retired, so the grid is three cards.
 
 	-- ---------- B. crate details ----------
 	local details = ui.crateDetails
@@ -1136,11 +1102,6 @@ local function fill()
 		summaryRow(resets, order, Theme.GOOD:Lerp(Theme.PAPER, 0.45), drawBarsIcon,
 			"Earn Faster", nil, ("Lv %d %s 1"):format(seen.incomeLevel, ARROW), pill)
 	end
-	if seen.capacityLevel > 1 then
-		order += 1
-		summaryRow(resets, order, Theme.PIG:Lerp(Theme.PAPER, 0.35), drawPigIcon,
-			"Bigger Piggy Bank", nil, ("Lv %d %s 1"):format(seen.capacityLevel, ARROW), pill)
-	end
 	local trees = {}
 	for _, info in pairs(seen.upgrades or {}) do
 		if (info.level or 0) > 0 then
@@ -1184,7 +1145,7 @@ local function fill()
 		{ Theme.PIG:Lerp(Theme.PAPER, 0.35), drawPigIcon, "Skins and collection", "Every skin, trophy and set item" },
 		{ Theme.STOP:Lerp(Theme.PAPER, 0.65), drawHouseIcon, "Home and lawn", "Houses, garden and decorations" },
 		{ Theme.COOL:Lerp(Theme.PAPER, 0.5), drawBagIcon, "Rides and items", "Wearables, bones and gadgets" },
-		{ Theme.ACORN_CAP:Lerp(Theme.PAPER, 0.45), drawAcornIcon, "Acorns and guard dog", "Your acorns, tree and dog" },
+		{ Theme.GOOD:Lerp(Theme.PAPER, 0.45), drawHouseIcon, "Your guard dog", "The dog on your lawn and its coat" },
 		{ PLUM:Lerp(Theme.PAPER, 0.5), drawEmblemIcon, "Rebirths and records",
 			("All %d rebirths and your stats"):format(nextR) },
 	}) do
@@ -1279,11 +1240,8 @@ function Rebirth.onEconomy(state: any)
 	local wasReady = seen.ready
 	seen.coins = state.coins or 0
 	seen.incomeLevel = state.incomeLevel or 1
-	seen.capacityLevel = state.capacityLevel or 1
 	seen.rebirths = state.rebirths or 0
 	seen.ready = state.rebirthReady == true
-	local treeBefore = seen.treeLevel
-	seen.treeLevel = state.treeLevel
 	if ui.buttonLabel then
 		ui.buttonLabel.Text = ("REBIRTH <font color=\"%s\">%d</font>"):format(GOLD_HEX, seen.rebirths + 1)
 	end
@@ -1301,15 +1259,13 @@ function Rebirth.onEconomy(state: any)
 			Rebirth.close()
 		end
 	elseif Rebirth.isOpen() then
-		if seen.treeLevel ~= treeBefore
-			or seen.incomeLevel ~= (ui.lastIncome or seen.incomeLevel)
-			or seen.capacityLevel ~= (ui.lastCapacity or seen.capacityLevel) then
+		if seen.incomeLevel ~= (ui.lastIncome or seen.incomeLevel) then
 			fill()
 		else
 			Rebirth.paintLive()
 		end
 	end
-	ui.lastIncome, ui.lastCapacity = seen.incomeLevel, seen.capacityLevel
+	ui.lastIncome = seen.incomeLevel
 	Rebirth.sync()
 end
 

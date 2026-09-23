@@ -1,0 +1,128 @@
+{
+  "key": "bee",
+  "name": "Bumblebee",
+  "path": "assets/piggies/common/bee/",
+  "tier": "common",
+  "tierSource": "the folder this manifest sits in (blender/pig/paths.py derives the tier from the folder, never from Config); common/: Config.SKINS.bee.rarity = \"common\"",
+  "layout": "assets/piggies/README.md",
+  "movedFrom": [
+    "blender/pig/skins/bee/",
+    "assets/piggies/bee/ (2026-09-22, before the sort by tier)",
+    "assets/skins/animal/common/bee/ (the package)"
+  ],
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau (working copy, read through a shell copy in the scratchpad)",
+    "skinsRow": {
+      "line": 6334,
+      "name": "Bumblebee",
+      "rarity": "common",
+      "surface": "bee",
+      "legendary": null,
+      "chest": "animal",
+      "scale": 0.75,
+      "pattern": true,
+      "anim": false
+    },
+    "surfacePack": {
+      "key": "bee",
+      "line": 5765,
+      "name": "Bumblebee",
+      "template": "bee",
+      "trimTemplate": "bee_trim"
+    },
+    "legendaryPacks": null,
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/bee.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://123275221396030",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/bee_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://75271899643678",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://123275221396030": {
+      "file": "sheets/bee_body_color.open-hatch.png",
+      "sha256": "dbe941b2c8d8c92dd9b0d00f1cf0269ed7e524ebb3eb1dd0179cd738afa2162f",
+      "role": "body ColorMap",
+      "note": "uploaded from the open-hatch bake"
+    },
+    "rbxassetid://75271899643678": {
+      "file": "sheets/bee_trim_color.png",
+      "sha256": "c3940937ec788fc2f00f04faf74f4d43768857bff3d15ac0e6a8bc59a5f4d8ce",
+      "role": "trim ColorMap"
+    }
+  },
+  "shopCard": {
+    "file": "preview/bee_shop-card.png",
+    "robloxAssetId": "rbxassetid://125266920902816",
+    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
+    "canonicalCopy": "assets/piggies/common/bee/package/shop-cards/bee.png"
+  },
+  "derivedPackage": {
+    "path": "assets/piggies/common/bee/package",
+    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "fileCount": 13,
+    "textureCopiesMatchShippedSheets": {
+      "bee_body_color.png": true,
+      "bee_trim_color.png": true
+    }
+  },
+  "closedBack": {
+    "closedScene": "source/bee_closed.blend",
+    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as bee_body_color.open-hatch.png. Re-upload pending."
+  },
+  "files": {
+    "source": [
+      "bee.blend",
+      "bee_closed.blend"
+    ],
+    "generate": [
+      "__pycache__/",
+      "make_bee_blend.py"
+    ],
+    "sheets": [
+      "bee_body_color.open-hatch.png",
+      "bee_body_color.png",
+      "bee_trim_color.png"
+    ],
+    "preview": [
+      "bee_hatch.png",
+      "bee_hero.png",
+      "bee_shop-card.json",
+      "bee_shop-card.png",
+      "bee_view.blend"
+    ],
+    "package": [
+      "README.md",
+      "bee-asset-report.json",
+      "bee-complete.blend",
+      "bee-complete.fbx",
+      "bee-crown.png",
+      "bee-front.png",
+      "bee-hero.png",
+      "bee-spine.png",
+      "bee_body_color.png",
+      "bee_trim_color.png",
+      "index.html",
+      "shop-cards/"
+    ]
+  },
+  "generator": "generate/make_bee_blend.py",
+  "notes": []
+}

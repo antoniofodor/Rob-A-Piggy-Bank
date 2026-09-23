@@ -90,6 +90,10 @@ local Workspace = game:GetService("Workspace")
 local Config = require(ReplicatedStorage.Shared.Config)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local PoliceModel = require(ReplicatedStorage.Shared.PoliceModel)
+-- The officer's two walks go through this and never straight at the goal.
+-- It knows nothing about officers: `Config.POLICE.path` is the spec it is
+-- handed, and the officer's Y, pose and catch test all stay in this file.
+local PathFollower = require(ReplicatedStorage.Shared.PathFollower)
 local DataService = require(script.Parent.DataService)
 local PlotService = require(script.Parent.PlotService)
 local HeistService = require(script.Parent.HeistService)
@@ -330,19 +334,25 @@ end
 
 -- Charges bail and says so.
 --
--- Deliberately charged even when the loot is already gone -- delivered to the
--- thief's own plot, or nabbed out of their hands by the victim on the way.
--- Bail answers for the ROBBERY, and "I got the coins home before they caught
--- me" is the good outcome rather than an acquittal. The cap is what keeps that
--- fair: three times what was taken, and never more than was sitting in the
--- vault, so it is always legible and always survivable.
-local function chargeBail(thief: Player, stolen: number): number
+-- A SHARE OF THE THIEF'S OWN TILL rather than a multiple of the haul -- see
+-- `Config.POLICE.bailFraction` for why the haul stopped being a number when
+-- the core moved to stealing piggies.
+--
+-- STILL CHARGED WHEN THE LOOT IS ALREADY GONE, which is the half that does
+-- not change: bail answers for the ROBBERY, and getting home before they
+-- caught you is the good outcome rather than an acquittal. It no longer
+-- needs to know what was taken in order to say so.
+--
+-- IT TAKES NO AMOUNT AT ALL NOW, deliberately. Leaving a `stolen` argument
+-- in place and ignoring it is how a function comes to be called with a
+-- figure somebody believes is doing something.
+local function chargeBail(thief: Player): number
 	local data = DataService.get(thief)
 	if not data then
 		return 0
 	end
 
-	local bail = math.min(math.floor(data.coins), math.floor(stolen * Config.POLICE.bailMultiple))
+	local bail = math.floor(data.coins * Config.POLICE.bailFraction)
 	if bail <= 0 then
 		return 0
 	end
@@ -350,7 +360,7 @@ local function chargeBail(thief: Player, stolen: number): number
 	data.coins -= bail
 	local plot = PlotService.getPlot(thief)
 	if plot then
-		PlotService.updatePile(plot, data.coins, Config.getCapacity(data.capacityLevel))
+		PlotService.updatePile(plot, data.coins, Config.pigFullAt(data.rebirths))
 	end
 	return bail
 end
@@ -402,12 +412,15 @@ local function releaseHome(thief: Player)
 end
 
 local function arrest(alarm: Alarm)
-	local recovered, victim, carryKind = HeistService.confiscate(alarm.thief)
-	local currency = if carryKind == "basket" then "Acorns" else "coins"
-	-- `alarm.amount` is the loot in their hands for an ordinary bust and the
-	-- whole rap sheet for a most-wanted one, so `chargeBail` needs no branch:
-	-- it charges three times what this arrest was for, either way.
-	local bail = chargeBail(alarm.thief, alarm.amount)
+	local recovered, victim = HeistService.confiscate(alarm.thief)
+	local currency = "coins"
+	-- THE CHARGE NO LONGER ASKS WHAT THIS ARREST WAS FOR. It used to: an
+	-- ordinary bust charged three times the loot in their hands and a
+	-- most-wanted one three times the whole rap sheet, and `alarm.amount`
+	-- carried whichever it was so this needed no branch. It still needs no
+	-- branch, for a better reason -- the fraction is of the THIEF'S till, so
+	-- both kinds of arrest cost the same share and there is nothing to pass.
+	local bail = chargeBail(alarm.thief)
 	if alarm.wanted then
 		-- Answered for. This is the ONLY thing that clears a record, and it is
 		-- what stops the patrol hunting the same player every eight minutes
@@ -416,10 +429,10 @@ local function arrest(alarm: Alarm)
 	end
 	-- BUT ANY ARREST ENDS THE RUN, wanted or not, and that is a different
 	-- question from the record above. A rap sheet is what you have done and an
-	-- ordinary bust does not undo it; a SPREE is momentum, and being put in a
+	-- ordinary bust does not undo it; STARS are momentum, and being put in a
 	-- car plainly ends momentum. It is also the whole reason the run's risk
-	-- half points at the patrol: what a spree buys is worth losing.
-	SocialService.breakSpree(alarm.thief)
+	-- half points at the patrol: what the stars buy is worth losing.
+	SocialService.clearStars(alarm.thief)
 	HeistService.detain(alarm.thief, Config.STUN_SECONDS)
 	releaseHome(alarm.thief)
 
@@ -446,7 +459,8 @@ local function arrest(alarm: Alarm)
 
 	-- Both halves named, because a punishment the player cannot account for
 	-- reads as the game taking coins at random. They should be able to check
-	-- the arithmetic: three times what they grabbed.
+	-- the arithmetic: `Config.bailPercent()` of what was in their bank, the
+	-- same share the poster prints.
 	if bail > 0 then
 		notify(alarm.thief, ("BUSTED! Bail: %s coins out of your piggy bank."):format(format(bail)), "bad")
 	else
@@ -509,7 +523,7 @@ local function pursue(alarm: Alarm)
 
 	notify(alarm.thief, if alarm.wanted
 		then ("MOST WANTED! Lose them for %ds or pay the bounty."):format(Config.POLICE.chase)
-		else ("PULL OVER! Lose them for %ds or pay bail."):format(Config.POLICE.chase),
+		else ("PULL OVER! Lose them for %ds or pay %d%% of your piggy bank."):format(Config.POLICE.chase, Config.bailPercent()),
 		"police")
 	-- THIS ONE WAS A REAL BUG WAITING, not a harmless one: `notify` calls
 	-- FireClient, and a resident is a plain table rather than a Player, so
@@ -533,6 +547,18 @@ local function pursue(alarm: Alarm)
 	local at = doorAt
 	local look = vehicle.body.CFrame.RightVector
 	local stride = 0
+
+	-- WHERE THE NEXT STEP GOES. The officer used to step straight at the
+	-- thief every frame and walked through every trunk, fence and pond on
+	-- the street (designer decision, 2026-09-21: it goes round). The
+	-- follower computes a PathfindingService path in a task of its own and
+	-- hands back one frame of travel at a time; it never yields, never
+	-- touches Y, and falls back to the old straight line -- counted, and
+	-- said out loud below -- if the navmesh has no answer. Everything that
+	-- was here before is still here: `groundUnder` for the height, the
+	-- stride from distance actually walked, `facing` along the travel and
+	-- the same-level catch test against the thief's real position.
+	local follower = PathFollower.new(Config.POLICE.path)
 
 	-- The head start. Without it the officer is simply standing on the thief
 	-- the instant the car stops, and the chase never reads as one.
@@ -597,20 +623,24 @@ local function pursue(alarm: Alarm)
 			end
 		end
 
-		if flatDelta.Magnitude > 0.001 then
-			look = flatDelta.Unit
-			local step = math.min(Config.POLICE.officerSpeed * dt, flatDelta.Magnitude)
+		-- The goal is the thief's FEET on the flat: the navmesh is the ground,
+		-- and a root three studs up is a point the path would have to snap.
+		follower:setGoal(Vector3.new(lastSeen.X, seenFeet, lastSeen.Z))
+		local moved, direction, walked = follower:step(at, dt, Config.POLICE.officerSpeed)
+		if walked > 0.001 then
+			look = direction
 			-- THE GROUND UNDER THE OFFICER, not the thief's feet -- see
 			-- `groundUnder`. Eased rather than snapped, so it steps up onto a
 			-- lawn and down onto the verge over a few frames instead of
-			-- teleporting a stud each time it crosses a kerb.
+			-- teleporting a stud each time it crosses a kerb. The follower
+			-- hands back X and Z and leaves Y to this line.
 			local groundY = groundUnder(at, at.Y)
 			local y = at.Y + (groundY - at.Y) * math.min(1, dt * 8)
-			at = Vector3.new(at.X, y, at.Z) + look * step
+			at = Vector3.new(moved.X, y, moved.Z)
 
 			-- The stride is fed the distance actually covered, so the legs
 			-- cannot run faster than the officer does.
-			stride += step
+			stride += walked
 			PoliceModel.poseOfficer(hand, facing(at, look), stride)
 		end
 	end
@@ -647,12 +677,29 @@ local function pursue(alarm: Alarm)
 		if delta.Magnitude < 1.2 then
 			break
 		end
-		look = delta.Unit
-		local step = math.min(Config.POLICE.officerSpeed * dt, delta.Magnitude)
+		-- The same follower, the same gate: an officer that caught somebody
+		-- on a lawn walks back out the way it came in rather than through
+		-- the fence beside it.
+		follower:setGoal(Vector3.new(target.X, ROAD_Y, target.Z))
+		local moved, direction, walked = follower:step(at, dt, Config.POLICE.officerSpeed)
+		if walked > 0.001 then
+			look = direction
+		end
 		local y = at.Y + (ROAD_Y - at.Y) * math.min(1, dt * 8)
-		at = Vector3.new(at.X, y, at.Z) + look * step
-		stride += step
+		at = Vector3.new(moved.X, y, moved.Z)
+		stride += walked
 		PoliceModel.poseOfficer(hand, facing(at, look), stride)
+	end
+
+	-- ONE LINE PER PURSUIT IF THE NAVMESH EVER HAD NO ANSWER. The follower
+	-- walks the straight line rather than freezing when a compute fails,
+	-- which is right for the chase and wrong to keep quiet about: a chase
+	-- that silently ran the old way is the officer walking through a fence
+	-- with nothing in any log to say so.
+	local fallbacks = follower:fallbacks()
+	follower:destroy()
+	if fallbacks > 0 then
+		warn(("[PoliceService] pathing fell back to the straight line %d time(s) this pursuit; the officer may have walked through something"):format(fallbacks))
 	end
 
 	hand.model:Destroy()
@@ -985,8 +1032,8 @@ function PoliceService.bust(player: Player, amount: number): string
 		return "Already committed to a pursuit"
 	end
 	pending = { thief = player, victim = player, amount = amount }
-	return ("Officer dispatched. Bail will be %s x %d."):format(
-		format(amount), Config.POLICE.bailMultiple)
+	return ("Officer dispatched. Bail will be %d%% of their piggy bank.")
+		:format(Config.bailPercent())
 end
 
 -- Is there a patrol on the street right now? Anything but `quiet` counts,

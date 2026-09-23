@@ -65,8 +65,7 @@ CORE = (226 / 255.0, 250 / 255.0, 255 / 255.0)
 # than as the wrong mesh, because nothing anywhere says the two are not
 # interchangeable. So the hide is loaded from the skin blend and the bolts are
 # LINKED IN, each from the file that owns it.
-bpy.ops.wm.open_mainfile(filepath=os.path.join(paths.skin_dir("stormwolf"),
-                                               "stormwolf.blend"))
+bpy.ops.wm.open_mainfile(filepath=paths.skin_blend("stormwolf"))
 ob = bpy.data.objects.get("Body")
 if ob is None:
     raise SystemExit("  ! no Body in the stormwolf skin blend")
@@ -132,7 +131,7 @@ if _spread > 2.5:
                      "coat is painted on the smart-project one and will smear"
                      % _spread)
 
-_sheet = os.path.join(paths.skin_dir("stormwolf"), "stormwolf_body_color.png")
+_sheet = paths.skin_map("stormwolf", "body")
 if os.path.exists(_sheet):
     hide = bpy.data.materials.new("stormwolf_hide")
     hide.use_nodes = True
