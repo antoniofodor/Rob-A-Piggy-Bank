@@ -1,0 +1,1919 @@
+[
+  {
+    "slug": "cardboard-fort",
+    "id": "shack",
+    "title": "Cardboard Fort",
+    "kit": "CardboardFortInteriorKit",
+    "description": "Approved cardboard panels, tape seams and carton bases.",
+    "tier": 1,
+    "width": 60,
+    "length": 40,
+    "height": 32,
+    "parts": {
+      "RoomShell": {
+        "parts": 184,
+        "collidingParts": 3
+      },
+      "Pedestal": {
+        "parts": 16,
+        "collidingParts": 5
+      },
+      "RebirthGate": {
+        "parts": 55,
+        "collidingParts": 8
+      },
+      "AchievementVestibule": {
+        "parts": 74,
+        "collidingParts": 10
+      }
+    }
+  },
+  {
+    "slug": "beehive-cottage",
+    "id": "cottage",
+    "title": "Beehive Cottage",
+    "kit": "BeehiveCottageInteriorKit",
+    "description": "Approved honey vault, hexagonal windows and honeycomb bases.",
+    "tier": 2,
+    "width": 62,
+    "length": 40,
+    "height": 33,
+    "parts": {
+      "RoomShell": {
+        "parts": 225,
+        "collidingParts": 3
+      },
+      "Pedestal": {
+        "parts": 26,
+        "collidingParts": 16
+      },
+      "RebirthGate": {
+        "parts": 82,
+        "collidingParts": 16
+      },
+      "AchievementVestibule": {
+        "parts": 88,
+        "collidingParts": 18
+      }
+    }
+  },
+  {
+    "slug": "wonky-townhouse",
+    "id": "townhouse",
+    "title": "Wonky Townhouse",
+    "style": "town",
+    "palette": {
+      "wall": [
+        238,
+        225,
+        196
+      ],
+      "roof": [
+        211,
+        217,
+        208
+      ],
+      "trim": [
+        71,
+        106,
+        115
+      ],
+      "floor": [
+        196,
+        176,
+        150
+      ],
+      "top": [
+        199,
+        217,
+        211
+      ],
+      "accent": [
+        212,
+        130,
+        111
+      ],
+      "glass": [
+        180,
+        211,
+        219
+      ],
+      "door": [
+        82,
+        126,
+        141
+      ],
+      "wood": [
+        71,
+        106,
+        115
+      ],
+      "cream": [
+        243,
+        229,
+        199
+      ],
+      "metal": [
+        78,
+        83,
+        90
+      ],
+      "gold": [
+        222,
+        171,
+        67
+      ],
+      "pink": [
+        223,
+        147,
+        167
+      ],
+      "leaf": [
+        88,
+        139,
+        74
+      ],
+      "sky": [
+        164,
+        211,
+        221
+      ],
+      "referenceSkin": [
+        216,
+        205,
+        177
+      ],
+      "referenceThief": [
+        50,
+        65,
+        85
+      ],
+      "referenceOwner": [
+        165,
+        60,
+        61
+      ]
+    },
+    "description": "Crooked teal and terracotta wall bays, mismatched windows and offset rafters above a level floor.",
+    "kit": "WonkyTownhouseInteriorKit",
+    "tier": 3,
+    "width": 64,
+    "length": 40,
+    "height": 34,
+    "parts": {
+      "RoomShell": {
+        "parts": 148,
+        "collidingParts": 3
+      },
+      "Pedestal": {
+        "parts": 12,
+        "collidingParts": 4
+      },
+      "RebirthGate": {
+        "parts": 70,
+        "collidingParts": 10
+      },
+      "AchievementVestibule": {
+        "parts": 64,
+        "collidingParts": 12
+      }
+    }
+  },
+  {
+    "slug": "toadstool-cottage",
+    "id": "mushroom",
+    "title": "Toadstool Cottage",
+    "style": "mushroom",
+    "palette": {
+      "wall": [
+        237,
+        228,
+        201
+      ],
+      "roof": [
+        199,
+        131,
+        131
+      ],
+      "trim": [
+        112,
+        80,
+        61
+      ],
+      "floor": [
+        207,
+        194,
+        162
+      ],
+      "top": [
+        163,
+        180,
+        118
+      ],
+      "accent": [
+        176,
+        76,
+        92
+      ],
+      "glass": [
+        230,
+        196,
+        122
+      ],
+      "door": [
+        135,
+        98,
+        71
+      ],
+      "wood": [
+        112,
+        80,
+        61
+      ],
+      "cream": [
+        243,
+        229,
+        199
+      ],
+      "metal": [
+        78,
+        83,
+        90
+      ],
+      "gold": [
+        222,
+        171,
+        67
+      ],
+      "pink": [
+        223,
+        147,
+        167
+      ],
+      "leaf": [
+        88,
+        139,
+        74
+      ],
+      "sky": [
+        164,
+        211,
+        221
+      ],
+      "referenceSkin": [
+        216,
+        205,
+        177
+      ],
+      "referenceThief": [
+        50,
+        65,
+        85
+      ],
+      "referenceOwner": [
+        165,
+        60,
+        61
+      ]
+    },
+    "description": "Cream stalk walls, a spotted red cap vault, curved timber ribs and mushroom-rimmed stumps.",
+    "kit": "ToadstoolCottageInteriorKit",
+    "tier": 4,
+    "width": 66,
+    "length": 40,
+    "height": 35,
+    "parts": {
+      "RoomShell": {
+        "parts": 187,
+        "collidingParts": 3
+      },
+      "Pedestal": {
+        "parts": 18,
+        "collidingParts": 4
+      },
+      "RebirthGate": {
+        "parts": 81,
+        "collidingParts": 18
+      },
+      "AchievementVestibule": {
+        "parts": 81,
+        "collidingParts": 20
+      }
+    }
+  },
+  {
+    "slug": "fairy-lantern-cottage",
+    "id": "villa",
+    "title": "Fairy Lantern Cottage",
+    "style": "fairy",
+    "palette": {
+      "wall": [
+        227,
+        231,
+        203
+      ],
+      "roof": [
+        211,
+        223,
+        181
+      ],
+      "trim": [
+        85,
+        117,
+        67
+      ],
+      "floor": [
+        201,
+        200,
+        166
+      ],
+      "top": [
+        184,
+        206,
+        145
+      ],
+      "accent": [
+        215,
+        181,
+        109
+      ],
+      "glass": [
+        186,
+        220,
+        214
+      ],
+      "door": [
+        102,
+        131,
+        78
+      ],
+      "wood": [
+        85,
+        117,
+        67
+      ],
+      "cream": [
+        243,
+        229,
+        199
+      ],
+      "metal": [
+        78,
+        83,
+        90
+      ],
+      "gold": [
+        222,
+        171,
+        67
+      ],
+      "pink": [
+        223,
+        147,
+        167
+      ],
+      "leaf": [
+        88,
+        139,
+        74
+      ],
+      "sky": [
+        164,
+        211,
+        221
+      ],
+      "referenceSkin": [
+        216,
+        205,
+        177
+      ],
+      "referenceThief": [
+        50,
+        65,
+        85
+      ],
+      "referenceOwner": [
+        165,
+        60,
+        61
+      ]
+    },
+    "description": "Leaf brackets, hanging colored lanterns, climbing vines and green cottage joinery.",
+    "kit": "FairyLanternCottageInteriorKit",
+    "tier": 5,
+    "width": 68,
+    "length": 40,
+    "height": 36,
+    "parts": {
+      "RoomShell": {
+        "parts": 170,
+        "collidingParts": 3
+      },
+      "Pedestal": {
+        "parts": 16,
+        "collidingParts": 4
+      },
+      "RebirthGate": {
+        "parts": 74,
+        "collidingParts": 14
+      },
+      "AchievementVestibule": {
+        "parts": 71,
+        "collidingParts": 16
+      }
+    }
+  },
+  {
+    "slug": "treehouse",
+    "id": "treehouse",
+    "title": "Treehouse",
+    "kit": "TreehouseInteriorKit",
+    "description": "Approved branch trusses, round forest windows and stump bases.",
+    "tier": 6,
+    "width": 70,
+    "length": 40,
+    "height": 37,
+    "parts": {
+      "RoomShell": {
+        "parts": 263,
+        "collidingParts": 3
+      },
+      "Pedestal": {
+        "parts": 18,
+        "collidingParts": 4
+      },
+      "RebirthGate": {
+        "parts": 57,
+        "collidingParts": 8
+      },
+      "AchievementVestibule": {
+        "parts": 93,
+        "collidingParts": 8
+      }
+    }
+  },
+  {
+    "slug": "haunted-manor",
+    "id": "manor",
+    "title": "Haunted Manor",
+    "style": "haunted",
+    "palette": {
+      "wall": [
+        158,
+        156,
+        172
+      ],
+      "roof": [
+        194,
+        187,
+        212
+      ],
+      "trim": [
+        98,
+        83,
+        108
+      ],
+      "floor": [
+        153,
+        148,
+        165
+      ],
+      "top": [
+        185,
+        173,
+        203
+      ],
+      "accent": [
+        161,
+        140,
+        198
+      ],
+      "glass": [
+        224,
+        201,
+        163
+      ],
+      "door": [
+        115,
+        98,
+        126
+      ],
+      "wood": [
+        98,
+        83,
+        108
+      ],
+      "cream": [
+        243,
+        229,
+        199
+      ],
+      "metal": [
+        78,
+        83,
+        90
+      ],
+      "gold": [
+        222,
+        171,
+        67
+      ],
+      "pink": [
+        223,
+        147,
+        167
+      ],
+      "leaf": [
+        88,
+        139,
+        74
+      ],
+      "sky": [
+        164,
+        211,
+        221
+      ],
+      "referenceSkin": [
+        216,
+        205,
+        177
+      ],
+      "referenceThief": [
+        50,
+        65,
+        85
+      ],
+      "referenceOwner": [
+        165,
+        60,
+        61
+      ]
+    },
+    "description": "Pointed windows, purple wall panels, high gothic ribs and violet candle sconces.",
+    "kit": "HauntedManorInteriorKit",
+    "tier": 7,
+    "width": 72,
+    "length": 40,
+    "height": 38,
+    "parts": {
+      "RoomShell": {
+        "parts": 162,
+        "collidingParts": 3
+      },
+      "Pedestal": {
+        "parts": 10,
+        "collidingParts": 4
+      },
+      "RebirthGate": {
+        "parts": 68,
+        "collidingParts": 14
+      },
+      "AchievementVestibule": {
+        "parts": 73,
+        "collidingParts": 16
+      }
+    }
+  },
+  {
+    "slug": "gloop-house",
+    "id": "slime",
+    "title": "Gloop House",
+    "style": "gloop",
+    "palette": {
+      "wall": [
+        200,
+        223,
+        154
+      ],
+      "roof": [
+        172,
+        214,
+        134
+      ],
+      "trim": [
+        68,
+        135,
+        87
+      ],
+      "floor": [
+        193,
+        209,
+        151
+      ],
+      "top": [
+        212,
+        235,
+        156
+      ],
+      "accent": [
+        142,
+        186,
+        87
+      ],
+      "glass": [
+        233,
+        216,
+        140
+      ],
+      "door": [
+        202,
+        137,
+        73
+      ],
+      "wood": [
+        68,
+        135,
+        87
+      ],
+      "cream": [
+        243,
+        229,
+        199
+      ],
+      "metal": [
+        78,
+        83,
+        90
+      ],
+      "gold": [
+        222,
+        171,
+        67
+      ],
+      "pink": [
+        223,
+        147,
+        167
+      ],
+      "leaf": [
+        88,
+        139,
+        74
+      ],
+      "sky": [
+        164,
+        211,
+        221
+      ],
+      "referenceSkin": [
+        216,
+        205,
+        177
+      ],
+      "referenceThief": [
+        50,
+        65,
+        85
+      ],
+      "referenceOwner": [
+        165,
+        60,
+        61
+      ]
+    },
+    "description": "Rounded slime bands, hanging drips and orange mechanical-looking doors in a bright lime room.",
+    "kit": "GloopHouseInteriorKit",
+    "tier": 8,
+    "width": 74,
+    "length": 40,
+    "height": 39,
+    "parts": {
+      "RoomShell": {
+        "parts": 180,
+        "collidingParts": 3
+      },
+      "Pedestal": {
+        "parts": 16,
+        "collidingParts": 4
+      },
+      "RebirthGate": {
+        "parts": 78,
+        "collidingParts": 18
+      },
+      "AchievementVestibule": {
+        "parts": 80,
+        "collidingParts": 20
+      }
+    }
+  },
+  {
+    "slug": "fishbowl-house",
+    "id": "modern",
+    "title": "Fishbowl House",
+    "style": "aquarium",
+    "palette": {
+      "wall": [
+        215,
+        235,
+        228
+      ],
+      "roof": [
+        184,
+        220,
+        222
+      ],
+      "trim": [
+        81,
+        145,
+        157
+      ],
+      "floor": [
+        199,
+        221,
+        221
+      ],
+      "top": [
+        231,
+        237,
+        226
+      ],
+      "accent": [
+        129,
+        183,
+        180
+      ],
+      "glass": [
+        97,
+        156,
+        174
+      ],
+      "door": [
+        120,
+        174,
+        182
+      ],
+      "wood": [
+        81,
+        145,
+        157
+      ],
+      "cream": [
+        243,
+        229,
+        199
+      ],
+      "metal": [
+        78,
+        83,
+        90
+      ],
+      "gold": [
+        222,
+        171,
+        67
+      ],
+      "pink": [
+        223,
+        147,
+        167
+      ],
+      "leaf": [
+        88,
+        139,
+        74
+      ],
+      "sky": [
+        164,
+        211,
+        221
+      ],
+      "referenceSkin": [
+        216,
+        205,
+        177
+      ],
+      "referenceThief": [
+        50,
+        65,
+        85
+      ],
+      "referenceOwner": [
+        165,
+        60,
+        61
+      ]
+    },
+    "description": "Dry pearl floors under aquarium vaults; large portholes show stylized fish, bubbles and kelp.",
+    "kit": "FishbowlHouseInteriorKit",
+    "tier": 9,
+    "width": 76,
+    "length": 40,
+    "height": 40,
+    "parts": {
+      "RoomShell": {
+        "parts": 194,
+        "collidingParts": 3
+      },
+      "Pedestal": {
+        "parts": 10,
+        "collidingParts": 4
+      },
+      "RebirthGate": {
+        "parts": 78,
+        "collidingParts": 18
+      },
+      "AchievementVestibule": {
+        "parts": 78,
+        "collidingParts": 20
+      }
+    }
+  },
+  {
+    "slug": "neon-tower",
+    "id": "neontower",
+    "title": "Neon Tower",
+    "style": "neon",
+    "palette": {
+      "wall": [
+        121,
+        139,
+        155
+      ],
+      "roof": [
+        163,
+        180,
+        191
+      ],
+      "trim": [
+        52,
+        73,
+        91
+      ],
+      "floor": [
+        127,
+        146,
+        159
+      ],
+      "top": [
+        180,
+        214,
+        220
+      ],
+      "accent": [
+        100,
+        197,
+        204
+      ],
+      "glass": [
+        49,
+        77,
+        102
+      ],
+      "door": [
+        70,
+        96,
+        113
+      ],
+      "wood": [
+        52,
+        73,
+        91
+      ],
+      "cream": [
+        243,
+        229,
+        199
+      ],
+      "metal": [
+        78,
+        83,
+        90
+      ],
+      "gold": [
+        222,
+        171,
+        67
+      ],
+      "pink": [
+        223,
+        147,
+        167
+      ],
+      "leaf": [
+        88,
+        139,
+        74
+      ],
+      "sky": [
+        164,
+        211,
+        221
+      ],
+      "referenceSkin": [
+        216,
+        205,
+        177
+      ],
+      "referenceThief": [
+        50,
+        65,
+        85
+      ],
+      "referenceOwner": [
+        165,
+        60,
+        61
+      ]
+    },
+    "description": "Steel ceiling cassettes, city-window panels, cyan conduits and restrained magenta accents.",
+    "kit": "NeonTowerInteriorKit",
+    "tier": 10,
+    "width": 78,
+    "length": 40,
+    "height": 41,
+    "parts": {
+      "RoomShell": {
+        "parts": 110,
+        "collidingParts": 3
+      },
+      "Pedestal": {
+        "parts": 12,
+        "collidingParts": 4
+      },
+      "RebirthGate": {
+        "parts": 75,
+        "collidingParts": 15
+      },
+      "AchievementVestibule": {
+        "parts": 65,
+        "collidingParts": 17
+      }
+    }
+  },
+  {
+    "slug": "crystal-spire",
+    "id": "crystal",
+    "title": "Crystal Spire",
+    "style": "crystal",
+    "palette": {
+      "wall": [
+        179,
+        166,
+        201
+      ],
+      "roof": [
+        217,
+        205,
+        236
+      ],
+      "trim": [
+        99,
+        83,
+        120
+      ],
+      "floor": [
+        162,
+        160,
+        184
+      ],
+      "top": [
+        214,
+        198,
+        236
+      ],
+      "accent": [
+        164,
+        132,
+        204
+      ],
+      "glass": [
+        137,
+        115,
+        180
+      ],
+      "door": [
+        121,
+        97,
+        149
+      ],
+      "wood": [
+        99,
+        83,
+        120
+      ],
+      "cream": [
+        243,
+        229,
+        199
+      ],
+      "metal": [
+        78,
+        83,
+        90
+      ],
+      "gold": [
+        222,
+        171,
+        67
+      ],
+      "pink": [
+        223,
+        147,
+        167
+      ],
+      "leaf": [
+        88,
+        139,
+        74
+      ],
+      "sky": [
+        164,
+        211,
+        221
+      ],
+      "referenceSkin": [
+        216,
+        205,
+        177
+      ],
+      "referenceThief": [
+        50,
+        65,
+        85
+      ],
+      "referenceOwner": [
+        165,
+        60,
+        61
+      ]
+    },
+    "description": "Angular geode ribs, split diamond windows, crystal sconces and faceted amethyst plinths.",
+    "kit": "CrystalSpireInteriorKit",
+    "tier": 11,
+    "width": 80,
+    "length": 40,
+    "height": 42,
+    "parts": {
+      "RoomShell": {
+        "parts": 107,
+        "collidingParts": 3
+      },
+      "Pedestal": {
+        "parts": 10,
+        "collidingParts": 4
+      },
+      "RebirthGate": {
+        "parts": 71,
+        "collidingParts": 16
+      },
+      "AchievementVestibule": {
+        "parts": 59,
+        "collidingParts": 18
+      }
+    }
+  },
+  {
+    "slug": "ice-palace",
+    "id": "palace",
+    "title": "Ice Palace",
+    "style": "ice",
+    "palette": {
+      "wall": [
+        220,
+        233,
+        239
+      ],
+      "roof": [
+        229,
+        240,
+        245
+      ],
+      "trim": [
+        138,
+        170,
+        189
+      ],
+      "floor": [
+        199,
+        219,
+        228
+      ],
+      "top": [
+        232,
+        245,
+        244
+      ],
+      "accent": [
+        155,
+        202,
+        221
+      ],
+      "glass": [
+        180,
+        220,
+        233
+      ],
+      "door": [
+        154,
+        188,
+        204
+      ],
+      "wood": [
+        138,
+        170,
+        189
+      ],
+      "cream": [
+        243,
+        229,
+        199
+      ],
+      "metal": [
+        78,
+        83,
+        90
+      ],
+      "gold": [
+        222,
+        171,
+        67
+      ],
+      "pink": [
+        223,
+        147,
+        167
+      ],
+      "leaf": [
+        88,
+        139,
+        74
+      ],
+      "sky": [
+        164,
+        211,
+        221
+      ],
+      "referenceSkin": [
+        216,
+        205,
+        177
+      ],
+      "referenceThief": [
+        50,
+        65,
+        85
+      ],
+      "referenceOwner": [
+        165,
+        60,
+        61
+      ]
+    },
+    "description": "Pale frozen arches, frost tracery, overhead icicles and low diamond-shaped ice plinths.",
+    "kit": "IcePalaceInteriorKit",
+    "tier": 12,
+    "width": 82,
+    "length": 40,
+    "height": 43,
+    "parts": {
+      "RoomShell": {
+        "parts": 144,
+        "collidingParts": 3
+      },
+      "Pedestal": {
+        "parts": 10,
+        "collidingParts": 4
+      },
+      "RebirthGate": {
+        "parts": 73,
+        "collidingParts": 18
+      },
+      "AchievementVestibule": {
+        "parts": 73,
+        "collidingParts": 20
+      }
+    }
+  },
+  {
+    "slug": "sky-castle",
+    "id": "skycastle",
+    "title": "Sky Castle",
+    "style": "sky",
+    "palette": {
+      "wall": [
+        230,
+        230,
+        231
+      ],
+      "roof": [
+        232,
+        231,
+        240
+      ],
+      "trim": [
+        161,
+        149,
+        185
+      ],
+      "floor": [
+        213,
+        212,
+        223
+      ],
+      "top": [
+        234,
+        231,
+        242
+      ],
+      "accent": [
+        184,
+        162,
+        209
+      ],
+      "glass": [
+        164,
+        201,
+        224
+      ],
+      "door": [
+        172,
+        154,
+        190
+      ],
+      "wood": [
+        161,
+        149,
+        185
+      ],
+      "cream": [
+        243,
+        229,
+        199
+      ],
+      "metal": [
+        78,
+        83,
+        90
+      ],
+      "gold": [
+        222,
+        171,
+        67
+      ],
+      "pink": [
+        223,
+        147,
+        167
+      ],
+      "leaf": [
+        88,
+        139,
+        74
+      ],
+      "sky": [
+        164,
+        211,
+        221
+      ],
+      "referenceSkin": [
+        216,
+        205,
+        177
+      ],
+      "referenceThief": [
+        50,
+        65,
+        85
+      ],
+      "referenceOwner": [
+        165,
+        60,
+        61
+      ]
+    },
+    "description": "White castle piers, arched sky windows, cloud crests and lavender royal doors.",
+    "kit": "SkyCastleInteriorKit",
+    "tier": 13,
+    "width": 84,
+    "length": 40,
+    "height": 44,
+    "parts": {
+      "RoomShell": {
+        "parts": 146,
+        "collidingParts": 3
+      },
+      "Pedestal": {
+        "parts": 10,
+        "collidingParts": 4
+      },
+      "RebirthGate": {
+        "parts": 81,
+        "collidingParts": 18
+      },
+      "AchievementVestibule": {
+        "parts": 76,
+        "collidingParts": 20
+      }
+    }
+  },
+  {
+    "slug": "beached-galleon",
+    "id": "galleon",
+    "title": "Beached Galleon",
+    "style": "ship",
+    "palette": {
+      "wall": [
+        185,
+        151,
+        115
+      ],
+      "roof": [
+        198,
+        173,
+        137
+      ],
+      "trim": [
+        115,
+        82,
+        59
+      ],
+      "floor": [
+        179,
+        151,
+        118
+      ],
+      "top": [
+        202,
+        183,
+        150
+      ],
+      "accent": [
+        201,
+        165,
+        104
+      ],
+      "glass": [
+        149,
+        191,
+        203
+      ],
+      "door": [
+        135,
+        99,
+        71
+      ],
+      "wood": [
+        115,
+        82,
+        59
+      ],
+      "cream": [
+        243,
+        229,
+        199
+      ],
+      "metal": [
+        78,
+        83,
+        90
+      ],
+      "gold": [
+        222,
+        171,
+        67
+      ],
+      "pink": [
+        223,
+        147,
+        167
+      ],
+      "leaf": [
+        88,
+        139,
+        74
+      ],
+      "sky": [
+        164,
+        211,
+        221
+      ],
+      "referenceSkin": [
+        216,
+        205,
+        177
+      ],
+      "referenceThief": [
+        50,
+        65,
+        85
+      ],
+      "referenceOwner": [
+        165,
+        60,
+        61
+      ]
+    },
+    "description": "Broad timber hull ribs, deck planks, brass portholes, rope trim and cargo-crate pedestals.",
+    "kit": "BeachedGalleonInteriorKit",
+    "tier": 14,
+    "width": 86,
+    "length": 40,
+    "height": 45,
+    "parts": {
+      "RoomShell": {
+        "parts": 298,
+        "collidingParts": 3
+      },
+      "Pedestal": {
+        "parts": 12,
+        "collidingParts": 4
+      },
+      "RebirthGate": {
+        "parts": 78,
+        "collidingParts": 18
+      },
+      "AchievementVestibule": {
+        "parts": 106,
+        "collidingParts": 20
+      }
+    }
+  },
+  {
+    "slug": "portal-house",
+    "id": "portal",
+    "title": "Portal House",
+    "style": "portal",
+    "palette": {
+      "wall": [
+        194,
+        211,
+        212
+      ],
+      "roof": [
+        200,
+        205,
+        225
+      ],
+      "trim": [
+        106,
+        100,
+        142
+      ],
+      "floor": [
+        174,
+        187,
+        201
+      ],
+      "top": [
+        201,
+        219,
+        225
+      ],
+      "accent": [
+        118,
+        156,
+        173
+      ],
+      "glass": [
+        157,
+        146,
+        192
+      ],
+      "door": [
+        114,
+        141,
+        158
+      ],
+      "wood": [
+        106,
+        100,
+        142
+      ],
+      "cream": [
+        243,
+        229,
+        199
+      ],
+      "metal": [
+        78,
+        83,
+        90
+      ],
+      "gold": [
+        222,
+        171,
+        67
+      ],
+      "pink": [
+        223,
+        147,
+        167
+      ],
+      "leaf": [
+        88,
+        139,
+        74
+      ],
+      "sky": [
+        164,
+        211,
+        221
+      ],
+      "referenceSkin": [
+        216,
+        205,
+        177
+      ],
+      "referenceThief": [
+        50,
+        65,
+        85
+      ],
+      "referenceOwner": [
+        165,
+        60,
+        61
+      ]
+    },
+    "description": "A familiar house split between teal and violet, with offset angular ribs and portal window rings.",
+    "kit": "PortalHouseInteriorKit",
+    "tier": 15,
+    "width": 88,
+    "length": 40,
+    "height": 46,
+    "parts": {
+      "RoomShell": {
+        "parts": 186,
+        "collidingParts": 3
+      },
+      "Pedestal": {
+        "parts": 11,
+        "collidingParts": 5
+      },
+      "RebirthGate": {
+        "parts": 71,
+        "collidingParts": 16
+      },
+      "AchievementVestibule": {
+        "parts": 80,
+        "collidingParts": 18
+      }
+    }
+  },
+  {
+    "slug": "thundercloud-fortress",
+    "id": "thundercloud",
+    "title": "Thundercloud Fortress",
+    "style": "storm",
+    "palette": {
+      "wall": [
+        146,
+        158,
+        177
+      ],
+      "roof": [
+        181,
+        192,
+        206
+      ],
+      "trim": [
+        83,
+        103,
+        126
+      ],
+      "floor": [
+        152,
+        166,
+        183
+      ],
+      "top": [
+        195,
+        205,
+        219
+      ],
+      "accent": [
+        170,
+        203,
+        223
+      ],
+      "glass": [
+        109,
+        133,
+        161
+      ],
+      "door": [
+        100,
+        124,
+        152
+      ],
+      "wood": [
+        83,
+        103,
+        126
+      ],
+      "cream": [
+        243,
+        229,
+        199
+      ],
+      "metal": [
+        78,
+        83,
+        90
+      ],
+      "gold": [
+        222,
+        171,
+        67
+      ],
+      "pink": [
+        223,
+        147,
+        167
+      ],
+      "leaf": [
+        88,
+        139,
+        74
+      ],
+      "sky": [
+        164,
+        211,
+        221
+      ],
+      "referenceSkin": [
+        216,
+        205,
+        177
+      ],
+      "referenceThief": [
+        50,
+        65,
+        85
+      ],
+      "referenceOwner": [
+        165,
+        60,
+        61
+      ]
+    },
+    "description": "Stepped fortress piers, slate masonry, cloud bands and pale lightning inlays.",
+    "kit": "ThundercloudFortressInteriorKit",
+    "tier": 16,
+    "width": 90,
+    "length": 40,
+    "height": 47,
+    "parts": {
+      "RoomShell": {
+        "parts": 114,
+        "collidingParts": 3
+      },
+      "Pedestal": {
+        "parts": 10,
+        "collidingParts": 4
+      },
+      "RebirthGate": {
+        "parts": 75,
+        "collidingParts": 15
+      },
+      "AchievementVestibule": {
+        "parts": 66,
+        "collidingParts": 17
+      }
+    }
+  },
+  {
+    "slug": "the-void",
+    "id": "void",
+    "title": "The Void",
+    "style": "void",
+    "palette": {
+      "wall": [
+        98,
+        101,
+        117
+      ],
+      "roof": [
+        119,
+        121,
+        142
+      ],
+      "trim": [
+        53,
+        56,
+        72
+      ],
+      "floor": [
+        115,
+        119,
+        135
+      ],
+      "top": [
+        160,
+        163,
+        185
+      ],
+      "accent": [
+        156,
+        138,
+        199
+      ],
+      "glass": [
+        65,
+        66,
+        82
+      ],
+      "door": [
+        83,
+        84,
+        104
+      ],
+      "wood": [
+        53,
+        56,
+        72
+      ],
+      "cream": [
+        243,
+        229,
+        199
+      ],
+      "metal": [
+        78,
+        83,
+        90
+      ],
+      "gold": [
+        222,
+        171,
+        67
+      ],
+      "pink": [
+        223,
+        147,
+        167
+      ],
+      "leaf": [
+        88,
+        139,
+        74
+      ],
+      "sky": [
+        164,
+        211,
+        221
+      ],
+      "referenceSkin": [
+        216,
+        205,
+        177
+      ],
+      "referenceThief": [
+        50,
+        65,
+        85
+      ],
+      "referenceOwner": [
+        165,
+        60,
+        61
+      ]
+    },
+    "description": "Readable charcoal planes, black angular ribs, star recesses and fine violet boundaries.",
+    "kit": "TheVoidInteriorKit",
+    "tier": 17,
+    "width": 92,
+    "length": 40,
+    "height": 48,
+    "parts": {
+      "RoomShell": {
+        "parts": 117,
+        "collidingParts": 3
+      },
+      "Pedestal": {
+        "parts": 10,
+        "collidingParts": 4
+      },
+      "RebirthGate": {
+        "parts": 71,
+        "collidingParts": 16
+      },
+      "AchievementVestibule": {
+        "parts": 66,
+        "collidingParts": 18
+      }
+    }
+  },
+  {
+    "slug": "golden-piggy",
+    "id": "goldenpig",
+    "title": "Golden Piggy",
+    "style": "gold",
+    "palette": {
+      "wall": [
+        240,
+        225,
+        183
+      ],
+      "roof": [
+        237,
+        219,
+        166
+      ],
+      "trim": [
+        182,
+        146,
+        71
+      ],
+      "floor": [
+        216,
+        197,
+        156
+      ],
+      "top": [
+        241,
+        223,
+        166
+      ],
+      "accent": [
+        212,
+        179,
+        101
+      ],
+      "glass": [
+        230,
+        206,
+        176
+      ],
+      "door": [
+        194,
+        160,
+        84
+      ],
+      "wood": [
+        182,
+        146,
+        71
+      ],
+      "cream": [
+        243,
+        229,
+        199
+      ],
+      "metal": [
+        78,
+        83,
+        90
+      ],
+      "gold": [
+        222,
+        171,
+        67
+      ],
+      "pink": [
+        223,
+        147,
+        167
+      ],
+      "leaf": [
+        88,
+        139,
+        74
+      ],
+      "sky": [
+        164,
+        211,
+        221
+      ],
+      "referenceSkin": [
+        216,
+        205,
+        177
+      ],
+      "referenceThief": [
+        50,
+        65,
+        85
+      ],
+      "referenceOwner": [
+        165,
+        60,
+        61
+      ]
+    },
+    "description": "Cream and gold barrel vaults, coin coffers, piggy crests and round gold-edged display bases.",
+    "kit": "GoldenPiggyInteriorKit",
+    "tier": 18,
+    "width": 94,
+    "length": 40,
+    "height": 49,
+    "parts": {
+      "RoomShell": {
+        "parts": 222,
+        "collidingParts": 3
+      },
+      "Pedestal": {
+        "parts": 10,
+        "collidingParts": 4
+      },
+      "RebirthGate": {
+        "parts": 81,
+        "collidingParts": 18
+      },
+      "AchievementVestibule": {
+        "parts": 88,
+        "collidingParts": 20
+      }
+    }
+  }
+]

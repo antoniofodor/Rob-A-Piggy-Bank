@@ -1,3 +1,7 @@
 # Blender recovery copies are local working files. The .blend source is kept.
 *.blend1
 *.blend2
+
+# Compiled Python from the builders in tools/ and design/. Regenerated on every run;
+# assets/piggies/.gitignore has ignored these since it was written.
+__pycache__/

@@ -1,6 +1,6 @@
 # Fantasy house concepts — first pass, September 16
 
-Sources: `assets/houses/docs/HOUSE-TIER-BRIEF.md`, B3 in `docs/BRIEFS-FOR-GPT.md`,
+Sources: `assets/houses/docs/HOUSE-TIER-BRIEF.md`
 and the user's latest walk-in interior direction.
 
 ## What changed

@@ -2,7 +2,7 @@
 
 All house models, exports, previews, concepts, design documents and build tools live here.
 
-**[Browse the walk-in gallery](walk-in.html)** Â· [Catalogue plan](docs/HOUSE-CATALOGUE-PLAN.md) Â· [Interior brief](../../docs/HOUSE-INTERIOR-BRIEF.md)
+**[Browse the walk-in gallery](walk-in.html)** · [Catalogue plan](docs/HOUSE-CATALOGUE-PLAN.md) · [Interior brief](docs/HOUSE-INTERIOR-BRIEF.md)
 
 The current revisions below have empty walk-in interiors and automatic swing-door parts. Your approved Studio exterior sizes are baked into their geometry. Fresh FBX imports are required; these packages have not replaced the live templates. Each includes a Studio helper that applies scale, collision, door pivots and material transparency.
 
@@ -29,14 +29,14 @@ Each folder keeps its editable Blender source, Roblox export, renders and import
 | Portal House | [v2](portal-house-v2/README.md) | [Blender](portal-house-v2/portal-house.blend) | [FBX](portal-house-v2/portal-house-roblox.fbx) |
 | Thundercloud Fortress | [v2](thundercloud-fortress-v2/README.md) | [Blender](thundercloud-fortress-v2/thundercloud-fortress.blend) | [FBX](thundercloud-fortress-v2/thundercloud-fortress-roblox.fbx) |
 | The Void | [v2](the-void-v2/README.md) | [Blender](the-void-v2/the-void.blend) | [FBX](the-void-v2/the-void-roblox.fbx) |
-| Golden Piggy â€” earned | [v2](golden-piggy-v2/README.md) | [Blender](golden-piggy-v2/golden-piggy.blend) | [FBX](golden-piggy-v2/golden-piggy-roblox.fbx) |
+| Golden Piggy — earned | [v2](golden-piggy-v2/README.md) | [Blender](golden-piggy-v2/golden-piggy.blend) | [FBX](golden-piggy-v2/golden-piggy-roblox.fbx) |
 
-**Seasonal only:** [Gingerbread Manor](gingerbread-manor-seasonal-v1/README.md). The older Gloop v1 package is retained for reference.
+**Seasonal only:** [Gingerbread Manor](gingerbread-manor-seasonal-v1/README.md), which is not part of the permanent catalogue. Superseded exterior packages are not kept: each house has exactly one folder, at the revision listed above, and the dead uploads from the earlier ones are ledgered in [docs/ORPHANED-UPLOADS.md](../../docs/ORPHANED-UPLOADS.md).
 
 ## Supporting files
 
-- `concepts/`: initial concept art.
-- `design/`: reference images, design galleries, interior blockouts and display-station studies.
+- `interiors/`: the modular house interiors. **`interiors/catalogue-v4/` is the only thing in `assets/` the build reads** -- `default.project.json` maps its eighteen `*-interior-kit.rbxmx` files into `ServerStorage`, one per house, and `Services/ThemedInterior` clones them at run time. `v1`, `spacious-v2` and `wide-default-v3` beside it are earlier versions; see [interiors/README.md](interiors/README.md).
+- `design/`: reference images, design galleries, interior blockouts and display-station studies. The `concepts/` folder this line used to list is gone; the concept art that survived is under `design/`.
 - `docs/`: catalogue, tiers, interiors and trophy-display plans.
 - `tools/`: Blender builders, export tools, checks and Studio import helpers.
 - `mvp-exterior-manifest.json`: inventory of the 18 permanent models.

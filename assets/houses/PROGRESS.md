@@ -13,7 +13,7 @@ display decorations were added. Gingerbread remains seasonal and excluded.
 
 Approved exterior resizes are baked into each source; the runtime generator
 uses display scale 1.0 for these interiors. The new
-[interior brief](../../docs/HOUSE-INTERIOR-BRIEF.md) supplies the clearance,
+[interior brief](docs/HOUSE-INTERIOR-BRIEF.md) supplies the clearance,
 collision and display-wall contract. Fishbowl's dome/bubble transparency now
 travels through the export manifest, runtime generator and Studio helper.
 

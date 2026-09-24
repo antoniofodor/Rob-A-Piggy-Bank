@@ -53,7 +53,10 @@ end
 for i, box in data.collisions do
     local p=Instance.new("Part");p.Name="Collide_"..box.name
     p.Size=Vector3.new(box.sizeXYZ[1],box.sizeXYZ[3],box.sizeXYZ[2])
-    p.CFrame=CFrame.new(fromBlender(box.blenderLocation))*CFrame.Angles(0,-(box.rotationZ or 0),0)
+    -- +rotationZ, never -: see the note in build_house_runtime.py. The
+    -- Blender-to-Roblox map is two reflections and therefore keeps the
+    -- rotation's sense; negating it is a quarter turn on the diagonals.
+    p.CFrame=CFrame.new(fromBlender(box.blenderLocation))*CFrame.Angles(0,(box.rotationZ or 0),0)
     p.Transparency=1;p.Anchored=true;p.CanCollide=true;p.CanQuery=false;p.CanTouch=false;p.CastShadow=false;p.Parent=model
 end
 for _, door in data.doors do

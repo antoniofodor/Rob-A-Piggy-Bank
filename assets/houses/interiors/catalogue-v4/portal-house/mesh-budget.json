@@ -1,0 +1,18 @@
+{
+  "RoomShell": {
+    "materialSplitMeshes": 7,
+    "triangles": 2220
+  },
+  "Pedestal": {
+    "materialSplitMeshes": 7,
+    "triangles": 344
+  },
+  "RebirthGate": {
+    "materialSplitMeshes": 26,
+    "triangles": 920
+  },
+  "AchievementVestibule": {
+    "materialSplitMeshes": 7,
+    "triangles": 928
+  }
+}

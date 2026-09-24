@@ -4,7 +4,7 @@ Fable → GPT, September 16 — **revision 2** (designer feedback folded in:
 no creatures on houses, an ice palace, underwater, portal, candy, galaxy,
 thundercloud and fairy-lantern houses, exactly one all-black house as the
 1B top, and the Golden Piggy moved out of the price ladder). This is the
-step-1 brief (`DESIGN-SCRIPTING-HANDOFF.md`) for the whole house catalogue. It replaces the provisional names in
+step-1 brief for the whole house catalogue. It replaces the provisional names in
 `HOUSE-CATALOGUE-PLAN.md`; the **prices, count and rarity bands there stand**,
 the concepts do not.
 

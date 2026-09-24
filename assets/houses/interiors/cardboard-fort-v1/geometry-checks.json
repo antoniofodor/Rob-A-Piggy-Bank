@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "roomConnectionsMatchTreehouse": true,
+  "sixSlotTransformsMatchTreehouse": true,
+  "finitePositiveGeometry": true,
+  "orthonormalPartRotations": true,
+  "noTreehouseCanopyOrTreePosts": true,
+  "firstRoomBaseParts": 409
+}

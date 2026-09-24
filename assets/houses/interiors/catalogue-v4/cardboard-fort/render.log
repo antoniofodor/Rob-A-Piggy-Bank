@@ -1,0 +1,23 @@
+C:\Users\anton\robloxGame\assets\houses\interiors\catalogue-v4\generate\render.py:35: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat.use_nodes = True
+C:\Users\anton\robloxGame\assets\houses\interiors\catalogue-v4\generate\render.py:107: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  scene.world.use_nodes = True
+01:20.297  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\interiors\catalogue-v4\cardboard-fort\preview\hall.png'
+01:26.266  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_17388_035ad818e5ddfe6126c46cd06f472f94.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\interiors\\catalogue-v4\\cardboard-fort\\exports\\RoomShell.fbx'
+export finished in 0.0381 sec.
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\interiors\\catalogue-v4\\cardboard-fort\\exports\\Pedestal.fbx'
+export finished in 0.0177 sec.
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\interiors\\catalogue-v4\\cardboard-fort\\exports\\RebirthGate.fbx'
+export finished in 0.0504 sec.
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\interiors\\catalogue-v4\\cardboard-fort\\exports\\AchievementVestibule.fbx'
+export finished in 0.0186 sec.
+Info: Saved as "cardboard-fort-interior.blend"
+KIT_EXPORT_COMPLETE {"RoomShell": {"materialSplitMeshes": 10, "triangles": 2420}, "Pedestal": {"materialSplitMeshes": 7, "triangles": 404}, "RebirthGate": {"materialSplitMeshes": 35, "triangles": 740}, "AchievementVestibule": {"materialSplitMeshes": 9, "triangles": 868}}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

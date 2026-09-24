@@ -310,7 +310,24 @@ def main():
         x = (ix - centre_x) * scale * turn
         y = (iy - ground) * scale
         z = (iz - centre_z) * scale * turn
-        yaw = -box.get('rotationZ', 0.0) + (math.pi if YAW_HALF_TURN else 0.0)
+        # THE YAW IS NOT NEGATED, AND IT WAS FOR THE LIFE OF THIS SCRIPT.
+        # Blender (x, y, z) maps to (-x, z, y), and the tempting reading is
+        # that negating x flips the sense of a z-rotation. It does not: that
+        # map is a negate AND a y/z swap, which is TWO reflections, and two
+        # reflections compose into a proper rotation (its determinant is +1).
+        # A proper rotation PRESERVES the sense, so a Blender yaw about +Z is
+        # a Roblox yaw of the same sign about +Y.
+        #
+        # THE ERROR WAS INVISIBLE AT 0 AND +-90 DEGREES, which is why it stood:
+        # a box is symmetric under a half turn, so -a and +a differ by nothing
+        # a collider can show at those angles, and every collider in this
+        # catalogue is axis-aligned except the treehouse's upper stair flight
+        # (-41.85) and four of the toadstool's walls (45 and 135). Those five
+        # groups were all wrong by a quarter turn -- the stair treads ran their
+        # 5.20 side UP the flight instead of across it, leaving a 0.69-wide
+        # ribbon of collision up the middle of a 5.20-wide staircase, and
+        # players walked off the side of it and fell through.
+        yaw = box.get('rotationZ', 0.0) + (math.pi if YAW_HALF_TURN else 0.0)
         cos, sin = math.cos(yaw), math.sin(yaw)
 
         item = SubElement(model, 'Item', {'class': 'Part', 'referent': f'c{i}'})

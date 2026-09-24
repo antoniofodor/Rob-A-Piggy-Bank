@@ -92,10 +92,13 @@ def cf(p,v,yaw=0.0):
     # written before the throw, so the symptom was a fresh model importing with
     # a stale manifest beside it.
     #
-    # Blender (x,y,z) maps to (-x,z,y) here with no half turn, and negating x
-    # flips the sense of a z-rotation -- so the yaw is -rotationZ. The runtime
-    # generator carries the same term plus its own half turn, which is why the
-    # two do not read identically.
+    # THE YAW IS +rotationZ, AND THIS SAID -rotationZ UNTIL 2026-09-23.
+    # Blender (x,y,z) maps to (-x,z,y), and the tempting reading is that
+    # negating x flips the sense of a z-rotation. It does not: that map is a
+    # negate AND a y/z swap, which is two reflections, and two reflections
+    # compose into a PROPER rotation (determinant +1) -- which preserves the
+    # sense. See the note in `build_house_runtime.py`, which shipped the same
+    # mistake into two house templates and cost the treehouse its stairs.
     c,sn=math.cos(yaw),math.sin(yaw)
     e=E.SubElement(p,'CoordinateFrame',{'name':'CFrame'})
     for k,x in zip(('X','Y','Z','R00','R01','R02','R10','R11','R12','R20','R21','R22'),(*v,c,0,sn,0,1,0,-sn,0,c)):E.SubElement(e,k).text=str(x)
@@ -107,7 +110,7 @@ p=E.SubElement(model,'Properties');prop(p,'string','Name',slug+'_DraftCollisionA
 origin=part('Root',(0,0,0),(1,1,1),False,'origin')
 for i,b in enumerate(r['collisionBoxesDraft']):
     x,y,z=b['blenderLocation'];sx,sy,sz=b['sizeXYZ']
-    part(b['name'],(-x,z,y),(sx,sz,sy),True,'collision_'+str(i),-b.get('rotationZ',0.0))
+    part(b['name'],(-x,z,y),(sx,sz,sy),True,'collision_'+str(i),b.get('rotationZ',0.0))
 for name,(x,y,z) in r['mountsBlender'].items():
     item=E.SubElement(origin,'Item',{'class':'Attachment','referent':name});p=E.SubElement(item,'Properties');prop(p,'string','Name',name);cf(p,(-x,z,y))
 E.indent(root);E.ElementTree(root).write(out/f'{house_slug(slug)}-collision-mounts.rbxmx',encoding='utf-8',xml_declaration=True)

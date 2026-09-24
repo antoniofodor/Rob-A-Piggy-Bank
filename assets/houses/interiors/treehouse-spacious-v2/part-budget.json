@@ -1,0 +1,44 @@
+{
+  "RoomShell": {
+    "parts": 263,
+    "collidingParts": 3,
+    "mounts": [
+      "Entry",
+      "Exit",
+      "Slot_01",
+      "Slot_02",
+      "Slot_03",
+      "Slot_04",
+      "Slot_05",
+      "Slot_06"
+    ]
+  },
+  "Pedestal": {
+    "parts": 18,
+    "collidingParts": 4,
+    "mounts": [
+      "Piggy",
+      "CashLabel",
+      "Collect"
+    ]
+  },
+  "RebirthGate": {
+    "parts": 57,
+    "collidingParts": 8,
+    "mounts": [
+      "Entry",
+      "Exit"
+    ]
+  },
+  "AchievementVestibule": {
+    "parts": 93,
+    "collidingParts": 8,
+    "mounts": [
+      "Entry",
+      "Exit",
+      "Door_Exit",
+      "Arrival",
+      "Achievements"
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "Beehive Cottage Interior Review",
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace",
+      "BeehiveCottageInterior_Review": {"$path": "beehive-cottage-interior-review.rbxmx"},
+      "ReviewSpawn": {
+        "$className": "SpawnLocation",
+        "$properties": {
+          "Anchored": true,
+          "CanCollide": false,
+          "Transparency": 1,
+          "Neutral": true,
+          "Duration": 0,
+          "Size": [4, 1, 4],
+          "Position": [0, 0.6, 9]
+        }
+      }
+    },
+    "ServerStorage": {
+      "$className": "ServerStorage",
+      "BeehiveCottageInteriorKit": {"$path": "beehive-cottage-interior-kit.rbxmx"}
+    },
+    "Lighting": {
+      "$className": "Lighting",
+      "$properties": {
+        "ClockTime": 14.5,
+        "Brightness": 2,
+        "Ambient": [0.55, 0.52, 0.45],
+        "OutdoorAmbient": [0.65, 0.68, 0.65],
+        "GlobalShadows": false
+      }
+    }
+  }
+}

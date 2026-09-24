@@ -1,0 +1,69 @@
+{
+  "name": "Treehouse Original Comparison",
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace",
+      "ReviewSpawn": {
+        "$className": "SpawnLocation",
+        "$properties": {
+          "Anchored": true,
+          "CanCollide": false,
+          "Transparency": 1,
+          "Neutral": true,
+          "Duration": 0,
+          "Size": [
+            4,
+            1,
+            4
+          ],
+          "Position": [
+            0,
+            0.6,
+            -4
+          ]
+        }
+      },
+      "OriginalComparison": {
+        "$path": "original-comparison.rbxmx"
+      }
+    },
+    "ServerStorage": {
+      "$className": "ServerStorage",
+      "TreehouseSpaciousInteriorKit": {
+        "$path": "treehouse-interior-kit.rbxmx"
+      }
+    },
+    "Lighting": {
+      "$className": "Lighting",
+      "$properties": {
+        "ClockTime": 14.5,
+        "Brightness": 2,
+        "Ambient": [
+          0.55,
+          0.52,
+          0.45
+        ],
+        "OutdoorAmbient": [
+          0.65,
+          0.68,
+          0.65
+        ],
+        "GlobalShadows": false
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "$properties": {
+        "CameraMinZoomDistance": 8,
+        "CameraMaxZoomDistance": 20
+      },
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "ComparisonCamera": {
+          "$path": "preview-camera.client.luau"
+        }
+      }
+    }
+  }
+}

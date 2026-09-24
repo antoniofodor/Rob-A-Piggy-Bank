@@ -1,0 +1,20 @@
+{
+  "treehouse": {
+    "passed": true,
+    "engineChecks": 628,
+    "pedestalsUnchanged": true,
+    "mappedAsDefault": true
+  },
+  "cardboard-fort": {
+    "passed": true,
+    "engineChecks": 622,
+    "pedestalsUnchanged": true,
+    "mappedAsDefault": true
+  },
+  "beehive-cottage": {
+    "passed": true,
+    "engineChecks": 648,
+    "pedestalsUnchanged": true,
+    "mappedAsDefault": true
+  }
+}

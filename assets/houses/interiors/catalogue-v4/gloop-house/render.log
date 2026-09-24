@@ -1,0 +1,23 @@
+C:\Users\anton\robloxGame\assets\houses\interiors\catalogue-v4\generate\render.py:35: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat.use_nodes = True
+C:\Users\anton\robloxGame\assets\houses\interiors\catalogue-v4\generate\render.py:107: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  scene.world.use_nodes = True
+01:18.235  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\interiors\catalogue-v4\gloop-house\preview\hall.png'
+01:23.797  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_9528_7918272c7583354b6f0cb2560f62cb80.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\interiors\\catalogue-v4\\gloop-house\\exports\\RoomShell.fbx'
+export finished in 0.0174 sec.
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\interiors\\catalogue-v4\\gloop-house\\exports\\Pedestal.fbx'
+export finished in 0.0301 sec.
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\interiors\\catalogue-v4\\gloop-house\\exports\\RebirthGate.fbx'
+export finished in 0.0352 sec.
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\interiors\\catalogue-v4\\gloop-house\\exports\\AchievementVestibule.fbx'
+export finished in 0.0155 sec.
+Info: Saved as "gloop-house-interior.blend"
+KIT_EXPORT_COMPLETE {"RoomShell": {"materialSplitMeshes": 7, "triangles": 5284}, "Pedestal": {"materialSplitMeshes": 6, "triangles": 1524}, "RebirthGate": {"materialSplitMeshes": 25, "triangles": 2344}, "AchievementVestibule": {"materialSplitMeshes": 7, "triangles": 1708}}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

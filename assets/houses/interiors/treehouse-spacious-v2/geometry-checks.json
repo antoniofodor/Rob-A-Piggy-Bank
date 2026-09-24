@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "partChecks": 432,
+  "notes": [
+    "38-stud repeat",
+    "Piggy mounting height retained",
+    "Removable button size retained",
+    "At least 20 studs clear between buttons",
+    "Six slots"
+  ],
+  "studioVisual": "Temporary client scene inspected with a six-stud block avatar; scene cleaned up afterward."
+}

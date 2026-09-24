@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "roomAndSixSlotTransformsMatchTreehouse": true,
+  "finitePositiveGeometry": true,
+  "orthonormalPartRotations": true,
+  "hexTopPrismVolumeMatches": true,
+  "hexTopVolume": 2.3577541618031335,
+  "firstRoomBaseParts": 551
+}

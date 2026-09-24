@@ -2,7 +2,7 @@
 
 September 17, 2026. **Draft, assets available for review. Not integrated or visually checked in Studio.**
 
-This continues `docs/BRIEFS-FOR-GPT.md` B2 against the September 17 walk-in update. It replaces no approved house art. Open `index.html` for measured plans; each family has an importable `.rbxmx`, exact part/mount `.json` and `.svg` plan. Rebuild with `python assets/houses/design/rooms/station-templates/build.py`.
+This continues `assets/houses/docs/HOUSE-TROPHY-ROOMS.md` against the September 17 walk-in update. It replaces no approved house art. Open `index.html` for measured plans; each family has an importable `.rbxmx`, exact part/mount `.json` and `.svg` plan. Rebuild with `python assets/houses/design/rooms/station-templates/build.py`.
 
 ## Delivered geometry
 

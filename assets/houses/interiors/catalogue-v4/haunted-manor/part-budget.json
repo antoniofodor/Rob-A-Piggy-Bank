@@ -1,0 +1,18 @@
+{
+  "RoomShell": {
+    "parts": 162,
+    "collidingParts": 3
+  },
+  "Pedestal": {
+    "parts": 10,
+    "collidingParts": 4
+  },
+  "RebirthGate": {
+    "parts": 68,
+    "collidingParts": 14
+  },
+  "AchievementVestibule": {
+    "parts": 73,
+    "collidingParts": 16
+  }
+}

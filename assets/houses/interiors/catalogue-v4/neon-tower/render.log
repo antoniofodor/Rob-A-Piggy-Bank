@@ -1,0 +1,23 @@
+C:\Users\anton\robloxGame\assets\houses\interiors\catalogue-v4\generate\render.py:35: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat.use_nodes = True
+C:\Users\anton\robloxGame\assets\houses\interiors\catalogue-v4\generate\render.py:107: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  scene.world.use_nodes = True
+00:52.297  render           | Saved: 'C:\Users\anton\robloxGame\assets\houses\interiors\catalogue-v4\neon-tower\preview\hall.png'
+00:55.922  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_20000_d7fa1993e10f15fbb8049308fb6d094d.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\interiors\\catalogue-v4\\neon-tower\\exports\\RoomShell.fbx'
+export finished in 0.0302 sec.
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\interiors\\catalogue-v4\\neon-tower\\exports\\Pedestal.fbx'
+export finished in 0.0160 sec.
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\interiors\\catalogue-v4\\neon-tower\\exports\\RebirthGate.fbx'
+export finished in 0.0377 sec.
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\houses\\interiors\\catalogue-v4\\neon-tower\\exports\\AchievementVestibule.fbx'
+export finished in 0.0227 sec.
+Info: Saved as "neon-tower-interior.blend"
+KIT_EXPORT_COMPLETE {"RoomShell": {"materialSplitMeshes": 7, "triangles": 1308}, "Pedestal": {"materialSplitMeshes": 6, "triangles": 356}, "RebirthGate": {"materialSplitMeshes": 25, "triangles": 972}, "AchievementVestibule": {"materialSplitMeshes": 8, "triangles": 752}}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

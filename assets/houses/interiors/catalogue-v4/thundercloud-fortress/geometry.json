@@ -1,0 +1,8135 @@
+{
+  "palette": {
+    "wall": [
+      146,
+      158,
+      177
+    ],
+    "roof": [
+      181,
+      192,
+      206
+    ],
+    "trim": [
+      83,
+      103,
+      126
+    ],
+    "floor": [
+      152,
+      166,
+      183
+    ],
+    "top": [
+      195,
+      205,
+      219
+    ],
+    "accent": [
+      170,
+      203,
+      223
+    ],
+    "glass": [
+      109,
+      133,
+      161
+    ],
+    "door": [
+      100,
+      124,
+      152
+    ],
+    "wood": [
+      83,
+      103,
+      126
+    ],
+    "cream": [
+      243,
+      229,
+      199
+    ],
+    "metal": [
+      78,
+      83,
+      90
+    ],
+    "gold": [
+      222,
+      171,
+      67
+    ],
+    "pink": [
+      223,
+      147,
+      167
+    ],
+    "leaf": [
+      88,
+      139,
+      74
+    ],
+    "sky": [
+      164,
+      211,
+      221
+    ],
+    "referenceSkin": [
+      216,
+      205,
+      177
+    ],
+    "referenceThief": [
+      50,
+      65,
+      85
+    ],
+    "referenceOwner": [
+      165,
+      60,
+      61
+    ]
+  },
+  "templates": {
+    "RoomShell": {
+      "name": "RoomShell",
+      "length": 40,
+      "parts": [
+        {
+          "name": "Floor",
+          "position": [
+            0.0,
+            -0.616875,
+            -20.0
+          ],
+          "size": [
+            90.0,
+            1.23375,
+            40.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": true,
+          "group": "Collision",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "FloorFinish",
+          "position": [
+            0.0,
+            -0.03671875,
+            -20.0
+          ],
+          "size": [
+            89.97,
+            0.146875,
+            40.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "floor",
+          "collide": false,
+          "group": "FloorFinish",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "SideWall",
+          "position": [
+            -45.525000000000006,
+            16.15625,
+            -20.0
+          ],
+          "size": [
+            1.0499999999999998,
+            32.3125,
+            40.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Collision",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Skirting",
+          "position": [
+            -44.625,
+            0.8078125,
+            -20.0
+          ],
+          "size": [
+            0.5700000000000001,
+            1.615625,
+            40.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "DadoRail",
+          "position": [
+            -44.55,
+            7.6375,
+            -20.0
+          ],
+          "size": [
+            0.44999999999999996,
+            0.3525,
+            40.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "EaveRail",
+          "position": [
+            -44.55,
+            32.018750000000004,
+            -20.0
+          ],
+          "size": [
+            0.675,
+            0.734375,
+            40.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "MasonryCourse",
+          "position": [
+            -44.849999999999994,
+            10.28125,
+            -20.0
+          ],
+          "size": [
+            0.18,
+            0.146875,
+            40.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "cream",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "MasonryCourse",
+          "position": [
+            -44.849999999999994,
+            20.5625,
+            -20.0
+          ],
+          "size": [
+            0.18,
+            0.146875,
+            40.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "cream",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "MasonryCourse",
+          "position": [
+            -44.849999999999994,
+            29.375,
+            -20.0
+          ],
+          "size": [
+            0.18,
+            0.146875,
+            40.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "cream",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "SideWall",
+          "position": [
+            45.525000000000006,
+            16.15625,
+            -20.0
+          ],
+          "size": [
+            1.0499999999999998,
+            32.3125,
+            40.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Collision",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Skirting",
+          "position": [
+            44.625,
+            0.8078125,
+            -20.0
+          ],
+          "size": [
+            0.5700000000000001,
+            1.615625,
+            40.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "DadoRail",
+          "position": [
+            44.55,
+            7.6375,
+            -20.0
+          ],
+          "size": [
+            0.44999999999999996,
+            0.3525,
+            40.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "EaveRail",
+          "position": [
+            44.55,
+            32.018750000000004,
+            -20.0
+          ],
+          "size": [
+            0.675,
+            0.734375,
+            40.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "MasonryCourse",
+          "position": [
+            44.849999999999994,
+            10.28125,
+            -20.0
+          ],
+          "size": [
+            0.18,
+            0.146875,
+            40.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "cream",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "MasonryCourse",
+          "position": [
+            44.849999999999994,
+            20.5625,
+            -20.0
+          ],
+          "size": [
+            0.18,
+            0.146875,
+            40.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "cream",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "MasonryCourse",
+          "position": [
+            44.849999999999994,
+            29.375,
+            -20.0
+          ],
+          "size": [
+            0.18,
+            0.146875,
+            40.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "cream",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "RoofFacet",
+          "position": [
+            -41.625,
+            36.71875,
+            -20.0
+          ],
+          "size": [
+            0.7427429612278789,
+            12.071563952114904,
+            40.0
+          ],
+          "rotation": [
+            0.7300213986321198,
+            0.6834242880811332,
+            -0.0,
+            -0.6834242880811332,
+            0.7300213986321198,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "roof",
+          "collide": false,
+          "group": "Roof",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "RoofFacet",
+          "position": [
+            -32.25,
+            44.0625,
+            -20.0
+          ],
+          "size": [
+            0.7381304073441818,
+            12.03185875083314,
+            40.00000000000001
+          ],
+          "rotation": [
+            0.4882869822248527,
+            0.8726831171678219,
+            -0.0,
+            -0.8726831171678219,
+            0.48828698222485273,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "roof",
+          "collide": false,
+          "group": "Roof",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "RoofFacet",
+          "position": [
+            0.0,
+            47.0,
+            -20.0
+          ],
+          "size": [
+            0.734375,
+            54.0,
+            40.0
+          ],
+          "rotation": [
+            0.0,
+            1.0,
+            -0.0,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "roof",
+          "collide": false,
+          "group": "Roof",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "RoofFacet",
+          "position": [
+            32.25,
+            44.0625,
+            -20.0
+          ],
+          "size": [
+            0.7381304073441818,
+            12.03185875083314,
+            40.00000000000001
+          ],
+          "rotation": [
+            -0.4882869822248527,
+            0.8726831171678219,
+            0.0,
+            -0.8726831171678219,
+            -0.48828698222485273,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "roof",
+          "collide": false,
+          "group": "Roof",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "RoofFacet",
+          "position": [
+            41.625,
+            36.71875,
+            -20.0
+          ],
+          "size": [
+            0.7427429612278789,
+            12.071563952114904,
+            40.0
+          ],
+          "rotation": [
+            -0.7300213986321198,
+            0.6834242880811332,
+            0.0,
+            -0.6834242880811332,
+            -0.7300213986321198,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "roof",
+          "collide": false,
+          "group": "Roof",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "TileJoint",
+          "position": [
+            0.0,
+            0.0440625,
+            -4.0
+          ],
+          "size": [
+            89.85,
+            0.029375000000000002,
+            0.065
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": false,
+          "group": "FloorFinish",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "TileJoint",
+          "position": [
+            0.0,
+            0.0440625,
+            -12.0
+          ],
+          "size": [
+            89.85,
+            0.029375000000000002,
+            0.065
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": false,
+          "group": "FloorFinish",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "TileJoint",
+          "position": [
+            0.0,
+            0.0440625,
+            -20.0
+          ],
+          "size": [
+            89.85,
+            0.029375000000000002,
+            0.065
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": false,
+          "group": "FloorFinish",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "TileJoint",
+          "position": [
+            0.0,
+            0.0440625,
+            -28.0
+          ],
+          "size": [
+            89.85,
+            0.029375000000000002,
+            0.065
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": false,
+          "group": "FloorFinish",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "TileJoint",
+          "position": [
+            0.0,
+            0.0440625,
+            -36.0
+          ],
+          "size": [
+            89.85,
+            0.029375000000000002,
+            0.065
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": false,
+          "group": "FloorFinish",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Pier",
+          "position": [
+            -43.5,
+            15.56875,
+            -1.0
+          ],
+          "size": [
+            1.6500000000000001,
+            31.1375,
+            1.1
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PierFoot",
+          "position": [
+            -43.5,
+            1.175,
+            -1.0
+          ],
+          "size": [
+            2.25,
+            2.35,
+            1.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "FacetBrace",
+          "position": [
+            -40.5,
+            27.90625,
+            -1.0
+          ],
+          "size": [
+            0.8941037914328651,
+            10.661151731872126,
+            0.5999999999999999
+          ],
+          "rotation": [
+            0.8265992475892192,
+            0.5627909770820216,
+            -0.0,
+            -0.5627909770820216,
+            0.8265992475892192,
+            0.0,
+            0.0,
+            0.0,
+            0.9999999999999999
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Pier",
+          "position": [
+            43.5,
+            15.56875,
+            -1.0
+          ],
+          "size": [
+            1.6500000000000001,
+            31.1375,
+            1.1
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PierFoot",
+          "position": [
+            43.5,
+            1.175,
+            -1.0
+          ],
+          "size": [
+            2.25,
+            2.35,
+            1.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "FacetBrace",
+          "position": [
+            40.5,
+            27.90625,
+            -1.0
+          ],
+          "size": [
+            0.8941037914328651,
+            10.661151731872126,
+            0.5999999999999999
+          ],
+          "rotation": [
+            0.8265992475892192,
+            -0.5627909770820216,
+            0.0,
+            0.5627909770820216,
+            0.8265992475892192,
+            -0.0,
+            0.0,
+            0.0,
+            0.9999999999999999
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            -41.625,
+            36.71875,
+            -1.0
+          ],
+          "size": [
+            0.9655658495962426,
+            12.071563952114904,
+            0.65
+          ],
+          "rotation": [
+            0.7300213986321198,
+            0.6834242880811332,
+            -0.0,
+            -0.6834242880811332,
+            0.7300213986321198,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            -32.25,
+            44.0625,
+            -1.0
+          ],
+          "size": [
+            0.9595695295474364,
+            12.03185875083314,
+            0.6500000000000001
+          ],
+          "rotation": [
+            0.4882869822248527,
+            0.8726831171678219,
+            -0.0,
+            -0.8726831171678219,
+            0.48828698222485273,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            0.0,
+            47.0,
+            -1.0
+          ],
+          "size": [
+            0.9546875,
+            54.0,
+            0.65
+          ],
+          "rotation": [
+            0.0,
+            1.0,
+            -0.0,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            32.25,
+            44.0625,
+            -1.0
+          ],
+          "size": [
+            0.9595695295474364,
+            12.03185875083314,
+            0.6500000000000001
+          ],
+          "rotation": [
+            -0.4882869822248527,
+            0.8726831171678219,
+            0.0,
+            -0.8726831171678219,
+            -0.48828698222485273,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            41.625,
+            36.71875,
+            -1.0
+          ],
+          "size": [
+            0.9655658495962426,
+            12.071563952114904,
+            0.65
+          ],
+          "rotation": [
+            -0.7300213986321198,
+            0.6834242880811332,
+            0.0,
+            -0.6834242880811332,
+            -0.7300213986321198,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Pier",
+          "position": [
+            -43.5,
+            15.56875,
+            -20.0
+          ],
+          "size": [
+            1.6500000000000001,
+            31.1375,
+            1.1
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PierFoot",
+          "position": [
+            -43.5,
+            1.175,
+            -20.0
+          ],
+          "size": [
+            2.25,
+            2.35,
+            1.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "FacetBrace",
+          "position": [
+            -40.5,
+            27.90625,
+            -20.0
+          ],
+          "size": [
+            0.8941037914328651,
+            10.661151731872126,
+            0.5999999999999999
+          ],
+          "rotation": [
+            0.8265992475892192,
+            0.5627909770820216,
+            -0.0,
+            -0.5627909770820216,
+            0.8265992475892192,
+            0.0,
+            0.0,
+            0.0,
+            0.9999999999999999
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Pier",
+          "position": [
+            43.5,
+            15.56875,
+            -20.0
+          ],
+          "size": [
+            1.6500000000000001,
+            31.1375,
+            1.1
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PierFoot",
+          "position": [
+            43.5,
+            1.175,
+            -20.0
+          ],
+          "size": [
+            2.25,
+            2.35,
+            1.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "FacetBrace",
+          "position": [
+            40.5,
+            27.90625,
+            -20.0
+          ],
+          "size": [
+            0.8941037914328651,
+            10.661151731872126,
+            0.5999999999999999
+          ],
+          "rotation": [
+            0.8265992475892192,
+            -0.5627909770820216,
+            0.0,
+            0.5627909770820216,
+            0.8265992475892192,
+            -0.0,
+            0.0,
+            0.0,
+            0.9999999999999999
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            -41.625,
+            36.71875,
+            -20.0
+          ],
+          "size": [
+            0.9655658495962426,
+            12.071563952114904,
+            0.65
+          ],
+          "rotation": [
+            0.7300213986321198,
+            0.6834242880811332,
+            -0.0,
+            -0.6834242880811332,
+            0.7300213986321198,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            -32.25,
+            44.0625,
+            -20.0
+          ],
+          "size": [
+            0.9595695295474364,
+            12.03185875083314,
+            0.6500000000000001
+          ],
+          "rotation": [
+            0.4882869822248527,
+            0.8726831171678219,
+            -0.0,
+            -0.8726831171678219,
+            0.48828698222485273,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            0.0,
+            47.0,
+            -20.0
+          ],
+          "size": [
+            0.9546875,
+            54.0,
+            0.65
+          ],
+          "rotation": [
+            0.0,
+            1.0,
+            -0.0,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            32.25,
+            44.0625,
+            -20.0
+          ],
+          "size": [
+            0.9595695295474364,
+            12.03185875083314,
+            0.6500000000000001
+          ],
+          "rotation": [
+            -0.4882869822248527,
+            0.8726831171678219,
+            0.0,
+            -0.8726831171678219,
+            -0.48828698222485273,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            41.625,
+            36.71875,
+            -20.0
+          ],
+          "size": [
+            0.9655658495962426,
+            12.071563952114904,
+            0.65
+          ],
+          "rotation": [
+            -0.7300213986321198,
+            0.6834242880811332,
+            0.0,
+            -0.6834242880811332,
+            -0.7300213986321198,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Pier",
+          "position": [
+            -43.5,
+            15.56875,
+            -39.0
+          ],
+          "size": [
+            1.6500000000000001,
+            31.1375,
+            1.1
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PierFoot",
+          "position": [
+            -43.5,
+            1.175,
+            -39.0
+          ],
+          "size": [
+            2.25,
+            2.35,
+            1.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "FacetBrace",
+          "position": [
+            -40.5,
+            27.90625,
+            -39.0
+          ],
+          "size": [
+            0.8941037914328651,
+            10.661151731872126,
+            0.5999999999999999
+          ],
+          "rotation": [
+            0.8265992475892192,
+            0.5627909770820216,
+            -0.0,
+            -0.5627909770820216,
+            0.8265992475892192,
+            0.0,
+            0.0,
+            0.0,
+            0.9999999999999999
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Pier",
+          "position": [
+            43.5,
+            15.56875,
+            -39.0
+          ],
+          "size": [
+            1.6500000000000001,
+            31.1375,
+            1.1
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PierFoot",
+          "position": [
+            43.5,
+            1.175,
+            -39.0
+          ],
+          "size": [
+            2.25,
+            2.35,
+            1.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "FacetBrace",
+          "position": [
+            40.5,
+            27.90625,
+            -39.0
+          ],
+          "size": [
+            0.8941037914328651,
+            10.661151731872126,
+            0.5999999999999999
+          ],
+          "rotation": [
+            0.8265992475892192,
+            -0.5627909770820216,
+            0.0,
+            0.5627909770820216,
+            0.8265992475892192,
+            -0.0,
+            0.0,
+            0.0,
+            0.9999999999999999
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            -41.625,
+            36.71875,
+            -39.0
+          ],
+          "size": [
+            0.9655658495962426,
+            12.071563952114904,
+            0.65
+          ],
+          "rotation": [
+            0.7300213986321198,
+            0.6834242880811332,
+            -0.0,
+            -0.6834242880811332,
+            0.7300213986321198,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            -32.25,
+            44.0625,
+            -39.0
+          ],
+          "size": [
+            0.9595695295474364,
+            12.03185875083314,
+            0.6500000000000001
+          ],
+          "rotation": [
+            0.4882869822248527,
+            0.8726831171678219,
+            -0.0,
+            -0.8726831171678219,
+            0.48828698222485273,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            0.0,
+            47.0,
+            -39.0
+          ],
+          "size": [
+            0.9546875,
+            54.0,
+            0.65
+          ],
+          "rotation": [
+            0.0,
+            1.0,
+            -0.0,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            32.25,
+            44.0625,
+            -39.0
+          ],
+          "size": [
+            0.9595695295474364,
+            12.03185875083314,
+            0.6500000000000001
+          ],
+          "rotation": [
+            -0.4882869822248527,
+            0.8726831171678219,
+            0.0,
+            -0.8726831171678219,
+            -0.48828698222485273,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            41.625,
+            36.71875,
+            -39.0
+          ],
+          "size": [
+            0.9655658495962426,
+            12.071563952114904,
+            0.65
+          ],
+          "rotation": [
+            -0.7300213986321198,
+            0.6834242880811332,
+            0.0,
+            -0.6834242880811332,
+            -0.7300213986321198,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowBacking",
+          "position": [
+            -44.025000000000006,
+            17.037499999999998,
+            -8.0
+          ],
+          "size": [
+            0.34500000000000003,
+            12.778125,
+            7.6
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "glass",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowStile",
+          "position": [
+            -44.025000000000006,
+            17.037499999999998,
+            -4.0
+          ],
+          "size": [
+            0.34500000000000003,
+            13.953125,
+            0.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowStile",
+          "position": [
+            -44.025000000000006,
+            17.037499999999998,
+            -12.0
+          ],
+          "size": [
+            0.34500000000000003,
+            13.953125,
+            0.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowRail",
+          "position": [
+            -44.025000000000006,
+            10.28125,
+            -8.0
+          ],
+          "size": [
+            0.34500000000000003,
+            0.616875,
+            8.4
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowRail",
+          "position": [
+            -44.025000000000006,
+            23.79375,
+            -8.0
+          ],
+          "size": [
+            0.34500000000000003,
+            0.616875,
+            8.4
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Crossbar",
+          "position": [
+            -44.025000000000006,
+            17.037499999999998,
+            -8.0
+          ],
+          "size": [
+            0.34500000000000003,
+            0.3671875,
+            7.8
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Upright",
+          "position": [
+            -44.025000000000006,
+            17.037499999999998,
+            -8.0
+          ],
+          "size": [
+            0.34500000000000003,
+            13.071875,
+            0.2
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowBacking",
+          "position": [
+            -44.025000000000006,
+            17.037499999999998,
+            -20.0
+          ],
+          "size": [
+            0.34500000000000003,
+            12.778125,
+            7.6
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "glass",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowStile",
+          "position": [
+            -44.025000000000006,
+            17.037499999999998,
+            -16.0
+          ],
+          "size": [
+            0.34500000000000003,
+            13.953125,
+            0.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowStile",
+          "position": [
+            -44.025000000000006,
+            17.037499999999998,
+            -24.0
+          ],
+          "size": [
+            0.34500000000000003,
+            13.953125,
+            0.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowRail",
+          "position": [
+            -44.025000000000006,
+            10.28125,
+            -20.0
+          ],
+          "size": [
+            0.34500000000000003,
+            0.616875,
+            8.4
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowRail",
+          "position": [
+            -44.025000000000006,
+            23.79375,
+            -20.0
+          ],
+          "size": [
+            0.34500000000000003,
+            0.616875,
+            8.4
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Crossbar",
+          "position": [
+            -44.025000000000006,
+            17.037499999999998,
+            -20.0
+          ],
+          "size": [
+            0.34500000000000003,
+            0.3671875,
+            7.8
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Upright",
+          "position": [
+            -44.025000000000006,
+            17.037499999999998,
+            -20.0
+          ],
+          "size": [
+            0.34500000000000003,
+            13.071875,
+            0.2
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowBacking",
+          "position": [
+            -44.025000000000006,
+            17.037499999999998,
+            -32.0
+          ],
+          "size": [
+            0.34500000000000003,
+            12.778125,
+            7.6
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "glass",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowStile",
+          "position": [
+            -44.025000000000006,
+            17.037499999999998,
+            -28.0
+          ],
+          "size": [
+            0.34500000000000003,
+            13.953125,
+            0.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowStile",
+          "position": [
+            -44.025000000000006,
+            17.037499999999998,
+            -36.0
+          ],
+          "size": [
+            0.34500000000000003,
+            13.953125,
+            0.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowRail",
+          "position": [
+            -44.025000000000006,
+            10.28125,
+            -32.0
+          ],
+          "size": [
+            0.34500000000000003,
+            0.616875,
+            8.4
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowRail",
+          "position": [
+            -44.025000000000006,
+            23.79375,
+            -32.0
+          ],
+          "size": [
+            0.34500000000000003,
+            0.616875,
+            8.4
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Crossbar",
+          "position": [
+            -44.025000000000006,
+            17.037499999999998,
+            -32.0
+          ],
+          "size": [
+            0.34500000000000003,
+            0.3671875,
+            7.8
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Upright",
+          "position": [
+            -44.025000000000006,
+            17.037499999999998,
+            -32.0
+          ],
+          "size": [
+            0.34500000000000003,
+            13.071875,
+            0.2
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Lightning",
+          "position": [
+            -42.75,
+            27.72265625,
+            -13.825
+          ],
+          "size": [
+            0.42000000000000004,
+            2.694080334298932,
+            0.33530808711414145
+          ],
+          "rotation": [
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.7905063085485894,
+            -0.6124538971587022,
+            0.0,
+            -0.6124538971587022,
+            0.7905063085485894
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Fixtures",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Lightning",
+          "position": [
+            -42.75,
+            26.5109375,
+            -14.075
+          ],
+          "size": [
+            0.4044372799070603,
+            1.1869242025083167,
+            0.42
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            1.0,
+            0.968890850460135,
+            -0.24748842375884228,
+            0.0,
+            0.24748842375884228,
+            0.968890850460135,
+            -0.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Fixtures",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Lightning",
+          "position": [
+            -42.75,
+            24.93203125,
+            -14.25
+          ],
+          "size": [
+            0.42000000000000004,
+            3.233087379565582,
+            0.31293624547743254
+          ],
+          "rotation": [
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.8858599115204959,
+            -0.4639528178176086,
+            0.0,
+            -0.4639528178176086,
+            0.8858599115204959
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Fixtures",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Lightning",
+          "position": [
+            -42.75,
+            27.72265625,
+            -25.825
+          ],
+          "size": [
+            0.42000000000000004,
+            2.6940803342989312,
+            0.3353080871141414
+          ],
+          "rotation": [
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.7905063085485898,
+            -0.6124538971587018,
+            0.0,
+            -0.6124538971587018,
+            0.7905063085485898
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Fixtures",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Lightning",
+          "position": [
+            -42.75,
+            26.5109375,
+            -26.075
+          ],
+          "size": [
+            0.4044372799070603,
+            1.1869242025083147,
+            0.42
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            1.0,
+            0.9688908504601348,
+            -0.24748842375884267,
+            0.0,
+            0.24748842375884264,
+            0.968890850460135,
+            -0.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Fixtures",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Lightning",
+          "position": [
+            -42.75,
+            24.93203125,
+            -26.25
+          ],
+          "size": [
+            0.42000000000000004,
+            3.233087379565582,
+            0.31293624547743254
+          ],
+          "rotation": [
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.8858599115204959,
+            -0.4639528178176086,
+            0.0,
+            -0.4639528178176086,
+            0.8858599115204959
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Fixtures",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowBacking",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            -8.0
+          ],
+          "size": [
+            0.34500000000000003,
+            12.778125,
+            7.6
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "glass",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowStile",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            -4.0
+          ],
+          "size": [
+            0.34500000000000003,
+            13.953125,
+            0.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowStile",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            -12.0
+          ],
+          "size": [
+            0.34500000000000003,
+            13.953125,
+            0.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowRail",
+          "position": [
+            44.025000000000006,
+            10.28125,
+            -8.0
+          ],
+          "size": [
+            0.34500000000000003,
+            0.616875,
+            8.4
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowRail",
+          "position": [
+            44.025000000000006,
+            23.79375,
+            -8.0
+          ],
+          "size": [
+            0.34500000000000003,
+            0.616875,
+            8.4
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Crossbar",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            -8.0
+          ],
+          "size": [
+            0.34500000000000003,
+            0.3671875,
+            7.8
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Upright",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            -8.0
+          ],
+          "size": [
+            0.34500000000000003,
+            13.071875,
+            0.2
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowBacking",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            -20.0
+          ],
+          "size": [
+            0.34500000000000003,
+            12.778125,
+            7.6
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "glass",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowStile",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            -16.0
+          ],
+          "size": [
+            0.34500000000000003,
+            13.953125,
+            0.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowStile",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            -24.0
+          ],
+          "size": [
+            0.34500000000000003,
+            13.953125,
+            0.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowRail",
+          "position": [
+            44.025000000000006,
+            10.28125,
+            -20.0
+          ],
+          "size": [
+            0.34500000000000003,
+            0.616875,
+            8.4
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowRail",
+          "position": [
+            44.025000000000006,
+            23.79375,
+            -20.0
+          ],
+          "size": [
+            0.34500000000000003,
+            0.616875,
+            8.4
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Crossbar",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            -20.0
+          ],
+          "size": [
+            0.34500000000000003,
+            0.3671875,
+            7.8
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Upright",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            -20.0
+          ],
+          "size": [
+            0.34500000000000003,
+            13.071875,
+            0.2
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowBacking",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            -32.0
+          ],
+          "size": [
+            0.34500000000000003,
+            12.778125,
+            7.6
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "glass",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowStile",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            -28.0
+          ],
+          "size": [
+            0.34500000000000003,
+            13.953125,
+            0.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowStile",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            -36.0
+          ],
+          "size": [
+            0.34500000000000003,
+            13.953125,
+            0.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowRail",
+          "position": [
+            44.025000000000006,
+            10.28125,
+            -32.0
+          ],
+          "size": [
+            0.34500000000000003,
+            0.616875,
+            8.4
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowRail",
+          "position": [
+            44.025000000000006,
+            23.79375,
+            -32.0
+          ],
+          "size": [
+            0.34500000000000003,
+            0.616875,
+            8.4
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Crossbar",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            -32.0
+          ],
+          "size": [
+            0.34500000000000003,
+            0.3671875,
+            7.8
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Upright",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            -32.0
+          ],
+          "size": [
+            0.34500000000000003,
+            13.071875,
+            0.2
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Lightning",
+          "position": [
+            42.75,
+            27.72265625,
+            -13.825
+          ],
+          "size": [
+            0.42000000000000004,
+            2.694080334298932,
+            0.33530808711414145
+          ],
+          "rotation": [
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.7905063085485894,
+            -0.6124538971587022,
+            0.0,
+            -0.6124538971587022,
+            0.7905063085485894
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Fixtures",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Lightning",
+          "position": [
+            42.75,
+            26.5109375,
+            -14.075
+          ],
+          "size": [
+            0.4044372799070603,
+            1.1869242025083167,
+            0.42
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            1.0,
+            0.968890850460135,
+            -0.24748842375884228,
+            0.0,
+            0.24748842375884228,
+            0.968890850460135,
+            -0.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Fixtures",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Lightning",
+          "position": [
+            42.75,
+            24.93203125,
+            -14.25
+          ],
+          "size": [
+            0.42000000000000004,
+            3.233087379565582,
+            0.31293624547743254
+          ],
+          "rotation": [
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.8858599115204959,
+            -0.4639528178176086,
+            0.0,
+            -0.4639528178176086,
+            0.8858599115204959
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Fixtures",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Lightning",
+          "position": [
+            42.75,
+            27.72265625,
+            -25.825
+          ],
+          "size": [
+            0.42000000000000004,
+            2.6940803342989312,
+            0.3353080871141414
+          ],
+          "rotation": [
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.7905063085485898,
+            -0.6124538971587018,
+            0.0,
+            -0.6124538971587018,
+            0.7905063085485898
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Fixtures",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Lightning",
+          "position": [
+            42.75,
+            26.5109375,
+            -26.075
+          ],
+          "size": [
+            0.4044372799070603,
+            1.1869242025083147,
+            0.42
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            1.0,
+            0.9688908504601348,
+            -0.24748842375884267,
+            0.0,
+            0.24748842375884264,
+            0.968890850460135,
+            -0.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Fixtures",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Lightning",
+          "position": [
+            42.75,
+            24.93203125,
+            -26.25
+          ],
+          "size": [
+            0.42000000000000004,
+            3.233087379565582,
+            0.31293624547743254
+          ],
+          "rotation": [
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.8858599115204959,
+            -0.4639528178176086,
+            0.0,
+            -0.4639528178176086,
+            0.8858599115204959
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Fixtures",
+          "shape": "Block",
+          "transparency": 0
+        }
+      ],
+      "mounts": {
+        "Entry": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "Exit": {
+          "position": [
+            0.0,
+            0.0,
+            -40.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "Slot_01": {
+          "position": [
+            -33.0,
+            0.03,
+            -8.0
+          ],
+          "rotation": [
+            6.123233995736766e-17,
+            0.0,
+            -1.0,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            6.123233995736766e-17
+          ]
+        },
+        "Slot_02": {
+          "position": [
+            -33.0,
+            0.03,
+            -20.0
+          ],
+          "rotation": [
+            6.123233995736766e-17,
+            0.0,
+            -1.0,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            6.123233995736766e-17
+          ]
+        },
+        "Slot_03": {
+          "position": [
+            -33.0,
+            0.03,
+            -32.0
+          ],
+          "rotation": [
+            6.123233995736766e-17,
+            0.0,
+            -1.0,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            6.123233995736766e-17
+          ]
+        },
+        "Slot_04": {
+          "position": [
+            33.0,
+            0.03,
+            -8.0
+          ],
+          "rotation": [
+            6.123233995736766e-17,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            -1.0,
+            0.0,
+            6.123233995736766e-17
+          ]
+        },
+        "Slot_05": {
+          "position": [
+            33.0,
+            0.03,
+            -20.0
+          ],
+          "rotation": [
+            6.123233995736766e-17,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            -1.0,
+            0.0,
+            6.123233995736766e-17
+          ]
+        },
+        "Slot_06": {
+          "position": [
+            33.0,
+            0.03,
+            -32.0
+          ],
+          "rotation": [
+            6.123233995736766e-17,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            -1.0,
+            0.0,
+            6.123233995736766e-17
+          ]
+        }
+      }
+    },
+    "Pedestal": {
+      "name": "Pedestal",
+      "length": 0,
+      "parts": [
+        {
+          "name": "Foot",
+          "position": [
+            0,
+            0.18,
+            0
+          ],
+          "size": [
+            6.1,
+            0.36,
+            6.1
+          ],
+          "rotation": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ],
+          "material": "trim",
+          "collide": true,
+          "group": "Base",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Body",
+          "position": [
+            0,
+            0.89,
+            0
+          ],
+          "size": [
+            5.55,
+            1.1,
+            5.55
+          ],
+          "rotation": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ],
+          "material": "door",
+          "collide": true,
+          "group": "Base",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Rim",
+          "position": [
+            0,
+            1.49,
+            0
+          ],
+          "size": [
+            5.95,
+            0.18,
+            5.95
+          ],
+          "rotation": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Base",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "DisplayTop",
+          "position": [
+            0,
+            1.63,
+            0
+          ],
+          "size": [
+            5.6,
+            0.12,
+            5.6
+          ],
+          "rotation": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ],
+          "material": "top",
+          "collide": true,
+          "group": "Base",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "CollectionPlate",
+          "position": [
+            0,
+            0.19,
+            -3.3
+          ],
+          "size": [
+            2.8,
+            0.34,
+            1.05
+          ],
+          "rotation": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ],
+          "material": "trim",
+          "collide": true,
+          "group": "Collect",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "CollectionInset",
+          "position": [
+            0,
+            0.37,
+            -3.3
+          ],
+          "size": [
+            2.45,
+            0.09,
+            0.82
+          ],
+          "rotation": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Collect",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "CoinMedallion",
+          "position": [
+            0,
+            0.95,
+            -2.82
+          ],
+          "size": [
+            0.09,
+            1.0,
+            1.0
+          ],
+          "rotation": [
+            6.123233995736766e-17,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            -1.0,
+            0.0,
+            6.123233995736766e-17
+          ],
+          "material": "gold",
+          "collide": false,
+          "group": "Collect",
+          "shape": "Cylinder",
+          "transparency": 0
+        },
+        {
+          "name": "CoinCenter",
+          "position": [
+            0,
+            0.95,
+            -2.88
+          ],
+          "size": [
+            0.05,
+            0.74,
+            0.74
+          ],
+          "rotation": [
+            6.123233995736766e-17,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            -1.0,
+            0.0,
+            6.123233995736766e-17
+          ],
+          "material": "cream",
+          "collide": false,
+          "group": "Collect",
+          "shape": "Cylinder",
+          "transparency": 0
+        },
+        {
+          "name": "CoinMark",
+          "position": [
+            0,
+            0.95,
+            -2.93
+          ],
+          "size": [
+            0.1,
+            0.45,
+            0.04
+          ],
+          "rotation": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Collect",
+          "shape": "Block",
+          "transparency": 0
+        }
+      ],
+      "mounts": {
+        "Piggy": {
+          "position": [
+            0,
+            1.69,
+            0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "CashLabel": {
+          "position": [
+            0,
+            1.25,
+            -2.98
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "Collect": {
+          "position": [
+            0,
+            0.42,
+            -3.3
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      }
+    },
+    "RebirthGate": {
+      "name": "RebirthGate",
+      "length": 0,
+      "parts": [
+        {
+          "name": "DoorJamb",
+          "position": [
+            -39.67105263157895,
+            14.172949002217294,
+            0.35
+          ],
+          "size": [
+            2.1315789473684212,
+            28.345898004434588,
+            1.15
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": true,
+          "group": "Frame",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "JambFoot",
+          "position": [
+            -39.67105263157895,
+            1.2505543237250554,
+            0.35
+          ],
+          "size": [
+            2.960526315789474,
+            2.5011086474501107,
+            1.35
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "door",
+          "collide": false,
+          "group": "Frame",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "DoorJamb",
+          "position": [
+            39.67105263157895,
+            14.172949002217294,
+            0.35
+          ],
+          "size": [
+            2.1315789473684212,
+            28.345898004434588,
+            1.15
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": true,
+          "group": "Frame",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "JambFoot",
+          "position": [
+            39.67105263157895,
+            1.2505543237250554,
+            0.35
+          ],
+          "size": [
+            2.960526315789474,
+            2.5011086474501107,
+            1.35
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "door",
+          "collide": false,
+          "group": "Frame",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "TimberPanel",
+          "position": [
+            -19.25526315789474,
+            4.668736141906874,
+            0
+          ],
+          "size": [
+            38.32105263157895,
+            9.149889135254988,
+            0.58
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "door",
+          "collide": false,
+          "group": "Panel_1_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelStile",
+          "position": [
+            -36.78157894736842,
+            4.668736141906874,
+            0.34
+          ],
+          "size": [
+            0.6394736842105264,
+            8.12860310421286,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Panel_1_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelStile",
+          "position": [
+            -1.7289473684210537,
+            4.668736141906874,
+            0.34
+          ],
+          "size": [
+            0.6394736842105264,
+            8.12860310421286,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Panel_1_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelRail",
+          "position": [
+            -19.25526315789474,
+            0.875388026607539,
+            0.34
+          ],
+          "size": [
+            34.3421052631579,
+            0.5419068736141907,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_1_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelRail",
+          "position": [
+            -19.25526315789474,
+            8.46208425720621,
+            0.34
+          ],
+          "size": [
+            34.3421052631579,
+            0.5419068736141907,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_1_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelInset",
+          "position": [
+            -19.25526315789474,
+            4.668736141906874,
+            0.302
+          ],
+          "size": [
+            34.10526315789474,
+            6.752993348115299,
+            0.045
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_1_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "TimberPanel",
+          "position": [
+            19.25526315789474,
+            4.668736141906874,
+            0
+          ],
+          "size": [
+            38.32105263157895,
+            9.149889135254988,
+            0.58
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "door",
+          "collide": false,
+          "group": "Panel_1_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelStile",
+          "position": [
+            1.7289473684210537,
+            4.668736141906874,
+            0.34
+          ],
+          "size": [
+            0.6394736842105264,
+            8.12860310421286,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Panel_1_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelStile",
+          "position": [
+            36.78157894736842,
+            4.668736141906874,
+            0.34
+          ],
+          "size": [
+            0.6394736842105264,
+            8.12860310421286,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Panel_1_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelRail",
+          "position": [
+            19.25526315789474,
+            0.875388026607539,
+            0.34
+          ],
+          "size": [
+            34.3421052631579,
+            0.5419068736141907,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_1_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelRail",
+          "position": [
+            19.25526315789474,
+            8.46208425720621,
+            0.34
+          ],
+          "size": [
+            34.3421052631579,
+            0.5419068736141907,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_1_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelInset",
+          "position": [
+            19.25526315789474,
+            4.668736141906874,
+            0.302
+          ],
+          "size": [
+            34.10526315789474,
+            6.752993348115299,
+            0.045
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_1_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "TimberPanel",
+          "position": [
+            -19.25526315789474,
+            13.94368070953437,
+            0
+          ],
+          "size": [
+            38.32105263157895,
+            9.149889135254988,
+            0.58
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "door",
+          "collide": false,
+          "group": "Panel_2_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelStile",
+          "position": [
+            -36.78157894736842,
+            13.94368070953437,
+            0.34
+          ],
+          "size": [
+            0.6394736842105264,
+            8.12860310421286,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Panel_2_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelStile",
+          "position": [
+            -1.7289473684210537,
+            13.94368070953437,
+            0.34
+          ],
+          "size": [
+            0.6394736842105264,
+            8.12860310421286,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Panel_2_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelRail",
+          "position": [
+            -19.25526315789474,
+            10.150332594235032,
+            0.34
+          ],
+          "size": [
+            34.3421052631579,
+            0.5419068736141907,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_2_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelRail",
+          "position": [
+            -19.25526315789474,
+            17.7370288248337,
+            0.34
+          ],
+          "size": [
+            34.3421052631579,
+            0.5419068736141907,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_2_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelInset",
+          "position": [
+            -19.25526315789474,
+            13.94368070953437,
+            0.302
+          ],
+          "size": [
+            34.10526315789474,
+            6.752993348115299,
+            0.045
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_2_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "TimberPanel",
+          "position": [
+            19.25526315789474,
+            13.94368070953437,
+            0
+          ],
+          "size": [
+            38.32105263157895,
+            9.149889135254988,
+            0.58
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "door",
+          "collide": false,
+          "group": "Panel_2_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelStile",
+          "position": [
+            1.7289473684210537,
+            13.94368070953437,
+            0.34
+          ],
+          "size": [
+            0.6394736842105264,
+            8.12860310421286,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Panel_2_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelStile",
+          "position": [
+            36.78157894736842,
+            13.94368070953437,
+            0.34
+          ],
+          "size": [
+            0.6394736842105264,
+            8.12860310421286,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Panel_2_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelRail",
+          "position": [
+            19.25526315789474,
+            10.150332594235032,
+            0.34
+          ],
+          "size": [
+            34.3421052631579,
+            0.5419068736141907,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_2_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelRail",
+          "position": [
+            19.25526315789474,
+            17.7370288248337,
+            0.34
+          ],
+          "size": [
+            34.3421052631579,
+            0.5419068736141907,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_2_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelInset",
+          "position": [
+            19.25526315789474,
+            13.94368070953437,
+            0.302
+          ],
+          "size": [
+            34.10526315789474,
+            6.752993348115299,
+            0.045
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_2_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "TimberPanel",
+          "position": [
+            -19.25526315789474,
+            23.218625277161863,
+            0
+          ],
+          "size": [
+            38.32105263157895,
+            9.149889135254988,
+            0.58
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "door",
+          "collide": false,
+          "group": "Panel_3_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelStile",
+          "position": [
+            -36.78157894736842,
+            23.218625277161863,
+            0.34
+          ],
+          "size": [
+            0.6394736842105264,
+            8.12860310421286,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Panel_3_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelStile",
+          "position": [
+            -1.7289473684210537,
+            23.218625277161863,
+            0.34
+          ],
+          "size": [
+            0.6394736842105264,
+            8.12860310421286,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Panel_3_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelRail",
+          "position": [
+            -19.25526315789474,
+            19.425277161862525,
+            0.34
+          ],
+          "size": [
+            34.3421052631579,
+            0.5419068736141907,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_3_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelRail",
+          "position": [
+            -19.25526315789474,
+            27.011973392461197,
+            0.34
+          ],
+          "size": [
+            34.3421052631579,
+            0.5419068736141907,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_3_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelInset",
+          "position": [
+            -19.25526315789474,
+            23.218625277161863,
+            0.302
+          ],
+          "size": [
+            34.10526315789474,
+            6.752993348115299,
+            0.045
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_3_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "TimberPanel",
+          "position": [
+            19.25526315789474,
+            23.218625277161863,
+            0
+          ],
+          "size": [
+            38.32105263157895,
+            9.149889135254988,
+            0.58
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "door",
+          "collide": false,
+          "group": "Panel_3_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelStile",
+          "position": [
+            1.7289473684210537,
+            23.218625277161863,
+            0.34
+          ],
+          "size": [
+            0.6394736842105264,
+            8.12860310421286,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Panel_3_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelStile",
+          "position": [
+            36.78157894736842,
+            23.218625277161863,
+            0.34
+          ],
+          "size": [
+            0.6394736842105264,
+            8.12860310421286,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Panel_3_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelRail",
+          "position": [
+            19.25526315789474,
+            19.425277161862525,
+            0.34
+          ],
+          "size": [
+            34.3421052631579,
+            0.5419068736141907,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_3_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelRail",
+          "position": [
+            19.25526315789474,
+            27.011973392461197,
+            0.34
+          ],
+          "size": [
+            34.3421052631579,
+            0.5419068736141907,
+            0.16
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_3_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PanelInset",
+          "position": [
+            19.25526315789474,
+            23.218625277161863,
+            0.302
+          ],
+          "size": [
+            34.10526315789474,
+            6.752993348115299,
+            0.045
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_3_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "GateBarrier",
+          "position": [
+            0.0,
+            14.006208425720619,
+            -0.15
+          ],
+          "size": [
+            77.21052631578948,
+            28.012416851441237,
+            0.65
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "door",
+          "collide": true,
+          "group": "Barrier",
+          "shape": "Block",
+          "transparency": 1
+        },
+        {
+          "name": "LockBackplate",
+          "position": [
+            0.0,
+            14.381374722838137,
+            0.7
+          ],
+          "size": [
+            8.644736842105264,
+            9.69179600886918,
+            0.32
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Lock",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "LockBody",
+          "position": [
+            0.0,
+            13.13082039911308,
+            0.98
+          ],
+          "size": [
+            4.026315789473684,
+            3.4390243902439024,
+            0.34
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "gold",
+          "collide": false,
+          "group": "Lock",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "LockShackle",
+          "position": [
+            -1.3263157894736843,
+            15.465188470066519,
+            0.98
+          ],
+          "size": [
+            0.5921052631578947,
+            2.0842572062084255,
+            0.26
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "cream",
+          "collide": false,
+          "group": "Lock",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "LockShackle",
+          "position": [
+            1.3263157894736843,
+            15.465188470066519,
+            0.98
+          ],
+          "size": [
+            0.5921052631578947,
+            2.0842572062084255,
+            0.26
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "cream",
+          "collide": false,
+          "group": "Lock",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "LockShackleTop",
+          "position": [
+            0.0,
+            16.549002217294902,
+            0.98
+          ],
+          "size": [
+            3.197368421052632,
+            0.5210643015521064,
+            0.26
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "cream",
+          "collide": false,
+          "group": "Lock",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Keyhole",
+          "position": [
+            0.0,
+            13.380931263858091,
+            1.17
+          ],
+          "size": [
+            0.04,
+            0.7920177383592016,
+            0.8999999999999999
+          ],
+          "rotation": [
+            1.4502396305692341e-16,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            -0.0,
+            -1.0,
+            0.0,
+            1.4502396305692341e-16
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Lock",
+          "shape": "Cylinder",
+          "transparency": 0
+        },
+        {
+          "name": "KeyholeStem",
+          "position": [
+            0.0,
+            12.755654101995564,
+            1.18
+          ],
+          "size": [
+            0.37894736842105264,
+            0.8337028824833703,
+            0.035
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Lock",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "RequirementSign",
+          "position": [
+            0.0,
+            22.509977827051,
+            0.75
+          ],
+          "size": [
+            23.68421052631579,
+            2.605321507760532,
+            0.25
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "cream",
+          "collide": false,
+          "group": "Lock",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "JambWall",
+          "position": [
+            -42.900000000000006,
+            14.7609375,
+            -0.3
+          ],
+          "size": [
+            6.300000000000001,
+            29.521875,
+            1.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Frame",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "JambWall",
+          "position": [
+            42.900000000000006,
+            14.7609375,
+            -0.3
+          ],
+          "size": [
+            6.300000000000001,
+            29.521875,
+            1.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Frame",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "UpperWall",
+          "position": [
+            -41.625,
+            30.9171875,
+            -0.3
+          ],
+          "size": [
+            8.25,
+            2.7906249999999977,
+            1.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Frame",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultGable",
+          "position": [
+            -41.625,
+            36.71875,
+            -0.3
+          ],
+          "size": [
+            1.0,
+            8.8125,
+            8.25
+          ],
+          "rotation": [
+            9.184850993605148e-17,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            -0.0,
+            -1.0,
+            0.0,
+            9.184850993605148e-17
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Frame",
+          "shape": "Wedge",
+          "transparency": 0
+        },
+        {
+          "name": "UpperWall",
+          "position": [
+            -32.25,
+            35.323437500000004,
+            -0.3
+          ],
+          "size": [
+            10.5,
+            11.603124999999999,
+            1.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Frame",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultGable",
+          "position": [
+            -32.25,
+            44.0625,
+            -0.3
+          ],
+          "size": [
+            1.0,
+            5.875,
+            10.5
+          ],
+          "rotation": [
+            9.184850993605148e-17,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            -0.0,
+            -1.0,
+            0.0,
+            9.184850993605148e-17
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Frame",
+          "shape": "Wedge",
+          "transparency": 0
+        },
+        {
+          "name": "UpperWall",
+          "position": [
+            0.0,
+            38.260937500000004,
+            -0.3
+          ],
+          "size": [
+            54.0,
+            17.478125,
+            1.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Frame",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "UpperWall",
+          "position": [
+            32.25,
+            35.323437500000004,
+            -0.3
+          ],
+          "size": [
+            10.5,
+            11.603124999999999,
+            1.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Frame",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultGable",
+          "position": [
+            32.25,
+            44.0625,
+            -0.3
+          ],
+          "size": [
+            1.0,
+            5.875,
+            10.5
+          ],
+          "rotation": [
+            9.184850993605148e-17,
+            0.0,
+            -1.0,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            9.184850993605148e-17
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Frame",
+          "shape": "Wedge",
+          "transparency": 0
+        },
+        {
+          "name": "UpperWall",
+          "position": [
+            41.625,
+            30.9171875,
+            -0.3
+          ],
+          "size": [
+            8.25,
+            2.7906249999999977,
+            1.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Frame",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultGable",
+          "position": [
+            41.625,
+            36.71875,
+            -0.3
+          ],
+          "size": [
+            1.0,
+            8.8125,
+            8.25
+          ],
+          "rotation": [
+            9.184850993605148e-17,
+            0.0,
+            -1.0,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            9.184850993605148e-17
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Frame",
+          "shape": "Wedge",
+          "transparency": 0
+        },
+        {
+          "name": "Header",
+          "position": [
+            0.0,
+            29.375,
+            0.6
+          ],
+          "size": [
+            81.0,
+            2.9375,
+            1.2
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": true,
+          "group": "Frame",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "HeaderInlay",
+          "position": [
+            0.0,
+            29.521875,
+            1.23
+          ],
+          "size": [
+            77.69999999999999,
+            0.88125,
+            0.1
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Frame",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "DoorBolt",
+          "position": [
+            -20.00526315789474,
+            5.696861141906873,
+            0.5
+          ],
+          "size": [
+            0.37007452385391826,
+            3.393842079782146,
+            0.24999999999999997
+          ],
+          "rotation": [
+            -0.6058767472563107,
+            0.7955585252727246,
+            0.0,
+            -0.7955585252727247,
+            -0.6058767472563107,
+            0.0,
+            0.0,
+            0.0,
+            0.9999999999999999
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_1_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "DoorBolt",
+          "position": [
+            -19.33026315789474,
+            3.640611141906873,
+            0.5
+          ],
+          "size": [
+            0.37266406014279413,
+            2.459809761444978,
+            0.25000000000000006
+          ],
+          "rotation": [
+            -0.8359386291694715,
+            -0.5488229297890759,
+            0.0,
+            0.5488229297890759,
+            -0.8359386291694716,
+            0.0,
+            0.0,
+            0.0,
+            1.0000000000000002
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_1_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "DoorBolt",
+          "position": [
+            18.50526315789474,
+            5.696861141906873,
+            0.5
+          ],
+          "size": [
+            0.37007452385391826,
+            3.393842079782146,
+            0.24999999999999997
+          ],
+          "rotation": [
+            -0.6058767472563107,
+            0.7955585252727246,
+            0.0,
+            -0.7955585252727247,
+            -0.6058767472563107,
+            0.0,
+            0.0,
+            0.0,
+            0.9999999999999999
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_1_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "DoorBolt",
+          "position": [
+            19.180263157894736,
+            3.640611141906873,
+            0.5
+          ],
+          "size": [
+            0.37266406014279413,
+            2.459809761444978,
+            0.25000000000000006
+          ],
+          "rotation": [
+            -0.8359386291694715,
+            -0.5488229297890759,
+            0.0,
+            0.5488229297890759,
+            -0.8359386291694716,
+            0.0,
+            0.0,
+            0.0,
+            1.0000000000000002
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_1_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "DoorBolt",
+          "position": [
+            -20.00526315789474,
+            14.97180570953437,
+            0.5
+          ],
+          "size": [
+            0.3700745238539183,
+            3.393842079782147,
+            0.24999999999999997
+          ],
+          "rotation": [
+            -0.6058767472563109,
+            0.7955585252727245,
+            0.0,
+            -0.7955585252727244,
+            -0.605876747256311,
+            0.0,
+            0.0,
+            0.0,
+            0.9999999999999999
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_2_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "DoorBolt",
+          "position": [
+            -19.33026315789474,
+            12.915555709534367,
+            0.5
+          ],
+          "size": [
+            0.3726640601427942,
+            2.459809761444979,
+            0.25
+          ],
+          "rotation": [
+            -0.8359386291694717,
+            -0.5488229297890757,
+            0.0,
+            0.5488229297890757,
+            -0.8359386291694716,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_2_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "DoorBolt",
+          "position": [
+            18.50526315789474,
+            14.97180570953437,
+            0.5
+          ],
+          "size": [
+            0.3700745238539183,
+            3.393842079782147,
+            0.24999999999999997
+          ],
+          "rotation": [
+            -0.6058767472563109,
+            0.7955585252727245,
+            0.0,
+            -0.7955585252727244,
+            -0.605876747256311,
+            0.0,
+            0.0,
+            0.0,
+            0.9999999999999999
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_2_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "DoorBolt",
+          "position": [
+            19.180263157894736,
+            12.915555709534367,
+            0.5
+          ],
+          "size": [
+            0.3726640601427942,
+            2.459809761444979,
+            0.25
+          ],
+          "rotation": [
+            -0.8359386291694717,
+            -0.5488229297890757,
+            0.0,
+            0.5488229297890757,
+            -0.8359386291694716,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_2_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "DoorBolt",
+          "position": [
+            -20.00526315789474,
+            24.246750277161862,
+            0.5
+          ],
+          "size": [
+            0.37007452385391826,
+            3.393842079782145,
+            0.24999999999999997
+          ],
+          "rotation": [
+            -0.6058767472563106,
+            0.7955585252727247,
+            0.0,
+            -0.7955585252727249,
+            -0.6058767472563105,
+            0.0,
+            0.0,
+            0.0,
+            0.9999999999999999
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_3_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "DoorBolt",
+          "position": [
+            -19.33026315789474,
+            22.190500277161863,
+            0.5
+          ],
+          "size": [
+            0.3726640601427942,
+            2.459809761444979,
+            0.25
+          ],
+          "rotation": [
+            -0.8359386291694717,
+            -0.5488229297890757,
+            0.0,
+            0.5488229297890757,
+            -0.8359386291694716,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_3_L",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "DoorBolt",
+          "position": [
+            18.50526315789474,
+            24.246750277161862,
+            0.5
+          ],
+          "size": [
+            0.37007452385391826,
+            3.393842079782145,
+            0.24999999999999997
+          ],
+          "rotation": [
+            -0.6058767472563106,
+            0.7955585252727247,
+            0.0,
+            -0.7955585252727249,
+            -0.6058767472563105,
+            0.0,
+            0.0,
+            0.0,
+            0.9999999999999999
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_3_R",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "DoorBolt",
+          "position": [
+            19.180263157894736,
+            22.190500277161863,
+            0.5
+          ],
+          "size": [
+            0.3726640601427942,
+            2.459809761444979,
+            0.25
+          ],
+          "rotation": [
+            -0.8359386291694717,
+            -0.5488229297890757,
+            0.0,
+            0.5488229297890757,
+            -0.8359386291694716,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Panel_3_R",
+          "shape": "Block",
+          "transparency": 0
+        }
+      ],
+      "mounts": {
+        "Entry": {
+          "position": [
+            0.0,
+            0.0,
+            0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "Exit": {
+          "position": [
+            0.0,
+            0.0,
+            0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      }
+    },
+    "AchievementVestibule": {
+      "name": "AchievementVestibule",
+      "length": 14,
+      "parts": [
+        {
+          "name": "Floor",
+          "position": [
+            0.0,
+            -0.616875,
+            7.0
+          ],
+          "size": [
+            90.0,
+            1.23375,
+            14.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": true,
+          "group": "Collision",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "FloorFinish",
+          "position": [
+            0.0,
+            -0.03671875,
+            7.0
+          ],
+          "size": [
+            89.97,
+            0.146875,
+            14.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "floor",
+          "collide": false,
+          "group": "FloorFinish",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "SideWall",
+          "position": [
+            -45.525000000000006,
+            16.15625,
+            7.0
+          ],
+          "size": [
+            1.0499999999999998,
+            32.3125,
+            14.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Collision",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Skirting",
+          "position": [
+            -44.625,
+            0.8078125,
+            7.0
+          ],
+          "size": [
+            0.5700000000000001,
+            1.615625,
+            14.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "DadoRail",
+          "position": [
+            -44.55,
+            7.6375,
+            7.0
+          ],
+          "size": [
+            0.44999999999999996,
+            0.3525,
+            14.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "EaveRail",
+          "position": [
+            -44.55,
+            32.018750000000004,
+            7.0
+          ],
+          "size": [
+            0.675,
+            0.734375,
+            14.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "MasonryCourse",
+          "position": [
+            -44.849999999999994,
+            10.28125,
+            7.0
+          ],
+          "size": [
+            0.18,
+            0.146875,
+            14.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "cream",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "MasonryCourse",
+          "position": [
+            -44.849999999999994,
+            20.5625,
+            7.0
+          ],
+          "size": [
+            0.18,
+            0.146875,
+            14.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "cream",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "MasonryCourse",
+          "position": [
+            -44.849999999999994,
+            29.375,
+            7.0
+          ],
+          "size": [
+            0.18,
+            0.146875,
+            14.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "cream",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "SideWall",
+          "position": [
+            45.525000000000006,
+            16.15625,
+            7.0
+          ],
+          "size": [
+            1.0499999999999998,
+            32.3125,
+            14.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Collision",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Skirting",
+          "position": [
+            44.625,
+            0.8078125,
+            7.0
+          ],
+          "size": [
+            0.5700000000000001,
+            1.615625,
+            14.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "DadoRail",
+          "position": [
+            44.55,
+            7.6375,
+            7.0
+          ],
+          "size": [
+            0.44999999999999996,
+            0.3525,
+            14.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "EaveRail",
+          "position": [
+            44.55,
+            32.018750000000004,
+            7.0
+          ],
+          "size": [
+            0.675,
+            0.734375,
+            14.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "MasonryCourse",
+          "position": [
+            44.849999999999994,
+            10.28125,
+            7.0
+          ],
+          "size": [
+            0.18,
+            0.146875,
+            14.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "cream",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "MasonryCourse",
+          "position": [
+            44.849999999999994,
+            20.5625,
+            7.0
+          ],
+          "size": [
+            0.18,
+            0.146875,
+            14.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "cream",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "MasonryCourse",
+          "position": [
+            44.849999999999994,
+            29.375,
+            7.0
+          ],
+          "size": [
+            0.18,
+            0.146875,
+            14.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "cream",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "RoofFacet",
+          "position": [
+            -41.625,
+            36.71875,
+            7.0
+          ],
+          "size": [
+            0.7427429612278789,
+            12.071563952114904,
+            14.0
+          ],
+          "rotation": [
+            0.7300213986321198,
+            0.6834242880811332,
+            -0.0,
+            -0.6834242880811332,
+            0.7300213986321198,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "roof",
+          "collide": false,
+          "group": "Roof",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "RoofFacet",
+          "position": [
+            -32.25,
+            44.0625,
+            7.0
+          ],
+          "size": [
+            0.7381304073441818,
+            12.03185875083314,
+            14.000000000000004
+          ],
+          "rotation": [
+            0.4882869822248527,
+            0.8726831171678219,
+            -0.0,
+            -0.8726831171678219,
+            0.48828698222485273,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "roof",
+          "collide": false,
+          "group": "Roof",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "RoofFacet",
+          "position": [
+            0.0,
+            47.0,
+            7.0
+          ],
+          "size": [
+            0.734375,
+            54.0,
+            14.0
+          ],
+          "rotation": [
+            0.0,
+            1.0,
+            -0.0,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "roof",
+          "collide": false,
+          "group": "Roof",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "RoofFacet",
+          "position": [
+            32.25,
+            44.0625,
+            7.0
+          ],
+          "size": [
+            0.7381304073441818,
+            12.03185875083314,
+            14.000000000000004
+          ],
+          "rotation": [
+            -0.4882869822248527,
+            0.8726831171678219,
+            0.0,
+            -0.8726831171678219,
+            -0.48828698222485273,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "roof",
+          "collide": false,
+          "group": "Roof",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "RoofFacet",
+          "position": [
+            41.625,
+            36.71875,
+            7.0
+          ],
+          "size": [
+            0.7427429612278789,
+            12.071563952114904,
+            14.0
+          ],
+          "rotation": [
+            -0.7300213986321198,
+            0.6834242880811332,
+            0.0,
+            -0.6834242880811332,
+            -0.7300213986321198,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "roof",
+          "collide": false,
+          "group": "Roof",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "TileJoint",
+          "position": [
+            0.0,
+            0.0440625,
+            10
+          ],
+          "size": [
+            89.85,
+            0.029375000000000002,
+            0.065
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": false,
+          "group": "FloorFinish",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "TileJoint",
+          "position": [
+            0.0,
+            0.0440625,
+            2
+          ],
+          "size": [
+            89.85,
+            0.029375000000000002,
+            0.065
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": false,
+          "group": "FloorFinish",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Pier",
+          "position": [
+            -43.5,
+            15.56875,
+            12.5
+          ],
+          "size": [
+            1.6500000000000001,
+            31.1375,
+            1.1
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PierFoot",
+          "position": [
+            -43.5,
+            1.175,
+            12.5
+          ],
+          "size": [
+            2.25,
+            2.35,
+            1.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "FacetBrace",
+          "position": [
+            -40.5,
+            27.90625,
+            12.5
+          ],
+          "size": [
+            0.8941037914328651,
+            10.661151731872126,
+            0.5999999999999999
+          ],
+          "rotation": [
+            0.8265992475892192,
+            0.5627909770820216,
+            -0.0,
+            -0.5627909770820216,
+            0.8265992475892192,
+            0.0,
+            0.0,
+            0.0,
+            0.9999999999999999
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Pier",
+          "position": [
+            43.5,
+            15.56875,
+            12.5
+          ],
+          "size": [
+            1.6500000000000001,
+            31.1375,
+            1.1
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "PierFoot",
+          "position": [
+            43.5,
+            1.175,
+            12.5
+          ],
+          "size": [
+            2.25,
+            2.35,
+            1.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "FacetBrace",
+          "position": [
+            40.5,
+            27.90625,
+            12.5
+          ],
+          "size": [
+            0.8941037914328651,
+            10.661151731872126,
+            0.5999999999999999
+          ],
+          "rotation": [
+            0.8265992475892192,
+            -0.5627909770820216,
+            0.0,
+            0.5627909770820216,
+            0.8265992475892192,
+            -0.0,
+            0.0,
+            0.0,
+            0.9999999999999999
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            -41.625,
+            36.71875,
+            12.5
+          ],
+          "size": [
+            0.9655658495962426,
+            12.071563952114904,
+            0.65
+          ],
+          "rotation": [
+            0.7300213986321198,
+            0.6834242880811332,
+            -0.0,
+            -0.6834242880811332,
+            0.7300213986321198,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            -32.25,
+            44.0625,
+            12.5
+          ],
+          "size": [
+            0.9595695295474364,
+            12.03185875083314,
+            0.6500000000000001
+          ],
+          "rotation": [
+            0.4882869822248527,
+            0.8726831171678219,
+            -0.0,
+            -0.8726831171678219,
+            0.48828698222485273,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            0.0,
+            47.0,
+            12.5
+          ],
+          "size": [
+            0.9546875,
+            54.0,
+            0.65
+          ],
+          "rotation": [
+            0.0,
+            1.0,
+            -0.0,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            32.25,
+            44.0625,
+            12.5
+          ],
+          "size": [
+            0.9595695295474364,
+            12.03185875083314,
+            0.6500000000000001
+          ],
+          "rotation": [
+            -0.4882869822248527,
+            0.8726831171678219,
+            0.0,
+            -0.8726831171678219,
+            -0.48828698222485273,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultRib",
+          "position": [
+            41.625,
+            36.71875,
+            12.5
+          ],
+          "size": [
+            0.9655658495962426,
+            12.071563952114904,
+            0.65
+          ],
+          "rotation": [
+            -0.7300213986321198,
+            0.6834242880811332,
+            0.0,
+            -0.6834242880811332,
+            -0.7300213986321198,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Shell",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowBacking",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            7
+          ],
+          "size": [
+            0.34500000000000003,
+            12.778125,
+            7.6
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "glass",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowStile",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            11
+          ],
+          "size": [
+            0.34500000000000003,
+            13.953125,
+            0.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowStile",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            3
+          ],
+          "size": [
+            0.34500000000000003,
+            13.953125,
+            0.45
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowRail",
+          "position": [
+            44.025000000000006,
+            10.28125,
+            7
+          ],
+          "size": [
+            0.34500000000000003,
+            0.616875,
+            8.4
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "WindowRail",
+          "position": [
+            44.025000000000006,
+            23.79375,
+            7
+          ],
+          "size": [
+            0.34500000000000003,
+            0.616875,
+            8.4
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Crossbar",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            7
+          ],
+          "size": [
+            0.34500000000000003,
+            0.3671875,
+            7.8
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Upright",
+          "position": [
+            44.025000000000006,
+            17.037499999999998,
+            7
+          ],
+          "size": [
+            0.34500000000000003,
+            13.071875,
+            0.2
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Windows",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Lightning",
+          "position": [
+            42.75,
+            27.72265625,
+            2.675
+          ],
+          "size": [
+            0.42000000000000004,
+            2.6940803342989317,
+            0.33530808711414145
+          ],
+          "rotation": [
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.7905063085485896,
+            -0.6124538971587021,
+            0.0,
+            -0.6124538971587021,
+            0.7905063085485896
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Fixtures",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Lightning",
+          "position": [
+            42.75,
+            26.5109375,
+            2.425
+          ],
+          "size": [
+            0.4044372799070603,
+            1.1869242025083162,
+            0.42
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            1.0,
+            0.968890850460135,
+            -0.2474884237588424,
+            0.0,
+            0.2474884237588424,
+            0.968890850460135,
+            -0.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Fixtures",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "Lightning",
+          "position": [
+            42.75,
+            24.93203125,
+            2.25
+          ],
+          "size": [
+            0.42000000000000004,
+            3.233087379565582,
+            0.31293624547743254
+          ],
+          "rotation": [
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.8858599115204959,
+            -0.4639528178176086,
+            0.0,
+            -0.4639528178176086,
+            0.8858599115204959
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "Fixtures",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "AchievementBacking",
+          "position": [
+            -44.13,
+            16.15625,
+            7
+          ],
+          "size": [
+            0.30000000000000004,
+            12.63125,
+            10.6
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "cream",
+          "collide": false,
+          "group": "AchievementAlcove",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "AlcoveStile",
+          "position": [
+            -43.650000000000006,
+            16.15625,
+            12.55
+          ],
+          "size": [
+            0.75,
+            13.5125,
+            0.4
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "AchievementAlcove",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "AlcoveStile",
+          "position": [
+            -43.650000000000006,
+            16.15625,
+            1.45
+          ],
+          "size": [
+            0.75,
+            13.5125,
+            0.4
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "AchievementAlcove",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "AlcoveRail",
+          "position": [
+            -43.650000000000006,
+            9.546875,
+            7
+          ],
+          "size": [
+            0.75,
+            0.558125,
+            11.5
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "AchievementAlcove",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "AlcoveRail",
+          "position": [
+            -43.650000000000006,
+            22.765625,
+            7
+          ],
+          "size": [
+            0.75,
+            0.558125,
+            11.5
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "AchievementAlcove",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "EmptyDisplayShelf",
+          "position": [
+            -42.900000000000006,
+            9.106250000000001,
+            7
+          ],
+          "size": [
+            2.55,
+            0.5140625,
+            11.5
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "accent",
+          "collide": false,
+          "group": "AchievementAlcove",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "EntryWall",
+          "position": [
+            -27.75,
+            14.7609375,
+            14
+          ],
+          "size": [
+            34.5,
+            29.521875,
+            0.8
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Entry",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "EntryDoorJamb",
+          "position": [
+            -10.5,
+            11.015625,
+            13.5
+          ],
+          "size": [
+            0.8999999999999999,
+            22.03125,
+            0.9
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": true,
+          "group": "Entry",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "EntryWall",
+          "position": [
+            27.75,
+            14.7609375,
+            14
+          ],
+          "size": [
+            34.5,
+            29.521875,
+            0.8
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Entry",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "EntryDoorJamb",
+          "position": [
+            10.5,
+            11.015625,
+            13.5
+          ],
+          "size": [
+            0.8999999999999999,
+            22.03125,
+            0.9
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": true,
+          "group": "Entry",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "EntryUpperWall",
+          "position": [
+            0.0,
+            25.7765625,
+            14
+          ],
+          "size": [
+            21.0,
+            7.490625,
+            0.8
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Entry",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "EntryLintel",
+          "position": [
+            0.0,
+            22.178124999999998,
+            13.45
+          ],
+          "size": [
+            22.049999999999997,
+            0.9546875,
+            1.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "trim",
+          "collide": false,
+          "group": "Entry",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "UpperWall",
+          "position": [
+            -41.625,
+            30.9171875,
+            14
+          ],
+          "size": [
+            8.25,
+            2.7906249999999977,
+            1.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Entry",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultGable",
+          "position": [
+            -41.625,
+            36.71875,
+            14
+          ],
+          "size": [
+            1.0,
+            8.8125,
+            8.25
+          ],
+          "rotation": [
+            9.184850993605148e-17,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            -0.0,
+            -1.0,
+            0.0,
+            9.184850993605148e-17
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Entry",
+          "shape": "Wedge",
+          "transparency": 0
+        },
+        {
+          "name": "UpperWall",
+          "position": [
+            -32.25,
+            35.323437500000004,
+            14
+          ],
+          "size": [
+            10.5,
+            11.603124999999999,
+            1.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Entry",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultGable",
+          "position": [
+            -32.25,
+            44.0625,
+            14
+          ],
+          "size": [
+            1.0,
+            5.875,
+            10.5
+          ],
+          "rotation": [
+            9.184850993605148e-17,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            -0.0,
+            -1.0,
+            0.0,
+            9.184850993605148e-17
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Entry",
+          "shape": "Wedge",
+          "transparency": 0
+        },
+        {
+          "name": "UpperWall",
+          "position": [
+            0.0,
+            38.260937500000004,
+            14
+          ],
+          "size": [
+            54.0,
+            17.478125,
+            1.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Entry",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "UpperWall",
+          "position": [
+            32.25,
+            35.323437500000004,
+            14
+          ],
+          "size": [
+            10.5,
+            11.603124999999999,
+            1.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Entry",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultGable",
+          "position": [
+            32.25,
+            44.0625,
+            14
+          ],
+          "size": [
+            1.0,
+            5.875,
+            10.5
+          ],
+          "rotation": [
+            9.184850993605148e-17,
+            0.0,
+            -1.0,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            9.184850993605148e-17
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Entry",
+          "shape": "Wedge",
+          "transparency": 0
+        },
+        {
+          "name": "UpperWall",
+          "position": [
+            41.625,
+            30.9171875,
+            14
+          ],
+          "size": [
+            8.25,
+            2.7906249999999977,
+            1.0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Entry",
+          "shape": "Block",
+          "transparency": 0
+        },
+        {
+          "name": "VaultGable",
+          "position": [
+            41.625,
+            36.71875,
+            14
+          ],
+          "size": [
+            1.0,
+            8.8125,
+            8.25
+          ],
+          "rotation": [
+            9.184850993605148e-17,
+            0.0,
+            -1.0,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            9.184850993605148e-17
+          ],
+          "material": "wall",
+          "collide": true,
+          "group": "Entry",
+          "shape": "Wedge",
+          "transparency": 0
+        }
+      ],
+      "mounts": {
+        "Entry": {
+          "position": [
+            0.0,
+            0.0,
+            14
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "Exit": {
+          "position": [
+            0.0,
+            0.0,
+            0
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "Door_Exit": {
+          "position": [
+            0.0,
+            0.0,
+            13.5
+          ],
+          "rotation": [
+            -1.0,
+            0.0,
+            1.2246467991473532e-16,
+            0.0,
+            1.0,
+            0.0,
+            -1.2246467991473532e-16,
+            0.0,
+            -1.0
+          ]
+        },
+        "Arrival": {
+          "position": [
+            0.0,
+            0.0,
+            10
+          ],
+          "rotation": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "Achievements": {
+          "position": [
+            -43.349999999999994,
+            16.15625,
+            7
+          ],
+          "rotation": [
+            6.123233995736766e-17,
+            0.0,
+            -1.0,
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            0.0,
+            6.123233995736766e-17
+          ]
+        }
+      }
+    }
+  },
+  "units": "studs",
+  "forward": "-Z",
+  "theme": {
+    "id": "thundercloud",
+    "title": "Thundercloud Fortress",
+    "style": "storm",
+    "palette": {
+      "wall": [
+        146,
+        158,
+        177
+      ],
+      "roof": [
+        181,
+        192,
+        206
+      ],
+      "trim": [
+        83,
+        103,
+        126
+      ],
+      "floor": [
+        152,
+        166,
+        183
+      ],
+      "top": [
+        195,
+        205,
+        219
+      ],
+      "accent": [
+        170,
+        203,
+        223
+      ],
+      "glass": [
+        109,
+        133,
+        161
+      ],
+      "door": [
+        100,
+        124,
+        152
+      ],
+      "wood": [
+        83,
+        103,
+        126
+      ],
+      "cream": [
+        243,
+        229,
+        199
+      ],
+      "metal": [
+        78,
+        83,
+        90
+      ],
+      "gold": [
+        222,
+        171,
+        67
+      ],
+      "pink": [
+        223,
+        147,
+        167
+      ],
+      "leaf": [
+        88,
+        139,
+        74
+      ],
+      "sky": [
+        164,
+        211,
+        221
+      ],
+      "referenceSkin": [
+        216,
+        205,
+        177
+      ],
+      "referenceThief": [
+        50,
+        65,
+        85
+      ],
+      "referenceOwner": [
+        165,
+        60,
+        61
+      ]
+    },
+    "description": "Stepped fortress piers, slate masonry, cloud bands and pale lightning inlays.",
+    "kit": "ThundercloudFortressInteriorKit"
+  },
+  "tier": 16,
+  "roomLength": 40,
+  "clearWidth": 90,
+  "centerLane": 58,
+  "doorClearWidth": 77.21052631578948,
+  "doorClearHeight": 27.90625,
+  "ceilingHeight": 47,
+  "slotsPerRoom": 6,
+  "achievementClearSize": [
+    10,
+    8
+  ],
+  "status": "Default themed kit; mapped into default.project.json"
+}
