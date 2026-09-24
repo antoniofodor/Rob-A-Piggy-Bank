@@ -277,14 +277,8 @@ for ob in parts:
             if w<1:roots.add([v.index],1-w,'REPLACE')
     else:vg.add(list(range(len(ob.data.vertices))),1,'REPLACE')
     ob.parent=rig;mod=ob.modifiers.new('PhoenixRig','ARMATURE');mod.object=rig
-scene.render.fps=30;scene.frame_start=1;scene.frame_end=121
-for index,name in enumerate(bones):
-    pb=rig.pose.bones[name];pb.rotation_mode='QUATERNION';q=pb.bone.matrix_local.to_quaternion()
-    amplitude=0 if name=='Root' else (1.5 if name.startswith('Mantle') else 3)
-    for frame in range(1,122,4):
-        theta=math.tau*(frame-1)/120;angle=math.radians(amplitude)*math.sin(theta+index*.38)
-        axis=Vector((0,0,1)) if name=='Tail' else Vector((1,0,.1));pb.rotation_quaternion=q.inverted()@Quaternion(axis.normalized(),angle)@q;pb.keyframe_insert('rotation_quaternion',frame=frame,group=name)
-rig.animation_data.action.name='Phoenix_Idle'
+from phoenix_wind import animate as animate_wind
+wind_profiles=animate_wind(rig,scene)
 for bone,m in glow_materials.items():
     socket=next(n for n in m.node_tree.nodes if n.label=='Phoenix frost shimmer').inputs[1]
     for frame in range(1,122,4):
@@ -312,7 +306,7 @@ report['vaultFit']=dict(axisOriginStuds=list(O*6),plateSeatStuds=list(SEAT*6),un
 assert root_seats and max(root_seats)<.001,max(root_seats)
 report['featherAttachment']=dict(rootVerticesChecked=len(root_seats),maximumSignedRootGap=max(root_seats),surfaceFollowing=True,rootPinnedWeights=True,backCoverage='Contour-following feathers across back; only functional slot and vault clearance reserved',cheekRowsPerSide=3)
 report['crystalCrown']=dict(crownFeathers=7,tailFeathers=7,legFeathers=leg_count,atlas=atlas_report,concept=str(CONCEPT),faceMarkings='Mirrored frost branches and six-ray forehead motif; narrow upper snout flourish')
-report['animation'].update(glowGroups=glow_groups,pulseCurve='1.1 + 4.4*(0.5-0.5*cos(theta))^2 + 0.15*sin(3*theta), theta=2*pi*(time/4-phase)',notes='Feather roots are pinned; tips move with weighted bones. Emissive mask and client companion reproduce the stronger frost-tip pulse in Studio.')
+report['animation'].update(glowGroups=glow_groups,pulseCurve='1.1 + 4.4*(0.5-0.5*cos(theta))^2 + 0.15*sin(3*theta), theta=2*pi*(time/4-phase)',stationaryBones=['Root','Ruff_L','Ruff_R'],windProfiles=wind_profiles,notes='A delayed icy gust passes from crest through mantle to tail, with faster tip flutter during the gust. Cheek ruffs stay seated against the face. Frost shimmer is preserved.')
 (OUT/'phoenix-asset-report.json').write_text(json.dumps(report,indent=2));(OUT/'animation-handoff.json').write_text(json.dumps(report['animation'],indent=2))
 world=bpy.data.worlds.new('PhoenixReview');world.use_nodes=True;scene.world=world;world.node_tree.nodes['Background'].inputs[0].default_value=(.48,.54,.62,1);world.node_tree.nodes['Background'].inputs[1].default_value=.65
 for name,pos,power,size in [('Key',(-20,-27,35),4500,22),('Fill',(25,-10,16),2800,20),('Rim',(3,22,28),4000,18)]:

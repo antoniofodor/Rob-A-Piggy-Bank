@@ -1,4 +1,4 @@
-"""Revise the existing Storm Wolf for the shared piggy bank fixtures.
+"""Restore the Storm Wolf's closed back, retaining its painted source surface.
 
 Never rewrites its source scene, painted sheet, bolt source, or common master.
 Blender -b --python make/build_stormwolf_layout.py -- [--draft]
@@ -15,6 +15,7 @@ SHEET=Path(paths.skin_map('stormwolf','body'))
 BOLTS=ROOT/'pig/pig_stormwolf_bolts.blend'
 INPUTS={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in (SOURCE,SHEET,BOLTS,ROOT/'pig/pig_parts.blend')}
 DRAFT='--draft' in sys.argv
+QUICK='--quick' in sys.argv
 SCALE=6.0
 # Shared bore axis/radius; keep a deposit anchor under the continuous mane.
 N=Vector((0,math.sqrt(36-1.9**2),-1.9)).normalized()
@@ -99,6 +100,13 @@ while pending:
 print('TAIL_COMPONENTS',json.dumps(tail_components),flush=True)
 bm.to_mesh(tail.data);bm.free()
 cut=tail.copy();cut.data=tail.data.copy();bpy.context.scene.collection.objects.link(cut);boolean(body,cut)
+from stormwolf_closed_back import repair as repair_tail_root
+repaired_faces=repair_tail_root(body)
+# Seat the tail directly over the repaired original attachment. The small
+# underlap hides the join without flattening or stretching the original tuft.
+tail_seat=tree(body).ray_cast(Vector((.17,3,-.412)),Vector((0,-1,0)),3)[0]
+assert tail_seat is not None,'No closed surface beneath the tail attachment'
+TAIL_MOUNT=tail_seat-Vector((0,.025,0))
 # Locate the actual cut root and aim the existing tuft along the rear centre
 # line before lifting it. The imported tail bends left in its source frame.
 root_vertices=[v.co for v in tail.data.vertices if abs(v.co.dot(N)-.94)<1e-4]
@@ -109,19 +117,13 @@ direction=tip_center-TAIL_ROOT
 TAIL_ROT=Matrix.Rotation(math.radians(5),3,'X')@Matrix.Rotation(math.atan2(direction.x,direction.y),3,'Z')
 for v in tail.data.vertices:lift_tail(v.co)
 
-# Carve a real internal chamber, with a separate dark interior material.
-bpy.ops.mesh.primitive_uv_sphere_add(segments=40,ring_count=24,location=(0,0,-.02))
-cavity=bpy.context.object;cavity.scale=(.72,.74,.66);apply(cavity)
-cavity.data.materials.append(coat);cavity.data.materials.append(inside)
-for p in cavity.data.polygons:p.material_index=1
-boolean(body,cavity)
-cut=cylinder('VaultBore',RADIUS,.48,2.5);cut.data.materials.append(coat);cut.data.materials.append(inside)
-for p in cut.data.polygons:p.material_index=1
-boolean(body,cut)
+# Keep the original painted rear surface. The old chamber and VaultBore
+# booleans created the visible hole; omitting them restores the source topology
+# and UVs instead of covering the opening with a flat or untextured cap.
 # User revision: leave the mane continuous over the deposit location. No
 # visible coin slit or rim is wanted on this skin; retain only its anchor.
 
-# The hatch is a flush cut through the painted hide. No exterior neck or ring.
+# The historical vault anchor remains reference-only; the hide is continuous.
 
 with bpy.data.libraries.load(str(BOLTS)) as (src,dst):dst.objects=['Bolts_eyes']
 eyes=dst.objects[0];bpy.context.scene.collection.objects.link(eyes);apply(eyes)
@@ -137,28 +139,26 @@ objects=[body,tail]+bolts
 source_bounds=[(min(co[i] for co in original_uv),max(co[i] for co in original_uv)) for i in range(3)]
 assert all(lo-1e-5<=v.co[i]<=hi+1e-5 for v in body.data.vertices for i,(lo,hi) in enumerate(source_bounds)),'Body escaped its original envelope'
 
-# Check the full hatch disk and the maximum dial plate clearance.
-trees=[tree(ob) for ob in objects];U=Vector((1,0,0));V=N.cross(U).normalized()
-blocked=[]
+# Every ray through the old opening must now hit a closed exterior surface.
+# The small sealed tail-root faces at the upper edge keep their seam material.
+body_tree=tree(body);U=Vector((1,0,0));V=N.cross(U).normalized()
+rear_misses=[];rear_hits=[];rear_materials={}
 for i in range(72):
     for fraction in (.0,.35,.60,.80,.95):
         offset=(U*math.cos(i*math.tau/72)+V*math.sin(i*math.tau/72))*RADIUS*fraction
         origin=HATCH+offset+N*.70
-        for ob,t in zip(objects,trees):
-            hit=t.ray_cast(origin,-N,1.22)
-            if hit[0] is not None:blocked.append((ob.name,i,fraction))
+        hit=body_tree.ray_cast(origin,-N,1.22)
+        if hit[0] is None:rear_misses.append((i,fraction))
+        else:
+            mat=body.data.polygons[hit[2]].material_index
+            rear_materials[mat]=rear_materials.get(mat,0)+1
+            rear_hits.append(list(hit[0]))
 slot_status='Covered by continuous mane, no visible slit or rim, as requested. Deposit anchor retained.'
-plate_blocked=[]
-for i in range(72):
-    for fraction in (.35,.65,.85,1.0):
-        offset=(U*math.cos(i*math.tau/72)+V*math.sin(i*math.tau/72))*(1.95/SCALE)*fraction
-        for ob,t in zip(objects,trees):
-            if t.ray_cast(HATCH+offset+N*.50,-N,.475)[0] is not None:plate_blocked.append((ob.name,i,fraction))
 uv_checks=[]
 for ob in (body,tail):
     count=0;error=0.0;layer=ob.data.uv_layers.active
     for p in ob.data.polygons:
-        if p.material_index!=0:continue
+        if p.material_index!=0 or (ob==body and p.index in repaired_faces):continue
         for li in p.loop_indices:
             co=ob.data.vertices[ob.data.loops[li].vertex_index].co.copy()
             if ob==tail:co=TAIL_ROOT+TAIL_ROT.inverted()@(co-TAIL_MOUNT)
@@ -177,19 +177,18 @@ for ob in (body,tail):
         print('OPEN_EDGES',[(tuple(e.verts[0].co),tuple(e.verts[1].co),len(e.link_faces)) for e in bm.edges if not e.is_manifold],flush=True)
     meshchecks.append(dict(name=ob.name,triangles=sum(len(p.vertices)-2 for p in ob.data.polygons),nonManifoldEdges=sum(not e.is_manifold for e in bm.edges)))
     bm.free()
-print('LAYOUT_CHECKS',json.dumps(dict(vaultBlocked=blocked,coinSlot=slot_status,plateBlocked=plate_blocked,meshes=meshchecks,uv=uv_checks)),flush=True)
+print('LAYOUT_CHECKS',json.dumps(dict(closedBackRayMisses=rear_misses,coinSlot=slot_status,meshes=meshchecks,uv=uv_checks)),flush=True)
 report=dict(inputHashes=INPUTS,source='Existing painted Storm Wolf and original UVs; chunky branching lightning and masked body glow',bodyGlow=glow_report,
     layout=dict(scaleToStuds=SCALE,vaultCenterBlender=list(HATCH),vaultNormalBlender=list(N),vaultRadiusStuds=1.43,coinSlotStuds=[.7,3.15]),
-    vaultBlocked=blocked,coinSlot=slot_status,plateBlocked=plate_blocked,meshes=meshchecks,uv=uv_checks,lightning=lightning_spec,
+    closedBack=True,tailRootRepairFaces=len(repaired_faces),closedBackRaysChecked=len(rear_hits)+len(rear_misses),closedBackRayMisses=rear_misses,rearMaterialHits=rear_materials,coinSlot=slot_status,meshes=meshchecks,uv=uv_checks,lightning=lightning_spec,
     tailMountBlender=list(TAIL_MOUNT),tailLiftDegrees=5,
-    changes=['Closed the original four-edge mesh pinhole','Hollow interior chamber','Flush rear vault opening, no exterior collar','Continuous mane conceals the coin deposit location; no visible slot','Original tail centred just above the opening and projecting rearward','Removed all six original bolt meshes; eight longer branching bolts in six rapid flicker groups'])
+    changes=['Closed the original four-edge mesh pinhole','Restored original painted rear surface by omitting obsolete chamber and vault cuts','Continuous mane conceals the coin deposit location; no visible slot','Original tail seated over the repaired attachment with a small underlap','Eight branching bolts in six rapid flicker groups retained; tail strikes follow the relocated tuft'])
 (OUT/'stormwolf-layout-checks.json').write_text(json.dumps(report,indent=2))
 
 # Save an editable source in native coordinates before preparing review views.
 bpy.context.preferences.filepaths.save_version=0
 select(body);bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'stormwolf-layout.blend'))
-assert not blocked,('Vault blocked',blocked[:10])
-assert not plate_blocked,('Vault plate clearance',plate_blocked[:10])
+assert not rear_misses,('Rear surface still open',rear_misses[:10])
 assert all(m['nonManifoldEdges']==0 for m in meshchecks),meshchecks
 assert all(m['triangles']<21000 for m in meshchecks),meshchecks
 
@@ -201,8 +200,8 @@ for name,position,power,size in [('Key',(-3,-4,5),450,4),('Fill',(4,-2,3),350,3)
 bpy.ops.mesh.primitive_plane_add(size=200,location=(0,0,-1.03));ground=bpy.context.object;ground.name='REVIEW_Ground';ground.data.materials.append(material('ReviewGround',(.35,.37,.34)))
 camera=bpy.data.objects.new('REVIEW_Camera',bpy.data.cameras.new('REVIEW_Camera'));scene.collection.objects.link(camera);scene.camera=camera
 camera.data.type='ORTHO';camera.data.ortho_scale=4.5
-scene.render.engine='CYCLES';scene.cycles.samples=8 if DRAFT else 24;scene.cycles.use_denoising=True
-scene.render.resolution_x=700 if DRAFT else 1000;scene.render.resolution_y=scene.render.resolution_x;scene.render.resolution_percentage=100
+scene.render.engine='CYCLES';scene.cycles.samples=8 if DRAFT or QUICK else 24;scene.cycles.use_denoising=True
+scene.render.resolution_x=700 if DRAFT or QUICK else 1000;scene.render.resolution_y=scene.render.resolution_x;scene.render.resolution_percentage=100
 scene.view_settings.view_transform='Standard';scene.render.image_settings.file_format='PNG'
 stormwolf_lightning.compositor(scene)
 shots=[('hero',(-3.3,-4.5,2),(0,0,.1)),('rear',(0,5,1.2),(0,.2,0)),('crown',(-1.5,1.3,5),(0,0,.15))]
@@ -210,7 +209,8 @@ if not DRAFT:shots.extend([('front',(0,-5,1),(0,0,.1)),('side',(4,3,1.7),(0,.3,0
 for name,position,target in shots:
     ground.hide_render=name=='vault';camera.data.ortho_scale=1.35 if name=='vault' else 4.5
     camera.location=position;camera.rotation_euler=(Vector(target)-camera.location).to_track_quat('-Z','Y').to_euler()
-    scene.render.filepath=str(OUT/f'stormwolf-{name}.png');bpy.ops.render.render(write_still=True)
+    if '--no-render' not in sys.argv:
+        scene.render.filepath=str(OUT/f'stormwolf-{name}.png');bpy.ops.render.render(write_still=True)
 ground.hide_render=False;camera.data.ortho_scale=4.5
 camera.location=shots[0][1];camera.rotation_euler=(Vector(shots[0][2])-camera.location).to_track_quat('-Z','Y').to_euler()
 if not DRAFT:
@@ -231,7 +231,7 @@ if not DRAFT:
     bpy.ops.object.select_all(action='DESELECT')
     for ob in objects:ob.select_set(True)
     bpy.context.view_layer.objects.active=body
-    fbx=OUT/'stormwolf-complete.fbx'
+    fbx=OUT/(sys.argv[sys.argv.index('--fbx-name')+1] if '--fbx-name' in sys.argv else 'stormwolf-complete.fbx')
     bpy.ops.export_scene.fbx(filepath=str(fbx),use_selection=True,object_types={'MESH'},axis_forward='-Z',axis_up='Y',
         add_leaf_bones=False,bake_anim=False,path_mode='COPY',embed_textures=True,use_triangles=True)
     def bounds(obs):

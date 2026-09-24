@@ -32,6 +32,11 @@ for mat in materials:
     if not bsdf.inputs['Base Color'].is_linked:
         bsdf.inputs['Base Color'].default_value=rgba(spec['ear'] if 'ear' in original_name else spec['nose'])
         continue
+    if key == 'honeycomb':
+        import runpy
+        pattern = Path(paths.skin_dir(key)) / 'generate/honeycomb_pattern.py'
+        runpy.run_path(str(pattern))['paint'](nt, bsdf, spec)
+        continue
     parent=spec['parent']
     if parent=='cow':
         paint(nt,'white -> the muzzle pad',1,spec['base']);paint(nt,'white -> the muzzle pad',2,spec['nose'])
@@ -125,6 +130,9 @@ snout_mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value=
 snout_mat.node_tree.nodes['Principled BSDF'].inputs['Roughness'].default_value=.88
 snout=bpy.data.objects['Snout']
 for i in range(len(snout.data.materials)):snout.data.materials[i]=snout_mat
+if key == 'honeycomb':
+    import runpy
+    runpy.run_path(str(Path(paths.skin_dir(key)) / 'generate/honey_tail.py'))['apply'](bpy.data.objects['Tail'])
 bpy.context.preferences.filepaths.save_version=0
 bpy.ops.wm.save_as_mainfile(filepath=paths.skin_blend(key))
 Path(paths.coat_spec(key)).write_text(json.dumps(dict(spec,skin=key,rarity='rare',parentScene=str(source),parentSceneSha256=source_hash,glow='None. Flat baked colour; no emissive channel, no animation, no extra geometry'),indent=2))

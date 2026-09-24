@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / 'assets/guards'
 PALE = (239, 219, 180)
 CONFIG = {
-    'terrier': dict(label='Scruffy', tier=1, family='canine', height=2.5,
+    'terrier': dict(label='Scrappy', tier=1, family='canine', height=2.5,
         fur=(227,173,91), dark=(172,112,53), light=(247,207,142), collar=(210,54,42),
         hw=.61, hh=.59, hd=.48, hy=-.83, hz=1.65, body=(.51,.84,.43), bz=.94, leg=.70, ear=.65),
     'shepherd': dict(label='Rex', tier=2, family='canine', height=3.25,

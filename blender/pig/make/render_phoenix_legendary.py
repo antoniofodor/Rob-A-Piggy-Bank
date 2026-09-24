@@ -24,7 +24,8 @@ first=pose(import_rig,round(frame_range[0]));middle=pose(import_rig,round(frame_
 fbx_loop=delta(first,last,first);assert fbx_loop<1e-4
 samples=[pose(import_rig,round(frame_range[0]+offset)) for offset in (30,60,90)]
 movements={n:max(delta(first,sample,[n]) for sample in samples) for n in first}
-assert movements['Root']<1e-5 and all(movements[n]>.01 for n in ('Tail','Mantle_L','Mantle_R','Crest_0','Crest_1','Crest_2','Ruff_L','Ruff_R')),movements
+assert all(movements[n]<1e-5 for n in ('Root','Ruff_L','Ruff_R')),movements
+assert all(movements[n]>.01 for n in ('Tail','Mantle_L','Mantle_R','Crest_0','Crest_1','Crest_2')),movements
 for ob in imports:bpy.data.objects.remove(ob,do_unlink=True)
 scene.frame_end=120;scene.render.resolution_x=560;scene.render.resolution_y=560;scene.cycles.samples=8
 folder=OUT/'motion';folder.mkdir(exist_ok=True)

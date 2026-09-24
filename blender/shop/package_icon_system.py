@@ -5,7 +5,11 @@ import json,hashlib,re
 ROOT=Path(__file__).resolve().parents[2];OUT=ROOT/'assets/shop-ui/icon-system-v1'
 NAMES={'coin':'Standard coin','income':'Earn Faster','capacity':'Bigger Piggy Bank','upgrades':'Upgrades','home':'Home','companions':'Companions','rides':'Rides','supplies':'Supplies','style':'Style & Crates','crate-common':'Common crate','crate-rare':'Rare crate','crate-legendary':'Legendary crate'}
 ICONS={**NAMES,'coin-front':'Currency coin — front view'}
-UPGRADES={'locks':'Vault Lock','fences':'Fence','lockpicks':'Lockpicks','sack':'Bigger Sack','boots':'Speed Boots','tiptoe':'Sneak'}
+# `locks` and `fences` are still rendered and still uploaded; the SHOP no
+# longer reads them -- their cards fall through to `UpgradePreview`, which
+# builds the vault dial and the fence tier actually being bought. See the
+# note in ShopIcons.luau. Left here so a rebuild keeps producing proofs.
+UPGRADES={'locks':'Vault Lock','fences':'Fence','lockpicks':'Lockpicks','sack':'Bigger Sack','boots':'Getaway Speed','tiptoe':'Sneak'}
 ICONS.update(UPGRADES)
 report=json.loads((OUT/'build-report.json').read_text());assert set(ICONS)<=set(report)
 uploads=json.loads((OUT/'roblox-uploads.json').read_text()) if (OUT/'roblox-uploads.json').exists() else {'icons':{}}
@@ -22,7 +26,12 @@ for tier,color,rate,size,burst in [('common',(255,196,79),3,.15,5),('rare',(86,2
  spec=json.loads((OUT/f'crates/{tier}/manifest.json').read_text());tiers[tier]=spec
  attachments=', '.join(f'{n}={{{", ".join(map(str,p))}}}' for n,p in spec['robloxAttachments'].items())
  definitions.append(f' {tier} = {{color={{{", ".join(map(str,color))}}}, rate={rate}, sparkSize={size}, burst={burst}, hinge={{{", ".join(map(str,spec["robloxHinge"]))}}}, attachments={{{attachments}}}}},')
-definitions+=['}','return Definitions'];(OUT/'CrateDefinitions.luau').write_text('\n'.join(definitions))
+definitions+=['}','return Definitions']
+# CrateDefinitions.luau and CratePresentation.luau were removed on 2026-09-23:
+# a client crate-presentation draft that nothing in src/ ever adopted, because
+# Shared/Crates.luau and Config.CHESTS do that job. `definitions` is still
+# built above so the manifest arithmetic below is unchanged; re-add the write
+# here if the draft is ever wanted again.
 manifest['crates']=tiers
 if (OUT/'models/plunger/manifest.json').exists():
  manifest['models']={'plunger':json.loads((OUT/'models/plunger/manifest.json').read_text())}
@@ -73,7 +82,7 @@ page='''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="v
 <div class="shop"><div class="shop-top">‹ &nbsp; Upgrades <div class="balance"><img src="coin.png" alt="Gold snout coin">125.1M</div></div><nav class="nav">NAV</nav><div class="choices"><button class="choice" onclick="selectUpgrade('income')" id="income-choice" aria-pressed="true"><span class="check">✓</span><h3>Earn Faster</h3><img src="income.png" alt="Piggy, clock and coins"><span class="requirement">▣ &nbsp; LEVEL 42 / 42 · REBIRTH</span></button><button class="choice" onclick="selectUpgrade('capacity')" id="capacity-choice" aria-pressed="false"><span class="check">✓</span><h3>Bigger Piggy Bank</h3><img src="capacity.png" alt="Small piggy growing into a large piggy"><span class="requirement">▣ &nbsp; LEVEL 42 / 42 · REBIRTH</span></button></div><section class="hero"><h3 id="hero-title">Earn Faster</h3><span class="caption">LEVEL 42</span><div class="hero-art"><img id="hero-image" src="income.png" alt="Earn Faster preview"></div><div class="stats"><div class="stat"><small>NOW</small><span id="now">160.8K / sec</span></div><span class="arrow">➜</span><div class="stat next"><small>AFTER REBIRTH</small><span id="next">176.9K / sec</span></div></div><div class="cta">⟳ &nbsp; REBIRTH TO UNLOCK MORE</div></section></div><p class="caption">Interactive visual study. Click either upgrade to compare its icon. Income uses the supplied screenshot values; capacity uses a qualitative comparison. This page is a local review, not the live game.</p>
 <h2>One coin, everywhere.</h2><p>The raised snout and recessed nostrils replace the star. The same emblem appears on upgrade coins, the money bag, and every crate tier.</p><div class="coin-band"><img class="coin-main" src="coin.png" alt="Gold coin with a raised piggy snout"><div><h3>The reusable currency asset</h3><div class="coin-sizes">COINSIZES</div></div></div>
 <h2>The icon family</h2><p>Eight shop icons plus the shared currency icon. Each includes an editable Blender source and transparent PNGs down to 32 pixels.</p><section class="icons">CARDS</section>
-<h2>Three tiers. Three silhouettes.</h2><p>Closed shop renders have no particles or aura. Inspect each open lid, or switch on the animated effect study.</p><section class="crates">CRATES</section><p class="caption">Effect study is a browser motion illustration. The supplied Roblox helper implements tier-colored particles, lights, bursts and lid motion; its final appearance still needs Studio review.</p><div class="note"><b>Prepared for integration:</b> GLB / FBX models, separate opening lids, effect anchor coordinates, <a href="CratePresentation.luau">world-effect helper</a>, <a href="ShopIcons.luau">icon registry</a> and <a href="README.md">import notes</a>. Image uploads and live UI installation follow art review. Existing crate prices and reward pools are unchanged.</div><p><a href="contact-sheet.png">Open the complete contact sheet</a> · <a href="manifest.json">Asset manifest</a></p></main><script>
+<h2>Three tiers. Three silhouettes.</h2><p>Closed shop renders have no particles or aura. Inspect each open lid, or switch on the animated effect study.</p><section class="crates">CRATES</section><p class="caption">Effect study is a browser motion illustration. The supplied Roblox helper implements tier-colored particles, lights, bursts and lid motion; its final appearance still needs Studio review.</p><div class="note"><b>Prepared for integration:</b> GLB / FBX models, separate opening lids, effect anchor coordinates, <a href="README.md">import notes</a>. Image uploads and live UI installation follow art review. Existing crate prices and reward pools are unchanged.</div><p><a href="contact-sheet.png">Open the complete contact sheet</a> · <a href="manifest.json">Asset manifest</a></p></main><script>
 function selectUpgrade(key){document.querySelectorAll('.choice').forEach(b=>b.setAttribute('aria-pressed',String(b.id===key+'-choice')));document.getElementById('hero-image').src=key+'.png';let income=key==='income';document.getElementById('hero-title').textContent=income?'Earn Faster':'Bigger Piggy Bank';document.getElementById('hero-image').alt=income?'Earn Faster icon':'Bigger Piggy Bank icon';document.getElementById('now').textContent=income?'160.8K / sec':'Current size';document.getElementById('next').textContent=income?'176.9K / sec':'More storage'}
 function crateMode(tier,mode,button){let card=button.closest('.crate-card');card.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));card.classList.toggle('with-fx',mode==='fx');document.getElementById(tier+'-art').src='crate-'+tier+(mode==='open'?'-open':'')+'.png'}
 </script></body></html>'''
@@ -85,7 +94,11 @@ page=page.replace('<div class="coin-sizes">COINSIZES</div>','<div class="coin-si
 page=page.replace('NAV',nav).replace('COINSIZES',sizes).replace('CARDS',cards).replace('CRATES',crates)
 if uploads['icons']:
  page=page.replace('Image uploads and live UI installation follow art review.','The icons are uploaded and wired into the shop source. World-model installation is separate.')
- (OUT/'ShopIcons.luau').write_text((ROOT/'src/ReplicatedStorage/Shared/ShopIcons.luau').read_text(),encoding='utf-8')
+ # The packaged copy of ShopIcons.luau was removed on 2026-09-23. A second
+ # copy of a live module, in a folder Rojo does not sync, only tracks src/ on
+ # the day somebody re-runs this script -- and it HAD drifted, still carrying
+ # the retired `acorn` row and pointing at an assets/acorn-ui/ that no longer
+ # exists. src/ReplicatedStorage/Shared/ShopIcons.luau is the one copy.
 if (OUT/'plunger.png').exists():
  page=page.replace('<h2>Three tiers.', '<h2>The new plunger</h2><p>The Supplies icon now combines this plunger with Bubblegum Bomb gum and a golden bone. The model has a hollow rubber cup, reinforced rim, wooden shaft and rounded grip.</p><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px"><figure class="icon-card" style="margin:0"><img src="plunger.png" alt="Smooth red plunger model" style="width:100%;max-height:350px;object-fit:contain"><figcaption>New plunger model</figcaption></figure><figure class="icon-card" style="margin:0"><img src="plunger-underside.png" alt="Hollow underside of the rubber plunger cup" style="width:100%;max-height:350px;object-fit:contain"><figcaption>Hollow cup inspection</figcaption></figure></div><p><a href="models/plunger/plunger.glb">Plunger GLB</a> · <a href="models/plunger/plunger.fbx">Plunger FBX</a> · <a href="sources/plunger.blend">Blender source</a> · <a href="models/plunger/README.md">Import notes</a></p><h2>Three tiers.')
 (OUT/'index.html').write_text(page,encoding='utf-8')
@@ -113,16 +126,16 @@ for key,title in ICONS.items():
  paths=[f'{key}.png']+[f'small/{key}-{size}.png' for size in (256,128,64,48,32)];required.update(paths);required.add(f'sources/{key}.blend')
  lines.append('| '+title+' | '+' | '.join(f'[PNG]({path})' for path in paths)+' |')
 lines+=['','## Effects and previews','',
- '- [Crate effect helper](CratePresentation.luau) and [definitions](CrateDefinitions.luau).',
+ 
  '- [Supply effect helper](models/SupplyEffects.luau) and [definitions](models/SupplyDefinitions.luau).',
- '- [Icon registry](ShopIcons.luau); the runtime source is src/ReplicatedStorage/Shared/ShopIcons.luau.',
+ '- The icon registry is src/ReplicatedStorage/Shared/ShopIcons.luau; this package no longer ships a copy.',
  '- [Review gallery](index.html) and [contact sheet](contact-sheet.png).',
  '- [Import notes](README.md); each supply model folder also contains its own README.',
  '', 'Files have been checked for presence and nonzero size. The model exports have separate geometry/round-trip validation reports.',
  'GLB/FBX files are explicitly included by the repository ignore rules. No commit or upload is performed by packaging.',
  'The approved UI icons are uploaded and connected in the shop source. Import game models separately; files in assets/ are not automatically loaded by Rojo.', '']
 if uploads['icons']:required.add('roblox-uploads.json')
-required.update(['CratePresentation.luau','CrateDefinitions.luau','models/SupplyEffects.luau','models/SupplyDefinitions.luau','ShopIcons.luau','index.html','contact-sheet.png','defend-rob-sheet.png','README.md'])
+required.update(['models/SupplyEffects.luau','models/SupplyDefinitions.luau','index.html','contact-sheet.png','defend-rob-sheet.png','README.md'])
 files=[]
 for relative in sorted(required):
  path=(OUT/relative).resolve();assert path.is_relative_to(OUT.resolve()) and path.is_file() and path.stat().st_size>0,relative

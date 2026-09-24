@@ -321,7 +321,34 @@ def stage_meshes(body_id: str, legend: dict[str, dict[str, str]]) -> None:
 # --------------------------------------------------------------------------
 
 def write_csv() -> None:
-    with io.open(os.path.join(OUT, "asset-ids.csv"), "w", encoding="utf-8", newline="") as fh:
+    # THE SHEET IS HAND-FILLED AFTER IT IS GENERATED, and a regeneration that
+    # forgot that wiped 37 pasted ids once (2026-09-23). A row whose existing
+    # status is `uploaded` (a value this script never emits -- it is what the
+    # id read-back and tools/upload_images.py write) keeps its id and status;
+    # everything else is rederived from the walk. Keyed on the upload name plus
+    # the role's assign_to, because the dragon FBX yields five rows for one file.
+    path = os.path.join(OUT, "asset-ids.csv")
+    kept = {}
+    if os.path.exists(path):
+        with io.open(path, newline="", encoding="utf-8") as fh:
+            for r in csv.DictReader(fh):
+                if r.get("status") == "uploaded":
+                    kept[(r["upload_as"], r["assign_to"])] = r
+    carried = 0
+    for r in rows:
+        prior = kept.get((r["upload_as"], r["assign_to"]))
+        if prior is None and r["role"] == "mesh":
+            # A mesh row's assign_to carries the seat, which a re-export moves;
+            # fall back to the upload name alone when that is unambiguous.
+            same = [v for (name, _), v in kept.items() if name == r["upload_as"]]
+            prior = same[0] if len(same) == 1 else None
+        if prior is not None:
+            r["current_asset_id"] = prior["current_asset_id"]
+            r["status"] = "uploaded"
+            carried += 1
+    if carried:
+        print(f"kept {carried} hand-filled id(s) from the existing sheet")
+    with io.open(path, "w", encoding="utf-8", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=CSV_FIELDS)
         w.writeheader()
         w.writerows(rows)

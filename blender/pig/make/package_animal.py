@@ -18,7 +18,7 @@ NAMES={'bee':'Bumblebee','ladybird':'Ladybird','cow':'Dairy Cow','zebra':'Zebra'
 if '--name' in argv:NAMES[KEY]=argv[argv.index('--name')+1]
 assert KEY in NAMES,'Pass --name for a newly authored coat'
 OUT=Path(paths.animal_package(KEY));OUT.mkdir(exist_ok=True)
-SRC=Path(paths.skin_blend(KEY))
+SRC=Path(argv[argv.index('--blend')+1] if '--blend' in argv else paths.skin_blend(KEY))
 MAPS={group:Path(paths.skin_map(KEY,group)) for group in ('body','trim')}
 EMISSIVE={group:Path(paths.skin_emissive(KEY,group)) for group in ('body','trim')}
 EMISSIVE={group:p for group,p in EMISSIVE.items() if p.exists()}
@@ -30,7 +30,8 @@ bpy.ops.wm.open_mainfile(filepath=str(SRC))
 scene=bpy.context.scene
 CORE=('Body','Snout','Ears','Legs','Tail')
 assert all(n in bpy.data.objects for n in CORE),'Source lacks separated body parts'
-KEEP=(*CORE,'EyePreview')
+EXTRAS=('HoneyDrop','HoneyDropHighlight') if KEY=='honeycomb' else ()
+KEEP=(*CORE,'EyePreview',*EXTRAS)
 for obj in list(bpy.data.objects):
     if obj.name not in KEEP:bpy.data.objects.remove(obj,do_unlink=True)
 for col in list(bpy.data.collections):
@@ -85,7 +86,7 @@ for name in KEEP:
     original_uvs=[tuple(p.uv) for p in obj.data.uv_layers.active.data] if obj.data.uv_layers.active else []
     if name in CORE:assert original_uvs,name+' has no UVs'
     group='body' if name=='Body' else 'trim'
-    mat=eye_mat if name=='EyePreview' else materials[group]
+    mat=obj.data.materials[0] if name in EXTRAS else eye_mat if name=='EyePreview' else materials[group]
     # Replace existing slots in place; preserve the source ear selection.
     if not obj.data.materials:obj.data.materials.append(mat)
     for i in range(len(obj.data.materials)):obj.data.materials[i]=mat
@@ -145,6 +146,7 @@ bpy.ops.mesh.primitive_plane_add(size=200,location=(0,0,source_bounds['min'][2]-
 ground_mat=bpy.data.materials.new('ReviewGround');ground_mat.use_nodes=True;ground_mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value=(*linear((194,195,180)),1);ground_mat.node_tree.nodes['Principled BSDF'].inputs['Roughness'].default_value=1;ground.data.materials.append(ground_mat)
 camera_data=bpy.data.cameras.new('REVIEW_Camera');camera=bpy.data.objects.new('REVIEW_Camera',camera_data);STAGE.objects.link(camera);scene.camera=camera;camera_data.type='ORTHO';camera_data.ortho_scale=20.0
 scene.render.engine='CYCLES';scene.cycles.samples=24;scene.cycles.use_denoising=True
+if KEY=='honeycomb': scene.cycles.transmission_bounces=8
 scene.render.resolution_x=900;scene.render.resolution_y=900;scene.render.resolution_percentage=100
 scene.view_settings.view_transform='Standard';scene.view_settings.exposure=0;scene.render.image_settings.file_format='PNG'
 scene.render.film_transparent=False
