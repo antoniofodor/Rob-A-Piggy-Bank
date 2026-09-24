@@ -1,0 +1,55 @@
+C:\Users\anton\robloxGame\assets\piggies\og-refresh-v2\build.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:03.609  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_5764_613b1d0053619f42ff443417f2a7c482.png.png"
+Info: Saved as "ghost-og-v2-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED ghost body color
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED ghost body metal
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED ghost body rough
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED ghost body emissive
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED ghost body alpha
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED ghost trim color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED ghost trim metal
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED ghost trim rough
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED ghost trim emissive
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED ghost trim alpha
+C:\Users\anton\robloxGame\assets\piggies\og-refresh-v2\build.py:273: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:50.687  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\ghost\revisions\og-v2\preview\ghost-og-v2-hero.png'
+01:41.093  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\ghost\revisions\og-v2\preview\ghost-og-v2-back.png'
+02:29.922  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\ghost\revisions\og-v2\preview\ghost-og-v2-top.png'
+03:08.953  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\ghost\revisions\og-v2\preview\ghost-og-v2-motion.png'
+03:08.984  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_5764_bef4011a60b8c38578a90988ff36fad3.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\epic\\ghost\\revisions\\og-v2\\package\\ghost-og-v2-complete.fbx'
+export finished in 0.0369 sec.
+FBX version: 7400
+Info: Saved as "ghost-og-v2.blend"
+OG_COMPLETE ghost {"extraTriangles": 0, "maps": 12, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

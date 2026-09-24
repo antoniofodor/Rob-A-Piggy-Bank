@@ -1,0 +1,311 @@
+{
+  "revision": "arcade-build-v1",
+  "scope": "Ten Arcade builds: original four plus six expansion piggies",
+  "tierRules": {
+    "rare": "Authored coat; no aura",
+    "epic": "Pattern or modest geometry plus glow and animation",
+    "legendary": "Substantial added geometry plus glow, motion and aura"
+  },
+  "skins": [
+    {
+      "key": "playerone",
+      "name": "Player One",
+      "tier": "rare",
+      "palette": [
+        [
+          214,
+          39,
+          54
+        ],
+        [
+          244,
+          222,
+          174
+        ],
+        [
+          102,
+          27,
+          48
+        ]
+      ],
+      "aura": null,
+      "concept": "player-one-pixel-v2.png",
+      "design": "16-bit red and cream pig with quantized pixel shading, dithered shadow transitions and a cream 1P emblem on both flanks. Original smooth 3D silhouette retained. Rare because the selected direction requires an authored coat."
+    },
+    {
+      "key": "retrocarpet",
+      "name": "Retro Carpet",
+      "tier": "rare",
+      "palette": [
+        [
+          39,
+          30,
+          77
+        ],
+        [
+          33,
+          188,
+          213
+        ],
+        [
+          228,
+          44,
+          153
+        ],
+        [
+          249,
+          190,
+          50
+        ],
+        [
+          243,
+          106,
+          139
+        ]
+      ],
+      "aura": null,
+      "concept": "retro-carpet-concept-v1.png",
+      "design": "Dark purple coat with bold flat cyan zigzags, pink waves, yellow outlined triangles and coral circles. Cyan feet and ear interiors, muted purple snout. No glow or geometry."
+    },
+    {
+      "key": "respawn",
+      "name": "Respawn",
+      "tier": "epic",
+      "palette": [
+        [
+          44,
+          20,
+          92
+        ],
+        [
+          35,
+          199,
+          242
+        ],
+        [
+          111,
+          43,
+          216
+        ],
+        [
+          226,
+          55,
+          217
+        ]
+      ],
+      "aura": "arcade_pixel_stream_proposed",
+      "concept": "respawn-concept-v1.png",
+      "design": "Solid purple pig with a cyan/violet pixel coat, flank arrow, cyan eyes and seven small animated cubes rising near the rear. Emission pulse and pixel motes. New aura specification, not an installed runtime emitter."
+    },
+    {
+      "key": "jackpot",
+      "name": "Jackpot",
+      "tier": "legendary",
+      "palette": [
+        [
+          119,
+          36,
+          58
+        ],
+        [
+          235,
+          209,
+          151
+        ],
+        [
+          195,
+          139,
+          43
+        ],
+        [
+          255,
+          189,
+          61
+        ]
+      ],
+      "aura": "arcade_token_sparkle_proposed",
+      "concept": "jackpot-concept-v1.png",
+      "design": "Burgundy pig with gold star and diamond markings, ivory snout and brass feet. A firmly seated rear saddle carries three rotating symbol reels in a lit brass housing. Gold tokens move beside the rear flanks. New aura specification, not an installed runtime emitter."
+    },
+    {
+      "key": "pixel",
+      "name": "Pixel",
+      "tier": "rare",
+      "palette": [
+        [
+          27,
+          47,
+          78
+        ],
+        [
+          42,
+          130,
+          165
+        ],
+        [
+          104,
+          200,
+          192
+        ],
+        [
+          241,
+          211,
+          141
+        ]
+      ],
+      "aura": null,
+      "design": "Chunky teal, navy and cream pixel camouflage, stepped clusters and sparse pixel diamonds, solid teal snout and cream feet. Fixed limited-color artwork, no glow, floating cubes or extra geometry.",
+      "concept": "pixel-concept-v1.png"
+    },
+    {
+      "key": "circuitboard",
+      "name": "Circuit Board",
+      "tier": "rare",
+      "palette": [
+        [
+          21,
+          75,
+          52
+        ],
+        [
+          189,
+          149,
+          63
+        ],
+        [
+          51,
+          125,
+          82
+        ],
+        [
+          27,
+          41,
+          36
+        ]
+      ],
+      "aura": null,
+      "design": "Forest-green printed circuit coat with gold right-angle traces, round solder pads and small dark chip rectangles. Dark green snout, muted brass feet and ear interiors. Entire circuit design is flat printed artwork; no glow or geometry.",
+      "concept": "circuitboard-concept-v1.png"
+    },
+    {
+      "key": "powerup",
+      "name": "Power-Up",
+      "tier": "epic",
+      "palette": [
+        [
+          31,
+          62,
+          54
+        ],
+        [
+          157,
+          235,
+          78
+        ],
+        [
+          40,
+          148,
+          112
+        ],
+        [
+          243,
+          218,
+          111
+        ]
+      ],
+      "aura": "arcade_power_sparks_proposed",
+      "design": "Dark jade pig with large lime pixel up-arrow emblems on both flanks, stepped green stripes, small printed yellow energy bars, lime luminous eyes. Slow pulsing arrow glow and rising square sparks. No substantial equipment.",
+      "concept": "powerup-concept-v1.png"
+    },
+    {
+      "key": "synthwave",
+      "name": "Synthwave",
+      "tier": "epic",
+      "palette": [
+        [
+          35,
+          24,
+          77
+        ],
+        [
+          42,
+          207,
+          233
+        ],
+        [
+          231,
+          53,
+          145
+        ],
+        [
+          255,
+          162,
+          62
+        ]
+      ],
+      "aura": "arcade_synth_sparkle_proposed",
+      "design": "Midnight purple pig with magenta and cyan perspective grid across lower body, large striped orange-to-pink sunset discs on both flanks, purple snout, cyan eyes. Restrained animated grid glow and sparse neon sparkle aura; no accessory geometry.",
+      "concept": "synthwave-concept-v1.png"
+    },
+    {
+      "key": "finalboss",
+      "name": "Spellcaster",
+      "tier": "legendary",
+      "palette": [
+        [
+          43,
+          29,
+          59
+        ],
+        [
+          226,
+          55,
+          107
+        ],
+        [
+          96,
+          49,
+          97
+        ],
+        [
+          230,
+          155,
+          77
+        ]
+      ],
+      "aura": "arcade_boss_energy_proposed",
+      "design": "Pink-faced pig in a plum panel coat, with substantial brass-edged violet guards, pink energy jewels and visible hinge joints. Four guards slowly flex; six rear energy blocks bob. Pig face, feet and ears remain exposed. No weapons or crown.",
+      "concept": "finalboss-concept-v1.png"
+    },
+    {
+      "key": "mechaplayer",
+      "name": "Mecha Player",
+      "tier": "legendary",
+      "palette": [
+        [
+          165,
+          186,
+          199
+        ],
+        [
+          50,
+          202,
+          242
+        ],
+        [
+          41,
+          62,
+          89
+        ],
+        [
+          224,
+          113,
+          49
+        ]
+      ],
+      "aura": "arcade_thruster_sparkle_proposed",
+      "design": "Pale steel and navy robot pig with clean angular panel coat and tiny orange warning stripes. Substantial mechanical boot cuffs around existing legs, hinged flank guards and twin firmly mounted rear thrusters. Cyan illuminated vents pulse and small exhaust cones breathe at the rear; no flight pose. Preserve the original pig face and body, no helmet or weapons.",
+      "concept": "mechaplayer-concept-v1.png"
+    }
+  ]
+}

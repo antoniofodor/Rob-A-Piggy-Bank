@@ -1,0 +1,20 @@
+{
+  "name": "Spellcaster",
+  "key": "finalboss",
+  "revision": "arcade-mage-v4",
+  "status": "review only; new geometry not installed",
+  "model": "../legendary/finalboss/package/mage-v4/finalboss-mage-v4.blend",
+  "preview": "index.html",
+  "changes": [
+    "full boots with closed soles, gold trim and crystal clasps",
+    "single robe mesh extends fully beneath the belly",
+    "violet crown mantle integrated into the robe, replacing detached panels"
+  ],
+  "validation": {
+    "undersideCoverageRays": 21,
+    "coveredLegVertices": 512,
+    "robeConnectedComponents": 1,
+    "integratedMantle": true,
+    "fullBoots": 4
+  }
+}

@@ -1,0 +1,33 @@
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:13.047  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_14464_facfd7ecd60896145f0a51e4b1517eaa.png.png"
+Info: Saved as "ghost-og-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED ghost body color
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED ghost body emissive
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED ghost trim color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED ghost trim emissive
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:477: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:48.907  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\ghost\preview\ghost-og-v1-hero.png'
+01:01.094  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\ghost\preview\ghost-og-v1-back.png'
+01:17.063  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\ghost\preview\ghost-og-v1-motion.png'
+01:17.188  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_14464_ac116d2c2f3bd3aa647749400ae21687.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\epic\\ghost\\package\\ghost-og-v1-complete.fbx'
+export finished in 0.1274 sec.
+FBX version: 7400
+Info: Saved as "ghost-og-v1.blend"
+OG_COMPLETE ghost {"extraTriangles": 0, "maps": 4, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

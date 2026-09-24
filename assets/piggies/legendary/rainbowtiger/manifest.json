@@ -110,13 +110,17 @@
       "sha256": "548c3447acc7b18a675c471a01dcc0fd9f1c43687090d91dd789e71892d13ee3",
       "role": "legend_rtiger_tail ColorMap",
       "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    },
+    "rbxassetid://123267807573714": {
+      "file": "package/rainbowtiger-complete.fbx",
+      "role": "Config.LEGENDARIES.rainbowtiger mesh",
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://72805251580189; the imported model sat in the Edit workspace, part names read off it"
     }
   },
   "shopCard": {
-    "file": "package/shop-cards/rainbowtiger.png",
-    "robloxAssetId": "rbxassetid://114158169786998",
-    "renderedBy": "blender/shop/render_skin_images.py from the derived package",
-    "canonicalCopy": "assets/piggies/legendary/rainbowtiger/package/shop-cards/rainbowtiger.png"
+    "file": "revisions/tail-tip-v2/rainbowtiger-shop-card.png",
+    "robloxAssetId": "rbxassetid://77819354328927",
+    "status": "Approved and installed; no beard, tuft on tail tip"
   },
   "derivedPackage": {
     "path": "assets/piggies/legendary/rainbowtiger/package",
@@ -209,5 +213,10 @@
     "rainbowtiger_body_color.png: closed-back pass output is CURRENT; shipped bake kept as rainbowtiger_body_color.open-hatch.png",
     "generate/beard-shape-study/ was COPIED from the legendary agent's scratchpad rebuild (closedback-legendaries/beard-shape-study); the tracked original under blender/pig/skins/rainbowtiger/beard-shape-study/ was deleted from the working tree by another session earlier today",
     "Config row carries a code-built pattern/anim; the baked sheets here are the authored replacement that has not been wired as a SurfacePacks pair yet."
-  ]
+  ],
+  "installedRevision": "tail-tip-v2",
+  "runtimeInstalled": true,
+  "status": "Installed: no cheek/chin beard, plume rooted at tail tip",
+  "publishedLive": false,
+  "revisionReport": "revisions/tail-tip-v2/revision.json"
 }

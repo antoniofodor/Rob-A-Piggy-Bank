@@ -1,0 +1,72 @@
+{
+  "key": "circuitboard",
+  "name": "Circuit Board",
+  "tier": "rare",
+  "palette": [
+    [
+      21,
+      75,
+      52
+    ],
+    [
+      189,
+      149,
+      63
+    ],
+    [
+      51,
+      125,
+      82
+    ],
+    [
+      27,
+      41,
+      36
+    ]
+  ],
+  "aura": null,
+  "design": "Forest-green printed circuit coat with gold right-angle traces, round solder pads and small dark chip rectangles. Dark green snout, muted brass feet and ear interiors. Entire circuit design is flat printed artwork; no glow or geometry.",
+  "concept": "circuitboard-concept-v1.png",
+  "revision": "arcade-build-v1",
+  "status": "Imported into Roblox Studio and repository; assets approved; live place publishing not performed",
+  "conceptMethod": "built-in image_gen",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\circuitboard_arcade_v1_body_color.png",
+      "sha256": "84793b32ee6f156753f128f6dbcba874e9ad94898d546b09fa5d0b5ead9db313",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\circuitboard_arcade_v1_trim_color.png",
+      "sha256": "0c69f2fcc6b991f9427c2fc7fd5fe59712308bb1559502751672dd36547d9d89",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": false
+  },
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": false,
+    "substantialAnimatedGeometry": false
+  },
+  "report": "package/arcade-v1-asset-report.json",
+  "review": "package/circuitboard-arcade-v1.blend",
+  "robloxIntegration": "../../arcade-build-v1/roblox-integration.json",
+  "robloxUploads": "roblox-uploads.json"
+}

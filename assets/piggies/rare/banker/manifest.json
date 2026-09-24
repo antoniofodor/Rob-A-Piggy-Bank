@@ -1,0 +1,127 @@
+{
+  "key": "banker",
+  "name": "Banker Piggy",
+  "tier": "rare",
+  "path": "assets/piggies/rare/banker",
+  "status": "Uploaded and installed (og-redesign-v1 maps round, 2026-09-23)",
+  "revision": "og-redesign-v1",
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/banker.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://116281828557133",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/banker_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://75199550101328",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://116281828557133": {
+      "role": "banker ColorMap",
+      "file": "sheets/banker_og_v1_body_color.png",
+      "sha256": "b1f3694c06efc1fa156374ec7f40ec7493df261715c75859890e2505d2061937"
+    },
+    "rbxassetid://75199550101328": {
+      "role": "banker_trim ColorMap",
+      "file": "sheets/banker_og_v1_trim_color.png",
+      "sha256": "fa0628d52b504dd3c95d5530467882ea904666cde0bca467fd31a836cd868286"
+    }
+  },
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau",
+    "skinsRow": {
+      "line": 7057,
+      "name": "Banker Piggy",
+      "rarity": "rare",
+      "surface": "banker",
+      "chest": "og",
+      "pattern": false,
+      "anim": false,
+      "fx": false
+    },
+    "surfacePack": {
+      "key": "banker",
+      "line": 5995,
+      "template": "banker",
+      "trimTemplate": "banker_trim"
+    },
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "concept": "preview/banker-og-v1-concept.png",
+  "prompt": "generate/og-v1-concept-prompt.txt",
+  "conceptMethod": "built-in image_gen",
+  "source": "source/banker-og-v1-procedural.blend",
+  "review": "package/banker-og-v1.blend",
+  "generator": "assets\\piggies\\og-redesign-v1\\build_og.py",
+  "report": "package/og-v1-asset-report.json",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\banker_og_v1_body_color.png",
+      "sha256": "b1f3694c06efc1fa156374ec7f40ec7493df261715c75859890e2505d2061937",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\banker_og_v1_trim_color.png",
+      "sha256": "fa0628d52b504dd3c95d5530467882ea904666cde0bca467fd31a836cd868286",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": false,
+    "substantialAnimatedGeometry": false
+  },
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": false
+  },
+  "files": {
+    "source": [
+      "banker-og-v1-procedural.blend"
+    ],
+    "generate": [
+      "og-v1-concept-prompt.txt",
+      "og-v1-spec.json"
+    ],
+    "sheets": [
+      "banker_og_v1_body_color.png",
+      "banker_og_v1_trim_color.png"
+    ],
+    "preview": [
+      "banker-og-v1-back.png",
+      "banker-og-v1-concept.png",
+      "banker-og-v1-hero.png"
+    ],
+    "package": [
+      "banker-og-v1-complete.fbx",
+      "banker-og-v1.blend",
+      "og-v1-asset-report.json"
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "key": "nightlight",
+  "name": "Nightlight Piggy",
+  "tier": "epic",
+  "design": "Comforting night-sky lantern pig: midnight blue ceramic shell with warm amber crescent moons and small rounded star windows painted flush on sides and back. Muted amber snout and inner ears, golden firefly aura. Soft slow breathing light, never a white/orange glowing sphere. No handles or lamp base.",
+  "palette": [
+    [
+      34,
+      47,
+      86
+    ],
+    [
+      172,
+      109,
+      50
+    ],
+    [
+      255,
+      179,
+      63
+    ]
+  ],
+  "aura": "fireflies"
+}

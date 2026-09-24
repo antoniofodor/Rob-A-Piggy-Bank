@@ -1,0 +1,24 @@
+{
+  "key": "verdigris",
+  "name": "Verdigris",
+  "tier": "rare",
+  "design": "Aged copper pig with broad organic turquoise and sea-green oxidation across back and recesses; exposed warm burnished copper on snout, ear rims, lower legs and worn edges. Matte patina contrasted with restrained metallic copper sheen. Rich oxidized sculpture, not evenly spaced green dots. No glow, aura or props.",
+  "palette": [
+    [
+      170,
+      97,
+      61
+    ],
+    [
+      55,
+      143,
+      131
+    ],
+    [
+      124,
+      187,
+      158
+    ]
+  ],
+  "aura": null
+}

@@ -1,0 +1,15 @@
+{
+  "skin": "rockslide",
+  "revision": "og-redesign-v1",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "accessories": {
+      "source": "assets/piggies/rare/rockslide/package/rockslide-og-v1-accessories.fbx",
+      "sha256": "8b571f5b9fb2ec151b61c276b56cde41ded1780c34a853c61612d095ddf1d420",
+      "assetType": "Model",
+      "operationId": "56844c3b-306d-4fdf-a692-0797c417e15e",
+      "assetId": "116700139466302",
+      "moderationState": "Approved"
+    }
+  }
+}

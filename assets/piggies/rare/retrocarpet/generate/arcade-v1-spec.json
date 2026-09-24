@@ -1,0 +1,35 @@
+{
+  "key": "retrocarpet",
+  "name": "Retro Carpet",
+  "tier": "rare",
+  "palette": [
+    [
+      39,
+      30,
+      77
+    ],
+    [
+      33,
+      188,
+      213
+    ],
+    [
+      228,
+      44,
+      153
+    ],
+    [
+      249,
+      190,
+      50
+    ],
+    [
+      243,
+      106,
+      139
+    ]
+  ],
+  "aura": null,
+  "concept": "retro-carpet-concept-v1.png",
+  "design": "Dark purple coat with bold flat cyan zigzags, pink waves, yellow outlined triangles and coral circles. Cyan feet and ear interiors, muted purple snout. No glow or geometry."
+}

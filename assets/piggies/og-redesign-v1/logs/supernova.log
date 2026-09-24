@@ -1,0 +1,37 @@
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:12.375  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_24064_eb29810b1ea62c41524f6a13da8e21c4.png.png"
+Info: Saved as "supernova-og-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED supernova body color
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED supernova body emissive
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED supernova trim color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED supernova trim emissive
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:477: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:40.844  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\supernova\preview\supernova-og-v1-hero.png'
+00:50.344  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\supernova\preview\supernova-og-v1-back.png'
+01:03.781  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\supernova\preview\supernova-og-v1-motion.png'
+01:03.812  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_24064_4a2b3c9a1e03b6e0a4f0c1664bd49c3e.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\supernova\\package\\supernova-og-v1-complete.fbx'
+export finished in 0.0406 sec.
+FBX version: 7400
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\supernova\\package\\supernova-og-v1-accessories.fbx'
+export finished in 0.0128 sec.
+FBX version: 7400
+Info: Saved as "supernova-og-v1.blend"
+OG_COMPLETE supernova {"extraTriangles": 1236, "maps": 4, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

@@ -1,0 +1,25 @@
+C:\Users\anton\robloxGame\assets\piggies\arcade-build-v1\build_arcade.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:04.516  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_12620_f63bd5e086be6a8b139d60919524cd07.png.png"
+Info: Saved as "pixel-arcade-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED pixel body color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED pixel trim color
+C:\Users\anton\robloxGame\assets\piggies\arcade-build-v1\build_arcade.py:711: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:29.906  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\rare\pixel\preview\pixel-arcade-v1-hero.png'
+00:46.219  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\rare\pixel\preview\pixel-arcade-v1-back.png'
+00:46.391  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_12620_7f26a2976f9a311032a27a412dbfdde4.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\rare\\pixel\\package\\pixel-arcade-v1-complete.fbx'
+export finished in 0.0345 sec.
+FBX version: 7400
+Info: Saved as "pixel-arcade-v1.blend"
+ARCADE_COMPLETE pixel {"extraTriangles": 0, "maps": 2, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

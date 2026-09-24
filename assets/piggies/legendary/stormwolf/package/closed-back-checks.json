@@ -1,0 +1,18 @@
+{
+  "closedBack": true,
+  "triangles": 17652,
+  "nonManifoldEdges": 0,
+  "fbxBoundsError": 4.76837158203125e-07,
+  "bodyFbxSHA256": "902cafd1d32276cac7145b18b0bd83ed9220d1d5015121e96a72c06fee8a3cac",
+  "sizeStuds": [
+    10.652850151062012,
+    13.965830326080322,
+    15.572294235229492
+  ],
+  "configOffsetStuds": [
+    0.0033550262451171875,
+    7.482915277481079,
+    1.158055305480957
+  ],
+  "integration": "Complete model 114603364441693 uploaded and approved; Body, Tail and tail-lightning IDs/bounds integrated into Config and verified in Studio."
+}

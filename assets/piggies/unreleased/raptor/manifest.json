@@ -19,7 +19,14 @@
   "templates": {},
   "idSources": {},
   "shopCard": null,
-  "derivedPackage": null,
+  "derivedPackage": {
+    "path": "assets/piggies/unreleased/raptor/package",
+    "textureCopiesMatchShippedSheets": {
+      "raptor_body_color.png": true,
+      "raptor_trim_color.png": true
+    },
+    "note": "Derived package refreshed from corrected stripe materials and current bake scene; texture copies verified."
+  },
   "closedBack": {
     "closedScene": null,
     "note": "not in the closed-back pass yet: the body sheet here is the open-hatch bake"
@@ -45,5 +52,11 @@
   "generator": "generate/make_raptor_blend.py",
   "notes": [
     "Not yet a Config.SKINS row: nothing in the game reads these sheets today."
-  ]
+  ],
+  "stripeTransition": {
+    "version": 2,
+    "generator": "blender/pig/stripe_transition.py",
+    "status": "local unreleased coat",
+    "validation": "Geometry/UV/material slots unchanged; opaque 1024px sheets; no palette fades; FBX bounds round-trip passed."
+  }
 }

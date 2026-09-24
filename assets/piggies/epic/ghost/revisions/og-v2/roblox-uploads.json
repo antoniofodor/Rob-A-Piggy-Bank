@@ -1,0 +1,55 @@
+{
+  "skin": "ghost",
+  "revision": "og-v2-layered-approved",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "body_rough": {
+      "source": "assets/piggies/epic/ghost/revisions/og-v2/sheets/ghost_og_v2_body_rough.png",
+      "sha256": "f84999c3c97af420ef85992660098e5e679872ff90d6ea8d22dc110933317562",
+      "assetType": "Image",
+      "operationId": "6f50f3f4-d2cf-4849-9dc5-979a12698014",
+      "assetId": "90412093405007",
+      "moderationState": "Approved"
+    },
+    "body_emissive": {
+      "source": "assets/piggies/epic/ghost/revisions/og-v2/sheets/ghost_og_v2_body_emissive.png",
+      "sha256": "6e411f3471404acfdd098111b483d4f6caa5878e95a3bc828d0d9510fa2a1194",
+      "assetType": "Image",
+      "operationId": "a587befd-b7fd-4a51-9e2f-eea2ac670970",
+      "assetId": "76252895351436",
+      "moderationState": "Approved"
+    },
+    "body_rgba": {
+      "source": "assets/piggies/epic/ghost/revisions/og-v2/sheets/ghost_og_v2_body_rgba.png",
+      "sha256": "2c7e28fbd9aceb4fab70a2b70ba9953e678da5c3158002347438c655c13a7416",
+      "assetType": "Image",
+      "operationId": "69090f32-0f86-4465-8494-9b01461b93fa",
+      "assetId": "105054882056306",
+      "moderationState": "Approved"
+    },
+    "trim_rough": {
+      "source": "assets/piggies/epic/ghost/revisions/og-v2/sheets/ghost_og_v2_trim_rough.png",
+      "sha256": "fb5157fe542af899f492a57a3599a32f1b8b0c09932f0019ff6914da40dda0b3",
+      "assetType": "Image",
+      "operationId": "e0ba2687-d807-486e-9a95-a6e4dc027d72",
+      "assetId": "97403368405632",
+      "moderationState": "Approved"
+    },
+    "trim_emissive": {
+      "source": "assets/piggies/epic/ghost/revisions/og-v2/sheets/ghost_og_v2_trim_emissive.png",
+      "sha256": "74ef146c50f6c9c016ae0f1a825ec724ae4d79387f7ba0ecf021423b96dcd08b",
+      "assetType": "Image",
+      "operationId": "cd8c3d9c-2eb6-479b-bf8a-e09155e87a5c",
+      "assetId": "119535110473689",
+      "moderationState": "Approved"
+    },
+    "trim_rgba": {
+      "source": "assets/piggies/epic/ghost/revisions/og-v2/sheets/ghost_og_v2_trim_rgba.png",
+      "sha256": "a238341d3df4daacf9596ee5cbced7ebb0ff3a8bdbd4b4e536d6cafe3b551ef0",
+      "assetType": "Image",
+      "operationId": "0d39ee2c-7a6b-4150-b555-4905db431109",
+      "assetId": "74459698912107",
+      "moderationState": "Approved"
+    }
+  }
+}

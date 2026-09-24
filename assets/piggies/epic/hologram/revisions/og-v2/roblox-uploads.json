@@ -1,0 +1,55 @@
+{
+  "skin": "hologram",
+  "revision": "og-v2-layered-approved",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "body_rough": {
+      "source": "assets/piggies/epic/hologram/revisions/og-v2/sheets/hologram_og_v2_body_rough.png",
+      "sha256": "5a031a43d84b096e5f540b4a8c59d641104f5088521f7818e2dbd742e8448a8e",
+      "assetType": "Image",
+      "operationId": "88eafc65-7c81-4769-af4e-a87e36f95877",
+      "assetId": "124174597819256",
+      "moderationState": "Approved"
+    },
+    "body_emissive": {
+      "source": "assets/piggies/epic/hologram/revisions/og-v2/sheets/hologram_og_v2_body_emissive.png",
+      "sha256": "43d5498e83941e772e5e080cd2a318346ed43ef4f6a5e456ba94e227378b6e14",
+      "assetType": "Image",
+      "operationId": "1274c922-cc40-44fa-aad3-8d5a176dc38f",
+      "assetId": "112301066813649",
+      "moderationState": "Approved"
+    },
+    "body_rgba": {
+      "source": "assets/piggies/epic/hologram/revisions/og-v2/sheets/hologram_og_v2_body_rgba.png",
+      "sha256": "fe4129607c2481448a35665865aa1b5cc4402dbdb2319ae141dfffc6d7906838",
+      "assetType": "Image",
+      "operationId": "640cdeeb-2cf6-4c24-aa1c-58b81159b93c",
+      "assetId": "107522928886247",
+      "moderationState": "Approved"
+    },
+    "trim_rough": {
+      "source": "assets/piggies/epic/hologram/revisions/og-v2/sheets/hologram_og_v2_trim_rough.png",
+      "sha256": "4db8231f16303a204a142b19dbb4a9e3c51d9ce3ae57692a584321dcd576568b",
+      "assetType": "Image",
+      "operationId": "0ee719c7-c7c4-4730-95f5-371f27a3a3ff",
+      "assetId": "136608443846505",
+      "moderationState": "Approved"
+    },
+    "trim_emissive": {
+      "source": "assets/piggies/epic/hologram/revisions/og-v2/sheets/hologram_og_v2_trim_emissive.png",
+      "sha256": "e41d2fb97c8eeeea4757a87ff57cfbeeae39efc971659ef5f67404145f7e6d5b",
+      "assetType": "Image",
+      "operationId": "51d4bfe7-17ec-4b8c-9b24-91441a358615",
+      "assetId": "90477788447327",
+      "moderationState": "Approved"
+    },
+    "trim_rgba": {
+      "source": "assets/piggies/epic/hologram/revisions/og-v2/sheets/hologram_og_v2_trim_rgba.png",
+      "sha256": "e785937812dc715a88bfa67dc503c0cc2e7705d49d7cb787b542c5260d1b5fb2",
+      "assetType": "Image",
+      "operationId": "f2abc84a-3670-429a-b99a-b0e4e3574d06",
+      "assetId": "140412323117800",
+      "moderationState": "Approved"
+    }
+  }
+}

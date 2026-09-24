@@ -1,0 +1,1486 @@
+{
+  "skin": "mechaplayer",
+  "name": "Mecha Player",
+  "tier": "legendary",
+  "revision": "arcade-mecha-v3",
+  "status": "Review preview; not installed in game",
+  "design": "Pale steel and navy robot pig with clean angular panel coat and tiny orange warning stripes. Substantial mechanical boot cuffs around existing legs, hinged flank guards and twin firmly mounted rear thrusters. Cyan illuminated vents pulse and small exhaust cones breathe at the rear; no flight pose. Preserve the original pig face and body, no helmet or weapons.",
+  "baseGeometryAndUVPreserved": true,
+  "sourceGeometrySignatures": {
+    "Body": "4a54ceed97939e6392190f1c3fb9d10d14530d801166cc7f26e24e99a6983ec1",
+    "Snout": "178b13b8746bb7484909d7e7a981aaa0e159f0f353a9e5fe3891d1191fd68518",
+    "Ears": "a1a7e83a72613d031332816dd3b25c2c0462de33d33c68b0c4dc0e818a95fc9f",
+    "Legs": "56645ce48591fdcc0e5835a7c00c823798c55a883da5f6cca1af42bb7ea74d04",
+    "Tail": "529231df3b33d53086cc7e0fd91ff5ea7b327fcadbb9804603e727fa728c6b38",
+    "EyePreview": "21c6d31d1ffe826f5f98c7bc23d6d57d472f3e465f722caa9f67322a0b2933b9"
+  },
+  "parts": [
+    {
+      "name": "Body",
+      "role": "base",
+      "triangles": 6264,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.5762786865234375e-07,
+        6.62,
+        -0.0
+      ],
+      "sizeRobloxStuds": [
+        12.000000715255737,
+        11.519999742507935,
+        12.96000051498413
+      ]
+    },
+    {
+      "name": "Snout",
+      "role": "base",
+      "triangles": 2486,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        5.845477904081345,
+        4.720026791095734
+      ],
+      "sizeRobloxStuds": [
+        6.7845447063446045,
+        7.233279168605804,
+        7.127158999443054
+      ]
+    },
+    {
+      "name": "Ears",
+      "role": "base",
+      "triangles": 7152,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        11.888547296524049,
+        2.154139593243599
+      ],
+      "sizeRobloxStuds": [
+        9.337942600250244,
+        5.17062520980835,
+        2.339932769536972
+      ]
+    },
+    {
+      "name": "Legs",
+      "role": "base",
+      "triangles": 2032,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        2.000000114440918,
+        -0.18000000715255737
+      ],
+      "sizeRobloxStuds": [
+        8.640000343322754,
+        3.0,
+        8.759999871253967
+      ]
+    },
+    {
+      "name": "Tail",
+      "role": "base",
+      "triangles": 1592,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -0.05768336355686188,
+        9.557918484210969,
+        -6.589774489402771
+      ],
+      "sizeRobloxStuds": [
+        2.992636889219284,
+        3.0000447034835815,
+        4.405103445053101
+      ]
+    },
+    {
+      "name": "EyePreview",
+      "role": "base",
+      "triangles": 1056,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        8.801508004665376,
+        5.33257520198822
+      ],
+      "sizeRobloxStuds": [
+        5.077638387680054,
+        1.2599998712539673,
+        1.2599995136260986
+      ]
+    },
+    {
+      "name": "MechShoulderFrame_-1",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": "hinged armor sway",
+      "offsetRobloxStuds": [
+        -5.610324740409851,
+        7.42756413936615,
+        -1.0800000429153442
+      ],
+      "sizeRobloxStuds": [
+        2.475050210952759,
+        5.8135292530059814,
+        5.760000228881836
+      ]
+    },
+    {
+      "name": "MechShoulderNavy_-1",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.857806205749512,
+        7.518199915885925,
+        -1.0800000429153442
+      ],
+      "sizeRobloxStuds": [
+        0.5072150230407715,
+        4.9878058433532715,
+        5.1000001430511475
+      ]
+    },
+    {
+      "name": "MechLowerGuard_-1",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -7.081084370613098,
+        5.532388473749161,
+        -0.8400000035762787
+      ],
+      "sizeRobloxStuds": [
+        0.6518275737762451,
+        3.492462694644928,
+        2.040000021457672
+      ]
+    },
+    {
+      "name": "MechHinge_-1",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -7.575639724731445,
+        6.781083772778511,
+        -0.7799999713897705
+      ],
+      "sizeRobloxStuds": [
+        0.3567652702331543,
+        1.1474580466747284,
+        1.1399999856948853
+      ]
+    },
+    {
+      "name": "MechHingePin_-1",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -7.78558087348938,
+        6.776136393547058,
+        -0.7799999713897705
+      ],
+      "sizeRobloxStuds": [
+        0.16211414337158203,
+        0.5193906426429749,
+        0.515999972820282
+      ]
+    },
+    {
+      "name": "MechShoulderHazard_-1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -7.192508697509766,
+        8.350545520782472,
+        -1.8600000143051147
+      ],
+      "sizeRobloxStuds": [
+        0.15642356872558594,
+        1.0969880819320679,
+        0.5651035308837891
+      ]
+    },
+    {
+      "name": "MechShoulderHazard_-1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -7.192508697509766,
+        8.350545520782472,
+        -2.4300000071525574
+      ],
+      "sizeRobloxStuds": [
+        0.15642356872558594,
+        1.0969880819320679,
+        0.5651035308837891
+      ]
+    },
+    {
+      "name": "MechShoulderHazard_-1_2",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -7.192508697509766,
+        8.350545520782472,
+        -3.0
+      ],
+      "sizeRobloxStuds": [
+        0.15642356872558594,
+        1.0969880819320679,
+        0.5651035308837891
+      ]
+    },
+    {
+      "name": "MechVentRecess_-1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -5.2799999713897705,
+        7.520000035762787,
+        3.2400000393390656
+      ],
+      "sizeRobloxStuds": [
+        1.2634942531585693,
+        2.940000057220459,
+        2.094862639904022
+      ]
+    },
+    {
+      "name": "MechVentLight_-1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -5.8500001430511475,
+        6.589999995082617,
+        3.2400000393390656
+      ],
+      "sizeRobloxStuds": [
+        0.6066656112670898,
+        0.30000000447034836,
+        1.4380339980125427
+      ]
+    },
+    {
+      "name": "MechVentLight_-1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -5.8500001430511475,
+        7.399999993741512,
+        3.2400000393390656
+      ],
+      "sizeRobloxStuds": [
+        0.6066656112670898,
+        0.30000002682209015,
+        1.4380339980125427
+      ]
+    },
+    {
+      "name": "MechVentLight_-1_2",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -5.8500001430511475,
+        8.209999914169313,
+        3.2400000393390656
+      ],
+      "sizeRobloxStuds": [
+        0.6066656112670898,
+        0.30000007152557373,
+        1.4380339980125427
+      ]
+    },
+    {
+      "name": "MechBootSole_-1_0",
+      "role": "accessory",
+      "triangles": 96,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.0,
+        0.9800000143051149,
+        2.8799998462200165
+      ],
+      "sizeRobloxStuds": [
+        3.444000005722046,
+        1.1399996280670166,
+        3.4439998269081116
+      ]
+    },
+    {
+      "name": "MechBootBand_-1_0",
+      "role": "accessory",
+      "triangles": 96,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.000000089406967,
+        1.909999842643738,
+        2.8799999356269836
+      ],
+      "sizeRobloxStuds": [
+        3.5280001759529114,
+        0.8399999141693115,
+        3.527999997138977
+      ]
+    },
+    {
+      "name": "MechBootUpper_-1_0",
+      "role": "accessory",
+      "triangles": 96,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.000000089406967,
+        2.6299998712539674,
+        2.8799999356269836
+      ],
+      "sizeRobloxStuds": [
+        3.1320002675056458,
+        0.7799999713897705,
+        3.1320000886917114
+      ]
+    },
+    {
+      "name": "MechBootScreen_-1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.0,
+        1.8620001029968263,
+        4.5899999141693115
+      ],
+      "sizeRobloxStuds": [
+        1.320000171661377,
+        0.4379997253417969,
+        0.20999979972839355
+      ]
+    },
+    {
+      "name": "MechBootSignal_-1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.0,
+        1.8620001029968263,
+        4.727999925613403
+      ],
+      "sizeRobloxStuds": [
+        0.929999828338623,
+        0.21600008010864258,
+        0.07199978828430176
+      ]
+    },
+    {
+      "name": "MechBootHazard_-1_0_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.770000100135803,
+        1.909999842643738,
+        3.539999842643738
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.7075917720794678,
+        0.43442773818969727
+      ]
+    },
+    {
+      "name": "MechBootHazard_-1_0_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.770000100135803,
+        1.909999842643738,
+        3.0299999713897705
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.7075917720794678,
+        0.43442773818969727
+      ]
+    },
+    {
+      "name": "MechBootHazard_-1_0_2",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.770000100135803,
+        1.909999842643738,
+        2.519999921321869
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.7075917720794678,
+        0.43442773818969727
+      ]
+    },
+    {
+      "name": "MechBootSole_-1_1",
+      "role": "accessory",
+      "triangles": 96,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.0,
+        0.9800000143051149,
+        -3.2400001287460327
+      ],
+      "sizeRobloxStuds": [
+        3.444000005722046,
+        1.1399996280670166,
+        3.444000005722046
+      ]
+    },
+    {
+      "name": "MechBootBand_-1_1",
+      "role": "accessory",
+      "triangles": 96,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.000000089406967,
+        1.909999842643738,
+        -3.2400000393390656
+      ],
+      "sizeRobloxStuds": [
+        3.5280001759529114,
+        0.8399999141693115,
+        3.5279998183250427
+      ]
+    },
+    {
+      "name": "MechBootUpper_-1_1",
+      "role": "accessory",
+      "triangles": 96,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.000000089406967,
+        2.6299998712539674,
+        -3.2400000393390656
+      ],
+      "sizeRobloxStuds": [
+        3.1320002675056458,
+        0.7799999713897705,
+        3.131999909877777
+      ]
+    },
+    {
+      "name": "MechBootScreen_-1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.0,
+        1.8620001029968263,
+        -1.530000016093254
+      ],
+      "sizeRobloxStuds": [
+        1.320000171661377,
+        0.4379997253417969,
+        0.21000006794929504
+      ]
+    },
+    {
+      "name": "MechBootSignal_-1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.0,
+        1.8620001029968263,
+        -1.3919999599456787
+      ],
+      "sizeRobloxStuds": [
+        0.929999828338623,
+        0.21600008010864258,
+        0.07199996709823608
+      ]
+    },
+    {
+      "name": "MechBootHazard_-1_1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.770000100135803,
+        1.909999842643738,
+        -2.5800000429153442
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.7075917720794678,
+        0.43442773818969727
+      ]
+    },
+    {
+      "name": "MechBootHazard_-1_1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.770000100135803,
+        1.909999842643738,
+        -3.0899999141693115
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.7075917720794678,
+        0.43442773818969727
+      ]
+    },
+    {
+      "name": "MechBootHazard_-1_1_2",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.770000100135803,
+        1.909999842643738,
+        -3.6000001430511475
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.7075917720794678,
+        0.43442773818969727
+      ]
+    },
+    {
+      "name": "MechThrusterMount_-1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.5399997532367706,
+        7.999999980330467,
+        -4.979999899864197
+      ],
+      "sizeRobloxStuds": [
+        2.57999986410141,
+        3.2999999821186066,
+        2.3399999141693115
+      ]
+    },
+    {
+      "name": "MechThrusterBody_-1",
+      "role": "accessory",
+      "triangles": 76,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.539999932050705,
+        7.879999983012676,
+        -6.119999885559082
+      ],
+      "sizeRobloxStuds": [
+        3.42000013589859,
+        3.4200000911951065,
+        2.580000400543213
+      ]
+    },
+    {
+      "name": "MechThrusterLip_-1",
+      "role": "accessory",
+      "triangles": 160,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.539999842643738,
+        7.879999915957451,
+        -7.5899999141693115
+      ],
+      "sizeRobloxStuds": [
+        3.563999891281128,
+        3.5639998018741608,
+        0.7799992561340332
+      ]
+    },
+    {
+      "name": "MechThrusterThroat_-1",
+      "role": "accessory",
+      "triangles": 76,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.539999932050705,
+        7.880000005364418,
+        -7.638000011444092
+      ],
+      "sizeRobloxStuds": [
+        2.748000204563141,
+        2.7480001151561737,
+        0.13200044631958008
+      ]
+    },
+    {
+      "name": "MechTurbineGlow_-1",
+      "role": "accessory",
+      "triangles": 160,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.539999842643738,
+        7.8799999606609346,
+        -7.746000051498413
+      ],
+      "sizeRobloxStuds": [
+        2.4840002059936523,
+        2.484000027179718,
+        0.11999988555908203
+      ]
+    },
+    {
+      "name": "MechTurbineRotor_-1",
+      "role": "accessory",
+      "triangles": 440,
+      "nonManifoldEdges": 0,
+      "motion": "turbine rotation",
+      "offsetRobloxStuds": [
+        -3.540000021457672,
+        7.880000094771385,
+        -7.859999656677246
+      ],
+      "sizeRobloxStuds": [
+        2.5500000715255737,
+        2.458568125963211,
+        0.23999977111816406
+      ]
+    },
+    {
+      "name": "MechShoulderFrame_1",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": "hinged armor sway",
+      "offsetRobloxStuds": [
+        5.610324740409851,
+        7.42756413936615,
+        -1.0800000429153442
+      ],
+      "sizeRobloxStuds": [
+        2.475050210952759,
+        5.8135292530059814,
+        5.760000228881836
+      ]
+    },
+    {
+      "name": "MechShoulderNavy_1",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.857806205749512,
+        7.518199915885925,
+        -1.0800000429153442
+      ],
+      "sizeRobloxStuds": [
+        0.5072150230407715,
+        4.9878058433532715,
+        5.1000001430511475
+      ]
+    },
+    {
+      "name": "MechLowerGuard_1",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        7.081084370613098,
+        5.532388473749161,
+        -0.8400000035762787
+      ],
+      "sizeRobloxStuds": [
+        0.6518275737762451,
+        3.492462694644928,
+        2.040000021457672
+      ]
+    },
+    {
+      "name": "MechHinge_1",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        7.575639724731445,
+        6.781083772778511,
+        -0.7799999713897705
+      ],
+      "sizeRobloxStuds": [
+        0.3567652702331543,
+        1.1474580466747284,
+        1.1399999856948853
+      ]
+    },
+    {
+      "name": "MechHingePin_1",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        7.78558087348938,
+        6.776136399134994,
+        -0.7799999713897705
+      ],
+      "sizeRobloxStuds": [
+        0.16211414337158203,
+        0.519390631467104,
+        0.515999972820282
+      ]
+    },
+    {
+      "name": "MechShoulderHazard_1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        7.192508697509766,
+        8.350545520782472,
+        -1.8600000143051147
+      ],
+      "sizeRobloxStuds": [
+        0.15642356872558594,
+        1.0969880819320679,
+        0.5651035308837891
+      ]
+    },
+    {
+      "name": "MechShoulderHazard_1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        7.192508697509766,
+        8.350545520782472,
+        -2.4300000071525574
+      ],
+      "sizeRobloxStuds": [
+        0.15642356872558594,
+        1.0969880819320679,
+        0.5651035308837891
+      ]
+    },
+    {
+      "name": "MechShoulderHazard_1_2",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        7.192508697509766,
+        8.350545520782472,
+        -3.0
+      ],
+      "sizeRobloxStuds": [
+        0.15642356872558594,
+        1.0969880819320679,
+        0.5651035308837891
+      ]
+    },
+    {
+      "name": "MechVentRecess_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        5.2799999713897705,
+        7.520000035762787,
+        3.2400000393390656
+      ],
+      "sizeRobloxStuds": [
+        1.2634942531585693,
+        2.940000057220459,
+        2.094862639904022
+      ]
+    },
+    {
+      "name": "MechVentLight_1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        5.8500001430511475,
+        6.589999995082617,
+        3.2400000393390656
+      ],
+      "sizeRobloxStuds": [
+        0.6066656112670898,
+        0.30000000447034836,
+        1.4380339980125427
+      ]
+    },
+    {
+      "name": "MechVentLight_1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        5.8500001430511475,
+        7.399999993741512,
+        3.2400000393390656
+      ],
+      "sizeRobloxStuds": [
+        0.6066656112670898,
+        0.30000002682209015,
+        1.4380339980125427
+      ]
+    },
+    {
+      "name": "MechVentLight_1_2",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        5.8500001430511475,
+        8.209999914169313,
+        3.2400000393390656
+      ],
+      "sizeRobloxStuds": [
+        0.6066656112670898,
+        0.30000007152557373,
+        1.4380339980125427
+      ]
+    },
+    {
+      "name": "MechBootSole_1_0",
+      "role": "accessory",
+      "triangles": 96,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.0,
+        0.9800000143051149,
+        2.8799998462200165
+      ],
+      "sizeRobloxStuds": [
+        3.444000005722046,
+        1.1399996280670166,
+        3.4439998269081116
+      ]
+    },
+    {
+      "name": "MechBootBand_1_0",
+      "role": "accessory",
+      "triangles": 96,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.000000089406967,
+        1.909999842643738,
+        2.8799999356269836
+      ],
+      "sizeRobloxStuds": [
+        3.5280001759529114,
+        0.8399999141693115,
+        3.527999997138977
+      ]
+    },
+    {
+      "name": "MechBootUpper_1_0",
+      "role": "accessory",
+      "triangles": 96,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.000000089406967,
+        2.6299998712539674,
+        2.8799999356269836
+      ],
+      "sizeRobloxStuds": [
+        3.1320002675056458,
+        0.7799999713897705,
+        3.1320000886917114
+      ]
+    },
+    {
+      "name": "MechBootScreen_1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.0,
+        1.8620001029968263,
+        4.5899999141693115
+      ],
+      "sizeRobloxStuds": [
+        1.320000171661377,
+        0.4379997253417969,
+        0.20999979972839355
+      ]
+    },
+    {
+      "name": "MechBootSignal_1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.0,
+        1.8620001029968263,
+        4.727999925613403
+      ],
+      "sizeRobloxStuds": [
+        0.929999828338623,
+        0.21600008010864258,
+        0.07199978828430176
+      ]
+    },
+    {
+      "name": "MechBootHazard_1_0_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.770000100135803,
+        1.909999842643738,
+        3.539999842643738
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.7075917720794678,
+        0.43442773818969727
+      ]
+    },
+    {
+      "name": "MechBootHazard_1_0_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.770000100135803,
+        1.909999842643738,
+        3.0299999713897705
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.7075917720794678,
+        0.43442773818969727
+      ]
+    },
+    {
+      "name": "MechBootHazard_1_0_2",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.770000100135803,
+        1.909999842643738,
+        2.519999921321869
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.7075917720794678,
+        0.43442773818969727
+      ]
+    },
+    {
+      "name": "MechBootSole_1_1",
+      "role": "accessory",
+      "triangles": 96,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.0,
+        0.9800000143051149,
+        -3.2400001287460327
+      ],
+      "sizeRobloxStuds": [
+        3.444000005722046,
+        1.1399996280670166,
+        3.444000005722046
+      ]
+    },
+    {
+      "name": "MechBootBand_1_1",
+      "role": "accessory",
+      "triangles": 96,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.000000089406967,
+        1.909999842643738,
+        -3.2400000393390656
+      ],
+      "sizeRobloxStuds": [
+        3.5280001759529114,
+        0.8399999141693115,
+        3.5279998183250427
+      ]
+    },
+    {
+      "name": "MechBootUpper_1_1",
+      "role": "accessory",
+      "triangles": 96,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.000000089406967,
+        2.6299998712539674,
+        -3.2400000393390656
+      ],
+      "sizeRobloxStuds": [
+        3.1320002675056458,
+        0.7799999713897705,
+        3.131999909877777
+      ]
+    },
+    {
+      "name": "MechBootScreen_1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.0,
+        1.8620001029968263,
+        -1.530000016093254
+      ],
+      "sizeRobloxStuds": [
+        1.320000171661377,
+        0.4379997253417969,
+        0.21000006794929504
+      ]
+    },
+    {
+      "name": "MechBootSignal_1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.0,
+        1.8620001029968263,
+        -1.3919999599456787
+      ],
+      "sizeRobloxStuds": [
+        0.929999828338623,
+        0.21600008010864258,
+        0.07199996709823608
+      ]
+    },
+    {
+      "name": "MechBootHazard_1_1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.770000100135803,
+        1.909999842643738,
+        -2.5800000429153442
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.7075917720794678,
+        0.43442773818969727
+      ]
+    },
+    {
+      "name": "MechBootHazard_1_1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.770000100135803,
+        1.909999842643738,
+        -3.0899999141693115
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.7075917720794678,
+        0.43442773818969727
+      ]
+    },
+    {
+      "name": "MechBootHazard_1_1_2",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.770000100135803,
+        1.909999842643738,
+        -3.6000001430511475
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.7075917720794678,
+        0.43442773818969727
+      ]
+    },
+    {
+      "name": "MechThrusterMount_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.5399997532367706,
+        7.999999980330467,
+        -4.979999899864197
+      ],
+      "sizeRobloxStuds": [
+        2.57999986410141,
+        3.2999999821186066,
+        2.3399999141693115
+      ]
+    },
+    {
+      "name": "MechThrusterBody_1",
+      "role": "accessory",
+      "triangles": 76,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.539999932050705,
+        7.879999983012676,
+        -6.119999885559082
+      ],
+      "sizeRobloxStuds": [
+        3.42000013589859,
+        3.4200000911951065,
+        2.580000400543213
+      ]
+    },
+    {
+      "name": "MechThrusterLip_1",
+      "role": "accessory",
+      "triangles": 160,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.539999842643738,
+        7.879999915957451,
+        -7.5899999141693115
+      ],
+      "sizeRobloxStuds": [
+        3.563999891281128,
+        3.5639998018741608,
+        0.7799992561340332
+      ]
+    },
+    {
+      "name": "MechThrusterThroat_1",
+      "role": "accessory",
+      "triangles": 76,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.539999932050705,
+        7.880000005364418,
+        -7.638000011444092
+      ],
+      "sizeRobloxStuds": [
+        2.748000204563141,
+        2.7480001151561737,
+        0.13200044631958008
+      ]
+    },
+    {
+      "name": "MechTurbineGlow_1",
+      "role": "accessory",
+      "triangles": 160,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.539999842643738,
+        7.8799999606609346,
+        -7.746000051498413
+      ],
+      "sizeRobloxStuds": [
+        2.4840002059936523,
+        2.484000027179718,
+        0.11999988555908203
+      ]
+    },
+    {
+      "name": "MechTurbineRotor_1",
+      "role": "accessory",
+      "triangles": 440,
+      "nonManifoldEdges": 0,
+      "motion": "turbine rotation",
+      "offsetRobloxStuds": [
+        3.540000021457672,
+        7.880000094771385,
+        -7.859999656677246
+      ],
+      "sizeRobloxStuds": [
+        2.5500000715255737,
+        2.458568125963211,
+        0.23999977111816406
+      ]
+    },
+    {
+      "name": "MechRearVent",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        7.700000042915344,
+        -6.966000080108643
+      ],
+      "sizeRobloxStuds": [
+        1.6200000643730164,
+        2.5800000429153442,
+        0.4799995422363281
+      ]
+    },
+    {
+      "name": "MechRearSignal_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        6.890000005140901,
+        -7.2900002002716064
+      ],
+      "sizeRobloxStuds": [
+        1.0800000429153442,
+        0.25199998542666435,
+        0.10799932479858398
+      ]
+    },
+    {
+      "name": "MechRearSignal_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        7.640000010728836,
+        -7.2900002002716064
+      ],
+      "sizeRobloxStuds": [
+        1.0800000429153442,
+        0.25199997425079346,
+        0.10799932479858398
+      ]
+    },
+    {
+      "name": "MechRearSignal_2",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        8.38999992132187,
+        -7.2900002002716064
+      ],
+      "sizeRobloxStuds": [
+        1.0800000429153442,
+        0.25199997425079346,
+        0.10799932479858398
+      ]
+    },
+    {
+      "name": "MechContinuousBackArmor",
+      "role": "accessory",
+      "triangles": 2848,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        7.152557373046875e-07,
+        7.67922669172287,
+        -1.359182059764862
+      ],
+      "sizeRobloxStuds": [
+        12.750181674957275,
+        10.205544590950012,
+        10.975327134132385
+      ]
+    },
+    {
+      "name": "MechForeheadConnectedPlate",
+      "role": "accessory",
+      "triangles": 500,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -0.00011658668518066406,
+        12.063941235542298,
+        2.788152515888214
+      ],
+      "sizeRobloxStuds": [
+        5.596438765525818,
+        1.2946851253509521,
+        3.0764154195785522
+      ]
+    },
+    {
+      "name": "MechCrownSeam_90",
+      "role": "accessory",
+      "triangles": 128,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.4256540536880493,
+        8.215679223537446,
+        -0.0
+      ],
+      "sizeRobloxStuds": [
+        5.994699239730835,
+        9.178935170173645,
+        0.053999997675418854
+      ]
+    },
+    {
+      "name": "MechCrownSeam_180",
+      "role": "accessory",
+      "triangles": 128,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        8.13451486349106,
+        -3.664389230310917
+      ],
+      "sizeRobloxStuds": [
+        0.053999997675418854,
+        9.353273034095764,
+        6.470776364207268
+      ]
+    },
+    {
+      "name": "MechCrownSeam_270",
+      "role": "accessory",
+      "triangles": 128,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.425653964281082,
+        8.215677167177201,
+        -0.0
+      ],
+      "sizeRobloxStuds": [
+        5.994699418544769,
+        9.178933560848236,
+        0.053999997675418854
+      ]
+    }
+  ],
+  "exports": [
+    {
+      "file": "mechaplayer-arcade-v3-accessories.fbx",
+      "sha256": "9231a651ece0cb328e4905b33bb931f3f8c7a5b850b5d2b5f91abc5324f15db2",
+      "meshCount": 77,
+      "roundTripChecked": true,
+      "roundTripBoundsError": 4.76837158203125e-07
+    },
+    {
+      "file": "mechaplayer-arcade-v3-complete.fbx",
+      "sha256": "c1f862d2dd1d85e7711dbd1bb41564959f7f8cc25705c1396094671dab7b01a1",
+      "meshCount": 83,
+      "roundTripChecked": true,
+      "roundTripBoundsError": 0.0
+    }
+  ],
+  "aura": "arcade_thruster_sparkle_proposed",
+  "auraPreviewObjects": 10,
+  "auraExcludedFromMeshExports": true,
+  "animation": {
+    "loopSeconds": 6,
+    "fps": 24,
+    "frames": [
+      1,
+      145
+    ],
+    "loopClosureError": 1.7484555314695172e-07,
+    "faceClearanceSampledFrames": 9
+  },
+  "tierChecks": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": true
+  },
+  "textures": [
+    {
+      "role": "body_color",
+      "file": "sheets\\arcade-v2\\mechaplayer_arcade_v2_body_color.png",
+      "sha256": "ad1e93baf14226d813df2387e838694b26e51f4d49d1964720921cd20d339080",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\arcade-v2\\mechaplayer_arcade_v2_trim_color.png",
+      "sha256": "c5f56abbeddecbcd22d60354f08850bc5d6afa2f46f18857c81db6412838efe5",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "generator": "assets/piggies/arcade-build-v1/build_arcade.py",
+  "runtimeNotes": "Mecha v3 review only. Continuous closed crown/back armor and one connected navy forehead plate. V2 remains installed in the game."
+}

@@ -1,0 +1,26 @@
+{
+  "key": "mechaplayer",
+  "revision": "arcade-mecha-v3",
+  "status": "Review preview; installed game remains v2",
+  "changes": [
+    "Continuous armor shell across upper back and crown",
+    "One connected navy forehead plate",
+    "Rear vent reseated on the new shell"
+  ],
+  "accessoryParts": 77,
+  "accessoryTriangles": 8876,
+  "validation": {
+    "status": "Review preview; game remains on installed v2",
+    "crownCoverageRays": 648,
+    "bodyVisibleThroughCrown": false,
+    "foreheadConnectedComponents": 1,
+    "shellConnectedComponents": 1,
+    "baseGeometryAndUVsPreserved": true
+  },
+  "blender": "../legendary/mechaplayer/package/arcade-v3/mechaplayer-arcade-v3.blend",
+  "views": {
+    "hero": "../legendary/mechaplayer/preview/arcade-v3/mechaplayer-v3-hero.png",
+    "back": "../legendary/mechaplayer/preview/arcade-v3/mechaplayer-v3-back.png",
+    "top": "../legendary/mechaplayer/preview/arcade-v3/mechaplayer-v3-top.png"
+  }
+}

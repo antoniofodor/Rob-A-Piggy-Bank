@@ -1,0 +1,35 @@
+{
+  "revision": "arcade-legendary-v2",
+  "status": "Imported into repository and Roblox Studio; not published to the live place",
+  "approvedUploads": 5,
+  "geometry": {
+    "mechaplayer": {
+      "parts": 81,
+      "triangles": 6068
+    },
+    "finalboss": {
+      "parts": 45,
+      "triangles": 2748
+    },
+    "jackpot": {
+      "parts": 75,
+      "triangles": 5396
+    }
+  },
+  "checks": {
+    "baseMeshesAndUVsPreserved": true,
+    "allAccessoriesClosed": true,
+    "eachMeshBelow20000Triangles": true,
+    "fbxRoundTripBoundsBelow001": true,
+    "faceClearanceFrames": 9,
+    "animationLoopSeconds": 6,
+    "crateChecks": 179,
+    "configForwardReferences": "pass",
+    "rojoBuild": "pass"
+  },
+  "runtimeMovingParts": {
+    "mechaplayer": 18,
+    "finalboss": 14,
+    "jackpot": 9
+  }
+}

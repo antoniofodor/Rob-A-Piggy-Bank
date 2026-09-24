@@ -1,0 +1,163 @@
+{
+  "key": "ghost",
+  "name": "Ghost Piggy",
+  "tier": "epic",
+  "path": "assets/piggies/epic/ghost",
+  "status": "Uploaded and installed (og-redesign-v1 maps round, 2026-09-23)",
+  "revision": "og-redesign-v1",
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/ghost.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://99656891505386",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "EmissiveMaskContent": "rbxassetid://72238314167998",
+        "EmissiveStrength": 0.9
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/ghost_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://115286218866266",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "EmissiveMaskContent": "rbxassetid://89307579871791",
+        "EmissiveStrength": 0.9
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://99656891505386": {
+      "role": "ghost ColorMap",
+      "file": "sheets/ghost_og_v1_body_color.png",
+      "sha256": "50c7700e55e00d9cea57e83aae2fb7d4fac6995d088281c245c68674a95bd964"
+    },
+    "rbxassetid://72238314167998": {
+      "role": "ghost EmissiveMaskContent",
+      "file": "sheets/ghost_og_v1_body_emissive.png",
+      "sha256": "97f7182687af1256ddf1f96b79587fd82357ad6322290321f11d2b009818055c"
+    },
+    "rbxassetid://115286218866266": {
+      "role": "ghost_trim ColorMap",
+      "file": "sheets/ghost_og_v1_trim_color.png",
+      "sha256": "1bc164738e944d4bc54661799124f9a838de83370507e74652702bdff09bc5ca"
+    },
+    "rbxassetid://89307579871791": {
+      "role": "ghost_trim EmissiveMaskContent",
+      "file": "sheets/ghost_og_v1_trim_emissive.png",
+      "sha256": "4d73db72f57950f9c5036d220fde1184fe4585b938208833183aa9b2c041087e"
+    }
+  },
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau",
+    "skinsRow": {
+      "line": 7101,
+      "name": "Ghost Piggy",
+      "rarity": "epic",
+      "surface": "ghost",
+      "chest": "og",
+      "pattern": false,
+      "anim": true,
+      "fx": false
+    },
+    "surfacePack": {
+      "key": "ghost",
+      "line": 6007,
+      "template": "ghost",
+      "trimTemplate": "ghost_trim"
+    },
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "concept": "preview/ghost-og-v1-concept.png",
+  "prompt": "generate/og-v1-concept-prompt.txt",
+  "conceptMethod": "built-in image_gen",
+  "source": "source/ghost-og-v1-procedural.blend",
+  "review": "package/ghost-og-v1.blend",
+  "generator": "assets\\piggies\\og-redesign-v1\\build_og.py",
+  "report": "package/og-v1-asset-report.json",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\ghost_og_v1_body_color.png",
+      "sha256": "50c7700e55e00d9cea57e83aae2fb7d4fac6995d088281c245c68674a95bd964",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\ghost_og_v1_body_emissive.png",
+      "sha256": "97f7182687af1256ddf1f96b79587fd82357ad6322290321f11d2b009818055c",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\ghost_og_v1_trim_color.png",
+      "sha256": "1bc164738e944d4bc54661799124f9a838de83370507e74652702bdff09bc5ca",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\ghost_og_v1_trim_emissive.png",
+      "sha256": "4d73db72f57950f9c5036d220fde1184fe4585b938208833183aa9b2c041087e",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": false
+  },
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": true,
+    "loopClosureError": 3.6739405577555036e-17
+  },
+  "files": {
+    "source": [
+      "ghost-og-v1-procedural.blend"
+    ],
+    "generate": [
+      "og-v1-concept-prompt.txt",
+      "og-v1-spec.json"
+    ],
+    "sheets": [
+      "ghost_og_v1_body_color.png",
+      "ghost_og_v1_body_emissive.png",
+      "ghost_og_v1_trim_color.png",
+      "ghost_og_v1_trim_emissive.png"
+    ],
+    "preview": [
+      "ghost-og-v1-back.png",
+      "ghost-og-v1-concept.png",
+      "ghost-og-v1-hero.png",
+      "ghost-og-v1-motion.png"
+    ],
+    "package": [
+      "ghost-og-v1-complete.fbx",
+      "ghost-og-v1.blend",
+      "og-v1-asset-report.json"
+    ]
+  }
+}

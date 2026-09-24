@@ -1,0 +1,23 @@
+{
+  "skin": "retrocarpet",
+  "revision": "arcade-v1",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "body_color": {
+      "source": "assets/piggies/rare/retrocarpet/sheets/retrocarpet_arcade_v1_body_color.png",
+      "sha256": "5004c6a535ffb8e84e6f4632dafd15e1b6b43a40a0b578ceeee174dec933ef6f",
+      "assetType": "Image",
+      "operationId": "9600fc45-2451-4e28-a91e-6c51cc53d670",
+      "assetId": "131344660239799",
+      "moderationState": "Approved"
+    },
+    "trim_color": {
+      "source": "assets/piggies/rare/retrocarpet/sheets/retrocarpet_arcade_v1_trim_color.png",
+      "sha256": "03b007047370e3fc4d9088a2ba09da1345341f76d3a1dc9235830c0e0d71bea7",
+      "assetType": "Image",
+      "operationId": "3f183b1a-f9b7-40a8-9b12-b56f5b824dfa",
+      "assetId": "83838979644731",
+      "moderationState": "Approved"
+    }
+  }
+}

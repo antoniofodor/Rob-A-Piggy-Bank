@@ -39,7 +39,7 @@
         "MetalnessMap": "",
         "RoughnessMap": "",
         "NormalMap": "",
-        "ColorMap": "rbxassetid://73337490597333",
+        "ColorMap": "rbxassetid://111331164324497",
         "EmissiveMaskContent": ""
       },
       "alphaMode": "Overlay"
@@ -50,43 +50,59 @@
         "MetalnessMap": "",
         "RoughnessMap": "",
         "NormalMap": "",
-        "ColorMap": "rbxassetid://79364999560427",
+        "ColorMap": "rbxassetid://88757114811518",
         "EmissiveMaskContent": ""
       },
       "alphaMode": "Overlay"
     }
   },
   "idSources": {
-    "rbxassetid://73337490597333": {
-      "file": "sheets/honeycomb_body_color.open-hatch.png",
-      "sha256": "771a514915e3aff17d99f0ec0c65bedd323983410754ac3fb191d6653831a3c4",
-      "role": "body ColorMap",
-      "note": "uploaded from the open-hatch bake"
+    "rbxassetid://132412753112020": {
+      "file": "sheets/honeycomb_body_color.png",
+      "sha256": "0278770f2b259b51e077171d940886e75431df11ee002b634672544c311f4a01",
+      "role": "honeycomb ColorMap",
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://73337490597333",
+      "status": "historical upload; superseded locally by hexagonal-honeycomb revision, re-upload required"
     },
     "rbxassetid://79364999560427": {
       "file": "sheets/honeycomb_trim_color.png",
       "sha256": "320ef19c565153ca5053822aa6bba27f29806802c04a8fb7b7562d2d4ad4c778",
+      "role": "trim ColorMap",
+      "status": "historical upload; superseded locally by hexagonal-honeycomb revision, re-upload required"
+    },
+    "rbxassetid://111331164324497": {
+      "file": "sheets/honeycomb_body_color.png",
+      "sha256": "378440dd4ea564495f8e45ba76f7038f453f538463ccf87c140aae2bd783d758",
+      "status": "Approved and installed",
+      "role": "body ColorMap"
+    },
+    "rbxassetid://88757114811518": {
+      "file": "sheets/honeycomb_trim_color.png",
+      "sha256": "3d2ac48a6e5f10ff483dde0c1b2e02d35337d019cc7c26e2cb273de6660a1d9c",
+      "status": "Approved and installed",
       "role": "trim ColorMap"
     }
   },
   "shopCard": {
     "file": "preview/honeycomb_shop-card.png",
-    "robloxAssetId": "rbxassetid://114718401104881",
+    "robloxAssetId": "rbxassetid://123072274802746",
     "renderedBy": "blender/shop/render_skin_images.py from the derived package",
-    "canonicalCopy": "assets/piggies/rare/honeycomb/package/shop-cards/honeycomb.png"
+    "canonicalCopy": "assets/piggies/rare/honeycomb/package/shop-cards/honeycomb.png",
+    "status": "Installed",
+    "sha256": "38bbac09964b3b7f683d84fbbecb9fdde6025882960dce9ce60a8d6fb6120078"
   },
   "derivedPackage": {
     "path": "assets/piggies/rare/honeycomb/package",
-    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "note": "Current hexagonal coat and replacement trim assembly are installed in Roblox Studio.",
     "fileCount": 16,
     "textureCopiesMatchShippedSheets": {
-      "honeycomb_body_color.png": false,
-      "honeycomb_trim_color.png": false
+      "honeycomb_body_color.png": true,
+      "honeycomb_trim_color.png": true
     }
   },
   "closedBack": {
     "closedScene": "source/honeycomb_closed.blend",
-    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as honeycomb_body_color.open-hatch.png. Re-upload pending."
+    "note": "Current hexagonal body/trim maps installed; closed-back geometry retained."
   },
   "files": {
     "source": [
@@ -95,8 +111,10 @@
       "honeycomb_closed.blend"
     ],
     "generate": [
-      "__pycache__/",
-      "make_honeycomb_blend.py"
+      "honey_tail.py",
+      "honeycomb_pattern.py",
+      "make_honeycomb_blend.py",
+      "render_tail_preview.py"
     ],
     "sheets": [
       "honeycomb_body_color.open-hatch.png",
@@ -120,6 +138,8 @@
       "honeycomb-glow.png",
       "honeycomb-hero.png",
       "honeycomb-spine.png",
+      "honeycomb-tail-detail.png",
+      "honeycomb-tail.fbx",
       "honeycomb_body_color.png",
       "honeycomb_body_emissive.png",
       "honeycomb_trim_color.png",
@@ -129,5 +149,44 @@
     ]
   },
   "generator": "generate/make_honeycomb_blend.py",
-  "notes": []
+  "notes": [],
+  "authoringRevision": {
+    "name": "hexagonal-honeycomb",
+    "status": "Installed: current maps, honey-drop tail assembly and shop card",
+    "source": "source/honeycomb_closed.blend",
+    "generator": "generate/honeycomb_pattern.py",
+    "pattern": "Hexagonal amber cells with golden wax walls; spherical mapping prevents pole stretching; twelve pentagonal junctions close the grid.",
+    "noDotsOrEmission": true,
+    "currentSheets": {
+      "honeycomb_body_color.png": "378440dd4ea564495f8e45ba76f7038f453f538463ccf87c140aae2bd783d758",
+      "honeycomb_trim_color.png": "3d2ac48a6e5f10ff483dde0c1b2e02d35337d019cc7c26e2cb273de6660a1d9c"
+    },
+    "tail": {
+      "style": "Solid orange curl with lighter translucent amber droplet and curved reflective streak",
+      "mesh": "package/honeycomb-tail.fbx",
+      "parts": [
+        "Tail",
+        "HoneyDrop",
+        "HoneyDropHighlight"
+      ],
+      "requiresSeparateDropletMaterial": true,
+      "appearance": {
+        "colourRGB": [
+          255,
+          199,
+          88
+        ],
+        "transmission": 0.78,
+        "alpha": 0.78,
+        "roughness": 0.12,
+        "IOR": 1.47
+      },
+      "sharedBodyGeometryPreserved": true
+    }
+  },
+  "status": "Installed in project and Roblox Studio",
+  "installedRevision": "hexagonal-honeycomb",
+  "runtimeInstalled": true,
+  "publishedLive": false,
+  "robloxUploads": "revisions/hexagonal-installed/roblox-uploads.json"
 }

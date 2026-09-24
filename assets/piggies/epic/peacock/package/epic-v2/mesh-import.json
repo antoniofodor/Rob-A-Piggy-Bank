@@ -1,0 +1,397 @@
+{
+  "skin": "peacock",
+  "source": "Roblox InsertService.LoadAsset of the uploaded epic-v2 accessory package",
+  "parts": [
+    {
+      "colorMap": "",
+      "name": "peacock_Crest",
+      "position": {
+        "y": 789.9501342773438,
+        "x": 0,
+        "z": -240
+      },
+      "orientation": {
+        "y": 0,
+        "x": 0,
+        "z": 0
+      },
+      "meshId": "rbxassetid://106339611156039",
+      "size": {
+        "y": 496.0997314453125,
+        "x": 443.1416931152344,
+        "z": 67.92230224609375
+      },
+      "textureId": "rbxassetid://77017744479082",
+      "gameSeatPlacement": {
+        "sizeRobloxStuds": [
+          4.431416988372803,
+          4.960997700691223,
+          0.6792229413986206
+        ],
+        "offsetRobloxStuds": [
+          0.0,
+          14.519501264095307,
+          2.400000035762787
+        ],
+        "rotationDegrees": [
+          0,
+          180,
+          0
+        ],
+        "material": "SmoothPlastic"
+      }
+    },
+    {
+      "colorMap": "",
+      "name": "peacock_FanFeather_01",
+      "position": {
+        "y": -283.90948486328125,
+        "x": 513.0698852539062,
+        "z": 573.4403686523438
+      },
+      "orientation": {
+        "y": 0,
+        "x": 0,
+        "z": 0
+      },
+      "meshId": "rbxassetid://97720288862767",
+      "size": {
+        "y": 374.9123840332031,
+        "x": 1028.8804931640625,
+        "z": 158.3563232421875
+      },
+      "textureId": "rbxassetid://77017744479082",
+      "gameSeatPlacement": {
+        "sizeRobloxStuds": [
+          10.288805042859167,
+          3.7491238117218018,
+          1.583562970161438
+        ],
+        "offsetRobloxStuds": [
+          -5.130698901833966,
+          3.7809050035476686,
+          -5.734403550624847
+        ],
+        "rotationDegrees": [
+          0,
+          180,
+          0
+        ],
+        "material": "SmoothPlastic"
+      }
+    },
+    {
+      "colorMap": "",
+      "name": "peacock_FanFeather_02",
+      "position": {
+        "y": -7.43304443359375,
+        "x": 516.6513671875,
+        "z": 570.1962890625
+      },
+      "orientation": {
+        "y": 0,
+        "x": 0,
+        "z": 0
+      },
+      "meshId": "rbxassetid://79198540243792",
+      "size": {
+        "y": 397.47613525390625,
+        "x": 1037.34033203125,
+        "z": 151.88015747070312
+      },
+      "textureId": "rbxassetid://77017744479082",
+      "gameSeatPlacement": {
+        "sizeRobloxStuds": [
+          10.373403104022145,
+          3.9747612476348877,
+          1.5188015699386597
+        ],
+        "offsetRobloxStuds": [
+          -5.166513665579259,
+          6.545669550895691,
+          -5.701962769031525
+        ],
+        "rotationDegrees": [
+          0,
+          180,
+          0
+        ],
+        "material": "SmoothPlastic"
+      }
+    },
+    {
+      "colorMap": "",
+      "name": "peacock_FanFeather_03",
+      "position": {
+        "y": 182.80543518066406,
+        "x": 418.94256591796875,
+        "z": 566.952880859375
+      },
+      "orientation": {
+        "y": 0,
+        "x": 0,
+        "z": 0
+      },
+      "meshId": "rbxassetid://117952519890726",
+      "size": {
+        "y": 725.5611572265625,
+        "x": 847.91259765625,
+        "z": 145.40240478515625
+      },
+      "textureId": "rbxassetid://77017744479082",
+      "gameSeatPlacement": {
+        "sizeRobloxStuds": [
+          8.479125894606113,
+          7.2556112408638,
+          1.454024076461792
+        ],
+        "offsetRobloxStuds": [
+          -4.1894255094230175,
+          8.448054279088975,
+          -5.669528603553772
+        ],
+        "rotationDegrees": [
+          0,
+          180,
+          0
+        ],
+        "material": "SmoothPlastic"
+      }
+    },
+    {
+      "colorMap": "",
+      "name": "peacock_FanFeather_04",
+      "position": {
+        "y": 335.8759765625,
+        "x": 256.3664855957031,
+        "z": 563.7101440429688
+      },
+      "orientation": {
+        "y": 0,
+        "x": 0,
+        "z": 0
+      },
+      "meshId": "rbxassetid://72395007488621",
+      "size": {
+        "y": 1026.3447265625,
+        "x": 526.8713989257812,
+        "z": 138.92343139648438
+      },
+      "textureId": "rbxassetid://77017744479082",
+      "gameSeatPlacement": {
+        "sizeRobloxStuds": [
+          5.268714018166065,
+          10.263447403907776,
+          1.3892340660095215
+        ],
+        "offsetRobloxStuds": [
+          -2.563664998859167,
+          9.978759582042695,
+          -5.637101411819458
+        ],
+        "rotationDegrees": [
+          0,
+          180,
+          0
+        ],
+        "material": "SmoothPlastic"
+      }
+    },
+    {
+      "colorMap": "",
+      "name": "peacock_FanFeather_05",
+      "position": {
+        "y": 404.47686767578125,
+        "x": 0,
+        "z": 558.311279296875
+      },
+      "orientation": {
+        "y": 0,
+        "x": 0,
+        "z": 0
+      },
+      "meshId": "rbxassetid://80467390326232",
+      "size": {
+        "y": 1157.629150390625,
+        "x": 359.6595458984375,
+        "z": 136.75674438476562
+      },
+      "textureId": "rbxassetid://77017744479082",
+      "gameSeatPlacement": {
+        "sizeRobloxStuds": [
+          3.596595525741577,
+          11.576291799545288,
+          1.3675671815872192
+        ],
+        "offsetRobloxStuds": [
+          0.0,
+          10.664768691062928,
+          -5.58311265707016
+        ],
+        "rotationDegrees": [
+          0,
+          180,
+          0
+        ],
+        "material": "SmoothPlastic"
+      }
+    },
+    {
+      "colorMap": "",
+      "name": "peacock_FanFeather_06",
+      "position": {
+        "y": 335.8759765625,
+        "x": -256.3664855957031,
+        "z": 563.7101440429688
+      },
+      "orientation": {
+        "y": 0,
+        "x": 0,
+        "z": 0
+      },
+      "meshId": "rbxassetid://116031006230620",
+      "size": {
+        "y": 1026.3447265625,
+        "x": 526.8713989257812,
+        "z": 138.92343139648438
+      },
+      "textureId": "rbxassetid://77017744479082",
+      "gameSeatPlacement": {
+        "sizeRobloxStuds": [
+          5.268714018166065,
+          10.263447403907776,
+          1.3892340660095215
+        ],
+        "offsetRobloxStuds": [
+          2.563664998859167,
+          9.978759582042695,
+          -5.637101411819458
+        ],
+        "rotationDegrees": [
+          0,
+          180,
+          0
+        ],
+        "material": "SmoothPlastic"
+      }
+    },
+    {
+      "colorMap": "",
+      "name": "peacock_FanFeather_07",
+      "position": {
+        "y": 182.80543518066406,
+        "x": -418.94256591796875,
+        "z": 566.952880859375
+      },
+      "orientation": {
+        "y": 0,
+        "x": 0,
+        "z": 0
+      },
+      "meshId": "rbxassetid://128378345273930",
+      "size": {
+        "y": 725.5611572265625,
+        "x": 847.91259765625,
+        "z": 145.40240478515625
+      },
+      "textureId": "rbxassetid://77017744479082",
+      "gameSeatPlacement": {
+        "sizeRobloxStuds": [
+          8.479125894606113,
+          7.2556112408638,
+          1.454024076461792
+        ],
+        "offsetRobloxStuds": [
+          4.1894255094230175,
+          8.448054279088975,
+          -5.669528603553772
+        ],
+        "rotationDegrees": [
+          0,
+          180,
+          0
+        ],
+        "material": "SmoothPlastic"
+      }
+    },
+    {
+      "colorMap": "",
+      "name": "peacock_FanFeather_08",
+      "position": {
+        "y": -7.43304443359375,
+        "x": -516.6513671875,
+        "z": 570.1962890625
+      },
+      "orientation": {
+        "y": 0,
+        "x": 0,
+        "z": 0
+      },
+      "meshId": "rbxassetid://80987860636738",
+      "size": {
+        "y": 397.47613525390625,
+        "x": 1037.34033203125,
+        "z": 151.88015747070312
+      },
+      "textureId": "rbxassetid://77017744479082",
+      "gameSeatPlacement": {
+        "sizeRobloxStuds": [
+          10.373403104022145,
+          3.9747612476348877,
+          1.5188015699386597
+        ],
+        "offsetRobloxStuds": [
+          5.166513665579259,
+          6.545669550895691,
+          -5.701962769031525
+        ],
+        "rotationDegrees": [
+          0,
+          180,
+          0
+        ],
+        "material": "SmoothPlastic"
+      }
+    },
+    {
+      "colorMap": "",
+      "name": "peacock_FanFeather_09",
+      "position": {
+        "y": -283.90948486328125,
+        "x": -513.0698852539062,
+        "z": 573.4403686523438
+      },
+      "orientation": {
+        "y": 0,
+        "x": 0,
+        "z": 0
+      },
+      "meshId": "rbxassetid://86383104722017",
+      "size": {
+        "y": 374.9123840332031,
+        "x": 1028.8804931640625,
+        "z": 158.3563232421875
+      },
+      "textureId": "rbxassetid://77017744479082",
+      "gameSeatPlacement": {
+        "sizeRobloxStuds": [
+          10.288805042859167,
+          3.7491238117218018,
+          1.583562970161438
+        ],
+        "offsetRobloxStuds": [
+          5.130698901833966,
+          3.7809050035476686,
+          -5.734403550624847
+        ],
+        "rotationDegrees": [
+          0,
+          180,
+          0
+        ],
+        "material": "SmoothPlastic"
+      }
+    }
+  ],
+  "placementValidated": true
+}

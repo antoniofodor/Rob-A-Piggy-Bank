@@ -1,0 +1,25 @@
+C:\Users\anton\robloxGame\assets\piggies\arcade-build-v1\build_arcade.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:04.281  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_15072_38e196bc786a78efd99ffd73f0562ccd.png.png"
+Info: Saved as "retrocarpet-arcade-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED retrocarpet body color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED retrocarpet trim color
+C:\Users\anton\robloxGame\assets\piggies\arcade-build-v1\build_arcade.py:556: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:32.688  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\rare\retrocarpet\preview\retrocarpet-arcade-v1-hero.png'
+00:49.610  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\rare\retrocarpet\preview\retrocarpet-arcade-v1-back.png'
+00:49.641  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_15072_3becfb84032a678612ca625c28628d7d.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\rare\\retrocarpet\\package\\retrocarpet-arcade-v1-complete.fbx'
+export finished in 0.0332 sec.
+FBX version: 7400
+Info: Saved as "retrocarpet-arcade-v1.blend"
+ARCADE_COMPLETE retrocarpet {"extraTriangles": 0, "maps": 2, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

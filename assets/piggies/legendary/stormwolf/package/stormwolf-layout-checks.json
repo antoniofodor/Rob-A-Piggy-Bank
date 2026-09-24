@@ -1,9 +1,9 @@
 {
   "inputHashes": {
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\stormwolf\\stormwolf.blend": "2c5fa4dbb4c69ed682ccb3f07933ca8d73edcac2b26ebb360e483fc04a1fe6d3",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\stormwolf\\stormwolf_body_color.png": "0cdb0d1dafe6ac3fb6205a69fdde69137bb669c80ddda87008cc6416406372ac",
+    "C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\stormwolf\\source\\stormwolf.blend": "2c5fa4dbb4c69ed682ccb3f07933ca8d73edcac2b26ebb360e483fc04a1fe6d3",
+    "C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\stormwolf\\sheets\\stormwolf_body_color.png": "0cdb0d1dafe6ac3fb6205a69fdde69137bb669c80ddda87008cc6416406372ac",
     "C:\\Users\\anton\\robloxGame\\blender\\pig\\pig\\pig_stormwolf_bolts.blend": "04ebf095b273935c3182aa258bca37f4eadc729bd7f0df37c193bde49cbb6b1f",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\pig\\pig_parts.blend": "b83cbb017c66b54f55dc8c75a079085621440f1c4d2e12e356de712bbf169086"
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\pig\\pig_parts.blend": "c5e740da3db249498a048da7cc4764ab1b4aa6c4cb103a46775d63dd4a5b2f4a"
   },
   "source": "Existing painted Storm Wolf and original UVs; chunky branching lightning and masked body glow",
   "bodyGlow": {
@@ -36,13 +36,18 @@
       3.15
     ]
   },
-  "vaultBlocked": [],
+  "closedBack": true,
+  "tailRootRepairFaces": 240,
+  "closedBackRaysChecked": 360,
+  "closedBackRayMisses": [],
+  "rearMaterialHits": {
+    "0": 360
+  },
   "coinSlot": "Covered by continuous mane, no visible slit or rim, as requested. Deposit anchor retained.",
-  "plateBlocked": [],
   "meshes": [
     {
       "name": "Body",
-      "triangles": 19672,
+      "triangles": 17652,
       "nonManifoldEdges": 0
     },
     {
@@ -54,12 +59,12 @@
   "uv": [
     {
       "name": "Body",
-      "retainedSourceLoopsChecked": 51257,
+      "retainedSourceLoopsChecked": 51157,
       "maxUVError": 0.0
     },
     {
       "name": "Tail",
-      "retainedSourceLoopsChecked": 7326,
+      "retainedSourceLoopsChecked": 7314,
       "maxUVError": 0.0
     }
   ],
@@ -320,21 +325,20 @@
     ]
   },
   "tailMountBlender": [
-    0.0,
-    0.9100000262260437,
-    0.07999999821186066
+    0.17000000178813934,
+    0.7412322759628296,
+    -0.41200000047683716
   ],
   "tailLiftDegrees": 5,
   "changes": [
     "Closed the original four-edge mesh pinhole",
-    "Hollow interior chamber",
-    "Flush rear vault opening, no exterior collar",
+    "Restored original painted rear surface by omitting obsolete chamber and vault cuts",
     "Continuous mane conceals the coin deposit location; no visible slot",
-    "Original tail centred just above the opening and projecting rearward",
-    "Removed all six original bolt meshes; eight longer branching bolts in six rapid flicker groups"
+    "Original tail seated over the repaired attachment with a small underlap",
+    "Eight branching bolts in six rapid flicker groups retained; tail strikes follow the relocated tuft"
   ],
   "meshCount": 9,
-  "totalTriangles": 23516,
+  "totalTriangles": 21496,
   "fbxRoundTripBoundsError": 9.5367431640625e-07,
   "boundsStuds": {
     "min": [
@@ -344,7 +348,7 @@
     ],
     "max": [
       7.872226238250732,
-      13.209993362426758,
+      12.19738483428955,
       11.77006721496582
     ]
   },

@@ -1,0 +1,23 @@
+{
+  "skin": "pixel",
+  "revision": "arcade-v1",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "body_color": {
+      "source": "assets/piggies/rare/pixel/sheets/pixel_arcade_v1_body_color.png",
+      "sha256": "4e9fad9fcbd834912a844adcc2f6a23a0677878b6c2ac58190f2e6c68b942c4a",
+      "assetType": "Image",
+      "operationId": "5351900b-e6d8-4db4-b41e-630d7fd7d231",
+      "assetId": "100208905628405",
+      "moderationState": "Approved"
+    },
+    "trim_color": {
+      "source": "assets/piggies/rare/pixel/sheets/pixel_arcade_v1_trim_color.png",
+      "sha256": "50551660858879ac221807dee24253c3c80008ea512f76f39bde03816d1016df",
+      "assetType": "Image",
+      "operationId": "9da0e28b-20bb-448b-b812-b7f8b17109ea",
+      "assetId": "115130394635722",
+      "moderationState": "Approved"
+    }
+  }
+}

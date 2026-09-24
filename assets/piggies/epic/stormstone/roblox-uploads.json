@@ -1,0 +1,31 @@
+{
+  "skin": "stormstone",
+  "revision": "epic-v2",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "accessories": {
+      "source": "assets/piggies/epic/stormstone/package/epic-v2/stormstone-epic-v2-accessories.fbx",
+      "sha256": "647f79a0e2c7c39cbdfd4105d69e62864804c82f200c48ff9974b51356049be6",
+      "assetType": "Model",
+      "operationId": "3bb2cc02-03a4-457c-81a4-05e4e042edb0",
+      "assetId": "118154021021392",
+      "moderationState": "Approved"
+    },
+    "body": {
+      "source": "assets/piggies/epic/stormstone/sheets/stormstone-epic-v2-body.png",
+      "sha256": "59cc873662d76e0623a10579e2c23540b429d67c202dd4175ce3b2907f8045ac",
+      "assetType": "Image",
+      "operationId": "af9e2be6-1a18-4576-b869-c8f4e7ba261c",
+      "assetId": "107757367619801",
+      "moderationState": "Approved"
+    },
+    "trim": {
+      "source": "assets/piggies/epic/stormstone/sheets/stormstone-epic-v2-trim.png",
+      "sha256": "cf196f2d9650df5d7a606079032eac1fef7a9865569e2874cdc6b5c03cfc5685",
+      "assetType": "Image",
+      "operationId": "f1385e37-6aa8-4912-9663-ea768223ef44",
+      "assetId": "86186391437693",
+      "moderationState": "Approved"
+    }
+  }
+}

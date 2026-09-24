@@ -1,0 +1,93 @@
+{
+  "revision": "og-refresh-v2",
+  "status": "All seven revisions installed in project and Roblox Studio",
+  "skins": [
+    {
+      "key": "aurora",
+      "name": "Aurora",
+      "tier": "rare",
+      "model": "rare/aurora/revisions/og-v2/package/aurora-og-v2.blend",
+      "maps": 8,
+      "accessoryTriangles": 0,
+      "animatedPreview": true,
+      "runtimeInstalled": true,
+      "geometryUVPreserved": true,
+      "fbxRoundTripPassed": true
+    },
+    {
+      "key": "banker",
+      "name": "Banker Piggy",
+      "tier": "rare",
+      "model": "rare/banker/revisions/og-v2/package/banker-og-v2.blend",
+      "maps": 6,
+      "accessoryTriangles": 0,
+      "animatedPreview": false,
+      "runtimeInstalled": true,
+      "geometryUVPreserved": true,
+      "fbxRoundTripPassed": true
+    },
+    {
+      "key": "rockslide",
+      "name": "Rockslide",
+      "tier": "rare",
+      "model": "rare/rockslide/revisions/og-v2/package/rockslide-og-v2.blend",
+      "maps": 6,
+      "accessoryTriangles": 192,
+      "animatedPreview": false,
+      "runtimeInstalled": true,
+      "geometryUVPreserved": true,
+      "fbxRoundTripPassed": true
+    },
+    {
+      "key": "quartz",
+      "name": "Quartz",
+      "tier": "rare",
+      "model": "rare/quartz/revisions/og-v2/package/quartz-og-v2.blend",
+      "maps": 6,
+      "accessoryTriangles": 240,
+      "animatedPreview": false,
+      "runtimeInstalled": true,
+      "geometryUVPreserved": true,
+      "fbxRoundTripPassed": true
+    },
+    {
+      "key": "neonmint",
+      "name": "Neon Mint",
+      "tier": "rare",
+      "model": "rare/neonmint/revisions/og-v2/package/neonmint-og-v2.blend",
+      "maps": 8,
+      "accessoryTriangles": 0,
+      "animatedPreview": true,
+      "runtimeInstalled": true,
+      "geometryUVPreserved": true,
+      "fbxRoundTripPassed": true
+    },
+    {
+      "key": "ghost",
+      "name": "Ghost Piggy",
+      "tier": "epic",
+      "model": "epic/ghost/revisions/og-v2/package/ghost-og-v2.blend",
+      "maps": 12,
+      "accessoryTriangles": 0,
+      "animatedPreview": true,
+      "runtimeInstalled": true,
+      "geometryUVPreserved": true,
+      "fbxRoundTripPassed": true
+    },
+    {
+      "key": "hologram",
+      "name": "Hologram Piggy",
+      "tier": "epic",
+      "model": "epic/hologram/revisions/og-v2/package/hologram-og-v2.blend",
+      "maps": 12,
+      "accessoryTriangles": 0,
+      "animatedPreview": true,
+      "runtimeInstalled": true,
+      "geometryUVPreserved": true,
+      "fbxRoundTripPassed": true
+    }
+  ],
+  "validation": "validation.json",
+  "preview": "http://127.0.0.1:8841/og-refresh-v2/index.html",
+  "runtimeEffectsRequireIntegration": []
+}

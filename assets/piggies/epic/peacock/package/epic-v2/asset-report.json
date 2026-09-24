@@ -1,0 +1,514 @@
+{
+  "skin": "peacock",
+  "revision": "epic-v2",
+  "status": "uploaded and approved; game integration pending",
+  "bodyWidthStuds": 12,
+  "sourceScene": "assets\\piggies\\epic\\peacock\\source\\peacock-epic-v2.blend",
+  "concept": "assets/piggies/epic/_concepts-v2/epic-concepts.png",
+  "aura": "prism",
+  "baseGeometryUnchanged": true,
+  "baseUVsPreserved": true,
+  "sourceHash": "365fdf39165ba1cfe825187b7f70b05f9448ef4b2785cdd321c1af3e1f8d6a91",
+  "generatorHash": "7d7acb5b40c969d37b06bcbbb1191da33ec53d78a771d48a338037c6b387c62a",
+  "parts": [
+    {
+      "name": "peacock_Body",
+      "triangles": 6264,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "base",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -1.0000001192092896,
+          -1.0800000429153442,
+          -0.9599999785423279
+        ],
+        [
+          1.0,
+          1.0800000429153442,
+          0.9599999785423279
+        ]
+      ],
+      "offsetRobloxStuds": [
+        -3.5762786865234375e-07,
+        6.62,
+        -0.0
+      ],
+      "sizeRobloxStuds": [
+        12.000000715255737,
+        11.519999742507935,
+        12.96000051498413
+      ]
+    },
+    {
+      "name": "peacock_Snout",
+      "triangles": 2486,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "base",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -0.565378725528717,
+          -1.3806010484695435,
+          -0.7318602800369263
+        ],
+        [
+          0.565378725528717,
+          -0.19274121522903442,
+          0.47368624806404114
+        ]
+      ],
+      "offsetRobloxStuds": [
+        0.0,
+        5.845477904081345,
+        4.720026791095734
+      ],
+      "sizeRobloxStuds": [
+        6.7845447063446045,
+        7.233279168605804,
+        7.127158999443054
+      ]
+    },
+    {
+      "name": "peacock_Ears",
+      "triangles": 7152,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "base",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -0.778161883354187,
+          -0.5540176630020142,
+          0.4472057819366455
+        ],
+        [
+          0.778161883354187,
+          -0.16402886807918549,
+          1.308976650238037
+        ]
+      ],
+      "offsetRobloxStuds": [
+        0.0,
+        11.888547296524049,
+        2.154139593243599
+      ],
+      "sizeRobloxStuds": [
+        9.337942600250244,
+        5.17062520980835,
+        2.339932769536972
+      ]
+    },
+    {
+      "name": "peacock_Legs",
+      "triangles": 2032,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "base",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -0.7200000286102295,
+          -0.699999988079071,
+          -1.0199999809265137
+        ],
+        [
+          0.7200000286102295,
+          0.7599999904632568,
+          -0.5199999809265137
+        ]
+      ],
+      "offsetRobloxStuds": [
+        0.0,
+        2.000000114440918,
+        -0.18000000715255737
+      ],
+      "sizeRobloxStuds": [
+        8.640000343322754,
+        3.0,
+        8.759999871253967
+      ]
+    },
+    {
+      "name": "peacock_Tail",
+      "triangles": 1592,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "base",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -0.259000301361084,
+          0.7312037944793701,
+          0.23964935541152954
+        ],
+        [
+          0.2397725135087967,
+          1.4653877019882202,
+          0.7396568059921265
+        ]
+      ],
+      "offsetRobloxStuds": [
+        -0.05768336355686188,
+        9.557918484210969,
+        -6.589774489402771
+      ],
+      "sizeRobloxStuds": [
+        2.992636889219284,
+        3.0000447034835815,
+        4.405103445053101
+      ]
+    },
+    {
+      "name": "peacock_EyePreview",
+      "triangles": 1056,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "base",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -0.42313653230667114,
+          -0.9937624931335449,
+          0.2585846781730652
+        ],
+        [
+          0.42313653230667114,
+          -0.7837625741958618,
+          0.46858465671539307
+        ]
+      ],
+      "offsetRobloxStuds": [
+        0.0,
+        8.801508004665376,
+        5.33257520198822
+      ],
+      "sizeRobloxStuds": [
+        5.077638387680054,
+        1.2599998712539673,
+        1.2599995136260986
+      ]
+    },
+    {
+      "name": "peacock_FanFeather_01",
+      "triangles": 2896,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "accessory",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -1.7125169038772583,
+          0.8237703442573547,
+          -0.7856094837188721
+        ],
+        [
+          0.0022839365992695093,
+          1.0876975059509277,
+          -0.16075551509857178
+        ]
+      ],
+      "offsetRobloxStuds": [
+        -5.130698901833966,
+        3.7809050035476686,
+        -5.734403550624847
+      ],
+      "sizeRobloxStuds": [
+        10.288805042859167,
+        3.7491238117218018,
+        1.583562970161438
+      ]
+    },
+    {
+      "name": "peacock_FanFeather_02",
+      "triangles": 2896,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "accessory",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -1.7255358695983887,
+          0.8237603306770325,
+          -0.3436185121536255
+        ],
+        [
+          0.00336464773863554,
+          1.076893925666809,
+          0.31884169578552246
+        ]
+      ],
+      "offsetRobloxStuds": [
+        -5.166513665579259,
+        6.545669550895691,
+        -5.701962769031525
+      ],
+      "sizeRobloxStuds": [
+        10.373403104022145,
+        3.9747612476348877,
+        1.5188015699386597
+      ]
+    },
+    {
+      "name": "peacock_FanFeather_03",
+      "triangles": 2896,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "accessory",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -1.4048314094543457,
+          0.823752760887146,
+          -0.29995855689048767
+        ],
+        [
+          0.008356239646673203,
+          1.0660901069641113,
+          0.909309983253479
+        ]
+      ],
+      "offsetRobloxStuds": [
+        -4.1894255094230175,
+        8.448054279088975,
+        -5.669528603553772
+      ],
+      "sizeRobloxStuds": [
+        8.479125894606113,
+        7.2556112408638,
+        1.454024076461792
+      ]
+    },
+    {
+      "name": "peacock_FanFeather_04",
+      "triangles": 2896,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "accessory",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -0.8663370013237,
+          0.8237473964691162,
+          -0.295494019985199
+        ],
+        [
+          0.011782001703977585,
+          1.0552864074707031,
+          1.4150805473327637
+        ]
+      ],
+      "offsetRobloxStuds": [
+        -2.563664998859167,
+        9.978759582042695,
+        -5.637101411819458
+      ],
+      "sizeRobloxStuds": [
+        5.268714018166065,
+        10.263447403907776,
+        1.3892340660095215
+      ]
+    },
+    {
+      "name": "peacock_FanFeather_05",
+      "triangles": 2896,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "accessory",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -0.2997162938117981,
+          0.816554844379425,
+          -0.29056286811828613
+        ],
+        [
+          0.2997162938117981,
+          1.044482707977295,
+          1.6388190984725952
+        ]
+      ],
+      "offsetRobloxStuds": [
+        0.0,
+        10.664768691062928,
+        -5.58311265707016
+      ],
+      "sizeRobloxStuds": [
+        3.596595525741577,
+        11.576291799545288,
+        1.3675671815872192
+      ]
+    },
+    {
+      "name": "peacock_FanFeather_06",
+      "triangles": 2896,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "accessory",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -0.011782001703977585,
+          0.8237473964691162,
+          -0.295494019985199
+        ],
+        [
+          0.8663370013237,
+          1.0552864074707031,
+          1.4150805473327637
+        ]
+      ],
+      "offsetRobloxStuds": [
+        2.563664998859167,
+        9.978759582042695,
+        -5.637101411819458
+      ],
+      "sizeRobloxStuds": [
+        5.268714018166065,
+        10.263447403907776,
+        1.3892340660095215
+      ]
+    },
+    {
+      "name": "peacock_FanFeather_07",
+      "triangles": 2896,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "accessory",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -0.008356239646673203,
+          0.823752760887146,
+          -0.29995855689048767
+        ],
+        [
+          1.4048314094543457,
+          1.0660901069641113,
+          0.909309983253479
+        ]
+      ],
+      "offsetRobloxStuds": [
+        4.1894255094230175,
+        8.448054279088975,
+        -5.669528603553772
+      ],
+      "sizeRobloxStuds": [
+        8.479125894606113,
+        7.2556112408638,
+        1.454024076461792
+      ]
+    },
+    {
+      "name": "peacock_FanFeather_08",
+      "triangles": 2896,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "accessory",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -0.00336464773863554,
+          0.8237603306770325,
+          -0.3436185121536255
+        ],
+        [
+          1.7255358695983887,
+          1.076893925666809,
+          0.31884169578552246
+        ]
+      ],
+      "offsetRobloxStuds": [
+        5.166513665579259,
+        6.545669550895691,
+        -5.701962769031525
+      ],
+      "sizeRobloxStuds": [
+        10.373403104022145,
+        3.9747612476348877,
+        1.5188015699386597
+      ]
+    },
+    {
+      "name": "peacock_FanFeather_09",
+      "triangles": 2896,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "accessory",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -0.0022839365992695093,
+          0.8237703442573547,
+          -0.7856094837188721
+        ],
+        [
+          1.7125169038772583,
+          1.0876975059509277,
+          -0.16075551509857178
+        ]
+      ],
+      "offsetRobloxStuds": [
+        5.130698901833966,
+        3.7809050035476686,
+        -5.734403550624847
+      ],
+      "sizeRobloxStuds": [
+        10.288805042859167,
+        3.7491238117218018,
+        1.583562970161438
+      ]
+    },
+    {
+      "name": "peacock_Crest",
+      "triangles": 6216,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "accessory",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -0.3692847490310669,
+          -0.45660191774368286,
+          0.9031670689582825
+        ],
+        [
+          0.3692847490310669,
+          -0.3433980941772461,
+          1.7300000190734863
+        ]
+      ],
+      "offsetRobloxStuds": [
+        0.0,
+        14.519501264095307,
+        2.400000035762787
+      ],
+      "sizeRobloxStuds": [
+        4.431416988372803,
+        4.960997700691223,
+        0.6792229413986206
+      ]
+    }
+  ],
+  "featherConstruction": "Nine rounded overlapping feathers with double-sided eyespots; three splayed crest stems",
+  "featherGeneratorHash": "df9f87ef0906e092f2aa63f1f8406bb86b859ec4f6aabcaa53e0226d91857dcd",
+  "exports": [
+    {
+      "file": "peacock-epic-v2-complete.fbx",
+      "sha256": "377f832475e2c2f4dd326f8c147b271ae15b10ea1f6225b9b1c978f8324d43fa",
+      "meshCount": 16,
+      "roundTripBoundsError": 4.76837158203125e-07
+    },
+    {
+      "file": "peacock-epic-v2-accessories.fbx",
+      "sha256": "ccb2c0c99aefd54896571ad06e5a108a2762e8e4cebcbf547224787f1551bdf0",
+      "meshCount": 10,
+      "roundTripBoundsError": 8.344650268554688e-07
+    }
+  ],
+  "totalTriangles": 52862,
+  "uploadReceipt": "../../roblox-uploads.json",
+  "importedMeshIds": "mesh-import.json"
+}

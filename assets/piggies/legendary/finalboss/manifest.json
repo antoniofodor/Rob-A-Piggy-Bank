@@ -1,0 +1,95 @@
+{
+  "key": "finalboss",
+  "name": "Spellcaster",
+  "tier": "legendary",
+  "palette": [
+    [
+      43,
+      29,
+      59
+    ],
+    [
+      226,
+      55,
+      107
+    ],
+    [
+      96,
+      49,
+      97
+    ],
+    [
+      230,
+      155,
+      77
+    ]
+  ],
+  "aura": "arcade_boss_energy_proposed",
+  "design": "Broad brass-edged pauldrons, large pink energy gems, fitted plum shell plates with raised luminous seams, armored hips and mounted rear crystals. Black eyes and exposed pink face match the reference.",
+  "concept": "finalboss-concept-v1.png",
+  "revision": "arcade-legendary-v2",
+  "status": "Installed in project and Roblox Studio",
+  "conceptMethod": "built-in image_gen",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\finalboss_arcade_v1_body_color.png",
+      "sha256": "16f791e5ccc195b4200a027ed31d38f5bbdd867908ca9ad3f48063a9c05939f6",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\finalboss_arcade_v1_body_emissive.png",
+      "sha256": "e5841761e7084e43ffd7c6fd52ad7289b5608e7d411cc147436044e7fb49fa13",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\finalboss_arcade_v1_trim_color.png",
+      "sha256": "30e5eeb65164277d123838448ce468b21d31b792ef1789916e485bb481eb656f",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\finalboss_arcade_v1_trim_emissive.png",
+      "sha256": "b423c3205b957f68b072235b9343520f84b1adde4b216bd44893a20e9398f704",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 10,
+    "materialPulse": true,
+    "loopClosureError": 1.102182101152202e-17,
+    "faceClearanceSampledFrames": 9
+  },
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": true
+  },
+  "report": "package/arcade-v2/asset-report.json",
+  "review": "package/arcade-v2/finalboss-arcade-v2.blend",
+  "robloxIntegration": "../../arcade-build-v1/roblox-integration.json",
+  "robloxUploads": "assets/piggies/approved-imports-20260923/finalboss/roblox-uploads.json",
+  "installedRevision": "spellcaster-v5",
+  "runtimeInstalled": true,
+  "publishedLive": false
+}

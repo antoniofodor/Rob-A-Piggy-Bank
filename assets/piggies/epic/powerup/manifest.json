@@ -1,0 +1,91 @@
+{
+  "key": "powerup",
+  "name": "Power-Up",
+  "tier": "epic",
+  "palette": [
+    [
+      31,
+      62,
+      54
+    ],
+    [
+      157,
+      235,
+      78
+    ],
+    [
+      40,
+      148,
+      112
+    ],
+    [
+      243,
+      218,
+      111
+    ]
+  ],
+  "aura": "arcade_power_sparks_proposed",
+  "design": "Dark jade pig with large lime pixel up-arrow emblems on both flanks, stepped green stripes, small printed yellow energy bars, lime luminous eyes. Slow pulsing arrow glow and rising square sparks. No substantial equipment.",
+  "concept": "powerup-concept-v1.png",
+  "revision": "arcade-build-v1",
+  "status": "Imported into Roblox Studio and repository; assets approved; live place publishing not performed",
+  "conceptMethod": "built-in image_gen",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\powerup_arcade_v1_body_color.png",
+      "sha256": "c9fb7499c9a496ba0c8e0f05964dca80bdd7acce0704d8766608aea906953953",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\powerup_arcade_v1_body_emissive.png",
+      "sha256": "c3202e966e7b0c7cb12575d7455c29ccb62637b2a86080ebd35d270d57166d3f",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\powerup_arcade_v1_trim_color.png",
+      "sha256": "0d9f4fe0194aa0d0904c94f125f9af93ead90a2f3b5584aeabafe3be414a7ddb",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\powerup_arcade_v1_trim_emissive.png",
+      "sha256": "b423c3205b957f68b072235b9343520f84b1adde4b216bd44893a20e9398f704",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 6,
+    "materialPulse": true,
+    "loopClosureError": 0.0
+  },
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": false
+  },
+  "report": "package/arcade-v1-asset-report.json",
+  "review": "package/powerup-arcade-v1.blend",
+  "robloxIntegration": "../../arcade-build-v1/roblox-integration.json",
+  "robloxUploads": "roblox-uploads.json"
+}

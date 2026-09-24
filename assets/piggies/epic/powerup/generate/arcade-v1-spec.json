@@ -1,0 +1,30 @@
+{
+  "key": "powerup",
+  "name": "Power-Up",
+  "tier": "epic",
+  "palette": [
+    [
+      31,
+      62,
+      54
+    ],
+    [
+      157,
+      235,
+      78
+    ],
+    [
+      40,
+      148,
+      112
+    ],
+    [
+      243,
+      218,
+      111
+    ]
+  ],
+  "aura": "arcade_power_sparks_proposed",
+  "design": "Dark jade pig with large lime pixel up-arrow emblems on both flanks, stepped green stripes, small printed yellow energy bars, lime luminous eyes. Slow pulsing arrow glow and rising square sparks. No substantial equipment.",
+  "concept": "powerup-concept-v1.png"
+}

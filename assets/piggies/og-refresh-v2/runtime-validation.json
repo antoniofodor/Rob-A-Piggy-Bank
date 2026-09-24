@@ -1,0 +1,19 @@
+{
+  "installedSkins": [
+    "ghost",
+    "hologram"
+  ],
+  "revision": "og-v2-layered",
+  "studioPlaceId": 135433647855162,
+  "uploadedTexturesApproved": 12,
+  "fullSizeBodyWidth": 12,
+  "miniBodyWidth": 1.8447051048278809,
+  "alphaBlendingPassed": true,
+  "scanMotionPassed": true,
+  "wispMotionPassed": true,
+  "emissionMotionPassed": true,
+  "skinChangeCleanupPassed": true,
+  "piggyChecksPassed": 610,
+  "rojoBuildPassed": true,
+  "publicGamePublished": false
+}

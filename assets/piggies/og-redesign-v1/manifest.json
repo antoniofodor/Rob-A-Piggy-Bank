@@ -1,0 +1,526 @@
+{
+  "revision": "og-redesign-v1",
+  "counts": {
+    "rare": 6,
+    "epic": 6,
+    "legendary": 3
+  },
+  "built": 15,
+  "status": "Installed in game; Aurora, Banker, Rockslide, Quartz, Neon Mint, Ghost and Hologram use approved og-v2 successors",
+  "skins": [
+    {
+      "key": "marble",
+      "name": "Marble",
+      "tier": "rare",
+      "design": "Polished warm ivory marble with sweeping branching graphite veins and fine muted champagne seams. Veins flow continuously over the back and sides; readable ivory face and gray stone feet. Elegant solid stone, no glow, particles or accessories.",
+      "palette": [
+        [
+          236,
+          232,
+          226
+        ],
+        [
+          180,
+          178,
+          184
+        ],
+        [
+          90,
+          93,
+          109
+        ]
+      ],
+      "aura": null,
+      "prefix": "../rare/marble",
+      "triangles": 20582,
+      "addedTriangles": 0,
+      "maps": 2,
+      "blender": "../rare/marble/package/marble-og-v1.blend",
+      "hero": "../rare/marble/preview/marble-og-v1-hero.png",
+      "back": "../rare/marble/preview/marble-og-v1-back.png",
+      "concept": "../rare/marble/preview/marble-og-v1-concept.png",
+      "motion": null
+    },
+    {
+      "key": "rockslide",
+      "name": "Rockslide",
+      "tier": "rare",
+      "design": "Weathered slate pig. Broad fitted irregular charcoal and warm-gray stone plates with recessed seams and subtle strata. A few small low-poly rock plates grow directly from upper flanks, deeply seated in skin; no loose stones or excessive spikes. Rounded rock snout, dark feet. No glow or particles.",
+      "palette": [
+        [
+          104,
+          111,
+          120
+        ],
+        [
+          60,
+          66,
+          76
+        ],
+        [
+          151,
+          146,
+          136
+        ]
+      ],
+      "aura": null,
+      "prefix": "../rare/rockslide",
+      "triangles": 20702,
+      "addedTriangles": 120,
+      "maps": 2,
+      "blender": "../rare/rockslide/package/rockslide-og-v1.blend",
+      "hero": "../rare/rockslide/preview/rockslide-og-v1-hero.png",
+      "back": "../rare/rockslide/preview/rockslide-og-v1-back.png",
+      "concept": "../rare/rockslide/preview/rockslide-og-v1-concept.png",
+      "motion": null
+    },
+    {
+      "key": "quartz",
+      "name": "Quartz",
+      "tier": "rare",
+      "design": "Rose quartz pig with opaque blush-pink crystalline coat and broad milky-white angled fracture facets. Three short rose/milky crystal points embedded at each rear shoulder, closed bases seated in skin. Polished pink snout and white-tipped feet. No emitted light, aura or floating crystals.",
+      "palette": [
+        [
+          228,
+          167,
+          194
+        ],
+        [
+          248,
+          226,
+          231
+        ],
+        [
+          179,
+          114,
+          163
+        ]
+      ],
+      "aura": null,
+      "prefix": "../rare/quartz",
+      "triangles": 20726,
+      "addedTriangles": 144,
+      "maps": 2,
+      "blender": "../rare/quartz/package/quartz-og-v1.blend",
+      "hero": "../rare/quartz/preview/quartz-og-v1-hero.png",
+      "back": "../rare/quartz/preview/quartz-og-v1-back.png",
+      "concept": "../rare/quartz/preview/quartz-og-v1-concept.png",
+      "motion": null
+    },
+    {
+      "key": "banker",
+      "name": "Banker Piggy",
+      "tier": "rare",
+      "design": "Tailored coat painted on the pig: deep navy body with fine ivory longitudinal pinstripes, ivory shirt bib and sharp navy lapel edges framing a muted gold tie, warm pink snout and ear interiors, navy cuff feet. Tailoring is surface artwork. Preserve pig silhouette. No hat, glasses, briefcase or other accessories. No glow or particles.",
+      "palette": [
+        [
+          32,
+          43,
+          69
+        ],
+        [
+          235,
+          224,
+          201
+        ],
+        [
+          197,
+          155,
+          69
+        ]
+      ],
+      "aura": null,
+      "prefix": "../rare/banker",
+      "triangles": 20582,
+      "addedTriangles": 0,
+      "maps": 2,
+      "blender": "../rare/banker/package/banker-og-v1.blend",
+      "hero": "../rare/banker/preview/banker-og-v1-hero.png",
+      "back": "../rare/banker/preview/banker-og-v1-back.png",
+      "concept": "../rare/banker/preview/banker-og-v1-concept.png",
+      "motion": null
+    },
+    {
+      "key": "tiedye",
+      "name": "Tie-Dye",
+      "tier": "rare",
+      "design": "Saturated tie-dye fabric coat with large flowing off-center spiral bands of magenta, tangerine, violet and cyan, narrow irregular cream resist streaks. Color wraps around egg body, not scattered spots. Soft pink snout and violet feet. Non-emissive matte toy surface, no particles or added geometry.",
+      "palette": [
+        [
+          226,
+          62,
+          153
+        ],
+        [
+          249,
+          163,
+          51
+        ],
+        [
+          49,
+          181,
+          200
+        ],
+        [
+          111,
+          65,
+          190
+        ],
+        [
+          251,
+          230,
+          176
+        ]
+      ],
+      "aura": null,
+      "prefix": "../rare/tiedye",
+      "triangles": 20582,
+      "addedTriangles": 0,
+      "maps": 2,
+      "blender": "../rare/tiedye/package/tiedye-og-v1.blend",
+      "hero": "../rare/tiedye/preview/tiedye-og-v1-hero.png",
+      "back": "../rare/tiedye/preview/tiedye-og-v1-back.png",
+      "concept": "../rare/tiedye/preview/tiedye-og-v1-concept.png",
+      "motion": null
+    },
+    {
+      "key": "verdigris",
+      "name": "Verdigris",
+      "tier": "rare",
+      "design": "Aged copper pig with broad organic turquoise and sea-green oxidation across back and recesses; exposed warm burnished copper on snout, ear rims, lower legs and worn edges. Matte patina contrasted with restrained metallic copper sheen. Rich oxidized sculpture, not evenly spaced green dots. No glow, aura or props.",
+      "palette": [
+        [
+          170,
+          97,
+          61
+        ],
+        [
+          55,
+          143,
+          131
+        ],
+        [
+          124,
+          187,
+          158
+        ]
+      ],
+      "aura": null,
+      "prefix": "../rare/verdigris",
+      "triangles": 20582,
+      "addedTriangles": 0,
+      "maps": 6,
+      "blender": "../rare/verdigris/package/verdigris-og-v1.blend",
+      "hero": "../rare/verdigris/preview/verdigris-og-v1-hero.png",
+      "back": "../rare/verdigris/preview/verdigris-og-v1-back.png",
+      "concept": "../rare/verdigris/preview/verdigris-og-v1-concept.png",
+      "motion": null
+    },
+    {
+      "key": "ghost",
+      "name": "Ghost Piggy",
+      "tier": "epic",
+      "design": "Opaque spectral porcelain pig, pale cool jade and mist blue, darker ectoplasm wave markings curling upward from feet and flanks. Softly glowing cyan eyes and luminous mint edges within the surface pattern. A few translucent mint smoke wisps drift off flanks as aura. Solid readable pig; no transparent body, sheet costume or detached limbs.",
+      "palette": [
+        [
+          178,
+          219,
+          220
+        ],
+        [
+          79,
+          139,
+          160
+        ],
+        [
+          118,
+          238,
+          207
+        ]
+      ],
+      "aura": "wisp",
+      "prefix": "../epic/ghost",
+      "triangles": 20582,
+      "addedTriangles": 0,
+      "maps": 4,
+      "blender": "../epic/ghost/package/ghost-og-v1.blend",
+      "hero": "../epic/ghost/preview/ghost-og-v1-hero.png",
+      "back": "../epic/ghost/preview/ghost-og-v1-back.png",
+      "concept": "../epic/ghost/preview/ghost-og-v1-concept.png",
+      "motion": "../epic/ghost/preview/ghost-og-v1-motion.png"
+    },
+    {
+      "key": "charcoal",
+      "name": "Charcoal Piggy",
+      "tier": "epic",
+      "design": "Charcoal-black pig with large irregular charred plates painted across skin and narrow connected ember-red/orange fissures glowing between them. Matte dark snout and coal feet, ember eyes. Small orange ember particles rise from back. Cracks provide light while most of pig stays dark. No whole-body orange glow or large armor.",
+      "palette": [
+        [
+          39,
+          35,
+          38
+        ],
+        [
+          67,
+          54,
+          51
+        ],
+        [
+          255,
+          101,
+          26
+        ]
+      ],
+      "aura": "embers",
+      "prefix": "../epic/charcoal",
+      "triangles": 20582,
+      "addedTriangles": 0,
+      "maps": 4,
+      "blender": "../epic/charcoal/package/charcoal-og-v1.blend",
+      "hero": "../epic/charcoal/preview/charcoal-og-v1-hero.png",
+      "back": "../epic/charcoal/preview/charcoal-og-v1-back.png",
+      "concept": "../epic/charcoal/preview/charcoal-og-v1-concept.png",
+      "motion": "../epic/charcoal/preview/charcoal-og-v1-motion.png"
+    },
+    {
+      "key": "starlight",
+      "name": "Starlight Piggy",
+      "tier": "epic",
+      "design": "Midnight-indigo pig with refined constellation map: crisp four-point white/lilac stars, small star dots, delicate connecting lines around flanks and back. Lavender snout, softly luminous silver-blue eyes. Sparse silver/lilac stardust aura. Coat is distinctive without particles. No crystal armor or crown.",
+      "palette": [
+        [
+          26,
+          31,
+          73
+        ],
+        [
+          78,
+          74,
+          124
+        ],
+        [
+          188,
+          211,
+          255
+        ]
+      ],
+      "aura": "sparkle",
+      "prefix": "../epic/starlight",
+      "triangles": 20582,
+      "addedTriangles": 0,
+      "maps": 4,
+      "blender": "../epic/starlight/package/starlight-og-v1.blend",
+      "hero": "../epic/starlight/preview/starlight-og-v1-hero.png",
+      "back": "../epic/starlight/preview/starlight-og-v1-back.png",
+      "concept": "../epic/starlight/preview/starlight-og-v1-concept.png",
+      "motion": "../epic/starlight/preview/starlight-og-v1-motion.png"
+    },
+    {
+      "key": "nightlight",
+      "name": "Nightlight Piggy",
+      "tier": "epic",
+      "design": "Comforting night-sky lantern pig: midnight blue ceramic shell with warm amber crescent moons and small rounded star windows painted flush on sides and back. Muted amber snout and inner ears, golden firefly aura. Soft slow breathing light, never a white/orange glowing sphere. No handles or lamp base.",
+      "palette": [
+        [
+          34,
+          47,
+          86
+        ],
+        [
+          172,
+          109,
+          50
+        ],
+        [
+          255,
+          179,
+          63
+        ]
+      ],
+      "aura": "fireflies",
+      "prefix": "../epic/nightlight",
+      "triangles": 20582,
+      "addedTriangles": 0,
+      "maps": 4,
+      "blender": "../epic/nightlight/package/nightlight-og-v1.blend",
+      "hero": "../epic/nightlight/preview/nightlight-og-v1-hero.png",
+      "back": "../epic/nightlight/preview/nightlight-og-v1-back.png",
+      "concept": "../epic/nightlight/preview/nightlight-og-v1-concept.png",
+      "motion": "../epic/nightlight/preview/nightlight-og-v1-motion.png"
+    },
+    {
+      "key": "sugarrush",
+      "name": "Sugar Rush Piggy",
+      "tier": "epic",
+      "design": "Broad pink, cyan and vanilla diagonal candy ribbons around the pig, tiny colorful elongated sprinkle marks, strawberry-pink snout and candy-colored feet. Restrained glow in ribbon highlights, light fizz of pink/cyan/gold sugar-spark particles. Joyful patterned collectible. No lollipops, crowns or food props.",
+      "palette": [
+        [
+          219,
+          52,
+          139
+        ],
+        [
+          62,
+          192,
+          214
+        ],
+        [
+          249,
+          222,
+          149
+        ]
+      ],
+      "aura": "fizz",
+      "prefix": "../epic/sugarrush",
+      "triangles": 20582,
+      "addedTriangles": 0,
+      "maps": 4,
+      "blender": "../epic/sugarrush/package/sugarrush-og-v1.blend",
+      "hero": "../epic/sugarrush/preview/sugarrush-og-v1-hero.png",
+      "back": "../epic/sugarrush/preview/sugarrush-og-v1-back.png",
+      "concept": "../epic/sugarrush/preview/sugarrush-og-v1-concept.png",
+      "motion": "../epic/sugarrush/preview/sugarrush-og-v1-motion.png"
+    },
+    {
+      "key": "hologram",
+      "name": "Hologram Piggy",
+      "tier": "epic",
+      "design": "Deep teal coat with cyan scanlines and grid, magenta signal bars, cyan eyes and snout. Gentle emission pulses and cyan aura motes create the hologram effect.",
+      "palette": [
+        [
+          18,
+          69,
+          91
+        ],
+        [
+          49,
+          206,
+          225
+        ],
+        [
+          189,
+          79,
+          199
+        ]
+      ],
+      "aura": "hologram",
+      "conceptDesign": "Opaque deep-teal digital pig with cyan scan lines, luminous latitude/longitude grid, occasional magenta offset data bars on flanks. Cyan eyes, readable dark teal snout. Sparse cyan pixel aura. Softly cycling scan band, crisp holographic surface, solid body rather than see-through.",
+      "prefix": "../epic/hologram",
+      "triangles": 20582,
+      "addedTriangles": 0,
+      "maps": 4,
+      "blender": "../epic/hologram/package/hologram-og-v1.blend",
+      "hero": "../epic/hologram/preview/hologram-og-v1-hero.png",
+      "back": "../epic/hologram/preview/hologram-og-v1-back.png",
+      "concept": "../epic/hologram/preview/hologram-og-v1-concept.png",
+      "motion": "../epic/hologram/preview/hologram-og-v1-motion.png"
+    },
+    {
+      "key": "supernova",
+      "name": "Supernova",
+      "tier": "legendary",
+      "design": "Dark aubergine solar coat with amber flowing fissures, a dark snout and gold eyes. Six rooted tapered flame fins shape the flanks and rump, with bobbing glowing cinders and a sunburst aura preview. The face and front hat space stay clear.",
+      "palette": [
+        [
+          64,
+          31,
+          56
+        ],
+        [
+          177,
+          50,
+          28
+        ],
+        [
+          255,
+          161,
+          30
+        ]
+      ],
+      "aura": "sunburst",
+      "conceptDesign": "Dark aubergine solar pig with luminous amber/orange flowing solar fissures, dark readable snout, gold eyes. Substantial sculpted tapered solar flame arcs wrap flanks and rump in a low tilted open corona, plus small glowing orbiting cinders. Distinct added 3D silhouette, sunburst particle aura and slow orbital motion. Keep face, ear tips and front hat space clear. No giant fireball hiding pig.",
+      "prefix": "../legendary/supernova",
+      "triangles": 21254,
+      "addedTriangles": 672,
+      "maps": 4,
+      "blender": "../legendary/supernova/package/supernova-og-v1.blend",
+      "hero": "../legendary/supernova/preview/supernova-og-v1-hero.png",
+      "back": "../legendary/supernova/preview/supernova-og-v1-back.png",
+      "concept": "../legendary/supernova/preview/supernova-og-v1-concept.png",
+      "motion": "../legendary/supernova/preview/supernova-og-v1-motion.png"
+    },
+    {
+      "key": "prismatic",
+      "name": "Prismatic",
+      "tier": "legendary",
+      "design": "Blue-violet triangular jewel facets, lavender snout and cool glowing eyes. Six rainbow diamond prisms sway along a thin rear semicircle arc, keeping the face clear. Spectral emission pulses and a restrained rainbow sparkle aura complete the design.",
+      "palette": [
+        [
+          36,
+          31,
+          78
+        ],
+        [
+          98,
+          72,
+          153
+        ],
+        [
+          61,
+          213,
+          216
+        ],
+        [
+          229,
+          88,
+          167
+        ]
+      ],
+      "aura": "prism",
+      "conceptDesign": "Dark blue-violet pig with broad triangular spectral jewel facets sweeping across coat, pale lavender snout and cool glowing eyes. Six substantial faceted rainbow prisms orbit beside and behind pig on tilted low halo, thin spectral connecting arc, restrained rainbow sparkle aura. Clearly visible 3D prisms and slow orbit. Face and ear tips fully clear; no uniform rainbow glow or crown.",
+      "prefix": "../legendary/prismatic",
+      "triangles": 21256,
+      "addedTriangles": 674,
+      "maps": 4,
+      "blender": "../legendary/prismatic/package/prismatic-og-v1.blend",
+      "hero": "../legendary/prismatic/preview/prismatic-og-v1-hero.png",
+      "back": "../legendary/prismatic/preview/prismatic-og-v1-back.png",
+      "concept": "../legendary/prismatic/preview/prismatic-og-v1-concept.png",
+      "motion": "../legendary/prismatic/preview/prismatic-og-v1-motion.png"
+    },
+    {
+      "key": "stormcaller",
+      "name": "Stormcaller",
+      "tier": "legendary",
+      "design": "Storm-slate coat with sparse branching cyan lightning, navy snout and blue eyes. Two faceted cloud clusters and angular lightning forks bob beside the rear flanks. Small blue motes preview the storm aura.",
+      "palette": [
+        [
+          39,
+          54,
+          82
+        ],
+        [
+          75,
+          88,
+          117
+        ],
+        [
+          74,
+          204,
+          255
+        ]
+      ],
+      "aura": "storm",
+      "conceptDesign": "Storm-slate pig with cyan branching lightning fissures on shoulders and sides, navy snout, blue eyes. Two substantial sculpted storm-cloud clusters hover low beside rear flanks, chunky angular cyan lightning forks below. Clouds bob, small motes orbit, rain/electric-blue aura. Cloud geometry readable with effects disabled. Keep face, feet and hat space clear; no cloud hat covering ears.",
+      "prefix": "../legendary/stormcaller",
+      "triangles": 21278,
+      "addedTriangles": 696,
+      "maps": 4,
+      "blender": "../legendary/stormcaller/package/stormcaller-og-v1.blend",
+      "hero": "../legendary/stormcaller/preview/stormcaller-og-v1-hero.png",
+      "back": "../legendary/stormcaller/preview/stormcaller-og-v1-back.png",
+      "concept": "../legendary/stormcaller/preview/stormcaller-og-v1-concept.png",
+      "motion": "../legendary/stormcaller/preview/stormcaller-og-v1-motion.png"
+    }
+  ]
+}

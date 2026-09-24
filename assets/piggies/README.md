@@ -18,7 +18,9 @@ rebuild finished, and the whole set was sorted by tier the same evening.
 assets/piggies/common/      bee cow giraffe ladybird leopard snowleopard tiger zebra
 assets/piggies/rare/        bubblegumleopard cookiescream glacier honeycomb magma
                             peppermint strawberrycow watermelon
-assets/piggies/epic/        lion stormstone
+assets/piggies/epic/        charcoal ghost hedgehog hologram nightlight peacock
+                            powerup respawn starlight stormstone sugarrush synthwave
+                            (`lion` stood here and was deleted on 2026-09-23)
 assets/piggies/legendary/   diamond dragon phoenix rainbowtiger stormwolf
 assets/piggies/unreleased/  koi patched piggybank raptor spotty   (no Config.SKINS row yet)
                             metal                                 (a shared pack, not a skin)
@@ -229,8 +231,9 @@ the old tier folders. What is ignored is only what is rewritten on every run --
   backups). The tracked files already left via `git mv`; only `README.md` needs
   to stay.
 * `assets/skins/animal/<tier>/<key>/` for all 20 packages: the untracked copies
-  (`lion/` entirely; the legendaries' regenerated files and backups). Keep the
-  tier-level `index.html` / `manifest.json` / `README.md` files.
+  (the legendaries' regenerated files and backups). Keep the tier-level
+  `index.html` / `manifest.json` / `README.md` files. (`lion/` was on this
+  list and is gone outright -- the skin was deleted on 2026-09-23.)
 * `blender/pig/renders/closed-back-test/full/<key>/` -- the pass's scratch
   copies (gitignored anyway).
 * Once the closed sheets are uploaded and the model.json ids updated: every

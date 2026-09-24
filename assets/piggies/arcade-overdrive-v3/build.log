@@ -1,0 +1,26 @@
+00:02.828  blend            | Read blend: "C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\package\arcade-v2\finalboss-arcade-v2.blend"
+C:\Users\anton\robloxGame\assets\piggies\arcade-overdrive-v3\build.py:19: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_v2_'+name);m.use_nodes=True;b=m.node_tree.nodes.get('Principled BSDF')
+00:21.484  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\preview\overdrive-v3\finalboss-v3-hero.png'
+00:35.984  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\preview\overdrive-v3\finalboss-v3-back.png'
+00:50.906  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\preview\overdrive-v3\finalboss-v3-top.png'
+01:05.156  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\preview\overdrive-v3\finalboss-v3-motion.png'
+01:05.188  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_23996_28d8a824d56bbd167ce305c5d8fa157d.png.png"
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\finalboss\\package\\overdrive-v3\\finalboss-overdrive-v3-accessories.fbx'
+export finished in 0.0966 sec.
+FBX version: 7400
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\finalboss\\package\\overdrive-v3\\finalboss-overdrive-v3-complete.fbx'
+export finished in 0.1127 sec.
+FBX version: 7400
+Info: Saved as "finalboss-overdrive-v3.blend"
+OVERDRIVE_COMPLETE finalboss parts 73 triangles 13648
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

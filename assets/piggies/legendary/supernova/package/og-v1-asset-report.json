@@ -1,0 +1,401 @@
+{
+  "skin": "supernova",
+  "name": "Supernova",
+  "tier": "legendary",
+  "revision": "og-redesign-v1",
+  "status": "Built locally; Roblox upload and installation pending",
+  "design": "Dark aubergine solar pig with luminous amber/orange flowing solar fissures, dark readable snout, gold eyes. Substantial sculpted tapered solar flame arcs wrap flanks and rump in a low tilted open corona, plus small glowing orbiting cinders. Distinct added 3D silhouette, sunburst particle aura and slow orbital motion. Keep face, ear tips and front hat space clear. No giant fireball hiding pig.",
+  "baseGeometryAndUVPreserved": true,
+  "sourceGeometrySignatures": {
+    "Body": "4a54ceed97939e6392190f1c3fb9d10d14530d801166cc7f26e24e99a6983ec1",
+    "Snout": "178b13b8746bb7484909d7e7a981aaa0e159f0f353a9e5fe3891d1191fd68518",
+    "Ears": "a1a7e83a72613d031332816dd3b25c2c0462de33d33c68b0c4dc0e818a95fc9f",
+    "Legs": "56645ce48591fdcc0e5835a7c00c823798c55a883da5f6cca1af42bb7ea74d04",
+    "Tail": "529231df3b33d53086cc7e0fd91ff5ea7b327fcadbb9804603e727fa728c6b38",
+    "EyePreview": "21c6d31d1ffe826f5f98c7bc23d6d57d472f3e465f722caa9f67322a0b2933b9"
+  },
+  "parts": [
+    {
+      "name": "Body",
+      "role": "base",
+      "triangles": 6264,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.5762786865234375e-07,
+        6.62,
+        -0.0
+      ],
+      "sizeRobloxStuds": [
+        12.000000715255737,
+        11.519999742507935,
+        12.96000051498413
+      ]
+    },
+    {
+      "name": "Snout",
+      "role": "base",
+      "triangles": 2486,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        5.845477904081345,
+        4.720026791095734
+      ],
+      "sizeRobloxStuds": [
+        6.7845447063446045,
+        7.233279168605804,
+        7.127158999443054
+      ]
+    },
+    {
+      "name": "Ears",
+      "role": "base",
+      "triangles": 7152,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        11.888547296524049,
+        2.154139593243599
+      ],
+      "sizeRobloxStuds": [
+        9.337942600250244,
+        5.17062520980835,
+        2.339932769536972
+      ]
+    },
+    {
+      "name": "Legs",
+      "role": "base",
+      "triangles": 2032,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        2.000000114440918,
+        -0.18000000715255737
+      ],
+      "sizeRobloxStuds": [
+        8.640000343322754,
+        3.0,
+        8.759999871253967
+      ]
+    },
+    {
+      "name": "Tail",
+      "role": "base",
+      "triangles": 1592,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -0.05768336355686188,
+        9.557918484210969,
+        -6.589774489402771
+      ],
+      "sizeRobloxStuds": [
+        2.992636889219284,
+        3.0000447034835815,
+        4.405103445053101
+      ]
+    },
+    {
+      "name": "EyePreview",
+      "role": "base",
+      "triangles": 1056,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        8.801508004665376,
+        5.33257520198822
+      ],
+      "sizeRobloxStuds": [
+        5.077638387680054,
+        1.2599998712539673,
+        1.2599995136260986
+      ]
+    },
+    {
+      "name": "SolarFlame_0",
+      "role": "accessory",
+      "triangles": 92,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        5.224326252937317,
+        9.849085728526116,
+        -1.0619870871305466
+      ],
+      "sizeRobloxStuds": [
+        0.7987611293792725,
+        4.1213957369327545,
+        2.234551817178726
+      ]
+    },
+    {
+      "name": "SolarCinder_0",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        7.5857155323028564,
+        8.420000071525575,
+        -1.537700593471527
+      ],
+      "sizeRobloxStuds": [
+        0.6225199699401855,
+        0.6959999799728394,
+        0.5920454263687134
+      ]
+    },
+    {
+      "name": "SolarFlame_1",
+      "role": "accessory",
+      "triangles": 92,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        4.366618037223816,
+        10.20428230881691,
+        -3.357909679412842
+      ],
+      "sizeRobloxStuds": [
+        1.3798248767852783,
+        4.715395867824554,
+        1.8150708675384521
+      ]
+    },
+    {
+      "name": "SolarCinder_1",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        6.161688566207886,
+        10.147655601501466,
+        -4.6841429471969604
+      ],
+      "sizeRobloxStuds": [
+        0.6225199699401855,
+        0.6959996223449707,
+        0.592045783996582
+      ]
+    },
+    {
+      "name": "SolarFlame_2",
+      "role": "accessory",
+      "triangles": 92,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        2.8178559243679047,
+        9.99401406466961,
+        -4.938928842544556
+      ],
+      "sizeRobloxStuds": [
+        1.977724850177765,
+        4.1213957369327545,
+        1.1608378887176514
+      ]
+    },
+    {
+      "name": "SolarCinder_2",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        3.851199746131897,
+        8.924882645606996,
+        -6.713855981826782
+      ],
+      "sizeRobloxStuds": [
+        0.6225199699401855,
+        0.6959999799728394,
+        0.592045783996582
+      ]
+    },
+    {
+      "name": "SolarFlame_3",
+      "role": "accessory",
+      "triangles": 92,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        -2.809678226709366,
+        10.309917400479318,
+        -4.944894790649414
+      ],
+      "sizeRobloxStuds": [
+        1.979529082775116,
+        4.715395778417587,
+        1.1589374542236328
+      ]
+    },
+    {
+      "name": "SolarCinder_3",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        -3.8405020236968994,
+        10.458497161865235,
+        -6.719980716705322
+      ],
+      "sizeRobloxStuds": [
+        0.6225199699401855,
+        0.6959996223449707,
+        0.592045783996582
+      ]
+    },
+    {
+      "name": "SolarFlame_4",
+      "role": "accessory",
+      "triangles": 92,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        -4.393309593200684,
+        9.977346013188363,
+        -3.3157986402511597
+      ],
+      "sizeRobloxStuds": [
+        1.364516258239746,
+        4.121395915746689,
+        1.8266072273254395
+      ]
+    },
+    {
+      "name": "SolarCinder_4",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        -6.200851678848267,
+        8.96557855129242,
+        -4.632174253463745
+      ],
+      "sizeRobloxStuds": [
+        0.6225199699401855,
+        0.6959999799728394,
+        0.592045783996582
+      ]
+    },
+    {
+      "name": "SolarFlame_5",
+      "role": "accessory",
+      "triangles": 92,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        -5.222837805747986,
+        10.235837112069131,
+        -1.0718118846416473
+      ],
+      "sizeRobloxStuds": [
+        0.800102949142456,
+        4.715395420789719,
+        2.233827531337738
+      ]
+    },
+    {
+      "name": "SolarCinder_5",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        -7.583256483078003,
+        10.219083542823792,
+        -1.549780011177063
+      ],
+      "sizeRobloxStuds": [
+        0.6225199699401855,
+        0.696000337600708,
+        0.5920454263687134
+      ]
+    }
+  ],
+  "exports": [
+    {
+      "file": "supernova-og-v1-complete.fbx",
+      "meshCount": 18,
+      "triangles": 21254,
+      "roundTripChecked": true,
+      "roundTripBoundsError": 4.76837158203125e-07
+    },
+    {
+      "file": "supernova-og-v1-accessories.fbx",
+      "meshCount": 12,
+      "triangles": 672,
+      "roundTripChecked": true,
+      "roundTripBoundsError": 4.76837158203125e-07
+    }
+  ],
+  "aura": "sunburst",
+  "auraPreviewObjects": 14,
+  "auraExcludedFromMeshExports": true,
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 12,
+    "materialPulse": true,
+    "loopClosureError": 6.123233849335533e-18,
+    "faceClearanceSampledFrames": 9
+  },
+  "tierChecks": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": true
+  },
+  "textures": [
+    {
+      "role": "body_color",
+      "file": "sheets\\supernova_og_v1_body_color.png",
+      "sha256": "25eeae8d4f7ffe74c0d7c16bf43fdf6b811fc850553beab2af9fa9d94c212718",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\supernova_og_v1_body_emissive.png",
+      "sha256": "460a85c8f883c8cd189b674e4fde4d6e21b0b8ad27e087dff3a4cfcdc10b76c5",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\supernova_og_v1_trim_color.png",
+      "sha256": "15d4da190a7b68de7877a5dbd88f5714f50ae3e297c57eff89f752f18c71c7b2",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\supernova_og_v1_trim_emissive.png",
+      "sha256": "edb96ffca7f9e56752902e7818e1166258a0a6f16eb54da12e6a3b3bd9bdd177",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "generator": "assets/piggies/og-redesign-v1/build_og.py",
+  "runtimeNotes": "Use supplied maps on shared body/trim; replace old procedural pattern. Preserve rarity. Use existing aura key; preview motes are not export meshes. New accessories replace, not stack with, old shard/FX geometry. Full Blender animation is retained in packed blend; FBX is a static import pose."
+}

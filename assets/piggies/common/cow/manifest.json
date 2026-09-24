@@ -37,7 +37,7 @@
     "body": {
       "path": "src/ReplicatedStorage/Shared/SurfacePacks/cow.model.json",
       "ids": {
-        "ColorMap": "rbxassetid://133527924964252",
+        "ColorMap": "rbxassetid://124814387935740",
         "MetalnessMap": "",
         "RoughnessMap": "",
         "NormalMap": ""
@@ -56,11 +56,11 @@
     }
   },
   "idSources": {
-    "rbxassetid://133527924964252": {
-      "file": "sheets/cow_body_color.open-hatch.png",
-      "sha256": "57c5a8a17083f28b486a223e9a3cc9a2e0fdf267f665788c1ef8e4b447f30feb",
-      "role": "body ColorMap",
-      "note": "uploaded from the open-hatch bake"
+    "rbxassetid://124814387935740": {
+      "file": "sheets/cow_body_color.png",
+      "sha256": "017248599f27f3f4dbd0895f8524c341658604a97fe272d19d55f63cb47c7aca",
+      "role": "cow ColorMap",
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://133527924964252"
     },
     "rbxassetid://79212811251675": {
       "file": "sheets/cow_trim_color.png",

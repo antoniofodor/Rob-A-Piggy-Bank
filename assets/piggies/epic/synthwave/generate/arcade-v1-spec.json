@@ -1,0 +1,30 @@
+{
+  "key": "synthwave",
+  "name": "Synthwave",
+  "tier": "epic",
+  "palette": [
+    [
+      35,
+      24,
+      77
+    ],
+    [
+      42,
+      207,
+      233
+    ],
+    [
+      231,
+      53,
+      145
+    ],
+    [
+      255,
+      162,
+      62
+    ]
+  ],
+  "aura": "arcade_synth_sparkle_proposed",
+  "design": "Midnight purple pig with magenta and cyan perspective grid across lower body, large striped orange-to-pink sunset discs on both flanks, purple snout, cyan eyes. Restrained animated grid glow and sparse neon sparkle aura; no accessory geometry.",
+  "concept": "synthwave-concept-v1.png"
+}

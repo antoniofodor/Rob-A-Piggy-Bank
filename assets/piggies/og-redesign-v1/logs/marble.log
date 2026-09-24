@@ -1,0 +1,25 @@
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:06.797  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_12548_c885b31f56956b54179b4f84b32fd8ea.png.png"
+Info: Saved as "marble-og-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED marble body color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED marble trim color
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:477: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:36.422  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\rare\marble\preview\marble-og-v1-hero.png'
+00:55.782  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\rare\marble\preview\marble-og-v1-back.png'
+00:55.828  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_12548_33b9ffdb804a2520377d2c4d417866cd.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\rare\\marble\\package\\marble-og-v1-complete.fbx'
+export finished in 0.0507 sec.
+FBX version: 7400
+Info: Saved as "marble-og-v1.blend"
+OG_COMPLETE marble {"extraTriangles": 0, "maps": 2, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

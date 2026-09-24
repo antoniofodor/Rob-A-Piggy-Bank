@@ -1,0 +1,37 @@
+C:\Users\anton\robloxGame\assets\piggies\arcade-build-v1\build_arcade.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:05.921  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_22188_108b63ac078dfcc571a719ea46452d86.png.png"
+Info: Saved as "mechaplayer-arcade-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED mechaplayer body color
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED mechaplayer body emissive
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED mechaplayer trim color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED mechaplayer trim emissive
+C:\Users\anton\robloxGame\assets\piggies\arcade-build-v1\build_arcade.py:711: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:32.234  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\mechaplayer\preview\mechaplayer-arcade-v1-hero.png'
+00:43.968  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\mechaplayer\preview\mechaplayer-arcade-v1-back.png'
+00:54.390  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\mechaplayer\preview\mechaplayer-arcade-v1-motion.png'
+00:54.406  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_22188_9dd7715af82ad70259eb84644c2cc7b2.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\mechaplayer\\package\\mechaplayer-arcade-v1-complete.fbx'
+export finished in 0.1015 sec.
+FBX version: 7400
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\mechaplayer\\package\\mechaplayer-arcade-v1-accessories.fbx'
+export finished in 0.0543 sec.
+FBX version: 7400
+Info: Saved as "mechaplayer-arcade-v1.blend"
+ARCADE_COMPLETE mechaplayer {"extraTriangles": 2360, "maps": 4, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

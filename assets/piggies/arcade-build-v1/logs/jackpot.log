@@ -1,0 +1,37 @@
+C:\Users\anton\robloxGame\assets\piggies\arcade-build-v1\build_arcade.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:05.578  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_17268_9694790dadc91f03d3359aea1c47ea12.png.png"
+Info: Saved as "jackpot-arcade-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED jackpot body color
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED jackpot body emissive
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED jackpot trim color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED jackpot trim emissive
+C:\Users\anton\robloxGame\assets\piggies\arcade-build-v1\build_arcade.py:556: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:39.563  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\jackpot\preview\jackpot-arcade-v1-hero.png'
+00:57.438  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\jackpot\preview\jackpot-arcade-v1-back.png'
+01:22.828  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\jackpot\preview\jackpot-arcade-v1-motion.png'
+01:22.953  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_17268_e37aa081bd060fe8b49dfcb082db9d27.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\jackpot\\package\\jackpot-arcade-v1-complete.fbx'
+export finished in 0.0708 sec.
+FBX version: 7400
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\jackpot\\package\\jackpot-arcade-v1-accessories.fbx'
+export finished in 0.0502 sec.
+FBX version: 7400
+Info: Saved as "jackpot-arcade-v1.blend"
+ARCADE_COMPLETE jackpot {"extraTriangles": 3600, "maps": 4, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

@@ -1,0 +1,242 @@
+{
+  "skin": "hedgehog",
+  "revision": "epic-v2",
+  "status": "uploaded and approved; game integration pending",
+  "bodyWidthStuds": 12,
+  "sourceScene": "assets\\piggies\\epic\\hedgehog\\source\\hedgehog-epic-v2.blend",
+  "concept": "assets/piggies/epic/_concepts-v2/epic-concepts.png",
+  "aura": "fireflies",
+  "baseGeometryUnchanged": true,
+  "baseUVsPreserved": true,
+  "sourceHash": "365fdf39165ba1cfe825187b7f70b05f9448ef4b2785cdd321c1af3e1f8d6a91",
+  "generatorHash": "1c63f4f61c769d1aac00900d8a21f1bc5b705c4e94daf454027d6b614bcffaa5",
+  "parts": [
+    {
+      "name": "hedgehog_Body",
+      "triangles": 6264,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "base",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -1.0000001192092896,
+          -1.0800000429153442,
+          -0.9599999785423279
+        ],
+        [
+          1.0,
+          1.0800000429153442,
+          0.9599999785423279
+        ]
+      ],
+      "offsetRobloxStuds": [
+        -3.5762786865234375e-07,
+        6.62,
+        -0.0
+      ],
+      "sizeRobloxStuds": [
+        12.000000715255737,
+        11.519999742507935,
+        12.96000051498413
+      ]
+    },
+    {
+      "name": "hedgehog_Snout",
+      "triangles": 2486,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "base",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -0.565378725528717,
+          -1.3806010484695435,
+          -0.7318602800369263
+        ],
+        [
+          0.565378725528717,
+          -0.19274121522903442,
+          0.47368624806404114
+        ]
+      ],
+      "offsetRobloxStuds": [
+        0.0,
+        5.845477904081345,
+        4.720026791095734
+      ],
+      "sizeRobloxStuds": [
+        6.7845447063446045,
+        7.233279168605804,
+        7.127158999443054
+      ]
+    },
+    {
+      "name": "hedgehog_Ears",
+      "triangles": 7152,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "base",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -0.778161883354187,
+          -0.5540176630020142,
+          0.4472057819366455
+        ],
+        [
+          0.778161883354187,
+          -0.16402886807918549,
+          1.308976650238037
+        ]
+      ],
+      "offsetRobloxStuds": [
+        0.0,
+        11.888547296524049,
+        2.154139593243599
+      ],
+      "sizeRobloxStuds": [
+        9.337942600250244,
+        5.17062520980835,
+        2.339932769536972
+      ]
+    },
+    {
+      "name": "hedgehog_Legs",
+      "triangles": 2032,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "base",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -0.7200000286102295,
+          -0.699999988079071,
+          -1.0199999809265137
+        ],
+        [
+          0.7200000286102295,
+          0.7599999904632568,
+          -0.5199999809265137
+        ]
+      ],
+      "offsetRobloxStuds": [
+        0.0,
+        2.000000114440918,
+        -0.18000000715255737
+      ],
+      "sizeRobloxStuds": [
+        8.640000343322754,
+        3.0,
+        8.759999871253967
+      ]
+    },
+    {
+      "name": "hedgehog_Tail",
+      "triangles": 1592,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "base",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -0.259000301361084,
+          0.7312037944793701,
+          0.23964935541152954
+        ],
+        [
+          0.2397725135087967,
+          1.4653877019882202,
+          0.7396568059921265
+        ]
+      ],
+      "offsetRobloxStuds": [
+        -0.05768336355686188,
+        9.557918484210969,
+        -6.589774489402771
+      ],
+      "sizeRobloxStuds": [
+        2.992636889219284,
+        3.0000447034835815,
+        4.405103445053101
+      ]
+    },
+    {
+      "name": "hedgehog_EyePreview",
+      "triangles": 1056,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "base",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -0.42313653230667114,
+          -0.9937624931335449,
+          0.2585846781730652
+        ],
+        [
+          0.42313653230667114,
+          -0.7837625741958618,
+          0.46858465671539307
+        ]
+      ],
+      "offsetRobloxStuds": [
+        0.0,
+        8.801508004665376,
+        5.33257520198822
+      ],
+      "sizeRobloxStuds": [
+        5.077638387680054,
+        1.2599998712539673,
+        1.2599995136260986
+      ]
+    },
+    {
+      "name": "hedgehog_Quills",
+      "triangles": 10440,
+      "boundaryEdges": 0,
+      "nonManifoldEdges": 0,
+      "role": "accessory",
+      "material": "SmoothPlastic",
+      "boundsSource": [
+        [
+          -1.279145359992981,
+          -0.5634406805038452,
+          -1.0395832061767578
+        ],
+        [
+          1.2816396951675415,
+          1.3823591470718384,
+          1.1904124021530151
+        ]
+      ],
+      "offsetRobloxStuds": [
+        0.007483005523681641,
+        7.072487587928772,
+        -2.4567553997039795
+      ],
+      "sizeRobloxStuds": [
+        15.364710330963135,
+        13.379973649978638,
+        11.674798965454102
+      ]
+    }
+  ],
+  "exports": [
+    {
+      "file": "hedgehog-epic-v2-complete.fbx",
+      "sha256": "983fa10390d07f55df5da66f4bbdf135ab34302203df5b915f80b7ecae64b355",
+      "meshCount": 7,
+      "roundTripBoundsError": 2.384185791015625e-07
+    },
+    {
+      "file": "hedgehog-epic-v2-accessories.fbx",
+      "sha256": "901fc3a13281ab6fbcc8426d74e0913533ef21f69b8aff6135139b6f5d049a42",
+      "meshCount": 1,
+      "roundTripBoundsError": 7.152557373046875e-07
+    }
+  ],
+  "totalTriangles": 31022,
+  "uploadReceipt": "../../roblox-uploads.json",
+  "importedMeshIds": "mesh-import.json"
+}

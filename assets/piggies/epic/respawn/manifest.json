@@ -1,0 +1,91 @@
+{
+  "key": "respawn",
+  "name": "Respawn",
+  "tier": "epic",
+  "palette": [
+    [
+      44,
+      20,
+      92
+    ],
+    [
+      35,
+      199,
+      242
+    ],
+    [
+      111,
+      43,
+      216
+    ],
+    [
+      226,
+      55,
+      217
+    ]
+  ],
+  "aura": "arcade_pixel_stream_proposed",
+  "concept": "respawn-concept-v1.png",
+  "design": "Solid purple pig with a cyan/violet pixel coat, flank arrow, cyan eyes and seven small animated cubes rising near the rear. Emission pulse and pixel motes. New aura specification, not an installed runtime emitter.",
+  "revision": "arcade-build-v1",
+  "status": "Imported into Roblox Studio and repository; assets approved; live place publishing not performed",
+  "conceptMethod": "built-in image_gen",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\respawn_arcade_v1_body_color.png",
+      "sha256": "35c88444d08873ef091f39a1bf3218eab7e2457ef91f46c6b5391e4b606e1f03",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\respawn_arcade_v1_body_emissive.png",
+      "sha256": "501c9e0f3dd8757eccf70da93a6ff1e9c20069cff027d4e71824b3f699fce162",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\respawn_arcade_v1_trim_color.png",
+      "sha256": "4a928284568b58389fac5b459baa1daa48aba7ba7d0ee28b9c9cf15cd228b349",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\respawn_arcade_v1_trim_emissive.png",
+      "sha256": "78c2c82dda4bd3a556fe2ed46f7885e20dd10241c813d48254e7063c1fdcaa05",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 7,
+    "materialPulse": true,
+    "loopClosureError": 0.0
+  },
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": false
+  },
+  "report": "package/arcade-v1-asset-report.json",
+  "review": "package/respawn-arcade-v1.blend",
+  "robloxIntegration": "../../arcade-build-v1/roblox-integration.json",
+  "robloxUploads": "roblox-uploads.json"
+}

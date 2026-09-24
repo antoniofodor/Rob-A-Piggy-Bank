@@ -1,0 +1,67 @@
+{
+  "key": "playerone",
+  "name": "Player One",
+  "tier": "rare",
+  "palette": [
+    [
+      214,
+      39,
+      54
+    ],
+    [
+      244,
+      222,
+      174
+    ],
+    [
+      102,
+      27,
+      48
+    ]
+  ],
+  "aura": null,
+  "concept": "player-one-pixel-v2.png",
+  "design": "16-bit red and cream pig with quantized pixel shading, dithered shadow transitions and a cream 1P emblem on both flanks. Original smooth 3D silhouette retained. Rare because the selected direction requires an authored coat.",
+  "revision": "arcade-build-v1",
+  "status": "Imported into Roblox Studio and repository; assets approved; live place publishing not performed",
+  "conceptMethod": "built-in image_gen",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\playerone_arcade_v1_body_color.png",
+      "sha256": "ec64be2a104658a27445458010d41a8803bdff75708e181fdcdd7941985061eb",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\playerone_arcade_v1_trim_color.png",
+      "sha256": "8936f159693aace3da4764339552cbffddd6c2b34a64989a89d0d05f964d6f8d",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": false
+  },
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": false,
+    "substantialAnimatedGeometry": false
+  },
+  "report": "package/arcade-v1-asset-report.json",
+  "review": "package/playerone-arcade-v1.blend",
+  "robloxIntegration": "../../arcade-build-v1/roblox-integration.json",
+  "robloxUploads": "roblox-uploads.json"
+}

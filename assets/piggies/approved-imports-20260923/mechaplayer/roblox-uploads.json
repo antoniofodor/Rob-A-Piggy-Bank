@@ -1,0 +1,49 @@
+{
+  "skin": "mechaplayer",
+  "revision": "arcade-v4",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "body_color": {
+      "source": "assets/piggies/legendary/mechaplayer/sheets/arcade-v2/mechaplayer_arcade_v2_body_color.png",
+      "sha256": "ad1e93baf14226d813df2387e838694b26e51f4d49d1964720921cd20d339080",
+      "assetType": "Image",
+      "operationId": "47c52a00-ae59-4a34-b142-a4d35335377f",
+      "assetId": "112997068233332",
+      "moderationState": "Approved",
+      "reusedByHash": true
+    },
+    "trim_color": {
+      "source": "assets/piggies/legendary/mechaplayer/sheets/arcade-v2/mechaplayer_arcade_v2_trim_color.png",
+      "sha256": "c5f56abbeddecbcd22d60354f08850bc5d6afa2f46f18857c81db6412838efe5",
+      "assetType": "Image",
+      "operationId": "760d19d8-b198-4c84-ad9c-f3c3e449faae",
+      "assetId": "131013624125723",
+      "moderationState": "Approved",
+      "reusedByHash": true
+    },
+    "mecha-shoulder--1": {
+      "source": "assets/piggies/legendary/mechaplayer/textures/arcade-v4/mecha-shoulder--1.png",
+      "sha256": "27b56fcf98b583f4d0faa17b3100f654af074a1bb7550740048b11e14908746c",
+      "assetType": "Image",
+      "operationId": "cc9599e5-aa50-4123-96f2-5550cc91a7b6",
+      "assetId": "79802930177268",
+      "moderationState": "Approved"
+    },
+    "mecha-shoulder-1": {
+      "source": "assets/piggies/legendary/mechaplayer/textures/arcade-v4/mecha-shoulder-1.png",
+      "sha256": "41a2ab32f761cb7db222da70cfad09eb6ca689dcdc283824088f60c63b1c92b4",
+      "assetType": "Image",
+      "operationId": "79de45a6-6d53-412f-a354-960c34eb87f2",
+      "assetId": "84639490490417",
+      "moderationState": "Approved"
+    },
+    "accessories": {
+      "source": "assets/piggies/legendary/mechaplayer/package/arcade-v4/mechaplayer-arcade-v4-accessories.fbx",
+      "sha256": "8820dc4721364c1b112e02c01981ab4aceb3cf36d507fc3c13e51b361af798b2",
+      "assetType": "Model",
+      "operationId": "4d7aceb6-eeec-4f6d-9e43-cd0cced9d38e",
+      "assetId": "85016724214909",
+      "moderationState": "Approved"
+    }
+  }
+}

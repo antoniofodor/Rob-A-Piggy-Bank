@@ -1,0 +1,29 @@
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:07.015  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_8544_665a26753ea14b96154d1addc1c9604c.png.png"
+Info: Saved as "rockslide-og-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED rockslide body color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED rockslide trim color
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:477: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:40.984  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\rare\rockslide\preview\rockslide-og-v1-hero.png'
+00:58.687  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\rare\rockslide\preview\rockslide-og-v1-back.png'
+00:58.750  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_8544_b90b097300c7374394b2f09d24b6f5e2.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\rare\\rockslide\\package\\rockslide-og-v1-complete.fbx'
+export finished in 0.2383 sec.
+FBX version: 7400
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\rare\\rockslide\\package\\rockslide-og-v1-accessories.fbx'
+export finished in 0.1498 sec.
+FBX version: 7400
+Info: Saved as "rockslide-og-v1.blend"
+OG_COMPLETE rockslide {"extraTriangles": 120, "maps": 2, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

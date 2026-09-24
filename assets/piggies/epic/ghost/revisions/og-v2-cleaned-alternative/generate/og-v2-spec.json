@@ -1,0 +1,24 @@
+{
+  "key": "ghost",
+  "name": "Ghost Piggy",
+  "tier": "epic",
+  "palette": [
+    [
+      210,
+      242,
+      242
+    ],
+    [
+      111,
+      196,
+      204
+    ],
+    [
+      141,
+      255,
+      230
+    ]
+  ],
+  "aura": "wisp",
+  "design": "A translucent pale spirit pig with a bright spectral silhouette, dark readable eyes, soft mint wisps inside the coat and a lower body that dissolves into transparency. Drifting mist aura and a slow breathing spectral rim. No stone gloss or engraved swirls."
+}

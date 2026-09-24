@@ -1,0 +1,189 @@
+{
+  "skin": "synthwave",
+  "name": "Synthwave",
+  "tier": "epic",
+  "revision": "arcade-build-v1",
+  "status": "Built locally; Roblox upload and installation pending",
+  "design": "Midnight purple pig with magenta and cyan perspective grid across lower body, large striped orange-to-pink sunset discs on both flanks, purple snout, cyan eyes. Restrained animated grid glow and sparse neon sparkle aura; no accessory geometry.",
+  "baseGeometryAndUVPreserved": true,
+  "sourceGeometrySignatures": {
+    "Body": "4a54ceed97939e6392190f1c3fb9d10d14530d801166cc7f26e24e99a6983ec1",
+    "Snout": "178b13b8746bb7484909d7e7a981aaa0e159f0f353a9e5fe3891d1191fd68518",
+    "Ears": "a1a7e83a72613d031332816dd3b25c2c0462de33d33c68b0c4dc0e818a95fc9f",
+    "Legs": "56645ce48591fdcc0e5835a7c00c823798c55a883da5f6cca1af42bb7ea74d04",
+    "Tail": "529231df3b33d53086cc7e0fd91ff5ea7b327fcadbb9804603e727fa728c6b38",
+    "EyePreview": "21c6d31d1ffe826f5f98c7bc23d6d57d472f3e465f722caa9f67322a0b2933b9"
+  },
+  "parts": [
+    {
+      "name": "Body",
+      "role": "base",
+      "triangles": 6264,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.5762786865234375e-07,
+        6.62,
+        -0.0
+      ],
+      "sizeRobloxStuds": [
+        12.000000715255737,
+        11.519999742507935,
+        12.96000051498413
+      ]
+    },
+    {
+      "name": "Snout",
+      "role": "base",
+      "triangles": 2486,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        5.845477904081345,
+        4.720026791095734
+      ],
+      "sizeRobloxStuds": [
+        6.7845447063446045,
+        7.233279168605804,
+        7.127158999443054
+      ]
+    },
+    {
+      "name": "Ears",
+      "role": "base",
+      "triangles": 7152,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        11.888547296524049,
+        2.154139593243599
+      ],
+      "sizeRobloxStuds": [
+        9.337942600250244,
+        5.17062520980835,
+        2.339932769536972
+      ]
+    },
+    {
+      "name": "Legs",
+      "role": "base",
+      "triangles": 2032,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        2.000000114440918,
+        -0.18000000715255737
+      ],
+      "sizeRobloxStuds": [
+        8.640000343322754,
+        3.0,
+        8.759999871253967
+      ]
+    },
+    {
+      "name": "Tail",
+      "role": "base",
+      "triangles": 1592,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -0.05768336355686188,
+        9.557918484210969,
+        -6.589774489402771
+      ],
+      "sizeRobloxStuds": [
+        2.992636889219284,
+        3.0000447034835815,
+        4.405103445053101
+      ]
+    },
+    {
+      "name": "EyePreview",
+      "role": "base",
+      "triangles": 1056,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        8.801508004665376,
+        5.33257520198822
+      ],
+      "sizeRobloxStuds": [
+        5.077638387680054,
+        1.2599998712539673,
+        1.2599995136260986
+      ]
+    }
+  ],
+  "exports": [
+    {
+      "file": "synthwave-arcade-v1-complete.fbx",
+      "meshCount": 6,
+      "triangles": 20582,
+      "roundTripChecked": true,
+      "roundTripBoundsError": 4.76837158203125e-07
+    }
+  ],
+  "aura": "arcade_synth_sparkle_proposed",
+  "auraPreviewObjects": 10,
+  "auraExcludedFromMeshExports": true,
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": true,
+    "loopClosureError": 0.0
+  },
+  "tierChecks": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": false
+  },
+  "textures": [
+    {
+      "role": "body_color",
+      "file": "sheets\\synthwave_arcade_v1_body_color.png",
+      "sha256": "ae0f9ac55b306eca66892277576b2d9902f6164b1b95d854519eb3dc46ec69d7",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\synthwave_arcade_v1_body_emissive.png",
+      "sha256": "22e9671cff0460e0360d1ebde16b52342f3eda02dd045976aa72ae2582d950b6",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\synthwave_arcade_v1_trim_color.png",
+      "sha256": "057e5653deee9df8628bc3fbdd123823f839b3607454bd366062f274253305be",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\synthwave_arcade_v1_trim_emissive.png",
+      "sha256": "0f4ec2c1e70c6579e6178a04f1944846394c447879fe510618808a0128c927ff",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "generator": "assets/piggies/arcade-build-v1/build_arcade.py",
+  "runtimeNotes": "Use supplied maps on shared body/trim; replace old procedural pattern. Player One is Rare for its authored pixel coat; these are new assets, not installed Config rows. Aura keys are proposed new emitters; preview motes are not export meshes. New accessories replace, not stack with, old shard/FX geometry. Full Blender animation is retained in packed blend; FBX is a static import pose."
+}

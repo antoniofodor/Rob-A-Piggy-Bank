@@ -1,0 +1,24 @@
+{
+  "key": "hologram",
+  "name": "Hologram Piggy",
+  "tier": "epic",
+  "palette": [
+    [
+      28,
+      113,
+      139
+    ],
+    [
+      79,
+      228,
+      255
+    ],
+    [
+      224,
+      105,
+      229
+    ]
+  ],
+  "aura": "hologram",
+  "design": "A see-through cyan wire-grid projection with luminous contour edges, horizontal scan lines, sparse magenta data interruptions and a bright scanning band traveling from feet to ears. The snout and ears are part of the projection. Pixel aura; no solid teal shell."
+}

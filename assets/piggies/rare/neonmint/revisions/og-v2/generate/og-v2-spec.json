@@ -1,0 +1,24 @@
+{
+  "key": "neonmint",
+  "name": "Neon Mint",
+  "tier": "rare",
+  "palette": [
+    [
+      16,
+      41,
+      47
+    ],
+    [
+      77,
+      235,
+      184
+    ],
+    [
+      209,
+      255,
+      232
+    ]
+  ],
+  "aura": null,
+  "design": "Mint enamel with flowing charcoal negative-space bands, crisp mint-white neon edging, dark snout and coordinated mint soles. A restrained breathing glow follows the bands without recoloring the pig; no particles."
+}

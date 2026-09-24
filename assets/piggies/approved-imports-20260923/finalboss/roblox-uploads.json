@@ -1,0 +1,31 @@
+{
+  "skin": "finalboss",
+  "revision": "spellcaster-v5",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "body_color": {
+      "source": "assets/piggies/legendary/finalboss/sheets/overdrive-v3/finalboss_overdrive_v3_body_color.png",
+      "sha256": "4ffabfb6a72e015eeced9d8ceee04d53bedae765bd40a4529221da3546e6b749",
+      "assetType": "Image",
+      "operationId": "92223378-bafb-4884-888c-abbd33a4cb90",
+      "assetId": "124099312810851",
+      "moderationState": "Approved"
+    },
+    "trim_color": {
+      "source": "assets/piggies/legendary/finalboss/sheets/overdrive-v3/finalboss_overdrive_v3_trim_color.png",
+      "sha256": "80bb91973e621f2f0fe888f69719cc1a3c97fa37e6f4ee9ac32883a91b781818",
+      "assetType": "Image",
+      "operationId": "71671fc2-8d92-4be0-b48c-70471824a0a0",
+      "assetId": "132842181613466",
+      "moderationState": "Approved"
+    },
+    "accessories": {
+      "source": "assets/piggies/legendary/finalboss/package/spellcaster-v5/finalboss-spellcaster-v5-accessories.fbx",
+      "sha256": "47b4dffe12b86979b7da8d662a041015f84252b591236276166dbf4ff66fd231",
+      "assetType": "Model",
+      "operationId": "ddcd38c6-f7cb-479c-81ed-96b2568a4059",
+      "assetId": "84387968684596",
+      "moderationState": "Approved"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "key": "marble",
+  "name": "Marble",
+  "tier": "rare",
+  "design": "Polished warm ivory marble with sweeping branching graphite veins and fine muted champagne seams. Veins flow continuously over the back and sides; readable ivory face and gray stone feet. Elegant solid stone, no glow, particles or accessories.",
+  "palette": [
+    [
+      236,
+      232,
+      226
+    ],
+    [
+      180,
+      178,
+      184
+    ],
+    [
+      90,
+      93,
+      109
+    ]
+  ],
+  "aura": null
+}

@@ -1,0 +1,11 @@
+00:03.563  blend            | Read blend: "C:\Users\anton\robloxGame\assets\piggies\epic\hologram\revisions\og-v2\package\hologram-og-v2.blend"
+00:34.391  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\hologram\revisions\og-v2\preview\hologram-og-v2-hero.png'
+01:10.422  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\hologram\revisions\og-v2\preview\hologram-og-v2-back.png'
+01:51.703  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\hologram\revisions\og-v2\preview\hologram-og-v2-top.png'
+02:26.797  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\hologram\revisions\og-v2\preview\hologram-og-v2-motion.png'
+02:26.828  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_10344_eb145d697da3bff552beb39ece3f5dcd.png.png"
+Info: Saved as "hologram-og-v2.blend"
+PROJECTION_CLEANED hologram False
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

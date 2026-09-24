@@ -626,6 +626,9 @@ def coat(name):
     link(o, bsdf.inputs['Base Color'])
     out = node("ShaderNodeOutputMaterial", 1060, 200)
     link(bsdf.outputs['BSDF'], out.inputs['Surface'])
+    # Blend stroke edge distances across the shoulder, keeping solid ink.
+    from stripe_transition import soften_stripe_transition
+    soften_stripe_transition(mat)
     return mat
 
 

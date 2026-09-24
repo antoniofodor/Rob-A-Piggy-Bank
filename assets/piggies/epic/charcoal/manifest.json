@@ -1,0 +1,163 @@
+{
+  "key": "charcoal",
+  "name": "Charcoal Piggy",
+  "tier": "epic",
+  "path": "assets/piggies/epic/charcoal",
+  "status": "Uploaded and installed (og-redesign-v1 maps round, 2026-09-23)",
+  "revision": "og-redesign-v1",
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/charcoal.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://137882822386355",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "EmissiveMaskContent": "rbxassetid://74886419282510",
+        "EmissiveStrength": 0.9
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/charcoal_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://94679105881338",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "EmissiveMaskContent": "rbxassetid://105475010819468",
+        "EmissiveStrength": 0.9
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://137882822386355": {
+      "role": "charcoal ColorMap",
+      "file": "sheets/charcoal_og_v1_body_color.png",
+      "sha256": "09a699934edf5c20bead636d011df8a3a654c1edc494f9504fe8f430e9799fae"
+    },
+    "rbxassetid://74886419282510": {
+      "role": "charcoal EmissiveMaskContent",
+      "file": "sheets/charcoal_og_v1_body_emissive.png",
+      "sha256": "f73603d0f4d70f8b8b58b9a2ccb80a5a36fbaaeb32f949cb75860311f610a117"
+    },
+    "rbxassetid://94679105881338": {
+      "role": "charcoal_trim ColorMap",
+      "file": "sheets/charcoal_og_v1_trim_color.png",
+      "sha256": "aa74dc0b2c8a348ede62dba7efe953a8bc3378ae69b69b79b229cbbb8c0a7bad"
+    },
+    "rbxassetid://105475010819468": {
+      "role": "charcoal_trim EmissiveMaskContent",
+      "file": "sheets/charcoal_og_v1_trim_emissive.png",
+      "sha256": "6bf330b9868b4dbbff69dd7572c7f99f8c34b62d1b6f01a2a0531ad94ec1f52c"
+    }
+  },
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau",
+    "skinsRow": {
+      "line": 7113,
+      "name": "Charcoal Piggy",
+      "rarity": "epic",
+      "surface": "charcoal",
+      "chest": "og",
+      "pattern": false,
+      "anim": false,
+      "fx": false
+    },
+    "surfacePack": {
+      "key": "charcoal",
+      "line": 6008,
+      "template": "charcoal",
+      "trimTemplate": "charcoal_trim"
+    },
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "concept": "preview/charcoal-og-v1-concept.png",
+  "prompt": "generate/og-v1-concept-prompt.txt",
+  "conceptMethod": "built-in image_gen",
+  "source": "source/charcoal-og-v1-procedural.blend",
+  "review": "package/charcoal-og-v1.blend",
+  "generator": "assets\\piggies\\og-redesign-v1\\build_og.py",
+  "report": "package/og-v1-asset-report.json",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\charcoal_og_v1_body_color.png",
+      "sha256": "09a699934edf5c20bead636d011df8a3a654c1edc494f9504fe8f430e9799fae",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\charcoal_og_v1_body_emissive.png",
+      "sha256": "f73603d0f4d70f8b8b58b9a2ccb80a5a36fbaaeb32f949cb75860311f610a117",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\charcoal_og_v1_trim_color.png",
+      "sha256": "aa74dc0b2c8a348ede62dba7efe953a8bc3378ae69b69b79b229cbbb8c0a7bad",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\charcoal_og_v1_trim_emissive.png",
+      "sha256": "6bf330b9868b4dbbff69dd7572c7f99f8c34b62d1b6f01a2a0531ad94ec1f52c",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": false
+  },
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": true,
+    "loopClosureError": 0.0
+  },
+  "files": {
+    "source": [
+      "charcoal-og-v1-procedural.blend"
+    ],
+    "generate": [
+      "og-v1-concept-prompt.txt",
+      "og-v1-spec.json"
+    ],
+    "sheets": [
+      "charcoal_og_v1_body_color.png",
+      "charcoal_og_v1_body_emissive.png",
+      "charcoal_og_v1_trim_color.png",
+      "charcoal_og_v1_trim_emissive.png"
+    ],
+    "preview": [
+      "charcoal-og-v1-back.png",
+      "charcoal-og-v1-concept.png",
+      "charcoal-og-v1-hero.png",
+      "charcoal-og-v1-motion.png"
+    ],
+    "package": [
+      "charcoal-og-v1-complete.fbx",
+      "charcoal-og-v1.blend",
+      "og-v1-asset-report.json"
+    ]
+  }
+}

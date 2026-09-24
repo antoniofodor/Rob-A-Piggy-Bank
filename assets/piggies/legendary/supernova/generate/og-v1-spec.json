@@ -1,0 +1,24 @@
+{
+  "key": "supernova",
+  "name": "Supernova",
+  "tier": "legendary",
+  "design": "Dark aubergine solar pig with luminous amber/orange flowing solar fissures, dark readable snout, gold eyes. Substantial sculpted tapered solar flame arcs wrap flanks and rump in a low tilted open corona, plus small glowing orbiting cinders. Distinct added 3D silhouette, sunburst particle aura and slow orbital motion. Keep face, ear tips and front hat space clear. No giant fireball hiding pig.",
+  "palette": [
+    [
+      64,
+      31,
+      56
+    ],
+    [
+      177,
+      50,
+      28
+    ],
+    [
+      255,
+      161,
+      30
+    ]
+  ],
+  "aura": "sunburst"
+}

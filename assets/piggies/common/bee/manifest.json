@@ -37,7 +37,7 @@
     "body": {
       "path": "src/ReplicatedStorage/Shared/SurfacePacks/bee.model.json",
       "ids": {
-        "ColorMap": "rbxassetid://123275221396030",
+        "ColorMap": "rbxassetid://97939826578770",
         "MetalnessMap": "",
         "RoughnessMap": "",
         "NormalMap": ""
@@ -56,11 +56,11 @@
     }
   },
   "idSources": {
-    "rbxassetid://123275221396030": {
-      "file": "sheets/bee_body_color.open-hatch.png",
-      "sha256": "dbe941b2c8d8c92dd9b0d00f1cf0269ed7e524ebb3eb1dd0179cd738afa2162f",
-      "role": "body ColorMap",
-      "note": "uploaded from the open-hatch bake"
+    "rbxassetid://97939826578770": {
+      "file": "sheets/bee_body_color.png",
+      "sha256": "0442187606b9a6a17455a3fec07a902cd3a2d3b177aacb6d68ce9872e84d6494",
+      "role": "bee ColorMap",
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://123275221396030"
     },
     "rbxassetid://75271899643678": {
       "file": "sheets/bee_trim_color.png",

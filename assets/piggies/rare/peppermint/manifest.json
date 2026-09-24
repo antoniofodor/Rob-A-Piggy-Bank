@@ -39,7 +39,7 @@
         "MetalnessMap": "",
         "RoughnessMap": "",
         "NormalMap": "",
-        "ColorMap": "rbxassetid://131923962473751",
+        "ColorMap": "rbxassetid://134909493966346",
         "EmissiveMaskContent": ""
       },
       "alphaMode": "Overlay"
@@ -50,23 +50,35 @@
         "MetalnessMap": "",
         "RoughnessMap": "",
         "NormalMap": "",
-        "ColorMap": "rbxassetid://116877587043457",
+        "ColorMap": "rbxassetid://79699799740950",
         "EmissiveMaskContent": ""
       },
       "alphaMode": "Overlay"
     }
   },
   "idSources": {
-    "rbxassetid://131923962473751": {
-      "file": "sheets/peppermint_body_color.open-hatch.png",
-      "sha256": "a686e7666a7237cf90549b95c54cd7344b100e9f33ceae5c25e56a367d841898",
-      "role": "body ColorMap",
-      "note": "uploaded from the open-hatch bake"
+    "rbxassetid://96030616761081": {
+      "file": "sheets/peppermint_body_color.png",
+      "sha256": "0e9a9a5ae4289711e6811b0c8565d0875539444c1588b15c37125489c5b1a828",
+      "role": "peppermint ColorMap",
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://131923962473751"
     },
     "rbxassetid://116877587043457": {
       "file": "sheets/peppermint_trim_color.png",
       "sha256": "cf30a5bfbf25b04c11e7c9cccb5f66a942aad313bb7d9fe48fbc5b83af0f8dde",
       "role": "trim ColorMap"
+    },
+    "rbxassetid://134909493966346": {
+      "file": "sheets/peppermint_body_color.png",
+      "sha256": "43a556a8be8a12a2b437f537cef2780dc04f4d3e054eb95569e02bd94d06456a",
+      "role": "body ColorMap",
+      "note": "Smooth shoulder stripe transition; uploaded with designer authorization 2026-09-23; replaces rbxassetid://96030616761081"
+    },
+    "rbxassetid://79699799740950": {
+      "file": "sheets/peppermint_trim_color.png",
+      "sha256": "de4323c493f0bc32eabace18ae07f9066faf0c8dc15efd4467370938dfdc8874",
+      "role": "trim ColorMap",
+      "note": "Smooth shoulder stripe transition; uploaded with designer authorization 2026-09-23; replaces rbxassetid://116877587043457"
     }
   },
   "shopCard": {
@@ -77,16 +89,16 @@
   },
   "derivedPackage": {
     "path": "assets/piggies/rare/peppermint/package",
-    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "note": "Derived package refreshed from corrected stripe materials and current bake scene; texture copies verified.",
     "fileCount": 16,
     "textureCopiesMatchShippedSheets": {
-      "peppermint_body_color.png": false,
-      "peppermint_trim_color.png": false
+      "peppermint_body_color.png": true,
+      "peppermint_trim_color.png": true
     }
   },
   "closedBack": {
     "closedScene": "source/peppermint_closed.blend",
-    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as peppermint_body_color.open-hatch.png. Re-upload pending."
+    "note": "Current closed-back body sheet includes the smooth stripe transition and is uploaded to the recorded body ColorMap."
   },
   "files": {
     "source": [
@@ -129,5 +141,12 @@
     ]
   },
   "generator": "generate/make_peppermint_blend.py",
-  "notes": []
+  "notes": [],
+  "stripeTransition": {
+    "version": 2,
+    "method": "Blend stripe edge distances across the shoulder; solid colour and tapered tips",
+    "generator": "blender/pig/stripe_transition.py",
+    "status": "body and trim uploaded",
+    "validation": "Geometry/UV/material slots unchanged; opaque 1024px sheets; no palette fades; FBX bounds round-trip passed."
+  }
 }

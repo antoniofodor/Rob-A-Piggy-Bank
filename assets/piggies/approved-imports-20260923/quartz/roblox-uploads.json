@@ -1,0 +1,63 @@
+{
+  "skin": "quartz",
+  "revision": "og-v2",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "body_color": {
+      "source": "assets/piggies/rare/quartz/revisions/og-v2/sheets/quartz_og_v2_body_color.png",
+      "sha256": "8e05e4feced9c25162b636ba1abd22dc671c5a6240312b8a1235c90a8d6bc932",
+      "assetType": "Image",
+      "operationId": "7a4cd62e-1cdd-42d3-acf0-16a7baa98615",
+      "assetId": "89581204494322",
+      "moderationState": "Approved"
+    },
+    "body_metal": {
+      "source": "assets/piggies/rare/quartz/revisions/og-v2/sheets/quartz_og_v2_body_metal.png",
+      "sha256": "4312e312fc81f0420ca58d1fbef0063588bdb9edc35f4e25db865f57855ab609",
+      "assetType": "Image",
+      "operationId": "5647e70d-5b94-487a-b926-f4eb13ea75ee",
+      "assetId": "106057829830145",
+      "moderationState": "Approved"
+    },
+    "body_rough": {
+      "source": "assets/piggies/rare/quartz/revisions/og-v2/sheets/quartz_og_v2_body_rough.png",
+      "sha256": "8445f9cdae447450b4ad4691b5794d1368e38fa6f681550dd428bc3936dba992",
+      "assetType": "Image",
+      "operationId": "625f9858-5691-4e98-9d4d-bbb33a2f058d",
+      "assetId": "89335948774007",
+      "moderationState": "Approved"
+    },
+    "trim_color": {
+      "source": "assets/piggies/rare/quartz/revisions/og-v2/sheets/quartz_og_v2_trim_color.png",
+      "sha256": "9b3bce5cc0b2741edffd756dd313d96bce518377855901ba5d75f18f2044431e",
+      "assetType": "Image",
+      "operationId": "ce6985e0-9c5c-45cd-9da5-bb7d0d8cb9a3",
+      "assetId": "133218039838571",
+      "moderationState": "Approved"
+    },
+    "trim_metal": {
+      "source": "assets/piggies/rare/quartz/revisions/og-v2/sheets/quartz_og_v2_trim_metal.png",
+      "sha256": "458bdc0c48e22be13a523f9bb9178cd0d9174c08d75a84da6efcced708428ca4",
+      "assetType": "Image",
+      "operationId": "1865ec47-e8e5-475e-a0cb-a02e438a317f",
+      "assetId": "111132037601627",
+      "moderationState": "Approved"
+    },
+    "trim_rough": {
+      "source": "assets/piggies/rare/quartz/revisions/og-v2/sheets/quartz_og_v2_trim_rough.png",
+      "sha256": "0511c34e26fdde540c8dc800434b0fdedfd4a3c49265b53343fc2bef3c246eba",
+      "assetType": "Image",
+      "operationId": "c20ecbdc-4559-4fd1-ab44-a26b2d5e8a61",
+      "assetId": "76959508645934",
+      "moderationState": "Approved"
+    },
+    "accessories": {
+      "source": "assets/piggies/rare/quartz/revisions/og-v2/package/quartz-og-v2-accessories.fbx",
+      "sha256": "40d24bd138aed0d5e9c2df19a37fc740b7b4ec4bbbac5fcdacbcd074dfd3409e",
+      "assetType": "Model",
+      "operationId": "4f3eb200-567d-463b-8714-640af3fa9c64",
+      "assetId": "77211551492762",
+      "moderationState": "Approved"
+    }
+  }
+}

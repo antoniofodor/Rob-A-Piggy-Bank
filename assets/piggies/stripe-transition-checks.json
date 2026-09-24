@@ -1,0 +1,97 @@
+{
+  "skins": [
+    {
+      "skin": "tiger",
+      "opaque1024Sheets": true,
+      "packageCopiesMatch": true,
+      "sourceHashesMatch": true,
+      "fbxBoundsError": 4.76837158203125e-07
+    },
+    {
+      "skin": "zebra",
+      "opaque1024Sheets": true,
+      "packageCopiesMatch": true,
+      "sourceHashesMatch": true,
+      "fbxBoundsError": 4.76837158203125e-07
+    },
+    {
+      "skin": "glacier",
+      "opaque1024Sheets": true,
+      "packageCopiesMatch": true,
+      "sourceHashesMatch": true,
+      "fbxBoundsError": 4.76837158203125e-07
+    },
+    {
+      "skin": "peppermint",
+      "opaque1024Sheets": true,
+      "packageCopiesMatch": true,
+      "sourceHashesMatch": true,
+      "fbxBoundsError": 4.76837158203125e-07
+    },
+    {
+      "skin": "raptor",
+      "opaque1024Sheets": true,
+      "packageCopiesMatch": true,
+      "sourceHashesMatch": true,
+      "fbxBoundsError": 4.76837158203125e-07
+    }
+  ],
+  "sourceScenes": [
+    {
+      "skin": "tiger",
+      "scene": "tiger.blend",
+      "geometryAndUVsUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "skin": "tiger",
+      "scene": "tiger_closed.blend",
+      "geometryAndUVsUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "skin": "zebra",
+      "scene": "zebra.blend",
+      "geometryAndUVsUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "skin": "zebra",
+      "scene": "zebra_closed.blend",
+      "geometryAndUVsUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "skin": "glacier",
+      "scene": "glacier.blend",
+      "geometryAndUVsUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "skin": "glacier",
+      "scene": "glacier_closed.blend",
+      "geometryAndUVsUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "skin": "peppermint",
+      "scene": "peppermint.blend",
+      "geometryAndUVsUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "skin": "peppermint",
+      "scene": "peppermint_closed.blend",
+      "geometryAndUVsUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "skin": "raptor",
+      "scene": "raptor.blend",
+      "geometryAndUVsUnchanged": true,
+      "idempotent": true
+    }
+  ],
+  "colourCheck": "check_fade.py: all 10 sheets pass; 0.00% faded areas",
+  "studio": "All eight uploaded textures loaded via ImageLabel.IsLoaded; Glacier rendered on the actual mesh in Studio."
+}

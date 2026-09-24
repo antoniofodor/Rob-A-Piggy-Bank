@@ -1,0 +1,279 @@
+{
+  "skin": "rockslide",
+  "name": "Rockslide",
+  "tier": "rare",
+  "revision": "og-redesign-v1",
+  "status": "Built locally; Roblox upload and installation pending",
+  "design": "Weathered slate pig. Broad fitted irregular charcoal and warm-gray stone plates with recessed seams and subtle strata. A few small low-poly rock plates grow directly from upper flanks, deeply seated in skin; no loose stones or excessive spikes. Rounded rock snout, dark feet. No glow or particles.",
+  "baseGeometryAndUVPreserved": true,
+  "sourceGeometrySignatures": {
+    "Body": "4a54ceed97939e6392190f1c3fb9d10d14530d801166cc7f26e24e99a6983ec1",
+    "Snout": "178b13b8746bb7484909d7e7a981aaa0e159f0f353a9e5fe3891d1191fd68518",
+    "Ears": "a1a7e83a72613d031332816dd3b25c2c0462de33d33c68b0c4dc0e818a95fc9f",
+    "Legs": "56645ce48591fdcc0e5835a7c00c823798c55a883da5f6cca1af42bb7ea74d04",
+    "Tail": "529231df3b33d53086cc7e0fd91ff5ea7b327fcadbb9804603e727fa728c6b38",
+    "EyePreview": "21c6d31d1ffe826f5f98c7bc23d6d57d472f3e465f722caa9f67322a0b2933b9"
+  },
+  "parts": [
+    {
+      "name": "Body",
+      "role": "base",
+      "triangles": 6264,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.5762786865234375e-07,
+        6.62,
+        -0.0
+      ],
+      "sizeRobloxStuds": [
+        12.000000715255737,
+        11.519999742507935,
+        12.96000051498413
+      ]
+    },
+    {
+      "name": "Snout",
+      "role": "base",
+      "triangles": 2486,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        5.845477904081345,
+        4.720026791095734
+      ],
+      "sizeRobloxStuds": [
+        6.7845447063446045,
+        7.233279168605804,
+        7.127158999443054
+      ]
+    },
+    {
+      "name": "Ears",
+      "role": "base",
+      "triangles": 7152,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        11.888547296524049,
+        2.154139593243599
+      ],
+      "sizeRobloxStuds": [
+        9.337942600250244,
+        5.17062520980835,
+        2.339932769536972
+      ]
+    },
+    {
+      "name": "Legs",
+      "role": "base",
+      "triangles": 2032,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        2.000000114440918,
+        -0.18000000715255737
+      ],
+      "sizeRobloxStuds": [
+        8.640000343322754,
+        3.0,
+        8.759999871253967
+      ]
+    },
+    {
+      "name": "Tail",
+      "role": "base",
+      "triangles": 1592,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -0.05768336355686188,
+        9.557918484210969,
+        -6.589774489402771
+      ],
+      "sizeRobloxStuds": [
+        2.992636889219284,
+        3.0000447034835815,
+        4.405103445053101
+      ]
+    },
+    {
+      "name": "EyePreview",
+      "role": "base",
+      "triangles": 1056,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        8.801508004665376,
+        5.33257520198822
+      ],
+      "sizeRobloxStuds": [
+        5.077638387680054,
+        1.2599998712539673,
+        1.2599995136260986
+      ]
+    },
+    {
+      "name": "RockPlate_-1_0",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.977653861045837,
+        9.774311507940293,
+        -1.2966025471687317
+      ],
+      "sizeRobloxStuds": [
+        2.3317816257476807,
+        2.3308616280555725,
+        2.4514929056167603
+      ]
+    },
+    {
+      "name": "RockPlate_-1_1",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.909692406654358,
+        9.223573888540269,
+        -2.557143598794937
+      ],
+      "sizeRobloxStuds": [
+        2.3679721355438232,
+        2.366918385028839,
+        2.469005763530731
+      ]
+    },
+    {
+      "name": "RockPlate_-1_2",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.572325050830841,
+        8.613761152029038,
+        -3.6165793240070343
+      ],
+      "sizeRobloxStuds": [
+        2.265506386756897,
+        2.4368260502815247,
+        2.4122809767723083
+      ]
+    },
+    {
+      "name": "RockPlate_1_0",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.968190312385559,
+        9.785525645017625,
+        -1.2965704053640366
+      ],
+      "sizeRobloxStuds": [
+        2.3270108699798584,
+        2.3350773453712463,
+        2.4513358175754547
+      ]
+    },
+    {
+      "name": "RockPlate_1_1",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.954894065856934,
+        9.168520296812058,
+        -2.557242974638939
+      ],
+      "sizeRobloxStuds": [
+        2.3830246925354004,
+        2.3509846329689026,
+        2.469702512025833
+      ]
+    },
+    {
+      "name": "RockPlate_1_2",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.742524266242981,
+        8.542661736607553,
+        -3.6160684525966644
+      ],
+      "sizeRobloxStuds": [
+        2.2960946559906006,
+        2.423290103673935,
+        2.410121977329254
+      ]
+    }
+  ],
+  "exports": [
+    {
+      "file": "rockslide-og-v1-complete.fbx",
+      "meshCount": 12,
+      "triangles": 20702,
+      "roundTripChecked": true,
+      "roundTripBoundsError": 4.76837158203125e-07
+    },
+    {
+      "file": "rockslide-og-v1-accessories.fbx",
+      "meshCount": 6,
+      "triangles": 120,
+      "roundTripChecked": true,
+      "roundTripBoundsError": 2.980232238769531e-07
+    }
+  ],
+  "aura": null,
+  "auraPreviewObjects": 0,
+  "auraExcludedFromMeshExports": true,
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": false
+  },
+  "tierChecks": {
+    "authoredCoat": true,
+    "glowAndAura": false,
+    "substantialAnimatedGeometry": false
+  },
+  "textures": [
+    {
+      "role": "body_color",
+      "file": "sheets\\rockslide_og_v1_body_color.png",
+      "sha256": "965da44d4d9a091959471b216ffc70dcf3e3e8d08bdd8540222ba7829efbb61a",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\rockslide_og_v1_trim_color.png",
+      "sha256": "c36f6cd75e2e0f846a9b8d4c73c45a30efe39e90284890de436b1501f226a068",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "generator": "assets/piggies/og-redesign-v1/build_og.py",
+  "runtimeNotes": "Use supplied maps on shared body/trim; replace old procedural pattern. Preserve rarity. Use existing aura key; preview motes are not export meshes. New accessories replace, not stack with, old shard/FX geometry. Full Blender animation is retained in packed blend; FBX is a static import pose."
+}

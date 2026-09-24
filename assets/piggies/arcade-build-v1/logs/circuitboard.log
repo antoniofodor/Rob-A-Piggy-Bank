@@ -1,0 +1,25 @@
+C:\Users\anton\robloxGame\assets\piggies\arcade-build-v1\build_arcade.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:04.719  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_19656_d5f3fa0a8d5b4f879d16312e240bfbaf.png.png"
+Info: Saved as "circuitboard-arcade-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED circuitboard body color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED circuitboard trim color
+C:\Users\anton\robloxGame\assets\piggies\arcade-build-v1\build_arcade.py:711: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:31.594  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\rare\circuitboard\preview\circuitboard-arcade-v1-hero.png'
+00:47.891  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\rare\circuitboard\preview\circuitboard-arcade-v1-back.png'
+00:47.922  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_19656_fed8888fac6e3a6af05ebd73a6bfc0f6.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\rare\\circuitboard\\package\\circuitboard-arcade-v1-complete.fbx'
+export finished in 0.1675 sec.
+FBX version: 7400
+Info: Saved as "circuitboard-arcade-v1.blend"
+ARCADE_COMPLETE circuitboard {"extraTriangles": 0, "maps": 2, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

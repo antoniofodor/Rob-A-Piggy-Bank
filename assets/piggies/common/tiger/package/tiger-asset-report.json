@@ -1,8 +1,8 @@
 {
   "skin": "tiger",
   "name": "Bengal Tiger",
-  "status": "Complete static review asset; no new coat or runtime installation",
-  "sourceScene": "skins\\tiger\\tiger.blend",
+  "status": "Complete static review asset; runtime installation pending",
+  "sourceScene": "assets\\piggies\\common\\tiger\\source\\tiger_closed.blend",
   "sourceFrame": "Blender X across, -Y face, Z up; origin at body centre",
   "bodyWidthStuds": 12,
   "sourceToStudScale": 5.999999642372153,
@@ -25,14 +25,14 @@
   },
   "fbxRoundTripMaxBoundsError": 4.76837158203125e-07,
   "meshCount": 6,
-  "triangles": 20670,
+  "triangles": 20582,
   "parts": [
     {
       "name": "Body",
       "sourcePart": "Body",
       "textureGroup": "body",
-      "vertices": 3176,
-      "triangles": 6352,
+      "vertices": 3134,
+      "triangles": 6264,
       "sourceNonManifoldEdges": 0,
       "maxSourceVertexError": 8.940696716308594e-08,
       "uvPreservedBeforeTriangulation": true,
@@ -104,7 +104,7 @@
         1024,
         1024
       ],
-      "sha256": "ddb782ae6f72c3feaf80f80bf401a9f5a83f002b7e85df89c34a09aac083be6e"
+      "sha256": "50edb4c35e55b4a82a79d93743b2425abac624ac9d0eb116852da89f53e5d217"
     },
     {
       "group": "trim",
@@ -113,17 +113,19 @@
         1024,
         1024
       ],
-      "sha256": "26032b6bbd4bdcb791d404eecf0735f64642bcf8709030a25010636ad9f68e49"
+      "sha256": "ed0bb981f651d01614a9c846334fd945c73cf4d4f548d65840ebe7a580ae1bcf"
     }
   ],
   "eyes": "Optional exported Eyes mesh; game-built eyes must not be duplicated",
   "nostrils": "Sculpted recesses retained; matching the existing coat previews, no black insert mesh",
   "sharedGeometry": "Body, snout, ears, legs and tail are unchanged apart from uniform scale and triangulation; UVs preserved",
   "inputHashes": {
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\tiger\\tiger.blend": "0742c01a8bbf8f15fb5f4118e475bef421726e8c16b4b6b354e7745b2938de78",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\pig\\pig_parts.blend": "b83cbb017c66b54f55dc8c75a079085621440f1c4d2e12e356de712bbf169086",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\tiger\\tiger_body_color.png": "ddb782ae6f72c3feaf80f80bf401a9f5a83f002b7e85df89c34a09aac083be6e",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\tiger\\tiger_trim_color.png": "26032b6bbd4bdcb791d404eecf0735f64642bcf8709030a25010636ad9f68e49"
+    "C:\\Users\\anton\\robloxGame\\assets\\piggies\\common\\tiger\\source\\tiger_closed.blend": "a2052530e12bcd616405736521602139ed031db6c8319e8733e810a35d6be0ec",
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\pig\\pig_parts.blend": "c5e740da3db249498a048da7cc4764ab1b4aa6c4cb103a46775d63dd4a5b2f4a",
+    "C:\\Users\\anton\\robloxGame\\assets\\piggies\\common\\tiger\\sheets\\tiger_body_color.png": "50edb4c35e55b4a82a79d93743b2425abac624ac9d0eb116852da89f53e5d217",
+    "C:\\Users\\anton\\robloxGame\\assets\\piggies\\common\\tiger\\sheets\\tiger_trim_color.png": "ed0bb981f651d01614a9c846334fd945c73cf4d4f548d65840ebe7a580ae1bcf"
   },
-  "integration": "Existing skin uses shared mesh IDs plus body/trim SurfaceAppearances. Complete FBX is a standalone review/import option; do not upload duplicate base meshes for every coat."
+  "integration": "Existing skin uses shared mesh IDs plus body/trim SurfaceAppearances. Complete FBX is a standalone review/import option; do not upload duplicate base meshes for every coat.",
+  "rarity": "common",
+  "emissiveTextures": []
 }

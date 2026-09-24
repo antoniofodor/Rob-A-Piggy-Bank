@@ -1,0 +1,24 @@
+{
+  "key": "hologram",
+  "name": "Hologram Piggy",
+  "tier": "epic",
+  "design": "Opaque deep-teal digital pig with cyan scan lines, luminous latitude/longitude grid, occasional magenta offset data bars on flanks. Cyan eyes, readable dark teal snout. Sparse cyan pixel aura. Softly cycling scan band, crisp holographic surface, solid body rather than see-through.",
+  "palette": [
+    [
+      18,
+      69,
+      91
+    ],
+    [
+      49,
+      206,
+      225
+    ],
+    [
+      189,
+      79,
+      199
+    ]
+  ],
+  "aura": "hologram"
+}

@@ -1,0 +1,24 @@
+{
+  "key": "ghost",
+  "name": "Ghost Piggy",
+  "tier": "epic",
+  "design": "Opaque spectral porcelain pig, pale cool jade and mist blue, darker ectoplasm wave markings curling upward from feet and flanks. Softly glowing cyan eyes and luminous mint edges within the surface pattern. A few translucent mint smoke wisps drift off flanks as aura. Solid readable pig; no transparent body, sheet costume or detached limbs.",
+  "palette": [
+    [
+      178,
+      219,
+      220
+    ],
+    [
+      79,
+      139,
+      160
+    ],
+    [
+      118,
+      238,
+      207
+    ]
+  ],
+  "aura": "wisp"
+}

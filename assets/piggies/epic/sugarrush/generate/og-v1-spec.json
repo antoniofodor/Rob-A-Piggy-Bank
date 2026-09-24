@@ -1,0 +1,24 @@
+{
+  "key": "sugarrush",
+  "name": "Sugar Rush Piggy",
+  "tier": "epic",
+  "design": "Broad pink, cyan and vanilla diagonal candy ribbons around the pig, tiny colorful elongated sprinkle marks, strawberry-pink snout and candy-colored feet. Restrained glow in ribbon highlights, light fizz of pink/cyan/gold sugar-spark particles. Joyful patterned collectible. No lollipops, crowns or food props.",
+  "palette": [
+    [
+      219,
+      52,
+      139
+    ],
+    [
+      62,
+      192,
+      214
+    ],
+    [
+      249,
+      222,
+      149
+    ]
+  ],
+  "aura": "fizz"
+}

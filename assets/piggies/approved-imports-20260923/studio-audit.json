@@ -1,0 +1,1065 @@
+{
+  "skins": {
+    "charcoal": {
+      "surface": "charcoal",
+      "name": "Charcoal Piggy"
+    },
+    "ghost": {
+      "surface": "ghost",
+      "name": "Ghost Piggy"
+    },
+    "stormcaller": {
+      "surface": "stormcaller",
+      "name": "Stormcaller"
+    },
+    "tiedye": {
+      "surface": "tiedye",
+      "name": "Tie-Dye"
+    },
+    "nightlight": {
+      "surface": "nightlight",
+      "name": "Nightlight Piggy"
+    },
+    "marble": {
+      "surface": "marble",
+      "name": "Marble"
+    },
+    "banker": {
+      "authoredCoat": true,
+      "surface": "banker",
+      "name": "Banker Piggy"
+    },
+    "quartz": {
+      "authoredCoat": true,
+      "surface": "quartz",
+      "name": "Quartz"
+    },
+    "aurora": {
+      "authoredCoat": true,
+      "surface": "aurora",
+      "name": "Aurora"
+    },
+    "starlight": {
+      "surface": "starlight",
+      "name": "Starlight Piggy"
+    },
+    "mechaplayer": {
+      "authoredCoat": true,
+      "surface": "mechaplayer",
+      "name": "Mecha Player"
+    },
+    "finalboss": {
+      "authoredCoat": true,
+      "surface": "finalboss",
+      "name": "Spellcaster"
+    },
+    "jackpot": {
+      "authoredCoat": true,
+      "surface": "jackpot",
+      "name": "Jackpot"
+    },
+    "muddy": {
+      "surface": "muddy",
+      "name": "Muddy Piggy"
+    },
+    "prismatic": {
+      "surface": "prismatic",
+      "name": "Prismatic"
+    },
+    "hologram": {
+      "surface": "hologram",
+      "name": "Hologram Piggy"
+    },
+    "sugarrush": {
+      "surface": "sugarrush",
+      "name": "Sugar Rush Piggy"
+    },
+    "rockslide": {
+      "authoredCoat": true,
+      "surface": "rockslide",
+      "name": "Rockslide"
+    },
+    "honeycomb": {
+      "surface": "honeycomb",
+      "name": "Honeycomb"
+    },
+    "verdigris": {
+      "surface": "verdigris",
+      "name": "Verdigris"
+    },
+    "neonmint": {
+      "authoredCoat": true,
+      "surface": "neonmint",
+      "name": "Neon Mint"
+    },
+    "supernova": {
+      "surface": "supernova",
+      "name": "Supernova"
+    }
+  },
+  "tiger": [
+    {
+      "part": "Body",
+      "offset": [
+        0,
+        6.619999885559082,
+        0
+      ]
+    },
+    {
+      "part": "EarFur",
+      "offset": [
+        0,
+        11.933899879455566,
+        2.3254001140594482
+      ]
+    },
+    {
+      "part": "Ears",
+      "offset": [
+        0,
+        11.888500213623047,
+        2.154099941253662
+      ]
+    },
+    {
+      "part": "Eyes",
+      "offset": [
+        0,
+        8.80150032043457,
+        5.332600116729736
+      ]
+    },
+    {
+      "part": "Legs",
+      "offset": [
+        0,
+        2,
+        -0.18000000715255737
+      ]
+    },
+    {
+      "part": "Snout",
+      "offset": [
+        0,
+        5.8454999923706055,
+        4.71999979019165
+      ]
+    },
+    {
+      "part": "SoftBrow_-1",
+      "offset": [
+        -2.0404999256134033,
+        9.777799606323242,
+        5.046299934387207
+      ]
+    },
+    {
+      "part": "SoftBrow_1",
+      "offset": [
+        2.0404999256134033,
+        9.777799606323242,
+        5.045100212097168
+      ]
+    },
+    {
+      "part": "Tail",
+      "offset": [
+        -0.05770000070333481,
+        9.557900428771973,
+        -6.589799880981445
+      ]
+    },
+    {
+      "part": "TailPlume",
+      "offset": [
+        0.6420000195503235,
+        10.936300277709961,
+        -9.28909969329834
+      ]
+    },
+    {
+      "part": "Stripe_0_Coral",
+      "offset": [
+        0,
+        11.083999633789062,
+        -0.0005000000237487257
+      ]
+    },
+    {
+      "part": "Stripe_1_Orange",
+      "offset": [
+        0,
+        9.574899673461914,
+        0.5755000114440918
+      ]
+    },
+    {
+      "part": "Stripe_2_Gold",
+      "offset": [
+        0,
+        8.609800338745117,
+        -0.007899999618530273
+      ]
+    },
+    {
+      "part": "Stripe_3_Lime",
+      "offset": [
+        0,
+        6.545499801635742,
+        -0.7139000296592712
+      ]
+    },
+    {
+      "part": "Stripe_4_Cyan",
+      "offset": [
+        0,
+        5.406400203704834,
+        -1.0625
+      ]
+    },
+    {
+      "part": "Stripe_5_Blue",
+      "offset": [
+        0,
+        4.185500144958496,
+        -1.2493000030517578
+      ]
+    },
+    {
+      "part": "Stripe_6_Violet",
+      "offset": [
+        0,
+        3.166100025177002,
+        -1.2331000566482544
+      ]
+    }
+  ],
+  "accessories": {
+    "charcoal": [],
+    "ghost": [],
+    "stormcaller": {
+      "count": 10,
+      "model": "79260447782404"
+    },
+    "tiedye": [],
+    "nightlight": [],
+    "marble": [],
+    "banker": [],
+    "quartz": {
+      "count": 10,
+      "model": "77211551492762"
+    },
+    "aurora": [],
+    "starlight": [],
+    "mechaplayer": {
+      "count": 87,
+      "model": "85016724214909"
+    },
+    "finalboss": {
+      "count": 78,
+      "model": "84387968684596"
+    },
+    "jackpot": {
+      "count": 94,
+      "model": "100219423503277"
+    },
+    "muddy": [],
+    "prismatic": {
+      "count": 7,
+      "model": "79374026775660"
+    },
+    "hologram": [],
+    "sugarrush": [],
+    "rockslide": {
+      "count": 12,
+      "model": "71409346006751"
+    },
+    "honeycomb": [],
+    "verdigris": [],
+    "neonmint": [],
+    "supernova": {
+      "count": 12,
+      "model": "128528505944319"
+    }
+  },
+  "packs": {
+    "arcade_mechaplayer_MechShoulderNavy_-1": {
+      "ColorMap": "rbxassetid://79802930177268",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "charcoal": {
+      "ColorMap": "rbxassetid://137882822386355",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://74886419282510}",
+      "MetalnessMap": ""
+    },
+    "legend_rtiger_beard": {
+      "ColorMap": "rbxassetid://126875957823840",
+      "NormalMap": "rbxassetid://79049808266407",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "hologram": {
+      "ColorMap": "rbxassetid://107522928886247",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://124174597819256",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://112301066813649}",
+      "MetalnessMap": ""
+    },
+    "animal_spots": {
+      "ColorMap": "rbxassetid://134210209739159",
+      "NormalMap": "rbxassetid://77749368071796",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "cookiescream_trim": {
+      "ColorMap": "rbxassetid://121020885689753",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "stormcaller": {
+      "ColorMap": "rbxassetid://109600453741538",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://123725112815856}",
+      "MetalnessMap": ""
+    },
+    "zebra_trim": {
+      "ColorMap": "rbxassetid://124435334174229",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "marble": {
+      "ColorMap": "rbxassetid://93215477197948",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "respawn_trim": {
+      "ColorMap": "rbxassetid://129186509382233",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://90345737275916}",
+      "MetalnessMap": ""
+    },
+    "glacier": {
+      "ColorMap": "rbxassetid://123936560500286",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "synthwave_trim": {
+      "ColorMap": "rbxassetid://84168337388531",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://129183842655203}",
+      "MetalnessMap": ""
+    },
+    "quartz": {
+      "ColorMap": "rbxassetid://89581204494322",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://89335948774007",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": "rbxassetid://106057829830145"
+    },
+    "cow_trim": {
+      "ColorMap": "rbxassetid://79212811251675",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "circuitboard_trim": {
+      "ColorMap": "rbxassetid://76995876741236",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "muddy_trim": {
+      "ColorMap": "rbxassetid://117906016169565",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "prismatic_trim": {
+      "ColorMap": "rbxassetid://122467338382430",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://86766175182738}",
+      "MetalnessMap": ""
+    },
+    "leopard_trim": {
+      "ColorMap": "rbxassetid://78720762753411",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "quartz_trim": {
+      "ColorMap": "rbxassetid://133218039838571",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://76959508645934",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": "rbxassetid://111132037601627"
+    },
+    "strawberrycow_trim": {
+      "ColorMap": "rbxassetid://83699393611461",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "ladybird": {
+      "ColorMap": "rbxassetid://90764675975715",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "supernova": {
+      "ColorMap": "rbxassetid://90439675749911",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://121961556376402}",
+      "MetalnessMap": ""
+    },
+    "ladybird_trim": {
+      "ColorMap": "rbxassetid://136388810443010",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "tiedye_trim": {
+      "ColorMap": "rbxassetid://107313718646231",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "bands": {
+      "ColorMap": "rbxassetid://107416059648277",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://134417482845757",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": "rbxassetid://97940878818396"
+    },
+    "animal_bee_trim": {
+      "ColorMap": "rbxassetid://135770589167956",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "watermelon_trim": {
+      "ColorMap": "rbxassetid://116324624730692",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "animal_stripes": {
+      "ColorMap": "rbxassetid://80479533648788",
+      "NormalMap": "rbxassetid://77749368071796",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "peacock": {
+      "ColorMap": "rbxassetid://119377976943225",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "glacier_trim": {
+      "ColorMap": "rbxassetid://117711268342844",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "cow": {
+      "ColorMap": "rbxassetid://124814387935740",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "muddy": {
+      "ColorMap": "rbxassetid://131609552022534",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "starlight_trim": {
+      "ColorMap": "rbxassetid://115438112310334",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://81816386178288}",
+      "MetalnessMap": ""
+    },
+    "giraffe_trim": {
+      "ColorMap": "rbxassetid://73750792833556",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "mechaplayer": {
+      "ColorMap": "rbxassetid://112997068233332",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "finalboss": {
+      "ColorMap": "rbxassetid://124099312810851",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "hedgehog_trim": {
+      "ColorMap": "rbxassetid://88556242869890",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "hedgehog": {
+      "ColorMap": "rbxassetid://127860745207025",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "banker": {
+      "ColorMap": "rbxassetid://81111026919629",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://117032767089995",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": "rbxassetid://138192864791178"
+    },
+    "sugarrush_trim": {
+      "ColorMap": "rbxassetid://94094380901213",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://100202945969410}",
+      "MetalnessMap": ""
+    },
+    "aurora_trim": {
+      "ColorMap": "rbxassetid://116392423675637",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://78935648197726",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://125791931129172}",
+      "MetalnessMap": "rbxassetid://136676580781850"
+    },
+    "neonmint": {
+      "ColorMap": "rbxassetid://108275790438677",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://129327140697255",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://130482699425427}",
+      "MetalnessMap": "rbxassetid://87426881340637"
+    },
+    "rockslide": {
+      "ColorMap": "rbxassetid://120688943233471",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://129121583636673",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": "rbxassetid://73276579567449"
+    },
+    "arcade_mechaplayer_MechShoulderNavy_1": {
+      "ColorMap": "rbxassetid://84639490490417",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "neonmint_trim": {
+      "ColorMap": "rbxassetid://139091614796757",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://88646348382242",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://90676974603641}",
+      "MetalnessMap": "rbxassetid://118624510604059"
+    },
+    "peacock_trim": {
+      "ColorMap": "rbxassetid://114128782594906",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "arcade_jackpot_SymbolReel_0": {
+      "ColorMap": "rbxassetid://135140176097379",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "peppermint": {
+      "ColorMap": "rbxassetid://134909493966346",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "charcoal_trim": {
+      "ColorMap": "rbxassetid://94679105881338",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://105475010819468}",
+      "MetalnessMap": ""
+    },
+    "arcade_jackpot_SymbolReel_1": {
+      "ColorMap": "rbxassetid://87217202130494",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "ghost": {
+      "ColorMap": "rbxassetid://105054882056306",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://90412093405007",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://76252895351436}",
+      "MetalnessMap": ""
+    },
+    "finalboss_trim": {
+      "ColorMap": "rbxassetid://132842181613466",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "stormcaller_trim": {
+      "ColorMap": "rbxassetid://138592950047117",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://128559295321061}",
+      "MetalnessMap": ""
+    },
+    "synthwave": {
+      "ColorMap": "rbxassetid://101646023172420",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://77731855298563}",
+      "MetalnessMap": ""
+    },
+    "tiedye": {
+      "ColorMap": "rbxassetid://126914657930956",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "powerup_trim": {
+      "ColorMap": "rbxassetid://110620785539551",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://71118379213720}",
+      "MetalnessMap": ""
+    },
+    "powerup": {
+      "ColorMap": "rbxassetid://112637068962777",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://91813422027508}",
+      "MetalnessMap": ""
+    },
+    "jackpot": {
+      "ColorMap": "rbxassetid://117505639363579",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://136408512847015",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": "rbxassetid://88879605922802"
+    },
+    "tiger_trim": {
+      "ColorMap": "rbxassetid://78254997973337",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "bubblegumleopard_trim": {
+      "ColorMap": "rbxassetid://77795227405685",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "snowleopard_trim": {
+      "ColorMap": "rbxassetid://135054588737773",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "retrocarpet": {
+      "ColorMap": "rbxassetid://131344660239799",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "animal": {
+      "ColorMap": "",
+      "NormalMap": "rbxassetid://77749368071796",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "supernova_trim": {
+      "ColorMap": "rbxassetid://131676789264686",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://92543380838620}",
+      "MetalnessMap": ""
+    },
+    "diamond": {
+      "ColorMap": "rbxassetid://80357958685629",
+      "NormalMap": "rbxassetid://128667723336141",
+      "RoughnessMap": "rbxassetid://76186864470720",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "starlight": {
+      "ColorMap": "rbxassetid://136838657888967",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://76342601908080}",
+      "MetalnessMap": ""
+    },
+    "animal_bee": {
+      "ColorMap": "rbxassetid://106466826347355",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "pixel": {
+      "ColorMap": "rbxassetid://100208905628405",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "strawberrycow": {
+      "ColorMap": "rbxassetid://94847134252821",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "bee": {
+      "ColorMap": "rbxassetid://97939826578770",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "banker_trim": {
+      "ColorMap": "rbxassetid://122992774220822",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://90677603472626",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": "rbxassetid://74483980204026"
+    },
+    "legend_dragon_trim": {
+      "ColorMap": "rbxassetid://99100943341562",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://124967953354753}",
+      "MetalnessMap": ""
+    },
+    "hologram_trim": {
+      "ColorMap": "rbxassetid://140412323117800",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://136608443846505",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://90477788447327}",
+      "MetalnessMap": ""
+    },
+    "circuitboard": {
+      "ColorMap": "rbxassetid://107667654146283",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "giraffe": {
+      "ColorMap": "rbxassetid://138674903408756",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "legend_phoenix": {
+      "ColorMap": "rbxassetid://125946536265422",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://113205026319092}",
+      "MetalnessMap": ""
+    },
+    "verdigris": {
+      "ColorMap": "rbxassetid://78524401315423",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://127462407879816",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": "rbxassetid://81561264487207"
+    },
+    "watermelon": {
+      "ColorMap": "rbxassetid://74769745451450",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "nightlight_trim": {
+      "ColorMap": "rbxassetid://90907759066019",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://118172071767051}",
+      "MetalnessMap": ""
+    },
+    "diamond_trim": {
+      "ColorMap": "rbxassetid://91108666510275",
+      "NormalMap": "rbxassetid://134300356281092",
+      "RoughnessMap": "rbxassetid://110136525104561",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "respawn": {
+      "ColorMap": "rbxassetid://105765987642036",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://121625827855467}",
+      "MetalnessMap": ""
+    },
+    "pixel_trim": {
+      "ColorMap": "rbxassetid://115130394635722",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "nightlight": {
+      "ColorMap": "rbxassetid://77756877791603",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://101359554451601}",
+      "MetalnessMap": ""
+    },
+    "marble_trim": {
+      "ColorMap": "rbxassetid://95565608013355",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "legend_dragon_body": {
+      "ColorMap": "rbxassetid://120867310124210",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://131500615754863}",
+      "MetalnessMap": ""
+    },
+    "peppermint_trim": {
+      "ColorMap": "rbxassetid://79699799740950",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "snowleopard": {
+      "ColorMap": "rbxassetid://118845576940172",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "cookiescream": {
+      "ColorMap": "rbxassetid://134005775472782",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "mechaplayer_trim": {
+      "ColorMap": "rbxassetid://131013624125723",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "jackpot_trim": {
+      "ColorMap": "rbxassetid://125404683062649",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://125347098473634",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": "rbxassetid://102233177704423"
+    },
+    "verdigris_trim": {
+      "ColorMap": "rbxassetid://126126364024739",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://85446946569314",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": "rbxassetid://85823423935888"
+    },
+    "rockslide_trim": {
+      "ColorMap": "rbxassetid://122478918598104",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://121550185228041",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": "rbxassetid://73276579567449"
+    },
+    "bubblegumleopard": {
+      "ColorMap": "rbxassetid://71642353677818",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "legend_rtiger_coat": {
+      "ColorMap": "rbxassetid://110696323838054",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://128530572586037}",
+      "MetalnessMap": ""
+    },
+    "sugarrush": {
+      "ColorMap": "rbxassetid://99821543345158",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://89617491066365}",
+      "MetalnessMap": ""
+    },
+    "legend_rtiger_tail": {
+      "ColorMap": "rbxassetid://70768744570297",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "aurora": {
+      "ColorMap": "rbxassetid://100090140861939",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://128836797657977",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://93544782378712}",
+      "MetalnessMap": "rbxassetid://111424753948853"
+    },
+    "legend_stormwolf": {
+      "ColorMap": "rbxassetid://137463257069203",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://80272858542206}",
+      "MetalnessMap": ""
+    },
+    "arcade_jackpot_SymbolReel_2": {
+      "ColorMap": "rbxassetid://98708914212126",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "playerone_trim": {
+      "ColorMap": "rbxassetid://122280387123870",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "prismatic": {
+      "ColorMap": "rbxassetid://100203458541332",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://134523592232228}",
+      "MetalnessMap": ""
+    },
+    "honeycomb_trim": {
+      "ColorMap": "rbxassetid://79364999560427",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "playerone": {
+      "ColorMap": "rbxassetid://119986907414867",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "legend_rtiger_earfur": {
+      "ColorMap": "rbxassetid://133588227358545",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "tiger": {
+      "ColorMap": "rbxassetid://89299145618466",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "ghost_trim": {
+      "ColorMap": "rbxassetid://74459698912107",
+      "NormalMap": "",
+      "RoughnessMap": "rbxassetid://97403368405632",
+      "EmissiveMaskContent": "Content{SourceType=Uri, Uri=rbxassetid://119535110473689}",
+      "MetalnessMap": ""
+    },
+    "zebra": {
+      "ColorMap": "rbxassetid://73850504933317",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "leopard": {
+      "ColorMap": "rbxassetid://96245722331727",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "honeycomb": {
+      "ColorMap": "rbxassetid://132412753112020",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "retrocarpet_trim": {
+      "ColorMap": "rbxassetid://83838979644731",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    },
+    "bee_trim": {
+      "ColorMap": "rbxassetid://75271899643678",
+      "NormalMap": "",
+      "RoughnessMap": "",
+      "EmissiveMaskContent": "Content{SourceType=None}",
+      "MetalnessMap": ""
+    }
+  }
+}

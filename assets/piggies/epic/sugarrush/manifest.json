@@ -1,0 +1,163 @@
+{
+  "key": "sugarrush",
+  "name": "Sugar Rush Piggy",
+  "tier": "epic",
+  "path": "assets/piggies/epic/sugarrush",
+  "status": "Uploaded and installed (og-redesign-v1 maps round, 2026-09-23)",
+  "revision": "og-redesign-v1",
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/sugarrush.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://99821543345158",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "EmissiveMaskContent": "rbxassetid://89617491066365",
+        "EmissiveStrength": 0.9
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/sugarrush_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://94094380901213",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "EmissiveMaskContent": "rbxassetid://100202945969410",
+        "EmissiveStrength": 0.9
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://99821543345158": {
+      "role": "sugarrush ColorMap",
+      "file": "sheets/sugarrush_og_v1_body_color.png",
+      "sha256": "cb1886fdb02a91e1d2e6d3c75ddc4a1c714e59d0b589fb96956ed8e403f11c75"
+    },
+    "rbxassetid://89617491066365": {
+      "role": "sugarrush EmissiveMaskContent",
+      "file": "sheets/sugarrush_og_v1_body_emissive.png",
+      "sha256": "7b02197fd3eede4190e88008ed580c8d6c0b4e32799dd45a5b2f13b2a9ddb6e5"
+    },
+    "rbxassetid://94094380901213": {
+      "role": "sugarrush_trim ColorMap",
+      "file": "sheets/sugarrush_og_v1_trim_color.png",
+      "sha256": "6196fe7d440c3e3e31152522fc5c6a30a0a55876dd7b69777b061715072ffa26"
+    },
+    "rbxassetid://100202945969410": {
+      "role": "sugarrush_trim EmissiveMaskContent",
+      "file": "sheets/sugarrush_og_v1_trim_emissive.png",
+      "sha256": "c578e56e261bd698e9d8d4f9219c4a5df916e2acbb99c6989fd5303e5c3accc5"
+    }
+  },
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau",
+    "skinsRow": {
+      "line": 7152,
+      "name": "Sugar Rush Piggy",
+      "rarity": "epic",
+      "surface": "sugarrush",
+      "chest": "og",
+      "pattern": false,
+      "anim": true,
+      "fx": false
+    },
+    "surfacePack": {
+      "key": "sugarrush",
+      "line": 6011,
+      "template": "sugarrush",
+      "trimTemplate": "sugarrush_trim"
+    },
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "concept": "preview/sugarrush-og-v1-concept.png",
+  "prompt": "generate/og-v1-concept-prompt.txt",
+  "conceptMethod": "built-in image_gen",
+  "source": "source/sugarrush-og-v1-procedural.blend",
+  "review": "package/sugarrush-og-v1.blend",
+  "generator": "assets\\piggies\\og-redesign-v1\\build_og.py",
+  "report": "package/og-v1-asset-report.json",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\sugarrush_og_v1_body_color.png",
+      "sha256": "cb1886fdb02a91e1d2e6d3c75ddc4a1c714e59d0b589fb96956ed8e403f11c75",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\sugarrush_og_v1_body_emissive.png",
+      "sha256": "7b02197fd3eede4190e88008ed580c8d6c0b4e32799dd45a5b2f13b2a9ddb6e5",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\sugarrush_og_v1_trim_color.png",
+      "sha256": "6196fe7d440c3e3e31152522fc5c6a30a0a55876dd7b69777b061715072ffa26",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\sugarrush_og_v1_trim_emissive.png",
+      "sha256": "c578e56e261bd698e9d8d4f9219c4a5df916e2acbb99c6989fd5303e5c3accc5",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": false
+  },
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": true,
+    "loopClosureError": 0.0
+  },
+  "files": {
+    "source": [
+      "sugarrush-og-v1-procedural.blend"
+    ],
+    "generate": [
+      "og-v1-concept-prompt.txt",
+      "og-v1-spec.json"
+    ],
+    "sheets": [
+      "sugarrush_og_v1_body_color.png",
+      "sugarrush_og_v1_body_emissive.png",
+      "sugarrush_og_v1_trim_color.png",
+      "sugarrush_og_v1_trim_emissive.png"
+    ],
+    "preview": [
+      "sugarrush-og-v1-back.png",
+      "sugarrush-og-v1-concept.png",
+      "sugarrush-og-v1-hero.png",
+      "sugarrush-og-v1-motion.png"
+    ],
+    "package": [
+      "og-v1-asset-report.json",
+      "sugarrush-og-v1-complete.fbx",
+      "sugarrush-og-v1.blend"
+    ]
+  }
+}

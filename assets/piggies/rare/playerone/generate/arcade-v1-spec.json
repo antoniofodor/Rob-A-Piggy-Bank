@@ -1,0 +1,25 @@
+{
+  "key": "playerone",
+  "name": "Player One",
+  "tier": "rare",
+  "palette": [
+    [
+      214,
+      39,
+      54
+    ],
+    [
+      244,
+      222,
+      174
+    ],
+    [
+      102,
+      27,
+      48
+    ]
+  ],
+  "aura": null,
+  "concept": "player-one-pixel-v2.png",
+  "design": "16-bit red and cream pig with quantized pixel shading, dithered shadow transitions and a cream 1P emblem on both flanks. Original smooth 3D silhouette retained. Rare because the selected direction requires an authored coat."
+}

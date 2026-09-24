@@ -30,5 +30,21 @@
   "rarity": "rare",
   "parentScene": "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\giraffe\\giraffe.blend",
   "parentSceneSha256": "3381b2893e16477da368094ed2c0119e284be9b5d3ec4b89cb75d16e35a2e651",
-  "glow": "None. Flat baked colour; no emissive channel, no animation, no extra geometry"
+  "glow": "None. No dots, emissive channel, animation, or extra geometry.",
+  "pattern": "Spherical honeycomb: hexagonal amber cells and golden wax walls; twelve pentagonal junctions close the surface without pole stretching",
+  "patternGenerator": "generate/honeycomb_pattern.py",
+  "geometryValidation": {
+    "honeycomb.blend": {
+      "coatPreservesGeometryAndUVs": true,
+      "geometryUVHashBeforeTail": "c17f0b023dca3348a70503d77d0d48a2d379626e736e095eeefa2157014866f5",
+      "patternedMaterials": 2,
+      "tailStyle": "solid honey-orange curl with joined honey droplet; tail geometry and its UVs intentionally revised"
+    },
+    "honeycomb_closed.blend": {
+      "coatPreservesGeometryAndUVs": true,
+      "geometryUVHashBeforeTail": "5878533366496df83d737f41f130033c7c7af5513f13218fc31acc421564e122",
+      "patternedMaterials": 2,
+      "tailStyle": "solid honey-orange curl with joined honey droplet; tail geometry and its UVs intentionally revised"
+    }
+  }
 }

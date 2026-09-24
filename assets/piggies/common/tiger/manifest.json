@@ -37,7 +37,7 @@
     "body": {
       "path": "src/ReplicatedStorage/Shared/SurfacePacks/tiger.model.json",
       "ids": {
-        "ColorMap": "rbxassetid://135042598389110",
+        "ColorMap": "rbxassetid://89299145618466",
         "MetalnessMap": "",
         "RoughnessMap": "",
         "NormalMap": ""
@@ -47,7 +47,7 @@
     "trim": {
       "path": "src/ReplicatedStorage/Shared/SurfacePacks/tiger_trim.model.json",
       "ids": {
-        "ColorMap": "rbxassetid://126507711535316",
+        "ColorMap": "rbxassetid://78254997973337",
         "MetalnessMap": "",
         "RoughnessMap": "",
         "NormalMap": ""
@@ -56,16 +56,28 @@
     }
   },
   "idSources": {
-    "rbxassetid://135042598389110": {
-      "file": "sheets/tiger_body_color.open-hatch.png",
-      "sha256": "ddb782ae6f72c3feaf80f80bf401a9f5a83f002b7e85df89c34a09aac083be6e",
-      "role": "body ColorMap",
-      "note": "uploaded from the open-hatch bake"
+    "rbxassetid://111965944342924": {
+      "file": "sheets/tiger_body_color.png",
+      "sha256": "2b85ac376e5c27c8f018d469eabbe5f5c0ead5ccd92eacc5f9547513e394bae0",
+      "role": "tiger ColorMap",
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://135042598389110"
     },
     "rbxassetid://126507711535316": {
       "file": "sheets/tiger_trim_color.png",
       "sha256": "26032b6bbd4bdcb791d404eecf0735f64642bcf8709030a25010636ad9f68e49",
       "role": "trim ColorMap"
+    },
+    "rbxassetid://89299145618466": {
+      "file": "sheets/tiger_body_color.png",
+      "sha256": "50edb4c35e55b4a82a79d93743b2425abac624ac9d0eb116852da89f53e5d217",
+      "role": "body ColorMap",
+      "note": "Smooth shoulder stripe transition; uploaded with designer authorization 2026-09-23; replaces rbxassetid://111965944342924"
+    },
+    "rbxassetid://78254997973337": {
+      "file": "sheets/tiger_trim_color.png",
+      "sha256": "ed0bb981f651d01614a9c846334fd945c73cf4d4f548d65840ebe7a580ae1bcf",
+      "role": "trim ColorMap",
+      "note": "Smooth shoulder stripe transition; uploaded with designer authorization 2026-09-23; replaces rbxassetid://126507711535316"
     }
   },
   "shopCard": {
@@ -76,7 +88,7 @@
   },
   "derivedPackage": {
     "path": "assets/piggies/common/tiger/package",
-    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "note": "Derived package refreshed from corrected stripe materials and current bake scene; texture copies verified.",
     "fileCount": 13,
     "textureCopiesMatchShippedSheets": {
       "tiger_body_color.png": true,
@@ -85,7 +97,7 @@
   },
   "closedBack": {
     "closedScene": "source/tiger_closed.blend",
-    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as tiger_body_color.open-hatch.png. Re-upload pending."
+    "note": "Current closed-back body sheet includes the smooth stripe transition and is uploaded to the recorded body ColorMap."
   },
   "files": {
     "source": [
@@ -124,5 +136,12 @@
     ]
   },
   "generator": "generate/make_tiger_blend.py",
-  "notes": []
+  "notes": [],
+  "stripeTransition": {
+    "version": 2,
+    "method": "Blend stripe edge distances across the shoulder; solid colour and tapered tips",
+    "generator": "blender/pig/stripe_transition.py",
+    "status": "body and trim uploaded",
+    "validation": "Geometry/UV/material slots unchanged; opaque 1024px sheets; no palette fades; FBX bounds round-trip passed."
+  }
 }

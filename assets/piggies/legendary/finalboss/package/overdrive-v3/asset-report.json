@@ -1,0 +1,1432 @@
+{
+  "skin": "finalboss",
+  "name": "Overdrive",
+  "tier": "legendary",
+  "revision": "arcade-overdrive-v3",
+  "status": "Review only; geometry not installed",
+  "design": "Overdrive: a powered-up arcade pig with a clean pink face and feet, fitted plum and violet shields, thin gold borders, routed pink glow tracks, four-cell charge meters, pulsing diamond cores, hinged shoulder motion, rotating rear reactor and sparse pink pixel aura. The original functional coin slot remains open.",
+  "baseGeometryAndUVPreserved": true,
+  "sourceGeometrySignatures": {
+    "Body": "4a54ceed97939e6392190f1c3fb9d10d14530d801166cc7f26e24e99a6983ec1",
+    "Snout": "178b13b8746bb7484909d7e7a981aaa0e159f0f353a9e5fe3891d1191fd68518",
+    "Ears": "a1a7e83a72613d031332816dd3b25c2c0462de33d33c68b0c4dc0e818a95fc9f",
+    "Legs": "56645ce48591fdcc0e5835a7c00c823798c55a883da5f6cca1af42bb7ea74d04",
+    "Tail": "529231df3b33d53086cc7e0fd91ff5ea7b327fcadbb9804603e727fa728c6b38",
+    "EyePreview": "21c6d31d1ffe826f5f98c7bc23d6d57d472f3e465f722caa9f67322a0b2933b9"
+  },
+  "parts": [
+    {
+      "name": "Body",
+      "role": "base",
+      "triangles": 6264,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.5762786865234375e-07,
+        6.62,
+        -0.0
+      ],
+      "sizeRobloxStuds": [
+        12.000000715255737,
+        11.519999742507935,
+        12.96000051498413
+      ]
+    },
+    {
+      "name": "Snout",
+      "role": "base",
+      "triangles": 2486,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        5.845477904081345,
+        4.720026791095734
+      ],
+      "sizeRobloxStuds": [
+        6.7845447063446045,
+        7.233279168605804,
+        7.127158999443054
+      ]
+    },
+    {
+      "name": "Ears",
+      "role": "base",
+      "triangles": 7152,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        11.888547296524049,
+        2.154139593243599
+      ],
+      "sizeRobloxStuds": [
+        9.337942600250244,
+        5.17062520980835,
+        2.339932769536972
+      ]
+    },
+    {
+      "name": "Legs",
+      "role": "base",
+      "triangles": 2032,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        2.000000114440918,
+        -0.18000000715255737
+      ],
+      "sizeRobloxStuds": [
+        8.640000343322754,
+        3.0,
+        8.759999871253967
+      ]
+    },
+    {
+      "name": "Tail",
+      "role": "base",
+      "triangles": 1592,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -0.05768336355686188,
+        9.557918484210969,
+        -6.589774489402771
+      ],
+      "sizeRobloxStuds": [
+        2.992636889219284,
+        3.0000447034835815,
+        4.405103445053101
+      ]
+    },
+    {
+      "name": "EyePreview",
+      "role": "base",
+      "triangles": 1056,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        8.801508004665376,
+        5.33257520198822
+      ],
+      "sizeRobloxStuds": [
+        5.077638387680054,
+        1.2599998712539673,
+        1.2599995136260986
+      ]
+    },
+    {
+      "name": "OverdriveContinuousShell",
+      "role": "accessory",
+      "triangles": 2844,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        7.152557373046875e-07,
+        7.677545483112335,
+        -1.359182059764862
+      ],
+      "sizeRobloxStuds": [
+        12.750181674957275,
+        10.202182173728943,
+        10.975327134132385
+      ]
+    },
+    {
+      "name": "OverdriveChannelBed_-1_0",
+      "role": "accessory",
+      "triangles": 680,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.4112002104520798,
+        7.977980787754059,
+        2.43633084744215
+      ],
+      "sizeRobloxStuds": [
+        3.877582222223282,
+        9.598595023155212,
+        4.217849627137184
+      ]
+    },
+    {
+      "name": "OverdriveEnergyChannel_-1_0",
+      "role": "accessory",
+      "triangles": 680,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.4721022248268127,
+        7.995484883785248,
+        2.480442523956299
+      ],
+      "sizeRobloxStuds": [
+        3.8486727476119995,
+        9.70802128314972,
+        4.168043375015259
+      ]
+    },
+    {
+      "name": "OverdriveChannelBed_-1_1",
+      "role": "accessory",
+      "triangles": 680,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.112051025032997,
+        7.807960386276245,
+        -3.086277276277542
+      ],
+      "sizeRobloxStuds": [
+        4.2595987021923065,
+        9.971185684204102,
+        3.947243392467499
+      ]
+    },
+    {
+      "name": "OverdriveEnergyChannel_-1_1",
+      "role": "accessory",
+      "triangles": 680,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.172575607895851,
+        7.824038977622986,
+        -3.132173091173172
+      ],
+      "sizeRobloxStuds": [
+        4.208091706037521,
+        10.084843397140503,
+        3.913305938243866
+      ]
+    },
+    {
+      "name": "OverdriveChannelBed_-1_2",
+      "role": "accessory",
+      "triangles": 248,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -2.389543265104294,
+        12.222881073951722,
+        -0.3164849057793617
+      ],
+      "sizeRobloxStuds": [
+        3.063528835773468,
+        1.3595116138458252,
+        1.1695721000432968
+      ]
+    },
+    {
+      "name": "OverdriveEnergyChannel_-1_2",
+      "role": "accessory",
+      "triangles": 248,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -2.420713573694229,
+        12.344691092967988,
+        -0.3046145997941494
+      ],
+      "sizeRobloxStuds": [
+        3.039143979549408,
+        1.2649308443069458,
+        1.085042841732502
+      ]
+    },
+    {
+      "name": "OverdriveInsetPlate_-1_0",
+      "role": "accessory",
+      "triangles": 92,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.406231462955475,
+        11.596819872856141,
+        0.4026115983724594
+      ],
+      "sizeRobloxStuds": [
+        2.8506850004196167,
+        1.82785964012146,
+        3.3130090534687042
+      ]
+    },
+    {
+      "name": "OverdriveInsetPlate_-1_1",
+      "role": "accessory",
+      "triangles": 92,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.14854297041893,
+        11.541039760112763,
+        -2.1704433113336563
+      ],
+      "sizeRobloxStuds": [
+        2.795649826526642,
+        1.82343327999115,
+        2.47529599070549
+      ]
+    },
+    {
+      "name": "OverdriveInsetPlate_-1_2",
+      "role": "accessory",
+      "triangles": 92,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -5.037132382392883,
+        3.3135240030288697,
+        -0.3830057680606842
+      ],
+      "sizeRobloxStuds": [
+        1.8390576839447021,
+        1.7186429500579834,
+        5.466272056102753
+      ]
+    },
+    {
+      "name": "OverdriveChannelBed_1_0",
+      "role": "accessory",
+      "triangles": 680,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.4112898409366608,
+        7.97839581489563,
+        2.4360019862651825
+      ],
+      "sizeRobloxStuds": [
+        3.8777777552604675,
+        9.59769344329834,
+        4.217200577259064
+      ]
+    },
+    {
+      "name": "OverdriveEnergyChannel_1_0",
+      "role": "accessory",
+      "triangles": 680,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.4721913635730743,
+        7.995921726226807,
+        2.480113461613655
+      ],
+      "sizeRobloxStuds": [
+        3.848869264125824,
+        9.707071781158447,
+        4.167392581701279
+      ]
+    },
+    {
+      "name": "OverdriveChannelBed_1_1",
+      "role": "accessory",
+      "triangles": 680,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.112172082066536,
+        7.807767267227173,
+        -3.0862770080566406
+      ],
+      "sizeRobloxStuds": [
+        4.2598322331905365,
+        9.971624851226807,
+        3.9472439289093018
+      ]
+    },
+    {
+      "name": "OverdriveEnergyChannel_1_1",
+      "role": "accessory",
+      "triangles": 680,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.1726969331502914,
+        7.823910052776337,
+        -3.132173627614975
+      ],
+      "sizeRobloxStuds": [
+        4.208327561616898,
+        10.085139870643616,
+        3.91330486536026
+      ]
+    },
+    {
+      "name": "OverdriveChannelBed_1_2",
+      "role": "accessory",
+      "triangles": 248,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        2.3894984275102615,
+        12.22282975435257,
+        -0.31645969301462173
+      ],
+      "sizeRobloxStuds": [
+        3.0634282529354095,
+        1.3596843481063843,
+        1.1696225255727768
+      ]
+    },
+    {
+      "name": "OverdriveEnergyChannel_1_2",
+      "role": "accessory",
+      "triangles": 248,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        2.4206604659557343,
+        12.344632441997529,
+        -0.304632268846035
+      ],
+      "sizeRobloxStuds": [
+        3.0390270352363586,
+        1.2651211023330688,
+        1.0851206928491592
+      ]
+    },
+    {
+      "name": "OverdriveInsetPlate_1_0",
+      "role": "accessory",
+      "triangles": 92,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.4062345027923584,
+        11.596866006851197,
+        0.4027365893125534
+      ],
+      "sizeRobloxStuds": [
+        2.850882053375244,
+        1.8277759552001953,
+        3.3127812445163727
+      ]
+    },
+    {
+      "name": "OverdriveInsetPlate_1_1",
+      "role": "accessory",
+      "triangles": 92,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.1480673253536224,
+        11.540685708522798,
+        -2.1710070222616196
+      ],
+      "sizeRobloxStuds": [
+        2.794561207294464,
+        1.8245848417282104,
+        2.476415902376175
+      ]
+    },
+    {
+      "name": "OverdriveInsetPlate_1_2",
+      "role": "accessory",
+      "triangles": 92,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        5.0370869636535645,
+        3.313547606468201,
+        -0.38308659195899963
+      ],
+      "sizeRobloxStuds": [
+        1.838994026184082,
+        1.7186615467071533,
+        5.466362178325653
+      ]
+    },
+    {
+      "name": "OverdriveSlotRail_-1",
+      "role": "accessory",
+      "triangles": 140,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -0.510000005364418,
+        12.433902258872987,
+        -1.6326868110336363
+      ],
+      "sizeRobloxStuds": [
+        0.14400002360343933,
+        0.8749945163726807,
+        3.196464861743152
+      ]
+    },
+    {
+      "name": "OverdriveSlotRail_1",
+      "role": "accessory",
+      "triangles": 140,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.510000005364418,
+        12.433902258872987,
+        -1.6326868110336363
+      ],
+      "sizeRobloxStuds": [
+        0.14400002360343933,
+        0.8749945163726807,
+        3.196464861743152
+      ]
+    },
+    {
+      "name": "OverdriveShoulderShield_-1",
+      "role": "accessory",
+      "triangles": 46,
+      "nonManifoldEdges": 0,
+      "motion": "hinged armor sway",
+      "offsetRobloxStuds": [
+        -5.605282008647919,
+        7.580000067949295,
+        -0.5452506244182587
+      ],
+      "sizeRobloxStuds": [
+        2.499261975288391,
+        6.23943418264389,
+        6.119024813175201
+      ]
+    },
+    {
+      "name": "OverdriveDiamondSocket_-1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.73199987411499,
+        7.879972736239433,
+        -0.544038936495781
+      ],
+      "sizeRobloxStuds": [
+        0.49200010299682617,
+        3.419689804315567,
+        3.419689804315567
+      ]
+    },
+    {
+      "name": "OverdriveDiamondWell_-1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.881999731063843,
+        7.879972736239433,
+        -0.544038936495781
+      ],
+      "sizeRobloxStuds": [
+        0.49200010299682617,
+        3.011726528406143,
+        3.011726528406143
+      ]
+    },
+    {
+      "name": "OverdriveShoulderCore_-1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": "two energy pulses per six-second loop",
+      "offsetRobloxStuds": [
+        -7.088995814323425,
+        7.879972780942917,
+        -0.5440389811992645
+      ],
+      "sizeRobloxStuds": [
+        0.4775097370147705,
+        2.445560395717621,
+        2.445560395717621
+      ]
+    },
+    {
+      "name": "OverdriveHinge_-1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.269999742507935,
+        7.974702234268189,
+        2.0349193811416626
+      ],
+      "sizeRobloxStuds": [
+        0.630000114440918,
+        0.851922869682312,
+        0.851922869682312
+      ]
+    },
+    {
+      "name": "OverdriveHingeInset_-1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.623999834060669,
+        7.974702234268189,
+        2.0349193811416626
+      ],
+      "sizeRobloxStuds": [
+        0.09000062942504883,
+        0.4559587240219116,
+        0.4559587240219116
+      ]
+    },
+    {
+      "name": "OverdriveHinge_-1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.269999742507935,
+        7.90765581548214,
+        -2.9446291029453278
+      ],
+      "sizeRobloxStuds": [
+        0.630000114440918,
+        0.8519227802753448,
+        0.8519226908683777
+      ]
+    },
+    {
+      "name": "OverdriveHingeInset_-1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.623999834060669,
+        7.90765581548214,
+        -2.9446291029453278
+      ],
+      "sizeRobloxStuds": [
+        0.09000062942504883,
+        0.45595863461494446,
+        0.4559585452079773
+      ]
+    },
+    {
+      "name": "OverdriveHipPlate_-1",
+      "role": "accessory",
+      "triangles": 46,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -5.329078853130341,
+        3.7999999177455903,
+        -0.5400000214576721
+      ],
+      "sizeRobloxStuds": [
+        2.036547303199768,
+        2.280000150203705,
+        5.400000214576721
+      ]
+    },
+    {
+      "name": "OverdriveChargeMeterFrame_-1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.234000205993652,
+        3.980000014305115,
+        -0.2399999499320984
+      ],
+      "sizeRobloxStuds": [
+        0.3359999656677246,
+        0.8999998569488525,
+        3.179999828338623
+      ]
+    },
+    {
+      "name": "OverdriveChargeMeterWell_-1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.420000314712524,
+        3.980000014305115,
+        -0.24000003933906555
+      ],
+      "sizeRobloxStuds": [
+        0.0839996337890625,
+        0.6719999313354492,
+        2.8799999356269836
+      ]
+    },
+    {
+      "name": "OverdriveChargeCell_-1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.480000257492065,
+        3.980000014305115,
+        0.7799999713897705
+      ],
+      "sizeRobloxStuds": [
+        0.04799938201904297,
+        0.3959999084472656,
+        0.46199995279312134
+      ]
+    },
+    {
+      "name": "OverdriveChargeCell_-1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.480000257492065,
+        3.980000014305115,
+        0.10200000554323196
+      ],
+      "sizeRobloxStuds": [
+        0.04799938201904297,
+        0.3959999084472656,
+        0.4619999974966049
+      ]
+    },
+    {
+      "name": "OverdriveChargeCell_-1_2",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.480000257492065,
+        3.980000014305115,
+        -0.5759999938309193
+      ],
+      "sizeRobloxStuds": [
+        0.04799938201904297,
+        0.3959999084472656,
+        0.46199997514486313
+      ]
+    },
+    {
+      "name": "OverdriveChargeCell_-1_3",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.480000257492065,
+        3.980000014305115,
+        -1.254000037908554
+      ],
+      "sizeRobloxStuds": [
+        0.04799938201904297,
+        0.3959999084472656,
+        0.46199995279312134
+      ]
+    },
+    {
+      "name": "OverdriveAnkleCuff_-1_0",
+      "role": "accessory",
+      "triangles": 128,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.0,
+        1.7599999856948854,
+        2.880000025033951
+      ],
+      "sizeRobloxStuds": [
+        3.1560001373291016,
+        0.570000171661377,
+        3.156000316143036
+      ]
+    },
+    {
+      "name": "OverdriveAnkleRim_-1_0",
+      "role": "accessory",
+      "triangles": 128,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.000000089406967,
+        1.976000065803528,
+        2.8799999356269836
+      ],
+      "sizeRobloxStuds": [
+        3.1920002102851868,
+        0.10800004005432129,
+        3.1920000314712524
+      ]
+    },
+    {
+      "name": "OverdriveAnkleCuff_-1_1",
+      "role": "accessory",
+      "triangles": 128,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.0,
+        1.7599999856948854,
+        -3.2400001287460327
+      ],
+      "sizeRobloxStuds": [
+        3.1560001373291016,
+        0.570000171661377,
+        3.1560001373291016
+      ]
+    },
+    {
+      "name": "OverdriveAnkleRim_-1_1",
+      "role": "accessory",
+      "triangles": 128,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.000000089406967,
+        1.976000065803528,
+        -3.2400000393390656
+      ],
+      "sizeRobloxStuds": [
+        3.1920002102851868,
+        0.10800004005432129,
+        3.191999852657318
+      ]
+    },
+    {
+      "name": "OverdriveShoulderShield_1",
+      "role": "accessory",
+      "triangles": 46,
+      "nonManifoldEdges": 0,
+      "motion": "hinged armor sway",
+      "offsetRobloxStuds": [
+        5.605282008647919,
+        7.580000067949295,
+        -0.5347494184970856
+      ],
+      "sizeRobloxStuds": [
+        2.499261975288391,
+        6.23943418264389,
+        6.119864881038666
+      ]
+    },
+    {
+      "name": "OverdriveDiamondSocket_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.73199987411499,
+        7.879972736239433,
+        -0.5359611064195633
+      ],
+      "sizeRobloxStuds": [
+        0.49200010299682617,
+        3.419689804315567,
+        3.4196899831295013
+      ]
+    },
+    {
+      "name": "OverdriveDiamondWell_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.881999731063843,
+        7.879972736239433,
+        -0.5359611064195633
+      ],
+      "sizeRobloxStuds": [
+        0.49200010299682617,
+        3.011726528406143,
+        3.0117267072200775
+      ]
+    },
+    {
+      "name": "OverdriveShoulderCore_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": "two energy pulses per six-second loop",
+      "offsetRobloxStuds": [
+        7.095003962516785,
+        7.879972780942917,
+        -0.5359610617160797
+      ],
+      "sizeRobloxStuds": [
+        0.5064904689788818,
+        2.5939823985099792,
+        2.5939823985099792
+      ]
+    },
+    {
+      "name": "OverdriveHinge_1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.269999742507935,
+        7.905232484340668,
+        2.0446128845214844
+      ],
+      "sizeRobloxStuds": [
+        0.630000114440918,
+        0.851922869682312,
+        0.851922869682312
+      ]
+    },
+    {
+      "name": "OverdriveHingeInset_1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.623999834060669,
+        7.905232484340668,
+        2.0446128845214844
+      ],
+      "sizeRobloxStuds": [
+        0.09000062942504883,
+        0.4559587240219116,
+        0.4559587240219116
+      ]
+    },
+    {
+      "name": "OverdriveHinge_1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.269999742507935,
+        7.97227881371975,
+        -2.934935599565506
+      ],
+      "sizeRobloxStuds": [
+        0.630000114440918,
+        0.8519227802753448,
+        0.8519226908683777
+      ]
+    },
+    {
+      "name": "OverdriveHingeInset_1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.623999834060669,
+        7.97227881371975,
+        -2.934935599565506
+      ],
+      "sizeRobloxStuds": [
+        0.09000062942504883,
+        0.45595863461494446,
+        0.4559585452079773
+      ]
+    },
+    {
+      "name": "OverdriveHipPlate_1",
+      "role": "accessory",
+      "triangles": 46,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        5.329078853130341,
+        3.7999999177455903,
+        -0.5400000214576721
+      ],
+      "sizeRobloxStuds": [
+        2.036547303199768,
+        2.280000150203705,
+        5.400000214576721
+      ]
+    },
+    {
+      "name": "OverdriveChargeMeterFrame_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.234000205993652,
+        3.980000014305115,
+        -0.2399999499320984
+      ],
+      "sizeRobloxStuds": [
+        0.3359999656677246,
+        0.8999998569488525,
+        3.179999828338623
+      ]
+    },
+    {
+      "name": "OverdriveChargeMeterWell_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.420000314712524,
+        3.980000014305115,
+        -0.24000003933906555
+      ],
+      "sizeRobloxStuds": [
+        0.0839996337890625,
+        0.6719999313354492,
+        2.8799999356269836
+      ]
+    },
+    {
+      "name": "OverdriveChargeCell_1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.480000257492065,
+        3.980000014305115,
+        0.7799999713897705
+      ],
+      "sizeRobloxStuds": [
+        0.04799938201904297,
+        0.3959999084472656,
+        0.46199995279312134
+      ]
+    },
+    {
+      "name": "OverdriveChargeCell_1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.480000257492065,
+        3.980000014305115,
+        0.10200000554323196
+      ],
+      "sizeRobloxStuds": [
+        0.04799938201904297,
+        0.3959999084472656,
+        0.4619999974966049
+      ]
+    },
+    {
+      "name": "OverdriveChargeCell_1_2",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.480000257492065,
+        3.980000014305115,
+        -0.5759999938309193
+      ],
+      "sizeRobloxStuds": [
+        0.04799938201904297,
+        0.3959999084472656,
+        0.46199997514486313
+      ]
+    },
+    {
+      "name": "OverdriveChargeCell_1_3",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.480000257492065,
+        3.980000014305115,
+        -1.254000037908554
+      ],
+      "sizeRobloxStuds": [
+        0.04799938201904297,
+        0.3959999084472656,
+        0.46199995279312134
+      ]
+    },
+    {
+      "name": "OverdriveAnkleCuff_1_0",
+      "role": "accessory",
+      "triangles": 128,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.0,
+        1.7599999856948854,
+        2.880000025033951
+      ],
+      "sizeRobloxStuds": [
+        3.1560001373291016,
+        0.570000171661377,
+        3.156000316143036
+      ]
+    },
+    {
+      "name": "OverdriveAnkleRim_1_0",
+      "role": "accessory",
+      "triangles": 128,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.000000089406967,
+        1.976000065803528,
+        2.8799999356269836
+      ],
+      "sizeRobloxStuds": [
+        3.1920002102851868,
+        0.10800004005432129,
+        3.1920000314712524
+      ]
+    },
+    {
+      "name": "OverdriveAnkleCuff_1_1",
+      "role": "accessory",
+      "triangles": 128,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.0,
+        1.7599999856948854,
+        -3.2400001287460327
+      ],
+      "sizeRobloxStuds": [
+        3.1560001373291016,
+        0.570000171661377,
+        3.1560001373291016
+      ]
+    },
+    {
+      "name": "OverdriveAnkleRim_1_1",
+      "role": "accessory",
+      "triangles": 128,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.000000089406967,
+        1.976000065803528,
+        -3.2400000393390656
+      ],
+      "sizeRobloxStuds": [
+        3.1920002102851868,
+        0.10800004005432129,
+        3.191999852657318
+      ]
+    },
+    {
+      "name": "OverdriveReactorMount",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        6.140000010728836,
+        -6.3960000872612
+      ],
+      "sizeRobloxStuds": [
+        4.380000114440918,
+        4.380000293254852,
+        0.8400002717971802
+      ]
+    },
+    {
+      "name": "OverdriveReactorGoldRim",
+      "role": "accessory",
+      "triangles": 128,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        6.140000100135803,
+        -6.906000137329102
+      ],
+      "sizeRobloxStuds": [
+        4.320000171661377,
+        4.320000171661377,
+        0.3900003433227539
+      ]
+    },
+    {
+      "name": "OverdriveReactorWell",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        6.139999966025353,
+        -6.917999982833862
+      ],
+      "sizeRobloxStuds": [
+        3.539999842643738,
+        3.539999932050705,
+        0.14399957656860352
+      ]
+    },
+    {
+      "name": "OverdriveReactorEnergyRing",
+      "role": "accessory",
+      "triangles": 192,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        6.139999966025353,
+        -7.037999868392944
+      ],
+      "sizeRobloxStuds": [
+        3.2519999742507935,
+        3.2520000636577606,
+        0.10799932479858398
+      ]
+    },
+    {
+      "name": "OverdriveRearCore",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": "two energy pulses per six-second loop",
+      "offsetRobloxStuds": [
+        0.0,
+        6.14000005543232,
+        -7.421999931335449
+      ],
+      "sizeRobloxStuds": [
+        2.2200000286102295,
+        2.2199999392032623,
+        0.49200010299682617
+      ]
+    },
+    {
+      "name": "OverdriveRotatingReactor",
+      "role": "accessory",
+      "triangles": 352,
+      "nonManifoldEdges": 0,
+      "motion": "one reactor rotation per six seconds",
+      "offsetRobloxStuds": [
+        0.0,
+        6.139999921321869,
+        -7.200000286102295
+      ],
+      "sizeRobloxStuds": [
+        4.259999871253967,
+        4.259999871253967,
+        0.22800064086914062
+      ]
+    },
+    {
+      "name": "OverdriveCartridgeMount_-1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.420000046491623,
+        5.12,
+        -5.3999998569488525
+      ],
+      "sizeRobloxStuds": [
+        1.2000001072883606,
+        1.2599998712539673,
+        1.380000114440918
+      ]
+    },
+    {
+      "name": "OverdriveCartridge_-1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": "two energy pulses per six-second loop",
+      "offsetRobloxStuds": [
+        -3.4199999570846558,
+        5.12,
+        -6.431999444961548
+      ],
+      "sizeRobloxStuds": [
+        1.380000114440918,
+        1.380000114440918,
+        0.49200010299682617
+      ]
+    },
+    {
+      "name": "OverdriveCartridgeMount_-1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.259999871253967,
+        6.859999994635582,
+        -5.3999998569488525
+      ],
+      "sizeRobloxStuds": [
+        1.200000286102295,
+        1.2599999606609344,
+        1.380000114440918
+      ]
+    },
+    {
+      "name": "OverdriveCartridge_-1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": "two energy pulses per six-second loop",
+      "offsetRobloxStuds": [
+        -4.259999871253967,
+        6.859999994635582,
+        -6.434231400489807
+      ],
+      "sizeRobloxStuds": [
+        1.4101917743682861,
+        1.4101920425891876,
+        0.5027639865875244
+      ]
+    },
+    {
+      "name": "OverdriveCartridgeMount_1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.420000046491623,
+        5.12,
+        -5.3999998569488525
+      ],
+      "sizeRobloxStuds": [
+        1.2000001072883606,
+        1.2599998712539673,
+        1.380000114440918
+      ]
+    },
+    {
+      "name": "OverdriveCartridge_1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": "two energy pulses per six-second loop",
+      "offsetRobloxStuds": [
+        3.4199999570846558,
+        5.12,
+        -6.431999444961548
+      ],
+      "sizeRobloxStuds": [
+        1.380000114440918,
+        1.380000114440918,
+        0.49200010299682617
+      ]
+    },
+    {
+      "name": "OverdriveCartridgeMount_1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.259999871253967,
+        6.859999994635582,
+        -5.3999998569488525
+      ],
+      "sizeRobloxStuds": [
+        1.200000286102295,
+        1.2599999606609344,
+        1.380000114440918
+      ]
+    },
+    {
+      "name": "OverdriveCartridge_1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": "two energy pulses per six-second loop",
+      "offsetRobloxStuds": [
+        4.259999871253967,
+        6.859999994635582,
+        -6.434231400489807
+      ],
+      "sizeRobloxStuds": [
+        1.4101917743682861,
+        1.4101920425891876,
+        0.5027639865875244
+      ]
+    }
+  ],
+  "exports": [
+    {
+      "file": "finalboss-overdrive-v3-accessories.fbx",
+      "sha256": "b02fa646f98fbdf2a561f699dc1b3debcdc04b7b9984c91c523be9cf47819aa2",
+      "meshCount": 73,
+      "roundTripChecked": true,
+      "roundTripBoundsError": 1.9073486328125e-06
+    },
+    {
+      "file": "finalboss-overdrive-v3-complete.fbx",
+      "sha256": "4eaac70843bbe75f7d76d4db7fafc1537500894aa61683b88ee5ee1e547527bf",
+      "meshCount": 79,
+      "roundTripChecked": true,
+      "roundTripBoundsError": 1.9073486328125e-06
+    }
+  ],
+  "aura": "arcade_boss_energy_proposed",
+  "auraPreviewObjects": 10,
+  "auraExcludedFromMeshExports": true,
+  "animation": {
+    "loopSeconds": 6,
+    "fps": 24,
+    "frames": [
+      1,
+      145
+    ],
+    "loopClosureError": 1.7484555314695172e-07,
+    "faceClearanceSampledFrames": 9
+  },
+  "tierChecks": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": true
+  },
+  "textures": [
+    {
+      "role": "body_color",
+      "file": "sheets\\overdrive-v3\\finalboss_overdrive_v3_body_color.png",
+      "sha256": "4ffabfb6a72e015eeced9d8ceee04d53bedae765bd40a4529221da3546e6b749",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\overdrive-v3\\finalboss_overdrive_v3_trim_color.png",
+      "sha256": "80bb91973e621f2f0fe888f69719cc1a3c97fa37e6f4ee9ac32883a91b781818",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "generator": "assets/piggies/arcade-build-v1/build_arcade.py",
+  "runtimeNotes": "Accessory model replaces v1. Runtime poses extracted from this v2 blend. Base geometry and UVs unchanged. Mecha uses revised non-emissive pale coat maps; glow comes from hardware.",
+  "displayName": "Overdrive",
+  "tierRules": {
+    "tier": "legendary",
+    "geometry": "fitted shields, layered armor, mounted reactor and cartridges",
+    "glow": "pink channels, charge cells and diamond cores",
+    "motion": "hinged shields, pulsing cores and rotating reactor",
+    "aura": "existing sparse pink arcade pixels"
+  },
+  "validation": {
+    "baseGeometryAndUVsPreserved": true,
+    "coinClearanceRays": 12,
+    "faceClearancePoses": 9
+  },
+  "compatibilityKey": "finalboss"
+}

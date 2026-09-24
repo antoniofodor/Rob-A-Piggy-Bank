@@ -37,7 +37,7 @@
     "body": {
       "path": "src/ReplicatedStorage/Shared/SurfacePacks/leopard.model.json",
       "ids": {
-        "ColorMap": "rbxassetid://124640948324368",
+        "ColorMap": "rbxassetid://96245722331727",
         "MetalnessMap": "",
         "RoughnessMap": "",
         "NormalMap": ""
@@ -56,11 +56,11 @@
     }
   },
   "idSources": {
-    "rbxassetid://124640948324368": {
-      "file": "sheets/leopard_body_color.open-hatch.png",
-      "sha256": "04f085f3177ce54835063676d302db43702c21760ec4d9d202fdee54bb4153a0",
-      "role": "body ColorMap",
-      "note": "uploaded from the open-hatch bake"
+    "rbxassetid://96245722331727": {
+      "file": "sheets/leopard_body_color.png",
+      "sha256": "f9f9d84da9ac53fc1fff643994bed19e2a4d59cf48bcb4530aa5084f6d8a678a",
+      "role": "leopard ColorMap",
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://124640948324368"
     },
     "rbxassetid://78720762753411": {
       "file": "sheets/leopard_trim_color.png",

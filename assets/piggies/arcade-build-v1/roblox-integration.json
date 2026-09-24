@@ -1,0 +1,34 @@
+{
+  "placeId": 135433647855162,
+  "creatorUserId": 1403296598,
+  "status": "Imported into Roblox Studio and repository; assets approved; live place publishing not performed",
+  "skins": 10,
+  "tiers": {
+    "rare": 4,
+    "epic": 3,
+    "legendary": 3
+  },
+  "approvedUploads": 40,
+  "accessoryParts": 90,
+  "surfaceTemplates": 23,
+  "studioChecks": {
+    "allCoatsPresent": true,
+    "allAccessoryCountsMatch": true,
+    "movingParts": {
+      "respawn": 7,
+      "powerup": 6,
+      "jackpot": 9,
+      "finalboss": 22,
+      "mechaplayer": 14
+    },
+    "synthwaveEmissionPulse": true,
+    "visualFrontInspection": true
+  },
+  "checks": {
+    "crateAssertions": 179,
+    "configForwardReferences": "pass",
+    "rojoBuild": "pass",
+    "broaderPiggySuite": "unrelated existing PROMPT_SLOT_ATTRIBUTE, 1 assertion fails in pedestal test"
+  },
+  "motion": "6-second authored loops, 12 samples/sec; anchored displays animate; carried welded pigs retain static pose"
+}

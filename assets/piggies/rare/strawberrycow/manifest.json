@@ -40,7 +40,7 @@
         "MetalnessMap": "",
         "RoughnessMap": "",
         "NormalMap": "",
-        "ColorMap": "rbxassetid://96043299373119",
+        "ColorMap": "rbxassetid://94847134252821",
         "EmissiveMaskContent": ""
       },
       "alphaMode": "Overlay"
@@ -58,11 +58,11 @@
     }
   },
   "idSources": {
-    "rbxassetid://96043299373119": {
-      "file": "sheets/strawberrycow_body_color.open-hatch.png",
-      "sha256": "6e8e3e41cda5d90e2208e6e22ad883c68f80c2c47db8ce44317e503ee25a2ef7",
-      "role": "body ColorMap",
-      "note": "uploaded from the open-hatch bake"
+    "rbxassetid://94847134252821": {
+      "file": "sheets/strawberrycow_body_color.png",
+      "sha256": "f62580c81bc24f0a385c795a9f94f961f3232378635fa8a0a69913f73fbb4ada",
+      "role": "strawberrycow ColorMap",
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://96043299373119"
     },
     "rbxassetid://83699393611461": {
       "file": "sheets/strawberrycow_trim_color.png",

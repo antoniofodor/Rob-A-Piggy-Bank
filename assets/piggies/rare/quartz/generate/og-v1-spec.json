@@ -1,0 +1,24 @@
+{
+  "key": "quartz",
+  "name": "Quartz",
+  "tier": "rare",
+  "design": "Rose quartz pig with opaque blush-pink crystalline coat and broad milky-white angled fracture facets. Three short rose/milky crystal points embedded at each rear shoulder, closed bases seated in skin. Polished pink snout and white-tipped feet. No emitted light, aura or floating crystals.",
+  "palette": [
+    [
+      228,
+      167,
+      194
+    ],
+    [
+      248,
+      226,
+      231
+    ],
+    [
+      179,
+      114,
+      163
+    ]
+  ],
+  "aura": null
+}

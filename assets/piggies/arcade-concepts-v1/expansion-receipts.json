@@ -1,0 +1,197 @@
+{
+  "method": "built-in image_gen",
+  "skins": [
+    {
+      "key": "pixel",
+      "name": "Pixel",
+      "tier": "rare",
+      "palette": [
+        [
+          27,
+          47,
+          78
+        ],
+        [
+          42,
+          130,
+          165
+        ],
+        [
+          104,
+          200,
+          192
+        ],
+        [
+          241,
+          211,
+          141
+        ]
+      ],
+      "aura": null,
+      "design": "Chunky teal, navy and cream pixel camouflage, stepped clusters and sparse pixel diamonds, solid teal snout and cream feet. Fixed limited-color artwork, no glow, floating cubes or extra geometry.",
+      "concept": "pixel-concept-v1.png",
+      "prompt": "Use case: stylized-concept. Create ONE production concept sheet for a new collectible Roblox ARCADE piggy. Reference image only supplies exact anatomy: keep its egg-shaped rounded body, four short cylinder legs, broad triangular ears, curled tail, oversized circular snout with two nostrils and bead eyes. SAME pig in two consistent views: large front three-quarter on left, rear three-quarter right, fully visible. Muted charcoal-purple studio backdrop, soft stylized toy 3D lighting, game-ready large shapes and modest low-poly detailing, no fur or photoreal noise. Match the existing Arcade collection's readable colorful toy style. Face and space between ears stay clear. No unrelated props, environment, logo or pedestal. Design: Chunky teal, navy and cream pixel camouflage, stepped clusters and sparse pixel diamonds, solid teal snout and cream feet. Fixed limited-color artwork, no glow, floating cubes or extra geometry. Tier RARE. Text only: PIXEL and RARE / ARCADE. Show only one design, not variants. Emissive details only for Epic/Legendary; Rares are unlit printed coats.",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0cbf1-8d87-7472-a9db-bb7e982fbf6a\\exec-9d28a692-37eb-4cff-a1eb-ff5a8d96d1b9.png"
+    },
+    {
+      "key": "circuitboard",
+      "name": "Circuit Board",
+      "tier": "rare",
+      "palette": [
+        [
+          21,
+          75,
+          52
+        ],
+        [
+          189,
+          149,
+          63
+        ],
+        [
+          51,
+          125,
+          82
+        ],
+        [
+          27,
+          41,
+          36
+        ]
+      ],
+      "aura": null,
+      "design": "Forest-green printed circuit coat with gold right-angle traces, round solder pads and small dark chip rectangles. Dark green snout, muted brass feet and ear interiors. Entire circuit design is flat printed artwork; no glow or geometry.",
+      "concept": "circuitboard-concept-v1.png",
+      "prompt": "Use case: stylized-concept. Create ONE production concept sheet for a new collectible Roblox ARCADE piggy. Reference image only supplies exact anatomy: keep its egg-shaped rounded body, four short cylinder legs, broad triangular ears, curled tail, oversized circular snout with two nostrils and bead eyes. SAME pig in two consistent views: large front three-quarter on left, rear three-quarter right, fully visible. Muted charcoal-purple studio backdrop, soft stylized toy 3D lighting, game-ready large shapes and modest low-poly detailing, no fur or photoreal noise. Match the existing Arcade collection's readable colorful toy style. Face and space between ears stay clear. No unrelated props, environment, logo or pedestal. Design: Forest-green printed circuit coat with gold right-angle traces, round solder pads and small dark chip rectangles. Dark green snout, muted brass feet and ear interiors. Entire circuit design is flat printed artwork; no glow or geometry. Tier RARE. Text only: CIRCUIT BOARD and RARE / ARCADE. Show only one design, not variants. Emissive details only for Epic/Legendary; Rares are unlit printed coats.",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0cbf1-8d87-7472-a9db-bb7e982fbf6a\\exec-a285675c-0366-4872-b284-75d3b838c0f0.png"
+    },
+    {
+      "key": "powerup",
+      "name": "Power-Up",
+      "tier": "epic",
+      "palette": [
+        [
+          31,
+          62,
+          54
+        ],
+        [
+          157,
+          235,
+          78
+        ],
+        [
+          40,
+          148,
+          112
+        ],
+        [
+          243,
+          218,
+          111
+        ]
+      ],
+      "aura": "arcade_power_sparks_proposed",
+      "design": "Dark jade pig with large lime pixel up-arrow emblems on both flanks, stepped green stripes, small printed yellow energy bars, lime luminous eyes. Slow pulsing arrow glow and rising square sparks. No substantial equipment.",
+      "concept": "powerup-concept-v1.png",
+      "prompt": "Use case: stylized-concept. Create ONE production concept sheet for a new collectible Roblox ARCADE piggy. Reference image only supplies exact anatomy: keep its egg-shaped rounded body, four short cylinder legs, broad triangular ears, curled tail, oversized circular snout with two nostrils and bead eyes. SAME pig in two consistent views: large front three-quarter on left, rear three-quarter right, fully visible. Muted charcoal-purple studio backdrop, soft stylized toy 3D lighting, game-ready large shapes and modest low-poly detailing, no fur or photoreal noise. Match the existing Arcade collection's readable colorful toy style. Face and space between ears stay clear. No unrelated props, environment, logo or pedestal. Design: Dark jade pig with large lime pixel up-arrow emblems on both flanks, stepped green stripes, small printed yellow energy bars, lime luminous eyes. Slow pulsing arrow glow and rising square sparks. No substantial equipment. Tier EPIC. Text only: POWER-UP and EPIC / ARCADE. Show only one design, not variants. Emissive details only for Epic/Legendary; Rares are unlit printed coats.",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0cbf1-8d87-7472-a9db-bb7e982fbf6a\\exec-4d0ed030-e9a9-4e51-8671-4e9cb8eba629.png"
+    },
+    {
+      "key": "synthwave",
+      "name": "Synthwave",
+      "tier": "epic",
+      "palette": [
+        [
+          35,
+          24,
+          77
+        ],
+        [
+          42,
+          207,
+          233
+        ],
+        [
+          231,
+          53,
+          145
+        ],
+        [
+          255,
+          162,
+          62
+        ]
+      ],
+      "aura": "arcade_synth_sparkle_proposed",
+      "design": "Midnight purple pig with magenta and cyan perspective grid across lower body, large striped orange-to-pink sunset discs on both flanks, purple snout, cyan eyes. Restrained animated grid glow and sparse neon sparkle aura; no accessory geometry.",
+      "concept": "synthwave-concept-v1.png",
+      "prompt": "Use case: stylized-concept. Create ONE production concept sheet for a new collectible Roblox ARCADE piggy. Reference image only supplies exact anatomy: keep its egg-shaped rounded body, four short cylinder legs, broad triangular ears, curled tail, oversized circular snout with two nostrils and bead eyes. SAME pig in two consistent views: large front three-quarter on left, rear three-quarter right, fully visible. Muted charcoal-purple studio backdrop, soft stylized toy 3D lighting, game-ready large shapes and modest low-poly detailing, no fur or photoreal noise. Match the existing Arcade collection's readable colorful toy style. Face and space between ears stay clear. No unrelated props, environment, logo or pedestal. Design: Midnight purple pig with magenta and cyan perspective grid across lower body, large striped orange-to-pink sunset discs on both flanks, purple snout, cyan eyes. Restrained animated grid glow and sparse neon sparkle aura; no accessory geometry. Tier EPIC. Text only: SYNTHWAVE and EPIC / ARCADE. Show only one design, not variants. Emissive details only for Epic/Legendary; Rares are unlit printed coats.",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0cbf1-8d87-7472-a9db-bb7e982fbf6a\\exec-40ae817c-311d-4f27-aabf-04e0a7b1214a.png"
+    },
+    {
+      "key": "finalboss",
+      "name": "Final Boss",
+      "tier": "legendary",
+      "palette": [
+        [
+          43,
+          29,
+          59
+        ],
+        [
+          226,
+          55,
+          107
+        ],
+        [
+          96,
+          49,
+          97
+        ],
+        [
+          230,
+          155,
+          77
+        ]
+      ],
+      "aura": "arcade_boss_energy_proposed",
+      "design": "Dark plum boss pig with angular violet armor-print coat and hot pink energy seams. Substantial fitted low-poly shoulder and flank armor, brass edge accents, pink emissive insets. Shoulder guards slowly flex on visible hinge joints; six small energy blocks bob behind the rear flanks. Pig face, feet and ears remain exposed. No weapons or crown.",
+      "concept": "finalboss-concept-v1.png",
+      "prompt": "Use case: stylized-concept. Create ONE production concept sheet for a new collectible Roblox ARCADE piggy. Reference image only supplies exact anatomy: keep its egg-shaped rounded body, four short cylinder legs, broad triangular ears, curled tail, oversized circular snout with two nostrils and bead eyes. SAME pig in two consistent views: large front three-quarter on left, rear three-quarter right, fully visible. Muted charcoal-purple studio backdrop, soft stylized toy 3D lighting, game-ready large shapes and modest low-poly detailing, no fur or photoreal noise. Match the existing Arcade collection's readable colorful toy style. Face and space between ears stay clear. No unrelated props, environment, logo or pedestal. Design: Dark plum boss pig with angular violet armor-print coat and hot pink energy seams. Substantial fitted low-poly shoulder and flank armor, brass edge accents, pink emissive insets. Shoulder guards slowly flex on visible hinge joints; six small energy blocks bob behind the rear flanks. Pig face, feet and ears remain exposed. No weapons or crown. Tier LEGENDARY. Text only: FINAL BOSS and LEGENDARY / ARCADE. Show only one design, not variants. Emissive details only for Epic/Legendary; Rares are unlit printed coats.",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0cbf1-8d87-7472-a9db-bb7e982fbf6a\\exec-c0731134-efe1-4abf-bb51-e3883275c652.png"
+    },
+    {
+      "key": "mechaplayer",
+      "name": "Mecha Player",
+      "tier": "legendary",
+      "palette": [
+        [
+          165,
+          186,
+          199
+        ],
+        [
+          50,
+          202,
+          242
+        ],
+        [
+          41,
+          62,
+          89
+        ],
+        [
+          224,
+          113,
+          49
+        ]
+      ],
+      "aura": "arcade_thruster_sparkle_proposed",
+      "design": "Pale steel and navy robot pig with clean angular panel coat and tiny orange warning stripes. Substantial mechanical boot cuffs around existing legs, hinged flank guards and twin firmly mounted rear thrusters. Cyan illuminated vents pulse and small exhaust cones breathe at the rear; no flight pose. Preserve the original pig face and body, no helmet or weapons.",
+      "concept": "mechaplayer-concept-v1.png",
+      "prompt": "Use case: stylized-concept. Create ONE production concept sheet for a new collectible Roblox ARCADE piggy. Reference image only supplies exact anatomy: keep its egg-shaped rounded body, four short cylinder legs, broad triangular ears, curled tail, oversized circular snout with two nostrils and bead eyes. SAME pig in two consistent views: large front three-quarter on left, rear three-quarter right, fully visible. Muted charcoal-purple studio backdrop, soft stylized toy 3D lighting, game-ready large shapes and modest low-poly detailing, no fur or photoreal noise. Match the existing Arcade collection's readable colorful toy style. Face and space between ears stay clear. No unrelated props, environment, logo or pedestal. Design: Pale steel and navy robot pig with clean angular panel coat and tiny orange warning stripes. Substantial mechanical boot cuffs around existing legs, hinged flank guards and twin firmly mounted rear thrusters. Cyan illuminated vents pulse and small exhaust cones breathe at the rear; no flight pose. Preserve the original pig face and body, no helmet or weapons. Tier LEGENDARY. Text only: MECHA PLAYER and LEGENDARY / ARCADE. Show only one design, not variants. Emissive details only for Epic/Legendary; Rares are unlit printed coats.",
+      "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0cbf1-8d87-7472-a9db-bb7e982fbf6a\\exec-491f715f-e099-434f-aa72-f6332c0ffba2.png"
+    }
+  ]
+}

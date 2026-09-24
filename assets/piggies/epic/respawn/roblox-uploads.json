@@ -1,0 +1,47 @@
+{
+  "skin": "respawn",
+  "revision": "arcade-v1",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "accessories": {
+      "source": "assets/piggies/epic/respawn/package/respawn-arcade-v1-accessories.fbx",
+      "sha256": "6011ee8fd0695bd423c8b35912dd9ce339ffc388947132253663484123eddf7f",
+      "assetType": "Model",
+      "operationId": "d6a5ccc9-ee2e-46b9-bcb1-78670576ba0f",
+      "assetId": "117187253279569",
+      "moderationState": "Approved"
+    },
+    "body_color": {
+      "source": "assets/piggies/epic/respawn/sheets/respawn_arcade_v1_body_color.png",
+      "sha256": "35c88444d08873ef091f39a1bf3218eab7e2457ef91f46c6b5391e4b606e1f03",
+      "assetType": "Image",
+      "operationId": "25e8dfe3-a972-4fc7-9763-04bbb3c9d591",
+      "assetId": "105765987642036",
+      "moderationState": "Approved"
+    },
+    "body_emissive": {
+      "source": "assets/piggies/epic/respawn/sheets/respawn_arcade_v1_body_emissive.png",
+      "sha256": "501c9e0f3dd8757eccf70da93a6ff1e9c20069cff027d4e71824b3f699fce162",
+      "assetType": "Image",
+      "operationId": "c72a57d9-e46d-4646-b613-dfdb402de8c7",
+      "assetId": "121625827855467",
+      "moderationState": "Approved"
+    },
+    "trim_color": {
+      "source": "assets/piggies/epic/respawn/sheets/respawn_arcade_v1_trim_color.png",
+      "sha256": "4a928284568b58389fac5b459baa1daa48aba7ba7d0ee28b9c9cf15cd228b349",
+      "assetType": "Image",
+      "operationId": "14084e33-be78-4c8e-b4e0-2fae94a81903",
+      "assetId": "129186509382233",
+      "moderationState": "Approved"
+    },
+    "trim_emissive": {
+      "source": "assets/piggies/epic/respawn/sheets/respawn_arcade_v1_trim_emissive.png",
+      "sha256": "78c2c82dda4bd3a556fe2ed46f7885e20dd10241c813d48254e7063c1fdcaa05",
+      "assetType": "Image",
+      "operationId": "a68a4401-526c-47ff-90e6-9e1251a54d97",
+      "assetId": "90345737275916",
+      "moderationState": "Approved"
+    }
+  }
+}

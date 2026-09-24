@@ -1,0 +1,14 @@
+{
+  "source": "assets\\piggies\\common\\cow\\source\\cow_closed.blend",
+  "geometryAndUVPreserved": true,
+  "partSignatures": {
+    "Body": "98f1df49a91769b714d03c22288699dd30ae41ab788076d305b2c83057eb617b",
+    "Snout": "95f0524ba743d1a8d6e0e915be02b1de47d7382a61661eec5b00d68f63bea884",
+    "Ears": "a513db561993cdf71573e8a07396b1a2ec0d4d502bdf5ed5015598b65137867b",
+    "Legs": "8ecab28bb7ddebb6daf1a7ce782c951313b1d109a58512f37a6588d407742a5a",
+    "Tail": "b88cd28d2e4251ab55e3cd7c76c0b61737eb36c14d7fc3a00eaa3581736625f4",
+    "EyePreview": "f7a5362fc6e2b499cb725035057fdd1a4bbfa6c9b4eadcc0f8c5ed19a591d6fc"
+  },
+  "addedVertices": 0,
+  "addedTriangles": 0
+}

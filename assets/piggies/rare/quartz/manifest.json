@@ -1,0 +1,128 @@
+{
+  "key": "quartz",
+  "name": "Quartz",
+  "tier": "rare",
+  "path": "assets/piggies/rare/quartz",
+  "status": "Uploaded and installed (og-redesign-v1 maps round, 2026-09-23)",
+  "revision": "og-redesign-v1",
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/quartz.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://89046202040568",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/quartz_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://87827482650267",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://89046202040568": {
+      "role": "quartz ColorMap",
+      "file": "sheets/quartz_og_v1_body_color.png",
+      "sha256": "2c38240685d3d88bdcbbfcb9a57df2d2fbdd52d31e6e47a62c084098611f6784"
+    },
+    "rbxassetid://87827482650267": {
+      "role": "quartz_trim ColorMap",
+      "file": "sheets/quartz_og_v1_trim_color.png",
+      "sha256": "524591f0ae3a3768736a11c195d78fa857b3dddd5d1bba72e58e22a41fcf9e45"
+    }
+  },
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau",
+    "skinsRow": {
+      "line": 7046,
+      "name": "Quartz",
+      "rarity": "rare",
+      "surface": "quartz",
+      "chest": "og",
+      "pattern": false,
+      "anim": false,
+      "fx": false
+    },
+    "surfacePack": {
+      "key": "quartz",
+      "line": 5994,
+      "template": "quartz",
+      "trimTemplate": "quartz_trim"
+    },
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "concept": "preview/quartz-og-v1-concept.png",
+  "prompt": "generate/og-v1-concept-prompt.txt",
+  "conceptMethod": "built-in image_gen",
+  "source": "source/quartz-og-v1-procedural.blend",
+  "review": "package/quartz-og-v1.blend",
+  "generator": "assets\\piggies\\og-redesign-v1\\build_og.py",
+  "report": "package/og-v1-asset-report.json",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\quartz_og_v1_body_color.png",
+      "sha256": "2c38240685d3d88bdcbbfcb9a57df2d2fbdd52d31e6e47a62c084098611f6784",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\quartz_og_v1_trim_color.png",
+      "sha256": "524591f0ae3a3768736a11c195d78fa857b3dddd5d1bba72e58e22a41fcf9e45",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": false,
+    "substantialAnimatedGeometry": false
+  },
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": false
+  },
+  "files": {
+    "source": [
+      "quartz-og-v1-procedural.blend"
+    ],
+    "generate": [
+      "og-v1-concept-prompt.txt",
+      "og-v1-spec.json"
+    ],
+    "sheets": [
+      "quartz_og_v1_body_color.png",
+      "quartz_og_v1_trim_color.png"
+    ],
+    "preview": [
+      "quartz-og-v1-back.png",
+      "quartz-og-v1-concept.png",
+      "quartz-og-v1-hero.png"
+    ],
+    "package": [
+      "og-v1-asset-report.json",
+      "quartz-og-v1-accessories.fbx",
+      "quartz-og-v1-complete.fbx",
+      "quartz-og-v1.blend"
+    ]
+  }
+}

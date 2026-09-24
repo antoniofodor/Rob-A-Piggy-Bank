@@ -1,0 +1,47 @@
+00:03.063  blend            | Read blend: "C:\Users\anton\robloxGame\assets\piggies\legendary\mechaplayer\package\arcade-v3\mechaplayer-arcade-v3.blend"
+C:\Users\anton\robloxGame\assets\piggies\arcade-mecha-v4\build.py:22: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_v2_'+name);m.use_nodes=True;b=m.node_tree.nodes.get('Principled BSDF')
+CUT MechContinuousBackArmor TEMP_slot 1422
+CUT MechCrownSeam_90 TEMP_slot 66
+CUT MechCrownSeam_180 TEMP_slot 54
+CUT MechCrownSeam_270 TEMP_slot 66
+CUT MechShoulderFrame_-1 TEMP_shoulder 32
+CUT MechShoulderFrame_1 TEMP_shoulder 32
+CUT MechContinuousBackArmor TEMP_vent 1476
+CUT MechCrownSeam_90 TEMP_vent 66
+CUT MechCrownSeam_180 TEMP_vent 54
+CUT MechCrownSeam_270 TEMP_vent 66
+CUT MechContinuousBackArmor TEMP_vent 1528
+CUT MechCrownSeam_90 TEMP_vent 66
+CUT MechCrownSeam_180 TEMP_vent 54
+CUT MechCrownSeam_270 TEMP_vent 66
+CUT MechContinuousBackArmor TEMP_vent 1617
+CUT MechCrownSeam_90 TEMP_vent 66
+CUT MechCrownSeam_180 TEMP_vent 52
+CUT MechCrownSeam_270 TEMP_vent 66
+CUT MechFacePlate TEMP_connector 746
+CUT MechFacePlateGasket TEMP_connector 204
+CUT MechFacePlate TEMP_connector 795
+CUT MechFacePlateGasket TEMP_connector 208
+CUT MechBootSteelBelt_-1_0 TEMP_boot_screen 146
+CUT MechBootSteelBelt_-1_1 TEMP_boot_screen 146
+CUT MechBootSteelBelt_1_0 TEMP_boot_screen 146
+CUT MechBootSteelBelt_1_1 TEMP_boot_screen 146
+00:20.203  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\mechaplayer\preview\arcade-v4\mechaplayer-v4-hero.png'
+00:35.453  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\mechaplayer\preview\arcade-v4\mechaplayer-v4-back.png'
+00:49.750  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\mechaplayer\preview\arcade-v4\mechaplayer-v4-top.png'
+01:04.359  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\mechaplayer\preview\arcade-v4\mechaplayer-v4-motion.png'
+01:04.375  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_18548_02b975f867125355b348f179cc536feb.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\mechaplayer\\package\\arcade-v4\\mechaplayer-arcade-v4-accessories.fbx'
+export finished in 0.1015 sec.
+FBX version: 7400
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\mechaplayer\\package\\arcade-v4\\mechaplayer-arcade-v4-complete.fbx'
+export finished in 0.1355 sec.
+FBX version: 7400
+Info: Saved as "mechaplayer-arcade-v4.blend"
+V4_COMPLETE mechaplayer parts 87 triangles 21524
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

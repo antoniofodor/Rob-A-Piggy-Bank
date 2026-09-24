@@ -1,0 +1,23 @@
+{
+  "skin": "playerone",
+  "revision": "arcade-v1",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "body_color": {
+      "source": "assets/piggies/rare/playerone/sheets/playerone_arcade_v1_body_color.png",
+      "sha256": "ec64be2a104658a27445458010d41a8803bdff75708e181fdcdd7941985061eb",
+      "assetType": "Image",
+      "operationId": "607f04d1-b63a-4017-8a52-2eea8a5b0e35",
+      "assetId": "119986907414867",
+      "moderationState": "Approved"
+    },
+    "trim_color": {
+      "source": "assets/piggies/rare/playerone/sheets/playerone_arcade_v1_trim_color.png",
+      "sha256": "8936f159693aace3da4764339552cbffddd6c2b34a64989a89d0d05f964d6f8d",
+      "assetType": "Image",
+      "operationId": "924c6838-6fa1-4b08-a74d-c5eccb62cff2",
+      "assetId": "122280387123870",
+      "moderationState": "Approved"
+    }
+  }
+}

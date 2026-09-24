@@ -1,0 +1,16 @@
+{
+  "revision": "og-refresh-v2",
+  "tierRules": {
+    "rare": "Authored surface and optional subtle material motion; restrained, unlit embedded stone accents only. No aura.",
+    "epic": "Authored surface plus emission, animation and an identifiable aura; no large legendary props."
+  },
+  "skins": [
+    {"key":"aurora","name":"Aurora","tier":"rare","palette":[[21,32,77],[63,219,172],[182,111,228]],"aura":null,"design":"Midnight blue coat crossed by broad, flowing green, cyan and violet northern-light curtains. Fine vertical light folds, a few tiny stars, indigo face and mint feet. Gentle ribbon shimmer; no particle aura."},
+    {"key":"banker","name":"Banker Piggy","tier":"rare","palette":[[29,39,61],[218,218,204],[174,128,46]],"aura":null,"design":"Tailored navy pinstripe suit, broad ivory shirt and lapel edges, burgundy tie, gold buttons, a pocket-watch motif and fine gold chain across the flank. Pink face and ears, polished dark shoes. All tailoring is a flush authored coat."},
+    {"key":"rockslide","name":"Rockslide","tier":"rare","palette":[[78,84,93],[133,139,143],[184,176,154]],"aura":null,"design":"Weathered slate with broad sedimentary layers and darker plate boundaries. Low, overlapping, angular slate plates bed into both shoulders and back; lighter chipped edges. Modest attached unlit geometry, clear crown slot and face."},
+    {"key":"quartz","name":"Quartz","tier":"rare","palette":[[228,164,199],[247,221,235],[170,122,181]],"aura":null,"design":"Polished rose quartz with large pale pink and lavender facets, subtle milky inclusions and fine mineral veins. Tapered hexagonal crystal clusters grow directly from the shoulders and rear flanks. Soft pearlescent highlights; no emission or aura."},
+    {"key":"neonmint","name":"Neon Mint","tier":"rare","palette":[[16,41,47],[77,235,184],[209,255,232]],"aura":null,"design":"Mint enamel with flowing charcoal negative-space bands, crisp mint-white neon edging, dark snout and coordinated mint soles. A restrained breathing glow follows the bands without recoloring the pig; no particles."},
+    {"key":"ghost","name":"Ghost Piggy","tier":"epic","palette":[[210,242,242],[111,196,204],[141,255,230]],"aura":"wisp","design":"A translucent pale spirit pig with a bright spectral silhouette, dark readable eyes, soft mint wisps inside the coat and a lower body that dissolves into transparency. Drifting mist aura and a slow breathing spectral rim. No stone gloss or engraved swirls."},
+    {"key":"hologram","name":"Hologram Piggy","tier":"epic","palette":[[28,113,139],[79,228,255],[224,105,229]],"aura":"hologram","design":"A see-through cyan wire-grid projection with luminous contour edges, horizontal scan lines, sparse magenta data interruptions and a bright scanning band traveling from feet to ears. The snout and ears are part of the projection. Pixel aura; no solid teal shell."}
+  ]
+}

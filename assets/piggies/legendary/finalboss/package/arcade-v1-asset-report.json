@@ -1,0 +1,571 @@
+{
+  "skin": "finalboss",
+  "name": "Final Boss",
+  "tier": "legendary",
+  "revision": "arcade-build-v1",
+  "status": "Built locally; Roblox upload and installation pending",
+  "design": "Dark plum boss pig with angular violet armor-print coat and hot pink energy seams. Substantial fitted low-poly shoulder and flank armor, brass edge accents, pink emissive insets. Shoulder guards slowly flex on visible hinge joints; six small energy blocks bob behind the rear flanks. Pig face, feet and ears remain exposed. No weapons or crown.",
+  "baseGeometryAndUVPreserved": true,
+  "sourceGeometrySignatures": {
+    "Body": "4a54ceed97939e6392190f1c3fb9d10d14530d801166cc7f26e24e99a6983ec1",
+    "Snout": "178b13b8746bb7484909d7e7a981aaa0e159f0f353a9e5fe3891d1191fd68518",
+    "Ears": "a1a7e83a72613d031332816dd3b25c2c0462de33d33c68b0c4dc0e818a95fc9f",
+    "Legs": "56645ce48591fdcc0e5835a7c00c823798c55a883da5f6cca1af42bb7ea74d04",
+    "Tail": "529231df3b33d53086cc7e0fd91ff5ea7b327fcadbb9804603e727fa728c6b38",
+    "EyePreview": "21c6d31d1ffe826f5f98c7bc23d6d57d472f3e465f722caa9f67322a0b2933b9"
+  },
+  "parts": [
+    {
+      "name": "Body",
+      "role": "base",
+      "triangles": 6264,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.5762786865234375e-07,
+        6.62,
+        -0.0
+      ],
+      "sizeRobloxStuds": [
+        12.000000715255737,
+        11.519999742507935,
+        12.96000051498413
+      ]
+    },
+    {
+      "name": "Snout",
+      "role": "base",
+      "triangles": 2486,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        5.845477904081345,
+        4.720026791095734
+      ],
+      "sizeRobloxStuds": [
+        6.7845447063446045,
+        7.233279168605804,
+        7.127158999443054
+      ]
+    },
+    {
+      "name": "Ears",
+      "role": "base",
+      "triangles": 7152,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        11.888547296524049,
+        2.154139593243599
+      ],
+      "sizeRobloxStuds": [
+        9.337942600250244,
+        5.17062520980835,
+        2.339932769536972
+      ]
+    },
+    {
+      "name": "Legs",
+      "role": "base",
+      "triangles": 2032,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        2.000000114440918,
+        -0.18000000715255737
+      ],
+      "sizeRobloxStuds": [
+        8.640000343322754,
+        3.0,
+        8.759999871253967
+      ]
+    },
+    {
+      "name": "Tail",
+      "role": "base",
+      "triangles": 1592,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -0.05768336355686188,
+        9.557918484210969,
+        -6.589774489402771
+      ],
+      "sizeRobloxStuds": [
+        2.992636889219284,
+        3.0000447034835815,
+        4.405103445053101
+      ]
+    },
+    {
+      "name": "EyePreview",
+      "role": "base",
+      "triangles": 1056,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        8.801508004665376,
+        5.33257520198822
+      ],
+      "sizeRobloxStuds": [
+        5.077638387680054,
+        1.2599998712539673,
+        1.2599995136260986
+      ]
+    },
+    {
+      "name": "BossGuard_-1_0",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": "hinged guard sway",
+      "offsetRobloxStuds": [
+        -5.867023766040802,
+        8.120000000000001,
+        0.30000007152557373
+      ],
+      "sizeRobloxStuds": [
+        0.8700002431869507,
+        3.8399999141693115,
+        3.8399999141693115
+      ]
+    },
+    {
+      "name": "BossInset_-1_0",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.1070237159729,
+        8.120000089406968,
+        0.30000002682209015
+      ],
+      "sizeRobloxStuds": [
+        0.809999942779541,
+        3.2256000638008118,
+        3.2255999743938446
+      ]
+    },
+    {
+      "name": "OrbitPrism_Boss_-1_0",
+      "role": "accessory",
+      "triangles": 8,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.797023773193359,
+        8.299999917745591,
+        0.30000002682209015
+      ],
+      "sizeRobloxStuds": [
+        0.5100002288818359,
+        1.4399998784065247,
+        1.4399999678134918
+      ]
+    },
+    {
+      "name": "BossHinge_-1_0",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.602023601531982,
+        9.079999978542329,
+        -1.0440000593662262
+      ],
+      "sizeRobloxStuds": [
+        0.3900003433227539,
+        0.9000002145767212,
+        0.9000000357627869
+      ]
+    },
+    {
+      "name": "BossGuard_-1_1",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": "hinged guard sway",
+      "offsetRobloxStuds": [
+        -5.63653689622879,
+        6.8225214433670045,
+        -2.580000065267086
+      ],
+      "sizeRobloxStuds": [
+        0.8700002431869507,
+        4.244961619377136,
+        4.012811377644539
+      ]
+    },
+    {
+      "name": "BossInset_-1_1",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -5.876536846160889,
+        6.8285180580616,
+        -2.5799999982118607
+      ],
+      "sizeRobloxStuds": [
+        0.809999942779541,
+        3.565767824649811,
+        3.3707614839076996
+      ]
+    },
+    {
+      "name": "OrbitPrism_Boss_-1_1",
+      "role": "accessory",
+      "triangles": 8,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.566536903381348,
+        7.039870965182781,
+        -2.5731858015060425
+      ],
+      "sizeRobloxStuds": [
+        0.5100002288818359,
+        1.4389677196741104,
+        1.4389679431915283
+      ]
+    },
+    {
+      "name": "BossHinge_-1_1",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.371536731719971,
+        7.961717213392258,
+        -3.925256609916687
+      ],
+      "sizeRobloxStuds": [
+        0.3900003433227539,
+        0.899354875087738,
+        0.8993546962738037
+      ]
+    },
+    {
+      "name": "BossEnergy_-1_0",
+      "role": "accessory",
+      "triangles": 108,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        -7.320000171661377,
+        6.765605683326721,
+        -2.8799998462200165
+      ],
+      "sizeRobloxStuds": [
+        0.6599993705749512,
+        0.6599999964237213,
+        0.6599999070167542
+      ]
+    },
+    {
+      "name": "BossEnergy_-1_1",
+      "role": "accessory",
+      "triangles": 108,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        -7.440000057220459,
+        8.420000071525575,
+        -4.020000100135803
+      ],
+      "sizeRobloxStuds": [
+        0.6599993705749512,
+        0.6600000858306885,
+        0.6600000858306885
+      ]
+    },
+    {
+      "name": "BossEnergy_-1_2",
+      "role": "accessory",
+      "triangles": 108,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        -7.559999942779541,
+        10.074394459724427,
+        -5.1600000858306885
+      ],
+      "sizeRobloxStuds": [
+        0.6599993705749512,
+        0.6600000858306885,
+        0.6600000858306885
+      ]
+    },
+    {
+      "name": "BossGuard_1_0",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": "hinged guard sway",
+      "offsetRobloxStuds": [
+        5.86704808473587,
+        8.120000000000001,
+        0.30000007152557373
+      ],
+      "sizeRobloxStuds": [
+        0.8700002431869507,
+        3.8399999141693115,
+        3.8399999141693115
+      ]
+    },
+    {
+      "name": "BossInset_1_0",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.107048034667969,
+        8.120000089406968,
+        0.30000002682209015
+      ],
+      "sizeRobloxStuds": [
+        0.809999942779541,
+        3.2256000638008118,
+        3.2255999743938446
+      ]
+    },
+    {
+      "name": "OrbitPrism_Boss_1_0",
+      "role": "accessory",
+      "triangles": 8,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.797048091888428,
+        8.299999917745591,
+        0.30000002682209015
+      ],
+      "sizeRobloxStuds": [
+        0.5100002288818359,
+        1.4399998784065247,
+        1.4399999678134918
+      ]
+    },
+    {
+      "name": "BossHinge_1_0",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.602047920227051,
+        9.079999978542329,
+        -1.0440000593662262
+      ],
+      "sizeRobloxStuds": [
+        0.3900003433227539,
+        0.9000002145767212,
+        0.9000000357627869
+      ]
+    },
+    {
+      "name": "BossGuard_1_1",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": "hinged guard sway",
+      "offsetRobloxStuds": [
+        5.636482536792755,
+        6.8225214433670045,
+        -2.580000065267086
+      ],
+      "sizeRobloxStuds": [
+        0.8700002431869507,
+        4.244961619377136,
+        4.012811377644539
+      ]
+    },
+    {
+      "name": "BossInset_1_1",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        5.8764824867248535,
+        6.8285180580616,
+        -2.5799999982118607
+      ],
+      "sizeRobloxStuds": [
+        0.809999942779541,
+        3.565767824649811,
+        3.3707614839076996
+      ]
+    },
+    {
+      "name": "OrbitPrism_Boss_1_1",
+      "role": "accessory",
+      "triangles": 8,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.5664825439453125,
+        7.039870965182781,
+        -2.5731858015060425
+      ],
+      "sizeRobloxStuds": [
+        0.5100002288818359,
+        1.4389677196741104,
+        1.4389679431915283
+      ]
+    },
+    {
+      "name": "BossHinge_1_1",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.3714823722839355,
+        7.961717213392258,
+        -3.925256609916687
+      ],
+      "sizeRobloxStuds": [
+        0.3900003433227539,
+        0.899354875087738,
+        0.8993546962738037
+      ]
+    },
+    {
+      "name": "BossEnergy_1_0",
+      "role": "accessory",
+      "triangles": 108,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        7.320000171661377,
+        7.674394312202931,
+        -2.8799998462200165
+      ],
+      "sizeRobloxStuds": [
+        0.6599993705749512,
+        0.6599999517202377,
+        0.6599999070167542
+      ]
+    },
+    {
+      "name": "BossEnergy_1_1",
+      "role": "accessory",
+      "triangles": 108,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        7.440000057220459,
+        8.911020631790162,
+        -4.020000100135803
+      ],
+      "sizeRobloxStuds": [
+        0.6599993705749512,
+        0.6600000858306885,
+        0.6600000858306885
+      ]
+    },
+    {
+      "name": "BossEnergy_1_2",
+      "role": "accessory",
+      "triangles": 108,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        7.559999942779541,
+        9.696204776763917,
+        -5.1600000858306885
+      ],
+      "sizeRobloxStuds": [
+        0.6599993705749512,
+        0.6600000858306885,
+        0.6600000858306885
+      ]
+    }
+  ],
+  "exports": [
+    {
+      "file": "finalboss-arcade-v1-complete.fbx",
+      "meshCount": 28,
+      "triangles": 21662,
+      "roundTripChecked": true,
+      "roundTripBoundsError": 4.76837158203125e-07
+    },
+    {
+      "file": "finalboss-arcade-v1-accessories.fbx",
+      "meshCount": 22,
+      "triangles": 1080,
+      "roundTripChecked": true,
+      "roundTripBoundsError": 4.76837158203125e-07
+    }
+  ],
+  "aura": "arcade_boss_energy_proposed",
+  "auraPreviewObjects": 10,
+  "auraExcludedFromMeshExports": true,
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 10,
+    "materialPulse": true,
+    "loopClosureError": 1.102182101152202e-17,
+    "faceClearanceSampledFrames": 9
+  },
+  "tierChecks": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": true
+  },
+  "textures": [
+    {
+      "role": "body_color",
+      "file": "sheets\\finalboss_arcade_v1_body_color.png",
+      "sha256": "16f791e5ccc195b4200a027ed31d38f5bbdd867908ca9ad3f48063a9c05939f6",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\finalboss_arcade_v1_body_emissive.png",
+      "sha256": "e5841761e7084e43ffd7c6fd52ad7289b5608e7d411cc147436044e7fb49fa13",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\finalboss_arcade_v1_trim_color.png",
+      "sha256": "30e5eeb65164277d123838448ce468b21d31b792ef1789916e485bb481eb656f",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\finalboss_arcade_v1_trim_emissive.png",
+      "sha256": "b423c3205b957f68b072235b9343520f84b1adde4b216bd44893a20e9398f704",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "generator": "assets/piggies/arcade-build-v1/build_arcade.py",
+  "runtimeNotes": "Use supplied maps on shared body/trim; replace old procedural pattern. Player One is Rare for its authored pixel coat; these are new assets, not installed Config rows. Aura keys are proposed new emitters; preview motes are not export meshes. New accessories replace, not stack with, old shard/FX geometry. Full Blender animation is retained in packed blend; FBX is a static import pose."
+}

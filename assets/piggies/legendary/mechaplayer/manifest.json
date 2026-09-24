@@ -1,0 +1,95 @@
+{
+  "key": "mechaplayer",
+  "name": "Mecha Player",
+  "tier": "legendary",
+  "palette": [
+    [
+      165,
+      186,
+      199
+    ],
+    [
+      50,
+      202,
+      242
+    ],
+    [
+      41,
+      62,
+      89
+    ],
+    [
+      224,
+      113,
+      49
+    ]
+  ],
+  "aura": "arcade_thruster_sparkle_proposed",
+  "design": "Rebuilt with layered navy shoulder guards, fitted steel shell panels, chunky three-piece boots, raised cyan vents, recessed turbine thrusters, navy ear rims and a clean pale face. Black eyes match the reference; the hardware supplies the glow.",
+  "concept": "mechaplayer-concept-v1.png",
+  "revision": "arcade-legendary-v2",
+  "status": "Installed in project and Roblox Studio",
+  "conceptMethod": "built-in image_gen",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\mechaplayer_arcade_v1_body_color.png",
+      "sha256": "f4960bfaa98e7b4553af16b7c591f5e8404c375afd92f85683210e0fcb6225ca",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\mechaplayer_arcade_v1_body_emissive.png",
+      "sha256": "e5841761e7084e43ffd7c6fd52ad7289b5608e7d411cc147436044e7fb49fa13",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\mechaplayer_arcade_v1_trim_color.png",
+      "sha256": "3e7bbe5adba1b63d3a689e3daa419c72c723490f0b323ae48b20285fd7ad1b08",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\mechaplayer_arcade_v1_trim_emissive.png",
+      "sha256": "b423c3205b957f68b072235b9343520f84b1adde4b216bd44893a20e9398f704",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 10,
+    "materialPulse": true,
+    "loopClosureError": 0.0,
+    "faceClearanceSampledFrames": 9
+  },
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": true
+  },
+  "report": "package/arcade-v2/asset-report.json",
+  "review": "package/arcade-v2/mechaplayer-arcade-v2.blend",
+  "robloxIntegration": "../../arcade-build-v1/roblox-integration.json",
+  "robloxUploads": "assets/piggies/approved-imports-20260923/mechaplayer/roblox-uploads.json",
+  "installedRevision": "arcade-v4",
+  "runtimeInstalled": true,
+  "publishedLive": false
+}

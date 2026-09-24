@@ -37,7 +37,7 @@
     "body": {
       "path": "src/ReplicatedStorage/Shared/SurfacePacks/zebra.model.json",
       "ids": {
-        "ColorMap": "rbxassetid://127489646933876",
+        "ColorMap": "rbxassetid://73850504933317",
         "MetalnessMap": "",
         "RoughnessMap": "",
         "NormalMap": ""
@@ -47,7 +47,7 @@
     "trim": {
       "path": "src/ReplicatedStorage/Shared/SurfacePacks/zebra_trim.model.json",
       "ids": {
-        "ColorMap": "rbxassetid://99597652549447",
+        "ColorMap": "rbxassetid://124435334174229",
         "MetalnessMap": "",
         "RoughnessMap": "",
         "NormalMap": ""
@@ -56,16 +56,28 @@
     }
   },
   "idSources": {
-    "rbxassetid://127489646933876": {
-      "file": "sheets/zebra_body_color.open-hatch.png",
-      "sha256": "d20c2240060434f3968c937fcaa41a7058908e9d268385dadf2ee8b0ef45de67",
-      "role": "body ColorMap",
-      "note": "uploaded from the open-hatch bake"
+    "rbxassetid://135117702803475": {
+      "file": "sheets/zebra_body_color.png",
+      "sha256": "3fde4f0e770c556971223fc437daf309c08c6dd03916c5c6bef9a309b67e5393",
+      "role": "zebra ColorMap",
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://127489646933876"
     },
     "rbxassetid://99597652549447": {
       "file": "sheets/zebra_trim_color.png",
       "sha256": "231941b68f1f4cf9e0e2892895c96fc0ff25f758c3427e1acdbe8af3a7d815d4",
       "role": "trim ColorMap"
+    },
+    "rbxassetid://73850504933317": {
+      "file": "sheets/zebra_body_color.png",
+      "sha256": "dbfa0be7c63922bca79382320eba29c3fbb3557c21ab2e2ee2da88c0ceac1f35",
+      "role": "body ColorMap",
+      "note": "Smooth shoulder stripe transition; uploaded with designer authorization 2026-09-23; replaces rbxassetid://135117702803475"
+    },
+    "rbxassetid://124435334174229": {
+      "file": "sheets/zebra_trim_color.png",
+      "sha256": "835a551b2a67d3d0f557912f832796376a6534b4840d51294418e000f3085d2f",
+      "role": "trim ColorMap",
+      "note": "Smooth shoulder stripe transition; uploaded with designer authorization 2026-09-23; replaces rbxassetid://99597652549447"
     }
   },
   "shopCard": {
@@ -76,7 +88,7 @@
   },
   "derivedPackage": {
     "path": "assets/piggies/common/zebra/package",
-    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "note": "Derived package refreshed from corrected stripe materials and current bake scene; texture copies verified.",
     "fileCount": 13,
     "textureCopiesMatchShippedSheets": {
       "zebra_body_color.png": true,
@@ -85,7 +97,7 @@
   },
   "closedBack": {
     "closedScene": "source/zebra_closed.blend",
-    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as zebra_body_color.open-hatch.png. Re-upload pending."
+    "note": "Current closed-back body sheet includes the smooth stripe transition and is uploaded to the recorded body ColorMap."
   },
   "files": {
     "source": [
@@ -124,5 +136,12 @@
     ]
   },
   "generator": "generate/make_zebra_blend.py",
-  "notes": []
+  "notes": [],
+  "stripeTransition": {
+    "version": 2,
+    "method": "Blend stripe edge distances across the shoulder; solid colour and tapered tips",
+    "generator": "blender/pig/stripe_transition.py",
+    "status": "body and trim uploaded",
+    "validation": "Geometry/UV/material slots unchanged; opaque 1024px sheets; no palette fades; FBX bounds round-trip passed."
+  }
 }

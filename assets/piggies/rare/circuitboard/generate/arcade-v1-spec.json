@@ -1,0 +1,30 @@
+{
+  "key": "circuitboard",
+  "name": "Circuit Board",
+  "tier": "rare",
+  "palette": [
+    [
+      21,
+      75,
+      52
+    ],
+    [
+      189,
+      149,
+      63
+    ],
+    [
+      51,
+      125,
+      82
+    ],
+    [
+      27,
+      41,
+      36
+    ]
+  ],
+  "aura": null,
+  "design": "Forest-green printed circuit coat with gold right-angle traces, round solder pads and small dark chip rectangles. Dark green snout, muted brass feet and ear interiors. Entire circuit design is flat printed artwork; no glow or geometry.",
+  "concept": "circuitboard-concept-v1.png"
+}

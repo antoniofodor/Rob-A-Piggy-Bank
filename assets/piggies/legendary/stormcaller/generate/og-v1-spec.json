@@ -1,0 +1,24 @@
+{
+  "key": "stormcaller",
+  "name": "Stormcaller",
+  "tier": "legendary",
+  "design": "Storm-slate pig with cyan branching lightning fissures on shoulders and sides, navy snout, blue eyes. Two substantial sculpted storm-cloud clusters hover low beside rear flanks, chunky angular cyan lightning forks below. Clouds bob, small motes orbit, rain/electric-blue aura. Cloud geometry readable with effects disabled. Keep face, feet and hat space clear; no cloud hat covering ears.",
+  "palette": [
+    [
+      39,
+      54,
+      82
+    ],
+    [
+      75,
+      88,
+      117
+    ],
+    [
+      74,
+      204,
+      255
+    ]
+  ],
+  "aura": "storm"
+}

@@ -1,0 +1,163 @@
+{
+  "key": "hologram",
+  "name": "Hologram Piggy",
+  "tier": "epic",
+  "path": "assets/piggies/epic/hologram",
+  "status": "Uploaded and installed (og-redesign-v1 maps round, 2026-09-23)",
+  "revision": "og-redesign-v1",
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/hologram.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://105064386346266",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "EmissiveMaskContent": "rbxassetid://84456807496521",
+        "EmissiveStrength": 0.9
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/hologram_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://131101168517744",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "EmissiveMaskContent": "rbxassetid://105855834956423",
+        "EmissiveStrength": 0.9
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://105064386346266": {
+      "role": "hologram ColorMap",
+      "file": "sheets/hologram_og_v1_body_color.png",
+      "sha256": "bca9d33ba7e4436e498820d273a86d2b468e6400f26540511f3a993b4a5f2d8f"
+    },
+    "rbxassetid://84456807496521": {
+      "role": "hologram EmissiveMaskContent",
+      "file": "sheets/hologram_og_v1_body_emissive.png",
+      "sha256": "07888fb721bbf9e5ce7f51089ec15729d10ba7b443b69bc37dc9585ba8486826"
+    },
+    "rbxassetid://131101168517744": {
+      "role": "hologram_trim ColorMap",
+      "file": "sheets/hologram_og_v1_trim_color.png",
+      "sha256": "dd16ff8c190023c6a8de596c0bd8eb133230392a199a317edcab5bfd8b4eb8c8"
+    },
+    "rbxassetid://105855834956423": {
+      "role": "hologram_trim EmissiveMaskContent",
+      "file": "sheets/hologram_og_v1_trim_emissive.png",
+      "sha256": "270ef4e1b271809f54ed0e65e9efca616489c8b02be71bff97cbaadcfd4ae1ed"
+    }
+  },
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau",
+    "skinsRow": {
+      "line": 7169,
+      "name": "Hologram Piggy",
+      "rarity": "epic",
+      "surface": "hologram",
+      "chest": "og",
+      "pattern": false,
+      "anim": false,
+      "fx": false
+    },
+    "surfacePack": {
+      "key": "hologram",
+      "line": 6012,
+      "template": "hologram",
+      "trimTemplate": "hologram_trim"
+    },
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "concept": "preview/hologram-og-v1-concept.png",
+  "prompt": "generate/og-v1-concept-prompt.txt",
+  "conceptMethod": "built-in image_gen",
+  "source": "source/hologram-og-v1-procedural.blend",
+  "review": "package/hologram-og-v1.blend",
+  "generator": "assets\\piggies\\og-redesign-v1\\build_og.py",
+  "report": "package/og-v1-asset-report.json",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\hologram_og_v1_body_color.png",
+      "sha256": "bca9d33ba7e4436e498820d273a86d2b468e6400f26540511f3a993b4a5f2d8f",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\hologram_og_v1_body_emissive.png",
+      "sha256": "07888fb721bbf9e5ce7f51089ec15729d10ba7b443b69bc37dc9585ba8486826",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\hologram_og_v1_trim_color.png",
+      "sha256": "dd16ff8c190023c6a8de596c0bd8eb133230392a199a317edcab5bfd8b4eb8c8",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\hologram_og_v1_trim_emissive.png",
+      "sha256": "270ef4e1b271809f54ed0e65e9efca616489c8b02be71bff97cbaadcfd4ae1ed",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": false
+  },
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": true,
+    "loopClosureError": 0.0
+  },
+  "files": {
+    "source": [
+      "hologram-og-v1-procedural.blend"
+    ],
+    "generate": [
+      "og-v1-concept-prompt.txt",
+      "og-v1-spec.json"
+    ],
+    "sheets": [
+      "hologram_og_v1_body_color.png",
+      "hologram_og_v1_body_emissive.png",
+      "hologram_og_v1_trim_color.png",
+      "hologram_og_v1_trim_emissive.png"
+    ],
+    "preview": [
+      "hologram-og-v1-back.png",
+      "hologram-og-v1-concept.png",
+      "hologram-og-v1-hero.png",
+      "hologram-og-v1-motion.png"
+    ],
+    "package": [
+      "hologram-og-v1-complete.fbx",
+      "hologram-og-v1.blend",
+      "og-v1-asset-report.json"
+    ]
+  }
+}

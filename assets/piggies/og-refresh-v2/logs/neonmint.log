@@ -1,0 +1,47 @@
+C:\Users\anton\robloxGame\assets\piggies\og-refresh-v2\build.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:07.094  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_21556_dffe1072129ef5824295817b3d743eab.png.png"
+Info: Saved as "neonmint-og-v2-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED neonmint body color
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED neonmint body metal
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED neonmint body rough
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED neonmint body emissive
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED neonmint trim color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED neonmint trim metal
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED neonmint trim rough
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED neonmint trim emissive
+C:\Users\anton\robloxGame\assets\piggies\og-refresh-v2\build.py:273: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:24.953  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\rare\neonmint\revisions\og-v2\preview\neonmint-og-v2-hero.png'
+00:36.094  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\rare\neonmint\revisions\og-v2\preview\neonmint-og-v2-back.png'
+00:48.719  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\rare\neonmint\revisions\og-v2\preview\neonmint-og-v2-top.png'
+00:48.734  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_21556_334adf63b540360dd2bf0e4c686fd320.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\rare\\neonmint\\revisions\\og-v2\\package\\neonmint-og-v2-complete.fbx'
+export finished in 0.0352 sec.
+FBX version: 7400
+Info: Saved as "neonmint-og-v2.blend"
+OG_COMPLETE neonmint {"extraTriangles": 0, "maps": 8, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

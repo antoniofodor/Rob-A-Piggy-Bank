@@ -1,0 +1,37 @@
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:06.266  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_14964_257cda49c1d19ac3a8ff0ad5f917e3a8.png.png"
+Info: Saved as "stormcaller-og-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED stormcaller body color
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED stormcaller body emissive
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED stormcaller trim color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED stormcaller trim emissive
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:477: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:29.641  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\stormcaller\preview\stormcaller-og-v1-hero.png'
+00:37.250  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\stormcaller\preview\stormcaller-og-v1-back.png'
+00:44.859  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\stormcaller\preview\stormcaller-og-v1-motion.png'
+00:44.891  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_14964_34c48774894f17658adea0a9c3e5b64b.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\stormcaller\\package\\stormcaller-og-v1-complete.fbx'
+export finished in 0.0459 sec.
+FBX version: 7400
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\stormcaller\\package\\stormcaller-og-v1-accessories.fbx'
+export finished in 0.0192 sec.
+FBX version: 7400
+Info: Saved as "stormcaller-og-v1.blend"
+OG_COMPLETE stormcaller {"extraTriangles": 696, "maps": 4, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

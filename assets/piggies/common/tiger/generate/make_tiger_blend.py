@@ -739,6 +739,9 @@ def coat(name):
     link(o3, bsdf.inputs['Base Color'])
     out = node("ShaderNodeOutputMaterial", 1220, 280)
     link(bsdf.outputs['BSDF'], out.inputs['Surface'])
+    # Continuous edge distances supersede the legacy hard selector above.
+    from stripe_transition import soften_stripe_transition
+    soften_stripe_transition(mat)
     return mat
 
 

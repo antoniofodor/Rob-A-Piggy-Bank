@@ -1,0 +1,165 @@
+{
+  "key": "stormcaller",
+  "name": "Stormcaller",
+  "tier": "legendary",
+  "path": "assets/piggies/legendary/stormcaller",
+  "status": "Uploaded and installed (og-redesign-v1 maps round, 2026-09-23)",
+  "revision": "og-redesign-v1",
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/stormcaller.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://109600453741538",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "EmissiveMaskContent": "rbxassetid://123725112815856",
+        "EmissiveStrength": 1.2
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/stormcaller_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://138592950047117",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "EmissiveMaskContent": "rbxassetid://128559295321061",
+        "EmissiveStrength": 1.2
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://109600453741538": {
+      "role": "stormcaller ColorMap",
+      "file": "sheets/stormcaller_og_v1_body_color.png",
+      "sha256": "c434dcd18f99e96196a48525fcef809d971238120b53ad437dd4ba25fee221bd"
+    },
+    "rbxassetid://123725112815856": {
+      "role": "stormcaller EmissiveMaskContent",
+      "file": "sheets/stormcaller_og_v1_body_emissive.png",
+      "sha256": "ba5f5f6c036c29e0c3b3d34d274b2963e6b00320cfb3182ebe38b6989dfa3c1c"
+    },
+    "rbxassetid://138592950047117": {
+      "role": "stormcaller_trim ColorMap",
+      "file": "sheets/stormcaller_og_v1_trim_color.png",
+      "sha256": "61ca5936a382efa67f8c1c4fcd0a247574858fe247e6e0ae4f4ae59c455abc8e"
+    },
+    "rbxassetid://128559295321061": {
+      "role": "stormcaller_trim EmissiveMaskContent",
+      "file": "sheets/stormcaller_og_v1_trim_emissive.png",
+      "sha256": "70b7d8ad122d8f92ef6971e57227b2e64da2665fa2a29db13284aab8950e98b8"
+    }
+  },
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau",
+    "skinsRow": {
+      "line": 6407,
+      "name": "Stormcaller",
+      "rarity": "legendary",
+      "surface": "stormcaller",
+      "chest": "og",
+      "pattern": false,
+      "anim": true,
+      "fx": true
+    },
+    "surfacePack": {
+      "key": "stormcaller",
+      "line": 6015,
+      "template": "stormcaller",
+      "trimTemplate": "stormcaller_trim"
+    },
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "concept": "preview/stormcaller-og-v1-concept.png",
+  "prompt": "generate/og-v1-concept-prompt.txt",
+  "conceptMethod": "built-in image_gen",
+  "source": "source/stormcaller-og-v1-procedural.blend",
+  "review": "package/stormcaller-og-v1.blend",
+  "generator": "assets\\piggies\\og-redesign-v1\\build_og.py",
+  "report": "package/og-v1-asset-report.json",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\stormcaller_og_v1_body_color.png",
+      "sha256": "c434dcd18f99e96196a48525fcef809d971238120b53ad437dd4ba25fee221bd",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\stormcaller_og_v1_body_emissive.png",
+      "sha256": "ba5f5f6c036c29e0c3b3d34d274b2963e6b00320cfb3182ebe38b6989dfa3c1c",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\stormcaller_og_v1_trim_color.png",
+      "sha256": "61ca5936a382efa67f8c1c4fcd0a247574858fe247e6e0ae4f4ae59c455abc8e",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\stormcaller_og_v1_trim_emissive.png",
+      "sha256": "70b7d8ad122d8f92ef6971e57227b2e64da2665fa2a29db13284aab8950e98b8",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": true
+  },
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 10,
+    "materialPulse": true,
+    "loopClosureError": 0.0,
+    "faceClearanceSampledFrames": 9
+  },
+  "files": {
+    "source": [
+      "stormcaller-og-v1-procedural.blend"
+    ],
+    "generate": [
+      "og-v1-concept-prompt.txt",
+      "og-v1-spec.json"
+    ],
+    "sheets": [
+      "stormcaller_og_v1_body_color.png",
+      "stormcaller_og_v1_body_emissive.png",
+      "stormcaller_og_v1_trim_color.png",
+      "stormcaller_og_v1_trim_emissive.png"
+    ],
+    "preview": [
+      "stormcaller-og-v1-back.png",
+      "stormcaller-og-v1-concept.png",
+      "stormcaller-og-v1-hero.png",
+      "stormcaller-og-v1-motion.png"
+    ],
+    "package": [
+      "og-v1-asset-report.json",
+      "stormcaller-og-v1-accessories.fbx",
+      "stormcaller-og-v1-complete.fbx",
+      "stormcaller-og-v1.blend"
+    ]
+  }
+}

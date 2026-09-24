@@ -1,0 +1,382 @@
+{
+  "revision": "arcade-build-v1",
+  "count": 10,
+  "status": "Imported into Roblox Studio and repository; assets approved; live place publishing not performed",
+  "skins": [
+    {
+      "key": "playerone",
+      "name": "Player One",
+      "tier": "rare",
+      "palette": [
+        [
+          214,
+          39,
+          54
+        ],
+        [
+          244,
+          222,
+          174
+        ],
+        [
+          102,
+          27,
+          48
+        ]
+      ],
+      "aura": null,
+      "concept": "../rare/playerone/preview/playerone-arcade-v1-concept.png",
+      "design": "16-bit red and cream pig with quantized pixel shading, dithered shadow transitions and a cream 1P emblem on both flanks. Original smooth 3D silhouette retained. Rare because the selected direction requires an authored coat.",
+      "prefix": "../rare/playerone",
+      "maps": 2,
+      "addedTriangles": 0,
+      "hero": "../rare/playerone/preview/playerone-arcade-v1-hero.png",
+      "back": "../rare/playerone/preview/playerone-arcade-v1-back.png",
+      "motion": null
+    },
+    {
+      "key": "retrocarpet",
+      "name": "Retro Carpet",
+      "tier": "rare",
+      "palette": [
+        [
+          39,
+          30,
+          77
+        ],
+        [
+          33,
+          188,
+          213
+        ],
+        [
+          228,
+          44,
+          153
+        ],
+        [
+          249,
+          190,
+          50
+        ],
+        [
+          243,
+          106,
+          139
+        ]
+      ],
+      "aura": null,
+      "concept": "../rare/retrocarpet/preview/retrocarpet-arcade-v1-concept.png",
+      "design": "Dark purple coat with bold flat cyan zigzags, pink waves, yellow outlined triangles and coral circles. Cyan feet and ear interiors, muted purple snout. No glow or geometry.",
+      "prefix": "../rare/retrocarpet",
+      "maps": 2,
+      "addedTriangles": 0,
+      "hero": "../rare/retrocarpet/preview/retrocarpet-arcade-v1-hero.png",
+      "back": "../rare/retrocarpet/preview/retrocarpet-arcade-v1-back.png",
+      "motion": null
+    },
+    {
+      "key": "respawn",
+      "name": "Respawn",
+      "tier": "epic",
+      "palette": [
+        [
+          44,
+          20,
+          92
+        ],
+        [
+          35,
+          199,
+          242
+        ],
+        [
+          111,
+          43,
+          216
+        ],
+        [
+          226,
+          55,
+          217
+        ]
+      ],
+      "aura": "arcade_pixel_stream_proposed",
+      "concept": "../epic/respawn/preview/respawn-arcade-v1-concept.png",
+      "design": "Solid purple pig with a cyan/violet pixel coat, flank arrow, cyan eyes and seven small animated cubes rising near the rear. Emission pulse and pixel motes. New aura specification, not an installed runtime emitter.",
+      "prefix": "../epic/respawn",
+      "maps": 4,
+      "addedTriangles": 84,
+      "hero": "../epic/respawn/preview/respawn-arcade-v1-hero.png",
+      "back": "../epic/respawn/preview/respawn-arcade-v1-back.png",
+      "motion": "../epic/respawn/preview/respawn-arcade-v1-motion.png"
+    },
+    {
+      "key": "jackpot",
+      "name": "Jackpot",
+      "tier": "legendary",
+      "palette": [
+        [
+          119,
+          36,
+          58
+        ],
+        [
+          235,
+          209,
+          151
+        ],
+        [
+          195,
+          139,
+          43
+        ],
+        [
+          255,
+          189,
+          61
+        ]
+      ],
+      "aura": "arcade_token_sparkle_proposed",
+      "concept": "../legendary/jackpot/preview/jackpot-arcade-v1-concept.png",
+      "design": "A fuller arched reel housing with side lamps, raised gold rails, rivets, a rear shield and a fitted saddle. The original three reels and floating tokens retain their animation.",
+      "prefix": "../legendary/jackpot",
+      "maps": 7,
+      "addedTriangles": 5396,
+      "hero": "../legendary/jackpot/preview/arcade-v2/jackpot-v2-hero.png",
+      "back": "../legendary/jackpot/preview/arcade-v2/jackpot-v2-back.png",
+      "motion": "../legendary/jackpot/preview/arcade-v2/jackpot-v2-motion.png",
+      "previous": "../legendary/jackpot/preview/jackpot-arcade-v1-hero.png",
+      "revision": "arcade-legendary-v2",
+      "blend": "../legendary/jackpot/package/arcade-v2/jackpot-arcade-v2.blend",
+      "fbx": "../legendary/jackpot/package/arcade-v2/jackpot-arcade-v2-complete.fbx",
+      "accessoryParts": 75
+    },
+    {
+      "key": "pixel",
+      "name": "Pixel",
+      "tier": "rare",
+      "palette": [
+        [
+          27,
+          47,
+          78
+        ],
+        [
+          42,
+          130,
+          165
+        ],
+        [
+          104,
+          200,
+          192
+        ],
+        [
+          241,
+          211,
+          141
+        ]
+      ],
+      "aura": null,
+      "design": "Chunky teal, navy and cream pixel camouflage, stepped clusters and sparse pixel diamonds, solid teal snout and cream feet. Fixed limited-color artwork, no glow, floating cubes or extra geometry.",
+      "concept": "../rare/pixel/preview/pixel-arcade-v1-concept.png",
+      "prefix": "../rare/pixel",
+      "maps": 2,
+      "addedTriangles": 0,
+      "hero": "../rare/pixel/preview/pixel-arcade-v1-hero.png",
+      "back": "../rare/pixel/preview/pixel-arcade-v1-back.png",
+      "motion": null
+    },
+    {
+      "key": "circuitboard",
+      "name": "Circuit Board",
+      "tier": "rare",
+      "palette": [
+        [
+          21,
+          75,
+          52
+        ],
+        [
+          189,
+          149,
+          63
+        ],
+        [
+          51,
+          125,
+          82
+        ],
+        [
+          27,
+          41,
+          36
+        ]
+      ],
+      "aura": null,
+      "design": "Forest-green printed circuit coat with gold right-angle traces, round solder pads and small dark chip rectangles. Dark green snout, muted brass feet and ear interiors. Entire circuit design is flat printed artwork; no glow or geometry.",
+      "concept": "../rare/circuitboard/preview/circuitboard-arcade-v1-concept.png",
+      "prefix": "../rare/circuitboard",
+      "maps": 2,
+      "addedTriangles": 0,
+      "hero": "../rare/circuitboard/preview/circuitboard-arcade-v1-hero.png",
+      "back": "../rare/circuitboard/preview/circuitboard-arcade-v1-back.png",
+      "motion": null
+    },
+    {
+      "key": "powerup",
+      "name": "Power-Up",
+      "tier": "epic",
+      "palette": [
+        [
+          31,
+          62,
+          54
+        ],
+        [
+          157,
+          235,
+          78
+        ],
+        [
+          40,
+          148,
+          112
+        ],
+        [
+          243,
+          218,
+          111
+        ]
+      ],
+      "aura": "arcade_power_sparks_proposed",
+      "design": "Dark jade pig with large lime pixel up-arrow emblems on both flanks, stepped green stripes, small printed yellow energy bars, lime luminous eyes. Slow pulsing arrow glow and rising square sparks. No substantial equipment.",
+      "concept": "../epic/powerup/preview/powerup-arcade-v1-concept.png",
+      "prefix": "../epic/powerup",
+      "maps": 4,
+      "addedTriangles": 72,
+      "hero": "../epic/powerup/preview/powerup-arcade-v1-hero.png",
+      "back": "../epic/powerup/preview/powerup-arcade-v1-back.png",
+      "motion": "../epic/powerup/preview/powerup-arcade-v1-motion.png"
+    },
+    {
+      "key": "synthwave",
+      "name": "Synthwave",
+      "tier": "epic",
+      "palette": [
+        [
+          35,
+          24,
+          77
+        ],
+        [
+          42,
+          207,
+          233
+        ],
+        [
+          231,
+          53,
+          145
+        ],
+        [
+          255,
+          162,
+          62
+        ]
+      ],
+      "aura": "arcade_synth_sparkle_proposed",
+      "design": "Midnight purple pig with magenta and cyan perspective grid across lower body, large striped orange-to-pink sunset discs on both flanks, purple snout, cyan eyes. Restrained animated grid glow and sparse neon sparkle aura; no accessory geometry.",
+      "concept": "../epic/synthwave/preview/synthwave-arcade-v1-concept.png",
+      "prefix": "../epic/synthwave",
+      "maps": 4,
+      "addedTriangles": 0,
+      "hero": "../epic/synthwave/preview/synthwave-arcade-v1-hero.png",
+      "back": "../epic/synthwave/preview/synthwave-arcade-v1-back.png",
+      "motion": "../epic/synthwave/preview/synthwave-arcade-v1-motion.png"
+    },
+    {
+      "key": "finalboss",
+      "name": "Final Boss",
+      "tier": "legendary",
+      "palette": [
+        [
+          43,
+          29,
+          59
+        ],
+        [
+          226,
+          55,
+          107
+        ],
+        [
+          96,
+          49,
+          97
+        ],
+        [
+          230,
+          155,
+          77
+        ]
+      ],
+      "aura": "arcade_boss_energy_proposed",
+      "design": "Broad brass-edged pauldrons, large pink energy gems, fitted plum shell plates with raised luminous seams, armored hips and mounted rear crystals. Black eyes and exposed pink face match the reference.",
+      "concept": "../legendary/finalboss/preview/finalboss-arcade-v1-concept.png",
+      "prefix": "../legendary/finalboss",
+      "maps": 4,
+      "addedTriangles": 2748,
+      "hero": "../legendary/finalboss/preview/arcade-v2/finalboss-v2-hero.png",
+      "back": "../legendary/finalboss/preview/arcade-v2/finalboss-v2-back.png",
+      "motion": "../legendary/finalboss/preview/arcade-v2/finalboss-v2-motion.png",
+      "previous": "../legendary/finalboss/preview/finalboss-arcade-v1-hero.png",
+      "revision": "arcade-legendary-v2",
+      "blend": "../legendary/finalboss/package/arcade-v2/finalboss-arcade-v2.blend",
+      "fbx": "../legendary/finalboss/package/arcade-v2/finalboss-arcade-v2-complete.fbx",
+      "accessoryParts": 45
+    },
+    {
+      "key": "mechaplayer",
+      "name": "Mecha Player",
+      "tier": "legendary",
+      "palette": [
+        [
+          165,
+          186,
+          199
+        ],
+        [
+          50,
+          202,
+          242
+        ],
+        [
+          41,
+          62,
+          89
+        ],
+        [
+          224,
+          113,
+          49
+        ]
+      ],
+      "aura": "arcade_thruster_sparkle_proposed",
+      "design": "Rebuilt with layered navy shoulder guards, fitted steel shell panels, chunky three-piece boots, raised cyan vents, recessed turbine thrusters, navy ear rims and a clean pale face. Black eyes match the reference; the hardware supplies the glow.",
+      "concept": "../legendary/mechaplayer/preview/mechaplayer-arcade-v1-concept.png",
+      "prefix": "../legendary/mechaplayer",
+      "maps": 2,
+      "addedTriangles": 6068,
+      "hero": "../legendary/mechaplayer/preview/arcade-v2/mechaplayer-v2-hero.png",
+      "back": "../legendary/mechaplayer/preview/arcade-v2/mechaplayer-v2-back.png",
+      "motion": "../legendary/mechaplayer/preview/arcade-v2/mechaplayer-v2-motion.png",
+      "previous": "../legendary/mechaplayer/preview/mechaplayer-arcade-v1-hero.png",
+      "revision": "arcade-legendary-v2",
+      "blend": "../legendary/mechaplayer/package/arcade-v2/mechaplayer-arcade-v2.blend",
+      "fbx": "../legendary/mechaplayer/package/arcade-v2/mechaplayer-arcade-v2-complete.fbx",
+      "accessoryParts": 81
+    }
+  ]
+}

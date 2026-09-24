@@ -1,0 +1,30 @@
+{
+  "key": "finalboss",
+  "name": "Final Boss",
+  "tier": "legendary",
+  "palette": [
+    [
+      43,
+      29,
+      59
+    ],
+    [
+      226,
+      55,
+      107
+    ],
+    [
+      96,
+      49,
+      97
+    ],
+    [
+      230,
+      155,
+      77
+    ]
+  ],
+  "aura": "arcade_boss_energy_proposed",
+  "design": "Dark plum boss pig with angular violet armor-print coat and hot pink energy seams. Substantial fitted low-poly shoulder and flank armor, brass edge accents, pink emissive insets. Shoulder guards slowly flex on visible hinge joints; six small energy blocks bob behind the rear flanks. Pig face, feet and ears remain exposed. No weapons or crown.",
+  "concept": "finalboss-concept-v1.png"
+}

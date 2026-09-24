@@ -1,0 +1,15 @@
+{
+  "skin": "quartz",
+  "revision": "og-redesign-v1",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "accessories": {
+      "source": "assets/piggies/rare/quartz/package/quartz-og-v1-accessories.fbx",
+      "sha256": "e0fc5de8eb1046437f68e346e99d12a22d9b0da14294b995ea18eac082a3c988",
+      "assetType": "Model",
+      "operationId": "20d56460-c289-4d43-b63a-25299c7026b3",
+      "assetId": "100973507997984",
+      "moderationState": "Approved"
+    }
+  }
+}

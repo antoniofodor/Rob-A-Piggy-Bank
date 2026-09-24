@@ -1,0 +1,46 @@
+{
+  "skin": "hedgehog",
+  "source": "Roblox InsertService.LoadAsset of the uploaded epic-v2 accessory package",
+  "parts": [
+    {
+      "colorMap": "",
+      "name": "hedgehog_Quills",
+      "position": {
+        "y": 45.248748779296875,
+        "x": -0.748291015625,
+        "z": 245.67552185058594
+      },
+      "orientation": {
+        "y": 0,
+        "x": 0,
+        "z": 0
+      },
+      "meshId": "rbxassetid://94226638486977",
+      "size": {
+        "y": 1337.997314453125,
+        "x": 1536.4710693359375,
+        "z": 1167.4798583984375
+      },
+      "textureId": "rbxassetid://126362648151873",
+      "gameSeatPlacement": {
+        "sizeRobloxStuds": [
+          15.364710330963135,
+          13.379973649978638,
+          11.674798965454102
+        ],
+        "offsetRobloxStuds": [
+          0.007483005523681641,
+          7.072487587928772,
+          -2.4567553997039795
+        ],
+        "rotationDegrees": [
+          0,
+          180,
+          0
+        ],
+        "material": "SmoothPlastic"
+      }
+    }
+  ],
+  "placementValidated": true
+}

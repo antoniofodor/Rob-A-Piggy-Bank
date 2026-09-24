@@ -1,0 +1,39 @@
+{
+  "skin": "synthwave",
+  "revision": "arcade-v1",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "body_color": {
+      "source": "assets/piggies/epic/synthwave/sheets/synthwave_arcade_v1_body_color.png",
+      "sha256": "ae0f9ac55b306eca66892277576b2d9902f6164b1b95d854519eb3dc46ec69d7",
+      "assetType": "Image",
+      "operationId": "4eaa3a8c-f14a-4471-ae07-bc4e00ab080e",
+      "assetId": "101646023172420",
+      "moderationState": "Approved"
+    },
+    "body_emissive": {
+      "source": "assets/piggies/epic/synthwave/sheets/synthwave_arcade_v1_body_emissive.png",
+      "sha256": "22e9671cff0460e0360d1ebde16b52342f3eda02dd045976aa72ae2582d950b6",
+      "assetType": "Image",
+      "operationId": "6b2c8d41-2459-4de8-8872-e57f1377f2eb",
+      "assetId": "77731855298563",
+      "moderationState": "Approved"
+    },
+    "trim_color": {
+      "source": "assets/piggies/epic/synthwave/sheets/synthwave_arcade_v1_trim_color.png",
+      "sha256": "057e5653deee9df8628bc3fbdd123823f839b3607454bd366062f274253305be",
+      "assetType": "Image",
+      "operationId": "ba7eee2b-8d61-4e04-b33c-f62c0a594536",
+      "assetId": "84168337388531",
+      "moderationState": "Approved"
+    },
+    "trim_emissive": {
+      "source": "assets/piggies/epic/synthwave/sheets/synthwave_arcade_v1_trim_emissive.png",
+      "sha256": "0f4ec2c1e70c6579e6178a04f1944846394c447879fe510618808a0128c927ff",
+      "assetType": "Image",
+      "operationId": "3ebd150f-cecb-4829-a66d-22d58faf8a64",
+      "assetId": "129183842655203",
+      "moderationState": "Approved"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:05.203  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_26884_662267e4db78b767c3ae1a7f42a4a411.png.png"
+Info: Saved as "hologram-og-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED hologram body color
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED hologram body emissive
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED hologram trim color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED hologram trim emissive
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:477: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:41.531  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\hologram\preview\hologram-og-v1-hero.png'
+00:59.688  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\hologram\preview\hologram-og-v1-back.png'
+01:13.766  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\hologram\preview\hologram-og-v1-motion.png'
+01:13.797  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_26884_d28ae579a007ecf7d9d37700220807fb.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\epic\\hologram\\package\\hologram-og-v1-complete.fbx'
+export finished in 0.0771 sec.
+FBX version: 7400
+Info: Saved as "hologram-og-v1.blend"
+OG_COMPLETE hologram {"extraTriangles": 0, "maps": 4, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

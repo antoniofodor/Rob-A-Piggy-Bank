@@ -2,7 +2,7 @@
   "skin": "peppermint",
   "name": "Peppermint",
   "status": "Complete static review asset; runtime installation pending",
-  "sourceScene": "skins\\peppermint\\peppermint.blend",
+  "sourceScene": "assets\\piggies\\rare\\peppermint\\source\\peppermint_closed.blend",
   "sourceFrame": "Blender X across, -Y face, Z up; origin at body centre",
   "bodyWidthStuds": 12,
   "sourceToStudScale": 5.999999642372153,
@@ -25,14 +25,14 @@
   },
   "fbxRoundTripMaxBoundsError": 4.76837158203125e-07,
   "meshCount": 6,
-  "triangles": 20670,
+  "triangles": 20582,
   "parts": [
     {
       "name": "Body",
       "sourcePart": "Body",
       "textureGroup": "body",
-      "vertices": 3176,
-      "triangles": 6352,
+      "vertices": 3134,
+      "triangles": 6264,
       "sourceNonManifoldEdges": 0,
       "maxSourceVertexError": 8.940696716308594e-08,
       "uvPreservedBeforeTriangulation": true,
@@ -104,7 +104,7 @@
         1024,
         1024
       ],
-      "sha256": "7c85cba0032dddc25085dc8188442e00f412296a4bbe92e99c29df3608f021b3"
+      "sha256": "43a556a8be8a12a2b437f537cef2780dc04f4d3e054eb95569e02bd94d06456a"
     },
     {
       "group": "trim",
@@ -113,35 +113,20 @@
         1024,
         1024
       ],
-      "sha256": "d55fdf3470f8fa6121746349031b057dd439c59c7e843d8e5c86a77d8ae5268f"
+      "sha256": "de4323c493f0bc32eabace18ae07f9066faf0c8dc15efd4467370938dfdc8874"
     }
   ],
   "eyes": "Optional exported Eyes mesh; game-built eyes must not be duplicated",
   "nostrils": "Sculpted recesses retained; matching the existing coat previews, no black insert mesh",
   "sharedGeometry": "Body, snout, ears, legs and tail are unchanged apart from uniform scale and triangulation; UVs preserved",
   "inputHashes": {
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\peppermint\\peppermint.blend": "661f40ced3b1b0ca74a6fe775bb8462ba19131eaa1469e7b69d2107ae6dc8a92",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\pig\\pig_parts.blend": "b83cbb017c66b54f55dc8c75a079085621440f1c4d2e12e356de712bbf169086",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\peppermint\\peppermint_body_color.png": "7c85cba0032dddc25085dc8188442e00f412296a4bbe92e99c29df3608f021b3",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\peppermint\\peppermint_trim_color.png": "d55fdf3470f8fa6121746349031b057dd439c59c7e843d8e5c86a77d8ae5268f",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\peppermint\\peppermint_body_emissive.png": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\peppermint\\peppermint_trim_emissive.png": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\peppermint\\coat-spec.json": "6eb1402c6a075029df896de2cda54f9c531bd8759790736611db024e02c66fdd"
+    "C:\\Users\\anton\\robloxGame\\assets\\piggies\\rare\\peppermint\\source\\peppermint_closed.blend": "f6e10fde5bc876d17bbcbc32d3554062cad126e1d8241e9251dea80f10820ae0",
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\pig\\pig_parts.blend": "c5e740da3db249498a048da7cc4764ab1b4aa6c4cb103a46775d63dd4a5b2f4a",
+    "C:\\Users\\anton\\robloxGame\\assets\\piggies\\rare\\peppermint\\sheets\\peppermint_body_color.png": "43a556a8be8a12a2b437f537cef2780dc04f4d3e054eb95569e02bd94d06456a",
+    "C:\\Users\\anton\\robloxGame\\assets\\piggies\\rare\\peppermint\\sheets\\peppermint_trim_color.png": "de4323c493f0bc32eabace18ae07f9066faf0c8dc15efd4467370938dfdc8874",
+    "C:\\Users\\anton\\robloxGame\\assets\\piggies\\rare\\peppermint\\source\\coat-spec.json": "ce6230c119a610e1a5ca78354dca020b133a7c0890e7d9309757c0a32fcbdc31"
   },
   "integration": "Existing skin uses shared mesh IDs plus body/trim SurfaceAppearances. Complete FBX is a standalone review/import option; do not upload duplicate base meshes for every coat.",
   "rarity": "rare",
-  "emissiveTextures": [
-    {
-      "group": "body",
-      "file": "peppermint_body_emissive.png",
-      "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a",
-      "strengthPreview": 0.800000011920929
-    },
-    {
-      "group": "trim",
-      "file": "peppermint_trim_emissive.png",
-      "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8",
-      "strengthPreview": 0.800000011920929
-    }
-  ]
+  "emissiveTextures": []
 }

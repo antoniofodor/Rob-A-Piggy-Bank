@@ -1,8 +1,8 @@
 {
   "skin": "zebra",
   "name": "Zebra",
-  "status": "Complete static review asset; no new coat or runtime installation",
-  "sourceScene": "skins\\zebra\\zebra.blend",
+  "status": "Complete static review asset; runtime installation pending",
+  "sourceScene": "assets\\piggies\\common\\zebra\\source\\zebra_closed.blend",
   "sourceFrame": "Blender X across, -Y face, Z up; origin at body centre",
   "bodyWidthStuds": 12,
   "sourceToStudScale": 5.999999642372153,
@@ -25,14 +25,14 @@
   },
   "fbxRoundTripMaxBoundsError": 4.76837158203125e-07,
   "meshCount": 6,
-  "triangles": 20670,
+  "triangles": 20582,
   "parts": [
     {
       "name": "Body",
       "sourcePart": "Body",
       "textureGroup": "body",
-      "vertices": 3176,
-      "triangles": 6352,
+      "vertices": 3134,
+      "triangles": 6264,
       "sourceNonManifoldEdges": 0,
       "maxSourceVertexError": 8.940696716308594e-08,
       "uvPreservedBeforeTriangulation": true,
@@ -104,7 +104,7 @@
         1024,
         1024
       ],
-      "sha256": "d20c2240060434f3968c937fcaa41a7058908e9d268385dadf2ee8b0ef45de67"
+      "sha256": "dbfa0be7c63922bca79382320eba29c3fbb3557c21ab2e2ee2da88c0ceac1f35"
     },
     {
       "group": "trim",
@@ -113,17 +113,19 @@
         1024,
         1024
       ],
-      "sha256": "231941b68f1f4cf9e0e2892895c96fc0ff25f758c3427e1acdbe8af3a7d815d4"
+      "sha256": "835a551b2a67d3d0f557912f832796376a6534b4840d51294418e000f3085d2f"
     }
   ],
   "eyes": "Optional exported Eyes mesh; game-built eyes must not be duplicated",
   "nostrils": "Sculpted recesses retained; matching the existing coat previews, no black insert mesh",
   "sharedGeometry": "Body, snout, ears, legs and tail are unchanged apart from uniform scale and triangulation; UVs preserved",
   "inputHashes": {
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\zebra\\zebra.blend": "411f2ce39c8ddbd23e4273932247ce7a61d705be26b9e92e031f5b837230dc7c",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\pig\\pig_parts.blend": "b83cbb017c66b54f55dc8c75a079085621440f1c4d2e12e356de712bbf169086",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\zebra\\zebra_body_color.png": "d20c2240060434f3968c937fcaa41a7058908e9d268385dadf2ee8b0ef45de67",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\zebra\\zebra_trim_color.png": "231941b68f1f4cf9e0e2892895c96fc0ff25f758c3427e1acdbe8af3a7d815d4"
+    "C:\\Users\\anton\\robloxGame\\assets\\piggies\\common\\zebra\\source\\zebra_closed.blend": "707d18967e55fe818190add44527aeab519ee5cc3ff6c426d16ab65ff88da254",
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\pig\\pig_parts.blend": "c5e740da3db249498a048da7cc4764ab1b4aa6c4cb103a46775d63dd4a5b2f4a",
+    "C:\\Users\\anton\\robloxGame\\assets\\piggies\\common\\zebra\\sheets\\zebra_body_color.png": "dbfa0be7c63922bca79382320eba29c3fbb3557c21ab2e2ee2da88c0ceac1f35",
+    "C:\\Users\\anton\\robloxGame\\assets\\piggies\\common\\zebra\\sheets\\zebra_trim_color.png": "835a551b2a67d3d0f557912f832796376a6534b4840d51294418e000f3085d2f"
   },
-  "integration": "Existing skin uses shared mesh IDs plus body/trim SurfaceAppearances. Complete FBX is a standalone review/import option; do not upload duplicate base meshes for every coat."
+  "integration": "Existing skin uses shared mesh IDs plus body/trim SurfaceAppearances. Complete FBX is a standalone review/import option; do not upload duplicate base meshes for every coat.",
+  "rarity": "common",
+  "emissiveTextures": []
 }

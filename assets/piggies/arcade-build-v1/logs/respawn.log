@@ -1,0 +1,37 @@
+C:\Users\anton\robloxGame\assets\piggies\arcade-build-v1\build_arcade.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:05.281  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_26768_9d64abe1e656f4f959c439ad65aa5df8.png.png"
+Info: Saved as "respawn-arcade-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED respawn body color
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED respawn body emissive
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED respawn trim color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED respawn trim emissive
+C:\Users\anton\robloxGame\assets\piggies\arcade-build-v1\build_arcade.py:556: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:41.062  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\respawn\preview\respawn-arcade-v1-hero.png'
+01:03.234  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\respawn\preview\respawn-arcade-v1-back.png'
+01:26.343  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\respawn\preview\respawn-arcade-v1-motion.png'
+01:26.375  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_26768_ebfcf6029ff97be3052616f33a3f458e.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\epic\\respawn\\package\\respawn-arcade-v1-complete.fbx'
+export finished in 0.0406 sec.
+FBX version: 7400
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\epic\\respawn\\package\\respawn-arcade-v1-accessories.fbx'
+export finished in 0.0150 sec.
+FBX version: 7400
+Info: Saved as "respawn-arcade-v1.blend"
+ARCADE_COMPLETE respawn {"extraTriangles": 84, "maps": 4, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

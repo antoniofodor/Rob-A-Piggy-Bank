@@ -1,0 +1,33 @@
+C:\Users\anton\robloxGame\assets\piggies\arcade-build-v1\build_arcade.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:05.000  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_3656_d5e912dbbac2fcc2b661ac1bcf1262e2.png.png"
+Info: Saved as "synthwave-arcade-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED synthwave body color
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED synthwave body emissive
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED synthwave trim color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED synthwave trim emissive
+C:\Users\anton\robloxGame\assets\piggies\arcade-build-v1\build_arcade.py:711: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:36.985  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\synthwave\preview\synthwave-arcade-v1-hero.png'
+00:59.485  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\synthwave\preview\synthwave-arcade-v1-back.png'
+01:22.875  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\synthwave\preview\synthwave-arcade-v1-motion.png'
+01:22.985  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_3656_b6d36507925ea61e6823c2a5791054de.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\epic\\synthwave\\package\\synthwave-arcade-v1-complete.fbx'
+export finished in 0.0408 sec.
+FBX version: 7400
+Info: Saved as "synthwave-arcade-v1.blend"
+ARCADE_COMPLETE synthwave {"extraTriangles": 0, "maps": 4, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

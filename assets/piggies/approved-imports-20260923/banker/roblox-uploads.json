@@ -1,0 +1,55 @@
+{
+  "skin": "banker",
+  "revision": "og-v2",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "body_color": {
+      "source": "assets/piggies/rare/banker/revisions/og-v2/sheets/banker_og_v2_body_color.png",
+      "sha256": "5df1d4f77e965f49d6ac465d98dae7c4f8800f9ecf44db014791512fa165fe68",
+      "assetType": "Image",
+      "operationId": "c8309252-52de-4e4e-93b4-f0afe3e1dbf2",
+      "assetId": "81111026919629",
+      "moderationState": "Approved"
+    },
+    "body_metal": {
+      "source": "assets/piggies/rare/banker/revisions/og-v2/sheets/banker_og_v2_body_metal.png",
+      "sha256": "1fb967e1b910c827839ae31826d001f6c6f2709316f502012d8975bc3e8d2ce4",
+      "assetType": "Image",
+      "operationId": "c541311b-71e7-438a-a4c6-a9126746e6ba",
+      "assetId": "138192864791178",
+      "moderationState": "Approved"
+    },
+    "body_rough": {
+      "source": "assets/piggies/rare/banker/revisions/og-v2/sheets/banker_og_v2_body_rough.png",
+      "sha256": "6d36d0a7f56f828bb60fbfa3755e940912b72ed260133cc41099fd0fd65a9bc1",
+      "assetType": "Image",
+      "operationId": "53e6b62c-679b-4626-8206-f7621bf4c252",
+      "assetId": "117032767089995",
+      "moderationState": "Approved"
+    },
+    "trim_color": {
+      "source": "assets/piggies/rare/banker/revisions/og-v2/sheets/banker_og_v2_trim_color.png",
+      "sha256": "ce0e754de5b5cb86d67f19ecc3bf0e70b891ec9ea778b76d1b83ee0a82477fb0",
+      "assetType": "Image",
+      "operationId": "8b659ffd-96ab-480b-806f-57204ef802e8",
+      "assetId": "122992774220822",
+      "moderationState": "Approved"
+    },
+    "trim_metal": {
+      "source": "assets/piggies/rare/banker/revisions/og-v2/sheets/banker_og_v2_trim_metal.png",
+      "sha256": "3dbe1a2c94e0f2ff3c48c33dc2879f998f868de83ea872eb978b708d56f0d805",
+      "assetType": "Image",
+      "operationId": "986a1e6f-4f43-412a-98f4-7803d1a32499",
+      "assetId": "74483980204026",
+      "moderationState": "Approved"
+    },
+    "trim_rough": {
+      "source": "assets/piggies/rare/banker/revisions/og-v2/sheets/banker_og_v2_trim_rough.png",
+      "sha256": "455db0e4b0cac39541694cf9734937d17e4b74383e775eddb88afffabae2874f",
+      "assetType": "Image",
+      "operationId": "87747425-c478-42ac-b610-7610ec49107d",
+      "assetId": "90677603472626",
+      "moderationState": "Approved"
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "skin": "jackpot",
+  "revision": "arcade-v1",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "accessories": {
+      "source": "assets/piggies/legendary/jackpot/package/jackpot-arcade-v1-accessories.fbx",
+      "sha256": "8a43f4490532b2e86e2ee823ad292827726b507ba3724ba7cfba4843ed7d640a",
+      "assetType": "Model",
+      "operationId": "218bde9e-3662-4f6e-849a-d6e4f2ca4f79",
+      "assetId": "76857367307440",
+      "moderationState": "Approved"
+    },
+    "body_color": {
+      "source": "assets/piggies/legendary/jackpot/sheets/jackpot_arcade_v1_body_color.png",
+      "sha256": "763d7c639936e7f8a66eb1906f91b7bdfa12acb848544891ee0d79b6ed366ac3",
+      "assetType": "Image",
+      "operationId": "4f7bb6e3-f19d-4602-9b8a-bd3c93db80d7",
+      "assetId": "87278948712223",
+      "moderationState": "Approved"
+    },
+    "body_emissive": {
+      "source": "assets/piggies/legendary/jackpot/sheets/jackpot_arcade_v1_body_emissive.png",
+      "sha256": "b423c3205b957f68b072235b9343520f84b1adde4b216bd44893a20e9398f704",
+      "assetType": "Image",
+      "operationId": "13620de8-fa37-435b-897a-2462550a8a6a",
+      "assetId": "128366336206810",
+      "moderationState": "Approved"
+    },
+    "trim_color": {
+      "source": "assets/piggies/legendary/jackpot/sheets/jackpot_arcade_v1_trim_color.png",
+      "sha256": "c0c34bfbbffceb3ac0a49dda6f1a7056439bcc9bd4de4b6b510189c7d25b55ea",
+      "assetType": "Image",
+      "operationId": "ca07ff86-602e-418c-85ae-ed2e176c644a",
+      "assetId": "131159563974627",
+      "moderationState": "Approved"
+    },
+    "trim_emissive": {
+      "source": "assets/piggies/legendary/jackpot/sheets/jackpot_arcade_v1_trim_emissive.png",
+      "sha256": "b423c3205b957f68b072235b9343520f84b1adde4b216bd44893a20e9398f704",
+      "assetType": "Image",
+      "operationId": "ad6e74ab-5d2d-4bbc-a252-6d1b7f7c0e2f",
+      "assetId": "132942149867098",
+      "moderationState": "Approved"
+    },
+    "reel_0": {
+      "source": "assets/piggies/legendary/jackpot/sheets/jackpot_arcade_v1_reel_0.png",
+      "sha256": "c49fc1cadf8a00beeb2c3e09110646f2bd622afa67f973eb555644e1b3ffe55c",
+      "assetType": "Image",
+      "operationId": "0dc766a9-1ad8-4bfc-97e5-4f2c0de6a1fb",
+      "assetId": "135140176097379",
+      "moderationState": "Approved"
+    },
+    "reel_1": {
+      "source": "assets/piggies/legendary/jackpot/sheets/jackpot_arcade_v1_reel_1.png",
+      "sha256": "172aef291839e642b0e457d85079ce37ad0d86503ce3fed3c8990cd0fc2f9c0b",
+      "assetType": "Image",
+      "operationId": "b26eaf92-e95d-4667-ba4e-534c97f11816",
+      "assetId": "87217202130494",
+      "moderationState": "Approved"
+    },
+    "reel_2": {
+      "source": "assets/piggies/legendary/jackpot/sheets/jackpot_arcade_v1_reel_2.png",
+      "sha256": "1922177563bf6a0ea0d3953b22eecec0117a1a4900c2f2c36316847ab2ccd025",
+      "assetType": "Image",
+      "operationId": "c95875ee-9a14-4caa-b870-ced1ea17d60a",
+      "assetId": "98708914212126",
+      "moderationState": "Approved"
+    },
+    "accessories_v2": {
+      "source": "assets/piggies/legendary/jackpot/package/arcade-v2/jackpot-arcade-v2-accessories.fbx",
+      "sha256": "83855a19ac18212a6a6b94413be38ceccaecd926432d6ac4da046862b381e54c",
+      "assetType": "Model",
+      "operationId": "2f639e91-2fad-40ee-b3a4-f62081307598",
+      "assetId": "135837269004445",
+      "moderationState": "Approved"
+    }
+  }
+}

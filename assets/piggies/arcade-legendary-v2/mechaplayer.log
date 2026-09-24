@@ -1,0 +1,25 @@
+00:06.125  blend            | Read blend: "C:\Users\anton\robloxGame\assets\piggies\legendary\mechaplayer\package\mechaplayer-arcade-v1.blend"
+C:\Users\anton\robloxGame\assets\piggies\arcade-legendary-v2\build.py:19: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_v2_'+name);m.use_nodes=True;b=m.node_tree.nodes.get('Principled BSDF')
+01:01.657  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\mechaplayer\preview\arcade-v2\mechaplayer-v2-hero.png'
+01:48.422  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\mechaplayer\preview\arcade-v2\mechaplayer-v2-back.png'
+02:34.047  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\mechaplayer\preview\arcade-v2\mechaplayer-v2-motion.png'
+02:34.110  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_2480_80fa334a06efd8e32ef7b3346920a626.png.png"
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\mechaplayer\\package\\arcade-v2\\mechaplayer-arcade-v2-accessories.fbx'
+export finished in 0.3324 sec.
+FBX version: 7400
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\mechaplayer\\package\\arcade-v2\\mechaplayer-arcade-v2-complete.fbx'
+export finished in 0.4556 sec.
+FBX version: 7400
+Info: Saved as "mechaplayer-arcade-v2.blend"
+V2_COMPLETE mechaplayer parts 81 triangles 6068
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

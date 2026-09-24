@@ -1,0 +1,24 @@
+{
+  "key": "rockslide",
+  "name": "Rockslide",
+  "tier": "rare",
+  "palette": [
+    [
+      78,
+      84,
+      93
+    ],
+    [
+      133,
+      139,
+      143
+    ],
+    [
+      184,
+      176,
+      154
+    ]
+  ],
+  "aura": null,
+  "design": "Weathered slate with broad sedimentary layers and darker plate boundaries. Low, overlapping, angular slate plates bed into both shoulders and back; lighter chipped edges. Modest attached unlit geometry, clear crown slot and face."
+}

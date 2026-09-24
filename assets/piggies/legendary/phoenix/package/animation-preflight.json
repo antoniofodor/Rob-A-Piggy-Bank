@@ -1,5 +1,5 @@
 {
-  "sceneSHA256": "6e70c365cbaa956cbba0a1e2682b3dc6ce2835c6e15e2a3addf1af3e3eaf59f7",
+  "sceneSHA256": "5885f4b8194f0941d1e8192cf0c73a4a9665c0ddbcfb2394dd74538ec5eebfae",
   "frames": [
     1,
     4,
@@ -54,14 +54,14 @@
   ],
   "movementMatrixDeltas": {
     "Root": 0.0,
-    "Tail": 0.06799515523016453,
-    "Mantle_L": 0.03682571277022362,
-    "Mantle_R": 0.04733538627624512,
-    "Ruff_L": 0.10401828587055206,
-    "Ruff_R": 0.09856405854225159,
-    "Crest_0": 0.07905448973178864,
-    "Crest_1": 0.0702822357416153,
-    "Crest_2": 0.05708628427237272
+    "Tail": 0.03541375321219675,
+    "Mantle_L": 0.019958572927862406,
+    "Mantle_R": 0.021084899315610528,
+    "Ruff_L": 0.0,
+    "Ruff_R": 0.0,
+    "Crest_0": 0.05120823811739683,
+    "Crest_1": 0.08310808567330241,
+    "Crest_2": 0.048108200484421104
   },
   "animatedVaultBlocked": [],
   "animatedCoinBlocked": [],

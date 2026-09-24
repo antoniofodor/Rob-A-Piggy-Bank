@@ -1,0 +1,77 @@
+{
+  "key": "retrocarpet",
+  "name": "Retro Carpet",
+  "tier": "rare",
+  "palette": [
+    [
+      39,
+      30,
+      77
+    ],
+    [
+      33,
+      188,
+      213
+    ],
+    [
+      228,
+      44,
+      153
+    ],
+    [
+      249,
+      190,
+      50
+    ],
+    [
+      243,
+      106,
+      139
+    ]
+  ],
+  "aura": null,
+  "concept": "retro-carpet-concept-v1.png",
+  "design": "Dark purple coat with bold flat cyan zigzags, pink waves, yellow outlined triangles and coral circles. Cyan feet and ear interiors, muted purple snout. No glow or geometry.",
+  "revision": "arcade-build-v1",
+  "status": "Imported into Roblox Studio and repository; assets approved; live place publishing not performed",
+  "conceptMethod": "built-in image_gen",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\retrocarpet_arcade_v1_body_color.png",
+      "sha256": "5004c6a535ffb8e84e6f4632dafd15e1b6b43a40a0b578ceeee174dec933ef6f",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\retrocarpet_arcade_v1_trim_color.png",
+      "sha256": "03b007047370e3fc4d9088a2ba09da1345341f76d3a1dc9235830c0e0d71bea7",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": false
+  },
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": false,
+    "substantialAnimatedGeometry": false
+  },
+  "report": "package/arcade-v1-asset-report.json",
+  "review": "package/retrocarpet-arcade-v1.blend",
+  "robloxIntegration": "../../arcade-build-v1/roblox-integration.json",
+  "robloxUploads": "roblox-uploads.json"
+}

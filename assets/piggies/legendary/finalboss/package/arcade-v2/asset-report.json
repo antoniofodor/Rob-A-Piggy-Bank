@@ -1,0 +1,960 @@
+{
+  "skin": "finalboss",
+  "name": "Final Boss",
+  "tier": "legendary",
+  "revision": "arcade-legendary-v2",
+  "status": "Uploaded, approved and installed in Roblox Studio",
+  "design": "Dark plum boss pig with angular violet armor-print coat and hot pink energy seams. Substantial fitted low-poly shoulder and flank armor, brass edge accents, pink emissive insets. Shoulder guards slowly flex on visible hinge joints; six small energy blocks bob behind the rear flanks. Pig face, feet and ears remain exposed. No weapons or crown.",
+  "baseGeometryAndUVPreserved": true,
+  "sourceGeometrySignatures": {
+    "Body": "4a54ceed97939e6392190f1c3fb9d10d14530d801166cc7f26e24e99a6983ec1",
+    "Snout": "178b13b8746bb7484909d7e7a981aaa0e159f0f353a9e5fe3891d1191fd68518",
+    "Ears": "a1a7e83a72613d031332816dd3b25c2c0462de33d33c68b0c4dc0e818a95fc9f",
+    "Legs": "56645ce48591fdcc0e5835a7c00c823798c55a883da5f6cca1af42bb7ea74d04",
+    "Tail": "529231df3b33d53086cc7e0fd91ff5ea7b327fcadbb9804603e727fa728c6b38",
+    "EyePreview": "21c6d31d1ffe826f5f98c7bc23d6d57d472f3e465f722caa9f67322a0b2933b9"
+  },
+  "parts": [
+    {
+      "name": "Body",
+      "role": "base",
+      "triangles": 6264,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.5762786865234375e-07,
+        6.62,
+        -0.0
+      ],
+      "sizeRobloxStuds": [
+        12.000000715255737,
+        11.519999742507935,
+        12.96000051498413
+      ]
+    },
+    {
+      "name": "Snout",
+      "role": "base",
+      "triangles": 2486,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        5.845477904081345,
+        4.720026791095734
+      ],
+      "sizeRobloxStuds": [
+        6.7845447063446045,
+        7.233279168605804,
+        7.127158999443054
+      ]
+    },
+    {
+      "name": "Ears",
+      "role": "base",
+      "triangles": 7152,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        11.888547296524049,
+        2.154139593243599
+      ],
+      "sizeRobloxStuds": [
+        9.337942600250244,
+        5.17062520980835,
+        2.339932769536972
+      ]
+    },
+    {
+      "name": "Legs",
+      "role": "base",
+      "triangles": 2032,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        2.000000114440918,
+        -0.18000000715255737
+      ],
+      "sizeRobloxStuds": [
+        8.640000343322754,
+        3.0,
+        8.759999871253967
+      ]
+    },
+    {
+      "name": "Tail",
+      "role": "base",
+      "triangles": 1592,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -0.05768336355686188,
+        9.557918484210969,
+        -6.589774489402771
+      ],
+      "sizeRobloxStuds": [
+        2.992636889219284,
+        3.0000447034835815,
+        4.405103445053101
+      ]
+    },
+    {
+      "name": "EyePreview",
+      "role": "base",
+      "triangles": 1056,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        8.801508004665376,
+        5.33257520198822
+      ],
+      "sizeRobloxStuds": [
+        5.077638387680054,
+        1.2599998712539673,
+        1.2599995136260986
+      ]
+    },
+    {
+      "name": "BossShellBorder_-1_0",
+      "role": "accessory",
+      "triangles": 116,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.822410434484482,
+        7.277494366168976,
+        2.157486157491803
+      ],
+      "sizeRobloxStuds": [
+        4.383287250995636,
+        9.710299372673035,
+        4.160087194293737
+      ]
+    },
+    {
+      "name": "BossShellPanel_-1_0",
+      "role": "accessory",
+      "triangles": 116,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.9960297346115112,
+        7.336735780239105,
+        2.172627428546548
+      ],
+      "sizeRobloxStuds": [
+        4.346215009689331,
+        9.741872191429138,
+        4.010219614952803
+      ]
+    },
+    {
+      "name": "BossShellBorder_-1_1",
+      "role": "accessory",
+      "triangles": 116,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.824505239725113,
+        7.277241880893707,
+        -2.138159195892513
+      ],
+      "sizeRobloxStuds": [
+        4.387614905834198,
+        9.710358023643494,
+        4.1988498363643885
+      ]
+    },
+    {
+      "name": "BossShellPanel_-1_1",
+      "role": "accessory",
+      "triangles": 116,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.9983752369880676,
+        7.336457545757294,
+        -2.1518147103488445
+      ],
+      "sizeRobloxStuds": [
+        4.350968241691589,
+        9.74225127696991,
+        4.052241303026676
+      ]
+    },
+    {
+      "name": "BossShellBorder_-1_2",
+      "role": "accessory",
+      "triangles": 116,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -2.303822871297598,
+        7.255048389434815,
+        -4.005661725997925
+      ],
+      "sizeRobloxStuds": [
+        4.060450561344624,
+        9.826880693435669,
+        4.7988152503967285
+      ]
+    },
+    {
+      "name": "BossShellPanel_-1_2",
+      "role": "accessory",
+      "triangles": 116,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -2.3379820212721825,
+        7.308522517681122,
+        -4.166174232959747
+      ],
+      "sizeRobloxStuds": [
+        3.9153881818056107,
+        9.865109324455261,
+        4.737862944602966
+      ]
+    },
+    {
+      "name": "BossPauldronRim_-1",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": "hinged armor sway",
+      "offsetRobloxStuds": [
+        -5.669999957084656,
+        8.002448971271516,
+        0.24000003933906555
+      ],
+      "sizeRobloxStuds": [
+        2.4599997997283936,
+        5.945932745933533,
+        5.933415591716766
+      ]
+    },
+    {
+      "name": "BossPauldronPlate_-1",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -6.990000128746033,
+        8.12211362540722,
+        0.23777872323989868
+      ],
+      "sizeRobloxStuds": [
+        0.4200003147125244,
+        5.133464008569717,
+        5.1701037883758545
+      ]
+    },
+    {
+      "name": "BossPauldronGem_-1",
+      "role": "accessory",
+      "triangles": 8,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -7.56000030040741,
+        8.359938370883466,
+        0.23333591222763062
+      ],
+      "sizeRobloxStuds": [
+        0.7799999713897705,
+        2.9394962936639786,
+        2.939496159553528
+      ]
+    },
+    {
+      "name": "BossPivot_-1_0",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -7.200000286102295,
+        8.223285655379296,
+        2.5762668550014496
+      ],
+      "sizeRobloxStuds": [
+        0.7200007438659668,
+        1.2597841322422028,
+        1.2597840428352356
+      ]
+    },
+    {
+      "name": "BossPivotCore_-1_0",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -7.619999885559082,
+        8.223285655379296,
+        2.5762669444084167
+      ],
+      "sizeRobloxStuds": [
+        0.15000057220458984,
+        0.6238931715488434,
+        0.6238932609558105
+      ]
+    },
+    {
+      "name": "BossPivot_-1_1",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -7.200000286102295,
+        8.135542194247247,
+        -2.162920832633972
+      ],
+      "sizeRobloxStuds": [
+        0.7200007438659668,
+        1.2597841322422028,
+        1.25978422164917
+      ]
+    },
+    {
+      "name": "BossPivotCore_-1_1",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -7.619999885559082,
+        8.135542194247247,
+        -2.162920832633972
+      ],
+      "sizeRobloxStuds": [
+        0.15000057220458984,
+        0.6238931715488434,
+        0.6238932609558105
+      ]
+    },
+    {
+      "name": "BossHipRim_-1_0",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.590000092983246,
+        3.9800000590085984,
+        2.7599999606609344
+      ],
+      "sizeRobloxStuds": [
+        1.9799998998641968,
+        2.5199998319149017,
+        2.9399998784065247
+      ]
+    },
+    {
+      "name": "BossHipPlate_-1_0",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -5.67300009727478,
+        4.069999928474426,
+        2.7600000500679016
+      ],
+      "sizeRobloxStuds": [
+        0.24600005149841309,
+        2.0400002002716064,
+        2.460000157356262
+      ]
+    },
+    {
+      "name": "BossHipRim_-1_1",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.590000092983246,
+        3.9800000590085984,
+        -3.119999974966049
+      ],
+      "sizeRobloxStuds": [
+        1.9799998998641968,
+        2.5199998319149017,
+        2.9399998784065247
+      ]
+    },
+    {
+      "name": "BossHipPlate_-1_1",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -5.67300009727478,
+        4.069999928474426,
+        -3.1200000643730164
+      ],
+      "sizeRobloxStuds": [
+        0.24600005149841309,
+        2.0400002002716064,
+        2.460000157356262
+      ]
+    },
+    {
+      "name": "BossRearSocket_-1_0",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.619999885559082,
+        4.819999883770943,
+        -4.139999985694885
+      ],
+      "sizeRobloxStuds": [
+        1.679999828338623,
+        1.6800000965595245,
+        1.080000400543213
+      ]
+    },
+    {
+      "name": "BossRearCrystal_-1_0",
+      "role": "accessory",
+      "triangles": 8,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -5.729999899864197,
+        4.81999997317791,
+        -4.139999985694885
+      ],
+      "sizeRobloxStuds": [
+        0.7799999713897705,
+        1.5600000321865082,
+        1.559999942779541
+      ]
+    },
+    {
+      "name": "BossRearSocket_-1_1",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.619999885559082,
+        6.499999980330467,
+        -4.619999885559082
+      ],
+      "sizeRobloxStuds": [
+        1.679999828338623,
+        1.6800000965595245,
+        1.080000400543213
+      ]
+    },
+    {
+      "name": "BossRearCrystal_-1_1",
+      "role": "accessory",
+      "triangles": 8,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -5.729999899864197,
+        6.499999980330467,
+        -4.619999885559082
+      ],
+      "sizeRobloxStuds": [
+        0.7799999713897705,
+        1.5600000321865082,
+        1.559999942779541
+      ]
+    },
+    {
+      "name": "BossShellBorder_1_0",
+      "role": "accessory",
+      "triangles": 116,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.8224038183689117,
+        7.27724116563797,
+        2.1575130242854357
+      ],
+      "sizeRobloxStuds": [
+        4.383412063121796,
+        9.710359454154968,
+        4.160142179578543
+      ]
+    },
+    {
+      "name": "BossShellPanel_1_0",
+      "role": "accessory",
+      "triangles": 116,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.996035635471344,
+        7.3364568305015565,
+        2.172725038602948
+      ],
+      "sizeRobloxStuds": [
+        4.346289038658142,
+        9.742252707481384,
+        4.010420646518469
+      ]
+    },
+    {
+      "name": "BossShellBorder_1_1",
+      "role": "accessory",
+      "triangles": 116,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.8245259821414948,
+        7.277492935657501,
+        -2.1381320944055915
+      ],
+      "sizeRobloxStuds": [
+        4.387519061565399,
+        9.710299372673035,
+        4.198795320466161
+      ]
+    },
+    {
+      "name": "BossShellPanel_1_1",
+      "role": "accessory",
+      "triangles": 116,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.998356282711029,
+        7.336734707355499,
+        -2.1517161391675472
+      ],
+      "sizeRobloxStuds": [
+        4.350868821144104,
+        9.7418714761734,
+        4.052040763199329
+      ]
+    },
+    {
+      "name": "BossShellBorder_1_2",
+      "role": "accessory",
+      "triangles": 116,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        2.303670521825552,
+        7.255252952575684,
+        -4.0056692361831665
+      ],
+      "sizeRobloxStuds": [
+        4.060145862400532,
+        9.82647156715393,
+        4.798797369003296
+      ]
+    },
+    {
+      "name": "BossShellPanel_1_2",
+      "role": "accessory",
+      "triangles": 116,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        2.3381676748394966,
+        7.30856006860733,
+        -4.166231095790863
+      ],
+      "sizeRobloxStuds": [
+        3.9157593101263046,
+        9.865037083625793,
+        4.737749218940735
+      ]
+    },
+    {
+      "name": "BossPauldronRim_1",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": "hinged armor sway",
+      "offsetRobloxStuds": [
+        5.669999957084656,
+        7.992925072908402,
+        0.23918366432189941
+      ],
+      "sizeRobloxStuds": [
+        2.4599997997283936,
+        5.9497427344322205,
+        5.929605960845947
+      ]
+    },
+    {
+      "name": "BossPauldronPlate_1",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        6.990000128746033,
+        8.113814066052438,
+        0.24151664972305298
+      ],
+      "sizeRobloxStuds": [
+        0.4200003147125244,
+        5.136783689260483,
+        5.1668150424957275
+      ]
+    },
+    {
+      "name": "BossPauldronGem_1",
+      "role": "accessory",
+      "triangles": 8,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        7.56000030040741,
+        8.359938370883466,
+        0.24666398763656616
+      ],
+      "sizeRobloxStuds": [
+        0.7799999713897705,
+        2.9394962936639786,
+        2.939496159553528
+      ]
+    },
+    {
+      "name": "BossPivot_1_0",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        7.200000286102295,
+        8.136652807593347,
+        2.5829308927059174
+      ],
+      "sizeRobloxStuds": [
+        0.7200007438659668,
+        1.2597841322422028,
+        1.2597840428352356
+      ]
+    },
+    {
+      "name": "BossPivotCore_1_0",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        7.619999885559082,
+        8.136652807593347,
+        2.5829309821128845
+      ],
+      "sizeRobloxStuds": [
+        0.15000057220458984,
+        0.6238931715488434,
+        0.6238932609558105
+      ]
+    },
+    {
+      "name": "BossPivot_1_1",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        7.200000286102295,
+        8.224396268725396,
+        -2.1562567949295044
+      ],
+      "sizeRobloxStuds": [
+        0.7200007438659668,
+        1.2597841322422028,
+        1.25978422164917
+      ]
+    },
+    {
+      "name": "BossPivotCore_1_1",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        7.619999885559082,
+        8.224396268725396,
+        -2.1562567949295044
+      ],
+      "sizeRobloxStuds": [
+        0.15000057220458984,
+        0.6238931715488434,
+        0.6238932609558105
+      ]
+    },
+    {
+      "name": "BossHipRim_1_0",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.590000092983246,
+        3.9800000590085984,
+        2.7599999606609344
+      ],
+      "sizeRobloxStuds": [
+        1.9799998998641968,
+        2.5199998319149017,
+        2.9399998784065247
+      ]
+    },
+    {
+      "name": "BossHipPlate_1_0",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        5.67300009727478,
+        4.069999928474426,
+        2.7600000500679016
+      ],
+      "sizeRobloxStuds": [
+        0.24600005149841309,
+        2.0400002002716064,
+        2.460000157356262
+      ]
+    },
+    {
+      "name": "BossHipRim_1_1",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.590000092983246,
+        3.9800000590085984,
+        -3.119999974966049
+      ],
+      "sizeRobloxStuds": [
+        1.9799998998641968,
+        2.5199998319149017,
+        2.9399998784065247
+      ]
+    },
+    {
+      "name": "BossHipPlate_1_1",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        5.67300009727478,
+        4.069999928474426,
+        -3.1200000643730164
+      ],
+      "sizeRobloxStuds": [
+        0.24600005149841309,
+        2.0400002002716064,
+        2.460000157356262
+      ]
+    },
+    {
+      "name": "BossRearSocket_1_0",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.619999885559082,
+        4.819999883770943,
+        -4.139999985694885
+      ],
+      "sizeRobloxStuds": [
+        1.679999828338623,
+        1.6800000965595245,
+        1.080000400543213
+      ]
+    },
+    {
+      "name": "BossRearCrystal_1_0",
+      "role": "accessory",
+      "triangles": 8,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        5.729999899864197,
+        4.81999997317791,
+        -4.139999985694885
+      ],
+      "sizeRobloxStuds": [
+        0.7799999713897705,
+        1.5600000321865082,
+        1.559999942779541
+      ]
+    },
+    {
+      "name": "BossRearSocket_1_1",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.619999885559082,
+        6.499999980330467,
+        -4.619999885559082
+      ],
+      "sizeRobloxStuds": [
+        1.679999828338623,
+        1.6800000965595245,
+        1.080000400543213
+      ]
+    },
+    {
+      "name": "BossRearCrystal_1_1",
+      "role": "accessory",
+      "triangles": 8,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        5.729999899864197,
+        6.499999980330467,
+        -4.619999885559082
+      ],
+      "sizeRobloxStuds": [
+        0.7799999713897705,
+        1.5600000321865082,
+        1.559999942779541
+      ]
+    },
+    {
+      "name": "BossBackSpine",
+      "role": "accessory",
+      "triangles": 136,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        2.2709369659423828e-05,
+        8.056412155628205,
+        -4.41945692896843
+      ],
+      "sizeRobloxStuds": [
+        3.8116836547851562,
+        9.068856596946716,
+        5.082078516483307
+      ]
+    },
+    {
+      "name": "BossBackInset",
+      "role": "accessory",
+      "triangles": 108,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        1.5735626220703125e-05,
+        8.389172549247743,
+        -4.748385161161423
+      ],
+      "sizeRobloxStuds": [
+        2.7117562294006348,
+        8.375611782073975,
+        4.722570955753326
+      ]
+    },
+    {
+      "name": "BossBackGem",
+      "role": "accessory",
+      "triangles": 8,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        7.219999986588955,
+        -7.110000014305115
+      ],
+      "sizeRobloxStuds": [
+        2.2799999713897705,
+        2.279999926686287,
+        0.7799999713897705
+      ]
+    }
+  ],
+  "exports": [
+    {
+      "file": "finalboss-arcade-v2-accessories.fbx",
+      "sha256": "007800b6b4351d808f3660b3637eb294b9fe8707bd479f16144d32042f75c712",
+      "meshCount": 45,
+      "roundTripChecked": true,
+      "roundTripBoundsError": 1.430511474609375e-06
+    },
+    {
+      "file": "finalboss-arcade-v2-complete.fbx",
+      "sha256": "27dc1325309e1e12a9dcf4e944e108977902153c7437e70d9b652287864a0741",
+      "meshCount": 51,
+      "roundTripChecked": true,
+      "roundTripBoundsError": 1.430511474609375e-06
+    }
+  ],
+  "aura": "arcade_boss_energy_proposed",
+  "auraPreviewObjects": 10,
+  "auraExcludedFromMeshExports": true,
+  "animation": {
+    "loopSeconds": 6,
+    "fps": 24,
+    "frames": [
+      1,
+      145
+    ],
+    "loopClosureError": 0.0,
+    "faceClearanceSampledFrames": 9
+  },
+  "tierChecks": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": true
+  },
+  "textures": [
+    {
+      "role": "body_color",
+      "file": "sheets\\finalboss_arcade_v1_body_color.png",
+      "sha256": "16f791e5ccc195b4200a027ed31d38f5bbdd867908ca9ad3f48063a9c05939f6",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\finalboss_arcade_v1_body_emissive.png",
+      "sha256": "e5841761e7084e43ffd7c6fd52ad7289b5608e7d411cc147436044e7fb49fa13",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\finalboss_arcade_v1_trim_color.png",
+      "sha256": "30e5eeb65164277d123838448ce468b21d31b792ef1789916e485bb481eb656f",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\finalboss_arcade_v1_trim_emissive.png",
+      "sha256": "b423c3205b957f68b072235b9343520f84b1adde4b216bd44893a20e9398f704",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "generator": "assets/piggies/arcade-build-v1/build_arcade.py",
+  "runtimeNotes": "Accessory model replaces v1. Runtime poses extracted from this v2 blend. Base geometry and UVs unchanged. Mecha uses revised non-emissive pale coat maps; glow comes from hardware."
+}

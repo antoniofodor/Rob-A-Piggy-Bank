@@ -1,0 +1,187 @@
+{
+  "key": "verdigris",
+  "name": "Verdigris",
+  "tier": "rare",
+  "path": "assets/piggies/rare/verdigris",
+  "status": "Uploaded and installed (og-redesign-v1 maps round, 2026-09-23)",
+  "revision": "og-redesign-v1",
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/verdigris.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://78524401315423",
+        "MetalnessMap": "rbxassetid://81561264487207",
+        "RoughnessMap": "rbxassetid://127462407879816",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/verdigris_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://126126364024739",
+        "MetalnessMap": "rbxassetid://85823423935888",
+        "RoughnessMap": "rbxassetid://85446946569314",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://78524401315423": {
+      "role": "verdigris ColorMap",
+      "file": "sheets/verdigris_og_v1_body_color.png",
+      "sha256": "81e2c23d5a1c0eaff7ed8730c5f6fcdac08c4cc2601e59b37ab25cfb55b6645b"
+    },
+    "rbxassetid://81561264487207": {
+      "role": "verdigris MetalnessMap",
+      "file": "sheets/verdigris_og_v1_body_metal.png",
+      "sha256": "f4fb954a52b8d097877a762eff0edb83bc5f44761d9c98cfe088748fe59b1ef3"
+    },
+    "rbxassetid://127462407879816": {
+      "role": "verdigris RoughnessMap",
+      "file": "sheets/verdigris_og_v1_body_rough.png",
+      "sha256": "a497a7e44f83747522f17d0fa7c0270cb5db573e6ce157d4b15c8f28e49adaef"
+    },
+    "rbxassetid://126126364024739": {
+      "role": "verdigris_trim ColorMap",
+      "file": "sheets/verdigris_og_v1_trim_color.png",
+      "sha256": "f8b2cef50aa416796edf6b8fff2c1dbaf404a210db53cbd8028416cceae20e2c"
+    },
+    "rbxassetid://85823423935888": {
+      "role": "verdigris_trim MetalnessMap",
+      "file": "sheets/verdigris_og_v1_trim_metal.png",
+      "sha256": "91275abc4740f80903497e00ba4f7cd443641bcf0a7eec15ddde7407cd5eb8b2"
+    },
+    "rbxassetid://85446946569314": {
+      "role": "verdigris_trim RoughnessMap",
+      "file": "sheets/verdigris_og_v1_trim_rough.png",
+      "sha256": "450a637110baa3b4825835e3a7cb37f331c0f2effc3c27c7c2d11e8245c7655a"
+    }
+  },
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau",
+    "skinsRow": {
+      "line": 7084,
+      "name": "Verdigris",
+      "rarity": "rare",
+      "surface": "verdigris",
+      "chest": "og",
+      "pattern": false,
+      "anim": false,
+      "fx": false
+    },
+    "surfacePack": {
+      "key": "verdigris",
+      "line": 6005,
+      "template": "verdigris",
+      "trimTemplate": "verdigris_trim"
+    },
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "concept": "preview/verdigris-og-v1-concept.png",
+  "prompt": "generate/og-v1-concept-prompt.txt",
+  "conceptMethod": "built-in image_gen",
+  "source": "source/verdigris-og-v1-procedural.blend",
+  "review": "package/verdigris-og-v1.blend",
+  "generator": "assets\\piggies\\og-redesign-v1\\build_og.py",
+  "report": "package/og-v1-asset-report.json",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\verdigris_og_v1_body_color.png",
+      "sha256": "81e2c23d5a1c0eaff7ed8730c5f6fcdac08c4cc2601e59b37ab25cfb55b6645b",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_metal",
+      "file": "sheets\\verdigris_og_v1_body_metal.png",
+      "sha256": "f4fb954a52b8d097877a762eff0edb83bc5f44761d9c98cfe088748fe59b1ef3",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_rough",
+      "file": "sheets\\verdigris_og_v1_body_rough.png",
+      "sha256": "a497a7e44f83747522f17d0fa7c0270cb5db573e6ce157d4b15c8f28e49adaef",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\verdigris_og_v1_trim_color.png",
+      "sha256": "f8b2cef50aa416796edf6b8fff2c1dbaf404a210db53cbd8028416cceae20e2c",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_metal",
+      "file": "sheets\\verdigris_og_v1_trim_metal.png",
+      "sha256": "91275abc4740f80903497e00ba4f7cd443641bcf0a7eec15ddde7407cd5eb8b2",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_rough",
+      "file": "sheets\\verdigris_og_v1_trim_rough.png",
+      "sha256": "450a637110baa3b4825835e3a7cb37f331c0f2effc3c27c7c2d11e8245c7655a",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": false,
+    "substantialAnimatedGeometry": false
+  },
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": false
+  },
+  "files": {
+    "source": [
+      "verdigris-og-v1-procedural.blend"
+    ],
+    "generate": [
+      "og-v1-concept-prompt.txt",
+      "og-v1-spec.json"
+    ],
+    "sheets": [
+      "verdigris_og_v1_body_color.png",
+      "verdigris_og_v1_body_metal.png",
+      "verdigris_og_v1_body_rough.png",
+      "verdigris_og_v1_trim_color.png",
+      "verdigris_og_v1_trim_metal.png",
+      "verdigris_og_v1_trim_rough.png"
+    ],
+    "preview": [
+      "verdigris-og-v1-back.png",
+      "verdigris-og-v1-concept.png",
+      "verdigris-og-v1-hero.png"
+    ],
+    "package": [
+      "og-v1-asset-report.json",
+      "verdigris-og-v1-complete.fbx",
+      "verdigris-og-v1.blend"
+    ]
+  }
+}

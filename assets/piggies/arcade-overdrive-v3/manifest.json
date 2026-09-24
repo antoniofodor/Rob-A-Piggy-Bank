@@ -1,0 +1,16 @@
+{
+  "name": "Overdrive",
+  "key": "finalboss",
+  "revision": "arcade-overdrive-v3",
+  "status": "review only; v2 geometry remains installed",
+  "design": "Overdrive: a powered-up arcade pig with a clean pink face and feet, fitted plum and violet shields, thin gold borders, routed pink glow tracks, four-cell charge meters, pulsing diamond cores, hinged shoulder motion, rotating rear reactor and sparse pink pixel aura. The original functional coin slot remains open.",
+  "tierRules": {
+    "tier": "legendary",
+    "geometry": "fitted shields, layered armor, mounted reactor and cartridges",
+    "glow": "pink channels, charge cells and diamond cores",
+    "motion": "hinged shields, pulsing cores and rotating reactor",
+    "aura": "existing sparse pink arcade pixels"
+  },
+  "model": "../legendary/finalboss/package/overdrive-v3/finalboss-overdrive-v3.blend",
+  "preview": "index.html"
+}

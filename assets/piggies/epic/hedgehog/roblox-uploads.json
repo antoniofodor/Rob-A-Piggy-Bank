@@ -1,0 +1,31 @@
+{
+  "skin": "hedgehog",
+  "revision": "epic-v2",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "accessories": {
+      "source": "assets/piggies/epic/hedgehog/package/epic-v2/hedgehog-epic-v2-accessories.fbx",
+      "sha256": "901fc3a13281ab6fbcc8426d74e0913533ef21f69b8aff6135139b6f5d049a42",
+      "assetType": "Model",
+      "operationId": "6afb63a2-3e25-4e2e-bab8-d44f68fcbc23",
+      "assetId": "72540328543121",
+      "moderationState": "Approved"
+    },
+    "body": {
+      "source": "assets/piggies/epic/hedgehog/sheets/hedgehog-epic-v2-body.png",
+      "sha256": "49ae4f413fe570ec7f664b0908cdeb06e5467fd9e01f5296fbe47655f9b98747",
+      "assetType": "Image",
+      "operationId": "6de4d898-c1eb-4b84-9c33-109fa3eff331",
+      "assetId": "127860745207025",
+      "moderationState": "Approved"
+    },
+    "trim": {
+      "source": "assets/piggies/epic/hedgehog/sheets/hedgehog-epic-v2-trim.png",
+      "sha256": "b6507627a7cc6fc24ef929f99a7d5bba687e2b1480085c898aacce519a6d6255",
+      "assetType": "Image",
+      "operationId": "06f65da1-6431-4b9f-8e37-94d5ddd4686a",
+      "assetId": "88556242869890",
+      "moderationState": "Approved"
+    }
+  }
+}

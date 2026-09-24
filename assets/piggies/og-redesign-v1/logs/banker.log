@@ -1,0 +1,25 @@
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:07.469  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_2076_e1ef07108d8204e60e52732063ee3e91.png.png"
+Info: Saved as "banker-og-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED banker body color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED banker trim color
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:477: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:36.266  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\rare\banker\preview\banker-og-v1-hero.png'
+00:53.204  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\rare\banker\preview\banker-og-v1-back.png'
+00:53.297  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_2076_a2048855e25c6f89d1cb9959c7b361db.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\rare\\banker\\package\\banker-og-v1-complete.fbx'
+export finished in 0.1384 sec.
+FBX version: 7400
+Info: Saved as "banker-og-v1.blend"
+OG_COMPLETE banker {"extraTriangles": 0, "maps": 2, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

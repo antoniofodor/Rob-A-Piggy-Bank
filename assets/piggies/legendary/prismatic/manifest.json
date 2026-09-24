@@ -1,0 +1,165 @@
+{
+  "key": "prismatic",
+  "name": "Prismatic",
+  "tier": "legendary",
+  "path": "assets/piggies/legendary/prismatic",
+  "status": "Uploaded and installed (og-redesign-v1 maps round, 2026-09-23)",
+  "revision": "og-redesign-v1",
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/prismatic.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://100203458541332",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "EmissiveMaskContent": "rbxassetid://134523592232228",
+        "EmissiveStrength": 1.2
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/prismatic_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://122467338382430",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "EmissiveMaskContent": "rbxassetid://86766175182738",
+        "EmissiveStrength": 1.2
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://100203458541332": {
+      "role": "prismatic ColorMap",
+      "file": "sheets/prismatic_og_v1_body_color.png",
+      "sha256": "0de62f6a51e420a5e89287a02dec4a09b3b1168af5172faf985b1fc8cc4221df"
+    },
+    "rbxassetid://134523592232228": {
+      "role": "prismatic EmissiveMaskContent",
+      "file": "sheets/prismatic_og_v1_body_emissive.png",
+      "sha256": "f3aa1be238902b2d8bda37671ce2603cecbf2eb6570da6e8f230caeb446fb58e"
+    },
+    "rbxassetid://122467338382430": {
+      "role": "prismatic_trim ColorMap",
+      "file": "sheets/prismatic_og_v1_trim_color.png",
+      "sha256": "ddaa6526f6b5ee9174a80449c1d4b8be0fdd500a163cf67a30a05f76d0e82d4e"
+    },
+    "rbxassetid://86766175182738": {
+      "role": "prismatic_trim EmissiveMaskContent",
+      "file": "sheets/prismatic_og_v1_trim_emissive.png",
+      "sha256": "da640af3f8127db9dd87e333bc6d36f1e529c4f411f52a0759398fd1fbf52c16"
+    }
+  },
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau",
+    "skinsRow": {
+      "line": 6421,
+      "name": "Prismatic",
+      "rarity": "legendary",
+      "surface": "prismatic",
+      "chest": "og",
+      "pattern": false,
+      "anim": true,
+      "fx": true
+    },
+    "surfacePack": {
+      "key": "prismatic",
+      "line": 6014,
+      "template": "prismatic",
+      "trimTemplate": "prismatic_trim"
+    },
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "concept": "preview/prismatic-og-v1-concept.png",
+  "prompt": "generate/og-v1-concept-prompt.txt",
+  "conceptMethod": "built-in image_gen",
+  "source": "source/prismatic-og-v1-procedural.blend",
+  "review": "package/prismatic-og-v1.blend",
+  "generator": "assets\\piggies\\og-redesign-v1\\build_og.py",
+  "report": "package/og-v1-asset-report.json",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\prismatic_og_v1_body_color.png",
+      "sha256": "0de62f6a51e420a5e89287a02dec4a09b3b1168af5172faf985b1fc8cc4221df",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\prismatic_og_v1_body_emissive.png",
+      "sha256": "f3aa1be238902b2d8bda37671ce2603cecbf2eb6570da6e8f230caeb446fb58e",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\prismatic_og_v1_trim_color.png",
+      "sha256": "ddaa6526f6b5ee9174a80449c1d4b8be0fdd500a163cf67a30a05f76d0e82d4e",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\prismatic_og_v1_trim_emissive.png",
+      "sha256": "da640af3f8127db9dd87e333bc6d36f1e529c4f411f52a0759398fd1fbf52c16",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": true
+  },
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 7,
+    "materialPulse": true,
+    "loopClosureError": 1.714505527444786e-17,
+    "faceClearanceSampledFrames": 9
+  },
+  "files": {
+    "source": [
+      "prismatic-og-v1-procedural.blend"
+    ],
+    "generate": [
+      "og-v1-concept-prompt.txt",
+      "og-v1-spec.json"
+    ],
+    "sheets": [
+      "prismatic_og_v1_body_color.png",
+      "prismatic_og_v1_body_emissive.png",
+      "prismatic_og_v1_trim_color.png",
+      "prismatic_og_v1_trim_emissive.png"
+    ],
+    "preview": [
+      "prismatic-og-v1-back.png",
+      "prismatic-og-v1-concept.png",
+      "prismatic-og-v1-hero.png",
+      "prismatic-og-v1-motion.png"
+    ],
+    "package": [
+      "og-v1-asset-report.json",
+      "prismatic-og-v1-accessories.fbx",
+      "prismatic-og-v1-complete.fbx",
+      "prismatic-og-v1.blend"
+    ]
+  }
+}

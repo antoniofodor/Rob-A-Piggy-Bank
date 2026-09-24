@@ -1,0 +1,37 @@
+C:\Users\anton\robloxGame\assets\piggies\arcade-build-v1\build_arcade.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:06.562  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_4216_8bf73066b47cf8ede3c3fd4fed9564a7.png.png"
+Info: Saved as "powerup-arcade-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED powerup body color
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED powerup body emissive
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED powerup trim color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED powerup trim emissive
+C:\Users\anton\robloxGame\assets\piggies\arcade-build-v1\build_arcade.py:704: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:51.078  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\powerup\preview\powerup-arcade-v1-hero.png'
+01:19.390  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\powerup\preview\powerup-arcade-v1-back.png'
+01:44.390  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\powerup\preview\powerup-arcade-v1-motion.png'
+01:44.422  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_4216_92ce9437a8fa4899eb87eec90b77678d.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\epic\\powerup\\package\\powerup-arcade-v1-complete.fbx'
+export finished in 0.0868 sec.
+FBX version: 7400
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\epic\\powerup\\package\\powerup-arcade-v1-accessories.fbx'
+export finished in 0.1346 sec.
+FBX version: 7400
+Info: Saved as "powerup-arcade-v1.blend"
+ARCADE_COMPLETE powerup {"extraTriangles": 72, "maps": 4, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

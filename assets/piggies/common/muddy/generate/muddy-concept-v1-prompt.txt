@@ -1,0 +1,13 @@
+Tool: built-in image_gen
+Reference: assets/ui/rebirth-icons-v1/references/classic-piggy-model.png
+Output: assets/piggies/common/muddy/preview/muddy-concept-v1.png
+Status: concept only; no Blender or game implementation yet.
+
+Use case: stylized-concept.
+Create a polished game skin concept sheet for MUDDY PIGGY, the OG Collection, using the supplied image as the STRICT character/model reference. Preserve this exact squat egg-shaped pig, proportions, short cylindrical legs, large two-hole rounded snout, black bead eyes, tall triangular rounded ears and curled tail. This is a skin concept, not a new character or breed.
+
+Two clean large views of the SAME design on one landscape sheet: left front three-quarter view matching the reference, right rear three-quarter view that clearly shows its back, rump, curled tail and rear legs. Keep the complete feet and ears inside the frame. Subtle warm grey studio background and soft ground shadows. Small tasteful title "MUDDY PIGGY" with subtitle "OG COLLECTION · CONCEPT"; tiny view labels "FRONT" and "BACK". No other text.
+
+Design: preserve the familiar blush pink body (approximately #EEA0B8) and darker pink snout/ears/legs (#D27692). Rich earthy brown mud (#704A30) has SPLASHED onto all four legs and around the pig's BACK. Coat the feet and lower legs with mud, with irregular uneven upward splash edges, a few small attached droplets higher on the legs, and splash streaks extending onto the lower flanks. Across the upper rear back and rump, show several broad connected asymmetrical mud splashes as if the pig has rolled in mud, wrapping naturally down both rear flanks; intersperse some smaller splatters and pink gaps. Make the rear view clearly communicate the back mud coverage. This must read as mud splashes, NOT regular brown polka dots, not a saddle, not zebra/cow markings, not a full brown recolour. Keep the face, snout, eyes and ears clean pink so the pig's friendly face remains clear.
+
+Mud should look like a thin adherent muddy coating with soft organic splatter silhouettes and restrained shallow relief, matte with tiny damp highlights; slightly lighter brown edges in a few places, no noisy photorealistic grit. Preserve all original silhouette and anatomy. Do not add boots, clothing, hair, armor, horns, accessories, mud puddles, flying particles or chunky separate objects. Match the charming simple smooth 3D game-asset finish of the supplied model. The two views must have coherent consistent mud placement.

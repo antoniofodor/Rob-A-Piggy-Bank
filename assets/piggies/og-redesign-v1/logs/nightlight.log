@@ -1,0 +1,33 @@
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:06.953  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_13668_16a93faee864326a5bdbf1e90a494d16.png.png"
+Info: Saved as "nightlight-og-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED nightlight body color
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED nightlight body emissive
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED nightlight trim color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED nightlight trim emissive
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:477: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:41.781  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\nightlight\preview\nightlight-og-v1-hero.png'
+00:50.594  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\nightlight\preview\nightlight-og-v1-back.png'
+00:59.625  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\nightlight\preview\nightlight-og-v1-motion.png'
+00:59.656  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_13668_4de00f51d25a6ec41ae46474fc58e276.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\epic\\nightlight\\package\\nightlight-og-v1-complete.fbx'
+export finished in 0.2148 sec.
+FBX version: 7400
+Info: Saved as "nightlight-og-v1.blend"
+OG_COMPLETE nightlight {"extraTriangles": 0, "maps": 4, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

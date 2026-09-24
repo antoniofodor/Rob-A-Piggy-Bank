@@ -1,0 +1,55 @@
+C:\Users\anton\robloxGame\assets\piggies\og-refresh-v2\build.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:03.703  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_21460_44de9b8c4df3ea6239302a7094e2c204.png.png"
+Info: Saved as "hologram-og-v2-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED hologram body color
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED hologram body metal
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED hologram body rough
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED hologram body emissive
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED hologram body alpha
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED hologram trim color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED hologram trim metal
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED hologram trim rough
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED hologram trim emissive
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED hologram trim alpha
+C:\Users\anton\robloxGame\assets\piggies\og-refresh-v2\build.py:273: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:49.344  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\hologram\revisions\og-v2\preview\hologram-og-v2-hero.png'
+01:38.469  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\hologram\revisions\og-v2\preview\hologram-og-v2-back.png'
+02:28.016  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\hologram\revisions\og-v2\preview\hologram-og-v2-top.png'
+03:06.984  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\hologram\revisions\og-v2\preview\hologram-og-v2-motion.png'
+03:07.016  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_21460_eb145d697da3bff552beb39ece3f5dcd.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\epic\\hologram\\revisions\\og-v2\\package\\hologram-og-v2-complete.fbx'
+export finished in 0.0358 sec.
+FBX version: 7400
+Info: Saved as "hologram-og-v2.blend"
+OG_COMPLETE hologram {"extraTriangles": 0, "maps": 12, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

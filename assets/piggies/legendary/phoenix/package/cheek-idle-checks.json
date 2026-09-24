@@ -1,0 +1,39 @@
+{
+  "sceneSHA256": "5885f4b8194f0941d1e8192cf0c73a4a9665c0ddbcfb2394dd74538ec5eebfae",
+  "geometryUnchanged": true,
+  "framesChecked": 121,
+  "cheekVertexMaximumMotion": 0,
+  "windTracks": {
+    "Tail": {
+      "minimumDegrees": -0.10148683963949637,
+      "maximumDegrees": 3.076302242084111,
+      "loopError": 1.3877787807814457e-17
+    },
+    "Mantle_L": {
+      "minimumDegrees": -0.093067324845135,
+      "maximumDegrees": 2.160935148005325,
+      "loopError": 6.938893903907228e-18
+    },
+    "Mantle_R": {
+      "minimumDegrees": -0.10120482298540981,
+      "maximumDegrees": 2.402678251208128,
+      "loopError": 2.6020852139652106e-18
+    },
+    "Crest_0": {
+      "minimumDegrees": -0.15969079627284513,
+      "maximumDegrees": 4.130231801567931,
+      "loopError": 1.5612511283791264e-17
+    },
+    "Crest_1": {
+      "minimumDegrees": -0.1733670799766738,
+      "maximumDegrees": 4.617132387221259,
+      "loopError": 4.336808689942018e-18
+    },
+    "Crest_2": {
+      "minimumDegrees": -0.1430683342122395,
+      "maximumDegrees": 3.847546236278272,
+      "loopError": 1.5287250632045613e-17
+    }
+  },
+  "notes": "A delayed icy gust passes from crest through mantle to tail, with faster tip flutter during the gust. Cheek ruffs stay seated against the face."
+}

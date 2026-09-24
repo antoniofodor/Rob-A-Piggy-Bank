@@ -1,0 +1,24 @@
+{
+  "key": "aurora",
+  "name": "Aurora",
+  "tier": "rare",
+  "palette": [
+    [
+      21,
+      32,
+      77
+    ],
+    [
+      63,
+      219,
+      172
+    ],
+    [
+      182,
+      111,
+      228
+    ]
+  ],
+  "aura": null,
+  "design": "Midnight blue coat crossed by broad, flowing green, cyan and violet northern-light curtains. Fine vertical light folds, a few tiny stars, indigo face and mint feet. Gentle ribbon shimmer; no particle aura."
+}

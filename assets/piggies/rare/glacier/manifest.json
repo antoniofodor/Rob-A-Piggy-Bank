@@ -39,7 +39,7 @@
         "MetalnessMap": "",
         "RoughnessMap": "",
         "NormalMap": "",
-        "ColorMap": "rbxassetid://98780172703635",
+        "ColorMap": "rbxassetid://123936560500286",
         "EmissiveMaskContent": ""
       },
       "alphaMode": "Overlay"
@@ -50,23 +50,35 @@
         "MetalnessMap": "",
         "RoughnessMap": "",
         "NormalMap": "",
-        "ColorMap": "rbxassetid://81141498873927",
+        "ColorMap": "rbxassetid://117711268342844",
         "EmissiveMaskContent": ""
       },
       "alphaMode": "Overlay"
     }
   },
   "idSources": {
-    "rbxassetid://98780172703635": {
-      "file": "sheets/glacier_body_color.open-hatch.png",
-      "sha256": "3dd4c1fc49ab4de23d4a370416b31ae4f7ba7a375357313cbba0e20ad890419c",
-      "role": "body ColorMap",
-      "note": "uploaded from the open-hatch bake"
+    "rbxassetid://74815533505571": {
+      "file": "sheets/glacier_body_color.png",
+      "sha256": "2b1835779470e018e2b0c87307469cfc9332fcff3a0b103a14e8e6ff29b7de61",
+      "role": "glacier ColorMap",
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://98780172703635"
     },
     "rbxassetid://81141498873927": {
       "file": "sheets/glacier_trim_color.png",
       "sha256": "d8f9864c91f58964bb2120d6d4ac5aa626e1d4491a5897bc7a4292739d320579",
       "role": "trim ColorMap"
+    },
+    "rbxassetid://123936560500286": {
+      "file": "sheets/glacier_body_color.png",
+      "sha256": "3763591fab5623cde9999d3cd6d1d185518d659933c5f5196907fc16040b8fb3",
+      "role": "body ColorMap",
+      "note": "Smooth shoulder stripe transition; uploaded with designer authorization 2026-09-23; replaces rbxassetid://74815533505571"
+    },
+    "rbxassetid://117711268342844": {
+      "file": "sheets/glacier_trim_color.png",
+      "sha256": "b3f31fb4c3c64a24a966ff049ca92dc908da967bba8e04978020de7da1bfaada",
+      "role": "trim ColorMap",
+      "note": "Smooth shoulder stripe transition; uploaded with designer authorization 2026-09-23; replaces rbxassetid://81141498873927"
     }
   },
   "shopCard": {
@@ -77,16 +89,16 @@
   },
   "derivedPackage": {
     "path": "assets/piggies/rare/glacier/package",
-    "note": "DERIVED by blender/pig/make/package_animal.py from this folder; not a source",
+    "note": "Derived package refreshed from corrected stripe materials and current bake scene; texture copies verified.",
     "fileCount": 16,
     "textureCopiesMatchShippedSheets": {
-      "glacier_body_color.png": false,
-      "glacier_trim_color.png": false
+      "glacier_body_color.png": true,
+      "glacier_trim_color.png": true
     }
   },
   "closedBack": {
     "closedScene": "source/glacier_closed.blend",
-    "note": "CURRENT body sheet is the closed-back re-bake (designer, 2026-09-22); the live ColorMap id still points at the open-hatch sheet kept as glacier_body_color.open-hatch.png. Re-upload pending."
+    "note": "Current closed-back body sheet includes the smooth stripe transition and is uploaded to the recorded body ColorMap."
   },
   "files": {
     "source": [
@@ -129,5 +141,12 @@
     ]
   },
   "generator": "generate/make_glacier_blend.py",
-  "notes": []
+  "notes": [],
+  "stripeTransition": {
+    "version": 2,
+    "method": "Blend stripe edge distances across the shoulder; solid colour and tapered tips",
+    "generator": "blender/pig/stripe_transition.py",
+    "status": "body and trim uploaded",
+    "validation": "Geometry/UV/material slots unchanged; opaque 1024px sheets; no palette fades; FBX bounds round-trip passed."
+  }
 }

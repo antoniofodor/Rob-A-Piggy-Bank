@@ -37,7 +37,7 @@
     "body": {
       "path": "src/ReplicatedStorage/Shared/SurfacePacks/giraffe.model.json",
       "ids": {
-        "ColorMap": "rbxassetid://118074796365721",
+        "ColorMap": "rbxassetid://138674903408756",
         "MetalnessMap": "",
         "RoughnessMap": "",
         "NormalMap": ""
@@ -56,11 +56,11 @@
     }
   },
   "idSources": {
-    "rbxassetid://118074796365721": {
-      "file": "sheets/giraffe_body_color.open-hatch.png",
-      "sha256": "0726f19dcccbfd7e5f55fe11bbcd1f86ae73b5e5f57b42c22d9c54b27bf7165a",
-      "role": "body ColorMap",
-      "note": "uploaded from the open-hatch bake"
+    "rbxassetid://138674903408756": {
+      "file": "sheets/giraffe_body_color.png",
+      "sha256": "b4c748fc42990c266580ee40f9a60c6e5f0e6218f39fb6c9ee60265b3192c7f0",
+      "role": "giraffe ColorMap",
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://118074796365721"
     },
     "rbxassetid://73750792833556": {
       "file": "sheets/giraffe_trim_color.png",

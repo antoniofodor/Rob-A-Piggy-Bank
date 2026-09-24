@@ -1,0 +1,55 @@
+{
+  "skin": "finalboss",
+  "revision": "arcade-v1",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "accessories": {
+      "source": "assets/piggies/legendary/finalboss/package/finalboss-arcade-v1-accessories.fbx",
+      "sha256": "52498d2ebfc2eaed7a0e2526ea1da3bd65918a3e5b2a544a25ee30640cabf41a",
+      "assetType": "Model",
+      "operationId": "471fa2bf-9c4c-4124-adbe-ff0cf7c74075",
+      "assetId": "139740930009256",
+      "moderationState": "Approved"
+    },
+    "body_color": {
+      "source": "assets/piggies/legendary/finalboss/sheets/finalboss_arcade_v1_body_color.png",
+      "sha256": "16f791e5ccc195b4200a027ed31d38f5bbdd867908ca9ad3f48063a9c05939f6",
+      "assetType": "Image",
+      "operationId": "1c664cd2-1a80-4977-befc-f935818fe60d",
+      "assetId": "105951791069727",
+      "moderationState": "Approved"
+    },
+    "body_emissive": {
+      "source": "assets/piggies/legendary/finalboss/sheets/finalboss_arcade_v1_body_emissive.png",
+      "sha256": "e5841761e7084e43ffd7c6fd52ad7289b5608e7d411cc147436044e7fb49fa13",
+      "assetType": "Image",
+      "operationId": "f70dadd5-4ff3-49b9-b605-64f04ce3c2cb",
+      "assetId": "126306639508204",
+      "moderationState": "Approved"
+    },
+    "trim_color": {
+      "source": "assets/piggies/legendary/finalboss/sheets/finalboss_arcade_v1_trim_color.png",
+      "sha256": "30e5eeb65164277d123838448ce468b21d31b792ef1789916e485bb481eb656f",
+      "assetType": "Image",
+      "operationId": "49a62fde-4bac-4bf2-a0b7-37dcba9e3c5c",
+      "assetId": "102519591353828",
+      "moderationState": "Approved"
+    },
+    "trim_emissive": {
+      "source": "assets/piggies/legendary/finalboss/sheets/finalboss_arcade_v1_trim_emissive.png",
+      "sha256": "b423c3205b957f68b072235b9343520f84b1adde4b216bd44893a20e9398f704",
+      "assetType": "Image",
+      "operationId": "e9684ad1-11d3-479a-9f84-99146162dfd9",
+      "assetId": "79293740496550",
+      "moderationState": "Approved"
+    },
+    "accessories_v2": {
+      "source": "assets/piggies/legendary/finalboss/package/arcade-v2/finalboss-arcade-v2-accessories.fbx",
+      "sha256": "007800b6b4351d808f3660b3637eb294b9fe8707bd479f16144d32042f75c712",
+      "assetType": "Model",
+      "operationId": "5bc2dc84-01fd-4031-88db-2cbb2ad6a222",
+      "assetId": "81294545677295",
+      "moderationState": "Approved"
+    }
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "skin": "stormstone",
+  "source": "Roblox InsertService.LoadAsset of the uploaded epic-v2 accessory package",
+  "parts": [
+    {
+      "colorMap": "",
+      "name": "stormstone_GlowEyes",
+      "position": {
+        "y": 225.59999084472656,
+        "x": -1.52587890625e-05,
+        "z": -585
+      },
+      "orientation": {
+        "y": 0,
+        "x": 0,
+        "z": 0
+      },
+      "meshId": "rbxassetid://110772547647989",
+      "size": {
+        "y": 75.60000610351562,
+        "x": 457.1999816894531,
+        "z": 75.5999755859375
+      },
+      "textureId": "",
+      "gameSeatPlacement": {
+        "sizeRobloxStuds": [
+          4.571999967098236,
+          0.7559999227523804,
+          0.7559999227523804
+        ],
+        "offsetRobloxStuds": [
+          8.940696716308594e-08,
+          8.875999922752381,
+          5.849999964237213
+        ],
+        "rotationDegrees": [
+          0,
+          180,
+          0
+        ],
+        "material": "Neon"
+      }
+    },
+    {
+      "colorMap": "",
+      "name": "stormstone_GlowSeams",
+      "position": {
+        "y": 20.985443115234375,
+        "x": -0.75653076171875,
+        "z": 103.846923828125
+      },
+      "orientation": {
+        "y": 0,
+        "x": 0,
+        "z": 0
+      },
+      "meshId": "rbxassetid://138401823780960",
+      "size": {
+        "y": 1124.34130859375,
+        "x": 1210.5142822265625,
+        "z": 1100.429931640625
+      },
+      "textureId": "",
+      "gameSeatPlacement": {
+        "sizeRobloxStuds": [
+          12.105142593383789,
+          11.243412494659424,
+          11.004299283027649
+        ],
+        "offsetRobloxStuds": [
+          0.00756525993347168,
+          6.829854602813721,
+          -1.0384692549705505
+        ],
+        "rotationDegrees": [
+          0,
+          180,
+          0
+        ],
+        "material": "Neon"
+      }
+    },
+    {
+      "colorMap": "",
+      "name": "stormstone_Lightning",
+      "position": {
+        "y": 581.567626953125,
+        "x": 23.926223754882812,
+        "z": 333
+      },
+      "orientation": {
+        "y": 0,
+        "x": 0,
+        "z": 0
+      },
+      "meshId": "rbxassetid://77498632343322",
+      "size": {
+        "y": 317.5751647949219,
+        "x": 601.0272216796875,
+        "z": 390.4707946777344
+      },
+      "textureId": "",
+      "gameSeatPlacement": {
+        "sizeRobloxStuds": [
+          6.010272681713104,
+          3.175751566886902,
+          3.904707759618759
+        ],
+        "offsetRobloxStuds": [
+          -0.23926225304603577,
+          12.435676271915437,
+          -3.3299999982118607
+        ],
+        "rotationDegrees": [
+          0,
+          180,
+          0
+        ],
+        "material": "Neon"
+      }
+    },
+    {
+      "colorMap": "",
+      "name": "stormstone_StonePlates",
+      "position": {
+        "y": 69.9127197265625,
+        "x": -0.004791259765625,
+        "z": 135.68020629882812
+      },
+      "orientation": {
+        "y": 0,
+        "x": 0,
+        "z": 0
+      },
+      "meshId": "rbxassetid://85020513881705",
+      "size": {
+        "y": 1197.8026123046875,
+        "x": 1413.8486328125,
+        "z": 1194.0654296875
+      },
+      "textureId": "rbxassetid://129892135033966",
+      "gameSeatPlacement": {
+        "sizeRobloxStuds": [
+          14.138487339019775,
+          11.978026270866394,
+          11.940653800964355
+        ],
+        "offsetRobloxStuds": [
+          4.792213439941406e-05,
+          7.31912725687027,
+          -1.356802225112915
+        ],
+        "rotationDegrees": [
+          0,
+          180,
+          0
+        ],
+        "material": "SmoothPlastic"
+      }
+    }
+  ],
+  "placementValidated": true
+}

@@ -1,0 +1,15 @@
+{
+  "skin": "stormcaller",
+  "revision": "og-redesign-v1",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "accessories": {
+      "source": "assets/piggies/legendary/stormcaller/package/stormcaller-og-v1-accessories.fbx",
+      "sha256": "77080e2ec58e56e314e5ca950f2c949e9ecab5437c95404064e32da2e89a55b4",
+      "assetType": "Model",
+      "operationId": "3811a5d8-820f-40f1-b33c-85f7db6a1f88",
+      "assetId": "79260447782404",
+      "moderationState": "Approved"
+    }
+  }
+}

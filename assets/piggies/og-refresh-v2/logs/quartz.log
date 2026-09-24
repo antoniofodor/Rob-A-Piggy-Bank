@@ -1,0 +1,44 @@
+C:\Users\anton\robloxGame\assets\piggies\og-refresh-v2\build.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:04.937  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_16152_b8f2b4dff88885ba4b888209ee0467f9.png.png"
+Info: Saved as "quartz-og-v2-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED quartz body color
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED quartz body metal
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED quartz body rough
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED quartz trim color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED quartz trim metal
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED quartz trim rough
+C:\Users\anton\robloxGame\assets\piggies\og-refresh-v2\build.py:273: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:39.250  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\rare\quartz\revisions\og-v2\preview\quartz-og-v2-hero.png'
+01:03.125  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\rare\quartz\revisions\og-v2\preview\quartz-og-v2-back.png'
+01:22.843  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\rare\quartz\revisions\og-v2\preview\quartz-og-v2-top.png'
+01:22.875  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_16152_4718016f0d093fa64f8688e0b0cb7035.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\rare\\quartz\\revisions\\og-v2\\package\\quartz-og-v2-complete.fbx'
+export finished in 0.1311 sec.
+FBX version: 7400
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\rare\\quartz\\revisions\\og-v2\\package\\quartz-og-v2-accessories.fbx'
+export finished in 0.0545 sec.
+FBX version: 7400
+Info: Saved as "quartz-og-v2.blend"
+OG_COMPLETE quartz {"extraTriangles": 240, "maps": 6, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

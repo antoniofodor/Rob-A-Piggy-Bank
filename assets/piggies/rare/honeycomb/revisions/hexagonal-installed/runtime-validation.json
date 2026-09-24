@@ -1,0 +1,21 @@
+{
+  "miniPassed": true,
+  "fullSizePassed": true,
+  "skinSwitches": [
+    "honeycomb",
+    "marble",
+    "honeycomb",
+    "ghost",
+    "honeycomb",
+    "hologram",
+    "honeycomb",
+    "rainbowtiger",
+    "honeycomb",
+    "marble"
+  ],
+  "tailAndTrimParts": 4,
+  "oldCombinedTrimHidden": true,
+  "ghostHologramTransparencyPreserved": true,
+  "meshBoundsMatchBlender": true,
+  "publicPlacePublished": false
+}

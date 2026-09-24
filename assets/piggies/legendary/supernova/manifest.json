@@ -1,0 +1,176 @@
+{
+  "key": "supernova",
+  "name": "Supernova",
+  "tier": "legendary",
+  "path": "assets/piggies/legendary/supernova",
+  "status": "Uploaded and installed (og-redesign-v1 maps round, 2026-09-23)",
+  "revision": "og-redesign-v1",
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/supernova.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://90439675749911",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "EmissiveMaskContent": "rbxassetid://121961556376402",
+        "EmissiveStrength": 1.2
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/supernova_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://131676789264686",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "EmissiveMaskContent": "rbxassetid://92543380838620",
+        "EmissiveStrength": 1.2
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://90439675749911": {
+      "role": "supernova ColorMap",
+      "file": "sheets/supernova_og_v1_body_color.png",
+      "sha256": "25eeae8d4f7ffe74c0d7c16bf43fdf6b811fc850553beab2af9fa9d94c212718"
+    },
+    "rbxassetid://121961556376402": {
+      "role": "supernova EmissiveMaskContent",
+      "file": "sheets/supernova_og_v1_body_emissive.png",
+      "sha256": "460a85c8f883c8cd189b674e4fde4d6e21b0b8ad27e087dff3a4cfcdc10b76c5"
+    },
+    "rbxassetid://131676789264686": {
+      "role": "supernova_trim ColorMap",
+      "file": "sheets/supernova_og_v1_trim_color.png",
+      "sha256": "15d4da190a7b68de7877a5dbd88f5714f50ae3e297c57eff89f752f18c71c7b2"
+    },
+    "rbxassetid://92543380838620": {
+      "role": "supernova_trim EmissiveMaskContent",
+      "file": "sheets/supernova_og_v1_trim_emissive.png",
+      "sha256": "edb96ffca7f9e56752902e7818e1166258a0a6f16eb54da12e6a3b3bd9bdd177"
+    }
+  },
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau",
+    "skinsRow": {
+      "line": 6382,
+      "name": "Supernova",
+      "rarity": "legendary",
+      "surface": "supernova",
+      "chest": "og",
+      "pattern": false,
+      "anim": true,
+      "fx": false
+    },
+    "surfacePack": {
+      "key": "supernova",
+      "line": 6013,
+      "template": "supernova",
+      "trimTemplate": "supernova_trim"
+    },
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "concept": "preview/supernova-og-v1-concept.png",
+  "prompt": "generate/og-v1-concept-prompt.txt",
+  "conceptMethod": "built-in image_gen",
+  "source": "source/supernova-og-v1-procedural.blend",
+  "review": "package/supernova-og-v1.blend",
+  "generator": "assets\\piggies\\og-redesign-v1\\build_og.py",
+  "report": "package/og-v1-asset-report.json",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\supernova_og_v1_body_color.png",
+      "sha256": "25eeae8d4f7ffe74c0d7c16bf43fdf6b811fc850553beab2af9fa9d94c212718",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\supernova_og_v1_body_emissive.png",
+      "sha256": "460a85c8f883c8cd189b674e4fde4d6e21b0b8ad27e087dff3a4cfcdc10b76c5",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\supernova_og_v1_trim_color.png",
+      "sha256": "15d4da190a7b68de7877a5dbd88f5714f50ae3e297c57eff89f752f18c71c7b2",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\supernova_og_v1_trim_emissive.png",
+      "sha256": "edb96ffca7f9e56752902e7818e1166258a0a6f16eb54da12e6a3b3bd9bdd177",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": true
+  },
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 12,
+    "materialPulse": true,
+    "loopClosureError": 6.123233849335533e-18,
+    "faceClearanceSampledFrames": 9
+  },
+  "files": {
+    "source": [
+      "supernova-og-v1-procedural.blend"
+    ],
+    "generate": [
+      "og-v1-concept-prompt.txt",
+      "og-v1-spec.json"
+    ],
+    "sheets": [
+      "supernova_og_v1_body_color.png",
+      "supernova_og_v1_body_emissive.png",
+      "supernova_og_v1_trim_color.png",
+      "supernova_og_v1_trim_emissive.png"
+    ],
+    "preview": [
+      "supernova-og-v1-back.png",
+      "supernova-og-v1-concept.png",
+      "supernova-og-v1-hero.png",
+      "supernova-og-v1-motion.png"
+    ],
+    "package": [
+      "og-v1-asset-report.json",
+      "supernova-og-v1-accessories.fbx",
+      "supernova-og-v1-complete.fbx",
+      "supernova-og-v1.blend"
+    ]
+  },
+  "placementRevision": {
+    "status": "Installed in Studio and project",
+    "revision": "body-local-placement-v2",
+    "evidence": "package/imported-placement.json",
+    "change": "Six flame tufts and six cinders use original imported centers in the body frame, restoring rear-flank placement.",
+    "validation": [
+      "mini",
+      "full-size",
+      "rotated plot"
+    ]
+  }
+}

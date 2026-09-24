@@ -1,0 +1,37 @@
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:05.172  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_21288_9b49803c4546196dcc6f3bdb3e6f0aad.png.png"
+Info: Saved as "prismatic-og-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED prismatic body color
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED prismatic body emissive
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED prismatic trim color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED prismatic trim emissive
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:477: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:37.813  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\prismatic\preview\prismatic-og-v1-hero.png'
+00:46.797  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\prismatic\preview\prismatic-og-v1-back.png'
+00:56.469  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\prismatic\preview\prismatic-og-v1-motion.png'
+00:56.500  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_21288_9c7ecef5975a6dd68a86f43386f2f8fb.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\prismatic\\package\\prismatic-og-v1-complete.fbx'
+export finished in 0.0808 sec.
+FBX version: 7400
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\prismatic\\package\\prismatic-og-v1-accessories.fbx'
+export finished in 0.0366 sec.
+FBX version: 7400
+Info: Saved as "prismatic-og-v1.blend"
+OG_COMPLETE prismatic {"extraTriangles": 674, "maps": 4, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

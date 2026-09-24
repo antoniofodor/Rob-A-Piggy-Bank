@@ -1,0 +1,15 @@
+{
+  "skin": "prismatic",
+  "revision": "og-redesign-v1",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "accessories": {
+      "source": "assets/piggies/legendary/prismatic/package/prismatic-og-v1-accessories.fbx",
+      "sha256": "22fa21a7b076f46bbbf3f4ff52c0dc501925ca86bedec452c18a683a745eada3",
+      "assetType": "Model",
+      "operationId": "45871dce-f501-44e6-9c70-f27e1b0a4e96",
+      "assetId": "79374026775660",
+      "moderationState": "Approved"
+    }
+  }
+}

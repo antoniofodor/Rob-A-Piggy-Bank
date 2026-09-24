@@ -1,0 +1,163 @@
+{
+  "key": "nightlight",
+  "name": "Nightlight Piggy",
+  "tier": "epic",
+  "path": "assets/piggies/epic/nightlight",
+  "status": "Uploaded and installed (og-redesign-v1 maps round, 2026-09-23)",
+  "revision": "og-redesign-v1",
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/nightlight.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://77756877791603",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "EmissiveMaskContent": "rbxassetid://101359554451601",
+        "EmissiveStrength": 0.9
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/nightlight_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://90907759066019",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "EmissiveMaskContent": "rbxassetid://118172071767051",
+        "EmissiveStrength": 0.9
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://77756877791603": {
+      "role": "nightlight ColorMap",
+      "file": "sheets/nightlight_og_v1_body_color.png",
+      "sha256": "02372440d1d8d7c57264ae15ecae48e716f01f05c4f19355d5fb1354223e6ebc"
+    },
+    "rbxassetid://101359554451601": {
+      "role": "nightlight EmissiveMaskContent",
+      "file": "sheets/nightlight_og_v1_body_emissive.png",
+      "sha256": "6a4af21d7e904e00ef845af725b262998eeeaf13f9b71da14601fc34eb0a47d6"
+    },
+    "rbxassetid://90907759066019": {
+      "role": "nightlight_trim ColorMap",
+      "file": "sheets/nightlight_og_v1_trim_color.png",
+      "sha256": "c669042cf67b3d231f6103ab3e72042d93f1efabce3cf5fdbe9ffc54dae8a0f1"
+    },
+    "rbxassetid://118172071767051": {
+      "role": "nightlight_trim EmissiveMaskContent",
+      "file": "sheets/nightlight_og_v1_trim_emissive.png",
+      "sha256": "dfe29fb3d8f83b4bc27caa81ff0d697f05f552781e7a5e23c8147c9a510469fd"
+    }
+  },
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau",
+    "skinsRow": {
+      "line": 7137,
+      "name": "Nightlight Piggy",
+      "rarity": "epic",
+      "surface": "nightlight",
+      "chest": "og",
+      "pattern": false,
+      "anim": true,
+      "fx": false
+    },
+    "surfacePack": {
+      "key": "nightlight",
+      "line": 6010,
+      "template": "nightlight",
+      "trimTemplate": "nightlight_trim"
+    },
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "concept": "preview/nightlight-og-v1-concept.png",
+  "prompt": "generate/og-v1-concept-prompt.txt",
+  "conceptMethod": "built-in image_gen",
+  "source": "source/nightlight-og-v1-procedural.blend",
+  "review": "package/nightlight-og-v1.blend",
+  "generator": "assets\\piggies\\og-redesign-v1\\build_og.py",
+  "report": "package/og-v1-asset-report.json",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\nightlight_og_v1_body_color.png",
+      "sha256": "02372440d1d8d7c57264ae15ecae48e716f01f05c4f19355d5fb1354223e6ebc",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\nightlight_og_v1_body_emissive.png",
+      "sha256": "6a4af21d7e904e00ef845af725b262998eeeaf13f9b71da14601fc34eb0a47d6",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\nightlight_og_v1_trim_color.png",
+      "sha256": "c669042cf67b3d231f6103ab3e72042d93f1efabce3cf5fdbe9ffc54dae8a0f1",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\nightlight_og_v1_trim_emissive.png",
+      "sha256": "dfe29fb3d8f83b4bc27caa81ff0d697f05f552781e7a5e23c8147c9a510469fd",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": false
+  },
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": true,
+    "loopClosureError": 0.0
+  },
+  "files": {
+    "source": [
+      "nightlight-og-v1-procedural.blend"
+    ],
+    "generate": [
+      "og-v1-concept-prompt.txt",
+      "og-v1-spec.json"
+    ],
+    "sheets": [
+      "nightlight_og_v1_body_color.png",
+      "nightlight_og_v1_body_emissive.png",
+      "nightlight_og_v1_trim_color.png",
+      "nightlight_og_v1_trim_emissive.png"
+    ],
+    "preview": [
+      "nightlight-og-v1-back.png",
+      "nightlight-og-v1-concept.png",
+      "nightlight-og-v1-hero.png",
+      "nightlight-og-v1-motion.png"
+    ],
+    "package": [
+      "nightlight-og-v1-complete.fbx",
+      "nightlight-og-v1.blend",
+      "og-v1-asset-report.json"
+    ]
+  }
+}

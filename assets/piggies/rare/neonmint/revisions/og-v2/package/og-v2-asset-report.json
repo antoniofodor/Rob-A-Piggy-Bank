@@ -1,0 +1,224 @@
+{
+  "skin": "neonmint",
+  "name": "Neon Mint",
+  "tier": "rare",
+  "revision": "og-refresh-v2",
+  "status": "Built locally; Roblox upload and installation pending",
+  "design": "Mint enamel with flowing charcoal negative-space bands, crisp mint-white neon edging, dark snout and coordinated mint soles. A restrained breathing glow follows the bands without recoloring the pig; no particles.",
+  "baseGeometryAndUVPreserved": true,
+  "sourceGeometrySignatures": {
+    "Body": "4a54ceed97939e6392190f1c3fb9d10d14530d801166cc7f26e24e99a6983ec1",
+    "Snout": "178b13b8746bb7484909d7e7a981aaa0e159f0f353a9e5fe3891d1191fd68518",
+    "Ears": "a1a7e83a72613d031332816dd3b25c2c0462de33d33c68b0c4dc0e818a95fc9f",
+    "Legs": "56645ce48591fdcc0e5835a7c00c823798c55a883da5f6cca1af42bb7ea74d04",
+    "Tail": "529231df3b33d53086cc7e0fd91ff5ea7b327fcadbb9804603e727fa728c6b38",
+    "EyePreview": "21c6d31d1ffe826f5f98c7bc23d6d57d472f3e465f722caa9f67322a0b2933b9"
+  },
+  "parts": [
+    {
+      "name": "Body",
+      "role": "base",
+      "triangles": 6264,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.5762786865234375e-07,
+        6.62,
+        -0.0
+      ],
+      "sizeRobloxStuds": [
+        12.000000715255737,
+        11.519999742507935,
+        12.96000051498413
+      ]
+    },
+    {
+      "name": "Snout",
+      "role": "base",
+      "triangles": 2486,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        5.845477904081345,
+        4.720026791095734
+      ],
+      "sizeRobloxStuds": [
+        6.7845447063446045,
+        7.233279168605804,
+        7.127158999443054
+      ]
+    },
+    {
+      "name": "Ears",
+      "role": "base",
+      "triangles": 7152,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        11.888547296524049,
+        2.154139593243599
+      ],
+      "sizeRobloxStuds": [
+        9.337942600250244,
+        5.17062520980835,
+        2.339932769536972
+      ]
+    },
+    {
+      "name": "Legs",
+      "role": "base",
+      "triangles": 2032,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        2.000000114440918,
+        -0.18000000715255737
+      ],
+      "sizeRobloxStuds": [
+        8.640000343322754,
+        3.0,
+        8.759999871253967
+      ]
+    },
+    {
+      "name": "Tail",
+      "role": "base",
+      "triangles": 1592,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -0.05768336355686188,
+        9.557918484210969,
+        -6.589774489402771
+      ],
+      "sizeRobloxStuds": [
+        2.992636889219284,
+        3.0000447034835815,
+        4.405103445053101
+      ]
+    },
+    {
+      "name": "EyePreview",
+      "role": "base",
+      "triangles": 1056,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        8.801508004665376,
+        5.33257520198822
+      ],
+      "sizeRobloxStuds": [
+        5.077638387680054,
+        1.2599998712539673,
+        1.2599995136260986
+      ]
+    }
+  ],
+  "exports": [
+    {
+      "file": "neonmint-og-v2-complete.fbx",
+      "meshCount": 6,
+      "triangles": 20582,
+      "roundTripChecked": true,
+      "roundTripBoundsError": 4.76837158203125e-07
+    }
+  ],
+  "aura": null,
+  "auraPreviewObjects": 0,
+  "auraExcludedFromMeshExports": true,
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": true
+  },
+  "tierChecks": {
+    "authoredCoat": true,
+    "glowAndAura": false,
+    "substantialAnimatedGeometry": false
+  },
+  "textures": [
+    {
+      "role": "body_color",
+      "file": "sheets\\neonmint_og_v2_body_color.png",
+      "sha256": "a673f03f2c2f6b49a71839ccc2f2dabb89fc08c76ca4a6e6e16ac3959cc798b6",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_metal",
+      "file": "sheets\\neonmint_og_v2_body_metal.png",
+      "sha256": "e9f3b1b7340501c7e990d95ba928ef0b1ef24befe728fe8bf999c4dbb9e4f8f4",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_rough",
+      "file": "sheets\\neonmint_og_v2_body_rough.png",
+      "sha256": "f4240589ffb969def0a94d73a69b4375c8d8593c8d4e01d1872e66aa08c8cf9c",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\neonmint_og_v2_body_emissive.png",
+      "sha256": "ddb9b6a1f2b8590c754f7e5b70207168f7960cd300f8ce067579ce75b0b77dcf",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\neonmint_og_v2_trim_color.png",
+      "sha256": "aebbd1400e08365362e8bfa7f2ac77323410ba4a08d4d56bdf30db85beb14ae1",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_metal",
+      "file": "sheets\\neonmint_og_v2_trim_metal.png",
+      "sha256": "d59a2b4222a2ea39cc1b868f8e6db187fa1360ad4d23143892f1568f74ba4480",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_rough",
+      "file": "sheets\\neonmint_og_v2_trim_rough.png",
+      "sha256": "b823c8cfbe8aafb3a28ad2ded9596242470d2ed39c137ee88181a6813540ae58",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\neonmint_og_v2_trim_emissive.png",
+      "sha256": "2db85b4d4e1377796a45b0bc074edae5762028d3fd55df901dc1fe7c9f3d3f59",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "generator": "assets/piggies/og-refresh-v2/build.py",
+  "runtimeNotes": "Review asset, not installed. Ghost/Hologram need explicit alpha support and shader-equivalent runtime effects; see README. Use supplied maps on shared body/trim; replace old procedural pattern. Preserve rarity. Use existing aura key; preview motes are not export meshes. New accessories replace, not stack with, old shard/FX geometry. Full Blender animation is retained in packed blend; FBX is a static import pose."
+}

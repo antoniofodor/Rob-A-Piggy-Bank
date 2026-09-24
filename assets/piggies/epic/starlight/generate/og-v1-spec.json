@@ -1,0 +1,24 @@
+{
+  "key": "starlight",
+  "name": "Starlight Piggy",
+  "tier": "epic",
+  "design": "Midnight-indigo pig with refined constellation map: crisp four-point white/lilac stars, small star dots, delicate connecting lines around flanks and back. Lavender snout, softly luminous silver-blue eyes. Sparse silver/lilac stardust aura. Coat is distinctive without particles. No crystal armor or crown.",
+  "palette": [
+    [
+      26,
+      31,
+      73
+    ],
+    [
+      78,
+      74,
+      124
+    ],
+    [
+      188,
+      211,
+      255
+    ]
+  ],
+  "aura": "sparkle"
+}

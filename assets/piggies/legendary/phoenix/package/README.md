@@ -10,8 +10,10 @@ pinned to Root while their tips flex. Close-set coverts fill the back and
 both sides of the snout. Only the functional coin slot and rear vault plate
 clearance are reserved. Stronger cyan-white tips pulse from a material gain
 of roughly 1.1 to 5.5; the vein and face masks stay restrained.
-Veins and cyan-white feather tips shimmer in staggered groups while the
-mantle, cheeks, crown and tail move gently in a four-second loop.
+Veins and cyan-white feather tips shimmer in staggered groups.
+A soft icy gust travels from crown through mantle to tail in a four-second
+loop, with quicker feather flutter strongest during the gust. The cheek
+feathers stay seated against the face without independent swaying.
 The vein pattern and color gradient are fixed; brightness
 changes over time. Original pig body, snout, eyes, feet, ears and curled tail
 are retained, with the tail above the flush rear vault opening. The crown
@@ -60,7 +62,8 @@ An optional second argument offsets playback time in seconds. Call `stop()`
 on skin changes; model destruction also cleans up and restores material values.
 Preserve mesh names for phase lookup and preserve the blended Root/tip weights
 so the feather bases remain attached. Tune glow strength in the game's lighting.
-The older `assets/phoenix/PhoenixEffects.luau` targets a different rig and
+The older `PhoenixEffects.luau` package (`assets/phoenix/`, removed
+2026-09-23) targeted a different rig and
 must not be used with this package.
 
 Keep game-owned deposit effects, collision behavior and the rear vault plate.

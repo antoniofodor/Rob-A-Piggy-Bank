@@ -1,0 +1,23 @@
+00:02.859  blend            | Read blend: "C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\package\mage-v4\finalboss-mage-v4.blend"
+C:\Users\anton\robloxGame\assets\piggies\arcade-spellcaster-v5\build.py:19: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_v2_'+name);m.use_nodes=True;b=m.node_tree.nodes.get('Principled BSDF')
+HOOD_CHECKS {'earOpenings': 2, 'visibleEarTips': [(-0.4365817904472351, -0.48713594675064087, 1.308976650238037), (0.4365817904472351, -0.48713594675064087, 1.308976650238037)], 'faceClearanceRays': 5, 'realClosedFabricThickness': 0.064, 'baseEarsUnchanged': True}
+00:17.953  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\preview\spellcaster-v5\finalboss-v5-hero.png'
+00:31.594  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\preview\spellcaster-v5\finalboss-v5-back.png'
+00:45.797  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\preview\spellcaster-v5\finalboss-v5-top.png'
+00:54.515  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\preview\spellcaster-v5\finalboss-v5-underside.png'
+01:08.375  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\preview\spellcaster-v5\finalboss-v5-motion.png'
+01:08.390  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_14296_760e07119fc95fc4e9f6a00b3c56a932.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\finalboss\\package\\spellcaster-v5\\finalboss-spellcaster-v5-accessories.fbx'
+export finished in 0.0952 sec.
+FBX version: 7400
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\finalboss\\package\\spellcaster-v5\\finalboss-spellcaster-v5-complete.fbx'
+export finished in 0.1055 sec.
+FBX version: 7400
+Info: Saved as "finalboss-spellcaster-v5.blend"
+SPELLCASTER_COMPLETE finalboss parts 78 triangles 22782
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

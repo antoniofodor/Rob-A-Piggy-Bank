@@ -1,0 +1,163 @@
+{
+  "key": "starlight",
+  "name": "Starlight Piggy",
+  "tier": "epic",
+  "path": "assets/piggies/epic/starlight",
+  "status": "Uploaded and installed (og-redesign-v1 maps round, 2026-09-23)",
+  "revision": "og-redesign-v1",
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/starlight.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://136838657888967",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "EmissiveMaskContent": "rbxassetid://76342601908080",
+        "EmissiveStrength": 0.9
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/starlight_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://115438112310334",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": "",
+        "EmissiveMaskContent": "rbxassetid://81816386178288",
+        "EmissiveStrength": 0.9
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://136838657888967": {
+      "role": "starlight ColorMap",
+      "file": "sheets/starlight_og_v1_body_color.png",
+      "sha256": "d168aa0e1cd14534d7aa1276e63f76e5cebedfe8b1f1b0e2ebadc915abc98e51"
+    },
+    "rbxassetid://76342601908080": {
+      "role": "starlight EmissiveMaskContent",
+      "file": "sheets/starlight_og_v1_body_emissive.png",
+      "sha256": "161df5c1da22a26de49006a0a461c7e25511d7f618a37489158fe677e16513cd"
+    },
+    "rbxassetid://115438112310334": {
+      "role": "starlight_trim ColorMap",
+      "file": "sheets/starlight_og_v1_trim_color.png",
+      "sha256": "64a78c0cfd3a4dffd8afe1516ee05aa97c4bd7b73f9aa9bc6ce15f92ca397912"
+    },
+    "rbxassetid://81816386178288": {
+      "role": "starlight_trim EmissiveMaskContent",
+      "file": "sheets/starlight_og_v1_trim_emissive.png",
+      "sha256": "b0123fc7f25db28334b0d9688fbc6bbe3f1cf14412f81cee0ed4a9739f8bfa78"
+    }
+  },
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau",
+    "skinsRow": {
+      "line": 7126,
+      "name": "Starlight Piggy",
+      "rarity": "epic",
+      "surface": "starlight",
+      "chest": "og",
+      "pattern": false,
+      "anim": false,
+      "fx": false
+    },
+    "surfacePack": {
+      "key": "starlight",
+      "line": 6009,
+      "template": "starlight",
+      "trimTemplate": "starlight_trim"
+    },
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "concept": "preview/starlight-og-v1-concept.png",
+  "prompt": "generate/og-v1-concept-prompt.txt",
+  "conceptMethod": "built-in image_gen",
+  "source": "source/starlight-og-v1-procedural.blend",
+  "review": "package/starlight-og-v1.blend",
+  "generator": "assets\\piggies\\og-redesign-v1\\build_og.py",
+  "report": "package/og-v1-asset-report.json",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\starlight_og_v1_body_color.png",
+      "sha256": "d168aa0e1cd14534d7aa1276e63f76e5cebedfe8b1f1b0e2ebadc915abc98e51",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\starlight_og_v1_body_emissive.png",
+      "sha256": "161df5c1da22a26de49006a0a461c7e25511d7f618a37489158fe677e16513cd",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\starlight_og_v1_trim_color.png",
+      "sha256": "64a78c0cfd3a4dffd8afe1516ee05aa97c4bd7b73f9aa9bc6ce15f92ca397912",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\starlight_og_v1_trim_emissive.png",
+      "sha256": "b0123fc7f25db28334b0d9688fbc6bbe3f1cf14412f81cee0ed4a9739f8bfa78",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": false
+  },
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": true,
+    "loopClosureError": 0.0
+  },
+  "files": {
+    "source": [
+      "starlight-og-v1-procedural.blend"
+    ],
+    "generate": [
+      "og-v1-concept-prompt.txt",
+      "og-v1-spec.json"
+    ],
+    "sheets": [
+      "starlight_og_v1_body_color.png",
+      "starlight_og_v1_body_emissive.png",
+      "starlight_og_v1_trim_color.png",
+      "starlight_og_v1_trim_emissive.png"
+    ],
+    "preview": [
+      "starlight-og-v1-back.png",
+      "starlight-og-v1-concept.png",
+      "starlight-og-v1-hero.png",
+      "starlight-og-v1-motion.png"
+    ],
+    "package": [
+      "og-v1-asset-report.json",
+      "starlight-og-v1-complete.fbx",
+      "starlight-og-v1.blend"
+    ]
+  }
+}

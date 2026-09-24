@@ -1,0 +1,29 @@
+{
+  "key": "prismatic",
+  "name": "Prismatic",
+  "tier": "legendary",
+  "design": "Dark blue-violet pig with broad triangular spectral jewel facets sweeping across coat, pale lavender snout and cool glowing eyes. Six substantial faceted rainbow prisms orbit beside and behind pig on tilted low halo, thin spectral connecting arc, restrained rainbow sparkle aura. Clearly visible 3D prisms and slow orbit. Face and ear tips fully clear; no uniform rainbow glow or crown.",
+  "palette": [
+    [
+      36,
+      31,
+      78
+    ],
+    [
+      98,
+      72,
+      153
+    ],
+    [
+      61,
+      213,
+      216
+    ],
+    [
+      229,
+      88,
+      167
+    ]
+  ],
+  "aura": "prism"
+}

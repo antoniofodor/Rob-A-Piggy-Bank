@@ -1,0 +1,30 @@
+{
+  "key": "mechaplayer",
+  "name": "Mecha Player",
+  "tier": "legendary",
+  "palette": [
+    [
+      165,
+      186,
+      199
+    ],
+    [
+      50,
+      202,
+      242
+    ],
+    [
+      41,
+      62,
+      89
+    ],
+    [
+      224,
+      113,
+      49
+    ]
+  ],
+  "aura": "arcade_thruster_sparkle_proposed",
+  "design": "Pale steel and navy robot pig with clean angular panel coat and tiny orange warning stripes. Substantial mechanical boot cuffs around existing legs, hinged flank guards and twin firmly mounted rear thrusters. Cyan illuminated vents pulse and small exhaust cones breathe at the rear; no flight pose. Preserve the original pig face and body, no helmet or weapons.",
+  "concept": "mechaplayer-concept-v1.png"
+}

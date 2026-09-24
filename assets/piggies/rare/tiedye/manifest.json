@@ -1,0 +1,127 @@
+{
+  "key": "tiedye",
+  "name": "Tie-Dye",
+  "tier": "rare",
+  "path": "assets/piggies/rare/tiedye",
+  "status": "Uploaded and installed (og-redesign-v1 maps round, 2026-09-23)",
+  "revision": "og-redesign-v1",
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/tiedye.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://126914657930956",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/tiedye_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://107313718646231",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://126914657930956": {
+      "role": "tiedye ColorMap",
+      "file": "sheets/tiedye_og_v1_body_color.png",
+      "sha256": "2250032d57aea10bc917f5d3964bfa16d3b3a56556101531fac85e30115ed85f"
+    },
+    "rbxassetid://107313718646231": {
+      "role": "tiedye_trim ColorMap",
+      "file": "sheets/tiedye_og_v1_trim_color.png",
+      "sha256": "ae49b9897366ca0272f8ca589c6c17ac9df566e6c6ed1a722b22cc67251276eb"
+    }
+  },
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau",
+    "skinsRow": {
+      "line": 7070,
+      "name": "Tie-Dye",
+      "rarity": "rare",
+      "surface": "tiedye",
+      "chest": "og",
+      "pattern": false,
+      "anim": true,
+      "fx": false
+    },
+    "surfacePack": {
+      "key": "tiedye",
+      "line": 5996,
+      "template": "tiedye",
+      "trimTemplate": "tiedye_trim"
+    },
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "concept": "preview/tiedye-og-v1-concept.png",
+  "prompt": "generate/og-v1-concept-prompt.txt",
+  "conceptMethod": "built-in image_gen",
+  "source": "source/tiedye-og-v1-procedural.blend",
+  "review": "package/tiedye-og-v1.blend",
+  "generator": "assets\\piggies\\og-redesign-v1\\build_og.py",
+  "report": "package/og-v1-asset-report.json",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\tiedye_og_v1_body_color.png",
+      "sha256": "2250032d57aea10bc917f5d3964bfa16d3b3a56556101531fac85e30115ed85f",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\tiedye_og_v1_trim_color.png",
+      "sha256": "ae49b9897366ca0272f8ca589c6c17ac9df566e6c6ed1a722b22cc67251276eb",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": false,
+    "substantialAnimatedGeometry": false
+  },
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": false
+  },
+  "files": {
+    "source": [
+      "tiedye-og-v1-procedural.blend"
+    ],
+    "generate": [
+      "og-v1-concept-prompt.txt",
+      "og-v1-spec.json"
+    ],
+    "sheets": [
+      "tiedye_og_v1_body_color.png",
+      "tiedye_og_v1_trim_color.png"
+    ],
+    "preview": [
+      "tiedye-og-v1-back.png",
+      "tiedye-og-v1-concept.png",
+      "tiedye-og-v1-hero.png"
+    ],
+    "package": [
+      "og-v1-asset-report.json",
+      "tiedye-og-v1-complete.fbx",
+      "tiedye-og-v1.blend"
+    ]
+  }
+}

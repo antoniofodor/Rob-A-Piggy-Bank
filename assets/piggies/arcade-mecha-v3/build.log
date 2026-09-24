@@ -1,0 +1,19 @@
+00:02.922  blend            | Read blend: "C:\Users\anton\robloxGame\assets\piggies\legendary\mechaplayer\package\arcade-v2\mechaplayer-arcade-v2.blend"
+00:20.656  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\mechaplayer\preview\arcade-v3\mechaplayer-v3-hero.png'
+00:36.422  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\mechaplayer\preview\arcade-v3\mechaplayer-v3-back.png'
+00:54.250  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\mechaplayer\preview\arcade-v3\mechaplayer-v3-top.png'
+01:12.453  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\mechaplayer\preview\arcade-v3\mechaplayer-v3-motion.png'
+01:12.484  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_26652_b71a1050f800f23807c464001b29d587.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\mechaplayer\\package\\arcade-v3\\mechaplayer-arcade-v3-accessories.fbx'
+export finished in 0.0875 sec.
+FBX version: 7400
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\mechaplayer\\package\\arcade-v3\\mechaplayer-arcade-v3-complete.fbx'
+export finished in 0.1087 sec.
+FBX version: 7400
+Info: Saved as "mechaplayer-arcade-v3.blend"
+V3_COMPLETE mechaplayer parts 77 triangles 8876
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

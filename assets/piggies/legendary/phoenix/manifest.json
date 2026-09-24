@@ -53,6 +53,11 @@
       "sha256": "c136a9e7ac6aaca8c1a682523ddd8988e52006494c59073eebce096a64ea4c6b",
       "role": "legend_phoenix EmissiveMaskContent",
       "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    },
+    "rbxassetid://114682705229974": {
+      "file": "package/phoenix-complete.fbx",
+      "role": "Config.LEGENDARIES.phoenix mesh",
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://91174548583072; the imported model sat in the Edit workspace, part names read off it"
     }
   },
   "shopCard": {

@@ -1,0 +1,128 @@
+{
+  "key": "rockslide",
+  "name": "Rockslide",
+  "tier": "rare",
+  "path": "assets/piggies/rare/rockslide",
+  "status": "Uploaded and installed (og-redesign-v1 maps round, 2026-09-23)",
+  "revision": "og-redesign-v1",
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/rockslide.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://123627593283788",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/rockslide_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://116543752754119",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://123627593283788": {
+      "role": "rockslide ColorMap",
+      "file": "sheets/rockslide_og_v1_body_color.png",
+      "sha256": "965da44d4d9a091959471b216ffc70dcf3e3e8d08bdd8540222ba7829efbb61a"
+    },
+    "rbxassetid://116543752754119": {
+      "role": "rockslide_trim ColorMap",
+      "file": "sheets/rockslide_og_v1_trim_color.png",
+      "sha256": "c36f6cd75e2e0f846a9b8d4c73c45a30efe39e90284890de436b1501f226a068"
+    }
+  },
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau",
+    "skinsRow": {
+      "line": 7037,
+      "name": "Rockslide",
+      "rarity": "rare",
+      "surface": "rockslide",
+      "chest": "og",
+      "pattern": false,
+      "anim": false,
+      "fx": false
+    },
+    "surfacePack": {
+      "key": "rockslide",
+      "line": 5993,
+      "template": "rockslide",
+      "trimTemplate": "rockslide_trim"
+    },
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "concept": "preview/rockslide-og-v1-concept.png",
+  "prompt": "generate/og-v1-concept-prompt.txt",
+  "conceptMethod": "built-in image_gen",
+  "source": "source/rockslide-og-v1-procedural.blend",
+  "review": "package/rockslide-og-v1.blend",
+  "generator": "assets\\piggies\\og-redesign-v1\\build_og.py",
+  "report": "package/og-v1-asset-report.json",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\rockslide_og_v1_body_color.png",
+      "sha256": "965da44d4d9a091959471b216ffc70dcf3e3e8d08bdd8540222ba7829efbb61a",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\rockslide_og_v1_trim_color.png",
+      "sha256": "c36f6cd75e2e0f846a9b8d4c73c45a30efe39e90284890de436b1501f226a068",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": false,
+    "substantialAnimatedGeometry": false
+  },
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": false
+  },
+  "files": {
+    "source": [
+      "rockslide-og-v1-procedural.blend"
+    ],
+    "generate": [
+      "og-v1-concept-prompt.txt",
+      "og-v1-spec.json"
+    ],
+    "sheets": [
+      "rockslide_og_v1_body_color.png",
+      "rockslide_og_v1_trim_color.png"
+    ],
+    "preview": [
+      "rockslide-og-v1-back.png",
+      "rockslide-og-v1-concept.png",
+      "rockslide-og-v1-hero.png"
+    ],
+    "package": [
+      "og-v1-asset-report.json",
+      "rockslide-og-v1-accessories.fbx",
+      "rockslide-og-v1-complete.fbx",
+      "rockslide-og-v1.blend"
+    ]
+  }
+}

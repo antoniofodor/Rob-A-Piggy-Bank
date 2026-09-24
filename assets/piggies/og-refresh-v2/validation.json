@@ -1,0 +1,146 @@
+[
+  {
+    "key": "aurora",
+    "meshChecksPassed": true,
+    "extraMeshes": 0,
+    "extraTriangles": 0,
+    "materialAnimation": [
+      {
+        "material": "aurora_body_Baked",
+        "range": [
+          0.8600000143051147,
+          1.1699999570846558
+        ],
+        "loopClosed": true
+      },
+      {
+        "material": "aurora_trim_Baked",
+        "range": [
+          0.8600000143051147,
+          1.1699999570846558
+        ],
+        "loopClosed": true
+      }
+    ],
+    "projectionScan": [],
+    "coinSlotAndFacePreserved": true
+  },
+  {
+    "key": "banker",
+    "meshChecksPassed": true,
+    "extraMeshes": 0,
+    "extraTriangles": 0,
+    "materialAnimation": [],
+    "projectionScan": [],
+    "coinSlotAndFacePreserved": true
+  },
+  {
+    "key": "rockslide",
+    "meshChecksPassed": true,
+    "extraMeshes": 12,
+    "extraTriangles": 192,
+    "materialAnimation": [],
+    "projectionScan": [],
+    "coinSlotAndFacePreserved": true
+  },
+  {
+    "key": "quartz",
+    "meshChecksPassed": true,
+    "extraMeshes": 10,
+    "extraTriangles": 240,
+    "materialAnimation": [],
+    "projectionScan": [],
+    "coinSlotAndFacePreserved": true
+  },
+  {
+    "key": "neonmint",
+    "meshChecksPassed": true,
+    "extraMeshes": 0,
+    "extraTriangles": 0,
+    "materialAnimation": [
+      {
+        "material": "neonmint_trim_Baked",
+        "range": [
+          0.8600000143051147,
+          1.1699999570846558
+        ],
+        "loopClosed": true
+      },
+      {
+        "material": "neonmint_body_Baked",
+        "range": [
+          0.8600000143051147,
+          1.1699999570846558
+        ],
+        "loopClosed": true
+      }
+    ],
+    "projectionScan": [],
+    "coinSlotAndFacePreserved": true
+  },
+  {
+    "key": "ghost",
+    "meshChecksPassed": true,
+    "extraMeshes": 0,
+    "extraTriangles": 0,
+    "materialAnimation": [
+      {
+        "material": "ghost_trim_Baked",
+        "range": [
+          0.8600000143051147,
+          1.1699999570846558
+        ],
+        "loopClosed": true
+      },
+      {
+        "material": "ghost_body_Baked",
+        "range": [
+          0.8600000143051147,
+          1.1699999570846558
+        ],
+        "loopClosed": true
+      }
+    ],
+    "projectionScan": [],
+    "coinSlotAndFacePreserved": true
+  },
+  {
+    "key": "hologram",
+    "meshChecksPassed": true,
+    "extraMeshes": 0,
+    "extraTriangles": 0,
+    "materialAnimation": [
+      {
+        "material": "hologram_body_Baked",
+        "range": [
+          0.8600000143051147,
+          1.1699999570846558
+        ],
+        "loopClosed": true
+      },
+      {
+        "material": "hologram_trim_Baked",
+        "range": [
+          0.8600000143051147,
+          1.1699999570846558
+        ],
+        "loopClosed": true
+      }
+    ],
+    "projectionScan": [
+      {
+        "material": "hologram_body_Baked",
+        "startBelowFeet": -1.4500000476837158,
+        "endAboveEars": 1.5499999523162842,
+        "resetHidden": true
+      },
+      {
+        "material": "hologram_trim_Baked",
+        "startBelowFeet": -1.4500000476837158,
+        "endAboveEars": 1.5499999523162842,
+        "resetHidden": true
+      }
+    ],
+    "coinSlotAndFacePreserved": true
+  }
+]

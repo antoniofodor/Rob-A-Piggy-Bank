@@ -37,7 +37,7 @@
         "RoughnessMap": "",
         "NormalMap": "",
         "ColorMap": "rbxassetid://94063911128605",
-        "EmissiveMaskContent": "rbxassetid://136276063836251"
+        "EmissiveMaskContent": "rbxassetid://131500615754863"
       },
       "alphaMode": "Overlay"
     },
@@ -60,11 +60,11 @@
       "role": "legend_dragon_body ColorMap",
       "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
     },
-    "rbxassetid://136276063836251": {
+    "rbxassetid://131500615754863": {
       "file": "package/dragon_body_emissive.png",
       "sha256": "45f1306c462ccd369b2855cefa7df3466d8835dd6aa0ae9d636cd1c8651df3aa",
       "role": "legend_dragon_body EmissiveMaskContent",
-      "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://136276063836251"
     },
     "rbxassetid://99100943341562": {
       "file": "package/dragon_trim_color.png",
@@ -77,6 +77,31 @@
       "sha256": "5bcb3491608db21dd71275b9664b5c88ea0e0ec28a2df139a17cfee5679ff15f",
       "role": "legend_dragon_trim EmissiveMaskContent",
       "note": "mapped by the package README's file naming (tools/stage_animal_import.py stages the same); not verified against Roblox"
+    },
+    "rbxassetid://128183994270919": {
+      "file": "package/dragon-complete.fbx",
+      "role": "Config.LEGENDARIES.dragon mesh",
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://109204851983081; the imported model sat in the Edit workspace, part names read off it"
+    },
+    "rbxassetid://101832675482837": {
+      "file": "package/dragon-complete.fbx",
+      "role": "Config.LEGENDARIES.dragon mesh",
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://125166436376572; the imported model sat in the Edit workspace, part names read off it"
+    },
+    "rbxassetid://114989245315941": {
+      "file": "package/dragon-complete.fbx",
+      "role": "Config.LEGENDARIES.dragon mesh",
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://72646699202313; the imported model sat in the Edit workspace, part names read off it"
+    },
+    "rbxassetid://84794603914859": {
+      "file": "package/dragon-complete.fbx",
+      "role": "Config.LEGENDARIES.dragon mesh",
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://126647881382469; the imported model sat in the Edit workspace, part names read off it"
+    },
+    "rbxassetid://120031395770009": {
+      "file": "package/dragon-complete.fbx",
+      "role": "Config.LEGENDARIES.dragon mesh",
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://76682272776617; the imported model sat in the Edit workspace, part names read off it"
     }
   },
   "shopCard": {

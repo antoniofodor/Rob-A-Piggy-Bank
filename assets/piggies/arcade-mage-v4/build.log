@@ -1,0 +1,21 @@
+00:03.000  blend            | Read blend: "C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\package\overdrive-v3\finalboss-overdrive-v3.blend"
+ROBE_CHECKS {'undersideCoverageRays': 21, 'coveredLegVertices': 512, 'robeConnectedComponents': 1, 'integratedMantle': True, 'fullBoots': 4}
+00:19.000  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\preview\mage-v4\finalboss-v4-hero.png'
+00:33.172  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\preview\mage-v4\finalboss-v4-back.png'
+00:48.594  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\preview\mage-v4\finalboss-v4-top.png'
+00:57.125  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\preview\mage-v4\finalboss-v4-underside.png'
+01:11.375  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\preview\mage-v4\finalboss-v4-motion.png'
+01:11.406  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_25832_9c872479d8a78dbe822950f3152cbc59.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\finalboss\\package\\mage-v4\\finalboss-mage-v4-accessories.fbx'
+export finished in 0.0875 sec.
+FBX version: 7400
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\finalboss\\package\\mage-v4\\finalboss-mage-v4-complete.fbx'
+export finished in 0.1023 sec.
+FBX version: 7400
+Info: Saved as "finalboss-mage-v4.blend"
+OVERDRIVE_COMPLETE finalboss parts 75 triangles 16116
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

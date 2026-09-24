@@ -1,0 +1,72 @@
+{
+  "key": "pixel",
+  "name": "Pixel",
+  "tier": "rare",
+  "palette": [
+    [
+      27,
+      47,
+      78
+    ],
+    [
+      42,
+      130,
+      165
+    ],
+    [
+      104,
+      200,
+      192
+    ],
+    [
+      241,
+      211,
+      141
+    ]
+  ],
+  "aura": null,
+  "design": "Chunky teal, navy and cream pixel camouflage, stepped clusters and sparse pixel diamonds, solid teal snout and cream feet. Fixed limited-color artwork, no glow, floating cubes or extra geometry.",
+  "concept": "pixel-concept-v1.png",
+  "revision": "arcade-build-v1",
+  "status": "Imported into Roblox Studio and repository; assets approved; live place publishing not performed",
+  "conceptMethod": "built-in image_gen",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\pixel_arcade_v1_body_color.png",
+      "sha256": "4e9fad9fcbd834912a844adcc2f6a23a0677878b6c2ac58190f2e6c68b942c4a",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\pixel_arcade_v1_trim_color.png",
+      "sha256": "50551660858879ac221807dee24253c3c80008ea512f76f39bde03816d1016df",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": false
+  },
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": false,
+    "substantialAnimatedGeometry": false
+  },
+  "report": "package/arcade-v1-asset-report.json",
+  "review": "package/pixel-arcade-v1.blend",
+  "robloxIntegration": "../../arcade-build-v1/roblox-integration.json",
+  "robloxUploads": "roblox-uploads.json"
+}

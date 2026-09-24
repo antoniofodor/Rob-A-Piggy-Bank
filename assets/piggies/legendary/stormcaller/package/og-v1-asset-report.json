@@ -1,0 +1,367 @@
+{
+  "skin": "stormcaller",
+  "name": "Stormcaller",
+  "tier": "legendary",
+  "revision": "og-redesign-v1",
+  "status": "Built locally; Roblox upload and installation pending",
+  "design": "Storm-slate pig with cyan branching lightning fissures on shoulders and sides, navy snout, blue eyes. Two substantial sculpted storm-cloud clusters hover low beside rear flanks, chunky angular cyan lightning forks below. Clouds bob, small motes orbit, rain/electric-blue aura. Cloud geometry readable with effects disabled. Keep face, feet and hat space clear; no cloud hat covering ears.",
+  "baseGeometryAndUVPreserved": true,
+  "sourceGeometrySignatures": {
+    "Body": "4a54ceed97939e6392190f1c3fb9d10d14530d801166cc7f26e24e99a6983ec1",
+    "Snout": "178b13b8746bb7484909d7e7a981aaa0e159f0f353a9e5fe3891d1191fd68518",
+    "Ears": "a1a7e83a72613d031332816dd3b25c2c0462de33d33c68b0c4dc0e818a95fc9f",
+    "Legs": "56645ce48591fdcc0e5835a7c00c823798c55a883da5f6cca1af42bb7ea74d04",
+    "Tail": "529231df3b33d53086cc7e0fd91ff5ea7b327fcadbb9804603e727fa728c6b38",
+    "EyePreview": "21c6d31d1ffe826f5f98c7bc23d6d57d472f3e465f722caa9f67322a0b2933b9"
+  },
+  "parts": [
+    {
+      "name": "Body",
+      "role": "base",
+      "triangles": 6264,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.5762786865234375e-07,
+        6.62,
+        -0.0
+      ],
+      "sizeRobloxStuds": [
+        12.000000715255737,
+        11.519999742507935,
+        12.96000051498413
+      ]
+    },
+    {
+      "name": "Snout",
+      "role": "base",
+      "triangles": 2486,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        5.845477904081345,
+        4.720026791095734
+      ],
+      "sizeRobloxStuds": [
+        6.7845447063446045,
+        7.233279168605804,
+        7.127158999443054
+      ]
+    },
+    {
+      "name": "Ears",
+      "role": "base",
+      "triangles": 7152,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        11.888547296524049,
+        2.154139593243599
+      ],
+      "sizeRobloxStuds": [
+        9.337942600250244,
+        5.17062520980835,
+        2.339932769536972
+      ]
+    },
+    {
+      "name": "Legs",
+      "role": "base",
+      "triangles": 2032,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        2.000000114440918,
+        -0.18000000715255737
+      ],
+      "sizeRobloxStuds": [
+        8.640000343322754,
+        3.0,
+        8.759999871253967
+      ]
+    },
+    {
+      "name": "Tail",
+      "role": "base",
+      "triangles": 1592,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -0.05768336355686188,
+        9.557918484210969,
+        -6.589774489402771
+      ],
+      "sizeRobloxStuds": [
+        2.992636889219284,
+        3.0000447034835815,
+        4.405103445053101
+      ]
+    },
+    {
+      "name": "EyePreview",
+      "role": "base",
+      "triangles": 1056,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        8.801508004665376,
+        5.33257520198822
+      ],
+      "sizeRobloxStuds": [
+        5.077638387680054,
+        1.2599998712539673,
+        1.2599995136260986
+      ]
+    },
+    {
+      "name": "StormCloud_-1_0",
+      "role": "accessory",
+      "triangles": 80,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        -6.8399999141693115,
+        7.662314514517784,
+        -2.400000035762787
+      ],
+      "sizeRobloxStuds": [
+        3.081427574157715,
+        3.2400000393390656,
+        3.2400001287460327
+      ]
+    },
+    {
+      "name": "StormCloud_-1_1",
+      "role": "accessory",
+      "triangles": 80,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        -7.920000314712524,
+        7.782314578890801,
+        -2.8799999356269836
+      ],
+      "sizeRobloxStuds": [
+        2.7390475273132324,
+        2.880000025033951,
+        2.8799997568130493
+      ]
+    },
+    {
+      "name": "StormCloud_-1_2",
+      "role": "accessory",
+      "triangles": 80,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        -5.940000057220459,
+        8.022314573526383,
+        -2.760000005364418
+      ],
+      "sizeRobloxStuds": [
+        2.624919891357422,
+        2.7600000500679016,
+        2.7599999606609344
+      ]
+    },
+    {
+      "name": "StormCloud_-1_3",
+      "role": "accessory",
+      "triangles": 80,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        -7.019999742507935,
+        8.382314677238465,
+        -1.6799999624490738
+      ],
+      "sizeRobloxStuds": [
+        2.8531737327575684,
+        3.0,
+        2.9999997317790985
+      ]
+    },
+    {
+      "name": "LightningFork_-1",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        -7.061292886734009,
+        5.317514049708843,
+        -2.370669901371002
+      ],
+      "sizeRobloxStuds": [
+        1.4375195503234863,
+        3.1320586055517197,
+        0.5986601114273071
+      ]
+    },
+    {
+      "name": "StormCloud_1_0",
+      "role": "accessory",
+      "triangles": 80,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        6.8399999141693115,
+        8.217685247659684,
+        -2.400000035762787
+      ],
+      "sizeRobloxStuds": [
+        3.081427574157715,
+        3.2399999499320984,
+        3.2400001287460327
+      ]
+    },
+    {
+      "name": "StormCloud_1_1",
+      "role": "accessory",
+      "triangles": 80,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        7.920000314712524,
+        8.337685356736184,
+        -2.8799999356269836
+      ],
+      "sizeRobloxStuds": [
+        2.7390475273132324,
+        2.8799998462200165,
+        2.8799997568130493
+      ]
+    },
+    {
+      "name": "StormCloud_1_2",
+      "role": "accessory",
+      "triangles": 80,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        5.940000057220459,
+        8.57768539607525,
+        -2.760000005364418
+      ],
+      "sizeRobloxStuds": [
+        2.624919891357422,
+        2.7600001394748688,
+        2.7599999606609344
+      ]
+    },
+    {
+      "name": "StormCloud_1_3",
+      "role": "accessory",
+      "triangles": 80,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        7.019999742507935,
+        8.93768536567688,
+        -1.6799999624490738
+      ],
+      "sizeRobloxStuds": [
+        2.8531737327575684,
+        3.0,
+        2.9999997317790985
+      ]
+    },
+    {
+      "name": "LightningFork_1",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": "bob",
+      "offsetRobloxStuds": [
+        7.061292886734009,
+        5.872884805202484,
+        -2.370669901371002
+      ],
+      "sizeRobloxStuds": [
+        1.4375195503234863,
+        3.1320587396621704,
+        0.5986601114273071
+      ]
+    }
+  ],
+  "exports": [
+    {
+      "file": "stormcaller-og-v1-complete.fbx",
+      "meshCount": 16,
+      "triangles": 21278,
+      "roundTripChecked": true,
+      "roundTripBoundsError": 4.76837158203125e-07
+    },
+    {
+      "file": "stormcaller-og-v1-accessories.fbx",
+      "meshCount": 10,
+      "triangles": 696,
+      "roundTripChecked": true,
+      "roundTripBoundsError": 8.940696716308594e-08
+    }
+  ],
+  "aura": "storm",
+  "auraPreviewObjects": 14,
+  "auraExcludedFromMeshExports": true,
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 10,
+    "materialPulse": true,
+    "loopClosureError": 0.0,
+    "faceClearanceSampledFrames": 9
+  },
+  "tierChecks": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": true
+  },
+  "textures": [
+    {
+      "role": "body_color",
+      "file": "sheets\\stormcaller_og_v1_body_color.png",
+      "sha256": "c434dcd18f99e96196a48525fcef809d971238120b53ad437dd4ba25fee221bd",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\stormcaller_og_v1_body_emissive.png",
+      "sha256": "ba5f5f6c036c29e0c3b3d34d274b2963e6b00320cfb3182ebe38b6989dfa3c1c",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\stormcaller_og_v1_trim_color.png",
+      "sha256": "61ca5936a382efa67f8c1c4fcd0a247574858fe247e6e0ae4f4ae59c455abc8e",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\stormcaller_og_v1_trim_emissive.png",
+      "sha256": "70b7d8ad122d8f92ef6971e57227b2e64da2665fa2a29db13284aab8950e98b8",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "generator": "assets/piggies/og-redesign-v1/build_og.py",
+  "runtimeNotes": "Use supplied maps on shared body/trim; replace old procedural pattern. Preserve rarity. Use existing aura key; preview motes are not export meshes. New accessories replace, not stack with, old shard/FX geometry. Full Blender animation is retained in packed blend; FBX is a static import pose."
+}

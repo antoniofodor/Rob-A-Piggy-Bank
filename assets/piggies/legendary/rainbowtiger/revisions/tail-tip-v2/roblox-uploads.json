@@ -1,0 +1,15 @@
+{
+  "skin": "rainbowtiger",
+  "revision": "og-v2-layered-approved",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "shop_card": {
+      "source": "assets/piggies/legendary/rainbowtiger/revisions/tail-tip-v2/rainbowtiger-shop-card.png",
+      "sha256": "86fb7e5cc867fa07e430253aed0cc26c7ff37d8294e6f63be0e89e707ca13af7",
+      "assetType": "Image",
+      "operationId": "a3c06cbd-952c-4762-932e-3d7459968ddf",
+      "assetId": "77819354328927",
+      "moderationState": "Approved"
+    }
+  }
+}

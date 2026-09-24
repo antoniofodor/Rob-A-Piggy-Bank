@@ -1,0 +1,145 @@
+{
+  "key": "muddy",
+  "name": "Muddy Piggy",
+  "tier": "common",
+  "path": "assets/piggies/common/muddy/",
+  "status": "Uploaded and installed (og-redesign-v1 maps round, 2026-09-23)",
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau",
+    "skinsRow": {
+      "line": 6994,
+      "name": "Muddy Piggy",
+      "rarity": "common",
+      "surface": "muddy",
+      "chest": "og",
+      "pattern": false,
+      "anim": false,
+      "fx": false
+    },
+    "surfacePack": {
+      "key": "muddy",
+      "line": 6006,
+      "template": "muddy",
+      "trimTemplate": "muddy_trim"
+    },
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/muddy.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://131609552022534",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/muddy_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://117906016169565",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://131609552022534": {
+      "role": "muddy ColorMap",
+      "file": "sheets/muddy_body_color.png",
+      "sha256": "31963e33bec94c47c2c3eeb757cfd1c78d3ec5c4f91f4e4bf1b603f9d2c0d6df"
+    },
+    "rbxassetid://117906016169565": {
+      "role": "muddy_trim ColorMap",
+      "file": "sheets/muddy_trim_color.png",
+      "sha256": "6515e9db839c1d9b28ab6dbd46f930e625e162e4564d71176d59d61b9b9f0b59"
+    }
+  },
+  "maps": {
+    "body": {
+      "file": "sheets/muddy_body_color.png",
+      "sha256": "31963e33bec94c47c2c3eeb757cfd1c78d3ec5c4f91f4e4bf1b603f9d2c0d6df",
+      "size": [
+        1024,
+        1024
+      ],
+      "uploadedAssetId": null
+    },
+    "trim": {
+      "file": "sheets/muddy_trim_color.png",
+      "sha256": "6515e9db839c1d9b28ab6dbd46f930e625e162e4564d71176d59d61b9b9f0b59",
+      "size": [
+        1024,
+        1024
+      ],
+      "uploadedAssetId": null
+    }
+  },
+  "generator": "generate/make_muddy_blend.py",
+  "concept": "preview/muddy-concept-v1.png",
+  "source": "source/muddy.blend",
+  "derivedPackage": {
+    "path": "package/",
+    "blend": "muddy-complete.blend",
+    "fbx": "muddy-complete.fbx",
+    "report": "muddy-asset-report.json"
+  },
+  "geometry": {
+    "source": "assets\\piggies\\common\\cow\\source\\cow_closed.blend",
+    "geometryAndUVPreserved": true,
+    "partSignatures": {
+      "Body": "98f1df49a91769b714d03c22288699dd30ae41ab788076d305b2c83057eb617b",
+      "Snout": "95f0524ba743d1a8d6e0e915be02b1de47d7382a61661eec5b00d68f63bea884",
+      "Ears": "a513db561993cdf71573e8a07396b1a2ec0d4d502bdf5ed5015598b65137867b",
+      "Legs": "8ecab28bb7ddebb6daf1a7ce782c951313b1d109a58512f37a6588d407742a5a",
+      "Tail": "b88cd28d2e4251ab55e3cd7c76c0b61737eb36c14d7fc3a00eaa3581736625f4",
+      "EyePreview": "f7a5362fc6e2b499cb725035057fdd1a4bbfa6c9b4eadcc0f8c5ed19a591d6fc"
+    },
+    "addedVertices": 0,
+    "addedTriangles": 0
+  },
+  "validation": {
+    "fbxRoundTripMaxBoundsError": 4.76837158203125e-07,
+    "triangles": 20582,
+    "textureCopiesMatch": true
+  },
+  "files": {
+    "source": [
+      "muddy.blend"
+    ],
+    "generate": [
+      "finalize_muddy.py",
+      "geometry-check.json",
+      "make_muddy_blend.py",
+      "muddy-concept-v1-prompt.txt",
+      "review_muddy.py",
+      "show_muddy_mcp.py"
+    ],
+    "sheets": [
+      "muddy_body_color.png",
+      "muddy_trim_color.png"
+    ],
+    "preview": [
+      "muddy-back.png",
+      "muddy-concept-v1.png",
+      "muddy-crown.png",
+      "muddy-front.png",
+      "muddy-hero.png",
+      "muddy-spine.png"
+    ],
+    "package": [
+      "muddy-asset-report.json",
+      "muddy-complete.blend",
+      "muddy-complete.fbx",
+      "muddy-crown.png",
+      "muddy-front.png",
+      "muddy-hero.png",
+      "muddy-spine.png",
+      "muddy_body_color.png",
+      "muddy_trim_color.png"
+    ]
+  }
+}

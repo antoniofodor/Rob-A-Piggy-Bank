@@ -1,0 +1,24 @@
+{
+  "key": "quartz",
+  "name": "Quartz",
+  "tier": "rare",
+  "palette": [
+    [
+      228,
+      164,
+      199
+    ],
+    [
+      247,
+      221,
+      235
+    ],
+    [
+      170,
+      122,
+      181
+    ]
+  ],
+  "aura": null,
+  "design": "Polished rose quartz with large pale pink and lavender facets, subtle milky inclusions and fine mineral veins. Tapered hexagonal crystal clusters grow directly from the shoulders and rear flanks. Soft pearlescent highlights; no emission or aura."
+}

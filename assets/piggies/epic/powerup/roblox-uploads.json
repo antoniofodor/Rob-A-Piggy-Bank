@@ -1,0 +1,47 @@
+{
+  "skin": "powerup",
+  "revision": "arcade-v1",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "accessories": {
+      "source": "assets/piggies/epic/powerup/package/powerup-arcade-v1-accessories.fbx",
+      "sha256": "e65fa8a89eaa274b230cc274f300b1ef5899f1a14201c63452d710015b02fd9c",
+      "assetType": "Model",
+      "operationId": "07a90a0d-aa17-4e3e-840e-ee096155ba2e",
+      "assetId": "80170851472858",
+      "moderationState": "Approved"
+    },
+    "body_color": {
+      "source": "assets/piggies/epic/powerup/sheets/powerup_arcade_v1_body_color.png",
+      "sha256": "c9fb7499c9a496ba0c8e0f05964dca80bdd7acce0704d8766608aea906953953",
+      "assetType": "Image",
+      "operationId": "368e2652-6195-4d83-b9cf-a6c0b8837114",
+      "assetId": "112637068962777",
+      "moderationState": "Approved"
+    },
+    "body_emissive": {
+      "source": "assets/piggies/epic/powerup/sheets/powerup_arcade_v1_body_emissive.png",
+      "sha256": "c3202e966e7b0c7cb12575d7455c29ccb62637b2a86080ebd35d270d57166d3f",
+      "assetType": "Image",
+      "operationId": "0d80e8b4-56bd-4bdd-bac4-b14d20651102",
+      "assetId": "91813422027508",
+      "moderationState": "Approved"
+    },
+    "trim_color": {
+      "source": "assets/piggies/epic/powerup/sheets/powerup_arcade_v1_trim_color.png",
+      "sha256": "0d9f4fe0194aa0d0904c94f125f9af93ead90a2f3b5584aeabafe3be414a7ddb",
+      "assetType": "Image",
+      "operationId": "5e3028e0-73c7-413c-860d-73eaf9687b5a",
+      "assetId": "110620785539551",
+      "moderationState": "Approved"
+    },
+    "trim_emissive": {
+      "source": "assets/piggies/epic/powerup/sheets/powerup_arcade_v1_trim_emissive.png",
+      "sha256": "b423c3205b957f68b072235b9343520f84b1adde4b216bd44893a20e9398f704",
+      "assetType": "Image",
+      "operationId": "e19a4e75-d895-478b-a1a7-7d0960791ef5",
+      "assetId": "71118379213720",
+      "moderationState": "Approved"
+    }
+  }
+}

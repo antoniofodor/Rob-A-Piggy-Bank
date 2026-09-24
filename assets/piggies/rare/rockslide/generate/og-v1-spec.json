@@ -1,0 +1,24 @@
+{
+  "key": "rockslide",
+  "name": "Rockslide",
+  "tier": "rare",
+  "design": "Weathered slate pig. Broad fitted irregular charcoal and warm-gray stone plates with recessed seams and subtle strata. A few small low-poly rock plates grow directly from upper flanks, deeply seated in skin; no loose stones or excessive spikes. Rounded rock snout, dark feet. No glow or particles.",
+  "palette": [
+    [
+      104,
+      111,
+      120
+    ],
+    [
+      60,
+      66,
+      76
+    ],
+    [
+      151,
+      146,
+      136
+    ]
+  ],
+  "aura": null
+}

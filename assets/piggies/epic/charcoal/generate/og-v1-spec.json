@@ -1,0 +1,24 @@
+{
+  "key": "charcoal",
+  "name": "Charcoal Piggy",
+  "tier": "epic",
+  "design": "Charcoal-black pig with large irregular charred plates painted across skin and narrow connected ember-red/orange fissures glowing between them. Matte dark snout and coal feet, ember eyes. Small orange ember particles rise from back. Cracks provide light while most of pig stays dark. No whole-body orange glow or large armor.",
+  "palette": [
+    [
+      39,
+      35,
+      38
+    ],
+    [
+      67,
+      54,
+      51
+    ],
+    [
+      255,
+      101,
+      26
+    ]
+  ],
+  "aura": "embers"
+}

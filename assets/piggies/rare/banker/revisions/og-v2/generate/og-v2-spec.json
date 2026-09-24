@@ -1,0 +1,24 @@
+{
+  "key": "banker",
+  "name": "Banker Piggy",
+  "tier": "rare",
+  "palette": [
+    [
+      29,
+      39,
+      61
+    ],
+    [
+      218,
+      218,
+      204
+    ],
+    [
+      174,
+      128,
+      46
+    ]
+  ],
+  "aura": null,
+  "design": "Tailored navy pinstripe suit, broad ivory shirt and lapel edges, burgundy tie, gold buttons, a pocket-watch motif and fine gold chain across the flank. Pink face and ears, polished dark shoes. All tailoring is a flush authored coat."
+}

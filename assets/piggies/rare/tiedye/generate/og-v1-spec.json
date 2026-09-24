@@ -1,0 +1,34 @@
+{
+  "key": "tiedye",
+  "name": "Tie-Dye",
+  "tier": "rare",
+  "design": "Saturated tie-dye fabric coat with large flowing off-center spiral bands of magenta, tangerine, violet and cyan, narrow irregular cream resist streaks. Color wraps around egg body, not scattered spots. Soft pink snout and violet feet. Non-emissive matte toy surface, no particles or added geometry.",
+  "palette": [
+    [
+      226,
+      62,
+      153
+    ],
+    [
+      249,
+      163,
+      51
+    ],
+    [
+      49,
+      181,
+      200
+    ],
+    [
+      111,
+      65,
+      190
+    ],
+    [
+      251,
+      230,
+      176
+    ]
+  ],
+  "aura": null
+}

@@ -60,7 +60,8 @@ An optional second argument offsets playback time in seconds. Call `stop()`
 on skin changes; model destruction also cleans up and restores material values.
 Preserve mesh names for phase lookup and preserve the blended Root/tip weights
 so the feather bases remain attached. Tune glow strength in the game's lighting.
-The older `assets/phoenix/PhoenixEffects.luau` targets a different rig and
+The older `PhoenixEffects.luau` package (`assets/phoenix/`, removed
+2026-09-23) targeted a different rig and
 must not be used with this package.
 
 Keep game-owned deposit effects, collision behavior and the rear vault plate.

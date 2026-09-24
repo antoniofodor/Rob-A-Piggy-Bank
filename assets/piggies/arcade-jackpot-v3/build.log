@@ -1,0 +1,36 @@
+00:02.875  blend            | Read blend: "C:\Users\anton\robloxGame\assets\piggies\legendary\jackpot\package\arcade-v2\jackpot-arcade-v2.blend"
+C:\Users\anton\robloxGame\assets\piggies\arcade-jackpot-v3\build.py:19: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_v2_'+name);m.use_nodes=True;b=m.node_tree.nodes.get('Principled BSDF')
+00:26.406  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\jackpot\preview\jackpot-v3\jackpot-v3-hero.png'
+00:42.391  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\jackpot\preview\jackpot-v3\jackpot-v3-back.png'
+00:59.969  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\jackpot\preview\jackpot-v3\jackpot-v3-top.png'
+01:18.031  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\jackpot\preview\jackpot-v3\jackpot-v3-motion.png'
+01:18.063  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_992_0979c2578fad15c83417d31f3c708933.png.png"
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\jackpot\\package\\jackpot-v3\\jackpot-jackpot-v3-accessories.fbx'
+export finished in 0.1263 sec.
+FBX version: 7400
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\jackpot\\package\\jackpot-v3\\jackpot-jackpot-v3-complete.fbx'
+export finished in 0.1444 sec.
+FBX version: 7400
+Info: Saved as "jackpot-jackpot-v3.blend"
+JACKPOT_V3_COMPLETE jackpot parts 94 triangles 7624
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

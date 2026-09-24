@@ -1,0 +1,20 @@
+00:02.891  blend            | Read blend: "C:\Users\anton\robloxGame\assets\piggies\legendary\jackpot\package\jackpot-arcade-v1.blend"
+C:\Users\anton\robloxGame\assets\piggies\arcade-legendary-v2\build.py:19: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_v2_'+name);m.use_nodes=True;b=m.node_tree.nodes.get('Principled BSDF')
+00:24.719  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\jackpot\preview\arcade-v2\jackpot-v2-hero.png'
+00:53.234  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\jackpot\preview\arcade-v2\jackpot-v2-back.png'
+01:48.125  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\jackpot\preview\arcade-v2\jackpot-v2-motion.png'
+01:48.250  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_18500_618c5bfee0cf129f75c9810127ae6181.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\jackpot\\package\\arcade-v2\\jackpot-arcade-v2-accessories.fbx'
+export finished in 0.1043 sec.
+FBX version: 7400
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\jackpot\\package\\arcade-v2\\jackpot-arcade-v2-complete.fbx'
+export finished in 0.1535 sec.
+FBX version: 7400
+Info: Saved as "jackpot-arcade-v2.blend"
+V2_COMPLETE jackpot parts 75 triangles 5396
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

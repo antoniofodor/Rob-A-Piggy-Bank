@@ -1,0 +1,127 @@
+{
+  "key": "marble",
+  "name": "Marble",
+  "tier": "rare",
+  "path": "assets/piggies/rare/marble",
+  "status": "Uploaded and installed (og-redesign-v1 maps round, 2026-09-23)",
+  "revision": "og-redesign-v1",
+  "templates": {
+    "body": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/marble.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://93215477197948",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    },
+    "trim": {
+      "path": "src/ReplicatedStorage/Shared/SurfacePacks/marble_trim.model.json",
+      "ids": {
+        "ColorMap": "rbxassetid://95565608013355",
+        "MetalnessMap": "",
+        "RoughnessMap": "",
+        "NormalMap": ""
+      },
+      "alphaMode": "Overlay"
+    }
+  },
+  "idSources": {
+    "rbxassetid://93215477197948": {
+      "role": "marble ColorMap",
+      "file": "sheets/marble_og_v1_body_color.png",
+      "sha256": "4d086e0165a52fbf2f28c96ce75d23967141867b887d220d433907950f9d855c"
+    },
+    "rbxassetid://95565608013355": {
+      "role": "marble_trim ColorMap",
+      "file": "sheets/marble_og_v1_trim_color.png",
+      "sha256": "d3771925b6bad62e7f8e5601cd39d837aa1e2730dcda270acf90c4cb9ebad39d"
+    }
+  },
+  "config": {
+    "readFrom": "src/ReplicatedStorage/Shared/Config.luau",
+    "skinsRow": {
+      "line": 7027,
+      "name": "Marble",
+      "rarity": "rare",
+      "surface": "marble",
+      "chest": "og",
+      "pattern": false,
+      "anim": false,
+      "fx": false
+    },
+    "surfacePack": {
+      "key": "marble",
+      "line": 5992,
+      "template": "marble",
+      "trimTemplate": "marble_trim"
+    },
+    "status": "in Config.SKINS, wearing a SurfacePacks pair"
+  },
+  "concept": "preview/marble-og-v1-concept.png",
+  "prompt": "generate/og-v1-concept-prompt.txt",
+  "conceptMethod": "built-in image_gen",
+  "source": "source/marble-og-v1-procedural.blend",
+  "review": "package/marble-og-v1.blend",
+  "generator": "assets\\piggies\\og-redesign-v1\\build_og.py",
+  "report": "package/og-v1-asset-report.json",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\marble_og_v1_body_color.png",
+      "sha256": "4d086e0165a52fbf2f28c96ce75d23967141867b887d220d433907950f9d855c",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\marble_og_v1_trim_color.png",
+      "sha256": "d3771925b6bad62e7f8e5601cd39d837aa1e2730dcda270acf90c4cb9ebad39d",
+      "size": [
+        1024,
+        1024
+      ]
+    }
+  ],
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": false,
+    "substantialAnimatedGeometry": false
+  },
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 0,
+    "materialPulse": false
+  },
+  "files": {
+    "source": [
+      "marble-og-v1-procedural.blend"
+    ],
+    "generate": [
+      "og-v1-concept-prompt.txt",
+      "og-v1-spec.json"
+    ],
+    "sheets": [
+      "marble_og_v1_body_color.png",
+      "marble_og_v1_trim_color.png"
+    ],
+    "preview": [
+      "marble-og-v1-back.png",
+      "marble-og-v1-concept.png",
+      "marble-og-v1-hero.png"
+    ],
+    "package": [
+      "marble-og-v1-complete.fbx",
+      "marble-og-v1.blend",
+      "og-v1-asset-report.json"
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+C:\Users\anton\robloxGame\assets\piggies\arcade-build-v1\build_arcade.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:05.453  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_3448_b18de81095bddd388d13586c639291c0.png.png"
+Info: Saved as "finalboss-arcade-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED finalboss body color
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED finalboss body emissive
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED finalboss trim color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED finalboss trim emissive
+C:\Users\anton\robloxGame\assets\piggies\arcade-build-v1\build_arcade.py:711: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:42.656  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\preview\finalboss-arcade-v1-hero.png'
+01:07.484  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\preview\finalboss-arcade-v1-back.png'
+01:24.906  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\legendary\finalboss\preview\finalboss-arcade-v1-motion.png'
+01:24.953  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_3448_a749fb6a1cbf595cfd30284d85b71328.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\finalboss\\package\\finalboss-arcade-v1-complete.fbx'
+export finished in 0.2557 sec.
+FBX version: 7400
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\legendary\\finalboss\\package\\finalboss-arcade-v1-accessories.fbx'
+export finished in 0.2851 sec.
+FBX version: 7400
+Info: Saved as "finalboss-arcade-v1.blend"
+ARCADE_COMPLETE finalboss {"extraTriangles": 1080, "maps": 4, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

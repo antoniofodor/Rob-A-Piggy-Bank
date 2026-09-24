@@ -1,0 +1,30 @@
+{
+  "key": "respawn",
+  "name": "Respawn",
+  "tier": "epic",
+  "palette": [
+    [
+      44,
+      20,
+      92
+    ],
+    [
+      35,
+      199,
+      242
+    ],
+    [
+      111,
+      43,
+      216
+    ],
+    [
+      226,
+      55,
+      217
+    ]
+  ],
+  "aura": "arcade_pixel_stream_proposed",
+  "concept": "respawn-concept-v1.png",
+  "design": "Solid purple pig with a cyan/violet pixel coat, flank arrow, cyan eyes and seven small animated cubes rising near the rear. Emission pulse and pixel motes. New aura specification, not an installed runtime emitter."
+}

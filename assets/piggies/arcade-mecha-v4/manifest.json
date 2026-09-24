@@ -1,0 +1,22 @@
+{
+  "revision": "arcade-mecha-v4",
+  "status": "Installed in project and Roblox Studio",
+  "skin": "mechaplayer",
+  "model": "../legendary/mechaplayer/package/arcade-v4/mechaplayer-arcade-v4.blend",
+  "preview": "index.html",
+  "validation": {
+    "allAccessoryMeshesClosed": true,
+    "crownCoverageRaysOutsideCoinSlot": 510,
+    "coinSlotClearanceRays": 15,
+    "baseMeshGeometryAndUVsPreserved": true,
+    "eyeReseatForwardBlenderUnits": 0.026,
+    "insetVents": 3,
+    "navyLegSockets": 4,
+    "shoulderMarkings": "UV texture paint",
+    "shoulderImagesPacked": true
+  },
+  "installedRevision": "arcade-v4",
+  "runtimeInstalled": true,
+  "publishedLive": false,
+  "robloxUploads": "assets/piggies/approved-imports-20260923/mechaplayer/roblox-uploads.json"
+}

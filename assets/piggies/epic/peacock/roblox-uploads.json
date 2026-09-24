@@ -1,0 +1,31 @@
+{
+  "skin": "peacock",
+  "revision": "epic-v2",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "accessories": {
+      "source": "assets/piggies/epic/peacock/package/epic-v2/peacock-epic-v2-accessories.fbx",
+      "sha256": "ccb2c0c99aefd54896571ad06e5a108a2762e8e4cebcbf547224787f1551bdf0",
+      "assetType": "Model",
+      "operationId": "57e263e0-780f-4995-8e6d-6efca20af995",
+      "assetId": "97941702099263",
+      "moderationState": "Approved"
+    },
+    "body": {
+      "source": "assets/piggies/epic/peacock/sheets/peacock-epic-v2-body.png",
+      "sha256": "cc1db87e933f23feadbbcef9a1139f3f0f28892c9e7c0203f81d33a131ea93d5",
+      "assetType": "Image",
+      "operationId": "b8989e5e-0ecd-4bbc-9c82-66584a7a40c1",
+      "assetId": "119377976943225",
+      "moderationState": "Approved"
+    },
+    "trim": {
+      "source": "assets/piggies/epic/peacock/sheets/peacock-epic-v2-trim.png",
+      "sha256": "6f108708abba094525c2d56eba24b85d873c12e96b993d59e720d4a58f8307e2",
+      "assetType": "Image",
+      "operationId": "7308214e-b87a-47ac-8f62-584ded37dc13",
+      "assetId": "114128782594906",
+      "moderationState": "Approved"
+    }
+  }
+}

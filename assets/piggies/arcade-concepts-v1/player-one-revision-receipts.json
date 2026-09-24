@@ -1,0 +1,14 @@
+[
+  {
+    "key": "player-one-headset-v2",
+    "prompt": "Use case: precise-object-edit. Revise the attached Player One concept sheet, preserving the exact pig anatomy, red body, cream snout/feet/ear interiors/tail, black eyes, front three-quarter and rear three-quarter views, soft toy 3D style and charcoal-purple background. Add one simple recognizably GAMING HEADSET, charcoal plastic with cream ear cushions and small red inset panels. Low profile curved band lies securely behind the pig's tall ears, never cuts through them. Two modest round ear cups sit flush against the sides of the head behind the eyes, supported visibly by the band. Short microphone boom follows one cheek, ends beside but clear of the snout, no obstruction to eyes/nostrils. Both views show physically consistent assembly. Pig stays cute and on four short legs. Keep accessory simple and economical to model; no LEDs, no emission, no aura, no screens, no extra floating geometry. Reduce body gloss slightly for a game-ready toy appearance. Text only PLAYER ONE and HEADSET CONCEPT. This is a proposed common design with a modest cosmetic accessory, do not print a rarity label.",
+    "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0cbf1-8d87-7472-a9db-bb7e982fbf6a\\exec-f3cf8c94-df8f-415b-8f2a-491278372617.png",
+    "file": "player-one-headset-v2.png"
+  },
+  {
+    "key": "player-one-pixel-v2",
+    "prompt": "Use case: stylized-concept. Use attached Player One pig ONLY as exact anatomy and red/cream palette reference. Explore how THIS collectible pig would look digitized like an original early-1990s 16-bit arcade fighting-game character. Not a human fighter, no reference to an existing named character or outfit. Preserve egg body, four short cylindrical legs, broad triangular ears, curled tail, big cream snout and small black eyes. Two big views of the SAME pig: front three-quarter left, rear three-quarter right. Render character as authentic crisp low-resolution PIXEL ART enlarged by nearest-neighbor, visible square pixels, stepped silhouette edges, dark plum contour, selective highlights, 3-to-4 flat red shade bands and 3 cream shades, small ordered dithering patches only in shadow transitions. Strong readable sculptural volume through hand-placed pixel clusters, no smooth airbrushing, no glossy 3D rendering, no detached voxel cubes. A small flat cream pixel '1P' emblem on the visible flank anchors the arcade identity. No headset, no accessories, no glow, no particle effects, no other characters. Muted charcoal-purple plain backdrop, very subtle pixel ground shadow. Text only PLAYER ONE and 16-BIT CONCEPT, clean matching pixel lettering. This is a 2D art-direction target for a later pixel-textured 3D pig, not a screenshot of an implemented asset.",
+    "source": "C:\\Users\\anton\\.codex\\generated_images\\01a0cbf1-8d87-7472-a9db-bb7e982fbf6a\\exec-6a72f4ef-fd7a-4156-84f6-4d012ee47a40.png",
+    "file": "player-one-pixel-v2.png"
+  }
+]

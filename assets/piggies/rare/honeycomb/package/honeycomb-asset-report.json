@@ -2,7 +2,7 @@
   "skin": "honeycomb",
   "name": "Honeycomb",
   "status": "Complete static review asset; runtime installation pending",
-  "sourceScene": "skins\\honeycomb\\honeycomb.blend",
+  "sourceScene": "assets\\piggies\\rare\\honeycomb\\source\\honeycomb_closed.blend",
   "sourceFrame": "Blender X across, -Y face, Z up; origin at body centre",
   "bodyWidthStuds": 12,
   "sourceToStudScale": 5.999999642372153,
@@ -14,25 +14,25 @@
     ],
     "max": [
       5.999999523162842,
-      8.792325973510742,
+      9.487101554870605,
       7.8538594245910645
     ],
     "size": [
       11.999999523162842,
-      17.075931549072266,
+      17.77070713043213,
       13.973858833312988
     ]
   },
   "fbxRoundTripMaxBoundsError": 4.76837158203125e-07,
-  "meshCount": 6,
-  "triangles": 20670,
+  "meshCount": 8,
+  "triangles": 21642,
   "parts": [
     {
       "name": "Body",
       "sourcePart": "Body",
       "textureGroup": "body",
-      "vertices": 3176,
-      "triangles": 6352,
+      "vertices": 3134,
+      "triangles": 6264,
       "sourceNonManifoldEdges": 0,
       "maxSourceVertexError": 8.940696716308594e-08,
       "uvPreservedBeforeTriangulation": true,
@@ -94,6 +94,28 @@
       "maxSourceVertexError": 1.2644054553268208e-07,
       "uvPreservedBeforeTriangulation": true,
       "removedPreviewModifiers": []
+    },
+    {
+      "name": "HoneyDrop",
+      "sourcePart": "HoneyDrop",
+      "textureGroup": "trim",
+      "vertices": 458,
+      "triangles": 912,
+      "sourceNonManifoldEdges": 0,
+      "maxSourceVertexError": 1.2377834115800373e-07,
+      "uvPreservedBeforeTriangulation": true,
+      "removedPreviewModifiers": []
+    },
+    {
+      "name": "HoneyDropHighlight",
+      "sourcePart": "HoneyDropHighlight",
+      "textureGroup": "trim",
+      "vertices": 76,
+      "triangles": 148,
+      "sourceNonManifoldEdges": 0,
+      "maxSourceVertexError": 1.2310379476739693e-07,
+      "uvPreservedBeforeTriangulation": true,
+      "removedPreviewModifiers": []
     }
   ],
   "textures": [
@@ -104,7 +126,7 @@
         1024,
         1024
       ],
-      "sha256": "d50dc2818af45ef83196227282bb0994af066654ea0dd3fa2ff9f072b0da43c0"
+      "sha256": "378440dd4ea564495f8e45ba76f7038f453f538463ccf87c140aae2bd783d758"
     },
     {
       "group": "trim",
@@ -113,35 +135,33 @@
         1024,
         1024
       ],
-      "sha256": "93c48e39668782be312d45f1eccd6d62387da873b166d0cf92c3a572b681b462"
+      "sha256": "3d2ac48a6e5f10ff483dde0c1b2e02d35337d019cc7c26e2cb273de6660a1d9c"
     }
   ],
   "eyes": "Optional exported Eyes mesh; game-built eyes must not be duplicated",
   "nostrils": "Sculpted recesses retained; matching the existing coat previews, no black insert mesh",
   "sharedGeometry": "Body, snout, ears, legs and tail are unchanged apart from uniform scale and triangulation; UVs preserved",
   "inputHashes": {
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\honeycomb\\honeycomb.blend": "328ddccebf1cc513287d7cd84284ec2e83eccb9fe06579b917fd5f2030e8c809",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\pig\\pig_parts.blend": "b83cbb017c66b54f55dc8c75a079085621440f1c4d2e12e356de712bbf169086",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\honeycomb\\honeycomb_body_color.png": "d50dc2818af45ef83196227282bb0994af066654ea0dd3fa2ff9f072b0da43c0",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\honeycomb\\honeycomb_trim_color.png": "93c48e39668782be312d45f1eccd6d62387da873b166d0cf92c3a572b681b462",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\honeycomb\\honeycomb_body_emissive.png": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\honeycomb\\honeycomb_trim_emissive.png": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8",
-    "C:\\Users\\anton\\robloxGame\\blender\\pig\\skins\\honeycomb\\coat-spec.json": "d8145471cfe6f36a73cd424760d96c04fe1d57d64fec5e8ffa9f8dd1f6504833"
+    "C:\\Users\\anton\\robloxGame\\assets\\piggies\\rare\\honeycomb\\source\\honeycomb_closed.blend": "d89a845cf950d12ab61fd0e70dbce5f30edb6022f3598b2f815312faa341ae0c",
+    "C:\\Users\\anton\\robloxGame\\blender\\pig\\pig\\pig_parts.blend": "c5e740da3db249498a048da7cc4764ab1b4aa6c4cb103a46775d63dd4a5b2f4a",
+    "C:\\Users\\anton\\robloxGame\\assets\\piggies\\rare\\honeycomb\\sheets\\honeycomb_body_color.png": "378440dd4ea564495f8e45ba76f7038f453f538463ccf87c140aae2bd783d758",
+    "C:\\Users\\anton\\robloxGame\\assets\\piggies\\rare\\honeycomb\\sheets\\honeycomb_trim_color.png": "3d2ac48a6e5f10ff483dde0c1b2e02d35337d019cc7c26e2cb273de6660a1d9c",
+    "C:\\Users\\anton\\robloxGame\\assets\\piggies\\rare\\honeycomb\\source\\coat-spec.json": "2faeb428d939c554e2e2efc461c82dacfffc9ca993a1e46c549f848f9aa0885b"
   },
   "integration": "Existing skin uses shared mesh IDs plus body/trim SurfaceAppearances. Complete FBX is a standalone review/import option; do not upload duplicate base meshes for every coat.",
   "rarity": "rare",
-  "emissiveTextures": [
-    {
-      "group": "body",
-      "file": "honeycomb_body_emissive.png",
-      "sha256": "6c382d6490ff954a880afcf4ddadd1fb35392f2656c67ab993bcdf815dee2c8a",
-      "strengthPreview": 0.800000011920929
-    },
-    {
-      "group": "trim",
-      "file": "honeycomb_trim_emissive.png",
-      "sha256": "995ad8b7dced9486c872b108ddea2a40e8e60e47d05eb8c324324d5b9b37acc8",
-      "strengthPreview": 0.800000011920929
-    }
-  ]
+  "emissiveTextures": [],
+  "tailRevision": {
+    "style": "Orange curl, lighter translucent honey droplet, curved reflective streak",
+    "file": "honeycomb-tail.fbx",
+    "sha256": "d113433ae528b9c361e08ab12df729f8a185366fae55bd4ca915452dbd377b86",
+    "needsSkinSpecificTailMesh": true,
+    "roundTripPassed": true,
+    "parts": [
+      "Tail",
+      "HoneyDrop",
+      "HoneyDropHighlight"
+    ],
+    "materialNote": "Preserve separate droplet and highlight materials. Blender uses transmission 0.78, alpha 0.78, IOR 1.47; configure transparency in Roblox after import."
+  }
 }

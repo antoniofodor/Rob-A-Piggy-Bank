@@ -1,0 +1,71 @@
+{
+  "skin": "mechaplayer",
+  "revision": "arcade-v1",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "accessories": {
+      "source": "assets/piggies/legendary/mechaplayer/package/mechaplayer-arcade-v1-accessories.fbx",
+      "sha256": "1e37281a23ec26df05c10a8448501a66714ccf7f8f1b610dc9bebf91487656b1",
+      "assetType": "Model",
+      "operationId": "ead773b7-c45a-45e7-aa31-e70227f458bb",
+      "assetId": "80636700641247",
+      "moderationState": "Approved"
+    },
+    "body_color": {
+      "source": "assets/piggies/legendary/mechaplayer/sheets/mechaplayer_arcade_v1_body_color.png",
+      "sha256": "f4960bfaa98e7b4553af16b7c591f5e8404c375afd92f85683210e0fcb6225ca",
+      "assetType": "Image",
+      "operationId": "a970391e-3fb8-43d7-80ef-5b53b37c37c7",
+      "assetId": "117400828980513",
+      "moderationState": "Approved"
+    },
+    "body_emissive": {
+      "source": "assets/piggies/legendary/mechaplayer/sheets/mechaplayer_arcade_v1_body_emissive.png",
+      "sha256": "e5841761e7084e43ffd7c6fd52ad7289b5608e7d411cc147436044e7fb49fa13",
+      "assetType": "Image",
+      "operationId": "96baa05d-ecc8-450e-96e4-a48e6e0a9dfa",
+      "assetId": "77495939156637",
+      "moderationState": "Approved"
+    },
+    "trim_color": {
+      "source": "assets/piggies/legendary/mechaplayer/sheets/mechaplayer_arcade_v1_trim_color.png",
+      "sha256": "3e7bbe5adba1b63d3a689e3daa419c72c723490f0b323ae48b20285fd7ad1b08",
+      "assetType": "Image",
+      "operationId": "08c32e23-f339-4f48-b49f-d2e16b047859",
+      "assetId": "79009850906774",
+      "moderationState": "Approved"
+    },
+    "trim_emissive": {
+      "source": "assets/piggies/legendary/mechaplayer/sheets/mechaplayer_arcade_v1_trim_emissive.png",
+      "sha256": "b423c3205b957f68b072235b9343520f84b1adde4b216bd44893a20e9398f704",
+      "assetType": "Image",
+      "operationId": "f50f2c7e-699b-42bf-9a99-b3d2af6c4d32",
+      "assetId": "73276579567449",
+      "moderationState": "Approved"
+    },
+    "accessories_v2": {
+      "source": "assets/piggies/legendary/mechaplayer/package/arcade-v2/mechaplayer-arcade-v2-accessories.fbx",
+      "sha256": "8393d21eb59c5277feda8ba4563e03185dc0c6fd58f11e37770b55ee47e235e1",
+      "assetType": "Model",
+      "operationId": "4a870e7c-4beb-4b51-bd2b-adbbcbebca46",
+      "assetId": "131075996977679",
+      "moderationState": "Approved"
+    },
+    "body_color_v2": {
+      "source": "assets/piggies/legendary/mechaplayer/sheets/arcade-v2/mechaplayer_arcade_v2_body_color.png",
+      "sha256": "ad1e93baf14226d813df2387e838694b26e51f4d49d1964720921cd20d339080",
+      "assetType": "Image",
+      "operationId": "47c52a00-ae59-4a34-b142-a4d35335377f",
+      "assetId": "112997068233332",
+      "moderationState": "Approved"
+    },
+    "trim_color_v2": {
+      "source": "assets/piggies/legendary/mechaplayer/sheets/arcade-v2/mechaplayer_arcade_v2_trim_color.png",
+      "sha256": "c5f56abbeddecbcd22d60354f08850bc5d6afa2f46f18857c81db6412838efe5",
+      "assetType": "Image",
+      "operationId": "760d19d8-b198-4c84-ad9c-f3c3e449faae",
+      "assetId": "131013624125723",
+      "moderationState": "Approved"
+    }
+  }
+}

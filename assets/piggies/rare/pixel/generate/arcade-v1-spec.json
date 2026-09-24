@@ -1,0 +1,30 @@
+{
+  "key": "pixel",
+  "name": "Pixel",
+  "tier": "rare",
+  "palette": [
+    [
+      27,
+      47,
+      78
+    ],
+    [
+      42,
+      130,
+      165
+    ],
+    [
+      104,
+      200,
+      192
+    ],
+    [
+      241,
+      211,
+      141
+    ]
+  ],
+  "aura": null,
+  "design": "Chunky teal, navy and cream pixel camouflage, stepped clusters and sparse pixel diamonds, solid teal snout and cream feet. Fixed limited-color artwork, no glow, floating cubes or extra geometry.",
+  "concept": "pixel-concept-v1.png"
+}

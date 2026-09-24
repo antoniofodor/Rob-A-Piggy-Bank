@@ -1,0 +1,23 @@
+{
+  "skin": "circuitboard",
+  "revision": "arcade-v1",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "body_color": {
+      "source": "assets/piggies/rare/circuitboard/sheets/circuitboard_arcade_v1_body_color.png",
+      "sha256": "84793b32ee6f156753f128f6dbcba874e9ad94898d546b09fa5d0b5ead9db313",
+      "assetType": "Image",
+      "operationId": "77f0598e-92d5-4c7f-b449-c6c4d850365c",
+      "assetId": "107667654146283",
+      "moderationState": "Approved"
+    },
+    "trim_color": {
+      "source": "assets/piggies/rare/circuitboard/sheets/circuitboard_arcade_v1_trim_color.png",
+      "sha256": "0c69f2fcc6b991f9427c2fc7fd5fe59712308bb1559502751672dd36547d9d89",
+      "assetType": "Image",
+      "operationId": "6ec01b68-abcb-4d73-a741-681e822d0f1e",
+      "assetId": "76995876741236",
+      "moderationState": "Approved"
+    }
+  }
+}

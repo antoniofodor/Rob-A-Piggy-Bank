@@ -40,7 +40,7 @@
         "MetalnessMap": "",
         "RoughnessMap": "",
         "NormalMap": "",
-        "ColorMap": "rbxassetid://109130419469195",
+        "ColorMap": "rbxassetid://71642353677818",
         "EmissiveMaskContent": ""
       },
       "alphaMode": "Overlay"
@@ -58,11 +58,11 @@
     }
   },
   "idSources": {
-    "rbxassetid://109130419469195": {
-      "file": "sheets/bubblegumleopard_body_color.open-hatch.png",
-      "sha256": "e7d7adc5235b22872c7a6ff5c29b049276a1b247fd05f358807654a07b597780",
-      "role": "body ColorMap",
-      "note": "uploaded from the open-hatch bake"
+    "rbxassetid://71642353677818": {
+      "file": "sheets/bubblegumleopard_body_color.png",
+      "sha256": "cc351baf166dc3421ee4b1fea54b37ca49b9bd73e12d2d036480b55fe13da473",
+      "role": "bubblegumleopard ColorMap",
+      "note": "uploaded by hand in Studio 2026-09-23 00:49Z; id read back from the Studio inventory search and dated with GetProductInfo; replaces rbxassetid://109130419469195"
     },
     "rbxassetid://77795227405685": {
       "file": "sheets/bubblegumleopard_trim_color.png",

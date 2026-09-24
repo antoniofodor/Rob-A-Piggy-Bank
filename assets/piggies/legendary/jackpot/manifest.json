@@ -1,0 +1,122 @@
+{
+  "key": "jackpot",
+  "name": "Jackpot",
+  "tier": "legendary",
+  "palette": [
+    [
+      119,
+      36,
+      58
+    ],
+    [
+      235,
+      209,
+      151
+    ],
+    [
+      195,
+      139,
+      43
+    ],
+    [
+      255,
+      189,
+      61
+    ]
+  ],
+  "aura": "arcade_token_sparkle_proposed",
+  "concept": "jackpot-concept-v1.png",
+  "design": "A fuller arched reel housing with side lamps, raised gold rails, rivets, a rear shield and a fitted saddle. The original three reels and floating tokens retain their animation.",
+  "revision": "arcade-legendary-v2",
+  "status": "Installed in project and Roblox Studio",
+  "conceptMethod": "built-in image_gen",
+  "maps": [
+    {
+      "role": "body_color",
+      "file": "sheets\\jackpot_arcade_v1_body_color.png",
+      "sha256": "763d7c639936e7f8a66eb1906f91b7bdfa12acb848544891ee0d79b6ed366ac3",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "body_emissive",
+      "file": "sheets\\jackpot_arcade_v1_body_emissive.png",
+      "sha256": "b423c3205b957f68b072235b9343520f84b1adde4b216bd44893a20e9398f704",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\jackpot_arcade_v1_trim_color.png",
+      "sha256": "c0c34bfbbffceb3ac0a49dda6f1a7056439bcc9bd4de4b6b510189c7d25b55ea",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "trim_emissive",
+      "file": "sheets\\jackpot_arcade_v1_trim_emissive.png",
+      "sha256": "b423c3205b957f68b072235b9343520f84b1adde4b216bd44893a20e9398f704",
+      "size": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "role": "reel_0",
+      "file": "sheets\\jackpot_arcade_v1_reel_0.png",
+      "sha256": "c49fc1cadf8a00beeb2c3e09110646f2bd622afa67f973eb555644e1b3ffe55c",
+      "size": [
+        256,
+        1024
+      ]
+    },
+    {
+      "role": "reel_1",
+      "file": "sheets\\jackpot_arcade_v1_reel_1.png",
+      "sha256": "172aef291839e642b0e457d85079ce37ad0d86503ce3fed3c8990cd0fc2f9c0b",
+      "size": [
+        256,
+        1024
+      ]
+    },
+    {
+      "role": "reel_2",
+      "file": "sheets\\jackpot_arcade_v1_reel_2.png",
+      "sha256": "1922177563bf6a0ea0d3953b22eecec0117a1a4900c2f2c36316847ab2ccd025",
+      "size": [
+        256,
+        1024
+      ]
+    }
+  ],
+  "animation": {
+    "frames": [
+      1,
+      145
+    ],
+    "fps": 24,
+    "loopSeconds": 6,
+    "animatedGeometry": 9,
+    "materialPulse": true,
+    "loopClosureError": 2.980232238769531e-07,
+    "faceClearanceSampledFrames": 9
+  },
+  "tierEvidence": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": true
+  },
+  "report": "package/arcade-v2/asset-report.json",
+  "review": "package/arcade-v2/jackpot-arcade-v2.blend",
+  "robloxIntegration": "../../arcade-build-v1/roblox-integration.json",
+  "robloxUploads": "assets/piggies/approved-imports-20260923/jackpot/roblox-uploads.json",
+  "installedRevision": "jackpot-v3",
+  "runtimeInstalled": true,
+  "publishedLive": false
+}

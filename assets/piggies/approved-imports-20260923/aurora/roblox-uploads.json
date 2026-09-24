@@ -1,0 +1,71 @@
+{
+  "skin": "aurora",
+  "revision": "og-v2",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "body_color": {
+      "source": "assets/piggies/rare/aurora/revisions/og-v2/sheets/aurora_og_v2_body_color.png",
+      "sha256": "370ad2c9a2066539c8392d959dccfbb0e8af8d5722006caa82a0bcdec7d7e052",
+      "assetType": "Image",
+      "operationId": "cbeab692-422f-47f8-add8-f1d103e03533",
+      "assetId": "100090140861939",
+      "moderationState": "Approved"
+    },
+    "body_metal": {
+      "source": "assets/piggies/rare/aurora/revisions/og-v2/sheets/aurora_og_v2_body_metal.png",
+      "sha256": "4312e312fc81f0420ca58d1fbef0063588bdb9edc35f4e25db865f57855ab609",
+      "assetType": "Image",
+      "operationId": "abc7bdd4-2e2c-40bf-835c-da4a5b2ebe2d",
+      "assetId": "111424753948853",
+      "moderationState": "Approved"
+    },
+    "body_rough": {
+      "source": "assets/piggies/rare/aurora/revisions/og-v2/sheets/aurora_og_v2_body_rough.png",
+      "sha256": "e6ac59ca8171bce582450f8154b2a4793c7bbee027dd85465cf51f04728d4702",
+      "assetType": "Image",
+      "operationId": "1cef3bb7-7ea2-4025-9e6d-4f9bff70dec3",
+      "assetId": "128836797657977",
+      "moderationState": "Approved"
+    },
+    "body_emissive": {
+      "source": "assets/piggies/rare/aurora/revisions/og-v2/sheets/aurora_og_v2_body_emissive.png",
+      "sha256": "4c9a308601d156c80528a192e8aceec60521b14cfb5a9bcc3d1af2eb9ab9d45d",
+      "assetType": "Image",
+      "operationId": "cba9689b-a38b-444a-b457-a83a8a1c7820",
+      "assetId": "93544782378712",
+      "moderationState": "Approved"
+    },
+    "trim_color": {
+      "source": "assets/piggies/rare/aurora/revisions/og-v2/sheets/aurora_og_v2_trim_color.png",
+      "sha256": "5995cdbf556d12738ca7a5408d897708c31d759b1e5b74a2cdf7ad45d35a1c03",
+      "assetType": "Image",
+      "operationId": "582bb778-005a-43e3-bf3d-977f90aaf45d",
+      "assetId": "116392423675637",
+      "moderationState": "Approved"
+    },
+    "trim_metal": {
+      "source": "assets/piggies/rare/aurora/revisions/og-v2/sheets/aurora_og_v2_trim_metal.png",
+      "sha256": "458bdc0c48e22be13a523f9bb9178cd0d9174c08d75a84da6efcced708428ca4",
+      "assetType": "Image",
+      "operationId": "cb17da4d-5c43-46ec-be91-b5eb518bf61e",
+      "assetId": "136676580781850",
+      "moderationState": "Approved"
+    },
+    "trim_rough": {
+      "source": "assets/piggies/rare/aurora/revisions/og-v2/sheets/aurora_og_v2_trim_rough.png",
+      "sha256": "4204a1207744d2048fc23528952ffe1ad3b76a9018089a9b14d7b7e503d2a859",
+      "assetType": "Image",
+      "operationId": "7b189c4e-f933-49db-a74c-cd82fc5e8203",
+      "assetId": "78935648197726",
+      "moderationState": "Approved"
+    },
+    "trim_emissive": {
+      "source": "assets/piggies/rare/aurora/revisions/og-v2/sheets/aurora_og_v2_trim_emissive.png",
+      "sha256": "2bfa7a0d167a2f79d0b1e39128865f31144ed0ae04d4f39065cf620a6e4ce01a",
+      "assetType": "Image",
+      "operationId": "23e3365b-965b-4d66-b4fb-22a4e6a95d68",
+      "assetId": "125791931129172",
+      "moderationState": "Approved"
+    }
+  }
+}

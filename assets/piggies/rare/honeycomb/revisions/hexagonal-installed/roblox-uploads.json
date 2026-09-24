@@ -1,0 +1,47 @@
+{
+  "skin": "honeycomb",
+  "revision": "og-v2-layered-approved",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "body_color": {
+      "source": "assets/piggies/rare/honeycomb/sheets/honeycomb_body_color.png",
+      "sha256": "378440dd4ea564495f8e45ba76f7038f453f538463ccf87c140aae2bd783d758",
+      "assetType": "Image",
+      "operationId": "8297cf46-f28a-4c0f-85d2-456071cc1ac7",
+      "assetId": "111331164324497",
+      "moderationState": "Approved"
+    },
+    "trim_color": {
+      "source": "assets/piggies/rare/honeycomb/sheets/honeycomb_trim_color.png",
+      "sha256": "3d2ac48a6e5f10ff483dde0c1b2e02d35337d019cc7c26e2cb273de6660a1d9c",
+      "assetType": "Image",
+      "operationId": "d38c1a57-8ecd-4340-9ab8-5ab73046aa52",
+      "assetId": "88757114811518",
+      "moderationState": "Approved"
+    },
+    "tail": {
+      "source": "assets/piggies/rare/honeycomb/package/honeycomb-tail.fbx",
+      "sha256": "d113433ae528b9c361e08ab12df729f8a185366fae55bd4ca915452dbd377b86",
+      "assetType": "Model",
+      "operationId": "6ba56443-8718-4ad1-aa32-8163615bfc94",
+      "assetId": "111354369300895",
+      "moderationState": "Approved"
+    },
+    "shop_card": {
+      "source": "assets/piggies/rare/honeycomb/preview/honeycomb_shop-card.png",
+      "sha256": "38bbac09964b3b7f683d84fbbecb9fdde6025882960dce9ce60a8d6fb6120078",
+      "assetType": "Image",
+      "operationId": "b06b20c3-f624-433b-9723-048e731ab296",
+      "assetId": "123072274802746",
+      "moderationState": "Approved"
+    },
+    "accessories": {
+      "source": "assets/piggies/rare/honeycomb/revisions/hexagonal-installed/honeycomb-accessories.fbx",
+      "sha256": "000ec69d6e0bffe1b50efc1e79c5b7f72a76b10c2811c423e138f876e658cecf",
+      "assetType": "Model",
+      "operationId": "01681378-d633-4fd0-8d4e-57eefe67894d",
+      "assetId": "95796949876985",
+      "moderationState": "Approved"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "skin": "rockslide",
+  "revision": "og-v2",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "body_metal": {
+      "source": "assets/piggies/rare/rockslide/revisions/og-v2/sheets/rockslide_og_v2_body_metal.png",
+      "sha256": "b423c3205b957f68b072235b9343520f84b1adde4b216bd44893a20e9398f704",
+      "assetType": "Image",
+      "operationId": "f50f2c7e-699b-42bf-9a99-b3d2af6c4d32",
+      "assetId": "73276579567449",
+      "moderationState": "Approved",
+      "reusedByHash": true
+    },
+    "trim_metal": {
+      "source": "assets/piggies/rare/rockslide/revisions/og-v2/sheets/rockslide_og_v2_trim_metal.png",
+      "sha256": "b423c3205b957f68b072235b9343520f84b1adde4b216bd44893a20e9398f704",
+      "assetType": "Image",
+      "operationId": "f50f2c7e-699b-42bf-9a99-b3d2af6c4d32",
+      "assetId": "73276579567449",
+      "moderationState": "Approved",
+      "reusedByHash": true
+    },
+    "body_color": {
+      "source": "assets/piggies/rare/rockslide/revisions/og-v2/sheets/rockslide_og_v2_body_color.png",
+      "sha256": "819fb21025bb0f5bc578febbc33569aeb85c5ee5841ca352d541985e797b8353",
+      "assetType": "Image",
+      "operationId": "76e081b6-f9b3-4d18-ba18-7a869ff9ffe7",
+      "assetId": "120688943233471",
+      "moderationState": "Approved"
+    },
+    "body_rough": {
+      "source": "assets/piggies/rare/rockslide/revisions/og-v2/sheets/rockslide_og_v2_body_rough.png",
+      "sha256": "cc0a428d9cb80f02b31a83663d409337f35ca22aee471599d5689c0baa4e6e4f",
+      "assetType": "Image",
+      "operationId": "13c8be4a-6948-4b16-a1b0-8e998f067c9b",
+      "assetId": "129121583636673",
+      "moderationState": "Approved"
+    },
+    "trim_color": {
+      "source": "assets/piggies/rare/rockslide/revisions/og-v2/sheets/rockslide_og_v2_trim_color.png",
+      "sha256": "e5c08c6ac9e0dfd06908851ec3beb46f3298747527fb46f106373350c42cba90",
+      "assetType": "Image",
+      "operationId": "9fe63125-a766-4a39-a6f1-1082a2c013cf",
+      "assetId": "122478918598104",
+      "moderationState": "Approved"
+    },
+    "trim_rough": {
+      "source": "assets/piggies/rare/rockslide/revisions/og-v2/sheets/rockslide_og_v2_trim_rough.png",
+      "sha256": "99827ab882356f2fa4eca11e2fd88303b41940c84589519e9442a73145475ced",
+      "assetType": "Image",
+      "operationId": "7663fe96-c1bf-4234-af69-962b4ef5bdd9",
+      "assetId": "121550185228041",
+      "moderationState": "Approved"
+    },
+    "accessories": {
+      "source": "assets/piggies/rare/rockslide/revisions/og-v2/package/rockslide-og-v2-accessories.fbx",
+      "sha256": "1c2e6ac036bb73dc1f979ed20b6ca7692ea7778abf62df636afe038d7ee33805",
+      "assetType": "Model",
+      "operationId": "29ef3230-f25c-4451-9efa-4e0726beb633",
+      "assetId": "71409346006751",
+      "moderationState": "Approved"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+[
+  {
+    "key": "hedgehog",
+    "triangles": 31022,
+    "accessoryTriangles": 10440,
+    "accessoryMeshes": 1,
+    "checks": "passed"
+  },
+  {
+    "key": "lion",
+    "triangles": 35606,
+    "accessoryTriangles": 15024,
+    "accessoryMeshes": 2,
+    "checks": "passed"
+  },
+  {
+    "key": "stormstone",
+    "triangles": 24528,
+    "accessoryTriangles": 3946,
+    "accessoryMeshes": 4,
+    "checks": "passed"
+  },
+  {
+    "key": "peacock",
+    "triangles": 24862,
+    "accessoryTriangles": 4280,
+    "accessoryMeshes": 8,
+    "checks": "passed"
+  }
+]

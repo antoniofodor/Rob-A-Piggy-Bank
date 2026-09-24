@@ -1,0 +1,15 @@
+{
+  "skin": "supernova",
+  "revision": "og-redesign-v1",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "accessories": {
+      "source": "assets/piggies/legendary/supernova/package/supernova-og-v1-accessories.fbx",
+      "sha256": "4c6af757daf79fec623ba31e9490fdecbe3f0dc18a80c44b91cb0985e7a7023f",
+      "assetType": "Model",
+      "operationId": "00ecad02-6ee7-45f0-a919-1a84e2807a14",
+      "assetId": "128528505944319",
+      "moderationState": "Approved"
+    }
+  }
+}

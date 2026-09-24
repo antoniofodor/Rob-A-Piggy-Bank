@@ -1,0 +1,71 @@
+{
+  "skin": "neonmint",
+  "revision": "og-v2",
+  "creatorUserId": "1403296598",
+  "assets": {
+    "body_color": {
+      "source": "assets/piggies/rare/neonmint/revisions/og-v2/sheets/neonmint_og_v2_body_color.png",
+      "sha256": "a673f03f2c2f6b49a71839ccc2f2dabb89fc08c76ca4a6e6e16ac3959cc798b6",
+      "assetType": "Image",
+      "operationId": "c49214b1-b6f3-471e-9be5-5593e497f543",
+      "assetId": "108275790438677",
+      "moderationState": "Approved"
+    },
+    "body_metal": {
+      "source": "assets/piggies/rare/neonmint/revisions/og-v2/sheets/neonmint_og_v2_body_metal.png",
+      "sha256": "e9f3b1b7340501c7e990d95ba928ef0b1ef24befe728fe8bf999c4dbb9e4f8f4",
+      "assetType": "Image",
+      "operationId": "0022f5f3-e015-455e-9bd8-43d4c8964819",
+      "assetId": "87426881340637",
+      "moderationState": "Approved"
+    },
+    "body_rough": {
+      "source": "assets/piggies/rare/neonmint/revisions/og-v2/sheets/neonmint_og_v2_body_rough.png",
+      "sha256": "f4240589ffb969def0a94d73a69b4375c8d8593c8d4e01d1872e66aa08c8cf9c",
+      "assetType": "Image",
+      "operationId": "18e9bf62-5213-4223-9d70-09d5b22789c0",
+      "assetId": "129327140697255",
+      "moderationState": "Approved"
+    },
+    "body_emissive": {
+      "source": "assets/piggies/rare/neonmint/revisions/og-v2/sheets/neonmint_og_v2_body_emissive.png",
+      "sha256": "ddb9b6a1f2b8590c754f7e5b70207168f7960cd300f8ce067579ce75b0b77dcf",
+      "assetType": "Image",
+      "operationId": "99caa66f-b383-49b7-8abc-af658b38eff2",
+      "assetId": "130482699425427",
+      "moderationState": "Approved"
+    },
+    "trim_color": {
+      "source": "assets/piggies/rare/neonmint/revisions/og-v2/sheets/neonmint_og_v2_trim_color.png",
+      "sha256": "aebbd1400e08365362e8bfa7f2ac77323410ba4a08d4d56bdf30db85beb14ae1",
+      "assetType": "Image",
+      "operationId": "1d34be77-daf1-4c33-aad8-1ad7b8abefb1",
+      "assetId": "139091614796757",
+      "moderationState": "Approved"
+    },
+    "trim_metal": {
+      "source": "assets/piggies/rare/neonmint/revisions/og-v2/sheets/neonmint_og_v2_trim_metal.png",
+      "sha256": "d59a2b4222a2ea39cc1b868f8e6db187fa1360ad4d23143892f1568f74ba4480",
+      "assetType": "Image",
+      "operationId": "4e938359-2e4a-43fd-86b4-063e4f10b1f8",
+      "assetId": "118624510604059",
+      "moderationState": "Approved"
+    },
+    "trim_rough": {
+      "source": "assets/piggies/rare/neonmint/revisions/og-v2/sheets/neonmint_og_v2_trim_rough.png",
+      "sha256": "b823c8cfbe8aafb3a28ad2ded9596242470d2ed39c137ee88181a6813540ae58",
+      "assetType": "Image",
+      "operationId": "4286920b-6251-4c4b-aa86-6b9aef09dca6",
+      "assetId": "88646348382242",
+      "moderationState": "Approved"
+    },
+    "trim_emissive": {
+      "source": "assets/piggies/rare/neonmint/revisions/og-v2/sheets/neonmint_og_v2_trim_emissive.png",
+      "sha256": "2db85b4d4e1377796a45b0bc074edae5762028d3fd55df901dc1fe7c9f3d3f59",
+      "assetType": "Image",
+      "operationId": "b38f9d83-7649-4e23-920b-c22ce8cd7520",
+      "assetId": "90676974603641",
+      "moderationState": "Approved"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "key": "jackpot",
+  "name": "Jackpot",
+  "tier": "legendary",
+  "palette": [
+    [
+      119,
+      36,
+      58
+    ],
+    [
+      235,
+      209,
+      151
+    ],
+    [
+      195,
+      139,
+      43
+    ],
+    [
+      255,
+      189,
+      61
+    ]
+  ],
+  "aura": "arcade_token_sparkle_proposed",
+  "concept": "jackpot-concept-v1.png",
+  "design": "Burgundy pig with gold star and diamond markings, ivory snout and brass feet. A firmly seated rear saddle carries three rotating symbol reels in a lit brass housing. Gold tokens move beside the rear flanks. New aura specification, not an installed runtime emitter."
+}

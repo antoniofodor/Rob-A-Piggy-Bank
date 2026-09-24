@@ -1,0 +1,33 @@
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:51: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(KEY+'_'+name);m.use_nodes=True
+00:09.047  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_12492_6aef27a71089bfb40bd9d7b22c4142d1.png.png"
+Info: Saved as "sugarrush-og-v1-procedural.blend"
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED sugarrush body color
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED sugarrush body emissive
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED sugarrush trim color
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED sugarrush trim emissive
+C:\Users\anton\robloxGame\assets\piggies\og-redesign-v1\build_og.py:477: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(KEY+'_World');world.use_nodes=True;scene.world=world
+00:30.672  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\sugarrush\preview\sugarrush-og-v1-hero.png'
+00:42.422  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\sugarrush\preview\sugarrush-og-v1-back.png'
+00:59.282  render           | Saved: 'C:\Users\anton\robloxGame\assets\piggies\epic\sugarrush\preview\sugarrush-og-v1-motion.png'
+00:59.704  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_12492_fe057d01f624d441d0ea5ecd4c7a34a8.png.png"
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\piggies\\epic\\sugarrush\\package\\sugarrush-og-v1-complete.fbx'
+export finished in 0.0327 sec.
+FBX version: 7400
+Info: Saved as "sugarrush-og-v1.blend"
+OG_COMPLETE sugarrush {"extraTriangles": 0, "maps": 4, "basePreserved": true}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

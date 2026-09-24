@@ -1,0 +1,1861 @@
+{
+  "skin": "jackpot",
+  "name": "Jackpot",
+  "tier": "legendary",
+  "revision": "arcade-jackpot-v3",
+  "status": "Review only; not installed",
+  "design": "Jeweled gold sunglasses, patterned burgundy and gold coat, twin payout chutes and twelve tumbling coins emitted from the machine. Preserves the three animated reels and lights.",
+  "baseGeometryAndUVPreserved": true,
+  "sourceGeometrySignatures": {
+    "Body": "4a54ceed97939e6392190f1c3fb9d10d14530d801166cc7f26e24e99a6983ec1",
+    "Snout": "178b13b8746bb7484909d7e7a981aaa0e159f0f353a9e5fe3891d1191fd68518",
+    "Ears": "a1a7e83a72613d031332816dd3b25c2c0462de33d33c68b0c4dc0e818a95fc9f",
+    "Legs": "56645ce48591fdcc0e5835a7c00c823798c55a883da5f6cca1af42bb7ea74d04",
+    "Tail": "529231df3b33d53086cc7e0fd91ff5ea7b327fcadbb9804603e727fa728c6b38",
+    "EyePreview": "21c6d31d1ffe826f5f98c7bc23d6d57d472f3e465f722caa9f67322a0b2933b9"
+  },
+  "parts": [
+    {
+      "name": "Body",
+      "role": "base",
+      "triangles": 6264,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.5762786865234375e-07,
+        6.62,
+        -0.0
+      ],
+      "sizeRobloxStuds": [
+        12.000000715255737,
+        11.519999742507935,
+        12.96000051498413
+      ]
+    },
+    {
+      "name": "Snout",
+      "role": "base",
+      "triangles": 2486,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        5.845477904081345,
+        4.720026791095734
+      ],
+      "sizeRobloxStuds": [
+        6.7845447063446045,
+        7.233279168605804,
+        7.127158999443054
+      ]
+    },
+    {
+      "name": "Ears",
+      "role": "base",
+      "triangles": 7152,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        11.888547296524049,
+        2.154139593243599
+      ],
+      "sizeRobloxStuds": [
+        9.337942600250244,
+        5.17062520980835,
+        2.339932769536972
+      ]
+    },
+    {
+      "name": "Legs",
+      "role": "base",
+      "triangles": 2032,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        2.000000114440918,
+        -0.18000000715255737
+      ],
+      "sizeRobloxStuds": [
+        8.640000343322754,
+        3.0,
+        8.759999871253967
+      ]
+    },
+    {
+      "name": "Tail",
+      "role": "base",
+      "triangles": 1592,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -0.05768336355686188,
+        9.557918484210969,
+        -6.589774489402771
+      ],
+      "sizeRobloxStuds": [
+        2.992636889219284,
+        3.0000447034835815,
+        4.405103445053101
+      ]
+    },
+    {
+      "name": "EyePreview",
+      "role": "base",
+      "triangles": 1056,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        8.801508004665376,
+        5.33257520198822
+      ],
+      "sizeRobloxStuds": [
+        5.077638387680054,
+        1.2599998712539673,
+        1.2599995136260986
+      ]
+    },
+    {
+      "name": "SaddleSupport_-0.5_-0.025",
+      "role": "accessory",
+      "triangles": 108,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.000000089406967,
+        12.00225543498993,
+        0.14999999664723873
+      ],
+      "sizeRobloxStuds": [
+        0.4800000786781311,
+        0.5154891014099121,
+        0.5400000102818012
+      ]
+    },
+    {
+      "name": "SaddleSupport_-0.5_0.53",
+      "role": "accessory",
+      "triangles": 108,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.000000089406967,
+        11.562407488822938,
+        -3.179999828338623
+      ],
+      "sizeRobloxStuds": [
+        0.4800000786781311,
+        1.3951849937438965,
+        0.5400002002716064
+      ]
+    },
+    {
+      "name": "SaddleSupport_0.5_-0.025",
+      "role": "accessory",
+      "triangles": 108,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.000000089406967,
+        12.002184624671937,
+        0.14999999664723873
+      ],
+      "sizeRobloxStuds": [
+        0.4800000786781311,
+        0.5156307220458984,
+        0.5400000102818012
+      ]
+    },
+    {
+      "name": "SaddleSupport_0.5_0.53",
+      "role": "accessory",
+      "triangles": 108,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.000000089406967,
+        11.564244265556336,
+        -3.179999828338623
+      ],
+      "sizeRobloxStuds": [
+        0.4800000786781311,
+        1.3915114402770996,
+        0.5400002002716064
+      ]
+    },
+    {
+      "name": "RearHousing",
+      "role": "accessory",
+      "triangles": 108,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        13.519999856948854,
+        -3.8399999141693115
+      ],
+      "sizeRobloxStuds": [
+        7.079999685287476,
+        3.299999713897705,
+        0.5400002002716064
+      ]
+    },
+    {
+      "name": "FrontSill",
+      "role": "accessory",
+      "triangles": 108,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        12.170000071525575,
+        0.21000000089406967
+      ],
+      "sizeRobloxStuds": [
+        7.140000343322754,
+        0.6000001430511475,
+        0.6000000089406967
+      ]
+    },
+    {
+      "name": "UpperRail",
+      "role": "accessory",
+      "triangles": 108,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        15.709999914169313,
+        -1.6200001090765
+      ],
+      "sizeRobloxStuds": [
+        7.140000343322754,
+        0.3900003433227539,
+        0.6000000536441803
+      ]
+    },
+    {
+      "name": "ReelSide_-0.585",
+      "role": "accessory",
+      "triangles": 108,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.5099998712539673,
+        13.760000343322755,
+        -1.7400000393390656
+      ],
+      "sizeRobloxStuds": [
+        0.4500002861022949,
+        3.539999485015869,
+        3.840000092983246
+      ]
+    },
+    {
+      "name": "ReelSide_0.585",
+      "role": "accessory",
+      "triangles": 108,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.5099998712539673,
+        13.760000343322755,
+        -1.7400000393390656
+      ],
+      "sizeRobloxStuds": [
+        0.4500002861022949,
+        3.539999485015869,
+        3.840000092983246
+      ]
+    },
+    {
+      "name": "SymbolReel_0",
+      "role": "accessory",
+      "triangles": 188,
+      "nonManifoldEdges": 0,
+      "motion": "reel spin",
+      "offsetRobloxStuds": [
+        -2.1600001752376556,
+        13.850000257492066,
+        -1.7399999499320984
+      ],
+      "sizeRobloxStuds": [
+        1.9500001072883606,
+        3.359999656677246,
+        3.3600000143051147
+      ]
+    },
+    {
+      "name": "SymbolReel_1",
+      "role": "accessory",
+      "triangles": 188,
+      "nonManifoldEdges": 0,
+      "motion": "reel spin",
+      "offsetRobloxStuds": [
+        0.0,
+        13.850000257492066,
+        -1.7399999499320984
+      ],
+      "sizeRobloxStuds": [
+        1.9499999284744263,
+        3.359999656677246,
+        3.3600000143051147
+      ]
+    },
+    {
+      "name": "SymbolReel_2",
+      "role": "accessory",
+      "triangles": 188,
+      "nonManifoldEdges": 0,
+      "motion": "reel spin",
+      "offsetRobloxStuds": [
+        2.1600001752376556,
+        13.850000257492066,
+        -1.7399999499320984
+      ],
+      "sizeRobloxStuds": [
+        1.9500001072883606,
+        3.359999656677246,
+        3.3600000143051147
+      ]
+    },
+    {
+      "name": "Bulb_-1_0",
+      "role": "accessory",
+      "triangles": 100,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.7799999713897705,
+        12.500000114440919,
+        0.25200000777840614
+      ],
+      "sizeRobloxStuds": [
+        0.4336817264556885,
+        0.45599985122680664,
+        0.4559999629855156
+      ]
+    },
+    {
+      "name": "Bulb_-1_1",
+      "role": "accessory",
+      "triangles": 100,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.7799999713897705,
+        13.190000171661378,
+        0.25200000777840614
+      ],
+      "sizeRobloxStuds": [
+        0.4336817264556885,
+        0.45599985122680664,
+        0.4559999629855156
+      ]
+    },
+    {
+      "name": "Bulb_-1_2",
+      "role": "accessory",
+      "triangles": 100,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.7799999713897705,
+        13.880000228881837,
+        0.25200000777840614
+      ],
+      "sizeRobloxStuds": [
+        0.4336817264556885,
+        0.45599985122680664,
+        0.4559999629855156
+      ]
+    },
+    {
+      "name": "Bulb_-1_3",
+      "role": "accessory",
+      "triangles": 100,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.7799999713897705,
+        14.570000286102296,
+        0.25200000777840614
+      ],
+      "sizeRobloxStuds": [
+        0.4336817264556885,
+        0.45599985122680664,
+        0.4559999629855156
+      ]
+    },
+    {
+      "name": "Bulb_-1_4",
+      "role": "accessory",
+      "triangles": 100,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.7799999713897705,
+        15.260000343322755,
+        0.25200000777840614
+      ],
+      "sizeRobloxStuds": [
+        0.4336817264556885,
+        0.45599985122680664,
+        0.4559999629855156
+      ]
+    },
+    {
+      "name": "Bulb_1_0",
+      "role": "accessory",
+      "triangles": 100,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.7799999713897705,
+        12.500000114440919,
+        0.25200000777840614
+      ],
+      "sizeRobloxStuds": [
+        0.4336817264556885,
+        0.45599985122680664,
+        0.4559999629855156
+      ]
+    },
+    {
+      "name": "Bulb_1_1",
+      "role": "accessory",
+      "triangles": 100,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.7799999713897705,
+        13.190000171661378,
+        0.25200000777840614
+      ],
+      "sizeRobloxStuds": [
+        0.4336817264556885,
+        0.45599985122680664,
+        0.4559999629855156
+      ]
+    },
+    {
+      "name": "Bulb_1_2",
+      "role": "accessory",
+      "triangles": 100,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.7799999713897705,
+        13.880000228881837,
+        0.25200000777840614
+      ],
+      "sizeRobloxStuds": [
+        0.4336817264556885,
+        0.45599985122680664,
+        0.4559999629855156
+      ]
+    },
+    {
+      "name": "Bulb_1_3",
+      "role": "accessory",
+      "triangles": 100,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.7799999713897705,
+        14.570000286102296,
+        0.25200000777840614
+      ],
+      "sizeRobloxStuds": [
+        0.4336817264556885,
+        0.45599985122680664,
+        0.4559999629855156
+      ]
+    },
+    {
+      "name": "Bulb_1_4",
+      "role": "accessory",
+      "triangles": 100,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.7799999713897705,
+        15.260000343322755,
+        0.25200000777840614
+      ],
+      "sizeRobloxStuds": [
+        0.4336817264556885,
+        0.45599985122680664,
+        0.4559999629855156
+      ]
+    },
+    {
+      "name": "JackpotBackSaddle",
+      "role": "accessory",
+      "triangles": 204,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        2.5033950805664062e-06,
+        12.11837863445282,
+        -1.3064986020326614
+      ],
+      "sizeRobloxStuds": [
+        6.873506784439087,
+        1.4088127613067627,
+        4.394539922475815
+      ]
+    },
+    {
+      "name": "JackpotArchCase_-1",
+      "role": "accessory",
+      "triangles": 56,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.915000021457672,
+        14.104999835491181,
+        -1.7399999499320984
+      ],
+      "sizeRobloxStuds": [
+        0.5699998140335083,
+        3.5699998140335083,
+        4.259999871253967
+      ]
+    },
+    {
+      "name": "JackpotLampSocket_-1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.320000171661377,
+        13.699999685287477,
+        0.43199997022747993
+      ],
+      "sizeRobloxStuds": [
+        0.3900003433227539,
+        0.6840004920959473,
+        0.6839999780058861
+      ]
+    },
+    {
+      "name": "JackpotLamp_-1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.554000020027161,
+        13.699999685287477,
+        0.43199998140335083
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.43200016021728516,
+        0.43199998140335083
+      ]
+    },
+    {
+      "name": "JackpotLampSocket_-1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.320000171661377,
+        14.82199990272522,
+        0.1410071924328804
+      ],
+      "sizeRobloxStuds": [
+        0.3900003433227539,
+        0.6840004920959473,
+        0.6840000003576279
+      ]
+    },
+    {
+      "name": "JackpotLamp_-1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.554000020027161,
+        14.82199990272522,
+        0.14100717566907406
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.43200016021728516,
+        0.43199997022747993
+      ]
+    },
+    {
+      "name": "JackpotLampSocket_-1_2",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.320000171661377,
+        15.64336096763611,
+        -0.6539999730885029
+      ],
+      "sizeRobloxStuds": [
+        0.3900003433227539,
+        0.6840004920959473,
+        0.6839999780058861
+      ]
+    },
+    {
+      "name": "JackpotLamp_-1_2",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.554000020027161,
+        15.64336096763611,
+        -0.6539999842643738
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.43200016021728516,
+        0.43199998140335083
+      ]
+    },
+    {
+      "name": "JackpotLampSocket_-1_3",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.320000171661377,
+        15.944000120162965,
+        -1.739999994635582
+      ],
+      "sizeRobloxStuds": [
+        0.3900003433227539,
+        0.6840004920959473,
+        0.6840000450611115
+      ]
+    },
+    {
+      "name": "JackpotLamp_-1_3",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.554000020027161,
+        15.944000120162965,
+        -1.7399999499320984
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.43200016021728516,
+        0.4319998025894165
+      ]
+    },
+    {
+      "name": "JackpotLampSocket_-1_4",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.320000171661377,
+        15.64336096763611,
+        -2.825999915599823
+      ],
+      "sizeRobloxStuds": [
+        0.3900003433227539,
+        0.6840004920959473,
+        0.6840001344680786
+      ]
+    },
+    {
+      "name": "JackpotLamp_-1_4",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.554000020027161,
+        15.64336096763611,
+        -2.825999915599823
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.43200016021728516,
+        0.4319998025894165
+      ]
+    },
+    {
+      "name": "JackpotLampSocket_-1_5",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.320000171661377,
+        14.82199990272522,
+        -3.621007204055786
+      ],
+      "sizeRobloxStuds": [
+        0.3900003433227539,
+        0.6840004920959473,
+        0.68399977684021
+      ]
+    },
+    {
+      "name": "JackpotLamp_-1_5",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.554000020027161,
+        14.82199990272522,
+        -3.621007204055786
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.43200016021728516,
+        0.43200016021728516
+      ]
+    },
+    {
+      "name": "JackpotLampSocket_-1_6",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.320000171661377,
+        13.699999685287477,
+        -3.912000060081482
+      ],
+      "sizeRobloxStuds": [
+        0.3900003433227539,
+        0.6840004920959473,
+        0.68399977684021
+      ]
+    },
+    {
+      "name": "JackpotLamp_-1_6",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.554000020027161,
+        13.699999685287477,
+        -3.912000060081482
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.43200016021728516,
+        0.43200016021728516
+      ]
+    },
+    {
+      "name": "JackpotBasePlinth_-1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -3.8399999141693115,
+        12.379999871253968,
+        -1.7399999499320984
+      ],
+      "sizeRobloxStuds": [
+        1.080000400543213,
+        0.7799999713897705,
+        4.800000071525574
+      ]
+    },
+    {
+      "name": "JackpotRivet_-1_0",
+      "role": "accessory",
+      "triangles": 36,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.4579998254776,
+        12.457999939918519,
+        -0.11999999731779099
+      ],
+      "sizeRobloxStuds": [
+        0.11999988555908203,
+        0.27390432357788086,
+        0.2880000025033951
+      ]
+    },
+    {
+      "name": "JackpotRivet_-1_3",
+      "role": "accessory",
+      "triangles": 36,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.4579998254776,
+        12.457999939918519,
+        -3.3600000143051147
+      ],
+      "sizeRobloxStuds": [
+        0.11999988555908203,
+        0.27390432357788086,
+        0.28799986839294434
+      ]
+    },
+    {
+      "name": "JackpotArchCase_1",
+      "role": "accessory",
+      "triangles": 56,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.915000021457672,
+        14.104999835491181,
+        -1.7399999499320984
+      ],
+      "sizeRobloxStuds": [
+        0.5699998140335083,
+        3.5699998140335083,
+        4.259999871253967
+      ]
+    },
+    {
+      "name": "JackpotLampSocket_1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.320000171661377,
+        13.699999685287477,
+        0.43199997022747993
+      ],
+      "sizeRobloxStuds": [
+        0.3900003433227539,
+        0.6840004920959473,
+        0.6839999780058861
+      ]
+    },
+    {
+      "name": "JackpotLamp_1_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.554000020027161,
+        13.699999685287477,
+        0.43199998140335083
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.43200016021728516,
+        0.43199998140335083
+      ]
+    },
+    {
+      "name": "JackpotLampSocket_1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.320000171661377,
+        14.82199990272522,
+        0.1410071924328804
+      ],
+      "sizeRobloxStuds": [
+        0.3900003433227539,
+        0.6840004920959473,
+        0.6840000003576279
+      ]
+    },
+    {
+      "name": "JackpotLamp_1_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.554000020027161,
+        14.82199990272522,
+        0.14100717566907406
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.43200016021728516,
+        0.43199997022747993
+      ]
+    },
+    {
+      "name": "JackpotLampSocket_1_2",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.320000171661377,
+        15.64336096763611,
+        -0.6539999730885029
+      ],
+      "sizeRobloxStuds": [
+        0.3900003433227539,
+        0.6840004920959473,
+        0.6839999780058861
+      ]
+    },
+    {
+      "name": "JackpotLamp_1_2",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.554000020027161,
+        15.64336096763611,
+        -0.6539999842643738
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.43200016021728516,
+        0.43199998140335083
+      ]
+    },
+    {
+      "name": "JackpotLampSocket_1_3",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.320000171661377,
+        15.944000120162965,
+        -1.739999994635582
+      ],
+      "sizeRobloxStuds": [
+        0.3900003433227539,
+        0.6840004920959473,
+        0.6840000450611115
+      ]
+    },
+    {
+      "name": "JackpotLamp_1_3",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.554000020027161,
+        15.944000120162965,
+        -1.7399999499320984
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.43200016021728516,
+        0.4319998025894165
+      ]
+    },
+    {
+      "name": "JackpotLampSocket_1_4",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.320000171661377,
+        15.64336096763611,
+        -2.825999915599823
+      ],
+      "sizeRobloxStuds": [
+        0.3900003433227539,
+        0.6840004920959473,
+        0.6840001344680786
+      ]
+    },
+    {
+      "name": "JackpotLamp_1_4",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.554000020027161,
+        15.64336096763611,
+        -2.825999915599823
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.43200016021728516,
+        0.4319998025894165
+      ]
+    },
+    {
+      "name": "JackpotLampSocket_1_5",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.320000171661377,
+        14.82199990272522,
+        -3.621007204055786
+      ],
+      "sizeRobloxStuds": [
+        0.3900003433227539,
+        0.6840004920959473,
+        0.68399977684021
+      ]
+    },
+    {
+      "name": "JackpotLamp_1_5",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.554000020027161,
+        14.82199990272522,
+        -3.621007204055786
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.43200016021728516,
+        0.43200016021728516
+      ]
+    },
+    {
+      "name": "JackpotLampSocket_1_6",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.320000171661377,
+        13.699999685287477,
+        -3.912000060081482
+      ],
+      "sizeRobloxStuds": [
+        0.3900003433227539,
+        0.6840004920959473,
+        0.68399977684021
+      ]
+    },
+    {
+      "name": "JackpotLamp_1_6",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.554000020027161,
+        13.699999685287477,
+        -3.912000060081482
+      ],
+      "sizeRobloxStuds": [
+        0.10800004005432129,
+        0.43200016021728516,
+        0.43200016021728516
+      ]
+    },
+    {
+      "name": "JackpotBasePlinth_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        3.8399999141693115,
+        12.379999871253968,
+        -1.7399999499320984
+      ],
+      "sizeRobloxStuds": [
+        1.080000400543213,
+        0.7799999713897705,
+        4.800000071525574
+      ]
+    },
+    {
+      "name": "JackpotRivet_1_0",
+      "role": "accessory",
+      "triangles": 36,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.4579998254776,
+        12.457999939918519,
+        -0.11999999731779099
+      ],
+      "sizeRobloxStuds": [
+        0.11999988555908203,
+        0.27390432357788086,
+        0.2880000025033951
+      ]
+    },
+    {
+      "name": "JackpotRivet_1_3",
+      "role": "accessory",
+      "triangles": 36,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.4579998254776,
+        12.457999939918519,
+        -3.3600000143051147
+      ],
+      "sizeRobloxStuds": [
+        0.11999988555908203,
+        0.27390432357788086,
+        0.28799986839294434
+      ]
+    },
+    {
+      "name": "JackpotBackShield",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        13.790000314712525,
+        -4.1219998598098755
+      ],
+      "sizeRobloxStuds": [
+        8.399999856948853,
+        3.419999599456787,
+        0.6600000858306885
+      ]
+    },
+    {
+      "name": "JackpotBackEnamel",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        13.850000257492066,
+        -4.511999845504761
+      ],
+      "sizeRobloxStuds": [
+        6.7799999713897705,
+        2.039999485015869,
+        0.15600013732910156
+      ]
+    },
+    {
+      "name": "JackpotCrestRail",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        16.172000045776368,
+        -1.7399999499320984
+      ],
+      "sizeRobloxStuds": [
+        8.579999685287476,
+        0.5100002288818359,
+        0.7200000286102295
+      ]
+    },
+    {
+      "name": "JackpotRearBadge_-1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -1.8000000715255737,
+        13.880000228881837,
+        -4.679999828338623
+      ],
+      "sizeRobloxStuds": [
+        0.9545942544937134,
+        0.954594612121582,
+        0.14999985694885254
+      ]
+    },
+    {
+      "name": "JackpotRearBadge_0",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        13.880000228881837,
+        -4.679999828338623
+      ],
+      "sizeRobloxStuds": [
+        0.9545941650867462,
+        0.954594612121582,
+        0.14999985694885254
+      ]
+    },
+    {
+      "name": "JackpotRearBadge_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        1.8000000715255737,
+        13.880000228881837,
+        -4.679999828338623
+      ],
+      "sizeRobloxStuds": [
+        0.9545942544937134,
+        0.954594612121582,
+        0.14999985694885254
+      ]
+    },
+    {
+      "name": "JackpotShadesGoldFrame_-1",
+      "role": "accessory",
+      "triangles": 64,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -2.1180000230669975,
+        9.211999977827073,
+        6.470361828804016
+      ],
+      "sizeRobloxStuds": [
+        3.9240000396966934,
+        2.484000027179718,
+        0.7996809482574463
+      ]
+    },
+    {
+      "name": "JackpotShadesLens_-1",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -2.1180000454187393,
+        9.21200006723404,
+        6.505498766899109
+      ],
+      "sizeRobloxStuds": [
+        3.2520000636577606,
+        1.848000168800354,
+        0.5751078128814697
+      ]
+    },
+    {
+      "name": "JackpotShadesStones_-1",
+      "role": "accessory",
+      "triangles": 320,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -2.3634000420570374,
+        9.21200006723404,
+        6.678658962249756
+      ],
+      "sizeRobloxStuds": [
+        3.3882604837417603,
+        2.472000002861023,
+        0.7359724044799805
+      ]
+    },
+    {
+      "name": "JackpotShadesTemple_-1",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.430264890193939,
+        10.005809481143952,
+        4.08577036857605
+      ],
+      "sizeRobloxStuds": [
+        1.054585576057434,
+        1.2153722047805786,
+        4.262736797332764
+      ]
+    },
+    {
+      "name": "JackpotShadesLensGlint_-1",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -2.6280001401901245,
+        9.829999978542329,
+        6.5359050035476685
+      ],
+      "sizeRobloxStuds": [
+        0.8121678829193115,
+        0.368008017539978,
+        0.2084062099456787
+      ]
+    },
+    {
+      "name": "JackpotShadesGoldFrame_1",
+      "role": "accessory",
+      "triangles": 64,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        2.1180000230669975,
+        9.211999977827073,
+        6.470361828804016
+      ],
+      "sizeRobloxStuds": [
+        3.9240000396966934,
+        2.484000027179718,
+        0.7996809482574463
+      ]
+    },
+    {
+      "name": "JackpotShadesLens_1",
+      "role": "accessory",
+      "triangles": 28,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        2.1180000454187393,
+        9.21200006723404,
+        6.505498766899109
+      ],
+      "sizeRobloxStuds": [
+        3.2520000636577606,
+        1.848000168800354,
+        0.5751078128814697
+      ]
+    },
+    {
+      "name": "JackpotShadesStones_1",
+      "role": "accessory",
+      "triangles": 320,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        2.3640000075101852,
+        9.21200006723404,
+        6.678598880767822
+      ],
+      "sizeRobloxStuds": [
+        3.3870605528354645,
+        2.472000002861023,
+        0.7358522415161133
+      ]
+    },
+    {
+      "name": "JackpotShadesTemple_1",
+      "role": "accessory",
+      "triangles": 60,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.430264890193939,
+        10.005809481143952,
+        4.08577036857605
+      ],
+      "sizeRobloxStuds": [
+        1.054585576057434,
+        1.2153722047805786,
+        4.262736797332764
+      ]
+    },
+    {
+      "name": "JackpotShadesLensGlint_1",
+      "role": "accessory",
+      "triangles": 20,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        1.6079999506473541,
+        9.829999978542329,
+        6.685549736022949
+      ],
+      "sizeRobloxStuds": [
+        0.811190664768219,
+        0.3679722547531128,
+        0.18621253967285156
+      ]
+    },
+    {
+      "name": "JackpotShadesBridge",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        0.0,
+        9.487605715990068,
+        6.904004216194153
+      ],
+      "sizeRobloxStuds": [
+        1.1035860478878021,
+        0.40878885984420776,
+        0.3519909381866455
+      ]
+    },
+    {
+      "name": "JackpotPayoutChute_-1",
+      "role": "accessory",
+      "triangles": 32,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.650000035762787,
+        12.769999856948854,
+        -1.7999999821186066
+      ],
+      "sizeRobloxStuds": [
+        0.4919997453689575,
+        1.5,
+        2.099999964237213
+      ]
+    },
+    {
+      "name": "JackpotPayoutMouth_-1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.416000008583069,
+        12.769999856948854,
+        -1.8000000715255737
+      ],
+      "sizeRobloxStuds": [
+        0.07199978828430176,
+        1.080000400543213,
+        1.662000060081482
+      ]
+    },
+    {
+      "name": "JackpotPayoutLip_-1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        -4.973999977111816,
+        12.073999876976014,
+        -1.8000001162290573
+      ],
+      "sizeRobloxStuds": [
+        0.630000114440918,
+        0.18600010871887207,
+        2.178000122308731
+      ]
+    },
+    {
+      "name": "JackpotPayoutChute_1",
+      "role": "accessory",
+      "triangles": 32,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.650000035762787,
+        12.769999856948854,
+        -1.7999999821186066
+      ],
+      "sizeRobloxStuds": [
+        0.4919997453689575,
+        1.5,
+        2.099999964237213
+      ]
+    },
+    {
+      "name": "JackpotPayoutMouth_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.416000008583069,
+        12.769999856948854,
+        -1.8000000715255737
+      ],
+      "sizeRobloxStuds": [
+        0.07199978828430176,
+        1.080000400543213,
+        1.662000060081482
+      ]
+    },
+    {
+      "name": "JackpotPayoutLip_1",
+      "role": "accessory",
+      "triangles": 44,
+      "nonManifoldEdges": 0,
+      "motion": null,
+      "offsetRobloxStuds": [
+        4.973999977111816,
+        12.073999876976014,
+        -1.8000001162290573
+      ],
+      "sizeRobloxStuds": [
+        0.630000114440918,
+        0.18600010871887207,
+        2.178000122308731
+      ]
+    },
+    {
+      "name": "JackpotPayoutCoin_-1_0",
+      "role": "accessory",
+      "triangles": 148,
+      "nonManifoldEdges": 0,
+      "motion": "machine payout: emerge, tumble, fall, shrink; reset hidden in chute",
+      "offsetRobloxStuds": [
+        -4.740000128746033,
+        12.769999856948854,
+        -1.8000000715255737
+      ],
+      "sizeRobloxStuds": [
+        0.00017380714416503906,
+        0.0010313987731933594,
+        0.001032114028930664
+      ]
+    },
+    {
+      "name": "JackpotPayoutCoin_-1_1",
+      "role": "accessory",
+      "triangles": 148,
+      "nonManifoldEdges": 0,
+      "motion": "machine payout: emerge, tumble, fall, shrink; reset hidden in chute",
+      "offsetRobloxStuds": [
+        -4.619999885559082,
+        12.769999856948854,
+        -1.8000000715255737
+      ],
+      "sizeRobloxStuds": [
+        0.00017380714416503906,
+        0.0010313987731933594,
+        0.001032114028930664
+      ]
+    },
+    {
+      "name": "JackpotPayoutCoin_-1_2",
+      "role": "accessory",
+      "triangles": 148,
+      "nonManifoldEdges": 0,
+      "motion": "machine payout: emerge, tumble, fall, shrink; reset hidden in chute",
+      "offsetRobloxStuds": [
+        -4.619999885559082,
+        12.769999856948854,
+        -1.8000000715255737
+      ],
+      "sizeRobloxStuds": [
+        0.00017380714416503906,
+        0.0010313987731933594,
+        0.001032114028930664
+      ]
+    },
+    {
+      "name": "JackpotPayoutCoin_-1_3",
+      "role": "accessory",
+      "triangles": 148,
+      "nonManifoldEdges": 0,
+      "motion": "machine payout: emerge, tumble, fall, shrink; reset hidden in chute",
+      "offsetRobloxStuds": [
+        -9.625714302062988,
+        7.538979614973068,
+        -0.7199999839067459
+      ],
+      "sizeRobloxStuds": [
+        0.9214553833007812,
+        0.7372600436210632,
+        1.035363882780075
+      ]
+    },
+    {
+      "name": "JackpotPayoutCoin_-1_4",
+      "role": "accessory",
+      "triangles": 148,
+      "nonManifoldEdges": 0,
+      "motion": "machine payout: emerge, tumble, fall, shrink; reset hidden in chute",
+      "offsetRobloxStuds": [
+        -7.997142791748047,
+        11.359387869834901,
+        -1.0800000205636024
+      ],
+      "sizeRobloxStuds": [
+        1.0240402221679688,
+        0.22742557525634766,
+        1.0295098274946213
+      ]
+    },
+    {
+      "name": "JackpotPayoutCoin_-1_5",
+      "role": "accessory",
+      "triangles": 148,
+      "nonManifoldEdges": 0,
+      "motion": "machine payout: emerge, tumble, fall, shrink; reset hidden in chute",
+      "offsetRobloxStuds": [
+        -6.36857146024704,
+        13.10306155204773,
+        -1.4399999678134918
+      ],
+      "sizeRobloxStuds": [
+        0.9836522340774536,
+        0.8449773788452148,
+        0.9165167212486267
+      ]
+    },
+    {
+      "name": "JackpotPayoutCoin_1_0",
+      "role": "accessory",
+      "triangles": 148,
+      "nonManifoldEdges": 0,
+      "motion": "machine payout: emerge, tumble, fall, shrink; reset hidden in chute",
+      "offsetRobloxStuds": [
+        4.619999885559082,
+        12.769999856948854,
+        -1.8000000715255737
+      ],
+      "sizeRobloxStuds": [
+        0.00017380714416503906,
+        0.0010313987731933594,
+        0.001032114028930664
+      ]
+    },
+    {
+      "name": "JackpotPayoutCoin_1_1",
+      "role": "accessory",
+      "triangles": 148,
+      "nonManifoldEdges": 0,
+      "motion": "machine payout: emerge, tumble, fall, shrink; reset hidden in chute",
+      "offsetRobloxStuds": [
+        4.619999885559082,
+        12.769999856948854,
+        -1.8000000715255737
+      ],
+      "sizeRobloxStuds": [
+        0.00017380714416503906,
+        0.0010313987731933594,
+        0.001032114028930664
+      ]
+    },
+    {
+      "name": "JackpotPayoutCoin_1_2",
+      "role": "accessory",
+      "triangles": 148,
+      "nonManifoldEdges": 0,
+      "motion": "machine payout: emerge, tumble, fall, shrink; reset hidden in chute",
+      "offsetRobloxStuds": [
+        4.619999885559082,
+        12.769999856948854,
+        -1.8000000715255737
+      ],
+      "sizeRobloxStuds": [
+        0.00017380714416503906,
+        0.0010313987731933594,
+        0.001032114028930664
+      ]
+    },
+    {
+      "name": "JackpotPayoutCoin_1_3",
+      "role": "accessory",
+      "triangles": 148,
+      "nonManifoldEdges": 0,
+      "motion": "machine payout: emerge, tumble, fall, shrink; reset hidden in chute",
+      "offsetRobloxStuds": [
+        9.1371431350708,
+        8.903159255981446,
+        -0.8279999569058418
+      ],
+      "sizeRobloxStuds": [
+        0.7676239013671875,
+        1.0323632955551147,
+        0.9004340618848801
+      ]
+    },
+    {
+      "name": "JackpotPayoutCoin_1_4",
+      "role": "accessory",
+      "triangles": 148,
+      "nonManifoldEdges": 0,
+      "motion": "machine payout: emerge, tumble, fall, shrink; reset hidden in chute",
+      "offsetRobloxStuds": [
+        7.508571624755859,
+        12.100546951293946,
+        -1.1879999935626984
+      ],
+      "sizeRobloxStuds": [
+        1.0315918922424316,
+        0.7207052707672119,
+        0.9123074412345886
+      ]
+    },
+    {
+      "name": "JackpotPayoutCoin_1_5",
+      "role": "accessory",
+      "triangles": 148,
+      "nonManifoldEdges": 0,
+      "motion": "machine payout: emerge, tumble, fall, shrink; reset hidden in chute",
+      "offsetRobloxStuds": [
+        5.879999935626984,
+        13.221200342178346,
+        -1.5479998737573624
+      ],
+      "sizeRobloxStuds": [
+        1.0400365591049194,
+        0.24961137771606445,
+        1.0386286675930023
+      ]
+    }
+  ],
+  "exports": [
+    {
+      "file": "jackpot-jackpot-v3-accessories.fbx",
+      "sha256": "f3e1092bcd02bc46f29d9841702b3cf21f30d45ef34ac9cb5adeb51ec04f9dc8",
+      "meshCount": 94,
+      "roundTripChecked": true,
+      "roundTripBoundsError": 4.76837158203125e-07
+    },
+    {
+      "file": "jackpot-jackpot-v3-complete.fbx",
+      "sha256": "6b5d71653fef4c16511ebdd4c3f1192853bd7d15972f58656d5f9183a54e4c59",
+      "meshCount": 100,
+      "roundTripChecked": true,
+      "roundTripBoundsError": 4.76837158203125e-07
+    }
+  ],
+  "aura": "arcade_token_sparkle_proposed",
+  "auraPreviewObjects": 10,
+  "auraExcludedFromMeshExports": true,
+  "animation": {
+    "loopSeconds": 6,
+    "fps": 24,
+    "frames": [
+      1,
+      145
+    ],
+    "loopClosureError": 2.980232238769531e-07,
+    "faceClearanceSampledFrames": 9
+  },
+  "tierChecks": {
+    "authoredCoat": true,
+    "glowAndAura": true,
+    "substantialAnimatedGeometry": true
+  },
+  "textures": [
+    {
+      "role": "reel_0",
+      "file": "sheets\\jackpot_arcade_v1_reel_0.png",
+      "sha256": "c49fc1cadf8a00beeb2c3e09110646f2bd622afa67f973eb555644e1b3ffe55c",
+      "size": [
+        256,
+        1024
+      ]
+    },
+    {
+      "role": "reel_1",
+      "file": "sheets\\jackpot_arcade_v1_reel_1.png",
+      "sha256": "172aef291839e642b0e457d85079ce37ad0d86503ce3fed3c8990cd0fc2f9c0b",
+      "size": [
+        256,
+        1024
+      ]
+    },
+    {
+      "role": "reel_2",
+      "file": "sheets\\jackpot_arcade_v1_reel_2.png",
+      "sha256": "1922177563bf6a0ea0d3953b22eecec0117a1a4900c2f2c36316847ab2ccd025",
+      "size": [
+        256,
+        1024
+      ]
+    },
+    {
+      "role": "body_color",
+      "file": "sheets\\jackpot-v3\\jackpot_v3_body_color.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "0570be85da3fdde32024d198bb9160060fa03ba679b0bceb1e58adb99d23af6f"
+    },
+    {
+      "role": "body_metal",
+      "file": "sheets\\jackpot-v3\\jackpot_v3_body_metal.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "8b3edf22dd1bef131079e9bb2a5d3dd0e23ee0004b77d00250b3354a7c59af08"
+    },
+    {
+      "role": "body_rough",
+      "file": "sheets\\jackpot-v3\\jackpot_v3_body_rough.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "d8975a40aafa59b5764b72501d388f5cb638ce5cb8d9c7873c40401bd30ec6da"
+    },
+    {
+      "role": "trim_color",
+      "file": "sheets\\jackpot-v3\\jackpot_v3_trim_color.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "b089e4c801c01a402e4027718c3188a3720e728d7657e4a660647cd2380d7cbf"
+    },
+    {
+      "role": "trim_metal",
+      "file": "sheets\\jackpot-v3\\jackpot_v3_trim_metal.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "de37aa657184d69414a19615202b818a2d4ade4c5484747527726b66af6f2afe"
+    },
+    {
+      "role": "trim_rough",
+      "file": "sheets\\jackpot-v3\\jackpot_v3_trim_rough.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "ad9bff716f3c55e1e23224f373baa17cff77b9c2250829a4d991212790979153"
+    }
+  ],
+  "generator": "assets/piggies/arcade-build-v1/build_arcade.py",
+  "runtimeNotes": "Accessory model replaces v1. Runtime poses extracted from this v2 blend. Base geometry and UVs unchanged. Mecha uses revised non-emissive pale coat maps; glow comes from hardware.",
+  "payout": {
+    "chutes": 2,
+    "animatedCoins": 12,
+    "periodSeconds": 3,
+    "fullLoopSeconds": 6,
+    "pathSamples": 330,
+    "hiddenReset": true,
+    "startsAtMachine": true
+  },
+  "tierRules": {
+    "tier": "legendary",
+    "geometry": "slot machine, jeweled shades, fitted payout chutes and twelve embossed coins",
+    "glow": "retained amber lamps and pixel aura",
+    "motion": "three reels and looping coin payout",
+    "aura": "retained gold pixel sparkle"
+  },
+  "integrationNotes": [
+    "Separate review build; v2 remains installed.",
+    "Upload revised accessory model and new body/trim color, metalness and roughness maps; preserve reel textures.",
+    "Regenerate sampled Arcade motion data to include the twelve coins and their scale tracks.",
+    "Coin resets use scale 0.001 inside the chutes; retain scale animation.",
+    "Static import pose retains visible payout coins while carried; animated display uses the existing anchored Arcade animation pipeline."
+  ]
+}
