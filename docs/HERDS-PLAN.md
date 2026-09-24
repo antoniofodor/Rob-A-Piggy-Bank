@@ -14,8 +14,21 @@ the supply floor. Nothing about the NPC pivot should ship before this does.
 
 ## 1. The shape, as specified
 
+> **SUPERSEDED IN ONE BULLET, 2026-09-23: A PACK IS DROPPED FROM THE SKY AND NO
+> LONGER WALKS IN THROUGH THE TUNNEL.** The designer's simulation fiction made
+> the street an enclosure and a batch of piggies something RELEASED into it from
+> above, so `HerdService` falls a pack onto a landing point that has passed the
+> band and ground vetoes and enables each member's prompt on the frame it lands.
+> The whole tunnel walk — `route`, the kerb legs, the single-file formation,
+> `Config.herdRoute` and the bore-clearance audit — is retired or unreferenced,
+> and `HERDS.size` is 1 against a `maxLoose` of 20 rather than five packs of ten.
+> `CLAUDE.md` carries the reasoning and the drop-curve measurement. **Everything
+> else below still holds**: the roam, the pack-shaped dig, the pick-up-and-carry
+> capture, the deferred lasso, and §3's numbers are what the economy audit is
+> weighed against.
+
 * Herds **stampede in through the tunnel** — the same geometry the patrol car
-  already enters and exits by.
+  already enters and exits by. *(Retired — see the note above.)*
 * They run out into the **grasslands around the players' plots**, and walk
   around **as a pack** for a while.
 * **Multiple herds are loose at once.**

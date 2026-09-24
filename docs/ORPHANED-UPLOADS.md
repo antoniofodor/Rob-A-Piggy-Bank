@@ -64,6 +64,13 @@ Manager, then again through Open Cloud to capture their ids -- because the
 Assets API has **no list endpoint**, so there is no way to read back the ids of
 an upload somebody made in the UI.
 
+*(Corrected 2026-09-23: there is. The Studio MCP's `search_asset` with
+`scope = "user"` lists the account's own inventory by name, and
+`MarketplaceService:GetProductInfo` dates each candidate from the Edit
+command bar, so a hand upload's id can be recovered and told apart from its
+earlier copies without a second upload. CLAUDE.md, "THE IDS OF A HAND UPLOAD
+CAN BE READ BACK".)*
+
 **THE LIVE SET IS THE SECOND ONE**, recorded in `import/asset-ids.csv`, and the
 two are separable by CLOCK rather than by id: the Open Cloud batch ran
 `2026-09-18T17:49:30Z` to `17:52:39Z`, so a same-named Image created before

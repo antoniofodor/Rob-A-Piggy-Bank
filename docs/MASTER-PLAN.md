@@ -955,7 +955,7 @@ in the yard**. A shared themed trophy-room approach is proposed in
 `assets/houses/docs/HOUSE-TROPHY-ROOMS.md`; its architecture/art/visiting rules are not yet
 implemented or approved in detail. Three exterior
 concept sheets and exact prompts are saved under
-`assets/houses/concepts/2026-09-16/`; selection, prices and progression are
+`assets/houses/design/`; selection, prices and progression are
 not approved yet. Preserve existing saved house ownership when expanding
 the catalogue; do not silently reorder its numeric levels.
 
@@ -2188,7 +2188,7 @@ phone component previews pass; outstanding Phase 3 gameplay gates remain open.
 standalone piggy effects, no effects shop, no Aurora or Starfall. Piggy
 effects are limited to coin-deposit feedback and Legendary skin visuals.
 **Latest user priority:** defer fences; explore higher-tier house exterior
-appearances first. Exterior mockups are in `assets/houses/concepts/2026-09-16/`.
+appearances first. Exterior mockups are in `assets/houses/design/`.
 Interiors remain future work; entering, visitors and room layout are not yet designed.
 `auditEconomy` runs after every batch, because every price is measured against
 `getCapacity(ABSOLUTE_MAX_LEVEL)` and there is only 16.9M of headroom above the
@@ -2537,14 +2537,16 @@ below is the only ordering that actually binds.
 
 Everything else can run whenever there is a person free.
 
-> **September 16 — the GPT/Fable split.** `docs/DESIGN-SCRIPTING-HANDOFF.md`
-> assigns visual design to GPT and scripting/planning to Fable. The briefs
-> Fable owes GPT for the work above are in `docs/BRIEFS-FOR-GPT.md`: **B1**
-> house catalogue UI (4b.3), **B2** trophy rooms (4b.5), **B3** house
-> exteriors (4b.4) are needed now; **B4** Harvest Moon (6.4), **B5** the tree
-> as a progression object (2.7), **B6** the Legacy reset (4b.6) later. Art 1
-> to Art 11 below are unchanged; Art 11's *Houses* bullet now points at
-> `LATE-GAME-ECONOMY-PLAN.md` for the ceiling.
+> **September 16 — the GPT/Fable split, RETIRED 2026-09-23.** For a week the
+> work above was split between a visual-design collaborator and a scripting
+> one, with a per-feature brief for each hand-off. That model is gone: several
+> Claude sessions work this tree at once now, under the announce-then-act rule
+> in `CLAUDE.md`, and the two documents that carried it are deleted. Their
+> briefs either shipped — the house catalogue UI, the trophy rooms and the
+> house exteriors, all better documented now in `assets/houses/docs/` — or were
+> retired with their features, which is what happened to the Harvest Moon and
+> to the acorn tree. Art 1 to Art 11 below are unchanged; Art 11's *Houses*
+> bullet points at `LATE-GAME-ECONOMY-PLAN.md` for the ceiling.
 
 **Art 1 -- the two empty animation rows.** No design in it, and it is first
 because it is free and because both are live silent failures on the published

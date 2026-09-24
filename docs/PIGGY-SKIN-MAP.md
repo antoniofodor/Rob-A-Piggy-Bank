@@ -294,12 +294,13 @@ section used to list for OG (Spotty, Piggy Bank, Patched) are still built in
 Farmyard or a later pack.
 
 **Fifteen rows landed in `Config.SKINS` under the OG FAMILY block, every one
-authored rather than measured.** The first pedestal render found the fault the
+authored rather than measured; fourteen stand, the Sooty Piggy having been
+deleted on the designer's call on 2026-09-23.** The first pedestal render found the fault the
 retired Neon stripe-and-dot skins had been reporting as "stuck ON the mesh
 pig": every part-built mark was seated on a SPHERE and the body is not one, so
 spots floated a stud off the flank. `PiggyModel.surfaceSampler` seats marks on
 the real surface now (raycast against a precise probe of the body), verified
-live on Muddy, Sooty and Marble at 0.10 to 0.18 studs of inner-face bury with
+live on Muddy, Marble and the since-deleted Sooty at 0.10 to 0.18 studs of inner-face bury with
 the spread under 0.02. **Looked at: Rockslide (good), Muddy (good after the
 fix). Not yet looked at: Marble and Banker after the fix** — their arcs were
 standing off the crown before it, and thin bands are the shape most likely to
@@ -309,7 +310,6 @@ still want tuning.
 | --- | --- | --- | --- | --- |
 | `classic` | Piggy | common | flat | *exists* — rename to its type still open |
 | `muddy` | Muddy Piggy | common | flat + `spots` | pink body, **pink trim**, 9 brown splats `size 0.15 vary 0.42` |
-| `sooty` | Sooty Piggy | common | flat + `spots` | pale grey, mid-grey trim, 11 near-black spots |
 | `rosegold` | Rose Gold | common | flat, Metal | pink-copper, `reflectance 0.32`; base pulled down so the highlight has range |
 
 | key | name | tier | mechanism | spec |

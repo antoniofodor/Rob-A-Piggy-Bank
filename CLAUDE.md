@@ -28,6 +28,45 @@ never top to bottom.
   rejected, so that the day somebody proposes a coin pack or a 2x-income
   pass again, the arithmetic that refused it is one file away.
 
+Everything else in `docs/` is a WORKING document, an authoring reference or a
+RECORD -- never a fifth source of truth -- and the rule is the one
+`animal-crate-plan.md` states in its own header: as a phase lands, its
+reasoning moves into this file and its description into GAME.md, and the entry
+there is deleted. What survived a sweep on 2026-09-23: the piggy-collection
+trio (`PIGGY-COLLECTION-PLAN`, `-BUILD-ORDER`, `PIGGY-PACKS-PLAN`),
+`PIGGY-SKIN-MAP`, `animal-crate-plan`, `HERDS-PLAN` and
+`LATE-GAME-ECONOMY-PLAN` as working documents, each cited by SECTION NUMBER
+from live code; `skin-authoring` as the one authoring reference somebody
+opens to do a job; and `ORPHANED-UPLOADS` and `ASSET-INVENTORY` as records of
+uploaded asset ids. **AN AUTHORING BRIEF LIVES WITH THE ART IT BRIEFS**, which
+is why the house set is not here: `HOUSE-CATALOGUE-PLAN`, `HOUSE-TIER-BRIEF`,
+`HOUSE-TROPHY-ROOMS`, `TROPHY-DISPLAY-PROPOSAL` and `HOUSE-INTERIOR-BRIEF` are
+all in `assets/houses/docs/`, beside the blends and the tools they describe.
+The interior brief was the odd one out in `docs/` until 2026-09-23, and both
+of its readers were reaching back up out of `assets/` with `../../` to get
+it.
+
+**THE TWO RECORDS ARE NOT THE SAME KIND OF THING, AND ONE OF THEM IS
+IRREPLACEABLE.** `ASSET-INVENTORY` is GENERATED (`tools/build_asset_inventory.py`
+walks `src/`), so it can be rebuilt from the tree at any time.
+`ORPHANED-UPLOADS` holds 173 ids of dead uploads on a moderated account and
+says so itself -- the Assets API has no list endpoint, which is why this file
+already records 58 sheets being uploaded twice -- so it is the only copy and
+deleting it destroys knowledge nothing can re-derive.
+
+**THAT SWEEP DELETED EIGHT, AND THE TWO SHAPES ARE WORTH KNOWING BECAUSE THEY
+WILL RECUR.** Four were SPENT: a UI redesign whose UI shipped and which the
+module now documents better than the doc did, a completion receipt in past
+tense, a request for a plan that exists, and a per-session ownership plan
+whose lanes had all closed. Three were STALE IN THE DANGEROUS DIRECTION --
+they instructed a future reader to do something the game no longer does (put
+an ACORN price on a crate card; brief a Harvest Moon that was retired within
+the day) -- which is the copy-outlives-the-thing failure this file records a
+dozen times. The last was a mockup HTML for a badge whose whole design history
+is in here. **A WORKING DOCUMENT THAT NOTHING CITES AND WHOSE FEATURE SHIPPED
+IS NOT AN ARCHIVE, IT IS A TRAP**, because the next reader cannot tell it from
+a live one.
+
 Nothing from this file gets moved into GAME.md. The reasoning is the point of
 this one, and a rule stripped of the failure that produced it is a rule nobody
 believes.
@@ -1801,6 +1840,21 @@ segment visibly GROWS every time somebody decides to stay -- verified at
 "the step you are deciding about is always the biggest one you have been
 offered" is a picture instead of a number.
 
+*(SUPERSEDED 2026-09-23: THE SMASH IS RETIRED, on the designer's call --
+"lets remove the smash it prompt and only keep the crack lock for
+simplicity". `Config.SMASH`, `getSmashFraction`, the `smash` prompt kind,
+`PiggyBank`'s smash prompt and `HeistService.smash` are gone, and a pig is
+cracked or left alone. WHAT IT COST, STATED PLAINLY: the Vault Lock and the
+Guard Dog no longer answer two different attacks. A dog now matters on a
+fumbled slice and on footsteps only, so dog upgrades lost part of what they
+were bought for. The admin `smash` command became `crack`, which runs a
+clean crack through the real `crackTap` judge (`HeistService.devTapInZone`),
+because a coin carry still has to be drivable in a session that cannot hold
+a prompt. `Config.PROMPT_SLOT_ATTRIBUTE` stays: the owner's swap moved from
+slot 2 to slot 1 on the bank, and a plinth still carries two verbs. The
+entries below are kept because they are the reasoning a second way in would
+have to answer again.)*
+
 **AND THERE ARE TWO WAYS INTO A PIG NOW, WHICH IS WHAT THE CRACK COULD NOT BE
 ON ITS OWN.** The crack made a single robbery a decision and left every
 robbery the same KIND of decision: five slices, a lock fighting you, and the
@@ -2596,6 +2650,20 @@ not a question a nine-year-old walks in with. Animal survives as a shelf
 because "I want my pig to be a tiger" is one. Five skins went entirely:
 Circuit Board, and the four animals with no artwork behind them (Woolly
 Sheep, Dalmatian, Cheetah, Orca) -- flat paint pretending to be a coat.
+
+*(SUPERSEDED 2026-09-23: the piggy crates are ONE shelf now, on the
+designer's call -- "stop separating by category of piggy and put all common,
+rare, epic, legendary into one pool". Animal Kingdom and Arcade were retired
+as crates, every piggy skin is tagged `chest = "og"`, and the Common / Rare /
+Legendary Piggy Crates draw on all 67. The tiger argument above was not wrong
+and it is not lost: the THEME survives as a per-skin `collection` field that
+the bag's headings read through `Config.SKIN_COLLECTIONS`, so "show me the
+tigers" still has an answer -- what went is BUYING a tiger shelf, and the cost
+is stated rather than hidden: a specific legendary is about 2.7x harder to aim
+for. The two fields are not interchangeable. `chest` is the crate that drops a
+skin and is what the odds, the buy-back price and the stealable-skin audit
+read; `collection` is a heading and nothing else. Fold one into the other and
+either the audit fails or the themes vanish.)*
 
 **THE ONE THING THAT BROKE WAS A `floor` NAMING A TIER NOTHING CARRIES ANY
 MORE, AND IT FAILED IN THE DANGEROUS DIRECTION.** The Legendary Crate floors
@@ -4284,14 +4352,34 @@ decision, with a way out at the bottom. That is also why the way out is
 labelled NOT YET rather than CANCEL -- nothing is being undone, they are
 deciding whether they are ready.
 
-**IT ASKS ON THE FIRST REBIRTH ONLY, and the flag is `rebirths == 0` rather
-than a saved boolean.** The question the page answers is "what does this button
-do", which is asked once; a veteran on their ninth reset who has to clear a
-dialogue every time learns to tap through it without reading, and the
+**IT ASKED ON THE FIRST REBIRTH ONLY, AND THAT BYPASS IS GONE -- THE PAGE
+OPENS EVERY TIME NOW.** The argument for asking once was good and is recorded
+because it is the one that lost: the question the page answers is "what does
+this button do", which is asked once, and a veteran on their ninth reset who
+clears a dialogue every time learns to tap through it without reading, so the
 confirmation everybody dismisses reflexively is the one that fails when it
-finally matters. Reusing the rebirth count means no new save field and no way
-for a flag to disagree with reality. `Rebirth.FIRST_TIME_ONLY` is the one line
-to change if it should ever ask every time.
+finally matters.
+
+**WHAT IT SHIPPED IS WHY IT LOST.** With the bypass in, the HUD button fired
+the remote DIRECTLY from rebirth two onward -- so from a player's side the
+biggest button in the game silently reset their coins and every upgrade on ONE
+TAP with nothing on screen first. It was reported as the page having "stopped
+showing". Only the page's own REBIRTH TO N sends the request now, every time,
+and `Rebirth.FIRST_TIME_ONLY` no longer exists.
+
+**AND THE TAP-THROUGH OBJECTION IS ANSWERED BY WHAT THE PAGE SAYS RATHER THAN
+BY SKIPPING IT**, which is the reusable half: it leads with what the next
+rebirth BUYS, current against next, from the same Config helpers the server
+pays with -- so a veteran reads a NEW NUMBER every time rather than the same
+warning. A confirmation nobody reads is a confirmation carrying no
+information; the fix is to put information in it, not to remove it.
+
+**THIS ENTRY WAS WRONG ON DISK FOR A WHILE, WHICH IS THE THIRD TIME THAT HAS
+BEEN RECORDED HERE.** It went on prescribing "`Rebirth.FIRST_TIME_ONLY` is the
+one line to change if it should ever ask every time" after that flag had been
+deleted -- so this file named a lever that was not there. Found by a
+documentation sweep reading the module's own header against this one, which is
+the only way this class is ever found.
 
 **THE NUMBERS ON IT ARE REAL, and that is the whole feature.** "You will lose
 your upgrades" is a definition; "Vault Lock Lv 3, Fence Lv 4, Guard Dog Lv 2,
@@ -7097,7 +7185,9 @@ THIS GAME IS ALLOWED TO LET DECAY.**
 This design has removed every form of LOSS on purpose and should keep it that
 way. A plot is released when its owner logs off, so nobody is ever robbed
 while away; a robbery never costs progress; rebirth keeps every cosmetic;
-offline accrual runs eight hours and never decays. All four are deliberate,
+offline accrual runs eight hours and never decays -- into the pedestal BUFFERS
+since 2026-09-23 rather than into the bank, which changed where it lands and
+not that it is kept. All four are deliberate,
 all four are right for an audience of nine-year-olds, and none is negotiable.
 
 What went with them, and was never a decision anybody made, is COMPARISON.
@@ -7871,6 +7961,22 @@ never re-stamped by later ones -- otherwise continuous noise would postpone
 the dog indefinitely, which is precisely backwards. What continued noise DOES
 buy is a longer alert.
 
+**A DOG CHASES ITS OWN YARD'S GOODS AND NOTHING ELSE (designer,
+2026-09-23: "they should only chase after stolen goods from the yard it's
+guarding").** The watcher's test for a robbery was `haulingAnything` -- is
+this player carrying ANY load -- so every guard on the street, a resident's or
+a real player's, ran down a thief crossing its lawn with coins or a piggy from
+some other plot, an owner carrying their own piggy home, and a lassoed wild
+catch. `HeistService.stoleFrom(player, plot, victim)` asks WHERE the load came
+from: a coin carry whose victim is this plot's owner or resident (or whose
+victim's plot is this plot, so an evicted resident does not free the thief),
+or a piggy haul `PiggyHaulService.stolenFrom` says came off this plot's
+plinths (nil for an own piggy and for a wild catch). Anybody else is a visitor
+and is barked at. And a thief carrying THIS yard's goods outranks a louder
+visitor when the dog picks whom to watch. The fumbled slice and the smash
+never went through the watcher and are unchanged. UNSEEN: offline suites only
+(29 of 32, the usual three reds); no Play test yet.
+
 **THE WATCHER LIVES IN `HeistService` AND NOT IN `GuardDog`, and that is a
 dependency decision rather than a filing one.** Deciding whether a dog should
 react needs to know where every player is, which plot they are standing in,
@@ -8188,6 +8294,45 @@ keyboard and a thumbstick, and it is the entire reason the bin is worth using.
 It is driven off `Humanoid.MoveDirection`, which keeps reporting input while
 the root is ANCHORED -- measured, and the whole design rests on it. Verified at
 exactly 4.50 studs in the pushed direction on every axis tried.
+
+**AND A BIN'S EXIT MAY NEVER BE A PROMPT, BECAUSE A HIDER HAS NO PROMPTS
+(2026-09-23, reported as "players are unable to exit them").** For about a day
+the direction exit was replaced by a CLIMB OUT ProximityPrompt on the hatch,
+to stop the movement key a player was still holding as they dived in from
+firing the exit on arrival. That was a real bug and a reasonable fix -- and
+`ClientMain`'s `StealthState` handler sets `ProximityPromptService.Enabled =
+snapshot.disguised ~= true`, which switches off EVERY prompt for anybody in a
+bin. Correctly: the bin's own OPEN and every plot prompt around it must go
+dark for somebody who is supposed to be hidden. The CLIMB OUT prompt went dark
+with them, so the only ways out were the two-minute `maxSeconds` ceiling or
+somebody else holding OPEN.
+
+**TWO RULES, EACH RIGHT, COMPOSED INTO A TRAP WITH NOTHING ERRORING** -- the
+same shape as `LOSS_CAP` x `HEIST_PAYOUT`, one level down. A global switch-off
+is a list of exceptions nobody wrote, and the one thing it must not cover is
+the way back out of the state that turned it on.
+
+**SO THE EXIT IS INPUT, NOT A PROMPT, AND IT HAS THREE DOORS.** Jump
+(`UserInputService.JumpRequest`, which covers Space, the touch jump button and
+gamepad A), a tap on the `Shared/BinExitHint` card that reads JUMP TO CLIMB
+OUT while you are inside, and a push -- but only a push that STARTS after the
+lid shut, which is what actually fixes the held-key bug the prompt was
+introduced for. All three go through one `BinClimbOut` remote carrying at most
+a direction the server flattens, validates and falls back from, and all three
+pass a direction and no reason, so all three earn the exit burst.
+
+**THE TOUCH JUMP BUTTON SURVIVES BECAUSE HIDING NEVER TOUCHES JUMP.** Roblox
+hides that button when a humanoid's jump is zeroed, and `refreshSpeed` zeroes
+it for a STUN. `HeistService.setHidden` only sets a flag, so a hider keeps the
+button -- and the tap on the hint card is there for the one who dived in
+already stunned and lost it. For this audience a keyboard-only exit is an exit
+most players do not have.
+
+**UNSEEN: an exit on any device.** Everything here is code-read and offline
+suites (29 of 32, the usual three reds); Studio was mid-Play in another
+session and was not interrupted. The one side effect to watch for: after the
+root unanchors, a latched `Humanoid.Jump` may stack a full jump on top of the
+server's 2.29-stud vault hop.
 
 **THE HIDER IS PARKED AT THE BIN AND ANCHORED THERE.** Being inside has to be
 spatially true rather than only visual: a pursuer converging on the bin is
@@ -11803,6 +11948,197 @@ note stands -- performance was never the reason to cut anything here -- but the
 manor at 212 and the palace at 186 are the two to watch, and both spend most
 of their budget on quoins and window ranks.
 
+**A NEGATED YAW PUT THE TREEHOUSE'S UPPER STAIRS ON A 0.69-STUD RIBBON, AND
+PLAYERS FELL THROUGH THEM.** Reported as falling through the front stairs.
+Measured: the thirteen `Collide_Upper stairs step N` boxes are 5.20 by 0.69,
+and the 5.20 side ran UP the climb (dot -0.994 with the climb direction)
+instead of across it. So the collision under a 5.20-wide staircase was a
+0.69-wide ribbon along its own centre line. Probed across the tread, 27% of
+it had floor under it.
+
+**WALKING DEAD UP THE MIDDLE WORKS, WHICH IS WHY IT SHIPPED.** Driven with
+`Humanoid:Move` straight along the flight, a character climbs it perfectly and
+arrives on the deck -- the ribbon IS the centre line. Half a stud either side
+and there is nothing there. **A BUG THAT ONLY APPEARS OFF THE OBVIOUS PATH IS
+ONE A PLAYTEST WALKS PAST**, which is the same shape as the wheelie lean being
+right at both endpoints and wrong in between.
+
+**THE CAUSE IS ONE SIGN AND A PLAUSIBLE PIECE OF REASONING IN A COMMENT.**
+`export_house_roblox.py` said it in as many words: *"Blender (x,y,z) maps to
+(-x,z,y) here with no half turn, and negating x flips the sense of a
+z-rotation -- so the yaw is -rotationZ."* The first half is true and the
+conclusion does not follow. That map is a NEGATE **and** a y/z swap -- two
+reflections -- and two reflections compose into a PROPER rotation, determinant
++1, which PRESERVES the sense. The Roblox yaw is `+rotationZ`. Fourth entry in
+this file where a confident comment was the bug rather than the code.
+
+**AND IT WAS INVISIBLE AT 0 AND +-90 DEGREES, WHICH IS WHY IT SURVIVED THE
+WHOLE CATALOGUE.** A box is symmetric under a half turn, so `-a` and `+a`
+describe the SAME solid whenever they differ by a multiple of 180 -- which is
+exactly 0 and +-90. Every collider in eighteen templates is axis-aligned
+except two groups, and both were wrong: the treehouse's upper flight at
+-41.85 degrees, and four of the toadstool's six wall colliders at 45 and 135,
+which were RADIAL spokes where they should have been TANGENTIAL walls. The
+toadstool's other two walls are at 90 and were correct by coincidence -- and
+they are what made the other four provably wrong, because six walls of one
+ring cannot be two kinds of thing.
+
+**A BOUNDING BOX CANNOT SEE ANY OF IT.** The flight's world bounding box is
+9.87 by 10.17 studs BOTH WAYS round -- identical before and after -- so
+`auditYard`'s widest/deepest sweep, which is the only geometric check these
+templates had, was structurally blind to it. Same family as measuring a house
+by its model and getting its FX at altitude, and the reason the new check asks
+the PLAYER'S question instead.
+
+**THE FIX IS THE DELETION OF A MINUS SIGN, IN FOUR PLACES AND IN TWO SHIPPED
+TEMPLATES.** `build_house_runtime.py` is the one that writes
+`src/ReplicatedStorage/Shared/HouseTemplates/`, and `export_house_roblox.py`
+and `build_walkin_handoff.py` carried the same term into their drafts;
+`package_assets.py` and `package_mushroom.py` already had it right, which is
+its own warning -- five writers, two conventions, and nothing comparing them.
+The two shipped `.rbxmx` files were corrected in place rather than
+regenerated, because regenerating needs Blender and would re-upload meshes to
+fix a rotation: inverting a Y-axis yaw is exactly negating `R02` and `R20`,
+so the edit is nineteen numbers and is checkable by reading them back.
+
+**THE AUDIT ASKS WHETHER YOU CAN STAND ON THE TREAD, NOT WHETHER THE BOX IS
+TURNED RIGHT.** `PlotService.auditStairTreads` builds every tier at boot (it
+rides `auditYard`'s existing sweep), derives each flight's climb direction
+from its first and last step, and casts down at seven points across the
+tread, warning under 99%. **THE PROBE WIDTH COMES FROM THE TREAD'S LARGEST
+HORIZONTAL SIDE AND NEVER FROM ITS ACROSS-EXTENT**, which is the one thing
+that would have made it circular: asking a wrongly-turned collider how wide it
+is returns 0.69 and it passes itself. It accepts ANY collider, not just a
+step, because the top of a flight arrives at a deck and standing on a deck is
+standing on something -- measured, the treehouse's last three probe points
+land on `Collide_Main deck` 1.1 studs above the tread.
+
+**IT WAS SEEDED AT 1 AND SAID NOTHING, WHICH READS EXACTLY LIKE AN AUDIT THAT
+NEVER RAN.** The first build compared `hits/total < worst` against a seed of
+1, so a catalogue with no fault never updated the name and never printed. An
+audit's CLEAN line is half of what it is for. Seeded empty now.
+
+Proved to fire rather than trusted: with the yaw put back on a throwaway clone
+the same rule reports **24%** against a 99% threshold, and as shipped both
+flights report **100%**. Boot line: *"stair treads: worst flight is Lower
+stairs on The Treehouse, 100% of its tread width supported"*.
+
+**THE LION IS DELETED, AND RETIRING A SKIN COST NOTHING AGAIN -- WHICH IS THE
+ELEVENTH TIME AND IS WORTH THE PARAGRAPH RATHER THAN THE DIFF.** Designer
+call, 2026-09-23. What came out: the `Config.SKINS.lion` row, its
+`SURFACE_PACKS.lion` pack, both `SurfacePacks/lion*.model.json` sheets
+(ColorMap `92909726934853` and `129763519092589`, recorded here because the
+files are gone and the uploads are not), and `FUR_SETS.lionmane`, which the
+lion was the only wearer of.
+
+**AND THE AUTHORING ART WENT WITH IT, ON THE DESIGNER'S CALL AND WITH THE
+COST ON THE TABLE FIRST.** 137 files and about 71MB: `assets/piggies/epic/
+lion/`, `blender/pig/skins/lion/`, `assets/skins/animal/epic/lion/`, the
+`pig_lionmane` mane source and OBJ, the closed-back test copies and the
+`import/textures/lion_*` sheets. 72 of those were UNTRACKED, so that half is
+not recoverable -- which is why it was asked rather than assumed, and why the
+two uploaded ColorMap ids are written down one paragraph up. **THE UPLOADS
+ARE STILL ON THE ACCOUNT**, so the only way back is those two numbers.
+
+**NOT ONE SAVE MIGRATION, BECAUSE EVERY READ ALREADY ANSWERS FOR A DEAD
+KEY.** `Config.piggyKeyAt` returns Classic for a retired TILL and nil for a
+retired PLACEMENT -- so a pedestal stops earning rather than earning the
+floor rate off a pig it cannot draw -- `DataService.reconcile` swaps the
+retired till out of `piggies.owned` and the Classic that replaces it in, and
+the wardrobe, the spares and the trophy shelf are all pruned against
+`Config.SKINS`. Measured live on a save that still names it: till reads
+`classic`, `getSkin("lion")` reads Classic Pink, `piggyScale` reads 1.
+**THAT IS WHAT THOSE PRUNES WERE WRITTEN FOR**, and it is the whole argument
+for writing them against the catalogue rather than as one-off migrations.
+
+**THE TIER SURVIVES BECAUSE IT IS STILL STOCKED, WHICH IS THE ONLY THING THE
+ODDS NEED.** The animal shelf's epic tier was four, is two (Storm Stone
+retired the same week, the Lion now). `liveOdds` drops an EMPTY tier and
+RENORMALISES -- the failure that row's own comment records, where 52/44/4
+over a pool with no rares silently became 93% common and 7.1% legendary and
+repriced the best-value crate in the game. Two is not empty, so 52/32/12/4
+holds unchanged, and `epic = 3 x legendary` goes on holding `COMBINE.need` at
+3. Measured after: animal, animalrare and animallegendary all report epic=2.
+
+**AND THE SUITE THAT SHOULD HAVE CAUGHT ALL THIS WAS ALREADY RED, FOR A
+WEEK, FOR THE PREVIOUS DELETION.** `tests/luau/piggies.luau` asserted
+`#epics == 4` and read `Config.SKINS.stormstone.pattern.glowEvery` -- and
+Storm Stone had been retired, so that second line INDEXED NIL and took the
+whole file down. Nobody re-ran it. **A COUNT IS THE WRONG ASSERTION FOR A
+CATALOGUE**: it goes red every time content lands or leaves, for the wrong
+reason, and a suite that cries wolf is a suite nobody runs. It asserts
+`#epics > 0` now -- the property the crate arithmetic actually rests on --
+and the pool checks are tied to `#epics` rather than to a number.
+
+**WHAT IS DELIBERATELY LEFT STANDING.** `Config.FUR_SETS.mane` is worn by
+nothing again and stays, because it is `DEFAULT_FUR_SET` -- any skin that
+names a `fur` colour and no set gets it. `PiggyModel`'s `furFlat` branch has
+no user at all now and stays too: it is a general rendering option with a
+measurement behind it (painted through the shared cylinder unwrap the crown
+lobes sample the sheet's top edge and the cheek lobes sample the face
+window, so a one-colour ruff needs the flag), and deleting a mechanism
+because its first user left is how the next author re-derives it. Both are
+named here so the next sweep finds them deliberately rather than by grep.
+
+**EVERY AUTHORED HOUSE STOOD ON A TRAY, AND THE TRAY AND THE LIFT WERE ONE
+CHANGE RATHER THAN TWO.** Reported as the rectangles at the base of each
+imported house. They are real and they are all one object: `fantasy_parts.py`'s
+`base()` builds a `box('Dressed foundation', (w, d, top))` -- a bevelled slab
+the width and depth of the whole footprint, in its own material, standing about
+a stud proud and sticking out past the walls on every side. Right on a render
+stand, and on a lawn it is a tray with a house on it. Fourteen of the eighteen
+templates carry one, up to 62 x 45 studs.
+
+**DELETING IT ALONE MAKES IT WORSE, WHICH IS WHY THE DROP IS NOT A SEPARATE
+DECISION.** The walls SAT on the slab, so skipping it leaves them floating
+exactly its height above the grass -- measured across the catalogue, 1.4 studs
+under the Void Manor, 1.3 under the Sky Castle, 1.2 under the Ice Palace.
+`buildTemplateHouse` therefore seats at `LAWN_LIFT - plinth`, where `plinth` is
+the slab's own top measured in the template's frame. One number, derived from
+the thing being removed, so a re-exported template brings its own.
+
+**WHAT WAS AUTHORED BELOW THE SLAB'S TOP IS NOW EMBEDDED IN GRASS INSTEAD OF
+IN STONE, AND THAT IS THE SAME RELATIONSHIP.** Moss, roots, a rock skirt, the
+fishbowl's coral bed and the thundercloud's cloud mass all reach below the
+plinth top by construction -- they were sunk INTO it. After the drop they are
+sunk into the lawn by the same amount, which is what the art was drawing. The
+alternative, clamping the drop so nothing is ever buried, cannot work: every
+template's approach steps start at local y 0, so the clamp is always zero and
+the building goes back to floating.
+
+**MEASURED PER PART THROUGH ITS OWN CFRAME**, not off `Position.Y + Size.Y/2`,
+for the reason this file already records twice: a slab on an angle reports a
+height that is not its height.
+
+**IT IS A KEEP-LIST, WHICH IS THE OPPOSITE CALL FROM `HOUSE_REBUILD` AND
+`HOUSE_MESH`.** Those are opt-in because the old builder is the safe default;
+here standing in the grass is what a house on a lawn should do, so a style
+imported later gets it with nothing to remember and the EXCEPTION is the thing
+worth naming. `Config.HOUSE_PLINTH_KEEP` holds one style: the Starter Shack
+keeps its card base on the designer's call, because a cardboard box is a thing
+somebody PUT on the grass and the flap of card under it reads as part of the
+joke rather than as a tray.
+
+**`^Foundation_` IS ANCHORED BECAUSE `CloudFoundation_*` IS THE BUILDING.** The
+thundercloud's cloud mass carries the word and is the thing the fortress stands
+on; an unanchored match would have deleted a 48-stud cloud and dropped the
+castle 2.6 studs onto the lawn. Same family as every other "grep the literal"
+entry here, caught by reading the part list rather than by the failure.
+
+**IT DOES NOT TOUCH GROUND ART THAT IS NOT A `base()` SLAB**, and that is a
+line worth keeping: the galleon's sand, the toadstool's timber deck on its
+stone ring, the gloop house's puddles and the treehouse's roots are authored
+GROUND rather than a plinth, they already read as ground, and none of them is
+named `Foundation_`. If one of those ever reads as a tray it is a separate
+decision with a separate argument.
+
+Verified live at four tiers and on the exception: the Haunted Manor's walls
+meeting the grass with its moss at the base, the Thundercloud's cloud billowing
+out of the lawn, the Fishbowl's dome in the grass with the coral around it, the
+Beehive Cottage with the 28 x 28 green slab gone, and the Starter Shack still
+on its card. `PlotService.auditYard` clean afterwards -- houses fit the yard,
+tightest side-fence gap 2.6.
+
 **Houses confer nothing.** The house behind a plot is pure prestige, priced above
 the skins so it stays the last thing anyone finishes. The power balance is a closed
 system of speed, time and distance; hanging a stat off a status symbol reopens
@@ -12087,10 +12423,12 @@ minutes -- the stars keep on their own: one delivery is one star, three in a
 row is a thief the street can see. The poster's bar draws the star ladder
 and the most-wanted hat is a ranking with no warrant attached.
 
-**THE BANK DRIPS AND THE LOOT IS A BAG.** The till's collect pad, its buffer
-and its stamp are gone: a button to move coins from the bank into the bank
-was a step for nothing, so `EconomyService`'s tick adds the till skin's rate
-straight to `coins` and `reconcile` folds a save's `tillBuffer` in once. The
+**THE BANK DRIPPED AND THE LOOT IS A BAG.** *(SUPERSEDED 2026-09-23 on the
+DRIP, which is deleted -- see the entry directly below. The BAG half is live
+and unchanged.)* The till's collect pad, its buffer and its stamp are gone: a
+button to move coins from the bank into the bank was a step for nothing, so
+`EconomyService`'s tick added the till skin's rate straight to `coins` and
+`reconcile` folds a save's `tillBuffer` in once. The
 carry is the Bigger Sack card's own model (`UpgradePreview.build("sack",
 level)`), renamed so `CarryPose` holds it, with its sack part renamed `Body`
 so the weld, the trail, the label and the nab prompt seat on it unchanged --
@@ -12099,6 +12437,114 @@ object. The snatch keeps the mini, because a snatched piggy IS the thing
 carried. Verified live through the new console command `smash`: bag at
 exactly `CarryPose.HOLD`, "worth 936 at home" on a 234 take, 936 banked, one
 star pushed.
+
+**AND THEN THE TILL STOPPED EARNING ALTOGETHER, WHICH IS THE THIRD ANSWER THIS
+ONE PLACEMENT HAS HAD (designer, 2026-09-23: "the piggy bank displayed as the
+till should not earn any money only displayed as the storage, when taken off
+and swapped it can then earn its registered amount as normal, but it should
+also not auto collect, i see my coins increasing automatically they should only
+collect when collecting the cash from the button collect").** Slot 0 had a
+buffer and a pad, then it drip-fed `coins` on the tick, and it pays nothing at
+all now. `Config.piggySlotRate` answers 0 for it, `Config.collectionRateOf`
+sweeps from slot 1, and the six lines of drip in the accrual loop are gone.
+
+**THE REPORT WAS ABOUT AUTOMATION RATHER THAN ABOUT THE TILL, WHICH IS WHY ONE
+DELETION ANSWERED BOTH HALVES OF IT.** "Piggy banks are still auto collecting
+cash" and "i see my coins increasing automatically" are one sentence, and
+swept, the till's drip was the ONLY thing in this game that moved a player's
+balance on a clock. Every other writer of `data.coins` is an event somebody
+caused -- a collect, a sale, a crate, a daily claim, an event payout, a
+delivery, a bounty, bail, the admin console -- so deleting those six lines made
+the whole economy PULL-BASED, which is what `PIGGY-COLLECTION-PLAN` SS4a asked
+for and what the loop directly underneath them had already been doing for the
+six pedestals since the day it was written.
+
+**THE RULE IS ABOUT THE PLACEMENT AND NEVER ABOUT THE PIGGY**, which is the
+half to keep: the same Classic that earns nothing on the till earns its tier
+rate the moment it is swapped onto a pedestal, and that is the whole reason the
+swap prompt is worth pressing. So the refusal lives in ONE function, read by
+the accrual loop, the offline catch-up, the HUD's rate pill and the pedestal
+rate rows, rather than at the one call site that used to pay it. A later caller
+cannot reach a different answer by asking a different way.
+
+**AND THAT ARGUMENT WAS RIGHT AND NAMED THE WRONG FUNCTION, WHICH IS WORTH
+RECORDING BECAUSE THE REASONING SURVIVED AND THE PLACEMENT DID NOT.** It went
+into `EconomyService.slotRateOf` on the strength of the sentence above, and
+that was correct for as long as `slotRateOf` WAS the only reader. Within three
+hours a neighbour's lawn and a hallway plinth both needed the same number, a
+peer folded the body into `Config.piggySlotRate`, and the refusal went with it
+-- because **A RULE LIVING IN ONE OF THREE COPIES IS A RULE THE OTHER TWO DO
+NOT KEEP**, which is the same sentence pointed one level lower. The test for
+where a refusal belongs is not "is this function the only reader today", it is
+"is this function the only thing that COULD answer this question": Config can
+be reached by a service, a client and an audit, and a service module cannot.
+Provoked rather than trusted -- deleting the clause fires the rate suite.
+
+`Config.collectionRateOf` was deliberately NOT rewired to sum it, and its own
+comment is why: it delegates to `Config.collectionRate` so that what
+`auditRobbery` calls a collection and what a player earns from one cannot
+drift apart. Two functions over one ladder is fine; two DESCRIPTIONS of what a
+collection is worth is the failure that entry exists to prevent.
+
+**IT COST THE OPENING, AND THAT HAD TO BE PAID FOR IN THE SAME CHANGE.** A new
+save had exactly one piggy and it was on the till, and the only way a piggy
+leaves the till is `PiggyHaulService.swap`, which needs a piggy already in your
+arms to swap IN. So a brand-new player earned zero per second with no route out
+of it -- and `Config.piggyKeyAt`'s own comment says a till earning nothing is
+the one state this economy may not have, because it is the first minute of the
+game. `DataService.defaults` seats a Classic on the till AND on lawn slot 1 at
+`owned = 2`: what a new player earns per second is IDENTICAL to before, and all
+that moved is that it ripens on a pedestal instead of landing in the balance.
+It is not a faucet either, because Classic is costless and `Config.sellValue`
+refuses to sell a free thing.
+
+**AN EXISTING SAVE IS DELIBERATELY NOT MIGRATED.** A reconcile that seated a
+free Classic whenever the lawn read empty would fire again every time somebody
+sold their last piggy, which is a piggy faucet keyed to an empty lawn -- the
+"one that pays out on every join is a money printer" failure this file already
+records for `shards`. So a save with an empty lawn earns nothing until a piggy
+is placed on one, and `fillpiggies` on the admin panel is how to seat one.
+
+**AND OFFLINE INCOME FILLS THE BUFFERS RATHER THAN THE BANK (same call: "your
+piggies can earn offline but not get stored in your bank") -- WHICH THE
+FUNCTION'S OWN COMMENT HAD PREDICTED AND DECLINED TO DO.** It read, in as many
+words: *"STILL PAID AS COINS RATHER THAN INTO THE BUFFERS, and that is left
+alone deliberately... the honest offline model is buffers filling to their own
+cap -- which would make eight hours away worth a hundred seconds per placement
+and is a real nerf to a real reward. That is a decision rather than a bug, so
+it is recorded here and not taken."* It has been taken, and the nerf is the
+point: coins arrive by being COLLECTED now, so an absence RIPENS the lawn
+instead of filling the pig, and a player comes back to six pads to walk rather
+than to a number that grew while they were asleep.
+
+**WHICH MAKES `OFFLINE_CAP_SECONDS` VERY NEARLY DECORATIVE, AND IT IS KEPT
+ANYWAY.** The per-slot ceiling binds first at every absence over a couple of
+minutes -- `Config.piggyBufferSeconds`, about a hundred seconds at commons --
+so the eight-hour cap now decides nothing a player will ever meet. It stays
+because it is the only bound on `os.time` arithmetic against a clock nothing in
+this repo owns: a save with a future `lastSave`, a clock skew, a restored
+backup.
+
+**AND THE JOIN TOAST HAD TO STOP NAMING THE BANK.** "Your piggy bank earned X
+coins while you were away", in front of a player whose balance has not moved,
+is a sentence about a number they can go and check and find unchanged -- which
+reads as the reward being broken. It names the PEDESTALS and says what to do
+about them, because six full buffers with nothing on screen to explain them is
+the same failure one step later.
+
+**WHAT IT MOVED IN THE AUDIT, MEASURED: ROBBING VERSUS IDLING WENT 3.47x COLD
+AND 6.93x HOT TO 4.04x AND 8.09x.** `Config.fullLawn` was
+`PIGGY_LAWN_SLOT_COUNT + 1` for as long as the till earned, so the IDLE side of
+`auditRobbery` -- the side this game's own name is measured against -- carried
+a seventh that nobody actually earns. Both figures are inside
+`ROBBERY_ADVANTAGE` (3.0 to 10.0) and the headroom over the floor went 16% to
+35%. **A CHANGE TO WHAT A PLACEMENT EARNS IS A CHANGE TO THE IDLE BASELINE**,
+and that audit is the only thing in this project that would have said so.
+
+**UNSEEN: a collect, and a return from an absence.** Every figure above is
+measured offline -- 29 of 32 suites green, the three reds pre-existing and none
+of them this -- and nobody has stood on a pad since the drip was deleted, or
+come back to a lawn that ripened while they were away.
 
 **LOCK LEVEL 0 WEARS THE IRON DIAL NOW (designer decision), WHICH REVERSES
 "LEVEL 0 SHOWS THE HOLE" ABOVE.** The hatch is filled on the mesh (the
@@ -12232,25 +12678,972 @@ and NOT wired -- an empty id is the code build. Recorded: at Sack levels 3-4
 the bag ball sits ~0.45 studs into the thief's chest, as it always has, and
 the one-line cap (`math.min(sackLevel, 1)`) is the designer's call.
 
-**THE STREET LEADERBOARD IS A PANEL OF LIFETIME TOTALS, NOT A THIRD BOARD
-ON THE VERGE (designer, 2026-09-22).** `LobbyBoardService` pushes every
-player in the server with `coins`, `piggiesStolen` and `rebirths` on the
-board cadence; `Shared/LobbyBoard` draws it as a 570x380 paper card under
-every menu, fourth tile on the left rail, Tab or L, Escape to close. It
-refuses to open under a menu and closes when one opens, but does not take the
-shop/bag mutual exclusion: that rule exists for two SAME-SIZE panels, and a
-card under a 0.94-screen menu can never hide one. `data.piggiesStolen` is new
-and needs no schema bump -- the generic default fill adds it -- and it counts
-at exactly one line, in `PiggyHaulService.secureStep` when a STOLEN piggy is
-placed on the thief's own plinth; a nab, a confiscation, an own take and a
-resident haul never reach it. `HUDLayout.bindMenu` sizes the rail by its
-visible tiles now; pinned at three, a fourth tile drew past the edge silently.
-UNSEEN: the panel, the tile, and whether Tab arrives `gameProcessed` with the
-player list disabled (L covers it).
+**THE STREET LEADERBOARD IS ROBLOX'S OWN PLAYER LIST, AND THE TWO CUSTOM
+ONES WERE BOTH REBUILDING SOMETHING THIS GAME HAD SWITCHED OFF (designer,
+2026-09-23: "lets make the lobby leaderboards use the roblox default
+component instead of our own custom").** `data.piggiesStolen`, `rebirths` and
+`coins` go into a `leaderstats` folder per player and the platform draws
+them. `Shared/LobbyBoard` is deleted, the `LobbyBoard` remote is deleted, and
+`SetCoreGuiEnabled(PlayerList, false)` is gone.
+
+**THE DESIGN HISTORY IS THE ARGUMENT, AND IT IS WORTH KEEPING BECAUSE IT
+POINTED AT THIS ANSWER TWICE BEFORE ANYBODY TOOK IT.** The list was off for
+the life of the project so the HUD could have the top-right corner. The first
+board was a 570x380 card in the MIDDLE of the screen, opened like a menu. The
+second moved it to a translucent collapsible board pinned to THE EXACT CORNER
+THE LIST USED TO HOLD -- and its own header says why, in as many words: *"the
+affordance it removed -- a translucent roster in that corner, always there,
+one click from out of the way -- is the thing players already know."* That
+sentence is a description of the player list. **WHEN A REBUILD CONVERGES ON
+THE THING IT REPLACED, THE CHEAPEST MOVE LEFT IS TO STOP REBUILDING IT.**
+
+**WHAT IT DELETES IS MORE THAN THE DRAWING.** No collapse state to remember
+(`BoardOpen`), no corner tile, no Tab/L bindings and no reasoning about
+whether Tab arrives `gameProcessed` with the list disabled, no
+translucent-ground stroke pass, no hide-under-a-menu duty, and no
+`BoardWidth` for `HUDLayout.rightClear` to publish and re-read. No push on
+leave either: the list drops a player who has gone without being told.
+`LobbyBoardService` is a cadence and three values now, and `snapshot`'s sort
+went with the panel -- the platform orders its own rows.
+
+**THE ORDER OF THE COLUMNS IS THE SORT, WHICH IS THE ONE THING THE DEFAULT
+COMPONENT DECIDES FOR YOU.** The list ranks players by the FIRST stat in the
+folder, so the column order is a design statement rather than a layout one.
+Steals is first. That is also the better board by this file's own rule: the
+landscape board on the verge stopped ranking `data.coins` because *"A BOARD
+IS AN INSTRUCTION ABOUT WHAT IS WORTH DOING"* and that one was pointing at
+idling -- so a roster sorted by cash was the same mistake at smaller scale,
+and the custom board sorted by cash for its whole life.
+
+**MONEY IS A `StringValue` CARRYING `Config.formatCoins`, WHICH IS WHY IT
+CANNOT BE FIRST.** "2.86m" is what a nine-year-old reads and what the custom
+board printed; a raw 2,860,000 in that column is a number nobody parses at a
+glance. A formatted string cannot be sorted numerically by anything, which
+settles the column order from the other end -- the two numeric columns are
+small integers and sort honestly. Steals and Rebirths are `IntValue`s.
+
+**IT READS DataService'S LIVE CACHE ON `Config.LEADERBOARD_REFRESH`, AND
+WRITES ONLY ON CHANGE.** The balance moves forty times a minute on an idle
+pig; the cache IS the truth and a snapshot held here would be stale before it
+landed. A write per tick per player per column would replicate three
+properties a second for numbers that mostly have not moved, so each value is
+compared before it is set -- the same call `GuardVisual`'s face colours make.
+
+**AND THE JOIN PUSH STILL POLLS FOR THE SAVE.** `Main` loads the save in its
+own `PlayerAdded` handler and this one may run first, so a folder built on
+the signal itself would carry three zeros for as long as the load takes.
+DataService has no loaded signal; the cadence loop is the guarantee either
+way, and the poll is what stops a fresh joiner reading as bankrupt for five
+seconds. A player with no save yet gets no folder at all rather than a row of
+zeroes, because three zeros beside a real row is a claim about somebody.
+
+`data.piggiesStolen` is unchanged by any of this: no schema bump (the generic
+default fill adds it) and one writer, in `PiggyHaulService.secureStep` when a
+STOLEN piggy is placed on the thief's own plinth -- a nab, a confiscation, an
+own take and a resident haul never reach it.
+
+**UNSEEN: the list itself.** Every figure here is measured offline and nobody
+has looked at the rendered columns -- how many stats the platform shows
+before it truncates on a phone held sideways, and whether the column order
+really is child order on the shipped list, are both look-at-it questions.
+
+**THE SACK RIDES OVER THE SHOULDER NOW, ONE-HANDED, AND THE HUG IS RETIRED
+(designer, 2026-09-23).** `CarryPose` poses the right arm up and back over the
+shoulder (armPitch 115, yaw -25, elbow 88), the torso and head a few degrees
+of counter-lean, the LEFT ARM ABSENT from the sequence so the run swings it
+-- the same mechanism that leaves the legs to the run -- and the path poses
+still at `Weight = 0`. `HOLD` is `CFrame.new(1.31, 0.45, 0.04) *
+CFrame.Angles(math.rad(-45), math.rad(90), 0)`: derived from the RUNNING
+hand, not the standing one (the fist travels 0.24 between the two and a
+thief spends the carry running), with the rope's own offset off the cloth
+centre subtracted; +90 about Y turns the coin OUTWARD to the thief's right,
+because the mesh authors it on +Z and the hug's half turn would have put it
+into the back; -45 slings the mouth forward over the shoulder; no roll,
+because a sweep showed either direction costing head clearance.
+
+**NO POSE PUTS THE FOREARM OUTSIDE THE CLOTH, AND THAT IS GEOMETRY.** The
+rope sits 0.76 above the cloth's centre on a half-length of 1.50, so a fist
+at the rope is 0.75 below the top by construction; the sack is over a stud
+thick everywhere and a forearm is 0.70 long. 1,943 candidate poses were
+searched and the best buries the forearm 0.97 studs. It is affordable here
+where it was not on the hug because the head, the chest, the left arm and
+both legs all stay outside the silhouette. **LEVEL 4 ENGULFS THE HEAD** by
+0.55 and dips 0.17 under the ground, as the hug did at that level from the
+other side: the sack is 2.9 studs deep at level 4, and no pose moves its
+inner face off the skull. `math.min(sackLevel, 1)` in `buildLootBag` is the
+lever and it is the designer's.
+
+**A STALE ANIMATION ID IS WORSE THAN AN EMPTY ONE.** `CarryPose` prefers the
+uploaded asset over registration, so the hug's id in `Config.ANIMATIONS.carry`
+would have played the two-armed hug over a sack nobody hugs on every
+published server, forever, with nothing in any log. It is blanked, and
+`Main`'s startup warning is what says so until the re-export lands.
+
+**AND THE LOOT LABEL MOVED OFF THE SACK.** It hung off the body part, which
+is 1.31 studs off the thief's centre line now and would orbit them as they
+turned (`StudsOffset` is world-axis). It is adorned to the root at 2.5, the
+height it has always rendered at, still parented to the loot so it dies with
+it. The nab prompt stays on the body: its sphere moved two studs to the
+thief's right-rear, 15% of its radius, and a prompt on a bag is honest.
+
+**THE LOAD RIDES THE HAND NOW, AND "WELDED TO THE ROOT, NEVER TO A LIMB"
+IS REVERSED (designer, 2026-09-23: "the carry animation keeps the bag in
+place when it should be attached to the hand").** Both carries -- the coin
+sack in `HeistService.attachLoot` and the hauled piggy in
+`PiggyHaulService.attach` -- weld to the RIGHT HAND through one rule,
+`CarryPose.anchor`, which hands back the part and the seat: the hand with
+`CarryPose.HAND_HOLD` on an R15 rig, the root with `HOLD` on anything
+without one. `HAND_HOLD` is `HOLD` re-expressed in the hand's own frame,
+measured on a live posed rig (63 samples, spread under a hundredth), so the
+load lands where it always did once the pose settles and then moves with
+every swing. What the root weld was protecting -- an offset captured at the
+grab that does not depend on which phase of the run was replicating -- a
+hand-space offset keeps, because it is right wherever the hand is. The
+hand-off between thieves re-anchors through the same function, and its
+guard checks the weld is on the OLD anchor, not the old root.
+
+**THE ONE-COIN BAG.** The leaning coin and the foot stack are cut from the
+export (nine blend objects named one by one -- a `.001` suffix match would
+have taken a nostril off the coin that stays), the four gold meshes
+re-uploaded and landed with their new seats in one edit, the fallback
+builder cut to match, and the assembly photographed: one coin, concentric,
+bow forward. `sack.png` and the carried bag are no longer the same object,
+which is recorded rather than papered over. `tools/stage_import.py` used to
+regenerate `asset-ids.csv` from its walk and would have erased 37
+hand-filled ids; it keeps any row whose status is `uploaded` now.
+
+**GUARDIANS ARE GATED BEHIND REBIRTHS AS WELL (designer, 2026-09-23).**
+`unlockRebirths` on every `DOG_COATS` row, one rung per rebirth 1..10
+ascending with price so the gate and `rarityOf` never disagree; refused out
+loud below the gate ("Rebirth 3 unlocks the Raptor."), the card's pill reads
+REBIRTH N and a press does nothing, an owned coat is never gated. The two
+audits that refuse `unlockRebirths` on anything a crate can roll exempt this
+one table BY IDENTITY, because here it is a sale gate on a direct purchase;
+the day a coat enters a crate that exemption goes first.
+
+**`screen_capture`'S CAMERA ARGUMENTS WORK IN PLAY, WHICH IS THE FIFTH
+CORRECTION TO THAT ENTRY.** The carry pose was photographed from four aimed
+positions in a Play session with `camera_position`/`look_at_position` and
+nothing held; every frame was where it was asked for. The stuck-camera and
+cached-frame failures recorded above are real and still the things to check
+first; what is not true is that the arguments are ignored.
+
+---
+
+**THE GAME RAN AT EIGHT FRAMES A SECOND IN STUDIO, AND THE FIRST QUESTION
+WAS WHETHER THAT WAS STUDIO. IT WAS ABOUT A THIRD STUDIO AND TWO THIRDS THE
+GAME (2026-09-23).** Reported as "is that just how Studio is, or is the game
+not optimised, or are there too many piggies". Measured on a fifteen-minute
+one-player session before anything moved: 12,063 parts (this file records
+6,746), 904 parts moved by the server every half second, a client Heartbeat
+of 8 Hz at a 120 ms mean with thirty stalls over 120 ms in eight seconds, and
+a 1.1 GB Lua heap.
+
+**HIDING EVERY PART IN THE WORLD ONLY GOT THE PROCESS TO 33 Hz, WHICH IS WHAT
+SEPARATED THE TWO.** `LocalTransparencyModifier = 1` on all 12,036 parts and
+the frame was still 31 ms, so rendering was a third of it at most; the rest
+was CPU. And the game's own Lua VMs read 16 MB on the server and 14 on the
+client -- the 1.1 GB heap is Studio's and its plugins', stable over a minute,
+and not something this repo can touch. That is the Studio share. Everything
+below ships.
+
+**WHAT THE CPU WAS: TWO THINGS MULTIPLIED, AGAIN.** The 904 movers were
+thirteen residents at about 46 parts each -- 494 of them CSG unions, the drip
+statue's hair and eyes -- and fifty pack piggies at eight. `RESIDENTS.walk.
+maxOut` capped TRIPS at two and its own comment said a neighbour at home
+"costs nothing"; the potter, the collect walk and every non-home state
+standing still (a six-second crack, a wait at a door) had no cap and were
+re-posed forty-six parts a frame. In Studio the server and client share one
+process, so every one of those `PivotTo`s was serialised in-process as well
+-- which is the Studio-shaped half of a real cost, because live it is the same
+replication to every client.
+
+**FIVE LEVERS, EVERY ONE MEASURED RATHER THAN GUESSED, AND THE BIGGEST WAS THE
+ONE NOBODY NAMED.** Disabling the 26 active particle emitters alone took the
+mean frame from about 70 ms to 43 -- more than hiding the entire world's
+geometry. The street carries 96 emitters and 42 lights (four and two on every
+piggy bank, three and one on every shop vault, a sleep puff on every dog),
+all simulated whether or not the camera is anywhere near.
+
+* **`Shared/FxCull` switches emitters and lights off BY DISTANCE ON EACH
+  CLIENT** (`Config.FX_CULL`). The one way it can lie is about what the
+  server MEANT: a client write to `Enabled` holds until the server next
+  writes it, so an emitter the server turned off (a sleeping dog's puff, an
+  unequipped aura) must stay off when the camera arrives and one it turned
+  on out of range must come on. Every entry keeps the AUTHORED value off the
+  changed signal with this module's own writes masked by a flag, and a
+  server write landing on a culled emitter is recorded and re-hidden in the
+  same breath. `Emit()` bursts are untouched, because a burst never reads
+  `Enabled`. `FxCullExempt` on an instance opts it out.
+* **RESIDENTS: `walk.maxMoving` (2) AND A POSE CACHE.** A neighbour leaves
+  the home state for ANY reason only while fewer than two are away from it; a
+  chase is a defence and is not counted, for `outCount`'s own reason. And
+  `poseIfChanged` skips `poseWalk` when the model, position, facing, stride
+  and carry flag all match the last write -- so a figure cracking a pig for
+  six seconds is written once, not 360 times. The knock-flat re-pose clears
+  the key. Measured after: two moving, eleven home, 170 resident parts
+  moving instead of 600.
+* **PACKS: TWENTY SINGLES, DROPPED SEPARATED, REPLACED ONE FOR ONE**
+  (designer). `HERDS.size` is 1, `maxLoose` 20, `spawnEverySeconds` 3 and
+  `replaceDelay` 2; `drop.separation` (22) refuses a landing within that of
+  any loose member; an EMPTY field fills in a WAVE one per `drop.waveGap`
+  with a single OBSERVER toast, and every spawn the scheduler makes is QUIET
+  with its marker on `drop.quietBeaconSeconds`, because twenty singles
+  announced one at a time is the dodge's re-lunge spam again. A member that
+  neither walked nor turned is no longer re-seated every frame
+  (`member.stood`). The bore-clearance audit and `Config.herdRoute` went with
+  it: both described a tunnel walk retired the day before, and the audit was
+  refusing a three-second gap on behalf of a file of ten that no longer
+  exists. `tests/luau/herds.luau` widens the size band for one spawn to keep
+  the pack-shaped dig contract under test. Measured after: twenty loose, ten
+  a side, closest pair 26 studs, 132 parts moving instead of 400.
+* **A HALLWAY NOBODY IS IN LIVES IN `ServerStorage`.** One owner's Beehive
+  Cottage interior is 3,312 parts standing four thousand studs off the map
+  and replicated to everybody. `InteriorService` parks a built room in
+  `ServerStorage.ParkedInteriors` and moves it into `workspace` in `goInside`
+  BEFORE the mask lead -- so the lead is the room's replication lead -- and
+  back when the last person leaves or quits from inside. Everything the file
+  asks of a room is a CFrame, a property or a table and answers the same
+  wherever the model is; only a character has to stand in it.
+* **THE GUARD ANIMATOR CULLS BY `FX_CULL.guardRange` and writes a face's
+  colour and material only on change** -- fourteen dogs were lerping every
+  joint and rewriting every face every frame for a camera that could see two.
+
+**MEASURED AFTER, SAME STREET, ONE PLAYER: 60 Hz on the client at a 17 ms
+mean and 24 ms worst; 328 movers against 904; server script time 2.3 ms
+against 7.1 and client 1.0 against 7.2.** What is NOT yet measured is the
+fifteen-minute mark: the old session's moving-primitive count climbed from
+1,316 to 1,738 with no new packs, which the resident budget should have
+removed and which wants re-reading before it is called fixed. And what was
+NOT done, recorded rather than forgotten: the residents' 494 unions are still
+the most expensive geometry in the game and now merely move less; the 1,463
+grass tufts are 47% of the world's parts and were measured as cheap to draw;
+and `StreamingEnabled` was left off, because every client in this game finds
+its plots by name in `workspace` and a streamed-out plot is a `WaitForChild`
+that never returns. Those three are the next pass, in that order. Two more things were asked
+about and measured rather than removed: the pedestal BREATHING (`PiggyIdle`)
+poses about fifteen minis within its 120-stud range for a fraction of a
+client script budget that is 2.7 ms in total, so taking it out buys nothing
+anybody could measure; and hiding all 1,569 GRASS TUFTS moved the mean client
+frame from 16.7 ms to 15.5 -- about 7% on this machine, real on a tablet and
+not worth the look, so the lever is a distance cull rather than deletion:
+`Shared/TuftCull` fades a tuft out past `FX_CULL.tuftRange` through
+`LocalTransparencyModifier` and back in over `tuftFade` studs, reading each
+tuft's position once (they never move) and writing only on change.
+
+**AND A RESPAWN LANDED AT THE WORLD ORIGIN, WHICH THE PROBES FOR THIS PASS
+TRIPPED OVER.** `Main.onCharacterAdded` wrote the seat once, inside
+`CharacterAdded`, and on a respawn that signal fires BEFORE the engine places
+the character -- so the default spawn overwrote it and a player who died came
+back at (0, 2.7, 0). The first join worked only because that character already
+existed and had been placed when the player was seated. The seat is re-applied
+once the character is in the world and the engine has had its frame, and again
+on the next few frames if anything moved it off -- bounded, so an arrest
+release or a door a second later is never fought. Measured after: a death on
+the lawn and a death inside the hallway both come back 17.2 studs from the
+player's own piggy, the join spawn to the decimal.
+
+**A PROMPT ON A PIGGY IS A PLAIN PILL AGAIN, AND THE CARD STAYS EVERYWHERE
+ELSE (designer, 2026-09-23: "the cards are in the way").** `Config.PROMPTS`
+rows carry `plain = true` on the eight kinds that live on a piggy or a
+plinth -- collect, steal, smash, sell, take, snatch, place, swap -- and
+`setPromptKind` leaves those on Roblox's Default style, which `PromptUI`
+already refuses to draw over. The bin, the shop door, the post, the crate,
+the raid drone and a thief's nab keep their cards, because none of them
+stacks two prompts on one part in front of the thing a player is looking at.
+
+**WHAT THE PILL LOSES IS THE CARD'S SECOND ROW, AND THE BADGE ALREADY
+CARRIES IT.** The steal card quoted the take and named the lock; the rob
+badge over every piggy prints both from the pavement, which is further
+than any prompt reaches. The hold countdown is Roblox's own ring now.
+
+**THE SLOT MOVED FROM THE CARD TO `UIOffset`, THROUGH ONE HELPER.** Two
+plain pills on one part draw on the same pixels, so `Config.setPromptSlot`
+sets the slot attribute AND, on a Default-style prompt, a `UIOffset` of
+`PROMPT_PLAIN_ROW_PX` per row -- the property this file records as the one
+a custom card must never read, being a Vector2 in screen pixels. It is
+called by the three slot writers and again inside `setPromptKind`, so the
+two calls may land in either order. Verified live: steal at row 0, smash at
+64, swap at 128, sell and take on a plinth both plain, zero `PromptUI`
+billboards in the PlayerGui with the player standing among them.
+
+**AND A WILD PIGGY WEARS THE PLINTH'S OWN NAMEPLATE.** `buildRatePreview`
+printed the rate alone on the argument that the name was on the catch
+prompt; the prompt is plain and read from arm's length now, so the label is
+the pedestal's two rows -- name in `piggyTierColour`, rate in gold -- over
+the same measured crown. Verified on twenty loose: "Bengal Tiger" in common
+grey over "+7/s", "Cookies & Cream" in rare blue over "+29/s".
+
+**THE ADMIN FILL REACHES THE HALLWAY NOW, AND DOING IT FOUND THE HALLWAY
+NEVER DRESSED ITS PLINTHS ON BUILD (designer, 2026-09-23: "fill all
+available slots inside the base as well, and set prestige level").**
+`fillpiggies` walks the six lawn slots and then the indoor slots this
+rebirth count has unlocked -- `Config.indoorPlots(rebirths)` of them,
+numbered from `PIGGY_LAWN_SLOT_COUNT + 1` exactly as
+`HouseInterior.slotOfPlot` numbers them -- through `Config.placePiggy`,
+the same door the hall's own Place prompt uses, so a slot the interior
+would refuse is refused here. Locked slots stay empty: a piggy on a plinth
+nobody can walk to is the drift `piggystate` exists to catch. `clearpiggies`
+sweeps `PIGGY_SLOT_COUNT` for the same reason, and `piggystate` prints the
+lawn and the hallway apart, because "37/6 plinths" read as a mismatch on
+a save that was exactly right. The prestige rows are `rebirths` at 0, 1, 3,
+5, 10 and 20, the rungs that change something. Measured: 6 + 6 at zero
+rebirths, 25 more once set to ten (31 indoor slots unlocked), owned still
+matching standing.
+
+**AND THE BUG UNDERNEATH: A ROOM BUILT ON A DOOR CROSSING STOOD ITS PLINTHS
+EMPTY OVER SAVED PIGGIES.** `syncPlacements` built the pedestals and
+registered them with `PlotService.setIndoorPedestals`, and nothing then
+called the two painters -- they ran only from a placement prompt's own
+`after()`, so a player walking back into their house met thirty-one take
+prompts and not one piggy until they pressed something. Measured before:
+31 plinths, 0 dressed, over a save holding 31. `syncPlacements` calls
+`setPiggySlots` and `setPiggyBuffers` for the owner's data as soon as the
+plinths stand; measured after, 31 of 31 dressed on the first crossing of a
+fresh session with nothing else run. The painters always covered
+`plot.indoor`; the call was the whole gap.
+
+**`tests/luau/doors.luau` FAILS AT HEAD** on a door audit provoke nothing
+here touched; confirmed against a clean worktree before this work started
+and left as found. `piggies.luau` failed at HEAD the same way on a
+`PiggyHaulService.take` assertion and passes now (598 checks) after another
+session's later work, with its two source-text pins on the old slot writer
+moved to `Config.setPromptSlot`.
+
+**THE HALL HOLDS PIGGIES NOW, AND THE COLLECTION IS ONE ARRAY (designer,
+2026-09-23: "wire up the pedestal objects inside of the base halls and the
+money collection buttons").** Slot 0 is the bank, 1..`PIGGY_LAWN_SLOT_COUNT`
+are the lawn front to back, and the indoor plots follow in the order the hall
+builds them (`HouseInterior.slotOfPlot`): `Config.PIGGY_SLOT_COUNT` is the
+lawn plus `indoorPlotCeiling()`, 62 today, and `piggySlots`, `placePiggy`
+and `collectionRateOf` read that rather than the lawn. ONE dense array and
+ONE economy, so every reader that already walked the lawn -- the accrual
+tick, `collectPiggy`, `sellPiggy`, `pedestalRates`, the HUD's rate pill --
+picked the hall up by widening a bound, and `PlotService.setPiggySlots` and
+`setPiggyBuffers` dress the hall on the same repaint the lawn gets. There is
+no second prompt kind: `Shared/IndoorPedestal` stands the lawn's own pad,
+figure and four prompts on a kit's cloned stump or the generic hall's new
+`PlotDrum`, and `InteriorService.syncPlacements` runs after EVERY
+`setCapacity`, driven off `plot.unlocked`, so a locked plot has no pedestal
+and `PiggyHaulService.reach` refuses it by construction.
+
+**THE ARRAY IS SIZED TO THE CEILING, NOT TO WHAT A SAVE HAS UNLOCKED.** A
+length derived from `data.rebirths` drops a piggy the first time that field
+is read before it is filled -- a silent delete on the next tick. Sixty-two
+mostly-empty entries per save is the cost, and it is recorded.
+`firstFreePiggySlot` deliberately still stops at the lawn: a crate lands on
+the grass and a piggy reaches the hall by being carried in.
+
+**A HALL IS CACHED BY ITS KIT, NOT ONLY BY ITS BUILDER.** All three kits
+resolve to the same `ThemedInterior` table, so `ensureHome`'s old test kept a
+TreehouseInterior standing behind a Beehive Cottage after the owner moved
+house -- measured live, and reported as "going in the cardboard house brought
+me to the treehouse interior". `Interior.kit` is part of the key now.
+
+**WHAT MOVED THAT IS NOT FREE: THE IDLING BASELINE.** `collectionRateOf`
+counting indoor slots lets a maxed player idle on up to 56 more piggies, and
+`auditRobbery`'s canonical lawn does not know it. That re-derivation is the
+plan's own largest untouched piece; expect `auditRobbery` and `auditEconomy`
+to want re-reading before the numbers in this file about robbing versus
+idling are quoted again.
+
+**`HouseInterior.auditCollection` FIRED FOR ONE AFTERNOON AND IS SILENT NOW,
+AND THE SUITE PROVES IT BOTH WAYS.** The interior agent built the room while
+Config and EconomyService still stopped at the lawn, and the audit named all
+four sites at boot rather than shipping a pad that lights and refuses. Once
+the bounds widened the suite flipped: silent on the shipped Config, and
+proved real by narrowing the three functions back to the lawn on the loaded
+table and watching it fire. A test that asserts an audit FIRES on the
+shipped code is a test that has to be flipped the day the fix lands, or it
+fails for the right reason and reads as the wrong one.
+
+**THE HUG IS BACK AND THE HAND WELD STAYED (designer, 2026-09-23).** The
+two-armed front carry returned verbatim from HEAD's `CarryPose` -- the sling
+was never committed -- with both loads still welded to the right hand
+through `CarryPose.anchor`. `HAND_HOLD` was re-measured on a CLONE OF THE
+LIVE CHARACTER, 96 samples over a cycle, spread 0.037 studs and reproduced
+across two runs to 0.0003: `ServerStorage.ANIMATION_UPLOAD_RIG` is a
+default block rig whose upper arm is 1.00 by 1.20 by 1.00 against a real
+character's 0.75 by 0.89 by 0.58, and the identical pose puts its palm 0.88
+higher and 0.70 further forward. **MEASURE A HAND ON THE RIG THAT WILL WEAR
+IT.** Recorded rather than tuned out: the palms sit 0.20 off the sack's
+flanks (it is 2.05 across against the 2.2 pig the hug was solved on), and a
+level-4 sack overruns the head by 1.05, so `math.min(sackLevel, 1)` in
+`buildLootBag` is still the designer's call. `Config.ANIMATIONS.carry` stays
+empty until the hug is re-exported.
+
+**A PACK PIGGY CARRIES ITS RATE, PRICED AT LEVEL 0 (designer, 2026-09-23:
+"have the wild piggies running around have the same amount per second they
+earn above them").** `HerdService.buildRatePreview` hangs the pedestal's own
+rate row -- same size, font, range and colours as `PiggyPedestal.setRate`
+-- off each member's body, set once at build from
+`Config.getPiggyIncomeRate(tier, 0, 0)`. A wild piggy has no owner, so it is
+priced at the baseline; a player at rebirth 13 will read their own plinths
+higher than the pack, and if the label should say what that piggy would earn
+FOR THE VIEWER it has to move to the client, drawn from the viewer's own
+level. That is the open question, stated rather than guessed at.
+
+**THE ROB BADGE IS A COIN AND A FIGURE WITH NO CARD UNDER THEM, AND IT
+READS FROM THE PAVEMENT RATHER THAN FROM ACROSS THE MAP (designer,
+2026-09-23).** The paper card with its ink outline went; the `Card` frame
+survives as the layout and is transparent, and what holds the type off the
+grass is a `Contextual` UIStroke on each glyph -- `RobberMark`'s trick, and
+NOT `Theme.outline`, which sets `Border` and would draw a rectangle round an
+invisible label. Because a stroke carries a bright colour over any ground the
+figure is `Theme.GOLD` rather than the paper-solved `GOLD_INK`. `MaxDistance`
+moved from `STREET_SPACING + PLOT_SPACING` (224, the far row's neighbour from
+your own lawn) to `Config.ROB_BADGE.reach` (90): the house you are in front
+of and its neighbours, nothing across the road until you cross it.
+Photographed live from the pavement at 42 studs: a coin and "4.3K" floating
+over a resident's pig against the sky, legible, nothing else drawn.
+
+**WHAT IT SPENDS, STATED PLAINLY.** The entry above on the badge reversing
+its "only ever says no" rule argues that WHICH pig is the entire decision and
+that the street should read as a shopping list from the pavement. At 90 the
+list is the houses near you; the far row is a walk. If robbing across the
+street stops happening, this is the number that did it.
+
+**A DROP IS A SPLASH -- PIGGIES INCOMING! -- AND THE SHAFT WITH NO CARD
+(designer, 2026-09-23: "instead of a drop zone with labels on it, a banner
+saying PIGGIES INCOMING! ... highlight the spots where they drop down but no
+card, just the text as an event at the top of the screen in big funky
+text").** The OBSERVER toast and the DROP ZONE / BATCH N card both went;
+`Remotes.HerdDrop` carries `{ id, count, zone }` to every client and
+`Shared/DropBanner` pops one line of FredokaOne at 72 in gold with a thick
+ink stroke, three degrees off level, scaled in with a Back ease, held three
+seconds and faded. The neon shaft on the spot is untouched and is the half
+that says WHERE. Numbers in `Config.HERD_BANNER`.
+
+**IT IS A SPLASH, WHICH IS WHY IT MAY SIT OVER THE TOP-CENTRE COLUMN.** That
+column is measured and full and this file refuses standing elements in it;
+a line on screen for four seconds about once a minute, on its own ScreenGui
+above the HUD, is the arrest stamp's class rather than the patrol banner's.
+It starts at y 92, just under the standing countdown chip (which ends at
+82), so the one element that is ALWAYS there is never covered. Photographed
+live at 1366 wide: 561 by 72 of type in a 1000-wide box, so a longer line
+has room, and the text is NOT scaled -- a change to the line wants
+`TextBounds` checked, because unscaled type overflows rather than shrinks.
+
+**THE SUITE'S REMOTE STUB RECORDS PAYLOADS AS `msg`, AND THE CHECKS READ
+THE TYPE.** A string on `Notify` naming a drop now FAILS the herds suite --
+no toast may announce a drop -- and a table on `HerdDrop` is the
+announcement, counted per recipient; a wave's payload has no `zone` and a
+pack's does, which is how the two are told apart.
+
+**THE SOOTY PIGGY IS DELETED (designer, 2026-09-23), AND IT COST ONE ROW
+BECAUSE IT NEVER OWNED ANYTHING.** It was the OG shelf's flat-plus-spots
+common: no surface pack, no fur set, no upload, no asset folder, nothing
+reading its key outside `Config.SKINS`. So the whole deletion is the row,
+which is the cheapest a skin retirement can be and is worth stating as the
+comparison the Lion entry above sets -- a Studio-built skin leaves the way
+it arrived. The reads answer for it exactly as they did for the Lion:
+`getSkin` falls back to Classic, `piggyKeyAt` hands a retired till back as
+Classic and a retired placement as nil, and `reconcile` prunes it out of the
+wardrobe, the spares and the trophy shelf against the catalogue -- measured
+live after the sync: `SKINS.sooty` nil, `getSkin` Classic Pink, a till
+naming it `classic`, a placement naming it `nil`. The OG FAMILY block's
+commons are `muddy` and `rosegold` now; the shelf's common tier still
+holds nine, so the odds are untouched. `piggies` (597), `herds` and the
+audits pass; `Config.SKINS` counts 72 rows (36 `og`, 21 `animal`) at the
+time of writing, which is more than
+`docs/GAME.md` was quoting before this, because other sessions have been
+landing rows since that figure was written.
+
+**THE SPLASH SHAKES, CAPTIONS ITSELF AND HOLDS TEN SECONDS (designer,
+2026-09-23: "it should shake on the screen and under it look behind the
+backyard to find wild piggies"; then "displayed for much longer, I'll
+propose 10 seconds, and don't describe the plots as plot 1 2 3, just say
+in the woods or something").** `Config.HERD_BANNER.shake` is a per-frame
+random jolt of position and rotation on one Heartbeat, under an envelope
+that starts as the pop lands and decays to nothing over 0.9 s -- measured
+live at 8 px and 2.0 degrees peak, both labels moving together to 0.00 px
+of drift, everything back on its built pixel and tilt afterwards. It moves
+position and rotation and never colour or transparency, so it is not a
+flash under the three-a-second ceiling; and it is short because a headline
+that will not hold still cannot be read. The caption is `subtitle`, the
+same face at 30 in paper with a thinner ink stroke, the same tilt.
+
+**IT NAMED A PLOT FOR ONE BUILD AND THAT WAS REFUSED.** `HerdDrop` carries
+the landing zone in words and the first caption printed it -- "Look in the
+field behind Plot 3 to find wild piggies!" -- which is correct and is an
+address nobody has ever been taught. The woods behind the backyards is a
+place a player can see from where they stand, and the shaft on the spot is
+what says exactly where. The zone stays in the payload, unread, which is
+where it was before.
+
+**THE HOLD WENT 3 TO 10, AND THAT IS A TRADE ON THE TOP-CENTRE COLUMN.** The
+splash draws OVER the countdown chip's band, the rebirth button and the
+banners for the whole hold; at three seconds that was a flash across them
+and at ten it is a cover. It was accepted because the caption is an
+instruction and a player mid-robbery has to be able to look up and still
+find it. Anything standing in that column that a player must press inside
+ten seconds of a drop is now the thing to check.
+
+**AND THE MCP TOOL CALLS RUN ONE AFTER ANOTHER, NOT AT ONCE, WHICH COST TWO
+PROBES.** A server call that fired `HerdDrop` and a client call that
+connected a listener were issued together and the listener heard nothing,
+twice, and a third probe read the previous splash's text as though it were
+the new payload's. The calls are sequential: the fire had landed before the
+listener existed. `task.delay` the fire on the server and return at once,
+then run the client probe; and stamp an attribute on the gui at the moment
+a probe first SEES a thing rather than trusting when the probe started.
+
+**THE FIVE SECONDS WORK IN THE HALLWAY NOW, AND FOR ONE DAY THEY DID NOT,
+WHICH SHIPPED AS "IT NEVER LETS ME PLACE IT" (2026-09-23).** A stolen piggy
+carried home to a FULL collection: the thief sells a hall piggy to make
+room, stands in their own hallway by the empty plinth, and the countdown
+never starts -- so the place prompt goes on refusing with "hold it for five
+seconds", forever. `roomFor` looked only at the six lawn slots and only
+while the root was inside the yard rectangle, and the thief was four
+thousand studs away on the estate. Its own header said interiors would make
+it "the one predicate that changes"; the hall landed and the predicate did
+not.
+
+**TWO ROOMS, NEVER BOTH.** Indoors the hallway is the ground and its
+plinths are the shelf; on the street the yard is the ground and the lawn is
+the shelf. A free lawn slot does nothing for somebody standing indoors and
+a free hall slot does nothing for somebody on the grass, so the piggy lands
+in the room the thief is standing in -- the only version where "SAFE IN 3s"
+and the plinth it appears on are the same place. And it has to be YOUR
+hallway: a thief in a neighbour's hall with the neighbour's piggy is
+mid-getaway. The scan goes through `PlotService.pedestalAt`, so a locked
+indoor plot -- which has no pedestal standing -- is never chosen.
+
+**REGISTERED FROM `InteriorService.start`, NOT REQUIRED.** InteriorService
+requires the haul service to wire the hall's prompts, so the haul service
+asking it back would be a cycle; `PiggyHaulService.registerHall` is the
+`registerBounceVeto` shape and the answer is the plot whose hall a player
+is standing in. The refusal names both rooms now ("on your lawn or in your
+hallway"), because telling somebody indoors to go and stand on a full lawn
+was the wrong instruction in the one place they read one.
+
+**AND THE SUITE DRIVES THE REAL HEARTBEAT HANDLER.** The piggies harness
+stubs `RunService` and `Players` so `start` runs, keeps the clock in a
+variable the test moves, and walks the reported case: full lawn in the yard
+(no countdown however long you stand), own hallway with a free plinth
+(lands on the HALL slot at five seconds and not before), a neighbour's
+hallway (never), and a lawn slot freed while indoors (never). What is NOT
+verified is a fresh Play: Rojo does not push during one, and the session
+that reported this is still running.
+
+**A PIGGY IS HUGGED AND A SACK IS SLUNG, AND THE WORD IS ON THE LOAD
+(designer, 2026-09-23: "the carry animation of the pig to be one and the
+other when robbing coins to be the animation of the bag over the
+shoulder").** The day the hug came back it replaced the sling for BOTH
+loads, which is the report "the carry animation of the money bags has
+reverted"; the designer's answer was one carry per kind. `CarryPose.KINDS`
+carries both -- a spec, a root-space seat, a hand-space seat and a track name
+each -- and the loot model carries `Config.CARRY_KIND_ATTRIBUTE` ("hug" or
+"sling"), written by the service that welded it in the same breath as the
+weld, so the picture every client draws and the seat the server pivoted into
+are one answer. `CarryPose.anchor(character, kind)` and `apply(animator, on,
+kind)` take the word; `apply` stops the other kind's track, so a thief who
+drops a hauled piggy and grabs a sack changes carries rather than stacking
+them. `Config.ANIMATIONS.carrySling` is the sling's upload row, empty, and
+`animdump` builds it as `carrySling`.
+
+**THE SLING'S RECORDED NUMBERS WERE A BAG AT THE HIP, AND ONLY A PICTURE
+SAID SO.** The entry above records the sling as armPitch 115, armYaw -25,
+elbow 88 and a seat at (1.31, 0.45, 0.04). Re-measured on a clone of the
+live character, that pose puts the hand at (1.77, 0.81, -0.12) in root space
+against a shoulder at (0.61, 0.34, 0): a fist held out beside the ribs at
+chest height, and the sack it holds hangs at the thigh. Driven through the
+real `smash` command it photographed as exactly that. Eight candidate poses
+were swept for the hand's root-space position, two were stood on the lawn
+wearing the real sack and shot from the front, the side and behind, and the
+one that ships (armPitch 80, armYaw 40, armRoll 30, elbow 140) lands the hand
+at (0.89, 1.05, 0.55) -- above and behind the shoulder -- with the sack's
+neck at the fist and the cloth down the back, coin outward. **A POSE IS
+VERIFIED BY A PHOTOGRAPH OF THE OBJECT IT HOLDS**, not by a hand position
+that sounds right.
+
+**THE SEAT IS DERIVED FROM THE HAND AND THE CLOTH, IN THAT ORDER.** The
+rope sits 0.76 above the cloth's centre on the sack's own up axis, so the
+centre is the posed hand minus 0.76 along that axis -- pitched -35 so the
+axis leans forward over the shoulder and the body hangs down the BACK (the
+first sweep pitched it the other way and hung the sack down the chest) --
+plus 0.5 on x, because a 1.53-deep sack seated straight under the hand
+overlapped the shoulder by 0.4 studs; at +0.5 its overlap volume reads 0.05
+against the upper torso and 0.00 against the head. `SLING_HAND_HOLD` was
+then measured the way `HAND_HOLD` was, on the same clone, 122 samples over a
+cycle at a spread of 0.029. Verified live: kind `sling`, weld on the right
+hand, `CarryPoseSling` playing at Movement, the cloth's own part 0.09 studs
+off `SLING_HOLD` in root space.
+
+**A MODEL'S `GetPivot` GOES STALE THE MOMENT A WELD MOVES ITS PARTS, AND THE
+FIRST LIVE PROBE READ 1.51 STUDS OF ERROR OFF IT.** The loot model has no
+PrimaryPart (deliberately -- see `buildLootBag`), so its WorldPivot is a stored
+CFrame that only `PivotTo` updates; once the hand weld carries the parts, the
+pivot stays where the grab put it. Measure a welded load by its `Body` part's
+CFrame. The same probe at the same moment read 0.09 off the part.
+
+**AND THE BAG A THIEF CARRIED WAS THE FLAT-BOTTOMED CLOTH, BECAUSE THE
+ROUNDED ONE HAD BEEN UPLOADED AND WRITTEN OFF AS A DUPLICATE.** Reported as
+"we are still using the old bag model, the new model is
+assets/loot-bag/loot-bag.fbx". Measured: the carried `Body` was mesh
+83387251897542, the 00:49Z cloth. The first reading of the account -- every
+cloth predates the rounded export's file time -- was WRONG, and wrong in the
+way `GetProductInfo` dates invite: the 02:26Z re-import HAD uploaded the
+rounded cloth as 115957622543698, and the manifest of that hour recorded it
+as "a duplicate Cloth mesh that nothing reads" because the two exports had
+the same size and offset. **A SIZE AND AN OFFSET CANNOT TELL A ROUNDED
+BOTTOM FROM A FLAT ONE.** What can is reading the meshes back with
+`AssetService:CreateEditableMeshAsync` and comparing a slice: the bottom five
+per cent of the rounded cloth spans 0.79 studs across and the flat one 1.56,
+and the `.obj` on disk reads 0.79 (and 2600 faces against the old 2599). The
+designer's fresh import of the same file deduplicated onto that id, which is
+what settled it. `Config.LOOT_MESH.Bag` is 115957622543698 now; the old id
+is retired in `UPLOADS.md` and the manifest. **BEFORE CALLING AN UPLOAD A
+DUPLICATE, DIFF ITS GEOMETRY**, the rule this file already keeps for
+animation uploads, arriving on a mesh.
+
+**CRATES ARE BOUGHT WITH ROBUX NOW, WHICH PUTS THIS GAME INSIDE ROBLOX'S PAID
+RANDOM ITEM RULE RATHER THAN OUTSIDE IT (designer, 2026-09-23).** Every
+paragraph above about crates turns on one sentence -- *coins are not
+purchasable, so a crate is an ordinary in-game reward for in-game money, and
+there is nothing to disclose and nothing to gate.* That sentence is spent.
+Crates now come three ways and no others: bought with Robux, the weekly daily
+ladder, and rebirth. No crate carries a coin price and none ever will.
+
+**WHAT THAT BUYS AND WHAT IT OBLIGES ARE BOTH WORTH STATING, because the
+entries above treat being outside the rule as the prize.** What it buys is the
+one monetisation lever this design had refused itself: the collection tracks
+are what Robux reaches, and every product is still a NAMED thing rather than
+currency. What it obliges is three things that are now load-bearing code
+rather than theory -- real odds shown before purchase and summing to 100%, a
+`PolicyService` gate (`ArePaidRandomItemsRestricted`) that FAILS CLOSED and is
+memoised per session, and a refusal a restricted player can read instead of a
+button that does nothing. `ProductService` owns the single `ProcessReceipt`
+callback, and `auditRandomOutcomes` inverted a third time: it still refuses a
+coin `cost` or `currency`, and it now REQUIRES a `robux` price and a
+`productId` FIELD on every crate that is not an event set. A missing price is
+a crate nothing can buy; a missing `productId` is a card that cannot even read
+COMING SOON.
+
+**COINS ARE STILL NEVER SOLD, AND THAT IS THE LINE THAT DID NOT MOVE.** It is
+what keeps every COIN-priced random thing in the game outside the rule, and
+crossing it now would pull the whole coin catalogue inside the regulation
+retroactively. The surface it guards got bigger rather than smaller.
+
+**A CRATE WITH NOTHING LEFT TO GIVE REFUSES BEFORE THE PROMPT, NEVER AFTER THE
+RECEIPT.** This file already records that the charge happens after the outcome
+exists, so a chest can never take the money and then discover it had nothing
+to hand over -- and that was written when the money was coins. With real money
+it stops being a fairness rule and becomes the difference between a bug and a
+refund: the card reads COLLECTION COMPLETE, the purchase is never prompted,
+and the receipt ledger (`data.receipts`, idempotent, recorded and saved BEFORE
+the crate opens) is what stops a redelivered receipt paying twice.
+
+**THE ROBUX LADDER IS THE COIN LADDER'S OWN RATIO, AND THE RETAIL-LOOKING ONE
+IS BACKWARDS.** 20 / 60 / 240 rather than a plausible 79 / 199 / 449, because
+value per open is odds over price: measured, the pretty ladder makes the
+legendary crate 1,283 Robux per legendary against the common crate's 1,975, so
+the expensive crate is the CHEAP one and the ladder becomes decoration. The
+1 : 3 : 12 shape is the retired coin ladder's, which was solved on coins per
+legendary, so holding the ratio holds the premium. The top rung also stays
+under VIP's 249 -- a single random roll may not cost more than a permanent
+entitlement for this audience, whatever the odds are.
+
+**NO CRATE PAYS A DUPLICATE ANY MORE, AND THAT REVERSES THE RULE THE WHOLE
+CHEST SYSTEM WAS BUILT ON.** The entry above argues at length that a chest
+which cannot repeat is a checklist with an animation on it, and that a spare
+is what makes a tier mean anything. Pools are filtered to the player's unowned
+set for every kind, so `handOver` writes no spare on any crate outcome and a
+finished collection is said out loud.
+
+**AND THE REPLACEMENT FAUCET IS NARROWER THAN THE SENTENCE EVERYBODY REACHED
+FOR, WHICH THIS ENTRY GOT WRONG FOR AN HOUR.** It read *duplicates now come
+from stealing a piggy and from catching a wild one*, which is the designer's
+own phrasing and is half false -- CATCHING A WILD PIGGY MINTS NO SPARE.
+`Config.addPiggy` bumps `data.piggies.owned`, and `HerdService`'s own comment
+says so in as many words: a repeat is a SECOND PIGGY rather than a spare.
+Swept, the only writers of `data.spares` outside `ChestService` are two sites
+in `HeistService` -- a robbed skin the thief already owns, and the return of
+an insured copy, which is restitution rather than a faucet -- plus the admin
+console. So there is exactly ONE earned spare in this game: rob somebody
+wearing a skin you already have. **THE RULE THAT HAD TO BE CHECKED WAS "WHAT
+WRITES THE FIELD", AND EVERY ONE OF US ARGUED FROM THE FICTION INSTEAD.**
+
+**AND IT LEFT A HOLE NOBODY CHOSE, WHICH IS RECORDED RATHER THAN PAPERED
+OVER: A GUARDIAN CAN NEVER HAVE A SPARE.** The one earned spare above is a
+ROBBED SKIN, and the mechanism is narrower still than that sounds: every item
+in a haul carries `kind = "skin"`, and the duplicate branch in `HeistService`
+tests that kind explicitly before it writes one. So no coat spare can exist in
+normal play at any price -- and the combine station below offers GUARDIANS as
+one of its two settings, where it can only ever read 0 of 3. That is the
+control-that-does-nothing this file refuses, arriving in the feature that was
+moved out of the shop to avoid it.
+
+**IT IS RECORDED RATHER THAN QUIETLY FIXED BECAUSE EVERY FIX IS A DESIGN
+CALL.** The station is honest about it (the shelf says there is nothing to
+combine rather than offering a button that cannot work), so nothing is broken
+and nothing lies; what is missing is content. The ways out are a guardian
+faucet -- a stealable coat, or a guardian in the wild -- or a crate that pays
+coat duplicates after all, or accepting that the guardian setting waits for
+one of those. **THIS IS A DESIGNER DECISION AND IT HAS NOT BEEN MADE.**
+
+*(SUPERSEDED 2026-09-23 -- DO NOT PUT `guardian` BACK ON THE RUNG. It came
+off `Config.REBIRTH_CRATES_RARE` on the designer's call ("rebirthing should not
+give out guardian crates"): the size ladder is bought with COINS behind
+rebirths 1 and 2, Scrappy is free, and every other guardian is Robux-crate
+only. That closes the exposure below for the three size coats and REOPENS it
+for the creature coats, which are crate-only and carry a `sellBasis`. AND IT
+IS REACHABLE, NOT LATENT -- this note first said latent and was wrong: no
+screen offers a coat sale (`Shared/Inventory` has no coat tab), but
+`SpareSell` takes a kind and a key as strings off the wire, and
+`Config.isSellable("coat", ...)` passes on the coat's `rarity` and
+`inAnyChestPool`, so a hand-crafted remote call sells a Robux-bought coat for
+coins. That was a ROUTE FROM ROBUX TO COINS, the one line this whole
+position rests on -- the admin console's rule again: a hidden button protects
+nothing when the remote exists for everybody. **CLOSED THE SAME DAY (designer:
+"guardians are not sellable. they are collection items"):** `Config.isSellable`
+refuses every coat and `Config.sellValue` returns 0 for one, BOTH, because
+several payers read `sellValue` without ever asking `isSellable` -- a refusal
+in the predicate alone would have been the fix that reads as closed and is
+open. `tests/luau/crates` and `tests/luau/guardians` assert both for every
+coat. A coat's `sellBasis` is inert now. The figures below are the day they
+were measured; the pool is five coats now and `tests/luau/crates` prints the
+current arithmetic on every run.)*
+
+**THE GUARDIAN CRATE IS ON A REBIRTH RUNG, AND THAT IS A COMPLIANCE FIX RATHER
+THAN A REWARD TWEAK.** What makes a priced skin crate safe to sell the drop of
+is that the SKIN is obtainable free: every skin in a priced pool is stealable,
+so its coin value is a property of the item rather than of the purchase.
+Measured, a coat was not: not stealable, not a haul item, in no free crate --
+so while the Guardian Crate was the ONLY route to its ten coats they were
+purchased content with a coin sale value, 2.6M coins for a pool that costs 490
+Robux to clear. That is *a Robux purchase may grant an item, never its coin
+value* broken with one extra step. On the rare rebirth rung the coats are
+earnable and the skin argument covers them too. **IT IS ONE WORD IN
+`Config.REBIRTH_CRATES_RARE`, AND TAKING IT OUT PUTS THE EXPOSURE BACK.**
+
+**AND THE SHARPER VERSION OF THAT PROBLEM IS STILL OPEN, MEASURED AND NOT
+FIXED.** `EconomyService.sellPiggy` -- the pedestal sell prompt, which is the
+route almost every skin sale actually takes -- reads `Config.sellValue`
+directly and never `Config.isSellable`. So the guard that suggests itself, a
+clause in `isSellable`, would close `ChestService.sell` and `Shared/Inventory`
+and leave the pedestal wide open: a fix that reads as closed and is open,
+which is the worst shape in this file. A complete one is two edits and it
+deletes the pedestal payout for nearly every piggy, which is the shelf-curation
+loop. Left alone deliberately, with the arithmetic in the crates suite as a
+printed measurement rather than an assertion, so it cannot be forgotten and
+cannot go red under whichever answer is chosen.
+
+**A REBIRTH GATE IS SHOWN, NEVER HIDDEN, AND IT MAY NEVER BE THE LAST THING
+REFUSING A HOUSE.** Gated items stay on the shelf behind a translucent wash
+reading "Rebirth N required" with the price still readable under it, ordered by
+unlock through one shared expression (`ShopWidgets.gateRank`), so a guardian,
+a house and a ride cannot disagree about what "next" means. The houses' ladder
+is DERIVED rather than chosen: the first eight tiers are ungated because a
+player can already afford every one of them before their first rebirth, and
+each gate above sits at or below the first rebirth whose pig can HOLD that
+price -- so the lock is always the earlier of two signals and never the thing
+that makes a card refuse on its own. A suite asserts that against
+`REBIRTH_CASH_GATE`, so a later price edit that outruns its own gate fails a
+test rather than shipping a button nobody can light. Rides are the deliberate
+asymmetry: every ride but the flagship is affordable before the first rebirth,
+so there the gate IS the binding constraint, which is what a ride ladder is
+for.
+
+**THREE AGENTS PATCHED ONE AUDIT FUNCTION IN ONE AFTERNOON, AND THE MERGE IS
+WHY IT STILL WORKS.** `auditRandomOutcomes`'s `walk` sweep refuses
+`unlockRebirths` anywhere in `Config`, which is right because on something
+luck hands over it is the retired OWNERSHIP gate -- and three catalogues now
+carry it as a SALE gate on a direct purchase. The merged shape is three
+identity exemptions (`DOG_COATS`, `HOUSE_TIERS`, `RIDES`) PLUS a separate
+assertion that nothing inside any crate POOL carries the field, and the second
+half is what makes the first affordable: an exemption by identity is
+all-or-nothing, so it cannot see a row that is in an exempt table AND in a
+pool. That is not hypothetical -- `chestEntry` resolves the Alien Cache's
+`ride:` entries, so a gated Hoverdisc lives in both at once. **PROVOKED RATHER
+THAN TRUSTED:** a gated ride inside the Alien Cache fires, a gated house that
+no crate can reach stays silent, a gated skin still fires, and the audit is
+clean as shipped.
+
+**THE COMBINE MACHINE LEFT THE SHOP AND BECAME A PLACE (designer,
+2026-09-23).** The chips are gone from the Crates tab and the PIGGY PRESS
+stands on the verge in gap 3 of the row, its position derived from
+`Config.streetMetrics()` and from the same gap ordering `SocialService.boardX`
+uses -- asserted by lifting that function's body out of its source and RUNNING
+it, so the day the two disagree a test says so rather than two objects sharing
+a patch of grass. It forwards to the unchanged `ChestService.combine` and owns
+no arithmetic, which is the whole reason it was cheap: the mechanic did not
+move, only the door to it.
+
+**A TEST DOUBLE THAT KNOWS THREE KINDS WHEN THE GAME KNOWS NINE REPORTS A LIVE
+BUG THAT IS NOT THERE.** The rebirth suite's `SetService` double resolved
+ownership for skins, rides and decorations, which was complete on the day it
+was written. The hour the Guardian Crate landed on the rebirth rung it started
+failing inside `handOver` with the word "coat" as its whole message -- and the
+suite's own "own every collection" loop was pouring every pool entry into the
+SKIN wardrobe, so the guardian pool stayed unowned and the rebirth opened a
+crate the check says cannot exist. Both halves were the harness lagging the
+thing it doubles. **THE REAL ANSWER LIVES IN `SetService.ownedTable`, AND A
+DOUBLE OF IT SHOULD BE DERIVED FROM THE KIND RATHER THAN LISTED**, which is
+the same lesson `unlockall` and `auditEconomy` have each already taught by
+silently missing a catalogue that landed after them.
+
+**A WILD PIGGY IS LASSOED NOW, NOT HELD FOR (designer, 2026-09-23;
+`docs/LASSO-PLAN.md`).** The free CatchPrompt is gone. A lasso locks on by
+itself, is spent on every throw, and lands on `Config.lassoChance`; the catch
+is carried home as a `wild` haul, and a real hit drops it dazed. Three rules
+carry the design and are the ones to protect:
+
+* **TAPPING MULTIPLIES, IT NEVER ADDS.** `lassoTapFactor` tops out at 1.2x,
+  so a Rope on a legendary goes 4% to 4.8% however fast somebody taps, while a
+  common goes 80% to 96%. An additive bonus would let a fast thumb beat the
+  tier, which is the one thing the designer ruled out. Pity, per thrower per
+  piggy, with a hard guarantee by throw N, is what gets a child through a
+  hard piggy.
+* **THE ODDS TEXT IS GENERATED, NEVER TYPED.** `Config.lassoDescription` is
+  the only thing that states a lasso's odds, and it is built from the same
+  table the server rolls. The Elite lasso is a Robux-bought chance, a paid
+  random item: its odds are shown before purchase, it is gated by
+  `PolicyService` exactly as the crates are, and it is never sellable.
+* **STEALING A DROPPED CATCH IS OPEN TO EVERY LASSO, NOT ONLY THE ELITE.** An
+  Elite-only steal was proposed and refused: it makes PvP pay-to-win, the
+  regions that cannot buy an Elite lasso could neither steal nor win their own
+  catch back, and it turns a Robux luck item into a way to take another
+  child's piggy. The catcher gets 5 seconds alone with a dropped piggy, and 8
+  seconds of knock immunity after any pick-up.
+
+**THE LASSO KEY COLLIDED WITH THE GOLDEN BONE, AND ONLY THE CLIENT AGENT
+NOTICED.** It shipped into Config as `golden`, which is `Config.BONES.golden`
+-- and consumables share ONE namespace across `data.consumables`, the hot bar
+and the held-item attribute, so the Golden Lasso would have thrown a bone and
+shared its stock. `auditLassos` refuses the collision at boot; the key is
+`goldlasso`. **A NEW CONSUMABLE CATALOGUE IS A NEW SET OF KEYS IN A SHARED
+NAMESPACE**, and the check is to grep every other catalogue for each key
+before landing it.
+
+**ONE LASSOED PIGGY FILLED A WHOLE LAWN WITH COPIES OF ITSELF ON ITS FIRST
+PLAYTEST.** The secure step runs on Heartbeat, and the wild grant
+(`HerdService.grantAt`) saved to the DataStore -- which YIELDS -- before the
+haul was detached. So every frame until the save returned found the same
+haul still in the arms, a free plinth, and a finished countdown, and granted
+it again. The snatch path never had this because it detaches before it
+saves. **ANYTHING THAT CAN YIELD INSIDE A PER-FRAME STEP NEEDS A RE-ENTRY
+GUARD SET BEFORE THE YIELD**, and the offline harness cannot see it unless a
+test makes the stub yield on purpose: `tests/luau/lasso.luau` now does, and
+fails without the `securing` flag.
 
 ---
 
 ## Gotchas that have already bitten
+
+**THE IDS OF A HAND UPLOAD CAN BE READ BACK FROM THE STUDIO INVENTORY, AND
+THE DATE IS WHAT TELLS THE COPIES APART.** `docs/ORPHANED-UPLOADS.md` records
+that the Assets API has no list endpoint and that 58 sheets were therefore
+uploaded TWICE, once by hand and once through Open Cloud to capture their
+ids. Both halves are true and the conclusion is not: the Studio MCP's
+`search_asset` with `scope = "user"` searches the developer's own inventory
+by name and returns the ids, read-only, no upload involved. What it cannot
+return is a date -- and every name on this account has two or three copies
+(the dead first copy, the live one, today's). `MarketplaceService:GetProductInfo`
+from the Edit command bar returns `Created` for any id, so a batch of
+candidates is dated in one call and today's is the one stamped today. The
+2026-09-23 round -- 22 sheets and 15 meshes -- was mapped that way in about
+ten minutes with nothing pasted by hand.
+
+**MESHES ARE SIMPLER STILL WHILE THE IMPORT IS STANDING.** The 3D Importer
+leaves its model in the Edit workspace, and a walk over its MeshParts prints
+every `MeshId` beside its PART NAME (`tools/capture_mesh_ids.luau`) -- which
+is the only way to tell four meshes all called `Body` apart, since the three
+legendaries share the base body's exact size. Read the imports before anybody
+tidies the workspace; once they are gone the name is all the inventory has.
+
+**AND AN FBX IMPORT UPLOADS ITS PACKED TEXTURES AS NEW IMAGES.** Each
+legendary came back with a fresh `SurfaceAppearance.ColorMap` id on every
+part -- a second copy of a sheet that was already live. The game assigns maps
+by id out of `SurfacePacks/*.model.json`, so those are ignored; they are
+orphans on the account from the moment the importer makes them, the same as
+a re-imported stormwolf body nothing reads. `tools/upload_images.py` is the
+route that does not make duplicates: Open Cloud returns each id as it
+uploads, and the script writes it into `import/asset-ids.csv` per row.
+
+**A PLAYER IS SEATED BEFORE THEIR SAVE LOADS, AND A STUDIO LOCK IS STALE AT
+ONCE.** Reported as "spawning me mid map and then after a few seconds at my
+base". Two causes stacked. The join ran `DataService.load` FIRST and only
+assigned the plot afterwards, so the character stood at the world origin for
+the whole DataStore round trip -- and in Studio that round trip was retrying:
+`JOB_ID` is minted per Play session, Studio gives `BindToClose` too little
+time to release the lock, so the lock from the session just stopped was
+still on the key, honoured for `LOCK_STALE_SECONDS`, and `load` waited two
+seconds a go behind it. `PlotService.assign` needs nothing from the save, so
+the character is put on its lawn the moment it joins and everything the save
+decides lands on that plot a beat later; and `lockIsStale` treats a
+`studio-` lock as stale when running in Studio. The live rule is untouched.
+The Ready line prints how long the street took to build and the join line how
+long the save took, so the next report of this comes with numbers. What is
+NOT fixed is the boot itself: the first player into a server is in it before
+`Main` has built the plots, and nothing can seat them until it has.
+
+**`rojo serve` DROPS EVERY `PrimaryPart` REF INSIDE AN `.rbxmx`, AND THE
+FIRST PLAY WITH THE INTERIOR KITS SYNCED FELL BACK TO THE GENERIC HALL ON
+ALL THREE.** Reported as "I restarted rojo serve but I don't think it's
+synced because I don't see the change". It HAD synced: the boot line had
+moved from "no TreehouseInteriorKit in ServerStorage" to "the Pedestal
+template has no Piggy anchor" on every kit, which is a different failure
+wearing the same picture. Measured with Rojo 7.7.0: each kit file carries
+eighteen `<Ref name="PrimaryPart">` rows, and every one of the eleven Models
+per kit that `rojo serve` put in ServerStorage read `PrimaryPart == nil`. The
+files carry no `WorldPivotData` either, so a clone's `PivotTo` would have
+turned about the bounding-box centre rather than the Root every offset in the
+art was measured from -- even without the assert.
+
+**EVERYTHING IN A KIT HANGS OFF THAT ONE REF.** `anchorOf` in
+`ThemedInterior` and `anchor` in the kit's own Builder both find the `Piggy`,
+`Entry`, `Slot_0N` and `Door_Exit` attachments through `model.PrimaryPart`,
+and the Builder's `clone` pivots by it. So the fix is not a lookup: the
+wrapper's `resolve` runs `ThemedInterior.repairTemplates` ONCE over the
+template tree in ServerStorage, giving every Model that has a `Root`
+BasePart and no PrimaryPart that Root -- which is the kits' own authoring
+rule, and the word the Builder's assert names -- and says the count in one
+boot line, so a Rojo that starts carrying the ref one day shows up as that
+count reaching zero. The gate's six panels and its lock carry no `Root` and
+are left alone; nothing reads their pivot. Proved in the live Play session
+by hand-repairing the treehouse templates and building through both the
+kit's Builder (521 parts, the recorded budget) and the wrapper.
+
+**THE SHAPE IS THE `MaxPlayers` ONE: A PROPERTY THE FILE FORMAT CARRIES AND
+THE SYNC DOES NOT.** `rojo build` writes the file directly and will keep the
+refs; `rojo serve` is what a Studio session actually runs against. Anything
+else that lands in this repo as an `.rbxmx` -- a hand-built prop, a future
+kit -- wants its PrimaryPart (and any other Ref: `Part0`/`Part1` on a
+constraint, an `ObjectValue`) checked in the live datamodel rather than in
+the file, and repaired by convention at the point of use.
+
+**THE CAMERA COULD LEAVE A HOUSE INTERIOR THROUGH ITS OWN ROOF, AND THE
+FIX IS A ZOOM CAP KEYED TO WHERE THE CHARACTER IS (designer, 2026-09-23:
+"make sure players can't zoom outside of the bounds of their base room").**
+Roblox's popper camera stops only at parts that COLLIDE, and a kit's
+RoomShell is 263 parts of which three collide -- the floor and the two side
+walls. The roof slabs do not, so at the default `CameraMaxZoomDistance` of
+400 a player indoors wheels the camera up through the ceiling and looks down
+on the estate from outside. `Config.INDOOR_CAMERA.maxZoom` is 11, measured
+against the lowest ceiling a camera can reach: the kits' side walls are 14.8
+studs and the camera pivots about 3.2 above the floor, so a straight-down
+pitch tops out at 14.2. The generic hall's vault collides and the popper
+takes the last stud there.
+
+**IT IS A POSITION TEST AND NOT THE `DoorCross` REMOTE.** `Shared/IndoorZoom`
+polls the root against `Config.INDOOR_ESTATE.x` ten times a second: the
+estate stands at x 4000 and the whole street sits inside |x| 400, so the band
+is unambiguous, and a death inside, a kick or a respawn on the lawn all leave
+the character SOMEWHERE the cap follows. A remote-driven flag would have been
+the `busyUntil` shape -- two writers to one state, disagreeing after the one
+path nobody tested. The old cap is put back rather than a literal, so a
+StarterPlayer setting is never second-guessed here.
+
+**`git stash` REWRITES EVERY LF WORKING COPY TO CRLF ON THE WAY BACK.**
+`core.autocrlf` is true here, so a stash pop is a checkout and it converts
+the working copies of every file the index holds as LF -- Config, Main,
+HeistService, the manifests, the SurfacePacks -- to CRLF, with nothing but a
+wall of "LF will be replaced" warnings to say so. Content unchanged, git
+unbothered, and every patch script in this project that asserts Config is LF
+refuses from then on. Fifty-three files were converted back by hand on
+2026-09-23. Do not stash in this repo; to test a suite against HEAD, use a
+worktree.
 
 **A SUBAGENT TRUNCATED `Config.luau` TO ZERO BYTES, AND WHAT SAVED IT WAS A
 PROBE RUNNER THAT HAPPENED TO INLINE THE WHOLE FILE.** On 2026-09-22 a
@@ -12530,6 +13923,59 @@ part, because the piece that comes closest to the grass is the cross-arm
 hanging back over it. Eyeballing it off the signboard put the first placement
 4.9 studs clear when the widest ornament needs 6.4.
 
+**A REGEX BACKREFERENCE IN A NON-RAW PYTHON STRING IS A CONTROL CHARACTER, AND
+IT DELETED EVERY CLOSING BRACE IT WAS MEANT TO PRESERVE.** Recorded from
+another session on 2026-09-23, because every session here patches this repo
+with Python scripts and this one is invisible at the moment it happens.
+
+A `re.subn` was adding one field to seven table entries, and its replacement
+string was ASSEMBLED BY CONCATENATION -- the first fragment carried the `r`
+prefix and the last did not. So the `\2` that was meant to put back each
+entry's own ` },` was read as the octal escape `\x02` and wrote a single
+control byte instead. **NOTHING ERRORED.** Python was happy, the printed
+output looked plausible, and what landed on disk was seven table entries each
+running straight into the next with no closing brace between them.
+
+**WHAT MADE IT EXPENSIVE IS WHICH FILE IT WAS.** `Config.luau` is required by
+every service and by both clients, so a syntax error there is not one broken
+feature -- it is no plots, no services and no "Ready" in the log, which is the
+same total failure this file already records eleven times for a forward
+reference. It was also caught from the OUTSIDE, by another session's suite
+run failing to load Config fifty seconds before the repair landed, which is
+worth knowing: with several sessions in one tree, the first evidence of a
+half-written file is somebody else's test.
+
+**THE ERROR POINTS AT THE END OF THE FILE, NEVER AT THE FIRST MISSING BRACE.**
+Luau reported line 11064 closing a brace opened at 11060 while the real damage
+began several entries earlier -- so the line number sends you to the last
+straw rather than the cause. The instrument that actually finds it is a byte
+scan: `sum(1 for c in open(path,'rb').read() if c < 0x09)` should be ZERO in
+every source file in this repo, and it names the class of fault in one number
+where a parser cannot.
+
+**SO THE HABIT, STATED AS ONE: AFTER ANY SCRIPTED PATCH, SCAN THE FILE FOR
+BYTES UNDER 0x09 BEFORE TRUSTING IT.** Not as a diagnosis to reach for once
+something is wrong -- as the line that runs at the end of every patch script
+in this repo, beside the `assert count == 1` that is already there. That is
+the difference between a bug found in the same second and one found hours
+later by somebody else's test failing to load a file they did not touch. The
+peer session whose script caused this asked for it to be written down this
+way, and they are right: the story is interesting once and the check is useful
+every time.
+
+**AND THE REPAIR REWROTE THE BLOCK RATHER THAN PATCHING THE DAMAGE**, which is
+the right call for a corrupted region: a targeted fix to text that a broken
+script produced is a fix applied to unknown input. Verified three ways --
+brace counts matching, zero control bytes, and the new comment visible in
+Studio, which proves Rojo pushed the good version rather than the bad one.
+
+**TWO SESSIONS DID NOT BOTH REPAIR IT, AND THAT IS THE HALF WORTH KEEPING.**
+The session that found the break stopped and said so instead of fixing it.
+This file already records what the other path costs: two correct fixes to one
+bug composed into a third, and the `SHOP_UNIT.floorY` assignment vanished
+under a paragraph explaining where it lived. **THE FINDER REPORTS, THE OWNER
+REPAIRS.**
+
 **ANY BACKSLASH ESCAPE CAN BE REWRITTEN IN TRANSIT, AND `rojo build` WILL
 NOT CATCH IT.** The emoji case below is the famous one, but it bit again this
 session on a plain `\n`: two newline escapes written into a shop explainer
@@ -12621,6 +14067,42 @@ this file already records, because the CONTENT is current (a colour changed
 two minutes earlier was in the stale-framing shot). **TAKE TWO AND READ THE
 SECOND**, and never conclude anything from a single capture after moving a
 camera.
+
+**AND A ROJO SERVER THAT HAS DIED LEAVES STUDIO LOOKING SYNCED, WHICH IS THE
+STALE-SESSION TRAP WITH TWO SESSIONS IN IT (2026-09-23).** The entries above
+are about a Play session forking scripts and about Rojo not pushing during
+Play. This is the one underneath both: `rojo serve` had NO PROCESS RUNNING AT
+ALL, and because an earlier push had landed, every new file was present in the
+datamodel and only the LATER edits were missing. So nothing looked broken.
+Restarting `rojo serve` is not enough either -- the Studio plugin has to be
+reconnected by hand (Plugins -> Rojo -> Connect), which no tool in this
+toolchain can click.
+
+**WHAT IT NEARLY COST IS THE SHAPE TO REMEMBER.** Two sessions were about to
+measure a live boot: eleven of 176 scripts differed from disk, including a
+`Config` 24,667 bytes behind and a `ChestService` where Studio held an
+INTERMEDIATE rewrite. Four confident answers about a new service would have
+been taken from a tree neither session had written, and every one would have
+read as a measurement. **THE CHECK THAT CAUGHT IT IS THE ONE THIS FILE ALREADY
+PRESCRIBES AND NOBODY RUNS UNPROMPTED: diff the datamodel's scripts against
+disk before believing a boot.** Do it by SIZE with line endings normalised,
+over every script, rather than by spot-checking the file you care about.
+
+**THE HTTP SHORTCUT IS A DEAD END, AND IT WAS REFUSED RATHER THAN FAILED.**
+The plugin syncs over HTTP from `localhost` on Rojo's own port, so pulling
+from the running server inside Studio looks like a way round the click.
+`HttpService.HttpEnabled` is false on this place, and turning it on is a
+PERSISTENT place-level change nobody asked for -- followed by reimplementing
+Rojo's read protocol by hand, with the tree in a mixed state while it ran, to
+save one click. Not worth it, and the reason it is written down is that the
+first half of that sentence is tempting enough to try.
+
+**AND A PARTIAL SYNC IS WORSE THAN AN OBVIOUSLY STALE ONE.** Pushing one
+session's own file while another's stayed behind was available and was
+correctly refused: a tree with a new `PiggyPedestal` against an old `Config`
+LOOKS SYNCED to whoever checks the file they happen to care about, which is
+strictly more dangerous than a tree everybody knows is stale. Every stale file
+lands in one push or none of them does.
 
 **Studio forks scripts when you press Play.** Save, wait a beat for Rojo to push,
 *then* Play — otherwise you test stale code and chase a bug you already fixed.
@@ -13991,11 +15473,16 @@ were behind the topbar buttons. The top CENTRE gets away with it (the coin
 counter has always sat at y=16 and half under the bar) because the middle of
 the topbar is empty; the corners are where the buttons actually are.
 
-**The default player list is off, because the vault panel has that corner.**
-One `SetCoreGuiEnabled` call next to the ScreenGui. It is redundant here —
+*(SUPERSEDED 2026-09-23: the player list is ON, and it IS the street
+leaderboard -- see the entry on it above. The reasoning below is kept because
+it is what was traded away and what that corner turned out to be worth.)*
+
+**The default player list was off, because the vault panel had that corner.**
+One `SetCoreGuiEnabled` call next to the ScreenGui. It read as redundant --
 the square has a physical leaderboard and an eight-plot server tells you who
-is on it by looking out of the window — but it is a deliberate call, not an
-accident, and it is one line to put back.
+is on it by looking out of the window -- and what refutes it is that this
+game then built a roster for that corner TWICE. The balance card it displaced
+is top-LEFT now and stays there.
 
 **Luau allows 200 local registers per function, and `ClientMain` is ONE
 chunk.** At 3,100 lines it now sits near that ceiling, so a new section
@@ -14425,6 +15912,12 @@ pixels tall against the 23 it gets now that the banner is 340 wide to match the
 carry banner beside it. The number to watch is the rendered `TextBounds.Y`, not
 whether it fits.
 
+*(SUPERSEDED 2026-09-23 on the SILENCE, by the designer: "the songs should
+be playing back to back continuously forever". `Config.MUSIC.GAP` is 0 and
+`START_DELAY` 3, so the rotation plays one track after another with no quiet
+between. What survives below is the half that still holds: no single track
+ever loops, and the shuffled bag plays all six before any repeats.)*
+
 **THE SILENCE BETWEEN CUES IS THE FEATURE, and nothing loops.** A looping
 track is the mistake however good the track is: a nine-year-old plays this for
 an hour, and a forty-five second loop is the thing they mute the game to
@@ -14440,6 +15933,34 @@ played so the seam between bags cannot repeat either. Same shape as the
 accessory roll refusing to hand back something you own, and the same reason:
 a guaranteed spread is what a player actually wants from something nominally
 random.
+
+**A ROBBERY HAS ITS OWN MUSIC, AND IT IS A BED UNDER THE CHASE RATHER THAN A
+CUE IN THE ROTATION (designer, 2026-09-23).** The thief hears Chase Theme for
+as long as they are carrying stolen coins or a snatched piggy; the victim hears
+Silly Chase for as long as somebody is carrying theirs off. The rotation steps
+aside and comes back `CHASE.resume` seconds after. That BENDS the rule above --
+a bed that runs until a chase ends is the one shape that section was written to
+avoid -- and it survives because of two numbers: a carry lasts seconds and both
+tracks run for minutes, so nothing repeats inside one chase. What WOULD repeat
+is the opening bars on every robbery of a run, so each track resumes where the
+last chase left it and wraps to the top only near its end. **IF A CHASE EVER
+GETS LONG ENOUGH TO OUTLAST ITS TRACK, THAT IS THE DAY THIS BECOMES A LOOP**,
+and the fix is a longer track or a quieter bed, not `Looped = true`.
+
+It reads only what the server already publishes on characters --
+`CARRY_VICTIM_ATTRIBUTE` for coins, the new `PIGGY_HAUL_FROM_ATTRIBUTE` for a
+snatched piggy -- so a remote peer's robbery needs no message. The thief test
+is the loot model's `CARRY_KIND` of "sling", NEVER its name: a hauled piggy
+wears the same `LOOT_MODEL_NAME`, and matching on the name would play chase
+music at somebody moving their own piggy from the lawn to the hall. A duck
+(the siren, the arrest) still lowers it, for the reason the score ducks at all.
+
+**UNSEEN, AND THE ONE THING THAT MATTERS: HOW LOUD IT IS.** The rotation's six
+tracks and both chase tracks are new to this game and none was measured with
+`PlaybackLoudness` -- Studio was mid-Play in a session a player may have been
+in, and measuring means playing each one out loud. `VOLUME` 0.18 and
+`CHASE.VOLUME` 0.22 are carried over from the old APM set, whose mastering
+these mostly share; the two DistroKid tracks are the likeliest to sit louder.
 
 **MUSIC IS THE ONE THING THE TOGGLE TURNS OFF, never the effects.** Muting
 everything would hide the siren, and the patrol only works because it is heard

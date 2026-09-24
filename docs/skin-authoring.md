@@ -6,6 +6,17 @@ that makes the fiftieth one as cheap as the second.
 This is a HOW, next to the tools it describes. `CLAUDE.md` is the WHY and wins
 wherever the two disagree.
 
+**THERE ARE TWO ROUTES TO A SKIN AND THIS IS ONE OF THEM.** This file is the
+HAND-PAINTED route: you paint a greyscale mask in an image editor and
+`make_paint_template.py` turns it into a map. The other is the GENERATED route
+— a procedural `coat()` in Blender — and it is written up in
+`blender/pig/WORKFLOW.md`, which owns the toolkit, the master scene and the
+two-skins-at-once rule. They are peers rather than versions of each other:
+reach for the generator when the marking is a field of cells, scales, forks or
+stripes that wants to be re-rolled in a different palette, and for this file
+when the marking is a specific drawing. Neither supersedes the other, and both
+land in the game the same way — two texture uploads and a `Config.SKINS` row.
+
 ---
 
 ## 1. Three channels, and the rule for choosing
@@ -221,6 +232,34 @@ So:
 * **Batch uploads at the end** of a design pass, not during it.
 
 ---
+
+## Stripe transitions in the current Blender coats
+
+Tiger, Glacier, Peppermint, Raptor and Zebra use
+`blender/pig/stripe_transition.py` to join their face and flank markings.
+The old hard selector cut every stripe at one shoulder plane. The shared
+helper now blends distances to the two fields' stroke edges over a smooth,
+slightly irregular transition, then thresholds the result to solid ink.
+Do not blend unwrapped phases (which makes dense pinstripes) or simply overlay
+the patterns (which makes a grid). Narrow Tiger strokes also ease to a point
+instead of disappearing at the minimum-width threshold.
+
+The Tiger and Zebra generators apply this helper automatically. Rare coats
+inherit it from their Tiger source. Existing authored scenes can be updated
+without replacing their geometry, UVs or palette:
+
+```powershell
+blender --background --python blender/pig/make/refresh_stripe_transitions.py -- tiger zebra glacier peppermint raptor
+blender --background --python blender/pig/make/bake_skin.py -- --skin glacier
+```
+
+Repeat the bake for each affected skin, using its closed-back scene when one
+exists, and refresh its derived package and previews. Rainbow Tiger's current
+legendary package has a separate hand-shaped stripe atlas and is unaffected.
+Run `python blender/pig/look/check_fade.py tiger zebra glacier peppermint raptor`
+to check that the baked strokes retain their full colours. New sheets still
+need uploading and their SurfacePack asset IDs updating before Roblox shows
+the change; a local rebake does not replace an existing Roblox image.
 
 ## 8. How this compares to how Roblox artists usually work
 
