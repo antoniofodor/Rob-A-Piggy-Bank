@@ -47,11 +47,19 @@ local PigGear = require(ReplicatedStorage.Shared.PigGear)
 -- this file's own functions running on its parts. See
 -- `PiggyBank.buildVault`.
 local VaultModel = require(ReplicatedStorage.Shared.VaultModel)
--- For `buildPadFigure` only. The till's collect button carries the same
--- billboard the six pedestals do, and one builder is what stops the seventh
--- pad drifting from the other six. `PiggyPedestal` requires Config, PiggyModel
--- and Theme and nothing else, so it is a leaf from here -- no cycle.
+-- For `buildPadFigure` and `nameplate`. The till's collect button carries
+-- the same billboard the six pedestals do, and its NAME goes through the
+-- same builder for the same reason -- one builder is what stops the seventh
+-- placement drifting from the other six. `PiggyPedestal` requires Config,
+-- PiggyModel and Theme and nothing else, so it is a leaf from here -- no
+-- cycle.
 local PiggyPedestal = require(ReplicatedStorage.Shared.PiggyPedestal)
+-- A SERVER FILE THAT NAMES A UI COLOUR TAKES `Theme`, which is the scope
+-- rule the verge boards got wrong: "the UI files" is not the same set as
+-- "the files that build UI", and eighteen hardcoded colours sat on the
+-- leaderboard for months because of it. `Theme` requires nothing, so a
+-- server service may take it.
+local Theme = require(ReplicatedStorage.Shared.Theme)
 
 local PiggyBank = {}
 
@@ -90,12 +98,6 @@ export type Refs = {
 	patternSeat: CFrame?,
 	lock: Model,
 	stealPrompt: ProximityPrompt,
-	-- THE OTHER WAY IN, AND THE FIRST PROMPT IN THIS GAME THAT IS NOT
-	-- EXCLUSIVE WITH ITS NEIGHBOUR. It sits on the same Body as the steal
-	-- prompt and is live at the same time for the same player, because the
-	-- whole feature is a choice and a choice you cannot see is not one. See
-	-- `Config.PROMPT_SLOT_ATTRIBUTE` for what that cost the card renderer.
-	smashPrompt: ProximityPrompt,
 	-- THE OWNER'S ONLY VERB ON THE BANK, AND ONLY THE BANK HAS ONE. Swapping
 	-- the till piggy for the one in your arms (designer decision 2026-09-22).
 	-- Optional because a shop vault has no till to swap. Owner-gated through
@@ -103,6 +105,13 @@ export type Refs = {
 	-- carrying -- `PlotService.setSwapOffer` is the one writer of both.
 	swapPrompt: ProximityPrompt?,
 	sounds: { [string]: Sound },
+	-- THE NAME OVER THE TILL, and the key it was drawn for. Optional because
+	-- a shop vault has no name: `applySkin` is the one place the two kinds of
+	-- thing standing on a plot are told apart, and it returns above this.
+	-- The key is kept so a repaint that changes nothing rebuilds nothing --
+	-- `applySkin` runs on every resident level change as well as on a swap.
+	nameLabel: BillboardGui?,
+	nameKey: string?,
 	-- WHICH OF THE TWO THIS IS, and the only branch the difference costs
 	-- anywhere. Three functions in this file dress a piggy -- the skin, the
 	-- accessories and the effect -- and all three are meaningless on a
@@ -860,43 +869,6 @@ local function addSounds(body: BasePart): { [string]: Sound }
 end
 
 -- Fired in bursts on milestones, banking and the alarm.
--- The smash prompt, built once for both kinds of bank.
---
--- IT IS A FUNCTION RATHER THAN TWO BLOCKS FOR THE REASON THE VAULT ITSELF IS
--- `PiggyBank.buildVault`: a piggy and a strongroom are one thing in fourteen
--- places, and a second copy of six properties is a second copy that drifts
--- the first time either is touched.
---
--- ON ITS OWN KEY, AND THAT IS THE LOAD-BEARING PROPERTY. Every prompt in this
--- game is `E` and `OnePerButton`, so two prompts on one key do not both work
--- -- this project has that measured, from the shop door reaching 9.9 studs
--- into its own room and silently winning against the vault behind it. `G` is
--- the free key: the map is Q dodge/trick, B shop, V garage, R radio, I bag,
--- Escape close, F2 admin, 1-0 the hot bar, and F is the crack's own tap. E
--- opens the lock, F works it, G breaks it -- three adjacent keys for the
--- three things you can do to a pig, which is an accident and a welcome one.
-local function buildSmashPrompt(body: BasePart, objectText: string): ProximityPrompt
-	local prompt = Instance.new("ProximityPrompt")
-	prompt.Name = "SmashPrompt"
-	prompt.ActionText = "Smash It"
-	Config.setPromptKind(prompt, "smash")
-	prompt.ObjectText = objectText
-	prompt:SetAttribute(Config.PROMPT_SLOT_ATTRIBUTE, 1)
-	prompt.KeyboardKeyCode = Enum.KeyCode.G
-	-- LONGER THAN THE STEAL PROMPT'S OPEN HOLD, deliberately. That one opens a
-	-- lock and can be walked away from having taken nothing; this one IS the
-	-- robbery, and it drops your shield, wakes the dog and names you to the
-	-- owner on a single press. See `Config.SMASH.hold`.
-	prompt.HoldDuration = Config.SMASH.hold
-	prompt.MaxActivationDistance = Config.STEAL_RANGE
-	prompt.RequiresLineOfSight = false
-	-- The client enables it exactly where it enables the steal prompt, and the
-	-- server re-checks ownership on every trigger regardless.
-	prompt.Enabled = false
-	prompt.Parent = body
-	return prompt
-end
-
 -- THE SWAP: the owner's one verb on their own bank. A pig is on the till at
 -- all times, so there is no "take from till" prompt -- the only way to move
 -- the till piggy off is to carry another up to it and hold this.
@@ -920,7 +892,10 @@ local function buildSwapPrompt(body: BasePart): ProximityPrompt
 	prompt.ActionText = "Swap Piggy"
 	Config.setPromptKind(prompt, "swap")
 	prompt.ObjectText = ""
-	prompt:SetAttribute(Config.PROMPT_SLOT_ATTRIBUTE, 2)
+	-- SLOT 1 SINCE THE SMASH WAS RETIRED (2026-09-23): it sat on 1 and the swap
+	-- stood above it on 2, and a gap between two cards reads as a card that
+	-- failed to draw.
+	Config.setPromptSlot(prompt, 1)
 	prompt.KeyboardKeyCode = Enum.KeyCode.E
 	prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
 	prompt.HoldDuration = Config.PIGGY_HAUL.swapHold
@@ -1262,13 +1237,15 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 	stealPrompt.Enabled = false
 	stealPrompt.Parent = body
 
-	local smashPrompt = buildSmashPrompt(body, "Piggy Bank")
 	-- The owner's swap, on the bank only: `buildVault` builds none.
 	local swapPrompt = buildSwapPrompt(body)
 
-	-- NO COLLECT PAD. The bank drips straight into the balance (designer
-	-- decision 2026-09-22), so the floor button that used to sit on the gate
-	-- walk is gone with the buffer it emptied. The six pedestals keep theirs.
+	-- NO COLLECT PAD, AND NOW FOR A SECOND REASON. The floor button on the gate
+	-- walk went with the till's buffer when the bank started drip-feeding the
+	-- balance (2026-09-22) -- a button to move coins from the bank into the bank.
+	-- The till earns NOTHING as of 2026-09-23, so there is no income here to
+	-- collect either: it is a display. The six pedestals keep their pads, and
+	-- they are the whole economy.
 
 	model.PrimaryPart = body
 	model.Parent = parent
@@ -1291,7 +1268,6 @@ function PiggyBank.build(origin: Vector3, parent: Instance): Refs
 		legs = legs,
 		lock = lock,
 		stealPrompt = stealPrompt,
-		smashPrompt = smashPrompt,
 		swapPrompt = swapPrompt,
 		sounds = sounds,
 	}
@@ -1422,12 +1398,6 @@ function PiggyBank.buildVault(cf: CFrame, parent: Instance): Refs
 	stealPrompt.Enabled = false
 	stealPrompt.Parent = body
 
-	-- A SHOP GETS THE PAIR TOO, AND IT IS THE CHEAPEST SMASH ON THE STREET --
-	-- no dog to wake, nobody home to tell, so the alarm costs a thief almost
-	-- nothing here. That is the shops being what this project already says they
-	-- are: the fast, cheap, loud target against the house's slow, rich, quiet
-	-- one, with the choice now available INSIDE one job as well as between two.
-	local smashPrompt = buildSmashPrompt(body, "Shop Vault")
 
 	return {
 		origin = cf.Position,
@@ -1449,7 +1419,6 @@ function PiggyBank.buildVault(cf: CFrame, parent: Instance): Refs
 		bodySize = body.Size,
 		lock = lock,
 		stealPrompt = stealPrompt,
-		smashPrompt = smashPrompt,
 		sounds = sounds,
 		vault = true,
 	}
@@ -1477,6 +1446,16 @@ local function applyFur(refs: Refs, tier)
 	end
 end
 
+-- The five skins that wear geometry rather than only a coat. Keyed on the skin
+-- KEY rather than the tier, because a set IS a skin -- see the note above
+-- `PiggyModel.applyAccessories`.
+local function applyAccessories(refs: Refs, skinKey: string)
+	local model = refs.body.Parent
+	if model then
+		PiggyModel.applyAccessories(model, refs.body, skinKey, true)
+	end
+end
+
 -- The equipped skin owns the piggy's whole appearance. Rebirth-earned looks
 -- are ordinary crate skins now, so there's one
 -- system here rather than a tier system fighting a cosmetic one.
@@ -1494,6 +1473,15 @@ function PiggyBank.applySkin(refs: Refs, skinKey: string)
 	LegendaryModel.undress(refs.model)
 
 	local tier = Config.getSkin(skinKey)
+	-- Preserve sole clearance for the approved full boots, including skin changes.
+	local lift = tier.groundLift or 0
+	local liftDelta = lift - (refs.model:GetAttribute("SkinGroundLift") or 0)
+	if liftDelta ~= 0 then
+		local offset = Vector3.new(0, liftDelta, 0)
+		refs.model:PivotTo(refs.model:GetPivot() + offset)
+		refs.origin += offset
+	end
+	refs.model:SetAttribute("SkinGroundLift", lift)
 
 	-- THE SKIN'S OWN AURA, DRIVEN FROM HERE RATHER THAN FROM `applyEffect`,
 	-- because it is a fact about the SKIN and this is the one function that
@@ -1614,6 +1602,12 @@ function PiggyBank.applySkin(refs: Refs, skinKey: string)
 	-- by the time a skin is applied.
 	applyFur(refs, tier)
 
+	-- AND THE ACCESSORY GEOMETRY, which is what replaced the code-built
+	-- `pattern` on Rockslide and Quartz and the `fx` corona on Supernova.
+	-- After the surface for the same reason the ruff is: it seats off the
+	-- body's own CFrame, which the mesh swap has settled by now.
+	applyAccessories(refs, skinKey)
+
 	-- MARKINGS, and they are the third channel of a skin rather than a fourth
 	-- system. Built by PiggyModel because the shop tile and the carried loot
 	-- render the same piggy from the same builder -- see the block at the top
@@ -1679,6 +1673,53 @@ function PiggyBank.applySkin(refs: Refs, skinKey: string)
 			end
 		end
 		LegendaryModel.dress(refs.model, refs.body, skinKey, { anchored = true, hide = hide, rig = true })
+	end
+
+	-- ------------------------------------------------------------
+	-- AND ITS NAME OVER IT, WITH `BANK` WHERE A RATE WOULD GO
+	-- ------------------------------------------------------------
+	--
+	-- Designer call 2026-09-23: "the piggy till should show its name over it
+	-- too but no earning per second instead it should say bank". The six
+	-- pedestals have carried a two-row label since 2026-09-21 and the centre
+	-- pig -- the one every other piggy on the lawn is arranged around -- had
+	-- nothing at all, so a visitor could read which piggy was on every plinth
+	-- and not which one was standing in the middle.
+	--
+	-- `BANK` IS THE ONLY HONEST THING THAT CAN GO ON THAT ROW, and that is a
+	-- stronger reason than the designer asking for it. The till EARNS NOTHING
+	-- (designer, 2026-09-23 -- see `Config.piggySlotRate`, which refuses slot
+	-- 0 for every reader in the game), so a rate row here could only ever read
+	-- `+0/s`. This file's own rule for the pedestals is that a row reading zero
+	-- under a piggy is worse than a blank one -- it is wrong in the direction
+	-- that makes a player stop trusting the number -- and a blank row under a
+	-- name is exactly the state a neighbour's lawn was reported in this
+	-- afternoon. So the row says what the placement IS instead of what it
+	-- makes, which is the one question it can answer truthfully.
+	--
+	-- PAPER RATHER THAN THE GOLD THE SIX USE, because gold on that row means
+	-- COINS PER SECOND everywhere else on the lawn. A word is not a figure and
+	-- must not be dressed as one; paper over an ink stroke is what this game
+	-- already writes a label in.
+	--
+	-- THROUGH `PiggyPedestal.nameplate`, so the till and a plinth cannot
+	-- disagree about where a label hangs, how far it reads from, or what
+	-- colour a tier is written in. The crown is measured over the whole model
+	-- AFTER a legendary has been dressed, which is why this sits at the foot
+	-- of this function rather than beside the skin write: a legendary is nine
+	-- to twenty-four meshes with a silhouette of its own, and a label solved
+	-- against the plain body would sit inside a dragon's head.
+	--
+	-- REBUILT ONLY WHEN THE KEY MOVED. `applySkin` is called on every
+	-- resident repaint as well as on a swap, and a billboard torn down and
+	-- rebuilt on a clock is replication for nothing.
+	if refs.nameKey ~= skinKey then
+		if refs.nameLabel then
+			refs.nameLabel:Destroy()
+		end
+		refs.nameKey = skinKey
+		refs.nameLabel = PiggyPedestal.nameplate(refs.model, refs.body, skinKey,
+			Config.TILL_LABEL, Theme.PAPER)
 	end
 end
 

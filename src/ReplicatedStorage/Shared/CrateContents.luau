@@ -123,7 +123,14 @@ function Contents.new(view: Frame, deps: any)
 		self.oddsRows[tier] = { row = row, name = name, pct = pct }
 	end
 
-	self.note = W.text(self.summary, "Duplicates", "Duplicates become spares. Combine or sell them from the crate list or your bag.", 13)
+	-- NO CRATE CAN REPEAT, AND THAT IS WORTH A LINE BECAUSE IT IS THE OPPOSITE
+	-- OF WHAT THIS AUDIENCE EXPECTS FROM A CRATE. Every pool is filtered to
+	-- what the player does not own (designer, 2026-09-23; see
+	-- `ChestService.poolOf`), so an open is always something new -- and the
+	-- copy that used to sit here sold the old rule, telling players duplicates
+	-- become spares and pointing them at a combine row that has since left
+	-- this tab. Copy outlives the thing it describes, and nothing errors.
+	self.note = W.text(self.summary, "Duplicates", "Every crate gives you something you do not already own.", 13)
 	self.note.TextWrapped = true; self.note.TextTruncate = Enum.TextTruncate.None
 	-- NOT A BUTTON ANY MORE, and deliberately still a button-shaped label.
 	-- This opened the crate for its price; a crate is earned rather than

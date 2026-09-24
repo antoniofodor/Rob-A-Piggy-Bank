@@ -101,7 +101,9 @@
 	  that decision thrown away, and the decision has a measurement behind
 	  it: seated on the TRUE bearing to the till (`Config.piggyPedestalYaw`,
 	  now only the quantiser's input) four of the six stood askew on their own
-	  square plinths by up to 26 degrees.
+	  square plinths by up to 26 degrees. Note the STAND under it faces the
+	  street instead (`PiggyPedestal`'s `ART_TURN`): two objects on one spot,
+	  two facings, and nothing here touches either.
 	* **FOUND BY NAME, NEVER BY TAG.** A tag the server sets before parenting
 	  never fires `GetInstanceAddedSignal` on the peer it replicates to -- the
 	  shop-door failure, where four doors wired zero prompts at startup.
@@ -138,7 +140,14 @@ local PiggyIdle = {}
 -- greps: an instance name is an interface with no compiler behind it, which
 -- is the lesson `"LockLevel"` cost four call sites to learn.
 local DISPLAY_NAME = "Display"
-local PEDESTAL_PREFIX = "PiggyPedestal_"
+-- BOTH BUILDERS, BECAUSE THERE ARE TWO AND ONLY ONE WAS EVER MATCHED.
+-- `PiggyPedestal.build` names a lawn plinth `PiggyPedestal_<slot>` and
+-- `IndoorPedestal.build` names a hall placement `IndoorPedestal_<slot>`, and
+-- the two produce the SAME `PiggyPedestal.Refs` on different geometry. This
+-- module matched the first prefix only, so every piggy in a player's own
+-- hallway stood dead still and its collect made no sound -- not because
+-- anything failed, but because the reaction was never wired to it.
+local PEDESTAL_PREFIXES = { "PiggyPedestal_", "IndoorPedestal_" }
 local PAD_NAME = "CollectPad"
 local PAD_SOUND_NAME = "PadCollect"
 local EYE_NAME = "Eye"
@@ -320,13 +329,38 @@ local live: { [Model]: Entry } = {}
 -- -- so this is connected once per pedestal for the life of the server, which
 -- is the same call `EconomyService` makes about wiring the pad itself.
 local wired: { [Instance]: boolean } = {}
+-- Pedestals with a thread already waiting on their pad. See `wirePedestal`:
+-- this is the difference between "somebody is on it" and "it is connected",
+-- and the two cannot share a table without either double-connecting the
+-- attribute signal or refusing the retry that makes the wait worth having.
+local wiring: { [Instance]: boolean } = {}
+
+-- Is this the name of a pedestal, by either builder?
+--
+-- ONE TEST, TWO READERS, BECAUSE SPLITTING IT COST THE WHOLE ANIMATION ONCE.
+-- `PEDESTAL_PREFIX` was a single string read here and in `wirePedestal`;
+-- turning it into a list updated the second reader and left this one pointing
+-- at a name that no longer existed -- a nil global, so `#PEDESTAL_PREFIX`
+-- threw on every sweep, `isDisplay` never returned, and NO piggy anywhere
+-- registered: the lawn lost its idle for a change that was only ever about
+-- the hall. An interface with no compiler behind it, exactly as `"LockLevel"`
+-- cost four call sites, and the fix is the same -- one function both sides
+-- call rather than one constant both sides spell.
+local function isPedestalName(name: string): boolean
+	for _, prefix in ipairs(PEDESTAL_PREFIXES) do
+		if name:sub(1, #prefix) == prefix then
+			return true
+		end
+	end
+	return false
+end
 
 local function isDisplay(inst: Instance): boolean
 	if not inst:IsA("Model") or inst.Name ~= DISPLAY_NAME then
 		return false
 	end
 	local parent = inst.Parent
-	return parent ~= nil and parent.Name:sub(1, #PEDESTAL_PREFIX) == PEDESTAL_PREFIX
+	return parent ~= nil and isPedestalName(parent.Name)
 end
 
 local function forget(model: Model)
@@ -479,24 +513,60 @@ local function wirePedestal(inst: Instance)
 	if wired[inst] or not inst:IsA("Model") then
 		return
 	end
-	if inst.Name:sub(1, #PEDESTAL_PREFIX) ~= PEDESTAL_PREFIX then
+	if not isPedestalName(inst.Name) then
 		return
 	end
-	local pad = inst:FindFirstChild(PAD_NAME)
-	local sound = pad and pad:FindFirstChild(PAD_SOUND_NAME)
-	if not sound or not sound:IsA("Sound") then
+	-- WAITED FOR, NOT LOOKED UP, WHICH IS `register`'S OWN SHAPE ONE OBJECT
+	-- ALONG. A Model replicates before its children do, so a pedestal that
+	-- arrives through `DescendantAdded` can be here with its `CollectPad` and
+	-- that pad's Sound still in flight. This read them synchronously and
+	-- returned on the miss WITHOUT stamping `wired`, so nothing marked it
+	-- attempted and nothing came back: `DescendantAdded` does fire again when
+	-- the pad and the sound land, but those are named `CollectPad` and
+	-- `PadCollect` rather than a pedestal prefix, so they return at the test
+	-- above and the pedestal is never revisited. No collect sound and no
+	-- celebrate, for the life of the session.
+	--
+	-- AND IT POINTS AT THE HALL RATHER THAN THE LAWN, which is why it survived
+	-- being invisible. The startup sweep catches anything already standing --
+	-- the lawn, built before a client is listening -- and the bounded rescan
+	-- covers the first ten seconds. A hallway is built when somebody walks
+	-- through their own front door, which is minutes later and through
+	-- `DescendantAdded` with its children behind it: exactly the case the two
+	-- roots above were added for.
+	--
+	-- `wiring` RATHER THAN `wired`, because they answer different questions --
+	-- one thread is already waiting on this, against this one is connected --
+	-- and collapsing them would either double-connect the attribute signal or
+	-- refuse the retry.
+	if wiring[inst] then
 		return
 	end
-	wired[inst] = true
-	-- OFF THE PAD'S COLLECT COUNTER, NOT `sound.Played`. `Played` is an edge
-	-- on `Playing`, and a server `Play()` on a clip still running has no
-	-- edge to replicate -- so every collect inside the previous clip's 4.1s
-	-- was invisible here. See `PiggyPedestal.COLLECT_ATTRIBUTE`. The sound is
-	-- restarted locally for the same reason: the replicated play cannot
-	-- restart a clip this client is already playing.
-	pad:GetAttributeChangedSignal(PiggyPedestal.COLLECT_ATTRIBUTE):Connect(function()
-		sound:Play()
-		celebrate(inst)
+	wiring[inst] = true
+	task.spawn(function()
+		local pad = inst:WaitForChild(PAD_NAME, 10)
+		local sound = pad and pad:WaitForChild(PAD_SOUND_NAME, 10)
+		wiring[inst] = nil
+		if not pad or not sound or not sound:IsA("Sound") then
+			return
+		end
+		-- Re-checked after the wait: ten seconds is long enough for the
+		-- pedestal to have been destroyed (a plot re-locking takes its
+		-- placement with it) or for a rescan to have got there first.
+		if wired[inst] or not inst.Parent then
+			return
+		end
+		wired[inst] = true
+		-- OFF THE PAD'S COLLECT COUNTER, NOT `sound.Played`. `Played` is an
+		-- edge on `Playing`, and a server `Play()` on a clip still running has
+		-- no edge to replicate -- so every collect inside the previous clip's
+		-- 4.1s was invisible here. See `PiggyPedestal.COLLECT_ATTRIBUTE`. The
+		-- sound is restarted locally for the same reason: the replicated play
+		-- cannot restart a clip this client is already playing.
+		pad:GetAttributeChangedSignal(PiggyPedestal.COLLECT_ATTRIBUTE):Connect(function()
+			sound:Play()
+			celebrate(inst)
+		end)
 	end)
 end
 
@@ -528,20 +598,66 @@ function PiggyIdle.start()
 		return
 	end
 
-	local root: Instance = Workspace:FindFirstChild("Plots") or Workspace
+	-- TWO ROOTS, BECAUSE THERE ARE TWO PLACES A PIGGY STANDS. The lawn's six
+	-- plinths are under `workspace.Plots`; a player's own hallway is a
+	-- separate folder, `workspace.Interiors`, built when they walk through
+	-- their front door. This scanned `Plots` alone, so nothing in a hallway
+	-- ever entered `live` -- which is why an indoor piggy neither breathed nor
+	-- reacted to its own collect. The server was already doing its half:
+	-- `PlotService.playCollect` is slot-based and `pedestalAt` finds an indoor
+	-- placement, so the sound and the `COLLECT_ATTRIBUTE` bump were firing
+	-- into a client that was not listening.
+	--
+	-- FOUND RATHER THAN WAITED FOR, AND BOTH ARE OPTIONAL. `Interiors` exists
+	-- from boot but is EMPTY until somebody goes inside, and a client can load
+	-- before either folder does -- which is what the bounded rescan below is
+	-- for. Falling back to `Workspace` when neither exists keeps this module
+	-- working in a test place that has no plots at all.
+	local roots: { [Instance]: boolean } = {}
 
-	local function sweep()
+	-- ADOPTED RATHER THAN LISTED ONCE, because a folder can arrive after this
+	-- runs. A client that loads early may see neither, and the rescan below is
+	-- what picks them up -- so the connection is made when the folder is first
+	-- SEEN rather than at `start`, and adopting twice is a no-op.
+	local function adopt(root: Instance)
+		if roots[root] then
+			return
+		end
+		roots[root] = true
 		for _, inst in ipairs(root:GetDescendants()) do
 			register(inst)
 			wirePedestal(inst)
 		end
+		root.DescendantAdded:Connect(function(inst)
+			register(inst)
+			wirePedestal(inst)
+		end)
+	end
+
+	local function sweep()
+		local found = false
+		for _, name in ipairs({ "Plots", "Interiors" }) do
+			local folder = Workspace:FindFirstChild(name)
+			if folder then
+				found = true
+				adopt(folder)
+			end
+		end
+		-- Only as a last resort, and only while neither folder exists: adopting
+		-- the whole Workspace once `Plots` is there would walk the street, the
+		-- scenery and every tuft on every rescan.
+		if not found then
+			adopt(Workspace)
+		end
+		for root in pairs(roots) do
+			for _, inst in ipairs(root:GetDescendants()) do
+				register(inst)
+				wirePedestal(inst)
+			end
+		end
 	end
 
 	sweep()
-	root.DescendantAdded:Connect(function(inst)
-		register(inst)
-		wirePedestal(inst)
-	end)
 
 	-- A BOUNDED RESCAN, for the reason `HouseFX` and `BoltFX` both carry one.
 	-- `DescendantAdded` fires only for what arrives AFTER it connects, and a

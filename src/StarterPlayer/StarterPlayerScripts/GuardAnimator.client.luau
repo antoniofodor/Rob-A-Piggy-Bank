@@ -1,6 +1,7 @@
 local CollectionService = game:GetService("CollectionService")
 local RunService = game:GetService("RunService")
 local Animation = require(game:GetService("ReplicatedStorage").Shared.GuardAnimation)
+local Config = require(game:GetService("ReplicatedStorage").Shared.Config)
 local active = {}
 -- Each eye's authored size, remembered locally so a squashed (sleeping) eye
 -- can be opened again.
@@ -25,8 +26,20 @@ CollectionService:GetInstanceRemovedSignal("AnimatedGuard"):Connect(remove)
 for _, model in CollectionService:GetTagged("AnimatedGuard") do add(model) end
 RunService.PreSimulation:Connect(function(dt)
 	local t = workspace:GetServerTimeNow()
+	-- BY DISTANCE (2026-09-23): fourteen dogs lerping every joint every frame
+	-- for a camera that can see two of them. `Config.FX_CULL.guardRange` is
+	-- the rule; a dog walking back into range catches its pose up over the
+	-- same lerp it always used, so nothing snaps.
+	local camera = workspace.CurrentCamera
+	local eye = if camera then camera.CFrame.Position else nil
+	local range = (Config.FX_CULL and Config.FX_CULL.guardRange) or 120
 	for model, record in pairs(active) do
 		if not model:IsDescendantOf(workspace) then continue end
+		if eye then
+			local primary = model.PrimaryPart
+			local at = if primary then primary.Position else model:GetPivot().Position
+			if (at - eye).Magnitude > range then continue end
+		end
 		local state = model.Parent:GetAttribute("GuardState") or "Idle"
 		local height = model:GetAttribute("GuardHeight") or 2.5
 		for joint in pairs(record.joints) do
@@ -38,8 +51,13 @@ RunService.PreSimulation:Connect(function(dt)
 		for mesh in pairs(record.faces) do
 			if not mesh.Parent then record.faces[mesh] = nil; continue end
 			local eye = mesh:GetAttribute("GuardTone") == "eye"
-			mesh.Color = if hostile then (if eye then Color3.fromRGB(245,23,32) else mesh:GetAttribute("AngryBrowColor")) else mesh:GetAttribute("CalmColor")
-			mesh.Material = if hostile and eye then Enum.Material.Neon else Enum.Material.SmoothPlastic
+			-- WRITTEN ONLY ON CHANGE: a property set to the value it already
+			-- holds is still a property set, on every face of every dog,
+			-- every frame.
+			local wantColor = if hostile then (if eye then Color3.fromRGB(245,23,32) else mesh:GetAttribute("AngryBrowColor")) else mesh:GetAttribute("CalmColor")
+			if wantColor and mesh.Color ~= wantColor then mesh.Color = wantColor end
+			local wantMaterial = if hostile and eye then Enum.Material.Neon else Enum.Material.SmoothPlastic
+			if mesh.Material ~= wantMaterial then mesh.Material = wantMaterial end
 			if eye then
 				-- Eyes shut while asleep: the eyeball squashed flat reads as a
 				-- closed lid line.

@@ -19,26 +19,49 @@ check(Config.getCapacity == nil and Config.getCapacityCost == nil and Config.fit
 	and Config.CAPACITY_GROWTH == nil and Config.BASE_CAPACITY == nil
 	and Config.REBIRTH_CAPACITY_MULTIPLE == nil,
 	"the capacity ceiling, its tree, its clamp and its gate basis are gone")
-check(near(Config.getIncomeRate(20, 0), 2994.6191770211863) and near(Config.getIncomeRate(40, 10), 128210.63960711213),
+-- RE-PINNED FOR THE x1000 RE-DENOMINATION, which is the one thing these two
+-- numbers exist to make somebody do on purpose. They are the old figures
+-- times exactly a thousand -- 2994.6191770211863 and 128210.63960711213 --
+-- so this still asserts that the SHAPE of the ladder did not move while its
+-- units did. A re-denomination that changed the curve would miss by more than
+-- `near`'s tolerance and land here rather than in a playtest.
+check(near(Config.getIncomeRate(20, 0), 2994619.1770211863) and near(Config.getIncomeRate(40, 10), 128210639.60711213),
 	"income at L20 RB0 and L40 RB10 unchanged")
 -- INCOME COSTS ARE THE PURE CURVE NOW. They were 1,643,483 and 53,297,224 at
 -- 20 and 40 -- both CLAMPED by `UPGRADE_COST_CEILING`, which is retired with
 -- the wallet it guarded -- so these two moved, on purpose, and are pinned at
 -- the unclamped figures so they cannot move again by accident.
-check(Config.getIncomeCost(20) == 1653340 and Config.getIncomeCost(40) == 168179539,
+-- RE-PINNED x1000, AND THEY DO NOT LAND ON A ROUND THOUSAND -- which is the
+-- interesting part and is not a drift in the curve. `getIncomeCost` FLOORS,
+-- so the old figures had already thrown away a fraction of a coin at the old
+-- magnitude: 1000*floor(x) <= floor(1000x) < 1000*floor(x)+1000. The two
+-- remainders are 318 and 473, both inside that window, so the curve is
+-- identical and the re-denomination simply kept precision the floor used to
+-- discard. Anything OUTSIDE [0, 1000) here would be a real change to the
+-- curve, which is what this pin is for.
+check(Config.getIncomeCost(20) == 1653340318 and Config.getIncomeCost(40) == 168179539473,
 	"income costs at 20 and 40 are the unclamped curve")
-check(Config.getIncomeCost(1) == 400 and Config.getIncomeCost(19) == 400 * 1.55 ^ 18 // 1,
+-- AGAINST `INCOME_BASE_COST` RATHER THAN THE LITERAL 400 IT USED TO BE. The
+-- shape of band A is what this asserts -- level 1 IS the base and level 19 is
+-- eighteen growth steps off it -- and writing the base out as a number meant
+-- the whole check had to be re-pinned by hand the day the economy changed
+-- units, for a reason that has nothing to do with band A.
+check(Config.getIncomeCost(1) == Config.INCOME_BASE_COST
+	and Config.getIncomeCost(19) == Config.INCOME_BASE_COST * 1.55 ^ 18 // 1,
 	"band A income costs untouched")
 for rb = 0, 10 do
 	check(Config.maxLevel(rb) == 20 + 2 * rb, "maxLevel unchanged at rebirth " .. rb)
 	check(near(Config.rebirthIncomeFactor(rb), 1 + rb * 0.12), "rebirth factor unchanged at rebirth " .. rb)
 end
-check(Config.getRebirthThreshold(0) == 2988151 and Config.getRebirthThreshold(10) == 96904045,
+-- x1000 with the economy. The gate ladder is a frozen table of literals, so
+-- these moved exactly and evenly -- no flooring anywhere in the path, unlike
+-- the cost curve above.
+check(Config.getRebirthThreshold(0) == 2988151000 and Config.getRebirthThreshold(10) == 96904045000,
 	"rebirth gates at 0 and 10 unchanged")
 -- THE GATE IS A FROZEN TABLE (`REBIRTH_CASH_GATE`, PLACEHOLDER: designer to
 -- set): every row is today's old derivation as a literal, so nothing got
 -- easier or harder, and the piggy half is a hook that says yes.
-for rb, gate in pairs({ [1] = 4231522, [5] = 17016580, [15] = 346836842, [20] = 1241390843 }) do
+for rb, gate in pairs({ [1] = 4231522000, [5] = 17016580000, [15] = 346836842000, [20] = 1241390843000 }) do
 	check(Config.getRebirthThreshold(rb) == gate, "frozen gate at rebirth " .. rb)
 end
 check(Config.rebirthPiggyGate({}) == true, "the piggy gate is a placeholder that passes")
@@ -97,15 +120,34 @@ end
 -- And the collection check has to be REACHABLE rather than silently skipped:
 -- a `fullLawn` that came back empty would make its ratio infinite and the
 -- sweep would never fire, which is the shape of a guard that guards nothing.
-check(#Config.fullLawn("common") == Config.PIGGY_LAWN_SLOT_COUNT + 1,
-	"a full lawn is every pedestal plus the till")
+-- THE TILL IS NOT ON IT (designer, 2026-09-23). It counted as a placement for
+-- as long as it earned; it is a display now, so the canonical IDLE lawn -- the
+-- side `auditRobbery` measures robbing against -- is the six pedestals alone.
+check(#Config.fullLawn("common") == Config.PIGGY_LAWN_SLOT_COUNT,
+	"a full lawn is every pedestal, and the till is not one of them")
 check(Config.collectionRate(Config.fullLawn("common"), 20, 0)
 	> Config.getIncomeRate(20, 0),
 	"and a whole collection earns more than the one pig the old audit measured")
 
--- NO PRICE IS IMPOSSIBLE: a 100B house is a wait, not a wall, and the audit
+-- NO PRICE IS IMPOSSIBLE: an absurd house is a wait, not a wall, and the audit
 -- says nothing about it.
-local fake = { id = "testcitadel", name = "Test Citadel", style = "shack", cost = 1e11 }
+--
+-- PRICED OFF THE TOP OF THE REAL LADDER RATHER THAN PINNED, because a pinned
+-- one does not stay absurd. This was a flat 1e11 -- "a 100B house" -- and the
+-- x1000 re-denomination took the real top tier past it, so the fixture stopped
+-- being the dearest row and the audit correctly reported it as CHEAPER THAN
+-- THE ROW ABOVE IT. The test then read as "an expensive house is an audit
+-- problem", which is the opposite of what it exists to say. A hundred times
+-- the dearest real house is absurd at any denomination.
+--
+-- THE DEAREST PRICED ROW, NEVER THE LAST ROW. The last tier is the Golden Pig
+-- and it carries NO `cost` at all -- it is earned rather than bought -- so
+-- indexing the end of the table reads nil and multiplies it.
+local top = 0
+for _, tier in ipairs(Config.HOUSE_TIERS) do
+	top = math.max(top, tonumber(tier.cost) or 0)
+end
+local fake = { id = "testcitadel", name = "Test Citadel", style = "shack", cost = top * 100 }
 table.insert(Config.HOUSE_TIERS, fake)
 check(#Config.auditEconomy() == 0, "a 100B house is not an audit problem with an unbounded pig")
 table.remove(Config.HOUSE_TIERS)
@@ -132,3 +174,5 @@ check(fired, "audit refuses a gate that gets easier with rebirths")
 check(#Config.auditEconomy() == 0, "audit clean again after the provocations")
 
 print(("ladder: %d checks passed"):format(checks))
+
+

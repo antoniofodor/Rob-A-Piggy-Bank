@@ -40,7 +40,64 @@
       "SceneryTreeTemplates": {
         "$path": "src/ServerStorage/SceneryTreeTemplates"
       },
-      "$ignoreUnknownInstances": true
+      "MeadowTemplates": {
+        "$path": "src/ServerStorage/MeadowTemplates.rbxmx"
+      },
+      "TreehouseInteriorKit": {
+        "$path": "assets/houses/interiors/catalogue-v4/treehouse/treehouse-interior-kit.rbxmx"
+      },
+      "CardboardFortInteriorKit": {
+        "$path": "assets/houses/interiors/catalogue-v4/cardboard-fort/cardboard-fort-interior-kit.rbxmx"
+      },
+      "BeehiveCottageInteriorKit": {
+        "$path": "assets/houses/interiors/catalogue-v4/beehive-cottage/beehive-cottage-interior-kit.rbxmx"
+      },
+      "$ignoreUnknownInstances": true,
+      "WonkyTownhouseInteriorKit": {
+        "$path": "assets/houses/interiors/catalogue-v4/wonky-townhouse/wonky-townhouse-interior-kit.rbxmx"
+      },
+      "ToadstoolCottageInteriorKit": {
+        "$path": "assets/houses/interiors/catalogue-v4/toadstool-cottage/toadstool-cottage-interior-kit.rbxmx"
+      },
+      "FairyLanternCottageInteriorKit": {
+        "$path": "assets/houses/interiors/catalogue-v4/fairy-lantern-cottage/fairy-lantern-cottage-interior-kit.rbxmx"
+      },
+      "HauntedManorInteriorKit": {
+        "$path": "assets/houses/interiors/catalogue-v4/haunted-manor/haunted-manor-interior-kit.rbxmx"
+      },
+      "GloopHouseInteriorKit": {
+        "$path": "assets/houses/interiors/catalogue-v4/gloop-house/gloop-house-interior-kit.rbxmx"
+      },
+      "FishbowlHouseInteriorKit": {
+        "$path": "assets/houses/interiors/catalogue-v4/fishbowl-house/fishbowl-house-interior-kit.rbxmx"
+      },
+      "NeonTowerInteriorKit": {
+        "$path": "assets/houses/interiors/catalogue-v4/neon-tower/neon-tower-interior-kit.rbxmx"
+      },
+      "CrystalSpireInteriorKit": {
+        "$path": "assets/houses/interiors/catalogue-v4/crystal-spire/crystal-spire-interior-kit.rbxmx"
+      },
+      "IcePalaceInteriorKit": {
+        "$path": "assets/houses/interiors/catalogue-v4/ice-palace/ice-palace-interior-kit.rbxmx"
+      },
+      "SkyCastleInteriorKit": {
+        "$path": "assets/houses/interiors/catalogue-v4/sky-castle/sky-castle-interior-kit.rbxmx"
+      },
+      "BeachedGalleonInteriorKit": {
+        "$path": "assets/houses/interiors/catalogue-v4/beached-galleon/beached-galleon-interior-kit.rbxmx"
+      },
+      "PortalHouseInteriorKit": {
+        "$path": "assets/houses/interiors/catalogue-v4/portal-house/portal-house-interior-kit.rbxmx"
+      },
+      "ThundercloudFortressInteriorKit": {
+        "$path": "assets/houses/interiors/catalogue-v4/thundercloud-fortress/thundercloud-fortress-interior-kit.rbxmx"
+      },
+      "TheVoidInteriorKit": {
+        "$path": "assets/houses/interiors/catalogue-v4/the-void/the-void-interior-kit.rbxmx"
+      },
+      "GoldenPiggyInteriorKit": {
+        "$path": "assets/houses/interiors/catalogue-v4/golden-piggy/golden-piggy-interior-kit.rbxmx"
+      }
     }
   }
 }

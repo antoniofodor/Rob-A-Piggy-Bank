@@ -1,8 +1,32 @@
 --!strict
 -- Shared safe-area measurements for the HUD's independent modules.
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local HUDLayout = {}
+
+-- THE BALANCE CARD'S SIZE, AND WHY IT IS A COPY HERE RATHER THAN A REQUIRE.
+--
+-- The copy that stood here went stale by 228 pixels: `bankWidth` said 404 and
+-- `bankHeight` 148, describing a "medallion panel" cut down to 176 x 64 long
+-- before, with nothing erroring -- because the only readers use these to keep
+-- CLEAR of the card, and a guard that is too big merely wastes screen. So the
+-- first-job card and the rebirth button spent a while dodging 228 pixels of
+-- nothing.
+--
+-- REQUIRING `PiggyPanel` FIXES THAT AND COSTS THIS FILE ITS INDEPENDENCE,
+-- which is the one property its own header claims: "safe-area measurements
+-- for the HUD's INDEPENDENT modules". Measured rather than assumed -- the
+-- require was written, and two suites that load this module for its geometry
+-- (`objective` and `shopui`) died on the first line, because a layout helper
+-- suddenly dragged a widget, Config and Theme in behind it.
+--
+-- SO THE NUMBERS STAY AND A TEST HOLDS THEM, which is the trade this project
+-- already makes wherever a derivation would cost a dependency:
+-- `tests/luau/lobbyboard.luau` reads both files and refuses a mismatch. A
+-- comment promising two files agree is what failed before; an assertion is
+-- not that comment.
+local CARD_W, CARD_H, CARD_COMPACT = 176, 64, 0.64
 
 -- A TABLET IS A TOUCH SCREEN WHOSE SHORT SIDE IS OVER 500, which is the exact
 -- test Roblox's own TouchJump uses to switch to its big 120-pixel jump button.
@@ -32,14 +56,115 @@ function HUDLayout.metrics(view: Vector2)
 		-- 1.3 was reported too large on an iPad 10th gen (1080 x 810, compact,
 		-- so 0.64 x 1.3 = 0.83 of the design): a third of the screen's width.
 		bankScale = if tablet then 1.1 else 1,
-		-- The medallion panel's DRAWN size, after its own compact UIScale
-		-- (PiggyPanel.COMPACT_SCALE, 0.64, of a 404 x 148 / 404 x 140 design).
-		bankWidth = if compact then 259 else 404,
-		bankHeight = if compact then 90 else 148,
+		-- THE BALANCE CARD'S DRAWN SIZE, and it is in the top-LEFT corner
+		-- now (designer, 2026-09-23) -- the leaderboard took the right. The
+		-- design is `CHIP_W` by the plate's own 8 + 56, and `compact` draws
+		-- it at `PiggyPanel.COMPACT_SCALE`. `bankScale` is applied by the
+		-- CALLER, as it always was, because two of the three readers want the
+		-- unscaled figure for their own arithmetic.
+		bankWidth = CARD_W * (if compact then CARD_COMPACT else 1),
+		bankHeight = CARD_H * (if compact then CARD_COMPACT else 1),
 		menuSize = if tablet then 72 else (if view.Y < 350 then 44 else (if short then 48 else (if compact then 56 else 64))),
 		menuGap = if short then 4 else 8,
 		actionSize = if tablet then 76 else (if compact then 52 else 64),
 	}
+end
+
+-- HOW MUCH OF THE RIGHT EDGE IS SPOKEN FOR, MARGIN INCLUDED.
+--
+-- This used to be read off an attribute the corner board published on every
+-- fit, which was right while the roster was ours to measure. It is Roblox's
+-- own player list again (see `LobbyBoardService`), and A COREGUI CANNOT BE
+-- MEASURED: there is no instance to read, nothing to publish, and the player
+-- can collapse or expand it without one line of this game being told.
+--
+-- SO IT IS A BOUND AND NEVER A MEASUREMENT, and it is deliberately generous.
+-- The only reader is a card that has to stay clear of that corner, and a
+-- card that stops a little short of the list costs nothing where one that
+-- runs underneath it is unreadable.
+--
+-- CAPPED IN PIXELS AS WELL AS IN FRACTION, because the list does not grow
+-- with the screen. The old fallback was 0.45 of the width, which on a wide
+-- desktop reserves most of the top edge for a roster occupying a third of
+-- it -- a fraction alone is the wrong shape for a thing of fixed size.
+HUDLayout.PLAYER_LIST_W = 360
+function HUDLayout.rightClear(gui: ScreenGui): number
+	return math.max(14, math.min(HUDLayout.PLAYER_LIST_W, gui.AbsoluteSize.X * 0.34))
+end
+
+-- WHERE A SMALL ICON GOES IN THE TOPBAR ROW, BESIDE ROBLOX'S OWN BUTTONS.
+--
+-- `GuiService.TopbarInset` is the engine saying which part of that row is
+-- yours: `Min.X` is the right edge of its own cluster -- the Roblox logo, the
+-- menu and the chat pill -- and the Rect's height is the row. Measured live
+-- at Rect(164, 0, 1366, 58) on a 1366-wide window, and NOT written down as a
+-- number anywhere: that cluster moves with the platform, with chat being on
+-- or off, and with whatever Roblox ships next. It is read on every fit, the
+-- same call `jumpRect` makes by reading the live jump button rather than
+-- copying TouchJump's own numbers.
+--
+-- WITH `IgnoreGuiInset` ON, AN OFFSET IS A SCREEN PIXEL, which is what makes
+-- this Rect usable without converting anything. The ScreenGui covers the
+-- whole screen and reports its `AbsolutePosition` 58 above its own origin --
+-- this project's oldest gotcha -- and the other side of that is that an
+-- offset of y = 0 lands on the top edge of the screen, where the Rect starts.
+--
+-- THE FALLBACK IS A BOUND, NOT A COPY OF TODAY'S NUMBER. It is only reached
+-- on a build with no such property, and it errs to the RIGHT on purpose: an
+-- icon too far in clears a cluster of any width, where one too far left sits
+-- underneath it. Two numbers rather than a `Rect`, because a Rect built at
+-- module scope is a constructor this file did not need -- and the suites that
+-- load this module for its geometry stub Color3 and Vector2 and nothing else,
+-- so it took `objective` and `shopui` down on their first line.
+local FALLBACK_X, FALLBACK_BAND = 240, 58
+
+-- The size the topbar icon is DRAWN at; `bindTopbar` scales from it, so the
+-- caller builds at this and never at a number of its own.
+HUDLayout.TOPBAR_SIZE = 44
+
+function HUDLayout.topbarSlot(gui: ScreenGui): (UDim2, number)
+	local left, top, band = FALLBACK_X, 0, FALLBACK_BAND
+	-- READ INSIDE THE PCALL, not tested outside it: on a build without the
+	-- property `live` is nil and the check itself is what throws.
+	pcall(function()
+		local live = GuiService.TopbarInset
+		if live.Height > 4 then
+			left, top, band = live.Min.X, live.Min.Y, live.Height
+		end
+	end)
+	local size = math.clamp(band - 12, 26, HUDLayout.TOPBAR_SIZE)
+	left += 10
+	-- THE BALANCE CARD IS IN THIS ROW ON A COMPACT SCREEN and nowhere near it
+	-- on a desktop -- `bankTop` is 8 there against 72 here -- so the slot
+	-- starts at whichever of the two edges is further right. Without it the
+	-- gear lands on the card at exactly the sizes with the least room to spot
+	-- it, which is the failure this whole module exists to refuse.
+	local m = HUDLayout.metrics(gui.AbsoluteSize)
+	if m.bankTop < band then
+		left = math.max(left, 14 + m.bankWidth * m.bankScale + 10)
+	end
+	return UDim2.fromOffset(left, top + (band - size) / 2), size
+end
+
+-- Holds a button in that slot, re-fitting when the window or the cluster
+-- moves. A UIScale rather than a `Size` write, the call `bindAction` already
+-- makes: whatever the button drew at its design size comes with it, and an
+-- anchor of (0, 0) means scaling about the corner leaves the position exact.
+function HUDLayout.bindTopbar(button: GuiObject, gui: ScreenGui)
+	local scale = Instance.new("UIScale")
+	scale.Name = "TopbarScale"
+	scale.Parent = button
+	local function fit()
+		local position, size = HUDLayout.topbarSlot(gui)
+		button.AnchorPoint = Vector2.zero
+		button.Position = position
+		scale.Scale = size / HUDLayout.TOPBAR_SIZE
+	end
+	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+	pcall(function()
+		GuiService:GetPropertyChangedSignal("TopbarInset"):Connect(fit)
+	end)
+	fit()
 end
 
 -- WHERE ROBLOX'S TOUCH JUMP BUTTON IS, in this gui's own offset space, or nil.

@@ -123,6 +123,19 @@ local function pig(): Model
 	return m
 end
 
+-- NOTHING CALLS THIS ANY MORE, AND IT IS LEFT HERE DELIBERATELY RATHER THAN
+-- FOUND BY GREP LATER. Its one caller was the shop's category SIDEBAR, which
+-- was deleted on 2026-09-23: a live index of every shelf in the game, pinned
+-- down the left of whatever tab you were already on, and therefore the
+-- fastest way to tab through the whole shop -- which is what the four units
+-- on the verge and the two counters in a hallway exist to stop. See
+-- `Shared/ShopRevamp`'s header.
+--
+-- It is a pure builder and costs nothing unbuilt, so it is a stale POINTER
+-- rather than the dead geometry this project keeps recording. Retire it the
+-- day it is clear nothing wants a 38-pixel category mark again; anything that
+-- does should read the note below before drawing a second one.
+--
 -- ONE SUBJECT, for the sidebar. `build` composes two objects for four of the
 -- six categories, which is right on a 200-stud landing tile and mush in a
 -- 38-pixel square -- so this picks the single most recognisable shape instead

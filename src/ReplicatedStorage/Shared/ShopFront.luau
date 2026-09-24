@@ -433,7 +433,10 @@ STYLES.security = function(model, at, spec, cf, L)
 end
 
 
-function ShopFront.build(cf: CFrame, groundY: number, spec: Spec, parent: Instance): (Model, BasePart)
+-- How far the counter's shop prompt reaches; see the note where it is built.
+ShopFront.SERVE_RANGE = 4.5
+
+function ShopFront.build(cf: CFrame, groundY: number, spec: Spec, parent: Instance): (Model, BasePart, ProximityPrompt)
 	local model = Instance.new("Model")
 	model.Name = "Shop_" .. spec.tab
 
@@ -662,22 +665,61 @@ function ShopFront.build(cf: CFrame, groundY: number, spec: Spec, parent: Instan
 			at((gapR + edge) / 2, cy, frontZ + T / 2))
 	end
 
+	-- YOU SHOP AT THE COUNTER, NOT AT THE DOOR (designer, 2026-09-23:
+	-- "players should have to go inside and interact on the npc at the counter
+	-- in order to shop instead of on the door from the outside"). The prompt
+	-- used to hang on the door and reached out over the forecourt, so the
+	-- building was a sign you pressed from the pavement. It stands in front of
+	-- the shopkeeper now, over the counter, which puts the one thing this unit
+	-- is for inside it.
+	--
+	-- ON AN ANCHOR AND NOT ON THE SHOPKEEPER, because the shopkeeper is a
+	-- resident who leaves the counter to chase a fumbling thief and is rebuilt
+	-- when the plot reseats; a prompt on that figure would go wherever they
+	-- went, or with them. The anchor stands where they stand when they are
+	-- minding the shop, `SHOP_ROOM.keeperX`, just proud of the counter's front.
+	--
+	-- `SERVE_RANGE` IS MEASURED AGAINST THE WALLS, NOT CHOSEN FOR FEEL -- the
+	-- door prompt's own lesson. From here the side wall's outer face is about
+	-- 4.8 studs away across and the back wall's about 5.9, so 4.5 cannot be
+	-- reached from outside the building, while the customer strip in front of
+	-- the counter (to z +1.7) is well inside it. It is also about eleven studs
+	-- from the vault's crack spot, so a thief at the vault never sees it. The
+	-- server still checks the room (`Config.shopRoomHolds`) on every press,
+	-- which is the same check the vault makes.
+	local floorY = Config.SHOP_UNIT.floorY
+	local serve = Instance.new("Part")
+	serve.Name = "CounterServe"
+	serve.Size = Vector3.new(1, 1, 1)
+	serve.CFrame = at(R.keeperX, floorY + 3.4, R.counterFront + 0.3)
+	serve.Anchored = true
+	serve.CanCollide = false
+	serve.CanQuery = false
+	serve.CanTouch = false
+	serve.CastShadow = false
+	serve.Transparency = 1
+	serve.Parent = model
+
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "ShopPrompt"
-	prompt.ActionText = "SHOP"
+	prompt.ActionText = "Shop"
 	prompt.ObjectText = spec.name
 	prompt.HoldDuration = 0
-	prompt.MaxActivationDistance = 8
+	prompt.MaxActivationDistance = ShopFront.SERVE_RANGE
 	prompt.RequiresLineOfSight = false
+	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
 	Config.setPromptKind(prompt, "shop")
-	prompt.Parent = door
+	prompt.Parent = serve
 
+	-- The door keeps its tab and its tag: it is still the way in, and a
+	-- probe asking "which shop is this" should not have to walk to the back.
 	door:SetAttribute(ShopFront.TAB_ATTRIBUTE, spec.tab)
 	CollectionService:AddTag(door, ShopFront.TAG)
 
 	model.WorldPivot = CFrame.new(cf.Position)
 	model.Parent = parent
-	return model, door
+	return model, door, prompt
 end
 
 return ShopFront

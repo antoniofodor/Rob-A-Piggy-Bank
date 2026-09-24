@@ -1,19 +1,40 @@
 --!strict
 --[[
-	CRATES ARE EARNED, NEVER BOUGHT. No crate carries a price in any currency:
-	they arrive from the daily ladder, from a rebirth and from events, and
-	`grantFree` is the only way one opens. That is what keeps every crate here
-	outside Roblox's paid random item rule -- see the note above
-	`Config.CHESTS` for what a price field would cost.
+	THREE WAYS INTO A CRATE, AND ROBUX IS NOW ONE OF THEM (designer,
+	2026-09-23). A crate is BOUGHT WITH ROBUX, EARNED ON THE DAILY LADDER, or
+	GRANTED ON A REBIRTH, and nothing else opens one. In particular NO CRATE
+	CARRIES A PRICE IN ANY IN-GAME CURRENCY: `Config.auditRandomOutcomes`
+	still refuses a `cost` or a `currency` here, and `whyCannotOpen` fails
+	closed on one, because coins are not purchasable with Robux and a coin
+	price on a random outcome is what would make that rule load-bearing.
 
-	A SECOND PIGGY IS A SECOND PIGGY (2026-09-21): a duplicate SKIN is placed
-	on a free lawn pedestal rather than becoming a spare, and a crate that
-	could yield one is REFUSED while the lawn is full -- see `handOver` and
-	`whyCannotOpen`. Duplicates of every other kind still become per-item
-	spares, because those are wardrobe items with nowhere to stand a second
-	copy. Config.COMBINE.need spares of one tier can roll into a regular
-	crate; event-set crates cannot be combined into. Selling spares pays coins
-	through Config.sellValue.
+	WHAT THE ROBUX ROUTE COSTS, BECAUSE IT IS NOT FREE. A direct Robux
+	purchase puts every priced crate INSIDE Roblox's paid random item rule:
+	real odds disclosed before purchase summing to 100%, and a
+	`PolicyService` gate so a restricted player is never prompted. The odds
+	are `liveOdds`, already renormalised over the tiers that have stock, and
+	`push` sends them to the card that draws them; the gate is
+	`ProductService`. See the header there for which half lives where.
+
+	NO CRATE EVER PAYS A DUPLICATE (designer, 2026-09-23), AND THAT IS A POOL
+	RULE RATHER THAN A PAYOUT RULE. Every pool this file rolls from is
+	filtered to what the player does NOT own -- `poolOf` with a save, at every
+	tier -- so the reveal cannot land on something they already have, and
+	`handOver` writes no spare for any kind. Spares still exist and are still
+	sold and combined; what changed is where they come from, which is STEALING
+	and WILD PIGGIES and no longer a crate.
+
+	AND AN EMPTY POOL IS REFUSED BEFORE ANYTHING IS SPENT. A crate whose
+	unowned pool is empty cannot be opened, cannot be prompted and reads
+	COLLECTION COMPLETE on its card -- because the one failure mode here that
+	looks like theft is taking Robux and handing back nothing.
+
+	A SECOND PIGGY IS A SECOND PIGGY (2026-09-21) and survives as the FALLBACK
+	it now is: the unowned pool means a crate cannot roll an owned skin, so
+	`handOver`'s repeat branch is reachable only if something else ever hands
+	it one, and a piggy is placed on a free pedestal rather than shredded into
+	a spare. A crate that could yield a piggy is still REFUSED while the lawn
+	is full, ahead of the roll and the receipt.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -31,6 +52,28 @@ local ChestService = {}
 -- thing. It requires DataService and nothing else, so there is no cycle -- and
 -- writing a second grant path here is exactly the near-identical copy this
 -- project keeps recording as the thing that drifts.
+
+-- `ProductService` IS REQUIRED LAZILY, FOR THE REASON `DailyService` REQUIRES
+-- THIS FILE LAZILY.
+--
+-- That file's own note says it: SetService reaches the five catalogues' own
+-- services, and pulling that chain in at load time is how a require cycle gets
+-- built. The same argument points outward here -- the policy gate and the
+-- receipt are needed when a crate is PUSHED or BOUGHT, never when this module
+-- loads, so a top-level require would put ProductService inside every harness
+-- that merely LOADS this file and one of those has no business knowing about
+-- receipts.
+--
+-- Memoised, and written as a function rather than a `local` filled in later: a
+-- `local` below its reader is a nil global, which this project has now hit
+-- twelve times.
+local cachedProducts: any = nil
+local function Products(): any
+	if cachedProducts == nil then
+		cachedProducts = require(script.Parent.ProductService)
+	end
+	return cachedProducts
+end
 
 -- CHEAPEST FIRST, AND IT IS `Config`'S LIST RATHER THAN A SECOND COPY OF IT.
 -- This was a local for as long as nothing else needed the sequence; a chest
@@ -75,6 +118,60 @@ local function tierIndex(tier: string): number
 	return 1
 end
 
+-- ============================================================
+-- WHAT IS IN A CRATE, AND WHOSE IT IS NOT YET
+-- ============================================================
+
+-- THE GUARDIAN CRATE NEEDED NOTHING HERE, WHICH IS WORTH A NOTE BECAUSE IT
+-- BRIEFLY HAD THIRTY LINES.
+--
+-- `kind = "coat"` arrived with a pool of `Config.DOG_COATS` rows, and this
+-- file carried its own pool builder, its own ownership test, its own spec
+-- lookup and its own grant path for it -- on the reasoning that a coat is not
+-- in `Config.catalogueFor` and does not live in a table `SetService` reads.
+-- Both halves of that stopped being true the same day: `catalogueFor` answers
+-- `coat`, `chestPool` has a coat branch with the exclusions in it, and
+-- `SetService`'s own `ownedTable` and its registered pusher reach
+-- `data.dogs.owned`. All four went.
+--
+-- WHAT THAT BUYS IS ONE GRANT PATH AND ONE POOL, which is the thing this
+-- project keeps paying for when it has two -- and it is why a new KIND should
+-- be added to those three places rather than branched around here.
+--
+-- THE STOCK OF A CRATE, AND WITH A SAVE THE PART OF IT THIS PLAYER CAN STILL
+-- WIN.
+--
+-- No crate pays a duplicate any more (designer, 2026-09-23), and this is
+-- where that is true rather than in the payout: a pool filtered to unowned
+-- CANNOT roll something already held, so there is no duplicate to decide what
+-- to do with. Called with no save it is the full stock, which is what a
+-- collection COUNT and the audits are about.
+local function poolOf(chestKey: string, data: any?): ({ [string]: { string } }, number)
+	local pool, total = Config.chestPool(chestKey)
+	if not data then
+		return pool, total
+	end
+
+	local left: { [string]: { string } } = {}
+	local count = 0
+	for tier, entries in pairs(pool) do
+		local keep: { string } = {}
+		for _, entry in ipairs(entries) do
+			local kind, key = Config.chestEntry(chestKey, entry)
+			if not SetService.owns(data, kind, key) then
+				table.insert(keep, entry)
+				count += 1
+			end
+		end
+		if #keep > 0 then
+			left[tier] = keep
+		end
+	end
+	return left, count
+end
+
+ChestService.poolOf = poolOf
+
 -- What a chest can actually give, as weights over the tiers that HAVE stock.
 --
 -- RENORMALISED RATHER THAN RE-ROLLED. A tier carrying odds but no items is a
@@ -85,9 +182,9 @@ end
 --
 -- It also means the percentages a player is shown have to be computed the same
 -- way, or the reel prints odds the server does not use.
-local function liveOdds(chestKey: string): ({ [string]: number }, { [string]: { string } }, number)
+local function liveOdds(chestKey: string, data: any?): ({ [string]: number }, { [string]: { string } }, number)
 	local chest = Config.CHESTS[chestKey]
-	local pool, total = Config.chestPool(chestKey)
+	local pool, total = poolOf(chestKey, data)
 	local odds: { [string]: number } = {}
 	if not chest or total == 0 then
 		return odds, pool, 0
@@ -255,8 +352,8 @@ end
 -- than as "always true" because the catalogue has already moved once -- the
 -- Dress-Up and effects crates are retired -- and an accessory-only pool
 -- coming back must not be blocked by a full lawn it can never fill.
-local function poolCanYieldPiggy(chestKey: string): boolean
-	local _, pool = liveOdds(chestKey)
+local function poolCanYieldPiggy(chestKey: string, data: any?): boolean
+	local _, pool = liveOdds(chestKey, data)
 	for _, entries in pairs(pool) do
 		for _, entry in ipairs(entries) do
 			local kind = Config.chestEntry(chestKey, entry)
@@ -294,14 +391,23 @@ function ChestService.whyCannotOpen(player: Player, chestKey: string): string?
 	if chest.currency ~= nil or chest.cost ~= nil then
 		return ("The %s is unavailable."):format(chest.name)
 	end
-	local odds, _, total = liveOdds(chestKey)
-	if total == 0 or next(odds) == nil then
+	local _, stocked = poolOf(chestKey)
+	if stocked == 0 then
 		-- Never fail silently. A chest with nothing in it is a button that
-		-- takes coins and returns nothing, which is the worst thing this
+		-- takes money and returns nothing, which is the worst thing this
 		-- codebase can ship -- so it refuses and says why instead.
 		return ("The %s is not stocked yet."):format(chest.name)
 	end
-	if Config.firstFreePiggySlot(data) == nil and poolCanYieldPiggy(chestKey) then
+	-- TWO EMPTY POOLS, TWO SENTENCES, BECAUSE THEY ARE DIFFERENT NEWS. The
+	-- one above is a catalogue with nothing in it, which is a bug somebody has
+	-- to fix. This one is a collection somebody has FINISHED, which is the
+	-- best possible reason to be refused -- and is the state the card draws as
+	-- COLLECTION COMPLETE rather than as a price.
+	local odds, _, left = liveOdds(chestKey, data)
+	if left == 0 or next(odds) == nil then
+		return ("You have everything in the %s."):format(chest.name)
+	end
+	if Config.firstFreePiggySlot(data) == nil and poolCanYieldPiggy(chestKey, data) then
 		-- NAMES THE FIX, because a refusal that does not is indistinguishable
 		-- from a broken button -- the rule every bone and gadget refusal here
 		-- already follows.
@@ -331,37 +437,54 @@ end
 -- unfinished work: a duplicate ride or decoration out of the Alien Cache IS a
 -- spare, because those are still wardrobe items with one copy each and
 -- nowhere to stand a second.
+-- HANDING OVER WHAT WAS ROLLED, AND IT IS NEVER A DUPLICATE.
+--
+-- Returns whether the reveal should call it one, which is now always false --
+-- kept as a return rather than deleted because `roll` and `combine` both
+-- publish it and a reveal that stopped saying so would be a silent change to
+-- the payload every client reads.
+--
+-- NO SPARE IS WRITTEN FOR ANY KIND (designer, 2026-09-23). Spares are what
+-- STEALING and WILD PIGGIES pay now, and the machinery that sells and
+-- combines them is untouched; what went is a crate as a source of them. The
+-- guarantee is upstream of this function: `poolOf` filters every pool to the
+-- unowned set, so nothing here can land on something already held.
+--
+-- THE REPEAT BRANCH IS A FALLBACK AND IS DELIBERATELY STILL HERE. The pool
+-- rule makes it unreachable from a crate; anything that ever hands this
+-- function a key the player owns -- a caller with its own pool, a race
+-- against a grant from somewhere else -- lands on it, and a second piggy on a
+-- free pedestal is the honest outcome (designer ruling 2026-09-21). For every
+-- other kind there is nowhere to stand a second copy and nothing to say, so
+-- it is said out loud instead of being turned into currency.
 local function handOver(player: Player, data: any, kind: string, key: string): boolean
-	local duplicate = SetService.owns(data, kind, key)
-	if kind ~= "skin" then
-		if duplicate then
-			addSpare(data, kind, key)
-		else
-			SetService.grant(player, kind, key)
-		end
-		return duplicate
+	if not SetService.owns(data, kind, key) then
+		-- ONE GRANT PATH FOR EVERY KIND. `SetService.grant` resolves the
+		-- catalogue through `Config.catalogueFor`, writes the ownership table
+		-- `ownedTable` names, pushes whichever service renders the thing,
+		-- pushes the set panel and saves -- so a guardian coat, a skin and a
+		-- ride all arrive the same way.
+		SetService.grant(player, kind, key)
+		return false
 	end
 
-	-- `SetService.grant` returns false for a key already owned and writes
-	-- nothing, so the collection write cannot be left to it for a repeat --
-	-- that early-out IS the wardrobe rule this branch steps around. The first
-	-- copy still goes through it, so `cosmetics.owned` and the set panel see
-	-- it; later copies go straight onto a pedestal.
-	if duplicate then
+	if kind == "skin" then
+		-- `SetService.grant` returns false for a key already owned and writes
+		-- nothing, so the collection write cannot be left to it for a repeat.
+		-- A PLACEMENT IS GUARANTEED TO HAVE BEEN FREE: `whyCannotOpen` refuses
+		-- the whole crate while the lawn is full, ahead of the roll and the
+		-- receipt.
 		Config.addPiggy(data, key, true)
 		-- AND TELL SOMEBODY, because `grant` is what normally does that and
-		-- this branch deliberately steps around it. Without this the only
-		-- write in the game that changes a lawn and pushes nothing -- the save
-		-- correct, the pedestal bare, and the crate reading as having handed
+		-- this branch deliberately steps around it. Without it the save is
+		-- correct, the pedestal is bare, and the crate reads as having handed
 		-- over nothing.
 		SetService.repaint(player, kind)
 	else
-		SetService.grant(player, kind, key)
+		local spec = Config.getSetItem(kind, key)
+		notify(player, ("You already have the %s."):format(
+			(spec and spec.name) or key), "warn")
 	end
-	-- A PLACEMENT IS GUARANTEED TO HAVE BEEN FREE, which is what lets this be
-	-- unconditional: `whyCannotOpen` refuses the whole crate while the lawn is
-	-- full, ahead of the roll and the charge, so there is no "rolled it and
-	-- had nowhere to put it" case left to handle here.
 	return false
 end
 
@@ -401,7 +524,10 @@ local function roll(player: Player, chestKey: string)
 		return
 	end
 
-	local odds, pool = liveOdds(chestKey)
+	-- THE SAVE GOES IN, so the pool is what this player can still win rather
+	-- than the whole shelf. See `poolOf`: that filter is the whole of "no
+	-- crate ever pays a duplicate".
+	local odds, pool = liveOdds(chestKey, data)
 
 	local tier = pickTier(odds)
 	if not tier then
@@ -434,11 +560,50 @@ local function roll(player: Player, chestKey: string)
 	return tier, kind, key, duplicate
 end
 
--- Daily rewards, rebirths and events open a crate. There is no other way in:
--- `ChestService.open` retired with the buy button, so nothing a client can
--- fire opens one.
+-- Daily rewards, rebirths and events open a crate for nothing. There is no
+-- CLIENT way in: `ChestService.open` retired with the coin buy button, and the
+-- Robux route arrives as a RECEIPT rather than as a remote -- see `openPaid`.
 function ChestService.grantFree(player: Player, chestKey: string)
 	return roll(player, chestKey)
+end
+
+-- A PAID OPEN, REACHED ONLY FROM `MarketplaceService.ProcessReceipt`.
+--
+-- One roll with a flag would be the shape if a paid open differed from a free
+-- one, and it does not: the tier roll, the pick, the grant, both pushes and
+-- the reveal are identical, and the CHARGE is Roblox's rather than this
+-- file's. So this is `grantFree` with a boolean, and the boolean is the whole
+-- contract: FALSE means nothing was handed over, and `ProductService` leaves
+-- the receipt un-recorded and pending so the purchase comes back rather than
+-- being spent on a warning.
+--
+-- IT IS A FUNCTION AND NOT A REMOTE, which is what stops a client opening a
+-- crate for nothing by firing the channel a paid one arrives on.
+function ChestService.openPaid(player: Player, chestKey: string): boolean
+	return roll(player, chestKey) ~= nil
+end
+
+-- WHICH OF THESE CRATES IS WORTH OPENING FOR THIS PLAYER, or nil.
+--
+-- `ProgressionService` picks a rebirth crate from a list and used to ask
+-- `Config.rebirthCratesOpen`, which tests whether the LEGENDARY keys are all
+-- owned -- the right question while a crate could pay a duplicate and the
+-- wrong one now that an exhausted pool is refused outright. This asks the
+-- predicate that actually decides: whichever crate would open.
+--
+-- RANDOM AMONG THE OPENABLE ONES rather than the first, so a rebirth does not
+-- always roll at the same shelf.
+function ChestService.pickOpenable(player: Player, keys: { string }): string?
+	local open: { string } = {}
+	for _, key in ipairs(keys) do
+		if Config.CHESTS[key] and ChestService.whyCannotOpen(player, key) == nil then
+			table.insert(open, key)
+		end
+	end
+	if #open == 0 then
+		return nil
+	end
+	return open[math.random(1, #open)]
 end
 
 -- Direct recovery of a lost skin, never a random roll. Eligibility, ownership
@@ -524,6 +689,150 @@ local function autoPick(data: any, entries: { string }): { string }
 	return take
 end
 
+-- HOW FAR UP A COMBINE CLIMBS. Clamped at legendary by its caller, so
+-- combining epics is simply a legendary rather than a wasted roll.
+--
+-- EXTRACTED BECAUSE THERE ARE TWO CALLERS NOW. `combine` had these eleven
+-- lines inline, which was right while it was the only thing that climbed a
+-- tier; `rollUp` is the physical combine station's route in, and a second copy
+-- of a ladder is what `RideSound` already paid for.
+local function rollClimb(): number
+	local ticket, climb = math.random() * 100, 1
+	for steps = 1, 3 do
+		local weight = Config.COMBINE.odds[steps]
+		if weight then
+			ticket -= weight
+			if ticket <= 0 then
+				climb = steps
+				break
+			end
+		end
+	end
+	return climb
+end
+
+-- EVERY UNOWNED ITEM OF ONE KIND, ACROSS EVERY COLLECTION, BY TIER.
+--
+-- `poolOf` answers for ONE crate, which is the right scope for opening one and
+-- the wrong scope for climbing a tier: a spare is pooled by TIER regardless of
+-- which shelf it came from (see `sparesAt`), so what it buys has to be too --
+-- otherwise the fuel is global and the prize is parochial, and a player with a
+-- finished OG shelf could not spend their commons at all.
+--
+-- Unioned through the crates rather than by walking a catalogue, so every
+-- exclusion those pools already make comes for free: a set item, a pass
+-- exclusive, a season finish and a gated coat are all out, in one place, by
+-- the predicate that already decides it.
+local function unownedByKind(data: any, kind: string): { [string]: { string } }
+	local seen: { [string]: boolean } = {}
+	local pool: { [string]: { string } } = {}
+	for chestKey, chest in pairs(Config.CHESTS) do
+		if chest.kind == kind then
+			local entries = poolOf(chestKey, data)
+			for tier, list in pairs(entries) do
+				for _, entry in ipairs(list) do
+					local entryKind, entryKey = Config.chestEntry(chestKey, entry)
+					if entryKind == kind and not seen[entryKey] then
+						seen[entryKey] = true
+						pool[tier] = pool[tier] or {}
+						table.insert(pool[tier], entryKey)
+					end
+				end
+			end
+		end
+	end
+	for _, list in pairs(pool) do
+		table.sort(list)
+	end
+	return pool
+end
+
+-- ONE TIER UP, TAKING NOTHING AND CHARGING NOTHING.
+--
+-- THE COMBINE UI HAS LEFT THE CRATES TAB and a physical station on the street
+-- has taken it over (2026-09-23). `combine` above is untouched and is still
+-- the route that consumes spares; this is the shape a station may prefer,
+-- because it wants to decide for itself what the inputs are and what the
+-- reveal looks like.
+--
+-- IT CONSUMES NOTHING, WHICH IS THE ENTIRE CONTRACT AND IS THE ONE THING A
+-- CALLER MUST GET RIGHT. Call this FIRST and consume the player's inputs only
+-- on a non-nil answer. Consuming first and calling second is how five spares
+-- are eaten by a pool that had nothing left in it -- which is the failure
+-- `combine` orders its own refusals to avoid, and the reason that function
+-- takes the spares last.
+--
+-- Returns (kind, key, tier) or nil. The CALLER owns the reveal: no
+-- `ChestResult` is fired, because a station's own animation is not a crate
+-- reel and a payload naming no chest is dropped by the one client that draws
+-- them. The grant is still said out loud here, so this can never be silent.
+function ChestService.rollUp(player: Player, fromTier: string, kind: string): (string?, string?, string?)
+	local data = DataService.get(player)
+	if not data or type(fromTier) ~= "string" or type(kind) ~= "string" then
+		return nil
+	end
+	if kind ~= "skin" and kind ~= "coat" then
+		return nil
+	end
+	local from = table.find(TIERS, fromTier)
+	if not from then
+		return nil
+	end
+	-- THE SAME ROOM-ON-THE-LAWN GATE EVERY OTHER ROUTE TO A PIGGY TAKES, and
+	-- ahead of the climb for the reason `combine` asks ahead of consuming:
+	-- placement IS ownership, so a piggy with nowhere to stand is a prize that
+	-- cannot be handed over.
+	if kind == "skin" and Config.firstFreePiggySlot(data) == nil then
+		notify(player, "Your lawn is full. Make room for a piggy first.", "warn")
+		return nil
+	end
+
+	local pool = unownedByKind(data, kind)
+	local target = math.min(from + rollClimb(), #TIERS)
+
+	-- THE CLIMB IS WHAT WAS ROLLED; WHERE IT LANDS IS WHAT IS STOCKED. Walked
+	-- DOWN from the target first, so a lucky three-tier climb into an
+	-- exhausted legendary pool pays the epic it passed through rather than
+	-- nothing -- and never below `from + 1`, because this is a roll UP. Only
+	-- then upward, so a player who owns every epic can still be handed the
+	-- legendary above it.
+	local landed = nil
+	for step = target, from + 1, -1 do
+		local entries = pool[TIERS[step]]
+		if entries and #entries > 0 then
+			landed = step
+			break
+		end
+	end
+	if not landed then
+		for step = target + 1, #TIERS do
+			local entries = pool[TIERS[step]]
+			if entries and #entries > 0 then
+				landed = step
+				break
+			end
+		end
+	end
+	if not landed then
+		-- Never fail silently, and name what is actually true: there is
+		-- nothing left ABOVE this tier rather than nothing left at all.
+		notify(player, ("You already have everything above %s."):format(fromTier), "warn")
+		return nil
+	end
+
+	local tier = TIERS[landed]
+	local entries = pool[tier]
+	local key = entries[math.random(1, #entries)]
+	handOver(player, data, kind, key)
+
+	ChestService.push(player)
+	pushBalances(player)
+
+	local spec = Config.getSetItem(kind, key)
+	notify(player, ("%s %s!"):format(tier:upper(), (spec and spec.name) or key), "good")
+	return kind, key, tier
+end
+
 -- A client-named list, rebuilt from known-good parts rather than trusted. Every
 -- entry has to be a real catalogue item AT THIS TIER and a spare this player
 -- actually holds, counted as a multiset so three of the same key needs three of
@@ -595,22 +904,10 @@ function ChestService.combine(player: Player, tier: string, chestKey: string,
 		return
 	end
 
-	-- How far up. Clamped at legendary, so combining epics is simply a
-	-- legendary rather than a wasted roll.
-	local ticket, climb = math.random() * 100, 1
-	for steps = 1, 3 do
-		local weight = Config.COMBINE.odds[steps]
-		if weight then
-			ticket -= weight
-			if ticket <= 0 then
-				climb = steps
-				break
-			end
-		end
-	end
+	local climb = rollClimb()
 	local target = TIERS[math.min(from + climb, #TIERS)]
 
-	local _, pool = liveOdds(chestKey)
+	local _, pool = liveOdds(chestKey, data)
 	local entries = pool[target]
 	if not entries or #entries == 0 then
 		notify(player, ("The %s has no %s to give yet."):format(chest.name, target), "warn")
@@ -745,13 +1042,22 @@ function ChestService.push(player: Player)
 		end
 	end
 
+	-- WHAT A RESTRICTED PLAYER MAY NOT BE OFFERED, asked once per push rather
+	-- than once per crate: it is a fact about the PLAYER, and
+	-- `ProductService.restricted` is memoised anyway.
+	local restricted = Products().restricted(player)
+
 	local chests = {}
 	for key, chest in pairs(Config.CHESTS) do
-		local odds, pool, total = liveOdds(key)
+		-- THE FULL STOCK DECIDES WHETHER THE CRATE IS ON THE SHELF AND THE
+		-- UNOWNED STOCK DECIDES WHETHER IT CAN BE OPENED, and conflating the
+		-- two would delete a finished crate from the tab -- which reads as a
+		-- shop that failed to load rather than as a collection somebody has
+		-- completed.
+		local pool, total = poolOf(key)
 		if total > 0 then
 			local owned = 0
-			for tier, entries in pairs(pool) do
-				local _ = tier
+			for _, entries in pairs(pool) do
 				for _, entry in ipairs(entries) do
 					local kind, itemKey = Config.chestEntry(key, entry)
 					if SetService.owns(data, kind, itemKey) then
@@ -759,6 +1065,13 @@ function ChestService.push(player: Player)
 					end
 				end
 			end
+			-- THE ODDS THE SERVER WOULD ACTUALLY ROLL WITH, which is what the
+			-- paid random item rule asks to be disclosed. They are the UNOWNED
+			-- pool's, renormalised, so the percentages on the card are the
+			-- ones the purchase would really be made at rather than the
+			-- table's.
+			local odds, _, left = liveOdds(key, data)
+			local robux = Products().crateRobux(key)
 			chests[key] = {
 				name = chest.name,
 				order = chest.order,
@@ -768,6 +1081,22 @@ function ChestService.push(player: Player)
 				odds = odds,
 				owned = owned,
 				total = total,
+				-- WHAT IT COSTS IN ROBUX, AND WHICH PRODUCT OPENS IT. Zero
+				-- robux is a crate that is earned and never sold (the event
+				-- cache); a price with a zero product is one whose developer
+				-- product does not exist yet, which the card reads as COMING
+				-- SOON -- the same shape `PassService.idOf` gives a pass.
+				robux = robux,
+				productId = Products().crateProduct(key),
+				-- NOTHING LEFT TO WIN. Sent as a FLAG rather than left to the
+				-- client to infer from `owned == total`: the two differ
+				-- whenever a tier carries stock and no authorised odds, and
+				-- the server is the only end that knows which.
+				complete = left == 0 or next(odds) == nil,
+				-- THE SERVER'S OWN SENTENCE, so the card and the refusal
+				-- cannot disagree about why a crate will not open. nil means
+				-- it would.
+				refusal = ChestService.whyCannotOpen(player, key),
 			}
 		end
 	end
@@ -800,6 +1129,12 @@ function ChestService.push(player: Player)
 
 	Remotes.get("ChestState"):FireClient(player, {
 		chests = chests,
+		-- ROBLOX'S PAID RANDOM ITEM GATE, AS ONE BOOLEAN. True means this
+		-- player may not be prompted for a crate at all -- and the card has to
+		-- SAY so rather than silently dropping its button, which is the
+		-- "refused rather than meeting a button that does nothing" half of
+		-- that rule. Per client, because it is per player.
+		restricted = restricted,
 		buybacks = buybacks,
 		buybacksExpireAt = Config.seasonEndsAt(),
 		spares = spares,
@@ -836,10 +1171,21 @@ function ChestService.start()
 		end
 	end)
 
-	-- THERE IS NO `ChestOpen` HANDLER. A crate is earned rather than bought,
-	-- so nothing a client fires may open one -- the buy button and its remote
-	-- retired together, and `grantFree` is reached only from the daily ladder,
-	-- a rebirth and events.
+	-- THERE IS NO `ChestOpen` HANDLER, AND THE ROBUX ROUTE DID NOT ADD ONE.
+	-- A paid crate arrives as a `ProcessReceipt` callback rather than as a
+	-- remote, which is what stops a client opening one for nothing by firing
+	-- the channel; the free routes are the daily ladder, a rebirth and an
+	-- event, and all three are server calls.
+	--
+	-- REGISTERED HERE AND STARTED HERE, so no line in `Main` is load-bearing
+	-- for a purchase working. ProductService requires Config and DataService
+	-- and nothing else precisely so this direction is the only one.
+	Products().onCrateReceipt(ChestService.openPaid)
+	-- The policy answer arrives on a web call a beat after the join, and the
+	-- card has to repaint when it does or it sits on "not available here" for
+	-- the session.
+	Products().onPolicy(ChestService.push)
+	Products().start()
 
 	Remotes.get("ChestCombine").OnServerEvent:Connect(function(player, tier, chestKey, entries)
 		if type(tier) ~= "string" or type(chestKey) ~= "string" then

@@ -88,6 +88,16 @@ local StealthService = require(script.Parent.StealthService)
 
 local GadgetService = {}
 
+-- THE ZAPPER KNOCKS A LASSOED CATCH LOOSE (docs/LASSO-PLAN.md section 3).
+-- `PiggyHaulService` owns the knock; `Main` registers it here, because a
+-- require of that file from this one would put the whole haul chain behind
+-- every gadget. Nil is simply no knock.
+local zapKnock: ((Player, Player) -> boolean)? = nil
+
+function GadgetService.registerZapKnock(fn: (Player, Player) -> boolean)
+	zapKnock = fn
+end
+
 local lastThrow: { [Player]: number } = {}
 
 -- Declared up here because `throw` is written above them and reads them: a
@@ -275,6 +285,14 @@ function showHit(victim: any, spec: any, from: Vector3, dir: Vector3?)
 	if not character then
 		return
 	end
+	-- THE SLIP (designer, 2026-09-23): "cartoon-slip-no-fall" on anybody a
+	-- plunger knocks flat, player or neighbour, played in the WORLD so the
+	-- thrower and everybody nearby hear the pratfall -- it is the one gadget
+	-- hit that is a joke on purpose. `knock` is the plunger's alone.
+	if spec.knock then
+		SoundKit.at(character:GetPivot().Position, Config.SOUNDS.PLUNGER_SLIP,
+			{ name = "PlungerSlip", volume = 0.7, distance = 70 })
+	end
 	if spec.knock and isPlayer then
 		local root = getRoot(victim :: Player)
 		local away = if root then root.Position - from else Vector3.zAxis
@@ -392,6 +410,13 @@ function land(player: Player, data: any, key: string, spec: any, target: any?, d
 	-- the game then declined to apply.
 	if landed then
 		showHit(target, spec, from, stoppedDir)
+		-- THE ZAPPER'S TUNED HIT, and only that: a stun from the beam on a
+		-- player carrying a lassoed catch drops it dazed. Asked by the spec's
+		-- own shape (a beam that stops you) rather than by key, and NOT by a
+		-- `knock` field -- that would play the plunger's slip on the zapper.
+		if zapKnock and spec.beam ~= nil and (spec.stun or 0) > 0 and typeof(target) == "Instance" then
+			zapKnock(target :: Player, player)
+		end
 	end
 
 	-- The zapper's sound is its FIRE, played when the arc goes out.

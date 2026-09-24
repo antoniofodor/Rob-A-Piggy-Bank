@@ -52,6 +52,9 @@ local TrafficService = require(script.Parent.TrafficService)
 local EventService = require(script.Parent.EventService)
 local SetService = require(script.Parent.SetService)
 local ChestService = require(script.Parent.ChestService)
+local CombineService = require(script.Parent.CombineService)
+local PiggyHaulService = require(script.Parent.PiggyHaulService)
+local CombineStation = require(ReplicatedStorage.Shared.CombineStation)
 local SocialService = require(script.Parent.SocialService)
 local RideService = require(script.Parent.RideService)
 local GadgetService = require(script.Parent.GadgetService)
@@ -248,6 +251,65 @@ end
 -- to you -- `commands.spares` re-granting an item a probe had just sold is
 -- already on the record -- and these two are the same door every real source
 -- goes through, so what is being tested is the real path.
+-- FEED THE PIGGY PRESS, THROUGH THE SHIPPED PATH.
+--
+-- A server command is not a dev tool until it is on the panel, and this one
+-- exists because the press cannot be exercised any other way from a solo
+-- session: both ends of the loop are ProximityPrompts, and a prompt is shown
+-- against the CAMERA as well as the character -- so a probe that teleports
+-- onto one is testing a prompt that was never shown.
+--
+-- IT MOVES THE CHARACTER AND CALLS THE REAL FUNCTIONS. Nothing here
+-- reimplements a take or a feed, and `reach` is a genuine distance test, so
+-- the character really is stood at the pedestal and really is stood at the
+-- press. The PROMPT is the only thing skipped.
+commands.press = function(player, count)
+	local n = math.clamp(math.floor(tonumber(count) or 1), 1, 24)
+	local data = DataService.get(player)
+	local plot = PlotService.getPlot(player)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not data or not plot or not root then
+		return "no plot, save or character to drive"
+	end
+	local at = CombineStation.placement()
+	local fed, stopped = 0, ""
+	for _ = 1, n do
+		-- THE LAWN ONLY, because a hall pedestal needs the player inside the
+		-- house and this command is about the press rather than the door.
+		local slot = nil
+		local slots = Config.piggySlots(data)
+		for index = 1, Config.PIGGY_LAWN_SLOT_COUNT do
+			local entry = slots[index]
+			if entry and entry.key then
+				slot = index
+				break
+			end
+		end
+		if not slot then
+			stopped = "; lawn empty"
+			break
+		end
+		local pedestal = PlotService.pedestalAt(plot, slot)
+		if not pedestal then
+			stopped = "; no pedestal at slot " .. tostring(slot)
+			break
+		end
+		root.CFrame = CFrame.new(pedestal.plinth.Position + Vector3.new(0, 4, 0))
+		task.wait(0.15)
+		PiggyHaulService.take(player, plot, slot)
+		if not PiggyHaulService.isHauling(player) then
+			stopped = "; the take refused"
+			break
+		end
+		root.CFrame = CFrame.new(at.x, 6, at.z)
+		task.wait(0.15)
+		CombineService.feed(player)
+		fed += 1
+	end
+	return ("fed %d to the press%s"):format(fed, stopped)
+end
+
 commands.piggy = function(player, key)
 	local data = DataService.get(player)
 	if not data then
@@ -422,19 +484,48 @@ commands.fillpiggies = function(player)
 	end
 	table.sort(keys)
 
-	local placed = 0
-	for _, skinKey in ipairs(keys) do
-		if Config.firstFreePiggySlot(data) == nil then
+	-- EVERY SLOT THE SAVE CAN HOLD TODAY (designer, 2026-09-23): the lawn's
+	-- six, then the indoor plinths this rebirth count has unlocked --
+	-- `Config.indoorPlots(rebirths)` of them, numbered from
+	-- `PIGGY_LAWN_SLOT_COUNT + 1` exactly as `HouseInterior.slotOfPlot`
+	-- numbers a hallway's plots. Through `Config.placePiggy`, which is the
+	-- same door the hall's own Place prompt uses, so a slot the interior
+	-- would refuse is refused here too. Locked indoor slots are left empty:
+	-- a piggy on a plinth nobody can walk to is the drift `piggystate`
+	-- exists to catch.
+	local lawn, indoor = 0, 0
+	local free: { number } = {}
+	for slot = 1, Config.PIGGY_LAWN_SLOT_COUNT do
+		table.insert(free, slot)
+	end
+	local unlocked = Config.indoorPlots(data.rebirths)
+	for i = 1, unlocked do
+		table.insert(free, Config.PIGGY_LAWN_SLOT_COUNT + i)
+	end
+	local slots = Config.piggySlots(data)
+	local next_ = 1
+	for _, slot in ipairs(free) do
+		if slots[slot].key ~= nil then
+			continue
+		end
+		local skinKey = keys[next_]
+		if not skinKey then
 			break
 		end
-		if Config.addPiggy(data, skinKey, true) ~= nil then
-			placed += 1
+		next_ += 1
+		if Config.placePiggy(data, skinKey, slot) then
+			if slot <= Config.PIGGY_LAWN_SLOT_COUNT then
+				lawn += 1
+			else
+				indoor += 1
+			end
 		end
 	end
 	CosmeticsService.applyToPlot(player)
 	CosmeticsService.push(player)
 	DataService.save(player)
-	return ("Placed %d piggies"):format(placed)
+	return ("Placed %d piggies: %d on the lawn, %d indoors (%d indoor slots unlocked at %d rebirths)"):format(
+		lawn + indoor, lawn, indoor, unlocked, data.rebirths or 0)
 end
 
 -- OWNED AGAINST STANDING, WHICH IS THE ONE THING NOTHING ELSE CAN SAY.
@@ -493,8 +584,17 @@ commands.piggystate = function(player)
 			warn(("[piggystate] %s owned=%d standing=%d"):format(key, owned, placed[key] or 0))
 		end
 	end
-	return ("%d/%d plinths + till %s; %d keys; %s"):format(standing,
-		Config.PIGGY_LAWN_SLOT_COUNT, tostring(till), #keys,
+	-- Lawn and hallway counted apart: the lawn is always six, the hallway is
+	-- whatever this rebirth count has unlocked, and "37/6" read as a drift.
+	local lawnStanding = 0
+	for slot = 1, Config.PIGGY_LAWN_SLOT_COUNT do
+		if Config.piggySlots(data)[slot].key then
+			lawnStanding += 1
+		end
+	end
+	local unlocked = Config.indoorPlots(data.rebirths)
+	return ("lawn %d/%d, indoors %d/%d + till %s; %d keys; %s"):format(lawnStanding,
+		Config.PIGGY_LAWN_SLOT_COUNT, standing - lawnStanding, unlocked, tostring(till), #keys,
 		if bad == 0 then "owned matches standing" else ("%d MISMATCHES, see the log"):format(bad))
 end
 
@@ -503,8 +603,9 @@ commands.clearpiggies = function(player)
 	if not data then
 		return nil
 	end
+	-- The lawn AND the hallway, so "clear" and "fill" describe one shelf.
 	local taken = 0
-	for slot = 1, Config.PIGGY_LAWN_SLOT_COUNT do
+	for slot = 1, Config.PIGGY_SLOT_COUNT do
 		if Config.removePiggy(data, slot) ~= nil then
 			taken += 1
 		end
@@ -513,6 +614,36 @@ commands.clearpiggies = function(player)
 	CosmeticsService.push(player)
 	DataService.save(player)
 	return ("Cleared %d pedestals"):format(taken)
+end
+
+-- THE INVERSE OF `unlockall`, FOR THE SKIN WARDROBE ONLY.
+--
+-- `unlockall` has never had one, and its absence blocks testing every ROLL
+-- in this game rather than any one feature: a crate, a combine and the press
+-- all draw from `unownedByKind`, so a dev save with everything owned makes
+-- all three refuse with "you already have everything above X" -- which is
+-- correct, and indistinguishable from the roll being broken.
+--
+-- SKINS ONLY, and deliberately not the houses, rides, accessories or
+-- effects: those are what a dev save is usually set up FOR, and the piggy
+-- wardrobe is the one `unlockall` can hand straight back.
+commands.lockskins = function(player)
+	local data = DataService.get(player)
+	if not data then
+		return nil
+	end
+	local n = 0
+	for key in pairs(data.cosmetics.owned) do
+		-- The EQUIPPED one stays, or `getSkin` falls back and the till
+		-- silently repaints itself mid-test.
+		if key ~= data.cosmetics.skin then
+			data.cosmetics.owned[key] = nil
+			n += 1
+		end
+	end
+	CosmeticsService.push(player)
+	DataService.save(player)
+	return ("locked %d skins; `unlockall` hands them back"):format(n)
 end
 
 commands.unlockall = function(player)
@@ -734,26 +865,27 @@ commands.mostwanted = function(player)
 		:format(record, Config.bailPercent())
 end
 
--- Reports what the patrol is actually doing rather than what it looks like it
--- is doing -- the same reason `dogstate` exists. The car being on the street
--- says nothing about whether an alarm is pending or whether the pursuit has
--- already committed, and those are the two states a bug would hide in.
--- Puts an officer onto you without needing a second player and a real
--- robbery. `amount` is the notional loot the bail is calculated from.
--- Smashes the nearest RESIDENT's pig through the real path -- `whyCannotSteal`,
--- the drain, `attachLoot`, the carry, the alarm, the dog -- so the coin carry
--- (the money bag, its label, the nab prompt and the delivery home) can be
--- driven in a solo Studio session where no prompt can be held (RenderStepped
--- does not fire when the viewport is not drawing, so no prompt is ever shown).
--- Residents only, on purpose: a dev command may never rob a real player, and
--- a shop is skipped because its vault has to be robbed from inside the room.
-commands.smash = function(player)
+-- A CLEAN CRACK ON THE NEAREST RESIDENT'S PIG, through the real path: the
+-- lock opens with `attemptSteal` and every slice is landed by `crackTap`, the
+-- server's own judge, at the moment its own marker is in its own zone. It is
+-- here so the coin carry (the money bag, its label, the nab prompt and the
+-- delivery home) can be driven in a solo Studio session where no prompt can
+-- be held (RenderStepped does not fire when the viewport is not drawing, so
+-- no prompt is ever shown). It replaced `smash` when the smash was retired
+-- (2026-09-23). Residents only, on purpose: a dev command may never rob a
+-- real player, and a shop is skipped because its vault has to be robbed from
+-- inside the room. You have to stand near the pig, because a crack ends the
+-- moment its thief walks away from it.
+commands.crack = function(player)
 	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+	if not root then
+		return "No character."
+	end
 	local best, bestDist = nil, nil
 	for _, plot in ipairs(PlotService.getAll()) do
 		local resident = ResidentService.get(plot)
 		if resident and not plot.shop and plot.piggy and plot.piggy.body then
-			local d = if root then (plot.piggy.body.Position - root.Position).Magnitude else plot.index
+			local d = (plot.piggy.body.Position - root.Position).Magnitude
 			if bestDist == nil or d < bestDist then
 				best, bestDist = resident, d
 			end
@@ -762,8 +894,22 @@ commands.smash = function(player)
 	if not best then
 		return "Nobody to rob: no resident on a house plot."
 	end
-	HeistService.smash(player, best)
-	return ("Smashed %s's pig, %.0f studs away. Check your arms."):format(best.name, bestDist or 0)
+	if (bestDist or math.huge) > Config.STEAL_RANGE then
+		return ("The nearest resident pig (%s's) is %.0f studs away; stand within %d of it."):format(
+			best.name, bestDist or 0, Config.STEAL_RANGE)
+	end
+	HeistService.attemptSteal(player, best)
+	if not HeistService.isCracking(player) then
+		return "The crack would not open; the refusal is in your toasts."
+	end
+	task.spawn(function()
+		for _ = 1, Config.CRACK.maxSteps do
+			if not HeistService.devTapInZone(player) then
+				break
+			end
+		end
+	end)
+	return ("Cracking %s's pig clean, %d slices. Check your arms."):format(best.name, Config.CRACK.maxSteps)
 end
 
 commands.bust = function(player, amount)
@@ -846,9 +992,28 @@ commands.animdump = function(player)
 		dodgeRoll = DodgeRoll.buildSequence,
 		sneak = SneakWalk.buildSequence,
 		carry = CarryPose.buildSequence,
+		carrySling = function() return CarryPose.buildSequence("sling") end,
 		throw = ThrowPose.buildSequence,
 		cameraSnap = CameraPose.buildSequence,
 	}
+	-- THE SEVEN LASSO POSES, from their own builder. Required defensively: a
+	-- missing or broken module reports each key MISSING below rather than
+	-- taking the whole dump down.
+	do
+		local ok, LassoPose = pcall(function()
+			return require(game:GetService("ReplicatedStorage").Shared.LassoPose)
+		end)
+		if ok and type(LassoPose) == "table" and type(LassoPose.KEYS) == "table"
+			and type(LassoPose.buildSequence) == "function" then
+			for _, key in ipairs(LassoPose.KEYS) do
+				own[key] = function()
+					return LassoPose.buildSequence(key)
+				end
+			end
+		else
+			table.insert(failed, "lasso poses (LassoPose missing or has no KEYS/buildSequence)")
+		end
+	end
 	-- WALKED RATHER THAN LISTED A SECOND TIME, which is what the paragraph
 	-- above actually promises. There used to be a hardcoded `{"dodgeRoll",
 	-- "sneak"}` here as well as the table, so "one row" was really two -- and
@@ -1142,6 +1307,64 @@ end
 
 commands.herdstate = function(player)
 	return HerdService.status()
+end
+
+-- THE LASSO (docs/LASSO-PLAN.md). `lassos` hands the admin ten of every tier
+-- -- the Elite one included, because testing its odds must not cost Robux --
+-- through the same stock table a purchase fills, and repaints the card.
+commands.lassos = function(player, count)
+	local data = DataService.get(player)
+	if not data then
+		return nil
+	end
+	if type(data.consumables) ~= "table" then
+		data.consumables = {}
+	end
+	local n = if type(count) == "number" then math.clamp(math.floor(count), 0, 99) else 10
+	for key in pairs(Config.LASSOS) do
+		data.consumables[key] = n
+	end
+	DataService.save(player)
+	require(script.Parent.LassoService).push(player)
+	return ("%d of every lasso"):format(n)
+end
+
+-- ONE WILD PIGGY OF A CHOSEN RARITY, DROPPED BESIDE YOU. It bypasses
+-- `HERDS.tierCap` -- FOR TESTING ONLY, and that is its whole reason to exist:
+-- the cap keeps epics and legendaries out of the wild, and a lasso's odds on
+-- one cannot be tried any other way. Picks from the herd pool first (no
+-- auras, nothing earned elsewhere) and falls back to any skin of the rarity
+-- that is not earned elsewhere, since the top tiers are mostly aura skins.
+commands.droppiggy = function(player, rarity)
+	local tier = if type(rarity) == "string" then rarity else "common"
+	if Config.rarityRank(tier) < 1 then
+		return ("unknown rarity %q"):format(tier)
+	end
+	local character = player.Character
+	local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+	if not rootPart or not rootPart:IsA("BasePart") then
+		return "no character to drop it beside"
+	end
+	local pool = Config.herdSkinPool(tier)
+	if #pool == 0 then
+		for key, spec in pairs(Config.SKINS) do
+			if not Config.isEarnedElsewhere(spec) and Config.rarityOf(spec) == tier then
+				table.insert(pool, key)
+			end
+		end
+		table.sort(pool)
+	end
+	if #pool == 0 then
+		return ("no %s piggy to drop"):format(tier)
+	end
+	local key = pool[math.random(1, #pool)]
+	local flat = rootPart.CFrame.LookVector * Vector3.new(1, 0, 1)
+	local forward = if flat.Magnitude > 0.01 then flat.Unit else Vector3.zAxis
+	local id, why = HerdService.dropSingle(key, rootPart.Position + forward * 14)
+	if not id then
+		return why or "could not drop one"
+	end
+	return ("Dropped a %s %s (%s) in front of you."):format(tier, key, id)
 end
 
 -- THE SEASON WINDOW is what the buy-back claims and the hot-skin timer are

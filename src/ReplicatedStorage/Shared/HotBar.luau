@@ -103,6 +103,11 @@ local KEY_SLOTS: { { key: Enum.KeyCode, label: string } } = {
 	-- A LETTER, because the number row runs out at ten. Checked against the
 	-- rest of the map: Q dodge/trick, B shop, V garage, F2 admin. G is free.
 	{ key = Enum.KeyCode.R, label = "R" },
+	-- THE TWELFTH, FOR THE LASSOS. G was the smash prompt's key and the smash
+	-- is retired; grepped before taking it -- no `KeyCode.G` and no prompt's
+	-- `KeyboardKeyCode` anywhere in src/. The map is now Q dodge/trick, B
+	-- shop, V garage, R and G here, C, E, F, X on prompts, F2 admin.
+	{ key = Enum.KeyCode.G, label = "G" },
 }
 
 -- EVERY item the bar can ever hold, in its designed order. The arrangement is
@@ -119,6 +124,30 @@ HotBar.ITEMS = {
 	-- "raincoat" and "ladder" were here; both are retired with the thief kit,
 	-- and dropping them is what strips them out of a saved arrangement.
 }
+
+-- THE LASSOS (docs/LASSO-PLAN.md), appended in their own tier order.
+-- DERIVED FROM `Config.LASSOS` RATHER THAN TYPED, so a renamed or added tier
+-- lands on the bar with nothing here to remember. A key some other
+-- consumable already owns is SKIPPED rather than listed twice: a slot is
+-- keyed by item, and a second `golden` would take the Golden Bone's tile.
+-- `Config.auditLassos` refuses such a collision at boot; this only keeps the
+-- bar from making it worse in the meantime.
+do
+	local Config = require(ReplicatedStorage.Shared.Config)
+	local lassos = {}
+	for key, spec in pairs(Config.LASSOS or {}) do
+		if not table.find(HotBar.ITEMS, key) then
+			table.insert(lassos, { key = key, order = spec.order or 99 })
+		end
+	end
+	table.sort(lassos, function(a, b)
+		if a.order ~= b.order then return a.order < b.order end
+		return a.key < b.key
+	end)
+	for _, entry in ipairs(lassos) do
+		table.insert(HotBar.ITEMS, entry.key)
+	end
+end
 
 -- Set by ClientMain. The bar knows how to lay itself out and nothing about
 -- whether the player is holding anything or standing inside a wheelie bin.

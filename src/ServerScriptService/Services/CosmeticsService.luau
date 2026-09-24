@@ -128,6 +128,37 @@ function CosmeticsService.buyHouse(player: Player, requested: string)
 		return
 	end
 
+	-- THE REBIRTH GATE, AND IT SITS ABOVE THE PRICE FOR THE REASON THE
+	-- GUARDIANS' DOES (designer, 2026-09-23).
+	--
+	-- `unlockRebirths` on a `Config.HOUSE_TIERS` row is the rebirth that puts
+	-- that house ON SALE: below it no amount of coins buys it. The OWNED
+	-- branch above is deliberately untouched -- rebirth wipes power and never
+	-- cosmetics, so a house bought at rebirth 6 is still lived in at rebirth
+	-- 0, and still would the day the ladder moved under it. Read through
+	-- `or 0`, so a row with no gate is a house anybody may buy: that is what
+	-- every row was before the ladder landed, and it is what keeps this
+	-- booting on either side of the Config edit.
+	--
+	-- ABOVE THE PRICE, so a player short of both is told the one they cannot
+	-- earn their way past this rebirth. "You need 80M coins for that" is a
+	-- thing to act on, and acting on it for a house that is four rebirths
+	-- away would be the shop lying about what the coins were for.
+	--
+	-- `theHouse` RATHER THAN `tier.name`, which is the same helper every other
+	-- line in this function uses: it is what keeps "Rebirth 6 unlocks The
+	-- Treehouse." from reading "the The Treehouse".
+	--
+	-- SAID OUT LOUD. The card already shows the wash and the rebirth
+	-- (`ShopWidgets.gate`), and it now lets the press through precisely so
+	-- that this sentence is what a nine-year-old gets back -- a refusal
+	-- nobody can see is indistinguishable from a broken feature.
+	local gate = tier.unlockRebirths or 0
+	if (data.rebirths or 0) < gate then
+		notify(player, ("Rebirth %d unlocks %s."):format(gate, theHouse(tier)), "warn")
+		return
+	end
+
 	local cost = tier.cost or 0
 	-- ONE refusal. There used to be a second -- "your piggy bank can't hold
 	-- that yet" -- for a price above the pig's capacity, because a bounded
@@ -180,8 +211,11 @@ function CosmeticsService.grantEarnedHouses(player: Player?, data: any): boolean
 			owned[tier.id] = true
 			granted = true
 			if player then
-				notify(player, ("You own every house on the street. %s is yours. Move in from the shop!")
-					:format(capitalise(theHouse(tier))), "good")
+				-- Moving house is a HOME & GARDEN shelf, and that shelf's only
+				-- door is the building now -- so the line names it rather than
+				-- a shop button that sells Robux and nothing else.
+				notify(player, ("You own every house on the street. %s is yours. Move in at %s!")
+					:format(capitalise(theHouse(tier)), Config.shopLocation("home") or "the shop"), "good")
 			end
 		end
 	end
@@ -842,6 +876,66 @@ function CosmeticsService.buyDogCoat(player: Player, key: string)
 		return
 	end
 
+	-- A CRATE COAT HAS NO COIN PRICE, AND THE REFUSAL SAYS WHICH CRATE
+	-- (designer, 2026-09-23).
+	--
+	-- Ten of the thirteen guardians moved out of the coin shop and into the
+	-- Guardian Crate, so `cost` is gone from their rows -- and `(nil or 0)`
+	-- is the free-item hole this project has already paid for twice (the
+	-- Tractor Beam unlocked for a whole server). Without this branch a
+	-- request for one would fall through the gate, meet `data.coins < 0`,
+	-- and hand the coat over FOR NOTHING.
+	--
+	-- ABOVE THE REBIRTH GATE, because a crate coat carries no gate either --
+	-- reaching the gate check would name rebirth 0 and read as nonsense.
+	-- BELOW the owned branch, because owning one still makes this an equip:
+	-- a coat that came out of a crate is worn exactly as a bought one is.
+	--
+	-- THE TEST IS `coat.chest`, WHICH IS THE SAME ONE `chestPool` CLAIMS ON
+	-- rather than a second list of which coats are in a crate -- the
+	-- near-identical duplicate this project keeps recording. It names the
+	-- crate from the crate's own row for the same reason: the card says
+	-- FROM CRATE and this says which, and neither is a hardcoded string.
+	--
+	-- SAID OUT LOUD, for the rule above all others: the card already
+	-- declines to price it, so what reaches here is a stale client or a
+	-- poked remote, and both want the same visible answer.
+	if coat.chest ~= nil then
+		local crate = Config.CHESTS[coat.chest]
+		notify(player, ("The %s comes from the %s."):format(
+			coat.name, (crate and crate.name) or "crates"), "warn")
+		return
+	end
+
+	-- THE REBIRTH GATE, AND IT SITS ABOVE THE PRICE ON PURPOSE.
+	--
+	-- A guardian is gated behind rebirths as well as coins (designer,
+	-- 2026-09-23): `unlockRebirths` on its `Config.DOG_COATS` row is the
+	-- rebirth that puts it on sale, and below it no amount of coins buys
+	-- it. The owned branch above is deliberately UNTOUCHED -- rebirth wipes
+	-- power and never cosmetics, so a coat bought at rebirth 4 still
+	-- equips at rebirth 0, and still would the day the ladder moved under
+	-- it. Read through `or 0`: a row with no gate is a coat anybody may
+	-- buy, which is what every row was before the ladder landed and what
+	-- keeps this booting on either side of the Config edit.
+	--
+	-- Above the price so a player who is short of BOTH is told the one
+	-- they cannot earn their way past this rebirth -- "need 4.2M more"
+	-- is a thing to act on, and acting on it for a coat that is still
+	-- three rebirths away would be the shop lying about what the coins
+	-- were for.
+	--
+	-- SAID OUT LOUD, for the rule this project holds above all others: a
+	-- rejection nobody can see is indistinguishable from a broken
+	-- feature. The card already declines to ask (`ShopGuardianCards.paint`
+	-- marks it Locked), so what reaches here is a stale or forged
+	-- request, and it is refused by naming the rebirth that opens it.
+	local gate = coat.unlockRebirths or 0
+	if (data.rebirths or 0) < gate then
+		notify(player, ("Rebirth %d unlocks the %s."):format(gate, coat.name), "warn")
+		return
+	end
+
 	local cost = coat.cost or 0
 	if data.coins < cost then
 		notify(player, ("Need %s more coins for %s."):format(
@@ -1114,6 +1208,17 @@ function CosmeticsService.push(player: Player)
 			owned = owned,
 			current = tier.id == shown.id,
 			forSale = not owned and tier.earned == nil,
+			-- THE REBIRTH LADDER, AND `locked` IS THE SERVER'S VERDICT rather
+			-- than a number the card compares for itself -- so the wash over
+			-- the card and the refusal in `buyHouse` cannot disagree about
+			-- which rebirth opens what. The same shape the guardian coats
+			-- send, and the same reason: it is also what the shelf ORDERS on
+			-- (`ShopWidgets.gateRank`), so the gate crosses the wire once and
+			-- drives both. An OWNED house is never locked, because rebirth
+			-- wipes power and never cosmetics. `or 0` until every row carries
+			-- the field.
+			unlockRebirths = tier.unlockRebirths or 0,
+			locked = not owned and (data.rebirths or 0) < (tier.unlockRebirths or 0),
 			earned = tier.earned ~= nil or nil,
 			earnedHave = if tier.earned ~= nil then earnedHave else nil,
 			earnedNeed = if tier.earned ~= nil then earnedNeed else nil,
@@ -1231,12 +1336,46 @@ function CosmeticsService.push(player: Player)
 			cost = coat.cost or 0,
 			owned = dogsOwned[key] == true,
 			equipped = dogsWorn == key,
+			-- THE REBIRTH LADDER, AND `locked` IS THE SERVER'S VERDICT rather
+			-- than a number the client compares for itself, so the card and
+			-- the refusal in `buyDogCoat` cannot disagree about which rebirth
+			-- opens what -- the same reason the steal card prints the
+			-- server's own take. An OWNED coat is never locked: a coat bought
+			-- before the ladder moved is kept, because rebirth wipes power and
+			-- never cosmetics.
+			--
+			-- `or 0` IS THE COMMON CASE NOW RATHER THAN A TRANSITION. Two rows
+			-- carry the field -- Shadow and the Mastiff, the two coats still
+			-- sold for coins -- and the other eleven have no gate at all: a
+			-- crate coat is rolled and the free one is owned, so neither has a
+			-- SALE for a rebirth to open. A gate of 0 never locks, so the
+			-- eleven push `locked = false` by arithmetic rather than by a
+			-- branch.
+			unlockRebirths = coat.unlockRebirths or 0,
+			locked = dogsOwned[key] ~= true
+				and (data.rebirths or 0) < (coat.unlockRebirths or 0),
 			body = coat.fur,
 			trim = coat.collar,
-			-- Derived from the price, exactly as a skin's is. Every coat is
-			-- bought with coins today, so there is no explicit rarity to send
-			-- -- and the first one that ISN'T priced needs one in Config or it
-			-- silently borders itself common.
+			-- HOW A COAT IS OBTAINED, AS THE SERVER'S OWN VERDICT rather than
+			-- a `cost == 0` the client has to interpret -- which is the
+			-- ambiguity that put a gold `0` on ten drop-pool skins. A free
+			-- coat and a crate coat both push a cost of 0 and they are
+			-- opposite cards: one is always owned and one can never be
+			-- bought.
+			--
+			-- `fromCrate` IS THE `chest` TAG AS A BOOLEAN, not the crate key,
+			-- because the card only ever has to say FROM CRATE -- and sending
+			-- the key would invite a second copy of the crate's own name on
+			-- the client. `buyDogCoat` names the crate in its refusal, where
+			-- there is room for a sentence.
+			fromCrate = coat.chest ~= nil,
+			free = coat.free == true,
+			-- EXPLICIT WHERE THERE IS ONE, DERIVED FROM THE PRICE WHERE THERE
+			-- IS NOT -- `rarityOf`'s own order, unchanged. The ten crate coats
+			-- carry a tag because a crate-only row has no price left to derive
+			-- from (and would silently border itself common, which is the trap
+			-- the note here used to warn about); Shadow and the Mastiff are
+			-- still priced and still derive.
 			rarity = Config.rarityOf(coat),
 		}
 	end

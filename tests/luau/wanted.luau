@@ -275,6 +275,19 @@ check(alarms == 1, "and staying at five does not call it again")
 check(notifies(c, "stars. The patrol comes for you on every pass") == 1, "crossing the hunted line is said once")
 target = Social.getPursuitTarget()
 check(target == b, "five pinned against five real: the bigger sheet is the target")
+-- EVERY TARGET IS STOPPED FOR, NOT ONLY THE TOP ONE. A patrol car stops for
+-- whichever of these it drives past, so the per-player answer has to agree
+-- with the ranking about who counts -- here both b (pinned) and c (five real
+-- stars) are targets, and b outranks c.
+local isB, sheetB = Social.isPursuitTarget(b)
+local isC, sheetC = Social.isPursuitTarget(c)
+check(isB and sheetB == Social.getHeat(b), "the top target is a target, with its sheet")
+check(isC and sheetC == Social.getHeat(c), "and so is a target the ranking does not pick")
+for _, p in ipairs(Players:GetPlayers()) do
+	local isT = Social.isPursuitTarget(p)
+	check(isT == (Social.getStars(p) >= Config.WANTED_STARS.huntedFrom),
+		p.Name .. " is a target exactly when they have huntedFrom stars")
+end
 
 -- ---- ARREST: SHEET, BOARD, STARS, IN POLICESERVICE'S ORDER --------------------
 Social.clearHeat(b)

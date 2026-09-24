@@ -1041,6 +1041,12 @@ end
 -- patched, because the properties that would need patching are the gated
 -- ones.
 function PiggyModel.applySurface(part: BasePart, tier: any, isTrim: boolean?)
+	-- Smooth texture alpha needs the blended queue, not opaque alpha coverage.
+	-- Restore ordinary opacity when this same lawn mesh changes skins.
+	if part:GetAttribute("SpectralCoat") == true and tier.spectral ~= true then
+		part.Transparency = tier.transparency or 0
+		part:SetAttribute("SpectralCoat", nil)
+	end
 	local pack = Config.skinSurface(tier)
 	local worn = part:FindFirstChild(SURFACE_NAME)
 
@@ -1073,6 +1079,13 @@ function PiggyModel.applySurface(part: BasePart, tier: any, isTrim: boolean?)
 	local sa = template:Clone()
 	sa.Name = SURFACE_NAME
 	sa.Parent = part
+	if tier.authoredCoat == true then part.Color = Color3.new(1, 1, 1) end
+	if tier.spectral == true then
+		-- Alpha now controls transparency, so keep the authored RGB untinted.
+		part.Color = Color3.new(1, 1, 1)
+		part.Transparency = 0.02
+		part:SetAttribute("SpectralCoat", true)
+	end
 end
 
 -- ------------------------------------------------------------
@@ -1080,6 +1093,35 @@ end
 -- ------------------------------------------------------------
 
 local FUR_NAME = "FurTufts"
+
+-- The folder a skin's accessory geometry hangs in, and the skin it was
+-- built for. A FOLDER rather than loose parts because a set is 6 to 12
+-- MeshParts and the pig already carries a Body, a Trim, four legs, an aura
+-- and sometimes a ruff -- and because stripping one is then a single
+-- Destroy rather than a walk that has to know every part name it made.
+local ACCESSORY_NAME = "SkinAccessories"
+local ArcadeAnimator = require(script.Parent.ArcadeAnimator)
+local SpectralFX = require(script.Parent.SpectralFX)
+
+-- WHICH SKIN'S SET IS HANGING THERE, for the reason `FUR_SET_ATTRIBUTE`
+-- exists: reusing Rockslide's plates on Quartz would be one animal's
+-- geometry at another's coordinates, with nothing erroring.
+local ACCESSORY_SET_ATTRIBUTE = "AccessorySet"
+
+-- Where the SERVER parks each built set so every client can clone it.
+--
+-- `InsertService` IS SERVER-ONLY, AND THAT IS THE WHOLE REASON THIS
+-- EXISTS. Measured, from a real client: `LoadAsset` returns
+-- `InsertService cannot be used to load assets from the client`, and the
+-- per-mesh fallback cannot fetch a sub-asset of a Model either. So a shop
+-- card, a pedestal mini and a herd member -- all built on the client --
+-- would have shown the coat and no geometry while the lawn pig wore both.
+--
+-- THE SERVER BUILDS ONCE AND EVERYBODY CLONES, which is the same escape
+-- CLAUDE.md already records for CSG: the player-gear shells are built
+-- server-side and parked in ReplicatedStorage because `UnionAsync` is
+-- server-only too. Same problem, same shape, same answer.
+local ACCESSORY_TEMPLATE_FOLDER = "SkinAccessoryTemplates"
 
 -- WHICH SET A WORN TUFT CAME FROM, WRITTEN ON THE PART ITSELF.
 --
@@ -1098,6 +1140,8 @@ local FUR_SET_ATTRIBUTE = "FurSet"
 -- the body and trim already keep -- it just has to be keyed, or the first set
 -- loaded would be handed to every animal for the rest of the server's life.
 local furTemplates: { [string]: BasePart } = {}
+local accessoryTemplates: { [string]: Model } = {}
+local accessoryChecked: { [string]: boolean } = {}
 local furChecked: { [string]: boolean } = {}
 
 local function ensureFurTemplate(setName: string): BasePart?
@@ -1279,6 +1323,354 @@ function PiggyModel.applyFur(model: Instance, body: BasePart, tier: any, anchore
 		weld.Parent = part
 	end
 	part.Parent = model
+end
+
+-- Build one skin's accessory set once and keep it to clone from.
+--
+-- A MODEL OF PARTS AT THEIR OWN SEATS, so a clone is already the right
+-- SHAPE and `applyAccessories` only has to move and scale it. The seats,
+-- sizes and colours are read back out of Config at apply time rather than
+-- baked in, which is what lets a retuned offset take effect on the next
+-- dress instead of on the next server.
+--
+-- THE MODEL IS LOADED WHOLE RATHER THAN MESH BY MESH, and that is not an
+-- optimisation -- it is the only route that works. These meshes are
+-- sub-assets of an FBX uploaded as a Model, and a real Script cannot
+-- fetch one: measured, the running server failed the same two ids four
+-- times each with `could not fetch` while the MCP sandbox resolved both
+-- seconds later. See the note above `Config.SKIN_ACCESSORY_MODELS`. Loading
+-- the model hands back the identical MeshParts with their MeshIds already
+-- resolved, and costs ONE web call per skin instead of twelve.
+--
+-- THE PER-PART IDS STAY IN CONFIG AND ARE THE FALLBACK, for the day those
+-- meshes are re-uploaded standalone through the 3D Importer -- which is
+-- what `tools/upload_images.py` recommends and what every other mesh in
+-- this game already is.
+--
+-- STAMPED BEFORE THE LOAD, the rule `ensureFurTemplate` keeps: a set is
+-- attempted ONCE rather than on every skin change for the rest of the
+-- session, which on a failing asset is a web call per pig per swap.
+local function ensureAccessoryTemplate(key: string): Model?
+	if accessoryChecked[key] then
+		return accessoryTemplates[key]
+	end
+
+	local spec = Config.skinAccessories(key)
+	if not spec then
+		accessoryChecked[key] = true
+		return nil
+	end
+
+	-- A CLIENT TAKES THE SERVER'S COPY AND NEVER LOADS ITS OWN, for the
+	-- reason above ACCESSORY_TEMPLATE_FOLDER.
+	--
+	-- AND IT DOES NOT CACHE A MISS, which is the one place this differs from
+	-- every other template cache in this file. Those stamp before the load so
+	-- a dead asset costs ONE web call rather than one per pig per swap; a
+	-- client does no web call at all here, it waits on replication. Stamping
+	-- the miss made the client permanently bare: measured, the client's own
+	-- prewarm ran while the server was still warming five sets, timed out,
+	-- cached nil, and then every shop card for the rest of the session showed
+	-- the coat and no geometry -- on a shelf that had the set by then.
+	if not game:GetService("RunService"):IsServer() then
+		local shelf = ReplicatedStorage:FindFirstChild(ACCESSORY_TEMPLATE_FOLDER)
+		local shared = shelf and shelf:FindFirstChild(key)
+		if shared and shared:IsA("Model") then
+			local copy = shared:Clone()
+			copy.Name = ACCESSORY_NAME
+			accessoryTemplates[key] = copy
+			accessoryChecked[key] = true
+			return copy
+		end
+		-- Not an error, and not final: the server may simply not have
+		-- published this set yet. The next dress asks again.
+		return nil
+	end
+
+	accessoryChecked[key] = true
+	local insert = game:GetService("InsertService")
+	local holder = Instance.new("Model")
+	holder.Name = ACCESSORY_NAME
+
+	-- The parts this set's meshes will come from, keyed by the name the FBX
+	-- exported them under -- which is the same name Config's rows carry.
+	local source: { [string]: BasePart } = {}
+	local modelId = Config.SKIN_ACCESSORY_MODELS[key]
+	if type(modelId) == "string" and modelId ~= "" then
+		for attempt = 1, 3 do
+			local got, res = pcall(function()
+				return insert:LoadAsset(tonumber(modelId) or 0)
+			end)
+			if got and res then
+				for _, d in ipairs(res:GetDescendants()) do
+					if d:IsA("BasePart") then
+						source[d.Name] = d
+					end
+				end
+				break
+			end
+			if attempt == 3 then
+				warn(string.format(
+					"[PiggyModel] LoadAsset(%s) for %q failed: %s",
+					modelId, key, tostring(res)))
+			end
+			-- Backing off rather than hammering: what is being waited out is a
+			-- queue, not a broken asset.
+			task.wait(0.4 * attempt)
+		end
+	end
+
+	local built, missing = 0, 0
+	for _, entry in ipairs(spec) do
+		local mesh: any = source[entry.part]
+		if mesh then
+			mesh = mesh:Clone()
+		else
+			-- No model, or a part the model did not carry: try the standalone
+			-- mesh id, which is what a 3D Importer upload would give.
+			local got, res = pcall(function()
+				-- Box collision and no query, for the reason the ruff takes
+				-- them: this is decoration standing on the one object a thief
+				-- runs at and a dog patrols around, and precise collision on a
+				-- storm cloud buys nothing and costs a physics query per pig.
+				return insert:CreateMeshPartAsync(entry.id,
+					Enum.CollisionFidelity.Box, Enum.RenderFidelity.Precise)
+			end)
+			mesh = if got then res else nil
+		end
+
+		if not mesh then
+			missing += 1
+		else
+			-- SIZE IS WRITTEN HERE AND THE MESH'S OWN IS CHECKED, which is the
+			-- opposite of what the ruff does and is deliberate. A ruff is ONE
+			-- mesh whose authored size is the truth; these come out of an FBX
+			-- exported at a hundred times scale, so the mesh reads 233 studs
+			-- for a plate that is 2.33 -- the report's `sizeRobloxStuds` is the
+			-- real number and Config carries it. The RATIO is checked rather
+			-- than the size, because a silently wrong size is what buried the
+			-- lion's mane in its own body.
+			local authored = mesh.Size
+			local ratio = if authored.Magnitude > 0
+				then entry.size.Magnitude / authored.Magnitude
+				else 0
+			if ratio > 0 and (ratio < 0.005 or ratio > 1.5) then
+				warn(string.format(
+					"[PiggyModel] %s accessory %s: source is %.1f,%.1f,%.1f and"
+					.. " Config says %.3f,%.3f,%.3f (ratio %.4f) -- re-read"
+					.. " package/og-v1-asset-report.json for this skin.",
+					key, entry.part, authored.X, authored.Y, authored.Z,
+					entry.size.X, entry.size.Y, entry.size.Z, ratio))
+			end
+			mesh.Name = entry.part
+			mesh.Size = entry.size
+			mesh.Color = entry.colour
+			mesh.Material = entry.material
+			mesh.Transparency = entry.transparency or 0
+			mesh.Anchored = true
+			mesh.CanCollide = false
+			mesh.CanQuery = false
+			mesh.CanTouch = false
+			mesh.CastShadow = false
+			-- An FBX part can arrive wearing its own SurfaceAppearance or a
+			-- texture, and Config's colour is the one that decides here.
+			for _, child in ipairs(mesh:GetChildren()) do
+				if child:IsA("SurfaceAppearance") then
+					child:Destroy()
+				end
+			end
+            if entry.surfaceTemplate then
+                local packs = ReplicatedStorage.Shared:FindFirstChild("SurfacePacks")
+                local surface = packs and packs:FindFirstChild(entry.surfaceTemplate)
+                if surface then surface:Clone().Parent = mesh end
+            end
+            mesh:SetAttribute("ArcadeBaseSize", entry.size)
+			mesh.Parent = holder
+			built += 1
+		end
+	end
+
+	if built == 0 then
+		-- NEVER TAKE THE SKIN DOWN WITH IT. A pig with no plates is a
+		-- cosmetic fault; a build that throws is every skin change in the
+		-- game failing, which is what the surface pack already cost once.
+		warn(string.format(
+			"[PiggyModel] accessory set %q loaded none of its %d parts -- the"
+			.. " pig wears its coat and no geometry.", key, #spec))
+		holder:Destroy()
+		return nil
+	end
+	if missing > 0 then
+		warn(string.format("[PiggyModel] accessory set %q is %d of %d parts",
+			key, built, built + missing))
+	end
+
+	-- PARKED FOR THE CLIENTS, under the skin's own key. Replicating a Model
+	-- of MeshParts is what lets a shop card clone geometry it could never
+	-- have loaded itself.
+	local shelf = ReplicatedStorage:FindFirstChild(ACCESSORY_TEMPLATE_FOLDER)
+	if not shelf then
+		shelf = Instance.new("Folder")
+		shelf.Name = ACCESSORY_TEMPLATE_FOLDER
+		shelf.Parent = ReplicatedStorage
+	end
+	local published = holder:Clone()
+	published.Name = key
+	published.Parent = shelf
+
+	accessoryTemplates[key] = holder
+	return holder
+end
+
+-- The skins whose accessory sets exist, so `prewarm` can load them up
+-- front and no dress ever yields on a web call.
+local function accessorySetsInUse(): { string }
+	local names: { string } = {}
+	for key in pairs(Config.SKIN_ACCESSORIES) do
+		if Config.skinAccessories(key) then
+			table.insert(names, key)
+		end
+	end
+	table.sort(names)
+	return names
+end
+
+-- Give a pig its plates, points, flames, prisms or clouds -- or take them
+-- off.
+--
+-- STRIPPED ON EVERY SKIN THAT DOES NOT WANT A SET, not only added to those
+-- that do, which is the trap `applyFur` records: a conditional that only
+-- ever attaches leaves a Marble pig wearing Stormcaller's clouds.
+--
+-- KEYED ON THE SKIN `key` RATHER THAN A FIELD ON THE ROW, because the set
+-- IS the skin -- there is no world in which two skins share one set the way
+-- two animals share a mane, so an `accessorySet` field would be a second
+-- name for something the row already has and one more thing to disagree.
+--
+-- SCALED OFF THE BODY IT IS ON, the same as the ruff: the seats are authored
+-- against the twelve-stud till and a mini is that body at `bodyScale`, so a
+-- storm cloud at till size on a 2.2-stud plinth pig would be a fog bank.
+function PiggyModel.applyAccessories(model: Instance, body: BasePart, key: string?, anchored: boolean)
+	-- Restore any base piece hidden by the previous accessory set.
+	for _, part in ipairs(model:GetChildren()) do
+		if part:IsA("BasePart") then
+			local previous = part:GetAttribute("AccessoryHiddenFrom")
+			if type(previous) == "number" then
+				-- applySkin may already have assigned the next coat's alpha.
+				if part.Transparency == 1 then part.Transparency = previous end
+				part:SetAttribute("AccessoryHiddenFrom", nil)
+			end
+		end
+	end
+	SpectralFX.attach(model, body, key)
+	-- Reseat the Mecha eyes against its face plate; undo this on skin change.
+	local visual = key and Config.getSkin(key)
+	local eyeForward = visual and visual.eyeForward or 0
+	for _, eye in ipairs(model:GetChildren()) do
+		if eye:IsA("BasePart") and eye.Name == "Eye" then
+			local delta = eyeForward - (eye:GetAttribute("SkinEyeForward") or 0)
+			if delta ~= 0 then
+				local welds = {}
+				for _, w in ipairs(eye:GetChildren()) do
+					if w:IsA("WeldConstraint") and w.Enabled then w.Enabled = false; table.insert(welds, w) end
+				end
+				eye.CFrame += body.CFrame:VectorToWorldSpace(Vector3.new(0, 0, -delta * bodyScale(body)))
+				for _, w in ipairs(welds) do w.Enabled = true end
+			end
+			eye:SetAttribute("SkinEyeForward", eyeForward)
+		end
+	end
+	local worn = model:FindFirstChild(ACCESSORY_NAME)
+	local spec = if body:IsA("MeshPart") then Config.skinAccessories(key) else nil
+
+	if not spec then
+		ArcadeAnimator.attach(model, body, key)
+		if worn then
+			worn:Destroy()
+		end
+		return
+	end
+
+	-- A SET FROM A DIFFERENT SKIN IS DESTROYED RATHER THAN RESEATED, for the
+	-- reason the ruff's attribute exists: the part NAMES differ between sets,
+	-- so reusing one would leave Rockslide's plates standing among Quartz's
+	-- points with nothing erroring.
+	if worn and worn:GetAttribute(ACCESSORY_SET_ATTRIBUTE) ~= key then
+		worn:Destroy()
+		worn = nil
+	end
+
+	local template = ensureAccessoryTemplate(key :: string)
+	if not template then
+		if worn then
+			worn:Destroy()
+		end
+		return
+	end
+
+	local folder = worn :: Model?
+	if not folder then
+		folder = template:Clone()
+		assert(folder)
+		folder:SetAttribute(ACCESSORY_SET_ATTRIBUTE, key)
+	end
+	assert(folder)
+
+	local s = bodyScale(body)
+	for _, entry in ipairs(spec) do
+		local part = folder:FindFirstChild(entry.part)
+		if part and part:IsA("BasePart") then
+			-- SIZE BEFORE CFRAME, the rule every mesh in this file keeps:
+			-- resizing a MeshPart scales it about its own centre, so a part
+			-- seated first and sized second sits where it used to be.
+			part.Size = entry.size * s
+			if entry.replaces then
+				local base = model:FindFirstChild(entry.replaces)
+				if base and base:IsA("BasePart") then
+					base:SetAttribute("AccessoryHiddenFrom", base.Transparency)
+					base.Transparency = 1
+				end
+			end
+			-- SEATED OFF THE BODY'S OWN CFRAME, never off the plot's. The far
+			-- row of plots carries a half turn, which is the error this
+			-- project has recorded three times for anything in world axes.
+			--
+			-- `rot` IS OPTIONAL AND TURNS THE PART ABOUT ITS OWN SEAT, which
+			-- is what the TRAILING multiply buys: `CFrame.new(offset) * rot`
+			-- places first and then spins in place, where `rot * CFrame.new`
+			-- would swing the part around the pig instead.
+			--
+			-- ALMOST NOTHING CARRIES ONE, AND THAT IS THE POINT. A set is
+			-- authored against the body part, which already wears
+			-- `Config.PIGGY_MESH`'s own half turn -- so a set that came in
+			-- mirrored the same way the body did is square here for free and
+			-- must NOT be turned again, or the two cancel. What `rot` is for
+			-- is the set that came in mirrored relative to the body, which
+			-- is one of them: `SKIN_ACCESSORIES.prismatic`, whose ring was
+			-- measured hanging across the pig's snout.
+			--
+			-- A HALF TURN RATHER THAN A NEGATED OFFSET, because only the
+			-- first is a motion a part can make: flipping the offset alone
+			-- moves a mirrored ring to the right place still facing the
+			-- wrong way. See the notes on both tables in `Config`.
+			local seat = CFrame.new(entry.offset * s)
+			if entry.rot then
+				seat *= entry.rot
+			end
+			part.CFrame = body.CFrame * seat
+			part.Anchored = anchored
+			part.Massless = not anchored
+			if not anchored and not part:FindFirstChildOfClass("WeldConstraint") then
+				local weld = Instance.new("WeldConstraint")
+				weld.Part0 = body
+				weld.Part1 = part
+				weld.Parent = part
+			end
+		end
+	end
+
+	folder.Parent = model
+	ArcadeAnimator.attach(model, body, key)
 end
 
 -- ------------------------------------------------------------
@@ -1512,6 +1904,21 @@ function PiggyModel.prewarm(): boolean
 		task.spawn(ensureFurTemplate, setName)
 	end
 
+	-- AND THE ACCESSORY SETS, for exactly the same reason: five skins carry
+	-- 6 to 12 meshes each, and loading them inside a dress would yield a
+	-- pedestal on the economy tick and a shop card on the client.
+	--
+	-- ONE THREAD FOR ALL FIVE RATHER THAN ONE EACH, which is the other half of
+	-- the throttling fix in `ensureAccessoryTemplate`. Spawned per set, the
+	-- five raced each other for the same fetch queue and every one of them
+	-- lost its first mesh; walked in order they simply take turns. It is still
+	-- off the boot path, so the street does not wait for 41 meshes.
+	task.spawn(function()
+		for _, key in ipairs(accessorySetsInUse()) do
+			ensureAccessoryTemplate(key)
+		end
+	end)
+
 	-- THE LEGENDARIES LOAD HERE TOO, AND THIS WAITS FOR THEM, because every
 	-- caller of `prewarm` rebuilds its icons the moment it returns and a
 	-- card built before a legendary's meshes land keeps the swatch pig for
@@ -1624,6 +2031,13 @@ function PiggyModel.build(skinKey: string): Model
 				PiggyModel.applySurface(p, skin, true)
 			end
 			PiggyModel.applyFur(mesh, body, skin, false)
+			-- THE ACCESSORY GEOMETRY LAST OF THE SOLID THINGS, because it is
+			-- the only one seated off the body that does NOT read the coat:
+			-- a rock plate carries its own colour, so it neither needs the
+			-- pack nor wants the ruff's cylinder unwrap. Welded rather than
+			-- anchored here, the same as everything else on a mini -- this
+			-- pig gets carried by a running thief.
+			PiggyModel.applyAccessories(mesh, body, skinKey, false)
 			local auraSpec = Config.skinAura(skin)
 			if auraSpec and auraSpec.texture then
 				PiggyModel.configureAura(PiggyModel.buildSkinAura(body), auraSpec, bodyScale(body))
@@ -1641,6 +2055,9 @@ function PiggyModel.build(skinKey: string): Model
 				end
 				LegendaryModel.dress(mesh, body, skinKey, { anchored = false, hide = hide })
 			end
+			-- Thicker approved boots keep the original sole clearance on displays.
+			local lift = (skin.groundLift or 0) * bodyScale(body)
+			if lift ~= 0 then mesh:PivotTo(mesh:GetPivot() + Vector3.new(0, lift, 0)) end
 			mesh.WorldPivot = CFrame.new(MINI_CENTRE)
 			return mesh
 		end

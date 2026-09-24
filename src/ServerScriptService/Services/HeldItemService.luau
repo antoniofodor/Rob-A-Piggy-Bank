@@ -51,6 +51,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Config = require(ReplicatedStorage.Shared.Config)
 local HeldItem = require(ReplicatedStorage.Shared.HeldItem)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local DataService = require(script.Parent.DataService)
@@ -61,9 +62,12 @@ local equipped: { [Player]: string } = {}
 
 -- Reasons a player may not draw something right now, registered by `Main`.
 -- Each returns a refusal string, or nil to allow.
-local vetoes: { (Player) -> string? } = {}
+local vetoes: { (Player, string?) -> string? } = {}
 
-function HeldItemService.addVeto(fn: (Player) -> string?)
+-- A veto is also handed the KEY being drawn, so one that only applies to a
+-- kind (a lasso while your arms are full) can say so; the older vetoes take
+-- the player alone and ignore it.
+function HeldItemService.addVeto(fn: (Player, string?) -> string?)
 	table.insert(vetoes, fn)
 end
 
@@ -138,7 +142,12 @@ function HeldItemService.equip(player: Player, key: string): boolean
 		return false
 	end
 
-	local spec = HeldItem.specFor(key)
+	-- A LASSO IS A CONSUMABLE LIKE THE OTHER FOUR (stock in
+	-- `data.consumables[key]`, spent by `LassoService` on every throw), and
+	-- `HeldItem.specFor` answers for it. The `Config.LASSOS` fallback is so a
+	-- lasso can still be drawn if the shared module is a version behind: the
+	-- prop may not build, which is a cosmetic fault, but the throw must work.
+	local spec = HeldItem.specFor(key) or Config.LASSOS[key]
 	if not spec then
 		-- Not a real consumable. Silent, because the only way to reach this
 		-- is a forged request: a refusal toast here would be a message the
@@ -152,7 +161,7 @@ function HeldItemService.equip(player: Player, key: string): boolean
 	end
 
 	for _, veto in ipairs(vetoes) do
-		local refusal = veto(player)
+		local refusal = veto(player, key)
 		if refusal then
 			notify(player, refusal, "warn")
 			return false

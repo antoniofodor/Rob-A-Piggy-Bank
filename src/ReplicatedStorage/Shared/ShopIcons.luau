@@ -2,11 +2,32 @@
 -- Blender-rendered artwork. Shop IDs: assets/shop-ui/icon-system-v1/roblox-uploads.json.
 --
 -- The ACORN row went with the currency. Its artwork is still uploaded and
--- still archived in assets/acorn/ui/acorn-model-icon.json; nothing mounts it.
+-- still archived in assets/acorn/ui/acorn-model-icon.json -- which is an UPLOAD
+-- RECORD rather than a read: that folder is retired and holds only ids, one of
+-- which is recorded nowhere else in the repo. Nothing mounts it.
 local Icons = {}
 Icons.ids = {
-	["locks"] = "rbxassetid://112442325562665",
-	["fences"] = "rbxassetid://90879713992858",
+	-- THE DEFEND PAIR HAS NO ROW, AND THAT IS THE POINT (designer, this
+	-- session: "it's showing vault locks and fences that aren't even in the
+	-- game"). `ShopUpgrades:showArt` falls through to `UpgradePreview` when a
+	-- key is missing here, and for these two the code-built model is the
+	-- honest picture where the render was not:
+	--
+	--   locks   112442325562665 -- a blue BANK SAFE with a shield on it. The
+	--           object this rung buys is the vault DIAL on the back of your
+	--           own piggy, and the only safes in this game belong to the four
+	--           shops. `builders.locks` builds that dial in the tier's own
+	--           metal, so the card ladders iron, bronze, steel, gold.
+	--   fences  90879713992858 -- a white picket fence. That is one real tier
+	--           of five, so the card was right a fifth of the time and showed
+	--           a Picket to somebody buying a Moat. `builders.fences` builds
+	--           the tier being bought.
+	--
+	-- BOTH UPLOADS ARE STILL LIVE ON THE ACCOUNT and are recorded here rather
+	-- than deleted, because `assets/shop-ui/icon-system-v1/roblox-uploads.json`
+	-- is an upload RECORD and this file is the only place saying why nothing
+	-- reads them. Put a row back and the PNG wins again -- the image is
+	-- preferred over the model by construction in `showArt`.
 	["lockpicks"] = "rbxassetid://77326087433511",
 	["sack"] = "rbxassetid://82505441855242",
 	["boots"] = "rbxassetid://114479671264679",

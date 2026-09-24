@@ -15,9 +15,13 @@
 	WHERE EACH PICTURE COMES FROM:
 	  * locks   -- the vault dial, from `Config.LOCK_TIERS`, the table the
 	              piggy's own dial is built from.
-	  * fences  -- a short run of the tier's style, in primitives. The real
-	              panels are meshes loaded with CreateMeshPartAsync, which a
-	              client cannot call.
+	  * fences  -- a two-panel run of the tier's own MESH, cloned from the
+	              templates the server parks in ReplicatedStorage
+	              (`Shared/FencePanel`), so the card stands the same panel the
+	              lawn does. It used to be primitives drawn from the same brief
+	              as the mesh -- two descriptions of one fence, and they had
+	              drifted. The primitives survive as the fallback for an empty
+	              or dead `Config.FENCE_MESH` row.
 	  * the rob tree -- small built objects that get fancier per level.
 	  * income/capacity -- flat diagrams, and DELIBERATELY THE SAME AT EVERY
 	              RUNG. Those two ladders run to `ABSOLUTE_MAX_LEVEL` (60), and
@@ -34,6 +38,14 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local PiggyModel = require(ReplicatedStorage.Shared.PiggyModel)
+-- The modelled loot bag. Returns false until the meshes are warmed, which is
+-- what leaves `builders.sack` building the primitives bag below.
+local LootMesh = require(ReplicatedStorage.Shared.LootMesh)
+-- The meshed fence panel, parked in ReplicatedStorage by the server. The same
+-- part `PlotService` tiles along a real run, so the card and the lawn cannot
+-- disagree about what a tier looks like. Returns nil until it is warmed,
+-- which is what leaves `builders.fences` drawing the primitives below.
+local FencePanel = require(ReplicatedStorage.Shared.FencePanel)
 
 local UpgradePreview = {}
 
@@ -306,11 +318,100 @@ end
 
 -- A SHORT RUN OF FENCE in the tier's style, at the tier's own height so the
 -- ladder visibly climbs.
+-- THE MESHED RUN -- THE SAME PANEL THE LAWN STANDS, cloned twice.
+--
+-- TWO PANELS RATHER THAN ONE, because one panel is a PANEL and two is a
+-- FENCE: the repeat is what reads as something running past you, and it is
+-- what the tier actually looks like from the pavement. Measured across the
+-- four meshes, a two-panel run lands between 2.2:1 and 2.7:1 -- near enough
+-- the same shape on every card, which one panel is not (1.1:1 to 1.4:1).
+--
+-- Returns false without touching the model when there is no mesh for this
+-- style, which is the caller's signal to draw the primitives it always drew.
+local function meshFence(tier: any): boolean
+	local spec = Config.fenceMesh(tier.style)
+	local template = spec and FencePanel.template(tier.style)
+	if not (spec and template) then
+		return false
+	end
+
+	-- EXACTLY THE ARITHMETIC `decorMeshPanel` USES: scaled UNIFORMLY off the
+	-- authored height so the panel lands on `decorTop`, with the run length
+	-- falling out of that. Solved the same way in both places on purpose --
+	-- a card that sized its panel by eye would be back to being a second
+	-- description of the fence, which is the whole fault being fixed.
+	local h = tier.decorTop
+	local scale = tier.decorTop / spec.size.Y
+	local length = spec.size.X * scale
+	local count = 2
+	local run = length * count
+
+	for i = 0, count - 1 do
+		local panel = template:Clone()
+		panel.Name = "Panel"
+		-- SIZE BEFORE CFRAME, the rule `decorMeshPanel`, `LootMesh.build` and
+		-- `PiggyBank.swapToMesh` all keep: resizing a MeshPart scales it about
+		-- its own centre, so a part seated first and sized second ends up
+		-- seated for the size it used to be.
+		panel.Size = Vector3.new(length, h, spec.size.Z * scale)
+		panel.CFrame = CFrame.new(-run / 2 + length * (i + 0.5), h / 2, 0)
+		panel.Anchored = true
+		panel.CanCollide = false
+		panel.CanQuery = false
+		panel.CastShadow = false
+		panel.Parent = model
+	end
+
+	-- The extra cables the electric tier strings UNDER the panel's own pair.
+	-- They span the whole run on a lawn and they span the whole run here, for
+	-- the same reason: strung per panel they would read as a row of posts.
+	if spec.wires then
+		for _, y in ipairs(spec.wires.heights) do
+			add("Live", Vector3.new(run, spec.wires.thickness, spec.wires.thickness),
+				CFrame.new(0, y, 0), spec.wires.colour, NEON)
+		end
+	end
+
+	-- THE MOAT IS THE WALL PLUS THE WATER, and the wall is `electric`'s --
+	-- `Config.fenceMesh` aliases it, because `decorMoat` is one line calling
+	-- `decorElectric`. So the only thing that makes this tier look like the
+	-- moat is the channel, and it is built at the REAL heights out of
+	-- `PlotService`: bank -0.10..0.50, water -0.19..0.31, bed -0.47..0.03,
+	-- nothing sharing a face plane with anything else. The kerbs standing
+	-- PROUD of the ground are what sell the depth -- nothing in this game can
+	-- be dug, so a channel is always an illusion the banks do the work for.
+	if tier.moat then
+		local w = tier.moat.width
+		local near, far = 0.5, 0.5 + w
+		add("MoatBed", Vector3.new(run, 0.5, w), CFrame.new(0, -0.22, near + w / 2),
+			Color3.fromRGB(26, 52, 64), Enum.Material.Slate)
+		local water = add("MoatWater", Vector3.new(run, 0.5, w), CFrame.new(0, 0.06, near + w / 2),
+			Color3.fromRGB(38, 104, 164))
+		water.Transparency = 0.38
+		water.Reflectance = 0.07
+		for _, z in ipairs({ near, far }) do
+			add("MoatBank", Vector3.new(run, 0.6, 1.0), CFrame.new(0, 0.20, z),
+				Color3.fromRGB(112, 116, 118), Enum.Material.Slate)
+		end
+	end
+
+	return true
+end
+
 builders.fences = function(level)
 	local tier = Config.FENCE_TIERS[level]
 	if not tier then
 		return
 	end
+	if meshFence(tier) then
+		return
+	end
+	-- THE PRIMITIVES BELOW ARE THE FALLBACK AND NOTHING ELSE NOW. They are the
+	-- picture this card drew for its whole life, kept for the one state that
+	-- still reaches them: a style whose `Config.FENCE_MESH` row is empty, a
+	-- moderated mesh, or a client asking before the server has parked the
+	-- templates. A fence that is approximately right beats a card with
+	-- nothing on it -- the same call `builders.sack` makes about its bag.
 	local h = tier.decorTop or tier.top or 4
 	local style = tier.style
 	local wood = Color3.fromRGB(122, 84, 52)
@@ -422,6 +523,11 @@ local NOSTRIL = Color3.fromRGB(150, 84, 92)
 
 builders.sack = function(level)
 	local s = 0.8 + level * 0.18
+	-- THE MESH IF THERE IS ONE, AND THE BUILD BELOW IF THERE IS NOT. One line
+	-- covers the shop card, every 3D preview AND the carried loot, because
+	-- `HeistService.buildLootBag` goes through this builder. `LootMesh` names
+	-- its cloth part `Bag`, so that function's rename is untouched.
+	if LootMesh.build(model, s) then return end
 
 	-- THE BODY. `Bag` keeps its name and its exact size, because
 	-- `buildLootBag` renames it `Body` and makes it the PrimaryPart: that means
@@ -520,36 +626,12 @@ builders.sack = function(level)
 			NOSTRIL, PLAIN, Enum.PartType.Cylinder)
 	end
 
-	-- THE COINS AT ITS FOOT. ONE ALWAYS, THEN TWO MORE PER LEVEL: a level-0 bag
-	-- with none reads as an empty sack rather than as a small haul, and this is
-	-- the bag a thief carries from their very first robbery. The LADDER is still
-	-- the thing that grows.
-	--
-	-- They hug the bag rather than spreading outward with `i`. The ring they
-	-- replace grew by 0.2 a coin, so a maxed sack laid coins 3.7 studs off its
-	-- own centre -- out past the thief's arms, on a model welded to their chest.
-	--
-	-- ITS CENTRE IS ABOVE ITS OWN RADIUS BECAUSE IT IS TILTED. Half of 0.94 is
-	-- 0.47 and a disc seated there would stand exactly on the ground -- if it
-	-- were upright. Leaned, its own axis-aligned reach grows, and at 0.47 it
-	-- measured 0.0395 THROUGH the floor: the thing to seat is the tilted
-	-- part's span, not the shape's radius.
-	add("LeanCoin", Vector3.new(0.18 * s, 0.94 * s, 0.94 * s),
-		CFrame.new(-1.16 * s, 0.52 * s, 0.70 * s)
-			* CFrame.Angles(math.rad(10), math.rad(-32), 0) * FACING_Z,
-		GOLD, PLAIN, Enum.PartType.Cylinder)
-	for i = 1, level * 2 do
-		local a = 0.9 + i * 2.39
-		local r = 1.06 * s + 0.07 * s * (i % 4)
-		-- EVERY COIN GETS ITS OWN HEIGHT, and that is the coplanar rule rather
-		-- than tidiness: two flat discs sharing a height and overlapping share a
-		-- face plane, and 2.39 radians of step wraps close enough to touch by
-		-- the sixth coin.
-		local h = 0.10 * s + 0.035 * s * (i % 5) + 0.16 * s * math.floor((i - 1) / 5)
-		add("Coin", Vector3.new(0.17 * s, 0.76 * s, 0.76 * s),
-			CFrame.new(math.cos(a) * r, h, math.sin(a) * r * 0.62 + 0.62 * s) * UPRIGHT,
-			GOLD, PLAIN, Enum.PartType.Cylinder)
-	end
+	-- ONE COIN, ON THE FRONT (designer, 2026-09-23: "remove the coins on
+	-- either side of it, the one in the middle is fine"). The leaning coin at
+	-- the left foot and the ring of foot coins that grew with the level are
+	-- gone from this build and from the mesh export alike, so the fallback
+	-- and the mesh draw the same object. The Sack level still reads off the
+	-- bag's own size (`s`), which is the thing that visibly grows.
 end
 
 -- A SHOE, used twice: boots for running out, sneakers for creeping in.

@@ -87,7 +87,7 @@ local Remotes={get=function(name) return {FireClient=function(_,who,msg,kind)
 local callbacks={}
 local paints={slots=0,buffers=0,collects={}}
 local modules={Config=Config,Remotes=Remotes,Theme={FONT="F",PAPER="p",INK="i",GOLD="g"},
-	CarryPose={HOLD=cf()},
+	CarryPose={HOLD=cf(),anchor=function() return nil, cf() end},
 	DataService={get=function(p) return p.data end,save=function() end},
 	PiggyModel={
 		build=function(key)
@@ -122,7 +122,7 @@ local modules={Config=Config,Remotes=Remotes,Theme={FONT="F",PAPER="p",INK="i",G
 modules.PlotService={updatePile=function(plot,coins) plot.coins=coins end,
 	onClaim=function(fn) callbacks.claim=fn end,onRelease=function(fn) callbacks.release=fn end,
 	getAll=function() return plots end,getPlot=function() return nil end,
-	yardContaining=function() return nil end,setSwapOffer=function() end,
+	yardContaining=function() return nil end,setSwapOffer=function() end,setPlaceOffer=function() end,
 	setPiggySlots=function(plot) paints.slots+=1;plot.slotPaints=(plot.slotPaints or 0)+1 end,
 	setPiggyBuffers=function(plot) paints.buffers+=1;plot.bufferPaints=(plot.bufferPaints or 0)+1 end,
 	playCollect=function(plot,slot,fullness) table.insert(paints.collects,{plot=plot,slot=slot,fullness=fullness}) end}

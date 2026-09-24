@@ -1090,10 +1090,13 @@ function GuardDog.applyTier(dog: Dog, level: number)
 
 	-- Voice.
 	--
-	-- Bark and snarl are the DOG, so they track the breed. The squeak is the
-	-- TOY, and a squeaky toy sounds the same whichever dog bites it -- so it
-	-- stays fixed. Scaling it by breed had it backwards anyway, handing the
-	-- terrier a lower squeak than the mastiff.
+	-- Bark and snarl are the DOG, so they track the breed. The bite on the
+	-- bone is the BONE, and a bone sounds the same whichever dog bites it --
+	-- so it stays fixed. Scaling it by breed had it backwards anyway, handing
+	-- the terrier a lower note than the mastiff. It was a squeaky toy until
+	-- 2026-09-23 and is "Cartoon Bite" now (designer); the Sound is still
+	-- named "Squeak" because `play(dog, "Squeak")` is the one call that fires
+	-- it, and renaming an instance to match a sound is churn nobody hears.
 	local function voice(name: string, id: string, pitch: number, volume: number)
 		local sound = dog.body:FindFirstChild(name) :: Sound?
 		if sound then
@@ -1104,7 +1107,7 @@ function GuardDog.applyTier(dog: Dog, level: number)
 	end
 	voice("Bark", tier.bark, tier.pitch, tier.volume)
 	voice("Snarl", Config.SOUNDS.DOG_SNARL, tier.pitch * 0.95, tier.volume)
-	voice("Squeak", Config.SOUNDS.DOG_SQUEAK, 1.0, 0.6)
+	voice("Squeak", Config.SOUNDS.BONE_BITE, 1.0, 0.7)
 
 	dog.plate.Enabled = true
 
@@ -1612,7 +1615,7 @@ function GuardDog.lure(dog: Dog, bone: Model, nap: number, breaksChase: boolean)
 	if bone.Parent then
 		bone:Destroy()
 	end
-	-- The squeaky toy. This is the payoff moment of the whole bone mechanic --
+	-- The bite. This is the payoff moment of the whole bone mechanic --
 	-- an expensive guard dog reduced to a delighted puppy -- and it wants to be
 	-- funny rather than impressive.
 	play(dog, "Squeak")

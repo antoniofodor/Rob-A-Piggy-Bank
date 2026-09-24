@@ -361,6 +361,11 @@ end
 -- non-uniform Size, a SpecialMesh sphere does not, and three of them
 -- stacked at different radii are three curved surfaces that cannot share a
 -- plane -- which is what keeps the layered eye off the coplanar rule.
+-- RETIRED 2026-09-23 AND KEPT: `Config.SKINS.peacock` wears the authored
+-- epic-v2 fan now (`Config.SKIN_ACCESSORIES.peacock`, ten meshes off one
+-- palette sheet), so nothing names this builder. It stays because it is
+-- the record of how the shape was solved out of primitives, and because
+-- putting it back is one `fx = "peacock"` field. NEVER BOTH.
 builders.peacock = function(ctx)
 	local root = Vector3.new(0, 7.2, -5.2)
 	local n, reach = 7, 8.6
@@ -512,6 +517,8 @@ local function scan()
 end
 
 function SkinFX.start()
+	require(script.Parent.ArcadeAnimator).start()
+	require(script.Parent.SpectralFX).start()
 	if started or not RunService:IsClient() then
 		return
 	end

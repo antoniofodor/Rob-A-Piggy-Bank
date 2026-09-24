@@ -24,12 +24,19 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local PiggyBank = require(script.Parent.PiggyBank)
 local GuardDog = require(script.Parent.GuardDog)
+-- FOR THE HOUSE'S OWN PEDESTAL ART, which the six lawn plinths wear now. No
+-- cycle: `ThemedInterior` requires Config and HouseInterior and nothing else,
+-- so it knows nothing about a plot and cannot ask this file anything.
+local ThemedInterior = require(script.Parent.ThemedInterior)
 -- Geometry, in Shared because the shop renders these too.
 local House = require(ReplicatedStorage.Shared.House)
 -- For `HouseFX.TAG` alone, so the yard audit can skip the light show rather
 -- than keeping a second copy of that string. House.luau already requires it.
 local HouseFX = require(ReplicatedStorage.Shared.HouseFX)
 local Decor = require(ReplicatedStorage.Shared.Decor)
+-- The meshed fence panel, shared with the shop card so the lawn and the
+-- picture of it cannot describe different fences. See `Shared/FencePanel`.
+local FencePanel = require(ReplicatedStorage.Shared.FencePanel)
 local SoundKit = require(ReplicatedStorage.Shared.SoundKit)
 local GrassTuft = require(ReplicatedStorage.Shared.GrassTuft)
 local PiggyPedestal = require(ReplicatedStorage.Shared.PiggyPedestal)
@@ -82,12 +89,48 @@ export type Plot = {
 	-- builder returning the same shape and every reader guards on this being
 	-- present, the same way the mailbox and the tree already do.
 	pedestals: { PiggyPedestal.Refs }?,
+	-- THE PLACEMENTS INSIDE THE HOUSE, KEYED BY SAVE SLOT.
+	--
+	-- The lawn is slots 1..`PIGGY_LAWN_SLOT_COUNT` and the hall behind the
+	-- front door is the slots after it (`HouseInterior.slotOfPlot`), so this is
+	-- the same `PiggyPedestal.Refs` the six plinths are and every state
+	-- function -- `dress`, `setBuffered`, `setRate`, `setHaul` -- is the same
+	-- call on both. One collection, one array in the save, one economy.
+	--
+	-- KEYED RATHER THAN AN ARRAY, because it is SPARSE by construction: a hall
+	-- stands only the rooms its owner has unlocked, so slots 1..6 of the lawn
+	-- and 7..12 of a rebirth-0 hall are present and 13..62 are not. An
+	-- `ipairs` over this would stop at the first hole, which is why every
+	-- reader below walks it with `pairs`.
+	--
+	-- WRITTEN BY `InteriorService` THROUGH `setIndoorPedestals` AND BY NOTHING
+	-- ELSE. A hallway is built when somebody walks through a door and
+	-- destroyed when the plot is released or the room count grows, so this
+	-- field is the one place the rest of the game finds out that a slot has
+	-- somewhere to stand -- and `pedestalAt` is the one question it answers.
+	indoor: { [number]: PiggyPedestal.Refs }?,
 	-- THE OWNER THE SIX PLINTHS WERE LAST PUBLISHED AGAINST, which is a
 	-- different question from `owner` and is why it is its own field. `owner`
 	-- is who lives here NOW; this is who the prompts were last told about, and
 	-- the gap between them is the one moment a client can be left holding a
 	-- stale refusal. See `PiggyPedestal.republish`.
 	piggyOwnerId: number?,
+	-- THE PIGGY IN THE OWNER'S OWN ARMS, OR NIL FOR EMPTY HANDS.
+	--
+	-- Written by `setPlaceOffer` at the three moments a carry starts, ends or
+	-- changes, and read by `setPiggySlots` -- which runs on every purchase,
+	-- collect, sale and join, and on the frame a hallway is built. Without it
+	-- a repaint could not answer "is this plinth worth offering", so a player
+	-- who walked through their own front door holding a piggy would meet a
+	-- room of dark plinths.
+	--
+	-- IT IS THE KEY RATHER THAN A FLAG BECAUSE THE KEY IS WHAT THE CALLER
+	-- HAS. Nothing reads it as a name today; reducing it to a boolean here
+	-- would be this file answering "are they holding one" in its own words,
+	-- which is a second answer to a question `PiggyHaulService` has already
+	-- answered -- and the readers that would want the name (a card that says
+	-- WHICH piggy would go down) have nowhere to get it back from.
+	carrying: string?,
 	-- THE GARDEN: a border along the fence, a path up to the pig, and boxes
 	-- under the windows. Three models rather than one, because they are
 	-- rebuilt on three different events -- the border follows the FENCE, the
@@ -1545,41 +1588,17 @@ end
 
 -- The meshed fence: one panel, cloned along the run.
 --
--- Built ONCE per style and cloned, because `CreateMeshPartAsync` yields and a
--- fence is dozens of panels. Same shape as the trees and the grass tufts.
-local fencePanels: { [string]: BasePart } = {}
-local fencePanelChecked: { [string]: boolean } = {}
-
+-- BUILT AND CACHED BY `Shared/FencePanel` NOW, AND THE MOVE WAS NOT A TIDY-UP.
+-- This function owned the only copy of the panel, which meant the SHOP CARD
+-- -- drawn on a client, which cannot call `CreateMeshPartAsync` -- had to
+-- draw its own fence out of primitives instead. Two descriptions of one
+-- object, and they had drifted far enough that the card showed a fence a
+-- buyer would not get. Parked in ReplicatedStorage, both ends clone the same
+-- part. Everything else here is unchanged: nil still means "no mesh for this
+-- style", and `decorMeshPanel` still falls through to the primitive
+-- decorator on it.
 local function fencePanel(style: string): BasePart?
-	if fencePanelChecked[style] then
-		return fencePanels[style]
-	end
-	fencePanelChecked[style] = true
-
-	local spec = Config.fenceMesh(style)
-	if not spec then
-		return nil
-	end
-
-	local ok, result = pcall(function()
-		local part = game:GetService("InsertService"):CreateMeshPartAsync(spec.id,
-			Enum.CollisionFidelity.Box, Enum.RenderFidelity.Automatic)
-		-- `CreateMeshPartAsync` carries the mesh and NOT the map, which is how
-		-- the trees shipped flat for a build with nothing in the log.
-		if spec.texture then
-			part.TextureID = spec.texture
-		end
-		return part
-	end)
-
-	if not ok then
-		warn(("[PlotService] the %s fence panel could not be loaded, so the "
-			.. "primitive fence is standing instead: %s"):format(style, tostring(result)))
-		return nil
-	end
-
-	fencePanels[style] = result
-	return result
+	return FencePanel.template(style)
 end
 
 -- Tiles the panel along one run. Returns false when there is no mesh for this
@@ -2764,8 +2783,31 @@ function PlotService.setHouseLevel(plot: Plot, level: number)
 	-- what it actually built and seats itself against the back fence, because
 	-- the archetypes range from 15 to 47 studs deep.
 	plot.house = House.build(level, plot.cframe * CFrame.new(0, groundY, 0), plot.model)
-	buildDriveway(plot, Config.getHouseTier(level))
+	local tier = Config.getHouseTier(level)
+	buildDriveway(plot, tier)
 	PlotService.refreshWindowBoxes(plot)
+
+	-- AND THE SIX PLINTHS TAKE THE HOUSE'S OWN PEDESTAL (designer, 2026-09-23:
+	-- "no i meant the ones outside to match the interior"). Every one of the
+	-- eighteen houses authors a `Pedestal` in its interior kit, and the lawn
+	-- used the same generic stone behind a Starter Shack and a Sky Castle
+	-- alike. `PiggyPedestal.setArt` hangs that art on the plinth it already
+	-- has and hands back where the piggy now stands.
+	--
+	-- HERE RATHER THAN IN `buildPlot`, and that is what makes it free in two
+	-- separate ways. Every plot is given the Starter Shack as it is built, so
+	-- this seam runs for a new plot AND for every tier bought afterwards --
+	-- one call site rather than two that can disagree. And `plantGrass` is
+	-- already called at the end of this function, because a house is the
+	-- biggest thing that lands on the grass: the tuft veto is a BAND test run
+	-- at plant time, so a plinth that changed shape is replanted around
+	-- without this adding a fourth caller. That count is asserted by
+	-- `tests/luau/piggies.luau` on purpose -- "a fourth kind of thing landing
+	-- on a lawn without a plantGrass call" is a bug this project has shipped.
+	local art = ThemedInterior.pedestalTemplate(tier)
+	for _, refs in ipairs(plot.pedestals or {}) do
+		refs.seat = PiggyPedestal.setArt(refs, art)
+	end
 	-- The in-house trophy display used to be rebuilt here too, off the same
 	-- seam the window boxes take. It is retired (see `setTrophyState`), so a
 	-- new house carries nothing on its `Mount_Wall` and there is nothing to
@@ -2892,6 +2934,60 @@ function PlotService.playAlarm(plot: Plot)
 	PiggyBank.playAlarm(plot.piggy)
 end
 
+-- ============================================================
+-- WHERE A PLACEMENT IS, WHEREVER IT IS
+-- ============================================================
+
+--[[
+	The pedestal a save slot stands on: a lawn plinth for 1..6, an indoor plot
+	for the slots after it, nil for the bank and for anything with nowhere to
+	stand.
+
+	ONE QUESTION, ONE ANSWER, AND THAT IS THE WHOLE POINT OF IT. Six readers
+	want "the placement at this slot" -- the collect sound and its pad stamp
+	here, the repaint pair below, and `PiggyHaulService`'s reach test for take,
+	place and snatch -- and every one of them would otherwise have to know that
+	a lawn is an array and a hall is a keyed map. That is nine accessors with a
+	plot-shaped hole under each, which is the shape this project records as the
+	thing to make ONE.
+
+	AND IT IS WHAT MAKES AN INDOOR COLLECT THE LAWN'S OWN PATH. Nothing in
+	`EconomyService` has to learn about a hallway: it banks a slot, and this is
+	what finds the button that banked it.
+]]
+function PlotService.pedestalAt(plot: Plot, slot: number): PiggyPedestal.Refs?
+	local index = math.floor(tonumber(slot) or -1)
+	if index < 1 then
+		return nil
+	end
+	local lawn = plot.pedestals and plot.pedestals[index]
+	if lawn then
+		return lawn
+	end
+	local indoor = plot.indoor
+	return if indoor then indoor[index] else nil
+end
+
+--[[
+	Publish the hall's placements onto the plot, or clear them with nil.
+
+	A DOOR RATHER THAN A FIELD WRITE, for the reason `setDecor` and
+	`setPiggySlots` are: what a plot HOLDS is this file's to say, and a second
+	service reaching in to assign a field is a field that gets left behind when
+	that service's own object is destroyed. `InteriorService` calls this when
+	it builds a hallway and again with nil when it tears one down, which is
+	what keeps a destroyed pedestal from being handed to a collect a tick
+	later.
+
+	IT DOES NOT REPAINT. The caller's next `setPiggySlots`/`setPiggyBuffers`
+	does, and those run on the economy tick anyway -- so a hall that has just
+	appeared is dressed within a tick without this function having to know what
+	a save looks like.
+]]
+function PlotService.setIndoorPedestals(plot: Plot, pedestals: { [number]: PiggyPedestal.Refs }?)
+	plot.indoor = pedestals
+end
+
 -- A BUFFER JUST BANKED, AND THE SOUND COMES FROM THE PAD THAT BANKED IT.
 --
 -- `slot` 0 is the till and 1..N are the pedestals -- the same numbering
@@ -2925,10 +3021,11 @@ end
 --- facts and this project has paid for one field carrying two (`busyUntil`
 --- serving a chase cooldown and a bone nap, read in opposite directions).
 function PlotService.playCollect(plot: Plot, slot: number, fullness: number?)
-	local index = math.floor(tonumber(slot) or -1)
 	local now = Workspace:GetServerTimeNow()
-	-- Slot 0 is the bank, which has no pad and is never collected.
-	local pedestal = plot.pedestals and plot.pedestals[index]
+	-- Slot 0 is the bank, which has no pad and is never collected -- and a
+	-- slot past the lawn is a pad in the owner's own hallway, which `pedestalAt`
+	-- finds without this function knowing a hallway exists.
+	local pedestal = PlotService.pedestalAt(plot, slot)
 	if pedestal then
 		pedestal.padFiredAt = now
 		PiggyPedestal.playPadCollect(pedestal.padSound, fullness)
@@ -3198,7 +3295,7 @@ function PlotService.setPiggySlots(plot: Plot, data: any?)
 		-- exactly as it was -- which `dress` returns early on and would
 		-- therefore never republish. Same argument as the owner loop above;
 		-- this one runs after `dress` because it reads `refs.key`.
-		PiggyPedestal.setHaul(pedestal, ownerId)
+		PiggyPedestal.setHaul(pedestal, ownerId, plot.carrying ~= nil)
 		-- A PLOT CHANGING HANDS IS THE ONE MOMENT A CLIENT CAN BE LEFT
 		-- HOLDING A STALE REFUSAL, so it is the one moment the prompts are
 		-- bounced rather than merely written. See `PiggyPedestal.republish`
@@ -3214,7 +3311,86 @@ function PlotService.setPiggySlots(plot: Plot, data: any?)
 		end
 	end
 
-	-- The bank has no pad to light: it drips straight into the balance.
+	-- ------------------------------------------------------------
+	-- AND THE HALL BEHIND THE FRONT DOOR, ON THE SAME PASS
+	-- ------------------------------------------------------------
+	--
+	-- THE WHOLE REASON THIS LOOP IS HERE RATHER THAN IN `InteriorService`: a
+	-- repaint runs on every purchase, collect, rebirth, sale, snatch and join
+	-- already, through this one door. A hall repainted by a poll of its own
+	-- would be a SECOND clock describing one save -- and the two would
+	-- disagree for up to a tick every time a piggy moved, which is the
+	-- world-and-server-disagreeing failure this file exists to prevent.
+	--
+	-- `pairs` RATHER THAN `ipairs`, because the map is sparse: a hall stands
+	-- only the rooms its owner has unlocked, so the slots present run 7..12 at
+	-- rebirth 0 and an `ipairs` would stop before the first of them.
+	--
+	-- NO `republish` BOUNCE IN HERE, and that is a fact about lifetime rather
+	-- than an omission. The race it answers is a CLIENT's opening sweep
+	-- landing between a prompt's `Enabled` and its owner attribute -- and an
+	-- indoor pedestal is built while its owner is walking through their own
+	-- front door, long after that sweep, by a builder that writes the owner in
+	-- the same breath.
+	local indoor = plot.indoor
+	if indoor then
+		for slot, pedestal in pairs(indoor) do
+			local key: string? = nil
+			if data then
+				local entry = Config.piggySlots(data)[slot]
+				key = entry and entry.key
+			end
+			PiggyPedestal.dress(pedestal, key)
+			PiggyPedestal.setHaul(pedestal, ownerId, plot.carrying ~= nil)
+		end
+	end
+
+	-- The bank has no pad to light: it is a display and earns nothing (2026-09-23).
+end
+
+-- WHAT THE OWNER IS HOLDING, PUBLISHED ON EVERY EMPTY PLINTH THEY OWN.
+--
+-- THE SIBLING OF `setSwapOffer`, CALLED AT THE SAME THREE MOMENTS. A carry
+-- starting, ending or changing decides two prompts that are nowhere near each
+-- other: the bank's SWAP, which that function owns, and the PLACE prompt on
+-- the lawn's six plinths and on every room behind the front door, which this
+-- one owns. Two functions rather than one because each is the ONE writer of
+-- an `Enabled` -- the property this file has already had to make single-writer
+-- twice -- and because a function named after the bank quietly lighting
+-- sixty-two plinths is the hidden coupling that gets found the hard way.
+--
+-- `key` IS ONE OF THE OWNER'S OWN AND NEVER A STOLEN ONE. A snatched piggy
+-- cannot be pressed into place at all -- `PiggyHaulService.place` refuses it,
+-- because the five seconds of dwell is the whole reason a thief is catchable
+-- on their own lawn -- so the caller passes nil for one and the plinths stay
+-- dark. Same nil an unowned plot gets, and for the same reason: a prompt lit
+-- for an action the server would refuse is the silent refusal wearing a
+-- button.
+--
+-- REMEMBERED ON THE PLOT, WHICH IS WHAT MAKES A REPAINT HONEST -- see
+-- `Plot.carrying`. Without it `setPiggySlots` could not answer "is this
+-- plinth worth offering" at all, and a player who walked through their own
+-- front door with a piggy in their arms would meet a room of dark plinths:
+-- the hall is BUILT on that crossing, so its prompts are painted by a repaint
+-- rather than by the carry that started before the room existed.
+function PlotService.setPlaceOffer(plot: Plot, key: string?)
+	plot.carrying = key
+	local carrying = plot.owner ~= nil and key ~= nil
+	local pedestals = plot.pedestals
+	if pedestals then
+		for _, pedestal in ipairs(pedestals) do
+			PiggyPedestal.setCarrying(pedestal, carrying)
+		end
+	end
+	-- `pairs` RATHER THAN `ipairs`: a hall stands only the rooms its owner has
+	-- unlocked, so the map is sparse and an `ipairs` stops before the first of
+	-- them. Same loop shape as `setPiggySlots`, and for the same reason.
+	local indoor = plot.indoor
+	if indoor then
+		for _, pedestal in pairs(indoor) do
+			PiggyPedestal.setCarrying(pedestal, carrying)
+		end
+	end
 end
 
 -- WHETHER THE OWNER MAY SWAP RIGHT NOW, published on the bank's own prompt.
@@ -3264,10 +3440,12 @@ end
 -- is STANDING here changes when somebody opens a crate, and what is BANKED
 -- here changes every tick.
 function PlotService.setPiggyBuffers(plot: Plot, data: any?)
-	-- THE BANK HAS NO BUFFER AND NO PAD (designer decision 2026-09-22): its
-	-- income drips straight into the balance and the pile on the lawn is the
-	-- readout, so there is nothing of the till's to repaint here. Slots 1..N
-	-- are the pedestals.
+	-- THE BANK HAS NO BUFFER AND NO PAD, AND NO INCOME EITHER (2026-09-23): it
+	-- is a display, so there is nothing of the till's to repaint here. It had
+	-- neither for as long as it drip-fed the balance (2026-09-22) and it has
+	-- none now that it pays nothing -- same shape, a different reason, and the
+	-- reason is worth having right because the conclusion outlived it once.
+	-- Slots 1..N are the pedestals.
 	local pedestals = plot.pedestals
 	if not pedestals then
 		return
@@ -3277,11 +3455,54 @@ function PlotService.setPiggyBuffers(plot: Plot, data: any?)
 	-- than about a slot, so six separate asks would be six identical lookups
 	-- for five identical multipliers.
 	--
-	-- AN UNOWNED PLOT HAS NO RATES AND MUST NOT HAVE ANY. A resident's lawn
-	-- carries no piggies and a released plot has no `data` -- both of which
-	-- `dress` has already blanked these labels for.
+	-- A NEIGHBOUR'S LAWN PRINTS ITS RATES TOO, AND THE LINE THAT STOOD HERE
+	-- SAID IT COULD NOT (2026-09-23). It read: "AN UNOWNED PLOT HAS NO RATES
+	-- AND MUST NOT HAVE ANY. A resident's lawn carries no piggies and a
+	-- released plot has no `data`." The second half is still true and the
+	-- first half stopped being true the day residents were put on the piggy
+	-- loop (2026-09-22) -- they own piggies, their buffers fill, and their
+	-- pads are walked. So for months every neighbour's plinth carried a NAME
+	-- with an empty row under it, which is the one state this pair of labels
+	-- may not be in: a nine-year-old reading a lawn to choose which pig to
+	-- snatch got the names and not the figures the choice is actually made
+	-- on. Reported by the designer, and the comment is what made it
+	-- invisible -- copy outliving the thing it describes, again.
+	--
+	-- TWO SOURCES, AND WHICH ONE IS RIGHT DEPENDS ON WHETHER THERE IS A
+	-- PERSON BEHIND THE LAWN.
+	--
+	--   * A PLAYER'S asks `EconomyService`, because a friend bonus and a
+	--     daily boost are facts about the OWNER that this file may not
+	--     require without a cycle. A figure derived here would under-report
+	--     for the whole length of every boost while the HUD's own rate pill
+	--     printed the right one -- two claims about one number with no way
+	--     for a player to tell which is lying.
+	--   * A NEIGHBOUR'S asks `Config` directly, and that is exact rather
+	--     than a fallback: a resident has neither multiplier -- prestige and
+	--     friends are things a PLAYER has -- so the plain figure IS the
+	--     whole answer, and it is the same one `ResidentService` fills its
+	--     own buffers at. The two cannot drift, because since 2026-09-23
+	--     they are one function.
+	--
+	-- ASKED PER PEDESTAL RATHER THAN SWEPT, which is a performance decision
+	-- and not a style one. This runs on the RESIDENT TICK for every
+	-- neighbour whose buffers moved, which is most ticks for thirteen of
+	-- them; `PIGGY_SLOT_COUNT` is 62 because it counts the indoor ceiling,
+	-- and a resident has six plinths and no hallway at all. Building the
+	-- whole array would be ten times the arithmetic for slots that do not
+	-- exist. `setRate`'s own write guard is what keeps the replication at
+	-- zero once a figure has settled.
 	local rates = if data and plot.owner and piggyRates
 		then piggyRates(plot.owner, data) else nil
+	local function rateAt(slot: number): number?
+		if rates then
+			return rates[slot]
+		end
+		-- A RELEASED PLOT IS THE ONE THAT STILL GETS NOTHING, and nil is
+		-- right rather than 0: `setRate` prints a nil as no row at all, and
+		-- `dress` has already blanked these labels anyway.
+		return if data then Config.piggySlotRate(data, slot) else nil
+	end
 	for i, pedestal in ipairs(pedestals) do
 		local amount = 0
 		if data then
@@ -3289,7 +3510,29 @@ function PlotService.setPiggyBuffers(plot: Plot, data: any?)
 			amount = (entry and entry.buffer) or 0
 		end
 		PiggyPedestal.setBuffered(pedestal, amount)
-		PiggyPedestal.setRate(pedestal, if rates then rates[i] else nil)
+		PiggyPedestal.setRate(pedestal, rateAt(i))
+	end
+
+	-- AND THE HALL'S PADS AND RATE ROWS, off the same `rates` array and the
+	-- same save. See the matching loop in `setPiggySlots` for why both live
+	-- here rather than on a clock of their own.
+	--
+	-- A RATE THAT IS NOT IN THE ARRAY READS AS NIL RATHER THAN AS ZERO, which
+	-- `setRate` prints as nothing at all -- and that is the honest picture
+	-- while `EconomyService.pedestalRates` still stops at the lawn: a row
+	-- reading `+0/s` over a legendary is wrong in the direction that makes a
+	-- player stop trusting the number.
+	local indoor = plot.indoor
+	if indoor then
+		for slot, pedestal in pairs(indoor) do
+			local amount = 0
+			if data then
+				local entry = Config.piggySlots(data)[slot]
+				amount = (entry and entry.buffer) or 0
+			end
+			PiggyPedestal.setBuffered(pedestal, amount)
+			PiggyPedestal.setRate(pedestal, rateAt(slot))
+		end
 	end
 end
 
@@ -3723,6 +3966,12 @@ function PlotService.release(player: Player)
 	end
 
 	plot.owner = nil
+	-- AND WHATEVER THEY WERE HOLDING GOES WITH THEM. `setPiggySlots` refuses
+	-- every plinth on an unowned plot anyway, so this changes nothing today --
+	-- and left standing it would hand the NEXT owner a lawn of lit PLACE
+	-- prompts on their first repaint, for a piggy in somebody else's arms who
+	-- has left the server. Same class as the house `release` once forgot.
+	plot.carrying = nil
 	byPlayer[player] = nil
 	plot.model:SetAttribute("OwnerUserId", nil)
 	PlotService.updateRank(plot, nil)
@@ -3771,6 +4020,14 @@ function PlotService.release(player: Player)
 	-- than slot by slot, so a pedestal added later comes down for free.
 	PlotService.setPiggySlots(plot, nil)
 	PlotService.setPiggyBuffers(plot, nil)
+	-- AND THE HALL'S, WHICH ARE ABOUT TO BE DESTROYED RATHER THAN CLEARED.
+	-- `InteriorService` tears a hallway down on this same release, so the two
+	-- calls above must not be handed a pedestal whose model has gone -- and
+	-- the map is dropped BEFORE they run for exactly that reason. Both ends
+	-- clear it, here and in `InteriorService.evict`: this one covers the order
+	-- the release handlers happen to run in, which is not this file's to
+	-- guarantee.
+	PlotService.setIndoorPedestals(plot, nil)
 	PlotService.updateSign(plot, nil, 0)
 	PlotService.applySkin(plot, Config.DEFAULT_SKIN)
 	PlotService.applyEffect(plot, Config.DEFAULT_EFFECT)
@@ -3818,6 +4075,92 @@ function PlotService.getOwnerOf(model: Model): Player?
 end
 
 
+-- CAN YOU STAND ON THE WHOLE TREAD? PROBED AT BOOT, BECAUSE A STAIR COLLIDER
+-- TURNED THE WRONG WAY IS INVISIBLE FROM EVERY OTHER ANGLE.
+--
+-- The treehouse's upper flight shipped with its thirteen tread colliders yawed
+-- a quarter turn: the 5.20 side ran UP the climb instead of across it, so the
+-- collision was a 0.69-wide ribbon along the centre line of a 5.20-wide
+-- staircase. Walking dead up the middle worked, which is why it survived a
+-- playtest; half a stud either side and a player fell through the stairs onto
+-- the lawn. Measured with this probe before the fix: 27% of the tread
+-- supported, 100% after.
+--
+-- A BOUNDING BOX CANNOT SEE IT -- the flight's box is the SAME either way, so
+-- the widest/deepest sweep above would report nothing. Nor can the collider be
+-- asked how wide it is, because the wrong answer is exactly what is being
+-- tested. So the probe width comes from the tread's own LARGEST horizontal
+-- side (a tread is 5.20 by 0.69 whichever way it is turned) and the question
+-- is the player's: cast down across the whole of it and see if there is floor.
+--
+-- IT ACCEPTS ANY COLLIDER, not just a step. The top of a flight arrives at a
+-- deck, and standing on the deck is standing on something -- measured, the
+-- treehouse's last three probe points land on `Collide_Main deck` 1.1 studs
+-- above the tread, which is a floor and not a hole.
+local STAIR_PROBE_POINTS = 7
+local function auditStairTreads(model: Model): (number?, string)
+	local flights = {}
+	for _, part in ipairs(model:GetChildren()) do
+		if part:IsA("BasePart") then
+			local flight, index = part.Name:match("^Collide_(.+) step (%d+)$")
+			if flight then
+				flights[flight] = flights[flight] or {}
+				flights[flight][tonumber(index)] = part
+			end
+		end
+	end
+
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Include
+	params.FilterDescendantsInstances = { model }
+
+	-- SEEDED EMPTY RATHER THAN AT 1, so a flight with full support is still
+	-- reported. Seeded at 1 and compared with `<`, a clean catalogue printed
+	-- nothing -- which reads exactly like an audit that never ran.
+	local worst, worstName = nil, ""
+	for name, steps in pairs(flights) do
+		local ordered = {}
+		for index, step in pairs(steps) do
+			ordered[#ordered + 1] = { index = index, step = step }
+		end
+		table.sort(ordered, function(a, b) return a.index < b.index end)
+		if #ordered >= 2 then
+			local run = ordered[#ordered].step.Position - ordered[1].step.Position
+			local flat = Vector3.new(run.X, 0, run.Z)
+			if flat.Magnitude > 0.01 then
+				local dir = flat.Unit
+				local across = Vector3.new(-dir.Z, 0, dir.X)
+				local hits, total = 0, 0
+				for _, entry in ipairs(ordered) do
+					local step = entry.step
+					-- The INTENDED walking width, never the turned one.
+					local width = math.max(step.Size.X, step.Size.Z)
+					local top = step.Position.Y + step.Size.Y / 2
+					for point = 1, STAIR_PROBE_POINTS do
+						local lateral = (point - 1) / (STAIR_PROBE_POINTS - 1) - 0.5
+						-- 0.9 of the width: a tread's own outer edge is where a
+						-- stringer would be, and a probe exactly on it is a
+						-- coin flip rather than a fault.
+						local at = step.Position + across * (lateral * width * 0.9)
+						local from = Vector3.new(at.X, top + 6, at.Z)
+						local hit = workspace:Raycast(from, Vector3.new(0, -8, 0), params)
+						total += 1
+						-- Solid AT walking height: something a long way below is
+						-- the hole this is looking for, not a floor.
+						if hit and hit.Position.Y > top - 0.6 then
+							hits += 1
+						end
+					end
+				end
+				if total > 0 and (worst == nil or hits / total < worst) then
+					worst, worstName = hits / total, name
+				end
+			end
+		end
+	end
+	return worst, worstName
+end
+
 -- DOES EVERY HOUSE FIT THE YARD IT IS SEATED IN? MEASURED AT BOOT, BECAUSE
 -- EVERY NUMBER IN THAT QUESTION HAS ALREADY BEEN WRONG ONCE.
 --
@@ -3854,6 +4197,7 @@ local function auditYard()
 	local worstBack, worstBackName = math.huge, ""
 	local worstSide, worstSideName = math.huge, ""
 	local worstSkew = 0
+	local worstTread, worstTreadHouse, worstTreadFlight = 1, "", ""
 
 	-- The catalogue itself, never `getHouseTier` in a loop: that function
 	-- CLAMPS an out-of-range level to the last tier, so a walk that waits for
@@ -3904,6 +4248,12 @@ local function auditYard()
 			end
 			worstSkew = math.max(worstSkew, skew)
 		end
+		-- Probed while it is still standing in the scratch folder: one model is
+		-- in there at a time, so the raycast filter cannot pick up a neighbour.
+		local tread, flight = auditStairTreads(model)
+		if tread and (worstTreadHouse == "" or tread < worstTread) then
+			worstTread, worstTreadHouse, worstTreadFlight = tread, tier.name, flight
+		end
 		model:Destroy()
 	end
 	scratch:Destroy()
@@ -3913,6 +4263,17 @@ local function auditYard()
 		.. " worst FX seating skew %.1f")
 		:format(deepestName, deepest, widestName, widest,
 			worstBack, worstBackName, worstSide, worstSideName, worstSkew))
+
+	if worstTreadHouse ~= "" then
+		print(("[PlotService] stair treads: worst flight is %s on %s, %.0f%% of its tread width supported")
+			:format(worstTreadFlight, worstTreadHouse, worstTread * 100))
+		if worstTread < 0.99 then
+			warn(("[PlotService] %s on %s has collision under only %.0f%% of its tread."
+				.. " A player off the supported strip falls THROUGH the stairs."
+				.. " Check the tread colliders' yaw -- see auditStairTreads")
+				:format(worstTreadFlight, worstTreadHouse, worstTread * 100))
+		end
+	end
 
 	if worstBack < 0 then
 		warn(("[PlotService] the %s reaches %.1f studs THROUGH the back fence."

@@ -17,6 +17,7 @@
 local RunService = game:GetService("RunService")
 
 local Rigs = require(script.Parent:WaitForChild("Rigs"))
+local FeatherWind = require(script.Parent:WaitForChild("FeatherWind"))
 
 local Idle = {}
 
@@ -46,7 +47,7 @@ function Idle.start(model: Model, key: string, phaseOffset: number?)
 		end
 		if #members > 0 then
 			table.insert(groups, { pivot = pivot, axis = spec.track.axis.Unit,
-				a = spec.track.a, b = spec.track.b, members = members })
+				a = spec.track.a, b = spec.track.b, wind = spec.track.wind, members = members })
 		end
 	end
 
@@ -88,7 +89,10 @@ function Idle.start(model: Model, key: string, phaseOffset: number?)
 		resting = false
 		local w = omega * (os.clock() - started)
 		local sn, cs = math.sin(w), math.cos(w)
-		place(function(g) return g.a * sn + g.b * cs end)
+		place(function(g)
+			if g.wind then return FeatherWind.angle(w, g.wind) end
+			return g.a * sn + g.b * cs
+		end)
 	end)
 	destroying = model.Destroying:Connect(stop)
 	return stop

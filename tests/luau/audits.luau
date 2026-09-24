@@ -28,8 +28,52 @@ for _,v in {"coins","unknown"} do provoke(Config.CHESTS.og,"currency",v,R,"rando
 for _,v in {0,1.5,math.huge,0/0} do provoke(Config.CHESTS.og,"cost",v,R,"random.price") end
 provoke(Config,"chestPool",function() error("broken pool") end,R,"random.pool")
 provoke(Config.SKINS.bronze,"cost",0,R,"random.coinTag")
-provoke(Config.SKINS.martian,"cost",100,R,"random.coinPool")
-provoke(Config.SKINS.martian,"pass","test",R,"random.passPool")
+-- A POOL ITEM, DERIVED RATHER THAN NAMED. Both rules fire on anything sitting
+-- inside a crate pool, and both were provoked through `Config.SKINS.martian`
+-- -- which was in a pool only because the Alien Cache put it there. That
+-- crate was deleted on 2026-09-23, the Martian is in NO pool now, and neither
+-- provoke fired: the suite reported the AUDIT as broken when the audit was
+-- right, which is the harness-lags-the-game failure CLAUDE.md records for the
+-- SetService double. Asking the pools which item to use cannot go stale when
+-- a crate is added or retired.
+local pooled
+for chestKey in Config.CHESTS do
+ for _,entries in Config.chestPool(chestKey) do
+  for _,entry in entries do
+   local kind,itemKey=Config.chestEntry(chestKey,entry)
+   if pooled==nil and kind=="skin" and Config.SKINS[itemKey] then pooled=itemKey end
+  end
+ end
+end
+check(pooled~=nil,"a skin sits in some crate pool to provoke the pool rules with")
+provoke(Config.SKINS[pooled],"cost",100,R,"random.coinPool")
+-- `random.passPool` IS ONLY REACHABLE THROUGH A SET CHEST, so it needs a
+-- fixture rather than a real row. For an ordinary chest `chestPool` drops
+-- anything `isEarnedElsewhere` claims -- a pass skin included -- so the item
+-- leaves the pool BEFORE the audit looks at it and the rule cannot fire. The
+-- set branch walks `set.items` verbatim and excludes nothing, which made a set
+-- the only pool that could ever hold a pass-exclusive item. The Alien Cache
+-- was the only set chest and was deleted on 2026-09-23, so this rule kept its
+-- reason to exist and lost the row that exercised it.
+--
+-- IT IS WORTH THE FIXTURE BECAUSE OF WHAT IT GUARDS: a paid exclusive sitting
+-- inside a random pool is the one thing `set = true` and the pass catalogue
+-- exist to prevent, and the next event crate will reach this branch for real.
+-- Same shape as `Config._auditFixture` two lines down -- a table installed to
+-- provoke a sweep and removed again -- and the tier is read BEFORE `pass` is
+-- set, because `rarityOf` reads the spec being altered.
+local fixtureTier=Config.rarityOf(Config.SKINS[pooled])
+Config.SETS._auditSet={name="Audit Set",order=99,items={{kind="skin",key=pooled}}}
+Config.CHESTS._auditSetChest={name="Audit Cache",order=99,kind="set",set="_auditSet",odds={[fixtureTier]=100}}
+check(#R()==0,"the fixture set chest is clean before the rule is provoked")
+local restorePass=Config.SKINS[pooled].pass
+Config.SKINS[pooled].pass="test"
+local passOk,passProblems=pcall(R)
+Config.SKINS[pooled].pass=restorePass
+Config.SETS._auditSet=nil
+Config.CHESTS._auditSetChest=nil
+check(passOk and contains(passProblems,"random.passPool"),"audit catches random.passPool in a set pool")
+check(#R()==0,"and the fixture leaves nothing behind")
 provoke(Config,"_auditFixture",{nested={unlockRebirths=1}},R,"random.rebirthGate")
 local protected
 for key,spec in Config.SKINS do if spec.pass then protected=key;break end end
@@ -43,11 +87,16 @@ provoke(Config,"CRATE_SECTIONS",{{key="x",name="X",chests={"missing"}}},R,"rando
 local cycle={};cycle.self=cycle;Config._auditFixture=cycle
 check(#R()==0,"recursive sweep handles cycles");Config._auditFixture=nil
 -- Removing historical coin prices must preserve every resale amount and tier.
-local sales={galaxy=40000,stormwolf=125000,
- bubblegum=2000,bee=40000,giraffe=40000,ladybird=6250,
- pearl=40000,mint=5000,sunset=11250,midnight=22500,lava=40000,
- cow=8750,neonmint=10000,zebra=40000,cyberlime=3000,
- leopard=40000}
+-- RE-PINNED x1000 with the economy's re-denomination. Every figure here is
+-- the old one times a thousand, so what this still asserts is that the sell
+-- LADDER -- the tier value, the `sellBasis` cap and which of the two binds on
+-- each skin -- is untouched. Bubblegum at 2.0M against a common's flat 40.0M
+-- is the cap biting exactly where it did before.
+local sales={galaxy=40000000,stormwolf=125000000,
+ bubblegum=2000000,bee=40000000,giraffe=40000000,ladybird=6250000,
+ pearl=40000000,mint=5000000,sunset=11250000,midnight=22500000,lava=40000000,
+ cow=8750000,neonmint=10000000,zebra=40000000,cyberlime=3000000,
+ leopard=40000000}
 -- SKINS SELL FOR COINS AGAIN. They paid acorns for one pass; with no crate
 -- priced in any in-game currency there is no printer to close, so the coin
 -- ladder and its `sellBasis` cap are back and these are the figures it pays.

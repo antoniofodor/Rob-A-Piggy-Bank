@@ -170,7 +170,7 @@ local function loadNeighborhood(sceneryOverride, configOverride)
 		Instance = Instance, require = req,
 		warn = function(message) table.insert(warnings, tostring(message)) end,
 		print = function() end,
-		script = { Parent = { SceneryTrees = { __module = "SceneryTrees" } } },
+		script = { Parent = { SceneryTrees = { __module = "SceneryTrees" }, Config = { __module = "Config" } } },
 		workspace = { FindFirstChild = function() return nil end },
 		game = { GetService = function(_, name)
 			if name == "ReplicatedStorage" then return { Shared = shared } end

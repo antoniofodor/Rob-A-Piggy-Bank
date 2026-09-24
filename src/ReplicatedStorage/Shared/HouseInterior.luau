@@ -129,6 +129,54 @@ local Theme = require(ReplicatedStorage.Shared.Theme)
 local HouseInterior = {}
 
 -- ============================================================
+-- INDOOR PLOTS ARE THE LAWN'S OWN SLOTS, CONTINUED
+-- ============================================================
+--
+-- THE LAWN IS SLOTS 1..6 AND THE HALL IS THE SLOTS AFTER IT (plan section 3
+-- and section 6: *"a lawn pedestal, the till and an indoor plot all pay the
+-- same rate; placement is entirely about exposure"*). Slot 0 is the bank, so
+-- the whole of a save's collection is ONE dense array with the lawn at the
+-- front of it -- no second table, no second economy, and every reader that
+-- already walks `Config.piggySlots` picks an indoor piggy up for free.
+--
+-- DERIVED AND NEVER PINNED. `Config.PIGGY_LAWN_SLOT_COUNT` is where the lawn
+-- stops and `Config.indoorPlotCeiling()` is how far the hall can ever reach,
+-- so widening either moves this with it. `Config.PIGGY_SLOT_COUNT` is where
+-- this belongs and it is read through a fallback until that row lands --
+-- the same shape `ThemedInterior`'s kit registry already takes for a Config
+-- row that has not caught up.
+
+function HouseInterior.slotBase(): number
+	return Config.PIGGY_LAWN_SLOT_COUNT
+end
+
+function HouseInterior.slotCount(): number
+	local total = (Config :: any).PIGGY_SLOT_COUNT
+	if type(total) == "number" then
+		return total
+	end
+	return Config.PIGGY_LAWN_SLOT_COUNT + Config.indoorPlotCeiling()
+end
+
+-- The save slot an indoor plot stands in, and back again. Two functions
+-- rather than an offset written at each call site: this project has a dozen
+-- post-mortems about one ladder described twice, and an off-by-one here is a
+-- piggy earning on a pedestal nobody can see.
+function HouseInterior.slotOfPlot(index: number): number
+	return Config.PIGGY_LAWN_SLOT_COUNT + math.floor(tonumber(index) or 0)
+end
+
+-- nil for a slot that is not an indoor one -- the bank, a lawn pedestal, or a
+-- number past the hallway's own ceiling.
+function HouseInterior.plotOfSlot(slot: number): number?
+	local index = math.floor(tonumber(slot) or 0) - Config.PIGGY_LAWN_SLOT_COUNT
+	if index < 1 or index > Config.indoorPlotCeiling() then
+		return nil
+	end
+	return index
+end
+
+-- ============================================================
 -- THE GEOMETRY, AND WHAT IS DERIVED FROM WHAT
 -- ============================================================
 --
@@ -142,6 +190,17 @@ local HouseInterior = {}
 local PLOT_TILE = 5.4
 -- The border that makes a plot a plot -- see `buildPlot`.
 local SURROUND = 0.7
+-- THE DRUM THAT MAKES A PLOT A PEDESTAL. The authored kits stand a stump
+-- 1.69 studs high under every piggy (`Pedestal.Piggy`, measured on all three)
+-- and this is the generic hall's own answer to it: the plot was a tile flush
+-- with its platform, so a piggy stood on the floor and the room read as a
+-- corridor with animals on the carpet rather than as a display hall.
+--
+-- 1.3 RATHER THAN THE KIT'S 1.69, because this one stands on a platform that
+-- is already 1.6 up: at the kit's height the display's crown would sit a stud
+-- and a half higher than the art's does, and the door arch's own clearance
+-- (`DOOR_H` over a display on a platform) is what pays for it.
+local PLOT_DRUM = 1.30
 -- THE BAY BETWEEN TWO PLOTS, LEFT FOR THE IN-BASE SHOP. The reference stands
 -- small stalls between the pets along both walls; those are Stage 5 and are
 -- NOT built here, but the wall bay they would stand in is, so a stall lands
@@ -156,7 +215,31 @@ local LANE = 16.0
 -- display room rather than a service corridor (the second live finding).
 -- Deep enough for a plot, its surround, a label read from the lane and a
 -- stall bay behind it.
-local PLATFORM_D = 11.0
+--
+-- AND IT IS 13.5 SO THE COLLECT BUTTON CAN BE THE LAWN'S (designer,
+-- 2026-09-23: "make them the same size as the outdoor buttons"). The walkway
+-- in front of a plot is `PLATFORM_D / 2 - 3.05`, so 11.0 gave 2.45 studs and
+-- an 8.4 x 3.6 pad needs 3.6 -- measured, a deeper pad on the old platform
+-- hung 1.15 studs past its edge over a step that drops 0.80 and then a floor
+-- that drops 1.60, which is a button floating over a staircase.
+--
+-- 13.5 RATHER THAN THE 13.3 THAT FITS EXACTLY. At 13.3 the walkway is 3.600
+-- against a pad of 3.600 and the margin measures 0.000 -- which passes the
+-- assertion in `tests/luau/interior.luau` and is the shape this project calls
+-- a coincidence rather than a clearance. 13.5 leaves 0.10, the same kind of
+-- stated margin the fence tiers and the house front line carry.
+--
+-- THE LANE DOES NOT PAY FOR IT, which is the whole reason this was the dial
+-- to turn. `WIDTH` is `LANE + PLATFORM_D * 2` and the platform's inner edge
+-- is therefore always `LANE / 2` -- so a deeper platform makes the ROOM wider
+-- (38.0 to 42.6) and leaves the clear walk down the middle at exactly the 16
+-- it was. What moves is the plot line, out from 13.5 to 14.65.
+--
+-- IT ALSO READS BETTER RATHER THAN MERELY FITTING, which is worth saying
+-- because a number moved to fit a button is usually the wrong number: the
+-- note above is that this depth is what makes the hall "a display room rather
+-- than a service corridor", and the change spends 2.3 studs on exactly that.
+local PLATFORM_D = 13.5
 -- Two studs is the reference; 1.6 plus a half-height step along the front is
 -- what a character can actually climb without a jump, and a platform nobody
 -- can climb is a plot nobody can place on.
@@ -171,6 +254,66 @@ local WALL = 1.0
 -- The walls stop here and the vault springs from it.
 local WALL_H = 12.0
 local FLOOR_T = 1.0
+
+-- ============================================================
+-- THE COLLECT PAD, WHICH IS THE LAWN'S OWN MECHANIC INDOORS
+-- ============================================================
+--
+-- A flat button you WALK OVER rather than a key you press -- the designer's
+-- 2026-09-21 call for the lawn, and there is no reason for an indoor
+-- placement to be collected a second way. `Shared/IndoorPedestal` builds it
+-- and `EconomyService.collectPiggy` banks it, through the same slot index the
+-- six lawn pads use.
+--
+-- EXPORTED BECAUSE BOTH BUILDERS READ IT AND NEITHER MAY GUESS. The hall has
+-- to leave the band clear in front of every plot and `ThemedInterior` has to
+-- place a kit's pad off its own pedestal extent, so a second copy of this
+-- number is a pad standing through a plot on one of the two -- with nothing
+-- in any log, because a pad neither collides nor answers a query.
+--
+-- MEASURED AGAINST BOTH FLOORS. The generic hall's plot surround reaches
+-- |z| 10.45 and its platform's inner edge is at 8.0, so the walkway in front
+-- of a plot is 2.45 studs; a kit's slot anchors sit at |x| 13.50 with the
+-- pedestal reaching 3.82 toward the lane, which puts its own footprint edge
+-- at 9.68 against the same 8.0 lane boundary. So 2.0 deep fits the generic
+-- hall's walkway with a quarter stud to spare and reaches a third of a stud
+-- into a kit's lane, which is flat floor and is where a player walks anyway.
+--
+-- AND IT IS THE LAWN'S PAD EXACTLY: 8.4 x 3.6 (designer, 2026-09-23, in
+-- three steps -- "much bigger", then "just as wide as well", then "they need
+-- to be increased in depth like the outside buttons ... make them the same
+-- size as the outdoor buttons"). There is now ONE collect button in this
+-- game and it is the same object in both places, which is the honest end of
+-- that sequence: the thing a player walks onto indoors and the thing they
+-- walk onto outdoors were never different objects, only differently sized
+-- ones.
+--
+-- BOTH CEILINGS BELOW WERE REAL AND ONE OF THEM MOVED. Width was only ever
+-- bounded by the neighbour pitch and 8.4 fits it with 1.0 to spare in the
+-- generic hall and 1.6 in a kit. DEPTH DID NOT FIT AND THE PLATFORM GREW FOR
+-- IT: the walkway was 2.45 studs, a 3.6 pad hung 1.15 past the platform edge,
+-- and measured, what is past that edge is a step 0.80 down and then a floor
+-- 1.60 down -- so the old number was not a tight fit, it was a button
+-- cantilevered over a staircase. `PLATFORM_D` is 13.3 now and the walkway is
+-- 3.6 exactly. See its note for why the lane pays nothing.
+--
+-- A KIT NEEDED NO SUCH CHANGE, and that asymmetry is worth knowing before
+-- anybody tunes this again. A kit's plot stands on FLAT floor with its lane
+-- beyond it, so the pad simply reaches further onto ground a player already
+-- walks on -- 1.92 studs in against 0.32 before. Only the generic hall
+-- raises its plots on a platform, so only the generic hall had an edge to
+-- fall off.
+--
+-- 5.4 x 2.0 WAS THE FIRST BUILD, and 5.4 was the PLOT TILE rather than a
+-- clearance -- an alignment with the drum behind it, which cost four spare
+-- studs on a button somebody has to walk onto.
+HouseInterior.INDOOR_PAD = Vector3.new(8.4, 0.5, 3.6)
+
+-- THERE IS NO CASH SIGN ANY MORE, and the two constants that sized one are
+-- gone with it (designer, 2026-09-23). A plaque stood proud of the mount
+-- below for a day and covered the coin emblem on the pedestal behind it; the
+-- figure is painted on the collect button now, which is what the lawn has
+-- always done. `Shared/IndoorPedestal` carries the rest of that reversal.
 
 -- THE VAULT: a circular arc across the hall, drawn as flat facets, with darker
 -- ribs crossing it at intervals and a hanging light under the ridge -- the
@@ -291,6 +434,31 @@ export type Plot = {
 	-- facing for free -- move the machine to the hand, never the hand to the
 	-- machine.
 	ground: CFrame,
+	-- WHERE THE COLLECT PAD STANDS: a GROUND frame on the floor the pedestal
+	-- itself stands on, its own +Z toward the lane, at the pad's centre. So
+	-- `Shared/IndoorPedestal` seats a pad by taking this as-is, the way
+	-- `PiggyPedestal.dress` takes `ground`.
+	--
+	-- AUTHORED BY THE BUILDER BECAUSE ONLY THE BUILDER KNOWS ITS OWN FLOOR.
+	-- The generic hall's plots stand on a raised platform with a measured
+	-- 2.45-stud walkway in front of them; a kit's stand on flat floor with a
+	-- collection plaque sticking out toward the lane. One rule covers both --
+	-- THE PAD'S OUTER EDGE ABUTS THE PEDESTAL'S OWN FOOTPRINT AND IT REACHES
+	-- `INDOOR_PAD.Z` TOWARD THE LANE -- and each builder measures its own.
+	collect: CFrame,
+	-- THE PEDESTAL'S OWN READOUT MOUNT: its lane-facing surface at reading
+	-- height, +Z toward the lane. The kits author one (`Pedestal.CashLabel`)
+	-- on all three and the generic hall puts one on its drum's own face.
+	--
+	-- NOTHING STANDS ON IT TODAY, AND THAT IS STATED RATHER THAN LEFT TO BE
+	-- FOUND. The cash figure is painted on the collect button (designer,
+	-- 2026-09-23 -- a plaque here covered the coin emblem behind it), so this
+	-- is a frame the ROOM publishes about its own art rather than a frame a
+	-- placement consumes. It stays because it is a fact about the kits, and
+	-- because `ThemedInterior`'s assert on the anchor is what catches a kit
+	-- that loses the mount; anything that wants to hang something on a
+	-- pedestal at reading height has it already measured.
+	cash: CFrame,
 	face: BasePart,
 	surround: BasePart,
 	unlocked: boolean,
@@ -580,14 +748,23 @@ local function buildPlot(refs: Refs, parent: Instance, index: number, room: numb
 	local at = refs.origin
 	local z = s * PLOT_Z
 	local surroundTop = PLATFORM_H + 0.30
-	local faceTop = surroundTop + FACE_PROUD
+	-- THE DRUM STANDS ON THE SURROUND AND THE FACE STANDS ON THE DRUM, which
+	-- is the same stepped stack the lawn plinth uses (a wider base course, a
+	-- narrower one on it, the lit face highest) and the same sink convention:
+	-- anything standing on something sinks `SINK` into it, so no two of the
+	-- three share the plane where they meet.
+	local drumTop = surroundTop + PLOT_DRUM
+	local faceTop = drumTop + FACE_PROUD
 	local faceThick = FACE_PROUD + FACE_SINK
 	local surroundThick = 0.30 + PLOT_SINK
 
 	local surround = dress(parent, "PlotSurround",
 		Vector3.new(PLOT_TILE + SURROUND, surroundThick, PLOT_TILE + SURROUND),
 		at * CFrame.new(x, surroundTop - surroundThick / 2, z), STONE_DEEP)
-	local face = dress(parent, "PlotFace", Vector3.new(PLOT_TILE, faceThick, PLOT_TILE),
+	dress(parent, "PlotDrum", Vector3.new(PLOT_TILE, PLOT_DRUM + SINK, PLOT_TILE),
+		at * CFrame.new(x, drumTop - (PLOT_DRUM + SINK) / 2, z), STONE)
+	local face = dress(parent, "PlotFace",
+		Vector3.new(PLOT_TILE - 0.7, faceThick, PLOT_TILE - 0.7),
 		at * CFrame.new(x, faceTop - faceThick / 2, z), PLOT_LOCKED)
 
 	-- Addressable from the instance alone: a client handed this part by a
@@ -598,10 +775,25 @@ local function buildPlot(refs: Refs, parent: Instance, index: number, room: numb
 	-- TURNED TO LOOK INTO THE LANE. Every model in this game is authored
 	-- facing +Z, so a piggy on the +Z platform takes a half turn to face -Z.
 	local yaw = if s > 0 then math.pi else 0
+	local turn = CFrame.Angles(0, yaw, 0)
+	-- THE PAD GOES IN THE WALKWAY IN FRONT OF THE PLOT, on the platform the
+	-- plot itself stands on, its outer edge against the surround. See
+	-- `INDOOR_PAD` for the measurement -- 3.6 studs of walkway, 3.6 of pad.
+	local inward = PLOT_Z - (PLOT_TILE + SURROUND) / 2 - HouseInterior.INDOOR_PAD.Z / 2
+	local collect = at * CFrame.new(x, PLATFORM_H, s * inward) * turn
+	-- AND THE READOUT MOUNT ON THE DRUM'S OWN LANE-FACING FACE, at reading
+	-- height. The SURFACE rather than a centre, which is the shape a kit's
+	-- authored `CashLabel` mount has -- see the `cash` field above for why
+	-- nothing stands on it today.
+	local cash = at
+		* CFrame.new(x, surroundTop + PLOT_DRUM * 0.55, s * (PLOT_Z - PLOT_TILE / 2))
+		* turn
 	return {
 		index = index,
 		room = room,
-		ground = at * CFrame.new(x, faceTop, z) * CFrame.Angles(0, yaw, 0),
+		ground = at * CFrame.new(x, faceTop, z) * turn,
+		collect = collect,
+		cash = cash,
 		face = face,
 		surround = surround,
 		unlocked = false,
@@ -1010,6 +1202,104 @@ end
 -- the facets against it. See `vaultArc`.
 function HouseInterior.vaultArc(): (number, number, number)
 	return vaultArc()
+end
+
+--[[
+	CAN A SAVE ACTUALLY HOLD AN INDOOR PIGGY? Asked at boot, of the real
+	`Config`, on a scratch table.
+
+	THIS EXISTS BECAUSE THE GEOMETRY AND THE SAVE LAYER LANDED IN DIFFERENT
+	SESSIONS. Everything above stands a pedestal, a pad and a cash sign on
+	every unlocked indoor plot and wires all five controls to the lawn's own
+	server path -- and every one of those paths ends in one dense array of
+	placements whose SIZE is `Config`'s to decide. Four bounds in `Config` and
+	`EconomyService` still stop at `PIGGY_LAWN_SLOT_COUNT`, and the failure
+	they produce is silent in the worst possible way: the room looks right, the
+	pads are there, and a piggy carried in and put down is dropped by the next
+	`Config.piggySlots` call with nothing in any log.
+
+	SO IT IS PROVOKED RATHER THAN READ. Each check writes what the feature
+	writes and asks the question the feature asks, so it cannot pass because
+	somebody edited a comment -- and it goes silent by itself the moment the
+	bounds move, which is what stops it becoming a warning nobody reads.
+
+	PURE, AND EXPORTED FOR THAT REASON: no Instance, no player, no hallway, so
+	`tests/luau/interior.luau` drives it with no engine at all -- the same
+	split `Config.crossedDoorway` makes against the CFrame work that feeds it.
+]]
+function HouseInterior.auditCollection(): { string }
+	local problems: { string } = {}
+	local base = Config.PIGGY_LAWN_SLOT_COUNT
+	local total = HouseInterior.slotCount()
+	local slot = base + 1
+	local key = Config.DEFAULT_SKIN
+
+	local function scratch(): any
+		return {
+			piggies = { owned = {}, till = key, slots = {} },
+			incomeLevel = 0,
+			-- THE CEILING, so `indoorPlots` is at its widest and the array
+			-- this is asking about is the biggest one the game will ever ask a
+			-- save to hold.
+			rebirths = Config.rebirthsToMax(),
+			coins = 0,
+		}
+	end
+
+	if total <= base then
+		table.insert(problems, ("[indoor.slots] the collection holds %d placements and the lawn alone is %d, "):format(total, base)
+			.. "so the hallway has nowhere in the save to stand anything")
+	end
+
+	-- 1. CAN THE ARRAY HOLD IT. `Config.piggySlots` grows and TRIMS to a
+	-- bound, and the trim is what drops an indoor entry -- silently, on the
+	-- next read, which is every tick.
+	local held = scratch()
+	Config.piggySlots(held)[slot] = { key = key, buffer = 0 }
+	local back = Config.piggySlots(held)[slot]
+	local survived = back ~= nil and back.key == key
+	if not survived then
+		table.insert(problems, ("[indoor.save] `Config.piggySlots` trims the array to %d entries, so slot %d is dropped on the next read. "):format(base, slot)
+			.. "Its two loops have to run to the whole collection rather than to `PIGGY_LAWN_SLOT_COUNT`")
+	end
+
+	-- 2. CAN A CARRIED PIGGY BE PUT DOWN ON IT. `Config.placePiggy` is the one
+	-- door `PiggyHaulService.place` goes through, and it refuses a slot past
+	-- the lawn -- so the prompt is live, the hold completes, and nothing
+	-- happens.
+	local placed = scratch()
+	if not Config.placePiggy(placed, key, slot) then
+		table.insert(problems, ("[indoor.place] `Config.placePiggy` refuses slot %d, so the hall's Place prompt cannot land a piggy. "):format(slot)
+			.. "Its bound has to be the whole collection rather than `PIGGY_LAWN_SLOT_COUNT`")
+	end
+
+	-- 3. DOES IT EARN. Only worth asking once the array can hold one at all --
+	-- otherwise it is the same failure reported a second time.
+	if survived then
+		local bare = Config.collectionRateOf(scratch())
+		local earning = Config.collectionRateOf(held)
+		if earning <= bare then
+			table.insert(problems, ("[indoor.rate] `Config.collectionRateOf` sums slots 1..%d, so an indoor piggy earns nothing "):format(base)
+				.. "and the HUD's own rate pill under-reports the collection it is describing")
+		end
+	end
+
+	-- AND THE TWO BOUNDS THIS CANNOT REACH FROM HERE, named rather than
+	-- probed: both need a live Player, and a fake one would be testing the
+	-- stub. `EconomyService`'s accrual loop and `collectPiggy` both stop at
+	-- `PIGGY_LAWN_SLOT_COUNT`, so an indoor buffer never fills and a pad
+	-- crossed on a full one banks nothing. They are named on ANY failure above
+	-- because they fail together: the save layer and the economy are one
+	-- change, and a reader who fixes half of it gets a pad that lights and
+	-- refuses.
+	if #problems > 0 then
+		table.insert(problems, "[indoor.economy] and `EconomyService`'s accrual loop, `collectPiggy` and "
+			.. "`sellPiggy` all bound at `PIGGY_LAWN_SLOT_COUNT`, so an indoor buffer never fills, "
+			.. "a pad banks nothing and a Sell prompt does nothing. `pedestalRates` stops there too, "
+			.. "so an indoor rate row stays blank")
+	end
+
+	return problems
 end
 
 function HouseInterior.footprint(): Vector3

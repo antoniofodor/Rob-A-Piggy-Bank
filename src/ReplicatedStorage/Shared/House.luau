@@ -2302,6 +2302,13 @@ local function addFish(style: string, seat: CFrame)
 	end
 end
 
+-- `Foundation_*` IS THE `base()` SLAB AND `CloudFoundation_*` IS NOT: the
+-- thundercloud's cloud mass carries the word and IS the building. Anchored, so
+-- the match cannot wander onto it.
+local function isPlinth(name: string): boolean
+	return name:match("^Foundation_") ~= nil
+end
+
 local function buildTemplateHouse(tier, at: CFrame): boolean
 	local key = Config.HOUSE_TEMPLATE[tier.style]
 	if not key then
@@ -2325,7 +2332,31 @@ local function buildTemplateHouse(tier, at: CFrame): boolean
 	-- are meant to be SEEN, so it rides up by the lawn's own lift. Measured
 	-- before: the tree base sat a stud under the grass and the ground details
 	-- 1.85 under it.
-	local seat = at * CFrame.new(0, Config.LAWN_LIFT, 0)
+	--
+	-- AND THEN BACK DOWN BY THE PLINTH, WHICH IS THE OTHER HALF OF DROPPING
+	-- IT. `Config.HOUSE_PLINTH_KEEP` carries the whole argument; what matters
+	-- here is that the slab and the lift are ONE change. The walls SAT on the
+	-- slab's top, so skipping it without lowering leaves them floating exactly
+	-- that far above the lawn, which is a worse picture than the tray was.
+	--
+	-- MEASURED PER PART THROUGH ITS OWN CFRAME rather than off `Position.Y +
+	-- Size.Y / 2`, because a slab authored on an angle reports a height that
+	-- is not its height -- the same rule as measuring a building by its parts
+	-- rather than by its bounding box.
+	local keepPlinth = Config.HOUSE_PLINTH_KEEP[tier.style]
+	local plinth = 0
+	if not keepPlinth then
+		for _, source in ipairs(template:GetChildren()) do
+			if source:IsA("BasePart") and isPlinth(source.Name) then
+				local cf, s = source.CFrame, source.Size
+				plinth = math.max(plinth, cf.Position.Y
+					+ math.abs(cf.RightVector.Y) * s.X / 2
+					+ math.abs(cf.UpVector.Y) * s.Y / 2
+					+ math.abs(cf.LookVector.Y) * s.Z / 2)
+			end
+		end
+	end
+	local seat = at * CFrame.new(0, Config.LAWN_LIFT - plinth, 0)
 	local built = false
 	-- THE AUTHORED EFFECTS, AND WITHOUT THIS THEY WERE DEAD GEOMETRY.
 	--
@@ -2346,6 +2377,9 @@ local function buildTemplateHouse(tier, at: CFrame): boolean
 	local coin = swapTo and swapTo:IsA("BasePart") and CoinModel.clone(swapTo.Size.X) or nil
 	for _, source in ipairs(template:GetChildren()) do
 		if coin and swap and swap.drop[source.Name] then
+			continue
+		end
+		if not keepPlinth and isPlinth(source.Name) then
 			continue
 		end
 		if source:IsA("BasePart") then

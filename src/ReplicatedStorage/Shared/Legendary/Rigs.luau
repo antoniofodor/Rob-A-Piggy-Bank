@@ -10,16 +10,16 @@
 	the bones under a rig part and under the Body alike. It did not need to:
 	every moving piece on the dragon and the tiger is weighted 100% to ONE
 	bone, so rotating the whole part about that bone's head is the same
-	motion. The phoenix's crest, mantle and ruff feathers are blended about
+	motion. The phoenix's crest and mantle feathers are blended about
 	half and half with Root; their pivots sit at the feather roots and the
-	sway is 1.5 to 3 degrees, so the whole-part rotation moves a root by
-	about a tenth of a stud.
+	wind movement stays below five degrees, keeping root movement small.
+	Its cheek ruffs stay in their rest pose so they remain attached to the face.
 
 	PIVOTS ARE THE BLENDER BONE HEADS (`*-complete.blend`, armature at the
 	world origin) in Blender axes, mapped by `Legendary/Idle` through the same
 	(x, y, z) -> (x, 6.62 + z, -y) every part offset uses.
 
-	TRACKS ARE FITTED TO THE IMPORTED IDLE CLIPS, NOT TYPED.
+	The dragon and tiger tracks are fitted to the imported idle clips.
 	`ServerStorage.RBX_ANIMSAVES.<key>-idle` holds the three KeyframeSequences
 	the importer made. Every track is a sine on the clip's 4-second loop, so
 	each is stored as an axis and
@@ -30,11 +30,14 @@
 	sidesteps the importer's Tail track, which carries a constant half turn
 	and a 493-stud offset on all three clips: the sway underneath is clean,
 	the constant is not motion.
+	The phoenix uses FeatherWind instead: a delayed gust with faster flutter,
+	traveling from crest to mantle to tail. Its Blender bake reads this tuning.
 
 	The Storm Wolf has no rig. Its motion is the lightning.
 ]]
 
-export type Track = { axis: Vector3, a: number, b: number }
+export type Wind = { strength: number, delay: number, flutter: number }
+export type Track = { axis: Vector3, a: number, b: number, wind: Wind? }
 export type Bone = { name: string, head: Vector3, track: Track, parts: { string } }
 export type Rig = { period: number, bones: { Bone } }
 
@@ -61,40 +64,35 @@ local Rigs: { [string]: Rig } = {
 			{ name = "Tail", head = Vector3.new(0, 4.62, 1.74),
 				track = { axis = Vector3.new(0, 0, -1), a = 0.05235, b = 0 },
 				parts = { "Tail", "TailPlume" } },
-			{ name = "Ruff_L", head = Vector3.new(-3.60, -3.00, 1.50),
-				track = { axis = Vector3.new(0, 0, 1), a = 0.02094, b = 0 },
-				parts = { "CheekFill_-1", "CheekFur_-1" } },
-			{ name = "Ruff_R", head = Vector3.new(3.60, -3.00, 1.50),
-				track = { axis = Vector3.new(0, 0, 1), a = 0.02094, b = 0 },
-				parts = { "CheekFill_1", "CheekFur_1" } },
 		},
 	},
 	phoenix = {
 		period = 4,
 		bones = {
 			{ name = "Tail", head = Vector3.new(0, 4.62, 1.74),
-				track = { axis = Vector3.new(0, 0, 1), a = -0.04862, b = -0.01941 },
+				track = { axis = Vector3.new(0, 0, 1), a = 0, b = 0,
+					wind = { strength = 2.5, delay = 0.40, flutter = 0.7 } },
 				parts = { "Tail", "Phoenix_Tail_Feathers" } },
 			{ name = "Mantle_L", head = Vector3.new(-3.60, 1.20, 1.80),
-				track = { axis = -X, a = 0.01897, b = 0.01804 },
+				track = { axis = X, a = 0, b = 0,
+					wind = { strength = 1.6, delay = 0.18, flutter = 0.65 } },
 				parts = { "Phoenix_Mantle_L_Feathers" } },
 			{ name = "Mantle_R", head = Vector3.new(3.60, 1.20, 1.80),
-				track = { axis = -X, a = 0.01092, b = 0.02379 },
+				track = { axis = X, a = 0, b = 0,
+					wind = { strength = 1.8, delay = 0.24, flutter = 0.7 } },
 				parts = { "Phoenix_Mantle_R_Feathers" } },
-			{ name = "Ruff_L", head = Vector3.new(-3.48, -3.66, 0.96),
-				track = { axis = -X, a = 0.00266, b = 0.05229 },
-				parts = { "Phoenix_Ruff_L_Feathers" } },
-			{ name = "Ruff_R", head = Vector3.new(3.48, -3.66, 0.96),
-				track = { axis = X, a = 0.01692, b = -0.04955 },
-				parts = { "Phoenix_Ruff_R_Feathers" } },
+			-- Cheek ruffs follow the model; independent sway pulls them off the face.
 			{ name = "Crest_0", head = Vector3.new(0, -2.82, 5.40),
-				track = { axis = X, a = 0.03409, b = -0.03973 },
+				track = { axis = X, a = 0, b = 0,
+					wind = { strength = 3.2, delay = 0.00, flutter = 1.1 } },
 				parts = { "Phoenix_Crest_0_Feathers" } },
 			{ name = "Crest_1", head = Vector3.new(-1.62, -3.06, 5.04),
-				track = { axis = X, a = 0.04640, b = -0.02424 },
+				track = { axis = X, a = 0, b = 0,
+					wind = { strength = 3.6, delay = 0.04, flutter = 1.2 } },
 				parts = { "Phoenix_Crest_1_Feathers" } },
 			{ name = "Crest_2", head = Vector3.new(1.62, -3.06, 5.04),
-				track = { axis = X, a = 0.05208, b = -0.00531 },
+				track = { axis = X, a = 0, b = 0,
+					wind = { strength = 3.0, delay = 0.08, flutter = 1.0 } },
 				parts = { "Phoenix_Crest_2_Feathers" } },
 		},
 	},

@@ -19,6 +19,25 @@
 -- Bump BUILD before each publish.
 local BUILD = "2026-08-30 suburb-street"
 print(("[Main] BUILD %s"):format(BUILD))
+-- When the boot began, so the Ready line can say how long the street took
+-- to build -- a player who was already in the server (Play Solo, the first
+-- into any server) stands at the world origin for exactly that long before
+-- anything below can seat them.
+local BOOT_STARTED = os.clock()
+-- WHERE THE BOOT GOES. Measured 2026-09-23 at 10 to 20 seconds of street
+-- build against 0.7 seconds of save load, and the first player into a server
+-- stands at the world origin for the whole of it. Every `start()` and
+-- `prewarm()` below is marked, and any phase over a quarter of a second is
+-- printed, so the next look at this comes with the phase named rather than
+-- with a total.
+local lastMark = BOOT_STARTED
+local function mark(name: string)
+	local now = os.clock()
+	if now - lastMark >= 0.25 then
+		print(("[Main] boot: %s took %.2fs"):format(name, now - lastMark))
+	end
+	lastMark = now
+end
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -62,9 +81,9 @@ local InteriorService = require(Services.InteriorService)
 
 -- The legendary skins' meshes start loading now, in the background, so a
 -- player wearing one on join is dressed at once rather than a beat later.
-require(ReplicatedStorage.Shared.LegendaryModel).prewarm()
-DataService.start()
-WorldService.start()
+require(ReplicatedStorage.Shared.LegendaryModel).prewarm() mark("LegendaryModel.prewarm")
+DataService.start() mark("DataService")
+WorldService.start() mark("WorldService")
 
 -- THE PREVIEW PIG'S MESH, BEFORE ANY SERVICE CAN BUILD ONE.
 --
@@ -80,68 +99,84 @@ WorldService.start()
 -- So it goes above every service that can build a mini: the shop displays
 -- (Neighborhood), the victim shelf and the carried loot (Plot, Piggy),
 -- and the residents.
-require(game:GetService("ReplicatedStorage").Shared.PiggyModel).prewarm()
+require(game:GetService("ReplicatedStorage").Shared.PiggyModel).prewarm() mark("PiggyModel.prewarm")
 
 -- The 3D coin that pours into a pig on a delivery. Built once here so the
 -- first delivery clones it rather than waiting on a mesh load; an empty id in
 -- Config.COIN_MESH leaves the drawn coin in its place.
-require(game:GetService("ReplicatedStorage").Shared.CoinModel).prewarm()
+require(game:GetService("ReplicatedStorage").Shared.CoinModel).prewarm() mark("CoinModel.prewarm")
+
+-- The loot bag a thief carries, and the Bigger Sack card, which are one
+-- object: `UpgradePreview.builders.sack` clones these templates when they are
+-- there and builds the primitives bag when they are not. Here for the same
+-- reason the preview pig is -- before any service can build one.
+require(game:GetService("ReplicatedStorage").Shared.LootMesh).prewarm() mark("LootMesh.prewarm")
+
+-- THE FENCE PANEL, FOR THE LAWN AND FOR THE CARD THAT SELLS IT. Before
+-- `PlotService`, because that service clones these the moment it stands a
+-- plot carrying a bought fence -- and before any client renders the Upgrades
+-- tab, which clones the same part. It was built LAZILY inside PlotService
+-- until this session, which cost the shop its copy entirely: a client cannot
+-- call `CreateMeshPartAsync`, so the card drew its own primitives fence and
+-- the two drifted. Four web calls, one per style, and a failure leaves the
+-- primitive fence standing exactly as it always did.
+require(game:GetService("ReplicatedStorage").Shared.FencePanel).prewarm() mark("FencePanel.prewarm")
 
 -- THE SHOP'S DOG CARDS NEED A RIG ON THE CLIENT, and only the handful a
 -- card can actually ask for. Before the plots, because the first thing a
 -- joining player's shop does is render these -- and a copy that arrives
 -- after the cards are built is a card that already fell back to its swatch.
-require(Services.GuardVisual).publishPreviews()
+require(Services.GuardVisual).publishPreviews() mark("GuardVisual")
 
 -- After the ground exists, before the plots: pure scenery, no dependencies.
-NeighborhoodService.start()
-PlotService.start()
+NeighborhoodService.start() mark("NeighborhoodService")
+PlotService.start() mark("PlotService")
 -- Immediately after the plots exist and BEFORE anything can seat a player on
 -- one. `assign` runs the moment a player joins, and in Play Solo that is
 -- essentially at once -- so if this had not registered its claim handler
 -- yet, the first player into any server would move into a house with a
 -- resident still living in it.
-ResidentService.start()
-SocialService.start()
+ResidentService.start() mark("ResidentService")
+SocialService.start() mark("SocialService")
 -- The street leaderboard: lifetime cash, piggies robbed and rebirths for
 -- everybody in the server, pushed on the leaderboard's cadence. Required and
 -- started in one statement; it needs nothing from here.
-require(Services.LobbyBoardService).start()
-EconomyService.start()
-UpgradeService.start()
-ProgressionService.start()
-CosmeticsService.start()
-HeistService.start()
+require(Services.LobbyBoardService).start() mark("LobbyBoardService")
+EconomyService.start() mark("EconomyService")
+UpgradeService.start() mark("UpgradeService")
+ProgressionService.start() mark("ProgressionService")
+CosmeticsService.start() mark("CosmeticsService")
+HeistService.start() mark("HeistService")
 -- AFTER `HeistService` AND AFTER `PlotService`, AND BOTH HALVES MATTER. It
 -- connects a trigger to every pedestal on every plot, so the plots have to
 -- exist; and the three questions it answers for `HeistService` are registered
 -- below, so that file has to have loaded.
-PiggyHaulService.start()
-HeldItemService.start()
-BoneService.start()
+PiggyHaulService.start() mark("PiggyHaulService")
+HeldItemService.start() mark("HeldItemService")
+BoneService.start() mark("BoneService")
 -- Both reach into HeistService, so they start after it.
-GadgetService.start()
-HomeService.start()
-StealthService.start()
+GadgetService.start() mark("GadgetService")
+HomeService.start() mark("HomeService")
+StealthService.start() mark("StealthService")
 -- Subscribes to HeistService's steal hook, so it starts after it.
-PoliceService.start()
+PoliceService.start() mark("PoliceService")
 -- After PoliceService, which it asks whether a patrol is out before it
 -- puts a van on the road. Scenery, and the last thing that should be able
 -- to hold up anything above it.
-TrafficService.start()
-EventService.start()
-DailyService.start()
+TrafficService.start() mark("TrafficService")
+EventService.start() mark("EventService")
+DailyService.start() mark("DailyService")
 -- Before RideService, which subscribes to its Granted event.
-PassService.start()
-RideService.start()
-SettingsService.start()
-SetService.start()
-SeasonService.start()
+PassService.start() mark("PassService")
+RideService.start() mark("RideService")
+SettingsService.start() mark("SettingsService")
+SetService.start() mark("SetService")
+SeasonService.start() mark("SeasonService")
 -- The front door. Last of the plot chain, because it requires PlotService
 -- and wants the plots standing before it probes a hallway at boot -- and
 -- deliberately NOT before `PlotService.start`, which is what builds the
 -- houses it reads a door anchor off.
-InteriorService.start()
+InteriorService.start() mark("InteriorService")
 
 -- ROAMING HERDS -- the PvE supply of piggies (docs/HERDS-PLAN.md).
 --
@@ -172,7 +207,34 @@ HerdService.addGroundVeto(function(position: Vector3): boolean
 end)
 HerdService.addGroundVeto(require(ReplicatedStorage.Shared.Grassland).blocks) -- a pack steers round the ponds
 HerdService.addGroundVeto(NeighborhoodService.treeBlocks) -- and round the trunks, never the canopies
-HerdService.start()
+HerdService.start() mark("HerdService")
+
+-- THE LASSO -- how a wild piggy is caught (docs/LASSO-PLAN.md). After the herd
+-- it throws at, the haul that carries a catch home and ProductService, whose
+-- receipt registry it fills for the Elite tier. The audit first, because the
+-- odds it checks are a PAID RANDOM ITEM's odds on the Elite tier, and a table
+-- that lies there is not a tuning slip.
+do
+	for _, problem in ipairs(Config.auditLassos()) do
+		warn("[Main] lasso: " .. problem)
+	end
+end
+-- The meshes, when their ids land; primitives until then. Pcalled: a prop
+-- may never stop the server starting.
+do
+	local ok, err = pcall(function()
+		require(ReplicatedStorage.Shared.LassoModel).prewarm()
+	end)
+	if not ok then
+		warn("[Main] LassoModel.prewarm failed: " .. tostring(err))
+	end
+end
+local LassoService = require(Services.LassoService)
+LassoService.start() mark("LassoService")
+-- The zapper's tuned hit knocks a lassoed catch loose. GadgetService cannot
+-- require the haul chain without dragging it behind every gadget, so the
+-- knock is registered here, the file that already requires both.
+GadgetService.registerZapKnock(PiggyHaulService.knockWild)
 
 -- WHAT MAY NOT BE DRAWN, AND WHY IT IS REGISTERED RATHER THAN REQUIRED.
 --
@@ -192,6 +254,16 @@ HeldItemService.addVeto(function(player)
 end)
 HeldItemService.addVeto(function(player)
 	return if StealthService.isHidden(player) then "Not while you're hiding." else nil
+end)
+-- A LASSO NEVER COMES OUT WHILE A PIGGY IS IN YOUR ARMS. A catch puts the
+-- lasso away (`PiggyHaulService.startWild`) so the carry reads as the ordinary
+-- hug (designer, 2026-09-23); this stops it being drawn again mid-carry. Only
+-- the lasso: what else may be held on a carry is a separate question.
+HeldItemService.addVeto(function(player, key)
+	if key and Config.LASSOS[key] and PiggyHaulService.isHauling(player) then
+		return "Not while your arms are full. Take it home first."
+	end
+	return nil
 end)
 
 -- SETS PUSH THROUGH A REGISTRY, and this is the only place that can fill it.
@@ -506,7 +578,21 @@ do
 	end
 end
 
-ChestService.start()
+ChestService.start() mark("ChestService")
+
+-- THE COMBINE MACHINE OUT ON THE VERGE (designer, 2026-09-23): "move the
+-- combine machine outside of the shop and into a dedicated spot on the map".
+--
+-- After ChestService, because `ChestService.combine` is the transaction it
+-- forwards to -- it requires that file behind a pcall and checks the one
+-- function it uses by name, so a broken or half-edited ChestService is a
+-- machine that refuses out loud rather than a boot that stops here.
+--
+-- It builds its own model into `workspace.World` and owns its own prompt;
+-- `NeighborhoodService` only asks `Shared/CombineStation` where it stands
+-- (to keep the verge grass and the verge trees off it), and that half is
+-- pure, so neither service has to run before the other.
+require(Services.CombineService).start() mark("CombineService")
 
 -- A trampoline refuses anybody mid-heist, and this is where that is wired.
 --
@@ -552,7 +638,8 @@ PlotService.registerPiggyRates(EconomyService.pedestalRates)
 HeistService.registerPiggyHaul(
 	PiggyHaulService.isHauling,
 	PiggyHaulService.nab,
-	PiggyHaulService.confiscate)
+	PiggyHaulService.confiscate,
+	PiggyHaulService.stolenFrom)
 
 -- A NEIGHBOUR GOING OUT ROBBING NEEDS THE HEIST'S OWN ACCOUNTING, and cannot
 -- ask for it: HeistService already requires ResidentService, so the arrow only
@@ -585,7 +672,7 @@ ResidentService.registerCatchEffect(CosmeticsService.fireCatchEffect)
 -- would be a cycle.
 ResidentService.registerThrow(GadgetService.neighbourThrow)
 -- Last: it reaches into every service above.
-AdminService.start()
+AdminService.start() mark("AdminService")
 
 local function onCharacterAdded(player: Player, character: Model)
 	local plot = PlotService.getPlot(player)
@@ -594,31 +681,79 @@ local function onCharacterAdded(player: Player, character: Model)
 	end
 	local root = character:WaitForChild("HumanoidRootPart", 10) :: BasePart?
 	if root then
-		root.CFrame = PlotService.getSpawnCFrame(plot)
+		local spawn = PlotService.getSpawnCFrame(plot)
+		root.CFrame = spawn
+		-- A RESPAWN IS PLACED BY THE ENGINE AFTER `CharacterAdded` FIRES, so
+		-- the write above is overwritten by the default spawn at the world
+		-- origin on every character but the first -- measured (2026-09-23):
+		-- a player who died came back at (0, 2.7, 0), and the first join
+		-- worked only because that character already existed and had been
+		-- placed when it was seated. So the seat is re-applied once the
+		-- character is in the world and the engine has had its frame, and
+		-- again on the frames after if anything moved it off. Bounded, so a
+		-- character that is deliberately somewhere else a second later (an
+		-- arrest release, a door) is never dragged back.
+		task.spawn(function()
+			local RunService = game:GetService("RunService")
+			local t0 = os.clock()
+			while character.Parent == nil and os.clock() - t0 < 5 do
+				RunService.Heartbeat:Wait()
+			end
+			for _ = 1, 3 do
+				RunService.Heartbeat:Wait()
+				if not root.Parent then
+					return
+				end
+				if (root.Position - spawn.Position).Magnitude > 4 then
+					root.CFrame = spawn
+				end
+			end
+		end)
 	end
 
 	-- Most Wanted gear is welded to the Head, so it dies with the character it
 	-- was welded to and has to be put back on every new one. This is also the
 	-- only place it can be done: the head does not exist until the character
-	-- does, and nothing else fires when one is replaced.
+	-- does, and nothing else fires when one is replaced. It is a no-op until
+	-- the save has landed (`gearOf` reads the cache), and the join below
+	-- applies it once more the moment it has.
 	character:WaitForChild("Head", 10)
 	CosmeticsService.applyToCharacter(player)
 end
 
 local function onPlayerAdded(player: Player)
+	-- SEAT FIRST, LOAD SECOND (designer, 2026-09-23: "spawning me mid map and
+	-- then after a few seconds at my base"). The plot needs nothing from the
+	-- save -- `assign` hands out the first free lawn and stamps the owner --
+	-- so the character goes onto it NOW, and the DataStore round trip (a
+	-- session-lock claim that can retry for seconds behind a queued write)
+	-- runs while they are already standing at home rather than at the world
+	-- origin. Everything the save decides -- the house, the skin, the sign's
+	-- rebirths, the gear on their head -- lands on the plot they are already
+	-- on, a beat later, exactly as it did before for a player who rejoined.
+	local seatedAt = os.clock()
+	local plot = PlotService.assign(player)
+	if not plot then
+		player:Kick("This server is full. Please try another.")
+		return
+	end
+	player.CharacterAdded:Connect(function(character)
+		onCharacterAdded(player, character)
+	end)
+	if player.Character then
+		onCharacterAdded(player, player.Character)
+	end
+
 	local data = DataService.load(player)
+	local loadedIn = os.clock() - seatedAt
 
 	if not data then
 		-- Someone else holds the session lock, or the datastore is down.
 		-- Kicking is the correct call: letting them play against state we
-		-- can't save is how progress gets silently lost.
+		-- can't save is how progress gets silently lost. The lawn goes back
+		-- first, or a resident could never be reseated on it.
+		PlotService.release(player)
 		player:Kick("Couldn't load your save. Please rejoin in a moment.")
-		return
-	end
-
-	local plot = PlotService.assign(player)
-	if not plot then
-		player:Kick("This server is full. Please try another.")
 		return
 	end
 
@@ -648,20 +783,24 @@ local function onPlayerAdded(player: Player)
 	-- check is a web call that yields, so it lands a moment later and pushes
 	-- again by itself. Waiting for it here would hold up the whole join.
 	PassService.onPlayerReady(player)
+	-- The starter lassos, once per save, and the stock card.
+	LassoService.onPlayerReady(player)
 	AdminService.push(player)
 
-	player.CharacterAdded:Connect(function(character)
-		onCharacterAdded(player, character)
-	end)
+	-- The character was seated before the save landed, so the gear it wears
+	-- is applied now; a character that arrives later gets it in
+	-- `onCharacterAdded` as always.
 	if player.Character then
-		onCharacterAdded(player, player.Character)
+		CosmeticsService.applyToCharacter(player)
 	end
 
-	print(("[Main] %s joined -> Plot%d (%s coins in the pig, session %d)"):format(
+	print(("[Main] %s joined -> Plot%d (%s coins in the pig, session %d; seated at %.1fs after boot, save loaded in %.1fs)"):format(
 		player.Name,
 		plot.index,
 		EconomyService.format(data.coins),
-		data.sessions or 0
+		data.sessions or 0,
+		seatedAt - BOOT_STARTED,
+		loadedIn
 	))
 end
 
@@ -670,4 +809,5 @@ for _, player in ipairs(Players:GetPlayers()) do
 	task.spawn(onPlayerAdded, player)
 end
 
-print(("[Main] Ready -- %d plots, %s base income/sec"):format(Config.PLOT_COUNT, Config.BASE_INCOME))
+print(("[Main] Ready -- %d plots, %s base income/sec, built in %.1fs"):format(
+	Config.PLOT_COUNT, Config.BASE_INCOME, os.clock() - BOOT_STARTED))

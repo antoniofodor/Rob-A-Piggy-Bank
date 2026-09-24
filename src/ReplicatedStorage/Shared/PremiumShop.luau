@@ -117,6 +117,158 @@ local function perks(passKey: string): { string }
 	return out
 end
 
+-- ============================================================
+-- THE ELITE LASSO
+-- ============================================================
+--
+-- A ROBUX-BOUGHT CHANCE, AND THEREFORE A PAID RANDOM ITEM (docs/LASSO-PLAN.md
+-- section 4). So the card prints the tier's odds -- `Config.lassoDescription`
+-- verbatim, the same generated text the server's roll is built from -- ABOVE
+-- its button, where they are read before anything can be pressed. It sits
+-- directly under the crates card, the other paid random item on this tab.
+--
+-- THE BUTTON DECLINES TO ASK FOR A KNOWN NO, which is `Crates`' rule: a
+-- product id of 0 throws, and a player the paid random item rule restricts
+-- must never reach the prompt -- they get a sentence instead, since a greyed
+-- button with nothing beside it is a button that does nothing. Their coin
+-- lassos are untouched, and the sentence says so.
+--
+-- The state is `LassoShop`'s (`LassoStock` carries `elite = { allowed,
+-- productId }`); this card only draws it.
+local ELITE_ART, ELITE_ART_COMPACT = 150, 110
+
+local function buildElite(self: any)
+	local LassoShop = require(ReplicatedStorage.Shared.LassoShop)
+	local key = LassoShop.eliteKey()
+	if not key then
+		return
+	end
+	local spec = Config.LASSOS[key]
+	local hue = spec.colour or Theme.GOLD
+	local card = frame(self.scroll, "EliteLasso", hue:Lerp(Theme.PAPER, 0.84))
+	-- Under the crates (0) and above the passes, which `render` orders from 2.
+	card.LayoutOrder = 1
+	card.Size = UDim2.new(1, 0, 0, 0)
+	card.AutomaticSize = Enum.AutomaticSize.Y
+	ShopStyle.round(card, 18)
+	ShopStyle.outline(card, 4, hue)
+	ShopStyle.gloss(card)
+	local inset = Instance.new("UIPadding")
+	inset.PaddingLeft = UDim.new(0, 12)
+	inset.PaddingRight = UDim.new(0, 12)
+	inset.PaddingTop = UDim.new(0, 12)
+	inset.PaddingBottom = UDim.new(0, 12)
+	inset.Parent = card
+
+	-- THE ART: the coil itself, the model the hand holds.
+	local art = frame(card, "Art", hue)
+	art.Size = UDim2.fromOffset(ELITE_ART, ELITE_ART)
+	art.ClipsDescendants = true
+	ShopStyle.round(art, 14)
+	ShopStyle.outline(art, 3)
+	local well = frame(art, "Well")
+	well.Position = UDim2.fromOffset(8, 8)
+	well.Size = UDim2.new(1, -16, 1, -16)
+	LassoShop.icon(well, key)
+
+	local side = frame(card, "Details")
+	side.Position = UDim2.fromOffset(ELITE_ART + 12, 0)
+	side.Size = UDim2.new(1, -(ELITE_ART + 12), 0, 0)
+	side.AutomaticSize = Enum.AutomaticSize.Y
+	local stack = Instance.new("UIListLayout")
+	stack.Padding = UDim.new(0, 6)
+	stack.SortOrder = Enum.SortOrder.LayoutOrder
+	stack.Parent = side
+
+	local pack = spec.pack or 1
+	local title = text(side, "Title", ("%s x%d"):format(spec.name or key, pack), 30)
+	title.LayoutOrder = 1
+	title.Size = UDim2.new(1, 0, 0, 34)
+	title.TextWrapped = false
+	title.TextTruncate = Enum.TextTruncate.AtEnd
+	-- What arrives, in numbers from Config rather than words typed here.
+	local what = text(side, "Pack",
+		("%d lassos. Every throw uses one, caught or not. Never sold for coins."):format(pack),
+		14, Enum.Font.GothamMedium)
+	what.LayoutOrder = 2
+	what.Size = UDim2.new(1, 0, 0, 0)
+	what.AutomaticSize = Enum.AutomaticSize.Y
+	-- THE DISCLOSURE, generated and verbatim.
+	local odds = text(side, "Odds", Config.lassoDescription(key), 14, Enum.Font.GothamBold)
+	odds.LayoutOrder = 3
+	odds.Size = UDim2.new(1, 0, 0, 0)
+	odds.AutomaticSize = Enum.AutomaticSize.Y
+	local status = text(side, "Status", "", 13, Enum.Font.GothamBold)
+	status.LayoutOrder = 4
+	status.Size = UDim2.new(1, 0, 0, 0)
+	status.AutomaticSize = Enum.AutomaticSize.Y
+	status.Visible = false
+
+	local buy = Instance.new("TextButton")
+	buy.Name = "Buy"
+	buy.LayoutOrder = 5
+	buy.Size = UDim2.new(0.62, 0, 0, 46)
+	buy.BackgroundColor3 = ShopStyle.DEAR
+	buy.BorderSizePixel = 0
+	buy.AutoButtonColor = false
+	buy.Text = ""
+	buy.Parent = side
+	ShopStyle.round(buy, 14)
+	ShopStyle.outline(buy, 3)
+	ShopStyle.gloss(buy)
+	local mark = Instance.new("ImageLabel")
+	mark.Name = "Robux"
+	mark.BackgroundTransparency = 1
+	mark.Image = PremiumShop.ROBUX_ICON
+	mark.ImageColor3 = Theme.INK
+	mark.ScaleType = Enum.ScaleType.Fit
+	mark.Size = UDim2.fromOffset(24, 24)
+	mark.Position = UDim2.new(0, 14, 0.5, -12)
+	mark.Visible = false
+	mark.Parent = buy
+	local price = text(buy, "Price", "...", 20)
+	price.TextXAlignment = Enum.TextXAlignment.Center
+	price.TextYAlignment = Enum.TextYAlignment.Center
+	price.TextWrapped = false
+	price.Size = UDim2.fromScale(1, 1)
+
+	local function inert(word: string)
+		mark.Visible = false
+		price.Text = word
+		price.Position = UDim2.new()
+		price.Size = UDim2.fromScale(1, 1)
+		buy.BackgroundColor3 = ShopStyle.DEAR
+		buy.AutoButtonColor = false
+	end
+	local function paint(payload: any)
+		local elite = payload and payload.elite
+		status.Visible = false
+		if not elite then
+			inert("...")
+		elseif elite.allowed ~= true then
+			inert("NOT AVAILABLE HERE")
+			status.Text = "Buying lassos with Robux is off for this account. Coin lassos in Supplies still work."
+			status.Visible = true
+		elseif (tonumber(elite.productId) or 0) <= 0 then
+			inert("COMING SOON")
+		else
+			mark.Visible = true
+			price.Text = tostring(spec.robux or 0)
+			price.Position = UDim2.fromOffset(40, 0)
+			price.Size = UDim2.new(1, -44, 1, 0)
+			buy.BackgroundColor3 = ShopStyle.BUY
+			buy.AutoButtonColor = true
+		end
+	end
+	buy.Activated:Connect(function()
+		LassoShop.promptElite()
+	end)
+	paint(LassoShop.latest())
+	LassoShop.listen(paint)
+
+	self.elite = { card = card, art = art, side = side, title = title, what = what, odds = odds, status = status }
+end
+
 function PremiumShop.new(view: Frame, deps: any): any
 	local self = { view = view, deps = deps, cards = {}, latest = nil, onFeatured = nil } :: any
 
@@ -125,9 +277,16 @@ function PremiumShop.new(view: Frame, deps: any): any
 	head.Position = UDim2.fromOffset(4, 0)
 	-- Robux, and what Robux does NOT buy here. Full ink: this is the one
 	-- sentence on the tab that matters to the adult paying.
+	--
+	-- IT USED TO SAY "NAMED THINGS ONLY", AND THAT STOPPED BEING TRUE WHEN THE
+	-- CRATES CAME IN (designer, 2026-09-23: "keep the crates in the robux
+	-- shop"). A crate is a random item, so the sentence a parent reads here
+	-- says so and says the odds are shown -- which is also what Roblox's paid
+	-- random item rule asks for, and what every crate tile already draws.
 	local rule = text(view, "Rule",
-		"Bought with Robux, not coins. Named things only: no coins, no boosts, "
-			.. "and nothing that makes anybody faster or richer.", 13, Enum.Font.GothamMedium)
+		"Bought with Robux, never coins. No coins, no boosts, nothing that makes "
+			.. "anybody faster or richer. Crates show their real odds before you buy.",
+		13, Enum.Font.GothamMedium)
 	rule.Size = UDim2.new(1, -8, 0, 34)
 	rule.Position = UDim2.fromOffset(4, 30)
 
@@ -154,10 +313,86 @@ function PremiumShop.new(view: Frame, deps: any): any
 	list.Parent = scroll
 	self.scroll = scroll
 
+	-- THE CRATES, FIRST IN THE LIST (designer, 2026-09-23). A crate is bought
+	-- with Robux, so the Robux shop is where somebody holding Robux looks for
+	-- one; PIGGY OUTFITTERS on the street opens the same shelf as well -- two
+	-- ways in, "double exposure, no harm there".
+	--
+	-- A DOOR TO THE CRATES SHELF RATHER THAN A SECOND COPY OF IT. `Crates`
+	-- owns the tiles, the disclosed odds, the policy refusal and the reveal,
+	-- and a second renderer of a paid random item is the one duplicate in this
+	-- shop where two copies disagreeing would be a compliance fault rather
+	-- than a cosmetic one. `deps.openCrates` opens it with the coin buy-backs
+	-- hidden, so this route shows Robux prices and nothing else.
+	-- THE CRATES THEMSELVES, NOT A DOOR TO THEM (designer, 2026-09-23: "from
+	-- the main robux shop menu it should show the common, rare, legendary
+	-- crates there to be able to purchase in fewer clicks"). This card used to
+	-- be a banner whose SEE CRATES button opened the crates shelf; buying a
+	-- crate was three taps from here and it is one now.
+	--
+	-- THE TILES ARE `Crates`' OWN, NOT A SECOND COPY. `deps.mountCrates` builds
+	-- them with the shelf's `buildTile` and they are repainted by the shelf's
+	-- `paint`, so the odds bar, the price, the policy refusal and every inert
+	-- state are one implementation shown in two places -- a second renderer of
+	-- a paid random item is the one duplicate in this shop where two copies
+	-- disagreeing would be a compliance fault rather than a cosmetic one. The
+	-- disclosed odds are on every tile, before the buy button.
+	--
+	-- THE "?" STILL GOES TO THE SHELF: it opens the crates tab (reset, with the
+	-- coin buy-backs hidden, and the back arrow pointing here) and then that
+	-- crate's full contents page.
+	if deps.openCrates and deps.mountCrates then
+		-- The crates shelf's own colour (its category is `style`), so this card
+		-- and the sign over the shelf it opens are one colour rather than two.
+		local hue = Theme.SHOP_COLOURS.style
+		local card = frame(scroll, "Crates", hue:Lerp(Theme.PAPER, 0.84))
+		card.LayoutOrder = 0
+		card.Size = UDim2.new(1, 0, 0, 0)
+		card.AutomaticSize = Enum.AutomaticSize.Y
+		ShopStyle.round(card, 18)
+		ShopStyle.outline(card, 4, hue)
+		ShopStyle.gloss(card)
+		local inset = Instance.new("UIPadding")
+		inset.PaddingLeft = UDim.new(0, 12)
+		inset.PaddingRight = UDim.new(0, 12)
+		inset.PaddingTop = UDim.new(0, 12)
+		inset.PaddingBottom = UDim.new(0, 12)
+		inset.Parent = card
+		local stack = Instance.new("UIListLayout")
+		stack.Padding = UDim.new(0, 8)
+		stack.SortOrder = Enum.SortOrder.LayoutOrder
+		stack.Parent = card
+		local head = frame(card, "Head")
+		head.LayoutOrder = 1
+		local title = text(head, "Title", "Piggy Crates", 30)
+		title.Size = UDim2.new(1, 0, 0, 34)
+		title.TextWrapped = false
+		local blurb = text(head, "Blurb",
+			"Every crate gives a piggy you do not have yet. Each shows its real odds; tap ? to see everything inside.",
+			14, Enum.Font.GothamMedium)
+		blurb.Position = UDim2.fromOffset(0, 36)
+		local strip = deps.mountCrates(card, function(chestKey: string)
+			deps.openCrates()
+			if deps.peekCrate then deps.peekCrate(chestKey) end
+		end)
+		strip.LayoutOrder = 2
+		self.crates = { card = card, head = head, title = title, blurb = blurb, strip = strip }
+	end
+	-- Pcalled: a lasso card that fails to build must never cost the tab the
+	-- crates above it or the passes below it.
+	local eliteOk, eliteErr = pcall(buildElite, self)
+	if not eliteOk then
+		warn("[PremiumShop] Elite Lasso card failed to build: " .. tostring(eliteErr))
+	end
+
 	scroll:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
 		PremiumShop.layout(self)
 	end)
-	return setmetatable(self, { __index = PremiumShop })
+	setmetatable(self, { __index = PremiumShop })
+	-- Sized now rather than on the first pass push: the crates card exists before
+	-- any pass does, and an unsized card is a zero-height hole in the list.
+	PremiumShop.layout(self)
+	return self
 end
 
 -- ============================================================
@@ -756,7 +991,8 @@ function PremiumShop.render(self: any, list: { any }?)
 				ui = buildCard(self, info.key)
 				self.cards[info.key] = ui
 			end
-			ui.card.LayoutOrder = order
+			-- From 2: the crates card is 0 and the Elite Lasso 1.
+			ui.card.LayoutOrder = order + 1
 			if info.owned then
 				ui.id = nil
 				ui.price.Text = "OWNED"
@@ -804,6 +1040,29 @@ function PremiumShop.layout(self: any)
 		ui.title.TextSize = if compact then 22 else 30
 		ui.blurb.TextSize = if compact then 12 else 14
 		ui.includes.TextSize = if compact then 11 else 13
+	end
+	-- The crates card grows to its tiles (`AutomaticSize`); only its heading is
+	-- sized here. The tiles lay themselves out in `Crates.mount`.
+	local c = self.crates
+	if c then
+		c.head.Size = UDim2.new(1, 0, 0, if compact then 62 else 76)
+		c.title.TextSize = if compact then 22 else 30
+		c.blurb.TextSize = if compact then 12 else 14
+		c.blurb.Size = UDim2.new(1, 0, 0, if compact then 26 else 38)
+	end
+	-- The Elite Lasso grows to its words (`AutomaticSize`); only the art and
+	-- the type are sized here.
+	local e = self.elite
+	if e then
+		local art = if compact then ELITE_ART_COMPACT else ELITE_ART
+		e.art.Size = UDim2.fromOffset(art, art)
+		e.side.Position = UDim2.fromOffset(art + 12, 0)
+		e.side.Size = UDim2.new(1, -(art + 12), 0, 0)
+		e.title.TextSize = if compact then 22 else 30
+		e.title.Size = UDim2.new(1, 0, 0, if compact then 26 else 34)
+		e.what.TextSize = if compact then 12 else 14
+		e.odds.TextSize = if compact then 12 else 14
+		e.status.TextSize = if compact then 11 else 13
 	end
 end
 

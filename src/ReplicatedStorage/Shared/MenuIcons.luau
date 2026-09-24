@@ -65,8 +65,16 @@ end
 
 local builders = { GEAR = options, SATCHEL = stuff, BASKET = shop, TROPHY = board }
 
+-- `fill` is the share of the button the drawing takes, and it defaults to the
+-- whole of it. The rail's tiles are bare silhouettes on the world and want
+-- every pixel; an icon sitting on a CHIP wants a margin inside it, and the
+-- cog's teeth reach the corners of its own 96-unit square, so at 1.0 they
+-- break out of any round ground. Here rather than at the call site because
+-- how big its drawing is inside the button it just made is this file's
+-- business, and a caller reaching into `Icon`'s UIScale to shrink it would be
+-- a coupling nothing states.
 function MenuIcons.makeButton(name: string, kind: string, label: string,
-	size: UDim2, parent: Instance): TextButton
+	size: UDim2, parent: Instance, fill: number?): TextButton
 
 	local button = Instance.new("TextButton")
 	button.Name = name
@@ -88,7 +96,7 @@ function MenuIcons.makeButton(name: string, kind: string, label: string,
 	icon.BorderSizePixel = 0
 	icon.Parent = button
 	local scale = Instance.new("UIScale")
-	scale.Scale = math.min(size.X.Offset, size.Y.Offset) / 96
+	scale.Scale = math.min(size.X.Offset, size.Y.Offset) / 96 * (fill or 1)
 	scale.Parent = icon
 	local builder = (builders :: any)[kind]
 	assert(builder, "Unknown menu icon: " .. kind)

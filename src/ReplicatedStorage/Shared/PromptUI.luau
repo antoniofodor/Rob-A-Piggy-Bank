@@ -58,9 +58,10 @@
 	both the game makes them EXCLUSIVE, so every card could take the same
 	`StudsOffset` and no offsetting logic was needed anywhere.
 
-	The smash spends that guarantee on purpose. Steal and smash are the two
-	ways into one pig and a choice you cannot see is not a choice, so both are
-	live at once for the same player, on the same Body.
+	The smash spent that guarantee on purpose: steal and smash were two ways
+	into one pig, live at once on the same Body. The smash is retired
+	(2026-09-23), and the slots stay because the owner's swap still stands
+	above the steal on the bank, and a pedestal carries two verbs.
 
 	`Config.PROMPT_SLOT_ATTRIBUTE` is what pays for it, and it is a SLOT rather
 	than an offset for a measured reason. This card is sized in OFFSET pixels,

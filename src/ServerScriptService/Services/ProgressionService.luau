@@ -119,22 +119,65 @@ function ProgressionService.rebirth(player: Player)
 		PlotService.fireFireworks(plot, data.rebirths)
 	end
 
-	notify(player, ("REBIRTH %d! Your piggy earns +%d%% forever."):format(
-		data.rebirths, Config.rebirthBonusPercent(data.rebirths)), "good")
+	-- THE SAME VOCABULARY AS THE PAGE THAT SOLD IT. This read "+%d%%", where the
+	-- decision page now reads "1x -> 1.12x", so a child pressed a button
+	-- promising a multiple and was congratulated in percentages. One formatter,
+	-- in Config, for the same reason there is one coin formatter.
+	notify(player, ("REBIRTH %d! Your piggies earn %s coins forever."):format(
+		data.rebirths, Config.rebirthMultipleText(data.rebirths)), "good")
 
-	-- A shop Legendary crate for free, with its normal odds and duplicate
-	-- spares, picked at random from the collections not yet finished -- so the
-	-- free open never rolls at a shelf whose legendaries are all owned.
+	-- EVERY REBIRTH OPENS A CRATE, AND EVERY FIFTH ONE OPENS A LEGENDARY
+	-- (designer, 2026-09-23).
 	--
-	-- WITH EVERY ONE COMPLETE THERE IS NOTHING TO PAY INSTEAD. It used to hand
-	-- over the crate's price in acorns; a crate has no price any more, so the
-	-- rebirth is SAID to be complete rather than silently paying zero -- a
-	-- grant with nothing on screen is one nobody believes.
-	local open = Config.rebirthCratesOpen(data.cosmetics.owned)
-	if #open == 0 then
-		notify(player, "Every Legendary collected -- no crate left to open!", "good")
+	-- It used to be a Legendary crate at every rebirth, which made the reward
+	-- flat: the best crate in the game at rebirth one and again at rebirth
+	-- twenty, so pressing the button harder bought nothing. A rare rung with a
+	-- legendary every fifth gives the ladder a shape -- the same argument the
+	-- guardian coats make one rung per rebirth, and the same reason the
+	-- five-star wanted chip is a ladder rather than a flag.
+	--
+	-- `rebirths` HAS ALREADY BEEN INCREMENTED ABOVE, so the first rebirth is
+	-- 1 and the fifth is 5 -- which is what makes `% every == 0` land on the
+	-- rung a player would count on their fingers rather than one early.
+	--
+	-- READ DEFENSIVELY, so this boots on either side of the Config edit that
+	-- adds the rare list and the cadence. The same call `buyDogCoat` makes
+	-- with `coat.unlockRebirths or 0`: a missing table means every rebirth
+	-- pays a legendary, which is exactly what it did yesterday.
+	-- ASKED OF `Config.rebirthCrateLadder` RATHER THAN WORKED OUT HERE, because
+	-- the rebirth PAGE has to advertise the same answer and for an hour it
+	-- advertised a different one. The cadence arithmetic lives in one function
+	-- that both ends read; this file keeps the decision about what to do with
+	-- it.
+	local ladder, legendary = Config.rebirthCrateLadder(data.rebirths)
+
+	-- WHICH ONE IS ASKED OF `ChestService` RATHER THAN OF `Config`.
+	--
+	-- `Config.rebirthCratesOpen` tests whether a shelf's LEGENDARY keys are
+	-- all owned, which was the right question while a crate could pay a
+	-- duplicate -- the check existed so the free open never rolled at a
+	-- finished shelf. No crate pays a duplicate now (2026-09-23): an
+	-- exhausted pool is REFUSED, at every tier, and a full lawn refuses too.
+	-- So the honest question is the predicate that actually decides whether
+	-- the open would happen, and asking anything else is two answers to one
+	-- question.
+	local pick = ChestService.pickOpenable(player, ladder)
+	-- AND THE LEGENDARY SHELF IS THE FALLBACK, never nothing: a player who has
+	-- finished every rare still gets the rung above it. Without this, clearing
+	-- the cheap shelf would silently cost four rebirths out of five their
+	-- reward.
+	if not pick and not legendary then
+		pick = ChestService.pickOpenable(player, Config.REBIRTH_CRATES)
+	end
+	if not pick then
+		-- WITH EVERY ONE COMPLETE THERE IS NOTHING TO PAY INSTEAD. It used to
+		-- hand over the crate's price in acorns; a crate has no price any
+		-- more, so the rebirth is SAID to be complete rather than silently
+		-- paying zero -- a grant with nothing on screen is one nobody
+		-- believes.
+		notify(player, "Every piggy collected -- no crate left to open!", "good")
 	else
-		ChestService.grantFree(player, open[math.random(#open)])
+		ChestService.grantFree(player, pick)
 	end
 
 	-- Persist immediately. Losing a rebirth to a crash would be the single

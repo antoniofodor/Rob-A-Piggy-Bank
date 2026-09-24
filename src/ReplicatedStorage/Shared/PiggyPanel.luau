@@ -1,5 +1,7 @@
 --!strict
--- The balance card in the top-right corner. It draws ONE number, straight
+-- The balance card in the top-LEFT corner (designer, 2026-09-23: the
+-- leaderboard became a standing board in the top-right and this moved out of
+-- its way). It draws ONE number, straight
 -- off `StateUpdate`, and derives nothing -- see the note above `DESIGN_W`
 -- for what this panel used to carry and why each piece went. Keeping the
 -- widget here also frees ClientMain registers.
@@ -79,8 +81,11 @@ end
 -- client at 90px in FredokaOne at 32 -- so a plate carrying the coin, the
 -- gap and that figure with real slack comes to 176, which is exactly the
 -- width `Wanted` already uses. The plate and the chip under it now share a
--- width AND a right edge, which is the rule this corner is held together
--- by: three stacked things, one edge.
+-- width AND an edge, which is the rule this corner is held together by:
+-- stacked things, one edge. That edge is the LEFT one since the move, and
+-- the rule did not otherwise change -- `Wanted` is still positioned from
+-- here rather than from its own module, so the two can never disagree about
+-- which edge they share.
 local DESIGN_W = PiggyPanel.CHIP_W
 local PLATE_X, PLATE_Y, PLATE_W, PLATE_H = 0, 8, PiggyPanel.CHIP_W, 56
 PiggyPanel.COMPACT_SCALE = 0.64
@@ -107,9 +112,9 @@ function PiggyPanel.new(gui: ScreenGui)
 	-- is laid out in, anchored to the top-right corner.
 	local root = Instance.new("Frame")
 	root.Name = "PiggyPanel"
-	root.AnchorPoint = Vector2.new(1, 0)
+	root.AnchorPoint = Vector2.new(0, 0)
 	root.Size = UDim2.fromOffset(DESIGN_W, PLATE_Y + PLATE_H)
-	root.Position = UDim2.new(1, -14, 0, 72)
+	root.Position = UDim2.new(0, 14, 0, 72)
 	root.BackgroundTransparency = 1
 	root.ZIndex = 1
 	root.Parent = gui
@@ -145,7 +150,7 @@ function PiggyPanel.new(gui: ScreenGui)
 		local designH = PLATE_Y + PLATE_H
 		local drawn = (if compact then PiggyPanel.COMPACT_SCALE else 1) * metrics.bankScale
 		root.Size = UDim2.fromOffset(DESIGN_W, designH)
-		root.Position = UDim2.new(1, -14, 0, metrics.bankTop)
+		root.Position = UDim2.new(0, 14, 0, metrics.bankTop)
 		scale.Scale = drawn
 		-- Built later by Wanted. Hung under the panel's DRAWN bottom, so a
 		-- resize can never make the column overlap -- and it shares this
@@ -153,7 +158,15 @@ function PiggyPanel.new(gui: ScreenGui)
 		-- as a column rather than as two objects.
 		local chip = gui:FindFirstChild("Wanted")
 		if chip and chip:IsA("GuiObject") then
-			chip.Position = UDim2.new(1, -14, 0, metrics.bankTop + designH * drawn + 8)
+			-- THE ANCHOR IS SET HERE TOO, AND THAT IS THE MOVE'S ONE TRAP.
+			-- `Wanted` builds itself anchored to the RIGHT edge and this
+			-- function has always overridden its POSITION -- which was
+			-- invisible while both were right-anchored and agreed. Moving the
+			-- column left without the anchor would have hung the chip off the
+			-- screen by its own width, so the two properties are written
+			-- together by whichever end owns the column.
+			chip.AnchorPoint = Vector2.new(0, 0)
+			chip.Position = UDim2.new(0, 14, 0, metrics.bankTop + designH * drawn + 8)
 			local chipScale = chip:FindFirstChildOfClass("UIScale")
 			if not chipScale then chipScale = Instance.new("UIScale"); chipScale.Parent = chip end
 			chipScale.Scale = if compact then 0.75 else 1

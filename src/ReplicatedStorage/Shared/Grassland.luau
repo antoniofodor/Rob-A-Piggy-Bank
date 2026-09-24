@@ -1,40 +1,12 @@
 --!strict
 --[[
-	Grassland
+    Installed scenery is built by MeadowBuilder from MeadowTemplates: two
+    large Terrain ponds, a broad waterfall, low-poly plants, rocks and logs.
+    MeadowPlan reserves the water clearings before the grove is planted.
+    blocks() combines pond rims with MeadowBuilder's physical obstacles.
 
-	What stands in the grass the herds wander: the band behind the back
-	fences on both sides of the street, between the grove's three rows of
-	trees. Three ponds a side, flower drifts, low bushes, rocks and fallen logs.
-	Pure scenery: every part is CanCollide, CanQuery and CastShadow false,
-	anchored, SmoothPlastic and flat colour -- the same rule the whole of
-	NeighborhoodService and every lawn ornament already follow, and it
-	matters here because this is ground a pack walks and a thief may cross.
-
-	IT IS IN `Shared` FOR THE REASON HOUSE AND DECOR ARE: pure geometry over
-	Config with no server-only API in it, so a shop card or a preview can
-	build the real thing rather than a copy that drifts.
-
-	NOTHING HERE CAN BE DUG, SO A POND IS AN ILLUSION BUILT THE MOAT'S WAY.
-	The ground is one solid Part; setting a water surface below it makes the
-	water vanish under the grass, not a hole. So every layer sits PROUD of
-	the ground and the depth comes from the rim: a ring of boulders standing
-	over a stud above the grass, a bed a hair above it, and a translucent
-	surface between the two, well below the rim's top line -- the eye takes
-	the highest line as the ground. The bed is opaque and dark, or the water
-	tints the grass under it and comes out pond-green.
-
-	A POND IS PLACED BY SCANNING THE BAND AGAINST THE TRUNKS THAT ACTUALLY
-	STAND THERE, never by a typed coordinate. NeighborhoodService hands
-	`build` where its grove trees went and how far each canopy reaches, and
-	`layout` picks the spot whose rim is furthest outside every canopy's
-	reach circle -- capped, then biased toward the fence for the first pond
-	and away from it for the second, or all four run to the emptiest corner
-	of the band (measured: against the valley wall). Handed no trunks it
-	still lays out, which is what the suite drives.
-
-	`blocks(position)` is the herd's veto: true inside a pond's stones plus
-	a piggy's own radius. Flowers, rocks and the log do not block -- a piggy
-	walking through flowers is fine, a piggy standing in a pond is not.
+    The procedural shapes and scan-based layout below remain a missing-kit
+    fallback. Their raised decorative water is not used by the installed map.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -222,6 +194,7 @@ end
 -- STATE AND THE VETO
 -- ------------------------------------------------------------
 local placed: { Pond } = {}
+local meadowBuilder: any = nil
 
 -- The ponds the last build stood, for anything that wants to draw them.
 function Grassland.ponds(): { Pond }
@@ -231,6 +204,7 @@ end
 -- True inside a pond's rim plus a piggy's own radius. Reads XZ only: the
 -- herd asks with a point at its own body height, and the water is flat.
 function Grassland.blocks(position: Vector3): boolean
+	if meadowBuilder and meadowBuilder.blocks(position) then return true end
 	local margin = Config.GRASSLAND.pondMargin
 	for _, pond in ipairs(placed) do
 		if dist(position.X, position.Z, pond.x, pond.z) <= pond.rim + margin then
@@ -507,6 +481,16 @@ end
 	`buildTrees` actually stood; the suite passes what it likes.
 ]]
 function Grassland.build(parent: Instance, obstacles: { Obstacle }?): (Folder, { Pond }, number)
+	local loaded, builder = pcall(function() return require(script.Parent.MeadowBuilder) end)
+	if loaded and builder.ready() then
+		local ponds = builder.layout(Config.herdGround(), obstacles or {})
+		local made, built, count = builder.build(parent, obstacles or {}, ponds)
+		placed = built
+		meadowBuilder = builder
+		return made, built, count
+	end
+	meadowBuilder = nil
+	if not loaded then warn("[Grassland] meadow kit unavailable: " .. tostring(builder)) end
 	local G = Config.GRASSLAND
 	local g = Config.herdGround()
 	local groundY = g.groundY

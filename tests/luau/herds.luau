@@ -133,12 +133,17 @@ buildMember = function(herd, member)
 		SetAttribute = function(_, name, value) attrs[name] = value end,
 		GetAttribute = function(_, name) return attrs[name] end,
 	}
-	-- The catch prompt, stubbed down to the one property this suite is
-	-- about: whether a member can be caught. The real builder starts it
-	-- disabled unless the pack is already on the ground, and this mirrors
-	-- that rather than inventing a second rule.
-	member.prompt = { Enabled = herd.state == "roam" }
+	-- NO CATCH PROMPT ANY MORE (docs/LASSO-PLAN.md): whether a member can be
+	-- caught is the LASSO TARGET id `land` stamps on the model, which this
+	-- stub remembers like any other attribute.
 	built += 1
+end
+-- The dazed hand pick-up is Instances; what the suite holds is that one is
+-- built for a dazed piggy with a catcher and not for one without.
+buildPickup = function(member)
+	if member.dazed and member.dazed.catcher ~= nil then
+		member.pickup = { Enabled = true, Destroy = function() end }
+	end
 end
 -- The drop-zone marker is Instances and Theme; what a suite can hold is that
 -- one is put up at the drop, that it is taken down on the beacon's own clock
@@ -149,7 +154,6 @@ buildBeacon = function(herd)
 end
 fadeBeacon = function(_, alpha) lastFade = alpha end
 landingPuff = function(member, when) puffs += 1 end
-reach = function() return true end
 HerdService._herds = herds
 HerdService._next = function() return nextSpawnAt end
 HerdService._setNext = function(t) nextSpawnAt = t end
@@ -165,6 +169,12 @@ setfenv(run, env)
 local H = run()
 local HERDS = Config.HERDS
 local DROP = H._dropSpec()
+-- WHETHER A MEMBER IS A LASSO TARGET, read back off its model the way a
+-- client's lock-on reads it: the id `land` stamps, and nothing while it is in
+-- the air or rising.
+local function targetOf(m)
+	return m.model and m.model:GetAttribute(Config.LASSO_TARGET_ATTRIBUTE)
+end
 local ROUTED = Config.herdRoute ~= nil
 
 local function save()
@@ -181,8 +191,8 @@ check(Config.rarityRank(HERDS.tierCap) >= 1, "the tier cap names a real tier on 
 check(Config.rarityRank(HERDS.tierCap) < #Config.RARITY_ORDER,
 	"the cap is holding something back rather than admitting the whole ladder")
 check(HERDS.maxLoose >= 1 and HERDS.spawnEverySeconds > 0, "a cap and a rate that can spawn at all")
-check(HERDS.range == Config.COLLECT_RANGE and HERDS.hold == Config.PIGGY_HAUL.takeHold,
-	"the catch prompt reads the pedestal take's own range and hold rather than a second number")
+check(HERDS.range == Config.COLLECT_RANGE,
+	"the dazed pick-up reads the pedestal take's own range rather than a second number")
 check(#Config.auditHerds() == 0, "the shipped placeholder table audits clean: " .. table.concat(Config.auditHerds(), "; "))
 
 local function provoke(mutate, restore, wanted, why)
@@ -229,8 +239,14 @@ provoke(function() HERDS.pathSample = 0 end, function() HERDS.pathSample = sampl
 	"[herds.ground]", "audit refuses a path sample of zero")
 
 -- ---- THE DESIGNER'S TWO NUMBERS -------------------------------------------
-check(HERDS.maxLoose == 5, "five herds loose at once")
-check(HERDS.size.min == 10 and HERDS.size.max == 10, "a pack is exactly ten")
+-- TWENTY SINGLES (designer, 2026-09-23): a herd is one piggy, twenty are
+-- loose, a caught one is replaced one-for-one, and the boot fills the cap
+-- in a wave one per `drop.waveGap` rather than one per gap.
+check(HERDS.maxLoose == 20, "twenty piggies loose at once")
+check(HERDS.size.min == 1 and HERDS.size.max == 1, "a herd is exactly one piggy")
+check((DROP.separation or 0) >= 20, "two landings are kept well apart")
+check((DROP.waveGap or 0) > 0 and DROP.waveGap < HERDS.spawnEverySeconds, "the boot wave is quicker than the replacement gap")
+check((DROP.quietBeaconSeconds or 0) > 0 and DROP.quietBeaconSeconds < DROP.beaconSeconds, "a replacement's marker is shorter than a batch's")
 check(HERDS.spawnEverySeconds < HERDS.roam.min,
 	"the entry gap is far shorter than a roam, so the cap fills at boot rather than one herd a roam")
 check(HERDS.replaceDelay < HERDS.spawnEverySeconds, "a replacement is due sooner than a fresh entry")
@@ -318,6 +334,25 @@ for rank = 1, Config.rarityRank(HERDS.tierCap) do
 	end
 	for i = 2, #pool do
 		check(pool[i - 1] < pool[i], "the pool is sorted, so a ticket is reproducible")
+	end
+end
+
+-- ---- THE FLOATING RATE LABEL'S OWN NUMBER ---------------------------------
+-- HerdService's `buildRatePreview` prints `Config.getPiggyIncomeRate(member.
+-- tier, 0, 0)` over every member -- the base, level-0 rate for the skin's own
+-- rarity, since a herd member has no owner to read an income level, a rebirth
+-- count or a boost from. This is the pure half of that call: every tier a herd
+-- member can actually roll -- everything under the cap with a stocked pool,
+-- the same walk the pool check above makes -- has to turn into a finite,
+-- POSITIVE rate that a player can read, or the label the service builds would
+-- print "+0/s", "+nan/s" or nothing over a piggy standing in the field.
+for rank = 1, Config.rarityRank(HERDS.tierCap) do
+	local tier = Config.RARITY_ORDER[rank]
+	if #Config.herdSkinPool(tier) > 0 then
+		local rate = Config.getPiggyIncomeRate(tier, 0, 0)
+		check(type(rate) == "number" and rate == rate and rate > 0,
+			"a herd-eligible " .. tier .. " has a real base rate, got " .. tostring(rate))
+		check(Config.formatCoins(rate) ~= "", "and it formats to something a player can read")
 	end
 end
 
@@ -415,7 +450,7 @@ do
 	for i = 2, HERDS.maxLoose do
 		table.insert(spawned, (assert(H.spawn())))
 	end
-	check(H.count() == HERDS.maxLoose, "five loose")
+	check(H.count() == HERDS.maxLoose, "the cap is full")
 	local c, why = H.spawn()
 	check(c == nil and why and why:find("cap", 1, true), "the sixth is refused by the cap, out loud: " .. tostring(why))
 	check(not H.canSpawn(now + 10 * HERDS.spawnEverySeconds), "at the cap, no timer makes it spawn")
@@ -431,13 +466,22 @@ do
 		check(h.entryEnd == nil and h.exitEnd == nil and h.route == nil,
 			"a dropped pack carries no tunnel end and no route")
 	end
-	check(math.abs(sides[-1] - sides[1]) == 1, ("five packs split three-and-two across the two bands: %d / %d"):format(sides[-1], sides[1]))
+	check(math.abs(sides[-1] - sides[1]) <= 1, ("the loose piggies split evenly across the two bands: %d / %d"):format(sides[-1], sides[1]))
+	-- SEPARATED: no two loose members within `drop.separation` of each other.
+	for _, h1 in ipairs(spawned) do
+		for _, h2 in ipairs(spawned) do
+			if h1 ~= h2 then
+				local dx, dz = h1.members[1].at.X - h2.members[1].at.X, h1.members[1].at.Z - h2.members[1].at.Z
+				check(math.sqrt(dx * dx + dz * dz) >= (DROP.separation or 0) - 1e-6, "every pair of landings is at least drop.separation apart")
+			end
+		end
+	end
 	for _, h in ipairs(spawned) do
 		if h ~= a then H.despawn(h) end
 	end
 	check(H.count() == 0, "clear")
 	check(H.spawn("nonsense") == nil, "an unknown kind is refused")
-	check(#a.members == 10, "a pack is exactly ten")
+	check(#a.members == 1, "a herd is exactly one piggy")
 	for _, m in ipairs(a.members) do
 		check(Config.rarityRank(m.tier) <= Config.rarityRank(HERDS.tierCap), "every member is under the cap")
 		check(Config.SKINS[m.key] ~= nil, "every member wears a catalogue skin")
@@ -463,8 +507,11 @@ do
 		end
 		seen = c
 	end
-	-- Fill.
-	local fillBy = HERDS.firstSpawnDelay + (HERDS.maxLoose - 1) * HERDS.spawnEverySeconds
+	-- Fill. THE WAVE: an empty field fills one per `drop.waveGap`, and the
+	-- scheduler here beats every half second, so a birth lands on every beat
+	-- once the gap is under one.
+	local waveGap = math.max(DROP.waveGap or 0, 0.5)
+	local fillBy = HERDS.firstSpawnDelay + (HERDS.maxLoose - 1) * waveGap
 	while now - t0 <= fillBy + 0.5 do
 		H.tick(now)
 		H._stepAll(0.5)
@@ -472,10 +519,21 @@ do
 		now += 0.5
 	end
 	check(H.count() == HERDS.maxLoose, ("the cap is full %.0fs after boot"):format(fillBy))
-	check(#births == HERDS.maxLoose, "five births")
+	check(#births == HERDS.maxLoose, "twenty births")
 	for i, t in ipairs(births) do
-		local want = HERDS.firstSpawnDelay + (i - 1) * HERDS.spawnEverySeconds
-		check(math.abs(t - want) <= 0.51, ("pack %d is born at %.1fs, one gap after the last (%.0f)"):format(i, t, want))
+		local want = HERDS.firstSpawnDelay + (i - 1) * waveGap
+		check(math.abs(t - want) <= 0.51, ("piggy %d is born at %.1fs, one wave gap after the last (%.1f)"):format(i, t, want))
+	end
+	-- ONE SPLASH FOR THE WAVE, not one per piggy. A wave's payload carries no
+	-- zone (there is no one place to name); a pack's does.
+	do
+		local waves, drops = 0, 0
+		for _, n in ipairs(notices) do
+			if type(n.msg) == "table" then
+				if n.msg.zone == nil then waves += 1 else drops += 1 end
+			end
+		end
+		check(waves == #online and drops == 0, ("the wave is announced once to each player and no single is: %d / %d"):format(waves, drops))
 	end
 	-- Run on: three full lifetimes past the fill, counting the loose herds
 	-- on every beat.
@@ -503,7 +561,10 @@ do
 	-- below is the assertion that matters; the lever for the dip is
 	-- `HERDS.roam`, and the arithmetic for restoring the shipped supply rate
 	-- is in the report that came with the drop.
-	check(minLoose >= HERDS.maxLoose - 3, ("never more than three packs short of the cap at once: min %d"):format(minLoose))
+	-- Singles born in one wave come due together, so the dip after the first
+	-- lifetime is deeper than five packs' was; replacements land one per
+	-- `spawnEverySeconds`, so the field is never more than a quarter short.
+	check(minLoose >= HERDS.maxLoose * 0.75, ("never more than a quarter short of the cap at once: min %d"):format(minLoose))
 	local mean = total / samples
 	check(mean >= HERDS.maxLoose - 0.5, ("on average %.2f of %d packs loose"):format(mean, HERDS.maxLoose))
 	print(("herds: steady state over %.0fs -- mean %.2f loose, min %d, %d exits, %d births"):format(
@@ -542,67 +603,50 @@ do
 	check(saves[p].piggies.owned[key] == ownedBefore, "and nothing was minted into a ghost")
 end
 
--- ---- FIRST HOLD WINS --------------------------------------------------------
+-- ---- A LASSO TARGET, AND THE FIRST TAKE WINS -------------------------------
+-- The free hold is retired (docs/LASSO-PLAN.md). What this file still owns
+-- is the animal: a member is a target the frame it lands and not before, it
+-- is handed over ONCE by `take`, and a herd whose last member goes ends.
 do
 	H._setNext(now)
 	local herd = assert(H.spawn("stray"))
 	local size = #herd.members
 	local member = herd.members[1]
-	local p1, p2 = player("first"), player("second")
-	notices = {}
-	-- NOTHING IN THE AIR IS CATCHABLE, and the prompt being disabled is only
-	-- half of that: `reach` is measured against a member's GROUND point, so a
-	-- player standing on the landing zone is in range of a pig 120 studs over
-	-- their head. Re-asked on the trigger, the way every reach here is.
-	check(not H.claim(herd, member, p1), "a member still falling cannot be claimed")
-	local yet = false
-	for _, n in ipairs(notices) do
-		if n.player == p1 and n.msg:find("not on the ground", 1, true) then yet = true end
-	end
-	check(yet, "and the refusal says why")
+	check(type(member.id) == "string" and member.id ~= "", "every member carries a lasso id from the roll")
+	-- NOTHING IN THE AIR IS A TARGET: no id on the model, and `onGround` says no.
+	check(targetOf(member) == nil, "a member still falling carries no lasso id")
+	check(not H.onGround(herd, member), "and is not on the ground")
 	while herd.state == "drop" do
 		H._step(herd, 0.1, now)
 		now += 0.1
 	end
-	notices = {}
-	-- BASELINED, because `piggyPlacedCount` counts the TILL as well as the
-	-- plinths and every fresh save's till is `Config.DEFAULT_SKIN` -- which is
-	-- itself a common and therefore herd-eligible. Compared against a pinned
-	-- 1 this was a one-in-nineteen flake that read as the grant being broken.
-	local had1 = Config.piggyPlacedCount(saves[p1], member.key)
-	local had2 = Config.piggyPlacedCount(saves[p2], member.key)
-	check(H.claim(herd, member, p1), "the first player to finish the hold gets it")
+	check(targetOf(member) == member.id, "it carries its id the moment it lands")
+	check(H.onGround(herd, member), "and is on the ground")
+	local f1, f2 = H.find(member.id)
+	check(f1 == herd and f2 == member, "find names it by that id")
+	local key = H.take(member.id)
+	check(key == member.key, "the first take gets it")
 	check(#herd.members == size - 1, "the member leaves the herd")
-	check(Config.piggyPlacedCount(saves[p1], member.key) == had1 + 1, "and lands on the winner's lawn")
-	check(not H.claim(herd, member, p2), "the second is refused")
-	local told = false
-	for _, n in ipairs(notices) do
-		if n.player == p2 and n.kind == "warn" then told = true end
-	end
-	check(told, "and told so, out loud")
-	check(Config.piggyPlacedCount(saves[p2], member.key) == had2, "the loser got nothing")
-	local gotIt = false
-	for _, n in ipairs(notices) do
-		if n.player == p1 and n.kind == "good" then gotIt = true end
-	end
-	check(gotIt, "the winner is told what they caught")
+	check(H.take(member.id) == nil, "the second is refused")
+	check(select(2, H.find(member.id)) == nil, "and it is no longer loose")
 
-	-- A refused grant hands the member BACK: still catchable by somebody with room.
-	local full = player("full")
-	local key = herd.members[1].key
-	while Config.firstFreePiggySlot(saves[full]) do
-		Config.addPiggy(saves[full], key, true)
+	-- A HERD OF ONE IS GONE THE MOMENT ITS PIGGY IS TAKEN.
+	if #herd.members == 0 then
+		check(H.count() == 0, "a herd whose only member is taken is gone")
+		H._setNext(now)
+		herd = assert(H.spawn("stray"))
+		while herd.state == "drop" do
+			H._step(herd, 0.1, now)
+			now += 0.1
+		end
 	end
-	local m2 = herd.members[1]
-	check(not H.claim(herd, m2, full), "a full lawn cannot claim")
-	check(m2.taken == false and herd.members[1] == m2, "and the piggy stays with the herd for the next player")
 
-	-- Catch the whole pack: an empty herd ends and pulls the next spawn in.
+	-- Take the whole pack: an empty herd ends and pulls the next spawn in.
 	H._setNext(now + HERDS.spawnEverySeconds)
 	while #herd.members > 0 do
-		check(H.claim(herd, herd.members[1], player("greedy")), "every remaining member can be caught")
+		check(H.take(herd.members[1].id) ~= nil, "every remaining member can be taken")
 	end
-	check(H.count() == 0, "a herd whose last member is caught is gone")
+	check(H.count() == 0, "a herd whose last member is taken is gone")
 	check(H._next() <= now + HERDS.replaceDelay, "and its replacement is due after the replace delay")
 end
 
@@ -668,7 +712,7 @@ do
 	H._setNext(now)
 	local herd = assert(H.spawn("stray"))
 	check(herd.state == "drop", "a herd is born falling")
-	check(#herd.members == 10, "ten of them")
+	check(#herd.members == 1, "one of them")
 	-- CAPTURED AT THE DROP, because the announcement names where the pack
 	-- LANDED and the pack has wandered off it by the time the fall loop below
 	-- has finished.
@@ -694,7 +738,7 @@ do
 	for _, m in ipairs(herd.members) do
 		check(math.abs(m.fall - DROP.height) < 1e-6, "every member starts at the drop height")
 		check(m.landed == false, "and none has landed")
-		check(m.prompt.Enabled == false, "so none can be caught")
+		check(targetOf(m) == nil, "so none is a lasso target")
 	end
 	local lastFall = DROP.height + 1
 	local airborneFrames, landedAt = 0, {}
@@ -714,7 +758,7 @@ do
 		for i, m in ipairs(herd.members) do
 			if m.landed and not landedAt[i] then
 				landedAt[i] = now
-				check(m.prompt.Enabled == true, ("member %d is catchable the moment it lands"):format(i))
+				check(targetOf(m) == m.id, ("member %d is a lasso target the moment it lands"):format(i))
 			end
 			-- Asked only while the pack is still falling: the frame it lands
 			-- is the frame it starts walking, and that frame is inside this
@@ -729,30 +773,37 @@ do
 	for i, m in ipairs(herd.members) do
 		check(m.landed and landedAt[i] ~= nil, ("member %d landed"):format(i))
 		check(m.fall == 0, ("and member %d is standing on the grass"):format(i))
-		check(m.prompt.Enabled == true, ("and member %d can be caught"):format(i))
+		check(targetOf(m) == m.id, ("and member %d can be lassoed"):format(i))
 	end
 	-- STAGGERED, so ten do not arrive on one frame.
 	local first, last = math.huge, 0
 	for _, t in pairs(landedAt) do
 		first, last = math.min(first, t), math.max(last, t)
 	end
-	check(last - first > 0, ("the pack lands over %.2fs rather than on one frame"):format(last - first))
+	if #herd.members > 1 then
+		check(last - first > 0, ("the pack lands over %.2fs rather than on one frame"):format(last - first))
+	end
 	check(last - first <= DROP.stagger + 0.1, "and inside drop.stagger")
 
-	-- 3. THE ANNOUNCEMENT, to everybody, naming the batch and the place.
+	-- 3. THE ANNOUNCEMENT, to everybody, as a `HerdDrop` payload naming the
+	-- batch, the count and the place (the splash draws the words; the zone
+	-- rides along so a client can say it). Not a toast: the OBSERVER line
+	-- went on 2026-09-23 and nothing on `Notify` may announce a drop now.
 	local told = {}
 	for _, n in ipairs(notices) do
-		if n.msg:find("OBSERVER", 1, true) then
+		if type(n.msg) == "table" then
 			told[n.player] = n
+		elseif type(n.msg) == "string" then
+			check(n.msg:find("OBSERVER", 1, true) == nil and n.msg:find("Landing zone", 1, true) == nil,
+				"no toast announces a drop any more: " .. n.msg)
 		end
 	end
 	for _, p in ipairs(online) do
 		local n = told[p]
 		check(n ~= nil, "every player on the street is told about the drop")
-		check(n.msg == ("OBSERVER: Batch %d released. Landing zone: %s."):format(herd.id, zoneAtDrop),
-			"and the message names the batch and the landing zone: " .. tostring(n and n.msg))
-		check(n.kind == (if (Config.NOTIFY).herd then "herd" else "good"),
-			"on the observer's own notify kind, or `good` until that row lands")
+		check(n and n.msg.id == herd.id, "and the payload names the batch")
+		check(n and n.msg.zone == zoneAtDrop, "and the landing zone: " .. tostring(n and n.msg.zone))
+		check(n and n.msg.count == #herd.members, "and how many are coming")
 	end
 
 	-- 4. THE MARKER. One per drop, and it goes on its own clock.
@@ -807,24 +858,15 @@ do
 	end
 	check(herd.state == "recall", "roam time up: the pack is called back up")
 	check(targets > 0, "it actually wandered somewhere while roaming")
-	-- THE RECALL IS THE DROP WITH THE SIGN FLIPPED: prompts off at once, the
+	-- THE RECALL IS THE DROP WITH THE SIGN FLIPPED: target ids off at once, the
 	-- pack rises off the grass, and it is gone at the top.
 	for i, m in ipairs(herd.members) do
-		check(m.prompt.Enabled == false, ("member %d stops being catchable the frame it is recalled"):format(i))
+		check(targetOf(m) == nil, ("member %d stops being a target the frame it is recalled"):format(i))
 	end
-	-- And refused on the trigger too, which is the half a disabled prompt
-	-- cannot cover: `landed` is TRUE of a rising pack, so the guard has to
+	-- And `onGround` says so too, which is the half an absent id cannot
+	-- cover: `landed` is TRUE of a rising pack, so the lasso's guard has to
 	-- ask the herd's state as well as the member's.
-	do
-		local late = player("too-late")
-		notices = {}
-		check(not H.claim(herd, herd.members[1], late), "a recalled member cannot be claimed either")
-		local said = false
-		for _, n in ipairs(notices) do
-			if n.msg:find("not on the ground", 1, true) then said = true end
-		end
-		check(said, "and the refusal says so")
-	end
+	check(not H.onGround(herd, herd.members[1]), "a recalled member is not a lasso target either")
 	local rose, top = 0, 0
 	local left = 0
 	while H.count() > 0 and left < 20000 do
@@ -975,7 +1017,16 @@ do
 	local DIG, WALK = Config.HERD_DIG_ATTRIBUTE, Config.HERD_WALK_ATTRIBUTE
 	local D = HERDS.dig
 	H._setNext(now)
+	-- A PACK OF TEN FOR THIS BLOCK. The shipped herd is a single now, and the
+	-- dig contract below is about a pack -- the second and third members, a
+	-- leader that holds a graze while a straggler digs -- so the size band
+	-- is widened for one spawn and put back. The service still rolls any
+	-- size the band names; only the shipped band is one.
+	local sizeMin, sizeMax = HERDS.size.min, HERDS.size.max
+	HERDS.size.min, HERDS.size.max = 10, 10
 	local herd = assert(H.spawn("stray"))
+	HERDS.size.min, HERDS.size.max = sizeMin, sizeMax
+	check(#herd.members == 10, "a ten-member pack for the dig contract")
 	local function stamp(m) return m.model:GetAttribute(DIG) end
 
 	-- 1. THE DROP. Nobody digs in mid-air, and a clock that comes due while
@@ -1049,7 +1100,10 @@ do
 		now += 0.1
 		roamed += 1
 	end
-	check(digs >= 10, ("digs happened in the band: %d"):format(digs))
+	-- Ten clocks in a pack of ten start a dig somewhere every couple of
+	-- seconds; a single's one clock, drawn from 12..30 and held while it
+	-- walks, digs a handful of times in a roam.
+	check(digs >= math.min(10, 3 * #herd.members), ("digs happened in the band: %d"):format(digs))
 	local distinct, biggest = 0, 0
 	for _, n in pairs(startFrames) do
 		distinct += 1

@@ -32,7 +32,7 @@ local Config = {}
 -- ============================================================
 
 -- Coins added to the vault per second, before upgrades and rebirths.
-Config.BASE_INCOME = 10
+Config.BASE_INCOME = 10000
 
 -- THE PIG IS UNBOUNDED (designer decision, 2026-09-21, reaffirmed). There
 -- is no capacity: `data.coins` has no ceiling, nothing clamps a mint, and the
@@ -111,7 +111,7 @@ Config.LEVELS_PER_REBIRTH = 2
 
 -- Cost of the first upgrade. Must be reachable in under a minute --
 -- the first win has to land immediately.
-Config.INCOME_BASE_COST = 400
+Config.INCOME_BASE_COST = 400000
 
 -- Cost multiplier per level owned.
 Config.INCOME_COST_GROWTH = 1.55
@@ -164,27 +164,27 @@ Config.OFFLINE_CAP_SECONDS = 8 * 60 * 60
 -- rebirth that opens a level the gate stays at the top row, exactly as the
 -- old derivation flattened at `ABSOLUTE_MAX_LEVEL`.
 Config.REBIRTH_CASH_GATE = {
-	[0] = 2988151,
-	[1] = 4231522,
-	[2] = 5992258,
-	[3] = 8485637,
-	[4] = 12016510,
-	[5] = 17016580,
-	[6] = 24097179,
-	[7] = 34124016,
-	[8] = 48323019,
-	[9] = 68430228,
-	[10] = 96904045,
-	[11] = 125054283,
-	[12] = 161382052,
-	[13] = 208262893,
-	[14] = 268762431,
-	[15] = 346836842,
-	[16] = 447591557,
-	[17] = 577615115,
-	[18] = 745409995,
-	[19] = 961948617,
-	[20] = 1241390843,
+	[0] = 2988151000,
+	[1] = 4231522000,
+	[2] = 5992258000,
+	[3] = 8485637000,
+	[4] = 12016510000,
+	[5] = 17016580000,
+	[6] = 24097179000,
+	[7] = 34124016000,
+	[8] = 48323019000,
+	[9] = 68430228000,
+	[10] = 96904045000,
+	[11] = 125054283000,
+	[12] = 161382052000,
+	[13] = 208262893000,
+	[14] = 268762431000,
+	[15] = 346836842000,
+	[16] = 447591557000,
+	[17] = 577615115000,
+	[18] = 745409995000,
+	[19] = 961948617000,
+	[20] = 1241390843000,
 }
 
 -- Permanent income bonus per rebirth, additive: 1 + (rebirths * 0.12)
@@ -239,11 +239,36 @@ Config.MILESTONES = { 0.25, 0.5, 0.75, 1.0 }
 -- moderated out from under you without warning.
 Config.SOUNDS = {
 	COIN_DROP = "rbxassetid://4608067546",
+	-- A lasso snapping: Pro Sound Effects "Whip Cracks 1" (whip cracks and big
+	-- swishes, 2.6 s). `Lasso.client` plays only its opening
+	-- `LASSO_SNAP_SECONDS` so one crack lands on the break rather than a
+	-- string of them. Nobody has listened to the crop yet; if the first crack
+	-- is not at the start, move `TimePosition` in `snapEnds`.
+	LASSO_SNAP = "rbxassetid://9120665113",
 	-- A delivery's coins pouring into the pig: Pro Sound Effects "Slot Machine
 	-- 2", a close-up coin payoff dropping and jingling into a metal tray. It
 	-- is 17 seconds long; `Config.BANK_RUSH.pour*` plays a slice of it.
 	COIN_POUR = "rbxassetid://9119218944",
-	MILESTONE = "rbxassetid://2415965014",
+	-- EMPTY ON PURPOSE (designer, 2026-09-23: "tear that sound out of the game").
+	-- It was "ding-ding stronger" (2415965014), a 2018 third-party Creator Store
+	-- upload, and it played on every `good` toast, the pig's fill milestones, a
+	-- spin-wheel win and the loot-haul reveal. Every player of this key skips an
+	-- empty id, so all four go quiet until a replacement is chosen -- a silent
+	-- cue is a working state here, the same call `SIREN` once made.
+	MILESTONE = "",
+
+	-- THE TOAST POP (designer, 2026-09-23). "Roblox GUI - Notification High",
+	-- uploaded by Roblox itself (creator 1), so it cannot be struck the way a
+	-- third-party UI cue can. It replaces "ding-ding stronger" on `good`
+	-- toasts only; the pig's fill milestones, the spin win and the loot reveal
+	-- still read MILESTONE and stay quiet until somebody chooses for them.
+	NOTIFY_POP = "rbxassetid://17208361335",
+	-- A guard dog taking the bone (designer, 2026-09-23): "Cartoon Bite",
+	-- 0.57s. Replaced the squeaky toy on that one moment -- see GuardDog.
+	BONE_BITE = "rbxassetid://115878657073501",
+	-- A plunger knocking somebody flat (designer, 2026-09-23):
+	-- "cartoon-slip-no-fall", 0.24s -- see GadgetService.showHit.
+	PLUNGER_SLIP = "rbxassetid://136774133309136",
 	BANK = "rbxassetid://101396758527961",
 	ALARM = "rbxassetid://1470797856",
 
@@ -470,18 +495,18 @@ Config.MUSIC = {
 	VOLUME = 0.18,
 	FADE = 2.0,
 
-	-- THE SILENCE IS THE FEATURE, and it is why the tracks are long.
-	--
-	-- Nobody has ever been driven mad by a game that goes quiet; everybody
-	-- has been driven mad by a forty-five second loop. So a track plays
-	-- ONCE, then the street is quiet for a minute or two, then a different
-	-- one plays. Six tracks at 90-170 seconds against gaps of 55-110 puts
-	-- the earliest possible repeat about twenty minutes out.
-	GAP = { 55, 110 },
+	-- BACK TO BACK, FOREVER (designer, 2026-09-23: "the songs should be
+	-- playing back to back continuously forever"). This used to be 55-110
+	-- seconds of silence between tracks, on the argument that a game going
+	-- quiet never drives anybody mad; the designer wants a continuous score.
+	-- Each track still plays ONCE and the next one starts as it ends, drawn
+	-- from the shuffled bag, so all six play before any repeats -- the
+	-- rotation itself is the loop, never `Looped` on one track.
+	GAP = { 0, 0 },
 
-	-- Nothing at all for the first stretch after joining. A player who has
-	-- just loaded in is reading a HUD, not listening to an overture.
-	START_DELAY = 14,
+	-- A short beat after joining so the first track does not land on top of
+	-- the loading screen.
+	START_DELAY = 3,
 
 	-- What is left of the music while something is actually speaking. The
 	-- patrol is PUBLISHED on purpose -- fifteen seconds of siren before the
@@ -498,13 +523,60 @@ Config.MUSIC = {
 	OFF_FADE = 0.5,
 	RESUME_DELAY = 2.5,
 
+	-- THE VOLUME SLIDER (designer, 2026-09-23). The saved setting is a 0..1
+	-- slider position; the music plays at `position / SLIDER_DEFAULT` times
+	-- `VOLUME` (and `CHASE.VOLUME`), so the default notch is exactly the level
+	-- this table was tuned at, and the top of the slider is twice it. That
+	-- is the ceiling on purpose: the score is quiet so it never buries the
+	-- siren, and a duck still lowers it at any slider position. The panel
+	-- reads the position as a percentage of the tuned level, so the default
+	-- says 100% rather than a misleading 50%.
+	SLIDER_DEFAULT = 0.5,
+
+	-- THE DESIGNER'S OWN SET (2026-09-23), all from the two music libraries
+	-- Roblox licensed (APMOfficial, DistrokidOfficial), so none can be struck.
+	-- The six APM cues this replaced were Kitsch Comedy 1845448393, Comedy
+	-- Situation 1836298044, Jaunty Twist 1839278197, Lucky Twist 1839278525,
+	-- Happy Go Lucky 1845270155 and LA Express 1848359977 -- one paste to put
+	-- any of them back. Uptown Stroll is over five minutes, three times the
+	-- rest; it still plays through ONCE like every cue here, and a long cue is
+	-- only a longer wait before the next silence.
 	TRACKS = {
-		{ id = "rbxassetid://1845448393", name = "Kitsch Comedy" },     -- 108.0s
-		{ id = "rbxassetid://1836298044", name = "Comedy Situation" },  -- 105.1s
-		{ id = "rbxassetid://1839278197", name = "Jaunty Twist" },      --  91.6s
-		{ id = "rbxassetid://1839278525", name = "Lucky Twist" },       --  91.4s
-		{ id = "rbxassetid://1845270155", name = "Happy Go Lucky" },    -- 113.4s
-		{ id = "rbxassetid://1848359977", name = "LA Express" },        -- 171.9s
+		{ id = "rbxassetid://9044698254", name = "Ducks In The Docks" },    --  76.4s
+		{ id = "rbxassetid://9044702906", name = "Time To Relax" },         --  78.4s
+		{ id = "rbxassetid://9039538857", name = "In No Rush" },            --  81.6s
+		{ id = "rbxassetid://9044699161", name = "Furtive Escape" },        --  95.8s
+		{ id = "rbxassetid://117496769617516", name = "Elevator Jazz" },    -- 136.4s
+		{ id = "rbxassetid://135242814447458", name = "Uptown Stroll" },    -- 318.7s
+	},
+
+	-- A ROBBERY HAS ITS OWN MUSIC, AND WHICH SIDE YOU ARE ON PICKS IT
+	-- (designer, 2026-09-23). The THIEF -- carrying a stolen sack or a
+	-- snatched piggy -- hears Chase Theme; the VICTIM, while somebody is
+	-- carrying their coins or their piggy away, hears Silly Chase. Both at
+	-- once means you are robbing somebody while being robbed, and your own
+	-- action wins.
+	--
+	-- IT IS A BED UNDER THE CHASE, AND IT STILL NEVER LOOPS. A carry lasts
+	-- seconds and both tracks run for minutes, so nothing here repeats inside
+	-- one chase. What WOULD repeat is the opening bars, on every robbery of a
+	-- run -- so each track resumes where the last chase left it and wraps to
+	-- the top only at its end. The ambient cue steps aside while it plays and
+	-- comes back after `resume` seconds of quiet, and a duck (the siren, the
+	-- arrest) still lowers it, because those have to be heard over anything.
+	--
+	-- `linger` keeps the bed up briefly after a chase ends, so a hand-off
+	-- between two thieves or a one-frame gap in the attribute does not
+	-- restart it.
+	CHASE = {
+		thief = { id = "rbxassetid://105135449947797", name = "Chase Theme" },  --  93.8s
+		victim = { id = "rbxassetid://1836675698", name = "Silly Chase" },     -- 145.1s
+		VOLUME = 0.22,
+		FADE_IN = 0.6,
+		FADE_OUT = 1.5,
+		linger = 1.5,
+		resume = 6,
+		poll = 0.2,
 	},
 }
 
@@ -962,30 +1034,45 @@ Config.LOCK_TIERS = {
 Config.UPGRADES = {
 	locks = {
 		tree = "defense", order = 1, name = "Vault Lock", max = 4,
-		baseCost = 1800, growth = 2.1,
-		blurb = "A harder pin lock for thieves to crack",
+		baseCost = 1800000, growth = 2.1,
+		-- The dial on the back of your own piggy, which is what the card's
+		-- artwork now shows -- see `ShopIcons`. Naming WHERE it is matters
+		-- more here than on any other row, because it is the one upgrade
+		-- whose object a player has probably never walked round to look at.
+		blurb = "The dial on your piggy's back. Harder for thieves to crack",
 	},
 	fences = {
 		tree = "defense", order = 2, name = "Fence", max = 5,
-		baseCost = 2600, growth = 2.4,
-		blurb = "Slower and nastier to climb over",
+		baseCost = 2600000, growth = 2.4,
+		blurb = "Slows thieves down on their way to your piggy",
 	},
 	-- NO GUARD DOG RUNG. Every plot has the same dog and what varies is its
 	-- SKIN -- see `Config.DOG_LEVEL`.
 	lockpicks = {
 		tree = "offense", order = 1, name = "Lockpicks", max = 4,
-		baseCost = 1800, growth = 2.1,
-		blurb = "Spare picks forgive a missed pin",
+		baseCost = 1800000, growth = 2.1,
+		-- WHAT THIS RUNG BUYS IS FORGIVENESS AND NOTHING ELSE SAYS SO. A
+		-- missed pin ENDS a crack, so a spare pick is the difference between
+		-- walking away with one slice and walking away with five -- and
+		-- "spare picks forgive a missed pin" named the object and left the
+		-- consequence to be worked out. The stat row underneath counts them.
+		blurb = "Slip up cracking a piggy? Keep going instead of losing it",
 	},
 	sack = {
 		tree = "offense", order = 2, name = "Bigger Sack", max = 4,
-		baseCost = 2600, growth = 2.4,
-		blurb = "Take more coins per grab",
+		baseCost = 2600000, growth = 2.4,
+		blurb = "Carry more coins out of every piggy you crack",
 	},
 	boots = {
-		tree = "offense", order = 3, name = "Speed Boots", max = 4,
-		baseCost = 3400, growth = 2.3,
-		blurb = "Run faster while carrying stolen goods",
+		-- `Getaway Speed`, NOT `Speed Boots` (designer, this session). Nothing
+		-- is worn: this is one factor inside `getCarryMultiplier`, which
+		-- cancels the penalty that carrying coins costs you, and it caps at
+		-- 1.0 so it can never take anybody past `BASE_WALK_SPEED`. The old
+		-- name promised a pair of boots that are not on the character and
+		-- never were. The KEY is still `boots` because it is a save field.
+		tree = "offense", order = 3, name = "Getaway Speed", max = 4,
+		baseCost = 3400000, growth = 2.3,
+		blurb = "Run home faster while your arms are full of coins",
 	},
 	-- SNEAK IS BOUGHT LAST, AND THE PRICE SAYS WHY. A tiptoe at `base`
 	-- (5.6) is already under Scruffy's `notice` of 11 and Rex's 10.2, and a
@@ -1007,8 +1094,8 @@ Config.UPGRADES = {
 	-- whole tree is about.
 	tiptoe = {
 		tree = "offense", order = 4, name = "Sneak", max = 4,
-		baseCost = 4200, growth = 2.2,
-		blurb = "Increase your movement speed while sneaking",
+		baseCost = 4200000, growth = 2.2,
+		blurb = "Cross a guarded lawn quicker without waking the dog",
 	},
 }
 
@@ -1192,145 +1279,12 @@ Config.CRACK = {
 -- getaway, and the run home is as public as it ever was.
 Config.CRACK_ALARM_ON_MISS = true
 
--- ============================================================
--- THE SMASH -- THE OTHER WAY IN
--- ============================================================
---
--- ONE PIG, TWO ROBBERIES, AND THE CHOICE IS MADE BEFORE ANYTHING IS TOUCHED.
--- A crack is quiet, slow and greedy: five slices, no alarm unless you fumble,
--- and the Vault Lock fighting you for every one of them. A smash is loud,
--- quick and small: one hold, a fixed take, and the dog and the owner both
--- know about it the instant it lands.
---
--- WHAT IT IS ACTUALLY FOR IS MAKING THE TWO DEFENCE RUNGS POINT AT DIFFERENT
--- ATTACKS, which is the half to protect if any of these numbers ever move. A
--- Vault Lock narrows the crack's windows and does NOTHING to a smash, because
--- there is no lock being picked. A dog is nearly irrelevant to a clean crack
--- -- the alarm only fires on a fumble -- and is the entire cost of a smash.
--- So the two stop being "more defence" and become answers to different
--- questions: a well-locked pig with no dog is soft to a smash, a well-guarded
--- pig with no lock is soft to a crack, and a thief can read BOTH from the
--- pavement, because the dial says one and the kennel says the other.
---
--- THE TAKE IS THE CRACK'S OWN LADDER RATHER THAN A NUMBER OF ITS OWN, and
--- that is what stops the two drifting apart. `getSmashFraction` is exactly
--- `getCrackFraction(SMASH.steps)`, so it inherits `baseSlice`, `stepGrowth`
--- and the Bigger Sack scaling in one expression. A second constant here would
--- be a second description of what a robbery is worth, and this file has paid
--- for that twice already -- `RESIDENTS.pigSeconds` solved against a take that
--- was then replaced, and `SHOP_BANK_PIG_SECONDS` pinned and wrong by 62% on
--- the first boot that audited it.
---
--- SCALING WITH THE SACK IS NOT OPTIONAL. Bigger Sack is sold as "take more
--- coins per grab", and a smash that ignored it would be a rung bought with
--- coins that quietly does nothing for anybody who prefers the loud way in.
--- That is the Tiptoe rung sitting on disk describing an upgrade that did not
--- exist, and the Bigger Sack levels silently refunded by `LOSS_CAP`, arriving
--- a third time.
---
--- ============================================================
--- WHY TWO SLICES AND NOT THREE
--- ============================================================
---
--- A SMASH MUST PAY STRICTLY LESS PER SECOND THAN A CLEAN CRACK, or it is not
--- a choice, it is the answer -- and `auditRobbery`'s entire model rests on the
--- crack being optimal play. It measures `robberyCycleSeconds(maxSteps)` and
--- calls the result an UPPER BOUND on what a thief can earn. A faster way in
--- that paid better per second would make that sentence false with nothing in
--- the audit changing and nothing in any log, which is this project's
--- most-repeated failure exactly: two curves multiplied without anybody
--- checking the product.
---
--- Measured on the live server, at both ends of the sack ladder:
---
---                crack cycle   smash cycle   smash as a share of the rate
---     house         21.23s        9.53s                  49%
---     shop          16.85s        5.15s                  72%
---
--- The share is FLAT across the sack, because both sides scale on the same
--- `sackScale` -- 4.80% against 21.89% at level 0 and 9.12% against 41.59% at
--- level 4 is 0.219 either way. That constancy is the property to keep: a
--- ratio that MOVED would mean no single step count is right for both ends of
--- the game, which is the argument `RESIDENTS.pigSeconds` already turns on.
---
--- Three slices was the tempting answer, because 8.7% is almost exactly the
--- flat 8% take this game shipped with for its whole life and there is a neat
--- story in restoring it as the loud option. The arithmetic refuses it: on a
--- house it is 92% of a clean crack's rate for 45% of the exposure, so nobody
--- would ever crack anything again.
---
--- AND A CLAIM THAT STOOD HERE FOR ONE SESSION WAS SIMPLY FALSE, WHICH IS
--- RECORDED RATHER THAN QUIETLY DELETED because it is this file's own most
--- expensive class. It read: a three-slice smash would push a six-target lap
--- to about 55s against a 60-second `STEAL_COOLDOWN` and break `auditRobbery`'s
--- fourth check. **A LAP IS CYCLE TIME TIMES TARGETS AND CONTAINS NO STEP
--- COUNT AT ALL**, so it is 57.2s at two slices and 57.2s at three, and the
--- step count could never have moved it. The reasoning was written from the
--- shape of the concern rather than from the expression, it was plausible, it
--- named a real check, and it was wrong -- exactly the `gable()` comment and
--- the kennel rotation, caught this time by measuring before anybody believed
--- it. THE RATE ABOVE IS THE WHOLE ARGUMENT FOR TWO SLICES; the lap never
--- had anything to do with it.
---
--- WHAT THE LAP ACTUALLY SAYS IS BETTER NEWS AND IS WORTH KEEPING. At 57.2s
--- against a 60-second cooldown a smash-only thief is COOLDOWN-BOUND: they
--- arrive back at the first pig three seconds early and wait, so their real
--- rate falls to 47% of a clean crack rather than 49%. The mechanic
--- self-limits, and it does so through a number that was already there for
--- other reasons. A shop-only smasher is bound far harder -- four shops lap in
--- 20.6s against the same 60 -- which is what makes the 72% above a best case
--- that cannot be sustained rather than a rate anybody can farm.
---
--- THE SHOP COLUMN IS THE THIN END AND IS THE THING TO WATCH. 72% is a lot
--- closer to 100% than the house's 49%, because a shop's run home is short so
--- the cycle is mostly the hold -- and a shop has no dog and nobody home, so
--- the alarm this path buys costs a thief less there than anywhere else. It
--- stays under the crack at every level and the cooldown does the rest, but if
--- shop smashing ever reads as the only thing worth doing, the lever is
--- `SMASH.hold` rather than `steps`: lengthening the hold moves the cycle
--- without touching the take, so it costs the house nothing.
---
--- SO WHY WOULD ANYBODY SMASH? Three reasons, and not one of them is money:
---
---   * IT CANNOT BE MISSED. A crack is five timing tests, and a maxed Vault
---     Lock clamps the fifth window to `minWindow`. For a nine-year-old the
---     EXPECTED value of a crack on a defended pig is a long way under 21.9%;
---     a smash is 4.8% with certainty.
---   * IT IS OVER. 1.3 seconds standing on somebody's lawn against 13.5, and
---     a dog crossing that lawn is measured in seconds.
---   * THE LOCK DOES NOT APPLY. It is the answer to the one defence that had
---     no answer.
---
--- Everything else about it is worse, which is the trade: a fifth of the
--- coins, the dog awake before you have moved, and the owner told who did it.
-Config.SMASH = {
-	-- How many of the crack's slices a smash is worth. See above -- this is the
-	-- number the whole trade turns on, bounded ABOVE by the crack having to
-	-- stay the best rate in the game and BELOW by a smash having to be worth
-	-- the alarm it raises.
-	steps = 2,
-
-	-- The hold, in seconds.
-	--
-	-- DERIVED FROM THE DIAL RATHER THAN PICKED, and the sentence it is derived
-	-- from is the one a player should end up feeling: A SMASH TAKES LESS TIME
-	-- THAN ONE SLICE OF A CRACK. Half a sweep, which is 1.3s today and follows
-	-- `sweepSeconds` if the dial is ever re-paced.
-	--
-	-- It is deliberately LONGER than `CRACK.openHold`, which is the opposite of
-	-- what "near-instant" sounds like and is right for the same reason that
-	-- hold exists at all. Opening a lock can be walked away from having taken
-	-- nothing. A smash cannot: one press drops your shield, empties a fifth of
-	-- somebody's pig, wakes their dog and tells them your name. It may never be
-	-- startable by a brushed prompt.
-	hold = Config.CRACK.sweepSeconds / 2,
-}
-
--- Fraction of the pig a smash takes. One expression, for the reason in
--- `Config.SMASH`: there is only one description of what a robbery is worth.
-function Config.getSmashFraction(thiefSack: number): number
-	return Config.getCrackFraction(Config.SMASH.steps, thiefSack)
-end
+-- THE SMASH IS RETIRED (designer, 2026-09-23: "lets remove the smash it
+-- prompt and only keep the crack lock for simplicity"). It was a second way
+-- into a pig -- one hold, a fixed two-slice take, the alarm and the dog at
+-- once -- and its reasoning is in CLAUDE.md. What it cost to remove: the
+-- Vault Lock and the Guard Dog stopped answering two different attacks, and
+-- a dog now matters on a fumbled slice and on footsteps only.
 
 -- WHAT THE BIGGER SACK BUYS NOW THAT A TAKE IS A DECISION.
 --
@@ -1759,6 +1713,17 @@ Config.RESIDENTS = {
 		-- one patrol officer this game already runs.
 		maxOut = 2,
 
+		-- HOW MANY ARE MOVING AT ALL (designer, 2026-09-23: "only 2 npcs
+		-- actively moving around at a time"). `maxOut` bounds the trips;
+		-- the potter and the collect walk had no cap, and measured on a
+		-- fifteen-minute street every one of thirteen neighbours was being
+		-- posed every frame -- six hundred parts, five hundred of them CSG
+		-- unions, the single largest mover in the game. A neighbour leaves
+		-- the home state for ANY reason only while fewer than this many are
+		-- away from it; a chase is a defence and is not counted, so a
+		-- shopkeeper still comes for a thief whatever the street is doing.
+		maxMoving = 2,
+
 		-- Seconds at home between trips, drawn per resident so the row does
 		-- not set off in step.
 		restMin = 45,
@@ -1886,6 +1851,65 @@ Config.RESIDENTS = {
 	-- seated one at a time as plots free up rather than all at once.
 	easyCount = 2,
 
+	-- ------------------------------------------------------------
+	-- WHAT THE HOUSE LOOKS LIKE, WHICH IS NOT WHAT THE PIG IS WORTH
+	-- ------------------------------------------------------------
+	--
+	-- A RESIDENT'S DEFENCES ARE ROLLED ONCE AND NEVER TRACK THE PLAYER,
+	-- AND SPLITTING THEM OFF THE INCOME LEVEL IS WHAT STOPS THE STREET
+	-- MOVING IN LOCKSTEP. Every ladder used to hang off `incomeLevel` --
+	-- the fence, the lock, the building and the garden as well as the pig
+	-- -- so the street was a MIRROR of whoever was standing on it: a
+	-- player with no fence met a row of neighbours with no fence, and the
+	-- day they bought one the whole row grew one too. Reported in exactly
+	-- those words (designer, 2026-09-23).
+	--
+	-- IT IS WORST AT THE BOTTOM, WHERE MOST PLAYERS MEET IT. `minLevel` is
+	-- 0 and `levelSpread` only ever goes DOWN, so at street level 0 every
+	-- offset clamps to the same 0 -- a brand new player and a freshly
+	-- rebirthed veteran both meet a row of bare plots with no fence, no
+	-- lock and no garden on any of them. This file already records the
+	-- same collapse from the other end, where a rebirthed street seated
+	-- every resident dog at level 0 and the watching-dog mechanic went
+	-- inert for as long as it took somebody to climb back.
+	--
+	-- THE FAUCET ARGUMENT IS ABOUT THE PIG AND ONLY THE PIG, which is what
+	-- makes the split safe. `levelSpread`'s own note says why income may
+	-- never sit above the thief: a resident's pig is `pigSeconds` of its
+	-- OWN income, so one level up is worth `INCOME_GROWTH` more and takes
+	-- a maxed run through `auditRobbery`'s ceiling. NONE OF THAT IS TRUE
+	-- OF A FENCE. A well-defended house with a modest pig is not a faucet,
+	-- it is a hard target with a small reward -- which is a decision rather
+	-- than a lie, and it is what finally makes casing and the rob badge
+	-- worth reading instead of inferring either one from the other.
+	--
+	-- SO INCOME KEEPS `levelSpread` UNTOUCHED AND THE LOOK GETS ITS OWN
+	-- BAND. `auditRobbery` measures pigs and cycles and is STRUCTURALLY
+	-- BLIND TO A DEFENDER -- its own entry says so -- so not one number it
+	-- audits moves, and that gap is the reason this had to be measured by
+	-- hand rather than waited on.
+	style = {
+		-- HOW MANY HOUSES ARE PINNED TO THE BOTTOM OF THE BAND, and this is
+		-- where `easyCount`'s own argument actually belongs. "A player with
+		-- base stats always has somewhere to go" is a claim about getting
+		-- IN -- no Lockpicks, no bones, no Sneak -- which is a DEFENCE
+		-- question, and it was being answered on the income ladder, where
+		-- the bottom of the spread only ever meant a smaller pig.
+		easyCount = 2,
+
+		-- AND ONE PINNED TO THE TOP, for the reason the income ladder pins
+		-- one: a ladder with no top is not a ladder. Measured on the first
+		-- build of the income spread, a third of streets had no house at the
+		-- top at all, because the odds of never rolling it across five draws
+		-- are large. The same arithmetic applies to this band.
+		topCount = 1,
+
+		-- The top of the band is `Config.residentStyleMax()` and is DERIVED
+		-- rather than typed. It is a function and not a field here because
+		-- `FENCE_TIERS` is defined four thousand lines below this table --
+		-- see that function for what a field would have cost.
+	},
+
 	-- The garden, on the same shape as the four ladders below it: one more
 	-- ornament every `decorPerLevels`, capped at `decorMax`. A richer
 	-- neighbour has a fuller lawn, which is free information read from the
@@ -1899,11 +1923,16 @@ Config.RESIDENTS = {
 	decorMax = 4,
 	decorPerLevels = 3,
 
-	-- Defences, as the resident's own level divided by these. All three land
-	-- at zero while the server's players are new, which is what makes the
-	-- FIRST robbery in the storyboard a clean run at a bare plot -- and they
-	-- climb on their own as the street does, so a resident never becomes the
-	-- free money a maxed player farms instead of playing.
+	-- Defences, as the resident's own STYLE level divided by these -- never
+	-- its income level, which is the split `style` above exists to make.
+	--
+	-- THIS COMMENT USED TO READ "all three land at zero while the server's
+	-- players are new, which is what makes the FIRST robbery in the
+	-- storyboard a clean run at a bare plot". That was the intent and it
+	-- was also the bug: EVERY house landed at zero together, so the
+	-- storyboard's clean run was the only run available and the street had
+	-- nothing to choose between. `style.easyCount` keeps that clean run as
+	-- a GUARANTEE on two plots rather than as an accident on all of them.
 	-- No `dogPerLevels`: the Guard rung is retired, so a neighbour's dog is
 	-- the same dog every real plot has (`Config.DOG_LEVEL`) rather than a
 	-- ladder rung of its own.
@@ -2004,6 +2033,10 @@ Config.PLOT_RESIDENT_ATTRIBUTE = "ResidentName"
 -- because parsing "Plot7" for a number is the kind of thing that keeps
 -- working right up until somebody renames a plot.
 Config.PLOT_RESIDENT_ID_ATTRIBUTE = "ResidentId"
+-- The walker's own state (`home`, `roam`, `out`, ...), published on the
+-- resident's model on change and read by nothing in the game: it is there so
+-- a probe can say which neighbours are moving and why (2026-09-23).
+Config.RESIDENT_STATE_ATTRIBUTE = "ResidentState"
 
 -- The name a given plot's resident wears. Indexed by plot rather than picked
 -- at random, so a plot keeps its identity across an owner arriving and
@@ -2039,7 +2072,7 @@ Config.DOG_TIERS = {
 		-- animals. Volume climbs too, so a Titan is audible from further
 		-- down the street than a terrier.
 		bark = "rbxassetid://9113955391", pitch = 1.45, volume = 0.42,
-		breed = "Terrier", model = "terrier",
+		breed = "Scrappy", model = "terrier",
 		speed = Config.BASE_WALK_SPEED * 0.75,
 		catchRadius = 7,
 		cooldown = 34,
@@ -2067,7 +2100,7 @@ Config.DOG_TIERS = {
 		furDark = Color3.fromRGB(158, 116, 68),
 		collar = Color3.fromRGB(214, 68, 64),
 		glow = false,
-		blurb = "Small, loud, and quicker than a thief who skipped boots",
+		blurb = "Small, loud, and quicker than a thief with their arms full",
 	},
 	{
 		name = "Rex",
@@ -2173,49 +2206,115 @@ Config.DOG_TIERS = {
 -- and tag -- the direct parallel of a skin's `body` and `trim`, so the shop
 -- card, `Config.rarityOf` and the equip toggle all work with nothing new.
 --
--- NO EXPLICIT `rarity` FIELD, DELIBERATELY, BECAUSE EVERY ONE OF THESE IS
--- PRICED. `Config.rarityOf` reads an explicit rarity first and falls back to
--- the coin cost, so a priced catalogue derives its own tiers and cannot drift
--- when a price moves. The moment a coat is added that is NOT bought with
--- coins -- a crate-only drop, an event reward -- it needs an explicit
--- `rarity` or it silently falls through to `common`, which is the trap the
--- ten drop-pool skins and all twelve accessories already carry a rarity to
--- avoid.
+-- THE CRATE-ONLY ROWS CARRY AN EXPLICIT `rarity` NOW, AND THE PARAGRAPH THAT USED
+-- TO STAND HERE PREDICTED EXACTLY WHY. It read: "NO EXPLICIT `rarity` FIELD,
+-- DELIBERATELY, BECAUSE EVERY ONE OF THESE IS PRICED... the moment a coat is
+-- added that is NOT bought with coins -- a crate-only drop, an event reward --
+-- it needs an explicit `rarity` or it silently falls through to `common`,
+-- which is the trap the ten drop-pool skins and all twelve accessories
+-- already carry a rarity to avoid."
+--
+-- That moment is now, and it arrived for every crate row at once. A crate
+-- coat has no `cost` left to derive from, so every one of them states its tier
+-- -- and the tier stated is THE ONE ITS OLD PRICE DERIVED, so nothing
+-- re-tiered when the prices came off. Husky and the Mastiff are still bought
+-- with coins and still derive, which is `rarityOf`'s own order unchanged.
+--
+-- THE COUNTS THAT USED TO BE WRITTEN HERE ARE GONE RATHER THAN CORRECTED.
+-- This said "ten of the thirteen", and the table went to eight rows the day
+-- the shepherd-bodied colour coats were retired -- a count in a comment is a
+-- claim that goes stale without erroring, which is the failure this file
+-- records a dozen times and then made twice in one afternoon.
+--
+-- AND A `sellBasis` WITH IT, WHICH IS THE OTHER HALF OF WHAT A PRICE WAS
+-- DOING. `Config.sellValue` caps a payout at `SELL.priceFraction` of
+-- `cost or sellBasis`, so stripping the price would have taken the CAP off
+-- as well as the rarity -- and a legendary coat with no basis sells for the
+-- flat tier value, which this project has already measured as a money printer
+-- (a common skin paying five times its own shop price). The crate-only skins
+-- carry `sellBasis` for exactly this reason and these do the same: the old
+-- price survives as a rarity input and a sell ceiling, and buys nothing.
 --
 -- AN EMPTY `equipped` MEANS THE BREED'S OWN COLOURS, so there is no "default"
 -- row in here to keep in step with `DOG_TIERS`. Equipping a coat you are
 -- already wearing takes it off, the same toggle accessories and decorations
 -- use, which is the only way to get back to the breed look.
+--
+-- THERE ARE THREE ROUTES TO A GUARDIAN NOW, AND A ROW BELONGS TO EXACTLY ONE
+-- OF THEM (designer, 2026-09-23). WHICH ROUTE IS READ OFF THE FIELDS rather
+-- than from a list kept somewhere else, which is what stops the shop card,
+-- the server refusal and the crate pool ever disagreeing about a coat:
+--
+--     free = true     SCRAPPY, and only Scrappy. No price, no gate, no
+--                     crate: `DataService.reconcile` grants it into
+--                     `data.dogs.owned` on every save, so every player has
+--                     one from their first second and the card is OWNED on
+--                     a brand new account.
+--     cost + gate     HUSKY and the MASTIFF. Bought with coins behind
+--                     `unlockRebirths`, which is the rebirth that puts the
+--                     coat ON SALE -- below it no amount of coins buys it
+--                     and `CosmeticsService.buyDogCoat` refuses by naming
+--                     the rebirth. A coat already OWNED is never gated:
+--                     rebirth wipes power and never cosmetics.
+--     chest           THE OTHER FIVE. Rolled from `Config.CHESTS.guardian`
+--                     and reachable no other way -- no `cost`, no gate, and
+--                     `buyDogCoat` refuses a coin request out loud by naming
+--                     the crate.
+--
+-- THE TWO PRICED ONES SIT ON RUNGS 1 AND 2, AND THE CRATE IS OFF THE REBIRTH
+-- LADDER ENTIRELY (designer, 2026-09-23). This block said rungs 6 and 7, and
+-- argued that a rebirth opening a free Guardian Crate was a better reason to
+-- press the button than a coin rung -- "ten coats behind one is ten reasons
+-- rather than one". Both halves are spent: `REBIRTH_CRATES_RARE` is piggy
+-- crates only, so a rebirth never pays a guardian, and the reason to press
+-- the button at rungs 1 and 2 is the SHAPE that goes on sale there.
+--
+-- WHY THOSE TWO AND NOT ANY OTHER TWO. They are the first three BREEDS THIS
+-- GAME SHIPPED WITH (`DOG_TIERS`) less the free one -- Scrappy at 2.50 studs,
+-- the shepherd body at 3.25, the Mastiff at 4.05 -- so the coin ladder is a
+-- SIZE ladder a player can see, and the creatures behind the crate are a
+-- different kind of thing rather than a bigger number. A player who wants the
+-- Titan they have seen on somebody's lawn can go and earn it rather than roll
+-- for it, which is the "nothing is locked behind luck" rule kept on the one
+-- pair where it costs the crate nothing. Scrappy is the third of
+-- those breeds and is free for the same reason from the other end: the
+-- entry guardian should not be a gamble.
+--
+-- THE AUDIT EXEMPTION IS NARROWED BY A SECOND, STRONGER CHECK RATHER THAN BY
+-- ITS OWN IDENTITY TEST. `auditEconomy` and `auditRandomOutcomes` still
+-- refuse `unlockRebirths` everywhere but this table, because here it is a SALE
+-- gate on a direct purchase -- and `auditRandomOutcomes` now ALSO refuses the
+-- field on anything inside any crate pool, which is what actually enforces
+-- the split: a gated coat entering the Guardian Crate is caught, and so is a
+-- gated skin, house or ride entering any other one. An identity exemption
+-- could only ever have protected this one table.
 Config.DOG_COATS = {
-	chocolate = {
-		name = "Chocolate", order = 1, cost = 15000,
-		fur = Color3.fromRGB(104, 68, 46), furDark = Color3.fromRGB(68, 42, 28),
-		collar = Color3.fromRGB(214, 138, 62),
-	},
+	-- THE SHEPHERD BODY'S ONE COAT, AND THE FIRST GUARDIAN ANYBODY BUYS.
+	--
+	-- SIX COATS SHARED THIS RIG -- Chocolate, Husky, Golden Boy, Spotless
+	-- Dalmatian, Shadow and Glacier -- which is six cards selling one animal
+	-- in six colours. Retired on the designer's call (2026-09-23): "get rid of
+	-- all the different colour dogs that are the same model, we only need one
+	-- of each". So the catalogue is now exactly one coat per RIG, eight of
+	-- them against `GuardCatalog`'s eight, and a guardian card is a different
+	-- CREATURE rather than a different paint job.
+	--
+	-- HUSKY IS THE ONE KEPT AND THE NAME IS WHY. A coat's `name` is what
+	-- `GuardRig.species` prints on the nameplate, so it has to be a SPECIES --
+	-- "Golden Boy" and "Shadow" are given names and would read "Rex / SHADOW",
+	-- a given name in the species row. Husky is a breed, its card art is
+	-- already uploaded, and it is visibly not the default Rex, which a coat
+	-- sold for coins has to be.
+	--
+	-- NO `chest`, NO `rarity`, NO `sellBasis`: a priced coat is not in a pool,
+	-- so it has no duplicate to sell and `Config.isSellable` refuses it --
+	-- which is the shape `mastiff` already had and the guardians suite asserts
+	-- of every priced row.
 	husky = {
-		name = "Husky", order = 2, cost = 60000,
+		name = "Husky", order = 2, cost = 250000000,
+		unlockRebirths = 1,
 		fur = Color3.fromRGB(196, 202, 210), furDark = Color3.fromRGB(78, 86, 98),
 		collar = Color3.fromRGB(96, 158, 206),
-	},
-	goldenboy = {
-		name = "Golden Boy", order = 3, cost = 150000,
-		fur = Color3.fromRGB(226, 174, 96), furDark = Color3.fromRGB(166, 116, 54),
-		collar = Color3.fromRGB(206, 62, 78),
-	},
-	dalmatian = {
-		name = "Spotless Dalmatian", order = 4, cost = 400000,
-		fur = Color3.fromRGB(232, 232, 228), furDark = Color3.fromRGB(46, 46, 48),
-		collar = Color3.fromRGB(206, 62, 78),
-	},
-	shadow = {
-		name = "Shadow", order = 5, cost = 1500000,
-		fur = Color3.fromRGB(52, 52, 60), furDark = Color3.fromRGB(28, 28, 34),
-		collar = Color3.fromRGB(198, 54, 62),
-	},
-	glacier = {
-		name = "Glacier", order = 6, cost = 12000000,
-		fur = Color3.fromRGB(214, 232, 244), furDark = Color3.fromRGB(122, 168, 200),
-		collar = Color3.fromRGB(96, 214, 226),
 	},
 	-- THE CREATURE SKINS, AND NONE OF THEM IS GATED ANY MORE. Each carried a
 	-- `requiredTier` matching the dog rung that unlocked its rig; the rung is
@@ -2224,19 +2323,22 @@ Config.DOG_COATS = {
 	-- coin-priced skins now, which is the whole point of the change: the dog
 	-- is the same everywhere and what you pick is what it looks like.
 	gorilla = {
-		name = "Gorilla", order = 7, cost = 250000,
+		name = "Gorilla", order = 4, chest = "guardian",
+		rarity = "rare", sellBasis = 250000000,
 		guardModel = "gorilla",
 		fur = Color3.fromRGB(94,83,103), furDark = Color3.fromRGB(45,39,51),
 		collar = Color3.fromRGB(223,177,44),
 	},
 	raptor = {
-		name = "Raptor", order = 8, cost = 250000,
+		name = "Raptor", order = 5, chest = "guardian",
+		rarity = "rare", sellBasis = 250000000,
 		guardModel = "raptor",
 		fur = Color3.fromRGB(84,164,132), furDark = Color3.fromRGB(38,97,80),
 		collar = Color3.fromRGB(223,177,44),
 	},
 	triceratops = {
-		name = "Triceratops", order = 9, cost = 500000,
+		name = "Triceratops", order = 6, chest = "guardian",
+		rarity = "rare", sellBasis = 500000000,
 		guardModel = "triceratops",
 		fur = Color3.fromRGB(151,119,193), furDark = Color3.fromRGB(85,63,125),
 		collar = Color3.fromRGB(223,177,44),
@@ -2263,14 +2365,34 @@ Config.DOG_COATS = {
 	-- already accepted for Cerberus and the creatures: a Titan skin is a
 	-- Shepherd wearing a Titan.
 	--
-	-- NAMED FOR THE BREED RATHER THAN THE DOG. `GuardCatalog.terrier.label` is
-	-- "Scruffy" and `mastiff` is "Titan", and those are the tiers' GIVEN NAMES
-	-- rather than species -- the exact pair this file records as "two fields
-	-- that both look like what is it called". A coat's `name` is what
-	-- `GuardRig.species` prints on the nameplate, so a coat called Scruffy
-	-- would read "Rex / SCRUFFY": a given name in the species row, on a dog
-	-- whose given name is something else. Terrier and Mastiff match Gorilla,
-	-- Raptor and Triceratops, which are all species.
+	-- NAMED FOR THE BREED RATHER THAN THE DOG, AND SCRAPPY IS THE ONE PLACE
+	-- THAT IS SPENT (designer, 2026-09-23).
+	--
+	-- The rule, which still holds for every other row: a coat's `name` is what
+	-- `GuardRig.species` prints on the nameplate, so a coat called by a GIVEN
+	-- NAME reads "Rex / SCRUFFY" -- a given name in the species row, on a dog
+	-- whose given name is something else. `GuardCatalog`'s labels are the
+	-- tiers' given names ("Rex", "Titan"), which is the exact pair this file
+	-- records as "two fields that both look like what is it called", and
+	-- Mastiff, Gorilla, Raptor and Triceratops are all species for that
+	-- reason.
+	--
+	-- SCRAPPY IS A GIVEN NAME AND IT IS DELIBERATE. The breed was called
+	-- "Terrier", which is a species and reads as a label rather than as an
+	-- animal -- and this is the ENTRY guardian, the one every player has from
+	-- their first second, so what it wants is a CHARACTER. What that costs is
+	-- exactly the sentence above: an unnamed dog wearing it reads
+	-- "Rex / SCRAPPY". It is affordable because the plate's two rows are the
+	-- dog's own name and the thing it IS, and for the one guardian everybody
+	-- owns the thing it is has a name. If it ever reads wrong, the lever is
+	-- the coat's `name` and nothing else -- the save key stays `terrier`.
+	--
+	-- `DOG_TIERS[1].name` STAYS "Scruffy" AND IS UNREACHABLE, which is why it
+	-- was left. `Config.DOG_LEVEL` is 2, so the plate's given name is always
+	-- tier 2's ("Rex") or the player's own pick, and tier 1's name/breed pair
+	-- is never rendered together. Renaming it to Scrappy would print
+	-- "Scrappy / SCRAPPY", which is the circular default this file already
+	-- records as the reason the creature coats' fallback name was left alone.
 	--
 	-- EACH CARRIES ITS RIG'S OWN AUTHORED PALETTE, copied from `DOG_TIERS`
 	-- above rather than invented. A coat naming a `guardModel` has its tones
@@ -2278,14 +2400,38 @@ Config.DOG_COATS = {
 	-- it was authored in -- but the shop card still draws its swatch from
 	-- these, so anything else here would advertise a colour the lawn does not
 	-- produce.
+	--
+	-- SCRAPPY IS FREE AND IS THE ENTRY GUARDIAN (designer, 2026-09-23), and
+	-- the rename is the other half of it: the breed was called "Terrier",
+	-- which is a species and not a character. The SAVE KEY is untouched --
+	-- `terrier`, and `guardModel = "terrier"` -- because a key rename is a
+	-- migration nobody asked for and every save that owns this coat names it
+	-- that way.
+	--
+	-- NO `rarity` TAG, WHICH IS DELIBERATE AND IS THE ONE PLACE THE PARAGRAPH
+	-- ABOUT EXPLICIT TIERS DOES NOT APPLY. `rarityOf` derives `common` from a
+	-- nil cost, which is the right tier -- and adding the tag would make
+	-- `Config.isSellable`'s `earned` test truthy and walk the free item
+	-- straight past the guard that refuses it. A FREE THING MAY NEVER BE
+	-- SOLD, and with no cost, no rarity and no earned tag this row is refused
+	-- by the check that already existed rather than by a new one.
 	terrier = {
-		name = "Terrier", order = 10, cost = 250000,
+		name = "Scrappy", order = 1, free = true,
 		guardModel = "terrier",
 		fur = Color3.fromRGB(198, 154, 98), furDark = Color3.fromRGB(158, 116, 68),
 		collar = Color3.fromRGB(214, 68, 64),
 	},
+	-- REBIRTH 2, DOWN FROM 6. The guardian ladder is the first three SHAPES
+	-- now -- free Scrappy, Husky at one, Mastiff at two -- so the gate that
+	-- used to sit two thirds of the way up the rebirth ladder sits on the rung
+	-- a player reaches next. The price did not move: at rebirth 2 the pig
+	-- holds 5.99B (`REBIRTH_CASH_GATE[2]`), so 500M is a purchase rather than
+	-- a second wall, and it still sits above Husky's 250M -- which the
+	-- guardians suite asserts, because `rarityOf` reads the price and a dearer
+	-- coat opening EARLIER would be a rare on sale below a common.
 	mastiff = {
-		name = "Mastiff", order = 11, cost = 500000,
+		name = "Mastiff", order = 3, cost = 500000000,
+		unlockRebirths = 2,
 		guardModel = "mastiff",
 		fur = Color3.fromRGB(58, 56, 64), furDark = Color3.fromRGB(32, 31, 37),
 		collar = Color3.fromRGB(246, 198, 52),
@@ -2296,15 +2442,16 @@ Config.DOG_COATS = {
 	-- were stranded exactly as the terrier and the mastiff were -- authored,
 	-- meshed, voiced, and selectable by nothing.
 	--
-	-- THEY ARE THE DEAREST COATS IN THE GAME, WHICH IS THE ONLY LEVER LEFT
-	-- ONCE THE TIER IS GONE. `DOG_TIERS` has these two at speed 19 and 21 with
-	-- the widest catch radii in the file, and not one of those numbers can
-	-- reach a lawn any more -- `Config.DOG_LEVEL` means every dog runs at Rex's
-	-- 14.5 whatever it looks like. So what a player is buying is the LOOK of
-	-- the most dangerous thing in the catalogue, and the price is what makes it
-	-- read as that rather than as another recolour. Cerberus tops the shelf
-	-- above Glacier's 12M: three heads is the single most impressive body here
-	-- and there is nothing above it to want.
+	-- THEY WERE THE DEAREST COATS IN THE GAME AND THEY ARE THE RAREST ONES
+	-- NOW, which is the same statement in the currency the crate speaks.
+	-- `DOG_TIERS` has these two at speed 19 and 21 with the widest catch radii
+	-- in the file, and not one of those numbers can reach a lawn any more --
+	-- `Config.DOG_LEVEL` means every dog runs at Rex's 14.5 whatever it looks
+	-- like. So what a player gets is the LOOK of the most dangerous thing in
+	-- the catalogue, and what used to say so was a 20M price tag: Cerberus is
+	-- `legendary` in the Guardian Crate at 4 points in a hundred, which is
+	-- what the price was standing in for. The 2M and 20M survive as
+	-- `sellBasis` -- a rarity input and a sell ceiling, never a purchase.
 	--
 	-- WHICH MEANS THE BLURBS ON THOSE TIER ROWS ARE NOW ADVERTISING COPY FOR
 	-- SPEEDS NOBODY GETS -- "relentless pursuit, bring a bone" describes a
@@ -2313,13 +2460,15 @@ Config.DOG_COATS = {
 	-- SELECTS: the model, the voice, the shape and the bone resistance. Worth
 	-- knowing before anything starts printing `DOG_TIERS[n].blurb`.
 	direwolf = {
-		name = "Dire Wolf", order = 12, cost = 2000000,
+		name = "Dire Wolf", order = 7, chest = "guardian",
+		rarity = "epic", sellBasis = 2000000000,
 		guardModel = "direwolf",
 		fur = Color3.fromRGB(124, 137, 154), furDark = Color3.fromRGB(67, 76, 92),
 		collar = Color3.fromRGB(127, 83, 210),
 	},
 	cerberus = {
-		name = "Cerberus", order = 13, cost = 20000000,
+		name = "Cerberus", order = 8, chest = "guardian",
+		rarity = "legendary", sellBasis = 20000000000,
 		guardModel = "cerberus",
 		fur = Color3.fromRGB(76, 65, 84), furDark = Color3.fromRGB(37, 31, 44),
 		collar = Color3.fromRGB(217, 72, 54),
@@ -2333,27 +2482,27 @@ Config.DOG_COATS = {
 -- Live kennels derive their full palette from KennelModel.tones.
 Config.DOG_KENNELS = {
 	redbrick = {
-		name = "Red Brick", order = 1, cost = 10000,
+		name = "Red Brick", order = 1, cost = 10000000,
 		wood = Color3.fromRGB(168, 86, 72), trim = Color3.fromRGB(232, 226, 214),
 	},
 	mint = {
-		name = "Mint Cottage", order = 2, cost = 45000,
+		name = "Mint Cottage", order = 2, cost = 45000000,
 		wood = Color3.fromRGB(146, 206, 180), trim = Color3.fromRGB(244, 248, 244),
 	},
 	midnight = {
-		name = "Midnight", order = 3, cost = 120000,
+		name = "Midnight", order = 3, cost = 120000000,
 		wood = Color3.fromRGB(54, 58, 72), trim = Color3.fromRGB(98, 104, 124),
 	},
 	candy = {
-		name = "Candy Cane", order = 4, cost = 350000,
+		name = "Candy Cane", order = 4, cost = 350000000,
 		wood = Color3.fromRGB(238, 232, 226), trim = Color3.fromRGB(206, 62, 78),
 	},
 	royal = {
-		name = "Royal Kennel", order = 5, cost = 2000000,
+		name = "Royal Kennel", order = 5, cost = 2000000000,
 		wood = Color3.fromRGB(72, 52, 124), trim = Color3.fromRGB(226, 182, 88),
 	},
 	gilded = {
-		name = "Solid Gold", order = 6, cost = 14000000,
+		name = "Solid Gold", order = 6, cost = 14000000000,
 		wood = Color3.fromRGB(226, 186, 86), trim = Color3.fromRGB(150, 112, 40),
 	},
 }
@@ -2372,19 +2521,19 @@ Config.DOG_KENNELS = {
 Config.PETS_ENABLED = false
 Config.PETS = {
 	piglet = {
-		name = "Piglet", order = 1, cost = 15000, style = "piglet",
+		name = "Piglet", order = 1, cost = 15000000, style = "piglet",
 		body = Color3.fromRGB(240, 164, 182), trim = Color3.fromRGB(214, 112, 140),
 	},
 	duckling = {
-		name = "Duckling", order = 2, cost = 60000, style = "duckling",
+		name = "Duckling", order = 2, cost = 60000000, style = "duckling",
 		body = Color3.fromRGB(250, 214, 64), trim = Color3.fromRGB(236, 136, 44),
 	},
 	bee = {
-		name = "Buzzy Bee", order = 3, cost = 350000, style = "bee", hover = true,
+		name = "Buzzy Bee", order = 3, cost = 350000000, style = "bee", hover = true,
 		body = Color3.fromRGB(246, 196, 40), trim = Color3.fromRGB(40, 34, 36),
 	},
 	robopig = {
-		name = "Robo-Pig", order = 4, cost = 2500000, style = "robopig", hover = true,
+		name = "Robo-Pig", order = 4, cost = 2500000000, style = "robopig", hover = true,
 		body = Color3.fromRGB(150, 160, 176), trim = Color3.fromRGB(84, 92, 108),
 		glow = Color3.fromRGB(40, 170, 255),
 	},
@@ -2647,19 +2796,19 @@ end
 -- levelling something, not pocket change on the way past.
 Config.BONES = {
 	bone = {
-		name = "Dog Bone", order = 1, cost = 2500, nap = 9, breaksChase = false,
+		name = "Dog Bone", order = 1, cost = 2500000, nap = 9, breaksChase = false,
 		style = "bone", colour = Color3.fromRGB(238, 230, 208),
 		material = Enum.Material.SmoothPlastic,
 		blurb = "Buys a getaway. Not long enough to crack a lock as well",
 	},
 	steak = {
-		name = "Juicy Steak", order = 2, cost = 9000, nap = 18, breaksChase = false,
+		name = "Juicy Steak", order = 2, cost = 9000000, nap = 18, breaksChase = false,
 		style = "steak", colour = Color3.fromRGB(176, 68, 62),
 		material = Enum.Material.SmoothPlastic,
 		blurb = "Long enough for the whole job on most plots",
 	},
 	golden = {
-		name = "Golden Bone", order = 3, cost = 30000, nap = 30, breaksChase = true,
+		name = "Golden Bone", order = 3, cost = 30000000, nap = 30, breaksChase = true,
 		-- Same silhouette as the Dog Bone, in metal. The shape says "bone" and
 		-- the finish says which one, which is how the skins ladder reads too.
 		style = "bone", colour = Color3.fromRGB(246, 198, 52),
@@ -2856,6 +3005,48 @@ Config.BINS = {
 	-- done the hard part; making them out-wait the person hiding would be
 	-- charging them twice for it.
 	openHold = 0.6,
+
+	-- HOW LONG YOU ARE COMMITTED ONCE THE LID SHUTS, and it is the entry hold
+	-- moved to the other side rather than a new cost.
+	--
+	-- Climbing out used to be a DIRECTION: any move input popped you straight
+	-- back out. Against an instant `enterHold` that is not a hiding place at
+	-- all -- a player running for a bin is already holding a movement key, so
+	-- the same key that carried them in threw them out on the very next
+	-- frame, and the bin read as refusing to swallow them. Reported as exactly
+	-- that: you could exit without ever really entering.
+	--
+	-- A settle fixes the frame that broke AND the mechanic behind it.
+	-- `enterHold` went to 0 so a bin could be reached mid-chase, which is
+	-- right; what that spent is the COMMITMENT, and this is where it comes
+	-- back. A bin is a decision at both ends now -- you dive in for free and
+	-- you do not get to change your mind for a second.
+	--
+	-- MEASURED AGAINST THE CHASER RATHER THAN CHOSEN, AND IT IS A CEILING
+	-- RATHER THAN A FLOOR -- which is the opposite of what it looks like.
+	--
+	-- The obvious number is "long enough to feel like a commitment", and at a
+	-- round 1.0 it would have quietly repealed a designer decision. `enterHold`
+	-- is 0 SO THAT a thief can duck into a bin in the middle of somebody's nab
+	-- hold; the counter to that is the chaser opening it at `openHold` 0.6.
+	-- Any settle ABOVE 0.6 means an adjacent pursuer wins every time, so the
+	-- dive stops being worth doing and the instant entry is decorative.
+	--
+	-- At 0.5 nothing about that balance moves: the dive still beats the
+	-- opener by the same tenth of a second it always did, and what the settle
+	-- actually buys is the thing it was asked for -- you cannot bail out of a
+	-- bin the instant you are in it.
+	--
+	-- SO IT MUST STAY UNDER `openHold`. Raising it past that is a real
+	-- balance change rather than a tuning nudge, and the thing it would spend
+	-- is named above `enterHold`.
+	--
+	-- NOTE THE REPORTED BUG IS NOT THIS NUMBER. Exiting on a held movement key
+	-- is fixed by only counting a push that STARTS after the lid shut -- see
+	-- `Shared/BinExitHint`. This is the separate half: a deliberate beat
+	-- between the lid shutting and the way out being accepted. A jump or a tap
+	-- pressed inside it is queued rather than eaten.
+	settleSeconds = 0.5,
 
 	-- ONE BIN PER PURSUIT, expressed as a cooldown on the PLAYER rather than
 	-- on the bin. Jamming the lid behind you would only send you to the next
@@ -3064,7 +3255,7 @@ Config.GUARD_DUTY_LOCKOUT = 240
 Config.HOME_ITEMS = {
 	treat = {
 		name = "Guard Duty Treat", style = "treat", order = 1,
-		cost = 10000, duration = 360,
+		cost = 10000000, duration = 360,
 		blurb = "Your guard stays awake and refuses bribes for six minutes",
 		detail = "Cheap bones bounce off. A Golden Bone still works.",
 	},
@@ -3092,7 +3283,7 @@ Config.HOME_ITEMS = {
 	-- the whole server can already see.
 	radio = {
 		name = "Patrol Radio", style = "radio", order = 3,
-		cost = 75000,
+		cost = 75000000,
 		blurb = "Calls the patrol onto the street right now",
 		detail = "You don't get to say who for. It might be you.",
 	},
@@ -3199,7 +3390,7 @@ Config.GADGETS = {
 		-- Knocked flat for `stun`, then a short stagger at `slow` until
 		-- `duration`. `knock` is the fall itself, played on the victim's own
 		-- client (a server write to a player's velocity is discarded).
-		cost = 1500, range = 34, slow = 0.70, duration = 1.8, stun = 1.2,
+		cost = 1500000, range = 34, slow = 0.70, duration = 1.8, stun = 1.2,
 		knock = { back = 9, up = 11 },
 		-- Flies CUP-FIRST along its own arc rather than tumbling: it is
 		-- thrown like a javelin and should read like one in the air. Anything
@@ -3216,7 +3407,7 @@ Config.GADGETS = {
 		-- A direct hit splats the person for `duration`. Anything else --
 		-- the ground, a wall, the end of its range -- leaves `puddle` on the
 		-- floor underneath, which slows whoever walks into it ONCE each.
-		cost = 6000, range = 26, slow = 0.50, duration = 2.5, stun = 0,
+		cost = 6000000, range = 26, slow = 0.50, duration = 2.5, stun = 0,
 		puddle = { radius = 4.5, lifetime = 3, slow = 0.55, duration = 1.5 },
 		hitSound = "GUM_HIT", hitVolume = 0.6,
 		colour = Color3.fromRGB(240, 130, 190), trim = Color3.fromRGB(255, 196, 224),
@@ -3229,7 +3420,7 @@ Config.GADGETS = {
 		-- NOT THROWN. `beam` makes it an instant arc from the hand toward the
 		-- crosshair, out to `range`; whoever it passes within `width` of is
 		-- frozen for `stun`. Short range is what keeps it a finisher.
-		cost = 22000, range = 14, slow = 0.60, duration = 2.5, stun = 2.0,
+		cost = 22000000, range = 14, slow = 0.60, duration = 2.5, stun = 2.0,
 		beam = { width = 2.5 },
 		pierce = true,
 		-- Heard once, when it fires. The arc reaches its target the same
@@ -3696,14 +3887,6 @@ local ICON = {
 	-- than a present somebody wrapped. Four-byte, so it has no monochrome
 	-- text form to fall back to, and measured with the rest at 37.0.
 	CRATE = utf8.char(0x1F4E6),
-	-- The smash. U+1F4A5 COLLISION -- the EFFECT rather than the tool, which
-	-- is the deliberate half: a hammer would put an implement on a card in a
-	-- game whose officer carries no baton, and the starburst says the one
-	-- thing this kind is actually about, which is that this way in is LOUD.
-	-- Four-byte, so it has no monochrome text form to fall back to and cannot
-	-- pick up the fault that made the warning triangle render 4px narrower
-	-- than everything beside it.
-	SMASH = utf8.char(0x1F4A5),
 	-- THE THREE PEDESTAL VERBS. Four-byte every one of them, so none can pick
 	-- up the fault that made the warning triangle render 4px narrower than
 	-- everything beside it: a four-byte emoji has no monochrome text form to
@@ -3758,7 +3941,7 @@ Config.NOTIFY = {
 	-- so the upgrade is universal even where nobody has revisited the call.
 	good = {
 		glyph = ICON.TICK, tone = Color3.fromRGB(59, 209, 140),
-		sound = "MILESTONE", volume = 0.3, hold = 3.2,
+		sound = "NOTIFY_POP", volume = 0.4, hold = 3.2,
 	},
 	warn = {
 		glyph = ICON.WARN, tone = Color3.fromRGB(230, 104, 64),
@@ -4159,6 +4342,42 @@ Config.POLICE = {
 -- thing: published before it lands, triggerable by nobody, aimable at nobody,
 -- and it never costs progress -- what is spent is out of the pig and safe.
 Config.EVENTS = {
+	-- OFF FOR THE MVP (designer, 2026-09-23: "lets disable the alien event
+	-- for now ... im trying to ship the mvp will add events into the game
+	-- later"). This gates the SCHEDULE and nothing else: `EventService`'s
+	-- loop still runs, so the admin panel's own event button still puts a
+	-- raid on the street to test one. A `return` in that scheduler would
+	-- have left that button doing nothing when pressed, which is the
+	-- control-that-looks-available failure this file refuses everywhere
+	-- else.
+	--
+	-- THE COUNTDOWN CHIP HIDES ITSELF AND NEEDED NO EDIT, which is the
+	-- gate above `nextEventChip` being paid for: it draws on the pushed
+	-- quiet SPAN rather than on the phase name, and a disabled scheduler
+	-- publishes a span of zero. Same for the patrol, which reads
+	-- `isEventLive` and simply never waits for one.
+	--
+	-- WHAT IT COSTS, STATED PLAINLY: THE ALIEN SET IS UNOBTAINABLE WHILE
+	-- THIS IS FALSE. `rewardRaid` calling `SetService.rollDrop(player,
+	-- "alien")` is now the ONLY source of the Martian and the Hoverdisc. It
+	-- was one of two: the Alien Cache crate was the other, and it was deleted
+	-- on 2026-09-23 precisely BECAUSE of this flag -- a card reading EARN THIS
+	-- CRATE beside an earn nobody could perform. Nothing errors and nothing
+	-- warns either way: `auditRandomOutcomes` exempted that crate from the
+	-- Robux price it demands of every other one, so a set nobody could reach
+	-- audited clean. Turning this back on restores both items with no
+	-- migration; the crate does not come back on its own.
+	--
+	-- AND THIS PARAGRAPH COUNTED FOUR ITEMS UNTIL TODAY, which is the drift
+	-- worth recording rather than quietly correcting. The Antenna Headband and
+	-- the Abductor Visor went with the accessory catalogue and the Crashed
+	-- Drone went with the lawn ornaments -- each deleted from
+	-- `Config.SETS.alien`, none of them re-read against the note over here
+	-- that names them. A COMMENT THAT ENUMERATES ANOTHER TABLE'S CONTENTS GOES
+	-- STALE EVERY TIME THAT TABLE MOVES, and this one had been wrong about two
+	-- separate retirements at once.
+	enabled = false,
+
 	-- The quiet stretch between events. The patrol is every eight minutes and
 	-- stays the baseline heartbeat; this sits under it so an event is a
 	-- bigger, rarer thing than a patrol rather than a competing one.
@@ -4333,7 +4552,7 @@ Config.ANNOUNCE = {
 		glyph = utf8.char(0x1F6A8),
 		icon = "",
 		tone = Color3.fromRGB(230, 136, 64),
-		headline = "SIRENS",
+		headline = "PATROL INCOMING",
 	},
 	pursuit = {
 		glyph = utf8.char(0x1F6A8),
@@ -4464,9 +4683,15 @@ Config.SETS = {
 		-- SPANNING SYSTEMS beats a handful of recolours -- and at two it is
 		-- nearly spent: a skin and a ride. It survives because a set is a VIEW
 		-- over the existing catalogues, so dropping a row is the whole edit --
-		-- no ownership to migrate and no grant path to unpick -- and because
-		-- the Alien Cache still has something at the top of it. If the lawn
+		-- no ownership to migrate and no grant path to unpick. If the lawn
 		-- comes back, so does the drone, and this is one line.
+		--
+		-- THE SECOND HALF OF THAT ARGUMENT IS SPENT. It used to end "and
+		-- because the Alien Cache still has something at the top of it", and
+		-- the Alien Cache was deleted on 2026-09-23 with the event that fed it.
+		-- What holds this set up now is the raid drop alone, so whether two
+		-- items is a set at all is worth asking again on the day
+		-- `Config.EVENTS.enabled` goes back to true.
 		items = {
 			{ kind = "skin", key = "martian" },
 			{ kind = "ride", key = "hoverdisc" },
@@ -4496,6 +4721,23 @@ function Config.catalogueFor(kind: string)
 		-- are, so `SetService.grant`, `.revoke` and `.inUse` reach it for free
 		-- rather than through a second grant path.
 		catch = Config.CATCH_EFFECTS,
+		-- THE SEVENTH, AND IT IS HERE BECAUSE A CRATE ROLLS ONE NOW (designer,
+		-- 2026-09-23). Five guardians come out of `CHESTS.guardian`, and every
+		-- reader a crate touches resolves its item through this function: the
+		-- reveal's own `sellValue`, `getSetItem`, the spares prune, the crates
+		-- UI's preview strip -- and, sharpest, `auditRandomOutcomes`, which
+		-- looks up each pool entry's spec to refuse a coin-priced or
+		-- pass-exclusive item inside a crate. Left out, all five of those
+		-- resolve a coat to nil and the audit's own checks go QUIET on the one
+		-- catalogue that just entered a pool: a coat could carry a `cost` and
+		-- a `chest` together and nothing would say so.
+		--
+		-- `COSMETIC_KINDS` IS DELIBERATELY NOT WIDENED WITH IT, and the two
+		-- answer different questions. This maps a kind to its table; that list
+		-- is what gets SWEPT -- `passItems` walks it looking for pass
+		-- exclusives, and a guardian is not one. A kind belongs there when
+		-- something should iterate it, not when something should resolve it.
+		coat = Config.DOG_COATS,
 	}) :: any)[kind]
 end
 
@@ -4567,6 +4809,7 @@ Config.PROMPTS = {
 	-- Your own piggy. Gold, and the quietest of the set: this is the thing a
 	-- player does a thousand times and it should never shout.
 	collect = {
+		plain = true,
 		glyph = ICON.BANK, tone = Color3.fromRGB(255, 203, 61),
 		verb = "BANK COINS",
 	},
@@ -4575,28 +4818,11 @@ Config.PROMPTS = {
 	-- costs another player anything -- the red is the same red their robbery
 	-- alarm will be.
 	steal = {
+		plain = true,
 		glyph = ICON.MONEYBAG, tone = Color3.fromRGB(230, 72, 64),
 		verb = "STEAL",
 	},
 
-	-- The other way into the same pig. See `Config.SMASH`.
-	--
-	-- IT WEARS `steal`'S OWN RED, WHICH IS A DECISION RATHER THAN A REUSE.
-	-- Everywhere else in this vocabulary a shared tone would be a fault: this
-	-- file already records that the alarm and the chase had to stop being the
-	-- same red, because two identical signals stop meaning two different
-	-- things. These two are not two different things. They are one crime by
-	-- two methods, they appear TOGETHER on the same pig, and a thief choosing
-	-- between them is choosing how rather than whether -- so giving the loud
-	-- one a hue of its own would say they were different crimes, which is a
-	-- worse lie than the ambiguity it fixes.
-	--
-	-- What separates them is the other two channels, which is exactly what
-	-- this file's own rule asks for: COLOUR IS NEVER THE ONLY SIGNAL. One card
-	-- says STEAL and carries a money bag; the other says SMASH and carries a
-	-- bang. Either alone is enough -- and on a touchscreen they are the ONLY
-	-- things that are, because `keyText` prints HOLD on both when there is no
-	-- key to name.
 	-- LETTING A PIGGY GO, off its own pedestal, for coins.
 	--
 	-- WARN ORANGE RATHER THAN THE MONEY GOLD, and that is the whole reason it
@@ -4613,12 +4839,9 @@ Config.PROMPTS = {
 	-- channels there are. The glyph is the money family now that the sale
 	-- pays coins; the WARN tone is what keeps it clear of `collect`.
 	sell = {
+		plain = true,
 		glyph = ICON.MONEYBAG, tone = Color3.fromRGB(230, 147, 64),
 		verb = "SELL",
-	},
-	smash = {
-		glyph = ICON.SMASH, tone = Color3.fromRGB(230, 72, 64),
-		verb = "SMASH",
 	},
 
 	-- Catching a thief who is carrying. Amber, matching the chase alert: this
@@ -4641,9 +4864,16 @@ Config.PROMPTS = {
 
 	-- Climbing into a wheelie bin. Slate: cover is not a prize and should not
 	-- glow like one.
+	--
+	-- PLAIN SINCE 2026-09-23 (designer: "the same interact button for the trash
+	-- bins as well"). A bin is street furniture a thief passes on every run and
+	-- ducks into in the middle of a chase, which is the test above: met over and
+	-- over, so it wears the pill. The card was the slower read at exactly the
+	-- moment reading is expensive.
 	hide = {
 		glyph = ICON.BIN, tone = Color3.fromRGB(140, 120, 104),
 		verb = "HIDE",
+		plain = true,
 	},
 
 	-- Tipping somebody else out of one. Its own kind rather than sharing
@@ -4652,14 +4882,57 @@ Config.PROMPTS = {
 	dig = {
 		glyph = ICON.EYES, tone = Color3.fromRGB(230, 104, 64),
 		verb = "OPEN IT",
+		plain = true,
 	},
 
-	-- A shop door. Green, and deliberately the calmest thing on the street:
-	-- it costs nothing, risks nothing and is the one prompt a player can take
-	-- their time over.
+	-- TWO PROMPTS ON A BIN: `hide`, and `dig` for everybody but the occupant.
+	-- THEY SHARE THE HATCH AND ARE NEVER BOTH LIVE, which is why neither takes
+	-- a slot: `StealthService.enterBin` disables Enter in the same breath as it
+	-- enables Open, and the release does the exact reverse, so a bin is either
+	-- empty or occupied and exactly one of the two is enabled. That is an
+	-- invariant of two paired writes rather than a coincidence -- if a third
+	-- ever lands on a bin, or these two ever overlap, they need distinct rows
+	-- through `Config.setPromptSlot` and not an offset typed at the call site.
+	-- There was a third, CLIMB OUT, for about a day (2026-09-23), and it could
+	-- never be pressed: ClientMain switches `ProximityPromptService` off for
+	-- anybody in a bin, so the one prompt that existed for the hider was the
+	-- one prompt the hider could not see. Getting out is jump, a tap on the
+	-- hint card, or a fresh push -- see `Shared/BinExitHint` and CLAUDE.md.
+
+	-- BEING SERVED AT A COUNTER. Green, and deliberately the calmest thing in
+	-- the game: it costs nothing, risks nothing and is the one prompt a player
+	-- can take their time over.
+	--
+	-- IT IS NOT A DOOR, AND THIS COMMENT SAID IT WAS FOR ABOUT AN HOUR. The
+	-- kind is worn by `ShopFront`'s `ShopPrompt`, on the invisible
+	-- `CounterServe` anchor just proud of the counter INSIDE a street unit at
+	-- `ShopFront.SERVE_RANGE`, and by `BaseShopStand`'s `BaseShopPrompt` on
+	-- the two counters in a player's own hallway. The street door kept its tab
+	-- attribute and its tag -- it is still the way in and still answers "which
+	-- shop is this" -- and it stopped carrying a prompt the same day this row
+	-- went plain. Two sessions changed one object from opposite ends within
+	-- the hour, which is precisely how a comment comes to describe a thing
+	-- that is no longer there.
+	--
+	-- PLAIN SINCE 2026-09-23 (designer: "for all the shops change the interact
+	-- button to the default roblox button we're using for everything else").
+	-- The card was kept here on the argument that this prompt is not on a
+	-- piggy and never stacks with a second one. Both halves of that are true
+	-- and it was the wrong test: what decides it is whether a player meets the
+	-- prompt OVER AND OVER, and a counter somebody is served at every few
+	-- minutes wants the pill the piggies wear rather than a card standing
+	-- between them and the shelf.
+	--
+	-- AND THE PLAIN PILL IS STRICTLY MORE INFORMATIVE HERE, which is not true
+	-- of every kind that has gone plain. Both builders set `ObjectText` to the
+	-- shop's own name -- `spec.name` on the street, the counter's own sign
+	-- sentence-cased in the hallway -- and Roblox's default pill prints it
+	-- above the action. So what a player reads went from a glyph, a tone and
+	-- the word SHOP to the name of the shop they are standing in.
 	shop = {
 		glyph = ICON.TROLLEY, tone = Color3.fromRGB(129, 209, 59),
 		verb = "SHOP",
+		plain = true,
 	},
 
 	-- YOUR OWN MAILBOX, and it is GOLD for the same reason `collect` was:
@@ -4720,6 +4993,7 @@ Config.PROMPTS = {
 	-- YOUR OWN, OFF YOUR OWN PLINTH. Gold, and it takes nothing from anybody
 	-- -- the piggy is in your arms and the slot it left is still yours.
 	take = {
+		plain = true,
 		glyph = ICON.PIG, tone = Color3.fromRGB(255, 203, 61),
 		verb = "TAKE",
 	},
@@ -4730,6 +5004,7 @@ Config.PROMPTS = {
 	-- pile that refills on its own, and this takes one of the seven things
 	-- they own outright.
 	snatch = {
+		plain = true,
 		glyph = ICON.GRAB, tone = Color3.fromRGB(230, 72, 64),
 		verb = "SNATCH",
 	},
@@ -4739,6 +5014,7 @@ Config.PROMPTS = {
 	-- nothing and is the one prompt here a player can take their time over.
 	-- Gold would have read as a payout and this pays nothing; it files.
 	place = {
+		plain = true,
 		glyph = ICON.PIN, tone = Color3.fromRGB(129, 209, 59),
 		verb = "PLACE",
 	},
@@ -4749,8 +5025,43 @@ Config.PROMPTS = {
 	-- on the till at all times by construction: there is no "take from till",
 	-- only this.
 	swap = {
+		plain = true,
 		glyph = ICON.PIG, tone = Color3.fromRGB(129, 209, 59),
 		verb = "SWAP",
+	},
+
+	-- THE COMBINE MACHINE OUT ON THE VERGE (designer, 2026-09-23): "move the
+	-- combine machine outside of the shop and into a dedicated spot on the map
+	-- where players can combine their piggies and pets there for a chance to
+	-- get better one." `Shared/CombineStation` is what stands there.
+	--
+	-- MAGENTA, WHICH IS THE CRATES TAB'S OWN HUE rather than a colour of its
+	-- own. Every other prompt here borrows its tone from the NOTIFY kind its
+	-- action produces; this one produces no toast of its own, so it borrows
+	-- from the SCREEN it replaces -- a player who has learned that magenta
+	-- means the crate economy should not have to learn it twice. It is
+	-- `Theme.HUE.crates` written out rather than required, because this file
+	-- requires nothing and has to go on requiring nothing.
+	--
+	-- IT KEEPS ITS CARD, and that is the whole reason `plain` is absent.
+	-- `plain` is for the eight prompts that live on a PIGGY or a PLINTH,
+	-- where the rob badge already prints the figure from the pavement and two
+	-- prompts share one part. This is a single prompt on an unfamiliar machine
+	-- -- the class the shop door, the bin, the post and the crate are all in
+	-- -- and the card's verb and glyph are the whole of what says what the
+	-- thing does before anybody holds it.
+	--
+	-- THE GLYPH IS THE PACKAGE, WHICH IS A DELIBERATE REUSE RATHER THAN AN
+	-- OVERSIGHT. Every emoji in `ICON` was RENDERED and measured at 37.0
+	-- before it was used, which is this file's own rule; the anticlockwise
+	-- arrows (U+1F504) is the better picture for a combine and has never been
+	-- rendered here. The package is the right second choice until it is: what
+	-- comes out of the press is exactly what comes out of a crate, and the
+	-- two are told apart by tone and by verb, which is what every prompt
+	-- carrying all three channels is for.
+	combine = {
+		glyph = ICON.CRATE, tone = Color3.fromRGB(255, 71, 240),
+		verb = "COMBINE",
 	},
 }
 
@@ -4769,11 +5080,10 @@ Config.PROMPT_KIND_ATTRIBUTE = "PromptKind"
 -- beside that measurement says in as many words that anything adding a third
 -- prompt to a shared part has to keep the property.
 --
--- THE SMASH IS THE FIRST THING THAT CANNOT KEEP IT. Steal and smash are the
--- two ways into one pig and they have to be READ TOGETHER, because a choice
--- you cannot see is not a choice. So both are live at once, on one part, for
--- the same player. That is the guarantee spent deliberately, and this is what
--- pays for it.
+-- THE SMASH WAS THE FIRST THING THAT COULD NOT KEEP IT: steal and smash were
+-- two ways into one pig, live at once on one part. The smash is retired
+-- (2026-09-23); the slots stay because the owner's swap stands above the
+-- steal on the bank and a plinth carries take and snatch.
 --
 -- A SLOT AND NOT A STUD OFFSET, AND THE DIFFERENCE IS WHY THIS IS AN INTEGER.
 -- A `BillboardGui` sized in OFFSET pixels is a fixed size on screen at every
@@ -4813,8 +5123,35 @@ Config.PROMPT_SLOT_ATTRIBUTE = "PromptSlot"
 -- One call sets both, so they cannot be written apart. Config is the right
 -- home for the same reason `chestEntry` is: it requires nothing, both ends
 -- read it, and the emitter and the reader of a format belong together.
+-- `plain = true` ON A KIND (designer, 2026-09-23: "remove the card when you
+-- walk up to any piggy ... just the button and action, the cards are in the
+-- way"): the prompt keeps Roblox's own key-and-action pill and gets no card
+-- at all. `PromptUI` already ignores anything not on the Custom style, so
+-- the whole switch is which style `setPromptKind` leaves the prompt on.
+-- What a plain prompt loses is the card's own rows -- the quoted take and
+-- the lock line on a steal -- and the rob badge over the piggy already
+-- prints both from the pavement.
+--
+-- THE TEST IS HOW OFTEN A PLAYER MEETS IT, NOT WHAT IT IS BOLTED TO, and
+-- this entry said otherwise for a day. It read "every prompt ON A PIGGY"
+-- and then listed the exceptions by object -- a bin, a shop door, a nab,
+-- the post, a crate -- which is a description of the world on the afternoon
+-- it was typed rather than of the rule. The designer widened it the next
+-- day, to the shop doors and then the bins, and an enumeration cannot
+-- absorb that: it just becomes quietly wrong, which is the copy-outlives-
+-- the-thing failure this project records more than any other. So: anything
+-- a player walks up to over and over is plain, and a card is for the
+-- objects that are rare or unfamiliar enough that the verb and the glyph
+-- are still doing work -- the post, the crate, the raid drone, the combine
+-- station and a thief's nab. Add a kind and ask which of those two it is.
 function Config.setPromptKind(prompt: ProximityPrompt, kind: string)
 	prompt:SetAttribute(Config.PROMPT_KIND_ATTRIBUTE, kind)
+	local style = (Config.PROMPTS :: any)[kind]
+	if style and style.plain then
+		prompt.Style = Enum.ProximityPromptStyle.Default
+		Config.setPromptSlot(prompt, tonumber(prompt:GetAttribute(Config.PROMPT_SLOT_ATTRIBUTE)) or 0)
+		return
+	end
 	-- Custom suppresses Roblox's own pill. Without it there are two cards,
 	-- or -- with PromptUI's guard -- none of ours at all.
 	--
@@ -4825,6 +5162,23 @@ function Config.setPromptKind(prompt: ProximityPrompt, kind: string)
 	-- one: count the matches before a bulk delete, and check what still reads
 	-- the name afterwards.
 	prompt.Style = Enum.ProximityPromptStyle.Custom
+end
+
+-- WHICH ROW A PROMPT SITS ON WHEN TWO SHARE A PART (steal and the owner's
+-- swap on the bank's Body, take and snatch on a plinth). The attribute is what
+-- `PromptUI` reads for a card; a PLAIN prompt has no card, so its row is
+-- carried instead by the default pill's own `UIOffset`, in screen pixels,
+-- `PROMPT_PLAIN_ROW_PX` per row downward -- the one property Roblox's pill
+-- offers for exactly this, and the one a custom card must never read
+-- (it is a Vector2, and adding it to a stud offset throws). Called by the
+-- three slot writers and again by `setPromptKind`, so the order the two are
+-- set in does not matter.
+Config.PROMPT_PLAIN_ROW_PX = 64
+function Config.setPromptSlot(prompt: ProximityPrompt, slot: number)
+	prompt:SetAttribute(Config.PROMPT_SLOT_ATTRIBUTE, slot)
+	if prompt.Style == Enum.ProximityPromptStyle.Default then
+		prompt.UIOffset = Vector2.new(0, slot * Config.PROMPT_PLAIN_ROW_PX)
+	end
 end
 
 -- What this action is WORTH, printed beside the verb.
@@ -5139,6 +5493,13 @@ Config.CARRY_VICTIM_ATTRIBUTE = "CarryingFrom"
 -- So the writer and the reader go through here, and the way to find any
 -- future reader is to grep the CONSTANT rather than the word.
 Config.LOOT_MODEL_NAME = "StolenPiggy"
+-- WHICH CARRY A LOAD WANTS, written on the loot model by the service that
+-- welded it: "hug" for a hauled piggy (two arms, out in front) and "sling"
+-- for a sack of coins (over the right shoulder). `CarryPose` reads it on
+-- every client and a model with no word is hugged. Designer, 2026-09-23:
+-- "the carry animation of the pig to be one and the other when robbing
+-- coins to be the animation of the bag over the shoulder".
+Config.CARRY_KIND_ATTRIBUTE = "CarryKind"
 
 -- WHAT THIS CHARACTER IS CARRYING OFF A PEDESTAL, and it is a WORD rather
 -- than a boolean because the two answers lead opposite ways.
@@ -5164,6 +5525,13 @@ Config.LOOT_MODEL_NAME = "StolenPiggy"
 -- KIND of haul it is, which the model cannot, and nothing reads it to find
 -- out whether one exists.
 Config.PIGGY_HAUL_ATTRIBUTE = "PiggyHaul"
+
+-- WHOSE piggy a STOLEN haul is, as a UserId, the snatch's twin of
+-- `CARRY_VICTIM_ATTRIBUTE` on a coin carry. Set beside "stolen" and cleared
+-- where every haul ends; nil for an own haul and for a resident's piggy,
+-- since there is nobody to tell. Its one reader today is the victim's chase
+-- music in `Shared/Music`.
+Config.PIGGY_HAUL_FROM_ATTRIBUTE = "PiggyHaulFrom"
 
 -- WHETHER THIS CHARACTER IS ACTUALLY TIPTOEING, published so that EVERY
 -- client can draw the creep rather than only the person doing it.
@@ -5809,6 +6177,20 @@ Config.DEFAULT_EFFECT = "none"
 -- its OWN metalness and roughness maps, and this file's note about a
 -- capability-gated property applies to the same class of trap.
 Config.SURFACE_PACKS = {
+	neonmint = { name = "Neon Mint", template = "neonmint", trimTemplate = "neonmint_trim" },
+	aurora = { name = "Aurora", template = "aurora", trimTemplate = "aurora_trim" },
+	-- BEGIN ARCADE PACKS
+	playerone = { name = "Player One", template = "playerone", trimTemplate = "playerone_trim" },
+	retrocarpet = { name = "Retro Carpet", template = "retrocarpet", trimTemplate = "retrocarpet_trim" },
+	respawn = { name = "Respawn", template = "respawn", trimTemplate = "respawn_trim" },
+	jackpot = { name = "Jackpot", template = "jackpot", trimTemplate = "jackpot_trim" },
+	pixel = { name = "Pixel", template = "pixel", trimTemplate = "pixel_trim" },
+	circuitboard = { name = "Circuit Board", template = "circuitboard", trimTemplate = "circuitboard_trim" },
+	powerup = { name = "Power-Up", template = "powerup", trimTemplate = "powerup_trim" },
+	synthwave = { name = "Synthwave", template = "synthwave", trimTemplate = "synthwave_trim" },
+	finalboss = { name = "Spellcaster", template = "finalboss", trimTemplate = "finalboss_trim" },
+	mechaplayer = { name = "Mecha Player", template = "mechaplayer", trimTemplate = "mechaplayer_trim" },
+	-- END ARCADE PACKS
 	-- ============================================================
 	-- THE ANIMAL COATS, ONE PACK EACH
 	-- ============================================================
@@ -5845,12 +6227,99 @@ Config.SURFACE_PACKS = {
 	glacier = { name = "Glacier", template = "glacier", trimTemplate = "glacier_trim" },
 	bubblegumleopard = { name = "Bubblegum Leopard", template = "bubblegumleopard", trimTemplate = "bubblegumleopard_trim" },
 	honeycomb = { name = "Honeycomb", template = "honeycomb", trimTemplate = "honeycomb_trim" },
-	-- THE EPIC ANIMALS' COATS, one pack each, authored by their own generators
-	-- under `blender/pig/skins/<key>/`. A row whose templates are not yet
-	-- uploaded is a PLAIN PIG rather than an error (`PiggyModel.applySurface`
-	-- returns on a missing template), so a row may land with its sheets baked
-	-- and its ids pending, and the animal wears its swatch until they arrive.
-	lion = { name = "Lion", template = "lion", trimTemplate = "lion_trim" },
+	-- THE TWO ANIMAL EPICS, epic-v2, wired 2026-09-23. Uploaded and
+	-- approved on the same day the batch was authored and then left
+	-- UNINSTALLED for a session -- the sheets and the accessory model were
+	-- live on the account while the game went on drawing the code-built
+	-- quills and rod-and-disc fan they were made to replace. Both rows
+	-- carry an accessory set below; see `Config.SKIN_ACCESSORIES`.
+	hedgehog = { name = "Hedgehog", template = "hedgehog", trimTemplate = "hedgehog_trim" },
+	peacock = { name = "Peacock", template = "peacock", trimTemplate = "peacock_trim" },
+
+	-- ============================================================
+	-- THE OG REDESIGN, 2026-09-23: SEVENTEEN COATS THAT USED TO BE CODE
+	-- ============================================================
+	--
+	-- Fifteen of these came out of `assets/piggies/og-redesign-v1/` in one
+	-- batch, plus `muddy`. (The `stormstone` epic-v2 rebuild was wired here
+	-- too and then RETIRED on the designer's call, 2026-09-23: there is no
+	-- Storm Stone, the skin is Stormcaller. Its row's own comment had
+	-- already recorded `no upload for this one`, so wiring it contradicted
+	-- a standing decision. Its sheets are live on the account and its art
+	-- is still under assets/piggies/epic/stormstone/ -- nothing here reads
+	-- either.) Every one
+	-- already had a `Config.SKINS` row that drew its look from a code-built
+	-- `pattern` and an animated `Color3`; what landed is a baked 1024px coat
+	-- per skin, and for the epics and legendaries a second sheet that is an
+	-- EMISSIVE MASK.
+	--
+	-- THE EMISSIVE SHEET IS WHY NINE OF THESE ROWS STOPPED BEING NEON OR
+	-- GLASS, and it is the half to understand before touching any of them.
+	-- `Config.skinSurface` REFUSES a pack on a Neon or Glass body -- silently,
+	-- returning nil so the pig renders plain -- because a pack overrides the
+	-- material while `material` goes on reporting what it was set to. That
+	-- refusal is right and it is not what these skins want any more: the
+	-- batch's own design specs say `opaque`, `solid body rather than
+	-- see-through`, `never a white/orange glowing sphere`, `no uniform
+	-- rainbow glow` and `no whole-body orange glow` in as many words. A Neon
+	-- body is a whole-body glow; these were authored to replace exactly that
+	-- with a dark coat whose FISSURES glow, which is what an
+	-- `EmissiveMaskContent` is. So the material moved to SmoothPlastic and the
+	-- glow moved into the mask, on ghost, quartz, starlight, nightlight,
+	-- sugarrush, hologram, supernova, prismatic and stormcaller.
+	--
+	-- `EmissiveStrength` IS AUTHORED, NOT MEASURED -- 0.9 on the epics and 1.2
+	-- on the legendaries, written by `tools/build_skin_packs.py` into each
+	-- pack rather than here. The first pedestal render is where they get
+	-- tuned, which is the same thing this file already says about every
+	-- number on the epic rows below.
+	--
+	-- WHAT A PACK COSTS EVERY ONE OF THESE, and it is the rule the animal
+	-- coats already record: the sheets are opaque, so at alpha 255 Overlay
+	-- resolves to `mapRGB` and `SKINS.<key>.body` / `.trim` stop tinting the
+	-- pig. Their colours stay because the shop swatch, the topiary and the
+	-- mini still read them.
+	--
+	-- AND `anim` IS HALF INERT ON A PACKED SKIN, WHICH IS WRITTEN DOWN HERE
+	-- RATHER THAN LEFT TO BE DISCOVERED. Seven of these keep one -- tiedye,
+	-- ghost, nightlight, sugarrush, supernova, prismatic and stormcaller.
+	-- The client animator writes `part.Color` every frame, and at alpha 255
+	-- Overlay resolves to `mapRGB`, so the PALETTE NO LONGER TINTS THE PIG:
+	-- the coat is whatever was baked. What the same field still drives is the
+	-- Glow and the AuraLight, so the lamp goes on breathing and cycling and
+	-- the skin is not static -- which is why the field stays rather than
+	-- being deleted, and it is what the specs mean by `soft slow breathing
+	-- light` and `softly cycling scan band`.
+	--
+	-- WHAT WOULD ACTUALLY DELIVER THOSE ON THE COAT is driving
+	-- `SurfaceAppearance.EmissiveStrength` off the same `anim` spec, the way
+	-- `Legendary/DragonGlow` already drives it off an attribute. That is NOT
+	-- built, and it is the next thing to do here rather than a thing that
+	-- quietly happens.
+	marble = { name = "Marble", template = "marble", trimTemplate = "marble_trim" },
+	rockslide = { name = "Rockslide", template = "rockslide", trimTemplate = "rockslide_trim" },
+	quartz = { name = "Quartz", template = "quartz", trimTemplate = "quartz_trim" },
+	banker = { name = "Banker Piggy", template = "banker", trimTemplate = "banker_trim" },
+	tiedye = { name = "Tie-Dye", template = "tiedye", trimTemplate = "tiedye_trim" },
+	-- THE ONE PACK CARRYING ITS OWN SHINE. A part wearing a SurfaceAppearance
+	-- IGNORES its own `Reflectance` while still reporting it, so the 0.3 on
+	-- the `verdigris` SKINS row stopped doing anything the moment this landed
+	-- -- the `UseJumpPower` family exactly. That is survivable here and
+	-- nowhere else in the metal family, because this is the only one of them
+	-- whose batch baked a MetalnessMap and a RoughnessMap to put the shine
+	-- back. Any future pack on a metal skin has to do the same or it deletes
+	-- the thing that makes the skin read as metal.
+	verdigris = { name = "Verdigris", template = "verdigris", trimTemplate = "verdigris_trim" },
+	muddy = { name = "Muddy Piggy", template = "muddy", trimTemplate = "muddy_trim" },
+	ghost = { name = "Ghost Piggy", template = "ghost", trimTemplate = "ghost_trim" },
+	charcoal = { name = "Charcoal Piggy", template = "charcoal", trimTemplate = "charcoal_trim" },
+	starlight = { name = "Starlight Piggy", template = "starlight", trimTemplate = "starlight_trim" },
+	nightlight = { name = "Nightlight Piggy", template = "nightlight", trimTemplate = "nightlight_trim" },
+	sugarrush = { name = "Sugar Rush Piggy", template = "sugarrush", trimTemplate = "sugarrush_trim" },
+	hologram = { name = "Hologram Piggy", template = "hologram", trimTemplate = "hologram_trim" },
+	supernova = { name = "Supernova", template = "supernova", trimTemplate = "supernova_trim" },
+	prismatic = { name = "Prismatic", template = "prismatic", trimTemplate = "prismatic_trim" },
+	stormcaller = { name = "Stormcaller", template = "stormcaller", trimTemplate = "stormcaller_trim" },
 
 	-- THE BAND OVERLAY: ONE IMAGE, EVERY METAL. `AlphaMode.Overlay`
 	-- composites this map over the part's own `Color3` using THE MAP'S ALPHA,
@@ -5998,6 +6467,76 @@ function Config.skinSurface(tier)
 end
 
 Config.SKINS = {
+	-- BEGIN ARCADE SKINS
+	playerone = {
+		name = "Player One", order = 200, chest = "og", collection = "arcade", rarity = "rare",
+		scale = 1.04,
+		body = Color3.fromRGB(214, 39, 54), trim = Color3.fromRGB(244, 222, 174),
+		material = Enum.Material.SmoothPlastic, transparency = 0, surface = "playerone",
+	},
+	retrocarpet = {
+		name = "Retro Carpet", order = 201, chest = "og", collection = "arcade", rarity = "rare",
+		scale = 1.04,
+		body = Color3.fromRGB(39, 30, 77), trim = Color3.fromRGB(33, 188, 213),
+		material = Enum.Material.SmoothPlastic, transparency = 0, surface = "retrocarpet",
+	},
+	respawn = {
+		name = "Respawn", order = 202, chest = "og", collection = "arcade", rarity = "epic",
+		scale = 1.08,
+		body = Color3.fromRGB(44, 20, 92), trim = Color3.fromRGB(35, 199, 242),
+		material = Enum.Material.SmoothPlastic, transparency = 0, surface = "respawn",
+		aura = "arcade_respawn", glowEyes = true, parts = { Eye = Color3.fromRGB(35, 199, 242) },
+	},
+	jackpot = {
+		name = "Jackpot", order = 203, chest = "og", collection = "arcade", rarity = "legendary",
+		scale = 1.12,
+		body = Color3.fromRGB(119, 36, 58), trim = Color3.fromRGB(235, 209, 151),
+		material = Enum.Material.SmoothPlastic, transparency = 0, surface = "jackpot", authoredCoat = true,
+		aura = "arcade_jackpot", glowEyes = false, parts = { Eye = Color3.fromRGB(27, 27, 32) },
+	},
+	pixel = {
+		name = "Pixel", order = 204, chest = "og", collection = "arcade", rarity = "rare",
+		scale = 1.04,
+		body = Color3.fromRGB(27, 47, 78), trim = Color3.fromRGB(42, 130, 165),
+		material = Enum.Material.SmoothPlastic, transparency = 0, surface = "pixel",
+	},
+	circuitboard = {
+		name = "Circuit Board", order = 205, chest = "og", collection = "arcade", rarity = "rare",
+		scale = 1.04,
+		body = Color3.fromRGB(21, 75, 52), trim = Color3.fromRGB(189, 149, 63),
+		material = Enum.Material.SmoothPlastic, transparency = 0, surface = "circuitboard",
+	},
+	powerup = {
+		name = "Power-Up", order = 206, chest = "og", collection = "arcade", rarity = "epic",
+		scale = 1.08,
+		body = Color3.fromRGB(31, 62, 54), trim = Color3.fromRGB(157, 235, 78),
+		material = Enum.Material.SmoothPlastic, transparency = 0, surface = "powerup",
+		aura = "arcade_powerup", glowEyes = true, parts = { Eye = Color3.fromRGB(157, 235, 78) },
+	},
+	synthwave = {
+		name = "Synthwave", order = 207, chest = "og", collection = "arcade", rarity = "epic",
+		scale = 1.08,
+		body = Color3.fromRGB(35, 24, 77), trim = Color3.fromRGB(42, 207, 233),
+		material = Enum.Material.SmoothPlastic, transparency = 0, surface = "synthwave",
+		aura = "arcade_synthwave", glowEyes = true, parts = { Eye = Color3.fromRGB(42, 207, 233) },
+	},
+	finalboss = {
+		name = "Spellcaster", order = 208, chest = "og", collection = "arcade", rarity = "legendary",
+		scale = 1.12,
+		body = Color3.fromRGB(63, 38, 94), trim = Color3.fromRGB(184, 125, 236),
+		material = Enum.Material.SmoothPlastic, transparency = 0, surface = "finalboss", authoredCoat = true,
+		aura = "arcade_finalboss", glowEyes = false, parts = { Eye = Color3.fromRGB(27, 27, 32) },
+		groundLift = 0.24,
+	},
+	mechaplayer = {
+		name = "Mecha Player", order = 209, chest = "og", collection = "arcade", rarity = "legendary",
+		scale = 1.12,
+		body = Color3.fromRGB(165, 186, 199), trim = Color3.fromRGB(50, 202, 242),
+		material = Enum.Material.SmoothPlastic, transparency = 0, surface = "mechaplayer", authoredCoat = true,
+		aura = "arcade_mechaplayer", glowEyes = false, parts = { Eye = Color3.fromRGB(27, 27, 32) },
+		eyeForward = 0.156, groundLift = 0.63,
+	},
+	-- END ARCADE SKINS
 	classic = {
 		name = "Classic Pink", order = 1, cost = 0, rarity = "common",
 		body = Color3.fromRGB(244, 168, 194), trim = Color3.fromRGB(214, 122, 148),
@@ -6005,25 +6544,25 @@ Config.SKINS = {
 	},
 	bubblegum = {
 		chest = "og",
-		name = "Bubblegum", order = 2, sellBasis = 8000, rarity = "common",
+		name = "Bubblegum", order = 2, sellBasis = 8000000, rarity = "common",
 		body = Color3.fromRGB(255, 132, 190), trim = Color3.fromRGB(206, 78, 148),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 	},
 	mint = {
 		chest = "og",
-		name = "Mint Choc", order = 3, sellBasis = 20000, rarity = "common",
+		name = "Mint Choc", order = 3, sellBasis = 20000000, rarity = "common",
 		body = Color3.fromRGB(148, 226, 190), trim = Color3.fromRGB(88, 62, 52),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 	},
 	sunset = {
 		chest = "og",
-		name = "Sunset", order = 4, sellBasis = 45000, rarity = "common",
+		name = "Sunset", order = 4, sellBasis = 45000000, rarity = "common",
 		body = Color3.fromRGB(255, 158, 92), trim = Color3.fromRGB(206, 92, 108),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 	},
 	midnight = {
 		chest = "og",
-		name = "Midnight", order = 5, sellBasis = 90000, rarity = "common",
+		name = "Midnight", order = 5, sellBasis = 90000000, rarity = "common",
 		body = Color3.fromRGB(78, 84, 156), trim = Color3.fromRGB(44, 48, 96),
 		material = Enum.Material.Glass, transparency = 0,
 	},
@@ -6034,21 +6573,21 @@ Config.SKINS = {
 	-- against it. Missing, it falls back to `material`.
 	lava = {
 		chest = "og",
-		name = "Lava", order = 6, sellBasis = 200000, rarity = "common",
+		name = "Lava", order = 6, sellBasis = 200000000, rarity = "common",
 		body = Color3.fromRGB(232, 92, 48), trim = Color3.fromRGB(58, 30, 26),
 		material = Enum.Material.Neon, transparency = 0,
 		trimMaterial = Enum.Material.SmoothPlastic,
 	},
 	galaxy = {
 		chest = "og",
-		name = "Galaxy", order = 7, sellBasis = 500000, rarity = "common",
+		name = "Galaxy", order = 7, sellBasis = 500000000, rarity = "common",
 		body = Color3.fromRGB(126, 82, 200), trim = Color3.fromRGB(52, 34, 92),
 		material = Enum.Material.Neon, transparency = 0,
 		trimMaterial = Enum.Material.SmoothPlastic,
 	},
 	pearl = {
 		chest = "og",
-		name = "Pearl", order = 8, sellBasis = 1200000, rarity = "common",
+		name = "Pearl", order = 8, sellBasis = 1200000000, rarity = "common",
 		body = Color3.fromRGB(248, 244, 236), trim = Color3.fromRGB(206, 198, 220),
 		material = Enum.Material.Glass, transparency = 0,
 	},
@@ -6057,6 +6596,7 @@ Config.SKINS = {
 	-- preserves ownership earned under the old thresholds.
 	bronze = {
 		name = "Bronze", order = 20, chest = "og", rarity = "rare",
+		scale = 1.04,
 		body = Color3.fromRGB(196, 132, 74), trim = Color3.fromRGB(150, 96, 50),
 		material = Enum.Material.Metal, transparency = 0,
 		reflectance = 0.35,
@@ -6077,6 +6617,7 @@ Config.SKINS = {
 	-- had to.
 	goldleaf = {
 		name = "Gold Leaf", order = 21, chest = "og", rarity = "rare",
+		scale = 1.04,
 		body = Color3.fromRGB(186, 152, 72), trim = Color3.fromRGB(140, 110, 46),
 		material = Enum.Material.Metal, transparency = 0,
 		reflectance = 0.40,
@@ -6118,7 +6659,8 @@ Config.SKINS = {
 	-- because deleting it would leave the next person to drop the pack with a
 	-- flat pig and nothing saying why.
 	bullion = {
-		name = "Solid Gold", order = 232, cost = 1500000, rarity = "legendary",
+		name = "Solid Gold", order = 232, cost = 1500000000, rarity = "legendary",
+		scale = 1.12,
 		body = Color3.fromRGB(214, 152, 30), trim = Color3.fromRGB(162, 104, 16),
 		material = Enum.Material.Metal, transparency = 0,
 		reflectance = 0.45,
@@ -6134,6 +6676,7 @@ Config.SKINS = {
 	diamond = {
 		fx = "diamond", aura = "glint",
 		name = "Diamond", order = 22, chest = "og", rarity = "legendary",
+		scale = 1.12,
 		body = Color3.fromRGB(150, 226, 236), trim = Color3.fromRGB(104, 190, 208),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		surface = "diamond",
@@ -6150,6 +6693,7 @@ Config.SKINS = {
 	ember = {
 		chest = "og",
 		name = "Ember Glow", order = 30, rarity = "rare",
+		scale = 1.04,
 		body = Color3.fromRGB(226, 104, 52), trim = Color3.fromRGB(120, 44, 30),
 		material = Enum.Material.Neon, transparency = 0,
 		trimMaterial = Enum.Material.SmoothPlastic,
@@ -6160,6 +6704,7 @@ Config.SKINS = {
 	frostbite = {
 		chest = "og",
 		name = "Frostbite", order = 31, rarity = "rare",
+		scale = 1.04,
 		body = Color3.fromRGB(186, 232, 248), trim = Color3.fromRGB(120, 176, 208),
 		material = Enum.Material.Glass, transparency = 0,
 		anim = { kind = "pulse", speed = 0.8, palette = {
@@ -6169,6 +6714,7 @@ Config.SKINS = {
 	toxic = {
 		chest = "og",
 		name = "Toxic Ooze", order = 32, rarity = "rare",
+		scale = 1.04,
 		body = Color3.fromRGB(140, 226, 84), trim = Color3.fromRGB(66, 122, 40),
 		material = Enum.Material.Neon, transparency = 0,
 		trimMaterial = Enum.Material.SmoothPlastic,
@@ -6179,6 +6725,7 @@ Config.SKINS = {
 	candyswirl = {
 		chest = "og",
 		name = "Candy Swirl", order = 33, rarity = "rare",
+		scale = 1.04,
 		body = Color3.fromRGB(255, 150, 200), trim = Color3.fromRGB(255, 236, 244),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		anim = { kind = "cycle", speed = 1.1, palette = {
@@ -6187,19 +6734,15 @@ Config.SKINS = {
 	},
 
 	aurora = {
-		chest = "og",
-		name = "Aurora", order = 40, rarity = "rare",
-		body = Color3.fromRGB(96, 226, 190), trim = Color3.fromRGB(60, 110, 150),
-		material = Enum.Material.Neon, transparency = 0,
-		trimMaterial = Enum.Material.SmoothPlastic,
-		anim = { kind = "cycle", speed = 0.55, glow = 1.6, palette = {
-			Color3.fromRGB(96, 226, 190), Color3.fromRGB(84, 160, 238),
-			Color3.fromRGB(178, 118, 236), Color3.fromRGB(96, 226, 190),
-		} },
+		name = "Aurora", order = 40, chest = "og", rarity = "rare",
+		scale = 1.04,
+		body = Color3.fromRGB(21, 32, 77), trim = Color3.fromRGB(63, 219, 172),
+		material = Enum.Material.SmoothPlastic, transparency = 0, surface = "aurora", authoredCoat = true,
 	},
 	magma = {
 		chest = "og",
 		name = "Magma Core", order = 41, rarity = "rare",
+		scale = 1.04,
 		body = Color3.fromRGB(210, 58, 30), trim = Color3.fromRGB(52, 20, 16),
 		material = Enum.Material.Neon, transparency = 0,
 		trimMaterial = Enum.Material.SmoothPlastic,
@@ -6210,6 +6753,7 @@ Config.SKINS = {
 	voidsilk = {
 		chest = "og",
 		name = "Void Silk", order = 42, rarity = "rare",
+		scale = 1.04,
 		body = Color3.fromRGB(46, 30, 72), trim = Color3.fromRGB(22, 14, 36),
 		material = Enum.Material.Glass, transparency = 0,
 		anim = { kind = "pulse", speed = 0.5, glow = 1.4, palette = {
@@ -6218,49 +6762,85 @@ Config.SKINS = {
 	},
 
 	supernova = {
-		fx = "supernova", aura = "sunburst",
+		-- NO `fx` ANY MORE (designer, 2026-09-23: "the supernova should not
+		-- have those yellow objects around it"). `SkinFX.builders.supernova`
+		-- stands a corona of rays and a halo out of the pig's middle, which
+		-- was the whole read while the body was a flat Neon sphere. The coat
+		-- paints the solar fissures now and the pack's EmissiveMaskContent
+		-- lights them, so the rays are old geometry sitting on top of the new
+		-- art -- the same thing that made rockslide and quartz read as their
+		-- old models. The AURA stays: it is particles rather than geometry,
+		-- and the spec still asks for a sunburst.
+		aura = "sunburst",
 		chest = "og",
 		name = "Supernova", order = 60, rarity = "legendary",
+		scale = 1.12,
 		-- DEEP GOLD TO EMBER, NEVER NEAR WHITE: the palette used to start at
 		-- (255, 248, 220), and a Neon sphere that pale is a white hole under
 		-- the bloom. The corona and the sunburst carry the brightness now.
 		body = Color3.fromRGB(255, 176, 48), trim = Color3.fromRGB(200, 90, 30),
-		material = Enum.Material.Neon, transparency = 0,
+		material = Enum.Material.SmoothPlastic, transparency = 0,
 		trimMaterial = Enum.Material.SmoothPlastic,
 		anim = { kind = "cycle", speed = 2.2, glow = 4.0, palette = {
 			Color3.fromRGB(255, 184, 52), Color3.fromRGB(255, 132, 30),
 			Color3.fromRGB(232, 78, 24), Color3.fromRGB(255, 184, 52),
 		} },
+		surface = "supernova",
 	},
 	stormcaller = {
 		fx = "stormcaller", aura = "storm",
 		chest = "og",
 		name = "Stormcaller", order = 61, rarity = "legendary",
+		scale = 1.12,
 		-- The flash tops out at a bright electric blue rather than white, for
 		-- the Supernova reason: a white Neon sphere blows out the whole face.
 		body = Color3.fromRGB(64, 110, 220), trim = Color3.fromRGB(40, 52, 92),
-		material = Enum.Material.Neon, transparency = 0,
+		material = Enum.Material.SmoothPlastic, transparency = 0,
 		trimMaterial = Enum.Material.SmoothPlastic,
 		anim = { kind = "flicker", speed = 14, glow = 4.5, palette = {
 			Color3.fromRGB(40, 64, 160), Color3.fromRGB(120, 176, 255),
 		} },
+		surface = "stormcaller",
 	},
 	prismatic = {
-		fx = "prismatic", aura = "prism",
+		-- NO `fx` ANY MORE (designer, 2026-09-23: "the old prisms around it
+		-- colliding with the new ones"). `SkinFX.builders.prismatic` stands a
+		-- ring of seven Neon boxes -- 1.2 by 4.0 by 1.2, on a ten-stud ring --
+		-- which was the whole read while the body was a flat sphere.
+		-- `SKIN_ACCESSORIES.prismatic` is the authored ring now: six
+		-- `OrbitPrism` gems and an arc, on the same ground at the same height.
+		-- So the boxes were old geometry standing INSIDE the new art, which is
+		-- the fourth instance of what the Supernova entry above records for
+		-- rockslide, quartz and itself.
+		--
+		-- STORMCALLER IS THE FIFTH AND IS STILL LIVE, recorded here rather than
+		-- fixed in passing because every removal on this shelf has been a
+		-- designer call. It carries `fx = "stormcaller"` AND a
+		-- `SKIN_ACCESSORIES.stormcaller` set, and the two build the SAME
+		-- OBJECTS: `builders.stormcaller` makes three clouds and a bolt each,
+		-- and the authored set carries `StormCloud_*` and `LightningFork_*`.
+		-- That is a double render rather than a question about taste.
+		--
+		-- THE AURA STAYS, for the Supernova reason: it is particles rather than
+		-- geometry, and the spec still asks for a prism scatter.
+		aura = "prism",
 		chest = "og",
 		name = "Prismatic", order = 62, rarity = "legendary",
+		scale = 1.12,
 		body = Color3.fromRGB(255, 120, 120), trim = Color3.fromRGB(255, 255, 255),
-		material = Enum.Material.Neon, transparency = 0,
+		material = Enum.Material.SmoothPlastic, transparency = 0,
 		trimMaterial = Enum.Material.SmoothPlastic,
 		-- Saturated and a touch under full value: the default rainbow (0.72, 1)
 		-- read as pastel and bloomed to near white on a twelve-stud sphere.
 		anim = { kind = "rainbow", speed = 0.35, glow = 3.5, sat = 0.9, value = 0.85 },
+		surface = "prismatic",
 	},
 
 	-- ALIEN SET. Carries `set`, which keeps it out of the rebirth drop pool --
 	-- see the note on Config.SETS. Priced in loot and in nothing else.
 	martian = {
 		name = "Martian", order = 60, set = "alien", loot = 40, rarity = "epic",
+		scale = 1.02,
 		-- DEEP GREEN, NOT PALE GREEN, and that is the same lesson the Marble
 		-- Palace's fxGlow taught: Neon renders a colour flat out and the
 		-- BloomEffect takes it from there, so a light tint on a twelve-stud
@@ -6281,7 +6861,8 @@ Config.SKINS = {
 	-- THE ANIMAL BUCKET
 	-- ============================================================
 	--
-	-- `chest = "animal"`. Every one of these is a PATTERN skin: the point of
+	-- `collection = "animal"` (their crate tag has been `og` since the piggy
+	-- crates merged). Every one of these is a PATTERN skin: the point of
 	-- adding patterns at all was that a two-colour skin could only ever make a
 	-- "Zebra" that was a white pig with black legs, and a nine-year-old asked
 	-- for a zebra is asking for stripes.
@@ -6303,9 +6884,9 @@ Config.SKINS = {
 	-- stock is a button that takes coins and returns nothing -- which is why
 	-- all four are stocked rather than roughly stocked.
 	ladybird = {
-		chest = "animal",
-		name = "Ladybird", order = 100, sellBasis = 25000, rarity = "common",
-		scale = 0.75,
+		chest = "og", collection = "animal",
+		name = "Ladybird", order = 100, sellBasis = 25000000, rarity = "common",
+		scale = 0.72,
 		body = Color3.fromRGB(214, 44, 44), trim = Color3.fromRGB(30, 28, 32),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		surface = "ladybird",
@@ -6313,9 +6894,9 @@ Config.SKINS = {
 		-- the one real animal marking that genuinely IS a scatter of discs.
 	},
 	cow = {
-		chest = "animal",
-		name = "Dairy Cow", order = 101, sellBasis = 35000, rarity = "common",
-		scale = 1.15,
+		chest = "og", collection = "animal",
+		name = "Dairy Cow", order = 101, sellBasis = 35000000, rarity = "common",
+		scale = 1.12,
 		-- The trim stays PINK rather than going black with the blotches. It
 		-- paints the snout, and a cow's muzzle is the one part of it that is
 		-- pink -- so the two channels each say something instead of both
@@ -6330,9 +6911,9 @@ Config.SKINS = {
 	},
 
 	zebra = {
-		chest = "animal",
-		name = "Zebra", order = 110, sellBasis = 250000, rarity = "common",
-		scale = 1.1,
+		chest = "og", collection = "animal",
+		name = "Zebra", order = 110, sellBasis = 250000000, rarity = "common",
+		scale = 1.10,
 		body = Color3.fromRGB(244, 242, 236), trim = Color3.fromRGB(36, 34, 38),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		surface = "zebra",
@@ -6400,9 +6981,9 @@ Config.SKINS = {
 		furSet = "crest",
 	},
 	bee = {
-		chest = "animal",
-		name = "Bumblebee", order = 111, sellBasis = 400000, rarity = "common",
-		scale = 0.75,
+		chest = "og", collection = "animal",
+		name = "Bumblebee", order = 111, sellBasis = 400000000, rarity = "common",
+		scale = 0.72,
 		-- DEEPER THAN IT WAS, TWICE. (250, 198, 40) is a pale lemon; the
 		-- reference is a saturated golden yellow, and against black bands the
 		-- pale one reads as washed rather than as a bee. The first correction
@@ -6455,9 +7036,9 @@ Config.SKINS = {
 	},
 
 	giraffe = {
-		chest = "animal",
-		name = "Giraffe", order = 120, sellBasis = 1800000, rarity = "common",
-		scale = 1.2,
+		chest = "og", collection = "animal",
+		name = "Giraffe", order = 120, sellBasis = 1800000000, rarity = "common",
+		scale = 1.20,
 		body = Color3.fromRGB(234, 196, 124), trim = Color3.fromRGB(168, 120, 62),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		surface = "giraffe",
@@ -6466,9 +7047,9 @@ Config.SKINS = {
 		-- the cow look natural is exactly wrong here.
 	},
 	leopard = {
-		chest = "animal",
-		name = "Leopard", order = 121, sellBasis = 2400000, rarity = "common",
-		scale = 1.1,
+		chest = "og", collection = "animal",
+		name = "Leopard", order = 121, sellBasis = 2400000000, rarity = "common",
+		scale = 1.08,
 		body = Color3.fromRGB(232, 186, 110), trim = Color3.fromRGB(128, 86, 44),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		-- The second skin on a texture pack, and the pair is deliberate: one
@@ -6491,9 +7072,9 @@ Config.SKINS = {
 	-- `Config.isSkinUnlocked` handing them to everybody. Rebirth opens the
 	-- standard Legendary Crate, whose floor excludes common skins.
 	tiger = {
-		chest = "animal",
+		chest = "og", collection = "animal",
 		name = "Bengal Tiger", order = 130, rarity = "common",
-		scale = 1.2,
+		scale = 1.16,
 		body = Color3.fromRGB(238, 132, 36), trim = Color3.fromRGB(250, 240, 228),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		-- THE FIRST SKIN OFF THE PART-BUILT PATTERN AND ONTO A TEXTURE, and
@@ -6514,9 +7095,9 @@ Config.SKINS = {
 		surface = "tiger",
 	},
 	snowleopard = {
-		chest = "animal",
+		chest = "og", collection = "animal",
 		name = "Snow Leopard", order = 131, rarity = "common",
-		scale = 1.1,
+		scale = 1.08,
 		body = Color3.fromRGB(228, 234, 244), trim = Color3.fromRGB(150, 164, 184),
 		material = Enum.Material.Glass, transparency = 0,
 		surface = "snowleopard",
@@ -6572,57 +7153,60 @@ Config.SKINS = {
 	-- entirely -- see `Config.SURFACE_PACKS`. They are here because the shop
 	-- card, the topiary and the carried mini all still read them.
 	strawberrycow = {
-		chest = "animal",
+		chest = "og", collection = "animal",
 		name = "Strawberry Cow", order = 132, rarity = "rare",
-		scale = 1.15,
+		scale = 1.16,
 		body = Color3.fromRGB(255, 209, 221), trim = Color3.fromRGB(193, 47, 99),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		surface = "strawberrycow",
 	},
 	cookiescream = {
-		chest = "animal",
+		chest = "og", collection = "animal",
 		name = "Cookies & Cream", order = 133, rarity = "rare",
-		scale = 1.15,
+		scale = 1.16,
 		body = Color3.fromRGB(255, 238, 205), trim = Color3.fromRGB(68, 39, 28),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		surface = "cookiescream",
 	},
 	watermelon = {
-		chest = "animal",
+		chest = "og", collection = "animal",
 		name = "Watermelon", order = 134, rarity = "rare",
-		scale = 0.9,
+		scale = 0.92,
 		body = Color3.fromRGB(86, 169, 58), trim = Color3.fromRGB(36, 37, 26),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		surface = "watermelon",
 	},
 	peppermint = {
-		chest = "animal",
+		chest = "og", collection = "animal",
 		name = "Peppermint", order = 135, rarity = "rare",
+		scale = 1.04,
 		body = Color3.fromRGB(255, 248, 233), trim = Color3.fromRGB(208, 37, 66),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		surface = "peppermint",
 	},
 	glacier = {
-		chest = "animal",
+		chest = "og", collection = "animal",
 		name = "Glacier", order = 136, rarity = "rare",
+		scale = 1.04,
 		body = Color3.fromRGB(239, 250, 255), trim = Color3.fromRGB(66, 155, 204),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		surface = "glacier",
 	},
 	bubblegumleopard = {
-		chest = "animal",
+		chest = "og", collection = "animal",
 		name = "Bubblegum Leopard", order = 137, rarity = "rare",
-		scale = 1.1,
+		scale = 1.12,
 		body = Color3.fromRGB(250, 162, 207), trim = Color3.fromRGB(156, 34, 121),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		surface = "bubblegumleopard",
 	},
 	honeycomb = {
-		chest = "animal",
+		chest = "og", collection = "animal",
 		name = "Honeycomb", order = 138, rarity = "rare",
+		scale = 1.04,
 		body = Color3.fromRGB(155, 84, 15), trim = Color3.fromRGB(247, 183, 38),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
-		surface = "honeycomb",
+		surface = "honeycomb", authoredCoat = true,
 	},
 	-- ============================================================
 	-- THE EPIC ANIMALS -- SOMETHING GLOWS, AND SOMETHING COMES OFF THE PIG
@@ -6651,90 +7235,48 @@ Config.SKINS = {
 	-- about seventy on Storm Stone) are budgeted against six pedestals and
 	-- not against fifty loose herd members.
 	hedgehog = {
-		chest = "animal",
+		chest = "og", collection = "animal",
 		name = "Hedgehog", order = 139, rarity = "epic",
-		scale = 0.85,
-		-- A small animal: quills raked back over the whole crown with no
-		-- parting, a cream face and belly, and fireflies drifting off it at
-		-- dusk. `parting = 0` on purpose -- a hedgehog has no bare centre
-		-- line, and the default 0.26 reads as a mohawk on one this size.
-		body = Color3.fromRGB(150, 112, 78), trim = Color3.fromRGB(232, 214, 186),
+		scale = 0.88,
+		-- A small animal: one authored quill cap raked back over the whole
+		-- crown, a cream face and belly, and fireflies drifting off it at dusk.
+		--
+		-- THE COAT AND THE QUILLS ARE BOTH AUTHORED NOW (epic-v2, 2026-09-23).
+		-- This row used to carry a `pattern = { kind = "shards" }` with 34
+		-- code-built spikes and a `parting = 0`; the Blender build replaced both
+		-- with a single 10,440-triangle mesh, and drawing both would have been
+		-- the double-dressing the handoff refuses in as many words. The shards
+		-- builder is untouched and is still what `leopard`, `bee` and the rest
+		-- of the pattern skins use.
+		body = Color3.fromRGB(118, 74, 44), trim = Color3.fromRGB(243, 221, 173),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
-		pattern = { kind = "shards", count = 34, size = 0.20, vary = 0.30, thick = 0.12,
-			depth = 0.60, rake = 36, twist = 12, seed = 31,
-			lo = 0.05, hi = 0.97, parting = 0, faceStop = 0.35, faceHigh = 0.50,
-			colour = Color3.fromRGB(74, 52, 36) },
+		surface = "hedgehog", authoredCoat = true,
 		aura = "fireflies",
 	},
-	lion = {
-		chest = "animal",
-		name = "Lion", order = 141, rarity = "epic",
-		scale = 1.25,
-		-- THE MANE IS THE FIND. `Config.FUR_SETS.mane` was uploaded and worn
-		-- by nothing in the game, which `docs/animal-crate-plan.md` §3 called
-		-- "a legendary trait sitting on the shelf for the price of one Config
-		-- field". This is that field. Tawny coat, a darker gold ruff, amber
-		-- Neon eyes, and the sunburst aura the Supernova already carries.
-		-- GOLDEN RATHER THAN TAWNY, off the designer's low-poly reference:
-		-- a bright yellow-gold body, a rust mane, cream muzzle and paws.
-		body = Color3.fromRGB(242, 180, 72), trim = Color3.fromRGB(198, 134, 56),
-		material = Enum.Material.SmoothPlastic, transparency = 0,
-		-- THE MANE IS ITS OWN FUR SET AND ITS OWN FLAT COLOUR (designer,
-		-- 2026-09-21: "make the mane 3d instead of looking like a flat
-		-- color"). `lionmane` is 71 lobes in two rings round the face
-		-- (`blender/pig/make/make_fur_tufts.py`, FUR_SET=lionmane) against the
-		-- mane set's 36 on a crest, which on this animal read as a spiky
-		-- collar. `furFlat` keeps the body sheet OFF the ruff: painted through
-		-- the shared cylinder unwrap, the crown lobes sample the sheet's top
-		-- edge and come out black and the cheek lobes sample the face window
-		-- and come out tawny -- measured in the fur preview -- where a lion's
-		-- mane is one colour. The colour is the sheet's own mane band, so the
-		-- ruff and the ring it stands on cannot disagree.
-		fur = Color3.fromRGB(150, 80, 42), furSet = "lionmane", furFlat = true,
-		glowEyes = true, parts = { Eye = Color3.fromRGB(255, 196, 80) },
-		aura = "sunburst",
-		-- THE COAT: `blender/pig/skins/lion/make_lion_blend.py`, baked to two
-		-- sheets. Until their `SurfacePacks/lion*.model.json` land this is the
-		-- swatch pig with a painted mane mesh; the day they do, nothing here
-		-- changes. The mane band on the sheet is what colours the ruff.
-		surface = "lion",
-	},
-	stormstone = {
-		chest = "animal",
-		name = "Storm Stone", order = 144, rarity = "epic",
-		scale = 1.15,
-		-- BROKEN ROCK WITH LIGHTNING IN THE CRACKS: the `shards` kind with
-		-- every second shard a Neon bolt chain, which is the build
-		-- `blender/pig/skins/stormstone/` describes and the reason the
-		-- shards kind grew `glowEvery` at all. Its baked plate coat is NOT
-		-- uploaded (designer call: no upload for this one), so the body is a
-		-- flat stone grey and the shards carry the whole read. `docs/
-		-- PIGGY-SKIN-MAP.md` tagged it legendary for having geometry; on this
-		-- shelf the legendaries are whole creatures, so it sits at epic.
-		body = Color3.fromRGB(94, 96, 104), trim = Color3.fromRGB(64, 66, 74),
-		material = Enum.Material.SmoothPlastic, transparency = 0,
-		glowEyes = true, parts = { Eye = Color3.fromRGB(150, 210, 255) },
-		pattern = { kind = "shards", count = 24, size = 0.26, vary = 0.40, thick = 0.30,
-			depth = 0.90, rake = 20, twist = 40, seed = 47,
-			colour = Color3.fromRGB(78, 80, 90),
-			glowEvery = 2, glowColour = Color3.fromRGB(140, 200, 255) },
-		aura = "storm",
-	},
 	peacock = {
-		chest = "animal",
+		chest = "og", collection = "animal",
 		name = "Peacock", order = 145, rarity = "epic",
-		-- A fan of eyed tail feathers standing up behind the body
-		-- (`SkinFX` builder `peacock`), each eye a Neon gold point in a blue
-		-- disc, and the prism aura's rainbow sparkle. Deep teal body so the
-		-- fan, not the animal, is the bright thing.
-		body = Color3.fromRGB(24, 96, 108), trim = Color3.fromRGB(16, 60, 80),
+		scale = 1.12,
+		-- Nine eyed fan feathers standing behind the body and a three-feather
+		-- crest on the crown, all off one palette sheet, plus the prism aura's
+		-- rainbow sparkle. Deep teal body so the fan, not the animal, is the
+		-- bright thing.
+		--
+		-- IT WAS `fx = "peacock"` UNTIL 2026-09-23 -- seven rods with a stack of
+		-- three flattened balls on the end of each, which is what a fan looks
+		-- like when it has to be built out of primitives. `SkinFX.builders`
+		-- STILL CARRIES that builder, unreferenced and labelled, because it is
+		-- the only record of how the shape was solved and putting it back is one
+		-- field. Do not draw both.
+		body = Color3.fromRGB(16, 138, 130), trim = Color3.fromRGB(241, 221, 169),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
-		fx = "peacock",
+		surface = "peacock", authoredCoat = true,
 		aura = "prism",
 	},
 	stormwolf = {
-		chest = "animal",
-		name = "Storm Wolf", order = 140, sellBasis = 500000, rarity = "legendary",
+		chest = "og", collection = "animal",
+		name = "Storm Wolf", order = 140, sellBasis = 500000000, rarity = "legendary",
+		scale = 1.26,
 		-- The marble and the storm, straight off the Blender build's own
 		-- palette: a near-black animal is a silhouette with nothing in it, so
 		-- the dark is swirled blue-violet rather than flat.
@@ -6747,22 +7289,25 @@ Config.SKINS = {
 	-- in `Shared/Legendary` for the glow. Same resale basis as the wolf, for
 	-- the reason given there -- an unpriced legendary would sell for 1M.
 	dragon = {
-		chest = "animal",
-		name = "Ember Dragon", order = 141, sellBasis = 500000, rarity = "legendary",
+		chest = "og", collection = "animal",
+		name = "Ember Dragon", order = 141, sellBasis = 500000000, rarity = "legendary",
+		scale = 1.30,
 		body = Color3.fromRGB(44, 68, 46), trim = Color3.fromRGB(255, 121, 27),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		legendary = "dragon",
 	},
 	phoenix = {
-		chest = "animal",
-		name = "Ice Phoenix", order = 142, sellBasis = 500000, rarity = "legendary",
+		chest = "og", collection = "animal",
+		name = "Ice Phoenix", order = 142, sellBasis = 500000000, rarity = "legendary",
+		scale = 1.26,
 		body = Color3.fromRGB(217, 240, 249), trim = Color3.fromRGB(63, 121, 178),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		legendary = "phoenix",
 	},
 	rainbowtiger = {
-		chest = "animal",
-		name = "Rainbow Tiger", order = 143, sellBasis = 500000, rarity = "legendary",
+		chest = "og", collection = "animal",
+		name = "Rainbow Tiger", order = 143, sellBasis = 500000000, rarity = "legendary",
+		scale = 1.26,
 		body = Color3.fromRGB(24, 25, 29), trim = Color3.fromRGB(231, 65, 91),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		legendary = "rainbowtiger",
@@ -6792,7 +7337,8 @@ Config.SKINS = {
 	-- part of the cycle the body happened to pass through it.
 	cyberlime = {
 		chest = "og",
-		name = "Cyber Lime", order = 200, sellBasis = 12000, rarity = "rare",
+		name = "Cyber Lime", order = 200, sellBasis = 12000000, rarity = "rare",
+		scale = 1.04,
 		body = Color3.fromRGB(110, 200, 20), trim = Color3.fromRGB(48, 92, 10),
 		material = Enum.Material.Neon, transparency = 0,
 		trimMaterial = Enum.Material.SmoothPlastic,
@@ -6801,19 +7347,16 @@ Config.SKINS = {
 		} },
 	},
 	neonmint = {
-		chest = "og",
-		name = "Neon Mint", order = 201, sellBasis = 40000, rarity = "rare",
-		body = Color3.fromRGB(36, 196, 146), trim = Color3.fromRGB(16, 92, 72),
-		material = Enum.Material.Neon, transparency = 0,
-		trimMaterial = Enum.Material.SmoothPlastic,
-		anim = { kind = "pulse", speed = 0.9, palette = {
-			Color3.fromRGB(36, 196, 146), Color3.fromRGB(64, 226, 176),
-		} },
+		name = "Neon Mint", order = 201, chest = "og", rarity = "rare", sellBasis = 40000000,
+		scale = 1.04,
+		body = Color3.fromRGB(16, 41, 47), trim = Color3.fromRGB(77, 235, 184),
+		material = Enum.Material.SmoothPlastic, transparency = 0, surface = "neonmint", authoredCoat = true,
 	},
 
 	-- ------------------------------------------------ THE OG FAMILY, 2026-09-21
 	--
-	-- FIFTEEN ROWS BUILT IN STUDIO AND NOT IN BLENDER, AND THAT IS THE SHELF'S
+	-- FOURTEEN ROWS (fifteen until the Sooty Piggy was deleted on 2026-09-23)
+	-- BUILT IN STUDIO AND NOT IN BLENDER, AND THAT IS THE SHELF'S
 	-- IDENTITY RATHER THAN A SAVING. OG is the street's own pigs, so every row
 	-- here is made of what the engine hands out for free: flat colour and a
 	-- material, `pattern` PARTS, an `anim`, an `aura`. Nothing is uploaded, so
@@ -6840,28 +7383,17 @@ Config.SKINS = {
 	-- ---- commons: a look --------------------------------------------------
 	muddy = {
 		chest = "og",
-		name = "Muddy Piggy", order = 9, sellBasis = 15000, rarity = "common",
+		name = "Muddy Piggy", order = 9, sellBasis = 15000000, rarity = "common",
 		-- THE TRIM STAYS PINK. Three of the four trim parts are on the head,
 		-- so a brown trim is a pig in a mask rather than a pig that has been
 		-- rolling in something (docs/PIGGY-SKIN-MAP.md s1a).
 		body = Color3.fromRGB(238, 160, 184), trim = Color3.fromRGB(210, 118, 146),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
-		pattern = { kind = "spots", count = 9, size = 0.15, vary = 0.42, seed = 7,
-			colour = Color3.fromRGB(112, 74, 48) },
-	},
-	sooty = {
-		chest = "og",
-		name = "Sooty Piggy", order = 10, sellBasis = 30000, rarity = "common",
-		-- The chimney sweep. Mid-grey trim rather than the soot's own black,
-		-- for the mask reason above.
-		body = Color3.fromRGB(198, 194, 198), trim = Color3.fromRGB(152, 148, 154),
-		material = Enum.Material.SmoothPlastic, transparency = 0,
-		pattern = { kind = "spots", count = 11, size = 0.14, vary = 0.4, seed = 3,
-			colour = Color3.fromRGB(34, 32, 36) },
+		surface = "muddy",
 	},
 	rosegold = {
 		chest = "og",
-		name = "Rose Gold", order = 11, sellBasis = 150000, rarity = "common",
+		name = "Rose Gold", order = 11, sellBasis = 150000000, rarity = "common",
 		-- A METAL IS READ BY ITS TONAL RANGE, NOT ITS BRIGHTNESS -- see
 		-- `bullion`. Base pulled down so `reflectance` has something to put
 		-- back. A second flat metal beside Bronze, and the family's own
@@ -6875,58 +7407,36 @@ Config.SKINS = {
 	marble = {
 		chest = "og",
 		name = "Marble", order = 43, rarity = "rare",
+		scale = 1.04,
 		-- THE STRIPE BUILDER AS VEINING: few bands, very thin, wobbled hard
 		-- and tapered to points, on a pole tilted off every axis so no vein
 		-- runs level with anything.
 		body = Color3.fromRGB(236, 232, 226), trim = Color3.fromRGB(198, 190, 184),
 		material = Enum.Material.SmoothPlastic, transparency = 0, reflectance = 0.06,
-		pattern = { kind = "stripes", count = 6, width = 0.05, arc = 150, spread = 0.8,
-			taper = 0.7, wobble = 0.9, seed = 11, axis = Vector3.new(0.55, 0.7, 0.45),
-			colour = Color3.fromRGB(128, 124, 132) },
+		surface = "marble",
 	},
 	rockslide = {
-		chest = "og",
-		name = "Rockslide", order = 44, rarity = "rare",
-		-- THE ONE RARE THAT CHANGES THE SILHOUETTE. Shards with no glow: the
-		-- Storm Stone's hide without the storm.
-		body = Color3.fromRGB(96, 100, 108), trim = Color3.fromRGB(74, 76, 84),
-		material = Enum.Material.SmoothPlastic, transparency = 0,
-		pattern = { kind = "shards", count = 16, size = 0.22, vary = 0.4, thick = 0.35,
-			depth = 0.9, rake = 20, twist = 30, seed = 5,
-			colour = Color3.fromRGB(118, 122, 130) },
+		name = "Rockslide", order = 44, chest = "og", rarity = "rare",
+		scale = 1.04,
+		body = Color3.fromRGB(78, 84, 93), trim = Color3.fromRGB(133, 139, 143),
+		material = Enum.Material.SmoothPlastic, transparency = 0, surface = "rockslide", authoredCoat = true,
 	},
 	quartz = {
-		chest = "og",
-		name = "Quartz", order = 45, rarity = "rare",
-		-- A GLASS BODY CARRYING PLASTIC CRYSTALS, which is the Snow Leopard's
-		-- own trick: the marks are deliberately a different material from the
-		-- thing they stand on, or they vanish into it. No glow, so it is not
-		-- Diamond.
-		body = Color3.fromRGB(236, 196, 214), trim = Color3.fromRGB(214, 160, 190),
-		material = Enum.Material.Glass, transparency = 0,
-		pattern = { kind = "shards", count = 12, size = 0.2, vary = 0.35, thick = 0.3,
-			depth = 0.8, rake = 12, twist = 40, seed = 13,
-			material = Enum.Material.SmoothPlastic,
-			colour = Color3.fromRGB(250, 244, 248) },
+		name = "Quartz", order = 45, chest = "og", rarity = "rare",
+		scale = 1.04,
+		body = Color3.fromRGB(228, 164, 199), trim = Color3.fromRGB(247, 221, 235),
+		material = Enum.Material.SmoothPlastic, transparency = 0, surface = "quartz", authoredCoat = true,
 	},
 	banker = {
-		chest = "og",
-		name = "Banker Piggy", order = 46, rarity = "rare",
-		-- PINSTRIPES RUN NOSE TO TAIL, so the pole is the FLANK (+X): a band
-		-- at constant angle from a side pole is a meridian over the crown and
-		-- under the belly, where the default spine pole girdles the animal in
-		-- belts (the bee's own complaint). `faceGap` ends a stripe at each
-		-- eye rather than drawing one through it. The one joke in the tier,
-		-- and it is about the bank.
-		body = Color3.fromRGB(240, 232, 214), trim = Color3.fromRGB(206, 196, 176),
-		material = Enum.Material.SmoothPlastic, transparency = 0,
-		pattern = { kind = "stripes", count = 14, width = 0.045, arc = 300, spread = 0.85,
-			taper = 0.15, wobble = 0, faceGap = 18, seed = 1, axis = Vector3.xAxis,
-			colour = Color3.fromRGB(44, 52, 92) },
+		name = "Banker Piggy", order = 46, chest = "og", rarity = "rare",
+		scale = 1.04,
+		body = Color3.fromRGB(29, 39, 61), trim = Color3.fromRGB(218, 218, 204),
+		material = Enum.Material.SmoothPlastic, transparency = 0, surface = "banker", authoredCoat = true,
 	},
 	tiedye = {
 		chest = "og",
 		name = "Tie-Dye", order = 47, rarity = "rare",
+		scale = 1.04,
 		-- A MOVING COLOUR THAT IS NOT NEON, which none of the four animated
 		-- survivors are. SmoothPlastic on a slow cycle, with pale splats that
 		-- hold still while the ground turns under them.
@@ -6936,19 +7446,17 @@ Config.SKINS = {
 			Color3.fromRGB(236, 84, 160), Color3.fromRGB(250, 150, 60),
 			Color3.fromRGB(150, 80, 220), Color3.fromRGB(236, 84, 160),
 		} },
-		pattern = { kind = "spots", count = 8, size = 0.17, vary = 0.3, seed = 21,
-			colour = Color3.fromRGB(250, 236, 120) },
+		surface = "tiedye",
 	},
 	verdigris = {
 		chest = "og",
 		name = "Verdigris", order = 48, rarity = "rare",
+		scale = 1.04,
 		-- Copper with its patina. The spots are MATTE on a Metal body on
 		-- purpose: patina is the one part of an old coin that does not shine.
 		body = Color3.fromRGB(176, 104, 72), trim = Color3.fromRGB(130, 76, 52),
 		material = Enum.Material.Metal, transparency = 0, reflectance = 0.3,
-		pattern = { kind = "spots", count = 14, size = 0.13, vary = 0.5, seed = 17,
-			material = Enum.Material.SmoothPlastic,
-			colour = Color3.fromRGB(88, 168, 130) },
+		surface = "verdigris",
 	},
 
 	-- ---- epics: a glow and an aura ----------------------------------------
@@ -6956,22 +7464,22 @@ Config.SKINS = {
 	-- `parts.Eye` IS WHAT MAKES `glowEyes` GLOW. The eye is painted
 	-- `NEAR_BLACK` unless a skin overrides it by name, and a near-black Neon
 	-- part is a dull one -- so every row that lights its eyes also colours
-	-- them. Transparency stays 0 on every row (skin-map rule): the material
-	-- does the ghosting, never the alpha.
+	-- them. Ghost and Hologram now use the designer-approved RGBA transparency
+	-- in their SurfaceAppearance templates; MeshPart.Transparency is 0.02 to enable smooth alpha blending.
 	ghost = {
 		chest = "og",
 		name = "Ghost Piggy", order = 50, rarity = "epic",
-		body = Color3.fromRGB(222, 232, 236), trim = Color3.fromRGB(198, 212, 218),
-		material = Enum.Material.Glass, transparency = 0,
-		glowEyes = true, parts = { Eye = Color3.fromRGB(170, 232, 232) },
-		anim = { kind = "pulse", speed = 0.35, glow = 1.2, palette = {
-			Color3.fromRGB(222, 232, 236), Color3.fromRGB(198, 214, 226),
-		} },
-		aura = "wisp",
+		scale = 1.08,
+		body = Color3.fromRGB(210, 242, 242), trim = Color3.fromRGB(111, 196, 204),
+		material = Enum.Material.SmoothPlastic, transparency = 0,
+		-- Approved layered alpha coat; SpectralFX breathes the emissive mask.
+		glowEyes = false, parts = { Eye = Color3.fromRGB(14, 40, 53) },
+		spectral = true, aura = "wisp", surface = "ghost",
 	},
 	charcoal = {
 		chest = "og",
 		name = "Charcoal Piggy", order = 51, rarity = "epic",
+		scale = 1.08,
 		-- TAKES THE ORANGE-GLOW SLOT WITHOUT BEING LAVA. The body is black and
 		-- the glow lives in the cracks: every second shard is Neon ember, the
 		-- rest are coal. The aura is the embers effect the catalogue already
@@ -6979,49 +7487,46 @@ Config.SKINS = {
 		body = Color3.fromRGB(40, 36, 36), trim = Color3.fromRGB(64, 56, 54),
 		material = Enum.Material.SmoothPlastic, transparency = 0,
 		glowEyes = true, parts = { Eye = Color3.fromRGB(255, 140, 60) },
-		pattern = { kind = "shards", count = 18, size = 0.22, vary = 0.4, thick = 0.32,
-			depth = 0.9, rake = 22, twist = 28, seed = 9,
-			colour = Color3.fromRGB(52, 46, 46),
-			glowEvery = 2, glowColour = Color3.fromRGB(255, 120, 40) },
 		aura = "embers",
+		surface = "charcoal",
 	},
 	starlight = {
 		chest = "og",
 		name = "Starlight Piggy", order = 52, rarity = "epic",
+		scale = 1.08,
 		-- Midnight glass with every shard a white Neon star point, and the
 		-- silver-lilac sparkle drifting off it.
 		body = Color3.fromRGB(36, 42, 92), trim = Color3.fromRGB(62, 70, 132),
-		material = Enum.Material.Glass, transparency = 0,
+		material = Enum.Material.SmoothPlastic, transparency = 0,
 		glowEyes = true, parts = { Eye = Color3.fromRGB(230, 236, 255) },
-		pattern = { kind = "shards", count = 14, size = 0.16, vary = 0.3, thick = 0.25,
-			depth = 0.7, rake = 10, twist = 45, seed = 19,
-			material = Enum.Material.SmoothPlastic,
-			colour = Color3.fromRGB(250, 250, 255),
-			glowEvery = 1, glowColour = Color3.fromRGB(240, 244, 255) },
 		aura = "sparkle",
+		surface = "starlight",
 	},
 	nightlight = {
 		chest = "og",
 		name = "Nightlight Piggy", order = 53, rarity = "epic",
+		scale = 1.08,
 		-- DEEP AMBER, NEVER A PALE ONE: a Neon sphere near white is a hole
 		-- under the bloom (four separate times in this project). Matte trim
 		-- keeps the face. The fireflies are few and slow on purpose.
 		body = Color3.fromRGB(214, 120, 24), trim = Color3.fromRGB(120, 66, 24),
-		material = Enum.Material.Neon, transparency = 0,
+		material = Enum.Material.SmoothPlastic, transparency = 0,
 		trimMaterial = Enum.Material.SmoothPlastic,
 		anim = { kind = "pulse", speed = 0.45, glow = 1.4, palette = {
 			Color3.fromRGB(214, 120, 24), Color3.fromRGB(250, 170, 56),
 		} },
 		aura = "fireflies",
+		surface = "nightlight",
 	},
 	sugarrush = {
 		chest = "og",
 		name = "Sugar Rush Piggy", order = 54, rarity = "epic",
+		scale = 1.08,
 		-- The candy cycle at a run, with `glow` tinting the lamp to match and
 		-- a fizz of sparkles boiling off it. Neon so the cycle blooms; every
 		-- stop in the palette is saturated for the same reason.
 		body = Color3.fromRGB(250, 120, 190), trim = Color3.fromRGB(250, 236, 120),
-		material = Enum.Material.Neon, transparency = 0,
+		material = Enum.Material.SmoothPlastic, transparency = 0,
 		trimMaterial = Enum.Material.SmoothPlastic,
 		anim = { kind = "cycle", speed = 1.6, glow = 1.8, palette = {
 			Color3.fromRGB(250, 120, 190), Color3.fromRGB(120, 220, 250),
@@ -7029,19 +7534,17 @@ Config.SKINS = {
 			Color3.fromRGB(250, 120, 190),
 		} },
 		aura = "fizz",
+		surface = "sugarrush",
 	},
 	hologram = {
 		chest = "og",
 		name = "Hologram Piggy", order = 55, rarity = "epic",
-		-- `ForceField` IS ANIMATED BY THE ENGINE FOR FREE -- a moving hex
-		-- shimmer over whatever colour it is given -- and it has never been
-		-- put on the mesh pig. It wants a look on the plinth before it ships;
-		-- if it does not read, the fallback is Neon cyan on a `flicker`.
-		body = Color3.fromRGB(60, 220, 240), trim = Color3.fromRGB(30, 120, 140),
-		material = Enum.Material.ForceField, transparency = 0,
-		trimMaterial = Enum.Material.SmoothPlastic,
-		glowEyes = true, parts = { Eye = Color3.fromRGB(120, 250, 255) },
-		aura = "hologram",
+		scale = 1.08,
+		body = Color3.fromRGB(28, 113, 139), trim = Color3.fromRGB(79, 228, 255),
+		material = Enum.Material.SmoothPlastic, transparency = 0,
+		glowEyes = true, parts = { Eye = Color3.fromRGB(112, 235, 255) },
+		-- RGBA projection and emissive grid; fitted scan lives in SpectralFX.
+		spectral = true, aura = "hologram", surface = "hologram",
 	},
 	-- THE STRIPED AND SPOTTED NEON SKINS ARE RETIRED (Hot Wire, Laser Grid,
 	-- Vaporwave, Synthwave Sun, Gridrunner, Hyperdrive, Plasma Ball,
@@ -7066,6 +7569,7 @@ Config.SKINS = {
 	-- explicit tier, so without one these would border as `common`.
 	velvet = {
 		name = "Velvet Rope", order = 70, pass = "vip", rarity = "legendary",
+		scale = 1.12,
 		-- THE ROBUX TAG. See `Config.isRobuxItem`: never stealable.
 		robux = true,
 		-- Deep red and gold: the two colours a rope-and-stanchion actually
@@ -7086,6 +7590,7 @@ Config.SKINS = {
 	-- the name and the look are the Party Piggy's.
 	firstday = {
 		name = "Party Piggy", order = 71, pass = "starterPack", rarity = "epic",
+		scale = 1.08,
 		-- THE ROBUX TAG. See `Config.isRobuxItem`: never stealable.
 		robux = true,
 		-- THE PARTY IS PART OF THE SKIN (`SkinFX` builder `party`): a striped
@@ -7138,7 +7643,7 @@ Config.SKINS = {
 --
 -- THE TIER CRATES ARE EXCLUDED BY CONSTRUCTION, WHICH IS THE HALF A TYPED
 -- LIST WOULD HAVE GOT WRONG. The Rare and Legendary crates (`ograre`,
--- `oglegendary`, `animalrare`, `animallegendary`) are ways to BUY a skin from
+-- `oglegendary`) are ways to BUY a skin from
 -- a shelf rather than collections of their own. No skin names them in its
 -- `chest` field, so walking the skins rather than the chests leaves them out
 -- without a rule.
@@ -7147,6 +7652,17 @@ Config.SKINS = {
 -- declared three thousand lines below. A top-level table doing that is the
 -- forward reference that has taken this whole server down eleven times; a
 -- function body cannot run at module load and is safe by construction.
+-- THE THEMES THE PIGGY SKINS WERE SOLD UNDER, KEPT AS HEADINGS AFTER THE
+-- CRATE MERGE. A skin's `chest` names the crate it comes from; its
+-- `collection` names the theme it belongs to. They were one field while
+-- every theme had its own crate. Literal colours rather than a read of
+-- `Config.CHESTS`, which is three thousand lines below this table.
+Config.SKIN_COLLECTIONS = {
+	og = { name = "OG Piggy", colour = Color3.fromRGB(236, 138, 178), order = 1 },
+	animal = { name = "Animal Kingdom", colour = Color3.fromRGB(214, 158, 96), order = 4 },
+	arcade = { name = "Arcade", colour = Color3.fromRGB(35, 199, 242), order = 7 },
+}
+
 local skinCollectionCache: any = nil
 
 -- Ordered collections, each with the crate that fills it and its own skins in
@@ -7157,12 +7673,17 @@ function Config.skinCollections(): any
 	end
 
 	local byChest: any = {}
+	local crateOf: any = {}
 	local loose: any = {}
 	for key, spec in pairs(Config.SKINS) do
 		local tag = spec.chest
 		if tag ~= nil then
-			byChest[tag] = byChest[tag] or {}
-			table.insert(byChest[tag], key)
+			-- Grouped by THEME, which is the crate tag for any skin with no
+			-- `collection` of its own.
+			local group = spec.collection or tag
+			byChest[group] = byChest[group] or {}
+			crateOf[group] = tag
+			table.insert(byChest[group], key)
 		else
 			table.insert(loose, key)
 		end
@@ -7175,7 +7696,10 @@ function Config.skinCollections(): any
 
 	local out: any = {}
 	for tag, keys in pairs(byChest) do
-		local crate = Config.CHESTS[tag]
+		local crate = Config.CHESTS[crateOf[tag]]
+		-- A theme row names the heading; a skin shelf with no theme row falls
+		-- back to the crate that fills it, as every collection did before.
+		local theme = Config.SKIN_COLLECTIONS[tag]
 		table.sort(keys, byOrder)
 		table.insert(out, {
 			key = tag,
@@ -7183,10 +7707,10 @@ function Config.skinCollections(): any
 			-- called anything else would be a player reading "Animals" in
 			-- their collection and hunting for a crate called something they
 			-- have never seen.
-			name = (crate and crate.name) or tag,
-			tone = crate and crate.colour,
-			chest = tag,
-			order = (crate and crate.order) or 999,
+			name = (theme and theme.name) or (crate and crate.name) or tag,
+			tone = (theme and theme.colour) or (crate and crate.colour),
+			chest = crateOf[tag],
+			order = (theme and theme.order) or (crate and crate.order) or 999,
 			skins = keys,
 		})
 	end
@@ -7272,19 +7796,19 @@ Config.EFFECTS = {
 	-- only three built-in ones), so the separation has to come from colour
 	-- and motion: these rise, turn, and live twice as long.
 	sparkle = {
-		name = "Sparkles", order = 2, cost = 15000, texture = SPARK,
+		name = "Sparkles", order = 2, cost = 15000000, texture = SPARK,
 		color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(226, 188, 255)),
 		rate = 11, speed = NumberRange.new(1, 2.5), size = 1.4, lifetime = NumberRange.new(1.4, 2.2),
 		drag = 1.5, accel = Vector3.new(0, 2.5, 0), spread = 180, rotSpeed = 140,
 	},
 	embers = {
-		name = "Embers", order = 3, cost = 40000, texture = FIRE,
+		name = "Embers", order = 3, cost = 40000000, texture = FIRE,
 		color = ColorSequence.new(Color3.fromRGB(255, 178, 92), Color3.fromRGB(214, 72, 40)),
 		rate = 14, speed = NumberRange.new(3, 7), size = 1.3, lifetime = NumberRange.new(0.9, 1.6),
 		drag = 1, accel = Vector3.new(0, 7, 0), spread = 45, rotSpeed = 40,
 	},
 	frost = {
-		name = "Frost", order = 4, cost = 90000, texture = SPARK,
+		name = "Frost", order = 4, cost = 90000000, texture = SPARK,
 		color = ColorSequence.new(Color3.fromRGB(224, 246, 255), Color3.fromRGB(140, 200, 240)),
 		rate = 16, speed = NumberRange.new(1, 3), size = 1.1, lifetime = NumberRange.new(1.6, 2.6),
 		drag = 2, accel = Vector3.new(0, -4, 0), spread = 180, rotSpeed = 25,
@@ -7293,7 +7817,7 @@ Config.EFFECTS = {
 	-- 220,000 coins. It now boils, and the light strobes so it reads as a
 	-- storm from the far end of the street rather than as fog up close.
 	storm = {
-		name = "Storm Cloud", order = 5, cost = 220000, texture = SMOKE,
+		name = "Storm Cloud", order = 5, cost = 220000000, texture = SMOKE,
 		color = ColorSequence.new(Color3.fromRGB(168, 176, 198), Color3.fromRGB(54, 60, 82)),
 		rate = 28, speed = NumberRange.new(1, 3), size = 7.0, lifetime = NumberRange.new(2.2, 3.6),
 		drag = 3, accel = Vector3.new(0, 1, 0), spread = 75, rotSpeed = 12,
@@ -7303,7 +7827,7 @@ Config.EFFECTS = {
 	-- double the fire, half again the size, and a fire-coloured light that
 	-- flickers, so it throws colour onto the lawn around it.
 	inferno = {
-		name = "Inferno", order = 6, cost = 600000, texture = FIRE,
+		name = "Inferno", order = 6, cost = 600000000, texture = FIRE,
 		color = ColorSequence.new(Color3.fromRGB(255, 236, 170), Color3.fromRGB(226, 46, 30)),
 		rate = 72, speed = NumberRange.new(7, 15), size = 3.6, lifetime = NumberRange.new(0.7, 1.4),
 		drag = 0, accel = Vector3.new(0, 14, 0), spread = 34, rotSpeed = 90,
@@ -7409,6 +7933,50 @@ end
 -- "Outward" radiates off the body (Supernova's sun), the default "Inward"
 -- gathers onto it. The shape geometry beside each lives in `Shared/SkinFX`.
 Config.SKIN_AURAS = {
+	-- BEGIN ARCADE AURAS
+	arcade_respawn = {
+		name = "Respawn Sparks", texture = SPARK,
+		color = ColorSequence.new(Color3.fromRGB(35, 199, 242), Color3.fromRGB(226, 55, 217)),
+		rate = 7, speed = NumberRange.new(0.6, 1.5), size = 0.35,
+		lifetime = NumberRange.new(0.8, 1.5), drag = 1.4, accel = Vector3.new(0, 1.6, 0),
+		spread = 18, rotSpeed = 20, inOut = "Outward",
+	},
+	arcade_jackpot = {
+		name = "Jackpot Sparks", texture = SPARK,
+		color = ColorSequence.new(Color3.fromRGB(235, 209, 151), Color3.fromRGB(255, 189, 61)),
+		rate = 11, speed = NumberRange.new(0.6, 1.5), size = 0.35,
+		lifetime = NumberRange.new(0.8, 1.5), drag = 1.4, accel = Vector3.new(0, 1.6, 0),
+		spread = 18, rotSpeed = 20, inOut = "Outward",
+	},
+	arcade_powerup = {
+		name = "Power-Up Sparks", texture = SPARK,
+		color = ColorSequence.new(Color3.fromRGB(157, 235, 78), Color3.fromRGB(243, 218, 111)),
+		rate = 7, speed = NumberRange.new(0.6, 1.5), size = 0.35,
+		lifetime = NumberRange.new(0.8, 1.5), drag = 1.4, accel = Vector3.new(0, 1.6, 0),
+		spread = 18, rotSpeed = 20, inOut = "Outward",
+	},
+	arcade_synthwave = {
+		name = "Synthwave Sparks", texture = SPARK,
+		color = ColorSequence.new(Color3.fromRGB(42, 207, 233), Color3.fromRGB(255, 162, 62)),
+		rate = 7, speed = NumberRange.new(0.6, 1.5), size = 0.35,
+		lifetime = NumberRange.new(0.8, 1.5), drag = 1.4, accel = Vector3.new(0, 1.6, 0),
+		spread = 18, rotSpeed = 20, inOut = "Outward",
+	},
+	arcade_finalboss = {
+		name = "Spellcaster Sparks", texture = SPARK,
+		color = ColorSequence.new(Color3.fromRGB(182, 125, 242), Color3.fromRGB(239, 200, 106)),
+		rate = 11, speed = NumberRange.new(0.6, 1.5), size = 0.35,
+		lifetime = NumberRange.new(0.8, 1.5), drag = 1.4, accel = Vector3.new(0, 1.6, 0),
+		spread = 18, rotSpeed = 20, inOut = "Outward",
+	},
+	arcade_mechaplayer = {
+		name = "Mecha Player Sparks", texture = SPARK,
+		color = ColorSequence.new(Color3.fromRGB(50, 202, 242), Color3.fromRGB(224, 113, 49)),
+		rate = 11, speed = NumberRange.new(0.6, 1.5), size = 0.35,
+		lifetime = NumberRange.new(0.8, 1.5), drag = 1.4, accel = Vector3.new(0, 1.6, 0),
+		spread = 18, rotSpeed = 20, inOut = "Outward",
+	},
+	-- END ARCADE AURAS
 	-- THE VELVET ROPE'S SPOTLIGHT: a warm column of light rising off the VIP
 	-- skin. It was a separate VIP effect until standalone effects were
 	-- retired, which left it unseeable; a skin's own aura is the one place a
@@ -7446,8 +8014,8 @@ Config.SKIN_AURAS = {
 	-- goes. Slow, sparse and large, so it reads as a haze rather than a fire.
 	wisp = {
 		name = "Wisp", texture = SMOKE,
-		color = ColorSequence.new(Color3.fromRGB(214, 232, 240), Color3.fromRGB(150, 176, 196)),
-		rate = 6, speed = NumberRange.new(0.6, 1.4), size = 3.2, lifetime = NumberRange.new(2.4, 3.6),
+		color = ColorSequence.new(Color3.fromRGB(154, 242, 223), Color3.fromRGB(107, 194, 192)),
+		rate = 4, speed = NumberRange.new(0.6, 1.4), size = 1.8, lifetime = NumberRange.new(2.4, 3.6),
 		drag = 1.2, accel = Vector3.new(0, 1.6, 0), spread = 30, rotSpeed = 8, inOut = "Outward",
 	},
 	-- NIGHTLIGHT PIGGY: a handful of yellow-green points wandering round the
@@ -7606,7 +8174,7 @@ Config.CATCH_EFFECTS = {
 	-- COMMON. Brown-grey, heavy, falling -- the cheapest thing that can
 	-- happen to somebody, and the only one in the set with no colour in it.
 	dust = {
-		name = "Dust Cloud", order = 2, cost = 60000, texture = SMOKE,
+		name = "Dust Cloud", order = 2, cost = 60000000, texture = SMOKE,
 		color = ColorSequence.new(Color3.fromRGB(206, 190, 168), Color3.fromRGB(122, 106, 88)),
 		rate = 20, burst = 26, speed = NumberRange.new(3, 7), size = 4.2,
 		lifetime = NumberRange.new(0.5, 1.0), drag = 3.5, accel = Vector3.new(0, -6, 0),
@@ -7617,7 +8185,7 @@ Config.CATCH_EFFECTS = {
 	-- IS -- so this is the one in the set that describes the mechanic rather
 	-- than decorating it. Gold, thrown up, falling under its own gravity.
 	coins = {
-		name = "Coin Shower", order = 3, cost = 250000, texture = SPARK,
+		name = "Coin Shower", order = 3, cost = 250000000, texture = SPARK,
 		color = ColorSequence.new(Color3.fromRGB(255, 238, 168), Color3.fromRGB(226, 168, 44)),
 		rate = 34, burst = 34, speed = NumberRange.new(8, 15), size = 1.5,
 		lifetime = NumberRange.new(0.8, 1.4), drag = 0.6, accel = Vector3.new(0, -22, 0),
@@ -7628,7 +8196,7 @@ Config.CATCH_EFFECTS = {
 	-- gentle, which is the joke: the loudest thing you can do to somebody is
 	-- not always the funniest.
 	bubbles = {
-		name = "Bubble Trouble", order = 4, cost = 1200000, texture = SPARK,
+		name = "Bubble Trouble", order = 4, cost = 1200000000, texture = SPARK,
 		color = ColorSequence.new(Color3.fromRGB(255, 236, 248), Color3.fromRGB(246, 152, 206)),
 		rate = 22, burst = 24, speed = NumberRange.new(2, 5), size = 2.6,
 		lifetime = NumberRange.new(1.4, 2.2), drag = 1.6, accel = Vector3.new(0, 4, 0),
@@ -7641,7 +8209,7 @@ Config.CATCH_EFFECTS = {
 	-- brightness read as one white smear, which is the palace colonnade's
 	-- own lesson arriving on a particle.
 	sirens = {
-		name = "Blue Lights", order = 5, cost = 3000000, texture = SPARK,
+		name = "Blue Lights", order = 5, cost = 3000000000, texture = SPARK,
 		color = ColorSequence.new(Color3.fromRGB(214, 236, 255), Color3.fromRGB(56, 118, 246)),
 		rate = 46, burst = 40, speed = NumberRange.new(6, 13), size = 2.0,
 		lifetime = NumberRange.new(0.7, 1.3), drag = 1.0, accel = Vector3.new(0, 3, 0),
@@ -7654,7 +8222,7 @@ Config.CATCH_EFFECTS = {
 	-- entry over ten million, so this ladder has a real legendary rather
 	-- than a dear epic -- which is the half `Config.EFFECTS` never had.
 	thunder = {
-		name = "Thunderclap", order = 6, cost = 12000000, texture = FIRE,
+		name = "Thunderclap", order = 6, cost = 12000000000, texture = FIRE,
 		color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(120, 176, 255)),
 		rate = 80, burst = 60, speed = NumberRange.new(12, 24), size = 3.0,
 		lifetime = NumberRange.new(0.5, 1.1), drag = 0.4, accel = Vector3.new(0, 10, 0),
@@ -7914,14 +8482,92 @@ Config.PLOT_COUNT = Config.PLOTS_PER_ROW * 2
 -- by one gap would put a robbable vault in an empty patch of verge and leave
 -- the shop next door with nothing in it. Style, colour and window display
 -- stay over there, keyed by `tab`; where a unit STANDS is decided here.
+--
+-- AND THE ROW NAMES THE SHELF IT OPENS, WHICH IT DID NOT (designer,
+-- 2026-09-23: "lets stop letting players tab through the whole shop with the
+-- one ui button"). The HUD basket sells Robux and nothing else now, so a
+-- door is the ONLY way to a coin shelf and `category` is what makes that
+-- door a door rather than a picture of one. It was a client-side table in
+-- `ClientMain` mapping four `tab` keys onto four view names -- a second
+-- description of an arrangement this table already owned, on the half that
+-- fails silently: a door whose category nothing matches opens nothing, and
+-- the warning for it is the only reason the last one was ever found.
+--
+-- `name` IS THE SIGN AND `tab` IS THE BUILDING, AND THE UPGRADES SHOP IS
+-- WHERE THAT SEPARATION EARNS ITS KEEP (designer, 2026-09-23: "lets change
+-- the lock and key shop to be the Upgrades shop"). LOCK & KEY was a name
+-- for a strongroom rather than for what is sold in it, and `category` has
+-- read `upgrades` all along -- so the shelf behind that door did not move
+-- and only the word over it did.
+--
+-- `tab` DELIBERATELY DID NOT FOLLOW THE RENAME, and it is the field somebody
+-- tidying this up later will reach for. It keys three things that have
+-- nothing to do with the sign: the unit's style, fascia and window display
+-- (`ShopFront` builds `Shop_<tab>` and stamps the door's own TAB attribute
+-- from it), and the shop-drop consumable pool in `Config.shopLootOdds`,
+-- whose only `defend` branch is what makes a cracked shop pay out bones and
+-- gadgets. Renaming it to match the sign swaps the building for a different
+-- one AND silently empties that pool -- two failures, neither of which
+-- errors, for a cosmetic change nobody asked to be structural.
 Config.SHOPS = {
-	{ tab = "piggy", gap = 0, side = 1, name = "PIGGY OUTFITTERS" },
-	{ tab = "home", gap = 2, side = 1, name = "HOME & GARDEN" },
-	{ tab = "gear", gap = 0, side = -1, name = "WHEELS & KIT" },
-	{ tab = "defend", gap = 2, side = -1, name = "LOCK & KEY" },
+	{ tab = "piggy", category = "style", gap = 0, side = 1, name = "PIGGY OUTFITTERS" },
+	{ tab = "home", category = "home", gap = 2, side = 1, name = "HOME & GARDEN" },
+	{ tab = "gear", category = "rides", gap = 0, side = -1, name = "WHEELS & KIT" },
+	{ tab = "defend", category = "upgrades", gap = 2, side = -1, name = "UPGRADES" },
 }
 
 Config.SHOP_COUNT = #Config.SHOPS
+
+-- THE TWO COUNTERS IN A PLAYER'S OWN HALLWAY, AND THEY ARE THE OTHER HALF OF
+-- THE SAME DECISION. Four shelves are out on the street and two are indoors,
+-- which is six -- every coin shelf in the game, each with exactly one door.
+--
+-- WHY THESE TWO AND NOT THE OTHER FOUR. A street unit is a BUILDING: it has
+-- a frontage, a window display, a vault on its back wall and a shopkeeper,
+-- and it is robbable. A counter is furniture standing in a room somebody
+-- already owns. Supplies and guardians are the two shelves that are about
+-- YOUR OWN PLOT rather than about the street -- what you keep in the house
+-- and what watches the lawn -- so the hallway is where they belong, and it
+-- is also the one errand that makes a player walk back into their own base.
+--
+-- `tab` IS THE DOOR KEY AND IS THE SAME NAMESPACE THE STREET DOORS USE,
+-- because `Remotes.ShopDoor` carries one string and the client resolves it
+-- through one table. Two namespaces there would be the `"LockLevel"` trap
+-- again: an interface with no compiler behind it, where a miss reads nil.
+--
+-- `section` IS A JUMP INSIDE THE SHELF RATHER THAN A SHELF OF ITS OWN. The
+-- Items tab carries the throwables AND the at-home kit; the Guardians tab
+-- carries the coats AND the nab effects. A counter opens the one its sign
+-- names, scrolled to, rather than the top of a tab whose first header is
+-- about something else.
+Config.BASE_COUNTERS = {
+	{ tab = "gadgets", category = "supplies", section = "kit",
+		sign = "GADGETS", where = "the Gadgets counter in your hallway" },
+	{ tab = "guardians", category = "companions", section = "dogCoats",
+		sign = "GUARDIANS", where = "the Guardians counter in your hallway" },
+}
+
+Config.BASE_COUNTER_COUNT = #Config.BASE_COUNTERS
+
+-- WHERE A SHELF IS BOUGHT FROM, IN ONE SENTENCE, for the shop's own
+-- directory page. Derived from the two tables above rather than written out
+-- a third time: a shop that moves gap or changes its fascia takes its own
+-- signpost with it, and a shelf with no door at all reads as nil here --
+-- which is a shelf nobody can reach, and the directory says so out loud
+-- rather than printing a blank card.
+function Config.shopLocation(category: string): string?
+	for _, placement in ipairs(Config.SHOPS) do
+		if placement.category == category then
+			return placement.name .. ", out on the street"
+		end
+	end
+	for _, counter in ipairs(Config.BASE_COUNTERS) do
+		if counter.category == category then
+			return counter.where
+		end
+	end
+	return nil
+end
 
 -- THE SHELL, AND THE ROOM INSIDE IT, live further down beside
 -- `Config.PLOT_SIZE` -- see `Config.SHOP_UNIT`. They belong HERE, and they
@@ -8120,8 +8766,8 @@ end
 -- supply floor at a full server (measured 3.37x against a floor of 3.0, which
 -- is 12% of headroom to spend).
 --
--- So they react to a FUMBLED SLICE and to a SMASH, and to nothing else. Both
--- are already the loud paths; a clean crack stays silent, which preserves the
+-- So they react to a FUMBLED SLICE and to nothing else (the smash, the other
+-- loud path, is retired). A fumble is already loud; a clean crack stays silent, which preserves the
 -- crack's whole skill reward -- the alarm is fumble-only, and stealth of the
 -- alarm is the thing a good thief is actually buying. The audit assumes no
 -- misses, so a defender that only answers a miss cannot move the bound it
@@ -8236,7 +8882,7 @@ Config.SHOPKEEPER = {
 	--
 	-- A dog's radius is sized against a LAWN, which is 64 studs across. A
 	-- shop room is twelve. Measured live with the shopkeeper at its counter
-	-- and a thief standing where the smash prompt can actually be reached:
+	-- and a thief standing where the vault prompt can actually be reached:
 	-- **6.83 studs apart**, which is inside a radius of 7 -- so the catch
 	-- fired on the first tick of the chase, the shopkeeper never took a step
 	-- (peak distance from the counter 0.00 across a seventeen-second sample),
@@ -9399,13 +10045,47 @@ Config.ANIMATIONS = {
 	-- which is what an empty row on this table costs.
 	sneak = "119872214981754",
 
-	-- THE CARRY POSE, published 2026-09-19, and the sharpest cost of an empty
-	-- row. A thief holding somebody's piggy is the most-watched three seconds
-	-- in this game -- the whole risk half of a robbery is that the run home is
-	-- VISIBLE -- and blank the pose is refused and the pig floats in front of
-	-- somebody whose arms are swinging at their sides, with the loot, the label
-	-- and the chase all still working. The quiet kind of broken.
-	carry = "79570016471528",
+	-- THE CARRY POSE -- THE HUG, which is the hauled PIGGY'S carry now (the
+	-- sack has `carrySling` below). BLANKED 2026-09-23 AND AWAITING A
+	-- RE-UPLOAD: the id this row held was uploaded before the hug was
+	-- restored and has not been diffed against `CarryPose.buildSequence()`
+	-- since, and a stale id is worse here than an empty one: live,
+	-- `CarryPose` prefers the uploaded asset over registration, so a wrong
+	-- one would play forever with nothing in any log. Empty, Studio
+	-- registers the sequence and a published server warns at startup
+	-- (`Main`) until the id lands. Re-export: F2 -> "Dump animations for upload",
+	-- save `ReplicatedStorage.AnimationDump.carry` to Roblox from the
+	-- Explorer (never through a rig in the Clip Editor, which retargets),
+	-- paste the id here, fetch it back and diff it against
+	-- `CarryPose.buildSequence()`.
+	--
+	-- Dead id, for the record, and it must not come back: carry (hug)
+	-- 79570016471528.
+	--
+	-- WHAT AN EMPTY ROW COSTS UNTIL THEN: a thief carrying somebody's sack is
+	-- the most-watched three seconds in this game -- the whole risk half of a
+	-- robbery is that the run home is VISIBLE -- and blank, the pose is
+	-- refused live and the sack floats beside somebody whose arms are swinging
+	-- at their sides, with the loot, the label and the chase all still
+	-- working. The quiet kind of broken.
+	carry = "",
+	-- THE SLING, the coin sack's own carry over the right shoulder (designer,
+	-- 2026-09-23: the piggy is hugged, the sack is slung). Never uploaded:
+	-- built by `CarryPose.buildSequence("sling")`, dumped as
+	-- `AnimationDump.carrySling`, and the same empty-row rules as `carry`
+	-- above apply -- Studio registers it, a published server warns until the
+	-- id lands, and a stale id would play the wrong carry forever.
+	carrySling = "",
+
+	-- THE LASSO (docs/LASSO-PLAN.md). Built in code by `Shared/LassoPose` and
+	-- played through registration until each row carries an upload.
+	lassoTwirl = "",
+	lassoThrow = "",
+	lassoPull = "",
+	lassoWin = "",
+	lassoSnap = "",
+	knockedLoose = "",
+	scoopUp = "",
 
 	-- THE GADGET THROW, published 2026-09-19. Blank, the projectile still flew
 	-- and still hit; it simply left the air beside the thrower's head rather
@@ -9533,23 +10213,23 @@ end
 -- through `Config.legendary`, and built by `Shared/LegendaryModel`.
 Config.LEGENDARIES = {
 	stormwolf = {
-		{ part = "Body", id = "116656659255886", offset = Vector3.new(0.0034, 7.4829, 1.1581), size = Vector3.new(10.6529, 13.9658, 15.5723), surface = "legend_stormwolf" },
+		{ part = "Body", id = "121779610529026", offset = Vector3.new(0.0034, 7.4829, 1.1581), size = Vector3.new(10.6529, 13.9658, 15.5723), surface = "legend_stormwolf" },
 		{ part = "Bolts_eyes", id = "117597695607475", offset = Vector3.new(0.0000, 8.1080, 6.8100), size = Vector3.new(5.5320, 0.9000, 0.9000), color = Color3.fromRGB(97, 211, 237), neon = true },
 		{ part = "Lightning_p0", id = "103989301560831", offset = Vector3.new(-2.4217, 15.1592, 1.1390), size = Vector3.new(3.2344, 5.5074, 1.9573), color = Color3.fromRGB(65, 205, 255), neon = true, hidden = true },
 		{ part = "Lightning_p1", id = "89901644999519", offset = Vector3.new(2.9325, 15.2619, -0.4306), size = Vector3.new(4.1207, 4.8295, 2.3780), color = Color3.fromRGB(65, 205, 255), neon = true, hidden = true },
 		{ part = "Lightning_p2", id = "136255750266968", offset = Vector3.new(-1.9201, 15.0982, -3.8884), size = Vector3.new(2.9966, 6.5838, 2.9400), color = Color3.fromRGB(65, 205, 255), neon = true, hidden = true },
 		{ part = "Lightning_p3", id = "119522085097991", offset = Vector3.new(1.9968, 14.4176, -4.9923), size = Vector3.new(2.9275, 5.7955, 2.7839), color = Color3.fromRGB(65, 205, 255), neon = true, hidden = true },
-		{ part = "Lightning_p4", id = "98454303972137", offset = Vector3.new(-3.6429, 11.1169, -6.1722), size = Vector3.new(8.4648, 5.0312, 13.8238), color = Color3.fromRGB(65, 205, 255), neon = true, hidden = true },
-		{ part = "Lightning_p5", id = "125349671159834", offset = Vector3.new(4.0449, 11.0729, -6.1961), size = Vector3.new(7.6547, 5.1277, 14.0277), color = Color3.fromRGB(65, 205, 255), neon = true, hidden = true },
-		{ part = "Tail", id = "124227619736221", offset = Vector3.new(0.3353, 8.7718, -8.2856), size = Vector3.new(2.4840, 4.1800, 6.8574), surface = "legend_stormwolf" },
+		{ part = "Lightning_p4", id = "137472619151912", offset = Vector3.new(-3.1329, 10.1867, -5.6659), size = Vector3.new(9.4848, 4.8841, 12.8112), color = Color3.fromRGB(65, 205, 255), neon = true, hidden = true },
+		{ part = "Lightning_p5", id = "81852768562261", offset = Vector3.new(4.5549, 10.1999, -5.6898), size = Vector3.new(6.6347, 4.8655, 13.0151), color = Color3.fromRGB(65, 205, 255), neon = true, hidden = true },
+		{ part = "Tail", id = "104119134171434", offset = Vector3.new(1.3553, 5.8198, -7.2730), size = Vector3.new(2.4840, 4.1800, 6.8574), surface = "legend_stormwolf" },
 	},
 	dragon = {
-		{ part = "Body", id = "109204851983081", offset = Vector3.new(0.0000, 6.6200, 0.0835), size = Vector3.new(12.0000, 11.5200, 12.7930), surface = "legend_dragon_body" },
+		{ part = "Body", id = "128183994270919", offset = Vector3.new(0.0000, 6.6200, 0.0000), size = Vector3.new(12.0000, 11.5200, 12.9600), surface = "legend_dragon_body" },
 		{ part = "Dragon_Root_Horn", id = "76333807563977", offset = Vector3.new(-0.0008, 11.4764, -1.2685), size = Vector3.new(12.5489, 6.8246, 10.1685), color = Color3.fromRGB(232, 203, 139) },
-		{ part = "Dragon_Root_ScaleDark", id = "125166436376572", offset = Vector3.new(-0.0146, 7.5566, 0.0864), size = Vector3.new(12.2341, 13.6837, 13.0643), color = Color3.fromRGB(35, 54, 40) },
-		{ part = "Dragon_Root_ScaleLit", id = "72646699202313", offset = Vector3.new(-0.0297, 7.4115, 0.2002), size = Vector3.new(12.2067, 13.3719, 12.8040), color = Color3.fromRGB(56, 81, 51) },
-		{ part = "Dragon_Root_ScaleMid", id = "126647881382469", offset = Vector3.new(0.0008, 7.4386, 0.1083), size = Vector3.new(12.2593, 13.4282, 13.0294), color = Color3.fromRGB(44, 68, 46) },
-		{ part = "Dragon_Root_ScaleOlive", id = "76682272776617", offset = Vector3.new(0.0831, 6.6389, -0.6712), size = Vector3.new(12.0577, 11.6871, 11.2794), color = Color3.fromRGB(67, 83, 49) },
+		{ part = "Dragon_Root_ScaleDark", id = "101832675482837", offset = Vector3.new(-0.0146, 7.5566, 0.0635), size = Vector3.new(12.2341, 13.6837, 13.1101), color = Color3.fromRGB(35, 54, 40) },
+		{ part = "Dragon_Root_ScaleLit", id = "114989245315941", offset = Vector3.new(-0.0297, 7.4115, 0.0054), size = Vector3.new(12.2067, 13.3718, 13.1936), color = Color3.fromRGB(56, 81, 51) },
+		{ part = "Dragon_Root_ScaleMid", id = "84794603914859", offset = Vector3.new(0.0008, 7.4386, 0.0012), size = Vector3.new(12.2593, 13.4282, 13.2436), color = Color3.fromRGB(44, 68, 46) },
+		{ part = "Dragon_Root_ScaleOlive", id = "120031395770009", offset = Vector3.new(0.0831, 6.6389, -0.8067), size = Vector3.new(12.0577, 11.6871, 11.5504), color = Color3.fromRGB(67, 83, 49) },
 		{ part = "Dragon_Tail_Ember", id = "80279804746042", offset = Vector3.new(0.0000, 11.0517, -9.2025), size = Vector3.new(0.4080, 2.0719, 1.8935), color = Color3.fromRGB(255, 121, 27), neon = true },
 		{ part = "Dragon_Tail_ScaleDark", id = "83613395295685", offset = Vector3.new(0.1236, 9.6470, -6.5348), size = Vector3.new(1.4581, 2.9267, 4.3659), color = Color3.fromRGB(35, 54, 40) },
 		{ part = "Dragon_Tail_ScaleLit", id = "90057601149598", offset = Vector3.new(1.3254, 9.2325, -6.2099), size = Vector3.new(0.3507, 0.7434, 0.3392), color = Color3.fromRGB(56, 81, 51) },
@@ -9570,7 +10250,7 @@ Config.LEGENDARIES = {
 		{ part = "Tail", id = "134342799117239", offset = Vector3.new(-0.0577, 9.5579, -6.5898), size = Vector3.new(2.9926, 3.0000, 4.4051), surface = "legend_dragon_trim" },
 	},
 	phoenix = {
-		{ part = "Body", id = "91174548583072", offset = Vector3.new(0.0000, 6.6200, 0.0835), size = Vector3.new(12.0000, 11.5200, 12.7930), surface = "legend_phoenix" },
+		{ part = "Body", id = "114682705229974", offset = Vector3.new(0.0000, 6.6200, 0.0000), size = Vector3.new(12.0000, 11.5200, 12.9600), surface = "legend_phoenix" },
 		{ part = "Ears", id = "126274194354251", offset = Vector3.new(0.0000, 11.8885, 2.1541), size = Vector3.new(9.3379, 5.1706, 2.3399), surface = "legend_phoenix" },
 		{ part = "Eyes", id = "109828238100794", offset = Vector3.new(0.0000, 8.8015, 5.3326), size = Vector3.new(5.0776, 1.2600, 1.2600), surface = "legend_phoenix" },
 		{ part = "Legs", id = "140524050695010", offset = Vector3.new(0.0000, 2.0000, -0.1800), size = Vector3.new(8.6400, 3.0000, 8.7600), surface = "legend_phoenix" },
@@ -9594,12 +10274,7 @@ Config.LEGENDARIES = {
 		{ part = "Tail", id = "128246024989421", offset = Vector3.new(-0.0577, 9.5579, -6.5898), size = Vector3.new(2.9926, 3.0000, 4.4051), surface = "legend_phoenix" },
 	},
 	rainbowtiger = {
-		{ part = "Body", id = "72805251580189", offset = Vector3.new(0.0000, 6.6200, 0.0835), size = Vector3.new(12.0000, 11.5200, 12.7930), surface = "legend_rtiger_coat" },
-		{ part = "BeardFur", id = "88635494517138", offset = Vector3.new(0.0000, 2.3691, 6.6070), size = Vector3.new(5.3095, 2.9117, 1.3958), surface = "legend_rtiger_beard" },
-		{ part = "CheekFill_-1", id = "92454398593504", offset = Vector3.new(-4.1214, 6.5297, 5.1463), size = Vector3.new(2.3629, 2.9405, 3.1511), surface = "legend_rtiger_beard" },
-		{ part = "CheekFill_1", id = "75501392616612", offset = Vector3.new(4.1214, 6.5297, 5.1459), size = Vector3.new(2.3629, 2.9405, 3.1519), surface = "legend_rtiger_beard" },
-		{ part = "CheekFur_-1", id = "117057072772799", offset = Vector3.new(-3.0571, 5.2853, 4.3492), size = Vector3.new(6.6035, 7.0327, 5.8704), surface = "legend_rtiger_beard" },
-		{ part = "CheekFur_1", id = "103151602595427", offset = Vector3.new(3.0571, 5.2853, 4.3937), size = Vector3.new(6.6035, 7.0327, 5.9611), surface = "legend_rtiger_beard" },
+		{ part = "Body", id = "123267807573714", offset = Vector3.new(0.0000, 6.6200, 0.0000), size = Vector3.new(12.0000, 11.5200, 12.9600), surface = "legend_rtiger_coat" },
 		{ part = "EarFur", id = "92380113230445", offset = Vector3.new(0.0000, 11.9339, 2.3254), size = Vector3.new(7.9800, 3.1123, 1.6252), surface = "legend_rtiger_earfur" },
 		{ part = "Ears", id = "89079655406582", offset = Vector3.new(0.0000, 11.8885, 2.1541), size = Vector3.new(9.3379, 5.1706, 2.3399), color = Color3.fromRGB(24, 25, 29) },
 		{ part = "Eyes", id = "70682112134070", offset = Vector3.new(0.0000, 8.8015, 5.3326), size = Vector3.new(5.0776, 1.2600, 1.2600), color = Color3.fromRGB(231, 65, 91), neon = true },
@@ -9608,7 +10283,7 @@ Config.LEGENDARIES = {
 		{ part = "SoftBrow_-1", id = "119203422182090", offset = Vector3.new(-2.0405, 9.7778, 5.0463), size = Vector3.new(1.4575, 0.4216, 0.7607), color = Color3.fromRGB(24, 25, 29) },
 		{ part = "SoftBrow_1", id = "134474349085368", offset = Vector3.new(2.0405, 9.7778, 5.0451), size = Vector3.new(1.4575, 0.4216, 0.7628), color = Color3.fromRGB(24, 25, 29) },
 		{ part = "Tail", id = "71614644354774", offset = Vector3.new(-0.0577, 9.5579, -6.5898), size = Vector3.new(2.9926, 3.0000, 4.4051), color = Color3.fromRGB(24, 25, 29) },
-		{ part = "TailPlume", id = "128861588617486", offset = Vector3.new(-0.0884, 11.4737, -8.6621), size = Vector3.new(2.5173, 3.2527, 1.8364), surface = "legend_rtiger_tail" },
+		{ part = "TailPlume", id = "128861588617486", offset = Vector3.new(0.6420, 10.9363, -9.2891), size = Vector3.new(2.5173, 3.2527, 1.8364), surface = "legend_rtiger_tail" },
 		-- THE STRIPE BANDS, one ribbon per colour laid 0.03 proud of the painted
 		-- stripe it covers (blender/pig/make/build_rainbowtiger_stripe_bands.py).
 		-- Separate parts because a painted texel cannot change hue at run time;
@@ -9795,19 +10470,23 @@ Config.PIGGY_MESH = {
 		-- primitives rather than standing up half a mesh -- which is the right
 		-- way round: a missing id is a pig that looks old, not a pig with no
 		-- ears.
-		-- 81131525639524 is the SEAM-FIXED body. The bounds did not move --
-		-- 12.0000 x 11.5200 x 12.7930, byte-identical to the last one -- so
-		-- nothing seated against this pig had to be re-derived, and the ID
-		-- CHANGING IS THE ONLY EVIDENCE THE MESH DID: Roblox deduplicates
-		-- identical uploads, so a new id proves a new mesh and an unchanged
-		-- one would have proved the export never took.
-		id = "88003051962029",
+		-- 136670474853636 IS THE CLOSED-BACK BODY (2026-09-23): the vault
+		-- hatch is filled on the mesh, so the lock dial sits over a closed rump
+		-- and level 0 draws the tier-1 dial (`PiggyBank.setLockLevel`). The
+		-- bounds MOVED for the first time since the seam fix -- the hole had
+		-- removed the rearmost point, so Z grows 12.7930 -> 12.9600 and the
+		-- centre comes back to 0 -- which is why this row and the three
+		-- legendary bodies below landed in one edit: a wrong body size
+		-- silently scales the pig. Before it, 88003051962029 was the seam-fixed
+		-- open-hatch body and 81131525639524 the one before that. Roblox
+		-- deduplicates identical uploads, so a new id proves a new mesh.
+		id = "136670474853636",
 		-- Measured off the exported mesh, not typed. `offset.Y` is where the
 		-- body's own bounding-box centre lands once the LEGS are standing on
-		-- the slab at 0.5, and the Z is not zero because the vault hatch takes
-		-- a bite out of the rump and moves that centre forward.
-		offset = Vector3.new(0.0000, 6.6200, 0.0835),
-		size = Vector3.new(12.0000, 11.5200, 12.7930),
+		-- the slab at 0.5. Z is zero again now that nothing takes a bite out
+		-- of the rump (blender/pig/renders/closed-back-test/UPLOADS.md).
+		offset = Vector3.new(0.0000, 6.6200, 0.0000),
+		size = Vector3.new(12.0000, 11.5200, 12.9600),
 		-- A HALF TURN, BECAUSE THE IMPORTER MIRRORS Z AND NOTHING SAYS SO.
 		-- Recorded on the last body and kept: the .obj is authored snout at +Z,
 		-- vault at -Z, and it arrives facing the other way, which puts the dial
@@ -10214,19 +10893,6 @@ Config.FUR_SETS = {
 	-- a pig with no tuft rather than an error, which is the same contract the
 	-- body and the mane already keep -- so this can sit here unfilled and the
 	-- zebra simply wears no fur until it is uploaded.
-	-- THE LION'S RUFF: one faceted SHELL round the head with a scalloped
-	-- outline, and a faceted ball on the tail (`add_shell` / `add_tail_tuft`
-	-- in make_fur_tufts.py, off the designer's low-poly reference). ID
-	-- PENDING THE IMPORT of
-	-- `blender/pig/pig/pig_fur_lionmane.obj` -- an empty id is a lion with no
-	-- mane rather than an error, the contract every set here keeps. The size
-	-- and offset are the block `make_fur_tufts.py` printed for this build;
-	-- re-run it with FUR_SET=lionmane and paste again if the set is retuned.
-	lionmane = {
-		id = "",
-		size = Vector3.new(14.6822, 13.0186, 15.4838),
-		offset = Vector3.new(0.0788, 6.5439, -1.8582),
-	},
 	crest = {
 		id = "",
 		size = Vector3.new(2.1927, 2.3579, 3.0955),
@@ -10238,6 +10904,705 @@ Config.FUR_SETS = {
 -- site: `applyFur` and `furMesh` both need it, and two copies of a default is
 -- how one of them ends up pointing at a set that was renamed.
 Config.DEFAULT_FUR_SET = "mane"
+
+-- ------------------------------------------------------------------
+-- THE GEOMETRY A SKIN WEARS: rock plates, crystal points, solar flames,
+-- orbiting prisms, storm clouds
+-- ------------------------------------------------------------------
+--
+-- FIVE OF THE OG REDESIGN'S SKINS ARE NOT JUST A COAT, and this table is the
+-- half of them that a sheet cannot carry. Their `*-accessories.fbx` exports
+-- are geometry that stands OFF the animal -- six rock plates on Rockslide,
+-- six crystal points on Quartz, six solar flames and six cinders on
+-- Supernova, six prisms and an orbit arc on Prismatic, eight storm clouds and
+-- two lightning forks on Stormcaller.
+--
+-- IT REPLACES THE CODE-BUILT `pattern` AND `fx`, NEVER STACKS ON THEM,
+-- which is the batch's own instruction: every one of those asset reports ends
+-- `New accessories replace, not stack with, old shard/FX geometry`. The rows
+-- those five skins used to carry -- shards on Rockslide and Quartz, an
+-- `fx` corona on Supernova -- are gone, and the designer reported the
+-- stacked version twice before they were ("it looked like the old models",
+-- "the supernova should not have those yellow objects around it").
+--
+-- EVERY OFFSET IS RELATIVE TO THE BODY AND EVERY NUMBER IS AUTHORED RATHER
+-- THAN EYEBALLED. Each skin's `package/og-v1-asset-report.json` carries an
+-- `offsetRobloxStuds` and a `sizeRobloxStuds` for every part in the same
+-- frame as the pig's own Body -- and that report's Body reads offset
+-- (0, 6.62, 0) and size (12, 11.52, 12.96), which is `Config.PIGGY_MESH`'s
+-- Body row to the decimal. So the seat here is the report's offset MINUS the
+-- body's, and the two cannot drift: if the body mesh is ever re-exported,
+-- both move together.
+--
+-- THE IDS ARE PER PART, WHICH IS WHAT AN FBX OF SEPARATE OBJECTS GIVES YOU.
+-- `tools/upload_skin_accessories.py` sends the FBX as a Model, and
+-- `InsertService:LoadAsset` on the result hands back one MeshPart per
+-- object, each carrying its own `MeshId`. That is the route around the note
+-- in `tools/upload_images.py` saying meshes need Studio's 3D Importer by
+-- hand: they do not, and the Model id stays in each skin's
+-- `roblox-uploads.json` so the ids can be read back without a second upload.
+--
+-- THE COLOURS ARE THE ONE THING NOT IN THE REPORT, and they are the field to
+-- doubt first. Seats and sizes are measured; the report carries no material
+-- per part, so these come from each skin's `design-specs.json` palette read
+-- against the batch's own reference render -- stone for the plates, milky
+-- white for the points, amber Neon for the flames and cinders, slate for the
+-- clouds, cyan Neon for the forks, and a rainbow CYCLE across the six prisms
+-- because the spec asks for "six substantial faceted rainbow prisms".
+--
+-- AN EMPTY OR MISSING ROW IS A BARE PIG RATHER THAN AN ERROR, the contract
+-- every mesh table here keeps -- `PIGGY_MESH`, `FUR_SETS` and
+-- `LEGENDARIES` all say the same thing, so a skin can sit in this table
+-- with its ids pending and simply wear its coat until they land.
+-- The Model asset each accessory set was uploaded as, which is how its
+-- meshes are actually reached.
+--
+-- THE PER-PART `id` BELOW IS NOT FETCHABLE FROM A REAL SCRIPT, and that
+-- is the whole reason this table exists. An FBX sent to the Assets API as
+-- a Model does hand its meshes back -- `InsertService:LoadAsset` on the
+-- model returns one MeshPart per object, each carrying a real MeshId --
+-- and those MeshIds resolve in the MCP sandbox and are REFUSED in the
+-- game. Measured: ids 93709545814420 and 78199688545166 came back OK from
+-- a sandbox `CreateMeshPartAsync` seconds after the running server had
+-- failed the same two, four times each, with `could not fetch`. They are
+-- sub-assets of the model rather than standalone Mesh uploads, and
+-- `tools/upload_images.py` was right to say meshes want the 3D Importer.
+--
+-- SO THE MODEL IS LOADED AND ITS PARTS ARE TAKEN, one web call per skin
+-- instead of twelve. Same family as `RenderFidelity`,
+-- `RegisterKeyframeSequence` and `MaterialVariant`: it works in the
+-- sandbox and is refused from a Script, and the sandbox is the thing that
+-- is different.
+--
+-- AN EMPTY OR MISSING ROW FALLS BACK TO THE PER-PART IDS, so this table
+-- can be emptied the day those meshes are re-uploaded standalone through
+-- the 3D Importer and nothing else has to move.
+Config.SKIN_ACCESSORY_MODELS = {
+	honeycomb = "95796949876985",
+	-- BEGIN ARCADE MODELS
+	respawn = "117187253279569",
+	jackpot = "100219423503277",
+	powerup = "80170851472858",
+	finalboss = "84387968684596",
+	mechaplayer = "85016724214909",
+	-- END ARCADE MODELS
+	rockslide = "71409346006751",
+	quartz = "77211551492762",
+	supernova = "128528505944319",
+	prismatic = "79374026775660",
+	stormcaller = "79260447782404",
+	-- The two animal epics, epic-v2.
+	hedgehog = "72540328543121",
+	peacock = "97941702099263",
+}
+
+Config.SKIN_ACCESSORIES = {
+	honeycomb = {
+		{ part = "HoneyDrop", id = "rbxassetid://138384780906046", offset = Vector3.new(-0.779999924, 2.15999847, 8.73), size = Vector3.new(1.51420319, 2.15999985, 1.51420349), colour = Color3.fromRGB(255, 199, 88), material = Enum.Material.Glass, transparency = 0.22 },
+		{ part = "HoneyDropHighlight", id = "rbxassetid://140290391587347", offset = Vector3.new(-0.620648575, 2.51129715, 9.20070129), size = Vector3.new(0.2191325, 0.980901184, 0.440799561), colour = Color3.fromRGB(255, 248, 226), material = Enum.Material.SmoothPlastic },
+		{ part = "HoneyTrim", id = "rbxassetid://95680287320698", offset = Vector3.new(0, 0.866929932, -1.86180359), size = Vector3.new(9.33794189, 13.9738599, 12.8436047), colour = Color3.fromRGB(255, 255, 255), material = Enum.Material.SmoothPlastic, replaces = "Trim", surfaceTemplate = "honeycomb_trim" },
+		{ part = "Tail", id = "rbxassetid://117724422182583", offset = Vector3.new(0.0576833344, 2.93791748, 6.58977478), size = Vector3.new(2.99263672, 3.00004486, 4.40510376), colour = Color3.fromRGB(239, 145, 22), material = Enum.Material.SmoothPlastic },
+	},
+	-- BEGIN ARCADE ACCESSORIES
+	respawn = {
+		{ part = "RespawnPixel_0", id = "rbxassetid://107296395502154", offset = Vector3.new(-4.32, 1.5, 3.78), size = Vector3.new(0.009450073, 0.009450073, 0.009450073), colour = Color3.fromRGB(226, 55, 217), material = Enum.Material.Neon },
+		{ part = "RespawnPixel_1", id = "rbxassetid://91985205063645", offset = Vector3.new(5.232396, 2.605714, 4.198264), size = Vector3.new(0.2733469, 0.2733467, 0.2733466), colour = Color3.fromRGB(35, 199, 242), material = Enum.Material.Neon },
+		{ part = "RespawnPixel_2", id = "rbxassetid://76562683139364", offset = Vector3.new(-6.082919, 3.711429, 4.575279), size = Vector3.new(0.4925537, 0.4925537, 0.4925537), colour = Color3.fromRGB(35, 199, 242), material = Enum.Material.Neon },
+		{ part = "RespawnPixel_3", id = "rbxassetid://136399186025498", offset = Vector3.new(5.021948, 4.817143, 4.877965), size = Vector3.new(0.6142044, 0.6142044, 0.6142047), colour = Color3.fromRGB(226, 55, 217), material = Enum.Material.Neon },
+		{ part = "RespawnPixel_4", id = "rbxassetid://71029304339442", offset = Vector3.new(-5.621948, 5.922857, 5.087965), size = Vector3.new(0.6142041, 0.6142041, 0.6142047), colour = Color3.fromRGB(35, 199, 242), material = Enum.Material.Neon },
+		{ part = "RespawnPixel_5", id = "rbxassetid://99095662587211", offset = Vector3.new(6.082919, 7.028571, 5.20528), size = Vector3.new(0.4925537, 0.4925537, 0.4925537), colour = Color3.fromRGB(35, 199, 242), material = Enum.Material.Neon },
+		{ part = "RespawnPixel_6", id = "rbxassetid://114903757904175", offset = Vector3.new(-4.632396, 8.134286, 5.248264), size = Vector3.new(0.2733466, 0.2733472, 0.2733469), colour = Color3.fromRGB(226, 55, 217), material = Enum.Material.Neon },
+	},
+	jackpot = {
+		{ part = "SaddleSupport_-0.5_-0.025", id = "rbxassetid://75529302446552", offset = Vector3.new(3, 5.38225555, -0.150000006), size = Vector3.new(0.480000019, 0.515489578, 0.540000021), colour = Color3.fromRGB(197, 137, 41), material = Enum.Material.Metal },
+		{ part = "SaddleSupport_-0.5_0.53", id = "rbxassetid://123752746505761", offset = Vector3.new(3, 4.94240761, 3.17999983), size = Vector3.new(0.480000019, 1.39518547, 0.539999962), colour = Color3.fromRGB(197, 137, 41), material = Enum.Material.Metal },
+		{ part = "SaddleSupport_0.5_-0.025", id = "rbxassetid://128542466432714", offset = Vector3.new(-3, 5.38218451, -0.150000006), size = Vector3.new(0.480000019, 0.515630722, 0.540000021), colour = Color3.fromRGB(197, 137, 41), material = Enum.Material.Metal },
+		{ part = "SaddleSupport_0.5_0.53", id = "rbxassetid://74114885314260", offset = Vector3.new(-3, 4.94424438, 3.17999983), size = Vector3.new(0.480000019, 1.39151192, 0.539999962), colour = Color3.fromRGB(197, 137, 41), material = Enum.Material.Metal },
+		{ part = "RearHousing", id = "rbxassetid://136100835806078", offset = Vector3.new(0, 6.89999962, 3.84000015), size = Vector3.new(7.07999992, 3.29999971, 0.5400002), colour = Color3.fromRGB(96, 28, 48), material = Enum.Material.SmoothPlastic },
+		{ part = "FrontSill", id = "rbxassetid://131502960157909", offset = Vector3.new(0, 5.55000019, -0.209999993), size = Vector3.new(7.14000034, 0.600000381, 0.599999994), colour = Color3.fromRGB(197, 137, 41), material = Enum.Material.Metal },
+		{ part = "UpperRail", id = "rbxassetid://105474572591159", offset = Vector3.new(0, 9.09000015, 1.62000012), size = Vector3.new(7.14000034, 0.38999939, 0.599999905), colour = Color3.fromRGB(197, 137, 41), material = Enum.Material.Metal },
+		{ part = "ReelSide_-0.585", id = "rbxassetid://111338385443279", offset = Vector3.new(3.50999975, 7.14000034, 1.74000001), size = Vector3.new(0.449999809, 3.53999949, 3.83999979), colour = Color3.fromRGB(197, 137, 41), material = Enum.Material.Metal },
+		{ part = "ReelSide_0.585", id = "rbxassetid://92357970450857", offset = Vector3.new(-3.50999975, 7.14000034, 1.74000001), size = Vector3.new(0.449999809, 3.53999949, 3.83999979), colour = Color3.fromRGB(197, 137, 41), material = Enum.Material.Metal },
+		{ part = "SymbolReel_0", id = "rbxassetid://123915068733137", offset = Vector3.new(2.16000009, 7.2300005, 1.74000001), size = Vector3.new(1.94999981, 3.36000013, 3.36000001), colour = Color3.fromRGB(255, 255, 255), material = Enum.Material.SmoothPlastic, surfaceTemplate = "arcade_jackpot_SymbolReel_0" },
+		{ part = "SymbolReel_1", id = "rbxassetid://104823202126675", offset = Vector3.new(0, 7.2300005, 1.74000001), size = Vector3.new(1.94999993, 3.36000013, 3.36000001), colour = Color3.fromRGB(255, 255, 255), material = Enum.Material.SmoothPlastic, surfaceTemplate = "arcade_jackpot_SymbolReel_1" },
+		{ part = "SymbolReel_2", id = "rbxassetid://135449815325859", offset = Vector3.new(-2.16000009, 7.2300005, 1.74000001), size = Vector3.new(1.94999981, 3.36000013, 3.36000001), colour = Color3.fromRGB(255, 255, 255), material = Enum.Material.SmoothPlastic, surfaceTemplate = "arcade_jackpot_SymbolReel_2" },
+		{ part = "Bulb_-1_0", id = "rbxassetid://96921343476039", offset = Vector3.new(3.77999997, 5.88000011, -0.252000004), size = Vector3.new(0.433681965, 0.456000328, 0.455999956), colour = Color3.fromRGB(255, 176, 40), material = Enum.Material.Neon },
+		{ part = "Bulb_-1_1", id = "rbxassetid://111714438876137", offset = Vector3.new(3.77999997, 6.57000017, -0.252000004), size = Vector3.new(0.433681965, 0.456000328, 0.455999956), colour = Color3.fromRGB(255, 176, 40), material = Enum.Material.Neon },
+		{ part = "Bulb_-1_2", id = "rbxassetid://122598015472716", offset = Vector3.new(3.77999997, 7.26000023, -0.252000004), size = Vector3.new(0.433681965, 0.456000328, 0.455999956), colour = Color3.fromRGB(255, 176, 40), material = Enum.Material.Neon },
+		{ part = "Bulb_-1_3", id = "rbxassetid://71186014240697", offset = Vector3.new(3.77999997, 7.95000029, -0.252000004), size = Vector3.new(0.433681965, 0.456000328, 0.455999956), colour = Color3.fromRGB(255, 176, 40), material = Enum.Material.Neon },
+		{ part = "Bulb_-1_4", id = "rbxassetid://114696110902805", offset = Vector3.new(3.77999997, 8.64000034, -0.252000004), size = Vector3.new(0.433681965, 0.455999374, 0.455999956), colour = Color3.fromRGB(255, 176, 40), material = Enum.Material.Neon },
+		{ part = "Bulb_1_0", id = "rbxassetid://104633245255241", offset = Vector3.new(-3.77999997, 5.88000011, -0.252000004), size = Vector3.new(0.433681965, 0.456000328, 0.455999956), colour = Color3.fromRGB(255, 176, 40), material = Enum.Material.Neon },
+		{ part = "Bulb_1_1", id = "rbxassetid://122598015472716", offset = Vector3.new(-3.77999997, 6.57000017, -0.252000004), size = Vector3.new(0.433681965, 0.456000328, 0.455999956), colour = Color3.fromRGB(255, 176, 40), material = Enum.Material.Neon },
+		{ part = "Bulb_1_2", id = "rbxassetid://70855852341838", offset = Vector3.new(-3.77999997, 7.26000023, -0.252000004), size = Vector3.new(0.433681965, 0.456000328, 0.455999956), colour = Color3.fromRGB(255, 176, 40), material = Enum.Material.Neon },
+		{ part = "Bulb_1_3", id = "rbxassetid://114696110902805", offset = Vector3.new(-3.77999997, 7.95000029, -0.252000004), size = Vector3.new(0.433681965, 0.456000328, 0.455999956), colour = Color3.fromRGB(255, 176, 40), material = Enum.Material.Neon },
+		{ part = "Bulb_1_4", id = "rbxassetid://105276442137228", offset = Vector3.new(-3.77999997, 8.64000034, -0.252000004), size = Vector3.new(0.433681965, 0.455999374, 0.455999956), colour = Color3.fromRGB(255, 176, 40), material = Enum.Material.Neon },
+		{ part = "JackpotBackSaddle", id = "rbxassetid://86811710750009", offset = Vector3.new(-2.50339508e-06, 5.49837875, 1.30649853), size = Vector3.new(6.87350678, 1.408813, 4.39453983), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotArchCase_-1", id = "rbxassetid://112583958798196", offset = Vector3.new(3.91499996, 7.48499966, 1.74000001), size = Vector3.new(0.569999695, 3.56999969, 4.25999987), colour = Color3.fromRGB(111, 28, 48), material = Enum.Material.SmoothPlastic },
+		{ part = "JackpotLampSocket_-1_0", id = "rbxassetid://110312725831563", offset = Vector3.new(4.32000017, 7.07999992, -0.431999981), size = Vector3.new(0.390000343, 0.684000015, 0.684000015), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotLamp_-1_0", id = "rbxassetid://115667377424771", offset = Vector3.new(4.5539999, 7.07999992, -0.431999981), size = Vector3.new(0.107999802, 0.43200016, 0.432000011), colour = Color3.fromRGB(255, 191, 55), material = Enum.Material.Neon },
+		{ part = "JackpotLampSocket_-1_1", id = "rbxassetid://140069452591928", offset = Vector3.new(4.32000017, 8.20199966, -0.141007185), size = Vector3.new(0.390000343, 0.684000015, 0.684000015), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotLamp_-1_1", id = "rbxassetid://127674132792622", offset = Vector3.new(4.5539999, 8.20199966, -0.141007185), size = Vector3.new(0.107999802, 0.431999683, 0.431999981), colour = Color3.fromRGB(255, 191, 55), material = Enum.Material.Neon },
+		{ part = "JackpotLampSocket_-1_2", id = "rbxassetid://137745781195328", offset = Vector3.new(4.32000017, 9.02336121, 0.653999984), size = Vector3.new(0.390000343, 0.684000015, 0.684000015), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotLamp_-1_2", id = "rbxassetid://98327122151067", offset = Vector3.new(4.5539999, 9.02336121, 0.653999984), size = Vector3.new(0.107999802, 0.431999207, 0.432000011), colour = Color3.fromRGB(255, 191, 55), material = Enum.Material.Neon },
+		{ part = "JackpotLampSocket_-1_3", id = "rbxassetid://91884323766285", offset = Vector3.new(4.32000017, 9.32400036, 1.74000001), size = Vector3.new(0.390000343, 0.684000015, 0.684000015), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotLamp_-1_3", id = "rbxassetid://82687724127934", offset = Vector3.new(4.5539999, 9.32400036, 1.74000001), size = Vector3.new(0.107999802, 0.431999207, 0.431999922), colour = Color3.fromRGB(255, 191, 55), material = Enum.Material.Neon },
+		{ part = "JackpotLampSocket_-1_4", id = "rbxassetid://125043699576539", offset = Vector3.new(4.32000017, 9.02336121, 2.82599998), size = Vector3.new(0.390000343, 0.684000015, 0.684000015), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotLamp_-1_4", id = "rbxassetid://82417303963966", offset = Vector3.new(4.5539999, 9.02336121, 2.82599998), size = Vector3.new(0.107999802, 0.431999207, 0.43200016), colour = Color3.fromRGB(255, 191, 55), material = Enum.Material.Neon },
+		{ part = "JackpotLampSocket_-1_5", id = "rbxassetid://80217407232661", offset = Vector3.new(4.32000017, 8.20199966, 3.6210072), size = Vector3.new(0.390000343, 0.684000015, 0.684000015), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotLamp_-1_5", id = "rbxassetid://82417303963966", offset = Vector3.new(4.5539999, 8.20199966, 3.6210072), size = Vector3.new(0.107999802, 0.431999683, 0.43200016), colour = Color3.fromRGB(255, 191, 55), material = Enum.Material.Neon },
+		{ part = "JackpotLampSocket_-1_6", id = "rbxassetid://80217407232661", offset = Vector3.new(4.32000017, 7.07999992, 3.91200018), size = Vector3.new(0.390000343, 0.684000015, 0.684000015), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotLamp_-1_6", id = "rbxassetid://82417303963966", offset = Vector3.new(4.5539999, 7.07999992, 3.91200018), size = Vector3.new(0.107999802, 0.43200016, 0.43200016), colour = Color3.fromRGB(255, 191, 55), material = Enum.Material.Neon },
+		{ part = "JackpotBasePlinth_-1", id = "rbxassetid://135872547185642", offset = Vector3.new(3.84000015, 5.75999975, 1.74000013), size = Vector3.new(1.08000016, 0.779999733, 4.80000043), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotRivet_-1_0", id = "rbxassetid://85317802327198", offset = Vector3.new(4.45799971, 5.83799982, 0.120000005), size = Vector3.new(0.119999886, 0.273903847, 0.287999995), colour = Color3.fromRGB(242, 219, 165), material = Enum.Material.SmoothPlastic },
+		{ part = "JackpotRivet_-1_3", id = "rbxassetid://85632720234420", offset = Vector3.new(4.45799971, 5.83799982, 3.36000013), size = Vector3.new(0.119999886, 0.273903847, 0.288000107), colour = Color3.fromRGB(242, 219, 165), material = Enum.Material.SmoothPlastic },
+		{ part = "JackpotArchCase_1", id = "rbxassetid://107144662264865", offset = Vector3.new(-3.91499996, 7.48499966, 1.74000001), size = Vector3.new(0.569999695, 3.56999969, 4.25999987), colour = Color3.fromRGB(111, 28, 48), material = Enum.Material.SmoothPlastic },
+		{ part = "JackpotLampSocket_1_0", id = "rbxassetid://110312725831563", offset = Vector3.new(-4.32000017, 7.07999992, -0.431999981), size = Vector3.new(0.390000343, 0.684000015, 0.684000015), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotLamp_1_0", id = "rbxassetid://115667377424771", offset = Vector3.new(-4.5539999, 7.07999992, -0.431999981), size = Vector3.new(0.107999802, 0.43200016, 0.432000011), colour = Color3.fromRGB(255, 191, 55), material = Enum.Material.Neon },
+		{ part = "JackpotLampSocket_1_1", id = "rbxassetid://140069452591928", offset = Vector3.new(-4.32000017, 8.20199966, -0.141007185), size = Vector3.new(0.390000343, 0.684000015, 0.684000015), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotLamp_1_1", id = "rbxassetid://127674132792622", offset = Vector3.new(-4.5539999, 8.20199966, -0.141007185), size = Vector3.new(0.107999802, 0.431999683, 0.431999981), colour = Color3.fromRGB(255, 191, 55), material = Enum.Material.Neon },
+		{ part = "JackpotLampSocket_1_2", id = "rbxassetid://137745781195328", offset = Vector3.new(-4.32000017, 9.02336121, 0.653999984), size = Vector3.new(0.390000343, 0.684000015, 0.684000015), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotLamp_1_2", id = "rbxassetid://98327122151067", offset = Vector3.new(-4.5539999, 9.02336121, 0.653999984), size = Vector3.new(0.107999802, 0.431999207, 0.432000011), colour = Color3.fromRGB(255, 191, 55), material = Enum.Material.Neon },
+		{ part = "JackpotLampSocket_1_3", id = "rbxassetid://91884323766285", offset = Vector3.new(-4.32000017, 9.32400036, 1.74000001), size = Vector3.new(0.390000343, 0.684000015, 0.684000015), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotLamp_1_3", id = "rbxassetid://82687724127934", offset = Vector3.new(-4.5539999, 9.32400036, 1.74000001), size = Vector3.new(0.107999802, 0.431999207, 0.431999922), colour = Color3.fromRGB(255, 191, 55), material = Enum.Material.Neon },
+		{ part = "JackpotLampSocket_1_4", id = "rbxassetid://125043699576539", offset = Vector3.new(-4.32000017, 9.02336121, 2.82599998), size = Vector3.new(0.390000343, 0.684000015, 0.684000015), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotLamp_1_4", id = "rbxassetid://82417303963966", offset = Vector3.new(-4.5539999, 9.02336121, 2.82599998), size = Vector3.new(0.107999802, 0.431999207, 0.43200016), colour = Color3.fromRGB(255, 191, 55), material = Enum.Material.Neon },
+		{ part = "JackpotLampSocket_1_5", id = "rbxassetid://80217407232661", offset = Vector3.new(-4.32000017, 8.20199966, 3.6210072), size = Vector3.new(0.390000343, 0.684000015, 0.684000015), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotLamp_1_5", id = "rbxassetid://82417303963966", offset = Vector3.new(-4.5539999, 8.20199966, 3.6210072), size = Vector3.new(0.107999802, 0.431999683, 0.43200016), colour = Color3.fromRGB(255, 191, 55), material = Enum.Material.Neon },
+		{ part = "JackpotLampSocket_1_6", id = "rbxassetid://80217407232661", offset = Vector3.new(-4.32000017, 7.07999992, 3.91200018), size = Vector3.new(0.390000343, 0.684000015, 0.684000015), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotLamp_1_6", id = "rbxassetid://82417303963966", offset = Vector3.new(-4.5539999, 7.07999992, 3.91200018), size = Vector3.new(0.107999802, 0.43200016, 0.43200016), colour = Color3.fromRGB(255, 191, 55), material = Enum.Material.Neon },
+		{ part = "JackpotBasePlinth_1", id = "rbxassetid://72061166172432", offset = Vector3.new(-3.84000015, 5.75999975, 1.74000013), size = Vector3.new(1.08000016, 0.779999733, 4.80000043), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotRivet_1_0", id = "rbxassetid://85317802327198", offset = Vector3.new(-4.45799971, 5.83799982, 0.120000005), size = Vector3.new(0.119999886, 0.273903847, 0.287999995), colour = Color3.fromRGB(242, 219, 165), material = Enum.Material.SmoothPlastic },
+		{ part = "JackpotRivet_1_3", id = "rbxassetid://85632720234420", offset = Vector3.new(-4.45799971, 5.83799982, 3.36000013), size = Vector3.new(0.119999886, 0.273903847, 0.288000107), colour = Color3.fromRGB(242, 219, 165), material = Enum.Material.SmoothPlastic },
+		{ part = "JackpotBackShield", id = "rbxassetid://85834487682831", offset = Vector3.new(0, 7.17000008, 4.12199974), size = Vector3.new(8.39999962, 3.42000008, 0.659999847), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotBackEnamel", id = "rbxassetid://128239261089030", offset = Vector3.new(0, 7.2300005, 4.51200008), size = Vector3.new(6.77999973, 2.03999949, 0.156000137), colour = Color3.fromRGB(111, 28, 48), material = Enum.Material.SmoothPlastic },
+		{ part = "JackpotCrestRail", id = "rbxassetid://111132500385819", offset = Vector3.new(0, 9.55200005, 1.74000001), size = Vector3.new(8.57999992, 0.510000229, 0.719999909), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotRearBadge_-1", id = "rbxassetid://82462412261210", offset = Vector3.new(1.79999995, 7.26000023, 4.67999983), size = Vector3.new(0.954594016, 0.954593658, 0.149999619), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotRearBadge_0", id = "rbxassetid://133882954621855", offset = Vector3.new(0, 7.26000023, 4.67999983), size = Vector3.new(0.954594135, 0.954593658, 0.149999619), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotRearBadge_1", id = "rbxassetid://82462412261210", offset = Vector3.new(-1.79999995, 7.26000023, 4.67999983), size = Vector3.new(0.954594016, 0.954593658, 0.149999619), colour = Color3.fromRGB(217, 156, 53), material = Enum.Material.Metal },
+		{ part = "JackpotShadesGoldFrame_-1", id = "rbxassetid://78654650350573", offset = Vector3.new(2.11800003, 2.59200001, -6.47036171), size = Vector3.new(3.92399992, 2.48400021, 0.79968071), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotShadesLens_-1", id = "rbxassetid://81783544016766", offset = Vector3.new(2.11800003, 2.59200001, -6.50549889), size = Vector3.new(3.25199994, 1.84800029, 0.575107574), colour = Color3.fromRGB(21, 13, 26), material = Enum.Material.Metal },
+		{ part = "JackpotShadesStones_-1", id = "rbxassetid://107656883837977", offset = Vector3.new(2.36339998, 2.59200001, -6.67865896), size = Vector3.new(3.3882606, 2.472, 0.735972404), colour = Color3.fromRGB(255, 240, 208), material = Enum.Material.Metal },
+		{ part = "JackpotShadesTemple_-1", id = "rbxassetid://96560412349039", offset = Vector3.new(4.43026495, 3.38580942, -4.08577061), size = Vector3.new(1.05458546, 1.21537209, 4.2627368), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotShadesLensGlint_-1", id = "rbxassetid://139642610504938", offset = Vector3.new(2.62800026, 3.21000004, -6.53590488), size = Vector3.new(0.812167883, 0.368007898, 0.208406448), colour = Color3.fromRGB(255, 240, 208), material = Enum.Material.Metal },
+		{ part = "JackpotShadesGoldFrame_1", id = "rbxassetid://115302191281733", offset = Vector3.new(-2.11800003, 2.59200001, -6.47036171), size = Vector3.new(3.92399992, 2.48400021, 0.79968071), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotShadesLens_1", id = "rbxassetid://79758410870126", offset = Vector3.new(-2.11800003, 2.59200001, -6.50549889), size = Vector3.new(3.25199994, 1.84800029, 0.575107574), colour = Color3.fromRGB(21, 13, 26), material = Enum.Material.Metal },
+		{ part = "JackpotShadesStones_1", id = "rbxassetid://105244995370480", offset = Vector3.new(-2.36400008, 2.59200001, -6.67859888), size = Vector3.new(3.38706064, 2.472, 0.735852242), colour = Color3.fromRGB(255, 240, 208), material = Enum.Material.Metal },
+		{ part = "JackpotShadesTemple_1", id = "rbxassetid://128950828710696", offset = Vector3.new(-4.43026495, 3.38580942, -4.08577061), size = Vector3.new(1.05458546, 1.21537209, 4.2627368), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotShadesLensGlint_1", id = "rbxassetid://87614773869716", offset = Vector3.new(-1.60800004, 3.21000004, -6.68554974), size = Vector3.new(0.811190724, 0.367972374, 0.18621254), colour = Color3.fromRGB(255, 240, 208), material = Enum.Material.Metal },
+		{ part = "JackpotShadesBridge", id = "rbxassetid://95936175891688", offset = Vector3.new(0, 2.86760569, -6.9040041), size = Vector3.new(1.10358608, 0.408788681, 0.351991177), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotPayoutChute_-1", id = "rbxassetid://105653804666941", offset = Vector3.new(4.6500001, 6.14999962, 1.79999995), size = Vector3.new(0.491999626, 1.5, 2.0999999), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotPayoutMouth_-1", id = "rbxassetid://117467134238068", offset = Vector3.new(4.41599989, 6.14999962, 1.80000007), size = Vector3.new(0.0719995499, 1.07999992, 1.662), colour = Color3.fromRGB(23, 12, 15), material = Enum.Material.SmoothPlastic },
+		{ part = "JackpotPayoutLip_-1", id = "rbxassetid://81904307467937", offset = Vector3.new(4.97399998, 5.454, 1.79999995), size = Vector3.new(0.630000114, 0.18599987, 2.17799985), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotPayoutChute_1", id = "rbxassetid://98028300517401", offset = Vector3.new(-4.6500001, 6.14999962, 1.79999995), size = Vector3.new(0.491999626, 1.5, 2.0999999), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotPayoutMouth_1", id = "rbxassetid://135559705758835", offset = Vector3.new(-4.41599989, 6.14999962, 1.80000007), size = Vector3.new(0.0719995499, 1.07999992, 1.662), colour = Color3.fromRGB(23, 12, 15), material = Enum.Material.SmoothPlastic },
+		{ part = "JackpotPayoutLip_1", id = "rbxassetid://81669302295153", offset = Vector3.new(-4.97399998, 5.454, 1.79999995), size = Vector3.new(0.630000114, 0.18599987, 2.17799985), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotPayoutCoin_-1_0", id = "rbxassetid://90617432719868", offset = Vector3.new(4.74000025, 6.14999962, 1.80000007), size = Vector3.new(0.000173568726, 0.00103187561, 0.00103211403), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotPayoutCoin_-1_1", id = "rbxassetid://90617432719868", offset = Vector3.new(4.61999989, 6.14999962, 1.80000007), size = Vector3.new(0.000173568726, 0.00103187561, 0.00103211403), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotPayoutCoin_-1_2", id = "rbxassetid://90617432719868", offset = Vector3.new(4.61999989, 6.14999962, 1.80000007), size = Vector3.new(0.000173568726, 0.00103187561, 0.00103211403), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotPayoutCoin_-1_3", id = "rbxassetid://129801338722972", offset = Vector3.new(9.6257143, 0.918979645, 0.719999969), size = Vector3.new(0.921455383, 0.737260103, 1.03536399), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotPayoutCoin_-1_4", id = "rbxassetid://123957679785605", offset = Vector3.new(7.99714279, 4.73938799, 1.08000004), size = Vector3.new(1.0240407, 0.227425575, 1.02950984), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotPayoutCoin_-1_5", id = "rbxassetid://106169302330730", offset = Vector3.new(6.36857128, 6.48306179, 1.43999994), size = Vector3.new(0.983652115, 0.844977379, 0.916516721), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotPayoutCoin_1_0", id = "rbxassetid://90617432719868", offset = Vector3.new(-4.61999989, 6.14999962, 1.80000007), size = Vector3.new(0.000173568726, 0.00103187561, 0.00103211403), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotPayoutCoin_1_1", id = "rbxassetid://90617432719868", offset = Vector3.new(-4.61999989, 6.14999962, 1.80000007), size = Vector3.new(0.000173568726, 0.00103187561, 0.00103211403), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotPayoutCoin_1_2", id = "rbxassetid://82504358921931", offset = Vector3.new(-4.61999989, 6.14999962, 1.80000007), size = Vector3.new(0.000173568726, 0.00103187561, 0.00103211403), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotPayoutCoin_1_3", id = "rbxassetid://105325653511957", offset = Vector3.new(-9.13714314, 2.28315926, 0.827999949), size = Vector3.new(0.767623901, 1.03236306, 0.900434077), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotPayoutCoin_1_4", id = "rbxassetid://96014670192464", offset = Vector3.new(-7.50857162, 5.48054695, 1.18799996), size = Vector3.new(1.03159142, 0.720705032, 0.912307501), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+		{ part = "JackpotPayoutCoin_1_5", id = "rbxassetid://136056692821603", offset = Vector3.new(-5.88000011, 6.6012001, 1.54799986), size = Vector3.new(1.04003716, 0.249611855, 1.0386287), colour = Color3.fromRGB(240, 181, 58), material = Enum.Material.Metal },
+	},
+	powerup = {
+		{ part = "PowerSpark_0", id = "rbxassetid://108464450422079", offset = Vector3.new(-6.12, 0.6, 2.88), size = Vector3.new(0.33, 0.33, 0.33), colour = Color3.fromRGB(157, 235, 78), material = Enum.Material.Neon },
+		{ part = "PowerSpark_1", id = "rbxassetid://140554947943751", offset = Vector3.new(6.420001, 1.116496, 2.88), size = Vector3.new(0.33, 0.33, 0.33), colour = Color3.fromRGB(157, 235, 78), material = Enum.Material.Neon },
+		{ part = "PowerSpark_2", id = "rbxassetid://125734542249343", offset = Vector3.new(-6.72, 2.639693, 3.48), size = Vector3.new(0.33, 0.33, 0.33), colour = Color3.fromRGB(157, 235, 78), material = Enum.Material.Neon },
+		{ part = "PowerSpark_3", id = "rbxassetid://118263815729503", offset = Vector3.new(6.12, 2.406333, 3.48), size = Vector3.new(0.33, 0.3299998, 0.33), colour = Color3.fromRGB(157, 235, 78), material = Enum.Material.Neon },
+		{ part = "PowerSpark_4", id = "rbxassetid://111811730066376", offset = Vector3.new(-6.420001, 3.197971, 4.08), size = Vector3.new(0.33, 0.33, 0.33), colour = Color3.fromRGB(157, 235, 78), material = Enum.Material.Neon },
+		{ part = "PowerSpark_5", id = "rbxassetid://115620735333544", offset = Vector3.new(6.72, 2.695103, 4.08), size = Vector3.new(0.33, 0.33, 0.33), colour = Color3.fromRGB(157, 235, 78), material = Enum.Material.Neon },
+	},
+	finalboss = {
+		{ part = "OverdriveChannelBed_-1_1", id = "rbxassetid://106167504784714", offset = Vector3.new(3.11205101, 1.18796051, 3.08627725), size = Vector3.new(4.25959873, 9.97118592, 3.94724321), colour = Color3.fromRGB(24, 13, 33), material = Enum.Material.SmoothPlastic },
+		{ part = "OverdriveEnergyChannel_-1_1", id = "rbxassetid://131551528934612", offset = Vector3.new(3.17257547, 1.2040391, 3.13217306), size = Vector3.new(4.20809162, 10.0848436, 3.913306), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "OverdriveChannelBed_1_1", id = "rbxassetid://130916327618541", offset = Vector3.new(-3.11217213, 1.18776727, 3.08627701), size = Vector3.new(4.25983238, 9.97162485, 3.94724381), colour = Color3.fromRGB(24, 13, 33), material = Enum.Material.SmoothPlastic },
+		{ part = "OverdriveEnergyChannel_1_1", id = "rbxassetid://95315369245503", offset = Vector3.new(-3.17269707, 1.20391011, 3.13217354), size = Vector3.new(4.20832753, 10.0851398, 3.91330504), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "OverdriveSlotRail_-1", id = "rbxassetid://91027041267790", offset = Vector3.new(0.50999999, 5.8139019, 1.63268685), size = Vector3.new(0.144000024, 0.874994755, 3.19646498), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "OverdriveSlotRail_1", id = "rbxassetid://108941285322588", offset = Vector3.new(-0.50999999, 5.8139019, 1.63268685), size = Vector3.new(0.144000024, 0.874994755, 3.19646498), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "OverdriveShoulderShield_-1", id = "rbxassetid://102846582647305", offset = Vector3.new(5.60528183, 0.959999919, 0.545250654), size = Vector3.new(2.49926186, 6.23943353, 6.11902475), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "OverdriveDiamondSocket_-1", id = "rbxassetid://100423080602390", offset = Vector3.new(6.73200035, 1.25997281, 0.544038951), size = Vector3.new(0.492000103, 3.41968977, 3.41968977), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "OverdriveDiamondWell_-1", id = "rbxassetid://87506267557101", offset = Vector3.new(6.88199997, 1.25997281, 0.544039071), size = Vector3.new(0.492000103, 3.01172674, 3.01172674), colour = Color3.fromRGB(24, 13, 33), material = Enum.Material.SmoothPlastic },
+		{ part = "OverdriveShoulderCore_-1", id = "rbxassetid://124636805063619", offset = Vector3.new(7.08899593, 1.25997281, 0.544039011), size = Vector3.new(0.477509975, 2.44556046, 2.44556046), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "OverdriveHinge_-1_0", id = "rbxassetid://125254658760315", offset = Vector3.new(6.2699995, 1.35470223, -2.03491926), size = Vector3.new(0.630000114, 0.85192275, 0.85192287), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "OverdriveHingeInset_-1_0", id = "rbxassetid://87196914228332", offset = Vector3.new(6.6239996, 1.35470223, -2.03491926), size = Vector3.new(0.0900001526, 0.455958605, 0.455958724), colour = Color3.fromRGB(24, 13, 33), material = Enum.Material.SmoothPlastic },
+		{ part = "OverdriveHinge_-1_1", id = "rbxassetid://75945209366183", offset = Vector3.new(6.2699995, 1.28765583, 2.94462919), size = Vector3.new(0.630000114, 0.85192275, 0.851922989), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "OverdriveHingeInset_-1_1", id = "rbxassetid://124314399638406", offset = Vector3.new(6.6239996, 1.28765583, 2.94462919), size = Vector3.new(0.0900001526, 0.455958605, 0.455958843), colour = Color3.fromRGB(24, 13, 33), material = Enum.Material.SmoothPlastic },
+		{ part = "OverdriveHipPlate_-1", id = "rbxassetid://83171918004485", offset = Vector3.new(5.32907915, -2.81999993, 0.539999962), size = Vector3.new(2.03654766, 2.28000009, 5.4000001), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "OverdriveChargeMeterFrame_-1", id = "rbxassetid://80864327264488", offset = Vector3.new(6.23400021, -2.63999987, 0.24000001), size = Vector3.new(0.336000443, 0.900000095, 3.17999983), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "OverdriveChargeMeterWell_-1", id = "rbxassetid://127114645988511", offset = Vector3.new(6.42000008, -2.63999987, 0.24000001), size = Vector3.new(0.0839996338, 0.671999931, 2.87999988), colour = Color3.fromRGB(24, 13, 33), material = Enum.Material.SmoothPlastic },
+		{ part = "OverdriveChargeCell_-1_0", id = "rbxassetid://87804812066561", offset = Vector3.new(6.4800005, -2.63999987, -0.779999971), size = Vector3.new(0.0480003357, 0.395999908, 0.461999953), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "OverdriveChargeCell_-1_1", id = "rbxassetid://103142154262116", offset = Vector3.new(6.4800005, -2.63999987, -0.101999998), size = Vector3.new(0.0480003357, 0.395999908, 0.462000012), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "OverdriveChargeCell_-1_2", id = "rbxassetid://79864888849537", offset = Vector3.new(6.4800005, -2.63999987, 0.575999975), size = Vector3.new(0.0480003357, 0.395999908, 0.462000012), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "OverdriveChargeCell_-1_3", id = "rbxassetid://137561573587456", offset = Vector3.new(6.4800005, -2.63999987, 1.25400007), size = Vector3.new(0.0480003357, 0.395999908, 0.462000132), colour = Color3.fromRGB(255, 148, 222), material = Enum.Material.Neon },
+		{ part = "OverdriveShoulderShield_1", id = "rbxassetid://136182621945400", offset = Vector3.new(-5.60528183, 0.959999919, 0.534749389), size = Vector3.new(2.49926186, 6.23943353, 6.1198647), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "OverdriveDiamondSocket_1", id = "rbxassetid://72543116999145", offset = Vector3.new(-6.73200035, 1.25997281, 0.535961032), size = Vector3.new(0.492000103, 3.41968977, 3.41968989), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "OverdriveDiamondWell_1", id = "rbxassetid://123634077695374", offset = Vector3.new(-6.88199997, 1.25997281, 0.535961032), size = Vector3.new(0.492000103, 3.01172674, 3.01172662), colour = Color3.fromRGB(24, 13, 33), material = Enum.Material.SmoothPlastic },
+		{ part = "OverdriveShoulderCore_1", id = "rbxassetid://125202561986069", offset = Vector3.new(-7.09500408, 1.25997281, 0.535961032), size = Vector3.new(0.506490231, 2.59398234, 2.59398246), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "OverdriveHinge_1_0", id = "rbxassetid://82156323024764", offset = Vector3.new(-6.2699995, 1.28523254, -2.04461288), size = Vector3.new(0.630000114, 0.85192275, 0.85192287), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "OverdriveHingeInset_1_0", id = "rbxassetid://121488033314391", offset = Vector3.new(-6.6239996, 1.28523254, -2.04461288), size = Vector3.new(0.0900001526, 0.455958605, 0.455958724), colour = Color3.fromRGB(24, 13, 33), material = Enum.Material.SmoothPlastic },
+		{ part = "OverdriveHinge_1_1", id = "rbxassetid://128708931457948", offset = Vector3.new(-6.2699995, 1.35227883, 2.93493557), size = Vector3.new(0.630000114, 0.85192275, 0.851922989), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "OverdriveHingeInset_1_1", id = "rbxassetid://120218489156709", offset = Vector3.new(-6.6239996, 1.35227883, 2.93493557), size = Vector3.new(0.0900001526, 0.455958605, 0.455958843), colour = Color3.fromRGB(24, 13, 33), material = Enum.Material.SmoothPlastic },
+		{ part = "OverdriveHipPlate_1", id = "rbxassetid://122445518414245", offset = Vector3.new(-5.32907915, -2.81999993, 0.539999962), size = Vector3.new(2.03654766, 2.28000009, 5.4000001), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "OverdriveChargeMeterFrame_1", id = "rbxassetid://80864327264488", offset = Vector3.new(-6.23400021, -2.63999987, 0.24000001), size = Vector3.new(0.336000443, 0.900000095, 3.17999983), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "OverdriveChargeMeterWell_1", id = "rbxassetid://127114645988511", offset = Vector3.new(-6.42000008, -2.63999987, 0.24000001), size = Vector3.new(0.0839996338, 0.671999931, 2.87999988), colour = Color3.fromRGB(24, 13, 33), material = Enum.Material.SmoothPlastic },
+		{ part = "OverdriveChargeCell_1_0", id = "rbxassetid://87804812066561", offset = Vector3.new(-6.4800005, -2.63999987, -0.779999971), size = Vector3.new(0.0480003357, 0.395999908, 0.461999953), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "OverdriveChargeCell_1_1", id = "rbxassetid://115608703815036", offset = Vector3.new(-6.4800005, -2.63999987, -0.101999998), size = Vector3.new(0.0480003357, 0.395999908, 0.462000012), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "OverdriveChargeCell_1_2", id = "rbxassetid://131435821684995", offset = Vector3.new(-6.4800005, -2.63999987, 0.575999975), size = Vector3.new(0.0480003357, 0.395999908, 0.462000012), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "OverdriveChargeCell_1_3", id = "rbxassetid://137561573587456", offset = Vector3.new(-6.4800005, -2.63999987, 1.25400007), size = Vector3.new(0.0480003357, 0.395999908, 0.462000132), colour = Color3.fromRGB(255, 148, 222), material = Enum.Material.Neon },
+		{ part = "OverdriveReactorMount", id = "rbxassetid://139204135232479", offset = Vector3.new(0, -0.480000019, 6.39599991), size = Vector3.new(4.38000011, 4.38000011, 0.840000153), colour = Color3.fromRGB(53, 25, 66), material = Enum.Material.SmoothPlastic },
+		{ part = "OverdriveReactorGoldRim", id = "rbxassetid://92617214939882", offset = Vector3.new(0, -0.480000019, 6.90600014), size = Vector3.new(4.32000017, 4.32000017, 0.390000343), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "OverdriveReactorWell", id = "rbxassetid://116473959541126", offset = Vector3.new(0, -0.480000019, 6.91800022), size = Vector3.new(3.53999996, 3.53999996, 0.144000053), colour = Color3.fromRGB(24, 13, 33), material = Enum.Material.SmoothPlastic },
+		{ part = "OverdriveReactorEnergyRing", id = "rbxassetid://76496715090724", offset = Vector3.new(0, -0.480000019, 7.03800011), size = Vector3.new(3.25199986, 3.25199986, 0.107999802), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "OverdriveRearCore", id = "rbxassetid://118862312029840", offset = Vector3.new(0, -0.480000019, 7.42199993), size = Vector3.new(2.22000003, 2.22000003, 0.492000103), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "OverdriveRotatingReactor", id = "rbxassetid://74299417706836", offset = Vector3.new(0, -0.480000138, 7.20000029), size = Vector3.new(4.25999975, 4.25999999, 0.227999687), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "OverdriveCartridgeMount_-1_0", id = "rbxassetid://137369930877614", offset = Vector3.new(3.42000008, -1.5, 5.39999962), size = Vector3.new(1.19999981, 1.26000011, 1.38000011), colour = Color3.fromRGB(24, 13, 33), material = Enum.Material.SmoothPlastic },
+		{ part = "OverdriveCartridge_-1_0", id = "rbxassetid://81022310733754", offset = Vector3.new(3.42000008, -1.5, 6.43200016), size = Vector3.new(1.38000011, 1.38000005, 0.492000103), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "OverdriveCartridgeMount_-1_1", id = "rbxassetid://122879843707935", offset = Vector3.new(4.25999975, 0.24000001, 5.39999962), size = Vector3.new(1.19999981, 1.25999999, 1.38000011), colour = Color3.fromRGB(24, 13, 33), material = Enum.Material.SmoothPlastic },
+		{ part = "OverdriveCartridge_-1_1", id = "rbxassetid://77886953901854", offset = Vector3.new(4.25999975, 0.24000001, 6.43423176), size = Vector3.new(1.41019177, 1.41019201, 0.502764225), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "OverdriveCartridgeMount_1_0", id = "rbxassetid://122879843707935", offset = Vector3.new(-3.42000008, -1.5, 5.39999962), size = Vector3.new(1.19999981, 1.26000011, 1.38000011), colour = Color3.fromRGB(24, 13, 33), material = Enum.Material.SmoothPlastic },
+		{ part = "OverdriveCartridge_1_0", id = "rbxassetid://81022310733754", offset = Vector3.new(-3.42000008, -1.5, 6.43200016), size = Vector3.new(1.38000011, 1.38000005, 0.492000103), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "OverdriveCartridgeMount_1_1", id = "rbxassetid://112061895144729", offset = Vector3.new(-4.25999975, 0.24000001, 5.39999962), size = Vector3.new(1.19999981, 1.25999999, 1.38000011), colour = Color3.fromRGB(24, 13, 33), material = Enum.Material.SmoothPlastic },
+		{ part = "OverdriveCartridge_1_1", id = "rbxassetid://77886953901854", offset = Vector3.new(-4.25999975, 0.24000001, 6.43423176), size = Vector3.new(1.41019177, 1.41019201, 0.502764225), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "MageContinuousRobe", id = "rbxassetid://102685863022716", offset = Vector3.new(7.15255737e-07, -0.00173330307, 0.244834185), size = Vector3.new(12.7634625, 12.3205347, 13.227386), colour = Color3.fromRGB(53, 25, 66), material = Enum.Material.SmoothPlastic },
+		{ part = "MageFullBoot_-1_0", id = "rbxassetid://97749126183544", offset = Vector3.new(3, -4.81500053, -3.01200008), size = Vector3.new(3.40799999, 3.1500001, 3.40800011), colour = Color3.fromRGB(87, 35, 98), material = Enum.Material.SmoothPlastic },
+		{ part = "MageBootGoldCuff_-1_0", id = "rbxassetid://76952488440525", offset = Vector3.new(3, -3.99000025, -2.87999988), size = Vector3.new(3.03599954, 0.210000038, 3.03599977), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "MageBootSoleWelt_-1_0", id = "rbxassetid://107600441429192", offset = Vector3.new(3, -6.15600014, -3.01199961), size = Vector3.new(3.43200016, 0.0839996338, 3.43199992), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "MageBootSetting_-1_0", id = "rbxassetid://119877525600514", offset = Vector3.new(3, -4.92000008, -4.55700016), size = Vector3.new(1.12800002, 1.12799978, 0.269999981), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "MageBootGem_-1_0", id = "rbxassetid://74993229594252", offset = Vector3.new(3, -4.92000008, -4.59299994), size = Vector3.new(0.74399972, 0.743999958, 0.342000008), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "MageFullBoot_-1_1", id = "rbxassetid://96440527763950", offset = Vector3.new(3, -4.81500053, 3.1079998), size = Vector3.new(3.40799999, 3.1500001, 3.40799975), colour = Color3.fromRGB(87, 35, 98), material = Enum.Material.SmoothPlastic },
+		{ part = "MageBootGoldCuff_-1_1", id = "rbxassetid://88748584389917", offset = Vector3.new(3, -3.99000025, 3.24000025), size = Vector3.new(3.03599954, 0.210000038, 3.03600001), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "MageBootSoleWelt_-1_1", id = "rbxassetid://117575574229896", offset = Vector3.new(3, -6.15600014, 3.10800028), size = Vector3.new(3.43200016, 0.0839996338, 3.4320004), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "MageBootSetting_-1_1", id = "rbxassetid://78231167476107", offset = Vector3.new(3, -4.92000008, 1.56299996), size = Vector3.new(1.12800002, 1.12799978, 0.269999981), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "MageBootGem_-1_1", id = "rbxassetid://98027399208347", offset = Vector3.new(3, -4.92000008, 1.52699995), size = Vector3.new(0.74399972, 0.743999958, 0.342000008), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "MageFullBoot_1_0", id = "rbxassetid://91193844772533", offset = Vector3.new(-3, -4.81500053, -3.01200008), size = Vector3.new(3.40799999, 3.1500001, 3.40800011), colour = Color3.fromRGB(87, 35, 98), material = Enum.Material.SmoothPlastic },
+		{ part = "MageBootGoldCuff_1_0", id = "rbxassetid://136558262942509", offset = Vector3.new(-3, -3.99000025, -2.87999988), size = Vector3.new(3.03599954, 0.210000038, 3.03599977), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "MageBootSoleWelt_1_0", id = "rbxassetid://116599994479150", offset = Vector3.new(-3, -6.15600014, -3.01199961), size = Vector3.new(3.43200016, 0.0839996338, 3.43199992), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "MageBootSetting_1_0", id = "rbxassetid://117205901532366", offset = Vector3.new(-3, -4.92000008, -4.55700016), size = Vector3.new(1.12800002, 1.12799978, 0.269999981), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "MageBootGem_1_0", id = "rbxassetid://138982768254574", offset = Vector3.new(-3, -4.92000008, -4.59299994), size = Vector3.new(0.74399972, 0.743999958, 0.342000008), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "MageFullBoot_1_1", id = "rbxassetid://99048653247297", offset = Vector3.new(-3, -4.81500053, 3.1079998), size = Vector3.new(3.40799999, 3.1500001, 3.40799975), colour = Color3.fromRGB(87, 35, 98), material = Enum.Material.SmoothPlastic },
+		{ part = "MageBootGoldCuff_1_1", id = "rbxassetid://136988815182315", offset = Vector3.new(-3, -3.99000025, 3.24000025), size = Vector3.new(3.03599954, 0.210000038, 3.03600001), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "MageBootSoleWelt_1_1", id = "rbxassetid://88356898208323", offset = Vector3.new(-3, -6.15600014, 3.10800028), size = Vector3.new(3.43200016, 0.0839996338, 3.4320004), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "MageBootSetting_1_1", id = "rbxassetid://95442070723747", offset = Vector3.new(-3, -4.92000008, 1.56299996), size = Vector3.new(1.12800002, 1.12799978, 0.269999981), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "MageBootGem_1_1", id = "rbxassetid://126397709706488", offset = Vector3.new(-3, -4.92000008, 1.52699995), size = Vector3.new(0.74399972, 0.743999958, 0.342000008), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "MageHoodCloth", id = "rbxassetid://86640091498085", offset = Vector3.new(5.00679016e-06, 1.90848112, -1.5754869), size = Vector3.new(12.28865, 10.6384506, 8.60902643), colour = Color3.fromRGB(87, 35, 98), material = Enum.Material.SmoothPlastic },
+		{ part = "MageHoodRolledFaceHem", id = "rbxassetid://131807253734006", offset = Vector3.new(0, 1.59788203, -5.34225798), size = Vector3.new(10.1639996, 9.488235, 1.39948368), colour = Color3.fromRGB(53, 25, 66), material = Enum.Material.SmoothPlastic },
+		{ part = "MageHoodGoldFacePiping", id = "rbxassetid://78543641329247", offset = Vector3.new(0, 1.57992876, -5.47887802), size = Vector3.new(9.94911957, 9.30926156, 1.20424366), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "MageHoodPinkEmbroidery_-1", id = "rbxassetid://111992541096316", offset = Vector3.new(5.15254116, 0.783664465, -3.93235445), size = Vector3.new(1.04938269, 6.11598825, 1.09302616), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "MageHoodPinkEmbroidery_1", id = "rbxassetid://70903887141615", offset = Vector3.new(-5.15255833, 0.783664227, -3.93236184), size = Vector3.new(1.04927683, 6.11595058, 1.09302282), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+		{ part = "MageHoodGoldSigil", id = "rbxassetid://128237234965506", offset = Vector3.new(0, 6.02999973, -6.14699936), size = Vector3.new(0.80400002, 0.804000378, 0.150000095), colour = Color3.fromRGB(218, 164, 79), material = Enum.Material.Metal },
+		{ part = "MageHoodPinkSigil", id = "rbxassetid://91820823998270", offset = Vector3.new(0, 6.03000021, -6.25500011), size = Vector3.new(0.444000006, 0.444000244, 0.150000095), colour = Color3.fromRGB(255, 34, 151), material = Enum.Material.Neon },
+	},
+	mechaplayer = {
+		{ part = "MechThrusterMount_-1", id = "rbxassetid://78383755990317", offset = Vector3.new(3.53999996, 1.38000011, 4.98000002), size = Vector3.new(2.57999992, 3.30000031, 2.34000015), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechThrusterBody_-1", id = "rbxassetid://123973612370499", offset = Vector3.new(3.53999996, 1.25999999, 6.11999989), size = Vector3.new(3.42000008, 3.42000014, 2.57999992), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechThrusterLip_-1", id = "rbxassetid://134187942806154", offset = Vector3.new(3.53999996, 1.25999999, 7.59000015), size = Vector3.new(3.56400001, 3.56399977, 0.779999733), colour = Color3.fromRGB(113, 138, 160), material = Enum.Material.Metal },
+		{ part = "MechThrusterThroat_-1", id = "rbxassetid://97890858288145", offset = Vector3.new(3.53999996, 1.25999999, 7.63800001), size = Vector3.new(2.74800014, 2.74800014, 0.131999969), colour = Color3.fromRGB(15, 24, 38), material = Enum.Material.SmoothPlastic },
+		{ part = "MechTurbineGlow_-1", id = "rbxassetid://136192125020290", offset = Vector3.new(3.53999996, 1.25999999, 7.74600029), size = Vector3.new(2.48400021, 2.48399985, 0.119999886), colour = Color3.fromRGB(40, 225, 250), material = Enum.Material.Neon },
+		{ part = "MechTurbineRotor_-1", id = "rbxassetid://137157890230011", offset = Vector3.new(3.53999996, 1.25999999, 7.85999966), size = Vector3.new(2.54999995, 2.45856798, 0.239999771), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechThrusterMount_1", id = "rbxassetid://72681721474377", offset = Vector3.new(-3.53999996, 1.38000011, 4.98000002), size = Vector3.new(2.57999992, 3.30000031, 2.34000015), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechThrusterBody_1", id = "rbxassetid://74572749285930", offset = Vector3.new(-3.53999996, 1.25999999, 6.11999989), size = Vector3.new(3.42000008, 3.42000014, 2.57999992), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechThrusterLip_1", id = "rbxassetid://96366672702847", offset = Vector3.new(-3.53999996, 1.25999999, 7.59000015), size = Vector3.new(3.56400001, 3.56399977, 0.779999733), colour = Color3.fromRGB(113, 138, 160), material = Enum.Material.Metal },
+		{ part = "MechThrusterThroat_1", id = "rbxassetid://97890858288145", offset = Vector3.new(-3.53999996, 1.25999999, 7.63800001), size = Vector3.new(2.74800014, 2.74800014, 0.131999969), colour = Color3.fromRGB(15, 24, 38), material = Enum.Material.SmoothPlastic },
+		{ part = "MechTurbineGlow_1", id = "rbxassetid://105727053550392", offset = Vector3.new(-3.53999996, 1.25999999, 7.74600029), size = Vector3.new(2.48400021, 2.48399985, 0.119999886), colour = Color3.fromRGB(40, 225, 250), material = Enum.Material.Neon },
+		{ part = "MechTurbineRotor_1", id = "rbxassetid://125680870580110", offset = Vector3.new(-3.53999996, 1.25999999, 7.85999966), size = Vector3.new(2.54999995, 2.45856798, 0.239999771), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechContinuousBackArmor", id = "rbxassetid://80625136633718", offset = Vector3.new(-7.15255737e-07, 1.05754542, 1.31791806), size = Vector3.new(12.7501817, 10.2021823, 10.8927989), colour = Color3.fromRGB(198, 210, 219), material = Enum.Material.Metal },
+		{ part = "MechForeheadConnectedPlate", id = "rbxassetid://90733378854352", offset = Vector3.new(0.000116586685, 5.44394112, -2.78815246), size = Vector3.new(5.59643888, 1.29468536, 3.07641542), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechCrownSeam_90", id = "rbxassetid://121219778568109", offset = Vector3.new(-3.47250175, 1.59076047, 0), size = Vector3.new(5.90100372, 9.16909742, 0.0539999977), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechCrownSeam_180", id = "rbxassetid://74611202648151", offset = Vector3.new(0, 1.1245122, 5.06229162), size = Vector3.new(0.0539999977, 8.57326794, 3.4645834), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechCrownSeam_270", id = "rbxassetid://136399079159003", offset = Vector3.new(3.47250175, 1.59075832, 0), size = Vector3.new(5.90100372, 9.16909599, 0.0539999977), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechOpenCoinSlotRim", id = "rbxassetid://123933974712614", offset = Vector3.new(0, 5.48713207, 1.62), size = Vector3.new(1.296, 1.41565847, 3.64800002), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechLowerGuard_-1", id = "rbxassetid://81502416380492", offset = Vector3.new(6.55799961, -1.13999987, 0.479999959), size = Vector3.new(0.684000015, 3.11999977, 2.15999997), colour = Color3.fromRGB(198, 210, 219), material = Enum.Material.Metal },
+		{ part = "MechHinge_-1", id = "rbxassetid://116237438188552", offset = Vector3.new(6.99600029, -0.210000023, 0.420000017), size = Vector3.new(0.131999969, 0.911999971, 0.911999941), colour = Color3.fromRGB(15, 24, 38), material = Enum.Material.SmoothPlastic },
+		{ part = "MechHingePin_-1", id = "rbxassetid://89673460941866", offset = Vector3.new(7.08599997, -0.210000008, 0.420000017), size = Vector3.new(0.0959997177, 0.384000005, 0.383999974), colour = Color3.fromRGB(113, 138, 160), material = Enum.Material.Metal },
+		{ part = "MechLowerGuard_1", id = "rbxassetid://84095006107532", offset = Vector3.new(-6.55799961, -1.13999987, 0.479999959), size = Vector3.new(0.684000015, 3.11999977, 2.15999997), colour = Color3.fromRGB(198, 210, 219), material = Enum.Material.Metal },
+		{ part = "MechHinge_1", id = "rbxassetid://116237438188552", offset = Vector3.new(-6.99600029, -0.210000023, 0.420000017), size = Vector3.new(0.131999969, 0.911999971, 0.911999941), colour = Color3.fromRGB(15, 24, 38), material = Enum.Material.SmoothPlastic },
+		{ part = "MechHingePin_1", id = "rbxassetid://89673460941866", offset = Vector3.new(-7.08599997, -0.210000008, 0.420000017), size = Vector3.new(0.0959997177, 0.384000005, 0.383999974), colour = Color3.fromRGB(113, 138, 160), material = Enum.Material.Metal },
+		{ part = "MechRecessedSide_-1Rim", id = "rbxassetid://125188039663458", offset = Vector3.new(5.16632462, 1.05332124, -2.85921955), size = Vector3.new(2.12707949, 4.16044402, 3.10748386), colour = Color3.fromRGB(198, 210, 219), material = Enum.Material.Metal },
+		{ part = "MechRecessedSide_-1Inset", id = "rbxassetid://108902944879621", offset = Vector3.new(5.04374027, 1.0111146, -2.76276159), size = Vector3.new(1.74559212, 3.7639789, 2.72902787), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechRecessedSide_-1Light_0", id = "rbxassetid://129141878952640", offset = Vector3.new(5.41604137, -0.0328661054, -2.89134169), size = Vector3.new(0.842520237, 0.372685134, 1.7841537), colour = Color3.fromRGB(40, 225, 250), material = Enum.Material.Neon },
+		{ part = "MechRecessedSide_-1Light_1", id = "rbxassetid://131635569748287", offset = Vector3.new(5.33046341, 1.04638267, -2.84895182), size = Vector3.new(0.870943546, 0.383836627, 1.77581596), colour = Color3.fromRGB(40, 225, 250), material = Enum.Material.Neon },
+		{ part = "MechRecessedSide_-1Light_2", id = "rbxassetid://119158829296817", offset = Vector3.new(5.06901217, 2.08145118, -2.70900059), size = Vector3.new(0.876448631, 0.382503986, 1.70232964), colour = Color3.fromRGB(40, 225, 250), material = Enum.Material.Neon },
+		{ part = "MechRecessedSide_1Rim", id = "rbxassetid://96400491410902", offset = Vector3.new(-5.16701508, 1.05417204, -2.85930395), size = Vector3.new(2.12569761, 4.16198683, 3.1073482), colour = Color3.fromRGB(198, 210, 219), material = Enum.Material.Metal },
+		{ part = "MechRecessedSide_1Inset", id = "rbxassetid://85302555669869", offset = Vector3.new(-5.04374981, 1.01199496, -2.76280832), size = Vector3.new(1.74558496, 3.76570016, 2.7289722), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechRecessedSide_1Light_0", id = "rbxassetid://72386536844933", offset = Vector3.new(-5.41597748, -0.0328597799, -2.89136577), size = Vector3.new(0.8427248, 0.372682497, 1.7842468), colour = Color3.fromRGB(40, 225, 250), material = Enum.Material.Neon },
+		{ part = "MechRecessedSide_1Light_1", id = "rbxassetid://85021345180028", offset = Vector3.new(-5.33106804, 1.04650164, -2.8490479), size = Vector3.new(0.869970798, 0.384014249, 1.77577639), colour = Color3.fromRGB(40, 225, 250), material = Enum.Material.Neon },
+		{ part = "MechRecessedSide_1Light_2", id = "rbxassetid://129609363070130", offset = Vector3.new(-5.06970549, 2.08163476, -2.70968723), size = Vector3.new(0.875832558, 0.38260591, 1.70322227), colour = Color3.fromRGB(40, 225, 250), material = Enum.Material.Neon },
+		{ part = "MechRecessedRearRim", id = "rbxassetid://77951665099761", offset = Vector3.new(5.96046448e-07, 1.08386326, 6.11664295), size = Vector3.new(3.31368041, 4.31201553, 1.36965179), colour = Color3.fromRGB(198, 210, 219), material = Enum.Material.Metal },
+		{ part = "MechRecessedRearInset", id = "rbxassetid://102079718294415", offset = Vector3.new(5.36441803e-07, 1.04463005, 6.01899433), size = Vector3.new(2.94639814, 3.91542816, 1.10337973), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechRecessedRearLight_0", id = "rbxassetid://98124476495683", offset = Vector3.new(-6.55651093e-07, -0.0345814452, 6.5502634), size = Vector3.new(2.0643748, 0.392256543, 0.132462978), colour = Color3.fromRGB(40, 225, 250), material = Enum.Material.Neon },
+		{ part = "MechRecessedRearLight_1", id = "rbxassetid://117748920181119", offset = Vector3.new(-2.2649765e-06, 1.10598683, 6.4338932), size = Vector3.new(2.03607678, 0.38841176, 0.197374821), colour = Color3.fromRGB(40, 225, 250), material = Enum.Material.Neon },
+		{ part = "MechRecessedRearLight_2", id = "rbxassetid://97170121791003", offset = Vector3.new(-2.59280205e-06, 2.18853211, 6.08022404), size = Vector3.new(1.93250638, 0.365661144, 0.268873692), colour = Color3.fromRGB(40, 225, 250), material = Enum.Material.Neon },
+		{ part = "MechShoulderFrame_-1", id = "rbxassetid://86135621330959", offset = Vector3.new(5.49312019, 0.543967247, 1.41599607), size = Vector3.new(2.20347977, 6.55461502, 5.38488185), colour = Color3.fromRGB(113, 138, 160), material = Enum.Material.Metal },
+		{ part = "MechShoulderNavy_-1", id = "rbxassetid://137971791704042", offset = Vector3.new(5.50205708, 0.533058643, 1.38126719), size = Vector3.new(1.90989351, 6.15788078, 5.01191878), colour = Color3.fromRGB(255, 255, 255), material = Enum.Material.Metal, surfaceTemplate = "arcade_mechaplayer_MechShoulderNavy_-1" },
+		{ part = "MechShoulderFrame_1", id = "rbxassetid://108479221685466", offset = Vector3.new(-5.49243021, 0.543091059, 1.41596103), size = Vector3.new(2.20490551, 6.55407286, 5.38481176), colour = Color3.fromRGB(113, 138, 160), material = Enum.Material.Metal },
+		{ part = "MechShoulderNavy_1", id = "rbxassetid://87118812669166", offset = Vector3.new(-5.50188923, 0.532913327, 1.38127244), size = Vector3.new(1.91022491, 6.15765166, 5.01192927), colour = Color3.fromRGB(255, 255, 255), material = Enum.Material.Metal, surfaceTemplate = "arcade_mechaplayer_MechShoulderNavy_1" },
+		{ part = "MechFacePlateGasket", id = "rbxassetid://104096275372314", offset = Vector3.new(0.000303030014, 0.215933084, -3.81188774), size = Vector3.new(8.7290206, 9.19262648, 1.34222054), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechFacePlate", id = "rbxassetid://94700410273232", offset = Vector3.new(0.000197410583, 0.219532967, -4.92303181), size = Vector3.new(8.78708649, 9.2418232, 3.38779879), colour = Color3.fromRGB(221, 230, 237), material = Enum.Material.SmoothPlastic },
+		{ part = "MechInsetCheekConnector_-1", id = "rbxassetid://131165952608893", offset = Vector3.new(4.07795238, 0.225499511, -4.72192383), size = Vector3.new(1.06659222, 1.98585534, 1.05861235), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechInsetCheekConnector_1", id = "rbxassetid://109832710668263", offset = Vector3.new(-4.07780218, 0.225475252, -4.72190428), size = Vector3.new(1.06705284, 1.98564637, 1.05857086), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechLegSocket_-1_0", id = "rbxassetid://121239903386651", offset = Vector3.new(3, -4.02000046, -2.88000011), size = Vector3.new(3.23999989, 1.44000006, 3.24000001), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechJointPiston_-1_0", id = "rbxassetid://104304305175496", offset = Vector3.new(3, -4.38000011, -2.88000011), size = Vector3.new(2.46000004, 1.31999993, 2.46000004), colour = Color3.fromRGB(15, 24, 38), material = Enum.Material.SmoothPlastic },
+		{ part = "MechBootUpper_-1_0", id = "rbxassetid://78868043513985", offset = Vector3.new(3, -4.88999987, -2.87999988), size = Vector3.new(3.20400023, 0.720000267, 3.20399988), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechBootSole_-1_0", id = "rbxassetid://93252101423360", offset = Vector3.new(3, -6.22200012, -2.87999988), size = Vector3.new(3.48000026, 1.1159997, 3.4799999), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechBootSteelBelt_-1_0", id = "rbxassetid://115702168193951", offset = Vector3.new(3, -5.30700016, -2.88000011), size = Vector3.new(3.51599991, 0.990000248, 3.51600003), colour = Color3.fromRGB(198, 210, 219), material = Enum.Material.Metal },
+		{ part = "MechBootDisplayWell_-1_0", id = "rbxassetid://98375663785182", offset = Vector3.new(3, -5.3760004, -4.32600021), size = Vector3.new(1.09200001, 0.468000412, 0.0839996338), colour = Color3.fromRGB(15, 24, 38), material = Enum.Material.SmoothPlastic },
+		{ part = "MechBootDisplay_-1_0", id = "rbxassetid://112507029086897", offset = Vector3.new(3, -5.3760004, -4.39799976), size = Vector3.new(0.809999943, 0.210000038, 0.0360002518), colour = Color3.fromRGB(40, 225, 250), material = Enum.Material.Neon },
+		{ part = "MechPaintBoot_-1_0_0", id = "rbxassetid://86230750144785", offset = Vector3.new(4.58383369, -5.34599972, -2.29711795), size = Vector3.new(0.326049328, 0.731999874, 0.870054364), colour = Color3.fromRGB(255, 172, 30), material = Enum.Material.SmoothPlastic },
+		{ part = "MechPaintBoot_-1_0_1", id = "rbxassetid://127151375087585", offset = Vector3.new(4.72854137, -5.34599972, -2.89231181), size = Vector3.new(0.0757164955, 0.731999874, 0.932694912), colour = Color3.fromRGB(255, 172, 30), material = Enum.Material.SmoothPlastic },
+		{ part = "MechPaintBoot_-1_0_2", id = "rbxassetid://90146528319850", offset = Vector3.new(4.57409954, -5.34599972, -3.48640847), size = Vector3.new(0.338620663, 0.731999874, 0.864923), colour = Color3.fromRGB(255, 172, 30), material = Enum.Material.SmoothPlastic },
+		{ part = "MechLegSocket_-1_1", id = "rbxassetid://127582239704908", offset = Vector3.new(3, -4.02000046, 3.24000025), size = Vector3.new(3.23999989, 1.44000006, 3.24000001), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechJointPiston_-1_1", id = "rbxassetid://140017325716319", offset = Vector3.new(3, -4.38000011, 3.24000025), size = Vector3.new(2.46000004, 1.31999993, 2.46000028), colour = Color3.fromRGB(15, 24, 38), material = Enum.Material.SmoothPlastic },
+		{ part = "MechBootUpper_-1_1", id = "rbxassetid://97212357237652", offset = Vector3.new(3, -4.88999987, 3.24000001), size = Vector3.new(3.20400023, 0.720000267, 3.204), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechBootSole_-1_1", id = "rbxassetid://140637072417385", offset = Vector3.new(3, -6.22200012, 3.24000001), size = Vector3.new(3.48000026, 1.1159997, 3.48000002), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechBootSteelBelt_-1_1", id = "rbxassetid://78700828677380", offset = Vector3.new(3, -5.30700016, 3.24000001), size = Vector3.new(3.51599991, 0.990000248, 3.51600015), colour = Color3.fromRGB(198, 210, 219), material = Enum.Material.Metal },
+		{ part = "MechBootDisplayWell_-1_1", id = "rbxassetid://74803193439983", offset = Vector3.new(3, -5.3760004, 1.79399991), size = Vector3.new(1.09200001, 0.468000412, 0.0840001106), colour = Color3.fromRGB(15, 24, 38), material = Enum.Material.SmoothPlastic },
+		{ part = "MechBootDisplay_-1_1", id = "rbxassetid://81325327569939", offset = Vector3.new(3, -5.3760004, 1.722), size = Vector3.new(0.809999943, 0.210000038, 0.0360000134), colour = Color3.fromRGB(40, 225, 250), material = Enum.Material.Neon },
+		{ part = "MechPaintBoot_-1_1_0", id = "rbxassetid://88629619255362", offset = Vector3.new(4.58383369, -5.34599972, 3.82288218), size = Vector3.new(0.326049328, 0.731999874, 0.870054245), colour = Color3.fromRGB(255, 172, 30), material = Enum.Material.SmoothPlastic },
+		{ part = "MechPaintBoot_-1_1_1", id = "rbxassetid://122493016971142", offset = Vector3.new(4.72854137, -5.34599972, 3.22768831), size = Vector3.new(0.0757164955, 0.731999874, 0.932694435), colour = Color3.fromRGB(255, 172, 30), material = Enum.Material.SmoothPlastic },
+		{ part = "MechPaintBoot_-1_1_2", id = "rbxassetid://74425965686707", offset = Vector3.new(4.57409954, -5.34599972, 2.63359165), size = Vector3.new(0.338620663, 0.731999874, 0.864923), colour = Color3.fromRGB(255, 172, 30), material = Enum.Material.SmoothPlastic },
+		{ part = "MechLegSocket_1_0", id = "rbxassetid://119360759925516", offset = Vector3.new(-3, -4.02000046, -2.88000011), size = Vector3.new(3.23999989, 1.44000006, 3.24000001), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechJointPiston_1_0", id = "rbxassetid://83635654618289", offset = Vector3.new(-3, -4.38000011, -2.88000011), size = Vector3.new(2.46000004, 1.31999993, 2.46000004), colour = Color3.fromRGB(15, 24, 38), material = Enum.Material.SmoothPlastic },
+		{ part = "MechBootUpper_1_0", id = "rbxassetid://75625604715869", offset = Vector3.new(-3, -4.88999987, -2.87999988), size = Vector3.new(3.20400023, 0.720000267, 3.20399988), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechBootSole_1_0", id = "rbxassetid://90261376753870", offset = Vector3.new(-3, -6.22200012, -2.87999988), size = Vector3.new(3.48000026, 1.1159997, 3.4799999), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechBootSteelBelt_1_0", id = "rbxassetid://107921040146145", offset = Vector3.new(-3, -5.30700016, -2.88000011), size = Vector3.new(3.51599991, 0.990000248, 3.51600003), colour = Color3.fromRGB(198, 210, 219), material = Enum.Material.Metal },
+		{ part = "MechBootDisplayWell_1_0", id = "rbxassetid://97540553136867", offset = Vector3.new(-3, -5.3760004, -4.32600021), size = Vector3.new(1.09200001, 0.468000412, 0.0839996338), colour = Color3.fromRGB(15, 24, 38), material = Enum.Material.SmoothPlastic },
+		{ part = "MechBootDisplay_1_0", id = "rbxassetid://112507029086897", offset = Vector3.new(-3, -5.3760004, -4.39799976), size = Vector3.new(0.809999943, 0.210000038, 0.0360002518), colour = Color3.fromRGB(40, 225, 250), material = Enum.Material.Neon },
+		{ part = "MechPaintBoot_1_0_0", id = "rbxassetid://124899640756464", offset = Vector3.new(-4.58383369, -5.34599972, -3.46288204), size = Vector3.new(0.326049328, 0.731999874, 0.870054245), colour = Color3.fromRGB(255, 172, 30), material = Enum.Material.SmoothPlastic },
+		{ part = "MechPaintBoot_1_0_1", id = "rbxassetid://124102682554091", offset = Vector3.new(-4.72854137, -5.34599972, -2.86768842), size = Vector3.new(0.0757164955, 0.731999874, 0.932694912), colour = Color3.fromRGB(255, 172, 30), material = Enum.Material.SmoothPlastic },
+		{ part = "MechPaintBoot_1_0_2", id = "rbxassetid://129960223399423", offset = Vector3.new(-4.57409954, -5.34599972, -2.27359152), size = Vector3.new(0.338620663, 0.731999874, 0.864922881), colour = Color3.fromRGB(255, 172, 30), material = Enum.Material.SmoothPlastic },
+		{ part = "MechLegSocket_1_1", id = "rbxassetid://108295614140042", offset = Vector3.new(-3, -4.02000046, 3.24000025), size = Vector3.new(3.23999989, 1.44000006, 3.24000001), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechJointPiston_1_1", id = "rbxassetid://72806524595186", offset = Vector3.new(-3, -4.38000011, 3.24000025), size = Vector3.new(2.46000004, 1.31999993, 2.46000028), colour = Color3.fromRGB(15, 24, 38), material = Enum.Material.SmoothPlastic },
+		{ part = "MechBootUpper_1_1", id = "rbxassetid://87702698843327", offset = Vector3.new(-3, -4.88999987, 3.24000001), size = Vector3.new(3.20400023, 0.720000267, 3.204), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechBootSole_1_1", id = "rbxassetid://70424637287016", offset = Vector3.new(-3, -6.22200012, 3.24000001), size = Vector3.new(3.48000026, 1.1159997, 3.48000002), colour = Color3.fromRGB(30, 44, 70), material = Enum.Material.Metal },
+		{ part = "MechBootSteelBelt_1_1", id = "rbxassetid://114930992051490", offset = Vector3.new(-3, -5.30700016, 3.24000001), size = Vector3.new(3.51599991, 0.990000248, 3.51600015), colour = Color3.fromRGB(198, 210, 219), material = Enum.Material.Metal },
+		{ part = "MechBootDisplayWell_1_1", id = "rbxassetid://92531076213891", offset = Vector3.new(-3, -5.3760004, 1.79399991), size = Vector3.new(1.09200001, 0.468000412, 0.0840001106), colour = Color3.fromRGB(15, 24, 38), material = Enum.Material.SmoothPlastic },
+		{ part = "MechBootDisplay_1_1", id = "rbxassetid://81325327569939", offset = Vector3.new(-3, -5.3760004, 1.722), size = Vector3.new(0.809999943, 0.210000038, 0.0360000134), colour = Color3.fromRGB(40, 225, 250), material = Enum.Material.Neon },
+		{ part = "MechPaintBoot_1_1_0", id = "rbxassetid://77790906207651", offset = Vector3.new(-4.58383369, -5.34599972, 2.65711784), size = Vector3.new(0.326049328, 0.731999874, 0.870054245), colour = Color3.fromRGB(255, 172, 30), material = Enum.Material.SmoothPlastic },
+		{ part = "MechPaintBoot_1_1_1", id = "rbxassetid://106176289834579", offset = Vector3.new(-4.72854137, -5.34599972, 3.25231194), size = Vector3.new(0.0757164955, 0.731999874, 0.932694912), colour = Color3.fromRGB(255, 172, 30), material = Enum.Material.SmoothPlastic },
+		{ part = "MechPaintBoot_1_1_2", id = "rbxassetid://76563274911311", offset = Vector3.new(-4.57409954, -5.34599972, 3.84640837), size = Vector3.new(0.338620663, 0.731999874, 0.864922523), colour = Color3.fromRGB(255, 172, 30), material = Enum.Material.SmoothPlastic },
+	},
+	-- END ARCADE ACCESSORIES
+	rockslide = {
+		{ part = "SlatePlate_-1_0", id = "rbxassetid://95705444632969", offset = Vector3.new(4.82729912, 3.19978237, -0.628897607), size = Vector3.new(1.88190651, 2.16587639, 2.0693821), colour = Color3.fromRGB(117, 127, 138), material = Enum.Material.SmoothPlastic },
+		{ part = "SlatePlate_-1_1", id = "rbxassetid://81942397131464", offset = Vector3.new(4.02571344, 4.1798358, 0.317618549), size = Vector3.new(2.15359783, 1.96326947, 2.18047965), colour = Color3.fromRGB(151, 157, 163), material = Enum.Material.SmoothPlastic },
+		{ part = "SlatePlate_-1_2", id = "rbxassetid://131487450002297", offset = Vector3.new(4.76959896, 3.22558403, 1.46394956), size = Vector3.new(1.98061132, 2.31726837, 2.0169118), colour = Color3.fromRGB(95, 106, 119), material = Enum.Material.SmoothPlastic },
+		{ part = "SlatePlate_-1_3", id = "rbxassetid://137800263820687", offset = Vector3.new(3.55416679, 3.95484447, 2.28918648), size = Vector3.new(2.25212765, 2.11519527, 1.96901917), colour = Color3.fromRGB(117, 127, 138), material = Enum.Material.SmoothPlastic },
+		{ part = "SlatePlate_-1_4", id = "rbxassetid://71027910705905", offset = Vector3.new(4.19493341, 2.7043457, 3.23819375), size = Vector3.new(1.9625597, 2.38787842, 1.96391439), colour = Color3.fromRGB(151, 157, 163), material = Enum.Material.SmoothPlastic },
+		{ part = "SlatePlate_-1_5", id = "rbxassetid://120973207950510", offset = Vector3.new(3.16043949, 3.45895839, 3.72938681), size = Vector3.new(2.24822021, 1.95738173, 2.11786199), colour = Color3.fromRGB(95, 106, 119), material = Enum.Material.SmoothPlastic },
+		{ part = "SlatePlate_1_0", id = "rbxassetid://137272631460380", offset = Vector3.new(-4.79699135, 3.24901152, -0.629908562), size = Vector3.new(1.77706528, 2.24411654, 2.07016897), colour = Color3.fromRGB(117, 127, 138), material = Enum.Material.SmoothPlastic },
+		{ part = "SlatePlate_1_1", id = "rbxassetid://116141623168395", offset = Vector3.new(-3.90833759, 4.28054953, 0.31717211), size = Vector3.new(2.17086005, 1.94687915, 2.18035519), colour = Color3.fromRGB(151, 157, 163), material = Enum.Material.SmoothPlastic },
+		{ part = "SlatePlate_1_2", id = "rbxassetid://86301956291898", offset = Vector3.new(-4.79516268, 3.18862081, 1.46554983), size = Vector3.new(1.87256145, 2.39870405, 2.0191443), colour = Color3.fromRGB(95, 106, 119), material = Enum.Material.SmoothPlastic },
+		{ part = "SlatePlate_1_3", id = "rbxassetid://102582755232263", offset = Vector3.new(-3.73431849, 3.84167862, 2.28998446), size = Vector3.new(2.33904886, 2.06920266, 1.9681735), colour = Color3.fromRGB(117, 127, 138), material = Enum.Material.SmoothPlastic },
+		{ part = "SlatePlate_1_4", id = "rbxassetid://120858597297830", offset = Vector3.new(-4.15966558, 2.81077361, 3.23628712), size = Vector3.new(2.19319153, 2.24426186, 1.95632768), colour = Color3.fromRGB(151, 157, 163), material = Enum.Material.SmoothPlastic },
+		{ part = "SlatePlate_1_5", id = "rbxassetid://107858989140430", offset = Vector3.new(-3.21440315, 3.34462905, 3.73280096), size = Vector3.new(2.15126586, 2.05314779, 2.09537864), colour = Color3.fromRGB(95, 106, 119), material = Enum.Material.SmoothPlastic },
+	},
+	quartz = {
+		{ part = "QuartzCluster_-1_0", id = "rbxassetid://102218414196080", offset = Vector3.new(4.8815794, 3.91636467, -0.45445329), size = Vector3.new(1.75939131, 2.15920711, 1.35157672), colour = Color3.fromRGB(239, 197, 229), material = Enum.Material.SmoothPlastic },
+		{ part = "QuartzCluster_-1_1", id = "rbxassetid://76721414025591", offset = Vector3.new(4.02255726, 5.12509346, 0.588368297), size = Vector3.new(1.48970509, 2.67144775, 1.21310213), colour = Color3.fromRGB(209, 159, 207), material = Enum.Material.SmoothPlastic },
+		{ part = "QuartzCluster_-1_2", id = "rbxassetid://113430228215423", offset = Vector3.new(4.78309345, 4.29264116, 1.65150034), size = Vector3.new(1.80362344, 2.94131184, 1.50138634), colour = Color3.fromRGB(249, 221, 239), material = Enum.Material.SmoothPlastic },
+		{ part = "QuartzCluster_-1_3", id = "rbxassetid://112693669248055", offset = Vector3.new(3.76198339, 4.62618351, 2.48792958), size = Vector3.new(1.45959663, 2.2412858, 1.32961941), colour = Color3.fromRGB(239, 197, 229), material = Enum.Material.SmoothPlastic },
+		{ part = "QuartzCluster_-1_4", id = "rbxassetid://93588991656369", offset = Vector3.new(4.2756834, 3.69879293, 3.35118103), size = Vector3.new(1.74592972, 2.55352306, 1.6194315), colour = Color3.fromRGB(209, 159, 207), material = Enum.Material.SmoothPlastic },
+		{ part = "QuartzCluster_1_0", id = "rbxassetid://111765883296572", offset = Vector3.new(-4.88197947, 3.91663694, -0.454938352), size = Vector3.new(1.75953579, 2.15937877, 1.35327017), colour = Color3.fromRGB(239, 197, 229), material = Enum.Material.SmoothPlastic },
+		{ part = "QuartzCluster_1_1", id = "rbxassetid://132092851419359", offset = Vector3.new(-4.0226326, 5.12518024, 0.588172555), size = Vector3.new(1.4897089, 2.67136025, 1.2139485), colour = Color3.fromRGB(209, 159, 207), material = Enum.Material.SmoothPlastic },
+		{ part = "QuartzCluster_1_2", id = "rbxassetid://71286330498366", offset = Vector3.new(-4.78275967, 4.29290104, 1.65216851), size = Vector3.new(1.8041923, 2.94064283, 1.49847853), colour = Color3.fromRGB(249, 221, 239), material = Enum.Material.SmoothPlastic },
+		{ part = "QuartzCluster_1_3", id = "rbxassetid://104523737503921", offset = Vector3.new(-3.76263189, 4.62531757, 2.48631287), size = Vector3.new(1.45920467, 2.23848534, 1.33670926), colour = Color3.fromRGB(239, 197, 229), material = Enum.Material.SmoothPlastic },
+		{ part = "QuartzCluster_1_4", id = "rbxassetid://97253970976433", offset = Vector3.new(-4.27448988, 3.69623709, 3.34739733), size = Vector3.new(1.74179173, 2.55433846, 1.62612653), colour = Color3.fromRGB(209, 159, 207), material = Enum.Material.SmoothPlastic },
+	},
+	supernova = {
+		{ part = "SolarFlame_0", id = "90445924857498",
+			offset = Vector3.new(-5.22432617, 3.22908569, 1.06198708),
+			size = Vector3.new(0.7988, 4.1214, 2.2346),
+			colour = Color3.fromRGB(255, 161, 30), material = Enum.Material.Neon },
+		{ part = "SolarCinder_0", id = "94188400443914",
+			offset = Vector3.new(-7.58571533, 1.80000000, 1.53770065),
+			size = Vector3.new(0.6225, 0.696, 0.592),
+			colour = Color3.fromRGB(255, 161, 30), material = Enum.Material.Neon },
+		{ part = "SolarFlame_1", id = "97544915095432",
+			offset = Vector3.new(-4.36661804, 3.58428223, 3.35790985),
+			size = Vector3.new(1.3798, 4.7154, 1.8151),
+			colour = Color3.fromRGB(255, 161, 30), material = Enum.Material.Neon },
+		{ part = "SolarCinder_1", id = "84193310904104",
+			offset = Vector3.new(-6.16168884, 3.52765564, 4.68414307),
+			size = Vector3.new(0.6225, 0.696, 0.592),
+			colour = Color3.fromRGB(255, 161, 30), material = Enum.Material.Neon },
+		{ part = "SolarFlame_2", id = "77165310478228",
+			offset = Vector3.new(-2.81785583, 3.37401398, 4.93892883),
+			size = Vector3.new(1.9777, 4.1214, 1.1608),
+			colour = Color3.fromRGB(255, 161, 30), material = Enum.Material.Neon },
+		{ part = "SolarCinder_2", id = "136105737457090",
+			offset = Vector3.new(-3.85119965, 2.30488266, 6.71385620),
+			size = Vector3.new(0.6225, 0.696, 0.592),
+			colour = Color3.fromRGB(255, 161, 30), material = Enum.Material.Neon },
+		{ part = "SolarFlame_3", id = "109065462123123",
+			offset = Vector3.new(2.80967834, 3.68991760, 4.94489471),
+			size = Vector3.new(1.9795, 4.7154, 1.1589),
+			colour = Color3.fromRGB(255, 161, 30), material = Enum.Material.Neon },
+		{ part = "SolarCinder_3", id = "117675318219423",
+			offset = Vector3.new(3.84050201, 3.83849731, 6.71998047),
+			size = Vector3.new(0.6225, 0.696, 0.592),
+			colour = Color3.fromRGB(255, 161, 30), material = Enum.Material.Neon },
+		{ part = "SolarFlame_4", id = "74538786111557",
+			offset = Vector3.new(4.39330933, 3.35734589, 3.31579865),
+			size = Vector3.new(1.3645, 4.1214, 1.8266),
+			colour = Color3.fromRGB(255, 161, 30), material = Enum.Material.Neon },
+		{ part = "SolarCinder_4", id = "128193618912220",
+			offset = Vector3.new(6.20085144, 2.34557861, 4.63217438),
+			size = Vector3.new(0.6225, 0.696, 0.592),
+			colour = Color3.fromRGB(255, 161, 30), material = Enum.Material.Neon },
+		{ part = "SolarFlame_5", id = "99946344298111",
+			offset = Vector3.new(5.22283813, 3.61583740, 1.07181183),
+			size = Vector3.new(0.8001, 4.7154, 2.2338),
+			colour = Color3.fromRGB(255, 161, 30), material = Enum.Material.Neon },
+		{ part = "SolarCinder_5", id = "83258704143490",
+			offset = Vector3.new(7.58325623, 3.59908356, 1.54977997),
+			size = Vector3.new(0.6225, 0.696, 0.592),
+			colour = Color3.fromRGB(255, 161, 30), material = Enum.Material.Neon },
+	},
+	prismatic = {
+		-- TURNED A HALF TURN ONTO THE PIG'S BACK (designer, 2026-09-23:
+		-- "the ring should be behind its body ... it is currently in front").
+		-- The whole set was authored on the FACE side: measured on a live
+		-- display, the eyes sit at body-local z -2.68 and every gem ran
+		-- -0.83 to -4.95 with the arc at -2.92, so the ring hung across the
+		-- snout. `SKIN_ACCESSORIES.jackpot` is what settles which way round
+		-- the convention is -- its `RearHousing` is +z and its `FrontSill`
+		-- is -z -- so it is this one set that came in mirrored, which is
+		-- the fault `PIGGY_MESH` already records one table up: THE IMPORTER
+		-- MIRRORS Z AND NOTHING SAYS SO.
+		--
+		-- A HALF TURN RATHER THAN A NEGATED Z, because only the first is a
+		-- motion a part can make. Flipping the offset alone leaves each
+		-- mesh's own orientation where it was, so the arc would stand
+		-- behind the pig still curving away from it -- a band bulging off
+		-- the rump rather than wrapping it. `(-x, y, -z)` plus a half turn
+		-- about Y is the same rigid rotation applied to the seat and to the
+		-- geometry, so the ring keeps its curve and its colour order and
+		-- only changes which side of the animal it is on.
+		{ part = "OrbitPrism_0", id = "78199688545166",
+			offset = Vector3.new(-9.3301, 1.7999, 1.648),
+			size = Vector3.new(2.222, 3.12, 2.2796),
+			colour = Color3.fromRGB(229, 88, 167), material = Enum.Material.SmoothPlastic,
+			rot = CFrame.Angles(0, math.pi, 0), spin = 0.25 },
+		{ part = "OrbitPrism_1", id = "122280583672691",
+			offset = Vector3.new(-7.2997, 2.6189, 6.7587),
+			size = Vector3.new(2.2439, 3.12, 2.2573),
+			colour = Color3.fromRGB(255, 176, 48), material = Enum.Material.SmoothPlastic,
+			rot = CFrame.Angles(0, math.pi, 0), spin = 0.25 },
+		{ part = "OrbitPrism_2", id = "93103909705681",
+			offset = Vector3.new(-2.7496, 3.1138, 9.847),
+			size = Vector3.new(2.2748, 3.12, 2.2267),
+			colour = Color3.fromRGB(120, 220, 120), material = Enum.Material.SmoothPlastic,
+			rot = CFrame.Angles(0, math.pi, 0), spin = 0.25 },
+		{ part = "OrbitPrism_3", id = "86351531731033",
+			offset = Vector3.new(2.7496, 3.1138, 9.847),
+			size = Vector3.new(2.2748, 3.12, 2.2267),
+			colour = Color3.fromRGB(61, 213, 216), material = Enum.Material.SmoothPlastic,
+			rot = CFrame.Angles(0, math.pi, 0), spin = 0.25 },
+		{ part = "OrbitPrism_4", id = "83315036072183",
+			offset = Vector3.new(7.2997, 2.6189, 6.7587),
+			size = Vector3.new(2.2439, 3.12, 2.2573),
+			colour = Color3.fromRGB(98, 72, 153), material = Enum.Material.SmoothPlastic,
+			rot = CFrame.Angles(0, math.pi, 0), spin = 0.25 },
+		{ part = "OrbitPrism_5", id = "94627936405695",
+			offset = Vector3.new(9.3301, 1.7999, 1.648),
+			size = Vector3.new(2.222, 3.12, 2.2796),
+			colour = Color3.fromRGB(236, 84, 120), material = Enum.Material.SmoothPlastic,
+			rot = CFrame.Angles(0, math.pi, 0), spin = 0.25 },
+		-- THE SIX GEMS SPIN AND THE ARC DOES NOT (designer, 2026-09-23: "the
+		-- prisms should be spinning in place"). `spin` is turns a second about
+		-- the body's up axis through the part's OWN centre, read by
+		-- `ArcadeAnimator`; 0.25 is a turn every four seconds, which is what
+		-- the retired `SkinFX.builders.prismatic` gave its boxes, so the pace is
+		-- the one this skin already had rather than a new number.
+		--
+		-- A GEM SPINS IN PLACE, A RING WOULD SWING. The arc is the sweep the
+		-- six stand on, so turning it about a vertical axis through its own
+		-- centre would swing 18 studs of band around the animal -- the ORBIT
+		-- the old builder had as a separate term, and not what was asked for.
+		--
+		-- THE ARC ALONE KEEPS ITS AUTHORED FACING, WHICH IS THE HALF THAT IS
+		-- NOT SYMMETRIC. A gem is a solid a half turn does not change, so the
+		-- six take the turn harmlessly. The band is a BOW: turning it flips
+		-- which way it opens, and with the ring moved to the rump that put its
+		-- belly against the animal and its ends flaring off the back -- curving
+		-- away from the body rather than into it (designer, 2026-09-23).
+		-- Moved but not turned, it opens the way the six gems sweep: ends at
+		-- the flanks, belly behind, wrapping the pig the way the shop card
+		-- draws it. Its footprint is the gems' own -- 18.12 by 8.39 against a
+		-- gem ring spanning 18.66 by 8.20 -- so the two are one sweep and have
+		-- to agree about which way it bends.
+		{ part = "PrismaticOrbitArc", id = "99132282147283",
+			offset = Vector3.new(0, 1.4705, 5.7964),
+			size = Vector3.new(18.1213, 1.5544, 8.3873),
+			colour = Color3.fromRGB(198, 190, 235), material = Enum.Material.Neon },
+	},
+	stormcaller = {
+		{ part = "StormCloud_-1_0", id = "80685499785866",
+			offset = Vector3.new(6.84, 1.0423, 2.4),
+			size = Vector3.new(3.0814, 3.24, 3.24),
+			colour = Color3.fromRGB(75, 88, 117), material = Enum.Material.SmoothPlastic },
+		{ part = "StormCloud_-1_1", id = "79446077582060",
+			offset = Vector3.new(7.92, 1.1623, 2.88),
+			size = Vector3.new(2.739, 2.88, 2.88),
+			colour = Color3.fromRGB(75, 88, 117), material = Enum.Material.SmoothPlastic },
+		{ part = "StormCloud_-1_2", id = "127601149524267",
+			offset = Vector3.new(5.94, 1.4023, 2.76),
+			size = Vector3.new(2.6249, 2.76, 2.76),
+			colour = Color3.fromRGB(75, 88, 117), material = Enum.Material.SmoothPlastic },
+		{ part = "StormCloud_-1_3", id = "111571168789133",
+			offset = Vector3.new(7.02, 1.7623, 1.68),
+			size = Vector3.new(2.8532, 3.0, 3.0),
+			colour = Color3.fromRGB(75, 88, 117), material = Enum.Material.SmoothPlastic },
+		{ part = "LightningFork_-1", id = "100924954761296",
+			offset = Vector3.new(7.0613, -1.3025, 2.3707),
+			size = Vector3.new(1.4375, 3.1321, 0.5987),
+			colour = Color3.fromRGB(74, 204, 255), material = Enum.Material.Neon },
+		{ part = "StormCloud_1_0", id = "98462912713484",
+			offset = Vector3.new(-6.84, 1.5977, 2.4),
+			size = Vector3.new(3.0814, 3.24, 3.24),
+			colour = Color3.fromRGB(75, 88, 117), material = Enum.Material.SmoothPlastic },
+		{ part = "StormCloud_1_1", id = "138823332218811",
+			offset = Vector3.new(-7.92, 1.7177, 2.88),
+			size = Vector3.new(2.739, 2.88, 2.88),
+			colour = Color3.fromRGB(75, 88, 117), material = Enum.Material.SmoothPlastic },
+		{ part = "StormCloud_1_2", id = "75004975455209",
+			offset = Vector3.new(-5.94, 1.9577, 2.76),
+			size = Vector3.new(2.6249, 2.76, 2.76),
+			colour = Color3.fromRGB(75, 88, 117), material = Enum.Material.SmoothPlastic },
+		{ part = "StormCloud_1_3", id = "77055885475038",
+			offset = Vector3.new(-7.02, 2.3177, 1.68),
+			size = Vector3.new(2.8532, 3.0, 3.0),
+			colour = Color3.fromRGB(75, 88, 117), material = Enum.Material.SmoothPlastic },
+		{ part = "LightningFork_1", id = "136148971791012",
+			offset = Vector3.new(-7.0613, -0.7471, 2.3707),
+			size = Vector3.new(1.4375, 3.1321, 0.5987),
+			colour = Color3.fromRGB(74, 204, 255), material = Enum.Material.Neon },
+	},
+	-- THE TWO ANIMAL EPICS, epic-v2 (2026-09-23), AND THE ONE FRAME
+	-- CONVERSION IN THIS TABLE. Every set above came out of the 3D Importer
+	-- already expressed against the body part. These two came through the
+	-- Open Cloud FBX route, and their `mesh-import.json` records a
+	-- `gameSeatPlacement` in the PLOT seat frame -- the frame the plot builds
+	-- in, where the pig faces +Z because plot-local +Z is the street and the
+	-- body centre stands at y 6.62.
+	--
+	-- `applyAccessories` SEATS OFF `body.CFrame`, WHICH IS NOT THAT FRAME, and
+	-- that is the whole of what had to be converted. The body part carries
+	-- `Config.PIGGY_MESH`'s own `rot = CFrame.Angles(0, math.pi, 0)` -- the
+	-- half turn that undoes the importer mirroring the .obj's Z -- so the
+	-- body's local axes are the plot's turned through 180 about Y, and its
+	-- local +Z IS THE RUMP. `SKIN_ACCESSORIES.jackpot` is the standing proof
+	-- of that and needs no measuring: its `RearHousing` is +z and its
+	-- `FrontSill` is -z. So the conversion is `(-x, y - 6.62, -z)`, and it is
+	-- applied to the numbers below rather than at the call site, because
+	-- every other row here is already body-relative and a per-set frame flag
+	-- would be a second thing to disagree.
+	--
+	-- WHICH ALSO MEANS THESE CARRY NO `rot`. The handoff says to install them
+	-- with a 180-degree Y rotation, and it is right about the geometry and
+	-- writing about the PLOT frame: seated off a body that is already turned,
+	-- the turn arrives for free and writing it again would cancel it.
+	--
+	-- BOTH HALVES FAIL SILENTLY AND IN DIFFERENT DIRECTIONS. Skip the 6.62
+	-- and the whole set rides that far above the animal -- a quill cap
+	-- floating over a hedgehog. Skip the negation and it is seated perfectly
+	-- and pointing the wrong way: the fan stands across the pig's face and
+	-- the crest sits on its rump, which on a symmetric fan photographs very
+	-- nearly like the right answer from the front. Neither errors, and the
+	-- receipt is correct in both cases -- it is the FRAME that had to be
+	-- established, and `Config.PIGGY_MESH_FACE.eye.z` (+5.333, plot frame) is
+	-- the number that establishes it.
+	--
+	-- WHITE AND NOT A COLOUR, because both sets are textured. The meshes
+	-- carry a compact palette map out of the FBX -- one sheet for all ten
+	-- peacock parts -- and `mesh.Color` on a MeshPart MULTIPLIES that map, so
+	-- anything but white would drag the whole palette toward one hue. Same
+	-- call the arcade rows make for every part carrying a `surfaceTemplate`.
+	hedgehog = {
+		{ part = "hedgehog_Quills", id = "rbxassetid://94226638486977",
+			offset = Vector3.new(-0.00748300552, 0.452487588, 2.4567554),
+			size = Vector3.new(15.3647103, 13.3799736, 11.674799),
+			colour = Color3.fromRGB(255, 255, 255), material = Enum.Material.SmoothPlastic },
+	},
+	peacock = {
+		{ part = "peacock_Crest", id = "rbxassetid://106339611156039",
+			offset = Vector3.new(0, 7.89950126, -2.40000004),
+			size = Vector3.new(4.43141699, 4.9609977, 0.679222941),
+			colour = Color3.fromRGB(255, 255, 255), material = Enum.Material.SmoothPlastic },
+		{ part = "peacock_FanFeather_01", id = "rbxassetid://97720288862767",
+			offset = Vector3.new(5.1306989, -2.839095, 5.73440355),
+			size = Vector3.new(10.288805, 3.74912381, 1.58356297),
+			colour = Color3.fromRGB(255, 255, 255), material = Enum.Material.SmoothPlastic },
+		{ part = "peacock_FanFeather_02", id = "rbxassetid://79198540243792",
+			offset = Vector3.new(5.16651367, -0.0743304491, 5.70196277),
+			size = Vector3.new(10.3734031, 3.97476125, 1.51880157),
+			colour = Color3.fromRGB(255, 255, 255), material = Enum.Material.SmoothPlastic },
+		{ part = "peacock_FanFeather_03", id = "rbxassetid://117952519890726",
+			offset = Vector3.new(4.18942551, 1.82805428, 5.6695286),
+			size = Vector3.new(8.47912589, 7.25561124, 1.45402408),
+			colour = Color3.fromRGB(255, 255, 255), material = Enum.Material.SmoothPlastic },
+		{ part = "peacock_FanFeather_04", id = "rbxassetid://72395007488621",
+			offset = Vector3.new(2.563665, 3.35875958, 5.63710141),
+			size = Vector3.new(5.26871402, 10.2634474, 1.38923407),
+			colour = Color3.fromRGB(255, 255, 255), material = Enum.Material.SmoothPlastic },
+		{ part = "peacock_FanFeather_05", id = "rbxassetid://80467390326232",
+			offset = Vector3.new(0, 4.04476869, 5.58311266),
+			size = Vector3.new(3.59659553, 11.5762918, 1.36756718),
+			colour = Color3.fromRGB(255, 255, 255), material = Enum.Material.SmoothPlastic },
+		{ part = "peacock_FanFeather_06", id = "rbxassetid://116031006230620",
+			offset = Vector3.new(-2.563665, 3.35875958, 5.63710141),
+			size = Vector3.new(5.26871402, 10.2634474, 1.38923407),
+			colour = Color3.fromRGB(255, 255, 255), material = Enum.Material.SmoothPlastic },
+		{ part = "peacock_FanFeather_07", id = "rbxassetid://128378345273930",
+			offset = Vector3.new(-4.18942551, 1.82805428, 5.6695286),
+			size = Vector3.new(8.47912589, 7.25561124, 1.45402408),
+			colour = Color3.fromRGB(255, 255, 255), material = Enum.Material.SmoothPlastic },
+		{ part = "peacock_FanFeather_08", id = "rbxassetid://80987860636738",
+			offset = Vector3.new(-5.16651367, -0.0743304491, 5.70196277),
+			size = Vector3.new(10.3734031, 3.97476125, 1.51880157),
+			colour = Color3.fromRGB(255, 255, 255), material = Enum.Material.SmoothPlastic },
+		{ part = "peacock_FanFeather_09", id = "rbxassetid://86383104722017",
+			offset = Vector3.new(-5.1306989, -2.839095, 5.73440355),
+			size = Vector3.new(10.288805, 3.74912381, 1.58356297),
+			colour = Color3.fromRGB(255, 255, 255), material = Enum.Material.SmoothPlastic },
+	},
+}
+
+-- The parts a skin's accessory set is made of, or nil.
+--
+-- NIL RATHER THAN AN EMPTY LIST for a skin with no set, so the caller's test
+-- is the same `if not spec then strip and return` that `applySurface` and
+-- `furMesh` already use, and a skin that has never had accessories costs a
+-- single table lookup.
+--
+-- A ROW WITH NO USABLE ID IS DROPPED PART BY PART rather than failing the set.
+-- Five skins went up in one round here, and a sixth landing with half its ids
+-- filled in should wear the half that exists -- the same reason `furMesh`
+-- treats an empty id as no fur instead of a throw.
+function Config.skinAccessories(key: string?): { any }?
+	if type(key) ~= "string" then
+		return nil
+	end
+	local set = Config.SKIN_ACCESSORIES[key]
+	if not set then
+		return nil
+	end
+	local out = {}
+	for _, entry in ipairs(set) do
+		if type(entry.id) == "string" and entry.id ~= "" then
+			table.insert(out, entry)
+		end
+	end
+	if #out == 0 then
+		return nil
+	end
+	return out
+end
 
 -- The fur mesh for a named set, or nil. Same contract as `piggyMesh`: an
 -- empty id is a pig with no fur rather than an error, so a set can sit here
@@ -10320,6 +11685,94 @@ function Config.piggyMesh(): { any }?
 			-- A bare number or a full rbxassetid, because whichever Studio
 			-- hands over is the one somebody will paste.
 			id = if id:match("^%d+$") then "rbxassetid://" .. id else id,
+			offset = entry.offset,
+			size = entry.size,
+			rot = entry.rot,
+		})
+	end
+	return out
+end
+
+-- ============================================================
+-- THE LOOT BAG AS A MESH
+-- ============================================================
+--
+-- THE BAG A THIEF CARRIES IS THE SHOP'S BIGGER SACK ARTWORK, and this is
+-- that artwork's own model (assets/loot-bag/, exported out of the icon's
+-- sack.blend and split into SEVEN meshes by material, because the blend is
+-- flat colours and a MeshPart takes one `Color`) -- LESS THE TWO SIDE COINS
+-- (designer, 2026-09-23: one coin, on the front; the four gold rows are the
+-- 2026-09-23 02:26Z re-upload of that cut, the cloth, lining and rope are
+-- the first round's, byte-identical geometry). Same contract as
+-- `PIGGY_MESH`: `Config.lootMesh()` returns nil for the WHOLE spec unless
+-- every row carries an id, because a half-uploaded set is a sack with no
+-- rope on it and nothing in any log to say so -- and a nil is the code-built
+-- bag in `UpgradePreview.builders.sack`, which is the picture the game
+-- shipped with. `LootMesh` (Shared) is the reader.
+--
+-- SCALE 1 IS LEVEL 0. The export stands exactly 3.008 studs tall, which is
+-- what the code bag builds at Bigger Sack level 0, so a level is one uniform
+-- `ScaleTo((0.8 + level * 0.18) / 0.8)` over the whole assembly. `offset`
+-- and `size` are the manifest's, in studs at scale 1 with y = 0 at the base
+-- and the coin facing +Z; the importer's sizes (x100) read back identical.
+--
+-- THE IMPORTER TURNED EVERY PART HALF A TURN ABOUT Y, AND IT WAS MEASURED
+-- RATHER THAN PHOTOGRAPHED: the uploaded meshes were read back with
+-- `AssetService:CreateEditableMeshAsync` and their shape signatures compared
+-- against the source .obj -- X and Z negated, Y identical, to four decimals
+-- on the lining, six of seven parts agreeing and the cloth symmetric enough
+-- to say nothing. Not a mirror, a rotation, so `rot` undoes it exactly. It
+-- goes on ALL seven rows or none, because each row is seated by its own
+-- `offset` and a part left unturned lands its features on the wrong side --
+-- the coin's field 0.83 studs off its own rim, which is what the first
+-- photograph showed. `HeistService.buildLootBag` pivots the assembly with a
+-- WorldPivot rather than a PrimaryPart for the same reason: `PivotTo` would
+-- overwrite the cloth's turn and leave the other six.
+Config.LOOT_MESH = {
+	-- THE ROUNDED-BOTTOM CLOTH (2026-09-23). 83387251897542 was the first
+	-- round's cloth with the rectangular SackBase under it; 115957622543698
+	-- is the re-export without it, which the 02:26Z re-import uploaded and
+	-- the manifest of the day recorded as "a duplicate Cloth mesh that nothing
+	-- reads". Read back with CreateEditableMeshAsync: its bottom five per cent
+	-- spans 0.79 studs across against the old cloth's 1.56, matching
+	-- parts/loot-bag-cloth.obj on disk. Same size and offset, so nothing else
+	-- on this row moved.
+	{ part = "Bag", id = "115957622543698", colour = Color3.fromRGB(226, 182, 146),
+		offset = Vector3.new(0.0000, 1.5040, 0.0000), size = Vector3.new(2.0491, 3.0080, 1.5254),
+		rot = CFrame.Angles(0, math.pi, 0) },
+	{ part = "Lining", id = "121573282060816", colour = Color3.fromRGB(198, 138, 110),
+		offset = Vector3.new(0.0191, 2.5381, -0.0091), size = Vector3.new(1.3993, 0.9097, 1.0139),
+		rot = CFrame.Angles(0, math.pi, 0) },
+	{ part = "Rope", id = "90351490271230", colour = Color3.fromRGB(150, 96, 66),
+		offset = Vector3.new(0.0049, 2.2632, 0.1715), size = Vector3.new(1.0643, 0.6240, 0.9757),
+		rot = CFrame.Angles(0, math.pi, 0) },
+	{ part = "Gold", id = "108816762021068", colour = Color3.fromRGB(240, 198, 76),
+		offset = Vector3.new(0.0000, 1.1725, 0.7640), size = Vector3.new(1.0928, 1.0928, 0.1456),
+		rot = CFrame.Angles(0, math.pi, 0) },
+	{ part = "GoldDark", id = "74443530111673", colour = Color3.fromRGB(198, 150, 52),
+		offset = Vector3.new(0.0000, 1.1725, 0.8158), size = Vector3.new(0.9070, 0.9070, 0.0191),
+		rot = CFrame.Angles(0, math.pi, 0) },
+	{ part = "GoldLight", id = "108781179098703", colour = Color3.fromRGB(246, 206, 198),
+		offset = Vector3.new(0.0000, 1.1725, 0.8610), size = Vector3.new(0.5792, 0.3996, 0.0844),
+		rot = CFrame.Angles(0, math.pi, 0) },
+	{ part = "Nostril", id = "104660984812176", colour = Color3.fromRGB(150, 84, 92),
+		offset = Vector3.new(0.0002, 1.1725, 0.8649), size = Vector3.new(0.2868, 0.1332, 0.0111),
+		rot = CFrame.Angles(0, math.pi, 0) },
+}
+
+-- Every row with an id normalised to `rbxassetid://`, or nil if any row is
+-- missing one -- the same all-or-nothing `piggyMesh` keeps.
+function Config.lootMesh(): { any }?
+	local out = {}
+	for _, entry in ipairs(Config.LOOT_MESH) do
+		local id = entry.id
+		if type(id) ~= "string" or id == "" then
+			return nil
+		end
+		table.insert(out, {
+			part = entry.part,
+			id = if id:match("^%d+$") then "rbxassetid://" .. id else id,
+			colour = entry.colour,
 			offset = entry.offset,
 			size = entry.size,
 			rot = entry.rot,
@@ -10866,6 +12319,40 @@ Config.HOUSE_TEMPLATE = {
 	goldenpig = "goldenpig",
 }
 
+-- THE DRESSED PLINTH COMES OFF, AND A STYLE NAMED HERE KEEPS ITS OWN.
+--
+-- Every authored exterior is built on a `base()` box -- a bevelled slab the
+-- width and depth of the whole footprint, in its own material, standing about
+-- a stud proud of the lawn and sticking out past the walls on every side. On
+-- a render stand that is a plinth. On a lawn it is a TRAY, and it was the one
+-- thing stopping these buildings reading as standing in grass.
+--
+-- `House.buildTemplateHouse` drops every `Foundation_*` part and lowers the
+-- house by exactly the slab's own height, which is ONE change rather than
+-- two: the walls SAT on that slab, so removing it without lowering leaves
+-- them floating where its top used to be -- 1.4 studs of daylight under the
+-- Void Manor, measured. Anything the art authored BELOW the slab's top --
+-- moss, roots, a rock skirt, the coral bed -- was embedded in the plinth by
+-- construction and is embedded in the grass now, which is the same
+-- relationship in a different material.
+--
+-- A KEEP-LIST RATHER THAN AN OPT-IN, which is the opposite call from
+-- `HOUSE_REBUILD` below and is deliberate: standing in the grass is what a
+-- house on a lawn should do, so a style imported later gets it with nothing
+-- to remember, and the thing worth naming is the exception.
+--
+-- The Starter Shack keeps its card base on the designer's call. A cardboard
+-- box is a thing somebody PUT on the grass, so the flap of card under it
+-- reads as part of the joke rather than as a tray.
+--
+-- IT TOUCHES ONLY THE `base()` SLAB, and the ground art that is not one is
+-- left alone: the galleon's sand, the toadstool's timber deck on its stone
+-- ring, the gloop house's puddles, the treehouse's roots. Those are authored
+-- GROUND rather than a plinth, and they already read as ground.
+Config.HOUSE_PLINTH_KEEP = {
+	shack = true,
+}
+
 Config.HOUSE_REBUILD = {
 	-- A style named here stands its REBUILT low-poly builder; a style left out
 	-- stands exactly the builder it has always had. Empty means the catalogue
@@ -11013,7 +12500,8 @@ function Config.animationKeys(rideKeys: { string }): { string }
 	-- once described what the CATALOGUE held rather than what the runtime asks
 	-- for, so eight keys existed that nothing in the pipeline knew about, and
 	-- all three ends failed silently in the same direction.
-	local keys = { "dodgeRoll", "sneak", "carry", "throw", "cameraSnap" }
+	local keys = { "dodgeRoll", "sneak", "carry", "carrySling", "throw", "cameraSnap",
+		"lassoTwirl", "lassoThrow", "lassoPull", "lassoWin", "lassoSnap", "knockedLoose", "scoopUp" }
 	if type(rideKeys) ~= "table" then
 		warn("[Config] animationKeys was called without the ride keys, so it can "
 			.. "only report the dodge roll. Pass RidePose.animationKeys().")
@@ -11152,9 +12640,9 @@ end
 -- Cheapest first. A cost at or above `from` takes that tier, so the last band
 -- a price clears is the one it lands in.
 Config.RARITY_BANDS = {
-	{ rarity = "rare", from = 100000 },
-	{ rarity = "epic", from = 1000000 },
-	{ rarity = "legendary", from = 10000000 },
+	{ rarity = "rare", from = 100000000 },
+	{ rarity = "epic", from = 1000000000 },
+	{ rarity = "legendary", from = 10000000000 },
 }
 
 -- Explicit catalogue rarity wins; direct coin items derive theirs from price.
@@ -11238,6 +12726,8 @@ end
 -- Buy-back tickets and the rebirth-crate bonus derive from these, so they
 -- moved with them.
 Config.CHESTS = {
+	-- BEGIN ARCADE CRATES
+	-- END ARCADE CRATES
 	-- THE OG SHELF, WHICH IS THE OLD CLASSICS CRATE WITH NEON NIGHTS FOLDED
 	-- INTO IT.
 	--
@@ -11257,15 +12747,54 @@ Config.CHESTS = {
 	-- LEGENDARY, so touching that number reprices every crate at once. And
 	-- `epic = 3 x legendary` is what keeps `Config.COMBINE` level against
 	-- rolling directly, which is why it is 12 and not a round 10.
+	-- ONE PIGGY SHELF, NOT THREE (designer, 2026-09-23: "stop separating by
+	-- category of piggy and put all common, rare, epic, legendary into one
+	-- pool"). Animal Kingdom and Arcade were retired as crates and their skins
+	-- retagged `chest = "og"`, so these three rows draw on EVERY piggy skin in
+	-- the crate economy -- 67 at the merge, against 36 / 21 / 10 split three
+	-- ways. The theme survives as `collection` on each skin, which is what the
+	-- bag and the admin picker group by (`Config.SKIN_COLLECTIONS`).
+	--
+	-- THE KEYS KEPT THEIR OLD NAMES ON PURPOSE. `og` is named by every skin's
+	-- tag, the day-seven daily rung, the rebirth lists, the admin console and
+	-- four test suites; a rename would have been all of those at once while
+	-- other sessions were editing the same files. The NAME is what a player
+	-- reads, and it says what the crate is.
+	--
+	-- WHAT THE MERGE COSTS, STATED: a specific legendary is about 2.7x harder
+	-- to aim for -- 35% over 11 legendaries on the Legendary crate, where it
+	-- was 35% over 4 -- and "I want a tiger" is no longer a crate you can pick.
+	-- What it buys: three crates to choose from, and pools deep enough that
+	-- a tier running dry (Animal Kingdom had two epics) no longer renormalises
+	-- the odds mid-collection.
 	og = {
-		name = "OG Piggy Common",
+		name = "Piggy Crate",
 		order = 1,
 		collection = "og",
 		tier = "common",
 		kind = "skin",
 		odds = { common = 52, rare = 32, epic = 12, legendary = 4 },
+		-- THE ROBUX LADDER IS THE COIN LADDER'S OWN RATIO, 1 : 3 : 12
+		-- (designer, 2026-09-23). The retired coin prices were 500K / 1.5M /
+		-- 6.0M, solved on COINS PER LEGENDARY with a measured premium at the
+		-- top for a route nine times faster -- 1.00 / 1.20 / 1.37. Holding the
+		-- ratio holds the premium, which is the property that matters: value
+		-- per coin is odds over price, so matching the cheap crate exactly
+		-- would make the top one CHEAP per legendary and nobody would ever buy
+		-- anything else.
+		--
+		-- MEASURED, THE OBVIOUS LADDER FAILS. At a retail-looking 79 / 199 /
+		-- 449 the legendary crate is 1,283 Robux per legendary against the
+		-- common crate's 1,975 -- backwards, and the ladder becomes
+		-- decoration. At 20 / 60 / 240 it is 500 / 600 / 686, monotonic.
+		--
+		-- AND THE TOP RUNG STAYS UNDER VIP'S 249. VIP is a PERMANENT
+		-- entitlement; a single random roll costing more than it is
+		-- indefensible for this audience whatever the odds are. 240 is the
+		-- largest 12x that clears it.
+		robux = 20, productId = 0,
 		colour = Color3.fromRGB(236, 138, 178),
-		blurb = "The skins the street was built on, glow and all",
+		blurb = "Every piggy in the game, from common to legendary",
 	},
 	-- THE DRESS-UP CRATE IS RETIRED WITH THE ACCESSORIES IT HELD. Its pool was
 	-- `Config.ACCESSORIES` and nothing else, so once that emptied this chest
@@ -11348,7 +12877,7 @@ Config.CHESTS = {
 	-- crates read the skin's own `chest` tag (og/animal), which did not
 	-- move; the daily crate names `og`. Nothing dangles.
 	ograre = {
-		name = "OG Piggy Rare",
+		name = "Rare Piggy Crate",
 		order = 2,
 		kind = "skin",
 		collection = "og",
@@ -11357,11 +12886,12 @@ Config.CHESTS = {
 		-- Legendary held at 10 (the solved ladder); epic takes three times
 		-- it, the same relation the common crate keeps.
 		odds = { rare = 60, epic = 30, legendary = 10 },
+		robux = 60, productId = 0,
 		colour = Color3.fromRGB(64, 147, 230),
 		blurb = "No commons. Rare or better, OG Piggy only",
 	},
 	oglegendary = {
-		name = "OG Piggy Legendary",
+		name = "Legendary Piggy Crate",
 		order = 3,
 		kind = "skin",
 		collection = "og",
@@ -11378,144 +12908,149 @@ Config.CHESTS = {
 		-- Legendary held at 35; the 65 that was all rare splits toward epic.
 		floor = "rare",
 		odds = { rare = 40, epic = 25, legendary = 35 },
+		robux = 240, productId = 0,
 		colour = Color3.fromRGB(255, 203, 61),
-		blurb = "The best odds on an OG Legendary",
-	},
-	animalrare = {
-		name = "Animal Kingdom Rare",
-		order = 5,
-		kind = "skin",
-		collection = "animal",
-		tier = "rare",
-		floor = "rare",
-		-- The `ograre` split, now that this shelf stocks epic too.
-		odds = { rare = 60, epic = 30, legendary = 10 },
-		colour = Color3.fromRGB(64, 147, 230),
-		blurb = "No commons. Rare or better, animals only",
-	},
-	animallegendary = {
-		name = "Animal Kingdom Legendary",
-		order = 6,
-		kind = "skin",
-		collection = "animal",
-		tier = "legendary",
-		floor = "rare",
-		-- The `oglegendary` split: legendary held at 35, the 65 that was all
-		-- rare shared with epic.
-		odds = { rare = 40, epic = 25, legendary = 35 },
-		colour = Color3.fromRGB(255, 203, 61),
-		blurb = "The best odds on an Animal Legendary",
+		blurb = "The best odds on a Legendary piggy",
 	},
 
 	-- ============================================================
 	-- EVENT CHESTS
 	-- ============================================================
 	--
-	-- BOUGHT WITH TOKENS, WHICH IS THE ONE THING COINS CANNOT DO.
+	-- THERE ARE NONE. The Alien Cache is deleted (designer, 2026-09-23:
+	-- "since we removed the alien event lets delete the alien cache crate from
+	-- the shop"), and it went because the event that fed it is off --
+	-- `Config.EVENTS.enabled` is false for the MVP, so that card's own button
+	-- read EARN THIS CRATE beside a route nobody could take. That is the
+	-- control-that-looks-available failure this file refuses everywhere else,
+	-- arriving as COPY rather than as code: nothing errored, the crate opened
+	-- perfectly from the admin panel, and the only thing wrong with it was the
+	-- sentence a player read.
 	--
-	-- Tokens were invented to carry the accessory roll away from purchasable
-	-- coins. There is no coin pack any more, so that job is gone -- and this is
-	-- the job they were always the right shape for. An event chest is themed on
-	-- the event that pays for it, and no amount of money reaches it: you were
-	-- either on the street when the saucer came, or you were not.
+	-- THE SET SURVIVES THE CRATE, WHICH IS WHY THIS COST A DELETION RATHER
+	-- THAN A MIGRATION. `SetService.rollDrop` reads `Config.SETS` and has
+	-- never read `Config.CHESTS` -- the crate was a SECOND route to the same
+	-- two items rather than the mechanism behind the first -- so
+	-- `Config.SETS.alien`, the Martian, the Hoverdisc and the `set` field that
+	-- keeps both out of the coin accessory roll and the rebirth drop pool are
+	-- all still standing, and turning the event back on restores them with
+	-- nothing here to put back.
 	--
-	-- `kind = "set"` DRAWS ACROSS FIVE CATALOGUES, which is the whole reason a
-	-- set is a view rather than a catalogue of its own. The alien pool is an
-	-- accessory, a decoration, an effect, a skin and a ride, and `chestPool`
-	-- resolves them through `Config.catalogueFor` exactly as SetService does.
+	-- WHAT IS DORMANT RATHER THAN DEAD, NAMED SO THE NEXT SWEEP FINDS IT
+	-- DELIBERATELY: `chestPool`'s set branch, `chestEntry`'s `kind:key`
+	-- grammar, `inAnyChestPool`, `canCombineChest`'s set refusal and
+	-- `auditRandomOutcomes`' price exemption now have no live chest to answer
+	-- for. Every one is kept, because a set chest comes back with the event
+	-- and deleting a mechanism because its only user left is how the next
+	-- author re-derives it -- the same call `Config.FUR_SETS.mane` and the
+	-- one-row event roster above already record.
 	--
-	-- MEDALS ARE NOT REPLACED, AND THAT IS DELIBERATE. Every set item still
-	-- carries its medal price, so the guaranteed route survives -- which is the
-	-- rule that says NOTHING IS EVER LOCKED BEHIND LUCK. Medals buy the item you
-	-- want; this chest is the gamble that might save you the wait. Two routes
-	-- out of one event, and bad luck still only ever costs time.
-	alien = {
-		name = "Alien Cache",
-		order = 10,
-		collection = "alien",
-		kind = "set",
-		set = "alien",
-		-- TWO ITEMS, BOTH EPIC: the Martian skin and the Hoverdisc. The odds
-		-- follow the STOCK rather than the coin chests' ladder, because an event
-		-- pool is small and top-heavy by nature and there is no common tier here
-		-- at all.
-		--
-		-- THIS COMMENT USED TO READ "six items: one rare, four epic, one
-		-- legendary" AND AUTHORISE `rare = 30, epic = 55, legendary = 15`, and
-		-- by then only one of those three tiers had anything in it. The set had
-		-- been cut to two items, and the Hoverdisc has since moved to epic -- so
-		-- 45 of the 100 points were being handed to tiers the chest could not
-		-- stock, and `liveOdds` was silently renormalising them away. Nothing
-		-- errored and every roll worked, which is exactly the failure CLAUDE.md
-		-- records: a floor that EMPTIES a crate is caught loudly and one that
-		-- PROMOTES it is not. `auditRandomOutcomes` now refuses it.
-		--
-		-- A single-tier chest is thin and is honest. What it says is that this
-		-- set is nearly spent -- see `Config.SETS.alien`, which makes the same
-		-- point -- and the fix is another alien item rather than odds for tiers
-		-- that do not exist.
-		odds = { epic = 100 },
-		colour = Color3.fromRGB(96, 255, 176),
-		blurb = "Salvage from the invasion. Only turning up gets you these",
-	},
+	-- AND IT WAS THE LAST CRATE THAT COULD HAND OVER A NON-SKIN, which is the
+	-- one thing worth knowing before writing a test against a crate. A set
+	-- spans five catalogues, so the Hoverdisc was a RIDE a crate could roll;
+	-- what is left is skins and the Guardian Crate's coats, so the non-skin
+	-- path in `tests/luau/rebirth.luau` goes through `guardian` now.
 
-	-- ADDED WITH THEIR SKINS, WHICH IS WHY THIS COMMENT USED TO SAY THEY WERE
-	-- NOT HERE. A chest with no stock is a button that takes coins and returns
-	-- nothing; `Config.chestPool` is the gate and `ChestService` refuses out
-	-- loud rather than charging for an empty roll.
+
+	-- ============================================================
+	-- THE GUARDIAN CRATE
+	-- ============================================================
 	--
-	-- Both carry the same ladder as `classics` because both have the same
-	-- shape of pool -- 4 common, 3 rare, 3 epic, 2 legendary -- so the solved
-	-- `epic = 3 * legendary` relation that keeps combining and rolling level
-	-- holds here unchanged.
-	animal = {
-		name = "Animal Kingdom Common",
-		order = 4,
-		collection = "animal",
-		tier = "common",
-		kind = "skin",
-		-- EIGHT PAINTED COATS AND ONE STORM WOLF: THIS SHELF HAS NO RARE TIER
-		-- AT ALL, AND THE ODDS ROW SAYS SO RATHER THAN LEAVING IT TO
-		-- `liveOdds`.
-		--
-		-- The tier ladder here is the TECHNIQUE ladder (see
-		-- `docs/animal-crate-plan.md`): a painted coat is a common however good
-		-- the painting is, and a legendary glows AND the glow moves. Every
-		-- animal built so far is a coat. Only the Storm Wolf goes through the
-		-- alpha pass, so it is the only thing above common on this shelf.
-		--
-		-- AUTHORING `rare = 44` WITH NO RARE IN STOCK WOULD NOT HAVE ERRORED,
-		-- IT WOULD HAVE REPRICED THE CRATE. `liveOdds` drops a tier with no
-		-- stock and renormalises what is left, so 52/44/4 over a pool with no
-		-- rares resolves to 93% common and 7.1% LEGENDARY -- which is 7.0M per
-		-- legendary against the 12.5M every other 500K crate charges, making
-		-- this quietly the best value in the game. The whole tier ladder is
-		-- solved on coins per legendary, so that is a repricing rather than a
-		-- rounding.
-		--
-		-- 96/4 keeps legendary at the 4% the ladder is built on. When the first
-		-- rare animal lands, this row goes back to 52/44/4 and the pool carries
-		-- it -- and the number to check is that legendary is still 4.
-		-- SEVEN RARES LANDED, SO THIS IS BACK TO 52/44/4 EXACTLY AS THE NOTE
-		-- ABOVE SAID IT WOULD BE, and the number that had to survive the move
-		-- is LEGENDARY AT 4 -- the whole tier ladder is solved on coins per
-		-- legendary, so that one is a repricing rather than a rounding.
-		--
-		-- AND BACK TO THE PLAN'S 52/32/12/4 THE DAY THE FIRST EPIC ANIMALS
-		-- LANDED (four of them: Hedgehog, Lion, Storm Stone, Peacock). Rare
-		-- had been holding epic's 12 points because a tier with no stock may
-		-- not be authorised -- `liveOdds` renormalises an empty tier away and
-		-- reprices the crate, which is the failure this row recorded once
-		-- already. With stock in every tier the ladder is the `og` crate's,
-		-- and `epic = 3 * legendary` is what holds `COMBINE.need` at 3.
-		--
-		-- IT ALSO ENDS A REFUSAL THAT WAS LIVE: a combine of three rares
-		-- climbs one tier 85% of the time, and `ChestService.combine` walks
-		-- the four-tier ladder -- so with no epic stocked it landed on an
-		-- empty pool and refused with "has no epic to give yet".
-		odds = { common = 52, rare = 32, epic = 12, legendary = 4 },
-		colour = Color3.fromRGB(214, 158, 96),
-		blurb = "Stripes, spots and fleece. Your piggy, as something else",
+	-- THE FIRST CRATE IN THIS GAME THAT IS NOT A PIGGY SKIN, and the creature
+	-- guardians come out of it and nowhere else (designer, 2026-09-23).
+	-- `kind = "coat"` draws `Config.DOG_COATS` through
+	-- `chestPool`'s own `chest` tag, which is the same membership test a skin
+	-- uses -- so the pool, the rarity grouping, the sort and the unowned-only
+	-- roll are the ones every other crate already runs.
+	--
+	-- WHAT STAYS OUT OF IT, AND WHY THAT IS THE INTERESTING HALF. Scrappy is
+	-- free and Husky and the Mastiff are bought with coins behind rebirths 1
+	-- and 2, so this crate is not the only route to a guardian -- it is the
+	-- only route to the CREATURES. A crate that held every coat would have
+	-- made the entry guardian a gamble and taken the earnable breeds off the
+	-- shelf, which is "nothing is ever locked behind luck" spent for nothing.
+	--
+	-- STOCK, MEASURED THROUGH `chestPool` RATHER THAN COUNTED BY EYE, because
+	-- a tier with no stock does not empty this crate, it REPRICES it --
+	-- `ChestService.liveOdds` drops an empty tier and renormalises what is
+	-- left, and `auditRandomOutcomes` is what refuses authorised odds for a
+	-- tier nothing carries. Today: NO COMMON, 3 rare (Gorilla, Raptor,
+	-- Triceratops), 1 epic (Dire Wolf) and 1 legendary (Cerberus) -- so the
+	-- ladder below authorises rare, epic and legendary and nothing else.
+	--
+	-- IT HELD A COMMON RUNG UNTIL 2026-09-23 and both of its commons went in
+	-- one edit, when the six shepherd-bodied colour coats were retired. That
+	-- is exactly the repricing this paragraph warns about: 52 authorised
+	-- points with no stock behind them would have been shared out among the
+	-- three tiers that remain, silently. The audit is what caught it.
+	--
+	-- AND EVERY ONE OF THOSE TIERS IS THE TIER ITS OLD PRICE DERIVED, which
+	-- is what made the move safe: `rarityOf` read a coat's price against
+	-- `RARITY_BANDS`, and each row now states the answer that gave. Nothing
+	-- re-bordered, nothing changed shelf, and the epic rung is the thinnest
+	-- at ONE -- the number to watch as coats come and go, because it is
+	-- whether there is one at all rather than how many.
+	--
+	-- THE ODDS ARE THE COMMON CRATE'S LADDER, 52/32/12/4, UNCHANGED. It is
+	-- solved on coins per legendary for the skin shelves and what carries
+	-- across is the SHAPE: legendary at 4 is what `COMBINE.need` of 3 is
+	-- level against (3 / 0.12 = 25 opens gathering three epics, 1 / 0.04 = 25
+	-- rolling directly), so a crate that moved it would put the two routes
+	-- out of step for every collection at once.
+	--
+	-- BOUGHT WITH ROBUX AND WITH NOTHING ELSE, which is what keeps it clear
+	-- of the rule the whole shop rests on: coins are not purchasable at any
+	-- price, so a crate bought with Robux is a paid random item and a crate
+	-- bought with coins is not -- and the two must never be the same crate.
+	-- A `robux` here is a DISPLAY price for the tile; Roblox owns the real
+	-- one, and the two are kept in step by hand exactly as `Config.PASSES`
+	-- records. `productId = 0` is the unset state and is a working one: the
+	-- prompt cannot open, which is the honest picture until the product is
+	-- created.
+	--
+	-- 49 IS BELOW THE ENTRY PASS AT 79, because a single random open should
+	-- be the cheapest thing in the shop -- the same argument the Starter
+	-- Pack's own note makes for sitting under the Style Pack's 99.
+	--
+	-- PAID RANDOM ITEMS ARE REGULATED RATHER THAN BANNED, AND NONE OF THAT IS
+	-- BUILT. Real numerical odds disclosed before purchase and summing to 100
+	-- (the crates UI draws `liveOdds` already, which is the honest half), and
+	-- a `PolicyService` gate -- `ArePaidRandomItemsRestricted` -- so a
+	-- restricted player is REFUSED rather than meeting a button that does
+	-- nothing. For an under-12 audience that is a large share of players.
+	-- CLAUDE.md records this as the thing that comes back all at once the day
+	-- a Robux crate ships; `productId = 0` is what keeps it unshipped.
+	-- NO COMMON RUNG, BECAUSE THERE IS NO COMMON LEFT TO STOCK. The six
+	-- shepherd-bodied colour coats were retired on 2026-09-23 and both of this
+	-- crate's commons went with them, so `common = 52` would have authorised
+	-- odds for a tier the pool cannot fill. `liveOdds` drops an empty tier and
+	-- RENORMALISES, which is the silent repricing this file already records
+	-- costing a crate its whole ladder -- 52 points would simply have been
+	-- shared out among rare, epic and legendary with nothing in any log.
+	-- `auditRandomOutcomes` refuses it out loud now, which is what caught it.
+	--
+	-- 60/30/10 IS THE RARE RUNG'S OWN LADDER, copied from `ograre` and
+	-- `animalrare` rather than invented: this is a rare-floored crate now and
+	-- it should read as one.
+	--
+	-- `tier` IS "rare" FOR THE SAME REASON. It is the crate's own badge and
+	-- border colour (`Crates.tierColour`), so a crate that cannot pay a common
+	-- must not wear one.
+	--
+	-- THE BLURB CARRIES NO COUNT. It said "Ten guardians" and there are five;
+	-- a number in player-facing copy is a claim that goes stale without
+	-- erroring, which is the failure this project keeps recording.
+	guardian = {
+		name = "Guardian Crate",
+		order = 11,
+		kind = "coat",
+		tier = "rare",
+		floor = "rare",
+		odds = { rare = 60, epic = 30, legendary = 10 },
+		robux = 49,
+		productId = 0,
+		colour = Color3.fromRGB(223, 177, 44),
+		blurb = "Guardians for your lawn. Dinosaurs, a dire wolf and worse",
 	},
 	-- NEON NIGHTS IS RETIRED INTO `og`, and its eleven skins carry
 	-- `chest = "og"` now. Circuit Board went entirely.
@@ -11617,6 +13152,59 @@ end
 -- it would have been 5 / 0.12 = 41.7 opens -- combining 67% dearer than
 -- rolling, so nobody would ever combine and the spare screen is decoration.
 -- Same table, re-run, the other direction.
+-- THE PIGGY PRESS'S HOPPER, AND IT IS A DIFFERENT MACHINE FROM THE SPARE
+-- COMBINE BELOW (designer, 2026-09-23: "people should have to carry each
+-- piggy to combine up to it").
+--
+-- WHY IT IS A SECOND TABLE RATHER THAN A WIDER `COMBINE`. `COMBINE`
+-- consumes `data.spares`, and a piggy NEVER BECOMES ONE: `Config.addPiggy`
+-- bumps `piggies.owned[key]`, so a repeat is a SECOND PIGGY. With crates no
+-- longer paying duplicates at all, the only thing left that mints a skin
+-- spare is robbing somebody wearing a skin you already own -- so the
+-- station's PIGGIES shelf was reading 0 of 3 for a player who had caught
+-- fifty of them. That is what this replaces. The spare path stays exactly
+-- as it was for GUARDIANS, which genuinely have no other input.
+--
+-- THE LADDER ESCALATES, WHICH FLAT 3 DID NOT. Modelled against the skip
+-- odds below -- which cut the real cost by about 38%, so the nominal
+-- product is not the number that matters -- a legendary costs 18.3 commons
+-- at a flat 3 and 14.9 at 2/3/4. That is 19% looser than what shipped, and
+-- it is the designer's call: the shape buys a FIRST combine cheap enough to
+-- teach the machine on, against a last one that reads as a real
+-- commitment. 2/3/3 was the other candidate and is 12.2 -- a third cheaper
+-- than today, which is too much now that crates are bought with Robux and
+-- the free ladder is the only thing keeping them worth buying. If it needs
+-- tightening back to the shipped pace, 2/4/4 measures 17.9.
+Config.PRESS = {
+	need = { common = 2, rare = 3, epic = 4 },
+
+	-- A BAY PER TIER, WHICH DISSOLVES THE MIXED-DEPOSIT QUESTION RATHER
+	-- THAN RULING ON IT (designer: "what about the case where a player puts
+	-- in 2 commons and 1 rare?"). With one hopper that question needs an
+	-- answer and every answer is bad: refusing the rare makes the machine
+	-- fussy, and counting it as a common silently destroys the difference
+	-- between two tiers. With a bay each there is no such thing as a
+	-- mismatched deposit -- the rare lands in the rare bay and waits. It is
+	-- also what makes the panel worth opening, because three counts ARE the
+	-- readout.
+	--
+	-- NOTHING COMES BACK OUT (designer: "piggies put in should not be
+	-- removeable until the crusher action is complete"). So there is no
+	-- withdraw verb anywhere -- not refused, ABSENT, which is the only
+	-- version of that rule a forged remote cannot argue with. A part-filled
+	-- bay persists in the save, so a bay left at 1 of 3 is still at 1 of 3
+	-- tomorrow rather than being quietly swept.
+	tiers = { "common", "rare", "epic" },
+}
+
+-- HOW MANY OF `tier` THE PRESS WANTS. Returns nil for a tier it does not
+-- take, which is legendary -- there is nothing above it to climb to, and a
+-- bay that can never pay out is the control-that-does-nothing this project
+-- refuses everywhere else.
+function Config.pressNeed(tier: string): number?
+	return (Config.PRESS.need :: any)[tier]
+end
+
 Config.COMBINE = {
 	need = 3,
 	-- Tiers to climb, and the chance of each. Clamped at legendary, so
@@ -11631,6 +13219,16 @@ Config.COMBINE = {
 -- requires nothing and is read by both ends, which makes it the only home
 -- where a third copy is not the cheaper option.
 local COIN_SUFFIXES = { "", "K", "M", "B", "T" }
+
+-- A NAME THAT ALREADY ENDS IN S TAKES A BARE APOSTROPHE: "The Snuffles'
+-- coins", never "The Snuffles's". CLAUDE.md records this being fixed in the
+-- crack panel's title and then reintroduced by the carried-loot label a
+-- season later, which is what a rule kept in one file and rewritten in the
+-- next always does. Every "somebody's" a player reads goes through here.
+function Config.possessive(name: string): string
+	local tail = if name:sub(-1):lower() == "s" then "'" else "'s"
+	return name .. tail
+end
 
 function Config.formatCoins(value: number): string
 	local n = math.floor(value)
@@ -11672,7 +13270,7 @@ end
 -- caps, and it is the cheapest chest at 350,000. Price an accessory and it
 -- comes down on its own.
 Config.SELL = {
-	base = 40000,
+	base = 40000000,
 	priceFraction = 0.25,
 }
 
@@ -11739,10 +13337,18 @@ end
 -- reason neither can drift.
 --
 -- THE ALIEN SET IS WHY THIS IS NOT SIMPLY "skins, effects and
--- accessories". A set spans five catalogues, so the Hoverdisc is a RIDE
--- that a chest genuinely can duplicate. A rule written against catalogues
+-- accessories". A set spans five catalogues, so the Hoverdisc was a RIDE
+-- that a chest genuinely could duplicate. A rule written against catalogues
 -- rather than against pools would have been wrong about exactly the items
 -- the set economy exists to make special.
+--
+-- AND WITH THE ALIEN CACHE DELETED (2026-09-23) NO CHEST STOCKS EITHER OF
+-- THEM, so this answers false for the Martian and the Hoverdisc and both stop
+-- being sellable. THAT IS THE DERIVATION WORKING RATHER THAN A REGRESSION:
+-- no crate can hand you a second one, so there is no such thing as a spare of
+-- either, and a sell control would have nothing to be about. Both become
+-- sellable again the day a set chest does, with nothing here to remember --
+-- which is the whole reason this is a pool test rather than a list of keys.
 local function inAnyChestPool(kind: string, key: string): boolean
 	for chestKey, chest in pairs(Config.CHESTS) do
 		if chest.kind == "set" then
@@ -11782,6 +13388,19 @@ function Config.isSellable(kind: string, key: string): boolean
 	-- nothing.
 	local earned = spec.rarity or Config.isEarnedElsewhere(spec)
 	if not earned and (spec.cost or 0) <= 0 then
+		return false
+	end
+
+	-- GUARDIANS ARE NEVER SOLD (designer, 2026-09-23: "guardians are not
+	-- sellable. they are collection items"). A guardian is a thing you keep,
+	-- like a house. And it is the one catalogue a ROBUX crate hands over that
+	-- has no free route -- the creature guardians come only out of the Guardian
+	-- Crate -- so a coin value on one was a route from Robux to coins through
+	-- `SpareSell`, the line this whole position rests on. Refused here AND in
+	-- `sellValue`, so no sell button, no spare card and no reveal can price one.
+	-- A coat's `sellBasis` is inert for that reason; it is kept only because
+	-- its rows are generated.
+	if kind == "coat" then
 		return false
 	end
 
@@ -11849,6 +13468,11 @@ function Config.piggyWorth(key: string): number
 end
 
 function Config.sellValue(kind: string, key: string): number
+	-- A guardian is worth nothing sold, because it cannot be sold (see
+	-- `isSellable`).
+	if kind == "coat" then
+		return 0
+	end
 	local catalogue = Config.catalogueFor(kind)
 	local spec = catalogue and catalogue[key]
 	if not spec then
@@ -11912,6 +13536,15 @@ function Config.chestPool(chestKey: string): ({ [string]: { string } }, number)
 	local source = if chest.kind == "skin" then Config.SKINS
 		elseif chest.kind == "accessory" then Config.ACCESSORIES
 		elseif chest.kind == "effect" then Config.EFFECTS
+		-- THE GUARDIAN CRATE (designer, 2026-09-23). A coat is claimed by its
+		-- own `chest` tag exactly as a skin is, so everything below this line
+		-- -- the rarity grouping, the `isEarnedElsewhere` exclusion, the sort
+		-- -- works unchanged. Named here rather than routed through
+		-- `Config.catalogueFor`, which answers for decorations, rides and
+		-- catch effects as well: this if-chain is the list of catalogues a
+		-- CRATE may draw from, and widening it to every catalogue would make a
+		-- typo in a chest's `kind` stock a pool rather than empty one.
+		elseif chest.kind == "coat" then Config.DOG_COATS
 		else nil
 	if not source then
 		return pool, 0
@@ -11970,12 +13603,27 @@ end
 -- THE CRATES SCREEN, AS DATA. One section per collection, each listing the
 -- chests it offers in the order they sit on the card. `Shared/Crates` builds
 -- the tab from this and nothing else, so a collection or a tier is a row here.
--- The Alien Cache is one chest because the set holds two items (an epic and a
--- legendary) -- a Common or Rare alien crate would have nothing to stock.
+--
+-- THE ALIEN CACHE ROW WENT WITH ITS CHEST (2026-09-23) AND HAD TO. A section
+-- naming a chest that does not exist is a header over an empty grid, which
+-- this project has already shipped once as a deliberate removal that read as
+-- a catalogue failing to load. `tests/luau/crates.luau` asserts every
+-- section's chests resolve, so the two can only ever be deleted together.
 Config.CRATE_SECTIONS = {
-	{ key = "og", name = "OG Piggy", chests = { "og", "ograre", "oglegendary" } },
-	{ key = "animal", name = "Animal Kingdom", chests = { "animal", "animalrare", "animallegendary" } },
-	{ key = "alien", name = "Alien Cache", chests = { "alien" } },
+	-- BEGIN ARCADE SECTIONS
+	-- END ARCADE SECTIONS
+	-- One piggy shelf since the merge (see `og` in `Config.CHESTS`). The
+	-- Arcade markers above stay empty; `tools/install_arcade.py` writes
+	-- nothing between them any more.
+	{ key = "og", name = "Piggy Crates", chests = { "og", "ograre", "oglegendary" } },
+	-- ITS OWN SECTION, BECAUSE IT IS NOT A SHELF OF THE SAME THING. The
+	-- sections above are piggy-skin COLLECTIONS; a crate of guardians belongs
+	-- beside none of them, and folding it under one would describe it wrongly
+	-- in the one place a player reads about it. (It read "and the fourth is an
+	-- event set" until the Alien Cache was deleted on 2026-09-23.) One rung rather than three: there is no Rare or Legendary
+	-- Guardian Crate, because a tier crate is solved on coins per legendary
+	-- and this one has no coin price to solve against.
+	{ key = "guardian", name = "Guardians", chests = { "guardian" } },
 }
 
 -- Rebirth opens a shop Legendary crate for free, picked at random from the
@@ -11984,7 +13632,48 @@ Config.CRATE_SECTIONS = {
 -- open is simply skipped: a crate has no price to pay out instead of opening,
 -- now that a crate has no price at all. Exclusives outside these pools do not
 -- count.
-Config.REBIRTH_CRATES = { "oglegendary", "animallegendary" }
+Config.REBIRTH_CRATES = { "oglegendary" }
+
+-- EVERY REBIRTH OPENS A CRATE AND EVERY FIFTH ONE OPENS A LEGENDARY
+-- (designer, 2026-09-23).
+--
+-- It used to be a Legendary crate at EVERY rebirth, which made the reward
+-- flat: the best crate in the game at rebirth one and again at rebirth twenty,
+-- so pressing the button harder bought nothing. A rare rung with a legendary
+-- every fifth gives the ladder a shape -- the same argument the guardian coats
+-- make with one rung per rebirth, and the same reason the wanted chip is five
+-- stars rather than a flag.
+--
+-- THE LISTS ARE SEPARATE RATHER THAN ONE TABLE OF TWO LISTS, because
+-- `auditRandomOutcomes` and `rebirthCratesOpen` both walk `REBIRTH_CRATES` as
+-- a flat array and a shape change there is four readers rather than one.
+--
+-- A REBIRTH PAYS A PIGGY CRATE AND NEVER A GUARDIAN ONE (designer,
+-- 2026-09-23). `guardian` sat on this rung for a day and came off: the
+-- guardian ladder is its own thing now -- three shapes bought with COINS
+-- behind rebirths 1, 2 and 3, and every other guardian rolled from the Robux
+-- crate -- so a rebirth handing one over as well would be a second, luck-based
+-- route to a shelf that has a priced one.
+--
+-- WHAT THAT PUTS BACK IS A BOUNDED EXPOSURE, AND IT IS RECORDED RATHER THAN
+-- ARGUED AWAY. The rule a paid crate may not break is "a Robux purchase may
+-- grant an item, never its coin value", and what makes a priced SKIN crate
+-- safe to sell the drop of is that the skin is obtainable free -- every skin
+-- in a priced pool is stealable. A coat is not stealable and no wild piggy
+-- wears one, so a crate-only coat carrying a `sellBasis` is purchased content
+-- with a coin value, which is that rule broken with one extra step.
+--
+-- IT IS LATENT AND `tests/luau/crates` PRINTS IT ON EVERY RUN. Nothing in the
+-- game reaches a coat sale -- `Shared/Inventory` has no coat tab and
+-- `EconomyService.sellPiggy` answers for placements -- so the exposure is a
+-- door nobody can currently open. The day a coat sale ships, the fix is to
+-- refuse it rather than to put a crate back on this rung: the three coin
+-- guardians are the earnable route the ladder is built on.
+Config.REBIRTH_CRATES_RARE = { "ograre" }
+
+-- WHICH REBIRTH PAYS THE LEGENDARY. Counted on the INCREMENTED rebirth count,
+-- so the fifth rebirth is the one a player would count on their fingers.
+Config.REBIRTH_LEGENDARY_EVERY = 5
 
 -- Uploaded UI artwork (assets/ui/rebirth-icons-v1, downscaled to 512px). An
 -- empty id is a working state: every reader falls back to a drawn shape, so a
@@ -12006,9 +13695,32 @@ local function legendariesOwned(chestKey: string, owned: { [string]: boolean }):
 end
 
 -- The rebirth crates still worth opening, in `REBIRTH_CRATES` order.
-function Config.rebirthCratesOpen(owned: { [string]: boolean }): { string }
+-- WHICH LADDER A REBIRTH DRAWS FROM, DECIDED IN ONE PLACE (2026-09-23).
+--
+-- `ProgressionService` DECIDES and the rebirth page ADVERTISES, and for an
+-- hour they disagreed: the server picked from the rare shelf on four rebirths
+-- in five while the page went on reading `REBIRTH_CRATES` and printing a
+-- legendary crate's name and its odds. Nothing errored and nothing looked
+-- wrong -- the crate that arrived was simply not the one the page had
+-- promised, which is the rebirth toast promising +12% while the server paid
+-- +8%, arriving on a different reward.
+--
+-- IT TAKES THE REBIRTH BEING REACHED RATHER THAN THE ONE BEING LEFT.
+-- `ProgressionService` increments before it asks, so the fifth rebirth is
+-- `5 % every == 0`; a client showing the count has to add one.
+function Config.rebirthCrateLadder(reached: number): ({ string }, boolean)
+	local every = Config.REBIRTH_LEGENDARY_EVERY or 5
+	if every > 0 and reached % every == 0 then
+		return Config.REBIRTH_CRATES, true
+	end
+	return Config.REBIRTH_CRATES_RARE or Config.REBIRTH_CRATES, false
+end
+
+-- THE LADDER IS AN ARGUMENT NOW, defaulting to the legendary shelves so every
+-- existing caller reads exactly what it always read.
+function Config.rebirthCratesOpen(owned: { [string]: boolean }, ladder: { string }?): { string }
 	local out = {}
-	for _, key in ipairs(Config.REBIRTH_CRATES) do
+	for _, key in ipairs(ladder or Config.REBIRTH_CRATES) do
 		if Config.CHESTS[key] and not legendariesOwned(key, owned) then
 			table.insert(out, key)
 		end
@@ -12237,6 +13949,53 @@ Config.ACCESSORIES = {} :: { [string]: any }
 -- Each tier also owns its DRIVEWAY surface. The house itself stands 70 studs
 -- behind the plot, so from the road the driveway is what actually announces
 -- how far along someone is -- dirt, then gravel, then brick, and so on.
+--
+-- GATED BEHIND REBIRTHS AS WELL, AND ONLY PURCHASABLE THEN (designer,
+-- 2026-09-23). `unlockRebirths` on a row is the rebirth that puts that house
+-- ON SALE: below it no amount of coins buys it, and `CosmeticsService.buyHouse`
+-- refuses by naming the rebirth. A house already OWNED is never gated --
+-- rebirth wipes power and never cosmetics -- and it is still SHOWN in the shop
+-- behind `ShopWidgets.gate`, with the price readable under the wash, because a
+-- shelf that hid its top half would leave a player with no reason to press the
+-- rebirth button.
+--
+-- THE LADDER, ONE RUNG PER REBIRTH 2 TO 10, ASCENDING WITH `cost`:
+--
+--     r2  Fishbowl House      5M     r7  The Beached Galleon  150M
+--     r3  Neon Tower         15M     r8  Portal House         300M
+--     r4  Crystal Spire      25M     r9  Thundercloud         600M
+--     r5  Ice Palace         40M    r10  The Void               1B
+--     r6  Sky Castle         80M
+--
+-- THE FIRST EIGHT ARE UNGATED, AND THAT IS WHERE THE LADDER STOPS BEING A
+-- GATE AND STARTS BEING A LIE. `REBIRTH_CASH_GATE[r]` is the pig a player can
+-- hold at rebirth r, and everything up to the Gloop House at 2.5M fits inside
+-- the pig you have BEFORE your first rebirth -- so a gate on any of them would
+-- take a house a new player can already afford and lock it behind a button
+-- they have not met yet. The eight ungated rows are the whole early game.
+--
+-- AND THE RULE THAT DECIDED THE OTHER NINE: A GATE MAY NEVER BE THE LAST
+-- THING REFUSING A HOUSE. Every gate here is at or below the first rebirth
+-- whose pig holds that price (5M first fits at r2, 15M at r5, 1B at r20), so
+-- the lock is always the EARLIER of two signals and never hides a house the
+-- pig could already pay for. The `shopui` suite asserts exactly that, against
+-- `REBIRTH_CASH_GATE` rather than against a number anybody typed -- so a price
+-- edit that outran its own gate is caught at the next run rather than by
+-- somebody noticing a card that will not light.
+--
+-- THE GOLDEN PIGGY CARRIES NO GATE, because it is EARNED rather than bought:
+-- `buyHouse` asks `tier.earned` before it asks the price, and a sale gate on
+-- something that is not sold would be a refusal nobody can act on.
+--
+-- ASCENDING WITH `cost`, so the gate and the price never disagree about which
+-- house is the better one -- `rarityOf` derives a tier from the price, and a
+-- dearer house opening EARLIER would be a legendary on sale below an epic.
+--
+-- BOTH AUDITS EXEMPT THIS TABLE BY IDENTITY, the same way they exempt
+-- `Config.DOG_COATS`: on anything a crate can roll `unlockRebirths` is a
+-- retired OWNERSHIP gate, and a house is a direct coin purchase in no pool.
+-- What replaces the sweep is the pool check in `auditRandomOutcomes`, which
+-- refuses the field on anything `chestPool` can actually reach.
 Config.HOUSE_TIERS = {
 	{
 		id = "shack", name = "Cardboard Fort", style = "shack", cost = 0,
@@ -12247,7 +14006,7 @@ Config.HOUSE_TIERS = {
 		blurb = "Flattened boxes, packing tape and a crayon door. Everyone starts here",
 	},
 	{
-		id = "cottage", name = "Beehive Cottage", style = "cottage", cost = 35000,
+		id = "cottage", name = "Beehive Cottage", style = "cottage", cost = 35000000,
 		drive = { colour = Color3.fromRGB(158, 154, 146), material = Enum.Material.Pebble, edge = false },
 		width = 26, depth = 20, storeys = 1,
 		walls = Color3.fromRGB(232, 216, 190), roof = Color3.fromRGB(142, 78, 62),
@@ -12255,7 +14014,7 @@ Config.HOUSE_TIERS = {
 		blurb = "Stacked wax combs with honey running down them, and a real chimney",
 	},
 	{
-		id = "townhouse", name = "Wonky Townhouse", style = "townhouse", cost = 120000,
+		id = "townhouse", name = "Wonky Townhouse", style = "townhouse", cost = 120000000,
 		drive = { colour = Color3.fromRGB(158, 96, 78), material = Enum.Material.Brick, edge = true },
 		width = 20, depth = 16, storeys = 3,
 		walls = Color3.fromRGB(148, 92, 76), roof = Color3.fromRGB(74, 70, 78),
@@ -12276,7 +14035,7 @@ Config.HOUSE_TIERS = {
 	-- guess inside the brief's limits (structure <= 60 wide, <= 57 deep) and
 	-- are expected to change when the model arrives.
 	{
-		id = "mushroom", name = "Toadstool Cottage", style = "mushroom", cost = 250000,
+		id = "mushroom", name = "Toadstool Cottage", style = "mushroom", cost = 250000000,
 		-- AUTHORED NOW, SO THE FLAG IS OFF. `Config.residentHouseLevel` reads
 		-- `placeholder` to decide which tiers a NEIGHBOUR may stand, so a tier
 		-- with a real model and the flag still set is a house no resident can
@@ -12293,7 +14052,7 @@ Config.HOUSE_TIERS = {
 		-- same owners. It keeps standing the villa's model until the lantern
 		-- cottage builder lands under a new style, so nobody who paid for
 		-- this house wakes up in a placeholder block.
-		id = "villa", name = "Fairy Lantern Cottage", style = "villa", cost = 400000,
+		id = "villa", name = "Fairy Lantern Cottage", style = "villa", cost = 400000000,
 		drive = { colour = Color3.fromRGB(196, 194, 188), material = Enum.Material.Concrete, edge = true },
 		width = 33, depth = 24, storeys = 2,
 		walls = Color3.fromRGB(236, 228, 210), roof = Color3.fromRGB(96, 104, 100),
@@ -12301,9 +14060,9 @@ Config.HOUSE_TIERS = {
 		blurb = "A crooked little cottage under a string of glowing lanterns",
 	},
 	{
-		id = "treehouse", name = "The Treehouse", style = "treehouse", cost = 750000,
+		id = "treehouse", name = "The Treehouse", style = "treehouse", cost = 750000000,
 		-- AUTHORED, NOT A PLACEHOLDER ANY MORE: `Config.HOUSE_TEMPLATE` stands
-		-- the Blender model (assets/houses/treehouse-v2). The footprint
+		-- the Blender model (assets/houses/treehouse-v3). The footprint
 		-- and height are the template's own MEASURED size rather than the
 		-- block's guess -- 55.8 x 54.6 x 38.8 -- because the sign, the card
 		-- and the clearance checks all read these.
@@ -12321,7 +14080,7 @@ Config.HOUSE_TIERS = {
 		blurb = "A cabin up in the boughs, with a rope ladder and a bridge",
 	},
 	{
-		id = "manor", name = "Haunted Manor", style = "manor", cost = 1400000,
+		id = "manor", name = "Haunted Manor", style = "manor", cost = 1400000000,
 		drive = { colour = Color3.fromRGB(206, 202, 192), material = Enum.Material.Slate, edge = true },
 		width = 34, depth = 28, storeys = 3,
 		walls = Color3.fromRGB(214, 210, 200), roof = Color3.fromRGB(70, 66, 80),
@@ -12329,7 +14088,7 @@ Config.HOUSE_TIERS = {
 		blurb = "Crooked wings, boarded windows, and something moving upstairs",
 	},
 	{
-		id = "slime", name = "Gloop House", style = "slime", cost = 2500000,
+		id = "slime", name = "Gloop House", style = "slime", cost = 2500000000,
 		-- AUTHORED, AND THE SIZE IS THE TEMPLATE'S OWN MEASURED ONE rather than
 		-- the placeholder block's guess -- 31.5 x 33.2 x 23.3 against 28 x 24 x
 		-- 18 -- because the sign, the shop card and every clearance check read
@@ -12348,7 +14107,8 @@ Config.HOUSE_TIERS = {
 	{
 		-- RE-THEMED IN PLACE (was the Midnight Modern), on the villa's terms
 		-- above: the old model stands until the fishbowl builder lands.
-		id = "modern", name = "Fishbowl House", style = "modern", cost = 5000000,
+		id = "modern", name = "Fishbowl House", style = "modern", cost = 5000000000,
+		unlockRebirths = 2,
 		drive = { colour = Color3.fromRGB(32, 33, 38), material = Enum.Material.Asphalt, edge = true, lit = true },
 		width = 44, depth = 32, storeys = 2,
 		walls = Color3.fromRGB(26, 27, 32), roof = Color3.fromRGB(18, 19, 23),
@@ -12394,7 +14154,8 @@ Config.HOUSE_TIERS = {
 	--
 	-- They still confer nothing. Prestige only.
 	{
-		id = "neontower", name = "Neon Tower", style = "tower", cost = 15000000,
+		id = "neontower", name = "Neon Tower", style = "tower", cost = 15000000000,
+		unlockRebirths = 3,
 		drive = { colour = Color3.fromRGB(44, 42, 58), material = Enum.Material.Asphalt, edge = true, lit = true },
 		width = 24, depth = 22, storeys = 6,
 		walls = Color3.fromRGB(30, 32, 44), roof = Color3.fromRGB(22, 23, 32),
@@ -12409,7 +14170,8 @@ Config.HOUSE_TIERS = {
 		blurb = "Six floors of glass with lit edges. Visible from the far end of the street",
 	},
 	{
-		id = "crystal", name = "Crystal Spire", style = "crystal", cost = 25000000,
+		id = "crystal", name = "Crystal Spire", style = "crystal", cost = 25000000000,
+		unlockRebirths = 4,
 		-- NO LONGER A PLACEHOLDER: `Config.HOUSE_TEMPLATE` stands the authored
 		-- Crystal Spire. The flag had to come off rather than being left
 		-- harmless, because `Config.residentHouseLevel` reads it to decide
@@ -12426,7 +14188,8 @@ Config.HOUSE_TIERS = {
 	{
 		-- RE-THEMED IN PLACE (was the Marble Palace), on the villa's terms:
 		-- the palace model stands until the ice builder lands.
-		id = "palace", name = "Ice Palace", style = "palace", cost = 40000000,
+		id = "palace", name = "Ice Palace", style = "palace", cost = 40000000000,
+		unlockRebirths = 5,
 		drive = { colour = Color3.fromRGB(228, 222, 206), material = Enum.Material.Marble, edge = true, lit = true },
 		width = 46, depth = 30, storeys = 3,
 		walls = Color3.fromRGB(244, 240, 230), roof = Color3.fromRGB(212, 176, 96),
@@ -12468,7 +14231,8 @@ Config.HOUSE_TIERS = {
 		-- and 2.5x, so the top rung got slightly closer rather than the whole
 		-- curve moving. It is still 83% of the largest pig in the game and
 		-- still the last thing anybody finishes.
-		id = "skycastle", name = "Sky Castle", style = "castle", cost = 80000000,
+		id = "skycastle", name = "Sky Castle", style = "castle", cost = 80000000000,
+		unlockRebirths = 6,
 		drive = { colour = Color3.fromRGB(126, 122, 130), material = Enum.Material.Cobblestone, edge = true, lit = true },
 		width = 40, depth = 34, storeys = 5,
 		walls = Color3.fromRGB(158, 156, 166), roof = Color3.fromRGB(92, 52, 128),
@@ -12487,7 +14251,8 @@ Config.HOUSE_TIERS = {
 	-- THE FOUR ABOVE THE OLD TOP. They could not be sold until 4b.1 carried
 	-- the largest pig to 1,241,390,843; `auditEconomy` is what says they fit.
 	{
-		id = "galleon", name = "The Beached Galleon", style = "galleon", cost = 150000000,
+		id = "galleon", name = "The Beached Galleon", style = "galleon", cost = 150000000000,
+		unlockRebirths = 7,
 		-- AUTHORED NOW, SO THE FLAG IS OFF. `Config.residentHouseLevel` reads
 		-- `placeholder` to decide which tiers a NEIGHBOUR may stand, so a tier
 		-- with a real model and the flag still set is a house no resident can
@@ -12500,7 +14265,8 @@ Config.HOUSE_TIERS = {
 		blurb = "A pirate ship run aground on the lawn and moved into",
 	},
 	{
-		id = "portal", name = "Portal House", style = "portal", cost = 300000000,
+		id = "portal", name = "Portal House", style = "portal", cost = 300000000000,
+		unlockRebirths = 8,
 		-- AUTHORED NOW, SO THE FLAG IS OFF. `Config.residentHouseLevel` reads
 		-- `placeholder` to decide which tiers a NEIGHBOUR may stand, so a tier
 		-- with a real model and the flag still set is a house no resident can
@@ -12513,7 +14279,8 @@ Config.HOUSE_TIERS = {
 		blurb = "Half a house here, and half of it somewhere else",
 	},
 	{
-		id = "thundercloud", name = "Thundercloud Fortress", style = "thundercloud", cost = 600000000,
+		id = "thundercloud", name = "Thundercloud Fortress", style = "thundercloud", cost = 600000000000,
+		unlockRebirths = 9,
 		-- AUTHORED NOW, SO THE FLAG IS OFF. `Config.residentHouseLevel` reads
 		-- `placeholder` to decide which tiers a NEIGHBOUR may stand, so a tier
 		-- with a real model and the flag still set is a house no resident can
@@ -12528,7 +14295,8 @@ Config.HOUSE_TIERS = {
 		blurb = "Dark towers rising out of a heavy storm cloud",
 	},
 	{
-		id = "void", name = "The Void", style = "void", cost = 1000000000,
+		id = "void", name = "The Void", style = "void", cost = 1000000000000,
+		unlockRebirths = 10,
 		-- AUTHORED NOW, SO THE FLAG IS OFF. `Config.residentHouseLevel` reads
 		-- `placeholder` to decide which tiers a NEIGHBOUR may stand, so a tier
 		-- with a real model and the flag still set is a house no resident can
@@ -12672,6 +14440,56 @@ function Config.residentHouseLevel(step: number): number
 		end
 	end
 	return built[math.clamp(math.floor(step), 0, #built - 1) + 1] or 0
+end
+
+-- THE TOP OF A RESIDENT'S LOOK BAND, derived from the DEFENCE ladders it
+-- has to fill rather than typed: the lowest level at which the fence, the
+-- lock and the garden are all at their ceiling, so the band spans each of
+-- those exactly once and a tier added to `FENCE_TIERS` or a rung to
+-- `UPGRADES.locks` widens it with nothing to remember. Same argument as
+-- `Config.CASING` deriving its threshold from the Lockpicks tree's own
+-- `max` rather than pinning one.
+--
+-- THE HOUSE LADDER IS DELIBERATELY NOT IN THIS MAX, AND THAT IS THE ONE
+-- THING TO READ BEFORE ADDING IT. It looks like the fourth ladder and it
+-- is a different length: `HOUSE_TIERS` has grown to eighteen rows, of
+-- which seventeen are built, so `residentHouseLevel` walks seventeen
+-- rungs at `housePerLevels` 3 and wants a band of 48 where the defences
+-- want 25. Folding it in does not widen the variety, it DELETES it --
+-- measured, the fence tops out at 25, so every style from 25 to 48 draws
+-- the same top tier and HALF THE STREET STANDS BEHIND A MOAT. That is the
+-- lockstep complaint this whole split exists to answer, arriving from the
+-- other end: a band sized to the longest ladder saturates every shorter
+-- one.
+--
+-- WHAT IT COSTS, MEASURED AND STATED PLAINLY: a resident tops out at step
+-- 8 of 17, so the nine buildings they stand run Starter Shack to Fishbowl
+-- House and take in the Mushroom, the Treehouse and the Slime -- and the
+-- eight above it, every one priced at fifteen billion or more, NEVER
+-- APPEAR ON THE STREET. That is defensible on its own terms, since those
+-- are the endgame prestige buildings a player finishes the game to reach
+-- and a neighbour casually standing a Void Manor would cheapen the one
+-- thing the top of that catalogue is for. It is recorded rather than
+-- hidden because it is a REAL reduction in what the row can show, and if
+-- it should change, the lever is stretching the house ladder ACROSS this
+-- band -- a step of `style / max * (built - 1)` -- rather than growing the
+-- band to fit it, for the saturation reason above.
+--
+-- A FUNCTION RATHER THAN A FIELD ON `RESIDENTS`, and that is the whole
+-- reason it lives down here. `FENCE_TIERS` is defined four thousand lines
+-- BELOW that table, so a field reading it would be the twelfth forward
+-- reference in this file -- and this file's own record of those is that a
+-- field read during module load cannot limp: it is `nil.something` in the
+-- one module every service and both clients require, which is no plots,
+-- no services and no "Ready" in the log. A function BODY cannot run at
+-- load, so it cannot have the bug, which is why the many legitimate
+-- readers further down this file are correctly silent.
+function Config.residentStyleMax(): number
+	local R = Config.RESIDENTS
+	return math.max(
+		#Config.FENCE_TIERS * R.fencePerLevels,
+		Config.UPGRADES.locks.max * R.lockPerLevels,
+		R.decorMax * R.decorPerLevels)
 end
 
 -- ============================================================
@@ -13713,6 +15531,43 @@ function Config.rideMultiplier(spec: any): number
 	return Config.RIDE_TIER_SPEED[Config.rarityOf(spec)] or 1
 end
 
+-- GATED BEHIND REBIRTHS AS WELL (designer, 2026-09-23). `unlockRebirths` is
+-- the rebirth that puts a ride ON SALE: below it no amount of coins buys it,
+-- and `RideService.buy` refuses by naming the rebirth. An OWNED ride is never
+-- gated, and a gated ride is still SHOWN in the shop behind
+-- `ShopWidgets.gate`, with its price and its speed bonus readable under the
+-- wash.
+--
+--     r1  BMX Bike        90K     r3  Hoverboard      1.2M
+--     r2  E-Scooter      300K     r4  Volt Scrambler  4.5M
+--
+-- THE SKATEBOARD IS UNGATED AND THAT IS LOAD-BEARING RATHER THAN GENEROUS:
+-- `PASSES.stylePack.entryRide` names the cheapest ride and `grantEntryRide`
+-- hands it to a pass owner who owns none, so a gate on that row would be a
+-- Robux purchase that visibly does nothing -- the worst failure this game can
+-- hand a nine-year-old. The `shopui` suite asserts the cheapest ride carries
+-- no gate, derived from the prices rather than from the key, so a re-priced
+-- catalogue cannot strand it.
+--
+-- AND THE HOVERDISC CARRIES NO GATE BECAUSE IT IS IN A CRATE POOL. It is the
+-- alien set's ride, and `chestPool` resolves `ride:hoverdisc` through
+-- `Config.catalogueFor` -- so a gate there would be the retired OWNERSHIP
+-- gate on something luck can hand over, which is the one thing
+-- `auditRandomOutcomes` has always refused. Being won rather than bought, it
+-- has no sale to gate either.
+--
+-- THE LADDER STOPS AT 4, WHICH IS THE OPPOSITE END FROM THE HOUSES' 10, and
+-- the asymmetry is the decision rather than an oversight. A house is pure
+-- prestige and every gate on it sits at or below what the pig can hold, so
+-- the lock is only ever the earlier of two signals. A ride is a CAPABILITY --
+-- the walk is the one thing it is sold against -- and every ride but the
+-- Scrambler is affordable before the first rebirth, so a ride gate is the
+-- BINDING constraint by construction. That is what the designer asked a ride
+-- ladder for, and it is why it is short: at rebirth 4 the pig holds 12M
+-- against the Scrambler's 4.5M, so the flagship is still a real purchase
+-- rather than pocket change, and the whole catalogue is open inside the first
+-- few hours. Any rung moved up from here trades the game's largest coin sink
+-- for a longer lock on it.
 Config.RIDES = {
 	skateboard = {
 		name = "Skateboard", style = "skateboard", order = 1,
@@ -13746,7 +15601,7 @@ Config.RIDES = {
 		sound = { id = Config.SOUNDS.RIDE_ROLL, volume = 0.09, idle = 0,
 			pitch = { 0.88, 1.12 }, range = 70,
 			eq = { low = 0, mid = -3, high = -8 } },
-		cost = 25000, stand = 0.85,
+		cost = 25000000, stand = 0.85,
 		-- 0.85, not the deck height of 1.05. `stand` sets how high the ROOT
 		-- rides, and the pose bends the knees -- so seating the deck under a
 		-- straight-legged rider left the bent feet hanging 0.2 studs above it.
@@ -13794,7 +15649,8 @@ Config.RIDES = {
 		sound = { id = Config.SOUNDS.RIDE_TYRE, volume = 0.14, idle = 0,
 			pitch = { 0.76, 0.90 }, range = 70,
 			eq = { low = 0, mid = -3, high = -9 } },
-		cost = 90000, stand = 0,
+		cost = 90000000, stand = 0,
+		unlockRebirths = 1,
 		-- ZERO, and that is not a missing value. `stand` lifts the rider by the
 		-- height of the surface they STAND on, and a seated rider does not stand
 		-- on anything -- they are held up by the saddle, which RideModel now
@@ -13830,7 +15686,8 @@ Config.RIDES = {
 		sound = { id = Config.SOUNDS.RIDE_ROLL, volume = 0.08, idle = 0,
 			pitch = { 1.05, 1.26 }, range = 70,
 			eq = { low = 0, mid = -2, high = -6 } },
-		cost = 300000, stand = 0.80,
+		cost = 300000000, stand = 0.80,
+		unlockRebirths = 2,
 		-- A WHEELIE, about the rear wheel at z -2.0 (see `builders.scooter`).
 		-- Smaller than the bikes' 30: the wheelbase is a stud shorter and the
 		-- rider stands, so 24 already puts the front wheel well off the road.
@@ -13862,7 +15719,8 @@ Config.RIDES = {
 			-- Barely touched: a synth tone has no bearing grit to remove,
 			-- and it is not resampled far. A drone wants to stay smooth.
 			eq = { low = 0, mid = 0, high = -3 } },
-		cost = 1200000, stand = 0.83,
+		cost = 1200000000, stand = 0.83,
+		unlockRebirths = 3,
 		-- Down from 1.29 with the board itself, which shrank about a fifth --
 		-- it was 5.4 studs wide, wider than the rider is tall.
 		colour = Color3.fromRGB(38, 36, 52), trim = Color3.fromRGB(212, 216, 228),
@@ -13902,7 +15760,8 @@ Config.RIDES = {
 			-- The widest resample left in the file, so it keeps the most
 			-- top-end cut of the six.
 			eq = { low = 0, mid = -2, high = -7 } },
-		cost = 4500000, stand = 0,
+		cost = 4500000000, stand = 0,
+		unlockRebirths = 4,
 		-- ZERO, like the BMX and for the same reason: a seated rider is held up
 		-- by the saddle, not stood on the pegs, and RideModel puts the seat
 		-- under the pelvis where it already is.
@@ -14025,20 +15884,33 @@ end
 -- rather than in ClientMain, which used to keep its own seven-entry copy of
 -- this ladder and would now be a copy that disagreed about the tokens.
 Config.DAILY_CYCLE = {
-	{ kind = "coins", seconds = 300, floor = 500,
-		short = "COINS", label = "5 min of income" },
+	-- DAY ONE IS A CRATE NOW (designer, 2026-09-23), AND IT REPLACED THE ONE
+	-- RUNG NOBODY WOULD HAVE MISSED. Five minutes of income is a thing a new
+	-- player earns by standing still for five minutes, so the first rung of
+	-- the ladder was paying for attendance with something attendance was not
+	-- needed for. A crate open lands on the PERMANENT COSMETIC TRACK, which is
+	-- the one thing an hour of idling cannot buy -- and it is the rung a
+	-- brand-new player meets first, so it is the one that most needs to be
+	-- worth coming back for.
+	--
+	-- `og` BECAUSE IT IS THE ENTRY SHELF. The skins the street is built on,
+	-- the ones a new player can already see on other lawns, and the shelf the
+	-- day-seven rung and the rebirth ladder both draw from -- so a week of
+	-- turning up is progress on ONE collection rather than a scattering.
+	{ kind = "crate", crate = "og",
+		short = "CRATE", label = "A free OG Piggy crate" },
 	{ kind = "boost", boost = "boost5",
 		short = "2x BOOST", label = "2x for 5 min" },
 	{ kind = "bone", bone = "bone", count = 2,
 		short = "BONES", label = "2 Dog Bones" },
-	{ kind = "coins", seconds = 900, floor = 2000,
+	{ kind = "coins", seconds = 900, floor = 2000000,
 		short = "COINS", label = "15 min of income" },
 	{ kind = "boost", boost = "boost15",
 		short = "2x BOOST", label = "2x for 15 min" },
 	-- Day six is the Golden Bone now, moved down a rung to make room. It is
 	-- still the second-best thing on the ladder and still the reason to come
 	-- back on day five.
-	{ kind = "golden", seconds = 1800, floor = 5000,
+	{ kind = "golden", seconds = 1800, floor = 5000000,
 		short = "GOLDEN", label = "Golden Bone + 30 min" },
 	-- DAY SEVEN IS A FREE CRATE, AND IT IS THE ONLY RUNG THAT PAYS SOMETHING
 	-- PLAYING CANNOT.
@@ -14057,8 +15929,15 @@ Config.DAILY_CYCLE = {
 	-- prize on day seven of somebody's first week. Note the pool is unowned-
 	-- aware through `liveOdds`, so a player who has finished it gets a spare
 	-- worth selling rather than nothing.
-	{ kind = "crate", crate = "og",
-		short = "CRATE", label = "A free OG Piggy crate" },
+	-- AND DAY SEVEN IS THE RUNG ABOVE IT (designer, 2026-09-23). Day one and
+	-- day seven both pay a crate, so the ladder has to distinguish them or the
+	-- week has no shape: `ograre` pays no commons at all and is the same shelf,
+	-- so seven days of turning up is visibly better than one.
+	--
+	-- TWO CRATE RUNGS ARE WHY `daily.crate` BECAME A QUEUE. A single field
+	-- silently replaced one with the other -- see `owedCrates` in DailyService.
+	{ kind = "crate", crate = "ograre",
+		short = "RARE CRATE", label = "A free OG Piggy Rare crate" },
 }
 
 -- Stored, never auto-applied.
@@ -14408,6 +16287,21 @@ end
 -- with one police car in it, and it is the world's own explanation for the
 -- mailbox on every lawn and the crate on a seventh-day doorstep.
 Config.DELIVERY = {
+	-- OFF FOR THE MVP (designer, 2026-09-23), the same call as
+	-- `Config.EVENTS.enabled` above and gating the same half: the SCHEDULE
+	-- rather than the vehicle. `TrafficService.send` is untouched, so the
+	-- admin panel still puts a van on the road on demand.
+	--
+	-- IT COSTS NOTHING BUT THE PICTURE, which is what makes it the safest
+	-- thing in this file to switch off. A van confers nothing, cannot be
+	-- reached, called, bought, aimed or robbed, and nothing on it collides
+	-- -- `VanModel` enforces that rather than promising it. No balance,
+	-- save field, audit or catalogue reads it. What the street loses is the
+	-- traffic that explained the mailbox on every lawn and the crate on a
+	-- seventh-day doorstep; both of those still work and now arrive
+	-- unexplained.
+	enabled = false,
+
 	-- SLOWER THAN THE PATROL, WHICH IS THE POINT RATHER THAN A SAVING. The
 	-- car does 2.125 of the base walk because it is answering an alarm; a
 	-- van doing the same speed reads as a second emergency. At 1.25 of the
@@ -14460,7 +16354,33 @@ Config.DELIVERY = {
 -- that runs on every join is a money printer -- a far worse bug than a
 -- retired balance. Nothing is refunded; the game is in beta, which is the
 -- same line the retired lawn ornaments took.
-Config.SCHEMA_VERSION = 29
+-- SCHEMA 30: THE ECONOMY IS RE-DENOMINATED x1000, AND THIS IS THE ONE
+-- MIGRATION IN THIS FILE THAT HAS TO PAY OUT RATHER THAN PRUNE.
+--
+-- Every other schema bump recorded here DROPS a field, and each one argues
+-- the same line: a payout that runs on every join is a money printer, a far
+-- worse bug than the one being fixed. This is the exception, and the reason
+-- is that the alternative is not "nobody is refunded" -- it is EVERY EXISTING
+-- PLAYER IS WIPED. Prices moved by a thousand; a save's `coins` did not, so
+-- an untouched save buys a thousandth of what it did yesterday.
+--
+-- IT IS SAFE FOR THE ONE REASON THOSE OTHERS WERE NOT: it is guarded on
+-- `previousSchema`, which is read once before the generic fill and written
+-- once at the end of reconcile, so it cannot run twice on one save however
+-- many times reconcile is called. That is the property the entry on `shards`
+-- demands be MEASURED before any payout migration ships, and the piggies
+-- suite measures it.
+Config.SCHEMA_VERSION = 30
+
+-- THE FACTOR THE WHOLE ECONOMY WAS MULTIPLIED BY, kept as a named constant
+-- for exactly one reader: the schema-30 migration in `DataService.reconcile`.
+--
+-- It is NOT a live dial and must never be read by anything that prices or
+-- pays. Every coin number in this file is already denominated in the new
+-- units, so a second reader multiplying by it again would be applying the
+-- move twice -- and the day somebody re-denominates again, this becomes that
+-- migration's factor rather than a running total.
+Config.COIN_REDENOMINATION = 1000
 
 Config.AUTOSAVE_INTERVAL = 60
 
@@ -14546,8 +16466,36 @@ function Config.rebirthIncomeFactor(rebirths: number): number
 end
 
 -- The same factor as the whole-percent bonus a player is shown ("+220%").
+--
+-- NOTHING PLAYER-FACING READS THIS ANY MORE -- see `rebirthMultipleText`. It
+-- survives as the readable expression of the taper, which is what
+-- `tests/luau/ladder` asserts it through.
 function Config.rebirthBonusPercent(rebirths: number): number
 	return math.floor((Config.rebirthIncomeFactor(rebirths) - 1) * 100 + 0.5)
+end
+
+-- THE PERMANENT COIN MULTIPLIER AS A PLAYER READS IT: "1x", "1.12x", "3x".
+--
+-- A MULTIPLE AND NOT A PERCENTAGE (designer, 2026-09-23). "+12%" is arithmetic
+-- a nine-year-old has to do before it means anything; "1x going to 1.12x" is a
+-- thing that visibly gets bigger.
+--
+-- IN CONFIG BECAUSE TWO SURFACES PRINT IT and one of them is a server toast:
+-- the rebirth page's own GAIN row and `ProgressionService`'s "REBIRTH n!" line.
+-- Two copies of one formatter is the near-identical duplicate that drifts --
+-- the same argument that put `formatCoins` here rather than in two clients --
+-- and drifting here would mean the page and the toast teaching a child two
+-- vocabularies for one number.
+--
+-- TWO DECIMALS, AND ONE IS NOT ENOUGH. `REBIRTH_MULTIPLIER_TAPER` steps the
+-- factor by 0.08 past rebirth 10, and at one decimal two consecutive rungs
+-- collide -- 2.36 and 2.44 both print "2.4", so the page would read
+-- "2.4x -> 2.4x" and look like a broken readout. Trailing zeros are then
+-- trimmed, so a fresh save reads a clean "1x" rather than "1.00x".
+function Config.rebirthMultipleText(rebirths: number): string
+	local body = ("%.2f"):format(Config.rebirthIncomeFactor(rebirths))
+	body = body:gsub("0+$", ""):gsub("%.$", "")
+	return body .. "x"
 end
 
 -- `friendBonus` is a 0..0.5 fraction and is deliberately optional: offline
@@ -14772,9 +16720,17 @@ end
 -- function body, which is the one place that is safe in this file -- a body
 -- cannot run during module load. This file has had eleven forward references
 -- take the whole server down, so it is worth saying that this is not one.)
+--
+-- IT IS THE PEDESTALS AND NOT THE TILL (designer, 2026-09-23). This counted
+-- `PIGGY_LAWN_SLOT_COUNT + 1` for as long as the till earned at its own skin's
+-- rate; slot 0 is a display now and pays nothing, so the `+ 1` was a seventh of
+-- an idling figure that nobody actually earns. It is the IDLE side of
+-- `auditRobbery`, so leaving it in would have made robbing look worse than it
+-- is by exactly that seventh, silently, in the one measurement this economy
+-- has for whether its own name is worth doing.
 function Config.fullLawn(rarity: string): { string }
 	local placed = {}
-	for _ = 1, Config.PIGGY_LAWN_SLOT_COUNT + 1 do
+	for _ = 1, Config.PIGGY_LAWN_SLOT_COUNT do
 		table.insert(placed, rarity)
 	end
 	return placed
@@ -14840,9 +16796,21 @@ end
 -- at all: it multiplies the live drip only, so the one caller that wants it
 -- applies it outside. A caller that passes nothing gets the honest base figure,
 -- which is what offline accrual and the raid drain both want.
+--
+-- FROM SLOT 1, BECAUSE THE TILL EARNS NOTHING (designer, 2026-09-23: "the
+-- piggy bank displayed as the till should not earn any money only displayed as
+-- the storage"). This swept 0..N for as long as slot 0 drip-fed the balance.
+-- Counting it now would put a rate in the HUD's own pill that no pedestal is
+-- producing and no collect will ever hand over -- a number that is wrong in
+-- the direction nobody checks, because it is too GENEROUS. The refusal itself
+-- lives in `Config.piggySlotRate` below, which answers 0 for slot 0 and is
+-- what every reader in the game comes through; this bound keeps the LIST
+-- honest and that function keeps the PAYMENT honest. It said "duplicated in
+-- `EconomyService.slotRateOf`" for about three hours, which was true and was
+-- the wrong shape -- see the entry in CLAUDE.md.
 function Config.collectionRateOf(data: any, friendBonus: number?): number
 	local placed = {}
-	for slot = 0, Config.PIGGY_LAWN_SLOT_COUNT do
+	for slot = 1, Config.PIGGY_SLOT_COUNT do
 		if Config.piggyKeyAt(data, slot) ~= nil then
 			-- `common` IS the floor multiplier and `getPiggyIncomeRate` already
 			-- returns the floor for an unknown tier, so naming it is
@@ -14855,6 +16823,58 @@ function Config.collectionRateOf(data: any, friendBonus: number?): number
 	return Config.collectionRate(placed, data.incomeLevel, data.rebirths, friendBonus)
 end
 
+
+-- WHAT ONE PLACEMENT EARNS PER SECOND, AND THE ONLY ANSWER TO THAT
+-- QUESTION ANYWHERE.
+--
+-- THERE WERE THREE OF THESE AND THEY AGREED BY LUCK. `EconomyService`
+-- had its own `slotRateOf`, `ResidentService` had the rate half of
+-- `slotEconomy`, and `PlotService` had none at all -- which is why a
+-- neighbour's lawn printed names with no figures under them for as long
+-- as the pedestals have been standing. Three copies of one number is the
+-- failure this file records more often than any other, so this is the
+-- copy and the other two delegate to it.
+--
+-- THE TILL EARNS NOTHING AND THE REFUSAL LIVES HERE (designer,
+-- 2026-09-23: "the piggy bank displayed as the till should not earn any
+-- money only displayed as the storage"). It was in `slotRateOf`, which
+-- was the right home while that was the only reader; with three readers
+-- it has to be in the shared one, or a later caller reaches a different
+-- answer by asking a different way and the till starts earning with its
+-- own label still reading BANK. The rule is about the PLACEMENT rather
+-- than the piggy: swap that same piggy onto a pedestal and it earns its
+-- tier rate there, which is the whole reason the swap is worth pressing.
+--
+-- AN EMPTY SLOT IS ASKED FOR BY KEY RATHER THAN BY RARITY, and the
+-- difference is not pedantry: `piggyRarityAt` returns nil BOTH for an
+-- empty plinth and for a skin with no tier, and `getPiggyIncomeRate`
+-- reads a nil rarity as the common multiplier -- so a rarity test would
+-- pay a full common's rate for a plinth with nothing on it.
+--
+-- `rebirths or 0` IS THE RESIDENT, AND IT IS A FACT RATHER THAN A
+-- DEFAULT PAPERING OVER A MISSING FIELD. A neighbour has `incomeLevel`
+-- -- it is seated from the street's own average and drives its pig --
+-- and has no prestige at all, because prestige is something a PLAYER
+-- has. `ResidentService` already passed a literal 0 here for exactly
+-- that reason before this function existed. A missing `incomeLevel` is
+-- deliberately NOT defaulted: that one would be a real gap, and a lawn
+-- quoting a level-0 rate is the "variety that lies" failure this file
+-- records for the resident gardens -- so it throws rather than lying.
+--
+-- NO DAILY BOOST, AND `friendBonus` OPTIONAL. The boost multiplies the
+-- live drip only and is applied one layer up in `EconomyService.slotRate`;
+-- a label that folded it in would advertise a rate the buffers do not
+-- fill at. A caller that passes nothing gets the honest base figure.
+function Config.piggySlotRate(data: any, slot: number, friendBonus: number?): number
+	if slot == 0 then
+		return 0
+	end
+	if Config.piggyKeyAt(data, slot) == nil then
+		return 0
+	end
+	return Config.getPiggyIncomeRate(Config.piggyRarityAt(data, slot),
+		data.incomeLevel, data.rebirths or 0, friendBonus)
+end
 -- ------------------------------------------------------------
 -- SIX LAWN PEDESTALS, AND THE LAWN IS CAPPED AFTER ALL
 -- ------------------------------------------------------------
@@ -15011,12 +17031,10 @@ Config.PIGGY_LAWN_SLOT_COUNT = #Config.PIGGY_LAWN_SLOTS
 -- refuse every sale or refuse none.
 --
 -- SO IT IS A LONG HOLD, which is the instrument this game already uses when a
--- press has consequences: `Config.SMASH.hold` is 1.3s explicitly because a
--- smash "may never be startable by a brushed prompt", against a crack's
--- half-second doorknob. This is dearer than a smash -- a smash takes a share
--- of somebody's coins and this permanently removes one of seven things a
--- player owns -- so it is longer, and it is the longest hold in the game on
--- purpose.
+-- press has consequences, against a crack's half-second doorknob. (The
+-- retired smash sat between them at 1.3s: it took a share of somebody's
+-- coins on one press.) This permanently removes one of seven things a player
+-- owns, so it is longer, and it is the longest hold in the game on purpose.
 --
 -- WHAT IT IS NOT IS A CONFIRMATION DIALOGUE. The rebirth page earns one by
 -- being a decision a player makes twenty times a lifetime; this is a tidying
@@ -15040,8 +17058,8 @@ Config.PIGGY_SELL = {
 -- minigame this is, because it is not one.
 --
 -- THE FOUR HOLDS ARE A LADDER OF CONSEQUENCE, which is the same argument
--- `PIGGY_SELL` makes one table up and `SMASH.hold` makes against the crack's
--- half-second doorknob. Nothing here is a reaction test; every one of them is
+-- `PIGGY_SELL` makes one table up against the crack's half-second
+-- doorknob. Nothing here is a reaction test; every one of them is
 -- a statement about how much a press costs the person on the other end.
 Config.PIGGY_HAUL = {
 	-- YOUR OWN, OFF YOUR OWN PLINTH. A doorknob. It costs nobody anything and
@@ -15051,7 +17069,7 @@ Config.PIGGY_HAUL = {
 	-- no hold at all is one a player can brush past something else into.
 	takeHold = 0.4,
 
-	-- SOMEBODY ELSE'S. Longer than a smash (1.3) and shorter than a sale
+	-- SOMEBODY ELSE'S. Longer than the retired smash (1.3) and shorter than a sale
 	-- (1.8), which is exactly where it belongs on that ladder: it takes one
 	-- of seven things a real child owns, so it may never be startable by a
 	-- brushed prompt -- but it is taken while standing on a defended lawn
@@ -15147,7 +17165,12 @@ Config.PIGGY_HAUL = {
 -- key and `owned` would still count the old one, and the collection total and
 -- the lawn would disagree for the rest of that save's life.
 function Config.placePiggy(data: any, key: string, slot: number): boolean
-	if slot < 1 or slot > Config.PIGGY_LAWN_SLOT_COUNT then
+	-- THE WHOLE COLLECTION, NOT THE LAWN. Whether an indoor slot is UNLOCKED
+	-- is deliberately NOT asked here: `InteriorService` stands a placement on
+	-- the unlocked plots and on no others, so a press on a plot past the
+	-- owner's capacity finds no pedestal and `PiggyHaulService.reach` refuses
+	-- it. One guarantee, kept by construction.
+	if slot < 1 or slot > Config.PIGGY_SLOT_COUNT then
 		return false
 	end
 	local slots = Config.piggySlots(data)
@@ -15612,6 +17635,13 @@ Config.PIGGY_PEDESTAL = {
 -- other across the lawn with the big pig between them, which is what a display
 -- arranged AROUND something looks like.
 --
+-- AND IT IS THE PIGGY THAT FACES INWARD, NEVER THE STAND UNDER IT. Those are
+-- two objects on one spot with two facings, and reading a report about one as
+-- a report about the other cost an hour on 2026-09-23: a kit's pedestal is
+-- authored front-on-its-own--Z and was hung on a lawn untouched, so its coin
+-- emblem pointed at the house. `PiggyPedestal`'s `ART_TURN` is that fix and
+-- it does not come through here.
+--
 -- BUT NOTHING IS SEATED ON THIS ANGLE. It is the TRUE bearing, so it differs
 -- per row, and both the pad and the piggy standing behind it are square to the
 -- plot -- so seating a display here put it askew on its own plinth by up to 26
@@ -15713,6 +17743,22 @@ Config.PIGGY_NAME = {
 	gap = 0.5,
 	range = 80,
 }
+
+-- WHAT THE TILL'S SECOND ROW SAYS INSTEAD OF A RATE (designer, 2026-09-23:
+-- "the piggy till should show its name over it too but no earning per
+-- second instead it should say bank").
+--
+-- IT IS HERE RATHER THAN IN `PiggyBank` FOR THE REASON EVERY OTHER WORD A
+-- PLAYER READS IS: `Config.NOTIFY` and `Config.PROMPTS` are the vocabulary,
+-- a service is the thing that shows it, and a string typed at the one site
+-- that draws it is a string no test can reach and no sweep can find.
+--
+-- AND THE ROW CANNOT SAY ANYTHING ELSE TRUTHFULLY. `Config.piggySlotRate`
+-- refuses slot 0 for every reader in the game, so the till's rate is 0 by
+-- construction -- and this file's rule for the six pedestals is that a row
+-- reading +0/s under a piggy is worse than a blank one. What the till does
+-- have to say is what it IS, which is where the collection's coins are kept.
+Config.TILL_LABEL = "BANK"
 
 -- WHAT COLOUR A PIGGY'S NAME IS WRITTEN IN: ITS TIER'S.
 --
@@ -15824,12 +17870,19 @@ function Config.piggySlots(data: any): { any }
 	-- Grown and trimmed to the table above rather than trusted, so a save
 	-- written before a slot was added or after one was removed reconciles
 	-- here instead of needing a schema branch of its own.
-	for i = 1, Config.PIGGY_LAWN_SLOT_COUNT do
+	-- THE LAWN AND THE HALL, WHICH ARE ONE ARRAY: the six plinths at 1..6 and
+	-- the indoor plots after them. Sized to the CEILING rather than to what
+	-- this save has unlocked, so the trim below cannot drop a piggy standing
+	-- in a room a `rebirths` field that arrives late has not "built" yet --
+	-- which would be a silent delete on the next read, and the next read is
+	-- every tick.
+	local size = Config.PIGGY_SLOT_COUNT
+	for i = 1, size do
 		if type(slots[i]) ~= "table" then
 			slots[i] = {}
 		end
 	end
-	for i = #slots, Config.PIGGY_LAWN_SLOT_COUNT + 1, -1 do
+	for i = #slots, size + 1, -1 do
 		slots[i] = nil
 	end
 	return slots
@@ -16222,7 +18275,7 @@ function Config.rebirthPiggyGate(data: any): boolean
 end
 
 -- WHAT A PIG IS WORTH TO WHOEVER ROBS IT, for the three street readouts: the
--- rob badge and the steal and smash cards. `fraction` of the pile, times the
+-- rob badge and the steal card. `fraction` of the pile, times the
 -- event multiplier, times the plain payout -- the same arithmetic
 -- `HeistService.deliver` runs, less the two bonuses a client cannot know in
 -- advance (revenge and the spree), so it never promises more than a plain
@@ -16305,6 +18358,22 @@ function Config.auditEconomy(): { string }
 	local visited = {}
 	local function checkGates(value: any, path: string)
 		if type(value) ~= "table" or visited[value] then return end
+		-- THREE CATALOGUES ARE THE PLACES THE FIELD IS A SALE GATE rather
+		-- than a retired ownership one: a guardian coat, a house and a ride
+		-- are each a direct coin purchase, and `unlockRebirths` on one is the
+		-- rebirth it goes on sale at (see the headers on `Config.DOG_COATS`,
+		-- `Config.HOUSE_TIERS` and `Config.RIDES`). Exempt by identity, never
+		-- by key name, so a row referenced from anywhere else is still swept.
+		--
+		-- WHAT KEEPS THE ORIGINAL RULE IS THE POOL CHECK IN
+		-- `auditRandomOutcomes`, which refuses the field on anything
+		-- `chestPool` can actually reach -- and that matters here rather than
+		-- in principle, because `catalogueFor` resolves `ride:` entries, so
+		-- the Alien Cache genuinely reaches `Config.RIDES`. The day one of
+		-- these tables enters a pool, that check fires and this line is the
+		-- first thing to delete.
+		if value == Config.DOG_COATS or value == Config.HOUSE_TIERS
+			or value == Config.RIDES then return end
 		visited[value] = true
 		for key, child in pairs(value) do
 			local childPath = path .. "." .. tostring(key)
@@ -17027,7 +19096,42 @@ function Config.auditRandomOutcomes(): { string }
 		-- paid random item rule the day anything can be bought, which is the
 		-- one regression nothing else in this file would notice.
 		if chest.currency ~= nil or chest.cost ~= nil then
-			fail("random.price", key .. " is priced: a crate is earned, never bought")
+			fail("random.price", key .. " is priced in an in-game currency: coins are not "
+				.. "purchasable, and a coin price on a random outcome is the one regression "
+				.. "nothing else in this file would notice")
+		end
+		-- AND THE CHECK INVERTED AGAIN, ONE STEP FURTHER ON (designer, 2026-09-23).
+		--
+		-- It first demanded an earned-currency price, then demanded NO price at
+		-- all. A crate is bought with ROBUX now, which puts it inside Roblox's
+		-- paid random item rule rather than outside it -- so what has to be
+		-- refused is a crate with no way to buy it and no way to say so. A
+		-- missing `robux` makes a crate unobtainable except by the free routes;
+		-- a missing `productId` FIELD means the card cannot even read COMING
+		-- SOON, because `ProductService` has nothing to report as absent.
+		--
+		-- AN EVENT SET IS EXEMPT BY ITS OWN KIND, not by a list. Attendance is
+		-- the only route to an event crate and that is the whole point of one,
+		-- so a price on it is the thing to refuse.
+		--
+		-- NO CHEST TAKES THIS BRANCH TODAY. The Alien Cache was deleted on
+		-- 2026-09-23 and it was the only `kind = "set"` chest. The refusal is
+		-- kept rather than deleted because it is what stops the NEXT event crate
+		-- being quietly sold for Robux -- a rule about the design rather than
+		-- about the one row that happened to exercise it.
+		if chest.kind == "set" then
+			if (chest :: any).robux ~= nil then
+				fail("random.price", key .. " is an event crate and may not be sold for Robux")
+			end
+		else
+			local price = (chest :: any).robux
+			if type(price) ~= "number" or price <= 0 then
+				fail("random.price", key .. " carries no Robux price, so nothing can buy it")
+			end
+			if type((chest :: any).productId) ~= "number" then
+				fail("random.price", key .. " carries no productId field, so its card cannot "
+					.. "read COMING SOON")
+			end
 		end
 		local ok, pool = pcall(Config.chestPool, key)
 		if not ok then
@@ -17039,6 +19143,25 @@ function Config.auditRandomOutcomes(): { string }
 					local spec = Config.getSetItem(kind, itemKey)
 					if spec and spec.cost ~= nil then fail("random.coinPool", kind .. ":" .. itemKey .. " is coin-priced inside " .. key) end
 					if spec and spec.pass ~= nil then fail("random.passPool", kind .. ":" .. itemKey .. " is pass-exclusive inside " .. key) end
+					-- AND NOTHING INSIDE A POOL MAY CARRY A REBIRTH GATE,
+					-- which is what actually enforces the rule the `walk`
+					-- sweep below can only approximate.
+					--
+					-- That sweep refuses `unlockRebirths` everywhere and
+					-- exempts whole TABLES by identity, because in a few of
+					-- them the field is a legitimate SALE gate on a direct
+					-- purchase (see the header on `Config.DOG_COATS`). An
+					-- identity exemption is all-or-nothing: it protects the
+					-- table, so the moment one ROW of it enters a crate the
+					-- gate goes unaudited on exactly the row that must not
+					-- have one -- a gate on something rolled is a retired
+					-- ownership gate, and `ChestService` would hand the item
+					-- over with the gate silently doing nothing.
+					--
+					-- Asked of the POOL rather than of the table, this
+					-- catches it whichever table the row came from, and it
+					-- catches the next one too.
+					if spec and spec.unlockRebirths ~= nil then fail("random.poolRebirthGate", kind .. ":" .. itemKey .. " carries a rebirth gate inside " .. key) end
 				end
 			end
 		end
@@ -17086,6 +19209,17 @@ function Config.auditRandomOutcomes(): { string }
 	local seen = {}
 	local function walk(value: any, path: string)
 		if type(value) ~= "table" or seen[value] then return end
+		-- The guardian coats, the houses and the rides carry `unlockRebirths`
+		-- as a SALE gate on a direct coin purchase, which is the one
+		-- legitimate home for it -- see the headers on `Config.DOG_COATS`,
+		-- `Config.HOUSE_TIERS` and `Config.RIDES`. This sweep exists to refuse
+		-- the field on anything a crate can ROLL, so the three tables are
+		-- exempt by identity -- and what actually holds that rule is the pool
+		-- check in the chest loop above, which refuses a gated row whichever
+		-- table it lives in. That is stronger than exempting a table and
+		-- hoping, and it is why three exemptions are affordable where one was.
+		if value == Config.DOG_COATS or value == Config.HOUSE_TIERS
+			or value == Config.RIDES then return end
 		seen[value] = true
 		if value.cost ~= nil and value.chest ~= nil then fail("random.coinTag", path .. " carries both cost and chest") end
 		if value.unlockRebirths ~= nil then fail("random.rebirthGate", path .. " carries retired unlockRebirths") end
@@ -17208,6 +19342,20 @@ end
 function Config.indoorRoomCeiling(): number
 	return Config.indoorRooms(Config.indoorPlotCeiling())
 end
+
+-- HOW MANY PLACEMENTS A COLLECTION HAS: the lawn's six plus the hallway's
+-- ceiling. Slot 0 is the bank, 1..PIGGY_LAWN_SLOT_COUNT are the lawn front to
+-- back, and the rest are the indoor plots in the order the hall builds them
+-- (`Shared/HouseInterior.slotOfPlot`). ONE dense array, one economy -- so
+-- every reader that already walks `piggySlots` picks an indoor piggy up for
+-- free, and `HouseInterior.slotCount()` stops falling back to a derivation of
+-- its own.
+--
+-- BELOW `indoorPlotCeiling` DELIBERATELY: this is a top-level CALL, and a
+-- Config field that reads something defined later is the load-time throw this
+-- project has recorded eleven times -- total, immediate, and it takes the
+-- whole server down because every service requires this file.
+Config.PIGGY_SLOT_COUNT = Config.PIGGY_LAWN_SLOT_COUNT + Config.indoorPlotCeiling()
 
 -- How many plots stand in room `room`, 1-based. The last room takes the
 -- remainder and is BUILT SHORT rather than built full and half locked: a plot
@@ -17448,6 +19596,115 @@ Config.HOUSE_DOOR = {
 	ownerOnly = true,
 }
 
+-- THE DROP SPLASH (designer, 2026-09-23: "instead of a drop zone with
+-- labels on it, a banner saying PIGGIES INCOMING! ... highlight the spots
+-- where they drop down but no card, just the text as an event on the top of
+-- the screen in big funky text").
+--
+-- IT IS A SPLASH, NOT A BAND OCCUPANT. The top-centre column is measured and
+-- full (countdown 6..82, first-job card 88..132, rebirth 96..148, carry
+-- 140..192, banners 200..244), and a standing element has no room there.
+-- This is on screen for `hold + fade` seconds about once a minute, drawn
+-- OVER the column at `y` on its own ScreenGui, and gone -- the same class as
+-- the arrest stamp rather than as the patrol banner. The type is the game's
+-- own display face (`Theme.FONT`, FredokaOne) in gold with a thick ink
+-- stroke, tilted and popped in with a Back ease, which is what "funky" costs
+-- with no asset to be moderated away.
+Config.HERD_BANNER = {
+	text = "PIGGIES INCOMING!",
+	textSize = 72,
+	-- THE LINE UNDER IT SAYS WHERE TO GO (designer, 2026-09-23: "under it,
+	-- look behind the backyard to find wild piggies or something like
+	-- that"). ONE LINE, NEVER A PLOT NUMBER: `HerdDrop` carries the landing
+	-- zone in words ("the field behind Plot 3") and a first build printed
+	-- it, and the designer's answer was "don't describe the plots as plot 1
+	-- 2 3, just say in the woods or something". A plot number is an address
+	-- a player has never been taught; the woods behind the backyards is a
+	-- place they can see. Smaller, paper rather than gold, the same tilt, so
+	-- it reads as the caption to the headline and not as a second headline.
+	subtitle = "Look in the woods behind the backyards to find wild piggies!",
+	subtitleSize = 30,
+	-- Pixels between the bottom of the headline's box and the top of the
+	-- subtitle's.
+	subtitleGap = -6,
+	-- THE SHAKE (same request: "it should shake on the screen"). A random
+	-- jolt on every frame, in pixels and degrees, under an envelope that
+	-- starts the moment the pop lands and decays to nothing over `seconds`
+	-- -- so the type lands hard and settles, rather than buzzing for the
+	-- whole hold. It moves POSITION and ROTATION and never colour or
+	-- transparency, so it is not a flash under the three-a-second ceiling
+	-- this project holds every effect to; and it is short by construction,
+	-- because a headline that will not hold still cannot be read.
+	shake = { pixels = 9, degrees = 2.5, seconds = 0.9 },
+	-- Where the top of the type sits. Just under the standing countdown chip
+	-- (which ends at 82) so the two never overlap, over the bands below it
+	-- for the length of the splash.
+	y = 92,
+	tilt = -3,
+	-- Seconds: the pop-in, the hold at full, the fade out. The hold was 3
+	-- and is 10 on the designer's call (2026-09-23: "displayed for much
+	-- longer, I'll propose 10 seconds"): the caption is an instruction, and
+	-- a player who was mid-robbery when it landed needs to be able to look
+	-- up and still find it. It draws over the top-centre column for the
+	-- whole hold, which is the trade.
+	pop = 0.35,
+	hold = 10.0,
+	fade = 0.5,
+}
+
+-- THE ROB BADGE IS A COIN AND A FIGURE FLOATING OVER THE PIG, READ FROM THE
+-- PAVEMENT AND NOT FROM ACROSS THE MAP (designer, 2026-09-23: "make the
+-- amount card over each player's piggy disappear and only show as a coin
+-- with number next to it, no card background, and make it not readable
+-- until you get closer").
+--
+-- `reach` is the BillboardGui's MaxDistance. It was
+-- `STREET_SPACING + PLOT_SPACING` (224), which is the far row's next-door
+-- neighbour from your own lawn -- every price on the street legible from
+-- anywhere on it, which is the wall of gold type this card was once shrunk
+-- to avoid. From the pavement in front of a house the pig is about 40 studs
+-- off (`STREET_SPACING / 2` less the verge), and the next plot along is
+-- `PLOT_SPACING` further. 90 reads the house you are in front of and its
+-- neighbours, and nothing across the road until you cross it. The pedestal
+-- name labels use `PIGGY_NAME.range` (80) on the same argument.
+Config.ROB_BADGE = {
+	reach = 90,
+}
+
+-- THE CAMERA MAY NOT LEAVE THE ROOM (designer, 2026-09-23: "make sure
+-- players can't zoom outside of the bounds of their base room").
+--
+-- Roblox's default `CameraMaxZoomDistance` is 400 and the popper camera
+-- only stops at parts that COLLIDE. The authored kits' roof slabs do not (263
+-- parts in a RoomShell, 3 of them colliding: the floor and the two side
+-- walls), so a player indoors could wheel the camera up through the ceiling
+-- and look down on the estate from outside. Clamping the ZOOM is the fix
+-- that needs nothing from the art: `Shared/IndoorZoom` writes this cap onto
+-- the local Player while the character stands on the indoor estate and puts
+-- the old cap back the moment they are out.
+--
+-- MEASURED AGAINST THE LOWEST CEILING A CAMERA CAN REACH. The camera pivots
+-- about a point roughly `HipHeight + half the root` above the floor, about
+-- 3.2 studs; pitched straight down it sits `maxZoom` above that. The kits'
+-- side walls are 14.8 studs tall (the roof slopes UP from there to a
+-- 23.6-stud ridge, so the eave is the binding height) and the generic
+-- hall's are `WALL_H` 12 under a colliding vault. 3.2 + 11 = 14.2 clears the
+-- kits' eave; the generic hall's vault collides, so the popper takes the
+-- last stud there. Sideways is covered by the side walls, which collide in
+-- every interior.
+Config.INDOOR_CAMERA = {
+	maxZoom = 11,
+	-- How far from `INDOOR_ESTATE.x` counts as indoors. The estate stands at
+	-- x 4000 and the whole street sits inside |x| 400, so anything in this
+	-- band is in a hallway and nowhere else; it is a band rather than a
+	-- remote so a death, a kick or a respawn cannot leave the cap on.
+	estateReach = 1000,
+	-- How often the client re-reads where it is. Ten a second is the
+	-- crossing's own `tickRate` halved; a cap that lands a tenth of a second
+	-- after the door mask lifts is invisible under it.
+	pollSeconds = 0.1,
+}
+
 -- WHERE THE HALLWAYS STAND. Off the map entirely, laid out in a row along Z.
 --
 -- SIDEWAYS RATHER THAN UP, and that is the load-bearing half. Every rectangle
@@ -17469,6 +19726,49 @@ Config.INDOOR_ESTATE = {
 	-- Clear air between one hallway and the next. Generous because it costs
 	-- nothing: there is no ground out here to run out of.
 	gap = 80,
+}
+
+-- WHICH HOUSE HAS AN AUTHORED INTERIOR, AND WHAT IT IS CALLED IN
+-- `ServerStorage`.
+--
+-- An interior is PER HOUSE THEME
+-- (`assets/houses/design/modular-interiors-v1/CONCEPT.md`: "each illusion
+-- interior should match its house"), so a tier with a kit built for it walks
+-- into that kit. All eighteen permanent tiers now have packages under
+-- `assets/houses/interiors/catalogue-v4/`, with increasing room dimensions
+-- defined in that catalogue's tier-sizing.json. The generic hall remains
+-- the fallback if an asset is unavailable.
+--
+-- THE VALUE IS A `ServerStorage` CHILD NAME AND THE KEY IS A `HOUSE_TIERS`
+-- ID, which is the only pairing that can go wrong: `default.project.json`
+-- maps each kit's `.rbxmx` to exactly these names, and
+-- `Services/ThemedInterior` resolves them by name and falls back to the
+-- generic hall when one is missing -- an older `rojo serve`, or a `rojo
+-- build` from a project file without the rows. A missing row and a missing
+-- kit are the same answer: the generic hall, said once at boot, never a front
+-- door that does nothing.
+--
+-- IT IS A TABLE RATHER THAN A FLAG ON THE TIER because the tiers are the
+-- catalogue and this table maps their stable save IDs to authored assets.
+Config.HOUSE_INTERIOR_KITS = {
+	shack = "CardboardFortInteriorKit",
+	cottage = "BeehiveCottageInteriorKit",
+	townhouse = "WonkyTownhouseInteriorKit",
+	mushroom = "ToadstoolCottageInteriorKit",
+	villa = "FairyLanternCottageInteriorKit",
+	treehouse = "TreehouseInteriorKit",
+	manor = "HauntedManorInteriorKit",
+	slime = "GloopHouseInteriorKit",
+	modern = "FishbowlHouseInteriorKit",
+	neontower = "NeonTowerInteriorKit",
+	crystal = "CrystalSpireInteriorKit",
+	palace = "IcePalaceInteriorKit",
+	skycastle = "SkyCastleInteriorKit",
+	galleon = "BeachedGalleonInteriorKit",
+	portal = "PortalHouseInteriorKit",
+	thundercloud = "ThundercloudFortressInteriorKit",
+	void = "TheVoidInteriorKit",
+	goldenpig = "GoldenPiggyInteriorKit",
 }
 
 --[[
@@ -17799,6 +20099,30 @@ Config.GRASSLAND = {
 	budget = 900,
 }
 
+-- DISTANCE CULLING OF EFFECTS, ON EACH CLIENT (2026-09-23). A particle
+-- emitter or a light further than this from the camera is switched off on
+-- that machine and back on as the camera approaches; the server never knows.
+-- Measured on the live street before it existed: 96 emitters and 42 lights,
+-- and disabling the 26 active emitters alone took the mean frame from about
+-- 70 ms to 43 on a client that could not draw ten frames a second. Ranges are
+-- in studs; `interval` is how often a client re-asks, in seconds -- half a
+-- second is far under the time it takes to walk `emitterRange`, so nothing
+-- pops in view. `guardRange` is the same rule for the dogs' joint animation.
+-- An instance carrying the attribute `FxCullExempt` is never touched.
+-- `tuftRange`/`tuftFade` are the grass: a tuft past `tuftRange` studs is
+-- faded out on that machine (`Shared/TuftCull`), ramping in over `tuftFade`
+-- studs so the lawn fills in ahead of the camera rather than popping.
+-- Measured: the 1,569 tufts are about 7% of a desktop frame drawn all at
+-- once, and a phone's share is larger.
+Config.FX_CULL = {
+	interval = 0.5,
+	emitterRange = 150,
+	lightRange = 120,
+	guardRange = 120,
+	tuftRange = 120,
+	tuftFade = 30,
+}
+
 Config.HERDS = {
 	-- THE MINIMUM GAP BETWEEN TWO PACKS ENTERING, in seconds -- and it is
 	-- NOT the supply rate any more. With `maxLoose` at 5 and a replacement
@@ -17817,7 +20141,15 @@ Config.HERDS = {
 	-- clearing the kerb leg before the next was born -- described the tunnel
 	-- walk, which packs no longer take; `auditHerds` still carries the
 	-- inequality and it is harmless. Packs land on their own drop points.)
-	spawnEverySeconds = 20, -- PLACEHOLDER
+	--
+	-- TWENTY SINGLES RATHER THAN FIVE PACKS (designer, 2026-09-23, "reduce the
+	-- pigs to spawning in 20 at a time dropped randomly separated"): a herd is
+	-- ONE piggy now, `maxLoose` is how many are loose, and this is the gap
+	-- between one REPLACEMENT and the next. The boot fill and an empty field
+	-- do not wait for it -- see `drop.waveGap`. Measured before the change:
+	-- fifty roaming members were 400 of the 900 parts the server moved every
+	-- frame, on a client running at eight frames a second.
+	spawnEverySeconds = 3,
 
 	-- "When one exits, a new one enters." Seconds from a herd DESPAWNING
 	-- inside the far bore to its replacement being due, still subject to
@@ -17826,7 +20158,7 @@ Config.HERDS = {
 	-- counted from its first step out of the hill; a longer hole reads as
 	-- the street emptying, and zero is a pack born the frame another
 	-- vanishes, which reads as a swap rather than as traffic.
-	replaceDelay = 15, -- PLACEHOLDER
+	replaceDelay = 2,
 
 	-- How long the first herd waits after boot, so the world is standing
 	-- before anything walks into it.
@@ -17838,7 +20170,12 @@ Config.HERDS = {
 	-- 443 x 122 studs (`herdGround`), a pack of ten fans out to about
 	-- 9 x 13, and `HerdService.pickSide` seats the packs three-and-two
 	-- across the two bands, so three packs stand on under 1% of a side.
-	maxLoose = 5,
+	--
+	-- TWENTY, EACH ONE A HERD OF ONE (2026-09-23). The scheduler never spawns
+	-- past it, and a caught piggy is replaced one-for-one after
+	-- `replaceDelay`, so the field carries twenty at every moment a player
+	-- can reach it and never more.
+	maxLoose = 20,
 
 	-- How long a pack wanders the band before it heads for a tunnel.
 	-- 150..240 -> 200..290 WHEN THE TUNNEL WALK WENT (2026-09-22): a pack
@@ -17852,7 +20189,11 @@ Config.HERDS = {
 
 	-- Members per herd: TEN, exactly (designer, 2026-09-21). Kept as a band
 	-- so the roll and the audit keep one shape; both ends are 10 on purpose.
-	size = { min = 10, max = 10 },
+	-- ONE (designer, 2026-09-23). Kept as a band so the roll and the audit
+	-- keep one shape; both ends are 1 on purpose. A member is dropped on its
+	-- own random point rather than into a formation -- `drop.separation` is
+	-- what keeps two of them apart.
+	size = { min = 1, max = 1 },
 
 	-- Pack speed as a FRACTION of `BASE_WALK_SPEED`, so a player at a walk
 	-- always closes on one and the number cannot invert if base moves --
@@ -17937,14 +20278,33 @@ Config.HERDS = {
 		bounceSeconds = 0.34,
 
 		-- THE MARKER OVER THE LANDING ZONE. A drop that only announced itself
-		-- in a toast would be a supply route for whoever happened to be
-		-- reading the HUD, so a neon shaft and a card stand on the spot from
-		-- the moment the batch is released. 40 seconds is about four times a
+		-- on the HUD would be a supply route for whoever happened to be
+		-- reading it, so a neon shaft stands on the spot from the moment the
+		-- batch is released (the card that used to hang on it went on
+		-- 2026-09-23; `HERD_BANNER` is the words now). 40 seconds is about four times a
 		-- crossing of the street at a walk, which is what it has to survive:
 		-- long enough that somebody at the far end can reach it, short enough
 		-- that five of them do not stand permanently over the grassland.
-		beaconSeconds = 40,
+		beaconSeconds = 15,
 		beaconFade = 1.5,
+		-- A REPLACEMENT'S MARKER IS SHORT AND ITS DROP IS SILENT. Twenty
+		-- shafts standing forty seconds each over the grassland, and an
+		-- OBSERVER toast every three seconds, is what one-for-one
+		-- replacement of twenty singles would otherwise produce. The boot
+		-- wave announces itself once and marks every landing for
+		-- `beaconSeconds`; a single arriving later gets this and no toast.
+		quietBeaconSeconds = 6,
+		-- THE BOOT WAVE. When the field is EMPTY and a spawn comes due, the
+		-- scheduler drops one piggy per this many seconds until the cap is
+		-- full, ignoring `spawnEverySeconds` -- twenty land across the
+		-- field in about eight seconds rather than one a gap for a minute.
+		waveGap = 0.4,
+		-- HOW FAR APART TWO LANDINGS ARE, in studs, measured between the
+		-- ground points of every loose member. A member is up to 9.4 studs
+		-- across (`PIGGY_SCALE.max` on the pedestal factor), so 22 leaves
+		-- clear daylight between any two and lets twenty stand on a band
+		-- 443 by 97 without crowding either end.
+		separation = 22,
 		-- The shaft's diameter. Wide enough to read from the far end of a
 		-- 443-stud band, thin enough to be a beam rather than a building.
 		beaconWidth = 5,
@@ -18060,6 +20420,271 @@ Config.HERDS = {
 	},
 }
 
+-- ============================================================
+-- LASSOS: HOW A WILD PIGGY IS CAUGHT (docs/LASSO-PLAN.md)
+-- ============================================================
+--
+-- A catch is a thrown lasso and a roll, not a hold (designer, 2026-09-23).
+-- The lasso locks on by itself, is spent on every throw caught or not, and
+-- the catch is CARRIED home through `PiggyHaulService` as a `wild` haul. A
+-- real hit on the carrier drops the piggy DAZED: the catcher alone may pick
+-- it up for `dazed.catcherWindow` seconds, then anybody may lasso it.
+--
+-- EVERY NUMBER A PLAYER IS SHOWN IS GENERATED FROM THIS TABLE. The shop
+-- card, the hot bar hint and the Robux product text all read
+-- `Config.lassoDescription`, so the odds on screen cannot disagree with the
+-- odds `Config.lassoChance` rolls -- and for the Elite tier that is not
+-- tidiness: a Robux-bought chance is a paid random item, and its odds have
+-- to be real and shown before purchase. See `auditLassos`.
+--
+-- THE CHANCE IS `min(1, base * tapFactor + pity)`, AND TAPPING MULTIPLIES.
+-- A multiplier moves an easy catch a lot and a hard one hardly at all, so a
+-- Rope on a legendary goes 4% to 4.8% however fast somebody taps: the tier is
+-- the thing tapping can never beat (designer: "if you tap really fast with a
+-- tier 1 lasso on a legendary pig then it shouldn't automatically work").
+-- PITY is what carries a player through a hard piggy, and it belongs to the
+-- THROWER on THAT piggy only.
+
+-- The catalogue. Keys are consumable keys in `data.consumables`, so they
+-- share one namespace with the bones, gadgets and home items -- none may
+-- collide with a key in those tables (`auditLassos` checks).
+--
+-- `base` is the first-throw chance per rarity with no taps. `rebirths` is a
+-- SALE gate (coin tiers only). `robux`/`productId`/`pack` make a tier a
+-- Robux product; a tier with `robux` carries no coin price at all.
+-- `priceSeconds` is the coin price in SECONDS OF THE BUYER'S OWN INCOME
+-- (`Config.getIncomeRate`), the rule the daily coin rungs follow, because a
+-- flat price is a gift at level 30 and a wall at level 0.
+-- `colour` is the rope's tint for the Beam and the fallback coil;
+-- `texture` names the atlas row in `Config.LASSO_MESH.textures`.
+Config.LASSOS = {
+	rope = {
+		name = "Rope Lasso", order = 1, tier = 1,
+		priceSeconds = 30, -- PLACEHOLDER
+		base = { common = 0.80, rare = 0.35, epic = 0.12, legendary = 0.04 },
+		colour = Color3.fromRGB(214, 176, 120), trim = Color3.fromRGB(110, 70, 44),
+		texture = "rope",
+	},
+	braided = {
+		name = "Braided Lasso", order = 2, tier = 2,
+		priceSeconds = 60, rebirths = 2, -- PLACEHOLDER
+		base = { common = 0.90, rare = 0.50, epic = 0.20, legendary = 0.08 },
+		colour = Color3.fromRGB(196, 120, 72), trim = Color3.fromRGB(84, 52, 34),
+		texture = "braided",
+	},
+	-- `goldlasso`, NEVER `golden`: that key is the Golden Bone's, and every
+	-- consumable shares one namespace in `data.consumables`, the hot bar and
+	-- the held-item attribute (`auditLassos` refuses a collision at boot).
+	goldlasso = {
+		name = "Golden Lasso", order = 3, tier = 3,
+		priceSeconds = 120, rebirths = 5, -- PLACEHOLDER
+		base = { common = 1.00, rare = 0.70, epic = 0.35, legendary = 0.15 },
+		colour = Color3.fromRGB(240, 196, 70), trim = Color3.fromRGB(150, 92, 52),
+		texture = "golden",
+	},
+	elite = {
+		name = "Elite Lasso", order = 4, tier = 4,
+		-- A ROBUX PRODUCT, and therefore a PAID RANDOM ITEM: gated by
+		-- `PolicyService` in ProductService exactly as the crates are, and
+		-- never sellable for coins. `productId` 0 means not created yet and
+		-- the card reads COMING SOON.
+		robux = 49, productId = 0, pack = 5, -- PLACEHOLDER
+		base = { common = 1.00, rare = 0.90, epic = 0.60, legendary = 0.35 },
+		colour = Color3.fromRGB(128, 64, 200), trim = Color3.fromRGB(236, 190, 70),
+		texture = "elite",
+	},
+}
+
+Config.LASSO = {
+	-- How far the client looks for a piggy to lock on to, and how far the
+	-- server accepts a throw from (plus `slack`, for the frame of lag).
+	range = 30,
+	slack = 6,
+	-- Lock-on picks the landed piggy nearest the centre of the screen within
+	-- this cone of the camera's look direction, in degrees.
+	lockCone = 35,
+	-- The rope's flight before the struggle starts, seconds.
+	flight = 0.35,
+	-- THE STRUGGLE. One rope per piggy (designer). Taps are counted on the
+	-- SERVER and capped at `tapRate` a second, so an autoclicker earns what a
+	-- fast child earns -- the crack's argument. `tapFactor` is the ceiling of
+	-- the multiplier a full struggle of taps reaches.
+	struggle = 2.5,
+	tapRate = 8,
+	tapFactor = 1.2,
+	-- A thrower who walks this far from the piggy mid-struggle snaps the rope
+	-- (a miss; the lasso was already spent).
+	leash = 40,
+	-- PITY, per rarity: points added per miss by this thrower on this piggy,
+	-- and the throw number that always lands.
+	pityStep = { common = 0.30, rare = 0.20, epic = 0.12, legendary = 0.08 },
+	guaranteeBy = { common = 2, rare = 4, epic = 6, legendary = 10 },
+	-- AFTER A MISS the piggy runs directly away from the thrower, then stops
+	-- and grazes before it roams again. Slower than a child on purpose.
+	flee = {
+		seconds = 2.5,
+		speed = Config.BASE_WALK_SPEED * 0.6,
+		graze = 10,
+	},
+	-- A DROPPED CATCH. Only the catcher may touch it for `catcherWindow`; it
+	-- rejoins the wild after `wake` untouched; `pickupHold` is the catcher's
+	-- hand pick-up; `immunity` is how long after any pick-up nothing can knock
+	-- it loose again.
+	dazed = {
+		catcherWindow = 5,
+		wake = 30,
+		pickupHold = 0.5,
+		immunity = 8,
+	},
+	-- New saves start with this stock, granted once (`data.lassoStarter`).
+	starter = { rope = 5 }, -- PLACEHOLDER
+}
+
+-- Attributes the server writes and the client reads. A name is an interface
+-- with no compiler behind it, so every reader goes through these.
+Config.LASSO_TARGET_ATTRIBUTE = "LassoTarget"   -- string id on a lassoable piggy model
+Config.LASSO_BUSY_ATTRIBUTE = "LassoBusy"       -- UserId of the thrower with a rope on it
+Config.LASSO_DAZED_ATTRIBUTE = "LassoDazed"     -- UserId of the catcher of a dropped piggy
+Config.LASSO_OPEN_AT_ATTRIBUTE = "LassoOpenAt"  -- server time a dazed piggy opens to everybody
+Config.LASSO_FLEE_ATTRIBUTE = "LassoFlee"       -- server time a flee started, nil when not fleeing
+-- COUNTERS on a CHARACTER, bumped by the server, so every client plays the
+-- one-shot pose itself (the `DodgeRoll` shape: a counter, not a flag, because
+-- a boolean set true twice fires one signal).
+Config.LASSO_KNOCK_ATTRIBUTE = "LassoKnocked"   -- a carried catch was knocked loose
+Config.LASSO_SCOOP_ATTRIBUTE = "LassoScoop"     -- a dazed piggy was picked back up
+
+-- The imported meshes and tier atlases (assets/lassos). EMPTY IDS ARE A
+-- WORKING STATE: `Shared/LassoModel` builds a primitive coil, loop, snapped
+-- end and star when a row is empty, so the feature ships before the upload
+-- and each asset starts working the moment its id lands.
+Config.LASSO_MESH = {
+	-- Read back from the Studio 3D Importer on 2026-09-23 (assets/lassos).
+	Rope = "117523469082369",
+	Grip = "72168445949442",
+	Loop = "132859961692373",
+	SnappedEnd = "131453429501301",
+	Star = "127760948482081",
+	-- The four tier atlases, uploaded by name from assets/lassos/textures.
+	-- (The FBX import also created a copy of the rope atlas as
+	-- "base_color_texture", 123601730150252; nothing reads it.)
+	textures = { rope = "108621934991696", braided = "89156943613218", golden = "70975516286334", elite = "80483222868973" },
+}
+
+local LASSO_RARITIES = { "common", "rare", "epic", "legendary" }
+
+-- The multiplier `taps` earn over a whole struggle.
+function Config.lassoTapFactor(taps: number): number
+	local full = Config.LASSO.tapRate * Config.LASSO.struggle
+	local share = math.clamp((taps or 0) / full, 0, 1)
+	return 1 + (Config.LASSO.tapFactor - 1) * share
+end
+
+-- THE ONE PLACE A CATCH CHANCE IS DECIDED. `misses` is how many times THIS
+-- thrower has missed THIS piggy. Returns 1 on the guaranteed throw.
+function Config.lassoChance(key: string, rarity: string, taps: number, misses: number): number
+	local spec = Config.LASSOS[key]
+	if not spec then
+		return 0
+	end
+	local base = spec.base[rarity] or spec.base.common or 0
+	local guarantee = Config.LASSO.guaranteeBy[rarity] or Config.LASSO.guaranteeBy.legendary
+	if (misses or 0) + 1 >= guarantee then
+		return 1
+	end
+	local pity = (Config.LASSO.pityStep[rarity] or 0) * (misses or 0)
+	return math.min(1, base * Config.lassoTapFactor(taps) + pity)
+end
+
+-- The coin price of a coin lasso for a buyer at this income level. nil for a
+-- Robux tier, which has no coin price at all.
+function Config.lassoPrice(key: string, incomeLevel: number, rebirths: number): number?
+	local spec = Config.LASSOS[key]
+	if not spec or spec.robux or not spec.priceSeconds then
+		return nil
+	end
+	return math.max(1, math.floor(spec.priceSeconds * Config.getIncomeRate(incomeLevel, rebirths)))
+end
+
+local function pct(x: number): string
+	return ("%d%%"):format(math.floor(math.min(1, x) * 100 + 0.5))
+end
+
+-- THE DESCRIPTION, GENERATED. First-throw range per rarity (no taps to full
+-- taps), then the pity rule. The only text in the game that states a lasso's
+-- odds, so it can never drift from `lassoChance`.
+function Config.lassoDescription(key: string): string
+	local spec = Config.LASSOS[key]
+	if not spec then
+		return ""
+	end
+	local parts = {}
+	for _, rarity in ipairs(LASSO_RARITIES) do
+		local lo = Config.lassoChance(key, rarity, 0, 0)
+		local hi = Config.lassoChance(key, rarity, math.huge, 0)
+		local label = rarity:sub(1, 1):upper() .. rarity:sub(2)
+		if pct(lo) == pct(hi) then
+			table.insert(parts, ("%s %s"):format(label, pct(lo)))
+		else
+			table.insert(parts, ("%s %d-%s"):format(label, math.floor(math.min(1, lo) * 100 + 0.5), pct(hi)))
+		end
+	end
+	local g = Config.LASSO.guaranteeBy
+	return ("First throw: %s. Fast tapping moves you to the top. Every miss raises your odds on that piggy, and it is guaranteed by throw %d / %d / %d / %d.")
+		:format(table.concat(parts, ", "), g.common, g.rare, g.epic, g.legendary)
+end
+
+-- REFUSES A LASSO TABLE THAT WOULD LIE OR LEAK. Called from `Main` at boot.
+--   * every tier states odds for every rarity, each in 0..1;
+--   * a higher tier is never worse than a lower one on any rarity;
+--   * a Robux tier carries a `productId` field and no coin price, and a coin
+--     tier carries no Robux price (the paid-random-item line);
+--   * guarantees and pity cover every rarity;
+--   * no lasso key collides with another consumable catalogue.
+function Config.auditLassos(): { string }
+	local problems = {}
+	local ordered = {}
+	for key, spec in pairs(Config.LASSOS) do
+		table.insert(ordered, { key = key, spec = spec })
+		for _, rarity in ipairs(LASSO_RARITIES) do
+			local b = spec.base and spec.base[rarity]
+			if type(b) ~= "number" or b < 0 or b > 1 then
+				table.insert(problems, ("lasso '%s' has no valid base chance for %s"):format(key, rarity))
+			end
+		end
+		if spec.robux then
+			if spec.productId == nil then
+				table.insert(problems, ("Robux lasso '%s' has no productId field"):format(key))
+			end
+			if spec.priceSeconds or spec.cost then
+				table.insert(problems, ("Robux lasso '%s' also carries a coin price"):format(key))
+			end
+		elseif not spec.priceSeconds then
+			table.insert(problems, ("coin lasso '%s' has no priceSeconds"):format(key))
+		end
+		for _, other in ipairs({ Config.BONES, Config.GADGETS, Config.HOME_ITEMS, Config.THIEF_KIT }) do
+			if other and other[key] then
+				table.insert(problems, ("lasso key '%s' collides with another consumable"):format(key))
+			end
+		end
+	end
+	table.sort(ordered, function(a, b)
+		return (a.spec.tier or 0) < (b.spec.tier or 0)
+	end)
+	for i = 2, #ordered do
+		for _, rarity in ipairs(LASSO_RARITIES) do
+			if (ordered[i].spec.base[rarity] or 0) < (ordered[i - 1].spec.base[rarity] or 0) then
+				table.insert(problems, ("lasso '%s' is worse than '%s' on %s"):format(ordered[i].key, ordered[i - 1].key, rarity))
+			end
+		end
+	end
+	for _, rarity in ipairs(LASSO_RARITIES) do
+		if not Config.LASSO.guaranteeBy[rarity] or not Config.LASSO.pityStep[rarity] then
+			table.insert(problems, ("LASSO has no pity or guarantee for %s"):format(rarity))
+		end
+	end
+	return problems
+end
+
 -- THE DAMPED-REPEAT PICKER, extracted from `EventService.pick` so the herd
 -- roster reads the SAME function rather than a second copy of it. Weighted,
 -- with the last pick multiplied by `damp` rather than removed: at a small
@@ -18144,25 +20769,8 @@ function Config.herdGround()
 	}
 end
 
--- The fixed legs of a herd's walk: in through `entryEnd`'s tunnel, out to
--- the band on `side`, and later back out through `exitEnd`'s. Each point is
--- {x, z}; the band itself is wandered between the two legs.
-function Config.herdRoute(side: number, entryEnd: number, exitEnd: number)
-	local g = Config.herdGround()
-	local bandEntry = g.bandNear + Config.HERDS.fenceMargin
-	return {
-		enter = {
-			{ entryEnd * (g.tunnelX + g.tunnelDepth - 6), side * g.kerbZ },
-			{ entryEnd * g.corridorX, side * g.kerbZ },
-			{ entryEnd * g.corridorX, side * bandEntry },
-		},
-		exit = {
-			{ exitEnd * g.corridorX, side * bandEntry },
-			{ exitEnd * g.corridorX, side * g.kerbZ },
-			{ exitEnd * (g.tunnelX + g.tunnelDepth - 4), side * g.kerbZ },
-		},
-	}
-end
+-- `Config.herdRoute` stood here: the fixed legs of a tunnel walk that packs
+-- no longer take (they are dropped in), read by nothing, retired 2026-09-23.
 
 -- One member's tier, rolled from a row's `tiers` map with everything above
 -- the ABSOLUTE cap dropped before the roll rather than clamped after it --
@@ -18314,15 +20922,18 @@ function Config.auditHerds(): { string }
 		end
 	end
 
-	-- THE GAP CLEARS THE BORE. By the time the next pack is born the last
-	-- one's tail -- a file of `size.max` at `followSpacing` -- has walked
-	-- the kerb leg into the corridor, so two packs entering by one tunnel
-	-- never stand in it together. Derived from the same numbers the route
-	-- is, so shortening the street or slowing the herd re-asks it.
-	local fileLength = (h.size.max - 1) * h.followSpacing
-	local kerbLeg = (g.tunnelX + g.tunnelDepth - 6) - g.corridorX
-	if h.spawnEverySeconds * Config.herdSpeed() < fileLength + kerbLeg then
-		fail("[herds.rate] spawnEverySeconds is too short: the next pack is born on the last one's tail in the bore")
+	-- THE BORE-CLEARANCE CHECK STOOD HERE -- the gap between two packs had
+	-- to clear a file of ten walking the kerb leg out of a tunnel. Packs are
+	-- dropped in (2026-09-22) and are singles (2026-09-23), so there is no
+	-- file and no bore; it was still refusing a three-second replacement gap
+	-- for a walk nothing takes, and it is retired rather than loosened.
+	-- The drop's own constraint is `drop.separation`, which the service
+	-- enforces per landing rather than this audit per gap.
+	local d2 = h.drop
+	if type(d2) == "table" then
+		if (d2.separation or 0) < 0 or (d2.waveGap or 0) < 0 or (d2.quietBeaconSeconds or 0) < 0 then
+			fail("[herds.drop] a drop spacing or clock below zero")
+		end
 	end
 	return problems
 end

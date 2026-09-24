@@ -28,11 +28,16 @@
 	     decoration lane's ponds), so the pack never walks the carriageway,
 	     through a fence, or through a pond on its way to legal ground.
 	     While it roams, members stop to DIG (visual only; see DIGGING).
-	  4. Any player may hold the prompt on a member. THE FIRST HOLD TO FINISH
-	     WINS: `claim` marks the member taken before anything yields, grants
-	     the piggy through the Stage 1 placement path (`Config.addPiggy`,
-	     front to back -- the same door a crate roll uses), and the member
-	     leaves the herd. A full lawn refuses OUT LOUD and the piggy stays.
+	  4. A member is CAUGHT WITH A LASSO (docs/LASSO-PLAN.md), never by a
+	     free hold -- the old `CatchPrompt` and `claim` are retired. On the
+	     frame it lands it is stamped `Config.LASSO_TARGET_ATTRIBUTE` (its
+	     stable id), which is what a client's lock-on reads and what
+	     `LassoService` names it by. That service owns the throw, the rope,
+	     the roll and the carry home; this file owns the animal: the rope
+	     LOCK (`setBusy`, one rope at a time), the FLEE after a miss, the
+	     DAZED state a knocked-loose catch lands in (`spawnDazed`), and the
+	     hand-over when it is caught (`take`). Ownership still lands through
+	     `grant`/`grantAt`, the Stage 1 placement path.
 	  5. When its roam time is up the pack is RECALLED: the same fall run
 	     backwards, prompts off, rising out of the enclosure. The
 	     replacement is due `replaceDelay` later, so "when one exits a new
@@ -49,13 +54,26 @@
 	is the drop with the sign flipped rather than a second route to keep in
 	step with the first.
 
-	FIVE PACKS OF TEN (designer, 2026-09-21). `maxLoose` is 5 and `size` is
-	pinned at 10. The scheduler needs no boot-stagger constant of its own:
-	`spawnEverySeconds` is the MINIMUM GAP between two packs arriving, so at
-	boot the cap fills one pack per gap from `firstSpawnDelay`, and in the
-	steady state a replacement is due `replaceDelay` after a recall and no
-	sooner than the gap after the last drop. The arithmetic is in the
-	comment over `Config.HERDS.spawnEverySeconds`.
+	TWENTY SINGLES (designer, 2026-09-23), which replaced FIVE PACKS OF TEN
+	(2026-09-21). A herd is one piggy: `size` is pinned at 1 and `maxLoose`
+	is 20. Everything above still describes a herd -- a single is a pack
+	whose leader has no followers -- and the service still rolls any size
+	the band names, which is what `tests/luau/herds.luau` uses to keep the
+	pack-shaped dig contract under test. Three things changed with it:
+	  * `drop.separation`: a landing point is refused within that many
+	    studs of any piggy already loose, so twenty singles land scattered
+	    rather than stacked (`HerdService.separated`).
+	  * THE WAVE (`tick`): an EMPTY field fills one per `drop.waveGap` with
+	    one OBSERVER toast for the lot; every spawn the scheduler makes is
+	    QUIET -- no toast, and its marker on `drop.quietBeaconSeconds`.
+	    A replacement is due `replaceDelay` after a catch and then one per
+	    `spawnEverySeconds`. Twenty toasts a minute is the spam the dodge's
+	    re-lunge already taught this project to refuse.
+	  * WHY: measured on the live street, fifty roaming members were 400 of
+	    the 900 parts the server moved every frame on a client drawing
+	    eight frames a second. Twenty singles are about a third of that,
+	    and a member that has neither walked nor turned is no longer
+	    re-seated every frame at all (`member.stood`).
 
 	WHERE THE FIVE GO. A side is picked as the one with FEWER packs on it
 	(random on a tie), so five packs land three-and-two across the two bands
@@ -154,6 +172,9 @@ local DROP_DEFAULT = {
 	puffSeconds = 0.5,
 	puffRadius = 1.6,
 	tries = 24,
+	quietBeaconSeconds = 6,
+	waveGap = 0.4,
+	separation = 22,
 }
 
 local function dropSpec()
@@ -165,7 +186,8 @@ end
 -- The Config list still names the retired tunnel legs until its own block
 -- lands, and a member scratching at the ground on the way down is the one
 -- failure a stale list would actually produce.
-local NEVER_DIG = { drop = true, recall = true }
+-- Nor while it is running from a snapped rope or lying dazed on the grass.
+local NEVER_DIG = { drop = true, recall = true, flee = true, dazed = true }
 
 -- HOW BIG A HERD MEMBER IS: EXACTLY THE PEDESTAL'S OWN FACTOR (designer,
 -- 2026-09-22, "the minis have to look like they were built"). It used to be
@@ -230,16 +252,36 @@ export type Member = {
 	nextDigAt: number,
 	digUntil: number,
 	taken: boolean,
+	-- THE STABLE ID A LASSO NAMES THIS PIGGY BY (`Config.LASSO_TARGET_ATTRIBUTE`).
+	-- Drawn once when the member is rolled and never reused, so a client's
+	-- lock-on and a pity ladder cannot land on a different animal.
+	id: string,
+	-- WHO HAS A ROPE ON IT, as a UserId, or nil. One rope at a time
+	-- (designer): while this is set the piggy stands still and nobody else may
+	-- throw. Published as `Config.LASSO_BUSY_ATTRIBUTE`.
+	busy: number?,
+	-- A DROPPED CATCH. `catcher` is the UserId whose piggy it was (nil when it
+	-- fell off somebody who died, left or was arrested -- open at once);
+	-- `openAt` is SERVER time, because a client reads it; `wakeAt` is
+	-- `os.clock`, when it gets up and rejoins the wild.
+	dazed: { catcher: number?, openAt: number, wakeAt: number }?,
+	-- The catcher's hand pick-up on a dazed piggy.
+	pickup: ProximityPrompt?,
+	-- HAS THE MODEL BEEN SEATED WHERE IT STANDS? A member that has not walked
+	-- and has not turned is rewritten nowhere: `PivotTo` on a grazing model
+	-- every frame is the same CFrame on every part again, which costs the
+	-- server a walk of the model and buys nothing. Cleared while airborne,
+	-- where the fall moves it every frame anyway.
+	stood: boolean?,
 	model: Model?,
 	body: BasePart?,
-	prompt: ProximityPrompt?,
 }
 
 export type Herd = {
 	id: number,
 	kind: string,
 	side: number,
-	state: string, -- "drop" | "roam" | "recall"
+	state: string, -- "drop" | "roam" | "flee" | "dazed" | "recall"
 	members: { Member },
 	-- The pack anchor: where the LEADER is and which way the pack points.
 	at: Vector3,
@@ -260,6 +302,9 @@ export type Herd = {
 	-- with the herd whatever ends it.
 	beacon: Instance?,
 	beaconUntil: number,
+	-- AFTER A SNAPPED ROPE: which way it runs and until when (`os.clock`).
+	fleeUntil: number,
+	fleeDir: Vector3?,
 }
 
 local herds: { Herd } = {}
@@ -269,6 +314,34 @@ local serial = 0
 local folder: Folder? = nil
 local groundVetoes: { (Vector3) -> boolean } = {}
 local warnedStep = false
+-- THE BOOT WAVE: true from the moment an EMPTY field's spawn comes due until
+-- the cap is full again, during which the scheduler drops one piggy per
+-- `drop.waveGap` rather than per `spawnEverySeconds`. See `tick`.
+local wave = false
+-- The next member id. A counter rather than the herd serial, because a herd
+-- of ten needs ten ids and a dazed piggy is a herd of its own.
+local memberSerial = 0
+-- Told when a member LEAVES THE WILD -- caught, recalled, cleared, or woken
+-- from a daze -- so `LassoService` can drop every pity ladder on it. A
+-- registry rather than a require: LassoService requires this file.
+local goneHandlers: { (string) -> () } = {}
+-- What the dazed pick-up prompt does. Registered by `LassoService`, which
+-- owns the carry this starts, for the same reason.
+local pickupHandler: ((Player, string) -> ())? = nil
+
+local function nextId(): string
+	memberSerial += 1
+	return "w" .. tostring(memberSerial)
+end
+
+local function fireGone(id: string)
+	for _, fn in ipairs(goneHandlers) do
+		local ok, err = pcall(fn, id)
+		if not ok then
+			warn(("[HerdService] gone handler: %s"):format(tostring(err)))
+		end
+	end
+end
 
 local function notify(player: Player, message: string, kind: string)
 	Remotes.get("Notify"):FireClient(player, message, kind)
@@ -279,30 +352,32 @@ local function nameOf(key: string): string
 	return if spec and spec.name then spec.name else key
 end
 
--- EVERY DROP IS ANNOUNCED TO EVERYBODY, AND IT NAMES THE PLACE (designer,
--- 2026-09-22). A pack that appears in a field nobody was looking at is a
--- supply route only the player who happened to be facing it can use, and on
--- a 443-stud street that is most of the server most of the time. The beacon
--- says where by standing there; this says where in words, to the people who
--- are indoors, in the shop, or looking the other way.
+-- EVERY DROP IS ANNOUNCED TO EVERYBODY, AS A SPLASH RATHER THAN A TOAST
+-- (designer, 2026-09-23: "a banner saying PIGGIES INCOMING! ... in big funky
+-- text at the top of the screen"). It was an OBSERVER toast naming the
+-- batch and the landing zone; that voice and those words are gone from the
+-- HUD, and the fiction lives in the drop itself now -- a batch released from
+-- the sky down a neon shaft. `Shared/DropBanner` draws the words on every
+-- client off `Remotes.HerdDrop`; the shaft on the spot is the half that says
+-- WHERE, and the payload carries `zone` (`HerdService.zoneWords`) so a
+-- client that wants to say it in words still can.
 --
--- THE VOICE IS THE OBSERVER'S, which is the fiction the drop is for: the
--- street is an enclosure and the piggies are released into it. It has to
--- read clearly to a nine-year-old all the same, so the only jargon in it is
--- the batch number, and the sentence after it is a plain instruction about
--- where to go.
---
--- ITS OWN NOTIFY KIND, FALLING BACK TO `good`. `Config.NOTIFY.herd` is the
--- row this wants -- an OBSERVER title, the pig glyph, no flash, because the
--- three flashing kinds are the ones a player must react to and this fires
--- about once a minute all session. Until that row lands, `good` is the
--- honest neighbour: it is the kind that already means "something arrived".
+-- FIRED PER PLAYER RATHER THAN `FireAllClients`, so the suite's one-line
+-- remote stub sees each recipient and can count them.
 local function announceDrop(herd: Herd)
-	local kind = if (Config.NOTIFY :: any).herd then "herd" else "good"
-	local message = ("OBSERVER: Batch %d released. Landing zone: %s."):format(
-		herd.id, HerdService.zoneWords(herd.at))
+	local payload = { id = herd.id, count = #herd.members, zone = HerdService.zoneWords(herd.at) }
 	for _, player in ipairs(Players:GetPlayers()) do
-		notify(player, message, kind)
+		Remotes.get("HerdDrop"):FireClient(player, payload)
+	end
+end
+
+-- THE WAVE'S ONE SPLASH, naming how many are coming rather than where:
+-- twenty singles land on twenty points across both bands, so there is no
+-- one zone to name and `zone` is nil. Replacements say nothing.
+local function announceWave(count: number)
+	local payload = { id = serial + 1, count = count, zone = nil }
+	for _, player in ipairs(Players:GetPlayers()) do
+		Remotes.get("HerdDrop"):FireClient(player, payload)
 	end
 end
 
@@ -502,12 +577,12 @@ function HerdService.dropFits(at: Vector3, facing: Vector3, count: number): bool
 		id = 0, kind = "", side = if at.Z < 0 then -1 else 1, state = "drop",
 		members = {}, at = at, facing = facing,
 		phaseStart = 0, phaseUntil = 0, roamUntil = 0, grazeUntil = 0, target = nil,
-		beacon = nil, beaconUntil = 0,
+		beacon = nil, beaconUntil = 0, fleeUntil = 0, fleeDir = nil,
 	}
 	local blank: Member = {
 		key = "", tier = "", at = at, facing = facing, phase = 0, walked = 0,
 		lift = 0, fall = 0, landed = false, stagger = 0, puff = nil, puffUntil = 0,
-		nextDigAt = 0, digUntil = 0, taken = false,
+		nextDigAt = 0, digUntil = 0, taken = false, id = "",
 	}
 	for i = 1, count do
 		local slot = slotOf(probe, i, blank, 0, false)
@@ -525,6 +600,27 @@ end
 -- released into the enclosure, looking at the occupants. It also makes the
 -- one binding constraint legible -- the leader has to land at least three
 -- spacings in from `bandFar` -- rather than leaving it to a random yaw.
+-- IS THIS LANDING POINT CLEAR OF EVERY PIGGY ALREADY LOOSE? Measured flat
+-- against each member's ground point, so a single dropped later never lands
+-- on -- or in the formation slot of -- one already standing. "Randomly
+-- separated" is this test and nothing else; the random part is the draw
+-- above it.
+function HerdService.separated(at: Vector3): boolean
+	local gap = dropSpec().separation or 0
+	if gap <= 0 then
+		return true
+	end
+	for _, herd in ipairs(herds) do
+		for _, member in ipairs(herd.members) do
+			local dx, dz = member.at.X - at.X, member.at.Z - at.Z
+			if dx * dx + dz * dz < gap * gap then
+				return false
+			end
+		end
+	end
+	return true
+end
+
 local function pickDropPoint(side: number, count: number): (Vector3?, Vector3)
 	local g = Config.herdGround()
 	local facing = Vector3.new(0, 0, -side)
@@ -532,7 +628,7 @@ local function pickDropPoint(side: number, count: number): (Vector3?, Vector3)
 		local x = (math.random() * 2 - 1) * g.corridorX
 		local z = side * (g.bandNear + math.random() * (g.bandFar - g.bandNear))
 		local at = groundPoint(x, z)
-		if HerdService.dropFits(at, facing, count) then
+		if HerdService.separated(at) and HerdService.dropFits(at, facing, count) then
 			return at, facing
 		end
 	end
@@ -622,6 +718,7 @@ function HerdService.rollMembers(kind: string): { Member }
 				nextDigAt = drawDig(now),
 				digUntil = 0,
 				taken = false,
+				id = nextId(),
 			})
 		end
 	end
@@ -672,10 +769,97 @@ local function ensureFolder(): Folder
 	return f
 end
 
--- Forward-declared: `buildMember` connects the prompt to `claim`, which is
--- defined below it. A `local` read before its declaration is a nil global
--- in Luau, which this project has paid for eleven times.
-local claim: (Herd, Member, Player) -> boolean
+-- WHAT THIS PIGGY WOULD EARN ON A PEDESTAL, FLOATING OVER ITS OWN HEAD
+-- (designer request). Built once, when the member is built, and never
+-- repainted: a herd piggy has no owner to level up, rebirth or boost, so
+-- there is nothing about this number that could change while it is loose.
+--
+-- THE BASE RATE FOR THE SKIN'S OWN RARITY, `Config.getPiggyIncomeRate
+-- (tier, 0, 0)` -- level 0, rebirth 0, no friend bonus -- which is exactly
+-- what the SAME skin reads on a fresh pedestal before its owner has bought
+-- a thing. `PiggyPedestal.setRate` shows the LIVE figure instead (income
+-- level, rebirths and a boost folded in), because it is answering for a
+-- real owner; a herd member is nobody's, so there is no live figure to
+-- read. `member.tier` is already the rarity string `Config.herdDraw`
+-- rolled (`Config.RARITY_ORDER`), not a display key, so there is nothing
+-- to derive it from.
+--
+-- REUSES THE PEDESTAL'S OWN ROWS RATHER THAN A SECOND COPY OF THEM: the
+-- same width and `MaxDistance` (`Config.PIGGY_NAME.range`), the same font,
+-- the name in its tier colour over the "+%s/s" rate in gold, exactly as
+-- `PiggyPedestal.dress` and `setRate` print them. BOTH rows (designer,
+-- 2026-09-23: "the names of them should be displayed above their heads
+-- just like the piggies on people's plots") -- it was the rate alone, on the
+-- argument that the name was on the catch prompt, and the prompt is plain
+-- now and only ever read from arm's length.
+--
+-- THE OFFSET IS MEASURED PER PART, IN WORLD SPACE -- the formula
+-- `CLAUDE.md` prescribes for a model with no bounding constant of its
+-- own, and the one `PiggyPedestal.dress` already uses for the same job.
+-- A herd member never rolls a legendary silhouette (`Config.herdSkinPool`
+-- excludes anything carrying an `aura`), so it is always a plain mesh
+-- mini -- but measuring it is still cheaper than trusting a radius, and it
+-- is safe to do BEFORE the model's final seat: the offset (crown minus
+-- the body's own Y) is invariant to the pure vertical fall and yaw
+-- `buildMember` applies afterwards, since neither changes a part's Y
+-- extent.
+local function buildRatePreview(model: Model, body: BasePart, tier: string, key: string)
+	local crown = -math.huge
+	for _, part in ipairs(model:GetDescendants()) do
+		if part:IsA("BasePart") then
+			local cf = part.CFrame
+			local half = math.abs(cf.RightVector.Y) * part.Size.X / 2
+				+ math.abs(cf.UpVector.Y) * part.Size.Y / 2
+				+ math.abs(cf.LookVector.Y) * part.Size.Z / 2
+			crown = math.max(crown, cf.Position.Y + half)
+		end
+	end
+	if crown == -math.huge then
+		return
+	end
+
+	local nameSpec = Config.PIGGY_NAME
+	local rate = Config.getPiggyIncomeRate(tier, 0, 0)
+	local total = nameSpec.size.Y + nameSpec.rateHeight
+
+	local label = Instance.new("BillboardGui")
+	label.Name = "PiggyName"
+	label.Size = UDim2.fromScale(nameSpec.size.X, total)
+	label.StudsOffsetWorldSpace = Vector3.new(0,
+		(crown - body.Position.Y) + nameSpec.gap + total / 2, 0)
+	-- NOT always-on-top, the same reason the pedestal's own label is not:
+	-- a label that punches through the house reads as HUD rather than as
+	-- lawn, and the always-on-top pass is invisible to `screen_capture`.
+	label.AlwaysOnTop = false
+	label.MaxDistance = nameSpec.range
+	label.Adornee = body
+	label.Parent = body
+
+	local nameText = Instance.new("TextLabel")
+	nameText.Name = "Name"
+	nameText.Size = UDim2.fromScale(1, nameSpec.size.Y / total)
+	nameText.BackgroundTransparency = 1
+	nameText.Font = Theme.FONT
+	nameText.TextScaled = true
+	nameText.Text = nameOf(key)
+	nameText.TextColor3 = Config.piggyTierColour(key)
+	nameText.TextStrokeColor3 = Theme.INK
+	nameText.TextStrokeTransparency = 0.1
+	nameText.Parent = label
+
+	local text = Instance.new("TextLabel")
+	text.Name = "Rate"
+	text.Position = UDim2.fromScale(0, nameSpec.size.Y / total)
+	text.Size = UDim2.fromScale(1, nameSpec.rateHeight / total)
+	text.BackgroundTransparency = 1
+	text.Font = Theme.FONT
+	text.TextScaled = true
+	text.Text = ("+%s/s"):format(Config.formatCoins(rate))
+	text.TextColor3 = Theme.GOLD
+	text.TextStrokeColor3 = Theme.INK
+	text.TextStrokeTransparency = 0.1
+	text.Parent = label
+end
 
 -- One pet-sized piggy, standing on the ground and answering a prompt.
 --
@@ -723,31 +907,12 @@ local function buildMember(herd: Herd, member: Member)
 	model:SetAttribute("HerdId", herd.id)
 	model:SetAttribute("HerdTier", member.tier)
 
+	-- NO CATCH PROMPT. A wild piggy is caught with a lasso (docs/LASSO-PLAN.md):
+	-- the client locks on to the id `land` stamps, and `LassoService` decides
+	-- the rest. The free hold that stood here created a piggy from nothing,
+	-- which is what the lasso's price now brakes.
 	if body then
-		local prompt = Instance.new("ProximityPrompt")
-		prompt.Name = "CatchPrompt"
-		prompt.ActionText = "Catch Piggy"
-		prompt.ObjectText = nameOf(member.key)
-		prompt.KeyboardKeyCode = Enum.KeyCode.E
-		prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
-		prompt.HoldDuration = Config.HERDS.hold
-		prompt.MaxActivationDistance = Config.HERDS.range
-		prompt.RequiresLineOfSight = false
-		-- The pedestal's own TAKE treatment: same verb, same glyph, same
-		-- tone, so a piggy is caught the way one is taken off a plinth.
-		-- No owner attribute -- a herd belongs to nobody, so every client
-		-- may see this.
-		Config.setPromptKind(prompt, "take")
-		-- LANDING IS WHAT MAKES A MEMBER CATCHABLE. A prompt live on a pig
-		-- 120 studs over the grass offers an action a player cannot reach,
-		-- which is the silent-refusal rule wearing a button; `land` turns it
-		-- on, and the recall turns it back off.
-		prompt.Enabled = herd.state == "roam"
-		prompt.Parent = body
-		prompt.Triggered:Connect(function(player: Player)
-			claim(herd, member, player)
-		end)
-		member.prompt = prompt
+		buildRatePreview(model, body, member.tier, member.key)
 	end
 
 	model:PivotTo(facingCF(member.at + Vector3.new(0, member.lift + member.fall, 0), member.facing))
@@ -794,19 +959,18 @@ local function fadeBeacon(model: Instance, alpha: number)
 	end
 end
 
--- THE MARKER, STOOD ON THE SPOT BEFORE THE PACK REACHES IT. The toast says
--- WHERE in words; this says where by standing there, which is the only half
--- a player running across the street can act on.
+-- THE MARKER, STOOD ON THE SPOT BEFORE THE PACK REACHES IT. The splash on
+-- the HUD says THAT a drop is coming; this says WHERE by standing there,
+-- which is the only half a player running across the street can act on.
 --
--- A COLUMN AND A CARD, AND BOTH ARE DELIBERATE. The column is the drop
--- shaft: it runs from the grass to `drop.height`, so it is the line the
--- pack actually comes down, and it is tall enough to clear the grove (26 to
--- 35 studs) and every house (to 64) between the band and the pavement. The
--- card is `AlwaysOnTop` with `MaxDistance` 0 -- unlimited -- because a
--- `SurfaceGui` culls by CHARACTER distance and this has to read from the far
--- end of a 443-stud street. Note what that costs: an always-on-top billboard
--- is drawn in a pass `screen_capture` is taken before, so THIS CARD IS
--- INVISIBLE TO EVERY SCREENSHOT EVER TAKEN OF IT.
+-- A COLUMN AND NOTHING ELSE (designer, 2026-09-23: "highlight the spots
+-- where they drop down but no card"). The column is the drop shaft: it runs
+-- from the grass to `drop.height`, so it is the line the pack actually comes
+-- down, and it is tall enough to clear the grove (26 to 35 studs) and every
+-- house (to 64) between the band and the pavement. It used to carry a
+-- DROP ZONE / BATCH N card on an always-on-top billboard; the card went with
+-- the toast, and what is left is the one thing a beam is good at -- being
+-- seen from the far end of a 443-stud street.
 local function buildBeacon(herd: Herd): Instance?
 	local spec = dropSpec()
 	local g = Config.herdGround()
@@ -835,58 +999,6 @@ local function buildBeacon(herd: Herd): Instance?
 	column.Anchored = true
 	column.CanCollide, column.CanQuery, column.CanTouch, column.CastShadow = false, false, false, false
 	column.Parent = model
-
-	local anchor = Instance.new("Part")
-	anchor.Name = "Label"
-	anchor.Size = Vector3.new(1, 1, 1)
-	anchor.CFrame = CFrame.new(herd.at.X, g.groundY + spec.beaconWidth * 3, herd.at.Z)
-	anchor.Transparency = 1
-	anchor.Anchored = true
-	anchor.CanCollide, anchor.CanQuery, anchor.CanTouch, anchor.CastShadow = false, false, false, false
-	anchor.Parent = model
-
-	local gui = Instance.new("BillboardGui")
-	gui.Name = "DropLabel"
-	gui.Size = UDim2.new(0, 190, 0, 78)
-	gui.AlwaysOnTop = true
-	gui.MaxDistance = 0
-	gui.Adornee = anchor
-	gui.Parent = anchor
-
-	local card = Instance.new("Frame")
-	card.Name = "Card"
-	card.Size = UDim2.new(1, 0, 1, 0)
-	-- ONE `Theme.card` AND NO SECOND OUTLINE: that helper already paints the
-	-- paper, rounds it and strokes it, and a GuiObject takes ONE UIStroke --
-	-- a second is at best redundant and at worst the one the engine draws.
-	Theme.card(card, 10)
-	beaconBase(card, 0)
-	card.Parent = gui
-	for _, d in ipairs(card:GetChildren()) do
-		if d:IsA("UIStroke") then
-			beaconBase(d, 0)
-		end
-	end
-
-	local title = Instance.new("TextLabel")
-	title.Name = "Zone"
-	title.Size = UDim2.new(1, -12, 0.55, 0)
-	title.Position = UDim2.new(0, 6, 0, 4)
-	title.BackgroundTransparency = 1
-	title.Text = "DROP ZONE"
-	Theme.title(title, 30, Theme.COOL_INK)
-	beaconBase(title, 0)
-	title.Parent = card
-
-	local batch = Instance.new("TextLabel")
-	batch.Name = "Batch"
-	batch.Size = UDim2.new(1, -12, 0.4, 0)
-	batch.Position = UDim2.new(0, 6, 0.56, 0)
-	batch.BackgroundTransparency = 1
-	batch.Text = ("BATCH %d"):format(herd.id)
-	Theme.body(batch, 24, Theme.MUTED)
-	beaconBase(batch, 0)
-	batch.Parent = card
 
 	model.Parent = ensureFolder()
 	return model
@@ -938,13 +1050,15 @@ local function destroyMember(member: Member)
 	end
 	member.puffUntil = 0
 	member.body = nil
-	member.prompt = nil
+	member.pickup = nil
 end
 
 local function removeHerd(herd: Herd)
 	destroyBeacon(herd)
 	for _, member in ipairs(herd.members) do
 		destroyMember(member)
+		-- Leaving the wild for good: every pity ladder on it goes.
+		fireGone(member.id)
 	end
 	for i, h in ipairs(herds) do
 		if h == herd then
@@ -960,18 +1074,6 @@ end
 -- ============================================================
 -- THE PICK-UP
 -- ============================================================
-
--- Is the player actually beside the member? The prompt's own range is a
--- CLIENT fact, so it is re-asked here with slack, the way every reach in
--- this game is re-checked on the trigger.
-local function reach(player: Player, member: Member): boolean
-	local character = player.Character
-	local root = character and character:FindFirstChild("HumanoidRootPart")
-	if not root or not root:IsA("BasePart") then
-		return false
-	end
-	return (root.Position - member.at).Magnitude <= Config.HERDS.range + 4
-end
 
 -- Lands a caught piggy on the player's lawn. Returns (ok, why-not).
 --
@@ -1009,43 +1111,125 @@ function HerdService.grant(player: Player, key: string): (boolean, string?)
 	return true, nil
 end
 
--- FIRST PLAYER TO FINISH THE HOLD GETS IT. `taken` is set before anything
--- below can yield, so two holds finishing in the same frame resolve in
--- arrival order and the second is told so. A grant that fails hands the
--- member back to the herd untouched -- it is still there to be caught by
--- somebody with room. A member claimed MID-DIG goes the same way: the
--- model is destroyed with the stamp still on it, and a destroyed model has
--- no reader.
-claim = function(herd: Herd, member: Member, player: Player): boolean
-	if member.taken or not member.model then
-		notify(player, "Somebody else got that one.", "warn")
+-- LANDS A CARRIED CATCH ON THE PLINTH ITS CARRIER STOOD BY, which is the one
+-- difference from `grant`: a lassoed piggy is carried home and secured by
+-- standing with it (`PiggyHaulService`), so it goes onto the slot the carrier
+-- chose rather than front to back. Ownership is the same two halves -- the
+-- collection (`Config.placePiggy`, which bumps `owned` with the slot) and, for
+-- a first copy, the wardrobe tick `SetService.grant` would have made. Not
+-- `SetService.grant` itself, because that places the piggy a SECOND time,
+-- front to back. Returns false when the slot is not free, writing nothing.
+function HerdService.grantAt(player: Player, key: string, slot: number): boolean
+	local data = DataService.get(player)
+	if not data or not Config.SKINS[key] then
 		return false
 	end
-	-- NOTHING IN THE AIR IS CATCHABLE, RE-ASKED ON THE TRIGGER the way every
-	-- reach in this game is. The prompt is built disabled and enabled on the
-	-- thump, so the engine already refuses a pig in the air -- but `reach` is
-	-- measured against the member's GROUND point, which a player can be
-	-- standing on while the pack is 120 studs over their head, and the
-	-- prompt's own state is the one guard here that lives on the client's
-	-- side of the wire. The STATE as well as the member, because a recalled
-	-- pack is rising rather than falling and `landed` is true of all of it.
-	if herd.state ~= "roam" or not member.landed then
-		notify(player, "That one is not on the ground yet.", "warn")
+	local first = not SetService.owns(data, "skin", key)
+	if not Config.placePiggy(data, key, slot) then
 		return false
 	end
-	if not reach(player, member) then
-		notify(player, "Get closer to catch it.", "warn")
+	if first and type(data.cosmetics) == "table" and type(data.cosmetics.owned) == "table" then
+		data.cosmetics.owned[key] = true
+	end
+	SetService.repaint(player, "skin")
+	if first and (SetService :: any).push then
+		(SetService :: any).push(player)
+	end
+	-- NO SAVE HERE. The caller saves once the haul is detached: a DataStore
+	-- write yields, and a yield inside a Heartbeat secure step before the
+	-- detach is what granted one catch into every free plinth.
+	return true
+end
+
+-- ============================================================
+-- THE LASSO'S SIDE OF IT
+-- ============================================================
+--
+-- Everything here is about the ANIMAL; `LassoService` owns the throw, the
+-- rope, the roll and the pity. An id is the only thing that crosses: a
+-- client names a piggy by the id `land` stamped, and nothing about what it
+-- is or where it stands is taken from the wire.
+
+function HerdService.registerGone(fn: (string) -> ())
+	table.insert(goneHandlers, fn)
+end
+
+function HerdService.registerPickup(fn: (Player, string) -> ())
+	pickupHandler = fn
+end
+
+-- Any loose member by id, whatever it is doing. `onGround` is the question
+-- a throw asks.
+function HerdService.find(id: string): (Herd?, Member?)
+	if type(id) ~= "string" then
+		return nil, nil
+	end
+	for _, herd in ipairs(herds) do
+		for _, member in ipairs(herd.members) do
+			if member.id == id then
+				return herd, member
+			end
+		end
+	end
+	return nil, nil
+end
+
+-- STANDING ON THE GRASS AND NOBODY'S YET. A falling or rising piggy is not a
+-- target -- `landed` is true of a recalled pack, so the STATE is asked too.
+function HerdService.onGround(herd: Herd, member: Member): boolean
+	return not member.taken and member.landed
+		and (herd.state == "roam" or herd.state == "flee" or herd.state == "dazed")
+end
+
+local function publishTarget(member: Member, on: boolean)
+	if member.model then
+		member.model:SetAttribute(Config.LASSO_TARGET_ATTRIBUTE, if on then member.id else nil)
+	end
+end
+
+local function endFlee(herd: Herd, now: number)
+	herd.state = "roam"
+	herd.target = nil
+	herd.fleeDir = nil
+	herd.grazeUntil = now + Config.LASSO.flee.graze
+	-- A piggy that ran must not be recalled the moment it stops: it grazes
+	-- where it landed for the whole of `graze` first.
+	herd.roamUntil = math.max(herd.roamUntil, herd.grazeUntil)
+	for _, m in ipairs(herd.members) do
+		if m.model then
+			m.model:SetAttribute(Config.LASSO_FLEE_ATTRIBUTE, nil)
+		end
+	end
+end
+
+-- THE ROPE LOCK. `userId` nil lifts it. A piggy with a rope on it stands
+-- still (see `stepHerd`) and a running one stops, because the rope is what
+-- is holding it.
+function HerdService.setBusy(id: string, userId: number?): boolean
+	local herd, member = HerdService.find(id)
+	if not herd or not member then
 		return false
+	end
+	member.busy = userId
+	if member.model then
+		member.model:SetAttribute(Config.LASSO_BUSY_ATTRIBUTE, userId)
+	end
+	if userId ~= nil and herd.state == "flee" then
+		endFlee(herd, os.clock())
+	end
+	return true
+end
+
+-- OUT OF THE WILD AND INTO SOMEBODY'S ARMS. Returns the key, the tier and
+-- where it stood, or nil if it had already gone -- `taken` is set before
+-- anything below can yield, so two callers in one frame resolve in order.
+function HerdService.take(id: string): (string?, string?, Vector3?)
+	local herd, member = HerdService.find(id)
+	if not herd or not member or member.taken then
+		return nil, nil, nil
 	end
 	member.taken = true
-	local ok, why = HerdService.grant(player, member.key)
-	if not ok then
-		member.taken = false
-		notify(player, why or "That piggy would not come.", "warn")
-		return false
-	end
-	notify(player, ("You caught a %s! It is standing on your lawn."):format(nameOf(member.key)), "good")
-
+	local key, tier, at = member.key, member.tier, member.at
 	destroyMember(member)
 	for i, m in ipairs(herd.members) do
 		if m == member then
@@ -1053,12 +1237,46 @@ claim = function(herd: Herd, member: Member, player: Player): boolean
 			break
 		end
 	end
+	fireGone(id)
 	if #herd.members == 0 then
 		removeHerd(herd)
 	end
+	return key, tier, at
+end
+
+-- AFTER A SNAPPED ROPE: straight away from `from` at `LASSO.flee.speed` for
+-- `flee.seconds`, then a graze of `flee.graze`. Slower than a child on
+-- purpose (designer), so the chase stays easy. A DAZED piggy does not run --
+-- it is stunned, and a miss leaves it lying there. Returns whether it ran.
+function HerdService.flee(id: string, from: Vector3): boolean
+	local herd, member = HerdService.find(id)
+	if not herd or not member or member.taken or herd.state ~= "roam" then
+		return false
+	end
+	local away = Vector3.new(herd.at.X - from.X, 0, herd.at.Z - from.Z)
+	if away.Magnitude < 1e-3 then
+		away = Vector3.new(herd.facing.X, 0, herd.facing.Z)
+	end
+	if away.Magnitude < 1e-3 then
+		away = Vector3.zAxis
+	end
+	herd.fleeDir = away.Unit
+	herd.state = "flee"
+	herd.fleeUntil = os.clock() + Config.LASSO.flee.seconds
+	herd.target = nil
+	local stamp = Workspace:GetServerTimeNow()
+	for _, m in ipairs(herd.members) do
+		if m.digUntil > 0 then
+			m.digUntil = 0
+			m.nextDigAt = drawDig(os.clock())
+			publishDig(m, nil)
+		end
+		if m.model then
+			m.model:SetAttribute(Config.LASSO_FLEE_ATTRIBUTE, stamp)
+		end
+	end
 	return true
 end
-HerdService.claim = claim
 
 -- ============================================================
 -- SPAWNING
@@ -1076,7 +1294,10 @@ end
 -- it. Respects the cap and nothing else -- the TIMER is the scheduler's
 -- business, so the admin trigger can call this at will.
 -- Returns the herd, or nil and a reason.
-function HerdService.spawn(kindKey: string?): (Herd?, string?)
+-- `quiet` is what the scheduler passes: no toast, and the marker on the
+-- short clock. A direct call -- the admin trigger, a suite -- announces
+-- itself as a drop always has.
+function HerdService.spawn(kindKey: string?, quiet: boolean?): (Herd?, string?)
 	if #herds >= Config.HERDS.maxLoose then
 		return nil, ("%d herds are already loose, which is the cap."):format(#herds)
 	end
@@ -1122,7 +1343,7 @@ function HerdService.spawn(kindKey: string?): (Herd?, string?)
 		grazeUntil = 0,
 		target = nil,
 		beacon = nil,
-		beaconUntil = now + spec.beaconSeconds,
+		beaconUntil = now + (if quiet then (spec.quietBeaconSeconds or spec.beaconSeconds) else spec.beaconSeconds),
 	}
 	-- Every member is born ON ITS OWN LANDING SLOT, drift off, with the air
 	-- carried in `fall` rather than in `at` -- so the ground each one was
@@ -1135,7 +1356,9 @@ function HerdService.spawn(kindKey: string?): (Herd?, string?)
 		buildMember(herd, member)
 	end
 	herd.beacon = buildBeacon(herd)
-	announceDrop(herd)
+	if not quiet then
+		announceDrop(herd)
+	end
 
 	lastKind = kind
 	nextSpawnAt = now + Config.HERDS.spawnEverySeconds
@@ -1146,6 +1369,205 @@ end
 -- Sends a herd home now (admin, or a herd whose walk errored).
 function HerdService.despawn(herd: Herd)
 	removeHerd(herd)
+end
+
+-- ============================================================
+-- A DROPPED CATCH, AND THE ADMIN'S SINGLE DROP
+-- ============================================================
+
+-- WHERE THE FLOOR IS UNDER A POINT. A carrier can be knocked loose on a lawn
+-- (a stud up), on a driveway, on the street or in their own hallway four
+-- thousand studs away, so the floor is asked for rather than assumed. PCALLED:
+-- a raycast is scenery-grade next to the one thing that must not fail here,
+-- which is the piggy existing at all -- the band's ground is the fallback.
+local function floorUnder(position: Vector3): Vector3
+	local g = Config.herdGround()
+	local floorY = g.groundY
+	pcall(function()
+		local params = RaycastParams.new()
+		params.FilterType = Enum.RaycastFilterType.Exclude
+		local ignore: { Instance } = { ensureFolder() }
+		for _, p in ipairs(Players:GetPlayers()) do
+			if p.Character then
+				table.insert(ignore, p.Character)
+			end
+		end
+		params.FilterDescendantsInstances = ignore
+		local hit = Workspace:Raycast(position + Vector3.new(0, 3, 0), Vector3.new(0, -60, 0), params)
+		if hit then
+			floorY = hit.Position.Y
+		end
+	end)
+	return Vector3.new(position.X, floorY + PiggyModel.MINI_CENTRE_Y, position.Z)
+end
+
+-- THE CATCHER'S HAND PICK-UP. Carries `Config.PROMPT_OWNER_ATTRIBUTE`, so
+-- `PromptUI` shows it to the catcher and nobody else; the server re-checks who
+-- pressed it regardless (`LassoService`). A dazed piggy with no catcher -- it
+-- fell off somebody who died, left or was arrested -- has no hand pick-up at
+-- all: anybody may lasso it and nobody may just lift it.
+local function buildPickup(member: Member)
+	local body = member.body
+	local dazed = member.dazed
+	if not body or not dazed or dazed.catcher == nil then
+		return
+	end
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "PickupPrompt"
+	prompt.ActionText = "Pick Up"
+	prompt.ObjectText = nameOf(member.key)
+	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
+	prompt.HoldDuration = Config.LASSO.dazed.pickupHold
+	prompt.MaxActivationDistance = Config.HERDS.range
+	prompt.RequiresLineOfSight = false
+	-- The pedestal's own TAKE treatment: a piggy is lifted the way one is
+	-- taken off a plinth.
+	Config.setPromptKind(prompt, "take")
+	prompt:SetAttribute(Config.PROMPT_OWNER_ATTRIBUTE, dazed.catcher)
+	prompt.Parent = body
+	local id = member.id
+	prompt.Triggered:Connect(function(player: Player)
+		if pickupHandler then
+			pickupHandler(player, id)
+		end
+	end)
+	member.pickup = prompt
+end
+
+-- A KNOCKED-LOOSE CATCH LANDS DAZED WHERE ITS CARRIER WAS (docs/LASSO-PLAN.md
+-- section 3). For `LASSO.dazed.catcherWindow` seconds only `catcher` may touch
+-- it -- by hand, or with a lasso -- then anybody may lasso it; after
+-- `dazed.wake` untouched it gets up as an ordinary wild piggy. `catcher` nil
+-- is open at once (death, disconnect, arrest). Its own herd of one, outside
+-- `maxLoose`: a dropped catch must always land, whatever the field holds.
+-- Returns the new target id.
+function HerdService.spawnDazed(key: string, position: Vector3, catcher: number?): string?
+	local skin = Config.SKINS[key]
+	if not skin then
+		return nil
+	end
+	local now = os.clock()
+	local at = floorUnder(position)
+	local serverNow = Workspace:GetServerTimeNow()
+	local window = if catcher ~= nil then Config.LASSO.dazed.catcherWindow else 0
+	local angle = math.random() * math.pi * 2
+	local facing = Vector3.new(math.cos(angle), 0, math.sin(angle))
+	local member: Member = {
+		key = key,
+		tier = Config.rarityOf(skin),
+		at = at,
+		facing = facing,
+		phase = math.random() * math.pi * 2,
+		walked = 0,
+		lift = 0,
+		fall = 0,
+		landed = true,
+		stagger = 0,
+		puff = nil,
+		puffUntil = 0,
+		nextDigAt = drawDig(now),
+		digUntil = 0,
+		taken = false,
+		id = nextId(),
+		busy = nil,
+		dazed = { catcher = catcher, openAt = serverNow + window, wakeAt = now + Config.LASSO.dazed.wake },
+	}
+	serial += 1
+	local herd: Herd = {
+		id = serial,
+		kind = "dazed",
+		side = if at.Z < 0 then -1 else 1,
+		state = "dazed",
+		members = { member },
+		at = at,
+		facing = facing,
+		phaseStart = now,
+		phaseUntil = now,
+		roamUntil = 0,
+		grazeUntil = 0,
+		target = nil,
+		beacon = nil,
+		beaconUntil = 0,
+		fleeUntil = 0,
+		fleeDir = nil,
+	}
+	buildMember(herd, member)
+	if member.model then
+		-- 0 rather than nil when nobody holds the window: the client still has
+		-- to know it is dazed (the stars), and 0 is never anybody's UserId.
+		member.model:SetAttribute(Config.LASSO_DAZED_ATTRIBUTE, catcher or 0)
+		member.model:SetAttribute(Config.LASSO_OPEN_AT_ATTRIBUTE, serverNow + window)
+	end
+	publishTarget(member, true)
+	buildPickup(member)
+	table.insert(herds, herd)
+	return member.id
+end
+
+-- The rest of a dazed piggy's state, for the lasso's refusals.
+function HerdService.dazedOf(id: string): (boolean, number?, number)
+	local _, member = HerdService.find(id)
+	if not member or not member.dazed then
+		return false, nil, 0
+	end
+	return true, member.dazed.catcher, member.dazed.openAt
+end
+
+-- ONE PIGGY OF A CHOSEN SKIN DROPPED NEXT TO SOMEBODY, FOR TESTING ONLY. It
+-- bypasses the loose cap, the band and `HERDS.tierCap` -- which is the whole
+-- point: the cap keeps epics and legendaries out of the wild, and nobody can
+-- test a lasso on one without this. The ordinary drop otherwise: falls,
+-- lands, stamps its id, roams from where it landed.
+function HerdService.dropSingle(key: string, position: Vector3): (string?, string?)
+	local skin = Config.SKINS[key]
+	if not skin then
+		return nil, ("Unknown piggy %q."):format(tostring(key))
+	end
+	local now = os.clock()
+	local spec = dropSpec()
+	local at = floorUnder(position)
+	local member: Member = {
+		key = key,
+		tier = Config.rarityOf(skin),
+		at = at,
+		facing = Vector3.zAxis,
+		phase = math.random() * math.pi * 2,
+		walked = 0,
+		lift = 0,
+		fall = spec.height,
+		landed = false,
+		stagger = 0,
+		puff = nil,
+		puffUntil = 0,
+		nextDigAt = drawDig(now),
+		digUntil = 0,
+		taken = false,
+		id = nextId(),
+	}
+	serial += 1
+	local herd: Herd = {
+		id = serial,
+		kind = "admin",
+		side = if at.Z < 0 then -1 else 1,
+		state = "drop",
+		members = { member },
+		at = at,
+		facing = Vector3.zAxis,
+		phaseStart = now,
+		phaseUntil = now + spec.seconds + spec.bounceSeconds,
+		roamUntil = 0,
+		grazeUntil = 0,
+		target = nil,
+		beacon = nil,
+		beaconUntil = now + (spec.quietBeaconSeconds or spec.beaconSeconds),
+		fleeUntil = 0,
+		fleeDir = nil,
+	}
+	buildMember(herd, member)
+	herd.beacon = buildBeacon(herd)
+	table.insert(herds, herd)
+	return member.id, nil
 end
 
 -- ============================================================
@@ -1199,15 +1621,74 @@ function HerdService.fallAt(herd: Herd, member: Member, now: number): number
 	return 0
 end
 
--- The frame a member touches down: its dust, and the prompt that makes it
--- catchable. Called once, guarded by `member.landed` -- `fall` crossing zero
--- cannot be the test, because the settle hop takes it back off zero and down
--- again and would land the whole pack twice.
+-- The frame a member touches down: its dust, and the id that makes it a
+-- lasso target. Called once, guarded by `member.landed` -- `fall` crossing
+-- zero cannot be the test, because the settle hop takes it back off zero and
+-- down again and would land the whole pack twice. NEVER STAMPED IN THE AIR: a
+-- lock-on to a pig 120 studs over the grass would offer a throw the server
+-- refuses, which is the silent-refusal rule wearing a highlight.
 local function land(member: Member, now: number)
 	landingPuff(member, now)
-	if member.prompt then
-		member.prompt.Enabled = true
+	publishTarget(member, true)
+end
+
+-- THE RECALL: the drop with the sign flipped. The target id comes off first
+-- -- a pack rising out of reach must not still be offering itself -- and any
+-- dig in progress ends with the state change. Shared by a roam running out
+-- and by a woken dazed piggy that is standing somewhere it may not roam.
+local function beginRecall(herd: Herd, now: number)
+	herd.state = "recall"
+	herd.phaseStart = now
+	local spec = dropSpec()
+	herd.phaseUntil = now + spec.seconds + spec.stagger
+	herd.target = nil
+	for _, member in ipairs(herd.members) do
+		publishTarget(member, false)
+		if member.pickup then
+			member.pickup.Enabled = false
+		end
 	end
+end
+
+-- A DAZED PIGGY GETS UP. It stops being anybody's dropped catch -- the
+-- catcher's window and the hand pick-up go -- and every pity ladder on it is
+-- dropped, because it is an ordinary wild piggy again. Back to roaming if it
+-- is standing in the band; recalled into the sky if it fell somewhere a pack
+-- may not walk (the street, a lawn, a hallway).
+local function wake(herd: Herd, member: Member, now: number)
+	member.dazed = nil
+	if member.pickup then
+		member.pickup:Destroy()
+		member.pickup = nil
+	end
+	if member.model then
+		member.model:SetAttribute(Config.LASSO_DAZED_ATTRIBUTE, nil)
+		member.model:SetAttribute(Config.LASSO_OPEN_AT_ATTRIBUTE, nil)
+	end
+	fireGone(member.id)
+	if HerdService.inBand(member.at) and HerdService.groundAllows(member.at) then
+		herd.state = "roam"
+		herd.at = member.at
+		herd.side = if member.at.Z < 0 then -1 else 1
+		local roam = Config.HERDS.roam
+		herd.roamUntil = now + roam.min + math.random() * (roam.max - roam.min)
+		herd.grazeUntil = now
+		herd.target = nil
+	else
+		beginRecall(herd, now)
+	end
+end
+
+-- Is anybody's rope on this herd? A roped piggy stands still, and so does the
+-- pack it is in -- the leader is the anchor, and a leader walking off with a
+-- follower on a rope would drag the formation through the thrower.
+local function herdHeld(herd: Herd): boolean
+	for _, m in ipairs(herd.members) do
+		if m.busy ~= nil then
+			return true
+		end
+	end
+	return false
 end
 
 -- One frame of one herd. In the air nothing moves horizontally at all: the
@@ -1217,7 +1698,8 @@ end
 -- member faces the way it actually went -- a still member keeps the pack's
 -- facing rather than snapping.
 local function stepHerd(herd: Herd, dt: number, now: number)
-	local speed = Config.herdSpeed()
+	-- A running piggy runs at the flee speed; everything else at the pack's.
+	local speed = if herd.state == "flee" then Config.LASSO.flee.speed else Config.herdSpeed()
 	local step = speed * dt
 	local airborne = herd.state == "drop" or herd.state == "recall"
 
@@ -1258,22 +1740,45 @@ local function stepHerd(herd: Herd, dt: number, now: number)
 		end
 	end
 
-	local goal: Vector3? = nil
-	if herd.state == "roam" then
-		if now >= herd.roamUntil then
-			-- RECALLED: the drop with the sign flipped. Prompts off first --
-			-- a pack rising out of reach must not still be offering itself --
-			-- and any dig in progress ends with the state change below.
-			herd.state = "recall"
-			herd.phaseStart = now
-			local spec = dropSpec()
-			herd.phaseUntil = now + spec.seconds + spec.stagger
-			herd.target = nil
-			for _, member in ipairs(herd.members) do
-				if member.prompt then
-					member.prompt.Enabled = false
-				end
+	-- A ROPE HOLDS THE WHOLE HERD STILL, and holds its clocks: no recall, no
+	-- wake and no flee while somebody is mid-struggle, or a rope would be on a
+	-- piggy rising into the sky.
+	local held = herdHeld(herd)
+
+	-- A DAZED PIGGY lies where it fell until its wake time, then gets up.
+	if herd.state == "dazed" and not held then
+		local m = herd.members[1]
+		if m and m.dazed and now >= m.dazed.wakeAt then
+			wake(herd, m, now)
+		elseif not m then
+			removeHerd(herd)
+			return
+		end
+	end
+
+	-- RUNNING FROM A SNAPPED ROPE: straight away, kept inside the band by the
+	-- same two tests a landing slot takes. It stops at the edge rather than
+	-- turning, because a piggy that swerved along a fence would read as
+	-- steering rather than as bolting.
+	if herd.state == "flee" then
+		local dir = herd.fleeDir
+		if held or now >= herd.fleeUntil or not dir then
+			endFlee(herd, now)
+		else
+			local nextAt = herd.at + dir * step
+			if HerdService.inBand(nextAt) and HerdService.groundAllows(nextAt) then
+				herd.at = nextAt
+				herd.facing = dir
+			else
+				endFlee(herd, now)
 			end
+		end
+	end
+
+	local goal: Vector3? = nil
+	if herd.state == "roam" and not held then
+		if now >= herd.roamUntil then
+			beginRecall(herd, now)
 		elseif herd.target then
 			goal = herd.target
 		elseif now >= herd.grazeUntil then
@@ -1352,6 +1857,7 @@ local function stepHerd(herd: Herd, dt: number, now: number)
 			end
 			member.fall = HerdService.fallAt(herd, member, now)
 			member.facing = herd.facing
+			member.stood = false
 			if member.model then
 				member.model:PivotTo(facingCF(
 					member.at + Vector3.new(0, member.lift + member.fall, 0), member.facing))
@@ -1359,6 +1865,20 @@ local function stepHerd(herd: Herd, dt: number, now: number)
 			continue
 		end
 		member.fall = 0
+
+		-- HELD BY A ROPE, OR LYING DAZED: no step, no dig, no turn. A dig in
+		-- progress ends, because a piggy on a rope is not scratching at the
+		-- grass.
+		if held or herd.state == "dazed" then
+			-- No seat either: a held member was seated by the frame it last
+			-- walked, and a dazed one by `buildMember`, and neither has moved.
+			if member.digUntil > 0 then
+				member.digUntil = 0
+				member.nextDigAt = drawDig(now)
+				publishDig(member, nil)
+			end
+			continue
+		end
 
 		-- DIGGING, before any movement. A member mid-dig is frozen: no
 		-- step, no facing change, no `Walked` publish. A dig ends on its
@@ -1402,6 +1922,7 @@ local function stepHerd(herd: Herd, dt: number, now: number)
 		end
 		local delta = Vector3.new(moved.X - member.at.X, 0, moved.Z - member.at.Z)
 		local walked = delta.Magnitude
+		local wasFacing = member.facing
 		if walked > 1e-3 then
 			member.facing = delta.Unit
 		elseif i == 1 then
@@ -1409,7 +1930,13 @@ local function stepHerd(herd: Herd, dt: number, now: number)
 		end
 		member.at = moved
 		if member.model then
-			member.model:PivotTo(facingCF(member.at + Vector3.new(0, member.lift + member.fall, 0), member.facing))
+			-- SEATED ONLY WHEN SOMETHING CHANGED. A grazing member that has
+			-- neither walked nor turned is already standing where this would
+			-- put it, and a `PivotTo` writes every part again to say so.
+			if walked > 1e-3 or member.facing ~= wasFacing or not member.stood then
+				member.model:PivotTo(facingCF(member.at + Vector3.new(0, member.lift + member.fall, 0), member.facing))
+				member.stood = true
+			end
 			-- The walk's ONE publish: distance, only on a frame the member
 			-- actually moved, so a grazing pack writes nothing to the wire.
 			if walked > 1e-3 then
@@ -1482,14 +2009,32 @@ end
 -- One beat of the scheduler: spawn if the cap has room and the timer is
 -- due. Its own function so a suite can drive the REAL scheduler against a
 -- stubbed clock rather than a copy of these lines.
+--
+-- AND THE WAVE. An EMPTY field whose spawn has come due -- the boot, or every
+-- piggy caught -- is filled one per `drop.waveGap` rather than one per
+-- `spawnEverySeconds`, with ONE toast for the lot; every spawn the scheduler
+-- makes is quiet, so a replacement lands without a word and marks its spot
+-- only briefly. Twenty singles announced one at a time would be twenty
+-- toasts in a minute, which is the notification spam this project already
+-- records for the dodge.
 function HerdService.tick(now: number)
+	local cap = Config.HERDS.maxLoose
+	if not wave and #herds == 0 and now >= nextSpawnAt then
+		wave = true
+		announceWave(cap)
+	end
 	if HerdService.canSpawn(now) then
-		local ok, err = pcall(HerdService.spawn, nil)
+		local ok, err = pcall(HerdService.spawn, nil, true)
 		if not ok then
 			warn(("[HerdService] spawn failed: %s"):format(tostring(err)))
 			-- Do not spin on a broken spawn: try again next gap.
 			nextSpawnAt = now + Config.HERDS.spawnEverySeconds
+		elseif wave then
+			nextSpawnAt = now + (dropSpec().waveGap or 0)
 		end
+	end
+	if wave and #herds >= cap then
+		wave = false
 	end
 end
 

@@ -37,10 +37,10 @@ Cards.images = {
 	peppermint = "rbxassetid://119504778501327",
 	glacier = "rbxassetid://93224357602594",
 	bubblegumleopard = "rbxassetid://106032101636660",
-	honeycomb = "rbxassetid://114718401104881",
+	honeycomb = "rbxassetid://123072274802746",
 	stormwolf = "rbxassetid://99604169685516",
 	phoenix = "rbxassetid://78405426785417",
-	rainbowtiger = "rbxassetid://114158169786998",
+	rainbowtiger = "rbxassetid://77819354328927",
 } :: { [string]: string }
 -- END SKIN IMAGE IDS
 

@@ -98,10 +98,22 @@ local function build(parent: ScreenGui): any
 		-- this column and its icon reaches 82. Free because this card and the
 		-- rebirth button below it are mutually exclusive in practice -- a
 		-- player in their first session cannot afford a rebirth.
-		local width, x, y = math.min(470, view.X - 2 * m.bankWidth * m.bankScale - 44), view.X / 2, 88
+		-- BETWEEN THE TWO CORNERS, WHICH ARE NO LONGER THE SAME OBJECT. This
+		-- subtracted the bank's width from BOTH sides and centred on the
+		-- screen, which was right while the bank was the only thing up there
+		-- and the arrangement was symmetric. The balance moved to the
+		-- top-left and the leaderboard took the top-right (2026-09-23), so
+		-- the two guards are different widths and the card is centred in the
+		-- BAND between them rather than on the screen.
+		local leftGuard = 14 + m.bankWidth * m.bankScale + 8
+		local rightGuard = HUDLayout.rightClear(parent) + 8
+		local band = math.max(180, view.X - leftGuard - rightGuard)
+		local width, x, y = math.min(470, band), leftGuard + band / 2, 88
 		if m.compact and not m.portrait then
-			-- Between the left boost/menu and the bank on landscape phones.
-			local left, right = 172, view.X - m.bankWidth * m.bankScale - 22
+			-- Between the left boost/menu lane and the BOARD on landscape
+			-- phones. 172 still clears the left lane with the balance card in
+			-- it: compact draws that card 113 wide at x 14, so it ends at 127.
+			local left, right = 172, view.X - HUDLayout.rightClear(parent) - 8
 			width = math.max(180, math.min(470, right - left))
 			x, y = right - width / 2, 62
 		elseif m.portrait then

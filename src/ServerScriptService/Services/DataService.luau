@@ -52,6 +52,12 @@ export type PlayerData = {
 	lastSave: number,
 	-- Lifetime delivered robberies, against any target; survives rebirth.
 	robberies: number,
+	-- THE PIGGY PRESS'S HOPPER: the piggy keys waiting in each tier's bay.
+	-- Nothing comes back out of it, so this is the ONLY record of a piggy
+	-- between being fed in and the bay filling -- `take` has already taken
+	-- it out of `owned`, and `CombineService.feed` saves in the same breath
+	-- as the insert for exactly that reason.
+	press: { [string]: { string } },
 	-- PIGGIES ROBBED, LIFETIME. Counted at the moment a snatched piggy is
 	-- SECURED on the thief's own plinth (`PiggyHaulService`), never at the
 	-- grab -- the same line `totalStolen` draws for coins: caught, nabbed or
@@ -59,6 +65,10 @@ export type PlayerData = {
 	-- resident core, which touches no save. Read by the street leaderboard.
 	-- Survives rebirth, like every other record of things done.
 	piggiesStolen: number,
+	-- HAS THIS SAVE BEEN HANDED ITS STARTER LASSOS (`Config.LASSO.starter`)?
+	-- A flag rather than a check on the stock, because a player who spends
+	-- every lasso must not get the starter back on the next join.
+	lassoStarter: boolean,
 	totalStolen: number,
 	totalLost: number,
 	-- THE WEEKLY LADDER. `index` is a UTC week index, never a timestamp, for
@@ -247,7 +257,7 @@ export type PlayerData = {
 	-- Client-side preferences. Nothing in here may ever affect what a player
 	-- can do -- these are read by the HUD and by nothing that decides an
 	-- outcome, which is what keeps them safe to let a client write.
-	settings: { music: boolean, hotbar: { order: { string }, hidden: { string } } },
+	settings: { music: boolean, musicVolume: number, hotbar: { order: { string }, hidden: { string } } },
 }
 
 local store: DataStore? = nil
@@ -265,6 +275,17 @@ local function defaultData(): PlayerData
 		upgrades[key] = 0
 	end
 
+	-- THE PIGGY PRESS'S HOPPER, ONE BAY PER TIER, DERIVED FROM `Config.PRESS`
+	-- RATHER THAN LISTED. A second copy of that tier list here is the
+	-- near-identical duplicate this project keeps recording, and it would go
+	-- stale in the direction that is hardest to notice: a tier the save has
+	-- no table for is one `CombineService` creates lazily anyway, so nothing
+	-- would error and nothing would be lost -- it would simply drift.
+	local press: { [string]: { string } } = {}
+	for _, tier in ipairs(Config.PRESS.tiers) do
+		press[tier] = {}
+	end
+
 	return {
 		schema = Config.SCHEMA_VERSION,
 		coins = 0,
@@ -273,9 +294,17 @@ local function defaultData(): PlayerData
 		rebirths = 0,
 		lastSave = os.time(),
 		robberies = 0,
+		-- A brand new top-level table, which is the free case: `reconcile`'s
+		-- generic pass fills it in on every existing save with no migration
+		-- branch, nothing to pay out and nothing that can run twice.
+		press = press,
 		-- A field add rather than a schema bump: the generic fill in
 		-- `reconcile` hands every existing save a zero, idempotently.
 		piggiesStolen = 0,
+		-- A field add rather than a schema bump: the generic fill hands every
+		-- existing save a false, so each save is granted the starter once, by
+		-- `LassoService` on join, which then sets it true.
+		lassoStarter = false,
 		totalStolen = 0,
 		totalLost = 0,
 		-- Schema 19. reconcile descends one level, so an existing save picks
@@ -378,12 +407,35 @@ local function defaultData(): PlayerData
 		-- is exactly what `SetAsync` starts refusing, and grown through
 		-- `Config.piggySlots` rather than trusted, so a save written before a
 		-- slot existed picks one up without a schema branch. It starts EMPTY on
-		-- purpose: the starter Classic is on the TILL, which is the one
-		-- placement a new save is guaranteed.
+		-- purpose -- EXCEPT FOR SLOT ONE, and that exception is what keeps this
+		-- game from opening with no income at all.
+		--
+		-- THE TILL STOPPED EARNING ON 2026-09-23 AND A NEW SAVE HAD EXACTLY ONE
+		-- PIGGY, ON IT. So a brand-new player earned nothing per second, forever:
+		-- the only way a piggy leaves the till is `PiggyHaulService.swap`, which
+		-- needs a piggy in your arms to swap IN, and the only piggy they own is
+		-- the one standing on the till. A dead end, and `Config.piggyKeyAt`'s own
+		-- rule says it is the one state this economy may not have -- it is the
+		-- first minute of the game.
+		--
+		-- SO THE STARTER IS SEATED TWICE AND OWNED TWICE: a Classic on the till to
+		-- look at, and a Classic on the first pedestal to earn. `owned` counts
+		-- placements rather than a bag (`Config.addPiggy`: placement IS ownership,
+		-- there is no bag), so two standing is two owned and `piggystate` reads
+		-- clean. What a new player earns per second is UNCHANGED by the till
+		-- change -- one common's rate, exactly as before -- and all that moved is
+		-- that it ripens on a pedestal instead of dripping into the balance.
+		--
+		-- AN EXISTING SAVE IS NOT MIGRATED, deliberately. A reconcile that seated
+		-- a free Classic whenever the lawn read empty would fire again every time
+		-- somebody sold their last piggy, which is a piggy faucet keyed to an
+		-- empty lawn -- the "pays out on every join is a money printer" failure
+		-- this file already records for `shards`. The admin console's
+		-- `fillpiggies` is the way to seat one.
 		piggies = {
-			owned = { [Config.DEFAULT_SKIN] = 1 },
+			owned = { [Config.DEFAULT_SKIN] = 2 },
 			till = Config.DEFAULT_SKIN,
-			slots = { {}, {}, {}, {}, {}, {} },
+			slots = { { key = Config.DEFAULT_SKIN, buffer = 0 }, {}, {}, {}, {}, {} },
 		},
 		-- Schema 13. reconcile descends one level, so an existing save picks up
 		-- all three of these rather than just the parent table.
@@ -409,7 +461,7 @@ local function defaultData(): PlayerData
 		-- The hot bar's arrangement, filled by reconcile's one-level descent
 		-- for every save written before it existed. Two empty arrays is the
 		-- default bar: catalogue order, nothing shelved.
-		settings = { music = true, hotbar = { order = {}, hidden = {} } },
+		settings = { music = true, musicVolume = Config.MUSIC.SLIDER_DEFAULT, hotbar = { order = {}, hidden = {} } },
 	}
 end
 
@@ -463,6 +515,52 @@ local function reconcile(data: any): PlayerData
 	data.capacityLevel = nil
 	local previousSchema = tonumber(data.schema) or 0
 
+	-- SCHEMA 30: THE COIN RE-DENOMINATION. Every price in the game was
+	-- multiplied by `Config.COIN_REDENOMINATION`, so every coin a save is
+	-- holding has to move with them or the save is worth a thousandth of what
+	-- it was. See the note over `Config.SCHEMA_VERSION`.
+	--
+	-- WHAT COUNTS AS A COIN IS THE WHOLE OF THE DECISION, and the list is
+	-- short because most of a save is not money: an ownership table, a count,
+	-- a key, a timestamp and a level are all unaffected by what a coin is
+	-- worth. What IS money is the balance, the two lifetime ledgers, the
+	-- week's running total (which the board ranks on), the best bounty a
+	-- poster prints, and each pedestal's uncollected buffer.
+	--
+	-- GUARDED, NEVER IDEMPOTENT BY CONSTRUCTION -- which is the opposite of
+	-- every other branch in this function and has to be said out loud. A
+	-- prune can run a hundred times and find nothing the second time; a
+	-- MULTIPLY cannot tell its own output from its input, so the version
+	-- check is the only thing standing between this and a save that gains a
+	-- thousandfold on every join. `previousSchema` is read above, before
+	-- anything writes to it, and `data.schema` is stamped once at the end.
+	if previousSchema > 0 and previousSchema < 30 then
+		local factor = Config.COIN_REDENOMINATION
+		local function scale(n: any): number
+			return (tonumber(n) or 0) * factor
+		end
+		data.coins = scale(data.coins)
+		data.totalStolen = scale(data.totalStolen)
+		data.totalLost = scale(data.totalLost)
+		if type(data.week) == "table" then
+			data.week.stolen = scale(data.week.stolen)
+		end
+		if type(data.trophies) == "table" then
+			data.trophies.bestBounty = scale(data.trophies.bestBounty)
+		end
+		-- The uncollected pile on each plinth, including slot 0's till. A
+		-- buffer left unscaled would collect for a thousandth of what the
+		-- pedestal now says it is worth, which reads as the collect prompt
+		-- being broken rather than as a stale number.
+		if type(data.piggies) == "table" and type(data.piggies.slots) == "table" then
+			for _, entry in pairs(data.piggies.slots) do
+				if type(entry) == "table" and entry.buffer ~= nil then
+					entry.buffer = scale(entry.buffer)
+				end
+			end
+		end
+	end
+
 	-- Schema 17: THE PIG IS THE WALLET. `vault` (the stealable pile) and
 	-- `coins` (the banked balance) became one field. Idempotent: a save that
 	-- has already been through this has no `vault` to add.
@@ -475,9 +573,11 @@ local function reconcile(data: any): PlayerData
 		data.coins = (tonumber(data.coins) or 0) + data.vault
 		data.vault = nil
 	end
-	-- The till's buffer (schema 27) is retired (2026-09-22): the bank drips
-	-- straight into the balance. Whatever a save was holding in it is banked
-	-- once, here, and the field goes.
+	-- The till's buffer (schema 27) is retired: it drip-fed the balance from
+	-- 2026-09-22 and earns nothing at all since 2026-09-23 (the till is a
+	-- display). Whatever a save was holding in it is banked once, here, and the
+	-- field goes -- ONCE, because a migration that pays out on every join is a
+	-- money printer, which is why this is keyed to the field still existing.
 	if type(data.tillBuffer) == "number" then
 		data.coins = (tonumber(data.coins) or 0) + math.max(0, data.tillBuffer)
 		data.tillBuffer = nil
@@ -644,6 +744,40 @@ local function reconcile(data: any): PlayerData
 			for key in pairs(data.dogs.owned) do
 				if not Config.DOG_COATS[key] then
 					data.dogs.owned[key] = nil
+				end
+			end
+
+			-- EVERY PLAYER HAS SCRAPPY, AND THIS IS WHERE THEY GET HIM
+			-- (designer, 2026-09-23).
+			--
+			-- A coat carrying `free = true` is owned by everybody from their
+			-- first second: there is no price, no rebirth and no crate in
+			-- front of it, so the only honest place for it is the save. The
+			-- ALTERNATIVE was a special case in `SetService.owns` -- "owned,
+			-- or free" -- and that is the wrong shape by a distance: nine
+			-- readers ask that question (the shop push, the equip, the
+			-- buy-or-equip, the sell guard, the spare pool, the set panel,
+			-- the admin console, `applyToPlot` and the reconcile below), and
+			-- every one of them would have had to learn it. Writing it once
+			-- here means every reader already answers correctly.
+			--
+			-- IDEMPOTENT BY CONSTRUCTION, which is the rule this project
+			-- holds for every migration: it writes `true` over `true`, so a
+			-- save that has been through it has nothing to do and there is no
+			-- schema version to remember. Nothing is granted twice because
+			-- ownership is a SET rather than a count -- and note that is the
+			-- reason a free coat may not be sold: a refund on every join is
+			-- exactly the money printer `loot` and `shards` were pruned to
+			-- avoid, and a free item selling for a tier value is that with
+			-- extra steps. `Config.isSellable` refuses one already (no cost,
+			-- no rarity, no earned tag), so the two halves agree.
+			--
+			-- DERIVED FROM THE CATALOGUE rather than naming a key, the same
+			-- call the prune above makes: a second free guardian needs a
+			-- field and no code here.
+			for key, coat in pairs(Config.DOG_COATS) do
+				if coat.free == true then
+					data.dogs.owned[key] = true
 				end
 			end
 		end
@@ -923,6 +1057,13 @@ local function reconcile(data: any): PlayerData
 		data.piggiesStolen = math.max(0, math.floor(piggiesStolen))
 	end
 	if type(data.claims) ~= "table" then data.claims = {} end
+	-- The receipt ledger and the doorstep queue are created lazily by
+	-- `ProductService` and `DailyService`; normalised here for the reason
+	-- `claims` is, so a hand-edited or truncated save cannot crash a receipt.
+	if type(data.receipts) ~= "table" then data.receipts = {} end
+	if type(data.daily) == "table" and type(data.daily.crates) ~= "table" then
+		data.daily.crates = {}
+	end
 	Config.pruneBuybackClaims(data.claims)
 	data.sinceLegendary = nil
 	data.schema = Config.SCHEMA_VERSION
@@ -931,6 +1072,19 @@ end
 
 local function lockIsStale(lock: any): boolean
 	if type(lock) ~= "table" or type(lock.timestamp) ~= "number" then
+		return true
+	end
+	-- A LOCK LEFT BY ANOTHER STUDIO SESSION IS STALE AT ONCE. `JOB_ID` is
+	-- minted per Play session here ("studio-" plus the clock), and Studio
+	-- gives `BindToClose` too little time to release, so the lock from the
+	-- session you just stopped is usually still on the key when you press
+	-- Play again -- held by a job that no longer exists, and honoured for
+	-- up to `LOCK_STALE_SECONDS`. `load` then retried behind it, two seconds
+	-- a go, which was most of the "spawns mid-map, then teleports home a few
+	-- seconds later" the designer reported (2026-09-23). One Studio session
+	-- runs on one machine at a time; a second one on the same account is a
+	-- deliberate act, and the live rule still holds for every real server.
+	if RunService:IsStudio() and type(lock.jobId) == "string" and lock.jobId:sub(1, 7) == "studio-" then
 		return true
 	end
 	return (os.time() - lock.timestamp) > Config.LOCK_STALE_SECONDS

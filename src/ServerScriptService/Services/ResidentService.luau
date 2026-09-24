@@ -127,6 +127,25 @@ export type Resident = {
 	-- that changes its fence, dog and building for no reason a player can see
 	-- is worse than a street with no variety at all.
 	offset: number,
+	-- WHAT THIS HOUSE LOOKS LIKE, WHICH IS A DIFFERENT NUMBER FROM WHAT ITS
+	-- PIG IS WORTH. The fence, the lock, the building and the garden all come
+	-- off this; `incomeLevel` above drives the pig and nothing else. They
+	-- were one number until 2026-09-23, so a street was a mirror of whoever
+	-- stood on it -- see `Config.RESIDENTS.style` for the whole argument and
+	-- for why only the INCOME half was ever the faucet risk.
+	--
+	-- ROLLED ONCE AND NEVER RE-DERIVED, which the income offset's own note
+	-- already argues for: a house that changes its fence and its building
+	-- for no reason a player can see is worse than a street with no variety
+	-- at all. The difference is that `offset` still tracks the street from
+	-- its own rung, and this does not track it at all.
+	styleLevel: number,
+	-- THE STYLE LEVEL THE GEOMETRY IS CURRENTLY STANDING, so the four
+	-- ladders are rebuilt when they actually move and not when the pig
+	-- moves. `buildFence` and `setHouseLevel` tear down and rebuild real
+	-- parts, and since the split an income tick would do that to every
+	-- empty plot on the street to arrive at identical geometry.
+	styleShown: number?,
 	-- WHICH PIGGY SKIN THIS NEIGHBOUR WEARS, drawn once when they are
 	-- seated and kept for as long as they stand. See `drawSkin` for why a
 	-- resident wears one at all -- the short version is that the Victim
@@ -183,6 +202,18 @@ export type Resident = {
 	facing: Vector3,
 	-- HOW FAR THEY HAVE WALKED, which is what drives the legs. Never a clock.
 	stride: number,
+	-- THE POSE CACHE (2026-09-23). What the last `poseWalk` was given, so a
+	-- neighbour standing still in ANY state -- cracking for six seconds,
+	-- waiting at a door -- is not re-posed forty-six parts a frame to say
+	-- nothing moved. The model is part of the key: a rebuilt figure has to
+	-- be posed once whatever the numbers say.
+	posedModel: Model?,
+	posedAt: Vector3?,
+	posedFacing: Vector3?,
+	posedStride: number?,
+	posedCarry: boolean?,
+	-- The state last written to `Config.RESIDENT_STATE_ATTRIBUTE`.
+	publishedState: string?,
 	route: { Vector3 },
 	-- The plot index they are working, so a victim who moves house or logs
 	-- off cannot leave a dangling reference to a plot table.
@@ -383,6 +414,61 @@ local function pickOffset(): number
 	return -math.random(0, spread)
 end
 
+-- HOW WELL DEFENDED THIS HOUSE IS, AND IT DOES NOT ASK WHAT THE PLAYER HAS.
+--
+-- This is the whole of the lockstep fix. `pickOffset` above is a rung
+-- BELOW the street and is re-read on every tick, so the row rises together
+-- whenever anybody buys an income level -- correct for a pig, and what made
+-- a player with no fence meet a row of neighbours with no fence. A look is
+-- drawn from a fixed band instead, so the street has moats and bare plots
+-- on it at minute one and still does at rebirth ten.
+--
+-- THE BAND SPANS EVERY DEFENCE LADDER EXACTLY ONCE (`residentStyleMax`), so
+-- there is nothing above it to reach: a uniform draw across it is a uniform
+-- draw across fence tiers and lock tiers, which is what reads as a street
+-- of different houses rather than a ladder somebody typed.
+--
+-- THE TWO GUARANTEES ARE COUNTED AGAINST WHAT IS ACTUALLY STANDING rather
+-- than dealt from a bag, for the reason `pickOffset` gives: residents are
+-- seated ONE AT A TIME as plots free up, so there is no moment at which
+-- "how many are there" has an answer.
+local function pickStyle(): number
+	local top = math.max(0, math.floor(Config.residentStyleMax()))
+	if top == 0 then
+		return 0
+	end
+	local style = Config.RESIDENTS.style
+
+	local easy, hard = 0, 0
+	for _, other in pairs(residents) do
+		if other.styleLevel <= 0 then
+			easy += 1
+		end
+		if other.styleLevel >= top then
+			hard += 1
+		end
+	end
+
+	-- THE BOTTOM FIRST, because that is the guarantee a player with base
+	-- stats depends on: no Lockpicks, no bones, no Sneak, and somewhere to
+	-- go anyway. Without it a random street can seat every house near the
+	-- top, which is "defence buys time, never immunity" broken by a dice
+	-- roll instead of by a purchase.
+	if easy < style.easyCount then
+		return 0
+	end
+
+	-- THEN THE TOP, because a ladder with no top is not a ladder -- and
+	-- because the best-defended house is what the risk half of the decision
+	-- is measured against. The income ladder pins its own for the same
+	-- reason and records what its absence cost.
+	if hard < style.topCount then
+		return top
+	end
+
+	return math.random(0, top)
+end
+
 -- The ornaments this garden would hold if it were full, in a fixed order.
 --
 -- Every lawn item is a candidate: a resident is not shopping, so there is no
@@ -407,8 +493,26 @@ local function rollGarden(): { string }
 	return keys
 end
 
--- HOW BIG A RESIDENT'S PIG IS: a fixed number of SECONDS of its own income,
--- never a share of `Config.getCapacity`.
+-- HOW BIG A RESIDENT'S PIG IS: a fixed number of SECONDS of its own income.
+--
+-- THIS USED TO READ "never a share of `Config.getCapacity`" AND THAT
+-- FUNCTION NO LONGER EXISTS. The pig is UNBOUNDED (designer, 2026-09-21):
+-- `getCapacity`, `getCapacityCost`, `pigRoom`, `fitInPig`, `BASE_CAPACITY`,
+-- `UPGRADE_COST_CEILING` and `REBIRTH_CAPACITY_MULTIPLE` are all gone, and
+-- the Bigger Piggy Bank tree went with them. So the thing this rule was
+-- written to refuse cannot be reached any more.
+--
+-- THE RULE OUTLIVED ITS OWN REASON AND IS KEPT, which is worth a line
+-- because the tempting reading is that it is now moot. It is not: a
+-- resident's pig still has to be sized by SOMETHING, `pigSeconds` is
+-- still what makes the robbing-versus-idling ratio constant across every
+-- level and rebirth (`auditRobbery`'s `spread` check measures exactly
+-- that), and the failure it records below is what happens whenever a
+-- resident's worth is hung on a curve chosen for a different job. The
+-- next curve somebody reaches for will not be called `getCapacity`.
+--
+-- The paragraphs below are the original post-mortem and are left in the
+-- past tense they were written in.
 --
 -- Capacity is a storage limit that exists because a full pig stops earning
 -- and that is what makes a player spend. A resident never spends, so
@@ -559,9 +663,16 @@ end
 -- the first robbery a player ever performs a clean run at a bare plot -- and
 -- they climb on their own as the humans do, so a resident never settles into
 -- being the free money a maxed player farms instead of playing the game.
-local function applyLevel(resident: Resident)
+-- THE FOUR LADDERS A NEIGHBOUR WEARS, off the STYLE level and never the
+-- income one. Split out of `applyLevel` so it can be skipped: since the
+-- split a style level never changes after `seat`, and running this on an
+-- income tick would tear down and rebuild a fence and a house on every
+-- empty plot on the street to arrive at exactly the geometry already
+-- standing. `tick`'s own comment calls that a rebuild storm nobody asked
+-- for, and before the split it was at least doing real work.
+local function applyStyle(resident: Resident)
 	local plot = resident.plot
-	local level = resident.incomeLevel
+	local level = resident.styleLevel
 	local R = Config.RESIDENTS
 
 	-- A SHOP LADDERS ITS LOCK AND NOTHING ELSE, AND THE FOUR IT SKIPS ARE
@@ -640,6 +751,26 @@ local function applyLevel(resident: Resident)
 		end
 	end
 	PlotService.setDecor(plot, placed)
+end
+
+-- WHAT A REPAINT OF THIS HOUSE MEANS, which is now two questions rather
+-- than one: what it LOOKS like (rolled once, above) and what its pig is
+-- worth (tracks the street, every tick).
+local function applyLevel(resident: Resident)
+	local plot = resident.plot
+
+	-- ONLY WHEN IT ACTUALLY MOVES, which since the split is exactly once per
+	-- house. See `styleShown`.
+	if resident.styleShown ~= resident.styleLevel then
+		resident.styleShown = resident.styleLevel
+		applyStyle(resident)
+	end
+
+	-- A shop has no skin, no sign row and no plinths -- see `applyStyle` for
+	-- the three calls it must not make and why.
+	if plot.shop then
+		return
+	end
 
 	-- THE PIG WEARS IT, AND THE SIGN NAMES IT, IN THE SAME BREATH.
 	--
@@ -838,6 +969,9 @@ function ResidentService.seat(plot: PlotService.Plot)
 	-- plus this resident's own offset. `minLevel` is the floor, so a spread
 	-- can never push a house below the level a brand new player meets.
 	local offset = pickOffset()
+	-- Drawn here, before the record exists, so the two guarantees inside it
+	-- count the houses already standing and not this one.
+	local style = pickStyle()
 	local garden = rollGarden()
 	local level = math.max(Config.RESIDENTS.minLevel, currentLevel() + offset)
 	local capacity = pigSize(level, plot)
@@ -865,6 +999,9 @@ function ResidentService.seat(plot: PlotService.Plot)
 		incomeLevel = level,
 		capacityLevel = level,
 		offset = offset,
+		-- What the house LOOKS like, which no longer follows the street. See
+		-- `Config.RESIDENTS.style`.
+		styleLevel = style,
 		-- DRAWN FOR EVERY PLOT INCLUDING A SHOP, so the field is never nil
 		-- and a reader never has to ask which kind of plot it is holding. What
 		-- a shop does with it is nothing -- `applyLevel` returns before the
@@ -1130,14 +1267,27 @@ end
 -- Config functions the player's loop reads, so a tier that gets a longer
 -- buffer gets it on every lawn on the street.
 --
+-- AND THE RATE HALF IS `Config`'S NOW (2026-09-23). The literal 0 that used
+-- to be passed for rebirths lives inside `Config.piggySlotRate` as
+-- `rebirths or 0`, which is the same statement -- a neighbour has no
+-- prestige -- made once for all three readers instead of here, in
+-- `EconomyService` and nowhere at all in `PlotService`. That third gap is
+-- what printed a name with no figure under it on every resident plinth in
+-- the game until somebody looked at one.
+--
+-- THE KEY TEST STAYS EXPLICIT rather than reading an empty plinth off a
+-- zero rate. They agree today and they agree for a reason that is not
+-- load-bearing -- no tier multiplier is 0 and no income level pays nothing
+-- -- so a rate of 0 meaning "empty" is an inference this function does not
+-- need to make and should not start depending on.
+--
 -- Returns rate then ceiling; both 0 on an empty plinth.
 local function slotEconomy(resident: Resident, slot: number): (number, number)
 	if Config.piggyKeyAt(resident, slot) == nil then
 		return 0, 0
 	end
-	local rarity = Config.piggyRarityAt(resident, slot)
-	local rate = Config.getPiggyIncomeRate(rarity, resident.incomeLevel, 0)
-	return rate, rate * Config.piggyBufferSeconds(rarity)
+	local rate = Config.piggySlotRate(resident, slot)
+	return rate, rate * Config.piggyBufferSeconds(Config.piggyRarityAt(resident, slot))
 end
 
 -- WHICH WAY THEY ARE POINTING, AND IT IS A FUNCTION RATHER THAN TWO CALLS TO
@@ -1374,6 +1524,21 @@ local function outCount(): number
 		-- two simultaneous chases freeze every NPC robbery on the street until
 		-- both of them finish.
 		if not (isIn(r) or r.state == "chasing" or r.state == "returning") then
+			n += 1
+		end
+	end
+	return n
+end
+
+-- HOW MANY ARE MOVING AT ALL, for `RESIDENTS.walk.maxMoving`. Every state
+-- but home and chasing: a trip, a potter, a collect, a crack, a carry and
+-- the walk back are all a figure being posed every frame. A chase is a
+-- defence and is exempt, for the reason `outCount` gives -- counting it
+-- would let two thieves freeze the whole street's NPC life.
+local function movingCount(): number
+	local n = 0
+	for _, r in pairs(residents) do
+		if r.state ~= "home" and r.state ~= "chasing" then
 			n += 1
 		end
 	end
@@ -2270,6 +2435,29 @@ local function stepChatter(resident: Resident, now: number)
 end
 
 
+-- THE ONE STANDING POSE. `ResidentModel.poseWalk` writes every part of the
+-- figure, and a neighbour that has not moved, turned, taken a step or picked
+-- anything up is already standing exactly where this would put them -- so
+-- the write is skipped, on a key of the five things the pose is a function
+-- of plus the model itself. Measured before this existed: thirteen figures
+-- being written every frame on a street where two were walking.
+local function poseIfChanged(resident: Resident, model: Model, rig: ResidentModel.Rig)
+	local carry = carrying(resident)
+	if resident.posedModel == model
+		and resident.posedAt == resident.at
+		and resident.posedFacing == resident.facing
+		and resident.posedStride == resident.stride
+		and resident.posedCarry == carry then
+		return
+	end
+	resident.posedModel = model
+	resident.posedAt = resident.at
+	resident.posedFacing = resident.facing
+	resident.posedStride = resident.stride
+	resident.posedCarry = carry
+	ResidentModel.poseWalk(model, rig, facingCF(resident.at, resident.facing), resident.stride, carry)
+end
+
 local function stepResident(resident: Resident, dt: number)
 	local rig = resident.rig
 	local model = resident.model
@@ -2278,6 +2466,14 @@ local function stepResident(resident: Resident, dt: number)
 	end
 
 	local now = os.clock()
+
+	-- THE STATE, PUBLISHED ON CHANGE. Read by nothing in the game; it is what
+	-- lets a probe on a laggy street say which neighbours are moving and why
+	-- without a handle on this service.
+	if resident.publishedState ~= resident.state then
+		resident.publishedState = resident.state
+		model:SetAttribute(Config.RESIDENT_STATE_ATTRIBUTE, resident.state)
+	end
 
 	-- TAKEN DOWN IN EVERY STATE, NOT ONLY AT HOME. A neighbour who sets off
 	-- mid-sentence would otherwise walk the length of the street with a speech
@@ -2319,8 +2515,8 @@ local function stepResident(resident: Resident, dt: number)
 		-- below returns before it poses anything.
 		resident.fxKnockUntil = nil
 		resident.fxKnockAxis = nil
-		ResidentModel.poseWalk(model, rig, facingCF(resident.at, resident.facing),
-			resident.stride, carrying(resident))
+		resident.posedModel = nil
+		poseIfChanged(resident, model, rig)
 	end
 
 	if resident.state == "home" then
@@ -2336,11 +2532,19 @@ local function stepResident(resident: Resident, dt: number)
 		-- figure behind the counter is the shopkeeper, and one wandering off
 		-- down the street to crack a neighbour's pig would leave an unattended
 		-- shop that is meant to be the one target always standing there.
+		-- THE MOVER BUDGET, ASKED BEFORE EITHER CLOCK. A neighbour whose trip
+		-- or potter is due waits, still and unposed, until fewer than
+		-- `walk.maxMoving` are away from home -- and goes the moment one
+		-- comes back, because the clocks stay due. The shopkeeper never
+		-- leaves and is not asked.
+		local maxMoving = Config.RESIDENTS.walk.maxMoving
+		local mayMove = maxMoving == nil or movingCount() < maxMoving
 		if not resident.plot.shop
+			and mayMove
 			and now >= resident.nextTrip
 			and outCount() < Config.RESIDENTS.walk.maxOut then
 			beginTrip(resident)
-		elseif not resident.plot.shop and now >= resident.nextRoam then
+		elseif not resident.plot.shop and mayMove and now >= resident.nextRoam then
 			-- A STROLL ROUND THE GARDEN, CHECKED AFTER THE TRIP so that a
 			-- neighbour who is due to go out goes out. The two clocks run
 			-- independently, so in the tick where both come due the other
@@ -2484,10 +2688,10 @@ local function stepResident(resident: Resident, dt: number)
 	local target = resident.route[1]
 	if not target then
 		-- Nothing left to walk to. Standing still is a stride that does not
-		-- advance, so the legs close by construction with no test for it.
-		ResidentModel.poseWalk(model, rig,
-			facingCF(resident.at, resident.facing), resident.stride,
-			carrying(resident))
+		-- advance, so the legs close by construction with no test for it --
+		-- and a figure that has not changed since the last write is not
+		-- written again.
+		poseIfChanged(resident, model, rig)
 		return
 	end
 
@@ -2560,9 +2764,7 @@ local function stepResident(resident: Resident, dt: number)
 	-- at all. The file's own note one screen up makes the same call about the
 	-- walk -- "the one thing that says a neighbour is holding anything is the
 	-- loot model and never the walk".
-	ResidentModel.poseWalk(model, rig,
-		facingCF(resident.at, resident.facing), resident.stride,
-		carrying(resident))
+	poseIfChanged(resident, model, rig)
 end
 
 

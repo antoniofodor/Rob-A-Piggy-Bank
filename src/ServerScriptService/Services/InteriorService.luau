@@ -11,12 +11,38 @@
 	AN INTERIOR IS A DETACHED ROOM, SO A DOOR IS A TELEPORT
 	================================================================
 
-	`Shared/HouseInterior` builds one fixed hallway per owner, off the map
-	entirely (`Config.INDOOR_ESTATE`), and nothing about it is inside the
-	house model standing on the lawn. So the crossing cannot be a hole in a
-	wall: it is a server-authoritative CFrame write with a mask over it, which
-	is the same trick `PoliceService.releaseHome` already does when it puts a
-	thief back at their own gate under an opaque arrest card.
+	A builder makes one interior per owner, off the map entirely
+	(`Config.INDOOR_ESTATE`), and nothing about it is inside the house model
+	standing on the lawn. So the crossing cannot be a hole in a wall: it is a
+	server-authoritative CFrame write with a mask over it, which is the same
+	trick `PoliceService.releaseHome` already does when it puts a thief back at
+	their own gate under an opaque arrest card.
+
+	================================================================
+	TWO BUILDERS, ONE CONTRACT, ONE DISPATCH
+	================================================================
+
+	AN INTERIOR IS PER HOUSE THEME
+	(`assets/houses/design/modular-interiors-v1/CONCEPT.md`).
+	`Shared/HouseInterior` is the generic hall, and every house with no
+	authored kit gets it. `Services/ThemedInterior` wraps the authored art
+	packages under `assets/houses/interiors/` -- three of the eighteen today,
+	keyed to a house tier by a registry it reads out of Config through a
+	fallback.
+
+	BOTH HAND BACK `HouseInterior.Refs`, field for field, so the dispatch is
+	ONE FIELD on the record below (`Interior.builder`) and nothing else in this
+	file, in `PoliceService`'s door routing, or in the indoor piggy placement
+	still to come ever asks which it got. `ensureHome` picks it from the house
+	that is STANDING, and the picking is the only place the two names appear
+	together.
+
+	A SERVER WITH NO KITS STILL HAS INTERIORS. `ThemedInterior.available(tier)`
+	is lazy and false both for a house with no kit registered and for a kit
+	that is not in `ServerStorage` -- an older `rojo serve`, or a `rojo build`
+	from a project file without the rows -- and it says so once per kit. Those
+	houses then get the generic hall, which is a themed interior absent rather
+	than a front door that does nothing.
 
 	THE SERVER OWNS THE MOVE. A client-side `Anchored` or CFrame write on a
 	character is discarded -- this project has that measured three ways on a
@@ -88,6 +114,14 @@
 
 	The full measured ladder is in the report for this change; the shape is
 	37 parts at rebirth 0 rising 43 per room to 416 at rebirth 20.
+
+	AND AN AUTHORED INTERIOR IS ABOUT FOURTEEN TIMES THAT, measured on the
+	assembled treehouse kit: 521 parts at rebirth 0 and 4,301 at the ceiling.
+	So both halves above stop being an optimisation and become the budget --
+	ten players indoors at rebirth 0 is 5,210 parts against a world of a few
+	thousand, and the kit's README asks for its merged mesh exports and
+	measured profiling before this reaches every player's full-length hall.
+	That work is not started.
 ]]
 
 local Players = game:GetService("Players")
@@ -96,9 +130,28 @@ local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local HouseInterior = require(ReplicatedStorage.Shared.HouseInterior)
+local BaseShopStand = require(ReplicatedStorage.Shared.BaseShopStand)
+local IndoorPedestal = require(ReplicatedStorage.Shared.IndoorPedestal)
+local PiggyPedestal = require(ReplicatedStorage.Shared.PiggyPedestal)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local DataService = require(script.Parent.DataService)
+-- THE COLLECT AND THE THREE HAUL VERBS, WHICH ARE ASKED FOR RATHER THAN
+-- REIMPLEMENTED. A hall's pads and prompts are the lawn's own -- one array of
+-- placements, one economy -- so walking over an indoor pad calls the same
+-- `EconomyService.collectPiggy` the six lawn pads call and a press on an
+-- indoor plinth calls the same `PiggyHaulService.take`/`.place`.
+--
+-- REQUIRED DIRECTLY RATHER THAN THROUGH A REGISTRY, which is safe only
+-- because this file is a LEAF: nothing in the game requires
+-- `InteriorService` except `Main`, so neither of these can reach back. That
+-- was checked rather than assumed -- the registry shape
+-- (`SetService.registerPusher`, `PlotService.registerPiggyRates`) exists for
+-- the cases where it is not true, and a registry that is not needed is a
+-- dependency hidden from the reader.
+local EconomyService = require(script.Parent.EconomyService)
+local PiggyHaulService = require(script.Parent.PiggyHaulService)
 local PlotService = require(script.Parent.PlotService)
+local ThemedInterior = require(script.Parent.ThemedInterior)
 
 local InteriorService = {}
 
@@ -116,9 +169,39 @@ type Gate = {
 
 type Interior = {
 	refs: HouseInterior.Refs,
+	-- WHICH BUILDER MADE IT, chosen once when the hallway is built and read
+	-- everywhere a hallway is changed afterwards. THE DISPATCH IS HERE AND
+	-- NOWHERE ELSE: a themed interior and the generic hall hand back the same
+	-- `Refs`, so the only thing that can ever need to know which is which is
+	-- the code that calls back into the builder -- and keeping that to one
+	-- field means the door crossing, the exit gate, `homeOf` and the indoor
+	-- plots stay one code path. Branching per call site is the failure this
+	-- project records as nine accessors with a plot-shaped hole under each.
+	builder: any,
+	-- WHICH AUTHORED KIT MADE IT, or nil for the generic hall -- and it is
+	-- part of the cache key below.
+	--
+	-- `builder` ALONE IS NOT ENOUGH AND THAT SHIPPED AS A REAL BUG. All three
+	-- authored kits resolve to the SAME `ThemedInterior` table, so a player
+	-- who moves from one kit house to another -- the Treehouse to the Beehive
+	-- Cottage -- matched on the builder, kept the hall they already had, and
+	-- walked into the old kit's interior for the rest of the session.
+	-- Measured live on 2026-09-23: a TreehouseInterior standing behind a
+	-- Beehive Cottage. The kit NAME is what actually differs, so it is what
+	-- the test compares.
+	kit: string?,
 	plot: any,
 	owner: Player?,
 	rooms: number,
+	-- THE PLACEMENTS STANDING IN IT, KEYED BY SAVE SLOT (7 upward). Built for
+	-- the plots the owner has unlocked and for no others, which is what makes
+	-- a locked plot unreachable by construction rather than by a rebirth check
+	-- at every verb. See `syncPlacements`.
+	placements: { [number]: PiggyPedestal.Refs },
+	-- The folder they stand in, INSIDE the hall model. Never the model
+	-- itself: `tests/luau/interior.luau` sweeps the model's own children for
+	-- the entrance-to-plot sightline, and a pad or a sign is not the room.
+	placementFolder: Folder?,
 	-- The way out, in the same shape the way in has.
 	gate: Gate,
 	-- The box a root has to be inside to still count as being in here. Held
@@ -362,7 +445,14 @@ end
 -- any log.
 local function estateCFrame(index: number): CFrame
 	local estate = Config.INDOOR_ESTATE
-	local pitch = HouseInterior.footprint().Z + estate.gap
+	-- THE WIDER OF EVERY BUILDER, because one estate holds halls of every kind
+	-- and the pitch has to clear whichever a plot's house happens to want.
+	-- Measured, the three authored kits are 39.25, 39.25 and 39.45 studs
+	-- across against the generic hall's 40, so this is 40 today and
+	-- `Config.INDOOR_ESTATE` did not have to move -- and it is a `max` rather
+	-- than the generic one so that the NEXT themed kit cannot quietly stand
+	-- through its neighbour with nothing in any log.
+	local pitch = math.max(HouseInterior.footprint().Z, ThemedInterior.footprint().Z) + estate.gap
 	return CFrame.new(estate.x, 0, estate.z + (index - 1) * pitch)
 end
 
@@ -377,22 +467,244 @@ local function ensureFolder(): Folder
 	return made
 end
 
+-- ============================================================
+-- THE PLACEMENTS: A PEDESTAL, A PAD AND A SIGN PER UNLOCKED PLOT
+-- ============================================================
+--
+-- docs/PIGGY-COLLECTION-PLAN.md section 3 and section 6: an indoor plot holds
+-- one piggy out of its owner's collection, it earns exactly what a lawn
+-- pedestal earns, and what placement buys is EXPOSURE rather than income.
+--
+-- SO THERE IS NO SECOND ECONOMY IN HERE AND NOTHING IN THIS FILE COUNTS
+-- COINS. The lawn is save slots 1..`PIGGY_LAWN_SLOT_COUNT` and the hall is the
+-- slots after it (`HouseInterior.slotOfPlot`), so:
+--
+--   * `Shared/IndoorPedestal` builds a `PiggyPedestal.Refs` -- the same record
+--     the six plinths are -- on different geometry, exactly as `PiggyBank`
+--     builds the till's pad.
+--   * `PlotService.setIndoorPedestals` publishes them onto the plot, so
+--     `setPiggySlots` and `setPiggyBuffers` dress them and light their pads on
+--     the economy tick that already repaints the lawn.
+--   * a pad's `Touched` calls `EconomyService.collectPiggy` with its slot, and
+--     a prompt calls `PiggyHaulService.take`/`.place`/`.snatch`, which find
+--     the pedestal through `PlotService.pedestalAt`.
+--
+-- WHAT THIS FILE OWNS IS THE LIFETIME AND NOTHING ELSE: which plots have a
+-- placement standing on them, and taking them down when the hall goes.
+
+-- ONE CONNECTION PER PROMPT INSTANCE, made at build and never re-made.
+--
+-- A lawn plinth is wired once at server startup because it outlives every
+-- owner a plot ever has; an indoor placement does not -- it is destroyed when
+-- its plot re-locks or when the hallway grows -- so the connections are made
+-- here and die with the instances they are on. The SLOT is closed over rather
+-- than sent, which is the "the click means now, never now and here" decision
+-- `BoneThrow`, `placeLadder`, `CrackTap` and the lawn's own pads all make.
+local function wirePlacement(home: Interior, slot: number, refs: PiggyPedestal.Refs)
+	local plot = home.plot
+	-- THE REPAINT IS IMMEDIATE RATHER THAN LEFT TO THE TICK. Every one of
+	-- these four changes what is standing on a plinth or what is waiting on a
+	-- pad, and the economy tick is a second away -- which for the player
+	-- standing at the pedestal they have just used is a second of the room
+	-- disagreeing with the server. Idempotent, so the tick that follows
+	-- writes nothing.
+	local function after()
+		local owner = plot.owner
+		local data = owner and DataService.get(owner)
+		if data then
+			PlotService.setPiggySlots(plot, data)
+			PlotService.setPiggyBuffers(plot, data)
+		end
+	end
+	PiggyPedestal.wirePad(refs.pad, slot, function(player: Player, which: number)
+		-- QUIET, because walking is not asking. A pad crossed with an empty
+		-- buffer must say nothing at all -- the "never fail silently" rule is
+		-- about a player PRESSING something and getting no answer, and
+		-- crossing a patch of floor is not a press.
+		EconomyService.collectPiggy(player, which, true)
+	end)
+	refs.sellPrompt.Triggered:Connect(function(who: Player)
+		EconomyService.sellPiggy(who, slot)
+		after()
+	end)
+	refs.takePrompt.Triggered:Connect(function(who: Player)
+		PiggyHaulService.take(who, plot, slot)
+		after()
+	end)
+	refs.placePrompt.Triggered:Connect(function(who: Player)
+		PiggyHaulService.place(who, plot, slot)
+		after()
+	end)
+	refs.snatchPrompt.Triggered:Connect(function(who: Player)
+		PiggyHaulService.snatch(who, plot, slot)
+		after()
+	end)
+end
+
+-- Stand a placement on every unlocked plot, take down any that are not, and
+-- publish the lot onto the plot.
+--
+-- DRIVEN OFF `plot.unlocked` RATHER THAN OFF A REBIRTH COUNT, because that
+-- field is what both builders' own `setCapacity` has just written -- so the
+-- placements and the doors cannot disagree about how far the hall reaches.
+-- Called immediately after every `setCapacity`, which is the only thing that
+-- moves it.
+--
+-- IDEMPOTENT, which is what lets it run on the cached path as well as after a
+-- build: a plot that already has a placement keeps the one it has, so nothing
+-- a player is standing at is destroyed and rebuilt under them.
+local function syncPlacements(home: Interior)
+	local refs = home.refs
+	local folder = home.placementFolder
+	if not folder or folder.Parent == nil then
+		local made = Instance.new("Folder")
+		made.Name = "Placements"
+		made.Parent = refs.model
+		folder = made
+		home.placementFolder = made
+	end
+
+	local held = home.placements
+	local wanted: { [number]: boolean } = {}
+	for _, plot in ipairs(refs.plots) do
+		if plot.unlocked then
+			local slot = HouseInterior.slotOfPlot(plot.index)
+			wanted[slot] = true
+			if held[slot] == nil then
+				-- PCALLED PER PLACEMENT, the same call `Decor.prewarm` makes:
+				-- a pedestal that will not build is a plot a player cannot
+				-- use, and a pedestal that takes the door crossing down with
+				-- it is a house nobody can get out of.
+				local ok, built = pcall(IndoorPedestal.build, folder :: Instance, plot, slot)
+				if ok and built then
+					held[slot] = built
+					wirePlacement(home, slot, built)
+				else
+					warn(("[Interior] plot %d's placement would not build: %s")
+						:format(plot.index, tostring(built)))
+				end
+			end
+		end
+	end
+
+	-- AND ANYTHING THAT IS NO LONGER WANTED COMES DOWN WITH ITS PROMPTS. The
+	-- capacity ladder only ever grows, so this is reachable today only by a
+	-- hall rebuilt at a different size -- and it is written anyway, because
+	-- four live prompts at a plot with nothing standing on it is the exact
+	-- failure this project refuses above all others. The prompts are on a part
+	-- INSIDE the placement model (see `IndoorPedestal`), so one Destroy takes
+	-- the lot.
+	for slot, placement in pairs(held) do
+		if not wanted[slot] then
+			placement.model:Destroy()
+			held[slot] = nil
+		end
+	end
+
+	PlotService.setIndoorPedestals(home.plot, held)
+
+	-- DRESSED FROM THE SAVE THE MOMENT THEY STAND. The two painters cover
+	-- the hallway's plinths as well as the lawn's, and until now nothing
+	-- called them here: a plinth built on a door crossing stood EMPTY over a
+	-- saved piggy until its own prompt was next pressed -- measured
+	-- (2026-09-23), thirty-one take prompts and no piggy on any of them in
+	-- a room whose save held twenty-five.
+	local owner = home.plot.owner
+	local data = owner and DataService.get(owner)
+	if data then
+		PlotService.setPiggySlots(home.plot, data)
+		PlotService.setPiggyBuffers(home.plot, data)
+	end
+end
+
+-- ============================================================
+-- PARKING: A ROOM NOBODY IS IN LIVES IN ServerStorage
+-- ============================================================
+--
+-- Measured on the live street (2026-09-23): ONE owner's Beehive Cottage
+-- hallway is 3,312 parts, seven rooms and their gates, standing four
+-- thousand studs off the map and replicated to every client whether or not
+-- anybody is inside it. Eight owners is 26,000 parts of rooms nobody is in.
+-- `ServerStorage` does not replicate, so a hallway waits there and is moved
+-- into `workspace` the moment somebody crosses its door -- BEFORE the mask
+-- lead, so the client has that head start to receive it -- and back the
+-- moment the last person leaves. Everything this file asks of a room (its
+-- frames, its gate, its capacity, its placements) is a CFrame, a property
+-- or a table and answers the same wherever the model is parented; only a
+-- character has to stand in it, and a character is only ever put in it by
+-- `goInside`, which unparks first.
+local parkedFolder: Folder? = nil
+
+local function ensureParked(): Folder
+	if parkedFolder and parkedFolder.Parent then
+		return parkedFolder
+	end
+	local made = Instance.new("Folder")
+	made.Name = "ParkedInteriors"
+	made.Parent = game:GetService("ServerStorage")
+	parkedFolder = made
+	return made
+end
+
+local function occupied(index: number): boolean
+	for _, at in pairs(inside) do
+		if at == index then
+			return true
+		end
+	end
+	return false
+end
+
+local function parkIfEmpty(home: Interior)
+	local model = home.refs.model
+	if model.Parent and not occupied(home.plot.index) and model.Parent ~= ensureParked() then
+		model.Parent = ensureParked()
+	end
+end
+
+local function unpark(home: Interior)
+	local model = home.refs.model
+	if model.Parent ~= ensureFolder() then
+		model.Parent = ensureFolder()
+	end
+end
+
 local function destroyHome(index: number)
 	local home = homes[index]
 	if not home then
 		return
 	end
+	-- THE PLOT LETS GO OF THE PLACEMENTS BEFORE THE MODEL GOES, and the order
+	-- is the point: `setPiggySlots` and `setPiggyBuffers` run on the economy
+	-- tick against whatever the plot is holding, so a map left behind here is
+	-- a repaint dressing pedestals that no longer exist. Cleared first,
+	-- destroyed second.
+	PlotService.setIndoorPedestals(home.plot, nil)
+	home.placements = {}
+	home.placementFolder = nil
 	home.refs.model:Destroy()
 	homes[index] = nil
 end
 
 -- Build, or rebuild, the hallway behind one plot's door.
 --
--- A REBUILD IS A DESTROY AND NOT A RESIZE, which is safe today and will not
--- be forever: nothing stands on an indoor plot yet, so there is nothing to
--- lose. The moment a piggy is seated in here, growing a hallway has to become
--- an extension rather than a replacement -- `HouseInterior.dress` already
--- makes that argument about a re-theme, in as many words.
+-- A REBUILD IS A DESTROY AND NOT A RESIZE, AND PIGGIES STAND IN HERE NOW,
+-- which this note used to say was the moment it would stop being safe. It is
+-- still safe, for a reason worth stating rather than assuming: THE SAVE IS
+-- THE SOURCE OF TRUTH AND THE ROOM IS A DRAWING OF IT. A placement holds no
+-- state of its own -- what is standing on it, what is waiting in its buffer
+-- and what it earns are all `data.piggies.slots`, repainted through
+-- `PlotService.setPiggySlots`/`setPiggyBuffers` -- so a hallway destroyed and
+-- rebuilt comes back wearing exactly the collection it had.
+--
+-- WHAT IT COSTS IS CHURN AND NOT A PIGGY: up to 56 pedestals, pads and signs
+-- built again. It happens only when the ROOM COUNT grows, which is a rebirth,
+-- and `ensureHome` is reached from a door crossing -- so the rebuild lands
+-- while its owner is walking in rather than under their feet.
+--
+-- What is NOT safe, and is why `destroyHome` clears the plot first, is a
+-- placement map outliving the model it describes: the economy tick would go
+-- on dressing pedestals that no longer exist.
 local function ensureHome(plot: any): Interior?
 	-- THE HALLWAY BELONGS TO THE PLOT'S OWNER AND NEVER TO WHOEVER WALKED IN.
 	-- It is the same answer today, because only an owner crosses; it stops
@@ -411,18 +723,75 @@ local function ensureHome(plot: any): Interior?
 
 	local capacity = Config.indoorPlots(data.rebirths)
 	local rooms = Config.indoorRooms(capacity)
+	local tier = Config.getShownHouse(data)
+
+	-- WHICH INTERIOR THIS HOUSE HAS, AND THE REGISTRY OWNS THAT RATHER THAN
+	-- THIS FILE. `assets/houses/design/modular-interiors-v1/CONCEPT.md` is
+	-- per-house -- a shell, a ceiling, a pedestal dressing and a door for each
+	-- of the eighteen -- so a tier with an authored kit gets it and the other
+	-- fifteen keep the generic hall. One question, asked in one place.
+	--
+	-- IT IS ASKED OF THE HOUSE THAT IS STANDING, not of the best one owned:
+	-- `getShownHouse` is what the sign, the card and the lawn all already
+	-- read, and a player who moves back into a tier they liked should walk
+	-- into that tier's interior.
+	local builder: any = HouseInterior
+	local kit: string? = nil
+	if ThemedInterior.available(tier) then
+		builder = ThemedInterior
+		-- THE KIT NAME, WHICH IS THE PART OF THE ANSWER `builder` THROWS AWAY.
+		-- `ThemedInterior` is ONE wrapper over three art packages, so all
+		-- three kit houses resolve to the same table -- see `Interior.kit`.
+		kit = ThemedInterior.kitName(tier)
+	end
+
 	local home = homes[plot.index]
 
-	if home and home.owner == owner and home.rooms >= rooms then
-		HouseInterior.setCapacity(home.refs, capacity)
+	-- THE BUILDER AND THE KIT ARE BOTH PART OF THE CACHE KEY. Showing a
+	-- different house can change which interior a door opens onto, and a
+	-- hallway kept because the owner and the room count still match would be
+	-- the old house's -- which is the stale-model failure `doorGate` already
+	-- self-heals by comparing the house model it was resolved from.
+	--
+	-- THE KIT HALF OF THAT SHIPPED BROKEN AND WAS MEASURED LIVE: moving from
+	-- the Treehouse to the Beehive Cottage matched on `builder` alone, kept
+	-- the Treehouse's hall, and put a TreehouseInterior behind a Beehive
+	-- Cottage for the rest of the session. Nothing errored -- the frames, the
+	-- gates and the plots were all a valid hall's -- so the only symptom was
+	-- the wrong art.
+	if home and home.owner == owner and home.builder == builder
+		and home.kit == kit and home.rooms >= rooms then
+		home.builder.setCapacity(home.refs, capacity)
+		-- AND THE PLACEMENTS FOLLOW THE CAPACITY, on the cached path as well
+		-- as after a build: a rebirth claimed this session opens plots in a
+		-- hall that already exists, and a plot standing unlocked with nothing
+		-- on it is a slot a save can hold a piggy in and a player cannot see.
+		syncPlacements(home)
 		return home
 	end
 	destroyHome(plot.index)
 
 	local ok, built = pcall(function()
-		return HouseInterior.build(ensureFolder(), estateCFrame(plot.index),
-			Config.getShownHouse(data), rooms)
+		return builder.build(ensureFolder(), estateCFrame(plot.index), tier, rooms)
 	end)
+
+	-- AND A THEMED KIT THAT WILL NOT ASSEMBLE FALLS BACK TO THE GENERIC HALL
+	-- RATHER THAN TO NOTHING. The boot probe builds every registered kit, but
+	-- only at ONE room -- so this is the case it cannot see: a kit that
+	-- assembles at one room and throws at ten would leave a themed house with
+	-- a front door that does nothing for the rest of the session. The fallback
+	-- is the same answer `available` already gives for a kit that is not synced
+	-- at all, and the wrapper destroys its own half-built hall before it
+	-- rethrows, so there is nothing left standing to trip over.
+	if not ok and builder ~= HouseInterior then
+		warn(("[Interior] plot %d's authored interior would not assemble (%s); using the generic hall")
+			:format(plot.index, tostring(built)))
+		builder = HouseInterior
+		ok, built = pcall(function()
+			return builder.build(ensureFolder(), estateCFrame(plot.index), tier, rooms)
+		end)
+	end
+
 	local refs = built :: HouseInterior.Refs
 	if not ok or not refs then
 		-- LOUD, AND NOT FATAL. A hallway that fails to build is a door that
@@ -434,13 +803,54 @@ local function ensureHome(plot: any): Interior?
 		return nil
 	end
 
-	HouseInterior.setCapacity(refs, capacity)
-	local fp = HouseInterior.footprint()
+	builder.setCapacity(refs, capacity)
+	-- Lobby counters share the house lifetime: parking/rebuilding the hall also
+	-- parks/destroys its NPCs and prompt connections. Purchases stay in the shop.
+	--
+	-- THE COUNTERS ARE `Config.BASE_COUNTERS` AND THE SPOTS ARE DERIVED FROM
+	-- IT, so the two cannot disagree about how many there are. It was `if i ==
+	-- 1 then "gadgets" else "guardians"` against a `placements` that returned
+	-- exactly two -- correct, and the shape where a third counter silently
+	-- becomes a second Guardians desk standing in the hall.
+	--
+	-- THESE TWO ARE THE ONLY WAY IN TO THEIR SHELVES NOW. The HUD basket sells
+	-- Robux and nothing else since 2026-09-23, so a hallway that fails to build
+	-- its counters is a player who cannot buy a bone or a guardian at all --
+	-- which is why the build is pcalled PER COUNTER and warned rather than left
+	-- to take the room down with it. One dead counter costs its own shelf; the
+	-- room, the plinths and the piggies behind it are what a throw here would
+	-- otherwise cost. Same call `Decor.prewarm` makes.
+	local spots = BaseShopStand.placements(refs.origin, refs.exit.Size.Z)
+	for i, counter in ipairs(Config.BASE_COUNTERS) do
+		local standAt = spots[i]
+		local ok, stand, prompt = pcall(function()
+			return BaseShopStand.build(counter.tab, standAt, refs.model)
+		end)
+		if not ok or not prompt then
+			warn(("[Interior] the %s counter would not build in plot %d's hallway (%s); "):format(
+				tostring(counter.sign), plot.index, tostring(stand))
+				.. "that shelf has no door until the room is rebuilt")
+		else
+			prompt.Triggered:Connect(function(player: Player)
+				local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+				local mount = prompt.Parent
+				if not root or not root:IsA("BasePart") or not mount or not mount:IsA("Attachment") then return end
+				if not refs.model:IsDescendantOf(workspace) then return end
+				if (root.Position - mount.WorldPosition).Magnitude > prompt.MaxActivationDistance + 2 then return end
+				Remotes.get("ShopDoor"):FireClient(player, counter.tab)
+			end)
+		end
+	end
+	local fp = builder.footprint()
 	home = {
 		refs = refs,
+		builder = builder,
+		kit = kit,
 		plot = plot,
 		owner = owner,
 		rooms = rooms,
+		placements = {},
+		placementFolder = nil,
 		gate = InteriorService.exitGate(refs),
 		-- Generous on every axis: this box is only ever asked "has somebody
 		-- left by some other route", so it wants to answer NO for anybody who
@@ -449,6 +859,12 @@ local function ensureHome(plot: any): Interior?
 		half = Vector3.new(fp.X + 20, fp.Y + 20, fp.Z + 20),
 	}
 	homes[plot.index] = home
+	-- AFTER THE RECORD IS IN THE TABLE, because `wirePlacement`'s handlers
+	-- close over it and a prompt pressed inside the same frame would
+	-- otherwise be answering for a hallway nothing has admitted to owning.
+	syncPlacements(home)
+	-- And off the wire until somebody walks in.
+	parkIfEmpty(home)
 	return home
 end
 
@@ -469,6 +885,8 @@ end
 local function goInside(player: Player, plot: any, home: Interior)
 	inside[player] = plot.index
 	latched[player] = os.clock() + Config.HOUSE_DOOR.cooldown
+	-- Into the world NOW, so the mask lead is the room's replication lead.
+	unpark(home)
 	maskThen(player, "in", function()
 		-- Everything re-fetched, nothing captured across the wait: a tenth of
 		-- a second is long enough for a player to have died or left, and a
@@ -510,6 +928,11 @@ local function goOutside(player: Player, home: Interior, gate: Gate?)
 			InteriorService.cross(player.Character, land)
 		end
 		lastAt[player] = nil
+		-- The last one out parks the room. After the move rather than before
+		-- it, so nobody is ever standing in a model that is not in workspace.
+		if homes[home.plot.index] == home then
+			parkIfEmpty(home)
+		end
 	end)
 end
 
@@ -556,7 +979,12 @@ local function stepPlayer(player: Player, now: number)
 		-- release puts a thief at their own gate, and neither of those knows
 		-- this file exists. Without this the flag would say "indoors" for the
 		-- rest of the session and the door would never work again.
+		--
+		-- AND THE ROOM IS PARKED, because nobody is in it now. Measured live
+		-- (2026-09-23): a respawn out of a hallway cleared the flag here and
+		-- left 3,312 parts in workspace for the rest of the session.
 		inside[player] = nil
+		parkIfEmpty(home)
 		home = nil
 	end
 
@@ -629,6 +1057,12 @@ local function evict(index: number)
 			goOutside(player, home, InteriorService.doorGate(home.plot))
 		end
 	end
+	-- THE PLOT LETS GO AT ONCE RATHER THAN AFTER THE MASK. The model is
+	-- destroyed a beat later, under the cover, and for that beat the economy
+	-- tick would otherwise go on dressing placements in a hallway that is
+	-- about to stop existing -- on a plot whose owner has already left, which
+	-- is when `release` is repainting it to nobody.
+	PlotService.setIndoorPedestals(home.plot, nil)
 	-- After the mask's own lead, so the destroy lands under the cover rather
 	-- than in front of it.
 	task.delay(Config.HOUSE_DOOR.maskLead + 0.1, function()
@@ -652,6 +1086,18 @@ function InteriorService.homeOf(player: Player): HouseInterior.Refs?
 end
 
 function InteriorService.start()
+	-- THE FIVE SECONDS WORK INDOORS. `PiggyHaulService`'s dwell asks where a
+	-- stolen piggy could land, and this is the hallway's half of the answer:
+	-- the plot whose hall a player is standing in, or nil on the street.
+	-- Registered rather than required, because this file requires that one.
+	-- Without it a thief who sold a hall piggy to make room stood in their
+	-- own hallway with a countdown that never started (2026-09-23).
+	PiggyHaulService.registerHall(function(player: Player)
+		local index = inside[player]
+		local home = index and homes[index]
+		return home and home.plot or nil
+	end)
+
 	-- THE BOOT ASSERTS, AND THEY ARE HERE RATHER THAN IN CONFIG BECAUSE THIS
 	-- IS WHERE BOTH HALVES EXIST. `Config.auditHouseDoor` can check the door's
 	-- own numbers against each other; only a built room can say whether the
@@ -661,31 +1107,76 @@ function InteriorService.start()
 		warn("[Interior] " .. problem)
 	end
 
-	local probe = HouseInterior.build(ensureFolder(), estateCFrame(0), nil, 1)
-	local gate = InteriorService.exitGate(probe)
-	local entrance = gate.frame:PointToObjectSpace(probe.entrance.Position)
-	if entrance.Z <= 1.0 then
-		warn(("[Interior] the way out at %.1f studs is on top of the spot somebody arrives on "
-			.. "(%.2f clear), so walking in would walk straight back out")
-			:format(Config.HOUSE_DOOR.exitReach, entrance.Z))
+	-- AND WHETHER A SAVE CAN HOLD WHAT THE HALL NOW STANDS ON. See
+	-- `auditCollection`: the failure this catches is a room that looks
+	-- finished and a collection that silently cannot grow into it.
+	local gaps = HouseInterior.auditCollection()
+	if #gaps > 0 then
+		warn(("[Interior] %d PROBLEMS: the hallway's placements are built and the save cannot hold them yet."):format(#gaps))
+		for _, problem in ipairs(gaps) do
+			warn("[Interior]   " .. problem)
+		end
 	end
-	-- The quarter turn, provoked rather than trusted: a mover walking back
-	-- toward the hallway's threshold is moving along the gate's -Z, so the
-	-- corridor's own direction has to read +1 on the gate's Z.
-	local along = gate.frame:VectorToObjectSpace(probe.origin.XVector)
-	if along.Z < 0.99 then
-		warn(("[Interior] the exit gate is turned the wrong way: the corridor reads (%.2f, %.2f, %.2f) in it")
-			:format(along.X, along.Y, along.Z))
+
+	-- AND IT RUNS ON EVERY BUILDER RATHER THAN ON THE FIRST ONE. All three of
+	-- these are about frames this file DERIVES from a built room, and the two
+	-- builders derive them out of completely different geometry -- the generic
+	-- hall authors its threshold and the kit turns a -Z-forward art package
+	-- round -- so a clean check on one says nothing at all about the other.
+	-- Five hundred parts built and destroyed at boot is the price of hearing
+	-- about a turn that is the wrong way round before a player walks into it.
+	local function probe(what: string, refs: HouseInterior.Refs)
+		local gate = InteriorService.exitGate(refs)
+		local entrance = gate.frame:PointToObjectSpace(refs.entrance.Position)
+		if entrance.Z <= 1.0 then
+			warn(("[Interior] %s: the way out at %.1f studs is on top of the spot somebody arrives on "
+				.. "(%.2f clear), so walking in would walk straight back out")
+				:format(what, Config.HOUSE_DOOR.exitReach, entrance.Z))
+		end
+		-- The quarter turn, provoked rather than trusted: a mover walking back
+		-- toward the hallway's threshold is moving along the gate's -Z, so the
+		-- corridor's own direction has to read +1 on the gate's Z.
+		local along = gate.frame:VectorToObjectSpace(refs.origin.XVector)
+		if along.Z < 0.99 then
+			warn(("[Interior] %s: the exit gate is turned the wrong way, the corridor reads (%.2f, %.2f, %.2f) in it")
+				:format(what, along.X, along.Y, along.Z))
+		end
+		-- And that arriving faces DOWN the corridor rather than at the door you
+		-- came through. `entrance` is aimed with a character's own convention, so
+		-- it is the LookVector that has to agree.
+		local look = refs.origin:VectorToObjectSpace(refs.entrance.LookVector)
+		if look.X < 0.99 then
+			warn(("[Interior] %s: arriving faces (%.2f, %.2f, %.2f) rather than down the hallway")
+				:format(what, look.X, look.Y, look.Z))
+		end
+		refs.model:Destroy()
 	end
-	-- And that arriving faces DOWN the corridor rather than at the door you
-	-- came through. `entrance` is aimed with a character's own convention, so
-	-- it is the LookVector that has to agree.
-	local look = probe.origin:VectorToObjectSpace(probe.entrance.LookVector)
-	if look.X < 0.99 then
-		warn(("[Interior] arriving faces (%.2f, %.2f, %.2f) rather than down the hallway")
-			:format(look.X, look.Y, look.Z))
+
+	probe("the hallway", HouseInterior.build(ensureFolder(), estateCFrame(0), nil, 1))
+	-- EVERY REGISTERED KIT, ON ITS OWN ESTATE SLOT. Three kits are three
+	-- different art packages turned round by the same wrapper, so a clean
+	-- probe on one says nothing about the next -- and the Cardboard Fort's is
+	-- the one that matters most, because `shack` is the free starter tier and
+	-- therefore the interior EVERY new save walks into.
+	--
+	-- PCALLED PER KIT, AND THE FALLBACK IS THE POINT. A kit that will not
+	-- assemble is a themed interior nobody gets; a kit that takes `start` down
+	-- with it is no front door at all, for any house. Same call
+	-- `Decor.prewarm` makes: a room may not stop the game being played.
+	local slot = 0
+	for _, id in ipairs(ThemedInterior.houseIds()) do
+		local tier = Config.getHouseById(id)
+		if tier and ThemedInterior.available(tier) then
+			slot += 1
+			local where = estateCFrame(-slot)
+			local ok, err = pcall(function()
+				probe(id, ThemedInterior.build(ensureFolder(), where, tier, 1))
+			end)
+			if not ok then
+				warn(("[Interior] %s's authored interior would not assemble: %s"):format(id, tostring(err)))
+			end
+		end
 	end
-	probe.model:Destroy()
 
 	PlotService.onRelease(function(plot)
 		evict(plot.index)
@@ -694,8 +1185,14 @@ function InteriorService.start()
 
 	Players.PlayerRemoving:Connect(function(player)
 		lastAt[player] = nil
+		local was = inside[player]
 		inside[player] = nil
 		latched[player] = nil
+		-- Somebody who quits from inside leaves nobody in the room.
+		local home = was and homes[was]
+		if home then
+			parkIfEmpty(home)
+		end
 	end)
 
 	-- ON HEARTBEAT AND NOT `RenderStepped`, which is not a style note: this is

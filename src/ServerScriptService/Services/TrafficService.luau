@@ -203,6 +203,15 @@ function TrafficService.send(): string
 end
 
 function TrafficService.start()
+	-- OFF FOR THE MVP (designer, 2026-09-23). A `return` is the right shape
+	-- HERE and the wrong one in `EventService`, and the difference is worth
+	-- a line: the admin panel reaches a van through `TrafficService.send`,
+	-- which is a direct call and is untouched, where it reaches an event by
+	-- setting a field only that scheduler reads. So the dev button still
+	-- works in both places and only one of them needed the loop kept alive.
+	if not Config.DELIVERY.enabled then
+		return
+	end
 	task.spawn(function()
 		task.wait(Config.DELIVERY.firstDelay)
 		while true do

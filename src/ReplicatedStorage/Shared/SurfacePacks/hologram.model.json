@@ -1,0 +1,12 @@
+{
+  "className": "SurfaceAppearance",
+  "properties": {
+    "AlphaMode": "Transparency",
+    "ColorMap": "rbxassetid://107522928886247",
+    "MetalnessMap": "",
+    "NormalMap": "",
+    "RoughnessMap": "rbxassetid://124174597819256",
+    "EmissiveMaskContent": "rbxassetid://112301066813649",
+    "EmissiveStrength": 1.1
+  }
+}

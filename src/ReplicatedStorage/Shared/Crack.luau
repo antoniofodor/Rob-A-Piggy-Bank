@@ -586,10 +586,9 @@ local function render()
 	u.odds.Text, u.tiers.Text = RobberyLoot.describe(state.loot)
 	-- A NAME THAT ALREADY ENDS IN S TAKES A BARE APOSTROPHE: "PIGGY
 	-- OUTFITTERS' PIGGY", never "OUTFITTERS'S". The names are right; it is
-	-- the possessive that has to know the rule.
-	local name = state.victim
-	local tail = if name:sub(-1):lower() == "s" then "'" else "'s"
-	u.title.Text = string.upper(("%s%s piggy"):format(name, tail))
+	-- the possessive that has to know the rule, and `Config.possessive` is
+	-- the one place it is written.
+	u.title.Text = string.upper(("%s piggy"):format(Config.possessive(state.victim)))
 	local lock = state.lock
 	u.step.Text = if type(lock) == "number" and lock > 0
 		then ("LOCK LV.%d · PIN %d / %d"):format(lock, state.step, state.maxSteps)

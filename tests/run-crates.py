@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Run isolated economy tests with the official Luau CLI; no Studio or saves.
-Usage: python3 tests/run-crates.py --luau /path/to/luau [--suite speeds|crates|rebirth|theft|buyback|objective|audits|saves|residents|handoff|settlement|deliveryui|badges|ranks|shopdrops|robberyui|ladder|houses|piggies|interior|doors|herds|police|pathfollower|wanted|lobbyboard]
+Usage: python3 tests/run-crates.py --luau /path/to/luau [--suite lasso|lassopose|speeds|crates|rebirth|theft|buyback|objective|audits|saves|residents|handoff|settlement|deliveryui|badges|ranks|shopdrops|robberyui|ladder|houses|piggies|interior|doors|herds|police|pathfollower|wanted|lobbyboard]
 Roblox value constructors are inert stubs; these tests assert economy logic,
 not engine rendering, input, replication or DataStore persistence.
 """
@@ -20,7 +20,7 @@ def literal(text):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--luau", default="luau")
-    parser.add_argument("--suite", choices=("crates", "rebirth", "theft", "buyback", "objective", "audits", "saves", "residents", "handoff", "settlement", "deliveryui", "badges", "ranks", "shopdrops", "robberyui", "ladder", "houses", "shopui", "guardians", "piggies", "interior", "doors", "herds", "walk", "grassland", "trees", "police", "pathfollower", "speeds", "wanted", "lobbyboard"), default="crates")
+    parser.add_argument("--suite", choices=("crates", "rebirth", "theft", "buyback", "objective", "audits", "saves", "residents", "handoff", "settlement", "deliveryui", "badges", "ranks", "shopdrops", "robberyui", "ladder", "houses", "shopui", "guardians", "piggies", "interior", "doors", "herds", "walk", "grassland", "trees", "police", "pathfollower", "speeds", "wanted", "lobbyboard", "combine", "lasso", "lassopose"), default="crates")
     args = parser.parse_args()
     prelude = r'''
 local valueMeta = {__mul = function(a, b) return a end, __index = {Lerp = function(a) return a end}}
@@ -44,15 +44,119 @@ end
     tests = (ROOT / "tests/luau" / (args.suite + ".luau")).read_text(encoding="utf-8")
     bundle = prelude + "\nlocal Config = loadConfig(" + literal(config) + ")\n"
     if args.suite == "crates":
-        inputs = literal(service)
+        # ChestService and the file that owns the Robux route into it: the
+        # ProcessReceipt callback, the receipt ledger and the PolicyService
+        # gate. Both, because the two halves of a paid crate are "did it open"
+        # and "may it have been sold at all", and a suite that stubs the second
+        # cannot see a receipt paid out twice.
+        inputs = "{" + ",".join(name + "=" + literal((ROOT / "src/ServerScriptService/Services" / (name + ".luau")).read_text(encoding="utf-8")) for name in ("ChestService", "ProductService")) + "}"
     elif args.suite == "guardians":
-        inputs = "{" + ",".join(name + "=" + literal((ROOT / "src/ReplicatedStorage/Shared" / (name + ".luau")).read_text(encoding="utf-8")) for name in ("GuardCatalog", "GuardRig", "KennelModel", "Pets")) + "}"
+        # The palette, the kennel and the disabled follower -- plus the
+        # rebirth gate, which spans the server refusal (CosmeticsService),
+        # the save it reads (DataService), the card that declines to ask
+        # (ShopGuardianCards over ShopImageCards) and the three files read
+        # as SOURCE for what they must not do: ClientMain's Activated
+        # handler, AdminService's unlockall and ProgressionService's wipe.
+        guardian_paths = {
+            "GuardCatalog": "src/ReplicatedStorage/Shared/GuardCatalog.luau",
+            "GuardRig": "src/ReplicatedStorage/Shared/GuardRig.luau",
+            "KennelModel": "src/ReplicatedStorage/Shared/KennelModel.luau",
+            "Pets": "src/ReplicatedStorage/Shared/Pets.luau",
+            "ShopImageCards": "src/ReplicatedStorage/Shared/ShopImageCards.luau",
+            "ShopGuardianCards": "src/ReplicatedStorage/Shared/ShopGuardianCards.luau",
+            "DataService": "src/ServerScriptService/Services/DataService.luau",
+            "SetService": "src/ServerScriptService/Services/SetService.luau",
+            "CosmeticsService": "src/ServerScriptService/Services/CosmeticsService.luau",
+            "AdminService": "src/ServerScriptService/Services/AdminService.luau",
+            "ProgressionService": "src/ServerScriptService/Services/ProgressionService.luau",
+            "ClientMain": "src/StarterPlayer/StarterPlayerScripts/ClientMain.client.luau",
+        }
+        inputs = "{" + ",".join(name + "=" + literal((ROOT / path).read_text(encoding="utf-8")) for name, path in guardian_paths.items()) + "}"
     elif args.suite == "shopui":
-        inputs = "{" + ",".join(name + "=" + literal((ROOT / "src/ReplicatedStorage/Shared" / (name + ".luau")).read_text(encoding="utf-8")) for name in ("Theme", "ShopIcons", "ShopWidgets", "ShopUpgradeFacts", "ShopUpgrades", "ShopMarks", "ShopAchievements", "ShopRevamp", "CrateContents", "RidePicker", "HUDLayout", "ShopCatalogueLayout")) + "}"
+        # `Rebirth` is read as SOURCE only, for the one pure function on it:
+        # `unlocksAt`, which names what the next rebirth puts on sale. The rest
+        # of that module is page geometry this harness does not draw.
+        #
+        # SO ARE THE LAST THREE, AND THEY ARE HERE FOR THE FENCE CARD. That
+        # card drew its own primitives fence because a client cannot call
+        # `CreateMeshPartAsync`, so the lawn and the shop ended up with two
+        # descriptions of one object and they drifted. `Shared/FencePanel` is
+        # the one builder now; these three are what prove all three ends are
+        # wired to it -- the card clones it, PlotService stopped building its
+        # own, and Main warms it. A module nobody wires is the silent failure
+        # this project records more than any other.
+        shop_paths = {name: "src/ReplicatedStorage/Shared/" + name + ".luau" for name in (
+            "Theme", "ShopIcons", "ShopWidgets", "ShopUpgradeFacts", "ShopUpgrades",
+            "ShopMarks", "ShopRevamp", "CrateContents", "RidePicker", "HUDLayout",
+            "ShopCatalogueLayout", "Rebirth", "UpgradePreview", "FencePanel",
+            # The crates shelf and the Robux shop, for the two ways into one
+            # paid-random shelf: the coin buy-backs only a counter shows.
+            "Crates", "PremiumShop")}
+        shop_paths["PlotService"] = "src/ServerScriptService/Services/PlotService.luau"
+        shop_paths["Main"] = "src/ServerScriptService/Main.server.luau"
+        # AND ClientMain AS SOURCE, for the two routing rules that decide
+        # whether a shop DOOR is a door or a picture of one: the basket in the
+        # HUD rail opens the Robux shelf and nothing else, and every category
+        # `Config` gives a door has a view here to open. Neither is reachable
+        # from a harness -- one is a click handler on a ScreenGui and the other
+        # is a table inside a `do` block -- and both fail silently, which is the
+        # combination this project keeps paying for.
+        shop_paths["ClientMain"] = "src/StarterPlayer/StarterPlayerScripts/ClientMain.client.luau"
+        inputs = "{" + ",".join(name + "=" + literal((ROOT / path).read_text(encoding="utf-8")) for name, path in shop_paths.items()) + "}"
     elif args.suite == "ladder":
         inputs = "{}"
     elif args.suite == "interior":
-        inputs = "{" + ",".join(name + "=" + literal((ROOT / "src/ReplicatedStorage/Shared" / (name + ".luau")).read_text(encoding="utf-8")) for name in ("LowPoly", "HouseInterior")) + "}"
+        # Both builders behind one contract, plus the service that dispatches
+        # between them: the generic hall's geometry, the wrapper that turns the
+        # authored per-house kits round, and InteriorService read as SOURCE for
+        # the wiring rules -- one dispatch point, the estate pitch clearing the
+        # widest hall, and the fallback when a kit is not on the server. A
+        # wrapper nobody wires is the silent failure this project records most.
+        # Plus the indoor PLACEMENTS: the pedestal, the collect pad and the
+        # cash sign that stand on an unlocked plot, the one question that
+        # finds a placement at a slot (PlotService), and the three haul verbs
+        # that reach through it. A pedestal nobody wires is the silent failure
+        # this project records more than any other.
+        interior_paths = {
+            "LowPoly": "src/ReplicatedStorage/Shared/LowPoly.luau",
+            "HouseInterior": "src/ReplicatedStorage/Shared/HouseInterior.luau",
+            "IndoorPedestal": "src/ReplicatedStorage/Shared/IndoorPedestal.luau",
+            "ThemedInterior": "src/ServerScriptService/Services/ThemedInterior.luau",
+            "InteriorService": "src/ServerScriptService/Services/InteriorService.luau",
+            "PlotService": "src/ServerScriptService/Services/PlotService.luau",
+            "PiggyHaulService": "src/ServerScriptService/Services/PiggyHaulService.luau",
+            # THE TWO COUNTERS IN THE HALL, which since 2026-09-23 are the ONLY
+            # way to the supplies and guardians shelves -- the HUD basket sells
+            # Robux and nothing else. A counter that does not build is not a
+            # missing ornament any more, it is a shelf no player can reach.
+            "BaseShopStand": "src/ReplicatedStorage/Shared/BaseShopStand.luau",
+        }
+        inputs = "{" + ",".join(name + "=" + literal((ROOT / path).read_text(encoding="utf-8")) for name, path in interior_paths.items()) + "}"
+    elif args.suite == "combine":
+        # THE COMBINE MACHINE ON THE VERGE. The two modules with a pure half
+        # are LOADED and driven; the rest are read as SOURCE for the rules
+        # they have to keep -- NeighborhoodService for the two verge vetoes
+        # and the side argument they need, SocialService for the board gap
+        # this must not stand in (its `boardX` body is lifted out and RUN,
+        # so the two orderings are compared rather than restated),
+        # ChestService for the one property the station cannot enforce
+        # itself (every refusal before the consume loop), and Main and
+        # ClientMain for the two hooks -- a module nobody wires is the
+        # silent failure this project records more than any other.
+        combine_paths = {
+            "Theme": "src/ReplicatedStorage/Shared/Theme.luau",
+            "LowPoly": "src/ReplicatedStorage/Shared/LowPoly.luau",
+            "CombineStation": "src/ReplicatedStorage/Shared/CombineStation.luau",
+            "CombinePanel": "src/ReplicatedStorage/Shared/CombinePanel.luau",
+            "Remotes": "src/ReplicatedStorage/Shared/Remotes.luau",
+            "CombineService": "src/ServerScriptService/Services/CombineService.luau",
+            "ChestService": "src/ServerScriptService/Services/ChestService.luau",
+            "NeighborhoodService": "src/ServerScriptService/Services/NeighborhoodService.luau",
+            "SocialService": "src/ServerScriptService/Services/SocialService.luau",
+            "Main": "src/ServerScriptService/Main.server.luau",
+            "ClientMain": "src/StarterPlayer/StarterPlayerScripts/ClientMain.client.luau",
+        }
+        inputs = "{" + ",".join(name + "=" + literal((ROOT / path).read_text(encoding="utf-8")) for name, path in combine_paths.items()) + "}"
     elif args.suite == "grassland":
         # The builder alone is not the feature: NeighborhoodService is what
         # hands it the grove's trunks and Main is what registers its veto
@@ -72,6 +176,7 @@ end
         # is a trunk the pack walks through.
         tree_paths = {
             "NeighborhoodService": "src/ServerScriptService/Services/NeighborhoodService.luau",
+            "MeadowPlan": "src/ReplicatedStorage/Shared/MeadowPlan.luau",
             "SceneryTrees": "src/ServerScriptService/Services/SceneryTrees.luau",
             "Main": "src/ServerScriptService/Main.server.luau",
         }
@@ -119,21 +224,25 @@ end
         }
         inputs = "{" + ",".join(name + "=" + literal((ROOT / path).read_text(encoding="utf-8")) for name, path in speed_paths.items()) + "}"
     elif args.suite == "lobbyboard":
-        # The street leaderboard spans a save field, the one place it is
-        # incremented, the service that pushes it, the panel that draws it
-        # and the two files that start both halves -- a module nobody
-        # starts is the silent failure this project records more than any
-        # other, and a counter nobody increments is a board of zeros.
+        # The street leaderboard is Roblox's own player list (2026-09-23), so
+        # the panel this suite used to drive is gone. What it spans now is the
+        # save field, the one place it is incremented, the service that fills
+        # `leaderstats` from it, and the three files that have to STOP saying
+        # the old thing: Remotes (no channel), ClientMain (no disable, no
+        # require) and HUDLayout (no published width). A retired feature whose
+        # copy survives is the stale-in-the-dangerous-direction failure this
+        # project records as often as the silent one.
         board_paths = {
             "DataService": "src/ServerScriptService/Services/DataService.luau",
             "PiggyHaulService": "src/ServerScriptService/Services/PiggyHaulService.luau",
             "LobbyBoardService": "src/ServerScriptService/Services/LobbyBoardService.luau",
-            "LobbyBoard": "src/ReplicatedStorage/Shared/LobbyBoard.luau",
             "Remotes": "src/ReplicatedStorage/Shared/Remotes.luau",
             "HUDLayout": "src/ReplicatedStorage/Shared/HUDLayout.luau",
-            "MenuIcons": "src/ReplicatedStorage/Shared/MenuIcons.luau",
             "Main": "src/ServerScriptService/Main.server.luau",
             "ClientMain": "src/StarterPlayer/StarterPlayerScripts/ClientMain.client.luau",
+            # The one neighbour that outlived the board: the card that has to
+            # stay clear of the corner the list holds.
+            "FirstJob": "src/ReplicatedStorage/Shared/FirstJob.luau",
         }
         inputs = "{" + ",".join(name + "=" + literal((ROOT / path).read_text(encoding="utf-8")) for name, path in board_paths.items()) + "}"
     elif args.suite == "pathfollower":
@@ -157,6 +266,25 @@ end
         inputs = literal((ROOT / "src/ServerScriptService/Services/HeistService.luau").read_text(encoding="utf-8"))
     elif args.suite == "herds":
         inputs = "{" + "HerdService=" + literal((ROOT / "src/ServerScriptService/Services/HerdService.luau").read_text(encoding="utf-8")) + "}"
+    elif args.suite == "lasso":
+        # The lasso spans the service that throws it, the herd that answers for
+        # the animal, the haul that carries a catch home and the product that
+        # sells the Elite tier -- plus Main, AdminService and the hot bar's
+        # allowlist read as SOURCE for the wiring. A module nobody wires is the
+        # silent failure this project records more than any other.
+        lasso_paths = {
+            "LassoService": "src/ServerScriptService/Services/LassoService.luau",
+            "HerdService": "src/ServerScriptService/Services/HerdService.luau",
+            "PiggyHaulService": "src/ServerScriptService/Services/PiggyHaulService.luau",
+            "ProductService": "src/ServerScriptService/Services/ProductService.luau",
+            "GadgetService": "src/ServerScriptService/Services/GadgetService.luau",
+            "SettingsService": "src/ServerScriptService/Services/SettingsService.luau",
+            "AdminService": "src/ServerScriptService/Services/AdminService.luau",
+            "Main": "src/ServerScriptService/Main.server.luau",
+        }
+        inputs = "{" + ",".join(name + "=" + literal((ROOT / path).read_text(encoding="utf-8")) for name, path in lasso_paths.items()) + "}"
+    elif args.suite == "lassopose":
+        inputs = "{" + ",".join(n + "=" + literal((ROOT / "src/ReplicatedStorage/Shared" / (n + ".luau")).read_text(encoding="utf-8")) for n in ("LassoPose", "CarryPose")) + "}"
     elif args.suite == "walk":
         # The herd walk spans the publisher (HerdService), the client that
         # poses from it (PiggyWalk), the curve in Config and the one line in
@@ -217,6 +345,10 @@ end
             # prompts), PlotService (which switches them) and the service
             # itself, so no one file can be read for them.
             "PiggyHaulService": "src/ServerScriptService/Services/PiggyHaulService.luau",
+            # And the hallway, as SOURCE: the five-second secure has a second
+            # room now, and which service registers it with which is a
+            # dependency-direction fact no one file states.
+            "InteriorService": "src/ServerScriptService/Services/InteriorService.luau",
             # And the repaint the swap leans on: the bank is dressed from the
             # till there, and a bank dressed from anything else is a swap
             # that changed the rate and not the pig.
@@ -252,7 +384,14 @@ end
         inputs = "{" + ",".join(name + "=" + literal((ROOT / "src/ServerScriptService/Services" / (name + ".luau")).read_text(encoding="utf-8")) for name in names) + "}"
     if args.suite == "buyback":
         inputs = inputs[:-1] + ",Crates=" + literal((ROOT / "src/ReplicatedStorage/Shared/Crates.luau").read_text(encoding="utf-8")) + "}"
-    bundle += "assert(loadstring(" + literal(tests) + ', "economy tests"))(Config, ' + inputs + ")\n"
+    # The carry pose as a THIRD argument, for the one suite that reads it.
+    # Appended rather than folded into `inputs` because theft, settlement and
+    # shopdrops share that branch and each take a bare HeistService string.
+    extra = ""
+    if args.suite == "handoff":
+        carry_pose = ROOT / "src/ReplicatedStorage/Shared/CarryPose.luau"
+        extra = ", " + literal(carry_pose.read_text(encoding="utf-8"))
+    bundle += "assert(loadstring(" + literal(tests) + ', "economy tests"))(Config, ' + inputs + extra + ")\n"
     with tempfile.TemporaryDirectory(prefix="piggy-crates-") as folder:
         script = Path(folder) / "crates.luau"
         script.write_text(bundle, encoding="utf-8")

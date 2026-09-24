@@ -36,6 +36,9 @@ end
 
 -- ------------------------------------------------------------ THE GRID
 local N = Config.PIGGY_LAWN_SLOT_COUNT
+-- THE WHOLE COLLECTION: the lawn's six and the hallway's ceiling after them
+-- (2026-09-23). `piggySlots` sizes the array to this, never to the lawn.
+local ALL = Config.PIGGY_SLOT_COUNT
 check(N == 6, "six lawn slots (designer decision 2026-09-20)")
 check(#Config.auditPiggySlots() == 0, "the shipped six fit on the lawn")
 
@@ -328,7 +331,8 @@ local function fresh()
 end
 
 local data = fresh()
-check(#Config.piggySlots(data) == N, "a fresh save holds one entry per slot")
+check(#Config.piggySlots(data) == ALL, "a fresh save holds one entry per placement, lawn and hall")
+check(ALL == N + Config.indoorPlotCeiling(), "and that is the lawn plus the hallway's ceiling")
 check(Config.firstFreePiggySlot(data) == 1, "a fresh lawn is empty: the front slot is free")
 -- THE STARTER CLASSIC IS ON THE TILL AND NOT ON THE GRASS, which is the one
 -- placement every save is guaranteed and the reason the lawn starts bare.
@@ -341,17 +345,17 @@ check(Config.piggySpareCount(data, Config.DEFAULT_SKIN) == 0, "and it is not spa
 local ragged = fresh()
 ragged.piggies.slots = { { key = "classic", buffer = 5 }, 7, nil, {} }
 local fixed = Config.piggySlots(ragged)
-check(#fixed == N, "a short save grows to six")
+check(#fixed == ALL, "a short save grows to the whole collection")
 check(fixed[1].key == "classic" and fixed[1].buffer == 5, "and keeps what was already in slot one")
 for i = 2, N do
 	check(type(fixed[i]) == "table" and fixed[i].key == nil,
 		("slot %d came back as an empty table"):format(i))
 end
 local long = fresh()
-long.piggies.slots[N + 3] = { key = "classic" }
-check(#Config.piggySlots(long) == N, "a save written against more slots is trimmed to six")
+long.piggies.slots[ALL + 3] = { key = "classic" }
+check(#Config.piggySlots(long) == ALL, "a save written against more slots is trimmed to the collection")
 local bare = { tillBuffer = 0 }
-check(#Config.piggySlots(bare) == N and bare.piggies ~= nil,
+check(#Config.piggySlots(bare) == ALL and bare.piggies ~= nil,
 	"a save with no piggies table at all is given one")
 
 -- ------------------------------------------------------------ PLACEMENT
@@ -413,9 +417,16 @@ check(data.piggies.owned.cow == 1, "one left")
 check(Config.piggyPlacedCount(data, "cow") == 1, "and it is still standing on slot two")
 
 -- ------------------------------------------------------------ THE TILL
--- The till counts as a placement, because §3 says the piggy on it "earns like
--- any other". A count that ignored it would make the starter Classic read as
+-- The till counts as a placement, and the reason is OWNERSHIP rather than
+-- income: a count that ignored it would make the starter Classic read as
 -- spare and hand a new player a free placement they already have.
+--
+-- IT USED TO SAY "BECAUSE §3 SAYS THE PIGGY ON IT EARNS LIKE ANY OTHER", and
+-- that stopped being true on 2026-09-23 when the till became a display and
+-- `collectionRateOf` started sweeping from slot 1. The COUNT did not move,
+-- which is exactly why this was worth correcting rather than leaving: a
+-- passing check with a retired reason under it is the copy-outlives-the-thing
+-- failure, and the next person to read it would have believed the reason.
 data = fresh()
 data.piggies.till = "lava"
 data.piggies.owned = { lava = 1 }
@@ -570,8 +581,8 @@ end
 do
 	local one = Config.getIncomeRate(20, 0)
 	local lawn = Config.fullLawn("common")
-	check(#lawn == Config.PIGGY_LAWN_SLOT_COUNT + 1,
-		"a full lawn is every pedestal plus the till")
+	check(#lawn == Config.PIGGY_LAWN_SLOT_COUNT,
+		"a full lawn is every pedestal, and the till is not one of them")
 	-- THE SUMMATION IS A SUM, checked against the arithmetic by hand rather
 	-- than against itself.
 	check(math.abs(Config.collectionRate(lawn, 20, 0) - one * #lawn) < 1e-6,
@@ -603,12 +614,19 @@ do
 end
 
 -- `robberyRates` IDLES ON A WHOLE LAWN NOW (designer decision 2026-09-22):
--- the target is still the centre pig, but the thief's own income is the till
--- plus six placed piggies, so the comparison is against a lawn of commons.
+-- the target is still the centre pig, but the thief's own income is the six
+-- placed piggies -- the till is a display and earns nothing (2026-09-23) --
+-- so the comparison is against a lawn of commons.
+--
+-- AN EQUALITY RATHER THAN A `>`, WHICH IS WHAT THE TILL LEAVING BOUGHT. With
+-- seven earners the figure was a strict inequality because the seventh was
+-- not a common; with six it is exactly six commons, so the test can state the
+-- arithmetic instead of bounding it.
 do
 	local robbing, idling = Config.robberyRates(20, 0, 0)
-	check(idling > Config.getIncomeRate(20, 0) * 3600 * 6,
-		"idling is the whole lawn, till included")
+	check(math.abs(idling - Config.getIncomeRate(20, 0) * 3600
+			* Config.PIGGY_LAWN_SLOT_COUNT) < 1e-6,
+		"idling is the six pedestals, and the till is not one of them")
 	check(robbing / idling >= Config.ROBBERY_ADVANTAGE.min,
 		"cold robbing beats a lawn of commons by the floor")
 
@@ -747,11 +765,19 @@ local pedestalSrc = sources.PiggyPedestal
 local bankSrc = sources.PiggyBank
 check(pedestalSrc:find("function PiggyPedestal.buildPadSound", 1, true) ~= nil,
 	"the pad sound has one shared builder")
--- AND THE BANK BUILDS NO PAD AT ALL (designer decision 2026-09-22): the
--- centre pig drips straight into the balance, so the shared builder has six
--- callers on the plinths and none on the pig.
+-- AND THE BANK BUILDS NO PAD AT ALL, so the shared builder has six callers on
+-- the plinths and none on the pig.
+--
+-- THE CONCLUSION HAS NOW OUTLIVED TWO REASONS, which is why it is stated as a
+-- fact about the shape rather than about the economy. It first went in
+-- because the centre pig DRIPPED straight into the balance (designer,
+-- 2026-09-22) and there was nothing to collect by hand; the till earns
+-- nothing at all now (2026-09-23) and is a display, so it has even less use
+-- for a button. A reason that has been replaced once will be replaced again,
+-- and what this check is really pinning is that there are six pads and not
+-- seven.
 check(bankSrc:find("PiggyPedestal.buildPadSound(", 1, true) == nil,
-	"and the bank builds no pad: it drips")
+	"and the bank builds no pad, having nothing to collect")
 -- NEITHER FILE BUILDS A PAD SOUND OF ITS OWN. The whole point of the shared
 -- builder is that there is nowhere else a Sound named for a pad can appear.
 -- COUNTED PLAIN, NEVER WITH `gsub`. A Lua pattern eats `(` and `)` as a
@@ -913,6 +939,194 @@ check(sources.PlotService:find("function PlotService.registerPiggyRates", 1, tru
 	"PlotService asks for the rate rather than deriving a pre-boost one")
 check(sources.EconomyService:find("function EconomyService.pedestalRates", 1, true) ~= nil,
 	"EconomyService answers it, boost and friend bonus included")
+
+-- --------------------------------- A NEIGHBOUR'S LAWN PRINTS ITS RATES
+--
+-- REPORTED BY THE DESIGNER 2026-09-23: walking onto an NPC's base showed
+-- each piggy's NAME with nothing under it. `PlotService.setPiggyBuffers`
+-- gated its rates array on `plot.owner`, which a resident plot never has,
+-- so every neighbour plinth in the game carried a name and a blank row --
+-- for months, since the day residents were put on the piggy loop. The
+-- comment sitting over that line is what made it invisible: it asserted
+-- that "a resident's lawn carries no piggies", which stopped being true
+-- one session after it was written.
+do
+	check(type(Config.piggySlotRate) == "function",
+		"there is one answer to what a placement earns")
+
+	-- THE TILL IS REFUSED IN THE SHARED FUNCTION, WHICH IS THE WHOLE POINT
+	-- OF MOVING IT THERE. `piggyKeyAt` answers slot 0 with a real key -- it
+	-- falls back to Classic so a till is never empty -- so the refusal cannot
+	-- be an emptiness test and has to be the slot number. Left in
+	-- `EconomyService` it was one of three readers and the other two would
+	-- have paid for it.
+	-- `fresh()` IS A PIGGY-ONLY FIXTURE and carries no economy levels, so the
+	-- lawn under test is that shape plus the two a rate is solved against.
+	local lawn = fresh()
+	lawn.incomeLevel, lawn.rebirths = 3, 1
+	check(Config.piggyKeyAt(lawn, 0) ~= nil, "the till always holds a piggy")
+	check(Config.piggySlotRate(lawn, 0) == 0, "and it earns nothing at all")
+
+	-- AN EMPTY PLINTH EARNS NOTHING, and it is asked by KEY rather than by
+	-- rarity: `piggyRarityAt` answers nil for an empty slot AND for a skin
+	-- with no tier, and `getPiggyIncomeRate` reads a nil rarity as the common
+	-- multiplier -- so a rarity test would pay a full common's rate for a
+	-- plinth with nothing standing on it.
+	check(Config.piggySlotRate(lawn, 1) == 0, "an empty plinth earns nothing")
+	lawn.piggies.slots[1] = { key = Config.DEFAULT_SKIN }
+	local common = Config.piggySlotRate(lawn, 1)
+	check(common > 0, "a piggy standing on one earns something")
+
+	-- MEASURED AS A RATIO AND NEVER AS A FIGURE. A third session has an
+	-- uncommitted x1000 rescale in this tree right now (`BASE_INCOME` reads
+	-- 10000 against 10 at HEAD), so any coins-per-second pinned here would be
+	-- wrong by three orders of magnitude the moment that lands or reverts.
+	-- The RATIO between two tiers is a property of `PIGGY_RARITY_INCOME` and
+	-- survives any rescale of the ladder underneath it.
+	local best = nil
+	for key, skin in pairs(Config.SKINS) do
+		if skin.rarity == "legendary" then best = key break end
+	end
+	if best then
+		lawn.piggies.slots[2] = { key = best }
+		local top = Config.piggySlotRate(lawn, 2)
+		check(top > common,
+			"a legendary out-earns a common on the same lawn, whatever the scale")
+		check(math.abs(top / common
+			- Config.PIGGY_RARITY_INCOME.legendary / Config.PIGGY_RARITY_INCOME.common)
+			< 1e-6, "and by exactly its tier multiplier")
+	end
+
+	-- A FRIEND BONUS MULTIPLIES AND IS OPTIONAL, and the daily boost is
+	-- deliberately NOT in here: it multiplies the live drip only and is
+	-- applied a layer up, so a label folding it in would advertise a rate the
+	-- buffers do not fill at.
+	check(math.abs(Config.piggySlotRate(lawn, 1, 1.0) - common * 2) < 1e-6,
+		"a friend bonus multiplies the row")
+
+	-- ------------------------------------------------------------
+	-- AND THE RESIDENT, WHICH IS THE SHAPE THAT WOULD HAVE THROWN
+	-- ------------------------------------------------------------
+	--
+	-- A neighbour is NOT a save. It carries `incomeLevel` -- seated from the
+	-- street's own average -- and has no `rebirths` field at all, because
+	-- prestige is something a PLAYER has. So the shared function reads
+	-- `rebirths or 0`, and that is a statement about neighbours rather than a
+	-- default papering over a missing field: `ResidentService` passed a
+	-- literal 0 here for exactly that reason before this function existed.
+	-- Without it, the fix for the blank row would have thrown on the first
+	-- resident tick instead -- arithmetic on a nil.
+	local neighbour = {
+		incomeLevel = 4,
+		piggies = { owned = {}, till = Config.DEFAULT_SKIN,
+			slots = { { key = Config.DEFAULT_SKIN } } },
+	}
+	local asNeighbour = Config.piggySlotRate(neighbour, 1)
+	check(asNeighbour > 0, "a neighbour's plinth earns a real figure")
+	local asPlayer = { incomeLevel = 4, rebirths = 0, piggies = neighbour.piggies }
+	check(math.abs(asNeighbour - Config.piggySlotRate(asPlayer, 1)) < 1e-6,
+		"and it is exactly what the same lawn with no prestige earns")
+	check(Config.piggySlotRate(neighbour, 0) == 0,
+		"a neighbour's till earns nothing either")
+
+	-- A MISSING `incomeLevel` THROWS RATHER THAN QUIETLY READING AS ZERO, and
+	-- that asymmetry with `rebirths` is the whole point. A neighbour genuinely
+	-- has no prestige, so `rebirths or 0` is a fact; nothing in this game has
+	-- no income level, so a nil one is a real gap -- and a lawn quoting a
+	-- level-0 rate is the "variety that lies" failure this project already
+	-- records for the resident gardens. Loud beats plausible.
+	local levelless = { piggies = neighbour.piggies }
+	check(not (pcall(Config.piggySlotRate, levelless, 1)),
+		"a save with no income level is refused rather than priced at zero")
+end
+
+-- THREE COPIES OF ONE NUMBER BECAME ONE, which is the half that stops this
+-- coming back. The rate arithmetic lived in `EconomyService.slotRateOf`, in
+-- the rate half of `ResidentService.slotEconomy`, and nowhere at all in
+-- `PlotService` -- and it was the missing third that printed a blank row.
+check(sources.EconomyService:find("Config.piggySlotRate(data, slot, friendBonus)", 1, true) ~= nil,
+	"EconomyService asks Config rather than carrying its own copy")
+-- ASKED OF THE FUNCTION BODY RATHER THAN OF THE FILE. A whole-file search
+-- for the arithmetic matches the comments that explain where it went, which
+-- is the wrong question asked in a way that looks right.
+do
+	local body = assert(sources.EconomyService:match(
+		"local function slotRateOf.-\nend"))
+	check(body:find("Config.getPiggyIncomeRate", 1, true) == nil,
+		"and has no second copy of the arithmetic left in it")
+	check(body:find("Config.SKINS", 1, true) == nil,
+		"nor a second copy of the empty-plinth test")
+end
+check(sources.ResidentService:find("Config.piggySlotRate(resident, slot)", 1, true) ~= nil,
+	"a resident asks the same function a player does")
+-- AND `PlotService` PAINTS ONE FOR A LAWN WITH NO PLAYER BEHIND IT. The
+-- owner path still goes through the registry, because a friend bonus and a
+-- daily boost are facts about a PERSON that this file may not require
+-- without a cycle; the neighbour path is exact rather than a fallback,
+-- because a resident has neither multiplier.
+check(sources.PlotService:find("Config.piggySlotRate(data, slot)", 1, true) ~= nil,
+	"an unowned lawn derives its own rates")
+check(sources.PlotService:find("AN UNOWNED PLOT HAS NO RATES AND MUST NOT HAVE ANY", 1, true) == nil,
+	"and the comment that said it could not is gone rather than left to mislead")
+
+-- ------------------------------------------- AND THE TILL SAYS BANK
+--
+-- Designer, 2026-09-23: "the piggy till should show its name over it too
+-- but no earning per second instead it should say bank". The six pedestals
+-- have carried a two-row label since 2026-09-21 and the centre pig -- the
+-- one the whole lawn is arranged around -- had none at all.
+do
+	check(Config.TILL_LABEL == "BANK", "the till's row says BANK")
+	-- IT IS THE ONLY HONEST THING THAT CAN GO THERE, which is a better reason
+	-- than the designer asking: the till earns nothing by construction, so a
+	-- rate row could only ever read +0/s -- and this suite already holds that
+	-- a zero row is worse than a blank one.
+	check(Config.piggySlotRate(fresh(), 0) == 0,
+		"because a rate row there could only ever read zero")
+
+	-- ONE BUILDER, TWO CALLERS. A second billboard built in `PiggyBank`
+	-- would be a second answer to where a label hangs, how far it reads from
+	-- and what colour a tier is written in -- the near-identical duplicate
+	-- this project records more often than any other fault.
+	check(sources.PiggyPedestal:find("function PiggyPedestal.nameplate", 1, true) ~= nil,
+		"the nameplate is a shared builder")
+	check(sources.PiggyPedestal:find("PiggyPedestal.nameplate(model, refs.plinth, key)", 1, true) ~= nil,
+		"a plinth draws its name through it")
+	check(sources.PiggyBank:find("PiggyPedestal.nameplate(refs.model, refs.body, skinKey", 1, true) ~= nil,
+		"and so does the till, off the pig's own body rather than a plinth")
+	check(sources.PiggyBank:find("Instance.new(\"BillboardGui\")", 1, true) == nil,
+		"PiggyBank builds no billboard of its own")
+
+	-- THE WORD COMES FROM CONFIG rather than being typed at the one site that
+	-- draws it, for the reason every other player-facing string does: a
+	-- literal there is one no test can reach and no sweep can find.
+	check(sources.PiggyBank:find("Config.TILL_LABEL", 1, true) ~= nil,
+		"and takes the word from Config")
+	check(sources.PiggyBank:find('"BANK"', 1, true) == nil,
+		"never as a literal")
+
+	-- PAPER RATHER THAN THE GOLD THE SIX ROWS USE. Gold on that row means
+	-- COINS PER SECOND everywhere else on the lawn, and a word is not a
+	-- figure. `nameplate` defaults to gold, so the till has to say otherwise.
+	check(sources.PiggyBank:find("Theme.PAPER", 1, true) ~= nil,
+		"the till's row is a label rather than a figure")
+
+	-- A SHOP VAULT IS NEVER NAMED, and that is inherited rather than checked
+	-- again: `applySkin` returns above this for a strongroom, which is the one
+	-- place the two kinds of thing standing on a plot are told apart.
+	local skinFn = assert(sources.PiggyBank:match(
+		"function PiggyBank%.applySkin.-\nend"))
+	local guard = skinFn:find("if refs.vault then", 1, true)
+	local draw = skinFn:find("PiggyPedestal.nameplate", 1, true)
+	check(guard ~= nil and draw ~= nil and guard < draw,
+		"a strongroom returns before the nameplate is reached")
+
+	-- REBUILT ONLY WHEN THE KEY MOVED. `applySkin` runs on every resident
+	-- repaint as well as on a swap, and a billboard torn down and rebuilt on a
+	-- clock is replication for nothing -- the same guard `setRate` carries.
+	check(skinFn:find("if refs.nameKey ~= skinKey then", 1, true) ~= nil,
+		"and a repaint that changes nothing rebuilds nothing")
+end
 
 -- ------------------------------------------- GRASS DOES NOT GROW THROUGH
 -- Reported as the grass clipping through the collect buttons, and measured
@@ -1194,7 +1408,11 @@ do
 	-- why this function exists beside `addPiggy`: a crate lands front to
 	-- back, and a piggy somebody CARRIED HOME is placed by hand.
 	local data = lawn()
-	local last = Config.PIGGY_LAWN_SLOT_COUNT
+	-- THE LAST PLACEMENT IS THE LAST INDOOR PLOT, not the last plinth on the
+	-- grass: `placePiggy` admits the whole collection (2026-09-23), and what
+	-- stands a piggy on a LOCKED indoor plot is the absence of a pedestal
+	-- there, never this bound.
+	local last = Config.PIGGY_SLOT_COUNT
 	check(Config.placePiggy(data, "cow", last), "a carried piggy lands on the slot it is given")
 	check(Config.piggySlots(data)[last].key == "cow", "on THAT slot and not the first free one")
 	check(Config.firstFreePiggySlot(data) == 1, "with the front of the lawn untouched")
@@ -1224,7 +1442,7 @@ do
 	-- exactly where `SetAsync` starts refusing saves.
 	check(not Config.placePiggy(data, "tiger", 0), "slot 0 is the till and is not a pedestal")
 	check(not Config.placePiggy(data, "tiger", last + 1), "and there is no slot past the last one")
-	check(#Config.piggySlots(data) == last, "the array stays exactly as long as the lawn")
+	check(#Config.piggySlots(data) == last, "the array stays exactly as long as the collection")
 
 	-- ------------------------------------------------------------
 	-- A ROUND TRIP LEAVES NOTHING BEHIND
@@ -1265,11 +1483,11 @@ do
 	local haul = Config.PIGGY_HAUL
 
 	-- A LADDER OF CONSEQUENCE, which is the same argument `PIGGY_SELL.hold`
-	-- and `SMASH.hold` make. Taking your own costs nobody anything; taking
+	-- and the crack's open hold make. Taking your own costs nobody anything; taking
 	-- somebody else's takes one of the seven things they own.
 	check(haul.takeHold > 0, "even the free verb needs a hold, because three prompts share this key")
 	check(haul.snatchHold > haul.takeHold, "taking somebody else's is dearer than taking your own")
-	check(haul.snatchHold > Config.SMASH.hold, "and dearer than a smash, which only takes coins")
+	check(haul.snatchHold > Config.CRACK.openHold, "and dearer than opening a lock, which only starts taking coins")
 	check(haul.snatchHold < Config.PIGGY_SELL.hold,
 		"and cheaper than selling, which is the one thing here that cannot be undone")
 	check(haul.placeHold == haul.takeHold,
@@ -1352,8 +1570,19 @@ do
 	-- cannot tell them apart -- what does is that one is live only while
 	-- something is standing here and the other only while nothing is.
 	check(src:find("refs.takePrompt.Enabled = owned and refs.key ~= nil", 1, true) ~= nil
-		and src:find("refs.placePrompt.Enabled = owned and refs.key == nil", 1, true) ~= nil,
+		and src:find("and refs.key == nil", 1, true) ~= nil,
 		"take and place are exact opposites on the plinth's own occupancy")
+
+	-- AND PLACE CARRIES A THIRD FACT THAT TAKE DOES NOT: an empty plinth is
+	-- only worth offering while its owner has a piggy in their arms. The
+	-- server switches it BOTH ways, which a client rule could never do --
+	-- see `paintPlace`, which is the one writer of that prompt's `Enabled`.
+	check(src:find("local function paintPlace", 1, true) ~= nil
+		and src:find("refs.carrying == true", 1, true) ~= nil
+		and src:find("function PiggyPedestal.setCarrying", 1, true) ~= nil,
+		"the place prompt is painted from the carry as well as the occupancy")
+	check(countPlain(src, "refs.placePrompt.Enabled") == 2,
+		"and only paintPlace and the republish bounce write it")
 
 	-- ONE FUNCTION OWNS THE OWNER AND `Enabled` FOR ALL FOUR PROMPTS ON A
 	-- PLINTH, which is what makes "the owner, then Enabled, always" a
@@ -1362,7 +1591,8 @@ do
 	check(src:find("dress") ~= nil and src:find("refs%.%w*[Pp]rompt%.Enabled = ") ~= nil,
 		"prompts are switched somewhere")
 	local _, enables = src:gsub("refs%.%w+Prompt%.Enabled = ", "")
-	check(enables == 8, ("every Enabled write is in setHaul or republish (%d)"):format(enables))
+	check(enables == 8,
+		("every Enabled write is in setHaul, paintPlace or republish (%d)"):format(enables))
 
 	-- AND A PLOT CHANGING HANDS BOUNCES THEM ACROSS A REAL FRAME. Writing the
 	-- owner before `Enabled` is necessary and is NOT sufficient: the client's
@@ -1386,8 +1616,11 @@ do
 	-- standing at the plinth they have just cleared.
 	check(src:find("setPromptKind(refs%.") == nil,
 		"a dressed pedestal never re-styles a prompt that may be on screen")
-	check(src:find("PROMPT_SLOT_ATTRIBUTE, 1", 1, true) ~= nil,
-		"and they take card slot 1, beside the sell prompt's 0")
+	-- Through `Config.setPromptSlot` (2026-09-23), which sets the slot
+	-- attribute AND the plain pill's `UIOffset` now that a piggy's prompts
+	-- carry no card.
+	check(src:find("Config.setPromptSlot(prompt, 1)", 1, true) ~= nil,
+		"and they take slot 1, beside the sell prompt's 0")
 	check(src:find("Enum.KeyCode.X", 1, true) ~= nil and src:find("Enum.KeyCode.E", 1, true) ~= nil,
 		"sell keeps X and the haul takes E, which are different keys on one part")
 
@@ -1424,7 +1657,7 @@ do
 	-- left four shop vault prompts dead for a whole session.
 	check(src:find("Config.LOOT_MODEL_NAME", 1, true) ~= nil,
 		"the carried model is named through the constant CarryPose reads")
-	check(src:find("CarryPose.HOLD", 1, true) ~= nil,
+	check(src:find("CarryPose.anchor", 1, true) ~= nil,
 		"and it sits where the measured hands are, rather than at a number chosen here")
 
 	-- EVERY ENDING THAT IS NOT A SECURE GOES HOME. A nab, a dog, an arrest, a
@@ -1501,14 +1734,27 @@ do
 			end,
 			bodyOf = function(m) return m.PrimaryPart end,
 		},
-		CarryPose = { HOLD = frame },
+		CarryPose = { HOLD = frame, anchor = function() return nil, frame end },
 		Theme = { FONT = "F", PAPER = "p", INK = "i", GOLD = "g" },
 		DataService = { get = function(p) return p.data end, save = function() end },
 		PlotService = {
 			setSwapOffer = function(plot, key) plot.offer = key; plot.offers = (plot.offers or 0) + 1 end,
+			setPlaceOffer = function(plot, key) plot.carrying = key; plot.placeOffers = (plot.placeOffers or 0) + 1 end,
 			getAll = function() return {} end, getPlot = function() return nil end,
 			yardContaining = function() return nil end,
 			setPiggySlots = function() end, setPiggyBuffers = function() end,
+			-- THE ONE QUESTION `reach` ASKS: the placement at a slot, wherever
+			-- it stands. A save's collection is one array -- the lawn at
+			-- slots 1..N and the hall behind the front door at the slots
+			-- after it -- and this is the real function's own shape, lawn
+			-- array first and then the sparse indoor map, so a press on an
+			-- indoor plinth is exercised here rather than only live.
+			pedestalAt = function(plot, slot)
+				local lawn = plot.pedestals and plot.pedestals[slot]
+				if lawn then return lawn end
+				return plot.indoor and plot.indoor[slot] or nil
+			end,
+			setIndoorPedestals = function(plot, map) plot.indoor = map end,
 		},
 		ResidentService = { get = function(plot) return plot.resident end },
 		CosmeticsService = { applyToPlot = function(p) p.repaints = (p.repaints or 0) + 1 end },
@@ -1522,21 +1768,38 @@ do
 		SocialService = { recordSteal = function() end },
 	}
 	local names = setmetatable({}, { __index = function(_, k) return k end })
+	-- `start` connects the dwell to Heartbeat and follows the player list;
+	-- both are stubbed so the REAL secure step can be driven by hand, with a
+	-- clock the test moves rather than one that stands still.
+	local hooks = {}
+	local signal = { Connect = function(_, fn) return { Disconnect = function() end } end }
+	local clockNow = 100
 	local env = setmetatable({
 		game = { GetService = function(_, name)
-			return if name == "ReplicatedStorage" then { Shared = names } else {}
+			if name == "ReplicatedStorage" then
+				return { Shared = names }
+			elseif name == "RunService" then
+				return { Heartbeat = { Connect = function(_, fn) hooks.heartbeat = fn; return {} end } }
+			elseif name == "Players" then
+				return { GetPlayers = function() return {} end,
+					PlayerAdded = signal, PlayerRemoving = signal }
+			end
+			return {}
 		end },
 		require = function(n) return assert(modules[n], tostring(n)) end,
 		script = { Parent = names },
 		Instance = { new = inst },
 		UDim2 = { new = function() return {} end, fromScale = function() return {} end },
 		Vector3 = { new = vec },
-		os = { clock = function() return 100 end },
+		os = { clock = function() return clockNow end },
 		warn = function() end,
 	}, { __index = getfenv() })
 	local run = assert(loadstring(src, "PiggyHaulService"))
 	setfenv(run, env)
 	local H = run()
+	H.start()
+	local hallFor = {}
+	H.registerHall(function(p) return hallFor[p] end)
 
 	local D = Config.DEFAULT_SKIN
 	local X = "bronze"
@@ -1581,6 +1844,8 @@ do
 	check(p.data.piggies.owned[X] == nil and ownedTotal(p) == 1,
 		"a piggy in your arms stands nowhere, so the count comes down with it")
 	check(plot.offer == X, "and the bank offers to take exactly the piggy being carried")
+	check(plot.carrying == X,
+		"and every empty plinth is told what is in their arms, so PLACE lights")
 	check(p.data.piggies.till == D, "the till is untouched by a take")
 
 	H.swap(p, plot)
@@ -1602,6 +1867,7 @@ do
 	check(ownedTotal(p) == 2 and p.data.piggies.owned[X] == 1 and p.data.piggies.owned[D] == 1,
 		"owned matches standing again: two copies, one per placement")
 	check(plot.offer == nil, "and the bank stops offering once the hands are empty")
+	check(plot.carrying == nil, "and the plinths stop offering PLACE with it")
 
 	-- A PIG IS ON THE TILL AT ALL TIMES: there is no take-from-till verb.
 	check(src:find("PiggyHaulService.takeTill", 1, true) == nil
@@ -1654,6 +1920,8 @@ do
 	check(H.isHauling(t) and t.Character:GetAttribute(Config.PIGGY_HAUL_ATTRIBUTE) == "stolen",
 		"t snatched the neighbour's piggy")
 	check(plotT.offer == nil, "a stolen haul never lights the bank's swap prompt")
+	check(plotT.carrying == nil,
+		"nor the place prompt: a snatched piggy is secured by dwelling, never pressed")
 	H.swap(t, plotT)
 	note = lastNote(t)
 	check(note and note.kind == "warn"
@@ -1667,8 +1935,8 @@ do
 	local bank = sources.PiggyBank
 	check(countPlain(bank, 'prompt.Name = "SwapPrompt"') == 1, "the bank builds a SwapPrompt")
 	check(countPlain(bank, 'Config.setPromptKind(prompt, "swap")') == 1, "styled as the swap kind")
-	check(bank:find('prompt.Name = "SwapPrompt".-PROMPT_SLOT_ATTRIBUTE, 2%)') ~= nil,
-		"on card slot 2, clear of the steal (0) and smash (1) cards")
+	check(bank:find('prompt.Name = "SwapPrompt".-Config.setPromptSlot%(prompt, 1%)') ~= nil,
+		"on slot 1, straight above the steal (0) pill now the smash is retired")
 	check(bank:find('prompt.Name = "SwapPrompt".-prompt.Enabled = false.-SetAttribute%(Config.PROMPT_OWNER_ATTRIBUTE, 0%)') ~= nil,
 		"born disabled and attributed to nobody, in that order")
 	check(countPlain(bank, "buildSwapPrompt(body)") == 1 and countPlain(bank, "swapPrompt = swapPrompt") == 1,
@@ -1684,6 +1952,16 @@ do
 		"and an unowned plot never offers")
 	check(countPlain(src, "PlotService.setSwapOffer(") >= 3,
 		"the haul service publishes the offer on take, on every ending, and on swap")
+	-- AND ITS SIBLING AT THE SAME THREE MOMENTS. Two prompts, two functions,
+	-- one fact: each is the only writer of its own `Enabled`, and neither
+	-- calls the other.
+	check(countPlain(src, "PlotService.setPlaceOffer(") >= 3,
+		"the place offer is published on the same three carry transitions")
+	check(plotSrc:find("function PlotService.setPlaceOffer", 1, true) ~= nil
+		and countPlain(plotSrc, "plot.carrying = key") == 1,
+		"setPlaceOffer owns the plot's carry")
+	check(countPlain(plotSrc, "PiggyPedestal.setHaul(pedestal, ownerId, plot.carrying ~= nil)") == 2,
+		"and a repaint carries it to the lawn and to the hall")
 	check(src:find("swapPrompt.Triggered:Connect", 1, true) ~= nil, "and wires the prompt at start")
 	check(countPlain(sources.ClientMain, "swapPrompt.Enabled") == 0
 		and countPlain(sources.ClientMain, "SwapPrompt") == 0,
@@ -1703,6 +1981,84 @@ do
 	check(countPlain(cos, "data.cosmetics.skin = key") == 0,
 		"equipSkin no longer writes the wardrobe field behind the till's back")
 	check(cos:find("hold SWAP", 1, true) ~= nil, "it names the swap instead")
+
+	-- THE FIVE SECONDS INDOORS (2026-09-23). Reported: a stolen piggy carried
+	-- home to a FULL collection, one hall piggy sold to make room, and the
+	-- countdown never started -- `roomFor` looked only at the lawn and only
+	-- from the yard, while the thief stood in their own hallway. Driven
+	-- through the real Heartbeat handler `start` connected.
+	local heartbeat = assert(hooks.heartbeat, "start connects the dwell to Heartbeat")
+	local hallSlot = N + 1
+	local function fullLawn(p, plotP)
+		for i = 1, N do
+			p.data.piggies.slots[i] = { key = D }
+			p.data.piggies.owned[D] = (p.data.piggies.owned[D] or 0) + 1
+		end
+		plotP.indoor = { [hallSlot] = { plinth = { Position = vec(0, 0, 0) } } }
+	end
+	local function stolenBy(p)
+		resident.piggies.slots[1] = { key = X }
+		resident.piggies.owned[X] = 1
+		H.snatch(p, plotR, 1)
+		check(H.isHauling(p) and p.Character:GetAttribute(Config.PIGGY_HAUL_ATTRIBUTE) == "stolen",
+			"the thief snatched the neighbour's piggy")
+	end
+	local h = actor(false)
+	local plotH = plotFor(h)
+	modules.PlotService.getPlot = function(who) return if who == h then plotH else nil end
+	fullLawn(h, plotH)
+	stolenBy(h)
+
+	-- ON THE LAWN WITH THE LAWN FULL: nowhere to land, so no countdown.
+	modules.PlotService.yardContaining = function() return plotH end
+	clockNow = 200; heartbeat()
+	clockNow = 200 + Config.PIGGY_HAUL.secureSeconds + 1; heartbeat()
+	check(H.isHauling(h), "a full lawn gives the dwell nowhere to land, however long you stand")
+
+	-- IN YOUR OWN HALLWAY WITH A FREE PLINTH: the countdown runs and lands
+	-- ON THE HALL PLINTH.
+	modules.PlotService.yardContaining = function() return nil end
+	hallFor[h] = plotH
+	clockNow = 300; heartbeat()
+	check(H.isHauling(h), "the first indoor tick starts the countdown and does not land")
+	clockNow = 300 + Config.PIGGY_HAUL.secureSeconds - 0.5; heartbeat()
+	check(H.isHauling(h), "half a second short of the dwell it is still theirs to lose")
+	clockNow = 300 + Config.PIGGY_HAUL.secureSeconds + 0.1; heartbeat()
+	check(not H.isHauling(h), "five seconds in your own hallway by an empty plinth makes it yours")
+	check(h.data.piggies.slots[hallSlot] and h.data.piggies.slots[hallSlot].key == X,
+		"and it lands on the hall plinth, not the lawn")
+	check(lastNote(h) and lastNote(h).kind == "good", "announced as yours")
+	check(h.data.piggiesStolen == 1, "and counted on the lifetime board")
+	hallFor[h] = nil
+
+	-- SOMEBODY ELSE'S HALLWAY IS NOT YOUR GROUND: a thief standing in the
+	-- neighbour's hall with a free plinth in it gets no countdown.
+	local g = actor(false)
+	local plotG = plotFor(g)
+	modules.PlotService.getPlot = function(who)
+		return if who == g then plotG elseif who == h then plotH else nil
+	end
+	fullLawn(g, plotG)
+	stolenBy(g)
+	hallFor[g] = plotH
+	clockNow = 400; heartbeat()
+	clockNow = 400 + Config.PIGGY_HAUL.secureSeconds + 1; heartbeat()
+	check(H.isHauling(g), "a neighbour's hallway never secures a piggy")
+	-- AND A FREE LAWN SLOT DOES NOTHING FOR SOMEBODY STANDING INDOORS.
+	g.data.piggies.slots[1] = {}
+	clockNow = 500; heartbeat()
+	clockNow = 500 + Config.PIGGY_HAUL.secureSeconds + 1; heartbeat()
+	check(H.isHauling(g), "the rooms are never mixed: a lawn slot cannot be landed on from a hallway")
+	hallFor[g] = nil
+	modules.PlotService.getPlot = function() return nil end
+
+	-- AND THE REFUSAL NAMES BOTH ROOMS, so a thief indoors is not told to go
+	-- and stand on a lawn that is full.
+	check(countPlain(src, "on your lawn or in your hallway") == 2,
+		"both place refusals name the hallway as a room")
+	check(countPlain(src, "PiggyHaulService.registerHall(") == 1
+		and countPlain(sources.InteriorService, "PiggyHaulService.registerHall(") == 1,
+		"the hall is registered by InteriorService, which requires the haul service, not the other way round")
 end
 
 -- ------------------------------------------------------------
@@ -1832,6 +2188,38 @@ check(math.abs(math.deg(Config.piggyPadYaw(1)) - 90) < 0.0001,
 check(math.abs(math.deg(Config.piggyPadYaw(2)) + 90) < 0.0001,
 	"and the x +25 column is turned 270")
 
+-- ------------------------------------------------------------
+-- AND THE STAND UNDER IT FACES THE STREET, WHICH IS A SECOND FACING
+-- ------------------------------------------------------------
+--
+-- Designer, 2026-09-23: "the stand that they sit on is what was facing the
+-- wrong way". A kit's `Pedestal` is authored with its front on its own -Z --
+-- the lane side in a hallway -- so hung on a lawn plinth untouched it showed
+-- the street its blank back. Measured in the plot's own frame before the fix:
+-- the CollectionPlate at z -3.30, the CoinMedallion at -2.82 and the
+-- `CashLabel` mount at -2.98, every one of them pointing at the house.
+--
+-- THE TWO FACINGS ARE INDEPENDENT ON PURPOSE and that is what this pins. The
+-- art is turned where it is PIVOTED; the piggy is seated on `refs.seat`,
+-- whose rotation is the plinth's own. Turning one may never turn the other,
+-- which is the confusion that cost an hour when a report naming "the
+-- pedestal" was read as naming the piggy.
+check(countPlain(pedestalSrc, "local ART_TURN = CFrame.Angles(0, math.pi, 0)") == 1,
+	"the stand takes a half turn in the plot's own frame")
+check(countPlain(pedestalSrc,
+		"art:PivotTo(CFrame.new(base.Position) * refs.seat.Rotation * ART_TURN)") == 1,
+	"applied where the art is seated, so it is the STAND that turns")
+-- AND THE TWO FACINGS ARE ONE EXPRESSION RATHER THAN TWO THAT MUST AGREE.
+-- The stand takes the SEAT's rotation, so it inherits whatever the builder
+-- that knows the geometry decided -- the inward quarter on a lawn and the
+-- plot's own frame in a hallway -- and the half turn is only the difference
+-- between the two authoring conventions (a seat points +Z where the piggy
+-- looks, a kit points -Z where its front is).
+check(countPlain(pedestalSrc, "refs.seat.Rotation") == 3,
+	"the display AND the stand both take their facing from the published seat")
+check(countPlain(pedestalSrc, "Config.piggyPadYaw(refs.index)") == 0,
+	"and neither re-derives it from a slot index, which is a lawn-only answer")
+
 -- THE SEATING IS A SOURCE GUARD because a `PivotTo` on a live model is not
 -- readable offline. What can be read is that neither the pad nor the display
 -- asks for the TRUE bearing any more, and that both ask the same quantiser.
@@ -1840,10 +2228,20 @@ check(math.abs(math.deg(Config.piggyPadYaw(2)) + 90) < 0.0001,
 -- is a decision nobody can re-open.
 check(countPlain(pedestalSrc, "Config.piggyPedestalYaw(") == 0,
 	"nothing is seated on the true bearing to the till")
-check(countPlain(pedestalSrc, "Config.piggyPadYaw(index)") == 1,
-	"the pad takes the quarter turn")
-check(countPlain(pedestalSrc, "Config.piggyPadYaw(refs.index)") == 1,
-	"and the display takes the same one, so the animal cannot face off its own button")
+check(countPlain(pedestalSrc, "Config.piggyPadYaw(index)") == 2,
+	"the pad and the seat both take the quarter turn, in `build`, off the same index")
+-- AND `dress` NO LONGER ASKS AT ALL, which is the property that got STRONGER
+-- when the hall grew plots of its own. The display used to re-derive the turn
+-- from `refs.index` -- a LAWN answer, and nonsense for slot 40 in somebody's
+-- hallway -- so the seating is a FIELD now (`Refs.seat`), written once by
+-- whichever builder knows the geometry. Two expressions that had to agree
+-- became one that cannot disagree.
+check(countPlain(pedestalSrc, "Config.piggyPadYaw(refs.index)") == 0,
+	"the display no longer re-derives the turn from the slot index")
+check(countPlain(pedestalSrc, "refs.seat * CFrame.new(0, lift, 0)") == 1,
+	"it is seated on the frame its builder published, so it cannot face off its own button")
+check(countPlain(pedestalSrc, "seat: CFrame,") == 1,
+	"and that frame is part of the record every placement builder fills in")
 check(Config.piggyPedestalYaw(99) == 0,
 	"an unknown slot asks for no turn rather than throwing")
 
@@ -1937,10 +2335,18 @@ check(padReady(0, nil, 500) == false, "an empty pad is still dark")
 check(padReady(5, clock, 500) == false, "and the reaction window still holds")
 check(countPlain(plotSrc, "Config.getCapacity") == 0,
 	"setPiggyBuffers derives no room: there is no capacity to derive it from")
-check(countPlain(plotSrc, "setBuffered(pedestal, amount)") == 1,
-	"the pedestals are handed the figure alone")
+-- TWICE, WHICH IS THE LAWN AND THE HALL. The collection is one array of
+-- slots -- the six plinths at 1..6 and the plots in the hall behind the front
+-- door at the slots after them -- so the same repaint feeds both, off the same
+-- save and on the same tick. Two calls of one expression rather than a second
+-- clock describing one save, which is the disagreement this file exists to
+-- prevent.
+check(countPlain(plotSrc, "setBuffered(pedestal, amount)") == 2,
+	"the pedestals are handed the figure alone, on the lawn and in the hall")
+check(countPlain(plotSrc, "for slot, pedestal in pairs(indoor) do") == 2,
+	"and the hall's loops walk a SPARSE map with `pairs`, since only unlocked plots stand")
 check(countPlain(plotSrc, "collectPadFiredAt)") == 0,
-	"and the till has no pad to be handed one (it drips, 2026-09-22)")
+	"and the till has no pad to be handed one, being a display")
 
 -- EVERY PAD GOES THROUGH IT, which is what stops six pedestals disagreeing
 -- about what green means. The till's face used to be painted by a second
@@ -1998,8 +2404,8 @@ do
 	check(Config.piggyScale("classic") == 1, "a row with no scale is scale 1")
 	check(Config.piggyScale("bee") < 1 and Config.piggyScale("ladybird") < 1,
 		"the bee and the ladybird are smaller, as asked")
-	check(Config.piggyScale("tiger") > 1 and Config.piggyScale("lion") > 1,
-		"the tiger and the lion are larger, as asked")
+	check(Config.piggyScale("tiger") > 1 and Config.piggyScale("giraffe") > 1,
+		"the tiger and the giraffe are larger, as asked")
 	do
 		local old = Config.SKINS.bee.scale
 		Config.SKINS.bee.scale = 9
@@ -2114,12 +2520,19 @@ end
 do
 	local epics = {}
 	for key, skin in pairs(Config.SKINS) do
-		if skin.chest == "animal" and Config.rarityOf(skin) == "epic" then
+		if skin.collection == "animal" and Config.rarityOf(skin) == "epic" then
 			table.insert(epics, key)
 		end
 	end
 	table.sort(epics)
-	check(#epics == 4, "four animal epics: " .. table.concat(epics, ", "))
+	-- COUNTED, NOT PINNED. This read `#epics == 4` and went red the day Storm
+	-- Stone was retired, with nobody re-running it -- and again when the Lion
+	-- was deleted. What the crate's arithmetic actually needs is that the tier
+	-- is STOCKED AT ALL: `liveOdds` drops an EMPTY tier and reprices the whole
+	-- crate, which is the failure the odds row records. A count that changes
+	-- every time a skin lands or leaves is a test that fails for the wrong
+	-- reason.
+	check(#epics > 0, "the animal shelf stocks an epic tier: " .. table.concat(epics, ", "))
 	for _, key in ipairs(epics) do
 		local skin = Config.SKINS[key]
 		check(skin.aura ~= nil, key .. " glows (an aura)")
@@ -2134,33 +2547,26 @@ do
 	end
 	check(Config.SKINS.hedgehog.pattern.kind == "shards" and Config.SKINS.hedgehog.pattern.parting == 0,
 		"the hedgehog is quills with no parting")
-	check(Config.SKINS.stormstone.pattern.glowEvery == 2,
-		"storm stone lights every second shard")
-	-- `FUR_SETS` read directly rather than through `furMesh`, which subtracts
-	-- two Vector3s and the offline stub's Vector3 is a table.
-	check(Config.SKINS.lion.furSet == "lionmane" and Config.FUR_SETS.lionmane ~= nil,
-		"the lion wears its own ruff set (id pending upload: see Config.FUR_SETS.lionmane)")
-	check(Config.SKINS.lion.furFlat == true
-		and sources.PiggyModel:find("if tier.furFlat then", 1, true) ~= nil,
-		"and the ruff is one flat colour rather than the body sheet through the cylinder unwrap")
 	check(Config.SKINS.peacock.fx == "peacock"
 		and sources.SkinFX:find("builders.peacock = function", 1, true) ~= nil,
 		"the peacock's fan has a builder")
 
-	-- THE CRATES AUTHORISE THE TIER THEY NOW STOCK, on the og shelf's ladder.
-	check(#(Config.chestPool("animal").epic or {}) == 4, "the animal crate stocks the four")
-	local odds = Config.CHESTS.animal.odds
+	-- THE CRATES AUTHORISE THE TIER THE ANIMALS STOCK. Animal Kingdom is a
+	-- theme on the one piggy shelf since the crates merged (2026-09-23), so its
+	-- epics are asserted against the three piggy crates rather than a shelf of
+	-- their own -- the property the odds row needs is unchanged: epic is stocked.
+	local odds = Config.CHESTS.og.odds
 	check(odds.common == 52 and odds.rare == 32 and odds.epic == 12 and odds.legendary == 4,
-		"the animal crate is back on the plan's 52/32/12/4")
+		"the piggy crate is on the plan's 52/32/12/4")
 	check(odds.epic == 3 * odds.legendary and Config.COMBINE.need == 3,
 		"epic = 3 x legendary, which is what holds COMBINE.need at 3")
-	for _, key in ipairs({ "animalrare", "animallegendary" }) do
-		check(Config.CHESTS[key].odds.epic ~= nil and #(Config.chestPool(key).epic or {}) == 4,
-			key .. " authorises epic and stocks it")
+	for _, key in ipairs({ "og", "ograre", "oglegendary" }) do
+		local epicPool = Config.chestPool(key).epic or {}
+		check(Config.CHESTS[key].odds.epic ~= nil, key .. " authorises epic")
+		for _, skinKey in ipairs(epics) do
+			check(table.find(epicPool, skinKey) ~= nil, key .. " stocks the animal epic " .. skinKey)
+		end
 	end
-	check(Config.CHESTS.animalrare.odds.epic == Config.CHESTS.ograre.odds.epic
-		and Config.CHESTS.animallegendary.odds.epic == Config.CHESTS.oglegendary.odds.epic,
-		"the animal tier crates mirror the og ones")
 
 	-- PARTY PIGGY IS EPIC ON THE DESIGNER'S CALL, and its confetti finally
 	-- passes the gate that refused it at rare.

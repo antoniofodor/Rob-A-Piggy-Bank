@@ -5,6 +5,7 @@ local Theme = require(Shared.Theme)
 local Icons = require(Shared.ShopIcons)
 local W = {}
 W.colours = Theme.SHOP_COLOURS
+W.GATE_TEXT = "Rebirth %d required"
 
 function W.icon(parent: GuiObject, key: string, trim: boolean?): ImageLabel?
 	return Icons.mount(parent, key, trim)
@@ -62,6 +63,131 @@ function W.lock(parent: GuiObject): Frame
 	base.Position = UDim2.fromOffset(0, 6); base.Size = UDim2.fromOffset(12, 9)
 	W.round(base, 2, false)
 	return lock
+end
+
+-- ============================================================
+-- THE REBIRTH GATE
+-- ============================================================
+--
+-- ONE TREATMENT FOR EVERY SHELF THAT HAS ONE. Houses, rides and guardians
+-- all carry `unlockRebirths` now (designer, 2026-09-23), so three shelves
+-- wanted the same two things at once: a card that STILL SHOWS a gated item
+-- and says what opens it, and an order that puts the open ones first.
+--
+-- Written once here rather than three times, for the reason this project
+-- keeps recording about near-identical copies -- and with a sharper edge
+-- than usual, because a second lock is a second thing that can disagree
+-- about which rebirth opens what. `ShopWidgets` is the one module the
+-- catalogue cards, the image cards and the ride tiles already share.
+--
+-- THE WORDING IS THE DESIGNER'S AND IS EXACT: "Rebirth N required".
+
+-- WHERE A CARD SITS: open items first, then gated ones by ascending gate,
+-- then by the catalogue's own order inside a rung. One expression, so no
+-- shelf sorts itself and a shelf that acquires a gate later inherits this
+-- with nothing to remember.
+--
+-- `* 1000` IS HEADROOM RATHER THAN A ROUND NUMBER. The longest catalogue
+-- this serves is `HOUSE_TIERS` at 18 rows and its `order` is the row index,
+-- so no rung can reach into the next one; `LayoutOrder` is an integer, which
+-- this is by construction. An UNGATED row returns exactly `info.order`, so
+-- every shelf without a gate is laid out byte-identically to before.
+function W.gateRank(info: any): number
+	return (info.unlockRebirths or 0) * 1000 + (info.order or 99)
+end
+
+-- THE LOCK: a translucent ink sheet over the card with the rebirth on it.
+--
+-- SHOWN AND NOT HIDDEN, which is the designer's call and the same one the
+-- locked ride stances already make: the shop is where something you do not
+-- own yet is supposed to be advertised, and a shelf that quietly omitted its
+-- top half would leave a player with no reason to press the rebirth button.
+--
+-- THE PRICE IS RAISED ABOVE THE WASH RATHER THAN LEFT UNDER IT, and that is
+-- a measurement rather than a flourish. Gold on the price pill's slate reads
+-- 4.61:1; a 0.38 ink wash over that takes it under the 4.5 body floor, and
+-- this project's rule is that contrast is measured, not eyeballed. Raising
+-- the pill keeps "the price still readable underneath" true by construction
+-- at any wash strength. Set on EVERY call and never only when locked: a
+-- property written in one state and not the other is the kind that goes
+-- stale, and the pill drawing above its own card costs nothing when there
+-- is no wash there.
+--
+-- IT DOES NOT TOUCH THE CARD'S BACKGROUND, deliberately. `ShopImageCards`
+-- holds that "ownership changes the action pill, never the item's tier
+-- colour", and a lock repainting the ground would fight that rule on the
+-- guardian shelf. The wash is the whole signal.
+--
+-- A FRAME AND NOT A BUTTON, so the press falls through to the card
+-- underneath: a `Frame` is `Active = false` and absorbs no input. What the
+-- press then does is the caller's business -- see the note in ClientMain on
+-- why a locked card now asks and lets the server name the rebirth.
+--
+-- `Locked` IS AN ATTRIBUTE, read by the card's own Activated handler, and it
+-- is written on every paint rather than only when locked -- or an item that
+-- opened on this rebirth would stay dead until the card was rebuilt.
+--
+-- THE LABEL IS MEASURED. At TextSize 14 in FredokaOne "Rebirth 20 required"
+-- -- the longest this can ever print, since `rebirthsToMax()` is 20 -- is
+-- 116px wide on one line, and the longest single word in it ("required") is
+-- 49px. The box is the card less 18, which is 138 on the shipped 156-wide
+-- card: one line with 22px to spare. Below 114 it WRAPS to 64 x 28 rather
+-- than shrinking, which is why `TextScaled` is off and `TextTruncate` is
+-- None -- with those two the failure is silent shrinkage or silent
+-- clipping, and a 44px box holds two 14px lines with room. Measured live
+-- through `TextService:GetTextSize`, not estimated.
+function W.gate(entry: any, info: any): boolean
+	local button = entry.button
+	local gate = info.unlockRebirths or 0
+	-- OWNED IS NEVER LOCKED. Rebirth wipes power and never cosmetics, so a
+	-- house bought before the ladder moved under it is kept and may still be
+	-- moved into. `info.locked` is the SERVER's verdict rather than a
+	-- comparison this card makes for itself, so the wash and the refusal
+	-- cannot disagree; the `and` is belt and braces on a stale push.
+	local locked = info.locked == true and info.owned ~= true
+
+	button.LayoutOrder = W.gateRank(info)
+	button:SetAttribute("Locked", locked)
+	if entry.sub then
+		entry.sub.ZIndex = button.ZIndex + 6
+	end
+
+	local sheet = button:FindFirstChild("RebirthGate") :: Frame?
+	if not locked then
+		if sheet then sheet.Visible = false end
+		return false
+	end
+	if not sheet then
+		sheet = W.frame(button, "RebirthGate", Theme.INK)
+		sheet.BackgroundTransparency = 0.38
+		sheet.Size = UDim2.fromScale(1, 1)
+		sheet.ZIndex = button.ZIndex + 4
+		-- 16 to match the card's own corner, and no outline: the card
+		-- already carries its rarity edge, and a GuiObject honours one
+		-- UIStroke -- a second here would be the one that got drawn.
+		W.round(sheet, 16, false)
+		local word = W.text(sheet, "Requirement", "", 14)
+		word.TextColor3 = Theme.PAPER
+		word.TextXAlignment = Enum.TextXAlignment.Center
+		word.TextWrapped = true
+		word.TextTruncate = Enum.TextTruncate.None
+		word.AnchorPoint = Vector2.new(0.5, 0.5)
+		-- 0.40 rather than centre: it leaves the price pill's band clear, so
+		-- the one thing raised above the wash is not being written over.
+		word.Position = UDim2.fromScale(0.5, 0.40)
+		word.Size = UDim2.new(1, -18, 0, 44)
+		word.ZIndex = sheet.ZIndex + 1
+		local mark = W.lock(sheet)
+		mark.AnchorPoint = Vector2.new(0.5, 1)
+		mark.Position = UDim2.new(0.5, 0, 0.40, -26)
+		mark.ZIndex = sheet.ZIndex + 1
+	end
+	sheet.Visible = true
+	local word = sheet:FindFirstChild("Requirement") :: TextLabel?
+	if word then
+		word.Text = W.GATE_TEXT:format(gate)
+	end
+	return true
 end
 
 function W.frame(parent: Instance, name: string, colour: Color3?): Frame

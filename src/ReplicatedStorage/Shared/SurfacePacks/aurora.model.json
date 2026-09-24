@@ -1,0 +1,12 @@
+{
+  "className": "SurfaceAppearance",
+  "properties": {
+    "AlphaMode": "Overlay",
+    "ColorMap": "rbxassetid://100090140861939",
+    "MetalnessMap": "rbxassetid://111424753948853",
+    "RoughnessMap": "rbxassetid://128836797657977",
+    "NormalMap": "",
+    "EmissiveMaskContent": "rbxassetid://93544782378712",
+    "EmissiveStrength": 0.7
+  }
+}

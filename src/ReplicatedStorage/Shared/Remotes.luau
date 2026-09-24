@@ -184,6 +184,10 @@ local DEFINITIONS = {
 	StealthRequest = "RemoteEvent",
 	StealthUse = "RemoteEvent",
 	StealthState = "RemoteEvent",
+	-- A hider climbing out of a wheelie bin (jump, tap, or a fresh push).
+	-- Carries at most a DIRECTION, which the server flattens, validates and
+	-- falls back from; never a position. See StealthService.
+	BinClimbOut = "RemoteEvent",
 
 	-- Client buys, or uses, an item on their OWN plot. HomeUse carries a key
 	-- and NO target: the server acts on the caller's own plot or on nothing,
@@ -345,6 +349,42 @@ local DEFINITIONS = {
 	-- it, and every spare they hold with what each one is worth sold.
 	ChestState = "RemoteEvent",
 
+	-- THE COMBINE MACHINE ON THE VERGE (designer, 2026-09-23): the combine
+	-- moved out of the shop and onto a machine you walk up to.
+	--
+	-- Server -> ONE client, when that player finishes the hold on the
+	-- station's prompt. IT CARRIES NOTHING, the same call `BoneThrow`,
+	-- `placeLadder` and `CrackTap` all make: the hold means "open it", never
+	-- "open it with this in it". Everything the panel draws is already on the
+	-- client in `ChestState`, which is the server's own arithmetic -- so
+	-- there is no second copy of a spare count to go stale, and nothing on
+	-- this wire to forge.
+	CombineOpen = "RemoteEvent",
+
+	-- Server -> ONE client: what is in THAT PLAYER'S press hopper.
+	--
+	-- PER PLAYER AND NEVER BROADCAST, which is the whole reason the hopper
+	-- is a save field rather than a table in `CombineService` (designer,
+	-- 2026-09-23: "it should be a player store not a server store"). Two
+	-- players at one press have two hoppers and cannot see or spend each
+	-- other's, so the machine needs no queue, no lock and no owner -- the
+	-- shared thing is the MODEL, and the state is in each player's save.
+	-- Same split the crack panel already makes on a shared piggy.
+	--
+	-- It carries counts and the piggy KEYS, because the panel answers "what
+	-- did I put in" and a bare count cannot.
+	PressState = "RemoteEvent",
+
+	-- Client -> server: combine, as (kind, chestKey, tier, entries?).
+	--
+	-- NO PRICE AND NO OUTCOME ON THE WIRE. The inputs ARE the price, the
+	-- server re-counts them against the save, and `ChestService.combine`
+	-- rolls the climb on `Config.COMBINE.odds` -- so the best a forged
+	-- payload can name is a combine the player could already have asked for
+	-- through the machine's own panel. `entries` is optional and is rebuilt
+	-- from known-good parts by `validatePick` before a single spare moves.
+	CombineRequest = "RemoteEvent",
+
 	-- Server tells ONE client to bounce itself off a trampoline. It carries
 	-- NOTHING -- not a height, not a direction: the server has already decided
 	-- that this player, on this mat, is allowed to bounce, and the height is a
@@ -394,12 +434,43 @@ local DEFINITIONS = {
 	-- it exists to hide.
 	DoorCross = "RemoteEvent",
 
-	-- THE STREET LEADERBOARD: everybody in this server with three LIFETIME
-	-- figures -- cash, piggies robbed, rebirths -- sorted by cash. Broadcast
-	-- rather than per client, because unlike `WantedState` nothing in a row
-	-- is about the recipient; the client highlights its own row itself.
-	-- Pushed on `Config.LEADERBOARD_REFRESH` and on every join and leave.
-	LobbyBoard = "RemoteEvent",
+	-- A PACK IS DROPPING (designer, 2026-09-23: "a banner saying PIGGIES
+	-- INCOMING! ... big funky text at the top of the screen"). Fired to
+	-- every client when `HerdService` releases a batch or the boot wave, with
+	-- `{ id, count, zone }`; `Shared/DropBanner` shows the splash. It
+	-- replaced the OBSERVER toast rather than joining it: two announcements
+	-- of one drop is noise, and the neon shaft on the spot is the half that
+	-- says WHERE.
+	HerdDrop = "RemoteEvent",
+
+	-- THE LASSO (docs/LASSO-PLAN.md; numbers in `Config.LASSO`).
+	--
+	-- `LassoThrow(targetId)`: the client's lock-on names a piggy by its
+	-- `Config.LASSO_TARGET_ATTRIBUTE` id and NOTHING ELSE -- no position, no
+	-- tier, no chance. The server reads which lasso is in hand from
+	-- `HeldItemService`, re-checks range, state and room, and refuses before
+	-- anything is spent. A target id is safe to accept because it only picks
+	-- WHICH valid piggy; everything about whether it may be thrown at is
+	-- decided server-side.
+	LassoThrow = "RemoteEvent",
+	-- `LassoTap()` carries nothing, like `CrackTap`: the server counts it
+	-- against its own clock and caps the rate at `Config.LASSO.tapRate`.
+	LassoTap = "RemoteEvent",
+	-- Server -> every client: `{ id, thrower (UserId), key, rarity, phase,
+	-- startedAt, endsAt }`, phase one of "flight", "struggle", "caught",
+	-- "snapped". Everybody draws the rope; only the thrower gets the TAP bar.
+	LassoState = "RemoteEvent",
+	-- Server -> one client: `{ stock = { [key] = n }, prices = { [key] =
+	-- coins or nil }, rebirths = n, elite = { allowed = bool, productId = n }
+	-- }`. Prices are the server's own `Config.lassoPrice` for THIS player.
+	LassoStock = "RemoteEvent",
+	-- `LassoBuy(key, count?)`: a coin lasso. The Elite tier is bought through
+	-- `ProductService`, never here.
+	LassoBuy = "RemoteEvent",
+
+	-- (THE STREET LEADERBOARD had a channel here and does not need one: it is
+	-- Roblox's own player list now, and `leaderstats` replicates itself. See
+	-- `LobbyBoardService`.)
 
 	AdminState = "RemoteEvent",
 }

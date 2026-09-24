@@ -21,6 +21,7 @@
 -- at startup stays connected. Rebuilding the prompt with the piggy would mean
 -- re-wiring a signal on every crate open, and the connection that gets
 -- forgotten is the one that fails silently.
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 -- For the one clock both ends of a pad cooldown may read. See `padReady`.
 local Workspace = game:GetService("Workspace")
@@ -43,7 +44,21 @@ export type Refs = {
 	-- The plinth top course. The display is seated on it -- so how high a
 	-- piggy stands is read from the part rather than from a second copy of
 	-- the arithmetic.
+	--
+	-- AND IT IS WHAT THE PROMPTS HANG ON AND WHAT THE NAME LABEL IS ADORNED
+	-- TO, which is why an INDOOR placement hands `buildIndoor` the plot's own
+	-- face part rather than a plinth of its own: `PiggyHaulService.reach`
+	-- measures a press against this, so it has to be at the pedestal.
 	plinth: BasePart,
+	-- WHERE THE DISPLAY STANDS: a GROUND frame, +Z the way the piggy faces.
+	--
+	-- A FIELD RATHER THAN AN EXPRESSION IN `dress`, and that is what lets one
+	-- `dress` serve a lawn plinth and an indoor plot. It used to be the
+	-- plinth's own top face turned by `piggyPadYaw` of the slot index -- which
+	-- is a LAWN answer (the six slots stand at |x| 25 and face the till) and
+	-- is nonsense for slot 40 in somebody's hallway. The builder that knows
+	-- the geometry states it once; `dress` reads it.
+	seat: CFrame,
 	-- THE COLLECT BUTTON, AND IT IS A PLACE RATHER THAN A PRESS. A flat pad
 	-- on the grass in front of the pedestal: you walk over it and the buffer
 	-- banks. `pad` is what `Touched` fires on and `padFace` is the coloured
@@ -96,6 +111,18 @@ export type Refs = {
 	takePrompt: ProximityPrompt,
 	placePrompt: ProximityPrompt,
 	snatchPrompt: ProximityPrompt,
+	-- WHO OWNS THIS PLINTH, AND WHETHER THEY HAVE A PIGGY OF THEIR OWN IN
+	-- THEIR ARMS RIGHT NOW. Both are inputs to the PLACE prompt and to
+	-- nothing else -- an empty plinth is only worth offering while there is
+	-- something to put on it.
+	--
+	-- HELD HERE RATHER THAN PASSED, because the three facts that decide that
+	-- prompt arrive on three different clocks: the owner on a claim, the
+	-- carry on every take, swap and ending, and `key` on every placement and
+	-- sale. One painter reads all three, so whichever fires last cannot
+	-- answer for the other two.
+	ownerId: number?,
+	carrying: boolean?,
 	-- WHICH RE-PUBLISH IS THE LIVE ONE. `republish` switches every prompt off
 	-- and switches the right ones back a beat later, so a SECOND republish
 	-- starting inside that beat would have two timers racing to restore
@@ -166,36 +193,47 @@ local STONE_DARK = Color3.fromRGB(176, 162, 140)
 -- special case invented here: it is what the piggy NAMES have always done,
 -- where four tier colours measuring 1.65 to 3.74 against bare lawn are
 -- legible entirely because of the ink round them.
-function PiggyPedestal.buildPadFigure(face: BasePart): (SurfaceGui, TextLabel)
-	local padSpec = Config.PIGGY_PEDESTAL.pad
+-- THE FIGURE ITSELF, ON WHICHEVER SURFACE IT IS PAINTED ON.
+--
+-- SPLIT OUT FROM `buildPadFigure` SO THAT THE LOOK OF THE NUMBER AND THE
+-- SURFACE IT IS PAINTED ON ARE TWO DECISIONS. Every decision about how the
+-- number looks (the font, the paper fill, the opaque ink stroke, the scaling,
+-- the always-on-top refusal) is here, once, so no two canvases can drift into
+-- disagreeing about what a cash readout is.
+--
+-- THERE IS ONLY ONE CANVAS TODAY AND THERE WERE TWO FOR A DAY. A hall plot
+-- painted its figure on a SIGN standing proud of the pedestal's lane-facing
+-- surface, where the authored kits put a `CashLabel` mount -- and the sign
+-- stood in front of the pedestal's own coin emblem and covered it (designer,
+-- 2026-09-23: *"the placard in front ... blocks the little coin emblem"*).
+-- The number is on the button in both places now, which is what the lawn
+-- always did. The split stays, because what it costs is nothing and what it
+-- buys is that the next surface cannot re-decide the typography.
+--
+-- `fill` IS IN THE CANVAS'S OWN UNITS and `turn` is applied after it, which
+-- is what lets the pad's figure run ALONG a surface whose canvas maps its X
+-- to the short axis. See `buildPadFigure`.
+function PiggyPedestal.buildFigure(part: BasePart, name: string,
+	face: Enum.NormalId, pixelsPerStud: number, fill: Vector2, turn: number,
+	range: number): (SurfaceGui, TextLabel)
 	local gui = Instance.new("SurfaceGui")
-	gui.Name = "PadFigure"
-	gui.Face = Enum.NormalId.Top
-	-- PIXELS PER STUD, so the canvas is a function of the pad's own size and
+	gui.Name = name
+	gui.Face = face
+	-- PIXELS PER STUD, so the canvas is a function of the part's own size and
 	-- the type scales with the object rather than with the screen. The same
 	-- sizing the shop fascias, the patrol plate and the van all use.
 	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
-	gui.PixelsPerStud = padSpec.labelPixelsPerStud
+	gui.PixelsPerStud = pixelsPerStud
 	gui.AlwaysOnTop = false
-	gui.MaxDistance = padSpec.labelRange
-	gui.Parent = face
+	gui.MaxDistance = range
+	gui.Parent = part
 
 	local amount = Instance.new("TextLabel")
 	amount.Name = "Amount"
-	-- SIZED IN THE CANVAS'S OWN UNITS, WHICH ARE TURNED A QUARTER. The canvas
-	-- maps its X to the pad's SHORT axis (measured: 166 x 474 px on a face
-	-- 7.4 x 2.6 studs), so a label that is to end up running ALONG the pad has
-	-- to be authored wide in SHORT-AXIS widths and then rotated. Both ratios
-	-- come off the face's real dimensions, so a pad that changes shape carries
-	-- its figure with it rather than needing a second number re-derived here.
-	local long = padSpec.size.X - padSpec.rim * 2
-	local short = padSpec.size.Z - padSpec.rim * 2
-	amount.Size = UDim2.fromScale(
-		(long / short) * padSpec.labelFill.X,
-		(short / long) * padSpec.labelFill.Y)
+	amount.Size = UDim2.fromScale(fill.X, fill.Y)
 	amount.AnchorPoint = Vector2.new(0.5, 0.5)
 	amount.Position = UDim2.fromScale(0.5, 0.5)
-	amount.Rotation = padSpec.labelRotation
+	amount.Rotation = turn
 	amount.BackgroundTransparency = 1
 	amount.Font = Theme.FONT
 	amount.TextScaled = true
@@ -205,17 +243,41 @@ function PiggyPedestal.buildPadFigure(face: BasePart): (SurfaceGui, TextLabel)
 	-- of a readout, which is the two-word difference `RobberMark` records.
 	--
 	-- AND OPAQUE, WHICH IS THE WHOLE OF WHY PAPER WORKS HERE. See the note
-	-- above the function: paper on the ready green measures 1.82:1, which as
-	-- a bare FILL is a label you can see and cannot read. A hard ink outline
-	-- moves the question -- what carries the glyph is then the STROKE against
-	-- the ground, 8.23 on the green and 4.26 on the empty red, both clear of
-	-- the large-type floor from one colour. That is the same technique the
-	-- piggy NAMES already run on: four tier colours that measure 1.65 to 3.74
+	-- above: paper on the ready green measures 1.82:1, which as a bare FILL is
+	-- a label you can see and cannot read. A hard ink outline moves the
+	-- question -- what carries the glyph is then the STROKE against the
+	-- ground, 8.23 on the green and 4.26 on the empty red, both clear of the
+	-- large-type floor from one colour. That is the same technique the piggy
+	-- NAMES already run on: four tier colours that measure 1.65 to 3.74
 	-- against bare lawn and are legible because of the ink round them.
 	amount.TextStrokeColor3 = Theme.INK
 	amount.TextStrokeTransparency = 0
 	amount.Parent = gui
 	return gui, amount
+end
+
+function PiggyPedestal.buildPadFigure(face: BasePart): (SurfaceGui, TextLabel)
+	local padSpec = Config.PIGGY_PEDESTAL.pad
+	-- SIZED IN THE CANVAS'S OWN UNITS, WHICH ARE TURNED A QUARTER. The canvas
+	-- maps its X to the pad's SHORT axis (measured: 166 x 474 px on a face
+	-- 7.4 x 2.6 studs), so a label that is to end up running ALONG the pad has
+	-- to be authored wide in SHORT-AXIS widths and then rotated.
+	--
+	-- AND BOTH RATIOS COME OFF THE FACE THAT WAS HANDED IN RATHER THAN OFF THE
+	-- SPEC, which is what the note here has claimed since it was written and
+	-- is only true now. There are three pads in this game -- the six on a
+	-- lawn, the till's, and one per unlocked plot in the hall -- and only the
+	-- first two are built from `PIGGY_PEDESTAL.pad`. Read from the spec, an
+	-- indoor face of a different shape would be typeset to the lawn's aspect
+	-- and run off its own edges; read from the part, a pad that changes shape
+	-- carries its figure with it and there is no second number to re-derive.
+	local long = face.Size.X
+	local short = face.Size.Z
+	return PiggyPedestal.buildFigure(face, "PadFigure", Enum.NormalId.Top,
+		padSpec.labelPixelsPerStud,
+		Vector2.new((long / short) * padSpec.labelFill.X,
+			(short / long) * padSpec.labelFill.Y),
+		padSpec.labelRotation, padSpec.labelRange)
 end
 
 -- WHAT A COLLECT SOUNDS LIKE, built once for the SEVEN pads on a lawn.
@@ -291,12 +353,392 @@ function PiggyPedestal.playPadCollect(sound: Sound?, fullness: number?)
 end
 
 -- ------------------------------------------------------------
+-- THE FOUR PROMPTS ON A PLINTH
+-- ------------------------------------------------------------
+--
+-- EXPORTED FOR THE REASON `buildPadFigure` AND `buildPadSound` ARE: there is
+-- a second placement builder now (`Shared/IndoorPedestal`, the hall's own
+-- plots) and it needs the identical four prompts on different geometry. A
+-- near-identical second copy of four prompts is four chances for an indoor
+-- plinth to carry a different key, a different hold or -- worst -- a
+-- different `Enabled` at birth, which is the state that poisons a client's
+-- opening sweep and cannot be taken back.
+--
+-- `stand` IS THE PART THEY HANG ON, which is the lawn's plinth top course
+-- and a hall plot's own face marker. A prompt measures to its part's centre,
+-- so this is also what `PiggyHaulService.reach` measures a press against.
+function PiggyPedestal.buildPrompts(stand: BasePart)
+	-- THE COLLECT IS NOT IN HERE, AND THE SPLIT IS BY CONSEQUENCE.
+	--
+	-- Collect used to be a prompt on this same part, and the pair needed a
+	-- second key and a card slot to avoid colliding. It is a floor pad now,
+	-- which leaves these alone on the plinth -- so the sell goes back to card
+	-- slot 0 and the two-cards-on-one-part problem goes away.
+	--
+	-- WHY THE TWO VERBS END UP AS DIFFERENT KINDS OF CONTROL IS THE POINT:
+	-- collecting is frequent, harmless and done on the move, so it is a place
+	-- you cross; selling is rare, permanent and the only thing here a
+	-- nine-year-old could regret, so it stays a deliberate 1.8-second hold.
+	-- Making the destructive one the easy one would have been exactly
+	-- backwards.
+	--
+	-- `X` CHECKED AGAINST THE WHOLE MAP, not assumed free: the only two
+	-- ProximityPrompt keys in the entire source are `G` (smash) and `J` (grow
+	-- tree), and the client bindings are Q, B, V, R, I, Escape, F2 and the
+	-- number row. X is unused by any of them. Kept rather than moved to `E`
+	-- now that it is alone, because `E` is what a player brushes past
+	-- everything else in this game with.
+	local sellPrompt = Instance.new("ProximityPrompt")
+	sellPrompt.Name = "SellPrompt"
+	sellPrompt.ActionText = "Sell Piggy"
+	sellPrompt.ObjectText = ""
+	Config.setPromptKind(sellPrompt, "sell")
+	sellPrompt.KeyboardKeyCode = Enum.KeyCode.X
+	sellPrompt.GamepadKeyCode = Enum.KeyCode.ButtonY
+	sellPrompt.HoldDuration = Config.PIGGY_SELL.hold
+	sellPrompt.MaxActivationDistance = Config.COLLECT_RANGE
+	sellPrompt.RequiresLineOfSight = false
+	sellPrompt.Enabled = false
+	sellPrompt:SetAttribute(Config.PROMPT_OWNER_ATTRIBUTE, 0)
+	sellPrompt.Parent = stand
+
+	-- ------------------------------------------------------------
+	-- PICKING ONE UP, AND PUTTING ONE DOWN
+	-- ------------------------------------------------------------
+	--
+	-- THREE VERBS, THREE PROMPTS, ONE KEY, AND EXACTLY ONE CARD PER READER.
+	--
+	-- The three are TAKE (your own, off your own plinth), SNATCH (somebody
+	-- else's) and PLACE (one you are carrying, onto an empty slot of yours).
+	-- They are three `Config.PROMPTS` kinds rather than one because a single
+	-- kind would have to choose one tone for all three, and every choice is a
+	-- lie two thirds of the time: red on your own lawn for tidying your own
+	-- collection, or gold for robbing a child.
+	--
+	-- AND THREE INSTANCES RATHER THAN TWO, WHICH REVERSES THE OBVIOUS SAVING.
+	-- Take and Place can never both apply -- a plinth is occupied or it is
+	-- not -- and both are the OWNER'S, so one prompt could carry them with
+	-- `dress` swapping its kind when the key changes. It cost more than it
+	-- saved, in two ways that are both invisible until somebody plays it:
+	--
+	-- A CARD IS BUILT ON `PromptShown` AND NEVER REBUILT. So a kind that
+	-- changes under a card already on screen leaves the card saying the old
+	-- word -- and the commonest moment in this whole feature is exactly that
+	-- one, a player taking their own piggy and standing there reading TAKE
+	-- PIGGY over the empty plinth they just cleared.
+	--
+	-- AND `Enabled` WOULD NEVER TRANSITION. `PromptUI`'s rules may only ever
+	-- REFUSE, so what lets a client take a refusal back is the server's own
+	-- `Enabled` going false -> true again; a single prompt that is enabled in
+	-- both states never does, so a client that refused it while the plot was
+	-- unowned would refuse it forever. Three prompts each switch on and off
+	-- as the plinth fills and empties, which re-arms the client rule for
+	-- free and is the same shape the sell prompt has always had.
+	--
+	-- WHICH ONE A CLIENT SEES IS THE TWO OWNER RULES, AND THAT IS WHAT MAKES
+	-- ONE KEY SAFE. `PROMPT_OWNER_ATTRIBUTE` refuses take and place on every
+	-- screen but the owner's; `PROMPT_DENY_OWNER_ATTRIBUTE` refuses snatch on
+	-- the owner's and nobody else's. The two are exact complements, and the
+	-- occupancy of the plinth separates take from place on the server -- so no
+	-- client ever has two of these enabled at once, which is the exclusivity
+	-- guarantee `PromptUI` is built on, kept BY CONSTRUCTION rather than by
+	-- anybody remembering.
+	--
+	-- `E` RATHER THAN A FOURTH LETTER. The whole map was checked before it
+	-- was taken: the ProximityPrompt keys in this game are `E` (steal,
+	-- collect, shop, post, crate, recover, hide, dig), `G` (smash), `J` (grow
+	-- tree) and `X` (sell, on this same plinth), and the client bindings are
+	-- Q, B, V, R, I, Escape, F2 and the number row. `E` is what a player
+	-- brushes past everything else in this game with, which is exactly right
+	-- for the commonest verb here and is why the destructive one next to it
+	-- kept `X`.
+	--
+	-- NOTHING ELSE ON THIS LAWN IS ON `E` WITHIN REACH. The till's own steal,
+	-- smash and collect controls sit at the plot centre, and the nearest
+	-- pedestal column is |x| 25 -- more than twice `Config.STEAL_RANGE` away
+	-- -- so the two-prompts-on-one-key collision that cost the shop doors
+	-- nine studs of their own room cannot happen here. INDOORS THE SAME
+	-- MEASUREMENT HOLDS AND IS TIGHTER: a hall plot's neighbour is 9.4 studs
+	-- along its own platform (10.0 in an authored kit) against a
+	-- `COLLECT_RANGE` of 9, so two plinths' cards can overlap at the midpoint
+	-- and the nearer one wins -- which is the ordinary "walk up to the one
+	-- you mean" case rather than a collision between two different verbs.
+	--
+	-- CARD SLOT 1, BESIDE THE SELL'S 0. Sell is live on exactly the states
+	-- `takePrompt` is live on, so the owner genuinely sees two cards at an
+	-- occupied plinth of their own -- which is the steal/smash pattern and
+	-- for the same reason: what to do with this piggy is a choice, and a
+	-- choice you cannot see is not one.
+	local function haulPrompt(name: string, deny: boolean): ProximityPrompt
+		local prompt = Instance.new("ProximityPrompt")
+		prompt.Name = name
+		prompt.KeyboardKeyCode = Enum.KeyCode.E
+		prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
+		prompt.MaxActivationDistance = Config.COLLECT_RANGE
+		prompt.RequiresLineOfSight = false
+		Config.setPromptSlot(prompt, 1)
+		-- BORN REFUSED AND BORN ATTRIBUTED TO NOBODY, which is the order this
+		-- project has already paid for once. A plot is built at server startup
+		-- with no owner, so a prompt that arrived enabled would be shown to
+		-- every client on every resident lawn for as long as it took an owner
+		-- to be written -- and `PromptUI`'s rules only ever REFUSE, so the
+		-- later owner write could not have taken it back.
+		prompt.Enabled = false
+		prompt:SetAttribute(
+			if deny then Config.PROMPT_DENY_OWNER_ATTRIBUTE else Config.PROMPT_OWNER_ATTRIBUTE,
+			0)
+		prompt.Parent = stand
+		return prompt
+	end
+	local takePrompt = haulPrompt("PiggyTakePrompt", false)
+	takePrompt.ActionText = "Take Piggy"
+	Config.setPromptKind(takePrompt, "take")
+	takePrompt.HoldDuration = Config.PIGGY_HAUL.takeHold
+
+	local placePrompt = haulPrompt("PiggyPlacePrompt", false)
+	placePrompt.ActionText = "Place Piggy"
+	Config.setPromptKind(placePrompt, "place")
+	placePrompt.HoldDuration = Config.PIGGY_HAUL.placeHold
+
+	local snatchPrompt = haulPrompt("PiggySnatchPrompt", true)
+	snatchPrompt.ActionText = "Snatch Piggy"
+	Config.setPromptKind(snatchPrompt, "snatch")
+	snatchPrompt.HoldDuration = Config.PIGGY_HAUL.snatchHold
+
+	return sellPrompt, takePrompt, placePrompt, snatchPrompt
+end
+
+-- ------------------------------------------------------------
+-- WALKING OVER A PAD, DEBOUNCED
+-- ------------------------------------------------------------
+--
+-- `Touched` IS NOT AN ENTRY EVENT, AND THAT IS THE ENTIRE DIFFICULTY.
+--
+-- It fires PER CHARACTER PART and re-fires on every re-contact: measured on
+-- an electric fence, fourteen parts reporting on the first contact frame and
+-- eighteen fires over four seconds while standing still. That is the bug that
+-- made a fence stun renew itself faster than it could expire, and it is the
+-- single most expensive lesson in this codebase about this one event.
+--
+-- What it costs HERE is not a freeze, because a collect is idempotent -- it is
+-- one crossing banking seven times. So every pad keeps a per-player stamp.
+--
+-- KEYED PER PLAYER PER PAD, never per player alone. Per player, walking from
+-- one pedestal to the next inside the cooldown would silently skip the second
+-- pad -- and the whole mechanic is a lap of them, so the pads are crossed in
+-- quick succession by design.
+--
+-- IN `Shared` BECAUSE THERE ARE TWO PAD BUILDERS NOW. `EconomyService` wires
+-- the six lawn pads and `InteriorService` wires a hall's; a second copy of
+-- this debounce is the near-identical duplicate this project keeps recording,
+-- on the one event it has the most scar tissue about.
+--
+-- THE STAMPS LIVE IN THE CLOSURE AND NOT IN A MODULE TABLE, which is the one
+-- thing this does differently from the copy it replaces. A lawn pad lives for
+-- the server's life, so a table keyed on it never has to give anything back;
+-- an INDOOR pad is destroyed every time a hallway is rebuilt, and a strong
+-- table keyed on the Instance would hold every pad this server ever built.
+-- Held in the closure the stamps die with the connection, which dies with the
+-- pad -- and nothing ever read that table anyway.
+function PiggyPedestal.wirePad(pad: BasePart, slot: number,
+	collect: (Player, number) -> ())
+	local stamps: { [Player]: number } = {}
+	pad.Touched:Connect(function(hit: BasePart)
+		-- The character a part belongs to, and nothing else: a thrown bone or
+		-- a rolling ride part touching a pad is not somebody collecting.
+		local character = hit.Parent
+		if not character then
+			return
+		end
+		local player = Players:GetPlayerFromCharacter(character)
+		if not player then
+			return
+		end
+		local now = os.clock()
+		local last = stamps[player]
+		if last and (now - last) < Config.PIGGY_PEDESTAL.pad.cooldown then
+			return
+		end
+		stamps[player] = now
+		collect(player, slot)
+	end)
+end
+
+-- ------------------------------------------------------------
 -- BUILD
 -- ------------------------------------------------------------
 
 -- `ground` is the plinth's own footprint centre AT GRASS LEVEL, turned with
 -- the plot -- so the far row's half turn comes in with it and nothing here
 -- has to know which row it is on. Every offset below is local to that frame.
+-- What the house's own art is called once it is standing on the lawn, and
+-- which kit it came from. The second is what stops a Sky Castle's plinth
+-- being reused for a Beach Villa: the part NAMES are identical between
+-- kits, so without it a re-theme would leave one house's stump standing
+-- under another's, with nothing erroring. Same reason `FUR_SET_ATTRIBUTE`
+-- exists one object along.
+local ART_NAME = "HouseArt"
+-- WHICH WAY THE STAND FACES: THE WAY THE PIGGY ON IT DOES, WHICH IS THE SEAT'S
+-- OWN ROTATION AND A HALF TURN.
+--
+-- Reported on 2026-09-23 as *"the stand that they sit on is what was facing
+-- the wrong way"*, and measured on a live plot it was exactly that. A kit's
+-- `Pedestal` is authored with its FRONT on its own -Z -- the side that faces
+-- the lane in a hallway -- and everything that says so is on that side.
+-- Measured in the plot's own frame with the art hung untouched:
+--
+--     CollectionPlate   z -3.30      the collect apron
+--     CoinMedallion     z -2.82      the emblem, and the reported one
+--     @CashLabel        z -2.98      the readout mount
+--
+-- So all three pointed at the HOUSE, which is the one direction on a lawn
+-- that nobody ever looks from.
+--
+-- A HALF TURN WAS THE FIRST ANSWER AND IT WAS 90 DEGREES SHORT (*"it looks
+-- like the stand need to be rotated 90 degrees clockwise"*). Facing the
+-- street is where a stand would point if a player read it from the pavement,
+-- and that is not where they read it from: the six collect pads are on the
+-- INBOARD side (`Config.piggyPadYaw`) precisely because the walk between the
+-- pedestals runs up the middle of the lawn. THE FACE BELONGS ON THE SIDE THE
+-- ROUTE IS ON, which is the same rule the hall already keeps -- in there the
+-- pedestal's front faces the lane, and the lane is the only ground anybody
+-- walks on.
+--
+-- TAKEN FROM `refs.seat` RATHER THAN RE-DERIVED FROM THE SLOT INDEX, which is
+-- the whole reason this is one line. The seat is the frame the pedestal's own
+-- BUILDER published -- the inward quarter on a lawn, the plot's own frame in
+-- a hallway -- so the stand inherits whatever that builder decided, the far
+-- row's half turn rides on it, and a second expression that has to agree with
+-- the display's facing never exists. `dress` re-deriving that turn from
+-- `refs.index` is the bug `Refs.seat` was made a field to kill; deriving the
+-- ART from the index would have been the same bug on the other object.
+--
+-- AND THE HALF TURN IS THE AUTHORING CONVENTION, NOT A DESIGN CHOICE: a seat
+-- points +Z where the piggy looks and a kit points -Z where its front is, so
+-- the two differ by pi by construction. If a kit ever ships authored the
+-- other way round, this is the one line that changes.
+local ART_TURN = CFrame.Angles(0, math.pi, 0)
+local ART_KIT_ATTRIBUTE = "ArtKit"
+
+--[[
+	Dress this plinth in the house's own pedestal, or put the stone back.
+
+	`template` is a kit's `Pedestal` Model (ThemedInterior.pedestalTemplate)
+	or nil for the generic stone. Returns the seat the piggy should stand on,
+	which the caller writes back to `refs.seat`.
+
+	THE STONE COURSES STAY AND GO INVISIBLE, WHICH IS THE WHOLE TRICK. This
+	file's `Refs` hands out `plinth` as a single BasePart and fourteen things
+	read it -- it is the model's PrimaryPart, it carries the slot attribute
+	and the slot KEY attribute, all four prompts hang off it, and the seat is
+	derived from its top face. A kit's pedestal is a MODEL of eighteen parts,
+	so swapping one for the other would have meant re-homing every one of
+	those readers. Kept as an invisible anchor, not one of them changes.
+
+	That is the same split the fences already use -- one invisible slab
+	carries the collision and everything visible is `CanCollide` off -- and the
+	same one the ladder uses, where a truss nobody can see is what is
+	actually climbed and the rails are the picture.
+
+	THE SEAT COMES FROM THE ART'S OWN `Piggy` ATTACHMENT rather than from the
+	stone's top face. Every kit authors one on its `Root`, which is where
+	that kit's designer decided a piggy stands on that pedestal -- a stump,
+	a barrel and a crystal column are not the same height and must not be
+	made so. The stone's own top is the fallback and nothing else.
+
+	THE TURN IS THE SEAT'S OWN AND IS NEVER RE-DERIVED HERE. Only the
+	POSITION moves: the rotation is lifted off the `refs.seat` this plinth's
+	builder already published, so dressing a plinth cannot turn the piggy
+	standing on it. Re-deriving it from the slot index through the pad
+	quantiser is the reversal `tests/luau/piggies.luau` pins at the bottom of
+	the seating section -- that is a LAWN answer, and nonsense for slot 40 in
+	somebody's hallway, which is exactly why the seating became a field in
+	the first place. Two expressions that have to agree became one that
+	cannot.
+
+	It also means a kit's own frame cannot leak in. A kit pedestal carries
+	the rotation of the room it was authored in, so the art is measured for
+	its POSITION alone and the piggy keeps facing whichever way its builder
+	decided -- inward at the till on a lawn, and whatever the hall chose
+	indoors.
+]]
+function PiggyPedestal.setArt(refs: Refs, template: Model?): CFrame
+	local model = refs.plinth.Parent
+	local worn = model and model:FindFirstChild(ART_NAME)
+	local kitName = if template then template:GetFullName() else nil
+
+	-- A DIFFERENT HOUSE'S ART IS TORN DOWN RATHER THAN RESEATED. The parts
+	-- are named the same in every kit, so reusing one would be one house's
+	-- geometry at another's offsets.
+	if worn and worn:GetAttribute(ART_KIT_ATTRIBUTE) ~= kitName then
+		worn:Destroy()
+		worn = nil
+	end
+
+	local stoneSeat = refs.plinth.CFrame * CFrame.new(0, refs.plinth.Size.Y / 2, 0)
+
+	if not template or not model then
+		if worn then
+			worn:Destroy()
+		end
+		-- THE STONE COMES BACK VISIBLE, not merely left alone: a house tier
+		-- can be moved DOWN into, and a plot whose kit stopped resolving must
+		-- not be six invisible plinths with piggies floating over them.
+		for _, part in ipairs(model and model:GetChildren() or {}) do
+			if part:IsA("BasePart") and (part.Name == "Base" or part.Name == "Plinth") then
+				part.Transparency = 0
+			end
+		end
+		return CFrame.new(stoneSeat.Position) * refs.seat.Rotation
+	end
+
+	if not worn then
+		local clone = template:Clone()
+		clone.Name = ART_NAME
+		clone:SetAttribute(ART_KIT_ATTRIBUTE, kitName)
+		for _, d in ipairs(clone:GetDescendants()) do
+			if d:IsA("BasePart") then
+				-- THE THREE FALSES THE STONE ALREADY TAKES, and for its reasons:
+				-- this stands on the ground a defender defends and a thief runs
+				-- across, so it may never body-block a chase or eat a raycast
+				-- meant for a piggy. Kit art is authored for a room where the
+				-- floor collides, so it arrives wanting all three.
+				d.Anchored = true
+				d.CanCollide = false
+				d.CanQuery = false
+				d.CastShadow = false
+			end
+		end
+		clone.Parent = model
+		worn = clone
+	end
+
+	-- SEATED ON THE GROUND THE STONE STANDS ON, which is the plinth's own
+	-- base rather than the model's pivot: `build` sets `WorldPivot` to the
+	-- ground frame, but a caller is free to move the model afterwards and
+	-- the plinth is the thing every other offset here is measured from.
+	local art = worn :: Model
+	-- POSITION FROM THE PLINTH, ROTATION FROM THE SEAT. Those are two
+	-- questions and the plinth can only answer the first: it is a square
+	-- course carrying the plot's own frame, so `base` alone would stand the
+	-- art facing the house. See `ART_TURN`.
+	local base = refs.plinth.CFrame * CFrame.new(0, -refs.plinth.Size.Y / 2, 0)
+	art:PivotTo(CFrame.new(base.Position) * refs.seat.Rotation * ART_TURN)
+
+	for _, part in ipairs(model:GetChildren()) do
+		if part:IsA("BasePart") and (part.Name == "Base" or part.Name == "Plinth") then
+			part.Transparency = 1
+		end
+	end
+
+	local root = art.PrimaryPart
+	local piggy = root and root:FindFirstChild("Piggy")
+	local at = if piggy and piggy:IsA("Attachment")
+		then piggy.WorldCFrame.Position
+		else stoneSeat.Position
+	return CFrame.new(at) * refs.seat.Rotation
+end
+
 function PiggyPedestal.build(parent: Instance, ground: CFrame, index: number): Refs
 	local spec = Config.PIGGY_PEDESTAL
 	local model = Instance.new("Model")
@@ -363,10 +805,10 @@ function PiggyPedestal.build(parent: Instance, ground: CFrame, index: number): R
 	-- flush, which is also what keeps the pad's 8.4-stud width off the 10-stud
 	-- row pitch rather than diagonally across it.
 	--
-	-- AND `dress` TAKES THE SAME YAW NOW, which is the second half of that
-	-- story. The display was seated on the exact bearing and read as askew on
-	-- its own square plinth -- so the piggy and the button in front of it are
-	-- one number rather than two that have to be kept in step. Where a display
+	-- AND `dress` TAKES THE SAME YAW, which is the second half of that story.
+	-- The display was seated on the exact bearing and read as askew on its own
+	-- square plinth -- so the piggy and the button in front of it are one
+	-- number rather than two that have to be kept in step. Where a display
 	-- LOOKS and where you STAND to collect turned out to be the same question
 	-- once both of them had to be square.
 	--
@@ -442,139 +884,11 @@ function PiggyPedestal.build(parent: Instance, ground: CFrame, index: number): R
 
 	pad:SetAttribute(Config.PIGGY_SLOT_ATTRIBUTE, index)
 
-	-- THE ONE PROMPT LEFT ON A PEDESTAL, AND THE SPLIT IS BY CONSEQUENCE.
-	--
-	-- Collect used to be a prompt on this same part, and the pair needed a
-	-- second key and a card slot to avoid colliding. It is a floor pad now,
-	-- which leaves this alone on the plinth -- so it goes back to card slot 0
-	-- and the whole two-cards-on-one-part problem goes away.
-	--
-	-- WHY THE TWO VERBS END UP AS DIFFERENT KINDS OF CONTROL IS THE POINT:
-	-- collecting is frequent, harmless and done on the move, so it is a place
-	-- you cross; selling is rare, permanent and the only thing here a
-	-- nine-year-old could regret, so it stays a deliberate 1.8-second hold.
-	-- Making the destructive one the easy one would have been exactly
-	-- backwards.
-	--
-	-- `X` CHECKED AGAINST THE WHOLE MAP, not assumed free: the only two
-	-- ProximityPrompt keys in the entire source are `G` (smash) and `J` (grow
-	-- tree), and the client bindings are Q, B, V, R, I, Escape, F2 and the
-	-- number row. X is unused by any of them. Kept rather than moved to `E`
-	-- now that it is alone, because `E` is what a player brushes past
-	-- everything else in this game with.
-	local sellPrompt = Instance.new("ProximityPrompt")
-	sellPrompt.Name = "SellPrompt"
-	sellPrompt.ActionText = "Sell Piggy"
-	sellPrompt.ObjectText = ""
-	Config.setPromptKind(sellPrompt, "sell")
-	sellPrompt.KeyboardKeyCode = Enum.KeyCode.X
-	sellPrompt.GamepadKeyCode = Enum.KeyCode.ButtonY
-	sellPrompt.HoldDuration = Config.PIGGY_SELL.hold
-	sellPrompt.MaxActivationDistance = Config.COLLECT_RANGE
-	sellPrompt.RequiresLineOfSight = false
-	sellPrompt.Enabled = false
-	sellPrompt:SetAttribute(Config.PROMPT_OWNER_ATTRIBUTE, 0)
-	sellPrompt.Parent = plinth
-
-	-- ------------------------------------------------------------
-	-- PICKING ONE UP, AND PUTTING ONE DOWN
-	-- ------------------------------------------------------------
-	--
-	-- THREE VERBS, THREE PROMPTS, ONE KEY, AND EXACTLY ONE CARD PER READER.
-	--
-	-- The three are TAKE (your own, off your own plinth), SNATCH (somebody
-	-- else's) and PLACE (one you are carrying, onto an empty slot of yours).
-	-- They are three `Config.PROMPTS` kinds rather than one because a single
-	-- kind would have to choose one tone for all three, and every choice is a
-	-- lie two thirds of the time: red on your own lawn for tidying your own
-	-- collection, or gold for robbing a child.
-	--
-	-- AND THREE INSTANCES RATHER THAN TWO, WHICH REVERSES THE OBVIOUS SAVING.
-	-- Take and Place can never both apply -- a plinth is occupied or it is
-	-- not -- and both are the OWNER'S, so one prompt could carry them with
-	-- `dress` swapping its kind when the key changes. It cost more than it
-	-- saved, in two ways that are both invisible until somebody plays it:
-	--
-	-- A CARD IS BUILT ON `PromptShown` AND NEVER REBUILT. So a kind that
-	-- changes under a card already on screen leaves the card saying the old
-	-- word -- and the commonest moment in this whole feature is exactly that
-	-- one, a player taking their own piggy and standing there reading TAKE
-	-- PIGGY over the empty plinth they just cleared.
-	--
-	-- AND `Enabled` WOULD NEVER TRANSITION. `PromptUI`'s rules may only ever
-	-- REFUSE, so what lets a client take a refusal back is the server's own
-	-- `Enabled` going false -> true again; a single prompt that is enabled in
-	-- both states never does, so a client that refused it while the plot was
-	-- unowned would refuse it forever. Three prompts each switch on and off
-	-- as the plinth fills and empties, which re-arms the client rule for
-	-- free and is the same shape the sell prompt has always had.
-	--
-	-- WHICH ONE A CLIENT SEES IS THE TWO OWNER RULES, AND THAT IS WHAT MAKES
-	-- ONE KEY SAFE. `PROMPT_OWNER_ATTRIBUTE` refuses take and place on every
-	-- screen but the owner's; `PROMPT_DENY_OWNER_ATTRIBUTE` refuses snatch on
-	-- the owner's and nobody else's. The two are exact complements, and the
-	-- occupancy of the plinth separates take from place on the server -- so no
-	-- client ever has two of these enabled at once, which is the exclusivity
-	-- guarantee `PromptUI` is built on, kept BY CONSTRUCTION rather than by
-	-- anybody remembering.
-	--
-	-- `E` RATHER THAN A FOURTH LETTER. The whole map was checked before it
-	-- was taken: the ProximityPrompt keys in this game are `E` (steal,
-	-- collect, shop, post, crate, recover, hide, dig), `G` (smash), `J` (grow
-	-- tree) and `X` (sell, on this same plinth), and the client bindings are
-	-- Q, B, V, R, I, Escape, F2 and the number row. `E` is what a player
-	-- brushes past everything else in this game with, which is exactly right
-	-- for the commonest verb here and is why the destructive one next to it
-	-- kept `X`.
-	--
-	-- NOTHING ELSE ON THIS LAWN IS ON `E` WITHIN REACH. The till's own steal,
-	-- smash and collect controls sit at the plot centre, and the nearest
-	-- pedestal column is |x| 25 -- more than twice `Config.STEAL_RANGE` away
-	-- -- so the two-prompts-on-one-key collision that cost the shop doors
-	-- nine studs of their own room cannot happen here. Anything moved onto
-	-- this lawn later gets the same measurement, against the pad as well as
-	-- the plinth.
-	--
-	-- CARD SLOT 1, BESIDE THE SELL'S 0. Sell is live on exactly the states
-	-- `takePrompt` is live on, so the owner genuinely sees two cards at an
-	-- occupied plinth of their own -- which is the steal/smash pattern and
-	-- for the same reason: what to do with this piggy is a choice, and a
-	-- choice you cannot see is not one.
-	local function haulPrompt(name: string, deny: boolean): ProximityPrompt
-		local prompt = Instance.new("ProximityPrompt")
-		prompt.Name = name
-		prompt.KeyboardKeyCode = Enum.KeyCode.E
-		prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
-		prompt.MaxActivationDistance = Config.COLLECT_RANGE
-		prompt.RequiresLineOfSight = false
-		prompt:SetAttribute(Config.PROMPT_SLOT_ATTRIBUTE, 1)
-		-- BORN REFUSED AND BORN ATTRIBUTED TO NOBODY, which is the order this
-		-- project has already paid for once. A plot is built at server startup
-		-- with no owner, so a prompt that arrived enabled would be shown to
-		-- every client on every resident lawn for as long as it took an owner
-		-- to be written -- and `PromptUI`'s rules only ever REFUSE, so the
-		-- later owner write could not have taken it back.
-		prompt.Enabled = false
-		prompt:SetAttribute(
-			if deny then Config.PROMPT_DENY_OWNER_ATTRIBUTE else Config.PROMPT_OWNER_ATTRIBUTE,
-			0)
-		prompt.Parent = plinth
-		return prompt
-	end
-	local takePrompt = haulPrompt("PiggyTakePrompt", false)
-	takePrompt.ActionText = "Take Piggy"
-	Config.setPromptKind(takePrompt, "take")
-	takePrompt.HoldDuration = Config.PIGGY_HAUL.takeHold
-
-	local placePrompt = haulPrompt("PiggyPlacePrompt", false)
-	placePrompt.ActionText = "Place Piggy"
-	Config.setPromptKind(placePrompt, "place")
-	placePrompt.HoldDuration = Config.PIGGY_HAUL.placeHold
-
-	local snatchPrompt = haulPrompt("PiggySnatchPrompt", true)
-	snatchPrompt.ActionText = "Snatch Piggy"
-	Config.setPromptKind(snatchPrompt, "snatch")
-	snatchPrompt.HoldDuration = Config.PIGGY_HAUL.snatchHold
+	-- THE FOUR PROMPTS, WHICH ARE `buildPrompts`' NOW. Extracted rather than
+	-- left inline because the hall's own plots need the identical four on
+	-- different geometry -- see that function.
+	local sellPrompt, takePrompt, placePrompt, snatchPrompt =
+		PiggyPedestal.buildPrompts(plinth)
 
 	model.PrimaryPart = plinth
 	model.WorldPivot = ground
@@ -584,6 +898,69 @@ function PiggyPedestal.build(parent: Instance, ground: CFrame, index: number): R
 		index = index,
 		model = model,
 		plinth = plinth,
+		-- SEATED OFF THE PLINTH'S OWN TOP FACE rather than off a stack of
+		-- constants: the courses' heights are already in
+		-- `Config.PIGGY_PEDESTAL` and adding them up again here is a second
+		-- description of how tall this thing is.
+		--
+		-- AND TURNED INWARD BY A QUARTER, NEVER BY THE EXACT ANGLE TO THE
+		-- TILL -- the pad's own `Config.piggyPadYaw`, which is the SAME yaw
+		-- the button in front of it takes. Designer call 2026-09-21, stated as
+		-- the result rather than as the mechanism: *"they should all be turned
+		-- 90 degrees on the right and the left side should be turned 270
+		-- degrees so they are all facing inwards"*, and those two numbers are
+		-- what that function returns. From the street the viewer's RIGHT
+		-- column is plot-local x -25, whose inward direction is +X, which is a
+		-- +90 yaw on a +Z-authored model; their LEFT is x +25, inward is -X,
+		-- 270. There is no third case: every slot is at |x| 25.
+		--
+		-- AND THE PIGGY IS NOT WHAT WAS FACING THE WRONG WAY, WHICH IS THE
+		-- CORRECTION THAT MATTERS HERE. Reported on 2026-09-23 as *"the lawn
+		-- pedestals are facing the wrong way they should be facing forward"*,
+		-- this line was dropped for an hour and the six were pointed at the
+		-- street -- answered with *"no now the piggies are facing the wrong
+		-- way, the stand that they sit on is what was facing the wrong way"*.
+		-- The STAND is `setArt`'s business and its own note carries the
+		-- measurement. The lesson is the cheaper one: TWO THINGS STACKED ON
+		-- ONE SPOT HAVE TWO FACINGS, and a report that names the spot names
+		-- neither -- so measure which of them is actually pointing wrong
+		-- before turning the one that was mentioned.
+		--
+		-- THE FAULT WAS NEVER "INWARD", IT WAS "NOT SQUARE", and getting that
+		-- distinction wrong cost a revision in each direction. The first build
+		-- used `Config.piggyPedestalYaw` -- the TRUE bearing to the till,
+		-- which is a different angle per row because the rows are at different
+		-- depths. A plinth, its base course and its pad are all square to the
+		-- plot (the pad has to be, or its 8.4-stud width lands diagonally
+		-- across a 10-stud row pitch), so an exact bearing put every display
+		-- ASKEW ON ITS OWN SQUARE PLINTH:
+		--
+		--     front row (z 8)    107.74 deg    17.7 off the plinth
+		--     middle    (z -2)    85.43        4.6 off
+		--     back      (z -12)   64.36       25.6 off
+		--
+		-- Reported as *"some piggies are slightly tilted inwards"*, and both of
+		-- those words are that table: the middle pair are within five degrees
+		-- of square and read as straight, so it IS some rather than all, and
+		-- the worst of the others is 26 degrees, which reads as a prop knocked
+		-- out of line. The revision after that dropped the yaw entirely and
+		-- was refused the other way -- *"thats not right all piggies are
+		-- facing toward the street"* -- because square-to-the-plot has FOUR
+		-- answers and only one of them is inward.
+		--
+		-- SO: A TURN READS AS DELIBERATE WHEN IT IS SQUARE TO WHAT IT STANDS
+		-- ON, AND THE QUANTISED QUARTER IS THE ONLY THING THAT IS BOTH. It
+		-- lands flush on the plinth AND faces the centrepiece, which is what
+		-- the arrangement was always for: six two-thirds-size piggies looking
+		-- at the big one rather than a shop rack all showing the same flank.
+		--
+		-- A PLAIN YAW AND DELIBERATELY NOT `CFrame.lookAt`. The frame already
+		-- carries the plot's rotation, so the far row's half turn comes along
+		-- for free; and because it is a yaw rather than a `lookAt`, the
+		-- +Z-authored model needs no half-turn correction and cannot pick up
+		-- the backwards-model bug this project has recorded four times.
+		seat = plinth.CFrame * CFrame.new(0, plinth.Size.Y / 2, 0)
+			* CFrame.Angles(0, Config.piggyPadYaw(index), 0),
 		pad = pad,
 		padFace = padFace,
 		padAmount = padAmount,
@@ -597,6 +974,151 @@ function PiggyPedestal.build(parent: Instance, ground: CFrame, index: number): R
 		nameLabel = nil,
 		key = nil,
 	}
+end
+
+-- ------------------------------------------------------------
+-- THE NAME OVER ITS HEAD, IN ITS TIER'S COLOUR
+-- ------------------------------------------------------------
+--
+-- Designer call 2026-09-21. The colour is the whole of why this is worth
+-- more than a label: six names in one ink would say what is on the lawn,
+-- and six names in four colours say which of them is worth anything -- so
+-- a visitor reads the shape of somebody's collection without counting.
+--
+-- SHARED WITH THE TILL SINCE 2026-09-23, WHICH IS WHY IT IS A FUNCTION.
+-- It was inlined in `dress` for as long as a pedestal was the only thing
+-- in the game wearing one, and the designer then asked for the centre pig
+-- to be named too. A second copy over there would have been a second
+-- answer to where a label hangs, how far it reads from and what colour a
+-- tier is -- the near-identical duplicate this project records more often
+-- than any other fault, and the one that drifts the first time either side
+-- is touched. One builder, two callers, and the only thing they disagree
+-- about is the SECOND ROW.
+--
+-- THE NAME AND THE COLOUR ARE BOTH DERIVED FROM THE KEY, here rather than
+-- passed in, so a caller cannot hand over a word that disagrees with the
+-- tier its colour is drawn from.
+--
+-- `adornee` IS WHAT THE LIFT IS MEASURED FROM and is not always the thing
+-- being named: a pedestal hangs its label on the PLINTH -- the one part
+-- there that is guaranteed to exist and never moves, while the display on
+-- top of it is destroyed and rebuilt on every dressing -- and the till
+-- hangs it on the pig's own body, because a till has no plinth. The crown
+-- is measured over `model` either way, so what the label clears is the
+-- thing it is about rather than the thing it is parented to.
+--
+-- LIFTED OFF THE CROWN OF WHAT WAS ACTUALLY SEATED, measured rather than
+-- derived from a nominal height, and that is what fixes "clipping their
+-- heads". The first build lifted by the ordinary mini's own ear reach
+-- times the display scale, which is right for exactly one case: a
+-- LEGENDARY is a whole model of 9 to 24 meshes standing over a hidden pig
+-- (`Config.LEGENDARIES`) with a silhouette of its own, so a lift solved
+-- against a sphere put the label through a dragon's head.
+--
+-- PER PART, IN WORLD SPACE, WHICH IS THE ONLY WAY TO MEASURE A MODEL HERE.
+-- `Model:GetBoundingBox` is oriented by the pivot and transposes extents --
+-- this project has it recorded twice, once measuring a house's orbiting
+-- shards at altitude and once reporting the tube man's HEIGHT as the
+-- widest ornament in the game. The projection below is the formula
+-- `CLAUDE.md` prescribes instead.
+--
+-- Returns the billboard and its second row, so a caller that repaints that
+-- row (a pedestal does, every economy tick) keeps a handle on it.
+function PiggyPedestal.nameplate(model: Model, adornee: BasePart, key: string,
+	second: string?, secondColour: Color3?): (BillboardGui, TextLabel)
+
+	local spec = Config.PIGGY_NAME
+	local skin = Config.getSkin(key)
+	local name = (skin and skin.name) or key
+	local crown = -math.huge
+	for _, part in ipairs(model:GetDescendants()) do
+		if part:IsA("BasePart") then
+			local cf = part.CFrame
+			local half = math.abs(cf.RightVector.Y) * part.Size.X / 2
+				+ math.abs(cf.UpVector.Y) * part.Size.Y / 2
+				+ math.abs(cf.LookVector.Y) * part.Size.Z / 2
+			crown = math.max(crown, cf.Position.Y + half)
+		end
+	end
+	-- A MODEL WITH NO PARTS CANNOT HAPPEN AND IS ANSWERED ANYWAY, because
+	-- `-math.huge` would put the label under the world and a pedestal's
+	-- caller runs off the economy tick -- a name a little low is a far
+	-- smaller fault than a piggy that throws while being dressed.
+	if crown == -math.huge then
+		crown = adornee.Position.Y + adornee.Size.Y / 2
+	end
+
+	-- ADORNED TO A PART THAT NEVER MOVES, with the whole lift expressed in
+	-- world space from its centre. The label's own half-height is in the sum,
+	-- so the GAP is clear air under the bottom edge rather than to its middle
+	-- -- which is what the first build got wrong twice over.
+	-- TWO ROWS, ONE BILLBOARD, AND THE TOTAL IS WHAT THE LIFT IS SOLVED
+	-- AGAINST. The name takes the top `size.Y` studs and the second row the
+	-- `rateHeight` under it, so the figure sits between the name and the
+	-- piggy's own head -- which is the order the two are read in.
+	local total = spec.size.Y + spec.rateHeight
+	local label = Instance.new("BillboardGui")
+	label.Name = "PiggyName"
+	label.Size = UDim2.fromScale(spec.size.X, total)
+	label.StudsOffsetWorldSpace = Vector3.new(0,
+		(crown - adornee.Position.Y) + spec.gap + total / 2, 0)
+	-- NOT always-on-top, for the two reasons `build` records on the pad: a
+	-- label that punches through the house reads as HUD rather than as lawn,
+	-- and the always-on-top pass is invisible to `screen_capture`.
+	label.AlwaysOnTop = false
+	label.MaxDistance = spec.range
+	label.Adornee = adornee
+	label.Parent = adornee
+
+	local nameText = Instance.new("TextLabel")
+	nameText.Name = "Name"
+	nameText.Size = UDim2.fromScale(1, spec.size.Y / total)
+	nameText.BackgroundTransparency = 1
+	nameText.Font = Theme.FONT
+	nameText.TextScaled = true
+	nameText.Text = name
+	nameText.TextColor3 = Config.piggyTierColour(key)
+	-- THE STROKE IS LOAD-BEARING HERE RATHER THAN DECORATIVE. The four tier
+	-- colours are authored as CARD grounds, so against bare lawn they measure
+	-- 1.65 to 3.74 and epic purple on grass is the worst of them; against ink
+	-- they are 4.65 to 10.53. Contextual mode, which strokes the GLYPHS --
+	-- `Theme.outline` sets Border and would draw a box round the label.
+	nameText.TextStrokeColor3 = Theme.INK
+	nameText.TextStrokeTransparency = 0.1
+	nameText.Parent = label
+
+	-- ------------------------------------------------------------
+	-- AND THE ROW UNDER IT
+	-- ------------------------------------------------------------
+	--
+	-- WHAT GOES HERE IS THE ONE THING THE TWO CALLERS DISAGREE ABOUT. A
+	-- pedestal leaves it EMPTY and `setRate` fills in what that piggy earns
+	-- on the next economy tick; the till passes a fixed word, because a till
+	-- earns nothing at all and a rate row there could only ever read +0/s.
+	--
+	-- GOLD BY DEFAULT, WHICH IS THIS GAME'S ONE COLOUR RULE RATHER THAN A
+	-- CHOICE: gold means money and pink means the pig. The collect pad on the
+	-- grass below says money a different way -- a banknote-green button with a
+	-- white figure on it -- so the two read as one statement about this
+	-- pedestal without being the same colour: what it MAKES, and what is
+	-- WAITING. A caller whose row is not a figure passes its own colour.
+	--
+	-- IT DOES NOT TAKE THE TIER COLOUR. Four coloured names picked out of six
+	-- is a collection read at a glance; eight coloured rows is a wall, and
+	-- this row is the SECONDARY half of the pair -- see `Config.PIGGY_NAME`.
+	local rateText = Instance.new("TextLabel")
+	rateText.Name = "Rate"
+	rateText.Position = UDim2.fromScale(0, spec.size.Y / total)
+	rateText.Size = UDim2.fromScale(1, spec.rateHeight / total)
+	rateText.BackgroundTransparency = 1
+	rateText.Font = Theme.FONT
+	rateText.TextScaled = true
+	rateText.Text = second or ""
+	rateText.TextColor3 = secondColour or Theme.GOLD
+	rateText.TextStrokeColor3 = Theme.INK
+	rateText.TextStrokeTransparency = 0.1
+	rateText.Parent = label
+	return label, rateText
 end
 
 -- ------------------------------------------------------------
@@ -716,66 +1238,17 @@ function PiggyPedestal.dress(refs: Refs, key: string?)
 	local factor = spec.display * Config.piggyScale(key)
 	PiggyModel.scale(model, factor)
 
-	-- SEATED OFF THE PLINTH'S OWN TOP FACE rather than off a stack of
-	-- constants: the courses' heights are already in `Config.PIGGY_PEDESTAL`
-	-- and adding them up again here is a second description of how tall this
-	-- thing is. `PiggyModel`'s pivot is the mini's BODY CENTRE, so the lift is
-	-- that centre's height above the model's own origin, scaled -- and the
-	-- origin is where the feet are.
-	local top = refs.plinth.CFrame * CFrame.new(0, refs.plinth.Size.Y / 2, 0)
+	-- SEATED ON `refs.seat`, WHICH IS THE BUILDER'S OWN MEASUREMENT.
+	-- `PiggyModel`'s pivot is the mini's BODY CENTRE, so the lift is that
+	-- centre's height above the model's own origin, scaled -- and the origin
+	-- is where the feet are. See `Refs.seat` for why the frame is a field
+	-- rather than the plinth-and-yaw expression that used to stand here.
 	local lift = PiggyModel.MINI_CENTRE_Y * factor
-	-- AND IT IS TURNED INWARD BY A QUARTER, NEVER BY THE EXACT ANGLE TO THE
-	-- TILL -- the pad's own `Config.piggyPadYaw`, which is the SAME yaw the
-	-- button in front of it takes. Designer call 2026-09-21, stated as the
-	-- result rather than as the mechanism: *"they should all be turned 90
-	-- degrees on the right and the left side should be turned 270 degrees so
-	-- they are all facing inwards"*, and those two numbers are what this
-	-- function returns. From the street the viewer's RIGHT column is plot-local
-	-- x -25, whose inward direction is +X, which is a +90 yaw on a +Z-authored
-	-- model; their LEFT is x +25, inward is -X, 270. There is no third case:
-	-- every slot is at |x| 25.
-	--
-	-- THE FAULT WAS NEVER "INWARD", IT WAS "NOT SQUARE", and getting that
-	-- distinction wrong cost a revision in each direction. The first build
-	-- used `Config.piggyPedestalYaw` -- the TRUE bearing to the till, which is
-	-- a different angle per row because the rows are at different depths. A
-	-- plinth, its base course and its pad are all square to the plot (the pad
-	-- has to be, or its 8.4-stud width lands diagonally across a 10-stud row
-	-- pitch), so an exact bearing put every display ASKEW ON ITS OWN SQUARE
-	-- PLINTH:
-	--
-	--     front row (z 8)    107.74 deg    17.7 off the plinth
-	--     middle    (z -2)    85.43        4.6 off
-	--     back      (z -12)   64.36       25.6 off
-	--
-	-- Reported as *"some piggies are slightly tilted inwards"*, and both of
-	-- those words are that table: the middle pair are within five degrees of
-	-- square and read as straight, so it IS some rather than all, and the
-	-- worst of the others is 26 degrees, which reads as a prop knocked out of
-	-- line. The revision after that dropped the yaw entirely and was refused
-	-- the other way -- *"thats not right all piggies are facing toward the
-	-- street"* -- because square-to-the-plot has FOUR answers and only one of
-	-- them is inward.
-	--
-	-- SO: A TURN READS AS DELIBERATE WHEN IT IS SQUARE TO WHAT IT STANDS ON,
-	-- AND THE QUANTISED QUARTER IS THE ONLY THING THAT IS BOTH. It lands flush
-	-- on the plinth AND faces the centrepiece, which is what the arrangement
-	-- was always for: six two-thirds-size piggies looking at the big one
-	-- rather than a shop rack all showing the same flank.
-	--
-	-- ONE FUNCTION FOR THE PIGGY AND ITS BUTTON, WHICH IS THE PROPERTY TO
-	-- KEEP. A display at one angle on a pad at another is exactly the reported
-	-- bug, so they read the same yaw rather than two that have to be kept in
-	-- step -- and `piggyPedestalYaw` is now the input to that single quantiser
-	-- rather than anything's seating.
-	--
-	-- A PLAIN YAW AND DELIBERATELY NOT `CFrame.lookAt`. The frame already
-	-- carries the plot's rotation, so the far row's half turn comes along for
-	-- free; and because it is a yaw rather than a `lookAt`, the +Z-authored
-	-- model needs no half-turn correction and cannot pick up the
-	-- backwards-model bug this project has recorded four times.
-	model:PivotTo(top * CFrame.Angles(0, Config.piggyPadYaw(refs.index), 0)
-		* CFrame.new(0, lift, 0))
+	-- ONE FRAME FOR THE PIGGY AND ITS BUTTON ON THE LAWN, WHICH IS THE
+	-- PROPERTY TO KEEP. A display at one angle on a pad at another is exactly
+	-- the reported bug, so `build` derives both from one quantised yaw rather
+	-- than from two expressions that have to be kept in step.
+	model:PivotTo(refs.seat * CFrame.new(0, lift, 0))
 	model.Name = "Display"
 	model.Parent = refs.model
 
@@ -783,121 +1256,15 @@ function PiggyPedestal.dress(refs: Refs, key: string?)
 	local skin = Config.getSkin(key)
 	local name = (skin and skin.name) or key
 
-	-- ------------------------------------------------------------
-	-- THE NAME OVER ITS HEAD, IN ITS TIER'S COLOUR
-	-- ------------------------------------------------------------
-	--
-	-- Designer call 2026-09-21. The colour is the whole of why this is worth
-	-- more than a label: six names in one ink would say what is on the lawn,
-	-- and six names in four colours say which of them is worth anything -- so
-	-- a visitor reads the shape of somebody's collection without counting.
-	--
-	-- LIFTED OFF THE CROWN OF WHAT WAS ACTUALLY SEATED, measured rather than
-	-- derived from the mini's nominal height, and that is what fixes "clipping
-	-- their heads". The first build lifted by the ordinary mini's own ear
-	-- reach times the display scale, which is right for exactly one case: a
-	-- LEGENDARY is a whole model of 9 to 24 meshes standing over a hidden pig
-	-- (`Config.LEGENDARIES`) with a silhouette of its own, so a lift solved
-	-- against a sphere put the label through a dragon's head.
-	--
-	-- PER PART, IN WORLD SPACE, WHICH IS THE ONLY WAY TO MEASURE A MODEL HERE.
-	-- `Model:GetBoundingBox` is oriented by the pivot and transposes extents --
-	-- this project has it recorded twice, once measuring a house's orbiting
-	-- shards at altitude and once reporting the tube man's HEIGHT as the
-	-- widest ornament in the game. The projection below is the formula
-	-- `CLAUDE.md` prescribes instead.
-	local spec = Config.PIGGY_NAME
-	local crown = -math.huge
-	for _, part in ipairs(model:GetDescendants()) do
-		if part:IsA("BasePart") then
-			local cf = part.CFrame
-			local half = math.abs(cf.RightVector.Y) * part.Size.X / 2
-				+ math.abs(cf.UpVector.Y) * part.Size.Y / 2
-				+ math.abs(cf.LookVector.Y) * part.Size.Z / 2
-			crown = math.max(crown, cf.Position.Y + half)
-		end
-	end
-	-- A MODEL WITH NO PARTS CANNOT HAPPEN AND IS ANSWERED ANYWAY, because
-	-- `-math.huge` would put the label under the world and `dress` runs off the
-	-- economy tick -- a name a little low is a far smaller fault than a
-	-- pedestal that throws while being dressed.
-	if crown == -math.huge then
-		crown = refs.plinth.Position.Y + refs.plinth.Size.Y / 2
-	end
-
-	-- ADORNED TO THE PLINTH, which is the one part here that is guaranteed to
-	-- exist and never moves, with the whole lift expressed in world space from
-	-- its centre. The label's own half-height is in the sum, so the GAP is
-	-- clear air under the bottom edge rather than to its middle -- which is
-	-- what the first build got wrong twice over.
-	-- TWO ROWS, ONE BILLBOARD, AND THE TOTAL IS WHAT THE LIFT IS SOLVED
-	-- AGAINST. The name takes the top `size.Y` studs and the rate the
-	-- `rateHeight` under it, so the figure sits between the name and the
-	-- piggy's own head -- which is the order the two are read in.
-	local total = spec.size.Y + spec.rateHeight
-	local label = Instance.new("BillboardGui")
-	label.Name = "PiggyName"
-	label.Size = UDim2.fromScale(spec.size.X, total)
-	label.StudsOffsetWorldSpace = Vector3.new(0,
-		(crown - refs.plinth.Position.Y) + spec.gap + total / 2, 0)
-	-- NOT always-on-top, for the two reasons `build` records on the pad: a
-	-- label that punches through the house reads as HUD rather than as lawn,
-	-- and the always-on-top pass is invisible to `screen_capture`.
-	label.AlwaysOnTop = false
-	label.MaxDistance = spec.range
-	label.Adornee = refs.plinth
-	label.Parent = refs.plinth
-
-	local nameText = Instance.new("TextLabel")
-	nameText.Name = "Name"
-	nameText.Size = UDim2.fromScale(1, spec.size.Y / total)
-	nameText.BackgroundTransparency = 1
-	nameText.Font = Theme.FONT
-	nameText.TextScaled = true
-	nameText.Text = name
-	nameText.TextColor3 = Config.piggyTierColour(key)
-	-- THE STROKE IS LOAD-BEARING HERE RATHER THAN DECORATIVE. The four tier
-	-- colours are authored as CARD grounds, so against bare lawn they measure
-	-- 1.65 to 3.74 and epic purple on grass is the worst of them; against ink
-	-- they are 4.65 to 10.53. Contextual mode, which strokes the GLYPHS --
-	-- `Theme.outline` sets Border and would draw a box round the label.
-	nameText.TextStrokeColor3 = Theme.INK
-	nameText.TextStrokeTransparency = 0.1
-	nameText.Parent = label
-
-	-- ------------------------------------------------------------
-	-- AND WHAT IT EARNS, UNDER IT
-	-- ------------------------------------------------------------
-	--
-	-- GOLD, WHICH IS THIS GAME'S ONE COLOUR RULE RATHER THAN A CHOICE: gold
-	-- GOLD, WHICH IS THIS GAME'S ONE COLOUR RULE RATHER THAN A CHOICE: gold
-	-- means money and pink means the pig. The collect pad on the grass below
-	-- says money a different way -- a banknote-green button with a white
-	-- figure on it -- so the two read as one statement about this pedestal
-	-- without being the same colour: what it MAKES, and what is WAITING.
-	-- makes, and what is waiting on the floor in front of it.
-	--
-	-- IT DOES NOT TAKE THE TIER COLOUR. Four coloured names picked out of six
-	-- is a collection read at a glance; eight coloured rows is a wall, and the
-	-- rate is the SECONDARY half of the pair -- see `Config.PIGGY_NAME`.
-	--
-	-- BORN EMPTY, never at a guessed rate. What a piggy earns is a fact about
-	-- its OWNER as well as about itself -- the income tree, rebirths, a friend
-	-- bonus and a daily boost all multiply into it -- and none of that is
-	-- reachable from a builder in `Shared`. `setRate` fills it in on the very
-	-- next economy tick, and a blank row is the honest picture until it does.
-	local rateText = Instance.new("TextLabel")
-	rateText.Name = "Rate"
-	rateText.Position = UDim2.fromScale(0, spec.size.Y / total)
-	rateText.Size = UDim2.fromScale(1, spec.rateHeight / total)
-	rateText.BackgroundTransparency = 1
-	rateText.Font = Theme.FONT
-	rateText.TextScaled = true
-	rateText.Text = ""
-	rateText.TextColor3 = Theme.GOLD
-	rateText.TextStrokeColor3 = Theme.INK
-	rateText.TextStrokeTransparency = 0.1
-	rateText.Parent = label
+	-- THE NAME OVER ITS HEAD, through the shared builder so the till and a
+	-- plinth cannot disagree about where a label hangs or what colour a tier
+	-- is. BORN EMPTY, never at a guessed rate: what a piggy earns is a fact
+	-- about its OWNER as well as about itself -- the income tree, rebirths, a
+	-- friend bonus and a daily boost all multiply into it -- and none of that
+	-- is reachable from a builder in `Shared`. `setRate` fills it in on the
+	-- very next economy tick, and a blank row is the honest picture until it
+	-- does.
+	local label, rateText = PiggyPedestal.nameplate(model, refs.plinth, key)
 
 	refs.nameLabel = label
 	refs.rateText = rateText
@@ -941,6 +1308,43 @@ function PiggyPedestal.dress(refs: Refs, key: string?)
 	refs.snatchPrompt.ObjectText = name
 end
 
+-- WHETHER AN EMPTY PLINTH IS WORTH OFFERING, WHICH IS THREE FACTS RATHER
+-- THAN ONE: it has to be owned, it has to be empty, and its owner has to be
+-- holding a piggy of their own. One function reads all three and is the only
+-- writer of that prompt's `Enabled`.
+--
+-- THE CARRY HALF REVERSES A DECISION RECORDED IN `PiggyHaulService.place`,
+-- which read: *an empty plinth of your own advertises PLACE whether or not
+-- your hands are full, because a client rule may only ever turn a prompt OFF
+-- and one refused for empty hands could never come back when they were not.*
+-- Every word of that is true OF A CLIENT RULE, and it was the wrong place to
+-- answer the question. A plot has exactly one owner, the prompt already names
+-- them through `PROMPT_OWNER_ATTRIBUTE`, and the only person who can press it
+-- is that owner -- so the SERVER can switch it both ways without ever showing
+-- a live control to somebody it would refuse. That is precisely what the
+-- bank's swap prompt has done since it shipped, through
+-- `PlotService.setSwapOffer`.
+--
+-- THE OUT-LOUD REFUSAL IN `place` STAYS, and stays for a reason rather than
+-- out of caution: a prompt is a picture and the server is the guard, so it
+-- goes on naming what to do instead for anybody who reaches it another way.
+local function paintPlace(refs: Refs)
+	refs.placePrompt.Enabled = (refs.ownerId or 0) ~= 0
+		and refs.carrying == true
+		and refs.key == nil
+end
+
+-- WHAT THE OWNER IS HOLDING, ON ITS OWN CLOCK.
+--
+-- Called by `PlotService.setPlaceOffer` at the three moments a carry starts,
+-- ends or changes. Nothing else about the plinth is touched: who owns it and
+-- what is standing on it are two other questions with two other writers, and
+-- this one only ever re-asks the painter above.
+function PiggyPedestal.setCarrying(refs: Refs, carrying: boolean)
+	refs.carrying = carrying
+	paintPlace(refs)
+end
+
 -- WHO THIS PLINTH'S TWO HAUL PROMPTS ARE FOR, AND WHETHER EITHER IS LIVE.
 --
 -- SPLIT FROM `dress` BECAUSE IT ANSWERS A DIFFERENT QUESTION ON A DIFFERENT
@@ -964,7 +1368,13 @@ end
 -- id it NAMES rather than everyone else -- is refused nowhere. That is the
 -- correct reading of both: you cannot tidy a neighbour's collection, and
 -- anybody at all may take from it.
-function PiggyPedestal.setHaul(refs: Refs, ownerId: number)
+--
+-- AND THE THIRD ARGUMENT IS WHETHER THE OWNER IS CARRYING, which a repaint
+-- has to carry because it is the one of the three facts this file cannot see
+-- for itself. `PlotService` remembers it on the plot; see `setPlaceOffer`.
+function PiggyPedestal.setHaul(refs: Refs, ownerId: number, carrying: boolean)
+	refs.ownerId = ownerId
+	refs.carrying = carrying
 	refs.sellPrompt:SetAttribute(Config.PROMPT_OWNER_ATTRIBUTE, ownerId)
 	refs.takePrompt:SetAttribute(Config.PROMPT_OWNER_ATTRIBUTE, ownerId)
 	refs.placePrompt:SetAttribute(Config.PROMPT_OWNER_ATTRIBUTE, ownerId)
@@ -977,7 +1387,7 @@ function PiggyPedestal.setHaul(refs: Refs, ownerId: number)
 	local owned = ownerId ~= 0
 	refs.sellPrompt.Enabled = owned and refs.key ~= nil
 	refs.takePrompt.Enabled = owned and refs.key ~= nil
-	refs.placePrompt.Enabled = owned and refs.key == nil
+	paintPlace(refs)
 	-- SOMETHING TO TAKE, AND NOBODY HAS TO OWN IT. A resident's lawn is the
 	-- only place a solo player meets this verb at all.
 	refs.snatchPrompt.Enabled = refs.key ~= nil
@@ -1032,7 +1442,11 @@ function PiggyPedestal.republish(refs: Refs, ownerId: number)
 		if refs.generation ~= generation then
 			return
 		end
-		PiggyPedestal.setHaul(refs, ownerId)
+		-- AND THE CARRY IS RE-READ RATHER THAN CAPTURED, for the same
+		-- reason the key and the owner are: a piggy picked up or put down
+		-- during the beat is answered correctly, where a remembered "they
+		-- were holding one" restores a state that has since ended.
+		PiggyPedestal.setHaul(refs, ownerId, refs.carrying == true)
 	end)
 end
 

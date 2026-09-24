@@ -1,9 +1,11 @@
--- THE STREET LEADERBOARD, held together across the six files it spans: the
--- save field, the one place it is incremented, the service that pushes it,
--- the panel that draws it, and the two lines that start both halves. The
--- accounting is the real Config and the real services against doubles for
--- the figure, the network and the DataStore; nothing here touches a live
--- save or a screen.
+-- THE STREET LEADERBOARD, which is Roblox's own player list now: the save
+-- field, the one place it is incremented, and the service that fills a
+-- `leaderstats` folder from it. There is no panel left to test -- the
+-- platform draws the columns -- so what this suite holds instead is the
+-- CONTRACT WITH THAT COMPONENT: the folder's name, the column order (which
+-- is the sort), the classes, and that a value is written only when it has
+-- moved. The real Config and the real service against a datamodel small
+-- enough to read; nothing here touches a live save or a screen.
 local Config, sources = ...
 local checks = 0
 local function check(ok, msg) assert(ok, msg); checks += 1 end
@@ -91,15 +93,28 @@ do
 			end,
 			bodyOf = function(m) return m.PrimaryPart end,
 		},
-		CarryPose = { HOLD = frame },
+		CarryPose = { HOLD = frame, anchor = function() return nil, frame end },
 		Theme = { FONT = "F", PAPER = "p", INK = "i", GOLD = "g" },
 		DataService = { get = function(p) return p.data end, save = function() end },
 		PlotService = {
 			setSwapOffer = function() end,
+			setPlaceOffer = function() end,
 			getAll = function() return {} end,
 			getPlot = function(p) return home[p] end,
 			yardContaining = function() return nil end,
 			setPiggySlots = function() end, setPiggyBuffers = function() end,
+			-- THE ONE QUESTION `reach` ASKS: the placement at a slot, wherever
+			-- it stands. A save's collection is one array -- the lawn at
+			-- slots 1..N and the hall behind the front door at the slots
+			-- after it -- and this is the real function's own shape, lawn
+			-- array first and then the sparse indoor map, so a press on an
+			-- indoor plinth is exercised here rather than only live.
+			pedestalAt = function(plot, slot)
+				local lawn = plot.pedestals and plot.pedestals[slot]
+				if lawn then return lawn end
+				return plot.indoor and plot.indoor[slot] or nil
+			end,
+			setIndoorPedestals = function(plot, map) plot.indoor = map end,
 		},
 		ResidentService = { get = function(plot) return plot.resident end },
 		CosmeticsService = { applyToPlot = function() end },
@@ -232,151 +247,202 @@ return PiggyHaulService
 	check(residentAt and residentEnd and not (first > residentAt and first < residentEnd),
 		"a neighbour's snatch counts nothing: it is a player counter")
 end
-
 -- ------------------------------------------------------------
--- 3. THE SERVICE: rows for loaded players, in a stable order, broadcast
+-- 3. THE SERVICE: a `leaderstats` folder per player, in column order,
+--    written only when a figure has moved
 -- ------------------------------------------------------------
-local Service
 do
-	local fired = {}
+	-- A DATAMODEL SMALL ENOUGH TO READ. `Parent` registers a child and every
+	-- `Value` write is counted, which is what makes "only on change" a
+	-- measurement rather than a claim about the source text.
+	local writes = 0
+	local function instance(class)
+		local o = { ClassName = class, Name = class, Kids = {} }
+		function o.IsA(_, want) return want == class end
+		function o.GetChildren() return o.Kids end
+		function o.FindFirstChild(_, name)
+			for _, c in o.Kids do if c.Name == name then return c end end
+			return nil
+		end
+		-- ONE MECHANISM FOR PARENTING, NOT TWO: `__newindex` stores and
+		-- registers, and nothing else touches Parent -- a helper that also
+		-- assigned it would re-enter this and blow the C stack.
+		--
+		-- AND `Value` IS HELD OFF THE TABLE RATHER THAN RAWSET ONTO IT, which
+		-- is the half the first version of this stub got wrong and is worth
+		-- the comment: `__newindex` fires only while a key is ABSENT, so a
+		-- counter that rawsets `Value` counts the first write to a column and
+		-- silently ignores every one after it. Every "writes nothing" check
+		-- below then passed for the wrong reason -- a harness agreeing with
+		-- itself, which is the failure this project records as the worst
+		-- shape a test can have. Kept out of the table, so every write is
+		-- seen.
+		return setmetatable(o, {
+			__index = function(t, k)
+				if k == "Value" then return rawget(t, "_value") end
+				return nil
+			end,
+			__newindex = function(t, k, v)
+				if k == "Parent" and v ~= nil and rawget(v, "Kids") then
+					table.insert(v.Kids, t)
+				end
+				if k == "Value" then
+					writes += 1
+					rawset(t, "_value", v)
+					return
+				end
+				rawset(t, k, v)
+			end,
+		})
+	end
+
+	local saves = {}
 	local players = {}
 	local modules = {
 		Config = Config,
-		Remotes = { get = function(name)
-			return { FireAllClients = function(_, payload) table.insert(fired, { name = name, payload = payload }) end }
-		end },
-		DataService = { get = function(p) return p.data end },
+		DataService = { get = function(p) return saves[p] end },
 	}
 	local env = setmetatable({
 		game = { GetService = function(_, name)
 			if name == "ReplicatedStorage" then return { Shared = names } end
-			if name == "Players" then return { GetPlayers = function() return players end,
-				PlayerAdded = { Connect = function() end }, PlayerRemoving = { Connect = function() end } } end
+			if name == "Players" then
+				return { GetPlayers = function() return players end,
+					PlayerAdded = { Connect = function() end } }
+			end
 			return {}
 		end },
 		require = function(n) return assert(modules[n], tostring(n)) end,
 		script = { Parent = names },
-		task = { spawn = function() end, defer = function() end, wait = function() end },
+		Instance = { new = instance },
+		task = { spawn = function() end, wait = function() end },
 	}, { __index = getfenv() })
 	local run = assert(loadstring(sources.LobbyBoardService, "LobbyBoardService")); setfenv(run, env)
-	Service = run()
+	local Service = run()
 
-	local function player(id, name, data)
-		return { UserId = id, DisplayName = name, Name = name .. "_acct", data = data }
+	local function player(name, data)
+		local p = instance("Player")
+		p.Name = name
+		p.DisplayName = name
+		saves[p] = data
+		return p
 	end
-	players = {
-		player(1, "Poor", { coins = 10, piggiesStolen = 0, rebirths = 0 }),
-		player(2, "Rich", { coins = 5000000, piggiesStolen = 3, rebirths = 2 }),
-		player(3, "Loading", nil),
-		player(4, "Tied", { coins = 10, piggiesStolen = 2, rebirths = 9 }),
-		player(5, "Junk", { coins = 0 / 0, piggiesStolen = -4, rebirths = 1.7 }),
-	}
-	local rows = Service.snapshot(players, function(p) return p.data end)
-	check(#rows == 4, "a player whose save has not landed has no row")
-	check(rows[1].name == "Rich" and rows[1].userId == 2, "sorted by cash, richest first")
-	check(rows[2].name == "Tied" and rows[3].name == "Poor", "a cash tie is broken by piggies robbed")
-	check(rows[4].name == "Junk" and rows[4].coins == 0 and rows[4].piggiesStolen == 0 and rows[4].rebirths == 1,
-		"junk numbers print as zero or a whole number rather than sorting to the top")
-	for _, row in rows do
-		for _, field in { "name", "userId", "coins", "piggiesStolen", "rebirths" } do
-			check(row[field] ~= nil, "every row carries " .. field)
-		end
-		check(row.name:find("_acct", 1, true) == nil, "rows carry the display name, as every toast does")
+
+	-- ---- the contract with the component
+	check(Service.FOLDER == "leaderstats",
+		"the folder is called leaderstats: the engine looks for exactly that name")
+	check(#Service.COLUMNS == 3, "three columns")
+	check(Service.COLUMNS[1].key == "Steals",
+		"and STEALS LEADS, because the list ranks by the first stat -- the order is the sort")
+	local byKey = {}
+	for index, column in ipairs(Service.COLUMNS) do byKey[column.key] = { index = index, class = column.class } end
+	check(byKey.Money ~= nil and byKey.Money.class == "StringValue",
+		"money is a StringValue, so it carries a formatted figure")
+	check(byKey.Money.index ~= 1,
+		"which is exactly why it cannot lead: a formatted string sorts as nothing")
+	check(byKey.Steals.class == "IntValue" and byKey.Rebirths.class == "IntValue",
+		"and the two ranking columns are integers, which sort honestly")
+
+	-- ---- the pure half
+	local stats = Service.statsFor({ coins = 2860000, piggiesStolen = 7, rebirths = 2 })
+	check(stats.Steals == 7 and stats.Rebirths == 2, "the counters are the save's own")
+	check(stats.Money == Config.formatCoins(2860000),
+		"and the money column is Config's own formatter, not a second copy of it")
+	check(type(stats.Money) == "string" and stats.Money ~= "2860000",
+		"so a nine-year-old reads 2.86m rather than a row of digits")
+	local junk = Service.statsFor({ coins = 0 / 0, piggiesStolen = -4, rebirths = 1.7 })
+	check(junk.Steals == 0 and junk.Rebirths == 1 and junk.Money == Config.formatCoins(0),
+		"junk normalises to zero or a whole number rather than reaching a column")
+
+	-- ---- publishing one player
+	local rich = player("Rich", { coins = 5000000, piggiesStolen = 3, rebirths = 2 })
+	Service.publish(rich)
+	local folder = rich:FindFirstChild("leaderstats")
+	check(folder ~= nil, "publishing builds the folder on the player")
+	check(folder.ClassName == "Folder", "as a Folder, which is what the list looks for")
+	check(#folder.Kids == 3, "holding one value per column")
+	for index, column in ipairs(Service.COLUMNS) do
+		check(folder.Kids[index].Name == column.key,
+			"parented in COLUMNS order, because column order is child order")
+		check(folder.Kids[index].ClassName == column.class, column.key .. " has its declared class")
 	end
-	check(rows[1].coins == 5000000 and rows[1].piggiesStolen == 3 and rows[1].rebirths == 2, "the figures are the save's own")
+	check(folder:FindFirstChild("Steals").Value == 3
+		and folder:FindFirstChild("Rebirths").Value == 2
+		and folder:FindFirstChild("Money").Value == Config.formatCoins(5000000),
+		"and every column reads the save")
+
+	-- ---- WRITTEN ONLY ON CHANGE, which is the whole reason this stub counts
+	local settled = writes
+	Service.publish(rich)
+	check(writes == settled, "a second publish with nothing moved writes nothing at all")
+	check(#folder.Kids == 3, "and builds no second set of columns")
+	-- AND THE FORMATTED COLUMN IS QUIETER STILL, WHICH FELL OUT OF THE
+	-- FORMATTER RATHER THAN BEING DESIGNED: a balance that moves inside its
+	-- own rounding reads the same string, so it is not a change. An idle pig
+	-- ticks constantly and most of those ticks now cost nothing at all.
+	saves[rich].coins = 5000001
+	Service.publish(rich)
+	check(writes == settled, "a balance that moves inside its own rounding still writes nothing")
+	saves[rich].coins = 6000000
+	Service.publish(rich)
+	check(writes == settled + 1, "and a balance that moves the FIGURE writes exactly that column")
+	check(folder:FindFirstChild("Money").Value == Config.formatCoins(6000000), "with the new figure")
+
+	-- ---- A PLAYER MID-LOAD GETS NO ROW RATHER THAN A ROW OF ZEROES
+	local loading = player("Loading", nil)
+	Service.publish(loading)
+	check(loading:FindFirstChild("leaderstats") == nil,
+		"a player whose save has not landed gets no folder, not three zeros")
+	saves[loading] = { coins = 10, piggiesStolen = 0, rebirths = 0 }
+	Service.publish(loading)
+	check(loading:FindFirstChild("leaderstats") ~= nil, "and gets one the moment the save lands")
+
+	-- ---- the cadence covers everybody
+	players = { rich, loading, player("Third", { coins = 1, piggiesStolen = 1, rebirths = 1 }) }
 	Service.push()
-	check(#fired == 1 and fired[1].name == "LobbyBoard" and #fired[1].payload == 4, "push broadcasts the snapshot on the LobbyBoard remote")
+	for _, p in players do
+		check(p:FindFirstChild("leaderstats") ~= nil, "push covers every player in the server")
+	end
+
+	-- ---- and the wiring, read off the sources
 	local s = sources.LobbyBoardService
-	check(s:find("Config.LEADERBOARD_REFRESH", 1, true) ~= nil, "pushed on the leaderboard's own cadence")
-	check(s:find("Players.PlayerAdded:Connect", 1, true) ~= nil and s:find("Players.PlayerRemoving:Connect", 1, true) ~= nil,
-		"and on every join and leave")
+	check(s:find("Config.LEADERBOARD_REFRESH", 1, true) ~= nil, "written on the leaderboard's own cadence")
+	check(s:find("Players.PlayerAdded:Connect", 1, true) ~= nil, "and once as a player lands")
 	check(s:find("DataService.get", 1, true) ~= nil, "read from the live session data, never a copy")
-	check(sources.Remotes:find('LobbyBoard = "RemoteEvent"', 1, true) ~= nil, "the channel is declared in Remotes")
-	check(sources.Main:find("require(Services.LobbyBoardService).start()", 1, true) ~= nil, "Main starts the service")
+	-- NO PUSH ON LEAVE: the list drops a player who has gone without being
+	-- told, which is one of the duties this move deleted.
+	check(s:find("PlayerRemoving", 1, true) == nil,
+		"and nothing on leave: the component drops a row that has gone")
+	check(s:find("FireAllClients", 1, true) == nil and s:find("Remotes", 1, true) == nil,
+		"nothing is broadcast: leaderstats replicates itself")
+	check(sources.Main:find("require(Services.LobbyBoardService).start()", 1, true) ~= nil,
+		"Main starts the service")
 end
 
 -- ------------------------------------------------------------
--- 4. THE PANEL: rows, formatting, columns wide enough for their payload
+-- 4. THE PANEL IS GONE, AND SO IS EVERYTHING THAT REASONED ABOUT ITS CORNER
 -- ------------------------------------------------------------
 do
-	local modules = {
-		Config = Config,
-		Remotes = { get = function() return { OnClientEvent = { Connect = function() end } } end },
-		Theme = setmetatable({ MENU_Z = 45 }, { __index = function() return {} end }),
-		MenuIcons = {},
-	}
-	local env = setmetatable({
-		game = { GetService = function(_, name)
-			if name == "ReplicatedStorage" then return { Shared = names } end
-			if name == "UserInputService" then return { InputBegan = { Connect = function() end }, GetFocusedTextBox = function() return nil end } end
-			return {}
-		end },
-		require = function(n) return assert(modules[n], tostring(n)) end,
-		script = { Parent = names },
-		utf8 = utf8,
-	}, { __index = getfenv() })
-	local run = assert(loadstring(sources.LobbyBoard, "LobbyBoard")); setfenv(run, env)
-	local Board = run()
+	local cm = sources.ClientMain
+	check(cm:find("CoreGuiType.PlayerList", 1, true) == nil,
+		"the player list is not switched off any more: it IS the leaderboard")
+	check(cm:find("Shared.LobbyBoard", 1, true) == nil,
+		"and ClientMain starts no board of our own")
+	check(cm:find("BoardOpen", 1, true) == nil,
+		"there is no collapse state left to remember")
+	check(sources.Remotes:find("LobbyBoard = ", 1, true) == nil,
+		"the remote is retired with the panel that read it")
 
-	local payload = {
-		{ name = "Rich", userId = 2, coins = 999900000, piggiesStolen = 12, rebirths = 3 },
-		{ name = "Me", userId = 7, coins = 1234, piggiesStolen = 0, rebirths = 0 },
-	}
-	local rows = Board.rowsFor(payload, 7)
-	check(#rows == 2 and rows[1].rank == "1" and rows[2].rank == "2", "rank is the server's order")
-	check(rows[1].coins == Config.formatCoins(999900000) and rows[1].coins == "999.9M", "cash goes through the one coin formatter")
-	check(rows[2].me == true and rows[1].me == false, "the reader's own row is marked")
-	check(rows[1].piggies == "12" and rows[1].rebirths == "3", "the two counts print as whole numbers")
-	check(#Board.rowsFor("nonsense", 7) == 0 and #Board.rowsFor(nil, 7) == 0, "a bad payload draws an empty board")
-	local many = {}
-	for i = 1, Board.ROWS + 3 do many[i] = { name = "P" .. i, userId = i, coins = 0, piggiesStolen = 0, rebirths = 0 } end
-	check(#Board.rowsFor(many, 1) == Board.ROWS, "never more rows than seats in the server")
-	check(Board.ROWS == Config.MAX_PLAYERS, "and that is Config.MAX_PLAYERS")
-
-	-- THE COLUMNS AGAINST THEIR LONGEST PAYLOAD. No TextBounds without a
-	-- renderer, so these are upper bounds from this project's own measured
-	-- glyph widths: FredokaOne runs 0.48-0.58 em per glyph ("Everything" 62
-	-- at 13, "Worn" 30 at 13) and GothamBold 0.54-0.67 ("888.8K" 55 at 17,
-	-- "MOST WANTED" 88 at 12, all caps). 0.62 and 0.70 are taken as the
-	-- ceilings; a real TextBounds read in Studio is what closes this.
-	local FREDOKA, GOTHAM = 0.62, 0.70
-	local widths = {}
-	for _, column in Board.COLUMNS do widths[column.key] = column.width end
-	local function fits(text, em, size, width, what)
-		local need = #text * em * size
-		check(need <= width, ("%s: %d chars at %dpx need %.0f in %d"):format(what, #text, size, need, width))
-	end
-	fits("Sixteencharname1", FREDOKA, Board.ROW_TEXT, widths.name, "a 16-character display name")
-	fits("999.9M", GOTHAM, Board.ROW_TEXT, widths.coins, "the largest cash figure")
-	fits("99999", GOTHAM, Board.ROW_TEXT, widths.piggies, "a five-digit robbery count")
-	fits("99", GOTHAM, Board.ROW_TEXT, widths.rebirths, "a two-digit rebirth count")
-	fits("8", GOTHAM, Board.ROW_TEXT, widths.rank, "the rank")
-	fits("REBIRTHS", GOTHAM, Board.HEAD_TEXT, widths.rebirths - 16, "the rebirths head beside its star")
-	fits("ROBBED", GOTHAM, Board.HEAD_TEXT, widths.piggies, "the robbed head")
-	fits("PLAYER", GOTHAM, Board.HEAD_TEXT, widths.name, "the player head")
-	fits("STREET LEADERBOARD", FREDOKA, 24, Board.WIDTH - Board.PAD * 2 - 52, "the title beside its close button")
-	fits("Lifetime totals of everybody in this server", GOTHAM, 12, Board.WIDTH - Board.PAD * 2 - 52, "the subtitle")
-	check(Board.WIDTH == 570 and Board.HEIGHT == 380, "the card is 570 x 380 design pixels")
-	-- A phone held sideways is the shortest thing that has to work: the card
-	-- fits 736 x 414 unscaled and scales on anything shorter.
-	check(Board.HEIGHT <= 414 - 24 and Board.WIDTH <= 736 - 24, "fits a phone held sideways at scale 1")
-
-	local s = sources.LobbyBoard
-	check(s:find("STREET LEADERBOARD", 1, true) ~= nil and s:find("Lifetime", 1, true) ~= nil,
-		"the header names the board and the subtitle names the claim: lifetime, not this week")
-	check(s:find("Theme.MENU_Z - 1", 1, true) ~= nil, "drawn one step under the menu layer, so a menu always covers it")
-	check(s:find('"BagOpen"', 1, true) ~= nil and s:find('"SettingsOpen"', 1, true) ~= nil and s:find('"DisplayOrder"', 1, true) ~= nil,
-		"closes itself when the bag, settings or the shop opens")
-	check(s:find("Enum.KeyCode.Tab", 1, true) ~= nil and s:find("Enum.KeyCode.L", 1, true) ~= nil,
-		"Tab and L toggle it")
-	check(s:find('"BoardToggle", "TROPHY"', 1, true) ~= nil and s:find("toggle.LayoutOrder = 4", 1, true) ~= nil,
-		"the button is the fourth tile of the menu rail, under SHOP")
-	check(s:find("TextScaled = false", 1, true) ~= nil, "no cell is TextScaled")
-	check(sources.MenuIcons:find("TROPHY = board", 1, true) ~= nil, "MenuIcons draws the trophy tile")
-	check(sources.HUDLayout:find("tiles * 64", 1, true) ~= nil and sources.HUDLayout:find("menu.ChildAdded:Connect", 1, true) ~= nil,
-		"the menu rail is sized by its tiles and re-fits when one is added")
-	local starts = select(2, sources.ClientMain:gsub("require%(ReplicatedStorage%.Shared%.LobbyBoard%)%.start%(player, gui, shop%)", ""))
-	check(starts == 1, "ClientMain starts the panel in exactly one statement holding no local")
+	-- THE ONE NEIGHBOUR THAT OUTLIVED THE BOARD is the card that has to stay
+	-- clear of that corner. A CoreGui cannot be measured, so what used to be
+	-- a published width has to be a BOUND -- and a bound that is a pure
+	-- fraction of the screen is the wrong shape for a thing of fixed size.
+	local hl = sources.HUDLayout
+	check(hl:find("BoardWidth", 1, true) == nil, "nothing publishes a board width any more")
+	check(hl:find("HUDLayout.PLAYER_LIST_W", 1, true) ~= nil, "the reserve is a named bound")
+	check(hl:find("math.min(HUDLayout.PLAYER_LIST_W", 1, true) ~= nil,
+		"capped in pixels as well as in fraction, because the list does not grow with the screen")
+	check(sources.FirstJob:find("HUDLayout.rightClear", 1, true) ~= nil,
+		"and the first-job card still asks for it rather than keeping its own copy")
 end
 
-print(("PASS: %d lobby board checks; the save field, the secure-time increment, the service snapshot and push, the panel's rows and columns, and the wiring in Remotes, Main and ClientMain. No live saves, no screen."):format(checks))
+print(("PASS: %d lobby board checks; the save field, the secure-time increment, the leaderstats contract -- folder name, column order as the sort, classes, formatting, write-on-change -- and the retirement of the custom panel, its remote and its reserved corner. No live saves, no screen."):format(checks))

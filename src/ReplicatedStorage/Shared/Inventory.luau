@@ -112,7 +112,10 @@ local SECTIONS = {
 	-- its own back with it.
 	{ kind = "ride", from = "rides", tab = "Rides", icon = utf8.char(0x1F6F9),
 		hue = "rides", art = "rides", owned = "owned", worn = "equipped", wire = "ride",
-		empty = "Boards and bikes are bought in the shop." },
+		-- WHERE, FROM `Config.shopLocation`: the shop button sells Robux and
+		-- nothing else, so "in the shop" would send a player to a panel that
+		-- no longer stocks a single board.
+		empty = "Boards and bikes are sold at " .. (Config.shopLocation("rides") or "a shop") .. "." },
 	-- MOST WANTED GEAR is earned by escaping a wanted pursuit and never
 	-- bought, so it lives here and not in the shop. The push is a LIST, not a
 	-- keyed table -- `sourceFor` keys it -- and only unlocked pieces show.
@@ -130,7 +133,7 @@ local SECTIONS = {
 	{ kind = "catch", from = "catches", tab = "Nab Effects", icon = utf8.char(0x1F389),
 		hue = "companions", model = "partypopper",
 		owned = "unlocked", worn = "equipped", wire = "catch",
-		empty = "Nab effects are in the shop, on the Guardians shelf." },
+		empty = "Nab effects are sold at " .. (Config.shopLocation("companions") or "a shop") .. "." },
 }
 
 -- ---- state -----------------------------------------------------------------
@@ -1028,7 +1031,7 @@ function Inventory.setChest(state: any)
 end
 
 -- THE SHOP'S MASTHEAD, rebuilt here rather than shared, because the shop's
--- lives inside `ShopRevamp`'s shell with its landing grid and back button,
+-- lives inside `ShopRevamp`'s shell with its back arrow and shelf routing,
 -- none of which a bag has. Every piece is the same widget with the same
 -- numbers -- green band, pointed gold-edged sign, coin badge -- so the two
 -- panels one tap apart read as one game. There were TWO badges: the second
@@ -1063,8 +1066,8 @@ end
 -- THE SHOP'S LAYOUT, on the numbers `ShopRevamp:layout` uses for a category
 -- page: the same masthead height, sign width, badge sizes and sidebar width,
 -- so a player moving between the two sees nothing jump. On a compact screen
--- the shop hides its sidebar and navigates from the landing grid; the bag has
--- no landing, so it keeps the sidebar and drops it to icons instead.
+-- the bag keeps its sidebar and drops it to icons; the shop has no sidebar at
+-- all, since each shelf is reached through its own door.
 layout = function()
 	local view = panelView
 	local c = chrome

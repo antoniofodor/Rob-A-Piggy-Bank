@@ -2,8 +2,33 @@
 --[[
 	Rebirth
 
-	The rebirth button, and the decision page it opens. Built to
-	docs/REBIRTH-UI-REDESIGN.md with the art in assets/ui/rebirth-icons-v1.
+	The rebirth button, and the decision page it opens. The art is in
+	assets/ui/rebirth-icons-v1. (The September 2026 redesign's own document is
+	deleted: it had shipped, and the header below documents the decisions it
+	got wrong better than the doc did.)
+
+	----------------------------------------------------------------------
+
+	THE PAGE IS ONE LIST: YOU GAIN, YOU KEEP, STARTS OVER (designer,
+	2026-09-23). Three bands of plain rows in one column, read top to bottom in
+	the order the trade happens in a child's head -- what do I get, what is
+	safe, what goes.
+
+	WHAT IT REPLACED IS THE POINT. The page carried three illustrated benefit
+	cards in a two-column grid, an "Unlocks:" strip with a shape of its own, a
+	collapsible POSSIBLE REWARDS list printing real crate odds, and then RESETS
+	and YOU KEEP SIDE BY SIDE with a second collapsible inside one of them.
+	Five shapes and two expanders, on the one screen in this game that exists
+	so a nine-year-old understands an irreversible decision BEFORE making it --
+	and on a desktop the cost half of the trade was in a column they had to
+	notice. Reported, correctly, as far too confusing. The fault was never any
+	one element: the page had grown a SURFACE per fact where a ROW per fact was
+	the whole requirement.
+
+	SO THE RULE IS: A FACT ON THIS PAGE IS A ROW. An icon, a name a child can
+	read, one short note under it, and a value where there is one. Anything
+	that wants a surface of its own, an expander, or a second column has to
+	answer this paragraph first.
 
 	A module for the reason `HouseFX`, `SpinWheel`, `AdminPanel` and `HotBar`
 	are: `ClientMain` is one chunk against Luau's 200-local ceiling.
@@ -27,14 +52,20 @@
 	----------------------------------------------------------------------
 
 	THE NUMBERS ARE REAL. Every value comes from a Config helper the server
-	also reads (`rebirthBonusPercent`, `maxLevel`, `treeRebirthFactor`,
-	`getRebirthThreshold` -- the CASH gate, `Config.REBIRTH_CASH_GATE`, a
-	placeholder table the designer has yet to set -- `rebirthCratesOpen`,
-	`rebirthCrateBonus`) or from a
-	push (`StateUpdate`, `UpgradeState`, `CosmeticState`, `ChestState`). The
-	crate odds are `ChestState`'s -- what `liveOdds` actually rolls with -- and
-	are simply not printed until that push has arrived, because a drawn
-	probability the server did not use is worse than none.
+	also reads (`rebirthIncomeFactor`, `getRebirthThreshold` -- the CASH gate,
+	`Config.REBIRTH_CASH_GATE`, a placeholder table the designer has yet to
+	set -- `rebirthCrateLadder` and `rebirthCratesOpen`) or from a push
+	(`StateUpdate`, `UpgradeState`, `CosmeticState`, `RideState`).
+
+	THE PERMANENT COIN MULTIPLIER IS WHAT THE TOP ROW IS CALLED, it is printed
+	as a MULTIPLE ("1x -> 1.12x") rather than as the "+12%" it used to be, and
+	it is the only thing in the game that raises what a piggy earns. The coin-priced EARN
+	FASTER rung is off the shop shelf (designer, 2026-09-23), which also
+	retired two things this page used to print: a HIGHER UPGRADE LIMIT benefit
+	card -- `Config.rebirthOpensMore` is true of the income ladder and of
+	nothing else, so that ceiling now gates nothing anybody can buy -- and an
+	"Earn Faster / Lv N -> 1" reset row, which could only ever have read
+	"Lv 1 -> 1".
 
 	Only levels ABOVE the start are listed as resets. An upgrade never bought
 	is not a loss, and the dog is not one at all: rebirth never touches it.
@@ -65,11 +96,13 @@ local PLUM_LIGHT = PLUM:Lerp(Theme.PAPER, 0.18)
 local ICONS = Config.UI_ICONS or {}
 
 -- Measured present in both fonts before use; see CLAUDE.md on tofu glyphs.
+--
+-- THREE MORE STOOD HERE AND NONE HAD A READER. `CHEVRON` labelled the two
+-- expanders and `DOT` separated the crate odds, both of which went with the
+-- single list; `TICK` had no use at all and predates that -- swept in the same
+-- pass rather than left to be re-checked by whoever wonders next.
 local ARROW = utf8.char(0x2192)
-local TICK = utf8.char(0x2713)
 local CROSS = utf8.char(0x00D7)
-local CHEVRON = utf8.char(0x203A)
-local DOT = utf8.char(0x2022)
 local ELLIPSIS = utf8.char(0x2026)
 
 local function hex(c: Color3): string
@@ -77,30 +110,31 @@ local function hex(c: Color3): string
 		math.floor(c.R * 255 + 0.5), math.floor(c.G * 255 + 0.5), math.floor(c.B * 255 + 0.5))
 end
 
-local PLUM_HEX = hex(PLUM)
 local GOLD_HEX = hex(Theme.GOLD)
-local MUTED_HEX = hex(Theme.MUTED)
 
--- Set by ClientMain: the button is a HUD overlay near the top of the screen,
--- which is exactly where the shop panel's header sits.
-Rebirth.canShow = nil :: (() -> boolean)?
+-- RETIRED WITH THE MOVE TO THE MENU RAIL. `Rebirth.canShow` and
+-- `Rebirth.yieldsBand` were both set by ClientMain and both existed for one
+-- reason: the button used to stand in the top-centre column, where a shop
+-- panel could cover it and the first-job card wanted the same row. A rail
+-- tile is covered by nothing and shares its row with nothing, so the hooks,
+-- the watcher that drove them and the arbitration between them are gone
+-- rather than left switched off. ClientMain still owns the same predicate for
+-- the FIRST-JOB card, which does still sit in that column -- it is declared
+-- at that card's own call site now, where its one reader can see it.
 local onConfirm: (() -> ())? = nil
 
 local seen = {
 	coins = 0,
-	incomeLevel = 1,
 	rebirths = 0,
 	ready = false,
 	upgrades = nil :: any,
 	cosmetics = nil :: any,
 	rides = nil :: any,
-	chests = nil :: any,
 }
 
 -- The confirm is in flight. `from` is the rebirth count it was sent at, so
 -- success is "the count rose" rather than a guess at a timer.
 local pending = { active = false, from = 0, token = 0 }
-local expanded = { crate = false, upgrades = false }
 
 local ui = {} :: any
 
@@ -235,80 +269,103 @@ local function format(value: number): string
 end
 
 -- ============================================================
--- THE HUD BUTTON
+-- THE MENU TILE
 -- ============================================================
 
--- THE PAGE'S OWN TITLE PLATE, on the HUD: the same dark plum gloss, the
--- spinning emblem on a disc hanging off its left edge, and "REBIRTH N" on one
--- line with the number in gold. Tapping it opens a page whose header is the
--- very thing you tapped, which is what makes the two read as one object.
-local function buildButton(gui: ScreenGui)
-	local b = button(gui, "RebirthButton", PLUM)
-	Theme.corner(b, 16)
-	Theme.gloss(b, PLUM_LIGHT, PLUM)
-	b.AnchorPoint = Vector2.new(0.5, 0)
-	b.Visible = false
-	b.ZIndex = 2
+-- THE REBIRTH TILE, IN THE LEFT MENU RAIL (designer, 2026-09-23): the
+-- spinning emblem and the word under it, and nothing else.
+--
+-- IT WAS A 250 x 54 PLATE IN THE TOP-CENTRE COLUMN, and moving it here is
+-- what let a whole arbitration layer be DELETED rather than switched off.
+-- That column is the one this project's notes call full and measured, and a
+-- PERMANENT element in it overlapped the first-job card by 36 pixels -- so it
+-- had grown a yield rule, a second visibility hook and a watcher to decide
+-- which of the two owned the row. The rail is drawn at x 4 and the shop panel
+-- starts at 83, so nothing covers a tile and none of that is needed: this is
+-- a sibling of Shop, Bag and Board and behaves like one.
+--
+-- IT CARRIES A CAPTION WHERE THE OTHER TWO DO NOT, deliberately rather than
+-- inconsistently. Those are a cog, a bag and a shopfront -- objects a
+-- nine-year-old already has a word for, which is why `makeButton` keeps its
+-- label in an attribute and draws only the picture. A piggy inside a ring of
+-- arrows is not one of those: REBIRTH is the idea this game most has to
+-- teach, so the one tile whose meaning is not in its drawing is the one tile
+-- that says it out loud.
+local TILE_W, TILE_H = 66, 64
+
+-- HOW BIG THE DRAWING IS, AND IT IS THE NEIGHBOURS' SIZE RATHER THAN WHAT WAS
+-- LEFT OVER (designer, 2026-09-23: "lets make the rebirth icon bigger").
+-- `MenuIcons` scales a 96-unit drawing by `min(w, h) / 96`, so a cog, a bag
+-- and a shopfront each fill the whole of their 66 x 64 tile. This emblem was
+-- 46, chosen to leave a clear 16-pixel caption row under it -- so the one
+-- tile carrying a word was also the one drawing at 72% of everything beside
+-- it, which is what was reported.
+--
+-- THE CAPTION LIES ACROSS THE BOTTOM OF IT NOW, WHICH IS WHAT PAID FOR THE
+-- EXTRA TWELVE PIXELS. A row of its own can only be bought out of the
+-- drawing's height, and the rail's arithmetic (`tiles * 64` in
+-- `HUDLayout.bindMenu`) means the TILE cannot grow to make room without
+-- every tile growing. Stroked paper type over art is this project's own
+-- answer to that trade -- the standing countdown chip records a pill covering
+-- its icon as the bug, and bare stroked type over a bigger icon as the fix --
+-- and what it overlaps here is the bottom arc of the arrow ring rather than
+-- the piggy, which sits at 0.62 of the emblem in the middle of it.
+local TILE_ART = 58
+
+local function buildButton(rail: Instance)
+	local b = Instance.new("TextButton")
+	b.Name = "RebirthButton"
+	b.Size = UDim2.fromOffset(TILE_W, TILE_H)
+	b.Text = ""
+	b.BackgroundTransparency = 1
+	b.BorderSizePixel = 0
+	b.AutoButtonColor = false
+	b:SetAttribute("AccessibleLabel", "REBIRTH")
+	-- LAST IN THE RAIL, AND THE RAIL IS THREE TILES PLUS THIS ONE. It took
+	-- this slot from the board's own toggle, which was then pushed to 5 and
+	-- has since been retired outright (designer, 2026-09-23) -- the board
+	-- carries a collapsed tile in its own corner, so the rail was offering a
+	-- second way to do one thing. Nothing moved when it went: the rail is
+	-- top-anchored and the cup was below this.
+	b.LayoutOrder = 4
+	-- VISIBLE FROM THE MOMENT IT IS PARENTED. `HUDLayout.bindMenu` sizes the
+	-- rail by counting its VISIBLE children on ChildAdded, so a tile that
+	-- arrives hidden is a tile the rail is not tall enough to hold.
+	b.Visible = true
+	b.Parent = rail
 	ui.button = b
 
-	-- The press moves the face down, emblem and text together.
-	local press = Instance.new("UIPadding")
-	press.Parent = b
 	-- One brief pop when rebirth first becomes available. The only standing
 	-- motion is the emblem's arrow ring turning (designer's call, over the
-	-- guide's "keep it still"); the plate itself does not pulse or bounce.
+	-- guide's "keep it still"); the tile itself does not pulse or bounce.
 	local pop = Instance.new("UIScale")
 	pop.Parent = b
 	ui.pop = pop
 
-	local mark, arrows = emblem(b, 72, true, true)
-	mark.AnchorPoint = Vector2.new(0, 0.5)
+	-- No disc behind it: on a plum plate the disc was what stopped the emblem
+	-- reading as art floating over a seam, and on the rail there is no plate
+	-- and no seam -- the other three tiles are bare drawings on the world.
+	local mark, arrows = emblem(b, TILE_W, true, false)
+	mark.AnchorPoint = Vector2.new(0.5, 0)
+	mark.Position = UDim2.new(0.5, 0, 0, -1)
+	mark.Size = UDim2.fromOffset(TILE_ART, TILE_ART)
 	ui.buttonEmblem = mark
 	ui.buttonArrows = arrows
 
-	local label = text(b, "Label", "REBIRTH", 22, Theme.PAPER)
+	-- Paper with an ink line round each glyph, which is what holds a caption
+	-- legible over grass, a road or a house -- the rail sits on the world, and
+	-- since the drawing grew this now sits over the bottom of the ring as
+	-- well. The stroke is the only thing between the two, which is exactly
+	-- what it is for; `Theme.outline` would have been the wrong helper, since
+	-- it strokes a label's invisible RECTANGLE rather than its glyphs.
+	local label = text(b, "Label", "REBIRTH", 11, Theme.PAPER)
 	inked(label, 2)
 	label.TextXAlignment = Enum.TextXAlignment.Center
+	label.Position = UDim2.fromOffset(0, 47)
+	label.Size = UDim2.new(1, 0, 0, 16)
 	ui.buttonLabel = label
 
-	local function fit()
-		local m = require(script.Parent.HUDLayout).metrics(gui.AbsoluteSize)
-		local w, h = if m.compact then 190 else 250, if m.compact then 44 else 54
-		local e = h + 22
-		local over = math.floor(e * 0.3)
-		b.Size = UDim2.fromOffset(w, h)
-		-- The same slots the old button used, which HUDLayout's neighbours are
-		-- already clear of; shifted right by the emblem's overhang so the whole
-		-- footprint, overhang included, stays centred on them.
-		-- NEVER UNDER THE PIGGY PANEL. Centred on the screen, a 1180-wide
-		-- tablet put this button straight across the panel's coin balance
-		-- (the panel is scaled 1.3 there). So the centre is pulled left until
-		-- the button's right edge clears the panel's drawn left edge by 12.
-		local view = gui.AbsoluteSize
-		local centre = view.X / 2 + (if m.compact then -56 + over else over)
-		local panelLeft = view.X - 14 - m.bankWidth * m.bankScale
-		if not m.portrait then
-			centre = math.min(centre, panelLeft - 12 - w / 2)
-		end
-		b.Position = UDim2.fromOffset(centre, if m.compact
-			then (if m.portrait then 150 else 12)
-			else 96)
-		mark.Size = UDim2.fromOffset(e, e)
-		mark.Position = UDim2.new(0, -over, 0.5, 0)
-		local left = math.floor(e * 0.72)
-		label.TextSize = if m.compact then 19 else 24
-		label.Position = UDim2.fromOffset(left, 0)
-		label.Size = UDim2.new(1, -left - 8, 1, 0)
-	end
-	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
-	fit()
-
-	b.MouseButton1Down:Connect(function() press.PaddingTop = UDim.new(0, 2) end)
-	b.MouseButton1Up:Connect(function() press.PaddingTop = UDim.new(0, 0) end)
-	b.MouseLeave:Connect(function() press.PaddingTop = UDim.new(0, 0) end)
-
 	b.Activated:Connect(function()
-		press.PaddingTop = UDim.new(0, 0)
 		Rebirth.open()
 	end)
 end
@@ -326,29 +383,10 @@ end
 -- THE PAGE
 -- ============================================================
 
--- A benefit card: an art well, a title, a current -> next line and a helper.
-local function benefitCard(parent: Instance, order: number, name: string, wellTint: Color3)
-	local card = frame(parent, name)
-	card.LayoutOrder = order
-	Theme.card(card, 16)
-	Theme.outline(card, Theme.OUTLINE_THIN)
-
-	local well = frame(card, "Well", wellTint)
-	well.AnchorPoint = Vector2.new(0, 0.5)
-	Theme.corner(well, 14)
-	Theme.gloss(well, wellTint, wellTint:Lerp(Theme.INK, 0.12))
-
-	local title = text(card, "Title", "", 16)
-	local value = text(card, "Value", "", 24)
-	local helper = text(card, "Helper", "", 14, Theme.MUTED, Enum.Font.GothamMedium)
-	helper.TextWrapped = true
-	helper.TextYAlignment = Enum.TextYAlignment.Top
-	return { card = card, well = well, title = title, value = value, helper = helper }
-end
-
 -- A summary card: a coloured head band with a title and a one-line promise,
--- then rows. Built as the concept's RESETS / YOU KEEP pair: the band says
--- which side of the trade you are reading before a word of it is read.
+-- then rows. THE ONLY SHAPE ON THE PAGE now that the illustrated benefit
+-- cards have gone: the band says which side of the trade you are reading
+-- before a word of it is read, and all three sections are one of these.
 local function sectionCard(parent: Instance, name: string, fill: Color3, edge: Color3,
 	heading: string, sub: string?, band: Color3)
 	local card = frame(parent, name, fill)
@@ -356,17 +394,17 @@ local function sectionCard(parent: Instance, name: string, fill: Color3, edge: C
 	Theme.corner(card, 14)
 	Theme.outline(card, Theme.OUTLINE_THIN, edge)
 	local pad = Instance.new("UIPadding")
-	pad.PaddingBottom = UDim.new(0, 12)
+	pad.PaddingBottom = UDim.new(0, 8)
 	pad.Parent = card
 	local list = Instance.new("UIListLayout")
-	list.Padding = UDim.new(0, 6)
+	list.Padding = UDim.new(0, 4)
 	list.SortOrder = Enum.SortOrder.LayoutOrder
 	list.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	list.Parent = card
 
 	local head = frame(card, "Heading", band)
 	head.LayoutOrder = 0
-	head.Size = UDim2.new(1, 0, 0, if sub then 50 else 36)
+	head.Size = UDim2.new(1, 0, 0, if sub then 44 else 36)
 	Theme.corner(head, 14)
 	-- Squares off the band's lower corners so it reads as the card's top
 	-- rather than as a pill sitting inside it.
@@ -377,13 +415,13 @@ local function sectionCard(parent: Instance, name: string, fill: Color3, edge: C
 	local title = text(head, "Title", heading, 20, Theme.PAPER)
 	inked(title, 1.5)
 	title.TextXAlignment = Enum.TextXAlignment.Center
-	title.Position = UDim2.fromOffset(0, 4)
+	title.Position = UDim2.fromOffset(0, if sub then 2 else 4)
 	title.Size = UDim2.new(1, 0, 0, 24)
 	if sub then
 		local line = text(head, "Sub", sub, 13, Theme.PAPER, Enum.Font.GothamBold)
 		line.TextXAlignment = Enum.TextXAlignment.Center
-		line.Position = UDim2.fromOffset(0, 27)
-		line.Size = UDim2.new(1, 0, 0, 18)
+		line.Position = UDim2.fromOffset(0, 24)
+		line.Size = UDim2.new(1, 0, 0, 17)
 	end
 	return card
 end
@@ -405,11 +443,20 @@ end
 
 -- One line of a summary card: an icon chip, a name with an optional note under
 -- it, and an optional value pill on the right.
+--
+-- `loud` MAKES THE NOTE THE HEADLINE, and it exists for exactly one row: the
+-- coin multiplier, whose note is a before-and-after rather than a caption.
+-- IT IS NOT A PILL, AND THAT IS A MEASUREMENT. A value pill is 124 pixels and
+-- right-aligned, which leaves a narrow phone's row about 72 for the name -- the
+-- reset rows already truncate there -- and "1.24x -> 1.36x" wants nearer 120 at
+-- 15px, so pilling it would either clip the number or eat the label. Printed
+-- under the name it has the whole row and no neighbour to fight, at any width.
 local function summaryRow(parent: Instance, order: number, tint: Color3?, draw: ((Frame) -> ())?,
-	name: string, note: string?, value: string?, pillTint: Color3?): (Frame, TextLabel?)
+	name: string, note: string?, value: string?, pillTint: Color3?,
+	loud: boolean?): (Frame, TextLabel?)
 	local row = frame(parent, "Row" .. order)
 	row.LayoutOrder = order
-	local h = if note then 44 else 36
+	local h = if loud then 52 elseif note then 40 else 34
 	row.Size = UDim2.new(1, -24, 0, h)
 	if draw and tint then
 		local chip = iconChip(row, tint, 36, draw)
@@ -419,13 +466,16 @@ local function summaryRow(parent: Instance, order: number, tint: Color3?, draw: 
 	local x = 46
 	local valueW = if value then 124 else 0
 	local label = text(row, "Name", name, 16, Theme.INK, Theme.FONT)
-	label.Position = UDim2.fromOffset(x, if note then 3 else 0)
+	label.Position = UDim2.fromOffset(x, if note then 2 else 0)
 	label.Size = UDim2.new(1, -(x + valueW + 6), 0, if note then 20 else h)
 	label.TextTruncate = Enum.TextTruncate.AtEnd
 	if note then
-		local n = text(row, "Note", note, 13, Theme.MUTED, Enum.Font.GothamMedium)
-		n.Position = UDim2.fromOffset(x, 23)
-		n.Size = UDim2.new(1, -(x + valueW + 6), 0, 18)
+		local n = text(row, "Note", note,
+			if loud then 20 else 13,
+			if loud then Theme.INK else Theme.MUTED,
+			if loud then Theme.FONT else Enum.Font.GothamMedium)
+		n.Position = UDim2.fromOffset(x, if loud then 24 else 21)
+		n.Size = UDim2.new(1, -(x + valueW + 6), 0, if loud then 26 else 18)
 		n.TextTruncate = Enum.TextTruncate.AtEnd
 	end
 	local v: TextLabel? = nil
@@ -441,25 +491,6 @@ local function summaryRow(parent: Instance, order: number, tint: Color3?, draw: 
 		Theme.outline(v, 1.5, Theme.MUTED_LIGHT)
 	end
 	return row, v
-end
-
-local function linkButton(parent: Instance, name: string, order: number, label: string,
-	onPress: () -> ()): TextButton
-	local b = Instance.new("TextButton")
-	b.Name = name
-	b.LayoutOrder = order
-	b.BackgroundColor3 = Theme.PAPER_DEEP
-	b.BorderSizePixel = 0
-	b.AutoButtonColor = true
-	b.Font = Theme.FONT_BODY
-	b.TextSize = 14
-	b.TextColor3 = PLUM
-	b.Text = label
-	b.Size = UDim2.new(0, 190, 0, 30)
-	b.Parent = parent
-	Theme.corner(b, 10)
-	b.Activated:Connect(onPress)
-	return b
 end
 
 local function buildPage(gui: ScreenGui)
@@ -542,59 +573,53 @@ local function buildPage(gui: ScreenGui)
 	body.Parent = shell
 	ui.body = body
 	local bodyPad = Instance.new("UIPadding")
-	bodyPad.PaddingTop = UDim.new(0, 4)
-	bodyPad.PaddingBottom = UDim.new(0, 8)
+	bodyPad.PaddingTop = UDim.new(0, 2)
+	bodyPad.PaddingBottom = UDim.new(0, 4)
 	bodyPad.PaddingLeft = UDim.new(0, 4)
 	bodyPad.PaddingRight = UDim.new(0, 12)
 	bodyPad.Parent = body
 	local bodyList = Instance.new("UIListLayout")
-	bodyList.Padding = UDim.new(0, 12)
+	bodyList.Padding = UDim.new(0, 8)
 	bodyList.SortOrder = Enum.SortOrder.LayoutOrder
 	bodyList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	bodyList.Parent = body
 
-	-- A. the four benefit cards
-	local grid = frame(body, "Benefits")
-	grid.LayoutOrder = 1
-	local gridLayout = Instance.new("UIGridLayout")
-	gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	gridLayout.CellPadding = UDim2.fromOffset(12, 12)
-	gridLayout.Parent = grid
-	ui.grid = grid
-	ui.gridLayout = gridLayout
-
-	ui.coinCard = benefitCard(grid, 1, "CoinBonus", Theme.GOLD:Lerp(Theme.PAPER, 0.35))
-	ui.limitCard = benefitCard(grid, 2, "UpgradeLimit", Theme.COOL:Lerp(Theme.GOOD, 0.5):Lerp(Theme.PAPER, 0.55))
-	ui.crateCard = benefitCard(grid, 3, "FreeCrate", PLUM:Lerp(Theme.PAPER, 0.55))
-
-	-- B. crate details, expanded in place -- never the shop over this page.
-	local crateDetails = sectionCard(body, "CrateDetails", Theme.PAPER, Theme.MUTED_LIGHT,
-		"POSSIBLE REWARDS", nil, PLUM)
-	crateDetails.LayoutOrder = 2
-	crateDetails.Visible = false
-	ui.crateDetails = crateDetails
-
-	-- C. what changes
-	local changes = frame(body, "Changes")
-	changes.LayoutOrder = 3
-	changes.AutomaticSize = Enum.AutomaticSize.Y
-	local changesLayout = Instance.new("UIListLayout")
-	changesLayout.Padding = UDim.new(0, 12)
-	changesLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	changesLayout.Parent = changes
-	ui.changes = changes
-	ui.changesLayout = changesLayout
-	ui.resets = sectionCard(changes, "Resets", Theme.STOP:Lerp(Theme.PAPER, 0.86),
-		Theme.STOP:Lerp(Theme.PAPER, 0.4), "RESETS", "Goes back to the start", Theme.STOP_INK)
-	ui.resets.LayoutOrder = 1
-	ui.keep = sectionCard(changes, "YouKeep", Theme.GOOD:Lerp(Theme.PAPER, 0.84),
-		Theme.GOOD:Lerp(Theme.PAPER, 0.35), "YOU KEEP", "Stays with you forever", Theme.GOOD_INK)
+	-- ONE LIST, TOP TO BOTTOM: what you GAIN, then what you KEEP, then what
+	-- STARTS OVER.
+	--
+	-- WHAT STOOD HERE WAS FIVE SHAPES AND TWO EXPANDERS. Three illustrated
+	-- benefit cards in a two-column grid, an "Unlocks:" strip, a collapsible
+	-- POSSIBLE REWARDS list, and then RESETS and YOU KEEP SIDE BY SIDE with a
+	-- second collapsible inside one of them -- on the one page in this game a
+	-- nine-year-old has to understand before pressing anything irreversible.
+	-- Reported as far too busy, and it was: the page had grown a SURFACE per
+	-- fact where a ROW per fact was the whole requirement.
+	--
+	-- Three bands of plain rows in ONE COLUMN, in the order the trade is read
+	-- (designer, 2026-09-23): what the button buys, then what is safe, then
+	-- what goes. Nothing expands, nothing sits beside anything, and the widest
+	-- thing on the page is a sentence.
+	--
+	-- THE SUB-LINE UNDER EACH BAND IS THE UNDERSTANDING HALF and is not
+	-- decoration: "YOU KEEP" is a heading a child can read and "Nothing is
+	-- taken away" is what it MEANS, which is the whole reason this page exists
+	-- rather than a toast after the fact.
+	ui.gain = sectionCard(body, "Gain", PLUM:Lerp(Theme.PAPER, 0.86),
+		PLUM:Lerp(Theme.PAPER, 0.4), "YOU GAIN", "Yours forever", PLUM)
+	ui.gain.LayoutOrder = 1
+	ui.keep = sectionCard(body, "YouKeep", Theme.GOOD:Lerp(Theme.PAPER, 0.84),
+		Theme.GOOD:Lerp(Theme.PAPER, 0.35), "YOU KEEP", "Nothing is taken away",
+		Theme.GOOD_INK)
 	ui.keep.LayoutOrder = 2
+	ui.resets = sectionCard(body, "Resets", Theme.STOP:Lerp(Theme.PAPER, 0.86),
+		Theme.STOP:Lerp(Theme.PAPER, 0.4), "STARTS OVER", "Back to the beginning",
+		Theme.STOP_INK)
+	ui.resets.LayoutOrder = 3
 
 	-- D. the requirement
 	local req = frame(body, "Requirement", Theme.PAPER)
 	req.LayoutOrder = 4
-	req.Size = UDim2.new(1, 0, 0, 58)
+	req.Size = UDim2.new(1, 0, 0, 54)
 	Theme.corner(req, 14)
 	Theme.outline(req, Theme.OUTLINE_THIN, Theme.MUTED_LIGHT)
 	-- THE CASH GATE, named as one. It used to read "fill your piggy bank"
@@ -609,7 +634,7 @@ local function buildPage(gui: ScreenGui)
 	reqAmount.Size = UDim2.new(0.5, -118, 0, 22)
 	reqAmount.TextXAlignment = Enum.TextXAlignment.Right
 	local track = frame(req, "Track", Theme.PAPER_DEEP)
-	track.Position = UDim2.fromOffset(14, 34)
+	track.Position = UDim2.fromOffset(14, 32)
 	track.Size = UDim2.new(1, -146, 0, 12)
 	Theme.corner(track, 6)
 	Theme.outline(track, 1.5)
@@ -632,12 +657,11 @@ local function buildPage(gui: ScreenGui)
 	ui.footer = footer
 	local rule = frame(footer, "Rule", Theme.MUTED_LIGHT)
 	rule.Size = UDim2.new(1, 0, 0, 2)
-	local reminder = text(footer, "Reminder",
-		"Your piggy coins and bought upgrades reset. Your collection stays.", 14,
-		Theme.MUTED, Enum.Font.GothamMedium)
-	reminder.TextXAlignment = Enum.TextXAlignment.Center
-	reminder.TextWrapped = true
-	ui.reminder = reminder
+	-- A REMINDER LINE STOOD HERE and said "Your piggy coins and bought
+	-- upgrades reset. Your collection stays." -- which is the three bands
+	-- above it, restated in eight words, on the page they are printed on. It
+	-- was belt and braces while the trade was spread across a grid and two
+	-- columns; against one list it is the same sentence twice.
 
 	local back = button(footer, "NotYet", Theme.PAPER)
 	local backLabel = text(back, "Label", "NOT YET", 18)
@@ -686,7 +710,13 @@ local function buildPage(gui: ScreenGui)
 		local short = view.Y < 520
 		local tabOver = if short then 22 else 30
 		local w = math.min(780, view.X - 24)
-		local h = math.min(640, view.Y - 24 - tabOver)
+		-- 640 UNTIL THE PAGE BECAME A LIST. Measured on a 1366x768 screen, the
+		-- three bands and the requirement came to 650 against a 498 body, so
+		-- STARTS OVER -- the half of the trade that is a COST, on the one
+		-- decision in this game that cannot be undone -- was sliced across the
+		-- fold. The cap is what the screen can give now; everything below
+		-- trims the list to meet it.
+		local h = math.min(704, view.Y - 24 - tabOver)
 		shell.Size = UDim2.fromOffset(w, h)
 		shell.Position = UDim2.new(0.5, 0, 0.5, math.floor(tabOver / 2))
 
@@ -709,13 +739,12 @@ local function buildPage(gui: ScreenGui)
 		local top = tabH - tabOver + 8 + subH
 
 		local buttonsH = if short then 44 else 50
-		local reminderH = if narrow then 36 else 20
-		local footH = 10 + reminderH + 8 + buttonsH + 12
+		-- The reminder line that used to sit above these went with the single
+		-- list, and the height it was taking went to the list.
+		local footH = 14 + buttonsH + 14
 		footer.Size = UDim2.new(1, -28, 0, footH)
 		footer.Position = UDim2.new(0, 14, 1, 0)
-		reminder.Position = UDim2.fromOffset(0, 10)
-		reminder.Size = UDim2.new(1, 0, 0, reminderH)
-		local by = 10 + reminderH + 8
+		local by = 14
 		local backW = if narrow then 110 else 170
 		local confirmW = math.min(if narrow then 200 else 300, w - 28 - backW - 34)
 		local gap = 12 + math.floor((buttonsH + 22) * 0.3)
@@ -737,40 +766,14 @@ local function buildPage(gui: ScreenGui)
 		body.Position = UDim2.fromOffset(12, top)
 		body.Size = UDim2.new(1, -24, 0, h - top - footH)
 
-		-- One column on a narrow screen, two otherwise; cards are sized from
-		-- the width actually available, so they never force a sideways scroll.
-		local inner = w - 24 - 16
-		local cols = if narrow then 1 else 2
-		local cellH = if short then 96 else 112
-		local cellW = math.floor((inner - (cols - 1) * 12) / cols)
-		gridLayout.CellSize = UDim2.fromOffset(cellW, cellH)
-		-- THREE CARDS, NOT FOUR. The fourth was ONLINE ACORN GROWTH and went
-		-- with the tree it described.
-		local rows = math.ceil(3 / cols)
-		grid.Size = UDim2.new(1, 0, 0, rows * cellH + (rows - 1) * 12)
-		for _, c in ipairs({ ui.coinCard, ui.limitCard, ui.crateCard }) do
-			local wellSize = if short then 62 else 74
-			c.well.Size = UDim2.fromOffset(wellSize, wellSize)
-			c.well.Position = UDim2.new(0, 12, 0.5, 0)
-			local tx = 12 + wellSize + 12
-			c.title.Position = UDim2.fromOffset(tx, if short then 8 else 12)
-			c.title.Size = UDim2.new(1, -tx - 10, 0, 22)
-			c.title.TextSize = if short then 15 else 17
-			c.value.Position = UDim2.fromOffset(tx, if short then 30 else 36)
-			c.value.Size = UDim2.new(1, -tx - 10, 0, if short then 26 else 30)
-			c.value.TextSize = if short then 22 else 26
-			c.helper.Position = UDim2.fromOffset(tx, if short then 58 else 68)
-			c.helper.Size = UDim2.new(1, -tx - 10, 0, cellH - (if short then 60 else 72))
+		-- ONE COLUMN AT EVERY SIZE. RESETS and YOU KEEP were `0.5, -6` beside
+		-- each other on anything not narrow, which is half of what this page
+		-- was reported for: a reader on a desktop had to find the SECOND
+		-- COLUMN to learn what a rebirth takes off them, and the order the
+		-- three bands are meant to be read in only existed on a phone.
+		for _, card in ipairs({ ui.gain, ui.keep, ui.resets }) do
+			card.Size = UDim2.new(1, 0, 0, 0)
 		end
-
-		-- Resets above You keep when narrow; side by side otherwise.
-		changesLayout.FillDirection = if narrow then Enum.FillDirection.Vertical
-			else Enum.FillDirection.Horizontal
-		changes.Size = UDim2.new(1, 0, 0, 0)
-		local half = if narrow then UDim2.new(1, 0, 0, 0) else UDim2.new(0.5, -6, 0, 0)
-		ui.resets.Size = half
-		ui.keep.Size = half
-		ui.crateDetails.Size = UDim2.new(1, 0, 0, 0)
 	end
 	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
 	fit()
@@ -801,18 +804,63 @@ local function clear(parent: Instance, keep: { [string]: boolean })
 	end
 end
 
-local function resetWell(card: any)
-	for _, child in ipairs(card.well:GetChildren()) do
-		if child:IsA("GuiObject") then
-			child:Destroy()
+-- WHAT THE NEXT REBIRTH PUTS ON SALE, NAMED.
+--
+-- Three shelves carry a rebirth ladder (designer, 2026-09-23) -- houses,
+-- rides and guardians -- and this page had nothing that said so: it listed
+-- the coin bonus, the upgrade ceiling and the free crate, and the shop items
+-- a rebirth actually opens were invisible until somebody went and looked.
+-- "Unlocks: Fishbowl House, Husky" is the one line that turns a number into
+-- a reason.
+--
+-- DERIVED FROM THE PUSHED CATALOGUES AND NEVER FROM `Config`. The server
+-- already sends `unlockRebirths` on every gated row precisely so that a card
+-- and a refusal cannot disagree, and a client that read Config here would be
+-- a THIRD opinion -- and the wrong one, because it would name a row the
+-- server had not published yet.
+--
+-- OWNED ROWS ARE SKIPPED. A player who somehow holds a gated item already
+-- (an older save, a re-themed row, a pass grant) is not being offered it.
+--
+-- EXPORTED so the offline suite can drive the derivation without building a
+-- page: everything below it is geometry, and the sentence is the part with a
+-- rule in it.
+--
+-- `CAP` BOUNDS THE LINE RATHER THAN THE LIST. A rebirth that opens six
+-- things would otherwise wrap a strip into four rows; naming three and
+-- counting the rest keeps it one line and still says how much is behind it.
+Rebirth.UNLOCK_CAP = 3
+
+function Rebirth.unlocksAt(rebirth: number, cosmetics: any, rides: any): { string }
+	local names: { string } = {}
+	local function take(info: any)
+		-- A row's gate has to MATCH: this line is about the rebirth being
+		-- pressed, not about everything still shut. `>=` would name the whole
+		-- remaining catalogue on the first rebirth.
+		if type(info) ~= "table" or info.owned == true then
+			return
+		end
+		-- A GATE OF ZERO IS NOT A GATE, and the push is why this has to be
+		-- said: every row crosses the wire with `unlockRebirths = coat.unlockRebirths or 0`,
+		-- so an ungated house and a house gated at rebirth 0 are the same
+		-- payload. Requiring 1 or more is what stops the free Cardboard Fort
+		-- being named as something a rebirth unlocks.
+		local gate = info.unlockRebirths or 0
+		if gate >= 1 and gate == rebirth and type(info.name) == "string" then
+			table.insert(names, info.name)
 		end
 	end
-end
-
--- "+128% -> +136%": the current value muted, the next in plum.
-local function compare(now: string, after: string): string
-	return ("%s <font color=\"%s\">%s</font> <font color=\"%s\">%s</font>"):format(
-		now, MUTED_HEX, ARROW, PLUM_HEX, after)
+	-- Houses are an ARRAY keyed by position and the other two are MAPS keyed
+	-- by item, which is why this walks values rather than indices: `pairs`
+	-- over an array is still every row, and `ipairs` over a map is nothing.
+	for _, info in pairs((cosmetics and cosmetics.houses) or {}) do take(info) end
+	for _, info in pairs((rides and rides.rides) or {}) do take(info) end
+	for _, info in pairs((cosmetics and cosmetics.dogCoats) or {}) do take(info) end
+	-- SORTED, so the line is stable between two pushes that carry the same
+	-- rung -- `pairs` over a map has no order, and a line that reshuffled
+	-- itself on every coin tick reads as a fault.
+	table.sort(names)
+	return names
 end
 
 local function ownedSkins(): { [string]: boolean }
@@ -823,38 +871,8 @@ local function ownedSkins(): { [string]: boolean }
 	return owned
 end
 
--- The odds line for a crate, from ChestState. nil until that push arrives.
-local function oddsLine(chestKey: string): string?
-	local state = seen.chests and seen.chests[chestKey]
-	local odds = state and state.odds
-	if not odds then
-		return nil
-	end
-	local parts = {}
-	for _, tier in ipairs(Config.RARITY_ORDER) do
-		local pct = odds[tier]
-		if pct and pct > 0 then
-			local rarity = Config.RARITIES[tier]
-			table.insert(parts, ("<font color=\"%s\">%s %d%%</font>"):format(
-				hex(Theme.readable(rarity.colour, Theme.PAPER)), rarity.label, math.floor(pct + 0.5)))
-		end
-	end
-	return table.concat(parts, (" %s "):format(DOT))
-end
-
 local function drawCoinIcon(chip: Frame)
 	centred(Theme.coin(chip, 24))
-end
-
-local function drawBarsIcon(chip: Frame)
-	for i, hgt in ipairs({ 0.32, 0.5, 0.7 }) do
-		local bar = frame(chip, "Bar" .. i, Theme.GOOD)
-		bar.AnchorPoint = Vector2.new(0, 1)
-		bar.Position = UDim2.fromScale(0.16 + (i - 1) * 0.24, 0.84)
-		bar.Size = UDim2.fromScale(0.18, hgt)
-		Theme.corner(bar, 2)
-		Theme.outline(bar, 1)
-	end
 end
 
 local function drawPigIcon(chip: Frame)
@@ -896,29 +914,8 @@ local function drawHouseIcon(chip: Frame)
 	door.Size = UDim2.fromScale(0.3, 0.62)
 end
 
--- The default Classic Pink piggy with its reward around it: a gold coin
--- stack at its feet and a green "+%" badge, which is the permanent bonus.
-local function drawCoinBonus(well: Frame)
-	local piggy = image(well, "Piggy", ICONS.piggy, 0.74)
-	if piggy then
-		piggy.Position = UDim2.fromScale(0.42, 0.5)
-	else
-		centred(Theme.snout(well, 34), 0.42, 0.5)
-	end
-	for i, spot in ipairs({ { 0.7, 0.84 }, { 0.86, 0.84 }, { 0.78, 0.7 } }) do
-		centred(Theme.coin(well, 20, "Coin" .. i), spot[1], spot[2])
-	end
-	local badge = text(well, "Plus", "+%", 13, Theme.PAPER, Theme.FONT)
-	badge.TextXAlignment = Enum.TextXAlignment.Center
-	badge.BackgroundTransparency = 0
-	badge.BackgroundColor3 = Theme.GOOD_INK
-	badge.AnchorPoint = Vector2.new(1, 0)
-	badge.Position = UDim2.new(1, 6, 0, -6)
-	badge.Size = UDim2.fromOffset(32, 22)
-	Theme.corner(badge, 11)
-	Theme.outline(badge, 2)
-end
-
+-- A crate. Authored in SCALE throughout, which is what lets the same builder
+-- serve a 36-pixel row chip -- there is no well on this page any more.
 local function drawCrate(well: Frame, colour: Color3)
 	local box = frame(well, "Crate", Theme.SAND_DEEP)
 	box.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -942,28 +939,8 @@ local function drawCrate(well: Frame, colour: Color3)
 	star.Size = UDim2.fromScale(1, 1)
 end
 
--- A rising staircase of bars BEHIND a piggy: "your ladder goes higher". The
--- bars are built first so the piggy stands in front of them rather than
--- having them pasted over its side; each is outlined in ink so it reads
--- against the teal well rather than merging with it.
-local function drawLimit(well: Frame)
-	for i, hgt in ipairs({ 0.3, 0.48, 0.66 }) do
-		local bar = frame(well, "Bar" .. i, Theme.GOOD)
-		bar.AnchorPoint = Vector2.new(0, 1)
-		bar.Position = UDim2.fromScale(0.5 + (i - 1) * 0.155, 0.84)
-		bar.Size = UDim2.fromScale(0.12, hgt)
-		Theme.corner(bar, 4)
-		Theme.outline(bar, 2)
-		Theme.gloss(bar, Theme.GOOD:Lerp(Theme.PAPER, 0.25), Theme.GOOD:Lerp(Theme.INK, 0.15))
-	end
-	local piggy = image(well, "Piggy", ICONS.piggy, 0.6)
-	if piggy then
-		piggy.Position = UDim2.fromScale(0.3, 0.64)
-	else
-		local s = Theme.snout(well, 36)
-		s.AnchorPoint = Vector2.new(0.5, 0.5)
-		s.Position = UDim2.fromScale(0.36, 0.6)
-	end
+local function drawCrateIcon(chip: Frame)
+	drawCrate(chip, PLUM)
 end
 
 local function fill()
@@ -974,134 +951,110 @@ local function fill()
 	local nextR = r + 1
 	ui.title.Text = ("REBIRTH <font color=\"%s\">%d</font>"):format(GOLD_HEX, nextR)
 
-	-- ---------- A. benefits ----------
-	local c = ui.coinCard
-	c.title.Text = "Permanent coin bonus"
-	c.value.Text = compare(("+%d%%"):format(Config.rebirthBonusPercent(r)),
-		("+%d%%"):format(Config.rebirthBonusPercent(nextR)))
-	c.helper.Text = "Applies at every income level"
-	resetWell(c)
-	drawCoinBonus(c.well)
+	-- ---------- A. YOU GAIN ----------
+	local gain = ui.gain
+	clear(gain, { Heading = true })
+	local order = 1
+	-- THE ONE NUMBER THIS BUTTON IS PRESSED FOR, AND IT CARRIES THE DESIGNER'S
+	-- NAME FOR IT (2026-09-23): the PERMANENT COIN MULTIPLIER. It read
+	-- "Permanent coin bonus" here while a separate coin-priced EARN FASTER rung
+	-- sat in the shop raising the same rate; that rung is retired, so this is
+	-- the only thing in the game that makes a piggy earn more and there is no
+	-- longer a second name for the idea to be confused with.
+	summaryRow(gain, order, Theme.GOLD:Lerp(Theme.PAPER, 0.35), drawCoinIcon,
+		"Permanent coin multiplier",
+		("%s %s %s"):format(Config.rebirthMultipleText(r), ARROW,
+			Config.rebirthMultipleText(nextR)),
+		nil, nil, true)
 
-	local l = ui.limitCard
-	local capNow, capNext = Config.maxLevel(r), Config.maxLevel(nextR)
-	l.title.Text = "Higher upgrade limit"
-	if capNext > capNow then
-		l.value.Text = compare(("Lv %d"):format(capNow), ("Lv %d"):format(capNext))
-		l.helper.Text = "Earn Faster"
-	else
-		l.value.Text = ("Lv %d"):format(capNow)
-		l.helper.Text = "All upgrade levels unlocked"
-	end
-	resetWell(l)
-	drawLimit(l.well)
+	-- THE "HIGHER UPGRADE LIMIT" CARD STOOD HERE and is retired with the rung
+	-- it described. `Config.rebirthOpensMore` is true of exactly one ladder --
+	-- income -- because the six tree rows carry a fixed `max` no rebirth
+	-- lifts; with Earn Faster off the shelf that ceiling gates nothing anybody
+	-- can buy, so the card was a benefit a player could not spend. Copy
+	-- outliving the thing it describes, caught in the same pass that retired it.
 
 	local owned = ownedSkins()
-	local open = Config.rebirthCratesOpen(owned)
-	local k = ui.crateCard
-	resetWell(k)
-	clear(k.card, { Well = true, Title = true, Value = true, Helper = true })
+	-- THE RUNG THE NEXT REBIRTH WILL ACTUALLY DRAW FROM, and the fallback in
+	-- the same order the server takes it: `ProgressionService` asks its ladder
+	-- first and drops to the legendary shelves when that one has nothing left,
+	-- so a page that read only the legendary list named the wrong crate on
+	-- four rebirths in five. `+ 1` because the count on screen is the one
+	-- being left rather than the one being reached.
+	local ladder, legendaryRung = Config.rebirthCrateLadder(r + 1)
+	local open = Config.rebirthCratesOpen(owned, ladder)
 	if #open == 0 then
-		-- NOTHING LEFT TO OPEN, AND NOTHING PAID INSTEAD. This used to print
-		-- the crate's price in acorns; a crate has no price now, so the card
-		-- says the collection is finished rather than quoting a figure.
-		k.title.Text = "Collections complete"
-		k.value.Text = "All Legendaries"
-		k.helper.Text = "Nothing left for a free crate to give you"
-		drawEmblemIcon(k.well)
-		expanded.crate = false
-	else
-		local first = Config.CHESTS[open[1]]
-		k.title.Text = "Free crate opening"
-		k.value.Text = if #open == 1 then first.name else "Legendary crate"
-		k.value.TextTruncate = Enum.TextTruncate.AtEnd
-		-- Identical odds across the eligible crates print once; different
-		-- ones defer to the detail list rather than picking one to show.
-		local line = oddsLine(open[1])
-		for i = 2, #open do
-			if oddsLine(open[i]) ~= line then
-				line = "Odds vary by crate"
-			end
-		end
-		k.helper.Text = line or ("Random pick %s not a set skin"):format(DOT)
-		drawCrate(k.well, first.colour)
-		local link = Instance.new("TextButton")
-		link.Name = "ViewRewards"
-		link.BackgroundTransparency = 1
-		link.Font = Theme.FONT_BODY
-		link.TextSize = 14
-		link.TextColor3 = PLUM
-		link.TextXAlignment = Enum.TextXAlignment.Right
-		link.Text = (if expanded.crate then "Hide rewards %s" else "View rewards %s"):format(CHEVRON)
-		link.AnchorPoint = Vector2.new(1, 0)
-		link.Position = UDim2.new(1, -10, 0, 12)
-		link.Size = UDim2.fromOffset(130, 22)
-		link.Parent = k.card
-		link.Activated:Connect(function()
-			expanded.crate = not expanded.crate
-			fill()
-		end)
-		k.title.Size = UDim2.new(1, -(k.title.Position.X.Offset + 146), 0, 22)
+		open = Config.rebirthCratesOpen(owned)
+		legendaryRung = true
+	end
+	-- NOTHING LEFT TO OPEN MEANS NO ROW RATHER THAN A ROW SAYING SO. This used
+	-- to be a whole card reading "Collections complete / Nothing left to open",
+	-- which is a GAIN that is not one, printed in the band a child reads to
+	-- find out what they are getting.
+	if #open > 0 then
+		order += 1
+		-- NAMES THE RUNG WHEN THE SHELF IS A CHOICE, because which crate of a
+		-- rung a player gets is the server's own `pickOpenable` and depends on
+		-- pools this page cannot see. One crate open means one honest name.
+		local crate = if #open == 1 then Config.CHESTS[open[1]].name
+			elseif legendaryRung then "Legendary crate"
+			else "Rare crate"
+		summaryRow(gain, order, PLUM:Lerp(Theme.PAPER, 0.5), drawCrateIcon,
+			"A free crate", crate)
 	end
 
-	-- THE FOURTH BENEFIT CARD STOOD HERE: ONLINE ACORN GROWTH, the percentage
-	-- a rebirth added to the tree's hourly rate. Both the tree and the
-	-- currency retired, so the grid is three cards.
-
-	-- ---------- B. crate details ----------
-	local details = ui.crateDetails
-	clear(details, { Heading = true })
-	details.Visible = expanded.crate and #open > 0
-	if details.Visible then
-		local order = 0
-		local function line(value: string, colour: Color3?, size: number?)
-			order += 1
-			local t = text(details, "Line" .. order, value, size or 14, colour or Theme.INK,
-				Enum.Font.GothamMedium)
-			t.LayoutOrder = order
-			t.TextWrapped = true
-			t.AutomaticSize = Enum.AutomaticSize.Y
-			t.Size = UDim2.new(1, -24, 0, 20)
+	-- WHAT THE NEXT REBIRTH PUTS ON SALE, as a row like everything else rather
+	-- than the wrapped strip that used to sit under the grid with a shape of
+	-- its own. `UNLOCK_CAP` is what keeps it to one line; the note truncates.
+	local opens = Rebirth.unlocksAt(nextR, seen.cosmetics, seen.rides)
+	if #opens > 0 then
+		local shown = {}
+		for i = 1, math.min(#opens, Rebirth.UNLOCK_CAP) do
+			table.insert(shown, opens[i])
 		end
-		-- The pick among eligible crates is uniform on the server
-		-- (`open[math.random(#open)]`), so the share is derived from the count.
-		local share = math.floor(100 / #open + 0.5)
-		for _, key in ipairs(open) do
-			local chest = Config.CHESTS[key]
-			local pool = Config.chestPool(key)
-			local legendaries = pool.legendary or {}
-			local have = 0
-			for _, skin in ipairs(legendaries) do
-				if owned[skin] then have += 1 end
-			end
-			local head = if #open > 1
-				then ("<b>%s</b>  %s %d%% chance of this crate"):format(chest.name, DOT, share)
-				else ("<b>%s</b>"):format(chest.name)
-			line(head, Theme.INK, 16)
-			local odds = oddsLine(key)
-			if odds then
-				line(odds)
-			end
-			line(("Legendaries owned: %d / %d"):format(have, #legendaries), Theme.MUTED)
+		local line = table.concat(shown, ", ")
+		local rest = #opens - #shown
+		if rest > 0 then
+			line = ("%s and %d more"):format(line, rest)
 		end
-		line("One free opening. A new skin isn't guaranteed: a copy you already own "
-			.. "becomes a spare you can sell or combine.", Theme.MUTED)
+		order += 1
+		summaryRow(gain, order, Theme.STOP:Lerp(Theme.PAPER, 0.65), drawHouseIcon,
+			"New things in the shop", line)
 	end
 
-	-- ---------- C. what changes ----------
+	-- ---------- B. YOU KEEP ----------
+	--
+	-- A RULE, NOT AN INVENTORY: "nothing you collected goes" is total, where a
+	-- count read off a stale push could disagree with the server. Four rows
+	-- rather than five -- the guard dog is a pet and rides beside the rest of
+	-- what a player wears and carries.
+	local keep = ui.keep
+	clear(keep, { Heading = true })
+	for i, row in ipairs({
+		{ Theme.PIG:Lerp(Theme.PAPER, 0.35), drawPigIcon, "Everything you collected",
+			"Piggies, skins, trophies and sets" },
+		{ Theme.STOP:Lerp(Theme.PAPER, 0.65), drawHouseIcon, "Your house and garden",
+			"Every house and decoration you own" },
+		{ Theme.COOL:Lerp(Theme.PAPER, 0.5), drawBagIcon, "Your pets, rides and items",
+			"Your guard dog, bones and gadgets" },
+		{ PLUM:Lerp(Theme.PAPER, 0.5), drawEmblemIcon, "Your rebirths",
+			("You will have %d"):format(nextR) },
+	}) do
+		summaryRow(keep, i, row[1], row[2], row[3], row[4])
+	end
+
+	-- ---------- C. STARTS OVER ----------
 	local resets = ui.resets
 	clear(resets, { Heading = true })
 	local pill = Theme.STOP:Lerp(Theme.PAPER, 0.92)
 	local _, coinsValue = summaryRow(resets, 1, Theme.GOLD:Lerp(Theme.PAPER, 0.35), drawCoinIcon,
-		"Piggy coins", "Even past the goal",
+		"Your coins", "Every coin in your piggy",
 		("%s %s 0"):format(format(seen.coins), ARROW), pill)
 	ui.coinsValue = coinsValue
-	local order = 1
-	if seen.incomeLevel > 1 then
-		order += 1
-		summaryRow(resets, order, Theme.GOOD:Lerp(Theme.PAPER, 0.45), drawBarsIcon,
-			"Earn Faster", nil, ("Lv %d %s 1"):format(seen.incomeLevel, ARROW), pill)
-	end
+
+	-- THE EARN FASTER ROW STOOD HERE, gated on `seen.incomeLevel > 1`. Nothing
+	-- can raise that level any more, so the row could only ever have read
+	-- "Lv 1 -> 1" -- and a reset of something nobody bought is not a cost.
 	local trees = {}
 	for _, info in pairs(seen.upgrades or {}) do
 		if (info.level or 0) > 0 then
@@ -1116,40 +1069,23 @@ local function fill()
 		return (x.order or 99) < (y.order or 99)
 	end)
 	if #trees > 0 then
-		order += 1
-		summaryRow(resets, order, Theme.SAND_DEEP, drawGearIcon,
-			"Bought upgrades", "Your Defend and Rob trees",
-			("%d %s 0"):format(#trees, ARROW), pill)
-		if expanded.upgrades then
-			for _, t in ipairs(trees) do
-				order += 1
-				local row = summaryRow(resets, order, nil, nil, t.name, nil,
-					("Lv %d %s 0"):format(t.level, ARROW), pill)
-				row.Size = UDim2.new(1, -24, 0, 30)
-			end
+		-- THE NAMES ON THE ROW RATHER THAN BEHIND A "VIEW UPGRADES" BUTTON, and
+		-- that keeps the rule this file already sets for this column: the cost
+		-- has to be somebody's ACTUAL AFTERNOON -- "Vault Lock, Fence" -- and
+		-- not a definition. The expander that carried them was collapsed by
+		-- default, so the row a player actually saw read only "Bought upgrades
+		-- 5 -> 0"; naming three of them in the note is strictly more specific
+		-- than the default view was and costs no second control.
+		local names = {}
+		for i = 1, math.min(#trees, 3) do
+			table.insert(names, trees[i].name)
 		end
-		order += 1
-		linkButton(resets, "ViewUpgrades", order,
-			(if expanded.upgrades then "Hide upgrades %s" else "View upgrades %s"):format(CHEVRON),
-			function()
-				expanded.upgrades = not expanded.upgrades
-				fill()
-			end)
-	end
-
-	-- A rule, not an inventory: "nothing you collected goes" is total, where a
-	-- count read off a stale push could disagree with the server.
-	local keep = ui.keep
-	clear(keep, { Heading = true })
-	for i, row in ipairs({
-		{ Theme.PIG:Lerp(Theme.PAPER, 0.35), drawPigIcon, "Skins and collection", "Every skin, trophy and set item" },
-		{ Theme.STOP:Lerp(Theme.PAPER, 0.65), drawHouseIcon, "Home and lawn", "Houses, garden and decorations" },
-		{ Theme.COOL:Lerp(Theme.PAPER, 0.5), drawBagIcon, "Rides and items", "Wearables, bones and gadgets" },
-		{ Theme.GOOD:Lerp(Theme.PAPER, 0.45), drawHouseIcon, "Your guard dog", "The dog on your lawn and its coat" },
-		{ PLUM:Lerp(Theme.PAPER, 0.5), drawEmblemIcon, "Rebirths and records",
-			("All %d rebirths and your stats"):format(nextR) },
-	}) do
-		summaryRow(keep, i, row[1], row[2], row[3], row[4])
+		local note = table.concat(names, ", ")
+		if #trees > #names then
+			note = ("%s and %d more"):format(note, #trees - #names)
+		end
+		summaryRow(resets, 2, Theme.SAND_DEEP, drawGearIcon,
+			"Your upgrade levels", note, ("%d %s 0"):format(#trees, ARROW), pill)
 	end
 
 	Rebirth.paintLive()
@@ -1199,8 +1135,6 @@ function Rebirth.open()
 	if not ui.page then
 		return
 	end
-	expanded.crate = false
-	expanded.upgrades = false
 	fill()
 	ui.body.CanvasPosition = Vector2.zero
 	ui.page.Visible = true
@@ -1225,11 +1159,12 @@ function Rebirth.sync()
 	if not ui.button then
 		return
 	end
-	local allowed = if Rebirth.canShow then Rebirth.canShow() else true
-	local show = seen.ready and allowed and not Rebirth.isOpen()
-	local was = ui.button.Visible
-	ui.button.Visible = show
-	if show and not was and ui.emphasiseNext then
+	-- NOTHING HIDES IT ANY MORE. It is a rail tile, and the rail is never
+	-- hidden: the three tiles beside it stay up through the shop panel, the
+	-- bag and the rebirth page, so a fourth that came and went would be the
+	-- odd one out and would leave a hole in a rail whose height is counted
+	-- from its visible children. What is left for `sync` is the pop.
+	if ui.emphasiseNext then
 		ui.emphasiseNext = false
 		emphasise()
 	end
@@ -1239,12 +1174,11 @@ function Rebirth.onEconomy(state: any)
 	local before = seen.rebirths
 	local wasReady = seen.ready
 	seen.coins = state.coins or 0
-	seen.incomeLevel = state.incomeLevel or 1
 	seen.rebirths = state.rebirths or 0
 	seen.ready = state.rebirthReady == true
-	if ui.buttonLabel then
-		ui.buttonLabel.Text = ("REBIRTH <font color=\"%s\">%d</font>"):format(GOLD_HEX, seen.rebirths + 1)
-	end
+	-- The tile's caption is the WORD and never the count: 66 pixels wide is
+	-- not the place for a number, and the page it opens leads with which
+	-- rebirth this is.
 	-- One pop the first time readiness turns on, whenever the button is next
 	-- actually on screen to be seen doing it.
 	if seen.ready and not wasReady then
@@ -1259,13 +1193,13 @@ function Rebirth.onEconomy(state: any)
 			Rebirth.close()
 		end
 	elseif Rebirth.isOpen() then
-		if seen.incomeLevel ~= (ui.lastIncome or seen.incomeLevel) then
-			fill()
-		else
-			Rebirth.paintLive()
-		end
+		-- A COIN TICK REPAINTS, IT NEVER REBUILDS. This used to rebuild the
+		-- whole page whenever `incomeLevel` moved, because a benefit card and a
+		-- reset row both printed it; nothing on the page reads it now, and the
+		-- three things that DO change under a reader -- the balance, the
+		-- requirement bar and the confirm -- are exactly what `paintLive` owns.
+		Rebirth.paintLive()
 	end
-	ui.lastIncome = seen.incomeLevel
 	Rebirth.sync()
 end
 
@@ -1279,20 +1213,25 @@ function Rebirth.onCosmetics(c: any)
 	if Rebirth.isOpen() then fill() end
 end
 
+-- REFILLS NOW, WHICH IT DID NOT BEFORE, because something on the page finally
+-- reads this. Nothing here used the ride catalogue until the "Unlocks:" strip
+-- named the rides a rebirth puts on sale, so a push arriving while the page
+-- was open would have left that line describing the catalogue as it was at the
+-- last cosmetics push. Guarded on the page being open, exactly as the other
+-- three handlers are -- a fill on a closed page is work nobody can see.
 function Rebirth.onRides(list: any)
 	seen.rides = list
-end
-
-function Rebirth.onChest(payload: any)
-	seen.chests = payload and payload.chests
 	if Rebirth.isOpen() then fill() end
 end
 
 -- Keeps the existing injection signature; the page draws its own art now.
 function Rebirth.init(gui: ScreenGui, confirm: () -> (),
-	_icon: ((GuiObject, Model, UDim2, UDim2, boolean) -> Instance)?)
+	_icon: ((GuiObject, Model, UDim2, UDim2, boolean) -> Instance)?, rail: Instance?)
 	onConfirm = confirm
-	buildButton(gui)
+	-- The tile goes in the menu rail and the page stays on the ScreenGui. With
+	-- no rail it falls back to the gui, which is a tile in the top-left corner
+	-- rather than no rebirth button at all.
+	buildButton(rail or gui)
 	buildPage(gui)
 	RunService.Heartbeat:Connect(function()
 		if not (ui.button.Visible or ui.page.Visible) then

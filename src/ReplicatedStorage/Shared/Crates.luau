@@ -18,9 +18,12 @@
 	file, so the whole thing costs that chunk one local. Same reason HotBar,
 	AdminPanel, Rebirth, HouseFX and SpinWheel are modules.
 
-	THE TAB IS COLLECTIONS, AND A COLLECTION IS A ROW OF LARGE CRATES. OG Piggy
-	and Animal Kingdom each offer Common / Rare / Legendary; the Alien Cache
-	offers one (`Config.CRATE_SECTIONS`). The card used to preview the three
+	THE TAB IS TWO SHELVES OF LARGE CRATES. The piggy shelf offers Common /
+	Rare / Legendary over ONE pool of every piggy skin -- OG Piggy, Animal
+	Kingdom and Arcade were three shelves until they merged on 2026-09-23 --
+	and the Guardian Crate offers one (`Config.CRATE_SECTIONS`). The same
+	tiles are mounted on the Robux page too (`Crates.mount`), so a crate is
+	bought there in one tap. The card used to preview the three
 	best items and draw an odds bar; the design asked for the crates alone, so
 	those moved one tap deeper -- tapping a crate opens `CrateContents`, which
 	shows the whole pool and prints the odds.
@@ -30,8 +33,26 @@
 	that have stock, and the contents page and the reveal both read those.
 	Computing them from `Config.CHESTS[key].odds` would print a player numbers
 	the server did not use, which is worse than printing none.
+
+	AND THE ODDS BAR CAME BACK ONTO THE TILE, BECAUSE THE TILE SELLS SOMETHING
+	NOW (designer, 2026-09-23). A crate is bought with Robux, which makes it a
+	PAID RANDOM ITEM under Roblox's rule -- and that rule asks for real odds,
+	summing to 100%, disclosed BEFORE the purchase. The card that carries the
+	price is therefore the card that has to carry the odds, so the bar is drawn
+	to scale on the tile and the exact percentage of the best tier is printed
+	beside the crate's name. The `?` still opens the full per-tier breakdown.
+
+	THE COMBINE ROW HAS LEFT THIS TAB. A physical combine station on the street
+	took it over; `ChestService.combine` is untouched and the station calls it
+	(or `ChestService.rollUp`, which takes no inputs). What was here was a row
+	of chips that could only light while somebody held spares -- and no crate
+	mints a spare any more, so on this tab the row was permanently 0/5, which
+	is the control that does nothing when pressed and reads as broken rather
+	than as locked.
 ]]
 
+local MarketplaceService = game:GetService("MarketplaceService")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -40,11 +61,18 @@ local ShopStyle = require(ReplicatedStorage.Shared.ShopStyle)
 local SpinWheel = require(ReplicatedStorage.Shared.SpinWheel)
 local Theme = require(ReplicatedStorage.Shared.Theme)
 local Icons = require(ReplicatedStorage.Shared.ShopIcons)
+-- ROBLOX'S OWN ROBUX MARK, through the module that already names it. It ships
+-- with every client, so there is no upload to be moderated and no second
+-- drawing of a trademark to get wrong -- and taking it from `PremiumShop`
+-- rather than pasting the string is what stops two tabs printing two
+-- different marks the day that asset path changes.
+local PremiumShop = require(ReplicatedStorage.Shared.PremiumShop)
 
 -- The crate art is per TIER (`Config.CHESTS[key].tier`). A crate with no tier
--- -- the Alien Cache -- has no art of its own yet, so it wears the legendary
--- crate washed toward its own colour: distinct from OG Legendary at a glance,
--- and one row in `ShopIcons` away from real art.
+-- -- the Guardian Crate, and the Alien Cache until it was deleted on
+-- 2026-09-23 -- has no art of its own yet, so it wears the legendary crate
+-- washed toward its own colour: distinct from OG Legendary at a glance, and
+-- one row in `ShopIcons` away from real art.
 local function crateIcon(holder: GuiObject, chestKey: string)
 	local chest = Config.CHESTS[chestKey]
 	local tier = chest and chest.tier
@@ -78,8 +106,26 @@ local buybackCards: { [string]: any } = {}
 local latest: any = nil
 local coins = 0
 local explorer: any = nil
+-- THE SAME CRATES, PAINTED A SECOND TIME, ON THE ROBUX PAGE (designer,
+-- 2026-09-23: "from the main robux shop menu it should show the common,
+-- rare, legendary crates there to be able to purchase in fewer clicks").
+-- They are tiles built by `buildTile` and repainted by the same `paint`, so
+-- the odds bar, the price, the policy refusal and every inert state are ONE
+-- implementation shown in two places -- a second renderer of a paid random
+-- item is the one duplicate where two copies disagreeing would be a
+-- compliance fault rather than a cosmetic one. Keyed by chest, a list each.
+local extras: { [string]: { any } } = {}
 local cosmetics: any = nil
 local rides: any = nil
+-- WHETHER THE BUY-BACK OFFERS SHOW, AND THEY SHOW ONLY THROUGH THE DOOR
+-- (designer, 2026-09-23). This shelf is reached two ways now: from the Robux
+-- shop, because a crate is a Robux purchase, and through PIGGY OUTFITTERS on
+-- the street -- "double exposure, no harm there". A buy-back is priced in
+-- COINS (`Config.buybackCost`), and every coin price is bought at a counter,
+-- so the Robux route draws the crates and nothing else. Off by default: the
+-- HUD is the route that must never leak a coin price, and the door is the one
+-- that opts in.
+local showBuybacks = false
 
 local function tierColour(tier: string): Color3
 	local r = Config.RARITIES[tier]
@@ -116,7 +162,11 @@ local function stockOf(chestKey: string): { { kind: string, key: string, name: s
 				-- fallback chain the shop card's own icon well picks from, rather
 				-- than a second opinion about where an item keeps its colour.
 				table.insert(out, { kind = kind, key = key, name = spec.name or key, tier = tier,
-					tint = spec.body or spec.walls or spec.swatch })
+					-- `fur` IS THE GUARDIAN COAT'S, AND IT WAS THE ONE MISSING WHEN
+					-- THE GUARDIAN CRATE LANDED. A coat keeps its colour in `fur`
+					-- rather than `body`, so ten coats would all have fallen back to
+					-- the rarity default and the pool would have read as one colour.
+					tint = spec.body or spec.walls or spec.fur or spec.swatch })
 			end
 		end
 	end
@@ -142,8 +192,8 @@ end
 -- ONE CARD PER COLLECTION, AND INSIDE IT ONE LARGE CRATE PER TIER.
 --
 -- The tab used to be a grid of per-crate cards, each carrying a preview
--- strip, an odds bar, a blurb and a combine row. It is three sections now --
--- OG Piggy, Animal Kingdom, Alien Cache (`Config.CRATE_SECTIONS`) -- and a
+-- strip, an odds bar, a blurb and a combine row. It is two sections now --
+-- the piggy crates and the Guardian Crate (`Config.CRATE_SECTIONS`) -- and a
 -- crate is shown as what it is: a big crate, its tier, and the button that
 -- opens it. The odds and the full pool did not go anywhere: tapping a crate
 -- (or its ?) opens the contents page, which prints the server's own odds.
@@ -155,6 +205,21 @@ local sections: { [string]: any } = {}
 local TIER_WORD = { common = "COMMON", rare = "RARE", epic = "EPIC", legendary = "LEGENDARY" }
 local ROW_H, ROW_H_COMPACT = 250, 186
 local TIER_H, BUTTON_H = 26, 40
+-- The odds bar and the gap under it. Sixteen is the smallest a stacked bar
+-- reads at from shop distance; the crate art gives up exactly this much.
+local ODDS_H, ODDS_GAP = 16, 4
+-- A SEGMENT PRINTS ITS OWN PERCENTAGE ONLY WHEN IT IS THIS MUCH OF THE BAR.
+--
+-- Tested as a FRACTION rather than against `AbsoluteSize`, which is zero until
+-- the frame has laid out and would therefore read differently on the first
+-- paint than on every one after it. At a tile's ~290 inner pixels 0.18 is
+-- about 52, which holds "18%" at 11px with room; below it the digits are
+-- squeezed into a sliver and make the bar harder to read rather than easier.
+--
+-- THE THIN SLIVER IS NEVER THE ONLY PLACE A NUMBER APPEARS: the best tier's
+-- exact percentage is printed beside the crate's name, and that is the one a
+-- buyer is actually deciding on.
+local ODDS_LABEL_AT = 0.18
 
 local function sectionFor(collection: string?): any
 	for _, def in ipairs(Config.CRATE_SECTIONS) do
@@ -165,7 +230,7 @@ local function sectionFor(collection: string?): any
 	return nil
 end
 
-local function buildTile(parent: Instance, chestKey: string, index: number): any
+local function buildTile(parent: Instance, chestKey: string, index: number, onPeek: ((string) -> ())?): any
 	local chest = Config.CHESTS[chestKey]
 	local hue = if chest.tier then tierColour(chest.tier) else (chest.colour or Theme.HUE.crates)
 
@@ -194,22 +259,76 @@ local function buildTile(parent: Instance, chestKey: string, index: number): any
 	icon.Parent = tile
 	crateIcon(icon, chestKey)
 	icon.Activated:Connect(function()
-		if explorer then explorer:show(chestKey) end
+		if onPeek then onPeek(chestKey) elseif explorer then explorer:show(chestKey) end
 	end)
 
 	local peek = require(ReplicatedStorage.Shared.ShopWidgets).button(tile, "Peek", "?", Theme.PAPER, function()
-		if explorer then explorer:show(chestKey) end
+		if onPeek then onPeek(chestKey) elseif explorer then explorer:show(chestKey) end
 	end)
 	peek.Size = UDim2.fromOffset(28, 28)
 	peek.Position = UDim2.new(1, -36, 0, 8)
 	peek.TextSize = 16
 	ShopStyle.outline(peek, 2)
 
+	-- THE ODDS, DRAWN TO SCALE, AND THIS IS THE DISCLOSURE THE PAID RANDOM
+	-- ITEM RULE ASKS FOR RATHER THAN decoration.
+	--
+	-- A stacked bar is the version a nine-year-old reads without reading --
+	-- THE GOLD SLIVER BEING THIN IS THE INFORMATION -- and the segments are
+	-- the SERVER'S renormalised odds, so they sum to 100 by construction. The
+	-- track is one step under the tile's ground, which is the same groove an
+	-- unbought upgrade pip sits in.
+	local oddsTrack = Instance.new("Frame")
+	oddsTrack.Name = "Odds"
+	oddsTrack.Size = UDim2.new(1, -16, 0, ODDS_H)
+	oddsTrack.Position = UDim2.new(0, 8, 1, -(BUTTON_H + 8 + TIER_H + 2 + ODDS_H + ODDS_GAP))
+	oddsTrack.BackgroundColor3 = ShopStyle.SUNK
+	oddsTrack.BorderSizePixel = 0
+	oddsTrack.ClipsDescendants = true
+	oddsTrack.Parent = tile
+	ShopStyle.round(oddsTrack, 6)
+	local segments: { [string]: TextLabel } = {}
+	for _, name in ipairs(TIERS) do
+		local seg = Instance.new("TextLabel")
+		seg.Name = "Odds_" .. name
+		seg.BackgroundColor3 = tierColour(name)
+		seg.BorderSizePixel = 0
+		seg.Font = Enum.Font.GothamBold
+		seg.TextSize = 11
+		seg.TextColor3 = Theme.INK
+		seg.Text = ""
+		seg.Visible = false
+		seg.Parent = oddsTrack
+		segments[name] = seg
+	end
+
 	local word = TIER_WORD[chest.tier or ""] or string.upper(chest.name or chestKey)
 	local tier = label(tile, word, UDim2.new(1, -16, 0, TIER_H),
 		UDim2.new(0, 8, 1, -(BUTTON_H + 8 + TIER_H + 2)), Enum.Font.FredokaOne, 20, ShopStyle.TEXT)
 	tier.Name = "Tier"
 	tier.TextXAlignment = Enum.TextXAlignment.Center
+
+	-- WHAT IT COSTS, IN THE CORNER, SO THE OFFER READS BEFORE THE BUTTON IS
+	-- LOOKED AT. Hidden entirely on a crate that is earned rather than sold --
+	-- a price of nothing is not a price, it is a lie about where the crate
+	-- comes from.
+	local priceChip = ShopStyle.chip(tile, ShopStyle.SUNK, Theme.PAPER)
+	priceChip.Name = "Price"
+	priceChip.Size = UDim2.new(0, 78, 0, 26)
+	priceChip.Position = UDim2.new(0, 8, 0, 8)
+	priceChip.Font = Enum.Font.FredokaOne
+	priceChip.TextSize = 15
+	priceChip.Text = ""
+	priceChip.Visible = false
+	local chipMark = Instance.new("ImageLabel")
+	chipMark.Name = "Robux"
+	chipMark.BackgroundTransparency = 1
+	chipMark.Image = PremiumShop.ROBUX_ICON
+	chipMark.ImageColor3 = Theme.PAPER
+	chipMark.ScaleType = Enum.ScaleType.Fit
+	chipMark.Size = UDim2.new(0, 16, 0, 16)
+	chipMark.Position = UDim2.new(0, 7, 0, 5)
+	chipMark.Parent = priceChip
 
 	local open = Instance.new("TextButton")
 	open.Name = "Open"
@@ -226,15 +345,43 @@ local function buildTile(parent: Instance, chestKey: string, index: number): any
 	ShopStyle.round(open, 12)
 	ShopStyle.outline(open, 3)
 	ShopStyle.gloss(open)
-	-- NO HANDLER. This label used to be the BUY BUTTON; a crate is earned
-	-- rather than bought, so it names where the crate comes from and does
-	-- nothing when pressed -- deliberately inert rather than removed, because
-	-- the tile's layout is measured around it and "how do I get one" is the
-	-- question a player opening this tab actually has.
-	open.Active = false
-	open.AutoButtonColor = false
+	-- THE MARK AND THE PRICE ARE CHILDREN RATHER THAN THE BUTTON'S OWN TEXT,
+	-- for the reason `PremiumShop` does the same: a Robux price is an ICON and
+	-- a number, and a button whose `Text` carried both would have to draw the
+	-- mark as a character nobody has measured.
+	local mark = Instance.new("ImageLabel")
+	mark.Name = "Robux"
+	mark.BackgroundTransparency = 1
+	mark.Image = PremiumShop.ROBUX_ICON
+	mark.ImageColor3 = Theme.INK
+	mark.ScaleType = Enum.ScaleType.Fit
+	mark.Size = UDim2.new(0, 20, 0, 20)
+	mark.Position = UDim2.new(0, 12, 0.5, -10)
+	mark.Visible = false
+	mark.Parent = open
+	local price = label(open, "", UDim2.new(1, -8, 1, 0), UDim2.new(0, 4, 0, 0),
+		Enum.Font.FredokaOne, 16, ShopStyle.TEXT)
+	price.Name = "Label"
+	price.TextXAlignment = Enum.TextXAlignment.Center
+	price.TextTruncate = Enum.TextTruncate.AtEnd
 
-	return { card = tile, icon = icon, open = open, tier = tier }
+	local ui = { card = tile, icon = icon, open = open, tier = tier, mark = mark,
+		price = price, priceChip = priceChip, segments = segments,
+		productId = nil :: number? }
+
+	-- THE CLIENT DECLINES TO ASK FOR A KNOWN NO, which is the rule every other
+	-- control in this game follows and matters more here than anywhere: a
+	-- prompt for a product id of 0 THROWS, and a prompt for a player the paid
+	-- random item rule restricts is the one thing that rule forbids outright.
+	-- `productId` is nil in every state but the buyable one, so this button
+	-- can only ever reach the prompt when the server said it could.
+	open.Activated:Connect(function()
+		if ui.productId then
+			MarketplaceService:PromptProductPurchase(Players.LocalPlayer, ui.productId)
+		end
+	end)
+
+	return ui
 end
 
 local function buildSection(def: any, order: number): any
@@ -295,67 +442,10 @@ local function buildSection(def: any, order: number): any
 		end
 	end
 
-	-- ---- combining spares ------------------------------------------------
-	--
-	-- One slim row per collection, landing in its COMMON crate's pool: five
-	-- commons buy a rare roll from this shelf, and so on up. The counts are
-	-- the server's and global per tier, so the same fuel shows on every
-	-- section -- the section is where the roll lands. A chip only exists for
-	-- a tier this shelf can climb OUT of; the top stocked tier is what the
-	-- rest combine up to, and a chip that can never light is worse than none.
-	local combineRow = Instance.new("Frame")
-	combineRow.Name = "Combine"
-	combineRow.LayoutOrder = 3
-	combineRow.BackgroundTransparency = 1
-	combineRow.Size = UDim2.new(1, 0, 0, 30)
-	combineRow.Visible = Config.canCombineChest(def.chests[1])
-	combineRow.Parent = frame
-	local combineList = Instance.new("UIListLayout")
-	combineList.FillDirection = Enum.FillDirection.Horizontal
-	combineList.Padding = UDim.new(0, 8)
-	combineList.VerticalAlignment = Enum.VerticalAlignment.Center
-	combineList.SortOrder = Enum.SortOrder.LayoutOrder
-	combineList.Parent = combineRow
-	local cap = label(combineRow, "COMBINE SPARES", UDim2.new(0, 124, 1, 0), UDim2.new(),
-		Enum.Font.GothamBold, 12, ShopStyle.MUTED)
-	cap.LayoutOrder = 0
-
-	local pool = Config.chestPool(def.chests[1])
-	local climbable = {}
-	for _, tier in ipairs(TIERS) do
-		if pool[tier] and #pool[tier] > 0 then
-			table.insert(climbable, tier)
-		end
-	end
-	if #climbable > 0 then
-		table.remove(climbable)
-	end
-	local combines: { [string]: TextButton } = {}
-	local ready: { [string]: boolean } = {}
-	for i, tier in ipairs(climbable) do
-		local chip = Instance.new("TextButton")
-		chip.Name = "Combine_" .. tier
-		chip.LayoutOrder = i
-		chip.Size = UDim2.new(0, 110, 1, -2)
-		chip.BackgroundColor3 = ShopStyle.SUNK
-		chip.BorderSizePixel = 0
-		chip.AutoButtonColor = false
-		chip.Font = Enum.Font.GothamBold
-		chip.TextSize = 12
-		chip.TextColor3 = ShopStyle.MUTED
-		chip.Text = ""
-		chip.Parent = combineRow
-		ShopStyle.round(chip, 8)
-		ShopStyle.outline(chip, 2, tierColour(tier))
-		-- The client declines to ask for a known no; the server re-counts,
-		-- re-picks and refuses out loud regardless.
-		chip.Activated:Connect(function()
-			if ready[tier] and deps.combine then
-				deps.combine(tier, def.chests[1])
-			end
-		end)
-		combines[tier] = chip
-	end
+	-- THERE IS NO COMBINE ROW. It moved to a physical station on the street
+	-- (2026-09-23) -- see the header. `LayoutOrder` 3 is free and the list
+	-- does not mind a gap, which is the same call `Config.CHESTS` made when
+	-- the dress-up crate left a hole at order 2.
 
 	-- Buy-back offers for this collection's skins sit inside it.
 	local buybacks = Instance.new("Frame")
@@ -372,20 +462,129 @@ local function buildSection(def: any, order: number): any
 	cells.SortOrder = Enum.SortOrder.LayoutOrder
 	cells.Parent = buybacks
 
-	return { def = def, frame = frame, row = row, progress = progress,
-		combines = combines, combineRow = combineRow, ready = ready, buybacks = buybacks }
+	return { def = def, frame = frame, row = row, progress = progress, buybacks = buybacks }
 end
 
--- Repaint one crate tile from the server's own numbers.
+-- ONE STATE MACHINE, AND EVERY BRANCH OF IT IS THE SERVER'S ANSWER.
+--
+-- Nothing here decides anything: the price, the product id, whether the
+-- collection is finished, whether this player may be offered a paid random
+-- item at all and the SENTENCE for any other refusal all arrive on
+-- `ChestState`. A second opinion about any of them would be a card that
+-- disagrees with the thing it is a card for -- and on this tab one of those
+-- opinions is money.
+--
+-- THE BUTTON IS INERT IN EVERY STATE BUT ONE, AND SAYS WHY IN ALL OF THEM.
+-- A control that does nothing when pressed reads as broken rather than as
+-- locked, which is why each refusal is printed ON the button rather than left
+-- to a player to infer from a grey rectangle.
+local function paintOne(ui: any, chestKey: string, info: any)
+
+	-- ---- the odds bar ----------------------------------------------------
+	local odds = (info and info.odds) or {}
+	local best, bestPct = nil, 0
+	local at = 0
+	for _, tier in ipairs(TIERS) do
+		local seg = ui.segments[tier]
+		local pct = odds[tier] or 0
+		local share = pct / 100
+		seg.Visible = share > 0
+		if share > 0 then
+			seg.Position = UDim2.new(at, 0, 0, 0)
+			seg.Size = UDim2.new(share, 0, 1, 0)
+			seg.Text = if share >= ODDS_LABEL_AT
+				then (if pct < 1 then "<1%" else ("%d%%"):format(math.floor(pct + 0.5)))
+				else ""
+			at += share
+			-- LAST WINS, and `TIERS` runs cheapest first, so this lands on the
+			-- best tier the crate can actually pay rather than on the best one
+			-- its table authorises -- which is the number a buyer is deciding
+			-- on and the one a thin sliver would otherwise hide.
+			best, bestPct = tier, pct
+		end
+	end
+
+	-- ---- the name row ----------------------------------------------------
+	local chest = Config.CHESTS[chestKey]
+	local word = TIER_WORD[(chest and chest.tier) or ""]
+		or string.upper((chest and chest.name) or chestKey)
+	if latest and latest.restricted then
+		-- THE POLICY REFUSAL, IN WORDS, WHICH IS THE HALF OF THAT RULE PEOPLE
+		-- FORGET. "Restricted players are refused rather than meeting a button
+		-- that does nothing" is the requirement; a greyed button with no
+		-- sentence beside it IS a button that does nothing.
+		ui.tier.Text = "CRATE BUYING IS OFF FOR THIS ACCOUNT"
+		ui.tier.TextSize = 13
+	elseif best then
+		ui.tier.Text = ("%s  %s  %s%% %s"):format(word, DOT,
+			(if bestPct < 1 then "<1" else tostring(math.floor(bestPct + 0.5))),
+			string.upper(best))
+		ui.tier.TextSize = 16
+	else
+		ui.tier.Text = word
+		ui.tier.TextSize = 20
+	end
+
+	-- ---- the price chip --------------------------------------------------
+	local robux = (info and info.robux) or 0
+	ui.priceChip.Visible = robux > 0
+	ui.priceChip.Text = if robux > 0 then ("      %d"):format(robux) else ""
+
+	-- ---- the button ------------------------------------------------------
+	local function inert(text: string, ground: Color3, ink: Color3)
+		ui.productId = nil
+		ui.mark.Visible = false
+		ui.price.Text = text
+		ui.price.Position = UDim2.new(0, 4, 0, 0)
+		ui.price.Size = UDim2.new(1, -8, 1, 0)
+		ui.price.TextColor3 = ink
+		ui.open.BackgroundColor3 = ground
+		ui.open.Active = false
+		ui.open.AutoButtonColor = false
+	end
+
+	if robux <= 0 then
+		-- Earned, never sold: the event cache. Naming where it comes from is
+		-- the answer to the question a player opening this tab actually has.
+		inert("EARN THIS CRATE", ShopStyle.DEAR, ShopStyle.MUTED)
+	elseif info and info.complete then
+		inert("COLLECTION COMPLETE", ShopStyle.OWNED, ShopStyle.TEXT)
+	elseif latest and latest.restricted then
+		inert("NOT AVAILABLE HERE", ShopStyle.DEAR, ShopStyle.MUTED)
+	elseif (info and info.productId or 0) <= 0 then
+		-- The developer product does not exist yet. The same wording and the
+		-- same reason as a pass with no id: prompting for 0 throws, so the
+		-- button declines to ask rather than failing silently.
+		inert("COMING SOON", ShopStyle.DEAR, ShopStyle.MUTED)
+	elseif info and info.refusal then
+		-- ANY OTHER SERVER REFUSAL, IN THE SERVER'S OWN WORDS -- a full lawn
+		-- is the one a player meets. Printed rather than summarised, so the
+		-- card and the toast cannot disagree about why.
+		inert(string.upper(info.refusal), ShopStyle.DEAR, ShopStyle.MUTED)
+		ui.price.TextSize = 12
+	else
+		ui.productId = info.productId
+		ui.mark.Visible = true
+		ui.price.Text = tostring(robux)
+		ui.price.Position = UDim2.new(0, 36, 0, 0)
+		ui.price.Size = UDim2.new(1, -44, 1, 0)
+		ui.price.TextColor3 = ShopStyle.TEXT
+		ui.price.TextSize = 16
+		ui.open.BackgroundColor3 = ShopStyle.BUY
+		ui.open.Active = true
+		ui.open.AutoButtonColor = true
+	end
+end
+
+-- Every copy of one crate: the shelf's tile and any on the Robux page.
 local function paint(chestKey: string, info: any)
 	local ui = cards[chestKey]
-	if not ui then
-		return
+	if ui then
+		paintOne(ui, chestKey, info)
 	end
-	-- WHERE A CRATE COMES FROM, not what it costs. Nothing here is priced.
-	ui.open.Text = "EARN THIS CRATE"
-	ui.open.BackgroundColor3 = ShopStyle.DEAR
-	ui.open.TextColor3 = ShopStyle.MUTED
+	for _, extra in ipairs(extras[chestKey] or {}) do
+		paintOne(extra, chestKey, info)
+	end
 end
 
 -- Repaint a collection's progress and combine chips.
@@ -394,42 +593,6 @@ local function paintSection(ui: any)
 	local base = chests[ui.def.chests[1]]
 	if base then
 		ui.progress.Text = ("%d/%d"):format(base.owned or 0, base.total or 0)
-	end
-	local perTier = (latest and latest.perTier) or {}
-	local need = (latest and latest.need) or Config.COMBINE.need
-	local canCombine = base ~= nil and base.canCombine == true
-	-- HIDDEN UNTIL THE PLAYER ACTUALLY HOLDS A SPARE, which is new and is a
-	-- consequence of piggies no longer making them (2026-09-21; see
-	-- `ChestService.handOver`).
-	--
-	-- It used to be enough that the CHEST could be combined into and had
-	-- stocked tiers to draw chips for. That was fine while every crate in the
-	-- game rained spares: the row was always live for somebody. Now a repeat
-	-- skin is placed on a pedestal instead, and six of the seven crates are
-	-- skins only -- so on those the row would be permanently visible and
-	-- permanently 0/5, which is the control that does nothing when pressed
-	-- and reads as broken rather than as locked.
-	--
-	-- NOT the same as hiding it on skins-only crates, which was the tempting
-	-- version and throws away a real path: `sparesAt` pools by TIER across
-	-- kinds, so a spare ride out of the Alien Cache can still be combined into
-	-- an OG crate. Asking whether there is anything to combine keeps that and
-	-- costs nothing.
-	local holdsAny = false
-	for tier in pairs(ui.combines) do
-		if (perTier[tier] or 0) > 0 then
-			holdsAny = true
-			break
-		end
-	end
-	ui.combineRow.Visible = canCombine and next(ui.combines) ~= nil and holdsAny
-	for tier, chip in pairs(ui.combines) do
-		local have = perTier[tier] or 0
-		local ready = canCombine and have >= need
-		ui.ready[tier] = ready
-		chip.Text = ("%s %d/%d"):format(tier:sub(1, 4):upper(), math.min(have, need), need)
-		chip.BackgroundColor3 = if ready then tierColour(tier) else ShopStyle.SUNK
-		chip.TextColor3 = if ready then Theme.INK else ShopStyle.MUTED
 	end
 end
 
@@ -602,11 +765,98 @@ local function paintBuybacks()
 		for _, ui in pairs(buybackCards) do
 			if ui.card.Parent == section.buybacks then any = true break end
 		end
-		section.buybacks.Visible = any
+		section.buybacks.Visible = any and showBuybacks
 	end
 end
 
 -- ---- state ---------------------------------------------------------------
+
+-- WHICH ROUTE OPENED THIS SHELF. `ClientMain` sets it true when the PIGGY
+-- OUTFITTERS door opens the shelf, false from the Robux shop, and false when
+-- the panel closes, so a stale true can never outlive the visit that set it.
+-- Repaints in place: the offers are built either way and only their
+-- visibility follows the route, so switching costs nothing to rebuild.
+function Crates.setBuybacks(shown: boolean)
+	showBuybacks = shown
+	paintBuybacks()
+end
+
+-- BACK TO THE TOP OF THE SHELF, CALLED BY EVERY ROUTE THAT OPENS IT.
+--
+-- The contents page is a child of this view and only its own "CRATES" arrow
+-- closed it, so leaving through the shop's big back arrow left it open
+-- underneath -- and SEE CRATES then landed a player straight back inside the
+-- crate they had walked away from, filter and scroll intact. A route in is a
+-- fresh visit: the list of crates, from the top, with the page's filter back
+-- on All. `paint` returns early while the page is hidden, so the filter chips
+-- repaint the next time a crate is opened rather than here.
+-- EVERY CRATE ON THE SHELF, AS A STRIP OF TILES SOMEWHERE ELSE -- the Robux
+-- page. The chests come from `Config.CRATE_SECTIONS` in the shelf's own
+-- order, so the page and the shelf cannot list different crates. No buy-back
+-- row: those are coin prices and are only ever met at a counter.
+--
+-- Safe to call before `init`: a tile needs nothing `init` sets, and the
+-- first `render` after it paints these along with the shelf.
+--
+-- Four across on a wide panel, two on a narrow one, one on a phone held
+-- upright; the crate shrinks and the tier word and button stay full size, the
+-- same trade the shelf's own rows make.
+function Crates.mount(parent: Instance, onPeek: ((string) -> ())?): Frame
+	local strip = Instance.new("Frame")
+	strip.Name = "CrateStrip"
+	strip.BackgroundTransparency = 1
+	strip.Size = UDim2.new(1, 0, 0, 0)
+	strip.AutomaticSize = Enum.AutomaticSize.Y
+	strip.Parent = parent
+	local cells = Instance.new("UIGridLayout")
+	cells.CellPadding = UDim2.fromOffset(12, 12)
+	cells.SortOrder = Enum.SortOrder.LayoutOrder
+	cells.Parent = strip
+	local count = 0
+	for _, def in ipairs(Config.CRATE_SECTIONS) do
+		for _, chestKey in ipairs(def.chests) do
+			if Config.CHESTS[chestKey] then
+				count += 1
+				local ui = buildTile(strip, chestKey, count, onPeek)
+				extras[chestKey] = extras[chestKey] or {}
+				table.insert(extras[chestKey], ui)
+			end
+		end
+	end
+	local function fit()
+		local width = strip.AbsoluteSize.X
+		local columns = if width >= 700 then math.min(4, count) elseif width >= 340 then 2 else 1
+		local cellW = (width - 12 * (columns - 1)) / columns
+		cells.CellSize = UDim2.new(1 / columns, -math.ceil(12 * (columns - 1) / columns), 0,
+			if cellW < 200 then ROW_H_COMPACT else ROW_H)
+	end
+	strip:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+	fit()
+	if latest then
+		Crates.render()
+	end
+	return strip
+end
+
+-- Open one crate's contents page. The caller has already selected the crates
+-- tab (the Robux page does it through `openRobuxCrates`, which also resets the
+-- shelf), so this only has to show the page.
+function Crates.peek(chestKey: string)
+	if explorer and Config.CHESTS[chestKey] then
+		explorer:show(chestKey)
+	end
+end
+
+function Crates.reset()
+	if explorer then
+		explorer.filter = "All"
+		explorer.list.CanvasPosition = Vector2.zero
+		explorer:close()
+	end
+	if grid then
+		grid.CanvasPosition = Vector2.zero
+	end
+end
 
 function Crates.render(state: any?)
 	if state then
@@ -756,6 +1006,11 @@ function Crates.rebuildIcons()
 	if explorer then explorer:rebuildIcons() end
 	for key, ui in pairs(cards) do
 		crateIcon(ui.icon, key)
+	end
+	for key, list in pairs(extras) do
+		for _, ui in ipairs(list) do
+			crateIcon(ui.icon, key)
+		end
 	end
 end
 

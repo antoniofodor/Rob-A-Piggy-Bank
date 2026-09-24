@@ -35,12 +35,13 @@ local DataService = require(script.Parent.DataService)
 
 local SettingsService = {}
 
--- Every key a hot bar slot can belong to, built from the four catalogues that
--- put slots on it. Derived rather than listed, so an item added to any of them
--- is arrangeable with no line to remember here -- and, more to the point, so
--- nothing that is NOT one of them can ever be written into a save.
+-- Every key a hot bar slot can belong to, built from the catalogues that put
+-- slots on it -- the four throwables and the lassos. Derived rather than
+-- listed, so an item added to any of them is arrangeable with no line to
+-- remember here -- and, more to the point, so nothing that is NOT one of them
+-- can ever be written into a save.
 local THROWABLE: { [string]: boolean } = {}
-for _, catalogue in ipairs({ Config.BONES, Config.GADGETS, Config.HOME_ITEMS, Config.THIEF_KIT }) do
+for _, catalogue in ipairs({ Config.BONES, Config.GADGETS, Config.HOME_ITEMS, Config.THIEF_KIT, Config.LASSOS or {} }) do
 	for key in pairs(catalogue) do
 		THROWABLE[key] = true
 	end
@@ -77,6 +78,17 @@ end
 local ALLOWED: { [string]: (any) -> any } = {
 	music = function(value)
 		return if type(value) == "boolean" then value else nil
+	end,
+
+	-- The music volume slider's POSITION, 0..1. A number from a client is
+	-- checked for NaN and infinity before it is clamped, because `math.clamp`
+	-- passes a NaN straight through and a NaN in a save is a value nothing can
+	-- compare against. Rounded to a hundredth so a drag cannot store noise.
+	musicVolume = function(value)
+		if type(value) ~= "number" or value ~= value or value == math.huge or value == -math.huge then
+			return nil
+		end
+		return math.floor(math.clamp(value, 0, 1) * 100 + 0.5) / 100
 	end,
 
 	-- The hot bar's arrangement: which order the player dragged their

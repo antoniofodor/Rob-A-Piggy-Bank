@@ -299,7 +299,7 @@ local function recover(entry: Beam, breaker: Player)
 	if entry.victim == breaker then
 		notify(breaker, ("You got your own %s coins back!"):format(format(returned)), "money")
 	else
-		notify(breaker, ("Saved %s's %s coins!"):format(entry.victim.DisplayName, format(returned)), "money")
+		notify(breaker, ("Saved %s %s coins!"):format(Config.possessive(entry.victim.DisplayName), format(returned)), "money")
 		if entry.victim.Parent then
 			notify(entry.victim, ("%s saved %s of your coins!"):format(
 				breaker.DisplayName, format(returned)), "good")
@@ -726,9 +726,28 @@ function EventService.start()
 			-- `pick()` damps whatever `lastPicked` holds, which at this point
 			-- is still the event that has only just finished -- the same
 			-- input the roll used to get one stretch later.
-			upcoming = pick()
-			setPhase("quiet", "", math.max(1, events.period - events.warning))
-			while os.clock() < phaseEnds and not pending do
+			--
+			-- SWITCHED OFF FOR THE MVP, AND THE LOOP GOES ON RUNNING, which is
+			-- the whole of why the gate is here rather than a `return` at the
+			-- top of `start`. `pending` is how the admin panel tests an event,
+			-- and it is this loop that reads it -- a scheduler that returned
+			-- would leave that button setting a field nothing ever looks at:
+			-- pressed, silent, and indistinguishable from a broken feature.
+			--
+			-- Disabled, the quiet is published with a span of ZERO and never
+			-- expires on its own. The span is what the HUD gates on (see
+			-- `PatrolBanner`, which tests the quiet's length against
+			-- `EVENTS.warning` rather than the phase name), so the countdown
+			-- chip hides itself and the patrol takes the row back. Nothing on
+			-- the client needed an edit for this.
+			if events.enabled then
+				upcoming = pick()
+				setPhase("quiet", "", math.max(1, events.period - events.warning))
+			else
+				upcoming = nil
+				setPhase("quiet", "", 0)
+			end
+			while not pending and (not events.enabled or os.clock() < phaseEnds) do
 				task.wait(0.25)
 			end
 

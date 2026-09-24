@@ -154,20 +154,6 @@ local function areFriends(a: Player, b: Player): boolean
 	return value
 end
 
-local function format(value: number): string
-	local suffixes = { "", "K", "M", "B", "T" }
-	local n = math.floor(value)
-	local tier = 1
-	while n >= 1000 and tier < #suffixes do
-		n /= 1000
-		tier += 1
-	end
-	if tier == 1 then
-		return tostring(math.floor(n))
-	end
-	return ("%.1f%s"):format(n, suffixes[tier])
-end
-
 -- ============================================================
 -- FRIEND BONUS
 -- ============================================================
@@ -230,7 +216,7 @@ local function refreshLeaderstats(player: Player)
 	local coins = folder:FindFirstChild("Coins") :: StringValue?
 	local rebirths = folder:FindFirstChild("Rebirths") :: IntValue?
 	if coins then
-		coins.Value = format(data.coins)
+		coins.Value = Config.formatCoins(data.coins)
 	end
 	if rebirths then
 		rebirths.Value = data.rebirths
@@ -848,7 +834,17 @@ local function refreshBoard()
 	local ranked, title, emptyText, amountOf
 	if page == "thieves" then
 		ranked, title, emptyText = weeklyTop, "TOP THIEVES  THIS WEEK", "nobody yet this week"
-		amountOf = format
+		-- BY REFERENCE, WHICH IS WHY THE DEDUPE MISSED IT. This read the
+		-- private `format` this file used to carry; that copy was deleted on
+		-- 2026-09-23 in favour of `Config.formatCoins` (the one-formatter
+		-- rule), and every CALL site was converted -- but a function handed
+		-- over by NAME is invisible to a sweep looking for `format(`. So this
+		-- line survived as a nil global and threw `attempt to call a nil
+		-- value` on the TOP THIEVES page of every board refresh, absorbed by
+		-- the pcall around the loop, on every boot. Same family as the
+		-- `Connect(step)` that was handed a number: **READ THE ARGUMENT OF
+		-- EVERY ASSIGNMENT, NOT ONLY THE CALLS.**
+		amountOf = Config.formatCoins
 	else
 		ranked, title, emptyText = defend.top, "TOP DEFENDERS  THIS WEEK", "no thieves stopped yet this week"
 		amountOf = function(n: number) return ("%d stopped"):format(n) end
@@ -1406,7 +1402,7 @@ local function refreshWantedBoard()
 		photo = ("rbxthumb://type=AvatarHeadShot&id=%d&w=420&h=420"):format(suspect.UserId)
 		name = suspect.DisplayName:upper()
 		local record = heat[suspect] or 0
-		stolen = ("STOLEN  %s"):format(format(record))
+		stolen = ("STOLEN  %s"):format(Config.formatCoins(record))
 		-- THE RULE RATHER THAN A FIGURE, because bail stopped being a
 		-- function of the rap sheet: it is a share of the THIEF'S OWN till
 		-- now, which this board cannot know and should not read a save to
@@ -1757,6 +1753,18 @@ function SocialService.getPursuitTarget(): (Player?, number)
 		return best, heat[best] or 0
 	end
 	return nil, 0
+end
+
+-- IS THIS PLAYER SOMEBODY THE PATROL STOPS FOR? The same rule
+-- `getPursuitTarget` ranks by, asked of ONE player rather than of the street,
+-- so a patrol car can stop for whichever target it drives past instead of
+-- only the top one. Returns the rap sheet as well, because the pursuit's
+-- messages and the bounty read it.
+function SocialService.isPursuitTarget(player: Player): (boolean, number)
+	if starsOf(player) < Config.WANTED_STARS.huntedFrom then
+		return false, 0
+	end
+	return true, heat[player] or 0
 end
 
 -- ============================================================

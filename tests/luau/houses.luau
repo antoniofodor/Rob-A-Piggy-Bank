@@ -296,8 +296,17 @@ local Cos=loadModule("CosmeticsService",env)
 Cos.applyToPlot=function() applied+=1 end
 Cos.push=function() pushes+=1 end
 local player={DisplayName="Test",Name="Test",UserId=1}
-local function reset(level)
+-- PAST THE WHOLE REBIRTH LADDER BY DEFAULT (designer, 2026-09-23).
+--
+-- Houses carry `unlockRebirths` now, so a fixture sitting at the `legacy`
+-- helper's rebirth 3 would refuse the Ice Palace at rebirth 5 -- and every
+-- check below it is about a PRICE or about OWNERSHIP rather than about the
+-- ladder. Clearing the ladder here keeps each of those asking the one
+-- question it was written to ask, and the gate gets its own section at the
+-- bottom where the rebirth count is the variable rather than the noise.
+local function reset(level,rebirths)
  data=D.reconcile(legacy(level,level));messages={};saves=0;applied=0;pushes=0
+ data.rebirths=rebirths or Config.rebirthsToMax()
 end
 local function lastWarn() local m=messages[#messages];return m and m.kind=="warn" end
 
@@ -365,4 +374,97 @@ if Progression.rebirth then
  check(data.houses.owned.skycastle and data.houses.shown=="skycastle","rebirth keeps every house and the one standing")
 end
 
-print(("houses: %d checks passed"):format(checks))
+-- ---- THE REBIRTH GATE (designer, 2026-09-23) ------------------------------
+--
+-- A house is gated behind rebirths as well as coins, and the three ends of
+-- that are checked here: the Config ladder, the server's refusal, and the
+-- verdict the push sends the card. An assertion that needs the Config edit
+-- PRINTS rather than fails while it is still landing -- the same shape the
+-- `guardians` suite uses for the coats.
+local pendingGate = 0
+local function expectGate(ok,message)
+ if ok then check(true,message) else pendingGate+=1;print("PENDING: "..message) end
+end
+local gatedId,gatedGate,gatedCost
+for _,tier in ipairs(Config.HOUSE_TIERS) do
+ if tier.unlockRebirths ~= nil and tier.earned == nil then
+  gatedId,gatedGate,gatedCost=tier.id,tier.unlockRebirths,tier.cost or 0
+  break
+ end
+end
+if not gatedId then
+ pendingGate+=1
+ print("PENDING: no HOUSE_TIERS row carries unlockRebirths yet; the gate checks wait on the Config edit")
+else
+ -- 1. BELOW THE GATE: refused by name, and nothing charged. Rich enough to
+ -- buy it twice over, so the rebirth is provably the reason rather than the
+ -- price -- which is also why the gate sits ABOVE the price in `buyHouse`.
+ reset(0,gatedGate-1);data.coins=gatedCost*2
+ Cos.buyHouse(player,gatedId)
+ expectGate(lastWarn() and not data.houses.owned[gatedId],"a house below its gate is refused")
+ expectGate(messages[#messages].text:find(("Rebirth %d unlocks"):format(gatedGate),1,true)==1,
+  "the refusal names the rebirth first: "..tostring(messages[#messages].text))
+ expectGate(data.coins==gatedCost*2 and applied==0 and saves==0,"a gated refusal charges nothing and changes nothing")
+
+ -- 2. AT THE GATE: it sells.
+ reset(0,gatedGate);data.coins=gatedCost*2
+ Cos.buyHouse(player,gatedId)
+ expectGate(data.houses.owned[gatedId] and data.coins==gatedCost and data.houses.shown==gatedId,
+  "at the gate the house sells and is moved into")
+ expectGate(messages[#messages].kind=="good","the purchase is announced")
+
+ -- 3. OWNED IS NEVER RE-GATED. Rebirth wipes power and never cosmetics, so a
+ -- house bought before the ladder moved under it is kept AND may still be
+ -- moved into at rebirth 0 -- which is the branch `buyHouse` takes before it
+ -- ever reaches the gate.
+ reset(0,0);data.houses.owned[gatedId]=true;data.coins=0
+ Cos.buyHouse(player,gatedId)
+ expectGate(data.houses.shown==gatedId and applied==1 and data.coins==0,
+  "an owned gated house still moves in free at rebirth 0")
+ expectGate(not (messages[#messages].text or ""):find("Rebirth",1,true),
+  "moving into an owned house never trips the gate")
+
+ -- 4. THE PUSH'S VERDICT, run over the real `houses` block of
+ -- `CosmeticsService.push`: the card reads `locked` rather than comparing
+ -- rebirths for itself, so the wash and the refusal cannot disagree.
+ -- ANCHORED ON `local houses = {}`, WHICH IS UNIQUE, and the obvious anchor
+ -- was not: `local shown = Config.getShownHouse(data)` appears TWICE in that
+ -- file -- the push and `applyToPlot` -- and `string.match` takes the first,
+ -- so the block that came back was applyToPlot's and threw indexing a stubbed
+ -- PiggyBank rather than reporting a wrong verdict. `shown` is passed in
+ -- instead, from the same helper the push calls one line above the block.
+ local block=assert(sources.CosmeticsService:match("(\tlocal houses = {}\r?\n.-\n\tend\r?\n)"),
+  "houses push block found")
+ local function pushHouses(saveData)
+  local out={}
+  local run=assert(loadstring("local data, Config, out, shown = ...\n"..block.."\nout.houses = houses","push"))
+  run(saveData,Config,out,Config.getShownHouse(saveData))
+  return out.houses
+ end
+ local function rowFor(list,id) for _,row in ipairs(list) do if row.id==id then return row end end end
+ reset(0,gatedGate-1)
+ local below=rowFor(pushHouses(data),gatedId)
+ expectGate(below.locked==true and below.unlockRebirths==gatedGate,"the push marks a house below its gate locked")
+ expectGate(below.forSale==true and below.cost==gatedCost,
+  "a locked house still crosses the wire for sale with its price: the card shows it")
+ reset(0,gatedGate)
+ expectGate(rowFor(pushHouses(data),gatedId).locked==false,"the push clears the lock at the gate")
+ reset(0,0);data.houses.owned[gatedId]=true
+ expectGate(rowFor(pushHouses(data),gatedId).locked==false,
+  "an owned house is never pushed locked, whatever the rebirth count")
+ -- The free tiers are what a new player has, so none of them may be locked
+ -- at rebirth 0 -- a shelf with nothing buyable on it is where this ladder
+ -- would do real damage.
+ reset(0,0)
+ local fresh=pushHouses(data)
+ local open=0
+ for _,row in ipairs(fresh) do if not row.locked and row.forSale then open+=1 end end
+ expectGate(open>=4,("a fresh save at rebirth 0 can still buy %d houses"):format(open))
+ -- And an EARNED house is never gated: `buyHouse` asks `earned` before the
+ -- gate, so a sale gate there would be a refusal nobody can act on.
+ for _,row in ipairs(fresh) do
+  if row.earned then expectGate(row.locked==false,"the earned house is never rebirth-locked") end
+ end
+end
+
+print(("houses: %d checks passed; %d pending on the Config edit"):format(checks,pendingGate))

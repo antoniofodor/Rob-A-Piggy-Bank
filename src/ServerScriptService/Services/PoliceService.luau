@@ -780,14 +780,12 @@ local function runPatrol()
 	-- standing empty-handed on their own lawn with no warning at all would be
 	-- the one part of the feature that was pure bad luck. Forty-five seconds
 	-- of cruise is the head start.
-	-- getPursuitTarget, NOT getMostWanted. The board names whoever has stolen
-	-- the most; this line promises a visit, so it has to be asked of the one
-	-- that also clears the income floor. Told to the wrong player it is a
-	-- threat that never arrives, which is the same fault as a patrol arriving
-	-- with no warning, from the other end.
-	local suspect = SocialService.getPursuitTarget()
-	if suspect and not HeistService.isCarrying(suspect) then
-		notify(suspect, "They're out looking for YOU. Stay clear of the street.", "police")
+	-- EVERY TARGET, not only the top one: the car stops for any of them it
+	-- drives past (see `sighted`), so each of them is owed the warning.
+	for _, player in ipairs(Players:GetPlayers()) do
+		if SocialService.isPursuitTarget(player) and not HeistService.isCarrying(player) then
+			notify(player, "They're out looking for YOU. Stay clear of the street.", "police")
+		end
 	end
 
 	-- NOBODY IS ROBBING, SO GO STRAIGHT FOR THE NAME ON THE BOARD.
@@ -828,19 +826,10 @@ local function runPatrol()
 	-- thirty-second chase went on closing a gap it could never close. The
 	-- pursuit was lost before the officer's door opened.
 	--
-	-- So the suspect is only WATCHED here, and `sighted` below is what commits.
-	local watching: Player? = nil
-	if not pending and not aborting then
-		-- getPursuitTarget rather than getMostWanted: the floor's whole job is
-		-- deciding whether this records check is worth making at all, and this
-		-- is the line it guards.
-		local suspect, record = SocialService.getPursuitTarget()
-		if suspect and suspect.Parent and record > 0 then
-			watching = suspect
-		end
-	end
+	-- So targets are only WATCHED during the cruise, and `sighted` below is
+	-- what commits.
 
-	-- IS THE SUSPECT WITHIN SIGHT OF THE CAR RIGHT NOW? Commits the pursuit and
+	-- IS A TARGET WITHIN SIGHT OF THE CAR RIGHT NOW? Commits the pursuit and
 	-- returns true, which stops the car exactly where it is standing.
 	--
 	-- A FLAT DISTANCE FROM THE CAR, AND DELIBERATELY NOT A RAYCAST. "Line of
@@ -856,39 +845,44 @@ local function runPatrol()
 	-- this cannot disagree with the dog or with the officer's own search about
 	-- who is out of sight. A wheelie bin is a way past a records check.
 	--
-	-- THE BOARD IS RE-ASKED AT THE MOMENT OF SIGHT rather than trusted from the
-	-- top of the patrol, for two reasons. The rap sheet drives the BAIL, at
-	-- three times the record, so a figure captured a cruise earlier would
-	-- charge for a robbery count that has since moved. And a suspect can be
-	-- arrested, cleared or overtaken while the car is still driving -- in which
-	-- case there is no longer anybody to get out for, and `watching` is dropped
-	-- rather than pursued out of date.
+	-- ANY TARGET, ASKED EVERY FRAME, AND THE NEAREST ONE WINS. This used to
+	-- pick ONE suspect at the top of the patrol and watch only them -- so a
+	-- player who reached `huntedFrom` stars during the cruise was never looked
+	-- for, a second target the car drove straight past was ignored, and a
+	-- suspect overtaken mid-cruise was dropped with nobody put in their place.
+	-- Reported as "the police should stop to catch players as they drive by
+	-- them if they are a target". The car now stops for whichever target it
+	-- passes first. The rule for who counts is `SocialService.isPursuitTarget`
+	-- -- the same stars rule `getPursuitTarget` ranks by -- asked at the moment
+	-- of sight, so the bounty reads the rap sheet as it stands then.
 	local function sighted(): boolean
-		local suspect = watching
-		if pending or not suspect then
+		if pending then
 			return false
 		end
-		if not suspect.Parent then
-			watching = nil
+		local vehicle = car
+		if not vehicle then
 			return false
 		end
-		if HeistService.isHidden(suspect) then
+		local from = vehicle.body.Position
+		local radius = Config.policeSightRadius()
+		local best: Player?, bestRecord, bestDist = nil, 0, math.huge
+		for _, player in ipairs(Players:GetPlayers()) do
+			local root = rootOf(player)
+			if root and not HeistService.isHidden(player) then
+				local at = root.Position
+				local dist = Vector3.new(at.X - from.X, 0, at.Z - from.Z).Magnitude
+				if dist <= radius and dist < bestDist then
+					local isTarget, record = SocialService.isPursuitTarget(player)
+					if isTarget and record > 0 then
+						best, bestRecord, bestDist = player, record, dist
+					end
+				end
+			end
+		end
+		if not best then
 			return false
 		end
-		local vehicle, root = car, rootOf(suspect)
-		if not vehicle or not root then
-			return false
-		end
-		local from, at = vehicle.body.Position, root.Position
-		if Vector3.new(at.X - from.X, 0, at.Z - from.Z).Magnitude > Config.policeSightRadius() then
-			return false
-		end
-		local current, record = SocialService.getPursuitTarget()
-		if current ~= suspect or record <= 0 then
-			watching = nil
-			return false
-		end
-		pending = { thief = suspect, victim = suspect, amount = record, wanted = true, inSight = true }
+		pending = { thief = best, victim = best, amount = bestRecord, wanted = true, inSight = true }
 		return true
 	end
 

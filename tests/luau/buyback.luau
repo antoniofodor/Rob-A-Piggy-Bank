@@ -76,6 +76,20 @@ end},script={Parent=names},require=function(name) return assert(modules[name],na
  math=fakeMath,task={spawn=function(fn)
  local thread=coroutine.create(fn);table.insert(threads,thread);assert(coroutine.resume(thread));return thread
 end,wait=function() return coroutine.yield() end}}
+-- THE ROBUX ROUTE IS DOUBLED HERE AND EXERCISED IN THE `crates` SUITE, which
+-- loads the real ProductService. What this suite needs from it is only that
+-- `ChestService.push` can ask whether a player may be offered a paid random
+-- item -- and the honest default for a double is PERMITTED, so nothing here
+-- accidentally passes because a card was hidden.
+local productDouble = {
+ restricted=function() return false end,
+ crateRobux=function() return 0 end,
+ crateProduct=function() return 0 end,
+ onCrateReceipt=function() end,
+ onPolicy=function() end,
+ start=function() end,
+}
+modules.ProductService=productDouble
 modules.SetService=load("SetService",env)
 local Chest=load("ChestService",env)
 local balancePushes=0
@@ -170,11 +184,25 @@ local uiModules={Config=Config,ShopStyle=style,SpinWheel={},ShopIcons={mount=fun
  ShopWidgets={button=function(parent,name) local b=instance("TextButton");b.Name=name;b.Parent=parent;return b end},
  Theme={PAPER=colour,INK=colour,MUTED=colour,HUE={crates=colour}}}
 uiModules.CrateContents={new=function() return {update=noop,close=noop,loadVisible=noop} end}
+-- THE ROBUX MARK COMES FROM `PremiumShop`, so the crates tab and the Robux tab
+-- print the same one. Doubled here rather than loaded: that module builds a
+-- rider on a ride in a ViewportFrame, which is a 3D stub this suite has no
+-- business growing.
+uiModules.PremiumShop={ROBUX_ICON="rbxasset://robux"}
 uiModules.ShopCatalogueLayout={bindCard=noop} -- Geometry is covered by shopui.
 local uiNow=boundary-10
 local function val(...) return {...} end
+-- WHAT THE BUY BUTTON WOULD PROMPT, recorded rather than prompted. The card
+-- may only reach here when the SERVER said it could: a product id of 0 throws
+-- on a real prompt and a restricted player may not be offered one at all, so
+-- what this asserts is that the client declines to ask.
+local prompted={}
+local marketplaceDouble={PromptProductPurchase=function(_,_,id) table.insert(prompted,id) end}
 local UI=load("Crates",{game={GetService=function(_,name)
- return if name=="RunService" then {Heartbeat=heartbeat,RenderStepped={Wait=function() frames+=1 end}} else replicated
+ if name=="RunService" then return {Heartbeat=heartbeat,RenderStepped={Wait=function() frames+=1 end}} end
+ if name=="MarketplaceService" then return marketplaceDouble end
+ if name=="Players" then return {LocalPlayer={UserId=1}} end
+ return replicated
 end},require=function(name) return assert(uiModules[name],name) end,
  Instance={new=instance},UDim2={new=val,fromOffset=val},UDim={new=val},
  Vector2={new=function(x,y) return {X=x,Y=y} end},task={spawn=function(fn) fn() end},
@@ -220,4 +248,100 @@ check(scroll.CanvasPosition.Y==600,"expired focus never reads stale card geometr
 check(#requested==1,"expired click cannot request")
 heartbeat:fire(1)
 check(not find("Buyback_"..rare),"UI expires idle card at boundary")
-print(("PASS: %d buy-back checks; prices, persisted claims, direct grants, reentry, remotes, seasonal rollover and UI state. No player saves or visual-rendering claim."):format(checks))
+
+-- ============================================================
+-- THE CRATE TILE: PRICE, DISCLOSED ODDS, AND FIVE REFUSALS
+-- ============================================================
+--
+-- A crate is bought with Robux now (designer, 2026-09-23), which makes it a
+-- PAID RANDOM ITEM under Roblox's rule -- so the card that carries the price
+-- carries the odds, and every state in which it may not be pressed SAYS SO on
+-- the button rather than greying out in silence.
+--
+-- THE CLIENT DECLINES TO ASK FOR A KNOWN NO, which is the half that matters
+-- most here: a prompt for a product id of 0 THROWS, and a prompt for a
+-- restricted player is the one thing that rule forbids outright.
+local function named(parent,name)
+ for _,o in objects do if o.Parent==parent and o.Name==name and not o.destroyed then return o end end
+end
+local tile=find("Crate_og")
+local openButton=named(tile,"Open")
+local buyLabel=named(openButton,"Label")
+local buyMark=named(openButton,"Robux")
+local priceChip=named(tile,"Price")
+local tierRow=named(tile,"Tier")
+local oddsTrack=named(tile,"Odds")
+check(tile and openButton and buyLabel and buyMark and priceChip and oddsTrack,
+ "the crate tile carries a price chip, an odds bar and a Robux button")
+
+local function renderCrate(info,restricted)
+ UI.render({chests={og=info},buybacks={},buybacksExpireAt=boundary,restricted=restricted})
+end
+local shipped={owned=2,total=20,robux=20,productId=0,complete=false,
+ odds={common=52,rare=32,epic=12,legendary=4},canCombine=true}
+local function with(extra)
+ local out={}
+ for k,v in shipped do out[k]=v end
+ for k,v in extra or {} do out[k]=v end
+ return out
+end
+
+-- COMING SOON while the developer product does not exist, which is the same
+-- wording and the same reason as a pass with no id.
+renderCrate(with(),false)
+check(buyLabel.Text=="COMING SOON" and not openButton.Active,"no product id reads COMING SOON")
+check(priceChip.Visible and priceChip.Text:find("20",1,true)~=nil,"and the price is still shown")
+openButton.Activated:fire()
+check(#prompted==0,"a COMING SOON card never prompts")
+
+-- THE ODDS, DRAWN TO SCALE. Each segment is its own share of the bar, and the
+-- ones wide enough print their percentage -- a 4% sliver does not, which is
+-- why the best tier's exact figure is printed beside the crate's name.
+local seg={}
+for _,tier in Config.RARITY_ORDER do seg[tier]=named(oddsTrack,"Odds_"..tier) end
+check(seg.common.Visible and seg.common.Size[1]==0.52,"the common segment is 52% of the bar")
+check(seg.rare.Position[1]==0.52,"and the next one starts where it ends")
+check(seg.common.Text=="52%" and seg.legendary.Text=="","a wide segment prints its number and a sliver does not")
+check(tierRow.Text:find("4%% LEGENDARY")~=nil,"so the best tier's exact chance is printed beside the name")
+
+-- WITH A REAL PRODUCT ID the button is the purchase, and pressing it prompts
+-- for that id and nothing else.
+renderCrate(with({productId=777}),false)
+check(buyLabel.Text=="20" and buyMark.Visible and openButton.Active,"a live product shows the Robux mark and the price")
+openButton.Activated:fire()
+check(#prompted==1 and prompted[1]==777,"and prompts for exactly that product")
+
+-- COLLECTION COMPLETE, which is the state that must never take Robux for
+-- nothing.
+renderCrate(with({productId=777,complete=true}),false)
+check(buyLabel.Text=="COLLECTION COMPLETE" and not openButton.Active,"a finished collection says so")
+openButton.Activated:fire()
+check(#prompted==1,"and cannot be bought")
+
+-- THE POLICY GATE, in words as well as in a dead button: "refused rather than
+-- meeting a button that does nothing" is the requirement, and a greyed button
+-- with no sentence beside it IS a button that does nothing.
+renderCrate(with({productId=777}),true)
+check(buyLabel.Text=="NOT AVAILABLE HERE" and not openButton.Active,"a restricted player is refused")
+check(tierRow.Text:find("OFF FOR THIS ACCOUNT",1,true)~=nil,"and told why on the card")
+openButton.Activated:fire()
+check(#prompted==1,"a restricted card never prompts")
+
+-- ANY OTHER SERVER REFUSAL, IN THE SERVER'S OWN WORDS, so the card and the
+-- toast cannot disagree about why.
+renderCrate(with({productId=777,refusal="Your lawn is full."}),false)
+check(buyLabel.Text=="YOUR LAWN IS FULL." and not openButton.Active,"the server's refusal is printed")
+openButton.Activated:fire()
+check(#prompted==1,"and holds the purchase back")
+
+-- EARNED RATHER THAN SOLD: the event cache carries no price, so the button
+-- names where it comes from instead.
+renderCrate(with({robux=0,productId=0}),false)
+check(buyLabel.Text=="EARN THIS CRATE" and not priceChip.Visible,"an unpriced crate advertises no price")
+openButton.Activated:fire()
+check(#prompted==1,"and is never promptable")
+
+-- AND THE COMBINE ROW HAS LEFT THIS TAB, which is a deletion rather than a
+-- hidden control: a physical station on the street owns it now.
+check(find("Combine")==nil and find("Combine_common")==nil,"no combine row or chip is built")
+print(("PASS: %d buy-back checks; prices, persisted claims, direct grants, reentry, remotes, seasonal rollover, and the crate tile's price, disclosed odds and five refusals. No player saves or visual-rendering claim."):format(checks))

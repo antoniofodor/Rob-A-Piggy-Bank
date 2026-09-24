@@ -89,6 +89,7 @@ local BoneModel = require(ReplicatedStorage.Shared.BoneModel)
 local GadgetModel = require(ReplicatedStorage.Shared.GadgetModel)
 local HomeModel = require(ReplicatedStorage.Shared.HomeModel)
 local ThiefModel = require(ReplicatedStorage.Shared.ThiefModel)
+local LassoModel = require(ReplicatedStorage.Shared.LassoModel)
 
 local HeldItem = {}
 
@@ -111,7 +112,11 @@ local function turn(x: number, y: number, z: number): CFrame
 	return CFrame.Angles(math.rad(x), math.rad(y), math.rad(z))
 end
 
-type Grip = { cf: CFrame, span: number? }
+-- `hold` is a point in the MODEL's own frame, before scaling, that lands on
+-- `cf` rather than the model's pivot. Every other prop is gripped round its
+-- visual centre; a lasso is gripped by the band at its crown, which the art
+-- records as `HandGrip`, so it hangs from the fist instead of through it.
+type Grip = { cf: CFrame, span: number?, hold: Vector3? }
 
 -- Keyed by STYLE rather than by key, because two bones share one builder and
 -- would otherwise need the same entry written twice -- the copy that drifts
@@ -161,6 +166,15 @@ local GRIP: { [string]: Grip } = {
 	-- the shark ornament uses from the other side: put the long axis where
 	-- there is room for it.
 	raincoat = { cf = BASE * turn(0, 90, 12), span = 1.35 },
+
+	-- THE LASSO COIL, keyed by KIND because the four tiers share one mesh and
+	-- no `style`. Held by its band (`LassoModel.COIL_HAND_GRIP`) in the fist
+	-- rather than below it, and turned a quarter so the flat coil hangs in
+	-- the plane of the body's side: edge-on it is 0.18 studs across, which
+	-- clears the thigh the way the raincoat's turn does. GRIP_SPAN applies --
+	-- 2.75 tall scales to 1.9, a dinner-plate coil against a five-stud child.
+	-- NOT MEASURED ON A RIG: nobody has seen this in a hand yet.
+	lasso = { cf = CFrame.new(0, -0.12, -0.05) * turn(0, 90, 0), hold = LassoModel.COIL_HAND_GRIP },
 }
 
 local DEFAULT: Grip = { cf = BASE }
@@ -184,6 +198,8 @@ function HeldItem.kindOf(key: string): string?
 		return "home"
 	elseif Config.THIEF_KIT[key] then
 		return "kit"
+	elseif Config.LASSOS and Config.LASSOS[key] then
+		return "lasso"
 	end
 	return nil
 end
@@ -198,6 +214,8 @@ function HeldItem.specFor(key: string): any
 		return Config.HOME_ITEMS[key]
 	elseif kind == "kit" then
 		return Config.THIEF_KIT[key]
+	elseif kind == "lasso" then
+		return Config.LASSOS[key]
 	end
 	return nil
 end
@@ -215,6 +233,8 @@ function HeldItem.build(key: string): Model?
 		return HomeModel.build(key)
 	elseif kind == "kit" then
 		return ThiefModel.build(key)
+	elseif kind == "lasso" then
+		return LassoModel.buildCoil(key)
 	end
 	return nil
 end
@@ -266,17 +286,25 @@ function HeldItem.attach(character: Model, key: string): Model?
 	end
 
 	local spec = HeldItem.specFor(key)
-	local grip = GRIP[spec and spec.style or ""] or DEFAULT
+	local grip = GRIP[spec and spec.style or ""]
+		or (HeldItem.kindOf(key) == "lasso" and GRIP.lasso)
+		or DEFAULT
 
 	local _, size = model:GetBoundingBox()
 	local longest = math.max(size.X, size.Y, size.Z)
+	local s = 1
 	if longest > 0 then
-		scaleModel(model, (grip.span or GRIP_SPAN) / longest)
+		s = (grip.span or GRIP_SPAN) / longest
+		scaleModel(model, s)
 	end
 
 	-- Placed while still anchored, so nothing can fall between here and the
-	-- weld below.
-	model:PivotTo(hand.CFrame * grip.cf)
+	-- weld below. A `hold` point is scaled with the model it belongs to.
+	local seat = grip.cf
+	if grip.hold then
+		seat *= CFrame.new(-grip.hold * s)
+	end
+	model:PivotTo(hand.CFrame * seat)
 
 	for _, part in ipairs(model:GetDescendants()) do
 		if part:IsA("BasePart") then

@@ -113,6 +113,20 @@ type Haul = {
 	-- os.clock() when the carrier last stepped onto ground that could take
 	-- this piggy, or nil the moment they left it. See `secureStep`.
 	secureFrom: number?,
+	-- A LASSOED CATCH (docs/LASSO-PLAN.md), the third kind: it has no plinth
+	-- and no owner to go home to, so `ownerPlot` is nil, every losing ending
+	-- drops it DAZED on the ground instead of `returnHome`, and securing it is
+	-- what makes it anybody's. `wildFrom` is the catcher it was lassoed off
+	-- when that was somebody else's dropped catch -- a robbery -- and nil for
+	-- a catch of your own. `immuneUntil` (os.clock) is the window after a
+	-- catch or a pick-up in which nothing can knock it loose. `lastAt` is the
+	-- carrier's last known position, for an ending with no character left.
+	wild: boolean?,
+	wildFrom: Player?,
+	-- Set while a wild grant is in flight; see `secureStep`.
+	securing: boolean?,
+	immuneUntil: number?,
+	lastAt: Vector3?,
 }
 
 local hauling: { [Player]: Haul } = {}
@@ -134,6 +148,19 @@ local residentCooldown: { [number]: { [string]: number } } = {}
 
 local function notify(player: Player, message: string, kind: string)
 	Remotes.get("Notify"):FireClient(player, message, kind)
+end
+
+-- WHERE A WILD CATCH GOES WHEN IT IS DROPPED, AND HOW ONE BECOMES YOURS.
+-- `HerdService` owns both (a dazed piggy is an animal in the wild; ownership
+-- lands through its `grantAt`), and `LassoService` registers them here at its
+-- own start. A registry rather than a require, so this file's dependency list
+-- does not grow and a suite that loads it needs no herd at all.
+local wildDrop: ((string, Vector3, number?) -> string?)? = nil
+local wildGrant: ((Player, string, number) -> boolean)? = nil
+
+function PiggyHaulService.registerWild(drop: (string, Vector3, number?) -> string?,
+	grant: (Player, string, number) -> boolean)
+	wildDrop, wildGrant = drop, grant
 end
 
 -- WHOSE LAWN THIS IS, as a string both kinds of victim can be keyed by. A
@@ -197,20 +224,25 @@ end
 
 -- THE MODEL IS NAMED `Config.LOOT_MODEL_NAME` AND THAT IS NOT A COINCIDENCE.
 --
--- `CarryPose` decides whether to hold a character in two hands by asking
+-- `CarryPose` decides whether to pose a character carrying by asking
 -- whether their character has a child of that name -- deliberately, so the
--- pig and the pose are one fact rather than two that can disagree. Parenting
--- this there buys the whole two-handed carry with no second implementation
--- and no flag, and `PiggyModel.build` already names its output that.
+-- pig and the pose are one fact rather than two that can disagree -- and
+-- WHICH carry by the word on it: this one is stamped
+-- `Config.CARRY_KIND_ATTRIBUTE` = "hug", the two-armed front carry the seat
+-- below was solved on, where the coin sack in HeistService is slung over the
+-- shoulder (designer, 2026-09-23). `PiggyModel.build` already names its
+-- output that.
 --
--- WELDED TO THE ROOT, NEVER TO A LIMB, and the offset is `CarryPose.HOLD`
--- rather than a number chosen here. The root is the one part of a character
--- that does not animate, so the weld captures the offset that was intended
--- rather than whatever phase of a run cycle happened to be replicating at
--- that instant -- and HOLD is where a pig has to BE for the measured hands to
--- be on it. A number typed here would be a second opinion about one
--- measurement, and the pose would lose, because an arm cannot reach a
--- position somebody else chose for it.
+-- WELDED TO THE HAND (designer, 2026-09-23: the load should move with the
+-- hand), through `CarryPose.anchor`, which picks the part and the seat for
+-- BOTH carries -- the right hand with its hand-space offset on an R15 rig,
+-- the root with `HOLD` on anything without one. It used to be the root,
+-- deliberately, so the weld captured the intended offset rather than
+-- whatever phase of a run cycle was replicating at the grab; a hand-space
+-- offset has the same property, because it is right wherever the hand is
+-- and settles with the pose. The offset is CarryPose's measurement and never
+-- a number chosen here: a second opinion about where a hand is would lose to
+-- the arm, which cannot reach a position somebody else chose for it.
 local function attach(player: Player, key: string): (Model?, BasePart?, TextLabel?)
 	local character = player.Character
 	local root = if character
@@ -232,12 +264,15 @@ local function attach(player: Player, key: string): (Model?, BasePart?, TextLabe
 		return nil, nil, nil
 	end
 
-	model:PivotTo(root.CFrame * CarryPose.HOLD)
+	model:SetAttribute(Config.CARRY_KIND_ATTRIBUTE, "hug")
+	local anchor, seat = CarryPose.anchor(character, "hug")
+	anchor = anchor or root
+	model:PivotTo(anchor.CFrame * seat)
 	model.Parent = character
 
 	local weld = Instance.new("WeldConstraint")
 	weld.Name = "HaulWeld"
-	weld.Part0 = root
+	weld.Part0 = anchor
 	weld.Part1 = body
 	weld.Parent = body
 
@@ -318,6 +353,7 @@ local function detach(player: Player): Haul?
 	local character = player.Character
 	if character then
 		character:SetAttribute(Config.PIGGY_HAUL_ATTRIBUTE, nil)
+		character:SetAttribute(Config.PIGGY_HAUL_FROM_ATTRIBUTE, nil)
 	end
 	-- EMPTY HANDS CANNOT SWAP. An own haul is the only kind that ever lit the
 	-- bank's swap prompt, and this is the one place every haul ends, so the
@@ -325,6 +361,12 @@ local function detach(player: Player): Haul?
 	-- forgot -- a nab, a dog, a death, a disconnect, a placement.
 	if haul.own then
 		PlotService.setSwapOffer(haul.ownerPlot, nil)
+		-- AND EVERY EMPTY PLINTH STOPS OFFERING, for the same reason and on
+		-- the same plot: an own haul's `ownerPlot` IS the carrier's own lawn.
+		-- A stolen one never lit either prompt, so there is nothing to take
+		-- back -- and passing a victim's plot here would put THEIR plinths
+		-- out while they were holding one of their own.
+		PlotService.setPlaceOffer(haul.ownerPlot, nil)
 	end
 	-- THE SPEED COMES BACK THROUGH `HeistService`, never by writing WalkSpeed
 	-- here. That function owns the stun, the snag, the ride, the tiptoe, the
@@ -413,6 +455,20 @@ end
 -- prompt is on and a prompt measures to its own part's centre. The slack is
 -- the crack's own range-binding shape: a press must not fail because somebody
 -- shuffled on the spot between the hold starting and it finishing.
+--
+-- AND THROUGH `PlotService.pedestalAt`, WHICH IS WHAT PUTS THE THREE VERBS
+-- INDOORS. A save's collection is one array -- the lawn at slots 1..6 and the
+-- hall behind the front door at the slots after it -- so a press on an indoor
+-- plinth arrives here with slot 11 and that function is the one place that
+-- knows a lawn is an array and a hall is a keyed map. Every guard either side
+-- of it is unchanged, which is the whole point: taking, placing and selling
+-- indoors are the same three functions and not a second set.
+--
+-- A SLOT WITH NOWHERE TO STAND STILL REFUSES, and that is what makes a LOCKED
+-- indoor plot unreachable by construction rather than by a rebirth check
+-- written here. `InteriorService` stands a placement on the unlocked plots
+-- and on no others, so a press on a plot past the owner's capacity finds no
+-- pedestal -- the same refusal a slot on a shop plot gets.
 local function reach(player: Player, plot: any, slot: number): boolean
 	local character = player.Character
 	local root = if character
@@ -424,7 +480,7 @@ local function reach(player: Player, plot: any, slot: number): boolean
 	if not root or not humanoid or humanoid.Health <= 0 then
 		return false
 	end
-	local pedestal = plot.pedestals and plot.pedestals[slot]
+	local pedestal = PlotService.pedestalAt(plot, slot)
 	if not pedestal then
 		return false
 	end
@@ -483,6 +539,11 @@ function PiggyHaulService.take(player: Player, plot: any, slot: number)
 	-- AND THE BANK OFFERS TO TAKE IT. A piggy of your own in your arms is the
 	-- only state the swap prompt is live in.
 	PlotService.setSwapOffer(plot, key)
+	-- AND SO DOES EVERY EMPTY PLINTH ON THE LAWN AND IN THE HALL, which is the
+	-- same fact reaching the other prompt it decides. Both are published here
+	-- rather than one calling the other, so each stays the single writer of
+	-- its own `Enabled`.
+	PlotService.setPlaceOffer(plot, key)
 	repaint(plot)
 	DataService.save(player)
 end
@@ -582,7 +643,7 @@ function PiggyHaulService.swap(player: Player, plot: any)
 		return
 	end
 	if not haul.own then
-		notify(player, ("Hold %s on your own plot for %d seconds to make it yours first.")
+		notify(player, ("Stand with %s by an empty pedestal on your lawn or in your hallway for %d seconds to make it yours first.")
 			:format(nameOf(haul.key), Config.PIGGY_HAUL.secureSeconds), "warn")
 		return
 	end
@@ -627,6 +688,9 @@ function PiggyHaulService.swap(player: Player, plot: any)
 	-- STILL CARRYING, SO STILL OFFERED -- now naming the old till piggy, so
 	-- the card over the bank says which piggy a second hold would put back.
 	PlotService.setSwapOffer(plot, outgoing)
+	-- The plinths were already lit and stay lit: what changed is WHICH piggy
+	-- is in the owner's arms, which the place prompt does not name.
+	PlotService.setPlaceOffer(plot, outgoing)
 	-- THE BANK IS RE-DRESSED, RE-RATED AND RE-SIGNED IN ONE REPAINT.
 	-- `CosmeticsService.applyToPlot` dresses the bank from the till, which
 	-- republishes the model's `SkinKey` for the client animator; the sign
@@ -712,6 +776,9 @@ function PiggyHaulService.snatch(thief: Player, plot: any, slot: number)
 	local character = thief.Character
 	if character then
 		character:SetAttribute(Config.PIGGY_HAUL_ATTRIBUTE, "stolen")
+		-- WHOSE, so the victim's client can start its chase music. Nil for a
+		-- resident's plinth: there is nobody to play it for.
+		character:SetAttribute(Config.PIGGY_HAUL_FROM_ATTRIBUTE, if owner then owner.UserId else nil)
 	end
 	-- DROPS THE FIRST-SESSION SHIELD ON THE GRAB, exactly as a coin crack
 	-- does and for the same reason: *nobody can touch your piggy until you
@@ -830,11 +897,18 @@ function PiggyHaulService.place(player: Player, plot: any, slot: number)
 	end
 	local haul = hauling[player]
 	if not haul then
-		-- THE REFUSAL THAT TEACHES THE VERB. An empty plinth of your own
-		-- advertises PLACE to you whether or not your hands are full, because
-		-- a client rule may only ever turn a prompt OFF and one refused for
-		-- empty hands could never come back when they were not. So the press
-		-- answers out loud, and names what to do instead.
+		-- THE REFUSAL THAT TEACHES THE VERB, AND IT IS NOW THE GUARD RATHER
+		-- THAN THE SIGNAL. This used to be the only answer: an empty plinth
+		-- of your own advertised PLACE whether or not your hands were full,
+		-- on the reasoning that a client rule may only ever turn a prompt OFF
+		-- and one refused for empty hands could never come back when they
+		-- were not. True of a CLIENT rule, and the wrong place to answer it
+		-- -- `PlotService.setPlaceOffer` switches it both ways on the SERVER
+		-- now, for the one person who can press it.
+		--
+		-- IT STAYS ANYWAY, because a prompt is a picture and this is the
+		-- guard. Anything that reaches this function another way still gets
+		-- told what to do instead rather than nothing at all.
 		notify(player,
 			"You are not carrying a piggy. Take one off a pedestal first.", "warn")
 		return
@@ -845,7 +919,7 @@ function PiggyHaulService.place(player: Player, plot: any, slot: number)
 		-- a thief who could press one on arrival would never be catchable on
 		-- their own lawn. The refusal names the RULE rather than the
 		-- restriction, because the rule is the mechanic.
-		notify(player, ("Hold %s on your own plot for %d seconds to make it yours.")
+		notify(player, ("Stand with %s by an empty pedestal on your lawn or in your hallway for %d seconds to make it yours.")
 			:format(nameOf(haul.key), Config.PIGGY_HAUL.secureSeconds), "warn")
 		return
 	end
@@ -866,19 +940,42 @@ end
 -- THE FIVE SECONDS
 -- ============================================================
 
+-- THE HALL'S HALF OF "WHERE AM I". `InteriorService` requires this file --
+-- it wires the hallway's prompts to `take`, `place` and `snatch` -- so
+-- asking it directly would be a cycle. It registers the answer here at its
+-- own start instead: the plot whose hallway a player is standing in, or nil
+-- for anybody on the street. Same shape as `PlotService.registerBounceVeto`
+-- and for the same reason. Declared above `roomFor`, which reads it.
+local hallOf: ((Player) -> any?)? = nil
+
+function PiggyHaulService.registerHall(fn: (Player) -> any?)
+	hallOf = fn
+end
+
 -- WHERE A STOLEN PIGGY BECOMES YOURS.
 --
--- A ROOM WITH AN EMPTY PEDESTAL IN IT, and today there is exactly one room:
--- the lawn. `PlotService.yardContaining` is the rectangle the fence encloses,
--- and it is the same one the ride gate and the fence penalty already test
--- against -- so "am I home" cannot disagree with "whose yard is this", which
--- is the reason that function exists rather than a second rectangle here.
+-- A ROOM WITH AN EMPTY PEDESTAL IN IT, and there are two rooms: the lawn and
+-- the hallway behind the front door. On the street `PlotService.yardContaining`
+-- is the ground -- the rectangle the fence encloses, the same one the ride
+-- gate and the fence penalty test against, so "am I home" cannot disagree
+-- with "whose yard is this" -- and the six lawn plinths are the shelf.
+-- Indoors the hallway is the ground and its plinths are the shelf.
 --
--- WHEN INTERIORS LAND (plan §6) THIS IS THE ONE PREDICATE THAT CHANGES. A
--- house becomes a second room with its own free-shelf test, and the dwell,
--- the countdown, the interruption and the landing are all untouched. That is
--- why the question is asked as "is there a room here that could take it"
--- rather than as "am I standing on my lawn".
+-- THE HALL WAS MISSING FROM THIS FOR ONE DAY AND IT SHIPPED AS A REAL BUG
+-- (2026-09-23): a stolen piggy carried home to a FULL collection, one hall
+-- piggy sold to make room, and the countdown never started -- this function
+-- looked only at the lawn and only from the yard, and the thief was standing
+-- four thousand studs away in their own hallway. The place prompt then
+-- refused forever, because the piggy never became theirs. The comment that
+-- stood here said interiors would make this "the one predicate that
+-- changes", and it was right; the change was not made when the hall landed.
+--
+-- NEVER BOTH ROOMS AT ONCE. A free lawn slot does nothing for somebody
+-- standing indoors and a free hall slot does nothing for somebody on the
+-- grass: the piggy lands in the room the thief is standing in, which is the
+-- only version where "SAFE IN 3s" over their head and the plinth it appears
+-- on are the same place. And it has to be YOUR hallway -- a thief standing
+-- in a neighbour's hall with the neighbour's piggy is mid-getaway, not home.
 local function roomFor(player: Player): (any?, number?)
 	local character = player.Character
 	local root = if character
@@ -888,25 +985,39 @@ local function roomFor(player: Player): (any?, number?)
 		return nil, nil
 	end
 	local plot = PlotService.getPlot(player)
-	if not plot or PlotService.yardContaining(root.Position) ~= plot then
+	local data = DataService.get(player)
+	if not plot or not data then
 		return nil, nil
 	end
-	local data = DataService.get(player)
-	if not data then
-		return nil, nil
+
+	local lo: number, hi: number
+	local hall = if hallOf then hallOf(player) else nil
+	if hall ~= nil then
+		if hall ~= plot then
+			return nil, nil
+		end
+		lo, hi = Config.PIGGY_LAWN_SLOT_COUNT + 1, Config.PIGGY_SLOT_COUNT
+	else
+		if PlotService.yardContaining(root.Position) ~= plot then
+			return nil, nil
+		end
+		lo, hi = 1, Config.PIGGY_LAWN_SLOT_COUNT
 	end
 
 	-- THE CLOSEST FREE SLOT, which is what the dwell lands on. Closest to the
 	-- PLAYER rather than first free, because the five seconds are spent
 	-- standing somewhere and the piggy should appear where they stood -- one
 	-- that teleports to the front of the lawn after a chase reads as the game
-	-- deciding for you.
+	-- deciding for you. Through `PlotService.pedestalAt`, which is the one
+	-- place that knows a lawn is an array and a hall is a keyed map -- and a
+	-- locked indoor plot has no pedestal standing, so it is never chosen.
 	local slots = Config.piggySlots(data)
 	local best: number? = nil
 	local bestDist: number? = nil
-	for i = 1, Config.PIGGY_LAWN_SLOT_COUNT do
-		if slots[i].key == nil then
-			local pedestal = plot.pedestals and plot.pedestals[i]
+	for i = lo, hi do
+		local entry = slots[i]
+		if entry and entry.key == nil then
+			local pedestal = PlotService.pedestalAt(plot, i)
 			if pedestal then
 				local d = (root.Position - pedestal.plinth.Position).Magnitude
 				if bestDist == nil or d < bestDist then
@@ -965,13 +1076,52 @@ local function secureStep(player: Player, haul: Haul, now: number)
 	end
 
 	local data = DataService.get(player)
-	if not data or not Config.placePiggy(data, haul.key, slot :: number) then
+	if not data then
+		return
+	end
+	-- A LASSOED CATCH IS GRANTED, NOT PLACED: the first copy of a skin is a
+	-- wardrobe tick as well as a plinth, which is `HerdService.grantAt`'s job.
+	--
+	-- AND IT IS GUARDED AGAINST RE-ENTRY, because this runs on Heartbeat and a
+	-- grant is allowed to YIELD (a wardrobe push, a save). The first build let
+	-- `grantAt` save to the DataStore before `detach` below had run, so every
+	-- frame until the save returned granted the same catch again into the next
+	-- free plinth -- one lassoed piggy filled a whole lawn with copies of
+	-- itself. `securing` is set before anything can yield and the haul is
+	-- detached before anything else happens.
+	if haul.wild then
+		if haul.securing then
+			return
+		end
+		haul.securing = true
+		local granted = wildGrant ~= nil and wildGrant(player, haul.key, slot :: number)
+		if not granted then
+			haul.securing = nil
+			return
+		end
+	elseif not Config.placePiggy(data, haul.key, slot :: number) then
 		return
 	end
 	detach(player)
 	repaint(plot)
 	DataService.save(player)
-	notify(player, ("%s is yours."):format(nameOf(haul.key)), "good")
+	notify(player, (if haul.wild and haul.wildFrom == nil
+		then "You caught %s! It is yours." else "%s is yours."):format(nameOf(haul.key)), "good")
+
+	-- A WILD CATCH OF YOUR OWN IS NOT A ROBBERY and puts nothing on the sheet.
+	-- One lassoed off somebody else's dropped catch IS (docs/LASSO-PLAN.md
+	-- section 3), and falls through to the same two lines a snatch does --
+	-- counted HERE, at the secure, for the snatch's own reason: a catch knocked
+	-- loose on the way home was never stolen.
+	if haul.wild and haul.wildFrom == nil then
+		return
+	end
+	-- AND THE ROBBED CATCHER GETS THE REVENGE MARKER over the thief's plot,
+	-- the one every other theft in the game leaves.
+	local robbed = haul.wildFrom
+	if robbed and robbed.Parent then
+		SocialService.markRevenge(robbed, player)
+	end
 
 	-- ONE MORE ON THE RAP SHEET, AND IT IS COUNTED HERE RATHER THAN AT THE
 	-- GRAB.
@@ -1000,6 +1150,171 @@ local function secureStep(player: Player, haul: Haul, now: number)
 	-- or confiscated on the way home was never robbed. A player counter --
 	-- `residentSnatch` runs a resident's haul and touches no save.
 	data.piggiesStolen = (tonumber(data.piggiesStolen) or 0) + 1
+end
+
+-- ============================================================
+-- A LASSOED CATCH
+-- ============================================================
+--
+-- THE THIRD KIND OF HAUL (docs/LASSO-PLAN.md section 3). The same hug, the
+-- same carry penalty, the same no-riding and the same five-second secure on
+-- your own lawn or in your own hallway -- all of which come for nothing from
+-- `attach` and `haulingAnything` -- with one ending that is different: a wild
+-- piggy has no plinth to go back to, so every way of losing it DROPS it on
+-- the ground, dazed, where the carrier was.
+
+local function rootOf(player: Player): BasePart?
+	local character = player.Character
+	return if character then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
+end
+
+-- A COUNTER ON THE CHARACTER, bumped rather than set, so every client plays
+-- the one-shot pose itself -- the `DodgeRoll` shape: a boolean set true twice
+-- fires one signal.
+local function bump(player: Player, attribute: string)
+	local character = player.Character
+	if character then
+		character:SetAttribute(attribute, (tonumber(character:GetAttribute(attribute)) or 0) + 1)
+	end
+end
+
+-- IS THERE SOMEWHERE AT HOME FOR ONE MORE PIGGY: a free lawn plinth, or a
+-- free plinth in an UNLOCKED part of the hallway. Asked of the save and
+-- nothing else, because a throw is checked before anybody walks anywhere --
+-- `roomFor` is the other question, asked of where the carrier is standing.
+function PiggyHaulService.hasRoom(player: Player): boolean
+	local data = DataService.get(player)
+	if not data then
+		return false
+	end
+	local slots = Config.piggySlots(data)
+	local last = Config.PIGGY_LAWN_SLOT_COUNT + Config.indoorPlots((data :: any).rebirths)
+	for i = 1, math.min(last, Config.PIGGY_SLOT_COUNT) do
+		local entry = slots[i]
+		if entry and entry.key == nil then
+			return true
+		end
+	end
+	return false
+end
+
+-- A CAUGHT OR PICKED-UP WILD PIGGY GOES INTO THE CARRIER'S ARMS. `stolenFrom`
+-- is the catcher it was lassoed off when it was somebody else's dropped
+-- catch, which makes the carry a robbery: the same two attributes a snatch
+-- sets (and nothing on a catch of your own -- the chase music reads them).
+-- `scoop` is a hand pick-up off the grass, which bumps the scoop pose.
+-- Returns false and a sentence when the hands are full.
+function PiggyHaulService.startWild(player: Player, key: string, stolenFrom: Player?, scoop: boolean?): (boolean, string?)
+	if hauling[player] or HeistService.isCarrying(player) then
+		return false, "Your hands are full already."
+	end
+	local model, body, label = attach(player, key)
+	if not model or not body or not label then
+		return false, "You could not get hold of it."
+	end
+	-- NOT A THIEF'S PROMPT on a catch of your own. Anybody can still knock it
+	-- loose -- that is the whole contest -- but the word was never true.
+	local nabPrompt = body:FindFirstChild("NabPrompt")
+	if nabPrompt and nabPrompt:IsA("ProximityPrompt") and stolenFrom == nil then
+		nabPrompt.ActionText = "Knock Loose!"
+	end
+	local root = rootOf(player)
+	hauling[player] = {
+		key = key, own = false, ownerPlot = nil, ownerPlayer = nil,
+		slot = 0, model = model, body = body, label = label,
+		wild = true, wildFrom = stolenFrom,
+		immuneUntil = os.clock() + Config.LASSO.dazed.immunity,
+		lastAt = if root then root.Position else nil,
+	}
+	label.Text = nameOf(key)
+	local character = player.Character
+	if character and stolenFrom then
+		character:SetAttribute(Config.PIGGY_HAUL_ATTRIBUTE, "stolen")
+		character:SetAttribute(Config.PIGGY_HAUL_FROM_ATTRIBUTE, stolenFrom.UserId)
+	end
+	if scoop then
+		bump(player, Config.LASSO_SCOOP_ATTRIBUTE)
+	end
+	if stolenFrom then
+		-- The moment you decided to be a thief, as for a snatch.
+		HeistService.dropShield(player)
+	end
+	HeistService.haulChanged(player)
+	return true, nil
+end
+
+-- A WILD CARRY LEAVES THE ARMS AND LANDS DAZED. `catcher` is who holds the
+-- five-second window (nil: open at once). `knocked` is a real hit, which
+-- plays the knocked-loose pose. `detach` clears both haul attributes, so a
+-- robbery ends here like every other haul does.
+local function dropWild(player: Player, haul: Haul, catcher: number?, knocked: boolean)
+	local root = rootOf(player)
+	local at = if root then root.Position else haul.lastAt
+	detach(player)
+	if knocked then
+		bump(player, Config.LASSO_KNOCK_ATTRIBUTE)
+	end
+	if not at or not wildDrop then
+		-- SAID RATHER THAN SWALLOWED: a piggy with nowhere to land is a piggy
+		-- gone, and a loss nobody is told about reads as a bug.
+		warn(("[PiggyHaul] a wild %s had nowhere to land and is gone"):format(haul.key))
+		return
+	end
+	wildDrop(haul.key, at, catcher)
+end
+
+-- WHO GETS THE FIVE SECONDS WHEN A CATCH IS KNOCKED LOOSE: the person whose
+-- catch it rightfully is. That is the carrier for a catch of their own, and
+-- the ROBBED catcher for one lassoed off them -- a knocked-loose robbery is
+-- the victim's chance to get it back, the way a nabbed snatch goes home. A
+-- victim who has left falls back to the carrier.
+local function rightfulCatcher(player: Player, haul: Haul): number
+	local robbed = haul.wildFrom
+	if robbed and robbed.Parent then
+		return robbed.UserId
+	end
+	return player.UserId
+end
+
+-- THE KNOCK ITSELF, shared by a nab (a player, a guard dog, a shopkeeper) and
+-- a zapper. Refused inside the immunity after a catch or a pick-up, so a
+-- carrier is not knocked flat every few steps and one recovery is a real
+-- chance to get away.
+local function knockLoose(thief: Player, haul: Haul, byName: string, byPlayer: Player?): boolean
+	if os.clock() < (haul.immuneUntil or 0) then
+		if byPlayer then
+			notify(byPlayer, ("%s only just picked that up. It is held tight for a moment.")
+				:format(thief.DisplayName), "warn")
+		end
+		return false
+	end
+	local catcher = rightfulCatcher(thief, haul)
+	dropWild(thief, haul, catcher, true)
+	local name = nameOf(haul.key)
+	if catcher == thief.UserId then
+		notify(thief, ("%s knocked %s out of your arms! Pick it up quick."):format(byName, name), "chase")
+	else
+		notify(thief, ("%s knocked %s out of your arms!"):format(byName, name), "chase")
+		local robbed = haul.wildFrom
+		if robbed and robbed.Parent then
+			notify(robbed, ("Your %s is on the ground. Grab it!"):format(name), "good")
+		end
+	end
+	if byPlayer then
+		notify(byPlayer, ("You knocked %s loose!"):format(name), "good")
+	end
+	return true
+end
+
+-- THE ZAPPER'S TUNED HIT on a wild carrier knocks the catch loose. Called by
+-- `GadgetService` (through the registry `Main` fills in) only after the hit
+-- LANDED -- a dodge or a raincoat has already been answered there.
+function PiggyHaulService.knockWild(thief: Player, by: Player?): boolean
+	local haul = hauling[thief]
+	if not haul or not haul.wild then
+		return false
+	end
+	return knockLoose(thief, haul, if by then by.DisplayName else "Somebody", by)
 end
 
 -- ============================================================
@@ -1050,6 +1365,13 @@ function PiggyHaulService.nab(nabber: Player, thief: Player,
 		end
 	end
 
+	-- A LASSOED CATCH IS KNOCKED LOOSE, NOT SENT HOME: it has no home. It
+	-- lands dazed, and the rightful catcher has a window to pick it back up.
+	if haul.wild then
+		local who = catcher or (if byDog then "A guard dog" else nabber.DisplayName)
+		return knockLoose(thief, haul, who, if byDog then nil else nabber)
+	end
+
 	detach(thief)
 	local name = nameOf(haul.key)
 	local who = catcher or (if byDog then "A guard dog" else nabber.DisplayName)
@@ -1066,6 +1388,13 @@ end
 function PiggyHaulService.confiscate(thief: Player)
 	local haul = hauling[thief]
 	if not haul then
+		return
+	end
+	-- A WILD CATCH IS DROPPED WHERE THE ARREST HAPPENED, open to everybody at
+	-- once: there is nobody to hand it back to.
+	if haul.wild then
+		dropWild(thief, haul, nil, false)
+		notify(thief, ("The patrol made you drop %s."):format(nameOf(haul.key)), "police")
 		return
 	end
 	detach(thief)
@@ -1086,12 +1415,65 @@ local function lost(player: Player)
 	if not haul then
 		return
 	end
+	-- A WILD CATCH LANDS WHERE THEY WERE, open at once: nobody holds the
+	-- window for somebody who died or left.
+	if haul.wild then
+		dropWild(player, haul, nil, false)
+		return
+	end
 	detach(player)
 	returnHome(haul, ("Your %s found its way home."):format(nameOf(haul.key)))
 end
 
+-- WHAT IS IN THEIR ARMS, WITHOUT TAKING IT. Returns the key and whether it
+-- is their own.
+--
+-- IT EXISTS SO THAT A REFUSAL CAN HAPPEN BEFORE THE PIGGY LEAVES THEIR
+-- HANDS. `take` has already removed it from `owned` and off its slot, so a
+-- carried piggy is one standing nowhere and the haul record is the ONLY
+-- copy of it -- which means a caller that surrenders first and refuses
+-- second has deleted a piggy. Peek, decide, then surrender.
+function PiggyHaulService.peekHaul(player: Player): (string?, boolean)
+	local haul = hauling[player]
+	if not haul then
+		return nil, false
+	end
+	return haul.key, haul.own
+end
+
+-- HAND IT TO SOMETHING THAT IS GOING TO CONSUME IT.
+--
+-- The caller owns the key from here: nothing is left in the save to
+-- decrement, so a caller that drops it on the floor loses a piggy.
+-- `CombineService.feed` writes it into the hopper and saves in the same
+-- breath for exactly that reason.
+--
+-- OWN HAULS ONLY. A stolen piggy has a home to go back to and a victim who
+-- is owed it, and no other verb in this game lets one player destroy
+-- another's property outright -- being robbed costs you a piggy's PLACE,
+-- never the piggy.
+function PiggyHaulService.surrender(player: Player): string?
+	local haul = hauling[player]
+	if not haul or not haul.own then
+		return nil
+	end
+	local taken = detach(player)
+	return taken and taken.key or nil
+end
+
 function PiggyHaulService.isHauling(player: Player): boolean
 	return hauling[player] ~= nil
+end
+
+-- THE PLOT A HAUL WAS STOLEN FROM, or nil for an own piggy, a lassoed catch or
+-- no haul. The dog watcher asks it so a guard only chases its own yard's
+-- piggies (`HeistService.stoleFrom`).
+function PiggyHaulService.stolenFrom(player: Player): any?
+	local haul = hauling[player]
+	if not haul or haul.own or haul.wild then
+		return nil
+	end
+	return haul.ownerPlot
 end
 
 -- ============================================================
@@ -1161,11 +1543,23 @@ function PiggyHaulService.start()
 				-- carry attribute comes off and the speed is recomputed. A
 				-- record dropped on its own would leave a living player
 				-- walking at carry pace with nothing in their arms.
-				local dropped = detach(player)
-				if dropped then
-					returnHome(dropped, nil)
+				if haul.wild then
+					dropWild(player, haul, nil, false)
+				else
+					local dropped = detach(player)
+					if dropped then
+						returnHome(dropped, nil)
+					end
 				end
 			else
+				-- Where they are, for the ending that arrives with no
+				-- character left to ask.
+				if haul.wild then
+					local root = rootOf(player)
+					if root then
+						haul.lastAt = root.Position
+					end
+				end
 				secureStep(player, haul, now)
 			end
 		end

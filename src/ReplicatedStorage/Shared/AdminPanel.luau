@@ -89,6 +89,19 @@ local MENU: { Group } = {
 		},
 	},
 	{
+		-- THE LASSO. A drop here bypasses the herd's tier cap, which is the
+		-- only way to try a lasso's odds on an epic or a legendary.
+		name = "Lasso",
+		note = "Testing only: a drop here ignores the herd's tier cap.",
+		rows = {
+			{ label = "Give 10 of every lasso", cmd = "lassos" },
+			{ label = "Drop a COMMON piggy here", cmd = "droppiggy", a = "common" },
+			{ label = "Drop a RARE piggy here", cmd = "droppiggy", a = "rare" },
+			{ label = "Drop an EPIC piggy here", cmd = "droppiggy", a = "epic" },
+			{ label = "Drop a LEGENDARY piggy here", cmd = "droppiggy", a = "legendary" },
+		},
+	},
+	{
 		name = "Police",
 		note = "Both toggles. The server answers with what it actually did.",
 		rows = {
@@ -122,7 +135,18 @@ local MENU: { Group } = {
 			{ label = "+10M coins", cmd = "coins", a = 10000000 },
 			{ label = "Fill piggy bank", cmd = "fill" },
 			{ label = "Max all upgrades", cmd = "maxupgrades" },
+			-- PRESTIGE, at the rungs that change something: 0 is a fresh
+			-- save, 1 opens the first indoor plinths and the first drop
+			-- skin, 3 and 5 are mid-ladder, 10 is the top of band B and the
+			-- rebirth-drop pity floor, 20 is `Config.rebirthsToMax()` and
+			-- every indoor slot. `refresh` repaints the plot; the hallway
+			-- grows on the next door crossing.
+			{ label = "Set 0 rebirths (fresh)", cmd = "rebirths", a = 0 },
+			{ label = "Set 1 rebirth", cmd = "rebirths", a = 1 },
+			{ label = "Set 3 rebirths", cmd = "rebirths", a = 3 },
 			{ label = "Set 5 rebirths", cmd = "rebirths", a = 5 },
+			{ label = "Set 10 rebirths", cmd = "rebirths", a = 10 },
+			{ label = "Set 20 rebirths (max)", cmd = "rebirths", a = 20 },
 			-- Beside the rebirth row rather than under Collection, because
 			-- what this is for is looking at a REBIRTH. The real trigger needs
 			-- a gate of 6.0M at rank 1 and 193.8M at rank 10; these fire the
@@ -148,10 +172,18 @@ local MENU: { Group } = {
 		-- lap of the plot is the right action. A full lawn and an empty one are
 		-- the two pictures worth having, so both are one press.
 		name = "Piggies",
-		note = "Six lawn slots; a crate fills them front to back.",
+		note = "Six lawn slots plus the indoor plinths your rebirths unlock.",
 		rows = {
-			{ label = "Fill every free lawn slot", cmd = "fillpiggies" },
-			{ label = "Clear all six pedestals", cmd = "clearpiggies" },
+			{ label = "Fill every free slot (lawn + indoors)", cmd = "fillpiggies" },
+			{ label = "Clear every pedestal (lawn + indoors)", cmd = "clearpiggies" },
+			-- THE PRESS, DRIVEN THROUGH THE SHIPPED PATH. Both ends of that loop
+			-- are ProximityPrompts and a prompt is shown against the CAMERA as
+			-- well as the character, so there is no other way to exercise it
+			-- from a solo session. Two rows rather than one: 2 is a single
+			-- common bay filling and crushing, and 6 is that three times over,
+			-- which is the first rare bay reaching full off its own outputs.
+			{ label = "Feed the press 2 piggies (one common crush)", cmd = "press", a = 2 },
+			{ label = "Feed the press 6 piggies", cmd = "press", a = 6 },
 			-- Two named ones, at opposite ends of the rarity ladder, because
 			-- the rate multiplier is the whole reason tiers exist here and a
 			-- legendary standing beside a common is the only way to see it.
@@ -175,15 +207,22 @@ local MENU: { Group } = {
 	{
 		name = "Collection",
 		rows = {
-			{ label = "Unlock skins / effects / houses / gear / catches", cmd = "unlockall" },
+			{ label = "Unlock every catalogue (skins, coats, kennels, pets, more)", cmd = "unlockall" },
 			{ label = "Raise the mailbox flag (unclaimed daily)", cmd = "post" },
 			{ label = "Claim daily day 7 (free crate)", cmd = "daily", a = 7 },
 			{ label = "Claim daily day 6 (golden bone)", cmd = "daily", a = 6 },
-			{ label = "Open OG Piggy Common x5", cmd = "chest", a = "og", b = 5 },
-			{ label = "Open Alien Cache x3", cmd = "chest", a = "alien", b = 3 },
+			{ label = "Open Piggy Crate x5", cmd = "chest", a = "og", b = 5 },
 			{ label = "+3 spares of each tier", cmd = "spares", a = 3 },
 			{ label = "Dump animations for upload", cmd = "animdump" },
-			{ label = "Combine 5 common -> OG Piggy", cmd = "combine", a = "common", b = "og" },
+			-- THE COUNT IS `Config.COMBINE.need`, WHICH IS 3 AND WAS 5. A label
+			-- quoting the old number is the copy-outlives-the-thing failure
+			-- this project keeps recording, on the one surface a developer
+			-- reads to find out what a command does.
+			{ label = "Combine 3 common -> Piggy Crates", cmd = "combine", a = "common", b = "og" },
+			-- AND THE GUARDIAN CRATE, because it is the only way to look at a
+			-- coat roll: no coat is stealable, so nothing else in the game
+			-- opens one on demand.
+			{ label = "Open Guardian Crate x5", cmd = "chest", a = "guardian", b = 5 },
 			-- THE TROPHY SHELF. Four rows because the two pictures worth
 			-- looking at are the FIRST grade of each ladder and a full one,
 			-- and because an empty case is what every new player sees and had
@@ -198,10 +237,11 @@ local MENU: { Group } = {
 		name = "Heist",
 		rows = {
 			{ label = "Open season (shield + cooldowns)", cmd = "shield" },
-			-- The one robbery a solo session can start: a real smash on the
-			-- nearest resident's pig through HeistService, so the coin carry
-			-- (the money bag) can be looked at without a second player.
-			{ label = "Smash nearest resident pig", cmd = "smash" },
+			-- The one robbery a solo session can start: a clean crack on the
+			-- nearest resident's pig through HeistService's own judge, so the
+			-- coin carry (the money bag) can be looked at without a second
+			-- player. Stand beside the pig first.
+			{ label = "Crack nearest resident pig", cmd = "crack" },
 			-- Under Heist rather than Collection, because what it is for is
 			-- looking at the NAB. The real trigger needs a second player
 			-- carrying somebody else's coins; this fires the same two
@@ -221,12 +261,6 @@ local MENU: { Group } = {
 -- ============================================================
 -- BUILD
 -- ============================================================
-
-local function corner(inst: Instance, radius: number)
-	local c = Instance.new("UICorner")
-	c.CornerRadius = UDim.new(0, radius)
-	c.Parent = inst
-end
 
 local function label(parent: Instance, text: string, size: UDim2, font: Enum.Font,
 	textSize: number, colour: Color3): TextLabel
@@ -258,7 +292,7 @@ function AdminPanel.build(parent: Instance, fire: (string, number?, any, any) ->
 	panel.Visible = false
 	panel.ZIndex = 40
 	panel.Parent = parent
-	corner(panel, 12)
+	Theme.corner(panel, 12)
 
 	label(panel, "ADMIN  [F2]", UDim2.new(1, -24, 0, 22), Enum.Font.FredokaOne, 18, GOLD)
 		.Position = UDim2.new(0, 12, 0, 10)
@@ -285,7 +319,7 @@ function AdminPanel.build(parent: Instance, fire: (string, number?, any, any) ->
 	pick.TextColor3 = TEXT
 	pick.ZIndex = 41
 	pick.Parent = panel
-	corner(pick, 8)
+	Theme.corner(pick, 8)
 
 	-- SIZED TO ITS CONTENTS, capped. A fixed height is 132 pixels of empty
 	-- box in a solo test session and it floats over whichever category sits
@@ -305,7 +339,7 @@ function AdminPanel.build(parent: Instance, fire: (string, number?, any, any) ->
 	menu.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	menu.CanvasSize = UDim2.new()
 	menu.Parent = panel
-	corner(menu, 8)
+	Theme.corner(menu, 8)
 	local menuList = Instance.new("UIListLayout")
 	menuList.Padding = UDim.new(0, 2)
 	menuList.SortOrder = Enum.SortOrder.LayoutOrder
@@ -345,7 +379,7 @@ function AdminPanel.build(parent: Instance, fire: (string, number?, any, any) ->
 				then ("%s  (you)"):format(p.DisplayName) else p.DisplayName
 			row.ZIndex = 46
 			row.Parent = menu
-			corner(row, 6)
+			Theme.corner(row, 6)
 			row.Activated:Connect(function()
 				setSelected(p)
 				menu.Visible = false
@@ -408,7 +442,7 @@ function AdminPanel.build(parent: Instance, fire: (string, number?, any, any) ->
 		head.Name = "Head_" .. group.name
 		head.ZIndex = 41
 		head.Parent = body
-		corner(head, 8)
+		Theme.corner(head, 8)
 		local headPad = Instance.new("UIPadding")
 		headPad.PaddingLeft = UDim.new(0, 10)
 		headPad.Parent = head
@@ -467,7 +501,7 @@ function AdminPanel.build(parent: Instance, fire: (string, number?, any, any) ->
 			b.Name = "Row_" .. (row.cmd or ("open_" .. tostring(row.open)))
 			b.ZIndex = 41
 			b.Parent = holder
-			corner(b, 7)
+			Theme.corner(b, 7)
 			b.Activated:Connect(function()
 				-- The selection is read AT PRESS TIME, not captured when the
 				-- row was built: the dropdown changes constantly and a

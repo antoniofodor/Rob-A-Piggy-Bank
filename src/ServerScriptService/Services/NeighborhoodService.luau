@@ -36,6 +36,12 @@ local GrassTuft = require(ReplicatedStorage.Shared.GrassTuft)
 local Grassland = require(ReplicatedStorage.Shared.Grassland)
 local SceneryTrees = require(script.Parent.SceneryTrees)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
+-- THE COMBINE MACHINE (designer, 2026-09-23) stands on this verge, and two
+-- things built here have to keep off it: the grass and the verge trees. Only
+-- the PURE half of that module is read -- where it stands and how big it is
+-- -- so neither service has to run before the other. `CombineService` builds
+-- the model itself and owns its prompt.
+local CombineStation = require(ReplicatedStorage.Shared.CombineStation)
 
 local NeighborhoodService = {}
 
@@ -732,11 +738,30 @@ local function buildVergeGrass(m: any)
 
 	-- Half a driveway plus a stud, so a blade never leans over the edging.
 	local halfDrive = Config.DRIVEWAY_WIDTH / 2 + 1
+	-- A tuft stands about 1.35 studs, so a blade whose ROOT is a stud outside
+	-- the machine's plinth still leans over it. `GrassTuft.clearance` is the
+	-- band rule this mirrors on a plot: a thing grass can grow through is a
+	-- thing with grass-height air under it.
+	local STATION_KEEP = 1
 	local function offDriveway(pos: Vector3): boolean
 		for col = 0, m.perRow - 1 do
 			if math.abs(pos.X - columnX(m, col)) < halfDrive then
 				return false
 			end
+		end
+		-- THE MACHINE. Measured, its front face sits at |z| 21.7 against a
+		-- band that runs to `boardZ - 3` (24.2), so about two and a half
+		-- studs of it stands inside this strip -- and without this the grass
+		-- grows through its plinth, which is the class of thing nobody files
+		-- a report about and everybody sees.
+		--
+		-- AND THE BAND ABOVE IS DERIVED FROM WHAT WAS STANDING HERE WHEN IT
+		-- WAS WRITTEN, which is the whole reason this needs adding by hand: a
+		-- list of exceptions is a claim about what exists and it goes stale
+		-- without erroring. The comment over this function still names only
+		-- the lamp posts and the bins.
+		if CombineStation.occupies(pos.X, pos.Z, STATION_KEEP) then
+			return false
 		end
 		return true
 	end
@@ -830,7 +855,7 @@ local function buildStreetTrees(m: any)
 	local ground = Config.herdGround()
 	local boleR = meshTrunkProfile(Config.TREE_MESH, STREET_TREE.scale, Config.TREES.boleFraction)
 	local herdKeep = boleR + Config.TREES.margin + Config.HERDS.followSpacing + Config.HERDS.jitter
-	local function clear(x: number): boolean
+	local function clear(x: number, side: number): boolean
 		for col = 0, perRow - 1 do
 			if math.abs(x - Config.plotColumnX(col)) < halfDrive + reach then
 				return false
@@ -855,9 +880,23 @@ local function buildStreetTrees(m: any)
 		-- clear and both trees stand again. Worth recording as a deletion
 		-- rather than quietly dropping it: the veto took a SIDE argument,
 		-- which it needed only because a till sat on the same side of its own
-		-- SHOP rather than on the same side of the map. `clear` is symmetric
-		-- again, and the next thing that stands on a verge will have to bring
-		-- that argument back with it.
+		-- SHOP rather than on the same side of the map.
+		--
+		-- AND THE SIDE ARGUMENT IS BACK, BECAUSE THE COMBINE MACHINE IS THAT
+		-- NEXT THING. It stands in ONE gap on ONE shoulder, so a symmetric
+		-- veto would cost the far row a tree for a machine that is not on it
+		-- -- which is exactly the asymmetry the till's version needed and
+		-- this entry predicted somebody would need again.
+		--
+		-- MEASURED, IT VETOES NOTHING TODAY. Gap 3's two candidates sit at
+		-- x 99 and 141 against a machine whose nearest corner is 14.48 studs
+		-- off either of them, and the canopy reaches 7.99 -- so both trees
+		-- stand and frame it. This is here because a scale, an offset or a
+		-- gap that moves would put one through the shell silently, and
+		-- `tests/luau/combine.luau` drives it both ways.
+		if CombineStation.blocksTree(x, side, reach) then
+			return false
+		end
 		return true
 	end
 
@@ -892,17 +931,25 @@ local function buildStreetTrees(m: any)
 		x += 30
 	end
 
-	-- THE SIDE LOOP USED TO BE HERE BECAUSE `clear` NEEDED TO KNOW WHICH ROW
-	-- IT WAS ANSWERING FOR, and it no longer does. A till sat on the same
-	-- side of its own SHOP rather than on the same side of the map, so the
-	-- tree it displaced was a different one on each row; the vault is inside
-	-- the building now and both trees stand in every gap. What is left is a
-	-- plain loop over the two rows, and `clear` is symmetric again.
+	-- THE SIDE LOOP IS OUTSIDE AND `clear` KNOWS WHICH ROW IT IS ANSWERING
+	-- FOR, which is how this started and how it is again.
+	--
+	-- A till sat on the same side of its own SHOP rather than on the same
+	-- side of the map, so the tree it displaced was a different one on each
+	-- row; that went with the till, `clear` became symmetric, and the
+	-- combine machine brought the argument straight back -- it stands in one
+	-- gap on one shoulder, so vetoing both rows would cost the far one a
+	-- tree for something that is not on it.
+	--
+	-- THE SEED IS STILL DRAWN PER CANDIDATE WHETHER OR NOT IT IS PLANTED,
+	-- which is the property that keeps the layout stable: a veto removes the
+	-- tree it refuses and moves no other one. Same rule as `scatterRect`
+	-- drawing before it accepts.
 	local seed = 5000
 	for _, side in ipairs({ -1, 1 }) do
 		for _, tx in ipairs(xs) do
 			seed += 1
-			if clear(tx) then
+			if clear(tx, side) then
 				buildTree(tx, side * STREET_TREE.z, seed, STREET_TREE.scale)
 			end
 		end
@@ -918,6 +965,9 @@ local grovePlacements: { Grassland.Obstacle } = {}
 local function buildTrees(m: any)
 	grovePlacements = {}
 	trunkColliders = {}
+	local planOK, meadowPlan = pcall(function()
+		return require(ReplicatedStorage.Shared.MeadowPlan)
+	end)
 	-- The back fence line -- YARD_DEPTH behind the plot centre, not half a
 	-- plot.
 	--
@@ -965,8 +1015,10 @@ local function buildTrees(m: any)
 				if treeSpec then
 					depth = math.max(depth, reach + CANOPY_CLEARANCE)
 				end
-				buildTree(x, side * (rear + depth), seed)
-				table.insert(grovePlacements, { x = x, z = side * (rear + depth), reach = reach })
+				if not planOK or meadowPlan.treeClear(x, side * (rear + depth), reach) then
+					buildTree(x, side * (rear + depth), seed)
+					table.insert(grovePlacements, { x = x, z = side * (rear + depth), reach = reach })
+				end
 				col += row.step
 			end
 		end
@@ -1751,6 +1803,9 @@ local function buildHorizon()
 end
 
 local function buildHills(m: any)
+	local loaded, builder = pcall(function() return require(ReplicatedStorage.Shared.MeadowBuilder) end)
+	if loaded and builder.buildBorder(folder, m) then return end
+	if not loaded then warn("[NeighborhoodService] meadow border unavailable: " .. tostring(builder)) end
 	buildHill(m, m.tunnelEastX, 1)
 	buildHill(m, m.tunnelWestX, -1)
 	buildValley(m)
@@ -1872,7 +1927,7 @@ local function buildShops(_m: any)
 		-- shares it -- `ShopFront` measures its own bands from the ground it
 		-- stands on.
 		local placeAt = Config.shopUnitCFrame(placement)
-		local _, door = ShopFront.build(
+		local _, _, prompt = ShopFront.build(
 			placeAt * CFrame.new(0, GROUND_Y, 0),
 			GROUND_Y,
 			{
@@ -1881,15 +1936,30 @@ local function buildShops(_m: any)
 			},
 			folder)
 
-		-- Wired HERE, on the server, at the moment the door exists. The
+		-- Wired HERE, on the server, at the moment the counter exists. The
 		-- client cannot do this for itself: these are built during startup
 		-- and a tag set before parenting never fires
 		-- GetInstanceAddedSignal on a peer it replicates to. See ShopFront.
-		local prompt = door:FindFirstChildOfClass("ProximityPrompt")
+		--
+		-- THE PROMPT IS AT THE COUNTER, INSIDE (designer, 2026-09-23), and the
+		-- server re-asks the room on every press: a prompt's range is a
+		-- distance and the room is a rectangle, the same reason the vault
+		-- makes this check rather than trusting its own reach. The remote is
+		-- still called `ShopDoor` -- it names the event "you reached a shop's
+		-- place of business", and renaming it is three files for no behaviour.
 		if prompt then
 			prompt.Triggered:Connect(function(player)
+				local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+				if not root or not root:IsA("BasePart") then
+					return
+				end
+				if not Config.shopRoomHolds(placeAt, root.Position) then
+					return
+				end
 				Remotes.get("ShopDoor"):FireClient(player, placement.tab)
 			end)
+		else
+			warn(("[NeighborhoodService] %s has no counter prompt; that shop cannot be used."):format(placement.name))
 		end
 	end
 end

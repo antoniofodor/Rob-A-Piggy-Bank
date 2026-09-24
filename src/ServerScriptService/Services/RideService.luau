@@ -684,6 +684,34 @@ function RideService.buy(player: Player, key: string)
 		return
 	end
 
+	-- THE REBIRTH GATE, AND IT SITS ABOVE THE PRICE (designer, 2026-09-23).
+	--
+	-- `unlockRebirths` on a `Config.RIDES` row is the rebirth that puts that
+	-- ride ON SALE: below it no amount of coins buys it. The OWNED toggle
+	-- above is deliberately untouched -- rebirth wipes power and never
+	-- cosmetics, and a ride confers nothing but a walk speed on the street,
+	-- so a board bought at rebirth 4 is still ridden at rebirth 0.
+	--
+	-- THE ENTRY RIDE IS UNGATED IN CONFIG, AND THAT IS LOAD-BEARING RATHER
+	-- THAN GENEROUS: `grantEntryRide` hands the cheapest ride to anybody who
+	-- owns the Style Pack and owns no ride, so a gate on that row would make
+	-- a Robux purchase visibly do nothing -- the worst failure this game can
+	-- hand a nine-year-old. It writes `owned` directly rather than coming
+	-- through here, so it could not be refused by this check either way;
+	-- what keeps the two honest is the ungated row, not the code path.
+	--
+	-- `or 0`, so a row with no gate sells at rebirth 0 -- which is what every
+	-- row was before the ladder, and what keeps this booting on either side
+	-- of the Config edit.
+	--
+	-- SAID OUT LOUD, with the same sentence the wash over the shop card is
+	-- showing, because the card now lets a locked press through on purpose.
+	local gate = spec.unlockRebirths or 0
+	if (data.rebirths or 0) < gate then
+		notify(player, ("Rebirth %d unlocks the %s."):format(gate, spec.name), "warn")
+		return
+	end
+
 	if data.coins < spec.cost then
 		notify(player, ("Need %d more coins for the %s."):format(spec.cost - data.coins, spec.name), "warn")
 		return
@@ -775,6 +803,17 @@ function RideService.push(player: Player)
 			rarity = Config.rarityOf(spec),
 			owned = owned[key] == true,
 			equipped = equipped == key,
+			-- THE REBIRTH LADDER. `locked` is the SERVER'S verdict rather
+			-- than a comparison the card makes for itself, so the wash over
+			-- the tile and the refusal in `buy` cannot disagree about which
+			-- rebirth opens what -- the same shape the guardian coats and the
+			-- houses send. It is also what the shelf ORDERS on
+			-- (`ShopWidgets.gateRank`), so one field crosses the wire and
+			-- drives both. An OWNED ride is never locked, and a set ride
+			-- (the Hoverdisc) carries no gate at all because it is won rather
+			-- than bought. `or 0` until every row carries the field.
+			unlockRebirths = spec.unlockRebirths or 0,
+			locked = owned[key] ~= true and (data.rebirths or 0) < (spec.unlockRebirths or 0),
 		}
 	end
 

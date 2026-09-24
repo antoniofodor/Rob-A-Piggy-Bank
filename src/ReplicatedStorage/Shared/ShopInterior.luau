@@ -130,7 +130,7 @@ function ShopInterior.build(parent: Instance, at: At, spec: any)
 	-- dressing never spends any of the keeper's standing space.
 	part(m, "FeatureWall", Vector3.new(8.2, 6.0, 0.15), at(-5.1, floor + 6.7, -6.85), accent)
 	local brand = part(m, "BrandPlaque", Vector3.new(7.0, 1.1, 0.15), at(-5.1, floor + 8.8, -6.71), CREAM)
-	label(brand, if garden then "HOME GROWN" elseif boutique then "PIGGY OUTFITTERS" elseif wheels then "BUILT FOR ADVENTURE" else "LOCK & KEY", INK)
+	label(brand, if garden then "HOME GROWN" elseif boutique then "PIGGY OUTFITTERS" elseif wheels then "BUILT FOR ADVENTURE" else "UPGRADES", INK)
 	if boutique then
 		part(m, "MirrorFrame", Vector3.new(3.1, 3.7, 0.22), at(-5.2, floor + 6, -6.65), GOLD)
 		local mirror = part(m, "Mirror", Vector3.new(2.7, 3.3, 0.08), at(-5.2, floor + 6, -6.48), Color3.fromRGB(161, 201, 212))

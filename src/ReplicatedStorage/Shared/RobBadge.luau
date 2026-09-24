@@ -12,13 +12,23 @@ local cards: { [Instance]: any } = {}
 local cooldown: { [number]: number } = {}
 local recovery: any = nil
 local myPicks, mySack = 0, 0
-local REACH = Config.STREET_SPACING + Config.PLOT_SPACING
--- A ROB FIGURE IS READ FROM THE PAVEMENT AND IS NOT THE LOUDEST THING ON
--- THE STREET. At 224 x 42 with a 29px figure this card was wider than the
--- pig it hangs over and read as a shop sign rather than as a price tag --
--- eight of them across a street is a wall of gold type. The card carries the
--- same four states at 150 x 30; what shrank is the type, not the vocabulary.
+-- HOW FAR AWAY THE BADGE READS. It was the far row's next-door neighbour
+-- from your own lawn; it is a pavement's reach now. See `Config.ROB_BADGE`.
+local REACH = Config.ROB_BADGE.reach
+-- A ROB FIGURE IS A COIN AND A NUMBER FLOATING OVER THE PIG, AND NO CARD
+-- (designer, 2026-09-23). It was a paper card with an ink outline -- first
+-- 224 x 42, then 150 x 30 -- and eight of them across a street read as eight
+-- shop signs whatever the size. The `Card` frame survives as the LAYOUT
+-- (everything is positioned inside it) and is transparent; what holds the
+-- type off the grass is an ink stroke on the glyphs, which is `RobberMark`'s
+-- own trick and the reason the figure is `Theme.GOLD` rather than the
+-- paper-solved `GOLD_INK`: a stroke carries a bright colour over any ground,
+-- where a darkened gold was solved for cream. The same four states, the
+-- same vocabulary; what went is the ground under them.
 local CARD_W, CARD_H, LOCK_ROW, TAG_H = 150, 30, 8, 16
+-- The ink line round every floating glyph. Thinner than the bang's 3: this
+-- is a price tag, not an alarm.
+local STROKE = 2
 -- The figure's ceiling.
 local TEXT_MAX = 20
 
@@ -76,14 +86,19 @@ local function build(body: BasePart): any
 	gui.Parent = body
 	local card = Instance.new("Frame")
 	card.Name, card.Size = "Card", UDim2.fromScale(1, 1)
-	card.BackgroundColor3, card.BorderSizePixel = Theme.PAPER, 0
+	-- NO GROUND. The frame is the layout and nothing else.
+	card.BackgroundTransparency, card.BorderSizePixel = 1, 0
 	card.Parent = gui
-	Theme.corner(card, 10)
-	Theme.outline(card)
 	local function label(name: string, parent: Instance): TextLabel
 		local text = Instance.new("TextLabel")
 		text.Name, text.BackgroundTransparency, text.Text = name, 1, ""
 		text.Font, text.TextColor3 = Theme.FONT, Theme.INK
+		-- ON THE GLYPH, NOT ROUND A BOX: a UIStroke on a TextLabel defaults to
+		-- `Contextual`, which strokes the characters. `Theme.outline` would set
+		-- `Border` and draw a rectangle round an invisible label.
+		local stroke = Instance.new("UIStroke")
+		stroke.Thickness, stroke.Color = STROKE, Theme.INK
+		stroke.Parent = text
 		text.Parent = parent
 		return text
 	end
@@ -145,7 +160,10 @@ local function paint()
 		local recover = RobBadge.recoverable(recovery, victimId, now)
 		local hot = (plot:GetAttribute(Config.PLOT_HOT_SKIN_ATTRIBUTE) or 0) > now
 		badge.tag.Visible, badge.tag.Text = recover or hot, if recover then "↶ RECOVER SKIN" else "HOT SKIN"
-		badge.label.Text, badge.label.TextColor3 = spec.text, Theme[spec.tone]
+		-- A stroked figure carries the real gold; a paper-solved tone is for
+		-- type sitting on cream. The state words keep their own tones.
+		badge.label.Text = spec.text
+		badge.label.TextColor3 = if spec.available then Theme.GOLD else Theme[spec.tone]
 		badge.timer.Text, badge.timer.TextColor3 = spec.timer, Theme.MUTED
 		badge.glyph.Text, badge.glyph.TextColor3 = spec.glyph or "", Theme[spec.tone]
 		badge.coin.Visible = spec.available == true

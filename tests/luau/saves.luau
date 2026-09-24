@@ -43,13 +43,25 @@ check(fresh.robberies==0 and next(fresh.claims)==nil,"new saves start with zero 
 check(fresh.schema==Config.SCHEMA_VERSION,"a new save is stamped with the current schema")
 -- Schema 27/28, the piggy collection (docs/PIGGY-COLLECTION-PLAN.md §3/§4a):
 -- the till's own buffer, the collection, and the six dense lawn slots.
-check(fresh.tillBuffer==nil,"the bank has no buffer: its income drips straight into coins")
+check(fresh.tillBuffer==nil,"the bank has no buffer: it is a display and earns nothing")
 check(fresh.piggies.till==Config.DEFAULT_SKIN,"the starter Classic is on the till")
-check(fresh.piggies.owned[Config.DEFAULT_SKIN]==1,"and it is owned exactly once")
+-- TWO CLASSICS, NOT ONE, AND THAT IS WHAT KEEPS THE GAME OPENABLE. The till
+-- stopped earning on 2026-09-23, and the only way a piggy leaves it is a swap
+-- that needs a piggy already in your arms -- so a new save with its one copy on
+-- the till earned nothing per second with no way out. One on the till to look
+-- at, one on the front pedestal to earn. `owned` counts placements rather than
+-- a bag, so two standing is two owned and `piggystate` reads owned == standing.
+check(fresh.piggies.owned[Config.DEFAULT_SKIN]==2,"and owned twice, because one of them is standing on the lawn")
 check(#fresh.piggies.slots==Config.PIGGY_LAWN_SLOT_COUNT,"one dense entry per lawn slot")
+check(fresh.piggies.slots[1].key==Config.DEFAULT_SKIN and fresh.piggies.slots[1].buffer==0,
+ "the front pedestal starts with the starter Classic on it, buffer empty")
 for i,entry in fresh.piggies.slots do
- check(type(entry)=="table" and entry.key==nil,"lawn slot "..i.." starts empty")
+ check(type(entry)=="table","lawn slot "..i.." is a table")
+ if i>1 then check(entry.key==nil,"lawn slot "..i.." starts empty") end
 end
+-- AND IT EARNS, which is the whole reason it is there: the till answers 0 and
+-- the lawn is what a collection is now.
+check(Config.collectionRateOf(fresh)>0,"so a brand-new save earns something per second")
 -- THE TILL NAMES A PIGGY THE CATALOGUE STILL HOLDS, OR IT NAMES CLASSIC -- and
 -- the count moves with it, so `piggystate` goes on reading owned == standing.
 local stale=D.defaults();stale.piggies.till="retired_zzz";stale.piggies.owned={retired_zzz=1}
@@ -63,7 +75,17 @@ for _,schema in {24,25} do
  local old=D.defaults();old.schema=schema;old.robberies=nil;old.claims=nil;old.totalStolen=1234567
  local loaded=D.reconcile(old)
  check(loaded.robberies==0 and next(loaded.claims)==nil,"old save gets both defaults")
- check(loaded.totalStolen==1234567,"coin history preserved without inventing robbery history")
+ check(loaded.totalStolen==1234567*Config.COIN_REDENOMINATION,
+  "coin history rescaled without inventing robbery history")
+ -- THE ONE PROPERTY THE SCHEMA-30 MIGRATION LIVES OR DIES ON. Every other
+ -- branch in `reconcile` is a PRUNE and is idempotent by construction -- a
+ -- second run finds nothing to nil out. A MULTIPLY cannot tell its own output
+ -- from its input, so the version guard is the only thing between this and a
+ -- save that gains a thousandfold on every join, which is precisely the money
+ -- printer the `shards` entry refuses. Reconciling the RESULT must be a no-op.
+ local again=D.reconcile(copy(loaded))
+ check(again.totalStolen==loaded.totalStolen and again.coins==loaded.coins,
+  "the coin re-denomination is idempotent")
  check(D.reconcile(copy(loaded)).robberies==0,"default reconciliation is idempotent")
 end
 for _,case in {{37,37},{37.9,37},{-4,0},{"12",0},{false,0},{{},0},{math.huge,0},{-math.huge,0},{0/0,0}} do

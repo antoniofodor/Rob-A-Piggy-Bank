@@ -7,15 +7,29 @@ local Facts = require(Shared.ShopUpgradeFacts)
 local Preview = require(Shared.UpgradePreview)
 local ShopUpgrades = {}
 ShopUpgrades.__index = ShopUpgrades
--- ONE EARN ROW. "capacity" (Bigger Piggy Bank) was the second and is retired
--- with the pig's ceiling: the pig holds everything, so there was nothing left
--- for the rung to buy.
-local GROUPS = { { key = "earn", label = "Earn", colour = Theme.GOLD, keys = { "income" } },
-	{ key = "defense", label = "Defend", colour = Theme.HUE.gear, keys = { "locks", "fences" } },
+-- TWO GROUPS: DEFEND AND ROB. THERE IS NO EARN GROUP (designer, 2026-09-23).
+--
+-- It held one row, "Earn Faster" (`income`), which raised what every piggy
+-- pays per second for coins. What raises that rate now is the PERMANENT COIN
+-- MULTIPLIER, which is bought with a REBIRTH -- so a coin-priced rung doing
+-- the same job was a second answer to one question, on the shelf a player
+-- reads first. "capacity" (Bigger Piggy Bank) was the group's other row and
+-- had already gone with the pig's ceiling.
+--
+-- WHAT THIS TAB IS FOR IS NOW ONE SENTENCE: the two sides of a robbery. Every
+-- row in it has a fixed `max` that no rebirth lifts, which is why nothing here
+-- carries a `gated` flag any more.
+--
+-- THE SERVER PATH IS UNTOUCHED AND IS NOW UNREACHABLE FROM THE CLIENT.
+-- `PurchaseRequest("income")`, `Config.getIncomeCost` and `data.incomeLevel`
+-- all still exist and `incomeLevel` is still a real multiplier inside
+-- `Config.collectionRate`; nothing can raise it, so it sits at 1. Retiring the
+-- FIELD is a save migration and the designer's call, not this file's.
+local GROUPS = { { key = "defense", label = "Defend", colour = Theme.HUE.gear, keys = { "locks", "fences" } },
 	{ key = "offense", label = "Rob", colour = Theme.HUE.kit, keys = { "lockpicks", "sack", "boots", "tiptoe" } } }
 
 function ShopUpgrades.new(view: Frame, purchase: (string) -> ())
-	local self = setmetatable({ view = view, purchase = purchase, group = 1, selected = "income",
+	local self = setmetatable({ view = view, purchase = purchase, group = 1, selected = GROUPS[1].keys[1],
 		economy = nil, snapshot = {}, tiles = {}, busy = false, mobileDetail = false, facts = {} }, ShopUpgrades) :: any
 	self.root = W.frame(view, "UpgradeBrowser")
 	self.root.Size = UDim2.fromScale(1, 1)
@@ -25,8 +39,11 @@ function ShopUpgrades.new(view: Frame, purchase: (string) -> ())
 		local b = W.button(self.root, g.key, g.label, g.colour, function()
 			self.group = i; self.selected = g.keys[1]; self.mobileDetail = false; self:render()
 		end)
-		b.Position = UDim2.new((i - 1) / 3, 4, 0, 2)
-		b.Size = UDim2.new(1 / 3, -10, 0, 44)
+		-- SIZED FROM `#GROUPS` RATHER THAN A PINNED THIRD. The row was hardcoded
+		-- to three and there are two; a pinned fraction would have left a third
+		-- of the rail empty and read as a tab that failed to render.
+		b.Position = UDim2.new((i - 1) / #GROUPS, 4, 0, 2)
+		b.Size = UDim2.new(1 / #GROUPS, -10, 0, 44)
 		self.groupButtons[i] = b
 	end
 	self.list = W.scroll(self.root, "UpgradeChoices")
@@ -68,19 +85,12 @@ function ShopUpgrades.new(view: Frame, purchase: (string) -> ())
 	return self
 end
 
+-- THE `income` BRANCH STOOD HERE and was the only row this ever answered for
+-- out of the ECONOMY push rather than the upgrade snapshot -- a level, a
+-- rebirth-lifted ceiling and a `gated` flag that no other row has. It went
+-- with the Earn group. `self.economy` is still kept, because affordability is
+-- read off its `coins`.
 function ShopUpgrades:info(key: string): any
-	if key == "income" then
-		local s = self.economy
-		if not s then return nil end
-		local max = s.maxIncome
-		return { name = "Earn Faster",
-			level = s.incomeLevel, max = max,
-			-- Only this row has a ceiling a rebirth lifts. The six tree rows
-			-- come out of `self.snapshot` and carry no `gated` at all, so they
-			-- keep MAX LEVEL -- which is the truth about them.
-			gated = Config.rebirthOpensMore(max),
-			cost = s.incomeCost, blurb = "More coins every second. Bonuses included." }
-	end
 	return self.snapshot[key]
 end
 

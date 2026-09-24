@@ -350,6 +350,10 @@ local carrying: { [Player]: Carry } = {}
 local piggyHauling: ((Player) -> boolean)? = nil
 local piggyNabbed: ((Player, Player, boolean?, string?) -> boolean)? = nil
 local piggyConfiscated: ((Player) -> ())? = nil
+-- WHICH PLOT a player's piggy haul was STOLEN from, or nil for an own piggy,
+-- a lassoed catch or no haul at all. The lawn watcher asks it so a dog only
+-- goes after its OWN yard's goods; see `stoleFrom`.
+local piggyStolenFrom: ((Player) -> any?)? = nil
 
 -- IS THIS PLAYER HOLDING ANYTHING THAT IS NOT THEIRS TO WALK OFF WITH? Coins
 -- in a miniature pig, or a piggy off a plinth -- for every rule in this file
@@ -733,20 +737,6 @@ local function homeWorthPhrase(thief: Player, victim: Target, amount: number): s
 	return ("worth %s at home"):format(Config.formatCoins(worth))
 end
 
-local function format(value: number): string
-	local suffixes = { "", "K", "M", "B", "T" }
-	local n = math.floor(value)
-	local tier = 1
-	while n >= 1000 and tier < #suffixes do
-		n /= 1000
-		tier += 1
-	end
-	if tier == 1 then
-		return tostring(math.floor(n))
-	end
-	return ("%.1f%s"):format(n, suffixes[tier])
-end
-
 local function getRoot(player: Player): BasePart?
 	local character = player.Character
 	return character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
@@ -929,7 +919,7 @@ local function whyCannotSteal(thief: Player, victim: Target): string?
 
 	local coins = targetCoins(victim)
 	if math.floor(coins) <= 0 then
-		return ("%s's piggy is empty."):format(name)
+		return ("%s piggy is empty."):format(Config.possessive(name))
 	end
 
 	-- The loss cap, named. A cap the thief cannot see reads as stealing being
@@ -1005,9 +995,12 @@ HeistService.dropShield = dropShield
 -- thief's own sack level, so a bigger sack is visibly a bigger bag on the
 -- street and the shop and the getaway draw one object.
 --
--- Named `Config.LOOT_MODEL_NAME` so `CarryPose` holds it in two hands, its
--- sack part renamed `Body` and made the PrimaryPart so the weld, the label,
--- the trail and the nab prompt seat on it exactly as they did on the mini,
+-- Named `Config.LOOT_MODEL_NAME` so `CarryPose` poses whoever carries it,
+-- and stamped `Config.CARRY_KIND_ATTRIBUTE` = "sling" so the pose is the
+-- SACK'S -- over the right shoulder, one-handed, the left arm left to the run
+-- (designer, 2026-09-23) -- where a hauled piggy is hugged in both arms. Its
+-- sack part is renamed `Body` and the model pivoted on it so the weld, the
+-- trail and the nab prompt seat on it exactly as they did on the mini,
 -- and every part unanchored and massless because an anchored part welded to
 -- a humanoid pins the humanoid. The card's parts are anchored and loose;
 -- here they are welded to the sack. A missing builder degrades to an empty
@@ -1015,10 +1008,20 @@ HeistService.dropShield = dropShield
 local function buildLootBag(sackLevel: number): Model
 	local bag = UpgradePreview.build("sack", sackLevel) or Instance.new("Model")
 	bag.Name = Config.LOOT_MODEL_NAME
+	bag:SetAttribute(Config.CARRY_KIND_ATTRIBUTE, "sling")
 	local body = bag:FindFirstChild("Bag")
 	if body and body:IsA("BasePart") then
 		body.Name = "Body"
-		bag.PrimaryPart = body
+		-- THE PIVOT IS THE BODY'S CENTRE WITH NO ROTATION, AND DELIBERATELY NOT
+		-- THE BODY AS PRIMARYPART. `PivotTo` writes the PrimaryPart's CFrame
+		-- outright, rotation included -- so with the mesh bag (every part of
+		-- which carries the importer's half turn, `Config.LOOT_MESH.rot`) the
+		-- cloth would lose its turn on the first `PivotTo` while its coins and
+		-- bow kept theirs: the mesh pig's eyes-in-its-rump bug and the alien
+		-- saucer's, a third time. A WorldPivot at the body's centre seats the
+		-- same point `CarryPose.HOLD` was measured against and moves every
+		-- part rigidly. `lootBodyOf` finds the body by NAME.
+		bag.WorldPivot = CFrame.new(body.Position)
 	end
 	for _, part in ipairs(bag:GetDescendants()) do
 		if part:IsA("BasePart") then
@@ -1065,17 +1068,21 @@ local function attachLoot(thief: Player, victim: Target, amount: number, kind: s
 	-- typed here would be a second opinion about the same thing, and the pose
 	-- would lose -- an arm cannot reach a position somebody chose for it.
 	--
-	-- Welded to the ROOT and not to a limb, which is deliberate and is why the
-	-- offset is expressed in root space: the root is the one part of a
-	-- character that never animates, so the weld captures the offset that was
-	-- intended rather than whatever phase of a run cycle the server happened to
-	-- be replicating at the moment of the grab.
-	loot:PivotTo(root.CFrame * CarryPose.HOLD)
+	-- WELDED TO THE HAND (designer, 2026-09-23), so the sack moves with the
+	-- arm rather than the arm sliding against a sack pinned to the root.
+	-- `CarryPose.anchor` picks the part and the seat -- the right hand and
+	-- its hand-space offset on an R15 rig, the root and `HOLD` otherwise --
+	-- so this service and the piggy haul can never disagree about which limb
+	-- carries. The offset is in the HAND'S frame, so it is right wherever the
+	-- hand happens to be at the moment of the grab and settles with the pose.
+	local anchor, seat = CarryPose.anchor(root.Parent, "sling")
+	anchor = anchor or root
+	loot:PivotTo(anchor.CFrame * seat)
 	loot.Parent = root.Parent
 
 	local weld = Instance.new("WeldConstraint")
 	weld.Name = "CarryWeld"
-	weld.Part0 = root
+	weld.Part0 = anchor
 	weld.Part1 = body
 	weld.Parent = body
 
@@ -1101,11 +1108,18 @@ local function attachLoot(thief: Player, victim: Target, amount: number, kind: s
 	local label = Instance.new("BillboardGui")
 	label.Name = "LootLabel"
 	label.Size = UDim2.new(0, 170, 0, 40)
-	-- 1.8 and not the 2.2 it was, because the pig came UP when the thief
-	-- started holding it rather than towing it -- 0.3 to 0.69 in root space.
-	-- Left alone, the label would have risen with it into the character's own
-	-- Roblox nameplate. This keeps it at the height it has always rendered at.
-	label.StudsOffset = Vector3.new(0, 1.8, 0)
+	-- ADORNED TO THE THIEF, NOT TO THE SACK. It rode a shoulder 1.31 studs
+	-- off the centre line for a day, where a label hung off it orbited the
+	-- thief as they turned -- `StudsOffset` is world-axis and cannot pull
+	-- one back to centre. The hug is back and the load is centred again, so
+	-- this could ride the body; it stays on the root so the next pose change
+	-- cannot move it. The root is where the reader expects a
+	-- name to sit; 2.5 above it is the height the label has always rendered
+	-- at (root y 2.49 on the hug), clear of the head at 1.82 and under the
+	-- character's own Roblox nameplate. It stays parented to the body so it
+	-- lives and dies with the loot and `LootLabel` is still found there.
+	label.Adornee = root
+	label.StudsOffset = Vector3.new(0, 2.5, 0)
 	label.AlwaysOnTop = true
 	label.Parent = body
 
@@ -1118,7 +1132,7 @@ local function attachLoot(thief: Player, victim: Target, amount: number, kind: s
 	text.TextColor3 = GOLD
 	text.TextStrokeTransparency = 0.2
 	-- Names the owner, so a bystander knows whose side to take.
-	text.Text = ("%s's coins  %s"):format(targetName(victim), format(amount))
+	text.Text = ("%s coins  %s"):format(Config.possessive(targetName(victim)), Config.formatCoins(amount))
 	text.Parent = label
 
 	-- WHOSE COINS THESE ARE, published on the thief for the one player who is
@@ -1383,8 +1397,10 @@ end
 function HeistService.registerPiggyHaul(
 	hauling: (Player) -> boolean,
 	nabbed: (Player, Player, boolean?, string?) -> boolean,
-	confiscated: (Player) -> ())
+	confiscated: (Player) -> (),
+	stolenFrom: ((Player) -> any?)?)
 	piggyHauling, piggyNabbed, piggyConfiscated = hauling, nabbed, confiscated
+	piggyStolenFrom = stolenFrom
 end
 
 -- A HAUL STARTING OR ENDING IS A SPEED CHANGE, and `refreshSpeed` is a local
@@ -1415,8 +1431,10 @@ end
 -- see why their board vanished. A rejection nobody can see is indistinguish-
 -- able from a bug, which is how the silent-steal failure survived for weeks.
 function HeistService.rideBlockReason(player: Player): string?
+	-- NOT "stolen goods": a haul is also your own piggy on its way to a
+	-- plinth, or a wild piggy you just lassoed.
 	if haulingAnything(player) then
-		return "Can't ride while you're carrying stolen goods."
+		return "Can't ride while your arms are full. Take it home first."
 	end
 
 	-- NOBODY rides while loot is in transit, not just the two players
@@ -1490,7 +1508,7 @@ function HeistService.dodge(player: Player)
 	end
 
 	if HeistService.isHidden(player) then
-		notify(player, "Not from inside a bin. Push a direction to climb out.", "warn")
+		notify(player, "Not from inside a bin. Use CLIMB OUT first.", "warn")
 		return
 	end
 
@@ -2067,7 +2085,7 @@ function HeistService.neighbourHit(thief: Player, spec: any, name: string): bool
 	-- Before the coat, so a well-timed dodge does not burn a perfectly good one
 	-- that was never needed. Same order `applyGadget` keeps below.
 	if HeistService.isDodgeImmune(thief) then
-		notify(thief, ("Dodged %s's %s!"):format(name, spec.name), "good")
+		notify(thief, ("Dodged %s %s!"):format(Config.possessive(name), spec.name), "good")
 		return false
 	end
 	if warded[thief] and not spec.pierce then
@@ -2487,7 +2505,7 @@ local function setLootAmount(carry: Carry, victim: Target)
 	local label = body and body:FindFirstChild("LootLabel")
 	local text = label and label:FindFirstChild("Amount")
 	if text and text:IsA("TextLabel") then
-		text.Text = ("%s's coins  %s"):format(targetName(victim), format(carry.amount))
+		text.Text = ("%s coins  %s"):format(Config.possessive(targetName(victim)), Config.formatCoins(carry.amount))
 	end
 end
 
@@ -2725,7 +2743,7 @@ local function releaseDog(thief: Player, victim: Target, plot: any)
 			alertedAt[plot.dog] = now + Config.DOG_WATCH.alertSeconds
 			GuardDog.bark(plot.dog)
 			markIntruder(thief)
-			notify(thief, ("%s's dog has spotted you!"):format(targetName(victim)), "chase")
+			notify(thief, ("%s dog has spotted you!"):format(Config.possessive(targetName(victim))), "chase")
 			notifyTarget(victim, "Your dog is barking at somebody on your lawn!", "alarm")
 		end
 		return
@@ -2845,7 +2863,7 @@ function HeistService.scare(thief: Player, victim: Target, catcher: string?)
 	endCrack(thief, "scared")
 	notify(thief, if catcher
 		then ("%s saw you off!"):format(catcher)
-		else ("%s's dog saw you off!"):format(targetName(victim)), "chase")
+		else ("%s dog saw you off!"):format(Config.possessive(targetName(victim))), "chase")
 	notifyTarget(victim, "Your guard dog chased somebody off your lawn.", "good")
 	HeistService.detain(thief, Config.DOG_WATCH.scareStun)
 end
@@ -2984,7 +3002,7 @@ local function rollSkinSteal(thief: Player, victim: Player)
 			thief.DisplayName, skin.name, if crate then crate.name else "Its crate"), "bad")
 	end
 	if not hot then
-		notify(thief, ("You lifted %s's %s skin! Get it home."):format(victim.DisplayName, skin.name), "loot")
+		notify(thief, ("You lifted %s %s skin! Get it home."):format(Config.possessive(victim.DisplayName), skin.name), "loot")
 	end
 	CosmeticsService.applyToPlot(victim)
 	CosmeticsService.push(victim)
@@ -3072,10 +3090,10 @@ function endCrack(thief: Player, why: string)
 		local worth = homeWorthPhrase(thief, victim, total)
 		if why == "done" then
 			notify(thief, ("Cracked it clean! %s coins, %s. Run!"):format(
-				format(total), worth), "loot")
+				Config.formatCoins(total), worth), "loot")
 		elseif why ~= "lost" and why ~= "scared" then
 			notify(thief, ("%d of %d slices. %s coins, %s. Run!"):format(
-				crack.steps, Config.CRACK.maxSteps, format(total), worth), "loot")
+				crack.steps, Config.CRACK.maxSteps, Config.formatCoins(total), worth), "loot")
 		end
 
 		-- THE CARRY REMEMBERS A CLEAN RUN, so the delivery can credit Clean
@@ -3267,6 +3285,36 @@ function HeistService.isCracking(player: Player): boolean
 	return cracking[player] ~= nil
 end
 
+-- DEV ONLY: tap the crack when the marker is in the middle of the zone, so a
+-- solo Studio session can run a clean crack through the REAL judge. It never
+-- decides a hit itself -- it waits until the server's own marker is inside
+-- the server's own zone and then calls `crackTap`, which is the same call
+-- the client's F press makes. `AdminService`'s `crack` command is the only
+-- caller; it replaced the `smash` command when the smash was retired
+-- (designer, 2026-09-23), because a coin carry still has to be testable in
+-- a session whose viewport is not drawing and so can hold no prompt.
+function HeistService.devTapInZone(thief: Player): boolean
+	local crack = cracking[thief]
+	if not crack or crack.ending then
+		return false
+	end
+	local deadline = os.clock() + crack.sweep * 2 + 1
+	while os.clock() < deadline do
+		if cracking[thief] ~= crack or crack.ending then
+			return false
+		end
+		local now = workspace:GetServerTimeNow()
+		local at, zone = markerAt(crack, now), zoneAt(crack, now)
+		if now - crack.lastTap >= CRACK_TAP_DEBOUNCE
+			and at > zone + crack.width * 0.3 and at < zone + crack.width * 0.7 then
+			HeistService.crackTap(thief)
+			return true
+		end
+		task.wait()
+	end
+	return false
+end
+
 -- ============================================================
 -- THE WATCHING DOG
 -- ============================================================
@@ -3311,6 +3359,25 @@ local lastSeen: { [Player]: { pos: Vector3, at: number } } = {}
 -- awake dog sees ANY movement, so without a floor it would be permanently
 -- set off by nobody moving. Well under a tiptoe (5.6).
 local IDLE_SPEED = 0.5
+
+-- IS THIS PLAYER CARRYING SOMETHING TAKEN FROM THIS PLOT? Coins cracked out of
+-- its pig, or a piggy lifted off its plinths. A dog guards ITS OWN yard's
+-- goods and nothing else: a thief crossing a third lawn with somebody else's
+-- sack, an owner carrying their own piggy home, and a lassoed wild catch are
+-- all just visitors to it, and get barked at rather than chased. Before this
+-- the watcher asked only whether anything was being carried, so every dog on
+-- the street ran down whoever walked past with any load at all.
+--
+-- A resident victim is matched by identity and, failing that, by the plot it
+-- was robbed on, so a neighbour evicted mid-getaway does not let the thief
+-- walk back across the lawn they robbed.
+local function stoleFrom(player: Player, plot: any, victim: Target?): boolean
+	local carry = carrying[player]
+	if carry and ((victim ~= nil and carry.victim == victim) or targetPlot(carry.victim) == plot) then
+		return true
+	end
+	return piggyStolenFrom ~= nil and piggyStolenFrom(player) == plot
+end
 
 local function watchLawns()
 	local now = os.clock()
@@ -3374,14 +3441,24 @@ local function watchLawns()
 		-- and the dog goes for the one making noise rather than for whichever
 		-- happened to be earlier in a hash order -- which would also make the
 		-- choice differ between ticks for no reason anybody could see.
+		--
+		-- EXCEPT THAT SOMEBODY RUNNING OFF WITH THIS YARD'S OWN GOODS OUTRANKS
+		-- ANY AMOUNT OF NOISE. A visitor stamping past with a sack from down the
+		-- street must not draw the dog's eye off the thief it is here to catch.
+		local victimHere: Target? = owner or ResidentService.get(plot)
 		local loudest: Player? = nil
 		local loudestSpeed = -1
+		local loudestOurs = false
 		for player, yard in pairs(yards) do
 			if yard == plot and player ~= owner then
 				local speed = speeds[player] or 0
 				local noticed = speed > IDLE_SPEED and (awake or not tiptoeInEffect(player))
-				if noticed and speed > loudestSpeed then
-					loudest, loudestSpeed = player, speed
+				if noticed then
+					local ours = stoleFrom(player, plot, victimHere)
+					if (ours and not loudestOurs)
+						or (ours == loudestOurs and speed > loudestSpeed) then
+						loudest, loudestSpeed, loudestOurs = player, speed, ours
+					end
 				end
 			end
 		end
@@ -3413,8 +3490,12 @@ local function watchLawns()
 			-- already has its own way to wake the dog: the fumbled slice. That
 			-- and the smash are the other two callers of `releaseDog`, and both
 			-- are untouched.
-			local robbing = haulingAnything(loudest) and cracking[loudest] == nil
-			local victim: Target? = owner or ResidentService.get(plot)
+			--
+			-- AND ONLY THIS YARD'S GOODS. Carrying something from ANOTHER plot
+			-- across this lawn is a visit as far as this dog is concerned; see
+			-- `stoleFrom`.
+			local victim: Target? = victimHere
+			local robbing = cracking[loudest] == nil and stoleFrom(loudest, plot, victim)
 			if robbing and victim then
 				releaseDog(loudest, victim, plot)
 			elseif not robbing and now >= (barkedAt[dog] or 0) then
@@ -3600,139 +3681,6 @@ function HeistService.attemptSteal(thief: Player, victim: Target)
 	PlotService.rattleLock(plot)
 end
 
--- ============================================================
--- THE SMASH -- THE OTHER WAY IN
--- ============================================================
---
--- ONE HOLD, A FIXED TAKE, AND THE STREET FINDS OUT. `Config.SMASH` carries
--- the arithmetic and the argument; this is what it does.
---
--- IT SHARES EVERY GATE WITH THE CRACK AND ADDS NONE. Same `whyCannotSteal`,
--- same shop-room rule, same per-victim cooldown, same loss allowance, same
--- carry, same doubled payout. That is deliberate and it is
--- what keeps the two honest against each other: a second set of refusals
--- would be a second definition of who may rob whom, and the first thing to
--- drift would be the one nobody is reading.
---
--- WHAT IT DOES NOT SHARE IS THE ALARM. The crack fires on a FUMBLE and never
--- on a clean run; a smash fires ALWAYS, at the moment it lands, before the
--- thief has taken a step. That is the whole trade, it is the third answer
--- `Config.CRACK_ALARM_ON_MISS` was written to choose between, and it is what
--- the plan meant by "loud".
---
--- AND IT DELIBERATELY DOES NOT ROLL A SHOP DROP. `Config.SHOP_VAULT_DROP` is
--- one in five COMPLETED CRACKS, and a smash is not one -- it is two slices'
--- worth in a fifth of the time. Letting it roll would make smashing the
--- cheapest drop farm in the game by a distance: measured, a smash cycle on a
--- shop is about 5.7 seconds against 16.9 for a full crack, so the same
--- twenty per cent would pay out three times an hour as often for a fifth of
--- the coins. Cracking a shop keeps a reason to exist beyond the money.
-function HeistService.smash(thief: Player, victim: Target)
-	-- You cannot do both at once, and this is the louder half of that: a
-	-- crack in progress has a panel open and coins already moving.
-	if cracking[thief] then
-		notify(thief, "You are already working that lock.", "warn")
-		return
-	end
-
-	local reason = whyCannotSteal(thief, victim)
-	if reason then
-		notify(thief, reason, "warn")
-		return
-	end
-
-	local plot = targetPlot(victim)
-	if not plot then
-		return
-	end
-
-	-- The room is the range on a shop, for both ways in. See `attemptSteal`.
-	if plot.shop and not inShopRoom(thief, plot) then
-		notify(thief, "That vault is inside the shop. Go in.", "warn")
-		return
-	end
-
-	-- Clamped exactly the way a slice is, and by the same three things: what
-	-- the sack asks for, what the victim's hour still allows, and what the
-	-- pig actually holds.
-	local live = math.floor(targetCoins(victim))
-	local want = math.floor(live
-		* Config.getSmashFraction(UpgradeService.getLevel(thief, "sack")))
-	local amount = math.max(0, math.min(want, lossAllowance(victim, live), live))
-	if amount <= 0 then
-		-- `whyCannotSteal` already refuses an empty pig and a spent
-		-- allowance, so reaching here means the take rounded to nothing on a
-		-- pig with a handful of coins in it. Said rather than swallowed: the
-		-- rule this project refuses to break is that a refusal nobody can see
-		-- is indistinguishable from a broken feature.
-		notify(thief, ("%s's piggy has too little in it to be worth it."):format(
-			targetName(victim)), "warn")
-		return
-	end
-
-	-- Out of the pig NOW, the same as a slice and for the same reason: a
-	-- promise settled later is a double-spend when two thieves want one pig.
-	local resident = asResident(victim)
-	if resident then
-		amount = ResidentService.take(resident, amount)
-	else
-		local victimPlayer = asPlayer(victim)
-		local data = if victimPlayer then DataService.get(victimPlayer) else nil
-		if not data then
-			return
-		end
-		data.coins -= amount
-		-- Safe to index: `lossAllowance` above created the entry for a player
-		-- victim, which is the same ordering `crackTap` relies on.
-		losses[victim].lost += amount
-	end
-	if amount <= 0 then
-		return
-	end
-
-	local loot, prompt = attachLoot(thief, victim, amount)
-	if not loot or not prompt then
-		-- Character vanished between the take and the hands. Put it back.
-		giveBack(victim, amount)
-		return
-	end
-	carrying[thief] = newCarry(thief, victim, amount, loot, prompt)
-
-	-- You are a thief the moment a coin leaves somebody else's pig, which on
-	-- this path is the same instant the robbery ends. Same three writes the
-	-- crack's first slice makes.
-	dropShield(thief)
-	setCarrySpeed(thief, true)
-	pushCarryState(thief)
-
-	-- The cooldown is paid for by TAKING something, and a smash always does.
-	lastGrab[victim] = lastGrab[victim] or {}
-	lastGrab[victim][thief] = os.clock()
-	Remotes.get("StealCooldown"):FireClient(thief, targetId(victim),
-		workspace:GetServerTimeNow() + Config.stealCooldownFor(resident ~= nil))
-
-	PlotService.updatePile(plot, targetCoins(victim), targetFullAt(victim))
-	PlotService.playCoinDrop(plot)
-
-	notify(thief, ("Smashed it! %s coins, %s. Run!"):format(
-		format(amount), homeWorthPhrase(thief, victim, amount)), "loot")
-
-	-- THE LOUD HALF, AND IT IS THE WHOLE PRICE OF THIS PATH. All three fire
-	-- together and at once: the plot's own alarm, the victim told who did it,
-	-- and the dog let off before the thief has moved.
-	PlotService.playAlarm(plot)
-	notifyTarget(victim, ("%s smashed your piggy bank! Nab them!"):format(
-		thief.DisplayName), "alarm")
-	releaseDog(thief, victim, plot)
-
-	-- Last, and spawned, exactly as `endCrack` does it: the coins have
-	-- already moved, so a subscriber that throws must not be able to take the
-	-- robbery down with it.
-	for _, handler in ipairs(stealHandlers) do
-		task.spawn(handler, thief, victim, amount)
-	end
-end
-
 -- Knocks the loot out of a thief's hands. Callable by anyone in range, or by
 -- a guard dog on its owner's behalf (`byDog`, which has already done its own
 -- proximity check and whose "nabber" may be nowhere near).
@@ -3804,14 +3752,19 @@ local function handOff(thief: Player, winner: Player): boolean
 	local oldRoot, newRoot = getRoot(thief), getRoot(winner)
 	local body = lootBodyOf(carry.loot)
 	local weld = body and body:FindFirstChild("CarryWeld")
+	-- The weld hangs off whatever `CarryPose.anchor` chose at the grab (the
+	-- hand on an R15 rig), so that is the part it must still be on.
+	local oldAnchor = if oldRoot then (CarryPose.anchor(oldRoot.Parent, "sling")) else nil
 	if not oldRoot or not newRoot or carry.loot.Parent ~= oldRoot.Parent
 		or not weld or not weld:IsA("WeldConstraint")
-		or weld.Part0 ~= oldRoot or weld.Part1 ~= body then return false end
+		or weld.Part0 ~= (oldAnchor or oldRoot) or weld.Part1 ~= body then return false end
 
+	local newAnchor, seat = CarryPose.anchor(newRoot.Parent, "sling")
+	newAnchor = newAnchor or newRoot
 	weld.Part0 = nil
-	carry.loot:PivotTo(newRoot.CFrame * CarryPose.HOLD)
+	carry.loot:PivotTo(newAnchor.CFrame * seat)
 	carry.loot.Parent = newRoot.Parent
-	weld.Part0 = newRoot
+	weld.Part0 = newAnchor
 	carrying[thief], carrying[winner] = nil, carry
 	carry.holder, carry.inRange, carry.dropAction, carry.returnAvailable = winner, nil, nil, nil
 	carry.prompt.ObjectText = winner.DisplayName
@@ -4067,8 +4020,8 @@ function HeistService.nab(nabber: Player, thief: Player, byDog: boolean?, catche
 	returnCarryAmount(carry, amount)
 	do
 		notifyTarget(victim, if byDog
-			then ("Your guard dog caught %s. %s coins saved!"):format(thief.DisplayName, format(amount))
-			else ("%s nabbed %s. Your %s coins are back!"):format(targetName(nabber), thief.DisplayName, format(amount)),
+			then ("Your guard dog caught %s. %s coins saved!"):format(thief.DisplayName, Config.formatCoins(amount))
+			else ("%s nabbed %s. Your %s coins are back!"):format(targetName(nabber), thief.DisplayName, Config.formatCoins(amount)),
 			"good")
 	end
 
@@ -4107,7 +4060,7 @@ function HeistService.nab(nabber: Player, thief: Player, byDog: boolean?, catche
 		SocialService.recordDefend(owner)
 	end
 	if (nabber :: any) ~= victim and not byDog then
-		notify(nabber, ("Nice nab! You saved %s's coins."):format(targetName(victim)), "good")
+		notify(nabber, ("Nice nab! You saved %s coins."):format(Config.possessive(targetName(victim))), "good")
 	end
 	return true
 end
@@ -4253,9 +4206,9 @@ local function returnCarry(player: Player)
 		PlotService.updatePile(home, data.coins, Config.pigFullAt(data.rebirths))
 	end
 	notify(player, ("Returned %s coins and the haul. Bounty: %s coins."):format(
-		format(amount), format(bounty)), "good")
+		Config.formatCoins(amount), Config.formatCoins(bounty)), "good")
 	if victim ~= player then
-		notifyTarget(victim, ("%s returned %s of your coins and the haul!"):format(player.DisplayName, format(amount)), "good")
+		notifyTarget(victim, ("%s returned %s of your coins and the haul!"):format(player.DisplayName, Config.formatCoins(amount)), "good")
 	end
 end
 
@@ -4469,15 +4422,15 @@ local function deliver(thief: Player)
 	})
 
 	notify(thief, if not original
-		then ("Kept the haul! Half share: %s coins."):format(format(banked))
+		then ("Kept the haul! Half share: %s coins."):format(Config.formatCoins(banked))
 		elseif revenge
 		then ("REVENGE! %s stolen coins, %s banked.%s"):format(
-			format(amount), format(banked), runNote)
+			Config.formatCoins(amount), Config.formatCoins(banked), runNote)
 		else ("Delivered %s stolen coins, %s banked.%s"):format(
-			format(amount), format(banked), runNote),
+			Config.formatCoins(amount), Config.formatCoins(banked), runNote),
 		"money")
 	notifyTarget(victim, ("%s got away with %s of your coins. Get them back for triple!"):format(
-		thief.DisplayName, format(amount)), "bad")
+		thief.DisplayName, Config.formatCoins(amount)), "bad")
 
 	-- The victim now holds a grudge: robbing this thief back inside the
 	-- window pays triple, and the marker over the thief's plot says so for
@@ -4740,9 +4693,6 @@ function HeistService.start()
 		wireEntry(plot, plot.piggy.stealPrompt, Config.CRACK.openHold,
 			"The lock held. Try again.", HeistService.attemptSteal)
 
-		-- LOUD AND FAST. See `Config.SMASH`.
-		wireEntry(plot, plot.piggy.smashPrompt, Config.SMASH.hold,
-			"You did not get a grip on it.", HeistService.smash)
 		-- THE SHAKE PROMPT STOOD HERE, on the acorn oak's own collider, and
 		-- retired with it. H and J are both free keys again.
 	end

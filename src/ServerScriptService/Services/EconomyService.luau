@@ -25,6 +25,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local PiggyPedestal = require(ReplicatedStorage.Shared.PiggyPedestal)
 local Remotes = require(ReplicatedStorage.Shared.Remotes)
 local DataService = require(script.Parent.DataService)
 local PlotService = require(script.Parent.PlotService)
@@ -230,11 +231,16 @@ end
 -- ask each other. The till fallback and the retired-key prune live there with
 -- them; a second copy of either is silent when wrong.
 --
--- KEPT AS LOCAL NAMES rather than every call site being rewritten, because the
--- three readers here (the buffer cap, the per-slot rate and the collection)
--- read better against a short name and this way the move is one edit rather
--- than nine.
-local placedKey = Config.piggyKeyAt
+-- KEPT AS A LOCAL NAME rather than every call site being rewritten, because
+-- the reader here reads better against a short one and this way the move was
+-- one edit rather than nine.
+--
+-- IT WAS A PAIR UNTIL THE PER-SLOT RATE MOVED TO `Config.piggySlotRate`
+-- (2026-09-23). `placedKey` stood beside this and had exactly one reader --
+-- the rate's own "is this plinth empty" test -- which went down into Config
+-- with the arithmetic, so the alias was left naming a function nothing here
+-- calls. Deleted rather than left: an unused alias is the next reader's
+-- evidence that this file still answers a question it has handed away.
 local rarityAt = Config.piggyRarityAt
 
 -- THE COIN CAP ON ONE PLACEMENT'S BUFFER: its own rate times how long its
@@ -257,13 +263,82 @@ local function slotCeiling(data: any, slot: number, rate: number): number
 	return rate * Config.piggyBufferSeconds(rarityAt(data, slot))
 end
 
+-- WHAT IS WAITING IN ONE PLACEMENT, AND HOW TO PUT IT BACK.
+--
+-- LIFTED ABOVE THE OFFLINE SECTION FOR THE REASON `slotCeiling` WAS: offline
+-- catch-up fills the buffers now rather than paying coins, so it reads both of
+-- these -- and a `local` declared after its reader is a nil GLOBAL to that
+-- reader, which is the failure this project has had take the whole server down
+-- eleven times and which compiles perfectly clean on the way there.
+local function bufferOf(data: any, slot: number): number
+	local entry = Config.piggySlots(data)[slot]
+	return (entry and entry.buffer) or 0
+end
+
+local function setBuffer(data: any, slot: number, amount: number)
+	Config.piggySlots(data)[slot].buffer = amount
+end
+
+-- WHAT ONE PLACEMENT EARNS PER SECOND, before the two multipliers a service
+-- has to supply, or 0 when it is empty.
+--
+-- THE TILL EARNS NOTHING (designer, 2026-09-23: "the piggy bank displayed as
+-- the till should not earn any money only displayed as the storage, when taken
+-- off and swapped it can then earn its registered amount as normal"). Slot 0
+-- is a DISPLAY, and the rule is about the PLACEMENT rather than about the
+-- piggy standing in it: swap that same piggy onto a pedestal and it earns its
+-- tier rate there, which is the whole reason the swap prompt is worth pressing.
+--
+-- AND THE REFUSAL MOVED DOWN INTO `Config` WITH THE ARITHMETIC
+-- (2026-09-23). The paragraph that stood here said it was "refused HERE
+-- rather than at the one caller that used to pay it, because there is no
+-- reading of 'the till earns' that a later caller should be able to reach
+-- by asking a different way" -- and every word of that argument is the
+-- reason it could not stay. This stopped being the only reader the day a
+-- neighbour's lawn and a hallway plinth needed the same number, and a rule
+-- that lives in one of three copies is a rule the other two do not keep.
+-- `Config.piggySlotRate` IS the rule now; this is the reader that adds the
+-- two multipliers a save alone cannot supply.
+local function slotRateOf(data: any, slot: number, friendBonus: number?): number
+	return Config.piggySlotRate(data, slot, friendBonus)
+end
+
 -- ============================================================
 -- OFFLINE ACCRUAL
 -- ============================================================
 
--- Computed from the stored lastSave timestamp, never from anything the
--- client reports, and clamped so a long absence can't mint a fortune: the
--- ONLY bound is `OFFLINE_CAP_SECONDS` now that the pig has no ceiling.
+-- WHAT YOUR PIGGIES EARNED WHILE YOU WERE AWAY, INTO THEIR OWN BUFFERS AND
+-- NEVER INTO THE BANK (designer, 2026-09-23: "your piggies can earn offline
+-- but not get stored in your bank").
+--
+-- THIS FUNCTION'S OWN COMMENT PREDICTED THIS CHANGE AND DECLINED TO MAKE IT.
+-- It read: "STILL PAID AS COINS RATHER THAN INTO THE BUFFERS, and that is left
+-- alone deliberately... the honest offline model is buffers filling to their
+-- own cap -- which would make eight hours away worth a hundred seconds per
+-- placement and is a real nerf to a real reward. That is a decision rather
+-- than a bug." The decision has been made, and the nerf is the point: coins
+-- arrive by being COLLECTED now, so an absence ripens the lawn rather than
+-- filling the pig, and a player comes back to six pads to walk.
+--
+-- WHAT THAT COSTS, STATED PLAINLY: an absence is worth `piggyBufferSeconds`
+-- per placement and no more, whatever `OFFLINE_CAP_SECONDS` says -- roughly a
+-- hundred seconds of a common's income against the eight hours this used to
+-- pay. `OFFLINE_CAP_SECONDS` still clamps `counted` and is now very nearly
+-- decorative: the per-slot ceiling binds first at every absence over a couple
+-- of minutes. It is kept rather than retired because it is the only bound on
+-- `os.time` arithmetic against a clock nothing here owns.
+--
+-- Computed from the stored lastSave timestamp, never from anything the client
+-- reports.
+--
+-- NO FRIEND BONUS AND NO BOOST, which is the pair of rules this already kept
+-- and which is why `slotRateOf` takes a save rather than a Player: friends
+-- were not in the server while you were asleep, and the daily boost
+-- multiplies the live drip only -- one that ticked while you were logged off
+-- would be a worse coin reward with extra steps.
+--
+-- THE TILL IS NOT IN THIS LOOP AND COULD NOT BE: it starts at 1 because slot 0
+-- has no buffer to fill, and `slotRateOf` would answer 0 for it anyway.
 function EconomyService.applyOfflineIncome(player: Player): number
 	local data = DataService.get(player)
 	if not data then
@@ -276,38 +351,27 @@ function EconomyService.applyOfflineIncome(player: Player): number
 		return 0
 	end
 
-	-- THE WHOLE COLLECTION, NOT ONE PIG. This asked `getIncomeRate`, which was
-	-- a player's entire income until a lawn started earning and is now a
-	-- seventh of it at best -- so an eight-hour absence paid out against the
-	-- till alone and ignored six pedestals.
-	--
-	-- IT USED TO CHANGE ALMOST NOTHING, AND NOW IT IS THE WHOLE NUMBER. The
-	-- line below was clamped to CAPACITY, which at every level the pig hit
-	-- long before `OFFLINE_CAP_SECONDS` ran out -- so the rate only decided
-	-- how short an absence still paid in full. With no ceiling the full
-	-- eight hours pay at this rate, which is a real change to what a night
-	-- away is worth and is recorded in the capacity-removal report.
-	--
-	-- NO FRIEND BONUS AND NO BOOST, which is the pair of rules this already
-	-- kept and `collectionRate` would have broken. `getIncomeRate`'s own
-	-- comment: friends were not in the server while you were asleep. And the
-	-- daily boost multiplies the live drip only -- one that ticked while you
-	-- were logged off would be a worse coin reward with extra steps. So this
-	-- goes to `Config.collectionRate` directly rather than through
-	-- `EconomyService.collectionRate`, which applies both.
-	--
-	-- STILL PAID AS COINS RATHER THAN INTO THE BUFFERS, and that is left alone
-	-- deliberately. Plan §4a says a piggy earns into ITSELF and is collected by
-	-- hand, so the honest offline model is buffers filling to their own
-	-- `PIGGY_BUFFER_SECONDS` cap -- which would make eight hours away worth a
-	-- hundred seconds per placement and is a real nerf to a real reward. That
-	-- is a decision rather than a bug, so it is recorded here and not taken.
-	local rate = Config.collectionRateOf(data)
-	local before = data.coins
+	-- CAPPED AT EACH SLOT'S OWN CEILING, through the same `slotCeiling` the
+	-- accrual loop fills against and the same one the collect cue pitches
+	-- against -- three readers, one answer, which is the whole reason it is a
+	-- function. A buffer already OVER its ceiling (the state a rebirth
+	-- produces, where every rate falls and every cap with it) is left exactly
+	-- as it is rather than clamped down here: `math.min` cannot raise it and
+	-- the tick owns the clamp.
+	local gained = 0
+	for slot = 1, Config.PIGGY_SLOT_COUNT do
+		local rate = slotRateOf(data, slot)
+		if rate > 0 then
+			local held = bufferOf(data, slot)
+			local filled = math.min(slotCeiling(data, slot, rate), held + rate * counted)
+			if filled > held then
+				setBuffer(data, slot, filled)
+				gained += filled - held
+			end
+		end
+	end
 
-	data.coins = before + rate * counted
-
-	return math.floor(data.coins - before)
+	return math.floor(gained)
 end
 
 -- ============================================================
@@ -368,43 +432,25 @@ end
 -- buffer of its own at its own rate, and a collect prompt walks each buffer
 -- across into the till.
 --
--- THERE ARE SEVEN PLACEMENTS AND THE TILL IS ONE OF THEM. `data.tillBuffer`
--- is slot 0's buffer and the six `data.piggies.slots[i].buffer` are the lawn's
--- -- two storage shapes for one idea, which is a wart and a deliberate one:
--- the till's buffer predates the pedestals, it is a top-level number that
--- every existing save already reconciled, and folding it into the array would
--- be a schema migration to tidy a field name. The two are read through ONE
--- pair of accessors below so nothing downstream has to know there are two.
+-- THERE ARE SEVEN PLACEMENTS ON A LAWN AND ONLY SIX OF THEM EARN. Slot 0 is
+-- the till, which is a display and pays nothing (designer, 2026-09-23 -- see
+-- `slotRateOf` above); slots 1..N each fill a buffer of their own that a
+-- collect prompt walks across into the balance. `data.tillBuffer` was slot 0's
+-- buffer back when the till earned into one, and `DataService.reconcile` folds
+-- any save still carrying it into `coins` once.
 
-
--- SLOTS 1..N ONLY. The bank (slot 0) has no buffer: its income goes straight
--- into `data.coins` on the tick below (designer decision 2026-09-22 -- the
--- centre pig is where a player's whole wealth sits, and a button to move
--- coins from the bank into the bank was a step for nothing).
-local function bufferOf(data: any, slot: number): number
-	local entry = Config.piggySlots(data)[slot]
-	return (entry and entry.buffer) or 0
-end
-
-local function setBuffer(data: any, slot: number, amount: number)
-	Config.piggySlots(data)[slot].buffer = amount
-end
-
--- What one placement earns per second, or 0 when it is empty.
+-- THE LIVE RATE FOR ONE PLACEMENT: what it earns, times the two multipliers
+-- that are facts about the PLAYER rather than about the piggy.
 --
--- `friendBonus` and the daily boost are the SAME multipliers the retired drip
+-- `friendBonus` and the daily boost are the same multipliers the retired drip
 -- carried, applied here rather than being re-derived per slot: a boost is for
 -- playing and a friend bonus is for being in a busy server, and neither is a
--- fact about which piggy is standing where.
+-- fact about which piggy is standing where. Offline accrual deliberately gets
+-- NEITHER, which is exactly why `slotRateOf` above takes a save and this one
+-- takes a Player -- two questions, and the pure one is the shared half.
 local function slotRate(player: Player, data: any, slot: number): number
-	local key = placedKey(data, slot)
-	if key == nil then
-		return 0
-	end
-	local skin = Config.SKINS[key]
-	local rate = Config.getPiggyIncomeRate(skin and skin.rarity,
-		data.incomeLevel, data.rebirths, SocialService.getFriendBonus(player))
-	return rate * DailyService.getMultiplier(player)
+	return slotRateOf(data, slot, SocialService.getFriendBonus(player))
+		* DailyService.getMultiplier(player)
 end
 
 
@@ -428,25 +474,36 @@ function EconomyService.collectionRate(player: Player, data: any): number
 		* DailyService.getMultiplier(player)
 end
 
--- WHAT EACH OF THE SIX LAWN PEDESTALS EARNS, for the row under its name.
+-- WHAT EACH OF A PLAYER'S PEDESTALS EARNS, for the row under its name.
 --
 -- THE LIVE FIGURE, WHICH IS THE ONLY REASON THIS IS EXPORTED. `PlotService`
--- builds those labels and can reach `Config.getPiggyIncomeRate` perfectly
--- well -- and that function answers the rate BEFORE the friend bonus and the
--- daily boost, both of which live behind services `PlotService` may not
--- require without a cycle. A label built from what is reachable would
+-- builds those labels and can reach `Config.piggySlotRate` perfectly well --
+-- and that function answers the rate BEFORE the friend bonus and the daily
+-- boost, both of which live behind services `PlotService` may not require
+-- without a cycle. A player's label built from what is reachable would
 -- under-report for the whole length of every boost while the HUD's rate pill
 -- printed the right number, which is two claims about one figure and no way
 -- for a player to tell which one is lying. `PlotService.registerPiggyRates`
 -- is how this arrives; `Main` connects the two.
 --
--- SLOT 0 IS DELIBERATELY NOT IN HERE. The till carries no name label, so
--- there is no row to print under -- and an array indexed 1..N is what the
--- pedestal loop already walks. `collectionRate` above is the one that counts
--- all seven, because that is a different question.
+-- A NEIGHBOUR'S LAWN DELIBERATELY DOES NOT COME THROUGH HERE (2026-09-23).
+-- This takes a Player, and a resident is not one; it has neither multiplier
+-- either, because prestige and friends are things a PLAYER has. So
+-- `PlotService` asks `Config.piggySlotRate` directly for an unowned plot,
+-- and that is exact rather than a fallback -- the two paths differ by
+-- precisely the two facts this function exists to add.
+--
+-- SLOT 0 IS DELIBERATELY NOT IN HERE, AND THE REASON CHANGED UNDER IT. It
+-- read "the till carries no name label, so there is no row to print under",
+-- which stopped being true the day the designer asked for the centre pig to
+-- be named. The till HAS a label now and its second row reads
+-- `Config.TILL_LABEL` rather than a figure, because the till earns nothing
+-- -- so there is still no rate to put in this array, and an array indexed
+-- 1..N is what the pedestal loop already walks. `collectionRate` above is
+-- the one that counts all seven, because that is a different question.
 function EconomyService.pedestalRates(player: Player, data: any): { number }
-	local rates = table.create(Config.PIGGY_LAWN_SLOT_COUNT)
-	for slot = 1, Config.PIGGY_LAWN_SLOT_COUNT do
+	local rates = table.create(Config.PIGGY_SLOT_COUNT)
+	for slot = 1, Config.PIGGY_SLOT_COUNT do
 		rates[slot] = slotRate(player, data, slot)
 	end
 	return rates
@@ -475,9 +532,10 @@ function EconomyService.collectPiggy(player: Player, slot: number?, quiet: boole
 	if not data or not plot or plot.owner ~= player then
 		return
 	end
-	-- Slot 0 is the bank and has nothing to collect: it drips.
+	-- Slot 0 is the till: it is a display, it earns nothing, and there has
+	-- never been a buffer on it to collect.
 	local index = math.floor(tonumber(slot) or 0)
-	if index < 1 or index > Config.PIGGY_LAWN_SLOT_COUNT then
+	if index < 1 or index > Config.PIGGY_SLOT_COUNT then
 		return
 	end
 
@@ -588,7 +646,7 @@ function EconomyService.sellPiggy(player: Player, slot: number?)
 	-- back. Changing what is on the till is a DISPLAY choice and wants its own
 	-- verb; this one only ever takes a piggy off the grass.
 	local index = math.floor(tonumber(slot) or 0)
-	if index < 1 or index > Config.PIGGY_LAWN_SLOT_COUNT then
+	if index < 1 or index > Config.PIGGY_SLOT_COUNT then
 		return
 	end
 
@@ -666,8 +724,14 @@ function EconomyService.onPlayerReady(player: Player)
 	refreshPlot(player)
 	pushState(player)
 
+	-- AND IT NAMES THE PEDESTALS RATHER THAN THE BANK, because that is where
+	-- the coins are: "your piggy bank earned X while you were away" would be a
+	-- sentence about a balance that has not moved, in front of a player whose
+	-- balance has not moved -- which reads as the reward being broken. It says
+	-- what to do about it, because six full buffers with nothing on screen to
+	-- explain them is the same failure one step later.
 	if gained > 0 then
-		notify(player, ("Your piggy bank earned %s coins while you were away"):format(EconomyService.format(gained)), "money")
+		notify(player, ("Your piggies earned %s coins while you were away. Collect it from your pedestals."):format(EconomyService.format(gained)), "money")
 	end
 end
 
@@ -694,35 +758,15 @@ end
 -- one pedestal to the next inside the cooldown would silently skip the second
 -- pad -- and the whole mechanic is a lap of six of them, so the pads are
 -- crossed in quick succession by design.
-local padTouchedAt: { [BasePart]: { [Player]: number } } = {}
-
+-- ONE `Touched` DEBOUNCE, IN `PiggyPedestal.wirePad`, and this is the lawn's
+-- call to it. The hall's pads (`InteriorService.wirePlacement`) go through the
+-- same function, so a pad indoors and a pad on the grass cannot drift apart
+-- in how they answer a footstep. The stamps live in that function's closure
+-- rather than in a module table keyed by pad, so a pad destroyed with its
+-- hallway is collected rather than held for the life of the server.
 local function wirePad(pad: BasePart, slot: number)
-	local stamps: { [Player]: number } = {}
-	padTouchedAt[pad] = stamps
-	pad.Touched:Connect(function(hit: BasePart)
-		-- The character a part belongs to, and nothing else: a thrown bone or
-		-- a rolling ride part touching a pad is not somebody collecting.
-		local character = hit.Parent
-		if not character then
-			return
-		end
-		local player = Players:GetPlayerFromCharacter(character)
-		if not player then
-			return
-		end
-		local now = os.clock()
-		local last = stamps[player]
-		if last and (now - last) < Config.PIGGY_PEDESTAL.pad.cooldown then
-			return
-		end
-		stamps[player] = now
-		-- QUIET, because walking is not asking. A pad crossed with an empty
-		-- buffer must say nothing at all -- the "never fail silently" rule is
-		-- about a player PRESSING something and getting no answer, and
-		-- crossing a patch of grass is not a press. The refusals that do
-		-- speak are the ones a player can act on, and the cooldown above is
-		-- what stops even those repeating.
-		EconomyService.collectPiggy(player, slot, true)
+	PiggyPedestal.wirePad(pad, slot, function(who: Player, which: number)
+		EconomyService.collectPiggy(who, which, true)
 	end)
 end
 
@@ -810,18 +854,19 @@ function EconomyService.start()
 					-- wiped, so every rate falls and every cap with it, and a
 					-- buffer filled at the old rate would sit above the new
 					-- ceiling forever.
-					-- THE BANK DRIPS STRAIGHT INTO THE BALANCE (designer
-					-- decision 2026-09-22). The centre pig is where everything
-					-- a player owns already sits, so its own piggy's income has
-					-- no buffer and no pad: it lands in `coins` on every tick,
-					-- at the till skin's own rarity rate, and the pile on the
-					-- lawn is the readout. Slots 1..N still fill a buffer each.
-					local bankRate = slotRate(player, data, 0)
-					if bankRate > 0 then
-						data.coins += bankRate * delta
-					end
+					-- AND THE BANK EARNS NOTHING, WHICH IS THE LINE THAT USED TO
+					-- BE HERE (designer, 2026-09-23). The till drip-fed `data.coins`
+					-- at its own skin's rate every tick, which made it the one thing
+					-- on this street that put coins in a balance with nobody pressing
+					-- anything -- reported, exactly, as "i see my coins increasing
+					-- automatically". Every coin a player banks is collected by hand
+					-- off a pedestal now, so the loop below is the whole economy.
+					--
+					-- NOTHING GUARDS THIS ANY MORE BECAUSE THERE IS NOTHING TO GUARD:
+					-- `slotRateOf` refuses slot 0 outright, so a line added back here
+					-- would pay zero rather than quietly reopening it.
 					local buffersMoved = false
-					for slot = 1, Config.PIGGY_LAWN_SLOT_COUNT do
+					for slot = 1, Config.PIGGY_SLOT_COUNT do
 						local rate = slotRate(player, data, slot)
 						if rate > 0 then
 							local held = bufferOf(data, slot)

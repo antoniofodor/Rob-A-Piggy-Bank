@@ -16,6 +16,11 @@
 	the client sends nothing but "I would like to claim".
 
 	Boosts are granted into a pocket, never applied on claim. See Config.BOOSTS.
+
+	TWO RUNGS PAY A CRATE NOW (designer, 2026-09-23): day one a COMMON and day
+	seven a RARE, which is the one thing on this ladder an hour of play cannot
+	buy. That took `daily.crate` from a field to a QUEUE -- see `owedCrates`,
+	and read that before touching anything about the doorstep.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -32,8 +37,45 @@ local PlotService = require(script.Parent.PlotService)
 
 local DailyService = {}
 
+-- How many boxes may stand on a doorstep before the ladder stops adding to
+-- them. Six weeks of perfect attendance without ever walking to your own front
+-- door, which nobody will reach -- it is here so the list cannot grow for the
+-- life of an account rather than as a rule anybody has to think about.
+local MAX_OWED = 12
+
 local function notify(player: Player, message: string, kind: string)
 	Remotes.get("Notify"):FireClient(player, message, kind)
+end
+
+-- THE CRATES STILL OWED, OLDEST FIRST, AND WHY THIS IS A LIST.
+--
+-- `daily.crate` was ONE string, which was right while exactly one rung paid a
+-- crate. Two rungs do (day one and day seven), and a single field loses one of
+-- them: claim day one, do not walk to the box, claim on through to day seven,
+-- and the write silently replaces a common crate with a rare one. Nothing
+-- errors and nothing on screen says a reward has gone -- which is the failure
+-- this project refuses above every other, and it lands on the one ladder whose
+-- whole promise is that turning up is paid.
+--
+-- THE RETIRED FIELD FOLDS IN ON FIRST READ RATHER THAN IN A MIGRATION. It is
+-- idempotent by construction -- the legacy field is emptied as it is consumed,
+-- so a second call finds nothing to fold -- and it needs no schema bump for
+-- the reason `data.claims` needed none: `DataService.save` writes the whole
+-- table and `reconcile`'s generic fill only ADDS missing keys, so a field this
+-- service invents survives a rejoin.
+local function owedCrates(data: any): { string }
+	local daily = data.daily
+	if type(daily.crates) ~= "table" then
+		daily.crates = {}
+	end
+	local legacy = daily.crate
+	if type(legacy) == "string" and legacy ~= "" then
+		table.insert(daily.crates, legacy)
+	end
+	-- Cleared whether or not it held anything, so the old field is always ""
+	-- afterwards and can never be folded twice.
+	daily.crate = ""
+	return daily.crates
 end
 
 -- Streak state for a save, as of now. Returns the streak the NEXT claim would
@@ -101,10 +143,15 @@ function DailyService.push(player: Player)
 		-- the first push after a rejoin, which is what puts a crate back on
 		-- the step for somebody who dropped before walking over to it.
 		--
-		-- An empty string is nothing rather than a chest named "", which is
-		-- what `setCrate` turns into a hidden box.
-		local owed = data.daily.crate
-		PlotService.setCrate(plot, if owed ~= "" then owed else nil)
+		-- THE FRONT OF THE QUEUE, because a doorstep holds one box. Opening it
+		-- pushes again, so the next one appears where the last one stood --
+		-- which is a better picture than a single field ever gave and is the
+		-- reason the queue costs no new plumbing.
+		--
+		-- nil is nothing rather than a chest named "", which is what
+		-- `setCrate` turns into a hidden box.
+		local owed = owedCrates(data)[1]
+		PlotService.setCrate(plot, owed)
 	end
 
 	Remotes.get("DailyState"):FireClient(player, {
@@ -122,6 +169,11 @@ function DailyService.push(player: Player)
 		-- Seconds left rather than an absolute time: the client's clock is not
 		-- the server's, and a countdown is the only thing the HUD does with it.
 		boostLeft = math.max(0, data.boostUntil - os.time()),
+		-- HOW MANY BOXES ARE STILL ON THE STEP. The board draws the ladder and
+		-- the box is out in the world, so nothing reads this yet -- it is on
+		-- the payload because a queue that is invisible from the HUD is a queue
+		-- whose length nobody can debug, and one number costs nothing.
+		crates = #owedCrates(data),
 	})
 end
 
@@ -190,9 +242,20 @@ function DailyService.claim(player: Player)
 		-- reaching their own front door would otherwise lose a seven-day
 		-- streak's reward to a dropped session, which is the worst thing this
 		-- ladder could do to somebody who has turned up all week.
-		data.daily.crate = reward.crate
-		message = ("Day %d: a free %s! It is on your doorstep."):format(
-			streak, chest and chest.name or "crate")
+		--
+		-- QUEUED RATHER THAN ASSIGNED, so day one's common crate is still
+		-- there when day seven's rare one lands. See `owedCrates`.
+		local owed = owedCrates(data)
+		if #owed < MAX_OWED then
+			table.insert(owed, reward.crate)
+			message = ("Day %d: a free %s! It is on your doorstep."):format(
+				streak, chest and chest.name or "crate")
+		else
+			-- Never fail silently. Twelve unopened boxes is not a state
+			-- anybody will reach, and the one person who does is told why
+			-- rather than handed a claim that quietly paid nothing.
+			message = ("Day %d: open the crates on your doorstep first!"):format(streak)
+		end
 	end
 
 	notify(player, message, "good")
@@ -220,13 +283,21 @@ function DailyService.openCrate(player: Player)
 		return
 	end
 
-	local key = data.daily.crate
-	if key == "" or not Config.CHESTS[key] then
+	local owed = owedCrates(data)
+	local key = owed[1]
+	if key == nil or not Config.CHESTS[key] then
 		-- Never fail silently. The prompt is switched off in both of these
 		-- states, so reaching here means a client fired the remote by hand --
 		-- and a chest retired out from under a save lands here too, which is
 		-- the case worth saying something about.
-		data.daily.crate = ""
+		--
+		-- A RETIRED KEY IS DROPPED RATHER THAN LEFT AT THE FRONT, or it blocks
+		-- every crate behind it for ever. The same prune-against-the-catalogue
+		-- call `reconcile` makes for a retired skin or ornament.
+		if key ~= nil then
+			table.remove(owed, 1)
+			DataService.save(player)
+		end
 		notify(player, "There is nothing on your doorstep.", "warn")
 		DailyService.push(player)
 		return
@@ -254,10 +325,11 @@ function DailyService.openCrate(player: Player)
 		return
 	end
 
-	data.daily.crate = ""
+	table.remove(owed, 1)
 	DataService.save(player)
 	-- The step is cleared BEFORE the reveal, so the box is gone by the time
-	-- the reel is on screen rather than a second afterwards.
+	-- the reel is on screen rather than a second afterwards -- and with a
+	-- queue, the NEXT box stands up in the same push.
 	DailyService.push(player)
 
 	ChestService.grantFree(player, key)

@@ -32,8 +32,16 @@
 	Music is per-listener -- one player's preference cannot be another's -- so
 	there is nothing here to replicate and nothing for the server to own. A
 	Sound parented to SoundService plays flat and global on this machine only.
+
+	A ROBBERY HAS ITS OWN MUSIC (designer, 2026-09-23), and it is a layer over
+	the rotation rather than a cue inside it: see `Config.MUSIC.CHASE` for the
+	rule and `chaseRole` below for how this client tells which side it is on.
+	It reads only attributes the server already publishes on characters, so
+	nothing new crosses the wire and a remote peer's robbery needs no message.
 ]]
 
+local Players = game:GetService("Players")
+local ContentProvider = game:GetService("ContentProvider")
 local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -47,6 +55,9 @@ local Music = {}
 local state = {
 	enabled = false,
 	started = false,
+	-- The player's volume slider as a multiplier on the tuned level: 1 at
+	-- the default notch. See `Config.MUSIC.SLIDER_DEFAULT` and `setVolume`.
+	level = 1,
 	sound = nil :: Sound?,
 	startedAt = 0,
 	nextAt = 0,
@@ -54,6 +65,19 @@ local state = {
 	-- Indices not yet drawn this cycle. See `draw`.
 	bag = {} :: { number },
 	last = 0,
+	-- The chase layer. `role` is what is PLAYING ("thief"/"victim"); `want`
+	-- is what the last poll saw, held for `linger` after it stops seeing it.
+	chase = {
+		role = nil :: string?,
+		want = nil :: string?,
+		sound = nil :: Sound?,
+		startedAt = 0,
+		seenAt = -math.huge,
+		polledAt = -math.huge,
+		-- Where each track was left, so a run of robberies moves through the
+		-- song rather than replaying its opening bars every time.
+		at = { thief = 0, victim = 0 } :: { [string]: number },
+	},
 }
 
 -- A SHUFFLED BAG, not a random pick.
@@ -121,6 +145,131 @@ local function startNext()
 	state.startedAt = os.clock()
 end
 
+-- WHICH SIDE OF A ROBBERY THIS CLIENT IS ON, off attributes the server
+-- already publishes. THIEF: carrying the coin sack (the loot model stamped
+-- "sling" -- a hauled piggy carries the same model NAME, so the name alone
+-- would play chase music for somebody moving their own piggy) or hauling a
+-- piggy the server marked "stolen". VICTIM: another character carrying this
+-- player's coins (`CARRY_VICTIM_ATTRIBUTE`) or this player's piggy
+-- (`PIGGY_HAUL_FROM_ATTRIBUTE`). Your own robbery wins over being robbed.
+local function chaseRole(): string?
+	local me = Players.LocalPlayer
+	if not me then
+		return nil
+	end
+	local mine = me.Character
+	if mine then
+		local loot = mine:FindFirstChild(Config.LOOT_MODEL_NAME)
+		if loot and loot:GetAttribute(Config.CARRY_KIND_ATTRIBUTE) == "sling" then
+			return "thief"
+		end
+		if mine:GetAttribute(Config.PIGGY_HAUL_ATTRIBUTE) == "stolen" then
+			return "thief"
+		end
+	end
+	for _, other in ipairs(Players:GetPlayers()) do
+		if other ~= me then
+			local c = other.Character
+			if c and (c:GetAttribute(Config.CARRY_VICTIM_ATTRIBUTE) == me.UserId
+				or c:GetAttribute(Config.PIGGY_HAUL_FROM_ATTRIBUTE) == me.UserId) then
+				return "victim"
+			end
+		end
+	end
+	return nil
+end
+
+-- Ends the playing chase track, remembering where it got to so the next
+-- chase carries on; wraps to the top only when it was nearly finished.
+local function dropChase()
+	local chase = state.chase
+	local sound = chase.sound
+	if sound and chase.role then
+		local left = sound.TimePosition
+		if sound.TimeLength > 0 and left > sound.TimeLength - 3 then
+			left = 0
+		end
+		chase.at[chase.role] = left
+	end
+	if sound then
+		sound:Destroy()
+	end
+	chase.sound = nil
+	chase.role = nil
+end
+
+-- Runs every frame; returns true while a chase WANTS the music, which is
+-- what tells the rotation to stand aside.
+local function stepChase(dt: number, now: number, ducked: boolean): boolean
+	local chase = state.chase
+	local spec = Config.MUSIC.CHASE
+	if not spec then
+		return false
+	end
+
+	if now - chase.polledAt >= spec.poll then
+		chase.polledAt = now
+		local seen = chaseRole()
+		if seen then
+			chase.seenAt = now
+			chase.want = seen
+		elseif chase.want and now - chase.seenAt >= spec.linger then
+			chase.want = nil
+			-- The rotation comes back after a breath rather than the instant
+			-- the chase ends, and never sooner than it was already due.
+			state.nextAt = math.max(state.nextAt, now + spec.resume)
+		end
+	end
+
+	local want = if state.enabled then chase.want else nil
+	local track = if want then spec[want] else nil
+
+	-- Start, or swap sides, cutting rather than cross-fading: a swap means the
+	-- player's situation just changed, and the new bed should say so at once.
+	if track and track.id ~= "" and chase.role ~= want then
+		dropChase()
+		local sound = Instance.new("Sound")
+		sound.Name = "Chase_" .. track.name
+		sound.SoundId = track.id
+		sound.Looped = false
+		sound.Volume = 0
+		sound.TimePosition = chase.at[want :: string] or 0
+		sound.Parent = SoundService
+		sound:Play()
+		chase.sound = sound
+		chase.role = want
+		chase.startedAt = now
+	end
+
+	local sound = chase.sound
+	if sound then
+		local target = 0
+		if want and chase.role == want then
+			target = spec.VOLUME * state.level * (if ducked then Config.MUSIC.DUCK else 1)
+		end
+		local seconds = if target > sound.Volume then spec.FADE_IN else spec.FADE_OUT
+		if ducked then
+			seconds = Config.MUSIC.DUCK_FADE
+		end
+		local a = math.clamp(dt / math.max(seconds, 0.01), 0, 1)
+		sound.Volume += (target - sound.Volume) * a
+
+		if target == 0 and sound.Volume < 0.005 then
+			dropChase()
+		elseif not sound.IsPlaying and now - chase.startedAt > 3 then
+			-- Ran to the end mid-chase: back to the top on the next frame.
+			if chase.role then
+				chase.at[chase.role] = 0
+			end
+			sound:Destroy()
+			chase.sound = nil
+			chase.role = nil
+		end
+	end
+
+	return want ~= nil
+end
+
 -- POLLED, NEVER SLEPT THROUGH.
 --
 -- The gap between cues runs to nearly two minutes, and a flat `task.wait` of
@@ -130,12 +279,14 @@ end
 -- happens to expire.
 local function step(dt: number)
 	local music = Config.MUSIC
+	local chasing = stepChase(dt, os.clock(), os.clock() < state.duckUntil)
 	local sound = state.sound
 
-	-- Where the volume WANTS to be, this frame.
+	-- Where the volume WANTS to be, this frame. Nothing while a chase has
+	-- the music.
 	local target = 0
-	if state.enabled and sound then
-		target = music.VOLUME
+	if state.enabled and sound and not chasing then
+		target = music.VOLUME * state.level
 		if os.clock() < state.duckUntil then
 			target *= music.DUCK
 		end
@@ -149,7 +300,10 @@ local function step(dt: number)
 		-- feel like a mute rather than like a slow leak -- at the musical
 		-- rate it was still audible five seconds after the press, measured.
 		local seconds = music.FADE
-		if not state.enabled then
+		if chasing then
+			-- Out of the chase's way at the chase's own speed.
+			seconds = music.CHASE.FADE_IN
+		elseif not state.enabled then
 			seconds = music.OFF_FADE
 		elseif os.clock() < state.duckUntil then
 			seconds = music.DUCK_FADE
@@ -165,7 +319,7 @@ local function step(dt: number)
 		if not sound.IsPlaying and alive > 3 then
 			stopNow()
 			state.nextAt = os.clock() + gap()
-		elseif not state.enabled and sound.Volume < 0.005 then
+		elseif (not state.enabled or chasing) and sound.Volume < 0.005 then
 			-- Faded out under a toggle. Dropped rather than paused: coming
 			-- back should be a fresh cue, not the middle of the one that was
 			-- playing when they switched it off.
@@ -180,7 +334,7 @@ local function step(dt: number)
 		return
 	end
 
-	if state.enabled and os.clock() >= state.nextAt then
+	if state.enabled and not chasing and os.clock() >= state.nextAt then
 		startNext()
 	end
 end
@@ -203,6 +357,14 @@ function Music.setEnabled(on: boolean)
 	end
 end
 
+-- The volume slider, as the saved 0..1 position. Moves the TARGET only, so
+-- a drag is heard through the normal fade rather than as a jump, and a
+-- duck still applies on top of it.
+function Music.setVolume(position: number)
+	local p = if position == position then math.clamp(position, 0, 1) else Config.MUSIC.SLIDER_DEFAULT
+	state.level = p / Config.MUSIC.SLIDER_DEFAULT
+end
+
 function Music.isEnabled(): boolean
 	return state.enabled
 end
@@ -220,6 +382,21 @@ function Music.start()
 	end
 	state.started = true
 	state.nextAt = os.clock() + Config.MUSIC.START_DELAY
+	-- The chase tracks are preloaded, so the first robbery does not start
+	-- its music a second late, or at the top when it meant to resume.
+	local chase = Config.MUSIC.CHASE
+	if chase then
+		task.spawn(function()
+			local ids = {}
+			for _, role in ipairs({ "thief", "victim" }) do
+				local t = chase[role]
+				if t and t.id ~= "" then
+					table.insert(ids, t.id)
+				end
+			end
+			pcall(ContentProvider.PreloadAsync, ContentProvider, ids)
+		end)
+	end
 	RunService.Heartbeat:Connect(step)
 end
 

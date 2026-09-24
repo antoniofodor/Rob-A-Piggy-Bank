@@ -1,6 +1,6 @@
 -- Real HeistService tug, handOff, prompt binding and confiscation. Instance,
 -- movement and clock doubles isolate geometry/network/saves from accounting.
-local Config, source = ...
+local Config, source, carrySource = ...
 local checks, now, serial = 0, 100, 0
 local function check(ok,msg) assert(ok,msg); checks+=1 end
 local function noop() end
@@ -15,7 +15,7 @@ local function step()
  for _,co in table.clone(jobs) do if coroutine.status(co)~="dead" then resume(co) end end
 end
 local function finish() for _=1,5 do step() end end
-local modules={Config=Config,CarryPose={HOLD=frame},SoundKit={on=noop}}
+local modules={Config=Config,CarryPose={HOLD=frame,anchor=function() return nil, frame end},SoundKit={on=noop}}
 for _,name in {"PiggyBank","UpgradePreview","UpgradeService","GuardDog","EventService","ResidentService","SocialService","SetService","CosmeticsService"} do modules[name]={} end
 modules.DataService={get=function(p) return p.data end}
 -- `handOff` finds the loot's body through PiggyBank.lootBody, which is
@@ -159,4 +159,34 @@ local runner,guardOwner=actor(),actor();local dogCarry=carry(runner,guardOwner,"
 H.nab(guardOwner,runner,true)
 check(H.carrying[runner]==nil and dogCarry.returnedHaul and guardOwner.data.coins==102,"dog returns the full carry and haul immediately")
 check(runner.humanoid.WalkSpeed==0 and #delays==1 and guardOwner.catches==1,"dog still stuns and credits its owner")
+-- THE CARRY POSE ITSELF, READ AS SOURCE, because nothing in here can play one.
+-- `HOLD` and `HAND_HOLD` are one seat in two frames and every carry above takes
+-- them from `CarryPose.anchor`, so what this suite can hold is that the module
+-- still exports the pair and still poses the body they were measured against.
+-- It is a two-armed HUG again (designer, 2026-09-23) after a day as a one-armed
+-- sling, and the sling's whole identity was the LEFT ARM being absent from the
+-- sequence -- which is invisible to every stub in this file and to every probe
+-- that reads a property rather than a pose.
+local function carryHas(pattern,msg) check(carrySource:find(pattern)~=nil,msg) end
+carryHas("CarryPose%.HOLD = CFrame%.new%(0, 0%.69, %-1%.50%)",
+ "CarryPose.HOLD is the hug's own root-space seat")
+carryHas("CarryPose%.HAND_HOLD = CFrame%.new%(",
+ "CarryPose still exports the hand-space seat both welds use")
+carryHas('for _, side in ipairs%({ "Left", "Right" }%) do',
+ "the sequence poses BOTH arms rather than one -- the hug, not the sling")
+for _,side in {"left","right"} do
+ carryHas(side.." = { armPitch = ","SPEC carries a "..side.." arm")
+end
+check(carrySource:find('pose%("HumanoidRootPart", CFrame%.new%(%), keyframe, 0%)')~=nil
+ and carrySource:find('pose%("LowerTorso", CFrame%.new%(%), root, 0%)')~=nil,
+ "the two path joints stay at Weight 0, so the run keeps the legs")
+check(select(2,carrySource:gsub("CarryPose%.HAND_HOLD",""))==2,
+ "anchor is the only reader of HAND_HOLD besides its own definition")
+-- A STALE ANIMATION ID IS WORSE THAN AN EMPTY ONE. `CarryPose` prefers an
+-- UPLOADED asset over the sequence it registers, so an id left in this row
+-- after the pose changed plays the old pose on every published server, forever,
+-- with nothing in any log. The sling's id was blanked for exactly that reason.
+-- The day the hug is re-exported, upload it and update this check in one pass.
+check(Config.animationId("carry")==nil,
+ "Config.ANIMATIONS.carry is empty while the pose is built in code")
 print(("PASS: %d handoff checks; real tug loop, full escrow, prompt rebinding, winner/rest, stale tasks, failures and dog/patrol refunds."):format(checks))

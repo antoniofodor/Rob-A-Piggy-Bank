@@ -86,6 +86,20 @@ type Hidden = {
 	character: Model?,
 	anchor: Vector3,
 	until_: number,
+	-- When the occupant is allowed to climb out (jump or push). See
+	-- Config.BINS.settleSeconds: entry is instant, so the commitment lives
+	-- here instead.
+	canExitAt: number,
+	-- WHICH WAY THEY WERE FACING WHEN THEY GOT IN, and it has to be captured
+	-- because entering DESTROYS it: the root is seated with
+	-- `CFrame.new(hatch.Position)`, which carries an identity rotation, so by
+	-- the time anybody asks, every hider in the game is facing world +Z.
+	--
+	-- That was invisible while the exit was a move input -- a direction was
+	-- always supplied, so the fallback never ran. With a button it is the
+	-- common case, and without this a player pressing CLIMB OUT with no key
+	-- held would pop out northward whichever side of the street they were on.
+	facing: Vector3,
 	hiddenParts: { { part: BasePart, transparency: number } },
 	nameMode: Enum.HumanoidDisplayDistanceType?,
 }
@@ -196,6 +210,12 @@ local function reveal(player: Player, why: string?)
 		if bin then
 			bin.enter.Enabled = true
 			bin.open.Enabled = false
+			-- The deny half of the OPEN split goes back with it. Released HERE
+			-- rather than in `exitBin`, because this is the one choke point
+			-- every ending passes through -- jumping out, pushing out, being
+			-- tipped out, the two-minute ceiling, dying in there, and quitting
+			-- from inside.
+			bin.open:SetAttribute(Config.PROMPT_DENY_OWNER_ATTRIBUTE, nil)
 		end
 		binReadyAt[player] = os.clock() + Config.BINS.cooldown
 	end
@@ -304,6 +324,9 @@ local function enterBin(player: Player, model: Model): boolean
 
 	local hiddenParts, nameMode = hideCharacter(player)
 
+	-- READ BEFORE THE SEAT BELOW OVERWRITES IT. See `Hidden.facing`.
+	local facing = root.CFrame.LookVector
+
 	-- Parked AT the bin and anchored there. Being inside has to be spatially
 	-- true, not just visually: a pursuer converging on the bin is converging
 	-- on the player, and the catch radius has to agree with the picture.
@@ -315,6 +338,8 @@ local function enterBin(player: Player, model: Model): boolean
 		character = character,
 		anchor = bin.hatch.Position,
 		until_ = os.clock() + Config.BINS.maxSeconds,
+		canExitAt = os.clock() + Config.BINS.settleSeconds,
+		facing = facing,
 		hiddenParts = hiddenParts,
 		nameMode = nameMode,
 	}
@@ -324,17 +349,37 @@ local function enterBin(player: Player, model: Model): boolean
 	bin.enter.Enabled = false
 	bin.open.Enabled = true
 
-	notify(player, "In the bin. Push any direction to climb out.", "good")
+	-- The occupant is refused OPEN on their own screen (and every other
+	-- prompt goes off too -- ClientMain switches ProximityPromptService off
+	-- while disguised). The server re-checks on the trigger regardless.
+	bin.open:SetAttribute(Config.PROMPT_DENY_OWNER_ATTRIBUTE, player.UserId)
+
+	-- NAMED, because the way out is not a prompt: a hider sees no prompts at
+	-- all. The on-screen hint (Shared/BinExitHint) says the same thing for as
+	-- long as they are inside.
+	notify(player, "In the bin. Jump or push any way to climb out.", "good")
 	StealthService.push(player)
 	return true
 end
 
--- CLIMBING OUT IS A DIRECTION, NOT A BUTTON.
+-- CLIMBING OUT IS A JUMP OR A FRESH PUSH, AND FOR ONE BUILD IT WAS A PROMPT
+-- NOBODY COULD PRESS.
 --
--- You are in a bin; you push a way and you come out that way. No new control
--- to teach, it works identically on a keyboard and a thumbstick, and it is
--- the whole reason the bin is worth using: your pursuer arrives STOPPED at a
--- known point, so choosing the exit is choosing to break their line.
+-- The exit was a move input (you push a way and come out that way), and that
+-- broke the moment `enterHold` went to 0: a player reaches a bin RUNNING, so
+-- the key already under their thumb threw them out on the next frame. The
+-- fix was a CLIMB OUT ProximityPrompt -- and ClientMain switches
+-- ProximityPromptService off for anybody in a bin, so the prompt never drew
+-- and the only way out was the two-minute ceiling.
+--
+-- NOW: jump (Space, the touch jump button, gamepad A), a tap on the on-screen
+-- hint, or a push of the move input that STARTED AFTER the lid shut -- a key
+-- held through entry is ignored until it has been let go once. All of them
+-- arrive through the `BinClimbOut` remote, which carries at most a direction.
+-- `Config.BINS.settleSeconds` is still the commitment. The direction still
+-- decides which way you break: the push you made, or for a jump the way the
+-- camera is looking (a hider's own facing was flattened to world +Z on entry,
+-- so it means nothing), falling back to the way you went in.
 local function exitBin(player: Player, direction: Vector3?, why: string?)
 	local state = hidden[player]
 	local model = state and state.bin
@@ -421,7 +466,7 @@ local function wireBin(model: Model)
 
 	local enter = Instance.new("ProximityPrompt")
 	enter.Name = "Enter"
-	enter.ActionText = "HIDE"
+	enter.ActionText = "Hide"
 	Config.setPromptKind(enter, "hide")
 	enter.ObjectText = "Litter Bin"
 	enter.HoldDuration = Config.BINS.enterHold
@@ -431,7 +476,7 @@ local function wireBin(model: Model)
 
 	local open = Instance.new("ProximityPrompt")
 	open.Name = "Open"
-	open.ActionText = "OPEN"
+	open.ActionText = "Open It"
 	Config.setPromptKind(open, "dig")
 	open.ObjectText = "Litter Bin"
 	open.HoldDuration = Config.BINS.openHold
@@ -439,6 +484,7 @@ local function wireBin(model: Model)
 	open.RequiresLineOfSight = false
 	open.Enabled = false
 	open.Parent = hatch
+
 
 	-- COLLECTED BY WALKING THE MODEL, never by FindFirstChild: a bin prop is
 	-- a PAIR of bins and both lids are called "Lid", so a lookup by name
@@ -465,7 +511,8 @@ local function wireBin(model: Model)
 	end
 
 	local bin: Bin = {
-		model = model, hatch = hatch, enter = enter, open = open, lids = lids,
+		model = model, hatch = hatch, enter = enter, open = open,
+		lids = lids,
 	}
 	bins[model] = bin
 
@@ -478,15 +525,22 @@ local function wireBin(model: Model)
 		if not inside then
 			return
 		end
-		-- The occupant can see their own OPEN prompt. Letting them trigger it
-		-- would be a second, worse way to climb out -- no direction, and it
-		-- reads as being caught by yourself.
+		-- THE OCCUPANT IS ALREADY REFUSED THIS ON THEIR OWN SCREEN, by the
+		-- deny attribute `enterBin` sets -- they are shown CLIMB OUT instead,
+		-- which is the same bin and the right verb. This is the server half
+		-- of that, kept because a client-side refusal is the client declining
+		-- to ask and never the guard.
+		--
+		-- It also still answers the thing it was written for: being tipped
+		-- out pays no speed burst and reads as being caught, so an occupant
+		-- reaching this would be a strictly worse way out of their own bin.
 		if inside == player then
 			return
 		end
 		exitBin(inside, nil, "Found! Someone tipped you out.")
 		notify(player, "Got them! They were in the bin.", "good")
 	end)
+
 end
 
 -- Polled, for the reason the dog's patrol is: the four things that end a
@@ -681,6 +735,43 @@ function StealthService.start()
 		StealthService.use(player, key)
 	end)
 
+	-- CLIMBING OUT UNDER YOUR OWN POWER: a jump, a tap on the hint, or a
+	-- fresh push of the move input (see Shared/BinExitHint for the client
+	-- half). It carries AT MOST A DIRECTION, never a position or an outcome:
+	-- the server owns where you land, the settle, and whether you are in a
+	-- bin at all. A malformed direction is not an error -- it falls back to
+	-- the way the player went in, which is a legal exit.
+	--
+	-- THIS REPLACED A CLIMB OUT PROMPT THAT NOBODY COULD EVER PRESS.
+	-- ClientMain turns ProximityPromptService off for a hider (so the bin's
+	-- own OPEN, the next bin and every plot prompt go dark) and that switch
+	-- took the CLIMB OUT prompt down with them -- the only way out was the
+	-- two-minute ceiling. The exit is not a prompt any more, so that rule
+	-- can stay exactly as it is.
+	Remotes.get("BinClimbOut").OnServerEvent:Connect(function(player, direction)
+		local state = hidden[player]
+		if not state or not state.bin or occupant[state.bin] ~= player then
+			return
+		end
+		-- The settle. The client waits it out before asking, so this only
+		-- refuses a client written to ignore it.
+		if os.clock() < state.canExitAt then
+			return
+		end
+		local out: Vector3 = state.facing
+		if typeof(direction) == "Vector3" then
+			local flat = Vector3.new(direction.X, 0, direction.Z)
+			local m = flat.Magnitude
+			-- m == m rejects NaN; the cap rejects inf and nonsense.
+			if m == m and m > 0.1 and m < 1e4 then
+				out = flat / m
+			end
+		end
+		-- A direction and no reason: the player chose this, so the burst is
+		-- earned (see `vaulted` in exitBin).
+		exitBin(player, out, nil)
+	end)
+
 	-- The ward is consumed inside HeistService, which owns the effect; this is
 	-- how the HUD finds out it is gone.
 	HeistService.onWardUsed(function(player, _spec)
@@ -725,20 +816,6 @@ function StealthService.start()
 
 	local accumulator = 0
 	RunService.Heartbeat:Connect(function(dt)
-		-- EVERY FRAME, not on the 0.15 tick below. Climbing out is driven by
-		-- the player's own move input, so it is the one thing here with a
-		-- human waiting on it -- polled at 0.15 it would feel like a stuck
-		-- button, and it is being pressed mid-chase.
-		for player, state in pairs(hidden) do
-			if state.bin then
-				local character = player.Character
-				local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-				if humanoid and humanoid.MoveDirection.Magnitude > 0.1 then
-					exitBin(player, humanoid.MoveDirection, nil)
-				end
-			end
-		end
-
 		accumulator += dt
 		if accumulator < 0.15 then
 			return
