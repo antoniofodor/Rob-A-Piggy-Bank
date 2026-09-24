@@ -1,0 +1,117 @@
+{
+  "asset": "rope",
+  "status": "local Blender source and FBX; not uploaded or integrated",
+  "files": {
+    "blend": "lasso-rope.blend",
+    "fbx": "lasso-rope.fbx"
+  },
+  "parts": [
+    {
+      "name": "Rope",
+      "vertices": 2390,
+      "triangles": 4776,
+      "non_manifold_edges": 0,
+      "flat_shaded": true,
+      "colors_srgb": [
+        218,
+        181,
+        126
+      ]
+    },
+    {
+      "name": "Grip",
+      "vertices": 96,
+      "triangles": 188,
+      "non_manifold_edges": 0,
+      "flat_shaded": true,
+      "colors_srgb": [
+        91,
+        51,
+        30
+      ]
+    }
+  ],
+  "total_triangles": 4964,
+  "triangle_budget": 6000,
+  "textures": 0,
+  "shading": "flat",
+  "pivot": "assembled bounds center",
+  "bounds_blender": {
+    "min": [
+      -1.0836546421051025,
+      -0.1274999976158142,
+      -1.375
+    ],
+    "max": [
+      1.0836546421051025,
+      0.1274999976158142,
+      1.375
+    ]
+  },
+  "dimensions_blender": [
+    2.167309284210205,
+    0.2549999952316284,
+    2.75
+  ],
+  "dimensions_roblox": [
+    2.167309284210205,
+    2.75,
+    0.2549999952316284
+  ],
+  "export_axes": {
+    "up": "Y",
+    "forward": "-Z"
+  },
+  "attachments": {
+    "HandGrip": {
+      "position_blender": [
+        0.047503650188446045,
+        0.0,
+        0.9699999690055847
+      ],
+      "position_roblox": [
+        0.047504,
+        0.97,
+        -0.0
+      ],
+      "cframe_roblox": [
+        0.047504,
+        0.97,
+        -0.0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "RopeExit": {
+      "position_blender": [
+        0.36750367283821106,
+        7.450580707946131e-10,
+        -1.375
+      ],
+      "position_roblox": [
+        0.367504,
+        -1.375,
+        -0.0
+      ],
+      "outward_direction_roblox": [
+        0.0,
+        -1.0,
+        -0.0
+      ]
+    }
+  },
+  "notes": [
+    "Shared geometry for Rope, Braided and Golden.",
+    "Suggested held span 1.9 studs; confirm grip transform on the live R15 character.",
+    "Face the narrow edge towards the body when held to limit leg clipping."
+  ],
+  "units": "authoring units; preserve assembly scale; scale attachment positions by the same factor",
+  "studio_fit": "not yet tested in hand or around live piggies"
+}

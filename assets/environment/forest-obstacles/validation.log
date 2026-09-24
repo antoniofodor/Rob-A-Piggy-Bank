@@ -1,0 +1,30 @@
+00:03.204  blend            | Read blend: "C:\Users\anton\robloxGame\assets\environment\forest-obstacles\moss-boulder\moss-boulder.blend"
+BlenderMCP addon registered
+BlenderMCP addon unregistered
+FBX version: 7400
+CHECKED moss-boulder
+00:03.907  blend            | Read blend: "C:\Users\anton\robloxGame\assets\environment\forest-obstacles\split-rock-passage\split-rock-passage.blend"
+FBX version: 7400
+CHECKED split-rock-passage
+00:04.016  blend            | Read blend: "C:\Users\anton\robloxGame\assets\environment\forest-obstacles\hollow-log\hollow-log.blend"
+FBX version: 7400
+CHECKED hollow-log
+00:04.204  blend            | Read blend: "C:\Users\anton\robloxGame\assets\environment\forest-obstacles\giant-oak\giant-oak.blend"
+FBX version: 7400
+CHECKED giant-oak
+00:04.282  blend            | Read blend: "C:\Users\anton\robloxGame\assets\environment\forest-obstacles\giant-pine\giant-pine.blend"
+FBX version: 7400
+CHECKED giant-pine
+00:04.375  blend            | Read blend: "C:\Users\anton\robloxGame\assets\environment\forest-obstacles\root-arch\root-arch.blend"
+FBX version: 7400
+CHECKED root-arch
+00:04.516  blend            | Read blend: "C:\Users\anton\robloxGame\assets\environment\forest-obstacles\stone-arch\stone-arch.blend"
+FBX version: 7400
+CHECKED stone-arch
+00:04.641  blend            | Read blend: "C:\Users\anton\robloxGame\assets\environment\forest-obstacles\stepping-stumps\stepping-stumps.blend"
+FBX version: 7400
+CHECKED stepping-stumps
+FOREST_VALIDATION_PASSED 5308
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

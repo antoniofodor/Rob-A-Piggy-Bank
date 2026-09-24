@@ -2,11 +2,15 @@
 
 Canonical artwork is stored beside its original 3D source. Each PNG has a matching JSON file recording its source path/hash, image hash, and uploaded Roblox asset ID. The `shop-ui` folders contain indexes and review sheets; they are not duplicate image libraries.
 
+**Every folder below is named after the `Config` KEY, never the display name.**
+The Scrappy guardian lives in `guards/terrier/` because its coat key is still
+`terrier`; see `assets/README.md`.
+
 - Houses: `houses/<model-folder>/shop-cards/<house-id>.png`
-- Guardians: `guards/<rig>/shop-cards/<guardian-id>.png` (six coats share the Shepherd rig).
+- Guardians: `guards/<rig>/shop-cards/<guardian-id>.png` (six coats share the Shepherd rig). All thirteen `Config.DOG_COATS` rows have a card.
 - Rides: `rides/<ride>/shop-cards/<ride>.png`, rebuilt from `rides/ride-geometry.json` (ids mapped in `ShopRideCards`)
-- Acorn currency: `acorn/ui/acorn-model-icon.png`
-- Animal skins: `piggies/<skin>/package/shop-cards/<skin>.png` (all 19; ids in `shop-ui/skin-images/roblox-uploads.json`, mapped in `ShopSkinCards`). Everything about a skin -- scene, generator, sheets, previews, the derived import package and the live texture ids -- is under `piggies/<skin>/`; see `piggies/README.md`. The tier galleries stay at `skins/animal/<tier>/index.html`.
+- Acorn currency: `acorn/ui/acorn-model-icon.png` -- **RETIRED with the currency (schema 29).** The image is still uploaded and nothing mounts it; the row below is an upload record, not a shop card. See [`acorn/README.md`](acorn/README.md).
+- Animal skins: `piggies/<tier>/<skin>/package/shop-cards/<skin>.png`; the ids in `shop-ui/skin-images/roblox-uploads.json` are the count of record, mapped in `ShopSkinCards`. Skins land often enough that pinning a number here would go stale. Everything about a skin -- scene, generator, sheets, previews, the derived import package and the live texture ids -- is under `piggies/<skin>/`; see `piggies/README.md`. The tier galleries stay at `skins/animal/<tier>/index.html`.
 
 Regenerate with Blender using `blender/shop/render_house_images.py`, `blender/shop/render_guardian_images.py`, `blender/shop/render_ride_images.py`, or `blender/shop/render_skin_images.py` from the repository root. (`blender/acorn/render_icon.py` was listed here and is gone with the acorn track, schema 29.) These scripts only read the native models; they never save over them. Upload changed PNGs and update the corresponding `ShopHouseCards`, `ShopGuardianCards`, `ShopRideCards`, or `ShopIcons` mappings. Guardian colors use `Config.DOG_COATS` and each model's authored palette, matching `GuardRig.tones`.
 
@@ -39,7 +43,7 @@ Regenerate with Blender using `blender/shop/render_house_images.py`, `blender/sh
 | Gorilla (guardian) | [Blend](guards/gorilla/gorilla.blend) | [PNG](guards/gorilla/shop-cards/gorilla.png) | `rbxassetid://75445866786877` |
 | Raptor (guardian) | [Blend](guards/raptor/raptor.blend) | [PNG](guards/raptor/shop-cards/raptor.png) | `rbxassetid://139324732339969` |
 | Triceratops (guardian) | [Blend](guards/triceratops/triceratops.blend) | [PNG](guards/triceratops/shop-cards/triceratops.png) | `rbxassetid://109345948759219` |
-| Terrier (guardian) | [Blend](guards/terrier/terrier.blend) | [PNG](guards/terrier/shop-cards/terrier.png) | `rbxassetid://126143860962341` |
+| Scrappy (guardian, key `terrier`) | [Blend](guards/terrier/terrier.blend) | [PNG](guards/terrier/shop-cards/terrier.png) | `rbxassetid://126143860962341` |
 | Mastiff (guardian) | [Blend](guards/mastiff/mastiff.blend) | [PNG](guards/mastiff/shop-cards/mastiff.png) | `rbxassetid://79883493152667` |
 | Dire Wolf (guardian) | [Blend](guards/direwolf/direwolf.blend) | [PNG](guards/direwolf/shop-cards/direwolf.png) | `rbxassetid://110670035166700` |
 | Cerberus (guardian) | [Blend](guards/cerberus/cerberus.blend) | [PNG](guards/cerberus/shop-cards/cerberus.png) | `rbxassetid://112271849554979` |
@@ -49,4 +53,4 @@ Regenerate with Blender using `blender/shop/render_house_images.py`, `blender/sh
 | Hoverboard (ride) | [Geometry](rides/ride-geometry.json) | [PNG](rides/hoverboard/shop-cards/hoverboard.png) | `rbxassetid://105930834977872` |
 | Volt Scrambler (ride) | [Geometry](rides/ride-geometry.json) | [PNG](rides/scrambler/shop-cards/scrambler.png) | `rbxassetid://129344091194039` |
 | Hoverdisc (ride) | [Geometry](rides/ride-geometry.json) | [PNG](rides/hoverdisc/shop-cards/hoverdisc.png) | `rbxassetid://123613429519195` |
-| Acorn currency | [Blend](acorn/acorn.blend) | [PNG](acorn/ui/acorn-model-icon.png) | `rbxassetid://86680018585267` |
+| Acorn currency (RETIRED) | [Blend](acorn/acorn.blend) | [PNG](acorn/ui/acorn-model-icon.png) | `rbxassetid://86680018585267` |

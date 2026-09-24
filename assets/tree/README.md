@@ -1,4 +1,15 @@
-# Acorn oak
+# Acorn oak -- RETIRED, KEPT AS AN UPLOAD AND MEASUREMENT RECORD
+
+The acorn currency was deleted in schema 29 and `Config.ACORN_OAK_MESH` went
+with it, so nothing here is on a lawn any more. `Config.TREE_MESH` is a
+DIFFERENT tree -- the street scenery oak -- and its ids are not in this folder.
+What survives here is `tree.json` / `tree.rbxmx` (two uploaded ids for the
+first generated oak, unrecoverable if deleted), the measurements in
+`blender/oak-report.json`, the briefs and the generation prompts.
+`tree-oak-render.png` (the superseded v1 reference) and the five
+`blender/oak-*.png` review renders were removed on 2026-09-23;
+`blender/tree/build_oak.py` regenerates the renders and still loads
+`tree-oak-render-v2.png`, which is why that one is kept.
 
 ## Current compact Blender oak
 

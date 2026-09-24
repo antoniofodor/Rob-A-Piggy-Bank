@@ -1,4 +1,12 @@
-# AcornStorageCrate
+# AcornStorageCrate -- RETIRED, KEPT AS AN UPLOAD RECORD
+
+The acorn currency was deleted in schema 29 and `Config.ACORN_STORAGE_MESH`
+went with it: the doorstep crate on a plot is built from primitives in
+`PlotService` (`CRATE_SPOT`), not from these meshes. This folder survives for
+one reason -- `AcornStorageCrate.json` and `.rbxmx` hold FIVE UPLOADED ASSET
+IDS that cannot be re-derived (the Assets API has no list endpoint). Do not
+delete those two files. `AcornStorageCrate-preview.png` was removed on
+2026-09-23; `blender/crate/build_crate.py` regenerates it.
 
 Chunky open wooden storage crate with three horizontal boards per wall, a solid
 0.25-unit floor, corner posts, a thicker rim, and a tan/brown Acorn emblem.
@@ -8,7 +16,8 @@ Chunky open wooden storage crate with three horizontal boards per wall, a solid
 - `AcornStorageCrate.blend`: editable source; packed texture; separate presentation collection.
 - `AcornStorageCrate.glb`: game model only, with the texture embedded.
 - `AcornStorageCrate_Atlas.png`: 512×512 flat-colour base-colour atlas.
-- `AcornStorageCrate-preview.png`: three-quarter preview.
+- `AcornStorageCrate-preview.png`: three-quarter preview. REMOVED 2026-09-23;
+  regenerable by `blender/crate/build_crate.py`.
 - `AcornStorageCrate-report.json`: geometry and export measurements.
 
 ## Import

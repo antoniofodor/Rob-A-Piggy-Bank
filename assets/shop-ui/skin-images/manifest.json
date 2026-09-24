@@ -8,9 +8,9 @@
       "id": "tiger",
       "name": "Bengal Tiger",
       "source": "assets/piggies/common/tiger/package/tiger-complete.blend",
-      "sourceSha256": "882570b9174eba836efc818aa4fdd56a43d7b2d9b54248ec6c2aa53cc301a634",
+      "sourceSha256": "f21b63508ffcc8b46d939d3b060e767f08e80a5b2a7f65c48bc741a70f7a4c02",
       "image": "assets/piggies/common/tiger/package/shop-cards/tiger.png",
-      "sha256": "f1d0c59284f81cafc5cc75bddd29d8d3d5b3993faa15aad3460c94e6a1727471",
+      "sha256": "2c5a6d2351a6f6fc88f4d63830e8a07e0d3e9af08333a8ac3cff22f2287f227c",
       "robloxAssetId": "rbxassetid://120311433092780"
     },
     {
@@ -44,9 +44,9 @@
       "id": "zebra",
       "name": "Zebra",
       "source": "assets/piggies/common/zebra/package/zebra-complete.blend",
-      "sourceSha256": "c38a87c94cdd1efc372be967aa2367f2b20c6a0f96b2ebc244eb7bd071d577f2",
+      "sourceSha256": "f13ad75da17de546385b1a425f1a46bb781b3dd179b8b55ecf9063e980075c2b",
       "image": "assets/piggies/common/zebra/package/shop-cards/zebra.png",
-      "sha256": "a2ecda495364f5a27da4867eb3bea6da1f671224b03009dd8d97ac283a208757",
+      "sha256": "20b1efcd5b6c879ef1d98f7786cff058d663cf5b938446874a7fac70c266b353",
       "robloxAssetId": "rbxassetid://134406442403226"
     },
     {
@@ -116,18 +116,18 @@
       "id": "peppermint",
       "name": "Peppermint",
       "source": "assets/piggies/rare/peppermint/package/peppermint-complete.blend",
-      "sourceSha256": "e44ebffa22ff154b851c673ae1394e9434a1365233430b2ed5faeb3574cf45c2",
+      "sourceSha256": "62e823acf03dbb10dc8251bc9e34638ae67fa7f67e3dadd0f33d59020cb88a56",
       "image": "assets/piggies/rare/peppermint/package/shop-cards/peppermint.png",
-      "sha256": "ad11891eb6550cd5eb41a693247b81f4d9f9f1b017b141106269137a79533846",
+      "sha256": "a8cfc06d7091ae609a11085a4f5afe27b353e965af30908adc1b11c36ac64a5d",
       "robloxAssetId": "rbxassetid://119504778501327"
     },
     {
       "id": "glacier",
       "name": "Glacier",
       "source": "assets/piggies/rare/glacier/package/glacier-complete.blend",
-      "sourceSha256": "cb966ddec5be390bd93fc1590db49148c49485ff90ff2dc1cdb152e9ee1ab8fc",
+      "sourceSha256": "80b3ca2e9699bfc4fa13201b7c05cf8e97f5dcaa918525a9da48a1317a48a29a",
       "image": "assets/piggies/rare/glacier/package/shop-cards/glacier.png",
-      "sha256": "191c5f43787da8330f9b40747ddf25ac166d093eec56fbc8bb20d3d20dee66d1",
+      "sha256": "5d3a933c2a24da519a76740cd7bd745fbe3f61282bbf01ff05856440294cdc21",
       "robloxAssetId": "rbxassetid://93224357602594"
     },
     {
@@ -143,9 +143,9 @@
       "id": "honeycomb",
       "name": "Honeycomb",
       "source": "assets/piggies/rare/honeycomb/package/honeycomb-complete.blend",
-      "sourceSha256": "529ec56264024707433f01cc3ece526a973c663d1f9a96f02e416d80a65b8513",
+      "sourceSha256": "54f7341c5d432058124d723ce84a62c33b76e0996817bef3bace79985829f698",
       "image": "assets/piggies/rare/honeycomb/package/shop-cards/honeycomb.png",
-      "sha256": "9b6a537b8a37744b1846076dcbf0d7d15d1992af19065e84fbec03c9617ff2a7",
+      "sha256": "38bbac09964b3b7f683d84fbbecb9fdde6025882960dce9ce60a8d6fb6120078",
       "robloxAssetId": "rbxassetid://114718401104881"
     },
     {

@@ -1,0 +1,46 @@
+{
+  "creatorUserId": "1403296598",
+  "assets": {
+    "meadow": {
+      "file": "meadow.fbx",
+      "sha256": "8b1ea6cd49e539f48e7287df730cf5c7e0c7851aa21dbe8639167670fadefef8",
+      "operationId": "aace5887-632a-460d-aa8a-7504bb3a35ad",
+      "assetId": "91341780443451",
+      "moderationState": "Approved"
+    },
+    "border": {
+      "file": "border.fbx",
+      "sha256": "ab79e06047849d6e1ea92a83970586a1aa5e2ca54d0e2b3d596198426f7d8709",
+      "operationId": "8151d280-7107-4a82-80d6-54239198642a",
+      "assetId": "104348945801853",
+      "moderationState": "Approved"
+    },
+    "shore": {
+      "file": "shore-wide-v2.fbx",
+      "sha256": "ffe56b2c3b64ddcd2bd397249ece196196a91115c954bc81f4d73c226d8ccf38",
+      "operationId": "a8c63940-c23c-45c7-9a92-276ed0bb3ba5",
+      "assetId": "97145432719670",
+      "moderationState": "Approved"
+    }
+  },
+  "supersededAssets": [
+    {
+      "role": "shore",
+      "reason": "User requested two substantially larger ponds and a wider waterfall",
+      "file": "shore.fbx",
+      "sha256": "f9f68697235785058af2e72483948d194539ae2067cc584cf0cef32fafc83193",
+      "operationId": "62215c79-ccc8-4b66-96c9-238c73f780cf",
+      "assetId": "117606286894522",
+      "moderationState": "Approved"
+    },
+    {
+      "file": "shore-wide-v2.fbx",
+      "sha256": "c6243b14b32477fd87ffeb0e0cac82357674811e26e31367729ce3e6b86c69d6",
+      "operationId": "084791fb-e873-4ffb-8c5e-4416fcec7766",
+      "assetId": "76886936856804",
+      "moderationState": "Approved",
+      "role": "shore",
+      "reason": "Correct upward shoreline face normals after Studio lighting review"
+    }
+  ]
+}

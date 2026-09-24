@@ -1,0 +1,92 @@
+{
+  "asset": "loop",
+  "status": "local Blender source and FBX; not uploaded or integrated",
+  "files": {
+    "blend": "loop.blend",
+    "fbx": "loop.fbx"
+  },
+  "parts": [
+    {
+      "name": "Loop",
+      "vertices": 640,
+      "triangles": 1276,
+      "non_manifold_edges": 0,
+      "flat_shaded": true,
+      "colors_srgb": [
+        218,
+        181,
+        126
+      ]
+    }
+  ],
+  "total_triangles": 1276,
+  "triangle_budget": 1500,
+  "textures": 1,
+  "shading": "flat",
+  "pivot": "center of circular opening; horizontal in Roblox XZ",
+  "bounds_blender": {
+    "min": [
+      -0.9446161985397339,
+      -0.9446161985397339,
+      -0.21700000762939453
+    ],
+    "max": [
+      1.3300000429153442,
+      0.9446161985397339,
+      0.21700000762939453
+    ]
+  },
+  "dimensions_blender": [
+    2.274616241455078,
+    1.8892323970794678,
+    0.43400001525878906
+  ],
+  "dimensions_roblox": [
+    2.274616241455078,
+    0.43400001525878906,
+    1.8892323970794678
+  ],
+  "export_axes": {
+    "up": "Y",
+    "forward": "-Z"
+  },
+  "attachments": {
+    "RopeExit": {
+      "position_blender": [
+        1.3300000429153442,
+        0.0,
+        0.0
+      ],
+      "position_roblox": [
+        1.33,
+        0.0,
+        -0.0
+      ],
+      "outward_direction_roblox": [
+        1.0,
+        0.0,
+        -0.0
+      ]
+    }
+  },
+  "notes": [
+    "Opening diameter 1.46 authoring units; outer ring diameter 1.90.",
+    "For uniform scale use (torso horizontal diameter + 2*clearance)/1.46.",
+    "For noncircular bodies size to the larger horizontal extent, or deform the ring centerline while retaining round rope.",
+    "Knot and stub are closed overlapping shells joined into the same MeshPart."
+  ],
+  "units": "authoring units; preserve assembly scale; scale attachment positions by the same factor",
+  "studio_fit": "not yet tested in hand or around live piggies",
+  "tiers": [
+    "rope",
+    "braided",
+    "golden",
+    "elite"
+  ],
+  "texture_source": "../textures/{tier}.png",
+  "material_color": [
+    255,
+    255,
+    255
+  ]
+}

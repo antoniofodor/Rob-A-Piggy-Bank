@@ -1,0 +1,18 @@
+C:\Users\anton\robloxGame\assets\environment\forest-obstacles\generate\build_forest.py:44: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat.use_nodes=True
+C:\Users\anton\robloxGame\assets\environment\forest-obstacles\generate\build_forest.py:339: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  scene.world=bpy.data.worlds.new('ForestPreviewWorld');scene.world.use_nodes=True
+00:04.282  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_6088_621f1aa37bbd8cff1ff6ebe0dfac76fd.png.png"
+00:15.360  render           | Saved: 'C:\Users\anton\robloxGame\assets\environment\forest-obstacles\stone-arch\preview\stone-arch.png'
+00:27.141  render           | Saved: 'C:\Users\anton\robloxGame\assets\environment\forest-obstacles\stone-arch\preview\stone-arch-opening.png'
+BlenderMCP addon registered
+BlenderMCP addon unregistered
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\environment\\forest-obstacles\\stone-arch\\stone-arch.fbx'
+export finished in 0.0087 sec.
+Info: Saved as "stone-arch.blend"
+FOREST_ASSET_COMPLETE stone-arch 264
+FOREST_BUILD_COMPLETE 8
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

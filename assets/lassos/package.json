@@ -1,0 +1,12 @@
+{
+  "archive": "lasso-kit.zip",
+  "files": 77,
+  "bytes": 12014841,
+  "sha256": "53083e678d1b072edc109b43ea4fd19b922ccaf5d1e151ca9dc7eb789446e8ad",
+  "excluded": [
+    "alternates/",
+    "build logs",
+    "Blender backups",
+    "Python caches"
+  ]
+}

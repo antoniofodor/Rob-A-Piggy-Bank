@@ -1,0 +1,52 @@
+{
+  "key": "giant-pine",
+  "name": "Tall Forest Pine",
+  "mesh_name": "GiantPine",
+  "triangles": 564,
+  "parts": 1,
+  "texture": "../forest-palette.png",
+  "flat_shaded": true,
+  "closed_manifold": true,
+  "dimensions_studs": [
+    18.0,
+    38.150000005960464,
+    18.0
+  ],
+  "bounds_studs": {
+    "min": [
+      -9.0,
+      -0.15000000596046448,
+      -9.0
+    ],
+    "max": [
+      9.0,
+      38,
+      9.0
+    ]
+  },
+  "pivot": "ground anchor at (0,0,0)",
+  "authoring_to_blender": "(x,y,z) -> (x,-z,y)",
+  "fbx_global_scale": 0.01,
+  "collision": [
+    {
+      "name": "Trunk",
+      "center": [
+        0,
+        11,
+        0
+      ],
+      "size": [
+        2.9,
+        22,
+        2.9
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "passage": null,
+  "status": "local source art; not uploaded or placed in the live map"
+}

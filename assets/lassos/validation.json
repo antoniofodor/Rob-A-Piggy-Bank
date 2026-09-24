@@ -1,0 +1,132 @@
+{
+  "coil": {
+    "source": "passed",
+    "fbx_round_trip": "passed",
+    "parts": {
+      "Grip": {
+        "triangles": 188,
+        "bounds": [
+          [
+            -0.13749635219573975,
+            -0.12749995291233063,
+            0.5649999380111694
+          ],
+          [
+            0.23250365257263184,
+            0.12750010192394257,
+            1.375
+          ]
+        ],
+        "closed_manifold": true,
+        "flat_shaded": true,
+        "uv_valid": true
+      },
+      "Rope": {
+        "triangles": 4776,
+        "bounds": [
+          [
+            -1.0836546421051025,
+            -0.0880001038312912,
+            -1.375
+          ],
+          [
+            1.0836546421051025,
+            0.0880000963807106,
+            1.33865487575531
+          ]
+        ],
+        "closed_manifold": true,
+        "flat_shaded": true,
+        "uv_valid": true
+      }
+    },
+    "per_part_exports": "passed; placement preserved"
+  },
+  "loop": {
+    "source": "passed",
+    "fbx_round_trip": "passed",
+    "parts": {
+      "Loop": {
+        "triangles": 1276,
+        "bounds": [
+          [
+            -0.9446161389350891,
+            -0.9446161389350891,
+            -0.21700000762939453
+          ],
+          [
+            1.3299999237060547,
+            0.9446161389350891,
+            0.21700000762939453
+          ]
+        ],
+        "closed_manifold": true,
+        "flat_shaded": true,
+        "uv_valid": true
+      }
+    },
+    "per_part_exports": "passed; placement preserved"
+  },
+  "snapped-end": {
+    "source": "passed",
+    "fbx_round_trip": "passed",
+    "parts": {
+      "SnappedEnd": {
+        "triangles": 454,
+        "bounds": [
+          [
+            -0.46999993920326233,
+            -0.20111483335494995,
+            -0.20137108862400055
+          ],
+          [
+            0.8213809728622437,
+            0.20063503086566925,
+            0.22134557366371155
+          ]
+        ],
+        "closed_manifold": true,
+        "flat_shaded": true,
+        "uv_valid": true
+      }
+    },
+    "per_part_exports": "passed; placement preserved"
+  },
+  "daze-star": {
+    "source": "passed",
+    "fbx_round_trip": "passed",
+    "parts": {
+      "Star": {
+        "triangles": 276,
+        "bounds": [
+          [
+            -0.46650636196136475,
+            -0.10000002384185791,
+            -0.39683404564857483
+          ],
+          [
+            0.46650636196136475,
+            0.10000003129243851,
+            0.49051380157470703
+          ]
+        ],
+        "closed_manifold": true,
+        "flat_shaded": true,
+        "uv_valid": false
+      }
+    },
+    "per_part_exports": "passed; placement preserved"
+  },
+  "tier_geometry_and_uvs": {
+    "identical": true,
+    "sha256": {
+      "rope": "4b238dddf449904fcc5a0a0d9989aaa6976ea82a9d11a9912d58ca8513ab5fa1",
+      "braided": "4b238dddf449904fcc5a0a0d9989aaa6976ea82a9d11a9912d58ca8513ab5fa1",
+      "golden": "4b238dddf449904fcc5a0a0d9989aaa6976ea82a9d11a9912d58ca8513ab5fa1",
+      "elite": "4b238dddf449904fcc5a0a0d9989aaa6976ea82a9d11a9912d58ca8513ab5fa1"
+    }
+  },
+  "limitations": [
+    "Not uploaded; no live in-hand or catch-animation fit test."
+  ]
+}

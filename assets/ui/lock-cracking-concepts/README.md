@@ -5,9 +5,14 @@ the built-in image_gen tool. Full prompt set: [prompts.json](prompts.json).
 Images use sample values and enlarged mechanisms to communicate the concepts;
 they are not exact mobile layouts or replacements for the game's world assets.
 
+> **The concept renders were removed on 2026-09-23.** They were a superseded
+> round whose chosen design has shipped; the reasoning below and
+> [prompts.json](prompts.json) are the record, and the PNGs are recoverable
+> from git history.
+
 ## A — Pop the Pins (recommended)
 
-![Five pins](a-pop-the-pins.png)
+*(render `a-pop-the-pins.png` retired -- this is the concept that shipped, as `assets/ui/pop-the-pins-v1/`.)*
 
 One spring-loaded pin moves at a time. Tap the large SET PIN control when its
 collar crosses the notch. The pin snaps into place with a short click and check
@@ -29,7 +34,7 @@ in Crack/HeistService, with a much stronger visual identity.
 
 ## B — Safe Spin
 
-![Safe dial](b-safe-spin.png)
+*(render `b-safe-spin.png` retired -- not chosen.)*
 
 A pointer circles the safe dial; tap CLICK when it enters the marked arc. Each
 successful catch seats a latch and increases the carried haul. Five catches can
@@ -41,7 +46,7 @@ timing game. Best if speed and immediate familiarity matter more than novelty.
 
 ## C — Link the Lock
 
-![Tumbler puzzle](c-link-the-lock.png)
+*(render `c-link-the-lock.png` retired -- not chosen.)*
 
 Tap large discs to rotate their channels into a continuous path. The final
 concept depicts a simple solvable state: first two channels horizontal, last

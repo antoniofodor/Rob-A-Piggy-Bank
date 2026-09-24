@@ -1,0 +1,72 @@
+C:\Users\anton\robloxGame\assets\environment\forest-obstacles\generate\build_forest.py:44: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat.use_nodes=True
+C:\Users\anton\robloxGame\assets\environment\forest-obstacles\generate\build_forest.py:326: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  scene.world=bpy.data.worlds.new('ForestPreviewWorld');scene.world.use_nodes=True
+00:04.328  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_20280_3b6acddf082196ecc74b86edd7176d73.png.png"
+00:14.297  render           | Saved: 'C:\Users\anton\robloxGame\assets\environment\forest-obstacles\moss-boulder\preview\moss-boulder.png'
+BlenderMCP addon registered
+BlenderMCP addon unregistered
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\environment\\forest-obstacles\\moss-boulder\\moss-boulder.fbx'
+export finished in 0.0091 sec.
+Info: Saved as "moss-boulder.blend"
+FOREST_ASSET_COMPLETE moss-boulder 176
+C:\Users\anton\robloxGame\assets\environment\forest-obstacles\generate\build_forest.py:44: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat.use_nodes=True
+00:14.422  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_20280_ef22873ac77b04374d808c9cc3c30215.png.png"
+00:22.500  render           | Saved: 'C:\Users\anton\robloxGame\assets\environment\forest-obstacles\split-rock-passage\preview\split-rock-passage.png'
+00:30.406  render           | Saved: 'C:\Users\anton\robloxGame\assets\environment\forest-obstacles\split-rock-passage\preview\split-rock-passage-opening.png'
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\environment\\forest-obstacles\\split-rock-passage\\split-rock-passage.fbx'
+export finished in 0.0140 sec.
+Info: Saved as "split-rock-passage.blend"
+FOREST_ASSET_COMPLETE split-rock-passage 234
+00:30.562  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_20280_546603550108d76cd50d0afef2fac9cd.png.png"
+00:41.375  render           | Saved: 'C:\Users\anton\robloxGame\assets\environment\forest-obstacles\hollow-log\preview\hollow-log.png'
+00:49.344  render           | Saved: 'C:\Users\anton\robloxGame\assets\environment\forest-obstacles\hollow-log\preview\hollow-log-opening.png'
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\environment\\forest-obstacles\\hollow-log\\hollow-log.fbx'
+export finished in 0.0112 sec.
+Info: Saved as "hollow-log.blend"
+FOREST_ASSET_COMPLETE hollow-log 594
+00:49.562  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_20280_7fae3c0b85769bb206c481f0776ff886.png.png"
+00:58.078  render           | Saved: 'C:\Users\anton\robloxGame\assets\environment\forest-obstacles\giant-oak\preview\giant-oak.png'
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\environment\\forest-obstacles\\giant-oak\\giant-oak.fbx'
+export finished in 0.0143 sec.
+Info: Saved as "giant-oak.blend"
+FOREST_ASSET_COMPLETE giant-oak 1140
+00:58.203  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_20280_384f4a1a07a992f844c28f101b2b7814.png.png"
+01:05.406  render           | Saved: 'C:\Users\anton\robloxGame\assets\environment\forest-obstacles\giant-pine\preview\giant-pine.png'
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\environment\\forest-obstacles\\giant-pine\\giant-pine.fbx'
+export finished in 0.0083 sec.
+Info: Saved as "giant-pine.blend"
+FOREST_ASSET_COMPLETE giant-pine 564
+01:05.578  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_20280_40ec141e1237747fd2c209c4b1766f35.png.png"
+01:13.719  render           | Saved: 'C:\Users\anton\robloxGame\assets\environment\forest-obstacles\root-arch\preview\root-arch.png'
+01:21.781  render           | Saved: 'C:\Users\anton\robloxGame\assets\environment\forest-obstacles\root-arch\preview\root-arch-opening.png'
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\environment\\forest-obstacles\\root-arch\\root-arch.fbx'
+export finished in 0.0094 sec.
+Info: Saved as "root-arch.blend"
+FOREST_ASSET_COMPLETE root-arch 896
+01:21.906  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_20280_621f1aa37bbd8cff1ff6ebe0dfac76fd.png.png"
+01:29.781  render           | Saved: 'C:\Users\anton\robloxGame\assets\environment\forest-obstacles\stone-arch\preview\stone-arch.png'
+01:37.484  render           | Saved: 'C:\Users\anton\robloxGame\assets\environment\forest-obstacles\stone-arch\preview\stone-arch-opening.png'
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\environment\\forest-obstacles\\stone-arch\\stone-arch.fbx'
+export finished in 0.0089 sec.
+Info: Saved as "stone-arch.blend"
+FOREST_ASSET_COMPLETE stone-arch 268
+01:37.594  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_20280_a41d79e15f2f156d46512805c967eeb4.png.png"
+01:44.734  render           | Saved: 'C:\Users\anton\robloxGame\assets\environment\forest-obstacles\stepping-stumps\preview\stepping-stumps.png'
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\environment\\forest-obstacles\\stepping-stumps\\stepping-stumps.fbx'
+export finished in 0.0083 sec.
+Info: Saved as "stepping-stumps.blend"
+FOREST_ASSET_COMPLETE stepping-stumps 1276
+FOREST_BUILD_COMPLETE 8
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

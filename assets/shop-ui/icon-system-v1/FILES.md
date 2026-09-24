@@ -42,9 +42,17 @@ Transparent PNGs for ImageLabels and ImageButtons. These are artwork rather than
 
 ## Effects and previews
 
-- [Crate effect helper](CratePresentation.luau) and [definitions](CrateDefinitions.luau).
+- Crate effect helper and definitions: RETIRED 2026-09-23. `CratePresentation.luau`
+  and `CrateDefinitions.luau` were a client-presentation draft that nothing in
+  `src/` ever adopted -- `Shared/Crates.luau` and `Config.CHESTS` do that job --
+  so the pack no longer carries them. `blender/shop/package_icon_system.py`
+  still emits them; it should stop.
 - [Supply effect helper](models/SupplyEffects.luau) and [definitions](models/SupplyDefinitions.luau).
-- [Icon registry](ShopIcons.luau); the runtime source is src/ReplicatedStorage/Shared/ShopIcons.luau.
+- Icon registry: RETIRED 2026-09-23. The packaged `ShopIcons.luau` was a copy of
+  `src/ReplicatedStorage/Shared/ShopIcons.luau` that only tracked it when the
+  packager was re-run, and it had gone stale -- still carrying the retired acorn
+  row and pointing at an `assets/acorn-ui/` folder that no longer exists. The
+  runtime module is the only copy. Upload ids are in `roblox-uploads.json`.
 - [Review gallery](index.html) and [contact sheet](contact-sheet.png).
 - [Import notes](README.md); each supply model folder also contains its own README.
 

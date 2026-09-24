@@ -1,0 +1,18 @@
+C:\Users\anton\robloxGame\assets\environment\forest-obstacles\generate\build_forest.py:44: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  mat.use_nodes=True
+C:\Users\anton\robloxGame\assets\environment\forest-obstacles\generate\build_forest.py:336: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  scene.world=bpy.data.worlds.new('ForestPreviewWorld');scene.world.use_nodes=True
+00:03.891  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_22104_546603550108d76cd50d0afef2fac9cd.png.png"
+00:13.297  render           | Saved: 'C:\Users\anton\robloxGame\assets\environment\forest-obstacles\hollow-log\preview\hollow-log.png'
+00:20.454  render           | Saved: 'C:\Users\anton\robloxGame\assets\environment\forest-obstacles\hollow-log\preview\hollow-log-opening.png'
+BlenderMCP addon registered
+BlenderMCP addon unregistered
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\environment\\forest-obstacles\\hollow-log\\hollow-log.fbx'
+export finished in 0.0087 sec.
+Info: Saved as "hollow-log.blend"
+FOREST_ASSET_COMPLETE hollow-log 758
+FOREST_BUILD_COMPLETE 8
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

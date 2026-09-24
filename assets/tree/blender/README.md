@@ -10,10 +10,10 @@ lawn. This is authored Blender geometry, not automatic image-to-3D output.
   packed reference image, camera and preview lights.
 - `oak.glb`: only the two textured meshes, at a shared trunk-ground origin.
 - `oak-basecolor.png`: one 256 × 256 palette texture. No PBR map uploads.
-- `oak-three-quarter.png`, `oak-front.png`, `oak-side.png`, `oak-rear.png`:
-  views rendered from the actual mesh.
-- `oak-scale.png`: the tree beside a **5.5-stud block character scale guide**.
-  The guide and preview ground are absent from the export.
+- `oak-three-quarter.png`, `oak-front.png`, `oak-side.png`, `oak-rear.png`,
+  `oak-scale.png`: views rendered from the actual mesh, the last beside a
+  **5.5-stud block character scale guide**. ALL FIVE REMOVED 2026-09-23 -- the
+  acorn oak is retired and `build_oak.py` regenerates them.
 - `oak-report.json`: triangle counts and measured mesh bounds/offsets.
 
 ## Measured size and budget

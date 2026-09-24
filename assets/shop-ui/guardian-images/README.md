@@ -1,6 +1,6 @@
 # Guardian catalog images
 
-Thirteen transparent 768 x 512 images rendered from the actual native rigs, one per row of `Config.DOG_COATS`. Canonical images and per-image provenance JSON live in `assets/guards/<rig>/shop-cards/`, beside the original `.blend` and report. Six coat variants use the Shepherd source; Gorilla, Raptor, Triceratops, Terrier, Mastiff, Dire Wolf and Cerberus retain their own geometry and authored palette.
+Transparent 768 x 512 images rendered from the actual native rigs, one per row of `Config.DOG_COATS`. Canonical images and per-image provenance JSON live in `assets/guards/<rig>/shop-cards/`, beside the original `.blend` and report. Every coat now has its own geometry and authored palette: the catalogue went to ONE COAT PER RIG on 2026-09-23 and the five extra Shepherd-bodied colours (Chocolate, Golden Boy, Spotless Dalmatian, Shadow, Glacier) were retired. Their renders and ids stay recorded in `manifest.json` and `roblox-uploads.json` and are no longer referenced by `Shared/ShopGuardianCards.luau`; re-adding one of those coats needs only its row back, not a re-render.
 
 - `manifest.json`: repository-relative model/image paths, source and PNG hashes, palettes, and Roblox IDs.
 - `roblox-uploads.json`: uploaded images keyed by stable guardian ID.

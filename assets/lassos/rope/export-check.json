@@ -1,0 +1,19 @@
+{
+  "fbx_round_trip": "passed",
+  "parts": [
+    {
+      "name": "Grip",
+      "triangles": 188,
+      "closed_manifold": true,
+      "flat_shaded": true,
+      "texture_images": 0
+    },
+    {
+      "name": "Rope",
+      "triangles": 4776,
+      "closed_manifold": true,
+      "flat_shaded": true,
+      "texture_images": 0
+    }
+  ]
+}

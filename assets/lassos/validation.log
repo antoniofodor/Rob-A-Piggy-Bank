@@ -1,0 +1,23 @@
+00:02.515  blend            | Read blend: "C:\Users\anton\robloxGame\assets\lassos\coil\coil.blend"
+00:03.468  blend            | Read blend: "C:\Users\anton\robloxGame\assets\lassos\loop\loop.blend"
+00:03.656  blend            | Read blend: "C:\Users\anton\robloxGame\assets\lassos\snapped-end\snapped-end.blend"
+00:03.828  blend            | Read blend: "C:\Users\anton\robloxGame\assets\lassos\daze-star\daze-star.blend"
+00:03.968  blend            | Read blend: "C:\Users\anton\robloxGame\assets\lassos\tiers\rope.blend"
+00:04.062  blend            | Read blend: "C:\Users\anton\robloxGame\assets\lassos\tiers\braided.blend"
+00:04.171  blend            | Read blend: "C:\Users\anton\robloxGame\assets\lassos\tiers\golden.blend"
+00:04.265  blend            | Read blend: "C:\Users\anton\robloxGame\assets\lassos\tiers\elite.blend"
+BlenderMCP addon registered
+BlenderMCP addon unregistered
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+FBX version: 7400
+VALIDATION_PASSED {"coil": "passed", "loop": "passed", "snapped-end": "passed", "daze-star": "passed", "tier_geometry_and_uvs": null}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

@@ -1,0 +1,106 @@
+{
+  "key": "stepping-stumps",
+  "name": "Stepping Stumps",
+  "mesh_name": "SteppingStumps",
+  "triangles": 1276,
+  "parts": 1,
+  "texture": "../forest-palette.png",
+  "flat_shaded": true,
+  "closed_manifold": true,
+  "dimensions_studs": [
+    20.39427800837023,
+    4.5,
+    8.338550351309873
+  ],
+  "bounds_studs": {
+    "min": [
+      -9.830534417061637,
+      0,
+      -3.7452600223303802
+    ],
+    "max": [
+      10.563743591308594,
+      4.5,
+      4.593290328979492
+    ]
+  },
+  "pivot": "ground anchor at (0,0,0)",
+  "authoring_to_blender": "(x,y,z) -> (x,-z,y)",
+  "fbx_global_scale": 0.01,
+  "collision": [
+    {
+      "name": "Step00",
+      "center": [
+        -7,
+        0.72,
+        -1
+      ],
+      "size": [
+        3.25,
+        1.44,
+        3.25
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Step01",
+      "center": [
+        -2,
+        1.47,
+        0
+      ],
+      "size": [
+        3.12,
+        2.94,
+        3.12
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Step02",
+      "center": [
+        3,
+        2.22,
+        1
+      ],
+      "size": [
+        3.1850000000000005,
+        4.44,
+        3.1850000000000005
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Step03",
+      "center": [
+        8,
+        1.47,
+        1.7
+      ],
+      "size": [
+        2.9899999999999998,
+        2.94,
+        2.9899999999999998
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "passage": null,
+  "status": "local source art; not uploaded or placed in the live map"
+}

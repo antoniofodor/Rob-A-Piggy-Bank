@@ -30,9 +30,12 @@ and world effects remain separate from the shop UI.
 - `sources/*.blend`: editable models, materials, cameras and consistent studio lights.
 - `crates/<tier>/*.glb` and `.fbx`: model-only exports, embedded palette, separate Body/Lid.
 - `crates/<tier>/manifest.json`: triangle counts, real hinge and effect coordinates.
-- `CrateDefinitions.luau` / `CratePresentation.luau`: optional client presentation.
-- `ShopIcons.luau`: packaged copy of the runtime icon registry and image helper.
-  The canonical source is `src/ReplicatedStorage/Shared/ShopIcons.luau`.
+- `CrateDefinitions.luau`, `CratePresentation.luau`, `ShopIcons.luau`: REMOVED
+  2026-09-23. The first two were a client-presentation draft nothing in `src/`
+  adopted; the third was a copy of the runtime icon registry that had drifted
+  from it. Read `src/ReplicatedStorage/Shared/ShopIcons.luau` and
+  `Shared/Crates.luau` instead. `index.html` and `file-audit.json` are generated
+  and still name all three until the packager is re-run.
 - `models/plunger/`: new hollow-cup plunger model in GLB/FBX, with import notes and
   export validation. Supplies now shows the plunger, gum and golden bone together.
 - `models/bubblegum-bomb/` and `models/golden-bone/`: standalone game exports,
@@ -58,6 +61,9 @@ BasePart named CrateRoot at the **exported bottom-center origin**, not the cente
 the overall bounding box. The clasp and crown make that bounding box asymmetric.
 Set the Model pivot to CrateRoot. The source Blender scene and GLB root preserve
 the intended origin; the `FX_*` empty locators are references, not Roblox emitters.
+
+The crate presentation snippet below is kept for reference only; the modules it
+names were removed on 2026-09-23 (see the file list above).
 
 Install both presentation modules together. From the client:
 

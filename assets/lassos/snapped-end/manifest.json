@@ -1,0 +1,108 @@
+{
+  "asset": "snapped-end",
+  "status": "local Blender source and FBX; not uploaded or integrated",
+  "files": {
+    "blend": "snapped-end.blend",
+    "fbx": "snapped-end.fbx"
+  },
+  "parts": [
+    {
+      "name": "SnappedEnd",
+      "vertices": 229,
+      "triangles": 454,
+      "non_manifold_edges": 0,
+      "flat_shaded": true,
+      "colors_srgb": [
+        218,
+        181,
+        126
+      ]
+    }
+  ],
+  "total_triangles": 454,
+  "triangle_budget": 800,
+  "textures": 1,
+  "shading": "flat",
+  "pivot": "midpoint of main shaft; long axis Roblox X",
+  "bounds_blender": {
+    "min": [
+      -0.4699999690055847,
+      -0.20111484825611115,
+      -0.20137108862400055
+    ],
+    "max": [
+      0.8213810324668884,
+      0.20063503086566925,
+      0.22134557366371155
+    ]
+  },
+  "dimensions_blender": [
+    1.2913810014724731,
+    0.4017498791217804,
+    0.4227166771888733
+  ],
+  "dimensions_roblox": [
+    1.2913810014724731,
+    0.4227166771888733,
+    0.4017498791217804
+  ],
+  "export_axes": {
+    "up": "Y",
+    "forward": "-Z"
+  },
+  "attachments": {
+    "IntactEnd": {
+      "position_blender": [
+        -0.4699999988079071,
+        0.0,
+        0.0
+      ],
+      "position_roblox": [
+        -0.47,
+        0.0,
+        -0.0
+      ],
+      "outward_direction_roblox": [
+        -1.0,
+        0.0,
+        -0.0
+      ]
+    },
+    "BreakRoot": {
+      "position_blender": [
+        0.4399999976158142,
+        0.0,
+        0.0
+      ],
+      "position_roblox": [
+        0.44,
+        0.0,
+        -0.0
+      ],
+      "outward_direction_roblox": [
+        1.0,
+        0.0,
+        -0.0
+      ]
+    }
+  },
+  "notes": [
+    "Four fused, blunt broken fibre lobes; one connected mesh.",
+    "Main shaft is 0.94 long and 0.17 wide, excluding splayed tips.",
+    "Clone twice and reverse one instance for the snap effect."
+  ],
+  "units": "authoring units; preserve assembly scale; scale attachment positions by the same factor",
+  "studio_fit": "not yet tested in hand or around live piggies",
+  "tiers": [
+    "rope",
+    "braided",
+    "golden",
+    "elite"
+  ],
+  "texture_source": "../textures/{tier}.png",
+  "material_color": [
+    255,
+    255,
+    255
+  ]
+}

@@ -25,6 +25,24 @@ THE GREEN ARROW IS NOT PART OF THE SACK. It is the icon's own "bigger" tell and
 it is excluded here; an arrow welded to a thief's chest would be a HUD element
 stuck on the world.
 
+ONE COIN, ON THE FRONT (designer, 2026-09-23). The icon scene carries THREE
+lots of gold: the big snouted coin set into the front of the sack, a second
+smaller snouted coin leaning at its left, and a stack of three plain coins at
+its right foot. The designer's call is that only the middle one survives -- so
+the side coin and the stack are in `DROP_OBJECTS` beside the arrow. They are
+excluded AT EXPORT and the blend is untouched: this script never saves, so
+`sack.blend` is still the icon's own scene with all three coins in it, which
+is what `sack.png` is rendered from.
+
+It reaches four of the seven meshes, because the side coin is a full copy of
+the front one and therefore wears all four gold-family materials. Each one
+loses the SIDE coin's share of itself: `Gold` its rim and face plus the whole
+foot stack, `GoldDark` its recessed field, `GoldLight` its snout, and
+`Nostril` two of the four dots it carried. What is left is the front coin,
+whole. The rectangular `SackBase` is also excluded from the carry version:
+the closed, rounded SackBody supplies the bottom without a separate plinth.
+This changes the Cloth mesh; Lining and Rope retain their original geometry.
+
 THE TRIANGLE BUDGET IS THE ONE THING THAT MUST BE CHECKED. Roblox refuses a
 MeshPart over 10,000 triangles, and the flared fabric opening alone comes in at
 about fourteen thousand faces. Anything over `TRI_BUDGET` is decimated until it
@@ -90,13 +108,13 @@ TRI_BUDGET = {
 # manifest and UPLOADS.md list them, cloth outward.
 SEGMENTS = [
     ("Cloth", "tan", None, None,
-     "the sack itself: body, sat-down base and the outside of the flared mouth"),
+     "the sack itself: rounded body and the outside of the flared mouth"),
     ("Lining", "wood", None, None,
      "the inside of the mouth, seen down the throat"),
     ("Rope", "brown", None, None,
      "the drawstring: the wrap, the knot, both bow loops and both tails"),
     ("Gold", "gold", None, None,
-     "the coin's rolled rim and satin face, and the three coins at its foot"),
+     "the coin's rolled rim and satin face"),
     ("GoldDark", "golddark", None, "PigSnout_Nostril",
      "the coin's recessed field, behind the snout"),
     ("GoldLight", "goldlight", None, None,
@@ -121,7 +139,27 @@ GAME_COLOUR = {
 }
 
 # Excluded from the export entirely; see the header.
-DROP_OBJECTS = {"IncreaseArrow"}
+#
+# The arrow is the icon's own tell. Everything under it is the two SIDE coins,
+# dropped on the designer's call of 2026-09-23 -- ONE COIN, ON THE FRONT.
+#
+# NAMED ONE BY ONE RATHER THAN MATCHED ON A SUFFIX, which is the load-bearing
+# half. The leaning coin is a duplicate of the front one, so every piece of it
+# is that piece's `.001` -- and the FRONT coin's second nostril is
+# `PigSnout_Nostril.001`, so a rule like `drop every .001` would take a nostril
+# off the coin that is meant to stay. Measured off the blend rather than read
+# off the names: the front coin stands at Blender x -0.48..0.48, the leaning
+# one at -1.32..-0.50 and the stack at +0.52..1.20.
+DROP_OBJECTS = {
+    "IncreaseArrow",
+    # The body is already closed and rounded underneath; no rectangular foot.
+    "SackBase",
+    # the smaller coin leaning at the sack's left (Blender -x)
+    "Coin_RolledRim.001", "Coin_SatinFace.001", "Coin_RecessedFace.001",
+    "PigSnout_Emboss.001", "PigSnout_Nostril.002", "PigSnout_Nostril.003",
+    # the stack of three plain coins at the sack's right foot (Blender +x)
+    "StackCoin", "StackCoin.001", "StackCoin.002",
+}
 
 
 def srgb(c):
@@ -351,7 +389,12 @@ manifest = {
     "note": ("The blend is flat material colours -- seven Principled base "
              "colours and not one image -- so there is nothing to bake and "
              "the split is per material, the way Config.PIGGY_MESH splits "
-             "Body from Trim."),
+             "Body from Trim. ONE COIN, ON THE FRONT (designer, "
+             "2026-09-23): the leaning side coin and the stack of three at "
+             "the foot are excluded at export (DROP_OBJECTS), which moves "
+             "Gold, GoldDark, GoldLight and Nostril. The rectangular "
+             "SackBase is also excluded, leaving the closed rounded body "
+             "as the bottom. Cloth requires a new upload too."),
     "axes": "exported axis_up=Y, axis_forward=-Z; Blender (x, y, z) arrives as (x, z, -y)",
     "scale": round(scale, 6),
     "targetHeightStuds": TARGET_HEIGHT,
@@ -388,7 +431,22 @@ manifest["whole"] = {
     "triangles": sum(budget[n][1] for n in order),
 }
 
-with open(os.path.join(OUT, "manifest.json"), "w", encoding="utf-8") as fh:
+# CARRY FORWARD WHAT THIS SCRIPT DOES NOT OWN. `ids` and `idsNote` are written
+# by hand once the designer has uploaded, and a re-export must not eat them --
+# a manifest that quietly forgot seven asset ids is the silent loss this
+# project keeps records against. Only the keys built above are rewritten;
+# every other key in the file survives. They can go STALE, though, which is
+# the manifest's job to say: a part whose geometry moved needs a new upload,
+# and `idsNote` is where that is recorded.
+manifest_path = os.path.join(OUT, "manifest.json")
+if os.path.exists(manifest_path):
+    with open(manifest_path, encoding="utf-8") as fh:
+        previous = json.load(fh)
+    for key, value in previous.items():
+        if key not in manifest:
+            manifest[key] = value
+
+with open(manifest_path, "w", encoding="utf-8") as fh:
     json.dump(manifest, fh, indent=1)
     fh.write("\n")
 

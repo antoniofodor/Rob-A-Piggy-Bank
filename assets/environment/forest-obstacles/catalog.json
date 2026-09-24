@@ -1,0 +1,2061 @@
+{
+  "assets": {
+    "moss-boulder": {
+      "key": "moss-boulder",
+      "name": "Mossback Boulder",
+      "mesh_name": "MossBoulder",
+      "triangles": 176,
+      "parts": 1,
+      "texture": "../forest-palette.png",
+      "flat_shaded": true,
+      "closed_manifold": true,
+      "dimensions_studs": [
+        16.21983003616333,
+        10.500000193715096,
+        10.835982322692871
+      ],
+      "bounds_studs": {
+        "min": [
+          -7.905446529388428,
+          -0.20000000298023224,
+          -5.1306233406066895
+        ],
+        "max": [
+          8.314383506774902,
+          10.300000190734863,
+          5.705358982086182
+        ]
+      },
+      "pivot": "ground anchor at (0,0,0)",
+      "authoring_to_blender": "(x,y,z) -> (x,-z,y)",
+      "fbx_global_scale": 0.01,
+      "collision": [
+        {
+          "name": "BoulderCore",
+          "center": [
+            0,
+            4,
+            0
+          ],
+          "size": [
+            8,
+            8,
+            7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "LowShoulder",
+          "center": [
+            -4,
+            1.6,
+            2
+          ],
+          "size": [
+            4.2,
+            3.2,
+            4
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "SideRock",
+          "center": [
+            4.4,
+            1.3,
+            -2
+          ],
+          "size": [
+            2.5,
+            2.6,
+            3
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "passage": null,
+      "status": "local source art; not uploaded or placed in the live map"
+    },
+    "split-rock-passage": {
+      "key": "split-rock-passage",
+      "name": "Split Rock Passage",
+      "mesh_name": "SplitRockPassage",
+      "triangles": 234,
+      "parts": 1,
+      "texture": "../forest-palette.png",
+      "flat_shaded": true,
+      "closed_manifold": true,
+      "dimensions_studs": [
+        25.655725479125977,
+        14.0,
+        11.341436386108398
+      ],
+      "bounds_studs": {
+        "min": [
+          -12.659908294677734,
+          0.0,
+          -5.340299606323242
+        ],
+        "max": [
+          12.995817184448242,
+          14.0,
+          6.001136779785156
+        ]
+      },
+      "pivot": "ground anchor at (0,0,0)",
+      "authoring_to_blender": "(x,y,z) -> (x,-z,y)",
+      "fbx_global_scale": 0.01,
+      "collision": [
+        {
+          "name": "WestPillar",
+          "center": [
+            -8,
+            5.5,
+            0
+          ],
+          "size": [
+            5.5,
+            11,
+            6
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "EastPillar",
+          "center": [
+            8,
+            4.8,
+            0
+          ],
+          "size": [
+            5.5,
+            9.6,
+            7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "WestFoot",
+          "center": [
+            -10,
+            1.8,
+            3
+          ],
+          "size": [
+            3.5,
+            3.6,
+            4
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "EastFoot",
+          "center": [
+            10,
+            1.5,
+            -3
+          ],
+          "size": [
+            3.5,
+            3,
+            3.5
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "passage": {
+        "axis": "Z",
+        "length": 18,
+        "clear_width": 7,
+        "clear_height": 10,
+        "floor_y": 0,
+        "center": [
+          0,
+          0,
+          0
+        ],
+        "reference_avatar": {
+          "width": 3.5,
+          "height": 5.8
+        },
+        "note": "Straight clearance envelope, checked against render triangles and supplied collision boxes."
+      },
+      "status": "local source art; not uploaded or placed in the live map"
+    },
+    "hollow-log": {
+      "key": "hollow-log",
+      "name": "Hollow Fallen Giant",
+      "mesh_name": "HollowLog",
+      "triangles": 758,
+      "parts": 1,
+      "texture": "../forest-palette.png",
+      "flat_shaded": true,
+      "closed_manifold": true,
+      "dimensions_studs": [
+        25.2,
+        13.272382354736328,
+        12.601834737334826
+      ],
+      "bounds_studs": {
+        "min": [
+          -12.6,
+          -0.5999999999999996,
+          -6.2984698831444526
+        ],
+        "max": [
+          12.6,
+          12.672382354736328,
+          6.303364854190374
+        ]
+      },
+      "pivot": "ground anchor at (0,0,0)",
+      "authoring_to_blender": "(x,y,z) -> (x,-z,y)",
+      "fbx_global_scale": 0.01,
+      "collision": [
+        {
+          "name": "TunnelFloor",
+          "center": [
+            0,
+            0.15,
+            0
+          ],
+          "size": [
+            22,
+            1.0,
+            6.4
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment00",
+          "center": [
+            0,
+            5.124201954275941,
+            5.539945570154828
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            83.57142857142857,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment01",
+          "center": [
+            0,
+            6.341305770400057,
+            5.26214956646915
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            70.71428571428572,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment02",
+          "center": [
+            0,
+            7.466078826573002,
+            4.720487410697685
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            57.857142857142854,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment03",
+          "center": [
+            0,
+            8.442120305115003,
+            3.9421203051150027
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            45.0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment04",
+          "center": [
+            0,
+            9.220487410697684,
+            2.9660788265730016
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            32.142857142857146,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment05",
+          "center": [
+            0,
+            9.762149566469148,
+            1.841305770400058
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            19.285714285714292,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment06",
+          "center": [
+            0,
+            10.039945570154828,
+            0.6242019542759404
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            6.428571428571416,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment07",
+          "center": [
+            0,
+            10.039945570154828,
+            -0.6242019542759397
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -6.428571428571416,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment08",
+          "center": [
+            0,
+            9.762149566469148,
+            -1.8413057704000573
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -19.285714285714292,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment09",
+          "center": [
+            0,
+            9.220487410697686,
+            -2.9660788265730007
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -32.14285714285714,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment10",
+          "center": [
+            0,
+            8.442120305115003,
+            -3.942120305115002
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -45.0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment11",
+          "center": [
+            0,
+            7.466078826573002,
+            -4.720487410697684
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -57.85714285714286,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment12",
+          "center": [
+            0,
+            6.341305770400057,
+            -5.26214956646915
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -70.71428571428572,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment13",
+          "center": [
+            0,
+            5.124201954275942,
+            -5.539945570154828
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -83.57142857142858,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment14",
+          "center": [
+            0,
+            3.8757980457240593,
+            -5.539945570154828
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -96.42857142857142,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment15",
+          "center": [
+            0,
+            2.658694229599944,
+            -5.26214956646915
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -109.28571428571428,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment16",
+          "center": [
+            0,
+            1.5339211734269993,
+            -4.720487410697685
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -122.14285714285714,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment17",
+          "center": [
+            0,
+            0.5578796948849978,
+            -3.9421203051150036
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -135.0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment18",
+          "center": [
+            0,
+            -0.22048741069768418,
+            -2.966078826573002
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -147.85714285714286,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment19",
+          "center": [
+            0,
+            -0.7621495664691489,
+            -1.8413057704000575
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -160.71428571428572,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment20",
+          "center": [
+            0,
+            -1.0399455701548277,
+            -0.6242019542759423
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -173.57142857142856,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment21",
+          "center": [
+            0,
+            -1.0399455701548277,
+            0.6242019542759403
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -186.42857142857144,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment22",
+          "center": [
+            0,
+            -0.7621495664691498,
+            1.8413057704000555
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -199.28571428571428,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment23",
+          "center": [
+            0,
+            -0.22048741069768507,
+            2.9660788265730003
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -212.14285714285717,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment24",
+          "center": [
+            0,
+            0.5578796948849964,
+            3.9421203051150018
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -225.0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment25",
+          "center": [
+            0,
+            1.533921173426997,
+            4.720487410697683
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -237.85714285714283,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment26",
+          "center": [
+            0,
+            2.6586942295999423,
+            5.262149566469149
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -250.71428571428572,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "ShellSegment27",
+          "center": [
+            0,
+            3.8757980457240575,
+            5.539945570154828
+          ],
+          "size": [
+            22,
+            1.0,
+            1.2884039085518826
+          ],
+          "rotation_degrees": [
+            -263.57142857142856,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "EntryRamp-1",
+          "center": [
+            -11.77,
+            0.2,
+            0
+          ],
+          "size": [
+            1.85,
+            0.25,
+            6.4
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            20.9
+          ]
+        },
+        {
+          "name": "EntryRamp1",
+          "center": [
+            11.77,
+            0.2,
+            0
+          ],
+          "size": [
+            1.85,
+            0.25,
+            6.4
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -20.9
+          ]
+        }
+      ],
+      "passage": {
+        "axis": "X",
+        "length": 27,
+        "clear_width": 6,
+        "clear_height": 7.4,
+        "floor_y": 0.65,
+        "center": [
+          0,
+          0,
+          0
+        ],
+        "reference_avatar": {
+          "width": 3.5,
+          "height": 5.8
+        },
+        "note": "Straight clearance envelope, checked against render triangles and supplied collision boxes."
+      },
+      "status": "local source art; not uploaded or placed in the live map"
+    },
+    "giant-oak": {
+      "key": "giant-oak",
+      "name": "Giant Oak",
+      "mesh_name": "GiantOak",
+      "triangles": 1140,
+      "parts": 1,
+      "texture": "../forest-palette.png",
+      "flat_shaded": true,
+      "closed_manifold": true,
+      "dimensions_studs": [
+        26.910170555114746,
+        36.0780565738678,
+        24.500669479370117
+      ],
+      "bounds_studs": {
+        "min": [
+          -13.327901840209961,
+          -0.5007936954498291,
+          -12.736577033996582
+        ],
+        "max": [
+          13.582268714904785,
+          35.57726287841797,
+          11.764092445373535
+        ]
+      },
+      "pivot": "ground anchor at (0,0,0)",
+      "authoring_to_blender": "(x,y,z) -> (x,-z,y)",
+      "fbx_global_scale": 0.01,
+      "collision": [
+        {
+          "name": "Trunk",
+          "center": [
+            0,
+            8,
+            0
+          ],
+          "size": [
+            4.4,
+            16,
+            4.4
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Root00",
+          "center": [
+            3.8805162445843004,
+            0.65,
+            0.3893503249226298
+          ],
+          "size": [
+            4.5,
+            1.3,
+            1.5
+          ],
+          "rotation_degrees": [
+            0,
+            -5.729577951308233,
+            0
+          ]
+        },
+        {
+          "name": "Root01",
+          "center": [
+            1.6030708499374275,
+            0.65,
+            3.5553008100695074
+          ],
+          "size": [
+            4.5,
+            1.3,
+            1.5
+          ],
+          "rotation_degrees": [
+            0,
+            -65.72957795130823,
+            0
+          ]
+        },
+        {
+          "name": "Root02",
+          "center": [
+            -2.2774453946468727,
+            0.65,
+            3.165950485146878
+          ],
+          "size": [
+            4.5,
+            1.3,
+            1.5
+          ],
+          "rotation_degrees": [
+            0,
+            -125.72957795130823,
+            0
+          ]
+        },
+        {
+          "name": "Root03",
+          "center": [
+            -3.8805162445843004,
+            0.65,
+            -0.3893503249226296
+          ],
+          "size": [
+            4.5,
+            1.3,
+            1.5
+          ],
+          "rotation_degrees": [
+            0,
+            -185.72957795130824,
+            0
+          ]
+        },
+        {
+          "name": "Root04",
+          "center": [
+            -1.6030708499374304,
+            0.65,
+            -3.555300810069506
+          ],
+          "size": [
+            4.5,
+            1.3,
+            1.5
+          ],
+          "rotation_degrees": [
+            0,
+            -245.7295779513082,
+            0
+          ]
+        },
+        {
+          "name": "Root05",
+          "center": [
+            2.2774453946468722,
+            0.65,
+            -3.1659504851468783
+          ],
+          "size": [
+            4.5,
+            1.3,
+            1.5
+          ],
+          "rotation_degrees": [
+            0,
+            -305.7295779513082,
+            0
+          ]
+        }
+      ],
+      "passage": null,
+      "status": "local source art; not uploaded or placed in the live map"
+    },
+    "giant-pine": {
+      "key": "giant-pine",
+      "name": "Tall Forest Pine",
+      "mesh_name": "GiantPine",
+      "triangles": 564,
+      "parts": 1,
+      "texture": "../forest-palette.png",
+      "flat_shaded": true,
+      "closed_manifold": true,
+      "dimensions_studs": [
+        18.0,
+        38.150000005960464,
+        18.0
+      ],
+      "bounds_studs": {
+        "min": [
+          -9.0,
+          -0.15000000596046448,
+          -9.0
+        ],
+        "max": [
+          9.0,
+          38,
+          9.0
+        ]
+      },
+      "pivot": "ground anchor at (0,0,0)",
+      "authoring_to_blender": "(x,y,z) -> (x,-z,y)",
+      "fbx_global_scale": 0.01,
+      "collision": [
+        {
+          "name": "Trunk",
+          "center": [
+            0,
+            11,
+            0
+          ],
+          "size": [
+            2.9,
+            22,
+            2.9
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "passage": null,
+      "status": "local source art; not uploaded or placed in the live map"
+    },
+    "root-arch": {
+      "key": "root-arch",
+      "name": "Ancient Root Arch",
+      "mesh_name": "RootArch",
+      "triangles": 896,
+      "parts": 1,
+      "texture": "../forest-palette.png",
+      "flat_shaded": true,
+      "closed_manifold": true,
+      "dimensions_studs": [
+        24.830904960632324,
+        11.596334971487522,
+        7.895217429384035
+      ],
+      "bounds_studs": {
+        "min": [
+          -14.31195068359375,
+          -0.09443620592355728,
+          -3.910488169465563
+        ],
+        "max": [
+          10.518954277038574,
+          11.501898765563965,
+          3.984729259918472
+        ]
+      },
+      "pivot": "ground anchor at (0,0,0)",
+      "authoring_to_blender": "(x,y,z) -> (x,-z,y)",
+      "fbx_global_scale": 0.01,
+      "collision": [
+        {
+          "name": "Stump",
+          "center": [
+            -9,
+            5.3,
+            0
+          ],
+          "size": [
+            5.5,
+            10.6,
+            5.5
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "RootSegment00",
+          "center": [
+            -7.951915740966797,
+            0.8460744023323059,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.8148793295689747,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -3.2527454812768815
+          ]
+        },
+        {
+          "name": "RootSegment01",
+          "center": [
+            -7.765589714050293,
+            2.4576447010040283,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.6757568409295946,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -10.236775810308636
+          ]
+        },
+        {
+          "name": "RootSegment02",
+          "center": [
+            -7.407963752746582,
+            3.908057928085327,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.5583893993356757,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -17.76065769398052
+          ]
+        },
+        {
+          "name": "RootSegment03",
+          "center": [
+            -6.897069931030273,
+            5.197314262390137,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.461944102021385,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -25.750876253973892
+          ]
+        },
+        {
+          "name": "RootSegment04",
+          "center": [
+            -6.25093936920166,
+            6.325413227081299,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.3850386488140654,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -34.100622576450725
+          ]
+        },
+        {
+          "name": "RootSegment05",
+          "center": [
+            -5.487603187561035,
+            7.292355537414551,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.3257499180018022,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -42.683160260067325
+          ]
+        },
+        {
+          "name": "RootSegment06",
+          "center": [
+            -4.625093936920166,
+            8.098140716552734,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.2817404897229547,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -51.37344852214035
+          ]
+        },
+        {
+          "name": "RootSegment07",
+          "center": [
+            -3.6814427375793457,
+            8.742769241333008,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.2504832584106533,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -60.069729564350155
+          ]
+        },
+        {
+          "name": "RootSegment08",
+          "center": [
+            -2.674680709838867,
+            9.226240158081055,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.2295424646590551,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -68.7083440868075
+          ]
+        },
+        {
+          "name": "RootSegment09",
+          "center": [
+            -1.6228398084640503,
+            9.548553466796875,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.2168422280955875,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -77.26787991072663
+          ]
+        },
+        {
+          "name": "RootSegment10",
+          "center": [
+            -0.5439518690109253,
+            9.709711074829102,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.2108837210343872,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -85.76400389479248
+          ]
+        },
+        {
+          "name": "RootSegment11",
+          "center": [
+            0.5439518094062805,
+            9.709711074829102,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.2108836117566586,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -94.235996567686
+          ]
+        },
+        {
+          "name": "RootSegment12",
+          "center": [
+            1.6228396892547607,
+            9.548553466796875,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.216842336779663,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -102.73211871685531
+          ]
+        },
+        {
+          "name": "RootSegment13",
+          "center": [
+            2.674680709838867,
+            9.226240158081055,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.2295424646590551,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -111.29165591319249
+          ]
+        },
+        {
+          "name": "RootSegment14",
+          "center": [
+            3.6814427375793457,
+            8.742769241333008,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.2504832584106533,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -119.93027043564986
+          ]
+        },
+        {
+          "name": "RootSegment15",
+          "center": [
+            4.625093936920166,
+            8.098140716552734,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.2817404897229547,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -128.62655147785966
+          ]
+        },
+        {
+          "name": "RootSegment16",
+          "center": [
+            5.487603187561035,
+            7.292355537414551,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.3257499180018022,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -137.3168397399327
+          ]
+        },
+        {
+          "name": "RootSegment17",
+          "center": [
+            6.25093936920166,
+            6.325413227081299,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.3850389315151745,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -145.8993595402511
+          ]
+        },
+        {
+          "name": "RootSegment18",
+          "center": [
+            6.897069931030273,
+            5.197314262390137,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.461944102021385,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -154.2491237460261
+          ]
+        },
+        {
+          "name": "RootSegment19",
+          "center": [
+            7.407963752746582,
+            3.908057928085327,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.558389254301051,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -162.23936039474214
+          ]
+        },
+        {
+          "name": "RootSegment20",
+          "center": [
+            7.765589714050293,
+            2.4576447010040283,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.6757568409295946,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -169.76322418969136
+          ]
+        },
+        {
+          "name": "RootSegment21",
+          "center": [
+            7.951915740966797,
+            0.8460744023323059,
+            0.0
+          ],
+          "size": [
+            2.75,
+            1.8148793295689747,
+            2.75
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -176.74725451872314
+          ]
+        }
+      ],
+      "passage": {
+        "axis": "Z",
+        "length": 10,
+        "clear_width": 6,
+        "clear_height": 6.8,
+        "floor_y": 0,
+        "center": [
+          0,
+          0,
+          0
+        ],
+        "reference_avatar": {
+          "width": 3.5,
+          "height": 5.8
+        },
+        "note": "Straight clearance envelope, checked against render triangles and supplied collision boxes."
+      },
+      "status": "local source art; not uploaded or placed in the live map"
+    },
+    "stone-arch": {
+      "key": "stone-arch",
+      "name": "Mossy Stone Arch",
+      "mesh_name": "StoneArch",
+      "triangles": 264,
+      "parts": 1,
+      "texture": "../forest-palette.png",
+      "flat_shaded": true,
+      "closed_manifold": true,
+      "dimensions_studs": [
+        23.68744659423828,
+        13.015226814765471,
+        7.9922356605529785
+      ],
+      "bounds_studs": {
+        "min": [
+          -11.710405349731445,
+          0,
+          -4.092883586883545
+        ],
+        "max": [
+          11.977041244506836,
+          13.015226814765471,
+          3.8993520736694336
+        ]
+      },
+      "pivot": "ground anchor at (0,0,0)",
+      "authoring_to_blender": "(x,y,z) -> (x,-z,y)",
+      "fbx_global_scale": 0.01,
+      "collision": [
+        {
+          "name": "WestFoot",
+          "center": [
+            -8,
+            1.5,
+            0
+          ],
+          "size": [
+            3.7,
+            3,
+            4.7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "EastFoot",
+          "center": [
+            8,
+            1.5,
+            0
+          ],
+          "size": [
+            3.7,
+            3,
+            4.7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Arch00",
+          "center": [
+            7.961477813377575,
+            3.784137122636485,
+            0
+          ],
+          "size": [
+            1.6182742452729697,
+            3.8,
+            4.7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -84.375
+          ]
+        },
+        {
+          "name": "Arch01",
+          "center": [
+            7.655522685857671,
+            5.322277418035698,
+            0
+          ],
+          "size": [
+            1.6182742452729697,
+            3.8,
+            4.7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -73.125
+          ]
+        },
+        {
+          "name": "Arch02",
+          "center": [
+            7.05537011478684,
+            6.771173894607982,
+            0
+          ],
+          "size": [
+            1.6182742452729697,
+            3.8,
+            4.7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -61.875
+          ]
+        },
+        {
+          "name": "Arch03",
+          "center": [
+            6.184083626901896,
+            8.075146273309164,
+            0
+          ],
+          "size": [
+            1.6182742452729697,
+            3.8,
+            4.7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -50.625
+          ]
+        },
+        {
+          "name": "Arch04",
+          "center": [
+            5.075146273309164,
+            9.184083626901895,
+            0
+          ],
+          "size": [
+            1.6182742452729697,
+            3.8,
+            4.7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -39.375
+          ]
+        },
+        {
+          "name": "Arch05",
+          "center": [
+            3.7711738946079825,
+            10.05537011478684,
+            0
+          ],
+          "size": [
+            1.6182742452729697,
+            3.8,
+            4.7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -28.125000000000007
+          ]
+        },
+        {
+          "name": "Arch06",
+          "center": [
+            2.3222774180356986,
+            10.655522685857672,
+            0
+          ],
+          "size": [
+            1.6182742452729697,
+            3.8,
+            4.7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -16.875
+          ]
+        },
+        {
+          "name": "Arch07",
+          "center": [
+            0.7841371226364862,
+            10.961477813377574,
+            0
+          ],
+          "size": [
+            1.6182742452729697,
+            3.8,
+            4.7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            -5.625
+          ]
+        },
+        {
+          "name": "Arch08",
+          "center": [
+            -0.7841371226364852,
+            10.961477813377575,
+            0
+          ],
+          "size": [
+            1.6182742452729697,
+            3.8,
+            4.7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            5.625
+          ]
+        },
+        {
+          "name": "Arch09",
+          "center": [
+            -2.3222774180356973,
+            10.655522685857672,
+            0
+          ],
+          "size": [
+            1.6182742452729697,
+            3.8,
+            4.7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            16.875
+          ]
+        },
+        {
+          "name": "Arch10",
+          "center": [
+            -3.7711738946079816,
+            10.05537011478684,
+            0
+          ],
+          "size": [
+            1.6182742452729697,
+            3.8,
+            4.7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            28.125
+          ]
+        },
+        {
+          "name": "Arch11",
+          "center": [
+            -5.075146273309163,
+            9.184083626901897,
+            0
+          ],
+          "size": [
+            1.6182742452729697,
+            3.8,
+            4.7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            39.375
+          ]
+        },
+        {
+          "name": "Arch12",
+          "center": [
+            -6.184083626901896,
+            8.075146273309164,
+            0
+          ],
+          "size": [
+            1.6182742452729697,
+            3.8,
+            4.7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            50.625
+          ]
+        },
+        {
+          "name": "Arch13",
+          "center": [
+            -7.0553701147868395,
+            6.7711738946079825,
+            0
+          ],
+          "size": [
+            1.6182742452729697,
+            3.8,
+            4.7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            61.875
+          ]
+        },
+        {
+          "name": "Arch14",
+          "center": [
+            -7.655522685857671,
+            5.322277418035699,
+            0
+          ],
+          "size": [
+            1.6182742452729697,
+            3.8,
+            4.7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            73.125
+          ]
+        },
+        {
+          "name": "Arch15",
+          "center": [
+            -7.9614778133775745,
+            3.7841371226364866,
+            0
+          ],
+          "size": [
+            1.6182742452729697,
+            3.8,
+            4.7
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            84.375
+          ]
+        }
+      ],
+      "passage": {
+        "axis": "Z",
+        "length": 12,
+        "clear_width": 7,
+        "clear_height": 7.1,
+        "floor_y": 0,
+        "center": [
+          0,
+          0,
+          0
+        ],
+        "reference_avatar": {
+          "width": 3.5,
+          "height": 5.8
+        },
+        "note": "Straight clearance envelope, checked against render triangles and supplied collision boxes."
+      },
+      "status": "local source art; not uploaded or placed in the live map"
+    },
+    "stepping-stumps": {
+      "key": "stepping-stumps",
+      "name": "Stepping Stumps",
+      "mesh_name": "SteppingStumps",
+      "triangles": 1276,
+      "parts": 1,
+      "texture": "../forest-palette.png",
+      "flat_shaded": true,
+      "closed_manifold": true,
+      "dimensions_studs": [
+        20.39427800837023,
+        4.5,
+        8.338550351309873
+      ],
+      "bounds_studs": {
+        "min": [
+          -9.830534417061637,
+          0,
+          -3.7452600223303802
+        ],
+        "max": [
+          10.563743591308594,
+          4.5,
+          4.593290328979492
+        ]
+      },
+      "pivot": "ground anchor at (0,0,0)",
+      "authoring_to_blender": "(x,y,z) -> (x,-z,y)",
+      "fbx_global_scale": 0.01,
+      "collision": [
+        {
+          "name": "Step00",
+          "center": [
+            -7,
+            0.72,
+            -1
+          ],
+          "size": [
+            3.25,
+            1.44,
+            3.25
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Step01",
+          "center": [
+            -2,
+            1.47,
+            0
+          ],
+          "size": [
+            3.12,
+            2.94,
+            3.12
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Step02",
+          "center": [
+            3,
+            2.22,
+            1
+          ],
+          "size": [
+            3.1850000000000005,
+            4.44,
+            3.1850000000000005
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Step03",
+          "center": [
+            8,
+            1.47,
+            1.7
+          ],
+          "size": [
+            2.9899999999999998,
+            2.94,
+            2.9899999999999998
+          ],
+          "rotation_degrees": [
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "passage": null,
+      "status": "local source art; not uploaded or placed in the live map"
+    }
+  },
+  "palette": {
+    "stone": [
+      137,
+      139,
+      135
+    ],
+    "stone-dark": [
+      120,
+      125,
+      124
+    ],
+    "stone-light": [
+      155,
+      156,
+      145
+    ],
+    "moss": [
+      94,
+      132,
+      53
+    ],
+    "moss-light": [
+      117,
+      157,
+      62
+    ],
+    "leaf-dark": [
+      55,
+      113,
+      46
+    ],
+    "leaf": [
+      72,
+      135,
+      52
+    ],
+    "leaf-light": [
+      89,
+      151,
+      59
+    ],
+    "pine": [
+      32,
+      89,
+      51
+    ],
+    "bark": [
+      94,
+      64,
+      42
+    ],
+    "bark-light": [
+      117,
+      82,
+      57
+    ],
+    "wood-dark": [
+      165,
+      116,
+      69
+    ],
+    "wood": [
+      210,
+      183,
+      133
+    ],
+    "wood-ring": [
+      185,
+      143,
+      92
+    ],
+    "interior": [
+      65,
+      43,
+      30
+    ],
+    "cream": [
+      239,
+      235,
+      211
+    ]
+  },
+  "status": "local; not uploaded or integrated"
+}

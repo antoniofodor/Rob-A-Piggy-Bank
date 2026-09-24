@@ -1,0 +1,129 @@
+{
+  "asset": "elite",
+  "status": "local Blender source and FBX; not uploaded or integrated",
+  "files": {
+    "blend": "lasso-elite.blend",
+    "fbx": "lasso-elite.fbx"
+  },
+  "parts": [
+    {
+      "name": "Rope",
+      "vertices": 2390,
+      "triangles": 4776,
+      "non_manifold_edges": 0,
+      "flat_shaded": true,
+      "colors_srgb": [
+        123,
+        66,
+        221
+      ]
+    },
+    {
+      "name": "Trim",
+      "vertices": 636,
+      "triangles": 1240,
+      "non_manifold_edges": 0,
+      "flat_shaded": true,
+      "colors_srgb": [
+        244,
+        184,
+        54
+      ]
+    },
+    {
+      "name": "Gem",
+      "vertices": 36,
+      "triangles": 68,
+      "non_manifold_edges": 0,
+      "flat_shaded": true,
+      "colors_srgb": [
+        85,
+        201,
+        246
+      ]
+    }
+  ],
+  "total_triangles": 6084,
+  "triangle_budget": 8000,
+  "textures": 0,
+  "shading": "flat",
+  "pivot": "assembled bounds center",
+  "bounds_blender": {
+    "min": [
+      -1.59358811378479,
+      -0.2537499964237213,
+      -1.375
+    ],
+    "max": [
+      1.59358811378479,
+      0.2537499964237213,
+      1.375
+    ]
+  },
+  "dimensions_blender": [
+    3.18717622756958,
+    0.5074999928474426,
+    2.75
+  ],
+  "dimensions_roblox": [
+    3.18717622756958,
+    2.75,
+    0.5074999928474426
+  ],
+  "export_axes": {
+    "up": "Y",
+    "forward": "-Z"
+  },
+  "attachments": {
+    "HandGrip": {
+      "position_blender": [
+        0.03250378370285034,
+        0.1262499988079071,
+        0.9699999690055847
+      ],
+      "position_roblox": [
+        0.032504,
+        0.97,
+        -0.12625
+      ],
+      "cframe_roblox": [
+        0.032504,
+        0.97,
+        -0.12625,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "RopeExit": {
+      "position_blender": [
+        0.35250380635261536,
+        0.1262499988079071,
+        -1.375
+      ],
+      "position_roblox": [
+        0.352504,
+        -1.375,
+        -0.12625
+      ],
+      "outward_direction_roblox": [
+        0.0,
+        -1.0,
+        -0.0
+      ]
+    }
+  },
+  "notes": [
+    "Rigid decorations; no charm rig or texture.",
+    "Uses the same coil and grip location as Rope before assembly recentering.",
+    "HandGrip compensates for the decorative bounds; scale by rope body, not charm width."
+  ],
+  "units": "authoring units; preserve assembly scale; scale attachment positions by the same factor",
+  "studio_fit": "not yet tested in hand or around live piggies"
+}

@@ -55,7 +55,8 @@ For a still icon, use the combined emblem directly.
   render were visually checked for the unwanted black nose pieces.
 - Original generated PNGs are preserved without pixel post-processing.
 
-Related: [rebirth concepts](../rebirth-concepts-v1/README.md) and
-[UI redesign guide](../../../docs/REBIRTH-UI-REDESIGN.md).
+Related: [rebirth concepts](../rebirth-concepts-v1/README.md). The redesign
+guide this was authored against is retired; the shipped design and its
+history live in the header of `src/ReplicatedStorage/Shared/Rebirth.luau`.
 
 Status: artwork ready for import; not uploaded or wired in Studio.

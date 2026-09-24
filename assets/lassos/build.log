@@ -1,0 +1,80 @@
+00:02.625  blend            | Read blend: "C:\Users\anton\robloxGame\assets\lassos\rope\lasso-rope.blend"
+C:\Users\anton\robloxGame\assets\lassos\generate\build_set.py:38: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m.use_nodes = True
+C:\Users\anton\robloxGame\assets\lassos\generate\build_set.py:211: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  scene.world.use_nodes = True
+00:03.156  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_11560_c10992ed5ecd16e865cf783c52a2c3a1.png.png"
+00:09.891  render           | Saved: 'C:\Users\anton\robloxGame\assets\lassos\rope\preview\lasso-rope-hero.png'
+00:16.422  render           | Saved: 'C:\Users\anton\robloxGame\assets\lassos\rope\preview\lasso-rope-detail.png'
+BlenderMCP addon registered
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\lassos\\rope\\lasso-rope.fbx'
+export finished in 0.0121 sec.
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\lassos\\rope\\parts\\rope.fbx'
+export finished in 0.0076 sec.
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\lassos\\rope\\parts\\grip.fbx'
+export finished in 0.0052 sec.
+Info: Saved as "lasso-rope.blend"
+ASSET_COMPLETE rope 4964
+C:\Users\anton\robloxGame\assets\lassos\generate\build_set.py:38: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m.use_nodes = True
+00:22.750  render           | Saved: 'C:\Users\anton\robloxGame\assets\lassos\rope\preview\lasso-braided-hero.png'
+00:29.125  render           | Saved: 'C:\Users\anton\robloxGame\assets\lassos\rope\preview\lasso-golden-hero.png'
+00:29.125  blend            | Read blend: "C:\Users\anton\robloxGame\assets\lassos\rope\lasso-rope.blend"
+00:29.266  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_11560_f1f66a08d204aca421568a384dd70162.png.png"
+00:35.641  render           | Saved: 'C:\Users\anton\robloxGame\assets\lassos\elite\preview\lasso-elite-hero.png'
+00:41.859  render           | Saved: 'C:\Users\anton\robloxGame\assets\lassos\elite\preview\lasso-elite-detail.png'
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\lassos\\elite\\lasso-elite.fbx'
+export finished in 0.0106 sec.
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\lassos\\elite\\parts\\rope.fbx'
+export finished in 0.0152 sec.
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\lassos\\elite\\parts\\trim.fbx'
+export finished in 0.0076 sec.
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\lassos\\elite\\parts\\gem.fbx'
+export finished in 0.0046 sec.
+Info: Saved as "lasso-elite.blend"
+ASSET_COMPLETE elite 6084
+00:42.109  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_11560_c09eb31ffd9ca254a96c6aa8ee9b4fe2.png.png"
+00:47.281  render           | Saved: 'C:\Users\anton\robloxGame\assets\lassos\loop\preview\loop-hero.png'
+00:52.578  render           | Saved: 'C:\Users\anton\robloxGame\assets\lassos\loop\preview\loop-detail.png'
+BlenderMCP addon unregistered
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\lassos\\loop\\loop.fbx'
+export finished in 0.0060 sec.
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\lassos\\loop\\parts\\loop.fbx'
+export finished in 0.0057 sec.
+Info: Saved as "loop.blend"
+ASSET_COMPLETE loop 1276
+00:52.828  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_11560_2b297dfade6c70e6eec434e76a7434e4.png.png"
+00:57.672  render           | Saved: 'C:\Users\anton\robloxGame\assets\lassos\snapped-end\preview\snapped-end-hero.png'
+01:02.422  render           | Saved: 'C:\Users\anton\robloxGame\assets\lassos\snapped-end\preview\snapped-end-detail.png'
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\lassos\\snapped-end\\snapped-end.fbx'
+export finished in 0.0054 sec.
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\lassos\\snapped-end\\parts\\snappedend.fbx'
+export finished in 0.0068 sec.
+Info: Saved as "snapped-end.blend"
+ASSET_COMPLETE snapped-end 454
+01:02.516  image.write      | ERROR OpenImageIO write failed: Could not open file "C:\Users\anton\.thumbnails\large\blender_11560_50f96e3892beb292358878b4a84272a4.png.png"
+01:08.609  render           | Saved: 'C:\Users\anton\robloxGame\assets\lassos\daze-star\preview\daze-star-hero.png'
+01:14.781  render           | Saved: 'C:\Users\anton\robloxGame\assets\lassos\daze-star\preview\daze-star-detail.png'
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\lassos\\daze-star\\daze-star.fbx'
+export finished in 0.0050 sec.
+
+FBX export starting... 'C:\\Users\\anton\\robloxGame\\assets\\lassos\\daze-star\\parts\\star.fbx'
+export finished in 0.0055 sec.
+Info: Saved as "daze-star.blend"
+ASSET_COMPLETE daze-star 276
+BUILD_COMPLETE rope,elite,loop,snapped-end,daze-star
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:38:20)
+
+Blender quit

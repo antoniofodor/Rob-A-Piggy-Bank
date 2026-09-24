@@ -1,0 +1,122 @@
+{
+  "key": "split-rock-passage",
+  "name": "Split Rock Passage",
+  "mesh_name": "SplitRockPassage",
+  "triangles": 234,
+  "parts": 1,
+  "texture": "../forest-palette.png",
+  "flat_shaded": true,
+  "closed_manifold": true,
+  "dimensions_studs": [
+    25.655725479125977,
+    14.0,
+    11.341436386108398
+  ],
+  "bounds_studs": {
+    "min": [
+      -12.659908294677734,
+      0.0,
+      -5.340299606323242
+    ],
+    "max": [
+      12.995817184448242,
+      14.0,
+      6.001136779785156
+    ]
+  },
+  "pivot": "ground anchor at (0,0,0)",
+  "authoring_to_blender": "(x,y,z) -> (x,-z,y)",
+  "fbx_global_scale": 0.01,
+  "collision": [
+    {
+      "name": "WestPillar",
+      "center": [
+        -8,
+        5.5,
+        0
+      ],
+      "size": [
+        5.5,
+        11,
+        6
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "EastPillar",
+      "center": [
+        8,
+        4.8,
+        0
+      ],
+      "size": [
+        5.5,
+        9.6,
+        7
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "WestFoot",
+      "center": [
+        -10,
+        1.8,
+        3
+      ],
+      "size": [
+        3.5,
+        3.6,
+        4
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "EastFoot",
+      "center": [
+        10,
+        1.5,
+        -3
+      ],
+      "size": [
+        3.5,
+        3,
+        3.5
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "passage": {
+    "axis": "Z",
+    "length": 18,
+    "clear_width": 7,
+    "clear_height": 10,
+    "floor_y": 0,
+    "center": [
+      0,
+      0,
+      0
+    ],
+    "reference_avatar": {
+      "width": 3.5,
+      "height": 5.8
+    },
+    "note": "Straight clearance envelope, checked against render triangles and supplied collision boxes."
+  },
+  "status": "local source art; not uploaded or placed in the live map"
+}

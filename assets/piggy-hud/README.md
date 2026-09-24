@@ -4,7 +4,16 @@
 Generated with the built-in image generation tool; the exact prompt is in
 `piggy-balance-v2-prompt.txt`. The source image is preserved without editing.
 
-## Integration
+## Integration -- RETIRED
+
+As of the HUD pass that merged the coin badge into the piggy bank panel, the
+card draws `Theme.snout` -- a DRAWN snout, for the same reason `Theme.coin` is
+drawn. `PiggyPanel.ICON_IMAGE` no longer exists and nothing in `src/` names
+image `115881888441059`. That id is recorded below and nowhere else, which is
+why this README and `piggy-balance-v2.png` are kept. `studio-preview.png` (an
+unreferenced Studio screenshot) was removed on 2026-09-23.
+
+The original integration note follows.
 
 Imported under the experience's owner as image `115881888441059`, and live:
 `PiggyPanel.ICON_IMAGE` in `src/ReplicatedStorage/Shared/PiggyPanel.luau` names

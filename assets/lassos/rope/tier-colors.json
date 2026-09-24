@@ -1,0 +1,39 @@
+{
+  "status": "suggested art palette; gameplay Config unchanged",
+  "rope": {
+    "Rope": [
+      218,
+      181,
+      126
+    ],
+    "Grip": [
+      91,
+      51,
+      30
+    ]
+  },
+  "braided": {
+    "Rope": [
+      176,
+      115,
+      69
+    ],
+    "Grip": [
+      54,
+      38,
+      31
+    ]
+  },
+  "golden": {
+    "Rope": [
+      241,
+      190,
+      67
+    ],
+    "Grip": [
+      111,
+      55,
+      30
+    ]
+  }
+}

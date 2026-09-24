@@ -1,0 +1,60 @@
+{
+  "asset": "daze-star",
+  "status": "local Blender source and FBX; not uploaded or integrated",
+  "files": {
+    "blend": "daze-star.blend",
+    "fbx": "daze-star.fbx"
+  },
+  "parts": [
+    {
+      "name": "Star",
+      "vertices": 140,
+      "triangles": 276,
+      "non_manifold_edges": 0,
+      "flat_shaded": true,
+      "colors_srgb": [
+        255,
+        218,
+        54
+      ]
+    }
+  ],
+  "total_triangles": 276,
+  "triangle_budget": 300,
+  "textures": 0,
+  "shading": "flat",
+  "pivot": "radial center of star; point up +Y; broad faces +/-Z",
+  "bounds_blender": {
+    "min": [
+      -0.46650639176368713,
+      -0.10000000149011612,
+      -0.3968340754508972
+    ],
+    "max": [
+      0.46650639176368713,
+      0.10000000149011612,
+      0.49051380157470703
+    ]
+  },
+  "dimensions_blender": [
+    0.9330127835273743,
+    0.20000000298023224,
+    0.8873478770256042
+  ],
+  "dimensions_roblox": [
+    0.9330127835273743,
+    0.8873478770256042,
+    0.20000000298023224
+  ],
+  "export_axes": {
+    "up": "Y",
+    "forward": "-Z"
+  },
+  "attachments": {},
+  "notes": [
+    "Instance 3-5 copies in code. Orbit, tilt, and fade are runtime effects.",
+    "No physical orbit ring, particles or baked glow."
+  ],
+  "units": "authoring units; preserve assembly scale; scale attachment positions by the same factor",
+  "studio_fit": "not yet tested in hand or around live piggies"
+}

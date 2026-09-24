@@ -1,103 +1,104 @@
 # `assets/` -- source art that is uploaded rather than generated in code
 
-## Model renders and shop card images
+**Nothing in this folder is synced by Rojo and nothing here is read at run
+time.** These are the SOURCE files behind assets that had to be uploaded to
+Roblox, plus the only local RECORD of the ids they were uploaded under. The game
+itself is built in code.
 
-See [the render reference index](SHOP-RENDER-INDEX.md) for every house, guardian and acorn image beside its original 3D model, including Roblox upload IDs.
+Everything here is one of three things, and the difference decides whether it
+can be deleted:
 
-## Shop icons and reusable game models
+* an **authoring source** -- a `.blend`, a generator script, a
+  `ride-geometry.json`. Regenerable in principle, expensive in practice.
+* an **upload record** -- a `manifest.json`, a `roblox-uploads.json`, an
+  `UPLOADS.md`, a `*-report.json`. **These are irreplaceable.** The Assets API
+  has no list endpoint, so an id deleted here is recoverable only by searching
+  the developer's Studio inventory and dating candidates with
+  `GetProductInfo`. `docs/ORPHANED-UPLOADS.md` is what that costs.
+* a **review render** -- a hero shot, a contact sheet, a concept sheet. Worth
+  the least, and the first thing to go.
 
-The generated shop set is in [`shop-ui/icon-system-v1/`](shop-ui/icon-system-v1).
-Use its [file index](shop-ui/icon-system-v1/FILES.md) to find the snout coin,
-plunger, bubblegum bomb, golden bone, three crate tiers, transparent UI icons,
-Blender sources, textures and optional effect helpers. The game models have
-GLB and FBX exports; the UI icons have PNGs in several sizes. These files are
-local import deliverables, not automatic runtime uploads.
+An upload record is never deleted, even when the art it describes is retired and
+even when the feature it was for has been cut from the game.
 
-The shop builder lives in `blender/shop/`; all its deliverables live here in
-`assets/`. This is an additional Blender output package alongside the tree and
-guard packages below, and does not change the pig pipeline's existing paths.
+## What each folder is
 
----
+| Folder | What it is | Status |
+|---|---|---|
+| [`animations/`](animations/README.md) | The 24 uploaded animation assets behind `Config.ANIMATIONS`, keyed by animation name | **Upload record. Live** -- `Config.luau` names this file, and there is no other copy of these ids |
+| [`environment/`](environment/) | The Piggy Meadows kit and world border: concepts, Blender build, FBX exports, import manifest | Authoring source + record. Live -- `tools/finalize_meadows.py` and `tools/upload_meadows.py` read `piggy-meadows/build-v1`. **Untracked** |
+| [`guards/`](guards/README.md) | All thirteen guardian rigs (`Config.DOG_COATS`): a `.blend` per rig, measurement reports, shop-card renders, roster sheets, and a handoff zip holding the FBX/GLB exports | Authoring source + upload record. Live |
+| [`houses/`](houses/) | The house catalogue's models and shop cards | Live. **Owned elsewhere -- not covered by this index** |
+| [`loot-bag/`](loot-bag/UPLOADS.md) | The carried coin sack: Blender export scripts, the seven per-material meshes, and the ids in `Config.LOOT_MESH` | Authoring source + upload record. Live -- `import/asset-ids.csv` and `tools/stage_import.py` both name it |
+| [`piggies/`](piggies/README.md) | The source of truth for every piggy skin: scene, generator, sheets, previews, import package and live texture ids | Live. **Owned elsewhere -- not covered by this index** |
+| [`rides/`](rides/) | `ride-geometry.json` (the render source) and a shop card per ride, with ids mapped by `ShopRideCards` | Authoring source + upload record. Live |
+| [`scenery-trees/`](scenery-trees/README.md) | The broadleaf and evergreen street trees imported into `ServerStorage.SceneryTreeTemplates`, with every mesh and texture id | **Upload record. Live** -- `SceneryTrees.luau` clones those templates |
+| [`shop-ui/`](shop-ui/icon-system-v1/FILES.md) | The generated shop icon set (`icon-system-v1`), the 3D game models cut from it, and the `*-images/` upload records for the house, guardian, ride and skin cards | Authoring source + upload record. Live |
+| [`skins/`](skins/animal/README.md) | Only the animal-skin TIER GALLERY pages now (`index.html`, `manifest.json`, checks). The packages moved to `piggies/<tier>/<key>/` | Review pages. Live -- `blender/pig/paths.py` writes them |
+| [`ui/`](ui/) | `pop-the-pins-v1` (the crack minigame sprites, named by `Shared/Crack.luau`), `rebirth-icons-v1` (named by `Config` and `Shared/Rebirth.luau`), and two retired concept rounds kept for their reasoning | Authoring source + sprite masters. Live. **Note: no upload record here** -- these ids live only as `rbxassetid://` literals in `Config` and `Crack.luau`, so those are the single copy |
+| [`robbery-ui/`](robbery-ui/) | Two phone mockups of the robbery HUD, cited by `docs/GAME.md` as verification art | Review render. Kept for that citation only |
+| [`acorn/`](acorn/README.md) | **RETIRED.** The acorn currency was deleted in schema 29 | Upload record only -- five ids that cannot be re-derived |
+| [`crate/`](crate/README.md) | **RETIRED.** The acorn storage crate; the doorstep crate is built from primitives in `PlotService` | Upload record only -- five ids |
+| [`tree/`](tree/README.md) | **RETIRED.** The acorn oak. `Config.TREE_MESH` is a DIFFERENT tree and its ids are not in here | Upload record + measurements |
+| [`piggy-hud/`](piggy-hud/README.md) | **RETIRED.** The generated piggy-balance icon; the panel draws `Theme.snout` now | Upload record -- one id, recorded nowhere else |
 
-This game is built in code. Nothing in this folder is synced by Rojo and
-nothing here is read at run time: these are the SOURCE files behind assets
-that had to be uploaded to Roblox and are referenced by id from `Config`.
-
-**This folder is for art authored OUTSIDE the Blender pipeline** -- Meshy,
-Studio's AI generator, anything hand-modelled, anything bought -- **and, since
-2026-09-22, for the piggy skins themselves:** [`piggies/<key>/`](piggies/README.md)
-is the source of truth for every skin (scene, generator, sheets, previews and
-a manifest of the live ids), by the designer's decision. The pig's TOOLKIT is
-still `blender/pig/` with its contract in `blender/pig/WORKFLOW.md` and its
-`paths.py`; do not move anything of the toolkit, because sixty scripts resolve
-their locations through that one file -- which is also exactly what made the
-skins movable in one diff.
-
-The newer oak Blender authoring script lives in `blender/tree/`; its
-reviewable `.blend`, GLB, and render deliverables live with the named asset in
-`assets/tree/blender/`. This does not change the pig pipeline's paths.
-
-`blender/dogs/` is **gone** (2026-09-21). It authored three low-poly guard dogs
-and was superseded twice over: the approved roster is authored by
-`blender/guards/` below, and the dogs the game actually stands on a lawn are
-built in CODE by `GuardDog.luau` rather than from a mesh at all -- see
-`CLAUDE.md` on why a repainted-per-breed animal cannot be one shared mesh. The
-deliverables it produced are still in `assets/dogs/`.
-
-The approved simpler guard direction is in `assets/guards/`, authored by
-`blender/guards/`. It includes the three revised dogs and five wild/elite
-creatures, editable rigs, and starter animation clips. They are integrated
-in the local project and Studio; the primitive guards have been retired. Reproducible imported
-mesh templates live in `src/ServerStorage/GuardTemplates`; see
-`assets/guards/ANIMATION-GUIDE.md` for animation details.
-
----
+Four folders survive **only** as upload records. Each one's README opens by
+saying so, so nobody has to come back to this table to find out.
 
 ## The rule: one folder per named thing, named after its `Config` key
 
 ```
 assets/
-  acorn/
-    acorn.glb        the source, named after the folder
-  basket/
-  dogs/
+  guards/
     terrier/  shepherd/  mastiff/
+  rides/
+    bmx/  skateboard/  scrambler/
 ```
 
 That is deliberately the same rule `assets/piggies/<tier>/<skin>/` follows -- *a
-skin owns a folder and everything in it is named after the skin* -- rather
-than a second convention to learn. The payoff is that the
-folder name and the `Config` key are the same string, so the source of a
-shipped asset is findable from the code and the code is findable from the
-source with no index in between.
+skin owns a folder and everything in it is named after the skin* -- rather than
+a second convention to learn. The payoff is that the folder name and the
+`Config` key are the same string, so the source of a shipped asset is findable
+from the code and the code is findable from the source with no index in between.
+
+Note the KEY, not the display name. The Scrappy guardian's folder is
+`guards/terrier/`, because `terrier` is what the save and `Config.DOG_COATS`
+call it; renaming the folder to match the shop would be a rename nothing in the
+code would follow.
 
 **Generator filenames are renamed on the way in.** A name like
 `Meshy_AI_smooth_acorn_final_0915202639_image-to-3d-texture.glb` carries the
 tool, a timestamp and a pipeline stage, none of which anybody will ever search
 for, and it sorts next to every other file that tool ever produced rather than
-next to the thing it is. Provenance lives in the commit message, where it
-cannot rot.
+next to the thing it is. Provenance lives in the commit message, where it cannot
+rot.
 
-## Where the uploaded id goes, and why there is no register here
+## Where the uploaded id goes
 
 **The id goes in `Config`, with a comment naming the source path**, exactly as
-`Config.PIGGY_MESH`, `Config.TREE_MESH` and `Config.ANIMATIONS` already do.
-One place, read by the game, so it cannot disagree with anything.
+`Config.PIGGY_MESH`, `Config.TREE_MESH`, `Config.LOOT_MESH` and
+`Config.ANIMATIONS` already do. One place, read by the game, so it cannot
+disagree with anything.
+
+**And a second copy stays here**, in the folder's own `manifest.json`,
+`roblox-uploads.json` or `UPLOADS.md`. That is not a contradiction of the rule
+above: `Config` is what the GAME reads, and the record here is what survives the
+row being deleted from `Config` when a feature is cut. The four retired folders
+above are that rule being paid for.
 
 There is deliberately **no table of assets in this folder.** What exists, what
 is missing and what state each thing is in is `docs/MASTER-PLAN.md` section
-18.3, and a second copy of that list is the thing this project has already
-paid for once -- seven planning documents that drifted apart. If an asset's
-status is worth writing down, write it there.
+18.3, and a second copy of that list is the thing this project has already paid
+for once -- seven planning documents that drifted apart. If an asset's status is
+worth writing down, write it there. `docs/ASSET-INVENTORY.md` is the cross-cut
+by id.
 
 **An empty id row is the correct way to ship an unfinished asset**, and every
-reader in this codebase already handles one: `Config.animationId` returns nil
-for an empty row and the caller degrades, `Config.fenceMesh` falls back per
-style to the primitive decorator, and a dangling `MaterialVariant` name
-renders the stock material. `Main` warns at startup for anything still empty
-on a live server. That is what lets an asset land one piece at a time.
-
----
+reader in this codebase already handles one: `Config.animationId` returns nil for
+an empty row and the caller degrades, `Config.fenceMesh` falls back per style to
+the primitive decorator, and a dangling `MaterialVariant` name renders the stock
+material. `Main` warns at startup for anything still empty on a live server. That
+is what lets an asset land one piece at a time.
 
 ## What every mesh has to clear before it is uploaded
 
@@ -113,19 +114,31 @@ Checked on the way in, not after a failed upload.
 
 **A baked texture is right for a tree and wrong for a pig**, and the test is
 whether the thing has a skin system. The tree keeps its map because its colour
-is a constant; the pig is stripped because 46 skins multiply a colour onto it
-and a painted mesh is muddy on 45 of them. Anything new gets asked the same
-question before its map is uploaded.
+is a constant; the pig is stripped because every skin multiplies a colour onto it
+and a painted mesh is muddy on all but one of them. Anything new gets asked the
+same question before its map is uploaded.
 
 ## Size, and git
 
-Raw generator output is large, and it is almost entirely TEXTURE. The acorn is
-21.4 MB of which 21.4 MB is two PNG maps -- a 14.9 MB base colour and a 6.6 MB
-metallic-roughness -- against 3,138 triangles of actual geometry that would fit
-in a few tens of kilobytes. **Commit the reduced file that actually gets
-uploaded**; if raw output is worth keeping, keep it out of
-the repo or put it behind Git LFS rather than letting a few hundred megabytes
-of superseded generations accumulate. That is the same argument
-`blender/.gitignore` already makes about preview renders, one category along:
-what is worth committing is the source of a shipped asset, not every artefact
-that was produced on the way to it.
+Raw generator output is large, and it is almost entirely TEXTURE.
+`acorn/acorn.glb` is the worked example: 21.5 MB of which nearly all is two PNG
+maps -- a base colour and a metallic-roughness -- against a few thousand
+triangles of geometry that would fit in tens of kilobytes. It is not even the
+file the uploaded acorn meshes came from. **Commit the reduced file that actually
+gets uploaded**; if raw output is worth keeping, keep it out of the repo or put
+it behind Git LFS rather than letting a few hundred megabytes of superseded
+generations accumulate.
+
+Two classes to watch, both of which had accumulated by 2026-09-23:
+
+* **`.blend1` files.** Blender writes one beside every `.blend` it saves; they
+  are backups of the file next to them. `assets/tree/blender/.gitignore` already
+  ignores them, nothing else does, and `shop-ui/icon-system-v1/sources/` has 7.5
+  MB of them.
+* **A `*.before-closedback.*` twin of a whole package.** `assets/skins/` held 102
+  MB of those, and every byte was a second copy of something still sitting in
+  `assets/piggies/`. A pre-change backup is what git is for.
+
+That is the same argument `blender/.gitignore` already makes about preview
+renders, one category along: what is worth committing is the source of a shipped
+asset and the record of its upload, not every artefact produced on the way to it.

@@ -1,0 +1,122 @@
+{
+  "assets": {
+    "moss-boulder": {
+      "triangles": 176,
+      "source": "passed",
+      "flat_shading": "passed",
+      "closed_manifold": "passed",
+      "palette": "passed",
+      "collision_parts": 3,
+      "fbx_round_trip": "passed; world bounds match source x 0.01 export scale"
+    },
+    "split-rock-passage": {
+      "triangles": 234,
+      "source": "passed",
+      "flat_shading": "passed",
+      "closed_manifold": "passed",
+      "palette": "passed",
+      "collision_parts": 4,
+      "passage": {
+        "rays": 1189,
+        "visual_obstructions": [],
+        "collision_obstructions": [],
+        "visual_hits": 0,
+        "collision_hits": 0,
+        "width": 7,
+        "height": 10,
+        "floor_y": 0
+      },
+      "fbx_round_trip": "passed; world bounds match source x 0.01 export scale"
+    },
+    "hollow-log": {
+      "triangles": 758,
+      "source": "passed",
+      "flat_shading": "passed",
+      "closed_manifold": "passed",
+      "palette": "passed",
+      "collision_parts": 31,
+      "passage": {
+        "rays": 775,
+        "visual_obstructions": [],
+        "collision_obstructions": [],
+        "visual_hits": 0,
+        "collision_hits": 0,
+        "width": 6,
+        "height": 7.4,
+        "floor_y": 0.65
+      },
+      "fbx_round_trip": "passed; world bounds match source x 0.01 export scale"
+    },
+    "giant-oak": {
+      "triangles": 1140,
+      "source": "passed",
+      "flat_shading": "passed",
+      "closed_manifold": "passed",
+      "palette": "passed",
+      "collision_parts": 7,
+      "fbx_round_trip": "passed; world bounds match source x 0.01 export scale"
+    },
+    "giant-pine": {
+      "triangles": 564,
+      "source": "passed",
+      "flat_shading": "passed",
+      "closed_manifold": "passed",
+      "palette": "passed",
+      "collision_parts": 1,
+      "fbx_round_trip": "passed; world bounds match source x 0.01 export scale"
+    },
+    "root-arch": {
+      "triangles": 896,
+      "source": "passed",
+      "flat_shading": "passed",
+      "closed_manifold": "passed",
+      "palette": "passed",
+      "collision_parts": 23,
+      "passage": {
+        "rays": 725,
+        "visual_obstructions": [],
+        "collision_obstructions": [],
+        "visual_hits": 0,
+        "collision_hits": 0,
+        "width": 6,
+        "height": 6.8,
+        "floor_y": 0
+      },
+      "fbx_round_trip": "passed; world bounds match source x 0.01 export scale"
+    },
+    "stone-arch": {
+      "triangles": 264,
+      "source": "passed",
+      "flat_shading": "passed",
+      "closed_manifold": "passed",
+      "palette": "passed",
+      "collision_parts": 18,
+      "passage": {
+        "rays": 870,
+        "visual_obstructions": [],
+        "collision_obstructions": [],
+        "visual_hits": 0,
+        "collision_hits": 0,
+        "width": 7,
+        "height": 7.1,
+        "floor_y": 0
+      },
+      "fbx_round_trip": "passed; world bounds match source x 0.01 export scale"
+    },
+    "stepping-stumps": {
+      "triangles": 1276,
+      "source": "passed",
+      "flat_shading": "passed",
+      "closed_manifold": "passed",
+      "palette": "passed",
+      "collision_parts": 4,
+      "fbx_round_trip": "passed; world bounds match source x 0.01 export scale"
+    }
+  },
+  "failures": [],
+  "total_triangles": 5308,
+  "limitations": [
+    "Offline geometry and collision checks; not a live character playtest.",
+    "Default convex mesh collisions must be disabled; use supplied collision models."
+  ]
+}

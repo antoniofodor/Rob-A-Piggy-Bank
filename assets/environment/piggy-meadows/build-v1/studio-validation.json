@@ -1,0 +1,27 @@
+{
+  "missingGround": 0,
+  "checks": 843,
+  "ponds": [
+    {
+      "bedY": -7.5,
+      "x": -80.64,
+      "waterY": -1.4999980926513672,
+      "z": -206.5
+    },
+    {
+      "bedY": -7.5,
+      "x": 56.448,
+      "waterY": -1.5,
+      "z": 237
+    }
+  ],
+  "groundSections": 7,
+  "obstacles": 20,
+  "errors": [],
+  "meadowMeshes": 272,
+  "waterfallWaterCells": 30,
+  "borderParts": 114,
+  "meadowParts": 345,
+  "validationDate": "2026-09-23",
+  "note": "Read-only audit of the running Studio server after importing corrected upward-facing shoreline meshes."
+}

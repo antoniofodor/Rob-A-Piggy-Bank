@@ -1,0 +1,100 @@
+{
+  "type": "sRGB base-color atlases",
+  "size": [
+    1024,
+    1024
+  ],
+  "alpha": false,
+  "tiers": {
+    "rope": {
+      "rope": [
+        218,
+        181,
+        126
+      ],
+      "grip": [
+        91,
+        51,
+        30
+      ]
+    },
+    "braided": {
+      "rope": [
+        171,
+        113,
+        64
+      ],
+      "grip": [
+        65,
+        40,
+        29
+      ]
+    },
+    "golden": {
+      "rope": [
+        245,
+        186,
+        49
+      ],
+      "grip": [
+        115,
+        52,
+        31
+      ]
+    },
+    "elite": {
+      "rope": [
+        124,
+        62,
+        217
+      ],
+      "grip": [
+        239,
+        180,
+        48
+      ]
+    }
+  },
+  "uv_layout": {
+    "rope": {
+      "u": "unbounded; repeat every 0.60 authoring units",
+      "v": [
+        0.03,
+        0.6
+      ]
+    },
+    "grip_front": {
+      "u": [
+        0.03,
+        0.47
+      ],
+      "v": [
+        0.66,
+        0.96
+      ]
+    },
+    "grip_back_and_edges": {
+      "u": [
+        0.53,
+        0.97
+      ],
+      "v": [
+        0.66,
+        0.96
+      ]
+    }
+  },
+  "roblox": {
+    "mesh_color": [
+      255,
+      255,
+      255
+    ],
+    "maps": "one ColorMap/TextureID per tier; shared by both coil parts",
+    "normal_map": null,
+    "roughness_map": null,
+    "metalness_map": null
+  },
+  "elite": "same coil geometry; purple rope and gold grip with blue printed emblem",
+  "authoring": "generated from exact UV coordinates, no lighting baked into base colors"
+}
